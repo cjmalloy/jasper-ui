@@ -37,7 +37,6 @@ import { equalsRef, isRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
-import { generateStoryboardKeyframes } from '../../mods/thumbnail';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { isInlineSvg, ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
@@ -66,6 +65,14 @@ import {
 import { getExtension, getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { markRead } from '../../util/response';
+import {
+  storyboardAnimation,
+  storyboardHeight,
+  storyboardMargin,
+  storyboardSize,
+  storyboardUrl,
+  storyboardWidth,
+} from '../../util/storyboard';
 import {
   capturesAny,
   expandedTagsInclude,
@@ -479,83 +486,45 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   @HostBinding('style.--storyboard-url')
   get storyboardUrl(): string | null {
-    const resolvedUrl = this.storyboardRawUrl;
-    if (!resolvedUrl) return null;
-    const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    return `url("${escapedUrl}")`;
+    return storyboardUrl(this.storyboardRawUrl);
   }
 
   @memo
   @HostBinding('style.--storyboard-size')
   get storyboardSize(): string | null {
-    const sb = this.storyboardData;
-    if (!sb?.cols || !sb?.rows) return null;
-    const cols = Math.trunc(Number(sb.cols));
-    const rows = Math.trunc(Number(sb.rows));
-    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
-    return `${cols * 100}% ${rows * 100}%`;
+    return storyboardSize(this.storyboardData);
   }
 
   @memo
   @HostBinding('style.--storyboard-margin')
   get storyboardMargin(): string | null {
-    const sb = this.storyboardData;
-    if (!sb?.cols || !sb?.rows) return null;
-    const cols = Math.trunc(Number(sb.cols));
-    const rows = Math.trunc(Number(sb.rows));
-    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
-    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
-    if (sb.width > sb.height) return ((48 - (48 * sb.height / sb.width)) / 2) + 'px 10px 0 0';
-    const margin = ((48 - (48 * sb.width / sb.height)) / 2);
-    return '0 ' + (margin + 10) + 'px 0 ' + margin + 'px';
+    return storyboardMargin(this.storyboardData);
   }
 
   @memo
   @HostBinding('style.--storyboard-width')
   get storyboardWidth(): string | null {
-    const sb = this.storyboardData;
-    if (!sb?.cols || !sb?.rows) return null;
-    const cols = Math.trunc(Number(sb.cols));
-    const rows = Math.trunc(Number(sb.rows));
-    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
-    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
-    if (sb.width > sb.height) return '48px';
-    return (48 * sb.width / sb.height) + 'px';
-
+    return storyboardWidth(this.storyboardData);
   }
 
   @memo
   @HostBinding('style.--storyboard-height')
   get storyboardHeight(): string | null {
-    const sb = this.storyboardData;
-    if (!sb?.cols || !sb?.rows) return null;
-    const cols = Math.trunc(Number(sb.cols));
-    const rows = Math.trunc(Number(sb.rows));
-    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
-    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
-    if (sb.width > sb.height) return (48 * sb.height / sb.width) + 'px';
-    return '48px';
+    return storyboardHeight(this.storyboardData);
   }
 
   @memo
   @HostBinding('style.--storyboard-animation')
   get storyboardAnimation(): string | null {
-    const sb = this.storyboardData;
-    if (!sb?.cols || !sb?.rows) return null;
-    const cols = Math.trunc(Number(sb.cols));
-    const rows = Math.trunc(Number(sb.rows));
-    const totalFrames = cols * rows;
-    if (cols <= 0 || rows <= 0 || totalFrames > 10_000 || totalFrames < 2) return null;
-    const duration = 0.4;
-    const name = `storyboard-slide-${cols}x${rows}`;
-    const styleId = `style-${name}`;
-    if (!document.getElementById(styleId)) {
+    const animation = storyboardAnimation(this.storyboardData);
+    if (!animation) return null;
+    if (!document.getElementById(animation.styleId)) {
       const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = generateStoryboardKeyframes(name, cols, rows);
+      style.id = animation.styleId;
+      style.textContent = animation.keyframes;
       document.head.appendChild(style);
     }
-    return `${name} ${(totalFrames * duration).toFixed(2)}s linear infinite`;
+    return animation.value;
   }
 
   get obsoleteOrigin() {
