@@ -60,6 +60,37 @@ type AnimationState = {
   post: GameState;
 };
 
+function createInitialGameState(): GameState {
+  const state: GameState = {
+    bar: [],
+    blackDice: [],
+    blackOff: [],
+    board: [],
+    diceUsed: [],
+    lastMovedOff: { 'r': 0, 'b': 0 },
+    lastMovedSpots: {},
+    moves: [],
+    redDice: [],
+    redOff: [],
+    spots: range(24).map(index => (<Spot>{
+      index,
+      col: index < 12 ? index + 1 : 24 - index,
+      red: !(index % 2),
+      top: index < 12,
+      pieces: [] as Piece[],
+    })),
+  };
+  state.spots[ 0].pieces = [...'rr'] as Piece[];
+  state.spots[ 5].pieces = [...'bbbbb'] as Piece[];
+  state.spots[ 7].pieces = [...'bbb'] as Piece[];
+  state.spots[11].pieces = [...'rrrrr'] as Piece[];
+  state.spots[12].pieces = [...'bbbbb'] as Piece[];
+  state.spots[16].pieces = [...'rrr'] as Piece[];
+  state.spots[18].pieces = [...'rrrrr'] as Piece[];
+  state.spots[23].pieces = [...'bb'] as Piece[];
+  return state;
+}
+
 function getAnimation(state: GameState, update: string): AnimationState | null {
   if (update.includes('-')) {
     // Parse roll
@@ -528,19 +559,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   @Output()
   copied = new EventEmitter<string>();
 
-  state: GameState = {
-    bar: [],
-    blackDice: [],
-    blackOff: [],
-    board: [],
-    diceUsed: [],
-    lastMovedOff: { 'r': 0, 'b': 0 },
-    lastMovedSpots: {},
-    moves: [],
-    redDice: [],
-    redOff: [],
-    spots: [],
-  };
+  state: GameState = createInitialGameState();
   moveRedOff = false;
   moveBlackOff = false;
   start?: number;
@@ -691,27 +710,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   reset(board = '') {
-    this.state = {
-      bar: [],
-      blackDice: [],
-      blackOff: [],
-      board: [],
-      diceUsed: [],
-      lastMovedOff: { 'r': 0, 'b': 0 },
-      lastMovedSpots: {},
-      moves: [],
-      redDice: [],
-      redOff: [],
-      spots: range(24).map(index => (<Spot>{ index, col: index < 12 ? index + 1 : 24 - index, red: !(index % 2), top: index < 12, pieces: [] as string[] })),
-    };
-    this.state.spots[ 0].pieces = [...'rr'] as Piece[];
-    this.state.spots[ 5].pieces = [...'bbbbb'] as Piece[];
-    this.state.spots[ 7].pieces = [...'bbb'] as Piece[];
-    this.state.spots[11].pieces = [...'rrrrr'] as Piece[];
-    this.state.spots[12].pieces = [...'bbbbb'] as Piece[];
-    this.state.spots[16].pieces = [...'rrr'] as Piece[];
-    this.state.spots[18].pieces = [...'rrrrr'] as Piece[];
-    this.state.spots[23].pieces = [...'bb'] as Piece[];
+    this.state = createInitialGameState();
     try {
       load(this.state, board.split('\n').map(m => m.trim()).filter(m => !!m));
     } catch (e) {
@@ -974,6 +973,62 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (!this.animating) this.processAnimationQueue();
   }
 
+  private setAnimationCoordinates(animation: AnimationState, duration?: number) {
+    const fromSpot = animation.from === -1 ? null : animation.pre.spots.find(s => s.index === animation.from!);
+    const toSpot = animation.to === -2 || animation.to === -1 ? null : animation.pre.spots.find(s => s.index === animation.to!);
+
+    let fromCol = 0;
+    let fromRow = 0;
+    if (animation.from === -1) {
+      fromCol = 7;
+      fromRow = animation.piece === 'r' ? 1 : 0;
+    } else if (fromSpot) {
+      fromCol = fromSpot.col > 6 ? fromSpot.col + 1 : fromSpot.col;
+      fromRow = fromSpot.top ? 0 : 1;
+    }
+
+    let toCol = 0;
+    let toRow = 0;
+    if (animation.to === -1) {
+      toCol = 7;
+      toRow = animation.piece === 'r' ? 1 : 0;
+    } else if (animation.to === -2) {
+      toCol = 0;
+      toRow = animation.piece === 'r' ? 1 : 0;
+    } else if (toSpot) {
+      toCol = toSpot.col > 6 ? toSpot.col + 1 : toSpot.col;
+      toRow = toSpot.top ? 0 : 1;
+    }
+
+    const stackOffset = (stackIndex: number | undefined, spot: Spot | null) => {
+      let x = 0;
+      let y = stackIndex || 0;
+      if (stackIndex && stackIndex > 4) {
+        x -= 0.05;
+        y -= 5.2;
+        if (stackIndex > 9) {
+          x -= 0.05;
+          y -= 5.2;
+        }
+      }
+      if (spot && !spot.top) {
+        x = -x;
+        y = -y + 0.1;
+      }
+      return { x, y };
+    };
+
+    const fromOffset = stackOffset(animation.fromStackIndex, fromSpot);
+    const toOffset = stackOffset(animation.toStackIndex, toSpot);
+    this.el.nativeElement.style.setProperty('--xFrom', '' + (fromCol + fromOffset.x) * 2);
+    this.el.nativeElement.style.setProperty('--yFrom', '' + (fromRow * 12 + fromOffset.y * 0.86) * 2);
+    this.el.nativeElement.style.setProperty('--xTo', '' + (toCol + toOffset.x) * 2);
+    this.el.nativeElement.style.setProperty('--yTo', '' + (toRow * 12 + toOffset.y * 0.86) * 2);
+    if (duration !== undefined) {
+      this.el.nativeElement.style.setProperty('--move-duration', duration + 'ms');
+    }
+  }
+
   processAnimationQueue() {
     this.animating = false;
     delete this.animatedPiece;
@@ -1012,88 +1067,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       return;
     }
 
-    // Calculate coordinates for CSS animation
-    const fromSpot = animation.from === -1 ? null : animation.pre.spots.find(s => s.index === animation.from!);
-    const toSpot = animation.to === -2 || animation.to === -1 ? null : animation.pre.spots.find(s => s.index === animation.to!);
-
-    // Calculate grid positions
-    // From position
-    let fromCol = 0;
-    let fromRow = 0;
-    if (animation.from === -1) {
-      // From bar
-      fromCol = 7; // Bar is at column 8
-      fromRow = animation.piece === 'r' ? 1 : 0; // Red bar at bottom, black bar at top
-    } else if (fromSpot) {
-      fromCol = fromSpot.col > 6 ? fromSpot.col + 1 : fromSpot.col; // Account for bar gap
-      fromRow = fromSpot.top ? 0 : 1;
-    }
-
-    // To position
-    let toCol = 0;
-    let toRow = 0;
-    if (animation.to === -1) {
-      // To bar (piece being bumped)
-      toCol = 7;
-      toRow = animation.piece === 'r' ? 1 : 0; // Red bar at bottom, black bar at top
-    } else if (animation.to === -2) {
-      // To off (both at column 1)
-      toCol = 0;
-      toRow = animation.piece === 'r' ? 1 : 0; // Red off at bottom row, black off at top row
-    } else if (toSpot) {
-      toCol = toSpot.col > 6 ? toSpot.col + 1 : toSpot.col; // Account for bar gap
-      toRow = toSpot.top ? 0 : 1;
-    }
-
-    // Calculate stack offset adjustments
-    // Pieces stack vertically, with stacked pieces having additional y offsets
-    // For top spots, pieces stack downward; for bottom spots, upward
-    let fromStackOffsetX = 0;
-    let fromStackOffsetY = (animation.fromStackIndex || 0);
-    let toStackOffsetX = 0;
-    let toStackOffsetY = (animation.toStackIndex || 0);
-
-    if (animation.fromStackIndex) {
-      if (animation.fromStackIndex > 4) {
-        fromStackOffsetX -= 0.05;
-        fromStackOffsetY -= 5.2;
-        if (animation.fromStackIndex > 9) {
-          fromStackOffsetX -= 0.05;
-          fromStackOffsetY -= 5.2;
-        }
-      }
-    }
-    // Adjust sign based on whether it's a top or bottom spot
-    if (fromSpot && !fromSpot.top) {
-      fromStackOffsetY = -fromStackOffsetY + 0.1;
-      fromStackOffsetX = -fromStackOffsetX;
-    }
-
-    if (animation.toStackIndex) {
-      if (animation.toStackIndex > 4) {
-        toStackOffsetX -= 0.05;
-        toStackOffsetY -= 5.2;
-        if (animation.toStackIndex > 9) {
-          toStackOffsetX -= 0.05;
-          toStackOffsetY -= 5.2;
-        }
-      }
-    }
-    // Adjust sign based on whether it's a top or bottom spot
-    if (toSpot && !toSpot.top) {
-      toStackOffsetY = -toStackOffsetY + 0.1;
-      toStackOffsetX = -toStackOffsetX;
-    }
-
-    const xFrom = fromCol + fromStackOffsetX;
-    const yFrom = fromRow * 12 + fromStackOffsetY * 0.86;
-    const xTo = toCol + toStackOffsetX;
-    const yTo = toRow * 12 + toStackOffsetY * 0.86;
-
-    this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom * 2);
-    this.el.nativeElement.style.setProperty('--yFrom', '' + yFrom * 2);
-    this.el.nativeElement.style.setProperty('--xTo', '' + xTo * 2);
-    this.el.nativeElement.style.setProperty('--yTo', '' + yTo * 2);
+    this.setAnimationCoordinates(animation);
 
     requestAnimationFrame(() => {
       this.animatedPiece = animation;
@@ -1121,27 +1095,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.replayAnimations = [];
 
     // Start with initial state
-    let currentState: GameState = {
-      bar: [],
-      blackDice: [],
-      blackOff: [],
-      board: [],
-      diceUsed: [],
-      lastMovedOff: { 'r': 0, 'b': 0 },
-      lastMovedSpots: {},
-      moves: [],
-      redDice: [],
-      redOff: [],
-      spots: range(24).map(index => (<Spot>{ index, col: index < 12 ? index + 1 : 24 - index, red: !(index % 2), top: index < 12, pieces: [] as string[] })),
-    };
-    currentState.spots[ 0].pieces = [...'rr'] as Piece[];
-    currentState.spots[ 5].pieces = [...'bbbbb'] as Piece[];
-    currentState.spots[ 7].pieces = [...'bbb'] as Piece[];
-    currentState.spots[11].pieces = [...'rrrrr'] as Piece[];
-    currentState.spots[12].pieces = [...'bbbbb'] as Piece[];
-    currentState.spots[16].pieces = [...'rrr'] as Piece[];
-    currentState.spots[18].pieces = [...'rrrrr'] as Piece[];
-    currentState.spots[23].pieces = [...'bb'] as Piece[];
+    let currentState = createInitialGameState();
 
     // Build animation for each move
     for (const move of this.state.board) {
@@ -1295,81 +1249,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       return;
     }
 
-    // Calculate coordinates for CSS animation
-    const fromSpot = animation.from === -1 ? null : animation.pre.spots.find(s => s.index === animation.from!);
-    const toSpot = animation.to === -2 || animation.to === -1 ? null : animation.pre.spots.find(s => s.index === animation.to!);
-
-    // Calculate grid positions
-    let fromCol = 0;
-    let fromRow = 0;
-    if (animation.from === -1) {
-      fromCol = 7;
-      fromRow = animation.piece === 'r' ? 1 : 0;
-    } else if (fromSpot) {
-      fromCol = fromSpot.col > 6 ? fromSpot.col + 1 : fromSpot.col;
-      fromRow = fromSpot.top ? 0 : 1;
-    }
-
-    let toCol = 0;
-    let toRow = 0;
-    if (animation.to === -1) {
-      toCol = 7;
-      toRow = animation.piece === 'r' ? 1 : 0;
-    } else if (animation.to === -2) {
-      toCol = 0;
-      toRow = animation.piece === 'r' ? 1 : 0;
-    } else if (toSpot) {
-      toCol = toSpot.col > 6 ? toSpot.col + 1 : toSpot.col;
-      toRow = toSpot.top ? 0 : 1;
-    }
-
-    // Calculate stack offset adjustments
-    let fromStackOffsetX = 0;
-    let fromStackOffsetY = (animation.fromStackIndex || 0);
-    let toStackOffsetX = 0;
-    let toStackOffsetY = (animation.toStackIndex || 0);
-
-    if (animation.fromStackIndex) {
-      if (animation.fromStackIndex > 4) {
-        fromStackOffsetX -= 0.05;
-        fromStackOffsetY -= 5.2;
-        if (animation.fromStackIndex > 9) {
-          fromStackOffsetX -= 0.05;
-          fromStackOffsetY -= 5.2;
-        }
-      }
-    }
-    if (fromSpot && !fromSpot.top) {
-      fromStackOffsetY = -fromStackOffsetY + 0.1;
-      fromStackOffsetX = -fromStackOffsetX;
-    }
-
-    if (animation.toStackIndex) {
-      if (animation.toStackIndex > 4) {
-        toStackOffsetX -= 0.05;
-        toStackOffsetY -= 5.2;
-        if (animation.toStackIndex > 9) {
-          toStackOffsetX -= 0.05;
-          toStackOffsetY -= 5.2;
-        }
-      }
-    }
-    if (toSpot && !toSpot.top) {
-      toStackOffsetY = -toStackOffsetY + 0.1;
-      toStackOffsetX = -toStackOffsetX;
-    }
-
-    const xFrom = fromCol + fromStackOffsetX;
-    const yFrom = fromRow * 12 + fromStackOffsetY * 0.86;
-    const xTo = toCol + toStackOffsetX;
-    const yTo = toRow * 12 + toStackOffsetY * 0.86;
-
     const totalDuration = 1500 / this.replaySpeed;
-    this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom * 2);
-    this.el.nativeElement.style.setProperty('--yFrom', '' + yFrom * 2);
-    this.el.nativeElement.style.setProperty('--xTo', '' + xTo * 2);
-    this.el.nativeElement.style.setProperty('--yTo', '' + yTo * 2);
-    this.el.nativeElement.style.setProperty('--move-duration', totalDuration + 'ms');
+    this.setAnimationCoordinates(animation, totalDuration);
 
     requestAnimationFrame(() => {
       this.animatedPiece = animation;
