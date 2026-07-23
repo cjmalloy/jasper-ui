@@ -27,6 +27,7 @@ import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
+import { jezzballMod } from '../mods/games/jezzball';
 import { helpMod } from '../mods/help';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
@@ -199,6 +200,7 @@ export class AdminService {
     pipMod,
     chessMod,
     backgammonMod,
+    jezzballMod,
     pollMod,
     todoMod,
     ninjaTriangleMod,
