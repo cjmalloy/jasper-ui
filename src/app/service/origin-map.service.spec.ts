@@ -30,7 +30,7 @@ describe('OriginMapService', () => {
   // @ts-ignore
   const setApi = (api: string) => service.config.api = api;
   // @ts-ignore
-  const setLocal = (origin: string) => service.store.account.origin = origin;
+  const setLocal = (origin: string) => { service.store.account.origin = origin; service.store.origins.accountAliases = service.accountAliases; };
   // @ts-ignore
   const selfApis = () => service.selfApis;
   // @ts-ignore

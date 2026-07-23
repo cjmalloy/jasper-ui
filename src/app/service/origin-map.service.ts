@@ -191,7 +191,7 @@ export class OriginMapService {
 
   aliasesFor(selector: string, origin?: string): string[] {
     const local = localTag(selector);
-    return uniq(this.accountAliases
+    return uniq(this.store.origins.accountAliases
       .filter(alias => origin === undefined || alias.origin === origin)
       .filter(alias => selectorMatches(alias.local, local))
       .map(alias => alias.remote + local.substring(alias.local.length) + alias.origin));
