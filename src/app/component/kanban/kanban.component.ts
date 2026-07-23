@@ -128,11 +128,9 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
 
   loadPinned() {
     this.pinnedRequest?.unsubscribe();
+    this.pinned = [];
     const pinned = this.ext?.config?.pinned as string[] | undefined;
-    if (!pinned?.length) {
-      this.pinned = [];
-      return;
-    }
+    if (!pinned?.length) return;
     this.pinnedRequest = forkJoin(pinned.map(url =>
       this.refs.getCurrent(url).pipe(catchError(() => of({ url })))
     )).subscribe(refs => this.pinned = refs);

@@ -32,6 +32,19 @@ describe('LensComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('uses the list renderer while retaining the active Ext', () => {
+    vi.spyOn(component.admin, 'getTemplate').mockReturnValue({ tag: 'kanban' } as any);
+    component.ext = {
+      tag: 'kanban/test',
+      origin: '',
+      config: { pinned: ['https://example.com/pinned'] },
+    };
+    component.listView = true;
+
+    expect(component.isTemplate('kanban')).toBe(false);
+    expect(component.ext.config?.pinned).toEqual(['https://example.com/pinned']);
+  });
+
   it.each([
     ['sourcesOf', '.sources-of'],
     ['responseOf', '.responses-of'],

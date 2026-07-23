@@ -3,7 +3,7 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 import { RefService } from '../../service/api/ref.service';
 import { KanbanComponent } from './kanban.component';
@@ -51,6 +51,21 @@ describe('KanbanComponent', () => {
       title: 'Pinned card',
     }]);
     expect(fixture.nativeElement.querySelectorAll('.kanban-pinned .kanban-card')).toHaveLength(1);
+  });
+
+  it('clears existing pins while a different Ext loads', () => {
+    const refs = TestBed.inject(RefService);
+    vi.spyOn(refs, 'getCurrent').mockReturnValue(new Observable(() => {}));
+    component.pinned = [{ url: 'https://example.com/old' }];
+    component.ext = {
+      tag: 'kanban/next',
+      origin: '',
+      config: { pinned: ['https://example.com/next'] },
+    };
+
+    component.loadPinned();
+
+    expect(component.pinned).toEqual([]);
   });
 
   describe('saveChanges navigation guard', () => {

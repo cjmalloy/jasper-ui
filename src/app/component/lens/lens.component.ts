@@ -52,6 +52,8 @@ export class LensComponent implements OnChanges, HasChanges {
   @Input()
   fullPage = false;
   @Input()
+  listView = false;
+  @Input()
   cols? = 0;
   @Input()
   size = 24;
@@ -102,7 +104,7 @@ export class LensComponent implements OnChanges, HasChanges {
   }
 
   isTemplate(template: string) {
-    return this.admin.getTemplate(template) && hasPrefix(this.ext?.tag, template);
+    return !this.listView && this.admin.getTemplate(template) && hasPrefix(this.ext?.tag, template);
   }
 
   cssClass(tag?: string) {
