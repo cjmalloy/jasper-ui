@@ -118,7 +118,8 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await pollRemoteNotifications(page, replUrl, 'charlie');
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    await expect(page.locator('.ref-list .link:not(.remote)', { hasText: refFromOtherTitle })).toBeVisible();
+    const ref = page.locator('.ref-list .link:not(.remote)', { hasText: refFromOtherTitle }).locator('..').locator('..').locator('..');
+    await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
   });
 
   test('@\u{ff20}main : check ref was pulled', async ({ page }) => {
