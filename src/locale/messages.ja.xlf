@@ -2205,18 +2205,6 @@ Private tags start with an underscore.
         <source>Standard</source>
         <target>標準</target>
       </trans-unit>
-      <trans-unit id="8524281477208345092" datatype="html">
-        <source>Style:</source>
-        <target>スタイル:</target>
-      </trans-unit>
-      <trans-unit id="5017844948347016797" datatype="html">
-        <source>Vivid</source>
-        <target>ビビッド</target>
-      </trans-unit>
-      <trans-unit id="6470420478868981511" datatype="html">
-        <source>Natural</source>
-        <target>ナチュラル</target>
-      </trans-unit>
       <trans-unit id="1233489846656641397" datatype="html">
         <source>Use URL:</source>
         <target>URLを使用:</target>
@@ -7101,6 +7089,166 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="5718968085404318702" datatype="html">
         <source>My voted Refs</source>
         <target>自分が投票したRef</target>
+      </trans-unit>
+      <trans-unit id="1268962024828443790" datatype="html">
+        <source>🍌️ Neo Banana</source>
+      </trans-unit>
+      <trans-unit id="1668629014382094042" datatype="html">
+        <source>🍌️💭️ Ask Neo Banana</source>
+        <target>🍌️💭️ Neo Bananaに依頼</target>
+      </trans-unit>
+      <trans-unit id="2340307097463480010" datatype="html">
+        <source>ask neo banana</source>
+        <target>neo bananaに依頼</target>
+      </trans-unit>
+      <trans-unit id="2353981104749482146" datatype="html">
+        <source>🍌️</source>
+      </trans-unit>
+      <trans-unit id="2483701231205260409" datatype="html">
+        <source>🍌️💭️</source>
+      </trans-unit>
+      <trans-unit id="2713113269847483218" datatype="html">
+        <source>Image Size:</source>
+        <target>画像サイズ:</target>
+      </trans-unit>
+      <trans-unit id="3890038979196090805" datatype="html">
+        <source>Landscape 4:3</source>
+        <target>横向き 4:3</target>
+      </trans-unit>
+      <trans-unit id="3966782841358489935" datatype="html">
+        <source>Portrait 3:4</source>
+        <target>縦向き 3:4</target>
+      </trans-unit>
+      <trans-unit id="4112074096929505201" datatype="html">
+        <source>Aspect Ratio:</source>
+        <target>アスペクト比:</target>
+      </trans-unit>
+      <trans-unit id="4305285322518057719" datatype="html">
+        <source>1K</source>
+      </trans-unit>
+      <trans-unit id="5502088571567674916" datatype="html">
+        <source>4K</source>
+      </trans-unit>
+      <trans-unit id="550762586054059391" datatype="html">
+        <source>🟣️</source>
+      </trans-unit>
+      <trans-unit id="5858455316969437091" datatype="html">
+        <source>Saved example</source>
+        <target>保存済みサンプル</target>
+      </trans-unit>
+      <trans-unit id="8350568145674123707" datatype="html">
+        <source>This Ref is read-only; progress will not be saved.</source>
+        <target>このRefは読み取り専用です。進行状況は保存されません。</target>
+      </trans-unit>
+      <trans-unit id="7182974689040833178" datatype="html">
+        <source>Resume</source>
+        <target>再開</target>
+      </trans-unit>
+      <trans-unit id="6080928629553303128" datatype="html">
+        <source>Slow</source>
+        <target>低速</target>
+      </trans-unit>
+      <trans-unit id="4440784179849538382" datatype="html">
+        <source>Fast</source>
+        <target>高速</target>
+      </trans-unit>
+      <trans-unit id="8973244013586619309" datatype="html">
+        <source>Sound on</source>
+        <target>サウンドオン</target>
+      </trans-unit>
+      <trans-unit id="7835949021036102347" datatype="html">
+        <source>Sound off</source>
+        <target>サウンドオフ</target>
+      </trans-unit>
+      <trans-unit id="2128624502640961509" datatype="html">
+        <source>New game</source>
+        <target>新しいゲーム</target>
+      </trans-unit>
+      <trans-unit id="6962699013778688473" datatype="html">
+        <source>Continue</source>
+        <target>続ける</target>
+      </trans-unit>
+      <trans-unit id="8755464126317616831" datatype="html">
+        <source>Level {level}</source>
+        <target>レベル {level}</target>
+      </trans-unit>
+      <trans-unit id="1663762044916325727" datatype="html">
+        <source>Lives {lives}</source>
+        <target>残機 {lives}</target>
+      </trans-unit>
+      <trans-unit id="6134450866822012379" datatype="html">
+        <source>Filled {filled}%</source>
+        <target>占有率 {filled}%</target>
+      </trans-unit>
+      <trans-unit id="9024032865625543959" datatype="html">
+        <source>Time {time}</source>
+        <target>残り時間 {time}</target>
+      </trans-unit>
+      <trans-unit id="2747457531544510288" datatype="html">
+        <source>Score {score}</source>
+        <target>スコア {score}</target>
+      </trans-unit>
+      <trans-unit id="8006598437672035003" datatype="html">
+        <source>Wall ↕</source>
+        <target>壁 ↕</target>
+      </trans-unit>
+      <trans-unit id="2676701399964654601" datatype="html">
+        <source>Wall ↔</source>
+        <target>壁 ↔</target>
+      </trans-unit>
+      <trans-unit id="1010824126943413606" datatype="html">
+        <source>Level {level} complete</source>
+        <target>レベル {level} クリア</target>
+      </trans-unit>
+      <trans-unit id="8135923080030537232" datatype="html">
+        <source>Game over · score {score}</source>
+        <target>ゲームオーバー · スコア {score}</target>
+      </trans-unit>
+      <trans-unit id="7935139414809961172" datatype="html">
+        <source>Final score {score}</source>
+        <target>最終スコア {score}</target>
+      </trans-unit>
+      <trans-unit id="2671274276626285315" datatype="html">
+        <source>Click, press Enter, or tap with two fingers to build a wall. Two-finger alignment sets its direction. Use the arrow keys to move the keyboard cursor. Right-click, Space, or the direction button changes direction. Press P to pause.</source>
+        <target>クリック、Enterキー、または2本指のタップで壁を作ります。2本指の並びで壁の方向が決まります。矢印キーでキーボードカーソルを移動します。右クリック、Spaceキー、または方向ボタンで壁の方向を変更します。Pキーで一時停止します。</target>
+      </trans-unit>
+      <trans-unit id="5885261957820095227" datatype="html">
+        <source>Play a faithful remake of the classic JezzBall game.</source>
+        <target>クラシックゲーム「JezzBall」を忠実に再現したリメイクをプレイします。</target>
+      </trans-unit>
+      <trans-unit id="4617000983840234050" datatype="html">
+        <source>🏆️ Score</source>
+        <target>🏆️ スコア</target>
+      </trans-unit>
+      <trans-unit id="7369467455665573995" datatype="html">
+        <source>Store a numeric score on a Ref.</source>
+        <target>Refに数値スコアを保存します。</target>
+      </trans-unit>
+      <trans-unit id="4580907610151762865" datatype="html">
+        <source>🏆️ score</source>
+        <target>🏆️ スコア</target>
+      </trans-unit>
+      <trans-unit id="7123653594948067002" datatype="html">
+        <source>Score</source>
+        <target>スコア</target>
+      </trans-unit>
+      <trans-unit id="619579233408959722" datatype="html">
+        <source>2K</source>
+      </trans-unit>
+      <trans-unit id="6291710928695103454" datatype="html">
+        <source>JezzBall games</source>
+        <target>JezzBallゲーム</target>
+      </trans-unit>
+      <trans-unit id="6543363048987109722" datatype="html">
+        <source>🟣️ JezzBall</source>
+      </trans-unit>
+      <trans-unit id="8411343513925653444" datatype="html">
+        <source>Generate an image with Neo Banana.</source>
+        <target>Neo Bananaで画像を生成します。</target>
+      </trans-unit>
+      <trans-unit id="8417449697830862117" datatype="html">
+        <source>Neo Banana image-generation signature tag.</source>
+        <target>Neo Banana画像生成シグネチャタグ。</target>
       </trans-unit>
     </body>
   </file>
