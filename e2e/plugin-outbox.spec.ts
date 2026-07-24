@@ -106,6 +106,11 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await expect(page.locator('.settings .notification')).toBeHidden();
   });
 
+  test('@\u{ff20}repl : initialize Charlie local cursor', async ({ page }) => {
+    await page.goto(replUrl + '/?debug=USER&tag=charlie', { waitUntil: 'networkidle' });
+    await expect(page.locator('.settings .notification')).toBeHidden();
+  });
+
   test('@\u{ff20}repl : creates ref', async ({ page }) => {
     await page.goto(replUrl + '/?debug=USER&tag=bob');
     await openSidebar(page);
