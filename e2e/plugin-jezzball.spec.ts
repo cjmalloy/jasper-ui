@@ -392,6 +392,10 @@ test.describe.serial('JezzBall Plugin', () => {
       [...element.getContext('2d')!.getImageData(8 * 25 + 12, 14 * 25 + 12, 1, 1).data]
     ));
     expect(survivingPixel.slice(0, 3)).toEqual([0, 0, 0]);
+    const capturedGridPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
+      [...element.getContext('2d')!.getImageData(8 * 25 + 12, 14 * 25 + 5, 1, 1).data]
+    ));
+    expect(capturedGridPixel.slice(0, 3)).toEqual([0, 0, 0]);
   });
 
   test('breaks unfinished walls without bouncing the atom', async () => {

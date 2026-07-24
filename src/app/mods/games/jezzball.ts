@@ -34,7 +34,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 1,
+    version: 2,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -500,16 +500,6 @@ export const jezzballPlugin: Plugin = {
           g.fillStyle = '#777';
           g.fillRect(0, 0, canvas.width, canvas.height);
 
-          for (let y = 0; y < ROWS; y++) {
-            for (let x = 0; x < COLS; x++) {
-              const color = occupied[id(x, y)];
-              if (color) {
-                g.fillStyle = '#000';
-                g.fillRect(x * CELL, y * CELL, CELL, CELL);
-              }
-            }
-          }
-
           g.strokeStyle = 'rgba(255,255,255,.08)';
           g.lineWidth = 1;
           for (let x = 0; x < COLS; x++) {
@@ -523,6 +513,16 @@ export const jezzballPlugin: Plugin = {
             g.moveTo(0, (y + 0.5) * CELL);
             g.lineTo(canvas.width, (y + 0.5) * CELL);
             g.stroke();
+          }
+
+          for (let y = 0; y < ROWS; y++) {
+            for (let x = 0; x < COLS; x++) {
+              const color = occupied[id(x, y)];
+              if (color) {
+                g.fillStyle = '#000';
+                g.fillRect(x * CELL, y * CELL, CELL, CELL);
+              }
+            }
           }
 
           if (wall) {
