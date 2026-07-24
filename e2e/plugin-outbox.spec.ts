@@ -101,7 +101,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}repl : creates ref', async ({ page }) => {
-    await page.goto(replUrl + '/?debug=USER&tag=bob');
+    await page.goto(replUrl + '/?debug=USER&tag=bob', { waitUntil: 'networkidle' });
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
