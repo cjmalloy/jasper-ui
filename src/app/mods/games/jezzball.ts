@@ -59,7 +59,7 @@ export const jezzballPlugin: Plugin = {
         const ROWS = 24;
         const CELL = 25;
         const TARGET = 75;
-        const MAX_LEVEL = 100;
+        const MAX_BALLS = 50;
         const WALL_STEP_SLOW = 0.1;
         const WALL_STEP_FAST = 0.05;
         const BALL_RADIUS = 0.34;
@@ -67,7 +67,7 @@ export const jezzballPlugin: Plugin = {
         const labels = ${jezzballLabelsSource};
         const initial = api && api.initial && typeof api.initial === 'object' ? api.initial : {};
         const writable = !api || api.writable !== false;
-        let level = Number.isInteger(initial.level) && initial.level > 0 ? Math.min(initial.level, MAX_LEVEL) : 1;
+        let level = Number.isSafeInteger(initial.level) && initial.level > 0 ? initial.level : 1;
         let score = Number.isFinite(initial.score) && initial.score >= 0 ? Math.floor(initial.score) : 0;
         let checkpoint = { level: level, score: score, final: !!initial.final };
         let lives = 3;
@@ -197,7 +197,7 @@ export const jezzballPlugin: Plugin = {
 
         function placeBalls() {
           balls = [];
-          for (let i = 0; i < level + 1; i++) {
+          for (let i = 0; i < Math.min(level + 1, MAX_BALLS); i++) {
             const velocity = randomVelocity();
             let x;
             let y;
@@ -324,12 +324,18 @@ export const jezzballPlugin: Plugin = {
           const reachable = new Uint8Array(COLS * ROWS);
           const queue = [];
           for (const ball of balls) {
-            const x = Math.max(0, Math.min(COLS - 1, Math.floor(ball.x)));
-            const y = Math.max(0, Math.min(ROWS - 1, Math.floor(ball.y)));
-            const ballId = id(x, y);
-            if (!occupied[ballId] && !reachable[ballId]) {
-              reachable[ballId] = 1;
-              queue.push(ballId);
+            const minX = Math.max(0, Math.floor(ball.x - BALL_RADIUS));
+            const maxX = Math.min(COLS - 1, Math.floor(ball.x + BALL_RADIUS));
+            const minY = Math.max(0, Math.floor(ball.y - BALL_RADIUS));
+            const maxY = Math.min(ROWS - 1, Math.floor(ball.y + BALL_RADIUS));
+            for (let y = minY; y <= maxY; y++) {
+              for (let x = minX; x <= maxX; x++) {
+                const ballId = id(x, y);
+                if (!occupied[ballId] && !reachable[ballId] && circleTouchesCell(ball.x, ball.y, x, y)) {
+                  reachable[ballId] = 1;
+                  queue.push(ballId);
+                }
+              }
             }
           }
           for (let head = 0; head < queue.length; head++) {
@@ -369,7 +375,7 @@ export const jezzballPlugin: Plugin = {
           const filled = percentFilled();
           if (filled >= TARGET) {
             score += level * 100 + filled * 5 + Math.ceil(remaining) + lives * 25;
-            level = Math.min(level + 1, MAX_LEVEL);
+            level++;
             checkpoint = { level: level, score: score, final: false };
             if (api && typeof api.save === 'function') api.save(checkpoint);
             playSound(720, 0.16);
@@ -699,6 +705,7 @@ export const jezzballPlugin: Plugin = {
 
         if (checkpoint.final) {
           placeBalls();
+          lives = balls.length;
           showMessage(format(labels.finalScore, { score: score }), labels.newGame, function() {
             level = 1;
             score = 0;

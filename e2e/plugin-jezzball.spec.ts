@@ -104,7 +104,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
     await page.locator('[name=title]').fill(title);
     await page.locator('.add-plugins-label select').selectOption('plugin/jezzball');
-    await page.locator('.editor textarea').fill('{"level":3,"score":450,"final":true}');
+    await page.locator('.editor textarea').fill('{"level":101,"score":450,"final":true}');
     await page.getByText('show advanced').click();
     await page.locator('[name=published]').fill('2026-01-01T00:00');
     await page.locator('[name=published]').blur();
@@ -122,7 +122,8 @@ test.describe.serial('JezzBall Plugin', () => {
     const game = page.locator('.full-page.ref .jezzball-game');
     await expect(game.locator('.jezzball-canvas')).toBeVisible();
     await expect(game.locator('.jezzball-overlay')).toContainText('Final score 450');
-    await expect(game.locator('.jezzball-level')).toHaveText('Level 3');
+    await expect(game.locator('.jezzball-level')).toHaveText('Level 101');
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives 50');
 
     const direction = game.locator('.jezzball-direction');
     const canvas = game.locator('.jezzball-canvas');
@@ -466,7 +467,7 @@ test.describe.serial('JezzBall Plugin', () => {
         y: box.height * 10.5 / 24,
       },
     });
-    await advanceGame(page, 3);
+    await advanceGame(page, 8);
 
     await expect(game.locator('.jezzball-lives')).toHaveText('Lives 0');
     await expect(game.locator('.jezzball-overlay')).toContainText(/Game over · score \d+/);
