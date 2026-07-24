@@ -103,7 +103,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
     await page.locator('[name=title]').fill(title);
-    await page.locator('.add-plugins-label select').selectOption('plugin/jezzball');
+    await page.locator('.select-plugin select').selectOption('plugin/jezzball');
     await page.locator('.editor textarea').fill('A saved JezzBall game.');
     await page.getByText('show advanced').click();
     await page.locator('[name=published]').fill('2026-01-01T00:00');
