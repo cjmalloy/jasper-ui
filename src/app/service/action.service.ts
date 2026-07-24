@@ -22,7 +22,7 @@ import { TaggingService } from './api/tagging.service';
 export class ActionService {
 
   private updateQueues = new Map<string, {
-    updates: Partial<Pick<Ref, 'comment' | 'plugins'>>,
+    plugins: Record<string, unknown>,
     ref: Ref,
   }[]>();
 
@@ -46,9 +46,9 @@ export class ActionService {
         if (!ref) throw 'Error: No ref to save';
         this.plugin(tag, value, ref);
       },
-      update: (updates: Partial<Pick<Ref, 'comment' | 'plugins'>>) => {
+      update: (plugins: Record<string, unknown>) => {
         if (!ref) throw 'Error: No ref to save';
-        this.update(updates, ref);
+        this.update(plugins, ref);
       },
       event: (event: string) => {
         this.event(event, ref);
@@ -184,9 +184,9 @@ export class ActionService {
     );
   }
 
-  update(updates: Partial<Pick<Ref, 'comment' | 'plugins'>>, ref: Ref) {
+  update(plugins: Record<string, unknown>, ref: Ref) {
     const key = `${this.store.account.origin}\0${ref.url}`;
-    const queued = { updates, ref };
+    const queued = { plugins, ref };
     const queue = this.updateQueues.get(key);
     if (queue) {
       queue.push(queued);
@@ -199,8 +199,8 @@ export class ActionService {
   private runNextUpdate(key: string) {
     const queue = this.updateQueues.get(key);
     if (!queue?.length) return;
-    const { updates, ref } = queue[0];
-    this.store.eventBus.runAndRefresh$(this.update$(updates, ref), ref).pipe(
+    const { plugins, ref } = queue[0];
+    this.store.eventBus.runAndRefresh$(this.update$(plugins, ref), ref).pipe(
       catchError(() => EMPTY),
       finalize(() => {
         queue.shift();
@@ -213,21 +213,15 @@ export class ActionService {
     ).subscribe();
   }
 
-  update$(updates: Partial<Pick<Ref, 'comment' | 'plugins'>>, ref: Ref): Observable<string> {
+  update$(plugins: Record<string, unknown>, ref: Ref): Observable<string> {
     const save = (target: Ref) => {
-      const patch: OpPatch[] = [];
-      if (updates.comment !== undefined) {
-        patch.push({ op: 'add', path: '/comment', value: updates.comment });
-      }
-      if (updates.plugins) {
-        if (target.plugins) {
-          for (const [tag, value] of Object.entries(updates.plugins)) {
-            patch.push({ op: 'add', path: '/plugins/' + escapePath(tag), value });
-          }
-        } else {
-          patch.push({ op: 'add', path: '/plugins', value: updates.plugins });
-        }
-      }
+      const patch: OpPatch[] = target.plugins
+        ? Object.entries(plugins).map(([tag, value]) => ({
+          op: 'add',
+          path: '/plugins/' + escapePath(tag),
+          value,
+        }))
+        : [{ op: 'add', path: '/plugins', value: plugins }];
       return this.refs.patch(
         target.url,
         this.store.account.origin,
@@ -243,8 +237,7 @@ export class ActionService {
         return throwError(() => err);
       }),
       tap(cursor => runInAction(() => {
-        if (updates.comment !== undefined) ref.comment = updates.comment;
-        if (updates.plugins) ref.plugins = { ...ref.plugins, ...updates.plugins };
+        ref.plugins = { ...ref.plugins, ...plugins };
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
       })),

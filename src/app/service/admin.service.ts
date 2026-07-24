@@ -60,7 +60,6 @@ import { todoMod } from '../mods/org/todo';
 import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/org/wiki';
 import { repostMod } from '../mods/repost';
 import { rootMod } from '../mods/root';
-import { scoreMod } from '../mods/score';
 import { emailMod } from '../mods/sync/email';
 import { feedMod } from '../mods/sync/feed';
 import { remoteOriginMod } from '../mods/sync/origin';
@@ -196,7 +195,6 @@ export class AdminService {
     ytdlpMod,
     markitdownMod,
     voteMod,
-    scoreMod,
     imageMod,
     lensMod,
     pipMod,

@@ -82,11 +82,11 @@ test.describe.serial('JezzBall Plugin', () => {
   });
 
   test('turns on JezzBall', async () => {
-    await mod(page, '#mod-experiments', '#mod-score', '#mod-jezzball');
+    await mod(page, '#mod-experiments', '#mod-jezzball');
   });
 
   test('creates a saved game', async () => {
-    await mod(page, '#mod-experiments', '#mod-score', '#mod-jezzball');
+    await mod(page, '#mod-experiments', '#mod-jezzball');
     await page.goto('/tag/@*?search=' + encodeURIComponent(title) + '&debug=ADMIN');
     for (let i = 0; i < 5; i++) {
       const deleteAction = page.locator('.ref-list .ref').filter({ hasText: title })
@@ -104,15 +104,34 @@ test.describe.serial('JezzBall Plugin', () => {
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
     await page.locator('[name=title]').fill(title);
     await page.locator('.add-plugins-label select').selectOption('plugin/jezzball');
-    await page.locator('.editor textarea').fill('{"level":101,"score":450,"final":true}');
+    await page.locator('.editor textarea').fill('A saved JezzBall game.');
     await page.getByText('show advanced').click();
     await page.locator('[name=published]').fill('2026-01-01T00:00');
     await page.locator('[name=published]').blur();
+    await page.route('**/api/v1/ref', async route => {
+      const request = route.request();
+      if (request.method() !== 'POST') {
+        await route.continue();
+        return;
+      }
+      const body = request.postDataJSON();
+      await route.continue({
+        postData: JSON.stringify({
+          ...body,
+          plugins: {
+            ...body.plugins,
+            'plugin/jezzball': { level: 101, score: 450, final: true },
+            'plugin/score': 450,
+          },
+        }),
+      });
+    });
     const submitPromise = page.waitForResponse(resp => (
       resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST' && resp.ok()
     ));
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
     await submitPromise;
+    await page.unroute('**/api/v1/ref');
     await expect(page.locator('.full-page.ref .link a').first()).toHaveText(title);
     await expect(page).toHaveURL(/\/ref\//);
     gamePath = new URL(page.url()).pathname;
@@ -221,7 +240,7 @@ test.describe.serial('JezzBall Plugin', () => {
       if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
       const body = resp.request().postDataJSON();
       return Array.isArray(body)
-        && body.some(op => op.path === '/comment')
+        && body.some(op => op.path === '/plugins/plugin~1jezzball')
         && body.some(op => op.path === '/plugins/plugin~1score');
     });
     await game.locator('.jezzball-new-game').click();
@@ -373,7 +392,8 @@ test.describe.serial('JezzBall Plugin', () => {
       (result, part, index) => result + (index ? expressions[index - 1] : '') + part,
       '',
     );
-    const { jezzballPlugin } = await import('../src/app/mods/games/jezzball');
+    const { jezzballMod, jezzballPlugin } = await import('../src/app/mods/games/jezzball');
+    expect(jezzballMod.plugin?.map(plugin => plugin.tag)).toContain('plugin/score');
     const snippet = jezzballPlugin.config?.snippet;
     if (!snippet) throw new Error('JezzBall plugin has no snippet');
     const scriptSource = snippet.match(/<script>([\s\S]*)<\/script>/)?.[1];
@@ -382,7 +402,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await page.setContent('<div class="jezzball-game"></div>');
     await page.evaluate(source => {
       let helper: (
-        ref: { comment: string },
+        ref: { plugins: Record<string, unknown> },
         actions: object,
         element: Document,
       ) => () => void = () => () => {};
@@ -396,7 +416,7 @@ test.describe.serial('JezzBall Plugin', () => {
       const script = document.createElement('script');
       script.textContent = source;
       document.head.appendChild(script);
-      helper({ comment: '{"level":1,"score":0,"final":true}' }, {}, document)();
+      helper({ plugins: { 'plugin/jezzball': { level: 1, score: 0, final: true } } }, {}, document)();
     }, scriptSource);
     await installDeterministicGameClock(page);
     await placeTestBalls(page, [
