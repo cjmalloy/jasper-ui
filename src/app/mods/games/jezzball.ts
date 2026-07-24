@@ -822,7 +822,6 @@ export const jezzballTemplate: Template = {
     }],
   },
   defaults: <RootConfig> {
-    defaultExpanded: true,
     submitText: true,
     defaultSort: ['plugins->plugin/score:num,DESC', 'modified,DESC'],
     defaultCols: 1,
