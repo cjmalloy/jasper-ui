@@ -155,13 +155,13 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(direction).toHaveText('Wall ↔');
     await expect(canvas).toHaveCSS('cursor', 'ew-resize');
     const speed = game.locator('.jezzball-speed');
-    await expect(speed).toHaveText('Fast');
+    await expect(speed).toHaveText('🐇');
     await speed.click();
-    await expect(speed).toHaveText('Slow');
+    await expect(speed).toHaveText('🐢');
     const sound = game.locator('.jezzball-sound');
-    await expect(sound).toHaveText('Sound on');
+    await expect(sound).toHaveText('🔊');
     await sound.click();
-    await expect(sound).toHaveText('Sound off');
+    await expect(sound).toHaveText('🔇');
     await expect(game.locator('.jezzball-filled')).toHaveText('Filled 0%');
     const backgroundPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
       [...element.getContext('2d')!.getImageData(1 * 25 + 5, 1 * 25 + 5, 1, 1).data]

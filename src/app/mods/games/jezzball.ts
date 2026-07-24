@@ -75,8 +75,8 @@ export const jezzballPlugin: Plugin = {
         width: min(100%, 850px);
         margin: 0 auto;
         color: var(--text, #ddd);
-        font-weight: bold;
         font: 14px system-ui, sans-serif;
+        font-weight: bold;
         outline: none;
       }
       .jezzball-game * {
