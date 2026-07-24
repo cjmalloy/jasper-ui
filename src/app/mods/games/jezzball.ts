@@ -34,7 +34,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 3,
+    version: 4,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -210,7 +210,6 @@ export const jezzballPlugin: Plugin = {
         function resetLevel() {
           occupied = new Uint8Array(COLS * ROWS);
           wall = null;
-          lives = 3;
           remaining = LEVEL_SECONDS;
           paused = false;
           running = true;
@@ -218,6 +217,7 @@ export const jezzballPlugin: Plugin = {
           overlay.classList.remove('visible');
           pauseButton.textContent = labels.pause;
           placeBalls();
+          lives = balls.length;
           updateHud();
         }
 
@@ -309,19 +309,6 @@ export const jezzballPlugin: Plugin = {
           end.y = ny;
           end.cells.add(id(nx, ny));
           return true;
-        }
-
-        function bounceFromLeadingEdge(half, direction) {
-          for (const ball of balls) {
-            if (!circleTouchesCell(ball.x, ball.y, half.x, half.y)) continue;
-            if (wall.orientation === 'horizontal') {
-              ball.x = direction < 0 ? half.x - BALL_RADIUS : half.x + 1 + BALL_RADIUS;
-              ball.vx = direction < 0 ? -Math.abs(ball.vx) : Math.abs(ball.vx);
-            } else {
-              ball.y = direction < 0 ? half.y - BALL_RADIUS : half.y + 1 + BALL_RADIUS;
-              ball.vy = direction < 0 ? -Math.abs(ball.vy) : Math.abs(ball.vy);
-            }
-          }
         }
 
         function fillCapturedAreas() {
@@ -428,11 +415,8 @@ export const jezzballPlugin: Plugin = {
 
         function ballTouchesHalf(ball, half, direction) {
           if (!wall) return false;
-          const leadingCell = id(half.x, half.y);
           const originCell = id(wall.origin.x, wall.origin.y);
-          if (circleTouchesCell(ball.x, ball.y, half.x, half.y)) return false;
           for (const cellId of half.cells) {
-            if (cellId === leadingCell) continue;
             const x = cellId % COLS;
             const y = Math.floor(cellId / COLS);
             if (cellId === originCell) {
@@ -454,16 +438,6 @@ export const jezzballPlugin: Plugin = {
             for (let cx = minX; cx <= maxX; cx++) {
               if (cx < 0 || cy < 0 || cx >= COLS || cy >= ROWS) continue;
               if (occupied[id(cx, cy)] && circleTouchesCell(x, y, cx, cy)) return true;
-              if (wall) {
-                for (const half of [wall.negative, wall.positive]) {
-                  if (half.destroyed) continue;
-                  const cellId = id(cx, cy);
-                  if ((half.done && half.cells.has(cellId)) ||
-                      (!half.done && cellId === id(half.x, half.y))) {
-                    if (circleTouchesCell(x, y, cx, cy)) return true;
-                  }
-                }
-              }
             }
           }
           return false;
@@ -507,17 +481,16 @@ export const jezzballPlugin: Plugin = {
             const wallStep = wallSpeed === 'slow' ? WALL_STEP_SLOW : WALL_STEP_FAST;
             while (wall && wallClock >= wallStep) {
               wallClock -= wallStep;
+              extendEnd(wall.negative, -1);
+              extendEnd(wall.positive, 1);
               for (const [half, direction] of [[wall.negative, -1], [wall.positive, 1]]) {
-                if (half.done || half.destroyed) continue;
+                if (half.destroyed) continue;
                 if (balls.some(ball => ballTouchesHalf(ball, half, direction))) {
                   destroyHalf(half);
                   if (!running || !wall) break;
                 }
               }
               if (!running || !wall) break;
-              for (const [half, direction] of [[wall.negative, -1], [wall.positive, 1]]) {
-                if (extendEnd(half, direction)) bounceFromLeadingEdge(half, direction);
-              }
               if (wall && [wall.negative, wall.positive].every(half => half.done || half.destroyed)) completeWall();
             }
           }
