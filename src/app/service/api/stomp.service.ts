@@ -40,6 +40,11 @@ export class StompService extends RxStomp {
       this.stompConfig.debug = (msg: string) => console.debug('📶️  '+ msg);
     }
     this.configure(this.stompConfig);
+  }
+
+  initialize() {
+    this.stompConfig.brokerURL = this.brokerURL;
+    this.configure(this.stompConfig);
     if (this.config.websockets && !isTestEnvironment()) this.activate();
   }
 
