@@ -144,6 +144,8 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-overlay')).toContainText('Final score 450');
     await expect(game.locator('.jezzball-level')).toHaveText('Level 101');
     await expect(game.locator('.jezzball-lives')).toHaveText('Lives 50');
+    await expect(page.locator('.full-page.ref .jezzball-final-score')).toHaveText('🏆️ 450');
+    await expect(game.locator('.jezzball-score')).toHaveCSS('font-variant-numeric', 'tabular-nums');
 
     const direction = game.locator('.jezzball-direction');
     const canvas = game.locator('.jezzball-canvas');
@@ -323,6 +325,11 @@ test.describe.serial('JezzBall Plugin', () => {
     ));
     expect(sweeps).toContain('#f4f1e8/#d93643');
     expect(sweeps).toContain('#d93643/#f4f1e8');
+    const outline = await canvas.evaluate((element: HTMLCanvasElement) => {
+      const context = element.getContext('2d')!;
+      return { color: context.strokeStyle, width: context.lineWidth };
+    });
+    expect(outline).toEqual({ color: '#000000', width: 0.5 });
   });
 
   test('uses two-finger wall gestures with a diagonal dead zone', async () => {
@@ -404,12 +411,19 @@ test.describe.serial('JezzBall Plugin', () => {
     expect(jezzballMod.plugin?.map(plugin => plugin.tag)).toContain('plugin/score');
     const snippet = jezzballPlugin.config?.snippet;
     const ui = jezzballPlugin.config?.ui;
+    const css = jezzballPlugin.config?.css;
+    const infoUi = jezzballPlugin.config?.infoUi;
     if (!snippet) throw new Error('JezzBall plugin has no snippet');
     if (!ui) throw new Error('JezzBall plugin has no UI');
+    if (!css) throw new Error('JezzBall plugin has no CSS');
+    if (!infoUi) throw new Error('JezzBall plugin has no info UI');
+    const Handlebars = (await import('handlebars')).default;
+    expect(Handlebars.compile(infoUi)({ final: true, score: 450 })).toContain('🏆️ 450');
+    expect(Handlebars.compile(infoUi)({ final: false, score: 450 })).toBe('');
     const scriptSource = snippet.match(/<script>([\s\S]*)<\/script>/)?.[1];
     if (!scriptSource) throw new Error('JezzBall plugin has no script');
     await page.goto('about:blank');
-    await page.setContent(ui.replace('{{defer el (jezzball ref actions el)}}', ''));
+    await page.setContent(`<style>${css}</style>${ui.replace('{{defer el (jezzball ref actions el)}}', '')}`);
     await page.evaluate(source => {
       let helper: (
         ref: { plugins: Record<string, unknown> },
@@ -436,6 +450,7 @@ test.describe.serial('JezzBall Plugin', () => {
     const game = page.locator('.jezzball-game');
     await game.locator('.jezzball-new-game').click();
     const canvas = game.locator('.jezzball-canvas');
+    await expect(game.locator('.jezzball-score')).toHaveCSS('font-variant-numeric', 'tabular-nums');
     const box = await canvas.boundingBox();
     if (!box) throw new Error('JezzBall canvas has no bounding box');
     await canvas.click({
@@ -450,6 +465,11 @@ test.describe.serial('JezzBall Plugin', () => {
       [...element.getContext('2d')!.getImageData(11 * 25 + 12, 10 * 25 + 12, 1, 1).data]
     ));
     expect(wallPixel.slice(0, 3)).toEqual([227, 66, 79]);
+    const outline = await canvas.evaluate((element: HTMLCanvasElement) => {
+      const context = element.getContext('2d')!;
+      return { color: context.strokeStyle, width: context.lineWidth };
+    });
+    expect(outline).toEqual({ color: '#000000', width: 0.5 });
   });
 
   test('keeps the surviving half when an atom hits the other half', async () => {

@@ -66,12 +66,15 @@ export const jezzballPlugin: Plugin = {
     filters: [
       { query: 'plugin/jezzball', label: $localize`🟣️ JezzBall`, title: $localize`JezzBall games`, group: $localize`Games 🕹️` },
     ],
+    // language=Handlebars
+    infoUi: `{{#if final}}<span class="jezzball-final-score">🏆️ {{score}}</span>{{/if}}`,
     // language=CSS
     css: `
       .jezzball-game { display: block; width: min(100%, 850px); margin: 0 auto; color: var(--text, #ddd); font: 14px system-ui, sans-serif; outline: none; }
       .jezzball-game * { box-sizing: border-box; }
       .jezzball-toolbar { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 8px 4px; }
       .jezzball-toolbar .jezzball-level { font-weight: 600; white-space: nowrap; }
+      .jezzball-level, .jezzball-stat, .jezzball-final-score { font-variant-numeric: tabular-nums; }
       .jezzball-stat { position: absolute; z-index: 1; color: #eee; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 2px #000; }
       .jezzball-lives { top: 8px; left: 10px; }
       .jezzball-center { position: absolute; z-index: 1; top: 8px; left: 50%; display: flex; transform: translateX(-50%); }
@@ -574,8 +577,8 @@ export const jezzballPlugin: Plugin = {
             g.arc(x, y, radius, Math.PI / 2, -Math.PI / 2, true);
             g.fill();
             g.restore();
-            g.strokeStyle = '#ddd';
-            g.lineWidth = 1;
+            g.strokeStyle = '#000';
+            g.lineWidth = 0.5;
             g.beginPath();
             g.arc(x, y, radius, 0, 7);
             g.stroke();
