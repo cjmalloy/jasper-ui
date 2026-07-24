@@ -385,8 +385,6 @@ export const jezzballPlugin: Plugin = {
           playSound(120, 0.18);
           if (lives <= 0) {
             finishGame();
-          } else if (wall && [wall.negative, wall.positive].every(part => part.done || part.destroyed)) {
-            completeWall();
           }
           updateHud();
         }
@@ -429,9 +427,12 @@ export const jezzballPlugin: Plugin = {
             const x = cellId % COLS;
             const y = Math.floor(cellId / COLS);
             if (cellId === originCell) {
-              const position = wall.orientation === 'horizontal' ? ball.x : ball.y;
-              const center = (wall.orientation === 'horizontal' ? wall.origin.x : wall.origin.y) + 0.5;
-              if ((direction < 0) !== (position < center)) continue;
+              const sibling = direction < 0 ? wall.positive : wall.negative;
+              if (!sibling.destroyed) {
+                const position = wall.orientation === 'horizontal' ? ball.x : ball.y;
+                const center = (wall.orientation === 'horizontal' ? wall.origin.x : wall.origin.y) + 0.5;
+                if ((direction < 0) !== (position < center)) continue;
+              }
             }
             if (circleTouchesCell(ball.x, ball.y, x, y)) return true;
           }
