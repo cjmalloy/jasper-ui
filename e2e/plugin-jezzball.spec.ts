@@ -118,6 +118,7 @@ test.describe.serial('JezzBall Plugin', () => {
       await route.continue({
         postData: JSON.stringify({
           ...body,
+          tags: [...(body.tags || []), 'plugin/score'],
           plugins: {
             ...body.plugins,
             'plugin/jezzball': { level: 101, score: 450, final: true },

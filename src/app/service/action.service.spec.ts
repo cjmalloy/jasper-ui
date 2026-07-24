@@ -49,6 +49,7 @@ describe('ActionService', () => {
       url: 'https://example.com',
       origin: '',
       modifiedString: '2026-01-01T00:00:00Z',
+      tags: ['plugin/jezzball'],
       plugins: { existing: true },
     };
     const patch = vi.spyOn((service as any).refs, 'patch').mockReturnValue(of('2026-01-01T00:00:01Z'));
@@ -61,6 +62,11 @@ describe('ActionService', () => {
     expect(patch).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', [
       {
         op: 'add',
+        path: '/tags/-',
+        value: 'plugin/score',
+      },
+      {
+        op: 'add',
         path: '/plugins/plugin~1jezzball',
         value: { level: 2, score: 42, final: false },
       },
@@ -70,6 +76,7 @@ describe('ActionService', () => {
         value: 42,
       },
     ]);
+    expect(ref.tags).toEqual(['plugin/jezzball', 'plugin/score']);
   });
 
   it('should serialize updates for the same ref', () => {

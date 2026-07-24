@@ -215,7 +215,11 @@ export class ActionService {
 
   update$(plugins: Record<string, unknown>, ref: Ref): Observable<string> {
     const save = (target: Ref) => {
-      const patch: OpPatch[] = target.plugins
+      const missingTags = Object.keys(plugins).filter(tag => !hasTag(tag, target));
+      const tagPatches: OpPatch[] = target.tags
+        ? missingTags.map(tag => ({ op: 'add', path: '/tags/-', value: tag }))
+        : missingTags.length ? [{ op: 'add', path: '/tags', value: missingTags }] : [];
+      const pluginPatches: OpPatch[] = target.plugins
         ? Object.entries(plugins).map(([tag, value]) => ({
           op: 'add',
           path: '/plugins/' + escapePath(tag),
@@ -226,7 +230,7 @@ export class ActionService {
         target.url,
         this.store.account.origin,
         target.modifiedString!,
-        patch,
+        [...tagPatches, ...pluginPatches],
       );
     };
     return save(ref).pipe(
@@ -237,6 +241,10 @@ export class ActionService {
         return throwError(() => err);
       }),
       tap(cursor => runInAction(() => {
+        ref.tags = [
+          ...(ref.tags || []),
+          ...Object.keys(plugins).filter(tag => !hasTag(tag, ref)),
+        ];
         ref.plugins = { ...ref.plugins, ...plugins };
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
