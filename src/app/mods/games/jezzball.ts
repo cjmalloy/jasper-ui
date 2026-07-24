@@ -566,7 +566,10 @@ export const jezzballPlugin: Plugin = {
           for (let cy = minY; cy <= maxY; cy++) {
             for (let cx = minX; cx <= maxX; cx++) {
               if (cx < 0 || cy < 0 || cx >= COLS || cy >= ROWS) continue;
-              if (occupied[id(cx, cy)] && circleTouchesCell(x, y, cx, cy)) return true;
+              const cellId = id(cx, cy);
+              const finishedWall = wall && [wall.negative, wall.positive].some(half =>
+                half.done && !half.destroyed && half.cells.has(cellId));
+              if ((occupied[cellId] || finishedWall) && circleTouchesCell(x, y, cx, cy)) return true;
             }
           }
           return false;
@@ -602,7 +605,7 @@ export const jezzballPlugin: Plugin = {
               extendEnd(wall.negative, -1);
               extendEnd(wall.positive, 1);
               const hitHalves = [[wall.negative, -1], [wall.positive, 1]].filter(([half, direction]) =>
-                !half.destroyed && balls.some(ball => ballTouchesHalf(ball, half, direction)));
+                !half.done && !half.destroyed && balls.some(ball => ballTouchesHalf(ball, half, direction)));
               for (const [half] of hitHalves) {
                 destroyHalf(half);
               }

@@ -554,6 +554,36 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-lives')).toHaveText('Lives 1');
   });
 
+  test('bounces off a finished wall half while the other half grows', async () => {
+    await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
+    const game = page.locator('.full-page.ref .jezzball-game');
+    const canvas = game.locator('.jezzball-canvas');
+    await installDeterministicGameClock(page);
+    await placeTestBalls(page, [
+      { x: 2.3, y: 8.5, left: true },
+      { x: 26, y: 20 },
+    ]);
+    await game.locator('.jezzball-new-game').click();
+    await game.locator('.jezzball-direction').click();
+    await trackBallCenters(canvas);
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error('JezzBall canvas has no bounding box');
+    await canvas.click({
+      position: {
+        x: box.width * 2.5 / 32,
+        y: box.height * 10.5 / 24,
+      },
+    });
+    await advanceGame(page, 5, 50);
+
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives 2');
+    const leadingBall = await canvas.evaluate((element: HTMLCanvasElement) => (
+      (element as HTMLCanvasElement & { __testBallCenters: Array<{ x: number; y: number }> })
+        .__testBallCenters.filter(center => center.x < 10).at(-1)
+    ));
+    expect(leadingBall?.y).toBeLessThan(9.5);
+  });
+
   test('checks both halves before completing a wall', async () => {
     await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
     const game = page.locator('.full-page.ref .jezzball-game');
