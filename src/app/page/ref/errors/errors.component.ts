@@ -51,7 +51,7 @@ export class RefErrorsComponent implements HasChanges {
     query.clear();
     runInAction(() => store.view.defaultSort = ['published']);
     if (!this.store.view.filter.length) bookmarks.filters = ['query/' + (store.account.origin || '*')];
-    const untilDestroyed = takeUntilDestroyed();
+    const untilDestroyed = takeUntilDestroyed<Ref | undefined>();
     this.disposers.push(autorun(() => {
       const args = getArgs(
         '+plugin/log:!plugin/delete',
