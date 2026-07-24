@@ -70,7 +70,7 @@ export const jezzballPlugin: Plugin = {
     infoUi: `{{#if final}}<span class="jezzball-final-score">🏆️ {{score}}</span>{{/if}}`,
     // language=CSS
     css: `
-      .jezzball-game { display: block; width: min(100%, 850px); margin: 0 auto; color: var(--text, #ddd); font: 14px system-ui, sans-serif; outline: none; }
+      .jezzball-game { display: block; width: min(100%, 850px); margin: 0 auto; color: var(--text, #ddd); font-weight: bold; font: 14px system-ui, sans-serif; outline: none; }
       .jezzball-game * { box-sizing: border-box; }
       .jezzball-toolbar { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 8px 4px; }
       .jezzball-toolbar .jezzball-level { font-weight: 600; white-space: nowrap; }
