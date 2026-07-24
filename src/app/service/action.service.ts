@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, concat, EMPTY, finalize, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -20,6 +20,11 @@ import { TaggingService } from './api/tagging.service';
   providedIn: 'root'
 })
 export class ActionService {
+
+  private updateQueues = new Map<string, {
+    updates: Partial<Pick<Ref, 'comment' | 'plugins'>>,
+    ref: Ref,
+  }[]>();
 
   constructor(
     private refs: RefService,
@@ -180,7 +185,32 @@ export class ActionService {
   }
 
   update(updates: Partial<Pick<Ref, 'comment' | 'plugins'>>, ref: Ref) {
-    this.store.eventBus.runAndRefresh(this.update$(updates, ref), ref);
+    const key = `${this.store.account.origin}\0${ref.url}`;
+    const queued = { updates, ref };
+    const queue = this.updateQueues.get(key);
+    if (queue) {
+      queue.push(queued);
+      return;
+    }
+    this.updateQueues.set(key, [queued]);
+    this.runNextUpdate(key);
+  }
+
+  private runNextUpdate(key: string) {
+    const queue = this.updateQueues.get(key);
+    if (!queue?.length) return;
+    const { updates, ref } = queue[0];
+    this.store.eventBus.runAndRefresh$(this.update$(updates, ref), ref).pipe(
+      catchError(() => EMPTY),
+      finalize(() => {
+        queue.shift();
+        if (queue.length) {
+          this.runNextUpdate(key);
+        } else if (this.updateQueues.get(key) === queue) {
+          this.updateQueues.delete(key);
+        }
+      }),
+    ).subscribe();
   }
 
   update$(updates: Partial<Pick<Ref, 'comment' | 'plugins'>>, ref: Ref): Observable<string> {

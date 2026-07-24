@@ -3,7 +3,7 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { firstValueFrom, of } from 'rxjs';
+import { firstValueFrom, of, Subject } from 'rxjs';
 
 import { ActionService } from './action.service';
 
@@ -70,5 +70,29 @@ describe('ActionService', () => {
         value: 42,
       },
     ]);
+  });
+
+  it('should serialize updates for the same ref', () => {
+    const ref = {
+      url: 'https://example.com',
+      origin: '',
+      modifiedString: '2026-01-01T00:00:00Z',
+      comment: '',
+    };
+    const first = new Subject<string>();
+    const patch = vi.spyOn((service as any).refs, 'patch')
+      .mockReturnValueOnce(first)
+      .mockReturnValueOnce(of('2026-01-01T00:00:02Z'));
+
+    service.update({ comment: 'final' }, ref);
+    service.update({ comment: 'reset' }, ref);
+
+    expect(patch).toHaveBeenCalledTimes(1);
+    first.next('2026-01-01T00:00:01Z');
+    first.complete();
+
+    expect(patch).toHaveBeenCalledTimes(2);
+    expect(patch.mock.calls[1][2]).toBe('2026-01-01T00:00:01Z');
+    expect(ref.comment).toBe('reset');
   });
 });
