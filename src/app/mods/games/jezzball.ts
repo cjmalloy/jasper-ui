@@ -506,12 +506,11 @@ export const jezzballPlugin: Plugin = {
               wallClock -= wallStep;
               extendEnd(wall.negative, -1);
               extendEnd(wall.positive, 1);
-              for (const [half, direction] of [[wall.negative, -1], [wall.positive, 1]]) {
-                if (half.destroyed) continue;
-                if (balls.some(ball => ballTouchesHalf(ball, half, direction))) {
-                  destroyHalf(half);
-                  if (!running || !wall) break;
-                }
+              const hitHalves = [[wall.negative, -1], [wall.positive, 1]].filter(([half, direction]) =>
+                !half.destroyed && balls.some(ball => ballTouchesHalf(ball, half, direction)));
+              for (const [half] of hitHalves) {
+                destroyHalf(half);
+                if (!running || !wall) break;
               }
               if (!running || !wall) break;
               if (wall && [wall.negative, wall.positive].every(half => half.done || half.destroyed)) completeWall();
