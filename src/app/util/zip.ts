@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { isArray } from 'lodash-es';
+import { v4 as uuid } from 'uuid';
 import { Ext, mapExt } from '../model/ext';
 import { mapRef, Ref } from '../model/ref';
 import { Cursor } from '../model/tag';
@@ -51,6 +52,7 @@ export function getModels<T extends Cursor>(json?: string): T[] {
   return (isArray(models) ? models : [models]).map(m => {
     m.upload = true;
     delete m.created;
+    if (!('tag' in m) && !m.url) m.url = 'comment:' + uuid();
     return m;
   });
 }
