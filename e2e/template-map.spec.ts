@@ -11,6 +11,13 @@ test.describe.serial('Map Template', () => {
     await mod(page, '#mod-map');
   });
 
+  test('serves the MapLibre worker', async ({ request }) => {
+    const response = await request.get('/assets/maplibre-gl-worker.mjs');
+
+    expect(response.ok()).toBe(true);
+    expect(response.headers()['content-type']).toContain('javascript');
+  });
+
   test('map tab appears and lens can be selected', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
 
