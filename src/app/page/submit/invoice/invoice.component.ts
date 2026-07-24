@@ -1,5 +1,8 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  HttpErrorResponse
+} from '@angular/common/http';
+import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -10,7 +13,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, firstValueFrom, forkJoin, interval, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, interval, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { LimitWidthDirective } from '../../../directive/limit-width.directive';
@@ -46,9 +49,8 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
     LoadingComponent,
   ]
 })
-export class SubmitInvoicePage implements OnDestroy, HasChanges {
+export class SubmitInvoicePage implements HasChanges {
 
-  private destroy$ = new Subject<void>();
 
   submitted = false;
   invoiceForm: UntypedFormGroup;
@@ -86,7 +88,7 @@ export class SubmitInvoicePage implements OnDestroy, HasChanges {
     });
     if (this.admin.editing) {
       interval(5_000).pipe(
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(),
       ).subscribe(() => {
         if (this.invoiceForm.dirty) this.saveForLater();
       });
@@ -123,10 +125,6 @@ export class SubmitInvoicePage implements OnDestroy, HasChanges {
       });
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   writeRef() {
     return <Ref> {

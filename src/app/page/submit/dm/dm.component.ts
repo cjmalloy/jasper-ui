@@ -1,5 +1,8 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import {
+  HttpErrorResponse
+} from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -14,7 +17,7 @@ import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, firstValueFrom, forkJoin, interval, map, Observable, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, interval, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
@@ -67,7 +70,6 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
 })
 export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
-  private destroy$ = new Subject<void>();
   private _url = 'comment:' + uuid();
 
   submitted = false;
@@ -121,7 +123,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     });
     if (this.admin.editing) {
       interval(5_000).pipe(
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(),
       ).subscribe(() => {
         if (this.dmForm.dirty) this.saveForLater();
       });
@@ -158,8 +160,6 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   get to() {

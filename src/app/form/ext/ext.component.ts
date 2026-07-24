@@ -1,16 +1,20 @@
-import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
+  CdkDropListGroup
+} from '@angular/cdk/drag-drop';
+import {
+  DestroyRef,
+  inject,
   ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
   forwardRef,
   Input,
-  OnDestroy,
   Output,
   ViewChild,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   ReactiveFormsModule,
@@ -23,7 +27,7 @@ import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep, defer, uniq } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
-import { catchError, of, Subject, takeUntil } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
@@ -55,8 +59,8 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
     LoadingComponent,
   ],
 })
-export class ExtFormComponent implements OnDestroy {
-  private destroy$ = new Subject<void>();
+export class ExtFormComponent  {
+  private destroyRef = inject(DestroyRef);
   allSorts = this.admin.refSorts.map(convertSort);
   allFilters: FilterItem[] = [
     { filter: `modified/before/${DateTime.now().toISO()}`, label: $localize`🕓️ modified before` },
@@ -123,10 +127,6 @@ export class ExtFormComponent implements OnDestroy {
     private el: ElementRef<HTMLElement>,
   ) { }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   get user() {
     if (!this.admin.getTemplate('user')) return false;
@@ -344,7 +344,7 @@ export class ExtFormComponent implements OnDestroy {
       this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
     }
     this.config.valueChanges.pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(value => {
       if (value.defaults) {
         if (!this.defaults) this.createDefaults();
