@@ -34,7 +34,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 2,
+    version: 1,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
