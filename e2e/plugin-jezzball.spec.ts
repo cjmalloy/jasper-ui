@@ -366,6 +366,62 @@ test.describe.serial('JezzBall Plugin', () => {
     expect(wallPixel.slice(0, 3)).toEqual([227, 66, 79]);
   });
 
+  test('allows a wall beside an atom in a two-cell pocket', async () => {
+    (globalThis as typeof globalThis & {
+      $localize: (parts: TemplateStringsArray, ...expressions: unknown[]) => string;
+    }).$localize = (parts, ...expressions) => parts.reduce(
+      (result, part, index) => result + (index ? expressions[index - 1] : '') + part,
+      '',
+    );
+    const { jezzballPlugin } = await import('../src/app/mods/games/jezzball');
+    const snippet = jezzballPlugin.config?.snippet;
+    if (!snippet) throw new Error('JezzBall plugin has no snippet');
+    const scriptSource = snippet.match(/<script>([\s\S]*)<\/script>/)?.[1];
+    if (!scriptSource) throw new Error('JezzBall plugin has no script');
+    await page.goto('about:blank');
+    await page.setContent('<div class="jezzball-game"></div>');
+    await page.evaluate(source => {
+      let helper: (
+        ref: { comment: string },
+        actions: object,
+        element: Document,
+      ) => () => void = () => () => {};
+      (window as Window & {
+        Handlebars: {
+          registerHelper: (name: string, value: typeof helper) => void;
+        };
+      }).Handlebars = {
+        registerHelper: (_name, value) => helper = value,
+      };
+      const script = document.createElement('script');
+      script.textContent = source;
+      document.head.appendChild(script);
+      helper({ comment: '{"level":1,"score":0,"final":true}' }, {}, document)();
+    }, scriptSource);
+    await installDeterministicGameClock(page);
+    await placeTestBalls(page, [
+      { x: 12.5, y: 10.5 },
+      { x: 26, y: 20 },
+    ]);
+    const game = page.locator('.jezzball-game');
+    await game.locator('.jezzball-new-game').click();
+    const canvas = game.locator('.jezzball-canvas');
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error('JezzBall canvas has no bounding box');
+    await canvas.click({
+      position: {
+        x: box.width * 11.5 / 32,
+        y: box.height * 10.5 / 24,
+      },
+    });
+    await advanceGame(page, 1);
+
+    const wallPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
+      [...element.getContext('2d')!.getImageData(11 * 25 + 12, 10 * 25 + 12, 1, 1).data]
+    ));
+    expect(wallPixel.slice(0, 3)).toEqual([227, 66, 79]);
+  });
+
   test('keeps the surviving half when an atom hits the other half', async () => {
     await page.addInitScript(() => {
       Math.random = () => 0.5;

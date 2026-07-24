@@ -287,7 +287,7 @@ export const jezzballPlugin: Plugin = {
           x = Math.floor(x);
           y = Math.floor(y);
           if (!running || paused || wall || cellBlocked(x, y)) return;
-          if (balls.some(ball => Math.hypot(ball.x - x - 0.5, ball.y - y - 0.5) < 1.2)) return;
+          if (balls.some(ball => circleTouchesCell(ball.x, ball.y, x, y))) return;
           wall = {
             orientation: orientation,
             origin: { x: x, y: y },
