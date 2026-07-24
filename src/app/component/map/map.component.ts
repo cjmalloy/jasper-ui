@@ -70,7 +70,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     private refs: RefService,
     private store: Store,
   ) {
-    setWorkerUrl('assets/maplibre-gl-csp-worker.js');
+    setWorkerUrl('assets/maplibre-gl-worker.mjs');
     this.mapDataUpdates$.pipe(
       switchMap(content => {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content.map(ref => [ref] as MapEntry));
