@@ -123,7 +123,7 @@ export const jezzballPlugin: Plugin = {
             .jezzball-controls { display: flex; gap: 8px; margin-left: auto; }
             .jezzball-controls button, .jezzball-overlay button { border: 1px solid var(--border, #777); border-radius: 4px; background: var(--card, #333); color: var(--text, #eee); padding: 5px 9px; cursor: pointer; }
             .jezzball-controls button:hover, .jezzball-overlay button:hover { background: var(--active, #4a4a4a); }
-            .jezzball-stage { position: relative; width: 100%; padding: 34px; overflow: hidden; border: 2px solid #777; border-radius: 8px; background: #000; touch-action: none; }
+            .jezzball-stage { position: relative; width: 100%; padding: 34px; overflow: hidden; filter: drop-shadow(0px 0px .5px #ffffff); border-radius: 8px; background: #000; touch-action: none; }
             .jezzball-canvas { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; }
             .jezzball-canvas.vertical { cursor: ns-resize; }
             .jezzball-canvas.horizontal { cursor: ew-resize; }
