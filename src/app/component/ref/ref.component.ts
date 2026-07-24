@@ -1211,7 +1211,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       return of(null);
     } else {
       return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
-        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref.origin!)),
       ), this.ref);
     }
   }
@@ -1324,7 +1324,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       this.refreshTap = () => this.publishChanged = +published !== +this.ref.published!;
       this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
         tap(cursor => {
-          this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
+          this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), ref.origin!);
           this.editForm.reset();
           delete this.submitting;
           this.editing = false;
@@ -1434,7 +1434,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     ref.modifiedString = this.overwrite ? this.overwrittenModified : this.ref.modifiedString;
     this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
       tap(cursor => {
-        this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
+        this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), ref.origin!);
         delete this.submitting;
         this.diffing = false;
       }),
