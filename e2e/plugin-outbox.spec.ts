@@ -102,6 +102,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
 
   test('@\u{ff20}repl : creates ref', async ({ page }) => {
     await page.goto(replUrl + '/?debug=USER&tag=bob');
+    await expect(page.locator('.settings .author')).toHaveText('bob');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
