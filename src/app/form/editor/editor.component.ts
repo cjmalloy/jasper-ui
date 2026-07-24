@@ -185,7 +185,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
-    this.store.eventBus.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       this.loadingEvents[event.event] = false;
     });
   }

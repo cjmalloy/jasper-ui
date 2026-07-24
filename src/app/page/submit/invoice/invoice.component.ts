@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { DestroyRef, inject, Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -51,7 +51,6 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
 })
 export class SubmitInvoicePage implements HasChanges {
 
-  private destroyRef = inject(DestroyRef);
 
   submitted = false;
   invoiceForm: UntypedFormGroup;
@@ -89,7 +88,7 @@ export class SubmitInvoicePage implements HasChanges {
     });
     if (this.admin.editing) {
       interval(5_000).pipe(
-        takeUntilDestroyed(this.destroyRef),
+        takeUntilDestroyed(),
       ).subscribe(() => {
         if (this.invoiceForm.dirty) this.saveForLater();
       });

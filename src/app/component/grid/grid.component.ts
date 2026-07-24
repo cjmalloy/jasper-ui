@@ -1,6 +1,4 @@
 import {
-  DestroyRef,
-  inject,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -45,7 +43,6 @@ export class GridComponent implements OnDestroy, HasChanges {
   private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private disposers: IReactionDisposer[] = [];
-  private destroyRef = inject(DestroyRef);
   private rowDataUpdates$ = new Subject<Ref[]>();
 
   @Input()
@@ -81,7 +78,7 @@ export class GridComponent implements OnDestroy, HasChanges {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content);
         return forkJoin(content.map(ref => this.getBareRepost(ref)));
       }),
-      takeUntilDestroyed(this.destroyRef),
+      takeUntilDestroyed(),
     ).subscribe(rowData => {
       this.rowData = rowData;
       this.cd.markForCheck();

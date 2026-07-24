@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
@@ -60,7 +60,6 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private _page?: Page<Ref>;
   private map?: Map;
   private markers: Marker[] = [];
-  private destroyRef = inject(DestroyRef);
   private mapDataUpdates$ = new Subject<Ref[]>();
   mapData: MapEntry[] = [];
 
@@ -77,7 +76,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content.map(ref => [ref] as MapEntry));
         return forkJoin(content.map(ref => this.getBareRepost(ref)));
       }),
-      takeUntilDestroyed(this.destroyRef),
+      takeUntilDestroyed(),
     ).subscribe(mapData => {
       this.mapData = mapData;
       MemoCache.clear(this);

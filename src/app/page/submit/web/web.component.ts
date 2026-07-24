@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { DestroyRef, inject, AfterViewInit, Component, forwardRef, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -63,7 +63,6 @@ import { getVisibilityTags } from '../../../util/tag';
 export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
-  private destroyRef = inject(DestroyRef);
 
   submitted = false;
   title = '';
@@ -98,7 +97,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     this.webForm = refForm(fb);
     if (this.admin.editing) {
       interval(5_000).pipe(
-        takeUntilDestroyed(this.destroyRef),
+        takeUntilDestroyed(),
       ).subscribe(() => {
         if (this.webForm.dirty) this.saveForLater();
       });

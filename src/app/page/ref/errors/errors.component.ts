@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -31,8 +31,6 @@ import { hasTag, updateMetadata } from '../../../util/tag';
 export class RefErrorsComponent implements HasChanges {
 
   private disposers: IReactionDisposer[] = [];
-  private destroyRef = inject(DestroyRef);
-
   @ViewChild('list')
   list?: RefListComponent;
 
@@ -53,13 +51,7 @@ export class RefErrorsComponent implements HasChanges {
     query.clear();
     runInAction(() => store.view.defaultSort = ['published']);
     if (!this.store.view.filter.length) bookmarks.filters = ['query/' + (store.account.origin || '*')];
-  }
-
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
+    const untilDestroyed = takeUntilDestroyed();
     this.disposers.push(autorun(() => {
       const args = getArgs(
         '+plugin/log:!plugin/delete',
@@ -82,10 +74,14 @@ export class RefErrorsComponent implements HasChanges {
           tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
           filter(ref => hasTag('+plugin/log', ref)),
           catchError(err => of(undefined)),
-          takeUntilDestroyed(this.destroyRef),
+          untilDestroyed,
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnDestroy() {

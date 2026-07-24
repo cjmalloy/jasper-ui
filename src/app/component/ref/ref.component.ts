@@ -265,7 +265,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
-      takeUntilDestroyed(this.destroyRef),
+      takeUntilDestroyed(),
     ).subscribe(throttle(value => {
       if (!this.editing) return;
       if (!value?.title && !value?.comment || !value?.tags?.length) return;
@@ -287,7 +287,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         cd.detectChanges();
       });
     }, 400, { leading: true, trailing: true }));
-    this.store.eventBus.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere

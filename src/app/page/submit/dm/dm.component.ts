@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { DestroyRef, inject, AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -70,7 +70,6 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
 })
 export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
-  private destroyRef = inject(DestroyRef);
   private _url = 'comment:' + uuid();
 
   submitted = false;
@@ -124,7 +123,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     });
     if (this.admin.editing) {
       interval(5_000).pipe(
-        takeUntilDestroyed(this.destroyRef),
+        takeUntilDestroyed(),
       ).subscribe(() => {
         if (this.dmForm.dirty) this.saveForLater();
       });

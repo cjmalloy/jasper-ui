@@ -138,7 +138,7 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
-    this.store.eventBus.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
           this.ref = event.ref!;

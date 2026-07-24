@@ -3,8 +3,6 @@ import {
 } from '@angular/common';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
-  DestroyRef,
-  inject,
   AfterViewInit,
   Component,
   ElementRef,
@@ -13,7 +11,6 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  OnInit,
   QueryList,
   SimpleChanges,
   ViewChild,
@@ -86,9 +83,8 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
     AsyncPipe,
   ],
 })
-export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
+export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
-  private destroyRef = inject(DestroyRef);
 
   maxContext = 20;
 
@@ -138,7 +134,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     private bookmarks: BookmarkService,
     private el: ElementRef<HTMLDivElement>,
   ) {
-    this.store.eventBus.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
           this.ref = event.ref!;
@@ -151,17 +147,8 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
         }
       }
     });
-  }
-
-  saveChanges() {
-    return (!this.editComponent || this.editComponent.saveChanges())
-      && (!this.replyComponent || this.replyComponent.saveChanges())
-      && (!this.threadComponent || this.threadComponent.saveChanges());
-  }
-
-  ngOnInit(): void {
     this.newComments$.pipe(
-      takeUntilDestroyed(this.destroyRef),
+      takeUntilDestroyed(),
     ).subscribe(ref => {
       this.replying = false;
       if (ref) {
@@ -174,12 +161,18 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
       }
     });
     this.commentEdited$.pipe(
-      takeUntilDestroyed(this.destroyRef),
+      takeUntilDestroyed(),
     ).subscribe(ref => {
       this.editing = false;
       this.ref = ref;
       this.init();
     });
+  }
+
+  saveChanges() {
+    return (!this.editComponent || this.editComponent.saveChanges())
+      && (!this.replyComponent || this.replyComponent.saveChanges())
+      && (!this.threadComponent || this.threadComponent.saveChanges());
   }
 
   ngAfterViewInit(): void {
