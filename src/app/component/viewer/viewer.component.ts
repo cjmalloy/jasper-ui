@@ -571,18 +571,14 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     }
     if (!this.ref?.modified || (!!this.ref && this.auth.writeAccess(this.ref))) {
       Object.assign(api, {
-        update: (updates: Partial<Pick<Ref, 'comment' | 'plugins'>>) => {
+        update: (plugins: Record<string, unknown>) => {
           if (this.ref?.modified) {
-            actions.update!(updates);
+            actions.update!(plugins);
           } else if (this.ref) {
             runInAction(() => {
-              if (updates.comment !== undefined) this.ref!.comment = updates.comment;
-              if (updates.plugins) this.ref!.plugins = { ...this.ref!.plugins, ...updates.plugins };
+              this.ref!.plugins = { ...this.ref!.plugins, ...plugins };
             });
-          } else if (updates.comment !== undefined) {
-            this.text = updates.comment;
           }
-          if (updates.comment !== undefined) this.comment.emit(updates.comment);
         },
         comment: (comment: string) => {
           if (this.ref) {

@@ -145,7 +145,7 @@ export const pluginSchema: Schema = {
 
 export interface PluginApi {
   event: (event: string) => void;
-  update?: (updates: Partial<Pick<Ref, 'comment' | 'plugins'>>) => void;
+  update?: (plugins: Record<string, unknown>) => void;
   comment?: (comment: string) => void;
   plugin?: (tag: string, value: unknown) => void;
   emit?: (a: EmitAction) => void;

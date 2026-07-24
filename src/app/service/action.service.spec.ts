@@ -44,25 +44,31 @@ describe('ActionService', () => {
     expect((ref as any).plugins['plugin/score']).toBe(42);
   });
 
-  it('should update comments and plugins in one patch', async () => {
+  it('should update plugins in one patch', async () => {
     const ref = {
       url: 'https://example.com',
       origin: '',
       modifiedString: '2026-01-01T00:00:00Z',
+      tags: ['plugin/jezzball'],
       plugins: { existing: true },
     };
     const patch = vi.spyOn((service as any).refs, 'patch').mockReturnValue(of('2026-01-01T00:00:01Z'));
 
     await firstValueFrom(service.update$({
-      comment: '{"level":2,"score":42,"final":false}',
-      plugins: { 'plugin/score': 42 },
+      'plugin/jezzball': { level: 2, score: 42, final: false },
+      'plugin/score': 42,
     }, ref));
 
     expect(patch).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', [
       {
         op: 'add',
-        path: '/comment',
-        value: '{"level":2,"score":42,"final":false}',
+        path: '/tags/-',
+        value: 'plugin/score',
+      },
+      {
+        op: 'add',
+        path: '/plugins/plugin~1jezzball',
+        value: { level: 2, score: 42, final: false },
       },
       {
         op: 'add',
@@ -70,6 +76,7 @@ describe('ActionService', () => {
         value: 42,
       },
     ]);
+    expect(ref.tags).toEqual(['plugin/jezzball', 'plugin/score']);
   });
 
   it('should serialize updates for the same ref', () => {
@@ -77,15 +84,15 @@ describe('ActionService', () => {
       url: 'https://example.com',
       origin: '',
       modifiedString: '2026-01-01T00:00:00Z',
-      comment: '',
+      plugins: {} as Record<string, unknown>,
     };
     const first = new Subject<string>();
     const patch = vi.spyOn((service as any).refs, 'patch')
       .mockReturnValueOnce(first)
       .mockReturnValueOnce(of('2026-01-01T00:00:02Z'));
 
-    service.update({ comment: 'final' }, ref);
-    service.update({ comment: 'reset' }, ref);
+    service.update({ 'plugin/jezzball': { final: true } }, ref);
+    service.update({ 'plugin/jezzball': { final: false } }, ref);
 
     expect(patch).toHaveBeenCalledTimes(1);
     first.next('2026-01-01T00:00:01Z');
@@ -93,6 +100,6 @@ describe('ActionService', () => {
 
     expect(patch).toHaveBeenCalledTimes(2);
     expect(patch.mock.calls[1][2]).toBe('2026-01-01T00:00:01Z');
-    expect(ref.comment).toBe('reset');
+    expect(ref.plugins['plugin/jezzball']).toEqual({ final: false });
   });
 });
