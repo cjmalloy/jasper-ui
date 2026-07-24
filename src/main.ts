@@ -29,6 +29,7 @@ import { RateLimitInterceptor } from './app/http/rate-limit.interceptor';
 import { AccountService } from './app/service/account.service';
 import { AdminService } from './app/service/admin.service';
 import { ExtService } from './app/service/api/ext.service';
+import { StompService } from './app/service/api/stomp.service';
 import { config, ConfigService } from './app/service/config.service';
 import { DebugService } from './app/service/debug.service';
 import { ModService } from './app/service/mod.service';
@@ -37,8 +38,9 @@ import { OriginMapService } from './app/service/origin-map.service';
 
 import { environment } from './environments/environment';
 
-const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, mods: ModService, exts: ExtService) => () =>
+const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, mods: ModService, exts: ExtService, stomp: StompService) => () =>
   config.load$.pipe(
+    tap(() => stomp.initialize()),
     tap(() => console.log('-{1}- Loading Jasper')),
     tap(() => {
       if (!config.pwa) {
@@ -114,7 +116,7 @@ bootstrapApplication(AppComponent, {
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,
-      deps: [ConfigService, DebugService, AdminService, AccountService, OriginMapService, ModService, ExtService],
+      deps: [ConfigService, DebugService, AdminService, AccountService, OriginMapService, ModService, ExtService, StompService],
       multi: true,
     },
   ]
