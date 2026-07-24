@@ -425,6 +425,12 @@ export const jezzballPlugin: Plugin = {
           const ny = end.y + dy;
           if (isOccupied(nx, ny)) {
             end.done = true;
+            const sibling = end === wall.negative ? wall.positive : wall.negative;
+            for (const cellId of end.cells) {
+              occupied[cellId] = 3;
+              sibling.cells.delete(cellId);
+            }
+            end.cells.clear();
             return false;
           }
           end.x = nx;
@@ -474,13 +480,9 @@ export const jezzballPlugin: Plugin = {
 
         function completeWall() {
           if (!wall) return;
-          const completedHalves = [wall.negative, wall.positive].filter(half => !half.destroyed);
-          if (!completedHalves.length) {
+          if ([wall.negative, wall.positive].every(half => half.destroyed)) {
             wall = null;
             return;
-          }
-          for (const half of completedHalves) {
-            for (const cellId of half.cells) occupied[cellId] = 3;
           }
           wall = null;
           playSound(480, 0.08);
@@ -566,10 +568,7 @@ export const jezzballPlugin: Plugin = {
           for (let cy = minY; cy <= maxY; cy++) {
             for (let cx = minX; cx <= maxX; cx++) {
               if (cx < 0 || cy < 0 || cx >= COLS || cy >= ROWS) continue;
-              const cellId = id(cx, cy);
-              const finishedWall = wall && [wall.negative, wall.positive].some(half =>
-                half.done && !half.destroyed && half.cells.has(cellId));
-              if ((occupied[cellId] || finishedWall) && circleTouchesCell(x, y, cx, cy)) return true;
+              if (occupied[id(cx, cy)] && circleTouchesCell(x, y, cx, cy)) return true;
             }
           }
           return false;
