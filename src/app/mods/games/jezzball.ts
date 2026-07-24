@@ -52,7 +52,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 1,
+    version: 2,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -510,7 +510,6 @@ export const jezzballPlugin: Plugin = {
                 !half.destroyed && balls.some(ball => ballTouchesHalf(ball, half, direction)));
               for (const [half] of hitHalves) {
                 destroyHalf(half);
-                if (!running || !wall) break;
               }
               if (!running || !wall) break;
               if (wall && [wall.negative, wall.positive].every(half => half.done || half.destroyed)) completeWall();
@@ -562,6 +561,14 @@ export const jezzballPlugin: Plugin = {
                 g.strokeStyle = '#ececf2';
                 g.lineWidth = 2;
                 g.strokeRect(half.x * CELL + 2, half.y * CELL + 2, CELL - 4, CELL - 4);
+                g.fillStyle = '#fff';
+                for (const offsetX of [8, 17]) {
+                  for (const offsetY of [8, 17]) {
+                    g.beginPath();
+                    g.arc(half.x * CELL + offsetX, half.y * CELL + offsetY, 2, 0, Math.PI * 2);
+                    g.fill();
+                  }
+                }
               }
             }
           }

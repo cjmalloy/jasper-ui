@@ -357,6 +357,13 @@ test.describe.serial('JezzBall Plugin', () => {
       [...element.getContext('2d')!.getImageData(3 * 25 + 12, 8 * 25 + 12, 1, 1).data]
     ));
     expect(wallPixel.slice(0, 3)).toEqual([227, 66, 79]);
+    const leadingDots = await canvas.evaluate((element: HTMLCanvasElement) => {
+      const context = element.getContext('2d')!;
+      return [8, 17].flatMap(offsetX => [8, 17].map(offsetY => (
+        [...context.getImageData(3 * 25 + offsetX, 8 * 25 + offsetY, 1, 1).data].slice(0, 3)
+      )));
+    });
+    expect(leadingDots).toEqual(Array(4).fill([255, 255, 255]));
     await expect(canvas).toHaveCSS('cursor', 'ns-resize');
   });
 
