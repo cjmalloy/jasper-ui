@@ -139,29 +139,6 @@ export const jezzballPlugin: Plugin = {
         const keyboardCursor = { x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) };
 
         root.classList.add('jezzball-game');
-        root.innerHTML = \`
-          <div class="jezzball-toolbar">
-            <span class="jezzball-level"></span>
-            <span class="jezzball-example" title="\${labels.savedExampleTitle}">\${labels.savedExample}</span>
-            <span class="jezzball-controls">
-              <button class="jezzball-direction" type="button"></button>
-              <button class="jezzball-speed" type="button"></button>
-              <button class="jezzball-sound" type="button"></button>
-              <button class="jezzball-pause" type="button">\${labels.pause}</button>
-            </span>
-          </div>
-          <div class="jezzball-stage">
-            <canvas class="jezzball-canvas" width="\${COLS * CELL}" height="\${ROWS * CELL}"></canvas>
-            <span class="jezzball-stat jezzball-lives"></span>
-            <span class="jezzball-center">
-              <span class="jezzball-stat jezzball-score"></span>
-            </span>
-            <span class="jezzball-stat jezzball-time"></span>
-            <span class="jezzball-stat jezzball-filled"></span>
-            <div class="jezzball-overlay"><div><strong></strong><button class="jezzball-new-game" type="button">\${labels.newGame}</button></div></div>
-          </div>
-        \`;
-
         const canvas = root.querySelector('.jezzball-canvas');
         const g = canvas.getContext('2d', { alpha: false });
         const levelEl = root.querySelector('.jezzball-level');
@@ -179,7 +156,10 @@ export const jezzballPlugin: Plugin = {
         const newGameButton = overlay.querySelector('.jezzball-new-game');
         root.tabIndex = 0;
         root.setAttribute('aria-label', labels.help);
+        exampleEl.textContent = labels.savedExample;
+        exampleEl.title = labels.savedExampleTitle;
         exampleEl.hidden = writable;
+        pauseButton.textContent = labels.pause;
 
         function format(label, values) {
           return label.replace(/\\{(\\w+)\\}/g, function(match, key) {
@@ -765,7 +745,29 @@ export const jezzballPlugin: Plugin = {
     `,
     // language=Handlebars
     ui: `
-      <div class="jezzball-game">{{defer el (jezzball ref actions el)}}</div>
+      <div class="jezzball-game">
+        <div class="jezzball-toolbar">
+          <span class="jezzball-level"></span>
+          <span class="jezzball-example"></span>
+          <span class="jezzball-controls">
+            <button class="jezzball-direction" type="button"></button>
+            <button class="jezzball-speed" type="button"></button>
+            <button class="jezzball-sound" type="button"></button>
+            <button class="jezzball-pause" type="button"></button>
+          </span>
+        </div>
+        <div class="jezzball-stage">
+          <canvas class="jezzball-canvas" width="800" height="600"></canvas>
+          <span class="jezzball-stat jezzball-lives"></span>
+          <span class="jezzball-center">
+            <span class="jezzball-stat jezzball-score"></span>
+          </span>
+          <span class="jezzball-stat jezzball-time"></span>
+          <span class="jezzball-stat jezzball-filled"></span>
+          <div class="jezzball-overlay"><div><strong></strong><button class="jezzball-new-game" type="button"></button></div></div>
+        </div>
+        {{defer el (jezzball ref actions el)}}
+      </div>
     `,
   },
   schema: {

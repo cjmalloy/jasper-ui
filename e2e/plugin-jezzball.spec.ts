@@ -403,11 +403,13 @@ test.describe.serial('JezzBall Plugin', () => {
     const { jezzballMod, jezzballPlugin } = await import('../src/app/mods/games/jezzball');
     expect(jezzballMod.plugin?.map(plugin => plugin.tag)).toContain('plugin/score');
     const snippet = jezzballPlugin.config?.snippet;
+    const ui = jezzballPlugin.config?.ui;
     if (!snippet) throw new Error('JezzBall plugin has no snippet');
+    if (!ui) throw new Error('JezzBall plugin has no UI');
     const scriptSource = snippet.match(/<script>([\s\S]*)<\/script>/)?.[1];
     if (!scriptSource) throw new Error('JezzBall plugin has no script');
     await page.goto('about:blank');
-    await page.setContent('<div class="jezzball-game"></div>');
+    await page.setContent(ui.replace('{{defer el (jezzball ref actions el)}}', ''));
     await page.evaluate(source => {
       let helper: (
         ref: { plugins: Record<string, unknown> },
