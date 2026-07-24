@@ -41,6 +41,20 @@ async function moveCursor(game: ReturnType<Page['locator']>, key: string, count:
   for (let i = 0; i < count; i++) await game.press(key);
 }
 
+async function placeTestBalls(page: Page, positions: Array<{ x: number; y: number; left?: boolean; up?: boolean }>) {
+  await page.evaluate(testPositions => {
+    const values = testPositions.flatMap(position => [
+      0,
+      position.left ? 0 : 1,
+      position.up ? 0 : 1,
+      (position.x - 2) / 28,
+      (position.y - 2) / 20,
+      0.5,
+    ]);
+    Math.random = () => values.shift() ?? 0.5;
+  }, positions);
+}
+
 test.describe.serial('JezzBall Plugin', () => {
   const title = 'JezzBall E2E Game';
   let page: Page;
@@ -361,5 +375,42 @@ test.describe.serial('JezzBall Plugin', () => {
       [...element.getContext('2d')!.getImageData(8 * 25 + 12, 14 * 25 + 12, 1, 1).data]
     ));
     expect(survivingPixel.slice(0, 3)).toEqual([0, 0, 0]);
+  });
+
+  test('keeps leading-edge walls and breaks trailing-edge walls', async () => {
+    await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
+    const game = page.locator('.full-page.ref .jezzball-game');
+    const canvas = game.locator('.jezzball-canvas');
+    await installDeterministicGameClock(page);
+    await placeTestBalls(page, [
+      { x: 15, y: 9.3, left: true },
+      { x: 26, y: 20 },
+    ]);
+    await game.locator('.jezzball-new-game').click();
+    await game.locator('.jezzball-direction').click();
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error('JezzBall canvas has no bounding box');
+    await canvas.click({
+      position: {
+        x: box.width * 10.5 / 32,
+        y: box.height * 10.5 / 24,
+      },
+    });
+    await advanceGame(page, 6, 50);
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives 3');
+
+    await placeTestBalls(page, [
+      { x: 12, y: 9.3 },
+      { x: 26, y: 20 },
+    ]);
+    await game.locator('.jezzball-new-game').click();
+    await canvas.click({
+      position: {
+        x: box.width * 10.5 / 32,
+        y: box.height * 10.5 / 24,
+      },
+    });
+    await advanceGame(page, 6, 50);
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives 2');
   });
 });
