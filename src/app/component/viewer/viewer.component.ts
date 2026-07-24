@@ -33,6 +33,7 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
+import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
@@ -148,6 +149,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     private editor: EditorService,
     private refs: RefService,
     private store: Store,
+    private auth: AuthzService,
     public el: ElementRef,
   ) { }
 
@@ -535,30 +537,12 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   @memo
   get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
-    return {
-      comment: (comment: string) => {
-        if (this.ref) {
-          runInAction(() => this.ref!.comment = comment);
-        } else {
-          this.text = comment;
-        }
-        if (this.ref?.modified) actions.comment(comment);
-        this.comment.emit(comment);
-      },
+    const api: PluginApi = {
       event: (event: string) => {
-        actions.event(event);
+        actions.event!(event);
       },
-      emit: (a: EmitAction) => {
-        actions.emit(a);
-      },
-      tag: (tag: string) => {
-        if (this.ref?.modified) actions.tag(tag);
-      },
-      respond: (response: string, clear?: string[]) => {
-        if (this.ref?.modified) actions.respond(response, clear);
-      },
-      watch: () => {
-        if (this.ref?.modified) return actions.watch();
+      watch: (delimiter?: string) => {
+        if (this.ref?.modified) return actions.watch!(delimiter);
         const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text } as RefUpdates);
         return {
           ref$: subject$,
@@ -569,19 +553,71 @@ export class ViewerComponent implements OnChanges, OnDestroy {
           },
         };
       },
-      append: () => {
-        if (this.ref?.modified) return actions.append();
-        const subject$ = new Subject<string>();
-        return {
-          updates$: subject$,
-          append$: (value: string) => {
-            this.text += value;
-            subject$.next(value);
-            return of();
-          },
-        };
-      },
     };
+    if (this.auth.hasRole('ROLE_USER')) {
+      api.emit = (a: EmitAction) => {
+        actions.emit!(a);
+      };
+      if (this.ref?.modified) {
+        api.respond = (response: string, clear?: string[]) => {
+          actions.respond!(response, clear);
+        };
+      }
+    }
+    if (this.ref?.modified && this.auth.taggingAccess(this.ref) && this.auth.hasRole('ROLE_USER')) {
+      api.tag = (tag: string) => {
+        actions.tag!(tag);
+      };
+    }
+    if (!this.ref?.modified || (!!this.ref && this.auth.writeAccess(this.ref))) {
+      Object.assign(api, {
+        update: (updates: Partial<Pick<Ref, 'comment' | 'plugins'>>) => {
+          if (this.ref?.modified) {
+            actions.update!(updates);
+          } else if (this.ref) {
+            runInAction(() => {
+              if (updates.comment !== undefined) this.ref!.comment = updates.comment;
+              if (updates.plugins) this.ref!.plugins = { ...this.ref!.plugins, ...updates.plugins };
+            });
+          } else if (updates.comment !== undefined) {
+            this.text = updates.comment;
+          }
+          if (updates.comment !== undefined) this.comment.emit(updates.comment);
+        },
+        comment: (comment: string) => {
+          if (this.ref) {
+            runInAction(() => this.ref!.comment = comment);
+          } else {
+            this.text = comment;
+          }
+          if (this.ref?.modified) actions.comment!(comment);
+          this.comment.emit(comment);
+        },
+        plugin: (tag: string, value: unknown) => {
+          if (this.ref?.modified) {
+            actions.plugin!(tag, value);
+          } else if (this.ref) {
+            runInAction(() => {
+              this.ref!.plugins ||= {};
+              this.ref!.plugins![tag] = value;
+            });
+          }
+        },
+        append: () => {
+          if (this.ref?.modified) return actions.append!();
+          const subject$ = new Subject<string>();
+          return {
+            updates$: subject$,
+            append$: (value: string) => {
+              this.text += value;
+              subject$.next(value);
+              return of();
+            },
+          };
+        },
+      });
+    }
+    return api;
   }
 
   @memo

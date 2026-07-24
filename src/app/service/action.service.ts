@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, concat, EMPTY, finalize, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { merge3 } from '../util/diff';
+import { escapePath, OpPatch } from '../util/json-patch';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -19,6 +20,11 @@ import { TaggingService } from './api/tagging.service';
   providedIn: 'root'
 })
 export class ActionService {
+
+  private updateQueues = new Map<string, {
+    updates: Partial<Pick<Ref, 'comment' | 'plugins'>>,
+    ref: Ref,
+  }[]>();
 
   constructor(
     private refs: RefService,
@@ -36,6 +42,14 @@ export class ActionService {
         o?.unsubscribe();
         o = this.comment$(comment, ref).subscribe();
       }, 500),
+      plugin: (tag: string, value: unknown) => {
+        if (!ref) throw 'Error: No ref to save';
+        this.plugin(tag, value, ref);
+      },
+      update: (updates: Partial<Pick<Ref, 'comment' | 'plugins'>>) => {
+        if (!ref) throw 'Error: No ref to save';
+        this.update(updates, ref);
+      },
       event: (event: string) => {
         this.event(event, ref);
       },
@@ -124,10 +138,113 @@ export class ActionService {
             }])),
           );
         }
+
         return throwError(() => err);
       }),
       tap(cursor => runInAction(() => {
         ref.comment = comment;
+        ref.modifiedString = cursor;
+        ref.modified = DateTime.fromISO(cursor);
+      })),
+    );
+  }
+
+  plugin(tag: string, value: unknown, ref: Ref) {
+    this.store.eventBus.runAndRefresh(this.plugin$(tag, value, ref), ref);
+  }
+
+  plugin$(tag: string, value: unknown, ref: Ref): Observable<string> {
+    const save = (target: Ref) => this.refs.patch(
+      target.url,
+      this.store.account.origin,
+      target.modifiedString!,
+      target.plugins ? [{
+        op: 'add',
+        path: '/plugins/' + escapePath(tag),
+        value,
+      }] : [{
+        op: 'add',
+        path: '/plugins',
+        value: { [tag]: value },
+      }],
+    );
+    return save(ref).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          return this.refs.get(ref.url, this.store.account.origin).pipe(switchMap(save));
+        }
+        return throwError(() => err);
+      }),
+      tap(cursor => runInAction(() => {
+        ref.plugins ||= {};
+        ref.plugins[tag] = value;
+        ref.modifiedString = cursor;
+        ref.modified = DateTime.fromISO(cursor);
+      })),
+    );
+  }
+
+  update(updates: Partial<Pick<Ref, 'comment' | 'plugins'>>, ref: Ref) {
+    const key = `${this.store.account.origin}\0${ref.url}`;
+    const queued = { updates, ref };
+    const queue = this.updateQueues.get(key);
+    if (queue) {
+      queue.push(queued);
+      return;
+    }
+    this.updateQueues.set(key, [queued]);
+    this.runNextUpdate(key);
+  }
+
+  private runNextUpdate(key: string) {
+    const queue = this.updateQueues.get(key);
+    if (!queue?.length) return;
+    const { updates, ref } = queue[0];
+    this.store.eventBus.runAndRefresh$(this.update$(updates, ref), ref).pipe(
+      catchError(() => EMPTY),
+      finalize(() => {
+        queue.shift();
+        if (queue.length) {
+          this.runNextUpdate(key);
+        } else if (this.updateQueues.get(key) === queue) {
+          this.updateQueues.delete(key);
+        }
+      }),
+    ).subscribe();
+  }
+
+  update$(updates: Partial<Pick<Ref, 'comment' | 'plugins'>>, ref: Ref): Observable<string> {
+    const save = (target: Ref) => {
+      const patch: OpPatch[] = [];
+      if (updates.comment !== undefined) {
+        patch.push({ op: 'add', path: '/comment', value: updates.comment });
+      }
+      if (updates.plugins) {
+        if (target.plugins) {
+          for (const [tag, value] of Object.entries(updates.plugins)) {
+            patch.push({ op: 'add', path: '/plugins/' + escapePath(tag), value });
+          }
+        } else {
+          patch.push({ op: 'add', path: '/plugins', value: updates.plugins });
+        }
+      }
+      return this.refs.patch(
+        target.url,
+        this.store.account.origin,
+        target.modifiedString!,
+        patch,
+      );
+    };
+    return save(ref).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          return this.refs.get(ref.url, this.store.account.origin).pipe(switchMap(save));
+        }
+        return throwError(() => err);
+      }),
+      tap(cursor => runInAction(() => {
+        if (updates.comment !== undefined) ref.comment = updates.comment;
+        if (updates.plugins) ref.plugins = { ...ref.plugins, ...updates.plugins };
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
       })),

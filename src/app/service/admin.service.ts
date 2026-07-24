@@ -27,6 +27,7 @@ import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
+import { jezzballMod } from '../mods/games/jezzball';
 import { helpMod } from '../mods/help';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
@@ -59,6 +60,7 @@ import { todoMod } from '../mods/org/todo';
 import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/org/wiki';
 import { repostMod } from '../mods/repost';
 import { rootMod } from '../mods/root';
+import { scoreMod } from '../mods/score';
 import { emailMod } from '../mods/sync/email';
 import { feedMod } from '../mods/sync/feed';
 import { remoteOriginMod } from '../mods/sync/origin';
@@ -194,11 +196,13 @@ export class AdminService {
     ytdlpMod,
     markitdownMod,
     voteMod,
+    scoreMod,
     imageMod,
     lensMod,
     pipMod,
     chessMod,
     backgammonMod,
+    jezzballMod,
     pollMod,
     todoMod,
     ninjaTriangleMod,

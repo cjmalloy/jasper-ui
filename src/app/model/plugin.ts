@@ -144,13 +144,15 @@ export const pluginSchema: Schema = {
 };
 
 export interface PluginApi {
-  comment: (comment: string) => void;
   event: (event: string) => void;
-  emit: (a: EmitAction) => void;
-  tag: (tag: string) => void;
-  respond: (response: string, clear?: string[]) => void;
+  update?: (updates: Partial<Pick<Ref, 'comment' | 'plugins'>>) => void;
+  comment?: (comment: string) => void;
+  plugin?: (tag: string, value: unknown) => void;
+  emit?: (a: EmitAction) => void;
+  tag?: (tag: string) => void;
+  respond?: (response: string, clear?: string[]) => void;
   watch: (delimiter?: string) => { ref$: Observable<RefUpdates>, comment$: (comment: string) => Observable<string> },
-  append: (delimiter?: string) => { updates$: Observable<string>, append$: (value: string) => Observable<string> },
+  append?: (delimiter?: string) => { updates$: Observable<string>, append$: (value: string) => Observable<string> },
 }
 
 export function mapPlugin(obj: any): Plugin {
