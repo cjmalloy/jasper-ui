@@ -34,7 +34,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 2,
+    version: 3,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -289,19 +289,39 @@ export const jezzballPlugin: Plugin = {
           playSound(260, 0.04);
         }
 
+        function circleTouchesCell(x, y, cellX, cellY) {
+          const closestX = Math.max(cellX, Math.min(x, cellX + 1));
+          const closestY = Math.max(cellY, Math.min(y, cellY + 1));
+          return Math.hypot(x - closestX, y - closestY) <= BALL_RADIUS;
+        }
+
         function extendEnd(end, direction) {
-          if (!wall || end.done || end.destroyed) return;
+          if (!wall || end.done || end.destroyed) return false;
           const dx = wall.orientation === 'horizontal' ? direction : 0;
           const dy = wall.orientation === 'vertical' ? direction : 0;
           const nx = end.x + dx;
           const ny = end.y + dy;
           if (isOccupied(nx, ny)) {
             end.done = true;
-            return;
+            return false;
           }
           end.x = nx;
           end.y = ny;
           end.cells.add(id(nx, ny));
+          return true;
+        }
+
+        function bounceFromLeadingEdge(half, direction) {
+          for (const ball of balls) {
+            if (!circleTouchesCell(ball.x, ball.y, half.x, half.y)) continue;
+            if (wall.orientation === 'horizontal') {
+              ball.x = direction < 0 ? half.x - BALL_RADIUS : half.x + 1 + BALL_RADIUS;
+              ball.vx = direction < 0 ? -Math.abs(ball.vx) : Math.abs(ball.vx);
+            } else {
+              ball.y = direction < 0 ? half.y - BALL_RADIUS : half.y + 1 + BALL_RADIUS;
+              ball.vy = direction < 0 ? -Math.abs(ball.vy) : Math.abs(ball.vy);
+            }
+          }
         }
 
         function fillCapturedAreas() {
@@ -410,23 +430,17 @@ export const jezzballPlugin: Plugin = {
           if (!wall) return false;
           const leadingCell = id(half.x, half.y);
           const originCell = id(wall.origin.x, wall.origin.y);
-          const minX = Math.floor(ball.x - BALL_RADIUS);
-          const maxX = Math.floor(ball.x + BALL_RADIUS);
-          const minY = Math.floor(ball.y - BALL_RADIUS);
-          const maxY = Math.floor(ball.y + BALL_RADIUS);
-          for (let y = minY; y <= maxY; y++) {
-            for (let x = minX; x <= maxX; x++) {
-              const cellId = id(x, y);
-              if (cellId === leadingCell || !half.cells.has(cellId)) continue;
-              if (cellId === originCell) {
-                const position = wall.orientation === 'horizontal' ? ball.x : ball.y;
-                const center = (wall.orientation === 'horizontal' ? wall.origin.x : wall.origin.y) + 0.5;
-                if ((direction < 0) !== (position < center)) continue;
-              }
-              const closestX = Math.max(x, Math.min(ball.x, x + 1));
-              const closestY = Math.max(y, Math.min(ball.y, y + 1));
-              if (Math.hypot(ball.x - closestX, ball.y - closestY) <= BALL_RADIUS) return true;
+          if (circleTouchesCell(ball.x, ball.y, half.x, half.y)) return false;
+          for (const cellId of half.cells) {
+            if (cellId === leadingCell) continue;
+            const x = cellId % COLS;
+            const y = Math.floor(cellId / COLS);
+            if (cellId === originCell) {
+              const position = wall.orientation === 'horizontal' ? ball.x : ball.y;
+              const center = (wall.orientation === 'horizontal' ? wall.origin.x : wall.origin.y) + 0.5;
+              if ((direction < 0) !== (position < center)) continue;
             }
+            if (circleTouchesCell(ball.x, ball.y, x, y)) return true;
           }
           return false;
         }
@@ -438,13 +452,16 @@ export const jezzballPlugin: Plugin = {
           const maxY = Math.floor(y + BALL_RADIUS);
           for (let cy = minY; cy <= maxY; cy++) {
             for (let cx = minX; cx <= maxX; cx++) {
-              if (isOccupied(cx, cy)) return true;
+              if (cx < 0 || cy < 0 || cx >= COLS || cy >= ROWS) continue;
+              if (occupied[id(cx, cy)] && circleTouchesCell(x, y, cx, cy)) return true;
               if (wall) {
                 for (const half of [wall.negative, wall.positive]) {
                   if (half.destroyed) continue;
                   const cellId = id(cx, cy);
                   if ((half.done && half.cells.has(cellId)) ||
-                      (!half.done && cellId === id(half.x, half.y))) return true;
+                      (!half.done && cellId === id(half.x, half.y))) {
+                    if (circleTouchesCell(x, y, cx, cy)) return true;
+                  }
                 }
               }
             }
@@ -454,19 +471,31 @@ export const jezzballPlugin: Plugin = {
 
         function updateBalls(dt) {
           for (const ball of balls) {
-            let nextX = ball.x + ball.vx * dt;
+            const targetX = ball.x + ball.vx * dt;
+            const targetY = ball.y + ball.vy * dt;
+            let nextX = targetX;
+            let bouncedX = false;
             if (nextX - BALL_RADIUS < 0 || nextX + BALL_RADIUS > COLS || hitsBoard(nextX, ball.y)) {
               ball.vx *= -1;
               nextX = ball.x + ball.vx * dt;
+              bouncedX = true;
             }
             ball.x = Math.max(BALL_RADIUS, Math.min(COLS - BALL_RADIUS, nextX));
 
-            let nextY = ball.y + ball.vy * dt;
+            let nextY = targetY;
+            let bouncedY = false;
             if (nextY - BALL_RADIUS < 0 || nextY + BALL_RADIUS > ROWS || hitsBoard(ball.x, nextY)) {
               ball.vy *= -1;
               nextY = ball.y + ball.vy * dt;
+              bouncedY = true;
             }
             ball.y = Math.max(BALL_RADIUS, Math.min(ROWS - BALL_RADIUS, nextY));
+            if (!bouncedX && !bouncedY && hitsBoard(targetX, targetY)) {
+              ball.vx *= -1;
+              ball.vy *= -1;
+              ball.x = Math.max(BALL_RADIUS, Math.min(COLS - BALL_RADIUS, ball.x + ball.vx * dt));
+              ball.y = Math.max(BALL_RADIUS, Math.min(ROWS - BALL_RADIUS, ball.y + ball.vy * dt));
+            }
             ball.spin -= dt * 7;
           }
         }
@@ -478,8 +507,6 @@ export const jezzballPlugin: Plugin = {
             const wallStep = wallSpeed === 'slow' ? WALL_STEP_SLOW : WALL_STEP_FAST;
             while (wall && wallClock >= wallStep) {
               wallClock -= wallStep;
-              extendEnd(wall.negative, -1);
-              extendEnd(wall.positive, 1);
               for (const [half, direction] of [[wall.negative, -1], [wall.positive, 1]]) {
                 if (half.done || half.destroyed) continue;
                 if (balls.some(ball => ballTouchesHalf(ball, half, direction))) {
@@ -488,6 +515,9 @@ export const jezzballPlugin: Plugin = {
                 }
               }
               if (!running || !wall) break;
+              for (const [half, direction] of [[wall.negative, -1], [wall.positive, 1]]) {
+                if (extendEnd(half, direction)) bounceFromLeadingEdge(half, direction);
+              }
               if (wall && [wall.negative, wall.positive].every(half => half.done || half.destroyed)) completeWall();
             }
           }
