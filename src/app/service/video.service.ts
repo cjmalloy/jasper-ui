@@ -115,25 +115,6 @@ export class VideoService {
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
-    // TODO: negotiationneeded
-    // this.addListener(user, peer, 'negotiationneeded', async (event) => {
-    //   if (peer.signalingState !== 'stable') return;
-    //   console.warn('Renegotiation needed for', user);
-    //   const offer = await peer.createOffer({ iceRestart: true, offerToReceiveAudio: true, offerToReceiveVideo: true });
-    //   if (peer.signalingState !== 'stable') {
-    //     // Already accepted remote offer
-    //     console.debug('Already accepted remote offer!', user);
-    //     return;
-    //   }
-    //   await peer.setLocalDescription(offer);
-    //
-    // });
-    // this.addListener(user, peer, 'iceconnectionstatechange', (event) => {
-    //   if (peer.iceConnectionState === 'failed') {
-    //     console.warn('Restarting ICE', user);
-    //     peer.restartIce();
-    //   }
-    // });
     this.store.video.stream!.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream!));
     return peer;
   }
