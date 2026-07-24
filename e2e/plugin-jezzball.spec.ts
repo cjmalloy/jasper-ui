@@ -44,7 +44,6 @@ async function moveCursor(game: ReturnType<Page['locator']>, key: string, count:
 async function placeTestBalls(page: Page, positions: Array<{ x: number; y: number; left?: boolean; up?: boolean }>) {
   await page.evaluate(testPositions => {
     const values = testPositions.flatMap(position => [
-      0,
       position.left ? 0 : 1,
       position.up ? 0 : 1,
       (position.x - 2) / 28,
@@ -142,9 +141,13 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(sound).toHaveText('Sound off');
     await expect(game.locator('.jezzball-filled')).toHaveText('Filled 0%');
     const backgroundPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
-      [...element.getContext('2d')!.getImageData(1 * 25 + 12, 1 * 25 + 12, 1, 1).data]
+      [...element.getContext('2d')!.getImageData(1 * 25 + 5, 1 * 25 + 5, 1, 1).data]
     ));
     expect(backgroundPixel.slice(0, 3)).toEqual([119, 119, 119]);
+    const gridPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
+      [...element.getContext('2d')!.getImageData(1 * 25 + 12, 1 * 25 + 5, 1, 1).data]
+    ));
+    expect(gridPixel[0]).toBeGreaterThan(backgroundPixel[0]);
     const hudPositions = await game.evaluate(element => {
       const rect = (selector: string) => element.querySelector(selector)!.getBoundingClientRect();
       const stage = rect('.jezzball-stage');
@@ -418,6 +421,7 @@ test.describe.serial('JezzBall Plugin', () => {
         .__testBallCenters.filter(center => center.x < 20).at(-1)
     ));
     expect(leadingBall?.x).toBeLessThan(14);
+    expect(Math.abs((15 - leadingBall!.x) - (leadingBall!.y - 9.3))).toBeLessThan(0.01);
 
     await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
     await installDeterministicGameClock(page);

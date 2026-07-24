@@ -34,7 +34,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 4,
+    version: 1,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -183,12 +183,16 @@ export const jezzballPlugin: Plugin = {
         }
 
         function randomVelocity() {
-          const speed = 4.3 + Math.min(level, 12) * 0.08;
-          const angle = Math.PI / 6 + Math.random() * Math.PI / 6;
+          const component = ballSpeed() / Math.SQRT2;
           return {
-            vx: speed * Math.cos(angle) * (Math.random() < 0.5 ? -1 : 1),
-            vy: speed * Math.sin(angle) * (Math.random() < 0.5 ? -1 : 1),
+            vx: component * (Math.random() < 0.5 ? -1 : 1),
+            vy: component * (Math.random() < 0.5 ? -1 : 1),
           };
+        }
+
+        function ballSpeed() {
+          const wallStep = wallSpeed === 'slow' ? WALL_STEP_SLOW : WALL_STEP_FAST;
+          return 1 / (wallStep * 2);
         }
 
         function placeBalls() {
@@ -249,6 +253,11 @@ export const jezzballPlugin: Plugin = {
 
         function toggleSpeed() {
           wallSpeed = wallSpeed === 'slow' ? 'fast' : 'slow';
+          const component = ballSpeed() / Math.SQRT2;
+          for (const ball of balls) {
+            ball.vx = Math.sign(ball.vx) * component;
+            ball.vy = Math.sign(ball.vy) * component;
+          }
           updateHud();
         }
 
@@ -447,29 +456,18 @@ export const jezzballPlugin: Plugin = {
           for (const ball of balls) {
             const targetX = ball.x + ball.vx * dt;
             const targetY = ball.y + ball.vy * dt;
-            let nextX = targetX;
-            let bouncedX = false;
-            if (nextX - BALL_RADIUS < 0 || nextX + BALL_RADIUS > COLS || hitsBoard(nextX, ball.y)) {
-              ball.vx *= -1;
-              nextX = ball.x + ball.vx * dt;
-              bouncedX = true;
-            }
-            ball.x = Math.max(BALL_RADIUS, Math.min(COLS - BALL_RADIUS, nextX));
-
-            let nextY = targetY;
-            let bouncedY = false;
-            if (nextY - BALL_RADIUS < 0 || nextY + BALL_RADIUS > ROWS || hitsBoard(ball.x, nextY)) {
-              ball.vy *= -1;
-              nextY = ball.y + ball.vy * dt;
-              bouncedY = true;
-            }
-            ball.y = Math.max(BALL_RADIUS, Math.min(ROWS - BALL_RADIUS, nextY));
+            const bouncedX = targetX - BALL_RADIUS < 0 || targetX + BALL_RADIUS > COLS ||
+              hitsBoard(targetX, ball.y);
+            const bouncedY = targetY - BALL_RADIUS < 0 || targetY + BALL_RADIUS > ROWS ||
+              hitsBoard(ball.x, targetY);
+            if (bouncedX) ball.vx *= -1;
+            if (bouncedY) ball.vy *= -1;
             if (!bouncedX && !bouncedY && hitsBoard(targetX, targetY)) {
               ball.vx *= -1;
               ball.vy *= -1;
-              ball.x = Math.max(BALL_RADIUS, Math.min(COLS - BALL_RADIUS, ball.x + ball.vx * dt));
-              ball.y = Math.max(BALL_RADIUS, Math.min(ROWS - BALL_RADIUS, ball.y + ball.vy * dt));
             }
+            ball.x = Math.max(BALL_RADIUS, Math.min(COLS - BALL_RADIUS, ball.x + ball.vx * dt));
+            ball.y = Math.max(BALL_RADIUS, Math.min(ROWS - BALL_RADIUS, ball.y + ball.vy * dt));
             ball.spin -= dt * 7;
           }
         }
@@ -514,16 +512,16 @@ export const jezzballPlugin: Plugin = {
 
           g.strokeStyle = 'rgba(255,255,255,.08)';
           g.lineWidth = 1;
-          for (let x = 1; x < COLS; x++) {
+          for (let x = 0; x < COLS; x++) {
             g.beginPath();
-            g.moveTo(x * CELL, 0);
-            g.lineTo(x * CELL, canvas.height);
+            g.moveTo((x + 0.5) * CELL, 0);
+            g.lineTo((x + 0.5) * CELL, canvas.height);
             g.stroke();
           }
-          for (let y = 1; y < ROWS; y++) {
+          for (let y = 0; y < ROWS; y++) {
             g.beginPath();
-            g.moveTo(0, y * CELL);
-            g.lineTo(canvas.width, y * CELL);
+            g.moveTo(0, (y + 0.5) * CELL);
+            g.lineTo(canvas.width, (y + 0.5) * CELL);
             g.stroke();
           }
 
