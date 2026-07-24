@@ -66,6 +66,38 @@ export const jezzballPlugin: Plugin = {
     filters: [
       { query: 'plugin/jezzball', label: $localize`🟣️ JezzBall`, title: $localize`JezzBall games`, group: $localize`Games 🕹️` },
     ],
+    // language=CSS
+    css: `
+      .jezzball-game { display: block; width: min(100%, 850px); margin: 0 auto; color: var(--text, #ddd); font: 14px system-ui, sans-serif; outline: none; }
+      .jezzball-game * { box-sizing: border-box; }
+      .jezzball-toolbar { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 8px 4px; }
+      .jezzball-toolbar .jezzball-level { font-weight: 600; white-space: nowrap; }
+      .jezzball-stat { position: absolute; z-index: 1; color: #eee; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 2px #000; }
+      .jezzball-lives { top: 8px; left: 10px; }
+      .jezzball-center { position: absolute; z-index: 1; top: 8px; left: 50%; display: flex; transform: translateX(-50%); }
+      .jezzball-center .jezzball-stat { position: static; }
+      .jezzball-time { top: 8px; right: 10px; }
+      .jezzball-filled { bottom: 8px; left: 50%; transform: translateX(-50%); }
+      .jezzball-example { color: #e7b85b; font-weight: 600; }
+      .jezzball-controls { display: flex; gap: 8px; margin-left: auto; }
+      .jezzball-controls button, .jezzball-overlay button { border: 1px solid var(--border, #777); border-radius: 4px; background: var(--card, #333); color: var(--text, #eee); padding: 5px 9px; cursor: pointer; }
+      .jezzball-controls button:hover, .jezzball-overlay button:hover { background: var(--active, #4a4a4a); }
+      .jezzball-stage { position: relative; width: 100%; padding: 34px; overflow: hidden; filter: drop-shadow(0px 0px .5px #ffffff); border-radius: 8px; background: #000; touch-action: none; }
+      .jezzball-canvas { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; }
+      .jezzball-canvas.vertical { cursor: ns-resize; }
+      .jezzball-canvas.horizontal { cursor: ew-resize; }
+      .jezzball-overlay { position: absolute; inset: 0; display: none; place-content: center; text-align: center; background: rgba(0, 0, 0, .72); color: white; }
+      .jezzball-overlay.visible { display: grid; }
+      .jezzball-overlay strong { display: block; margin-bottom: 12px; font-size: 24px; }
+      .embed:fullscreen > .plugin_jezzball { zoom: 50%; margin: 0 auto; }
+      :fullscreen .jezzball-game { width: min(100vw, calc((100vh - 114px) * 4 / 3 + 68px)); max-width: none; }
+      :fullscreen .jezzball-controls { display: none; }
+      @media (prefers-color-scheme: light) {
+        .jezzball-game { color: var(--text, #333); }
+        .jezzball-controls button, .jezzball-overlay button { background: var(--card, #eee); color: var(--text, #222); border-color: var(--border, #999); }
+        .jezzball-controls button:hover, .jezzball-overlay button:hover { background: var(--active, #ddd); }
+      }
+    `,
     // language=HTML
     snippet: `
     <script>
@@ -108,37 +140,6 @@ export const jezzballPlugin: Plugin = {
 
         root.classList.add('jezzball-game');
         root.innerHTML = \`
-          <style>
-            .jezzball-game { display: block; width: min(100%, 850px); margin: 0 auto; color: var(--text, #ddd); font: 14px system-ui, sans-serif; outline: none; }
-            .jezzball-game * { box-sizing: border-box; }
-            .jezzball-toolbar { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 8px 4px; }
-            .jezzball-toolbar .jezzball-level { font-weight: 600; white-space: nowrap; }
-            .jezzball-stat { position: absolute; z-index: 1; color: #eee; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 2px #000; }
-            .jezzball-lives { top: 8px; left: 10px; }
-            .jezzball-center { position: absolute; z-index: 1; top: 8px; left: 50%; display: flex; transform: translateX(-50%); }
-            .jezzball-center .jezzball-stat { position: static; }
-            .jezzball-time { top: 8px; right: 10px; }
-            .jezzball-filled { bottom: 8px; left: 50%; transform: translateX(-50%); }
-            .jezzball-example { color: #e7b85b; font-weight: 600; }
-            .jezzball-controls { display: flex; gap: 8px; margin-left: auto; }
-            .jezzball-controls button, .jezzball-overlay button { border: 1px solid var(--border, #777); border-radius: 4px; background: var(--card, #333); color: var(--text, #eee); padding: 5px 9px; cursor: pointer; }
-            .jezzball-controls button:hover, .jezzball-overlay button:hover { background: var(--active, #4a4a4a); }
-            .jezzball-stage { position: relative; width: 100%; padding: 34px; overflow: hidden; filter: drop-shadow(0px 0px .5px #ffffff); border-radius: 8px; background: #000; touch-action: none; }
-            .jezzball-canvas { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; }
-            .jezzball-canvas.vertical { cursor: ns-resize; }
-            .jezzball-canvas.horizontal { cursor: ew-resize; }
-            .jezzball-overlay { position: absolute; inset: 0; display: none; place-content: center; text-align: center; background: rgba(0, 0, 0, .72); color: white; }
-            .jezzball-overlay.visible { display: grid; }
-            .jezzball-overlay strong { display: block; margin-bottom: 12px; font-size: 24px; }
-            .embed:fullscreen > .plugin_jezzball { zoom: 50%; margin: 0 auto; }
-            :fullscreen .jezzball-game { width: min(100vw, calc((100vh - 114px) * 4 / 3 + 68px)); max-width: none; }
-            :fullscreen .jezzball-controls { display: none; }
-            @media (prefers-color-scheme: light) {
-              .jezzball-game { color: var(--text, #333); }
-              .jezzball-controls button, .jezzball-overlay button { background: var(--card, #eee); color: var(--text, #222); border-color: var(--border, #999); }
-              .jezzball-controls button:hover, .jezzball-overlay button:hover { background: var(--active, #ddd); }
-            }
-          </style>
           <div class="jezzball-toolbar">
             <span class="jezzball-level"></span>
             <span class="jezzball-example" title="\${labels.savedExampleTitle}">\${labels.savedExample}</span>
