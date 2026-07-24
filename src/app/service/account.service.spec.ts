@@ -42,6 +42,11 @@ describe('AccountService', () => {
       config: {},
     };
   };
+  const setOrigins = (refs: Ref[]) => {
+    const origins = (service as any).origins;
+    origins.origins = refs;
+    (service as any).store.origins.accountAliases = origins.accountAliases;
+  };
 
   const expectCursorRequest = (cursor?: string) => {
     const get = http.expectOne(req =>
@@ -83,8 +88,7 @@ describe('AccountService', () => {
 
   it('creates one stream per origin, not per alias', () => {
     setAccount();
-    const origins = (service as any).origins;
-    origins.origins = [
+    setOrigins([
       {
         url: 'spec:city',
         origin: '',
@@ -103,7 +107,7 @@ describe('AccountService', () => {
           aliases: ['+user/dad'],
         } },
       },
-    ] as Ref[];
+    ]);
 
     const streams = service.notificationStreams;
     expect(streams.filter(stream => stream.origin === '@city')).toHaveLength(1);
@@ -127,8 +131,7 @@ describe('AccountService', () => {
 
   it('loads independent cursors for multiple origins', () => {
     setAccount();
-    const origins = (service as any).origins;
-    origins.origins = [
+    setOrigins([
       {
         url: 'spec:city',
         origin: '',
@@ -141,7 +144,7 @@ describe('AccountService', () => {
         tags: ['+plugin/origin/pull', '+user/dad'],
         plugins: { '+plugin/origin': { local: '@town', aliases: ['+user/dad'] } },
       },
-    ] as Ref[];
+    ]);
 
     service.loadNotificationCursors$().subscribe();
     const cursors = new Map([
