@@ -32,17 +32,17 @@ describe('ActionService', () => {
       origin: '',
       modifiedString: '2026-01-01T00:00:00Z',
     };
-    const patch = vi.spyOn((service as any).refs, 'patch').mockReturnValue(of('2026-01-01T00:00:01Z'));
+    const merge = vi.spyOn((service as any).refs, 'merge').mockReturnValue(of('2026-01-01T00:00:01Z'));
 
-    await firstValueFrom(service.plugin$('plugin/score', 42, ref));
+    await firstValueFrom(service.patch$({ plugins: { 'plugin/score': 42 } }, ref));
 
-    expect(patch).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', [
-      { op: 'add', path: '/tags', value: ['plugin/score'] },
-      { op: 'add', path: '/plugins', value: { 'plugin/score': 42 } },
-    ]);
+    expect(merge).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', {
+      tags: ['plugin/score'],
+      plugins: { 'plugin/score': 42 },
+    });
   });
 
-  it('should not add a tag op when the tag is already present', async () => {
+  it('should not add a tag when the tag is already present', async () => {
     const ref = {
       url: 'https://example.com',
       origin: '',
@@ -50,13 +50,13 @@ describe('ActionService', () => {
       tags: ['plugin/score'],
       plugins: { 'plugin/score': 0 },
     };
-    const patch = vi.spyOn((service as any).refs, 'patch').mockReturnValue(of('2026-01-01T00:00:01Z'));
+    const merge = vi.spyOn((service as any).refs, 'merge').mockReturnValue(of('2026-01-01T00:00:01Z'));
 
-    await firstValueFrom(service.plugin$('plugin/score', 99, ref));
+    await firstValueFrom(service.patch$({ plugins: { 'plugin/score': 99 } }, ref));
 
-    expect(patch).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', [
-      { op: 'add', path: '/plugins/plugin~1score', value: 99 },
-    ]);
+    expect(merge).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', {
+      plugins: { 'plugin/score': 99 },
+    });
   });
 
   it('should store multiple plugin values in one patch', async () => {
@@ -64,21 +64,28 @@ describe('ActionService', () => {
       url: 'https://example.com',
       origin: '',
       modifiedString: '2026-01-01T00:00:00Z',
+      comment: '',
       plugins: { existing: true },
     };
-    const patch = vi.spyOn((service as any).refs, 'patch').mockReturnValue(of('2026-01-01T00:00:01Z'));
+    const merge = vi.spyOn((service as any).refs, 'merge').mockReturnValue(of('2026-01-01T00:00:01Z'));
 
-    await firstValueFrom(service.plugin$(
-      'plugin/a', { enabled: true },
-      'plugin/b', 42,
-      ref,
-    ));
+    await firstValueFrom(service.patch$({
+      comment: 'map',
+      plugins: {
+        'plugin/a': { enabled: true },
+        'plugin/b': 42,
+      },
+    }, ref));
 
-    expect(patch).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', [
-      { op: 'add', path: '/tags', value: ['plugin/a', 'plugin/b'] },
-      { op: 'add', path: '/plugins/plugin~1a', value: { enabled: true } },
-      { op: 'add', path: '/plugins/plugin~1b', value: 42 },
-    ]);
+    expect(merge).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', {
+      comment: 'map',
+      tags: ['plugin/a', 'plugin/b'],
+      plugins: {
+        'plugin/a': { enabled: true },
+        'plugin/b': 42,
+      },
+    });
+    expect(ref.comment).toBe('map');
     expect(ref.plugins).toEqual({
       existing: true,
       'plugin/a': { enabled: true },
@@ -94,18 +101,21 @@ describe('ActionService', () => {
       tags: ['plugin/a'],
       plugins: { 'plugin/a': null },
     };
-    const patch = vi.spyOn((service as any).refs, 'patch').mockReturnValue(of('2026-01-01T00:00:01Z'));
+    const merge = vi.spyOn((service as any).refs, 'merge').mockReturnValue(of('2026-01-01T00:00:01Z'));
 
-    await firstValueFrom(service.plugin$(
-      'plugin/a', { enabled: true },
-      'plugin/b', 42,
-      ref,
-    ));
+    await firstValueFrom(service.patch$({
+      plugins: {
+        'plugin/a': { enabled: true },
+        'plugin/b': 42,
+      },
+    }, ref));
 
-    expect(patch).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', [
-      { op: 'add', path: '/tags/-', value: 'plugin/b' },
-      { op: 'add', path: '/plugins/plugin~1a', value: { enabled: true } },
-      { op: 'add', path: '/plugins/plugin~1b', value: 42 },
-    ]);
+    expect(merge).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', {
+      tags: ['plugin/a', 'plugin/b'],
+      plugins: {
+        'plugin/a': { enabled: true },
+        'plugin/b': 42,
+      },
+    });
   });
 });

@@ -9,7 +9,6 @@ import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { merge3 } from '../util/diff';
-import { escapePath, OpPatch } from '../util/json-patch';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -37,9 +36,9 @@ export class ActionService {
         o?.unsubscribe();
         o = this.comment$(comment, ref).subscribe();
       }, 500),
-      plugin: (tag: string, value: unknown, ...plugins: unknown[]) => {
+      patch: (patch: Partial<Ref>) => {
         if (!ref) throw 'Error: No ref to save';
-        this.plugin(tag, value, ...plugins, ref);
+        this.patch(patch, ref);
       },
       event: (event: string) => {
         this.event(event, ref);
@@ -139,34 +138,17 @@ export class ActionService {
     );
   }
 
-  plugin(...args: [tag: string, value: unknown, ...plugins: unknown[], ref: Ref]) {
-    const ref = args.at(-1) as Ref;
-    this.store.eventBus.runAndRefresh(this.plugin$(...args), ref);
+  patch(patch: Partial<Ref>, ref: Ref) {
+    this.store.eventBus.runAndRefresh(this.patch$(patch, ref), ref);
   }
 
-  plugin$(...args: [tag: string, value: unknown, ...plugins: unknown[], ref: Ref]): Observable<string> {
-    const ref = args.pop() as Ref;
-    const [tag, value, ...plugins] = args;
-    if (plugins.length % 2) throw new Error('Plugin updates require tag/value pairs');
-    const entries: [string, unknown][] = [[tag, value]];
-    for (let i = 0; i < plugins.length; i += 2) {
-      const plugin = plugins[i];
-      if (typeof plugin !== 'string') throw new Error('Plugin update tags must be strings');
-      entries.push([plugin, plugins[i + 1]]);
-    }
-    const updates = Object.fromEntries(entries);
-    const tags = entries.map(([t]) => t);
+  patch$(patch: Partial<Ref>, ref: Ref): Observable<string> {
+    const pluginTags = Object.keys(patch.plugins || {});
     const save = (target: Ref) => {
-      const missingTags = tags.filter(t => !hasTag(t, target));
-      const tagOps: OpPatch[] = missingTags.length
-        ? target.tags
-          ? missingTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
-          : [{ op: 'add' as const, path: '/tags', value: missingTags }]
-        : [];
-      const pluginOps: OpPatch[] = target.plugins
-        ? entries.map(([t, v]) => ({ op: 'add' as const, path: '/plugins/' + escapePath(t), value: v }))
-        : [{ op: 'add' as const, path: '/plugins', value: updates }];
-      return this.refs.patch(target.url, this.store.account.origin, target.modifiedString!, [...tagOps, ...pluginOps]);
+      const tags = patch.tags || target.tags;
+      const missingTags = pluginTags.filter(t => !hasTag(t, tags));
+      const update = missingTags.length ? { ...patch, tags: [...(tags || []), ...missingTags] } : patch;
+      return this.refs.merge(target.url, this.store.account.origin, target.modifiedString!, update);
     };
     return save(ref).pipe(
       catchError(err => {
@@ -176,8 +158,10 @@ export class ActionService {
         return throwError(() => err);
       }),
       tap(cursor => runInAction(() => {
-        ref.plugins = { ...ref.plugins, ...updates };
-        const newTags = tags.filter(t => !hasTag(t, ref));
+        const plugins = patch.plugins ? { ...ref.plugins, ...patch.plugins } : ref.plugins;
+        Object.assign(ref, patch);
+        if (patch.plugins) ref.plugins = plugins;
+        const newTags = pluginTags.filter(t => !hasTag(t, ref));
         if (newTags.length) ref.tags = [...(ref.tags || []), ...newTags];
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);

@@ -943,13 +943,15 @@ export const jezzballPlugin: Plugin = {
             comment: ref && ref.comment,
             initial: ref && ref.plugins && ref.plugins['plugin/jezzball'] || {},
             score: ref && ref.plugins && ref.plugins['plugin/score'],
-            writable: !actions || !!actions.plugin,
-            save: actions && actions.plugin ? function(comment, state, score) {
-              actions.comment(comment);
-              actions.plugin(
-                'plugin/jezzball', state,
-                'plugin/score', score
-              );
+            writable: !actions || !!actions.patch,
+            save: actions && actions.patch ? function(comment, state, score) {
+              actions.patch({
+                comment: comment,
+                plugins: {
+                  'plugin/jezzball': state,
+                  'plugin/score': score,
+                },
+              });
             } : undefined,
           });
         };

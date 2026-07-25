@@ -588,19 +588,20 @@ export class ViewerComponent implements OnChanges, OnDestroy {
       },
     };
     if (!this.ref?.modified || this.auth.writeAccess(this.ref)) {
-      api.plugin = (tag: string, value: unknown, ...plugins: unknown[]) => {
+      api.patch = (patch: Partial<Ref>) => {
         if (this.ref?.modified) {
-          actions.plugin!(tag, value, ...plugins);
+          actions.patch!(patch);
         } else if (this.ref) {
-          const updates = [tag, value, ...plugins];
           runInAction(() => {
-            this.ref!.plugins ||= {};
-            for (let i = 0; i < updates.length; i += 2) {
-              const updateTag = updates[i] as string;
-              if (!hasTag(updateTag, this.ref!)) {
-                this.ref!.tags = [...(this.ref!.tags || []), updateTag];
+            const plugins = patch.plugins ? { ...this.ref!.plugins, ...patch.plugins } : this.ref!.plugins;
+            Object.assign(this.ref!, patch);
+            if (patch.plugins) {
+              this.ref!.plugins = plugins;
+              for (const updateTag of Object.keys(patch.plugins)) {
+                if (!hasTag(updateTag, this.ref!)) {
+                  this.ref!.tags = [...(this.ref!.tags || []), updateTag];
+                }
               }
-              this.ref!.plugins![updateTag] = updates[i + 1];
             }
           });
         }
