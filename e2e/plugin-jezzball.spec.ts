@@ -478,7 +478,21 @@ test.describe.serial('JezzBall Plugin', () => {
         registerHelper: (_name, value) => helper = value,
       };
       const script = document.createElement('script');
-      script.textContent = source;
+      script.textContent = source.replace(
+        'frame = requestAnimationFrame(loop);',
+        `root._jezzballTest = {
+          setTrappedBall: function() {
+            occupied.fill(0);
+            for (const cell of [[9, 10], [11, 10], [10, 9], [10, 11]]) occupied[id(cell[0], cell[1])] = 3;
+            balls = [{ x: 10.2, y: 10.7, vx: 5, vy: 5, spin: 1 }];
+          },
+          stepBalls: function() {
+            updateBalls(0.05);
+            return { x: balls[0].x, y: balls[0].y, spin: balls[0].spin };
+          }
+        };
+        frame = requestAnimationFrame(loop);`,
+      );
       document.head.appendChild(script);
       helper({
         plugins: {
@@ -541,6 +555,20 @@ test.describe.serial('JezzBall Plugin', () => {
       [...element.getContext('2d')!.getImageData(2 * 25 + 12, 10 * 25 + 12, 1, 1).data]
     ));
     expect(finishedWallPixel.slice(0, 3)).toEqual([0, 0, 0]);
+
+    const trappedBall = await game.evaluate((element: HTMLElement & {
+      _jezzballTest: {
+        setTrappedBall: () => void;
+        stepBalls: () => { x: number; y: number; spin: number };
+      };
+    }) => {
+      element._jezzballTest.setTrappedBall();
+      element._jezzballTest.stepBalls();
+      return element._jezzballTest.stepBalls();
+    });
+    expect(trappedBall.x).toBe(10.5);
+    expect(trappedBall.y).toBe(10.5);
+    expect(trappedBall.spin).toBeCloseTo(0.3);
   });
 
   test('keeps the surviving half when an atom hits the other half', async () => {
