@@ -283,7 +283,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await moveCursor(game, 'ArrowUp', 8);
     await game.press('Enter');
     await advanceGame(page, 8);
-    await expect(game.locator('.jezzball-lives')).toHaveText('Lives 2');
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives: 2');
 
     const finalSave = page.waitForResponse(resp => (
       resp.url().includes('/api/v1/ref') && resp.request().method() === 'PATCH' && resp.ok()
