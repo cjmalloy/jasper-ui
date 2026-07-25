@@ -1,4 +1,50 @@
 import { expect, type Page } from '@playwright/test';
+import { Client, type IMessage } from '@stomp/stompjs';
+
+const adminHeaders = { 'User-Role': 'ROLE_ADMIN' };
+
+export interface StompEventSubscription {
+  message: Promise<IMessage>;
+  close: () => Promise<void>;
+}
+
+export function subscribeMain(destination: string) {
+  return subscribeStomp(process.env.MAIN_API || 'http://localhost:8081', destination);
+}
+
+export function subscribeRepl(destination: string) {
+  return subscribeStomp(process.env.REPL_API || 'http://localhost:8083', destination);
+}
+
+async function subscribeStomp(api: string, destination: string): Promise<StompEventSubscription> {
+  const broker = new URL('/api/stomp/websocket', api);
+  broker.protocol = broker.protocol === 'https:' ? 'wss:' : 'ws:';
+
+  let resolveMessage!: (message: IMessage) => void;
+  const message = new Promise<IMessage>(resolve => resolveMessage = resolve);
+  const client = new Client({
+    brokerURL: broker.toString(),
+    connectHeaders: adminHeaders,
+    reconnectDelay: 0,
+  });
+
+  return new Promise((resolve, reject) => {
+    client.onWebSocketError = event => reject(new Error(`WebSocket connection failed: ${event.type}`));
+    client.onStompError = frame => reject(new Error(frame.body || frame.headers['message']));
+    client.onConnect = () => {
+      const receipt = `subscribe-${Date.now()}-${Math.random()}`;
+      client.watchForReceipt(receipt, () => resolve({
+        message,
+        close: () => client.deactivate(),
+      }));
+      client.subscribe(destination, resolveMessage, {
+        ...adminHeaders,
+        receipt,
+      });
+    };
+    client.activate();
+  });
+}
 
 export async function clearMods(page: Page, base = '') {
   await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });

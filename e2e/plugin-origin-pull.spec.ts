@@ -1,5 +1,14 @@
 import { expect, type Page, type Response, test } from '@playwright/test';
-import { clearAll, clearOrigin, deleteRef, mod, openSidebar, waitForCronToggleResponse, waitForUserActionResponse } from './setup';
+import {
+  clearAll,
+  clearOrigin,
+  deleteRef,
+  mod,
+  openSidebar,
+  subscribeRepl,
+  waitForCronToggleResponse,
+  waitForUserActionResponse,
+} from './setup';
 
 test.describe.serial('Origin Pull Plugin', () => {
   test.setTimeout(90_000);
@@ -102,9 +111,15 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}repl : creates ref and streams pull', async ({ page }) => {
-    await test.step('create remote source ref', async () => {
-      await createRemoteTextRef(page, pullTestTitle);
-    });
+    const cursor = await subscribeRepl('/topic/cursor/@repl');
+    try {
+      await test.step('create remote source ref', async () => {
+        await createRemoteTextRef(page, pullTestTitle);
+        await cursor.message;
+      });
+    } finally {
+      await cursor.close();
+    }
     await test.step('expect pulled ref', async () => {
       await expectPulled(page, pullTestTitle);
     });
