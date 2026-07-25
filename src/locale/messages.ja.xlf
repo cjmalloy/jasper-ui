@@ -7140,25 +7140,20 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>This Ref is read-only; progress will not be saved.</source>
         <target>このRefは読み取り専用です。進行状況は保存されません。</target>
       </trans-unit>
-      <trans-unit id="7182974689040833178" datatype="html">
-        <source>Resume</source>
-        <target>再開</target>
+      <trans-unit id="7052225887348535774" datatype="html">
+        <source>⏸️</source>
       </trans-unit>
-      <trans-unit id="6080928629553303128" datatype="html">
-        <source>Slow</source>
-        <target>低速</target>
+      <trans-unit id="6156229848246254828" datatype="html">
+        <source>⏯️</source>
       </trans-unit>
-      <trans-unit id="4440784179849538382" datatype="html">
-        <source>Fast</source>
-        <target>高速</target>
+      <trans-unit id="2768384540935341624" datatype="html">
+        <source>🐢</source>
       </trans-unit>
-      <trans-unit id="8973244013586619309" datatype="html">
-        <source>Sound on</source>
-        <target>サウンドオン</target>
+      <trans-unit id="1470672407066453787" datatype="html">
+        <source>🐇</source>
       </trans-unit>
-      <trans-unit id="7835949021036102347" datatype="html">
-        <source>Sound off</source>
-        <target>サウンドオフ</target>
+      <trans-unit id="3091918474470553761" datatype="html">
+        <source>🔊</source>
       </trans-unit>
       <trans-unit id="2128624502640961509" datatype="html">
         <source>New game</source>
