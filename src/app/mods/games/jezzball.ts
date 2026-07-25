@@ -941,7 +941,7 @@ export const jezzballPlugin: Plugin = {
           jezzballApp(el.querySelector('.jezzball-game'), {
             url: ref && ref.url,
             comment: ref && ref.comment,
-            initial: initial = ref && ref.plugins && ref.plugins['plugin/jezzball'] || {},
+            initial: ref && ref.plugins && ref.plugins['plugin/jezzball'] || {},
             score: ref && ref.plugins && ref.plugins['plugin/score'],
             writable: !actions || !!actions.plugin,
             save: actions && actions.plugin ? function(comment, state, score) {
