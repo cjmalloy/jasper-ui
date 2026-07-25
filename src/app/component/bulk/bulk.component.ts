@@ -219,7 +219,10 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   get items() {
     let result = this.queryStore.page!;
-    if (this.type === 'ref' || this.type === 'ext') {
+    if (this.type === 'ref') {
+      result = {...result, content: [...this.bulkSelectedContent] as any};
+      if (this.store.view.ref) result.content.unshift(this.store.view.ref as any);
+    } else if (this.type === 'ext') {
       result = {...result, content: this.bulkSelectedContent as any};
     }
     return result;
