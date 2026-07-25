@@ -320,7 +320,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await page.reload({ waitUntil: 'networkidle' });
     await installDeterministicGameClock(page);
     await expect(game.locator('.jezzball-overlay')).toContainText('Level: 2');
-    await expect(game.locator('.jezzball-new-game')).toHaveText('Start game');
+    await expect(game.locator('.jezzball-new-game')).toHaveText('Continue');
     const restoredBackground = await game.locator('.jezzball-canvas').evaluate((element: HTMLCanvasElement) => (
       [...element.getContext('2d')!.getImageData(0, 0, 1, 1).data].slice(0, 3)
     ));

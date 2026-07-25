@@ -13,7 +13,6 @@ const jezzballLabels = {
   fast: $localize`🐇`,
   soundOn: $localize`🔊`,
   soundOff: $localize`🔇`,
-  startGame: $localize`Start game`,
   newGame: $localize`New game`,
   continue: $localize`Continue`,
   confirmNewGame: $localize`This will clear your high score of {score}. Start a new game?`,
@@ -1029,7 +1028,7 @@ export const jezzballPlugin: Plugin = {
           });
         } else {
           restoreBalls();
-          showMessage(format(labels.level, { level: level }), labels.startGame, resetLevel);
+          showMessage(format(labels.level, { level: level }), labels.continue, resetLevel);
         }
         frame = requestAnimationFrame(loop);
         return root._jezzballDestroy;
