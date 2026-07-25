@@ -481,9 +481,11 @@ test.describe.serial('JezzBall Plugin', () => {
     if (!css) throw new Error('JezzBall plugin has no CSS');
     if (!infoUi) throw new Error('JezzBall plugin has no info UI');
     const Handlebars = (await import('handlebars')).default;
+    Handlebars.registerHelper('number', (value: unknown) => Number(value).toLocaleString());
     const info = { ref: { plugins: { 'plugin/score': 450 } } };
     expect(Handlebars.compile(infoUi)({ ...info, final: true })).toContain('🏆️ 450');
     expect(Handlebars.compile(infoUi)({ ...info, final: false })).toBe('');
+    expect(Handlebars.compile(infoUi)({ ref: { plugins: { 'plugin/score': 0 } }, final: true })).toBe('');
     const scriptSource = snippet.match(/<script>([\s\S]*)<\/script>/)?.[1];
     if (!scriptSource) throw new Error('JezzBall plugin has no script');
     await page.goto('about:blank');

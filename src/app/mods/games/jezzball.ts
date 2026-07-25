@@ -67,7 +67,7 @@ export const jezzballPlugin: Plugin = {
       { query: 'plugin/jezzball', label: $localize`🟣️ JezzBall`, title: $localize`JezzBall games`, group: $localize`Games 🕹️` },
     ],
     // language=Handlebars
-    infoUi: `{{#if final}}<span class="jezzball-final-score">🏆️ {{lookup ref.plugins "plugin/score"}}</span>{{/if}}`,
+    infoUi: `{{#if final}}{{#if (lookup ref.plugins "plugin/score")}}<span class="jezzball-final-score">🏆️ {{number (lookup ref.plugins "plugin/score")}}</span>{{/if}}{{/if}}`,
     // language=CSS
     css: `
       .jezzball-game {
