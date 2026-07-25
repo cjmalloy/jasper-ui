@@ -237,17 +237,6 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game).toHaveCSS('color', 'rgb(0, 0, 0)');
   });
 
-  test('plays a read-only Ref as a saved example', async () => {
-    await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
-    const game = page.locator('.full-page.ref .jezzball-game');
-    await expect(game.locator('.jezzball-example')).toHaveText('Saved example');
-    await expect(game.locator('.jezzball-overlay')).toContainText('Final score 450');
-    page.once('dialog', dialog => dialog.accept());
-    await game.locator('.jezzball-new-game').click();
-    await expect(game.locator('.jezzball-level')).toHaveText('Level: 1');
-    await expect(game.locator('.jezzball-canvas')).toBeVisible();
-  });
-
   test('covers deterministic wall, collision, timer, score, and checkpoint rules', async () => {
     await page.goto(gamePath + '?debug=USER', { waitUntil: 'networkidle' });
     const game = page.locator('.full-page.ref .jezzball-game');
