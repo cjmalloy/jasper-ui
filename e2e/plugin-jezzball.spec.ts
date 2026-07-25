@@ -528,7 +528,7 @@ test.describe.serial('JezzBall Plugin', () => {
       { x: 26, y: 20 },
     ]);
     const game = page.locator('.jezzball-game');
-    await expect(game.locator('.jezzball-level')).toHaveText('Level: 1');
+    await expect(game.locator('.jezzball-level')).toHaveText('Level: 7');
     await game.locator('.jezzball-new-game').click();
     const canvas = game.locator('.jezzball-canvas');
     await expect(game.locator('.jezzball-score')).toHaveCSS('font-variant-numeric', 'tabular-nums');
