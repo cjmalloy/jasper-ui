@@ -594,7 +594,11 @@ export class ViewerComponent implements OnChanges, OnDestroy {
           runInAction(() => {
             this.ref!.plugins ||= {};
             for (let i = 0; i < updates.length; i += 2) {
-              this.ref!.plugins![updates[i] as string] = updates[i + 1];
+              const updateTag = updates[i] as string;
+              if (!hasTag(updateTag, this.ref!)) {
+                this.ref!.tags = [...(this.ref!.tags || []), updateTag];
+              }
+              this.ref!.plugins![updateTag] = updates[i + 1];
             }
           });
         }
