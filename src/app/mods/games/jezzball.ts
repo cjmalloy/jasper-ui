@@ -519,7 +519,10 @@ export const jezzballPlugin: Plugin = {
             api.save(checkpoint);
           }
           showMessage(format(labels.gameOver, { score: score }), labels.newGame, function() {
-            if (score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) return;
+            if (writable && score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) {
+              overlay.classList.add('visible');
+              return;
+            }
             level = 1;
             score = 0;
             checkpoint = { level: 1, score: 0, final: false };
