@@ -25,10 +25,8 @@ CMD mkdir -p /report && \
     (if [ -d coverage ]; then mkdir -p /report/coverage && cp -r coverage/. /report/coverage/ 2>/dev/null || true; fi) && \
     exit $(cat /report/exit-code.txt)
 
-FROM nginx:1.31.2 AS deploy
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y jq moreutils && \
-    rm -rf /var/lib/apt/lists/*
+FROM nginx:1.31.2-alpine3.23-slim AS deploy
+RUN apk --no-cache upgrade && apk --no-cache add jq moreutils
 WORKDIR /var/lib/jasper/
 COPY --from=builder /app/dist/jasper-ui/browser ./
 ARG BASE_HREF="/"
@@ -45,4 +43,4 @@ COPY docker/60-set-title.sh /docker-entrypoint.d
 COPY docker/70-csp.sh /docker-entrypoint.d
 COPY docker/80-nsgw.sh /docker-entrypoint.d
 COPY docker/90-logging.sh /docker-entrypoint.d
-WORKDIR /var/lib/jasper/
+WORKDIR /usr/share/nginx/html/
