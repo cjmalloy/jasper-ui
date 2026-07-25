@@ -198,9 +198,11 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    const newRef = changes.ref && changes.ref.currentValue?.url !== changes.ref.previousValue?.url;
     const changesRef = changes.ref && changes.ref.currentValue?.modifiedString !== changes.ref.previousValue?.modifiedString;
     const changesTags = changes.tags && !isEqual(changes.tags.previousValue, changes.tags.currentValue);
     if (changesRef || changesTags || changes.text) {
+      if (this.editingViewer && !newRef) return;
       this.init();
     }
   }
