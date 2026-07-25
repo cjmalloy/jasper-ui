@@ -174,7 +174,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(sound).toHaveText('🔊');
     await sound.click();
     await expect(sound).toHaveText('🔇');
-    await expect(game.locator('.jezzball-filled')).toHaveText('Area Cleared 25%');
+    await expect(game.locator('.jezzball-filled')).toHaveText('Area Cleared: 25%');
     const backgroundPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
       [...element.getContext('2d')!.getImageData(1 * 25 + 5, 1 * 25 + 5, 1, 1).data]
     ));
