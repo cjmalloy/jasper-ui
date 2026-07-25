@@ -5,6 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
+import { jezzballPlugin } from '../mods/games/jezzball';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { AdminService } from './admin.service';
@@ -33,5 +34,9 @@ describe('AdminService', () => {
     expect(blogTemplate.config?.form?.find(f => f.key === 'tags')?.expressions?.hide).toBe('!field.parent.model.filterTags');
     expect(llmPlugin.config?.advancedForm?.find(f => f.key === 'bundle')?.expressions?.hide).toBe('!model.json');
     expect(scrapePlugin.config?.form?.find(f => f.key === 'textSelectors')?.expressions?.hide).toBe('!field.parent.model.text');
+  });
+
+  it('should provide valid defaults for JezzBall', () => {
+    expect(service.isValid(jezzballPlugin.schema, jezzballPlugin.defaults)).toBe(true);
   });
 });

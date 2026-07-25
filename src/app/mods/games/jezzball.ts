@@ -885,6 +885,7 @@ export const jezzballPlugin: Plugin = {
       </div>
     `,
   },
+  defaults: { level: 1, score: 0, final: false },
   schema: {
     properties: {
       level: { type: 'uint32' },
