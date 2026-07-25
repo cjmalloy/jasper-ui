@@ -496,6 +496,12 @@ test.describe.serial('JezzBall Plugin', () => {
       document.head.appendChild(script);
       helper({
         plugins: {
+          'plugin/jezzball': { level: 7, lives: 8, time: 120, area: 0, final: true },
+          'plugin/score': 600,
+        },
+      }, {}, document)();
+      helper({
+        plugins: {
           'plugin/jezzball': { level: 1, lives: 2, time: 120, area: 0, final: true },
           'plugin/score': 0,
         },
@@ -507,6 +513,7 @@ test.describe.serial('JezzBall Plugin', () => {
       { x: 26, y: 20 },
     ]);
     const game = page.locator('.jezzball-game');
+    await expect(game.locator('.jezzball-level')).toHaveText('Level: 1');
     await game.locator('.jezzball-new-game').click();
     const canvas = game.locator('.jezzball-canvas');
     await expect(game.locator('.jezzball-score')).toHaveCSS('font-variant-numeric', 'tabular-nums');

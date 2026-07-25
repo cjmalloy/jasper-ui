@@ -52,7 +52,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 2,
+    version: 3,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -218,11 +218,9 @@ export const jezzballPlugin: Plugin = {
       function jezzballApp(root, api) {
         if (!root) return function() {};
         if (root._jezzballDestroy) {
-          if (root._jezzballUrl === (api && api.url)) return root._jezzballDestroy;
           root._jezzballDestroy();
           root.removeAttribute('data-game-session');
         }
-        root._jezzballUrl = api && api.url;
 
         const COLS = 32;
         const ROWS = 24;
