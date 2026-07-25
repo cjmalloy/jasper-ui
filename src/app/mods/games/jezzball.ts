@@ -802,10 +802,11 @@ export const jezzballPlugin: Plugin = {
           pauseButton.textContent = paused ? labels.resume : labels.pause;
         }
 
+        function preventContextMenu(event) { event.preventDefault(); }
         canvas.addEventListener('pointerdown', onPointerDown);
         canvas.addEventListener('pointerup', onPointerUp);
         canvas.addEventListener('pointercancel', onPointerUp);
-        canvas.addEventListener('contextmenu', function(event) { event.preventDefault(); });
+        canvas.addEventListener('contextmenu', preventContextMenu);
         directionButton.addEventListener('click', toggleOrientation);
         speedButton.addEventListener('click', toggleSpeed);
         soundButton.addEventListener('click', toggleSound);
@@ -817,6 +818,7 @@ export const jezzballPlugin: Plugin = {
           canvas.removeEventListener('pointerdown', onPointerDown);
           canvas.removeEventListener('pointerup', onPointerUp);
           canvas.removeEventListener('pointercancel', onPointerUp);
+          canvas.removeEventListener('contextmenu', preventContextMenu);
           directionButton.removeEventListener('click', toggleOrientation);
           speedButton.removeEventListener('click', toggleSpeed);
           soundButton.removeEventListener('click', toggleSound);
