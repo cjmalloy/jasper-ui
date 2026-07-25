@@ -1,6 +1,7 @@
-import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MobxAngularModule } from 'mobx-angular';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
@@ -20,8 +21,8 @@ import { CommentComponent } from '../comment.component';
     MobxAngularModule,
   ]
 })
-export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class ThreadSummaryComponent implements OnInit, OnChanges {
+  private destroyRef = inject(DestroyRef);
 
   @Input()
   source = '';
@@ -50,7 +51,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit(): void {
     this.newRefs$?.pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(comment => {
       if (comment) this.newRefs = [comment, ...this.newRefs];
     });
@@ -64,16 +65,12 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
         responses: this.source,
         size: this.pageSize,
       }).pipe(
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       ).subscribe(page => {
         this.list = page.content;
       });
     }
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
 }

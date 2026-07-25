@@ -1,4 +1,6 @@
 import {
+  DestroyRef,
+  inject,
   Component,
   ElementRef,
   EventEmitter,
@@ -13,12 +15,13 @@ import {
   ViewChild,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { BehaviorSubject, catchError, of, Subject, takeUntil, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, of, Subject, throwError } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
@@ -80,7 +83,7 @@ import { TodoComponent } from '../todo/todo.component';
 export class ViewerComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
   private videoKeydownHandler?: (event: KeyboardEvent) => void;
   private audioKeydownHandler?: (event: KeyboardEvent) => void;
   private fullscreenKeydownHandler?: (event: KeyboardEvent) => void;
@@ -162,14 +165,14 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref)) {
       this.refs.getCurrent(this.ref.sources[0]).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => this.repost = ref);
     }
     const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref) ? this.ref?.sources?.[0] : this.ref?.url);
     if (queryUrl && hasTag('plugin/lens', this.ref)) {
       this.lens = true;
       this.embeds.loadQuery$(queryUrl)
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(({params, page, ext}) => {
           this.lensPage = page;
           this.ext = ext;
@@ -222,8 +225,6 @@ export class ViewerComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.removeMediaListeners();
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   @HostBinding('class')

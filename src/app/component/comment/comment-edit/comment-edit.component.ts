@@ -1,8 +1,11 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, Input, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  HttpErrorResponse
+} from '@angular/common/http';
+import { DestroyRef, inject, AfterViewInit, Component, forwardRef, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
-import { catchError, forkJoin, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subject, Subscription, switchMap, throwError } from 'rxjs';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -26,8 +29,8 @@ import { LoadingComponent } from '../../loading/loading.component';
     LoadingComponent,
   ]
 })
-export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class CommentEditComponent implements AfterViewInit, HasChanges {
+  private destroyRef = inject(DestroyRef);
 
   serverError: string[] = [];
 
@@ -64,10 +67,6 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     this.comment.setValue(this.ref.comment);
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   get comment() {
     return this.commentForm.get('comment') as UntypedFormControl;
@@ -118,7 +117,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
       });
     }
     this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntil(this.destroy$))),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntilDestroyed(this.destroyRef))),
       switchMap(res => {
         const finalVisibilityTags = getVisibilityTags(finalTags);
         if (!finalVisibilityTags.length) return of(res);

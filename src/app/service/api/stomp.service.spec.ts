@@ -48,4 +48,15 @@ describe('StompService', () => {
     // More specific check - should not have more than 5 consecutive digits (which would indicate port duplication)
     expect(hostUrl).not.toMatch(/:\d{5,}/);
   });
+
+  it('should configure the broker URL when initialized', () => {
+    service['config'].api = '//configured.example:8080';
+    const configure = vi.spyOn(service, 'configure');
+
+    service.initialize();
+
+    expect(configure).toHaveBeenCalledWith(expect.objectContaining({
+      brokerURL: 'ws://configured.example:8080/api/stomp/websocket',
+    }));
+  });
 });

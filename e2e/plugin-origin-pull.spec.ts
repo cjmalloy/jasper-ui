@@ -89,6 +89,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}main : creates a remote origin', async ({ page }) => {
+    await clearReplicatedOrigin(page);
     await createRemoteOrigin(page, 'Testing Remote @repl', true);
     const enablePromise = waitForCronToggleResponse(page);
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
@@ -101,7 +102,6 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}repl : creates ref and streams pull', async ({ page }) => {
-    await clearReplicatedOrigin(page);
     await test.step('create remote source ref', async () => {
       await createRemoteTextRef(page, pullTestTitle);
     });
@@ -123,6 +123,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}main : creates a remote origin without streaming updates', async ({ page }) => {
+    await clearReplicatedOrigin(page);
     await createRemoteOrigin(page, 'Testing Manual Remote @repl', false);
   });
 
