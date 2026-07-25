@@ -1,8 +1,9 @@
 import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -30,8 +31,6 @@ import { hasTag, updateMetadata } from '../../../util/tag';
 export class RefErrorsComponent implements HasChanges {
 
   private disposers: IReactionDisposer[] = [];
-  private destroy$ = new Subject<void>();
-
   @ViewChild('list')
   list?: RefListComponent;
 
@@ -52,13 +51,7 @@ export class RefErrorsComponent implements HasChanges {
     query.clear();
     runInAction(() => store.view.defaultSort = ['published']);
     if (!this.store.view.filter.length) bookmarks.filters = ['query/' + (store.account.origin || '*')];
-  }
-
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
+    const untilDestroyed = takeUntilDestroyed<Ref | undefined>();
     this.disposers.push(autorun(() => {
       const args = getArgs(
         '+plugin/log:!plugin/delete',
@@ -81,16 +74,18 @@ export class RefErrorsComponent implements HasChanges {
           tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
           filter(ref => hasTag('+plugin/log', ref)),
           catchError(err => of(undefined)),
-          takeUntil(this.destroy$),
+          untilDestroyed,
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));
   }
 
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
+  }
+
   ngOnDestroy() {
     this.query.close();
-    this.destroy$.next();
-    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

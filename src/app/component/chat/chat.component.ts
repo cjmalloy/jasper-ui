@@ -1,7 +1,12 @@
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import {
+  CdkFixedSizeVirtualScroll,
+  CdkVirtualForOf,
+  CdkVirtualScrollViewport
+} from '@angular/cdk/scrolling';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpEventType } from '@angular/common/http';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -11,10 +16,8 @@ import {
   map,
   Observable,
   of,
-  Subject,
   Subscription,
   switchMap,
-  takeUntil,
   tap,
   throwError
 } from 'rxjs';
@@ -69,7 +72,7 @@ export interface ChatUpload {
   ],
 })
 export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
   itemSize = 18.5;
 
   @Input()
@@ -128,8 +131,6 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
 
   ngOnDestroy(): void {
     this.clearPoll();
-    this.destroy$.next();
-    this.destroy$.complete();
     // Clean up any active upload subscriptions to prevent memory leaks
     this.uploads.forEach(upload => {
       if (upload.subscription) {
@@ -146,7 +147,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     if (this.config.websockets) {
       this.watch?.unsubscribe();
       this.watch = this.stomp.watchTag(this.query).pipe(
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(tag =>  this.refresh(tagOrigin(tag)));
     }
   }
@@ -209,7 +210,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         this.messages ||= [];
         return throwError(() => err);
       }),
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(page => {
       this.setPoll(!page.content.length);
       this.messages ||= [];
@@ -247,7 +248,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         this.setPoll(true);
         return throwError(() => err);
       }),
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(page => {
       this.loadingPrev = false;
       this.setPoll(!page.content.length);
