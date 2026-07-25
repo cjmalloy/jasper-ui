@@ -234,10 +234,8 @@ export const jezzballPlugin: Plugin = {
         const labels = ${jezzballLabelsSource};
         const initial = api && api.initial && typeof api.initial === 'object' ? api.initial : {};
         const writable = !api || api.writable !== false;
-        let savedMap = typeof initial.map === 'string' ? initial.map : '';
-        const hasSavedMap = !!parseMap(savedMap);
-        let level = hasSavedMap && Number.isSafeInteger(initial.level) && initial.level > 0 ? initial.level : 1;
-        let score = hasSavedMap && Number.isFinite(initial.score) && initial.score >= 0 ? Math.floor(initial.score) : 0;
+        let level = Number.isSafeInteger(initial.level) && initial.level > 0 ? initial.level : 1;
+        let score = Number.isFinite(api.score) && api.score >= 0 ? Math.floor(api.score) : 0;
         let lives = Number.isSafeInteger(initial.lives) && initial.lives >= 0 ? initial.lives : 3;
         let remaining = Number.isFinite(initial.time) && initial.time >= 0 ?
           Math.min(initial.time, LEVEL_SECONDS) : LEVEL_SECONDS;
@@ -247,7 +245,6 @@ export const jezzballPlugin: Plugin = {
           time: remaining,
           area: Number.isSafeInteger(initial.area) && initial.area >= 0 && initial.area <= 100 ? initial.area : 0,
           final: !!initial.final,
-          map: savedMap,
         };
         let occupied = new Uint8Array(COLS * ROWS);
         let balls = [];
@@ -538,9 +535,8 @@ export const jezzballPlugin: Plugin = {
               time: remaining,
               area: filled,
               final: false,
-              map: serializeMap(false),
             };
-            if (api && typeof api.save === 'function') api.save(checkpoint, score);
+            if (api && typeof api.save === 'function') api.save(serializeMap(false), checkpoint, score);
             playSound(720, 0.16);
             showMessage(format(labels.levelComplete, { level: level - 1 }), labels.continue, resetLevel);
           }
@@ -572,11 +568,10 @@ export const jezzballPlugin: Plugin = {
             time: Math.max(0, remaining),
             area: percentFilled(),
             final: true,
-            map: savedMap,
           };
           if (!finalSaved && api && typeof api.save === 'function') {
             finalSaved = true;
-            api.save(checkpoint, score);
+            api.save(savedMap, checkpoint, score);
           }
           showMessage(format(labels.gameOver, { score: score }), labels.newGame, function() {
             if (writable && score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) {
@@ -591,9 +586,8 @@ export const jezzballPlugin: Plugin = {
               time: LEVEL_SECONDS,
               area: 0,
               final: false,
-              map: emptyMap(),
             };
-            if (writable && api && typeof api.save === 'function') api.save(checkpoint, score);
+            if (writable && api && typeof api.save === 'function') api.save(emptyMap(), checkpoint, score);
             resetLevel();
           });
         }
@@ -930,9 +924,8 @@ export const jezzballPlugin: Plugin = {
               time: LEVEL_SECONDS,
               area: 0,
               final: false,
-              map: emptyMap(),
             };
-            if (writable && api && typeof api.save === 'function') api.save(checkpoint, score);
+            if (writable && api && typeof api.save === 'function') api.save(emptyMap(), checkpoint, score);
             resetLevel();
           });
         } else {
@@ -944,19 +937,16 @@ export const jezzballPlugin: Plugin = {
 
       Handlebars.registerHelper('jezzball', function(ref, actions, el) {
         return function() {
-          const root = el && el.querySelector ? el.querySelector('.jezzball-game') : document.querySelector('.jezzball-game');
-          const initial = ref && ref.plugins && ref.plugins['plugin/jezzball'] || {};
-          jezzballApp(root, {
+          jezzballApp(el.querySelector('.jezzball-game'), {
             url: ref && ref.url,
-            initial: Object.assign({}, initial, {
-              score: ref && ref.plugins && ref.plugins['plugin/score'],
-            }),
+            initial: initial = ref && ref.plugins && ref.plugins['plugin/jezzball'] || {},
+            score: ref && ref.plugins && ref.plugins['plugin/score'],
             writable: !actions || !!actions.plugin,
-            save: actions && actions.plugin ? function(state, savedScore) {
-              actions.comment(ref.comment);
+            save: actions && actions.plugin ? function(comment, state, score) {
+              actions.comment(comment);
               actions.plugin(
                 'plugin/jezzball', state,
-                'plugin/score', savedScore
+                'plugin/score', score
               );
             } : undefined,
           });
