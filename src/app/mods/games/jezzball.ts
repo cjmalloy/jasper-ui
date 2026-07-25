@@ -247,6 +247,7 @@ export const jezzballPlugin: Plugin = {
           area: Number.isSafeInteger(initial.area) && initial.area >= 0 && initial.area <= 100 ? initial.area : 0,
           final: !!initial.final,
         };
+        let useCheckpointArea = true;
         let occupied = new Uint8Array(COLS * ROWS);
         let balls = [];
         let wall = null;
@@ -393,17 +394,8 @@ export const jezzballPlugin: Plugin = {
           return true;
         }
 
-        function restoreOccupied() {
-          const map = parseMap(savedMap);
-          if (!map) return;
-          for (let y = 0; y < ROWS; y++) {
-            for (let x = 0; x < COLS; x++) {
-              if (map[y][x] === '#') occupied[id(x, y)] = 3;
-            }
-          }
-        }
-
         function resetLevel() {
+          useCheckpointArea = false;
           occupied = new Uint8Array(COLS * ROWS);
           savedMap = emptyMap();
           wall = null;
@@ -419,7 +411,7 @@ export const jezzballPlugin: Plugin = {
         }
 
         function percentFilled() {
-          if (checkpoint.final) return checkpoint.area;
+          if (checkpoint.final || useCheckpointArea) return checkpoint.area;
           let count = 0;
           for (const value of occupied) {
             if (value) count++;
@@ -616,6 +608,7 @@ export const jezzballPlugin: Plugin = {
               area: filled,
               final: false,
             };
+            useCheckpointArea = true;
             if (api && typeof api.save === 'function') api.save(serializeMap(false), checkpoint, score);
             playSound(720, 0.16);
             showMessage(format(labels.levelComplete, { level: level - 1 }), labels.continue, resetLevel);
@@ -1038,7 +1031,6 @@ export const jezzballPlugin: Plugin = {
           });
         } else {
           restoreBalls();
-          restoreOccupied();
           showMessage(format(labels.level, { level: level }), labels.continue, resetLevel);
         }
         frame = requestAnimationFrame(loop);
