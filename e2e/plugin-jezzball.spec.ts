@@ -276,8 +276,8 @@ test.describe.serial('JezzBall Plugin', () => {
     await game.locator('.jezzball-new-game').click();
     await Promise.all([resetSave, resetMapSave]);
     await expect(game).toBeFocused();
-    await expect(game.locator('.jezzball-level')).toHaveText('Level 1');
-    await expect(game.locator('.jezzball-score')).toHaveText('Score 0');
+    await expect(game.locator('.jezzball-level')).toHaveText('Level: 1');
+    await expect(game.locator('.jezzball-score')).toHaveText('Score: 0');
     await expect(game.locator('.jezzball-overlay')).not.toHaveClass(/visible/);
     await game.locator('.jezzball-speed').click();
 
@@ -300,7 +300,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await advanceGame(page, 52);
     await levelSave;
     await expect(game.locator('.jezzball-overlay')).toContainText('Level 1 complete');
-    await expect(game.locator('.jezzball-level')).toHaveText('Level 2');
+    await expect(game.locator('.jezzball-level')).toHaveText('Level: 2');
     await expect(game.locator('.jezzball-score')).not.toHaveText('Score: 0');
 
     await game.locator('.jezzball-new-game').click();
@@ -615,7 +615,7 @@ test.describe.serial('JezzBall Plugin', () => {
     });
     await advanceGame(page, 60);
 
-    await expect(game.locator('.jezzball-lives')).toHaveText('Lives 1');
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives: 1');
     const survivingPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
       [...element.getContext('2d')!.getImageData(8 * 25 + 12, 14 * 25 + 12, 1, 1).data]
     ));
@@ -647,7 +647,7 @@ test.describe.serial('JezzBall Plugin', () => {
       },
     });
     await advanceGame(page, 10, 50);
-    await expect(game.locator('.jezzball-lives')).toHaveText('Lives 1');
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives: 1');
     const leadingBall = await canvas.evaluate((element: HTMLCanvasElement) => (
       (element as HTMLCanvasElement & { __testBallCenters: Array<{ x: number; y: number }> })
         .__testBallCenters.filter(center => center.x < 20).at(-1)
@@ -672,7 +672,7 @@ test.describe.serial('JezzBall Plugin', () => {
       },
     });
     await advanceGame(page, 6, 50);
-    await expect(game.locator('.jezzball-lives')).toHaveText('Lives 1');
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives: 1');
   });
 
   test('checks both halves before completing a wall', async () => {
@@ -696,7 +696,7 @@ test.describe.serial('JezzBall Plugin', () => {
     });
     await advanceGame(page, 8);
 
-    await expect(game.locator('.jezzball-lives')).toHaveText('Lives 0');
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives: 0');
     await expect(game.locator('.jezzball-overlay')).toContainText(/Game over · score \d+/);
   });
 });
