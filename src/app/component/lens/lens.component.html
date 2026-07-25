@@ -1,10 +1,10 @@
 @if (header) {
   <app-viewer class="lens-header" [text]="header"></app-viewer>
 }
-@if (pinsExt?.config?.pinned?.length) {
+@if (ext?.config?.pinned?.length) {
   <app-ref-list #lens
                 class="lens-pins"
-                [ext]="pinsExt"
+                [ext]="ext"
                 [page]="pinnedPage"
                 [pinned]="true"
                 [pageControls]="false"

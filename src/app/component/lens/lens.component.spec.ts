@@ -50,41 +50,21 @@ describe('LensComponent', () => {
     expect(component.ext.config?.pinned).toEqual(['https://example.com/pinned']);
   });
 
-  it('shows active Ext pins in the lens', () => {
+  it('shows existing Ext pins in the lens', () => {
     const refs = TestBed.inject(RefService);
     vi.spyOn(refs, 'getCurrent').mockReturnValue(new Observable(() => {}));
-    component.pinnedExt = {
+    fixture.componentRef.setInput('ext', {
       tag: 'kanban/test',
       origin: '',
       config: { pinned: ['https://example.com/pinned'] },
-    };
-
+    });
     fixture.detectChanges();
 
     const pinned = fixture.debugElement.query(By.css('.lens-pins')).componentInstance as RefListComponent;
     expect(pinned.ext?.config?.pinned).toEqual(['https://example.com/pinned']);
   });
 
-  it('loads active Ext pins', () => {
-    const refs = TestBed.inject(RefService);
-    vi.spyOn(refs, 'getCurrent').mockReturnValue(of({
-      url: 'https://example.com/pinned',
-      title: 'Pinned ref',
-    }));
-
-    component.pinnedExt = {
-      tag: 'kanban/test',
-      origin: '',
-      config: { pinned: ['https://example.com/pinned'] },
-    };
-
-    expect(component.pinnedPage.content).toEqual([{
-      url: 'https://example.com/pinned',
-      title: 'Pinned ref',
-    }]);
-  });
-
-  it('loads pins from the rendered Ext without an override', () => {
+  it('loads pins from the existing Ext', () => {
     const refs = TestBed.inject(RefService);
     vi.spyOn(refs, 'getCurrent').mockReturnValue(of({
       url: 'https://example.com/pinned',
@@ -114,11 +94,19 @@ describe('LensComponent', () => {
     vi.spyOn(refs, 'getCurrent').mockReturnValue(new Observable(() => {}));
     component.pinnedPage = Page.of([{ url: 'https://example.com/old' }]);
 
-    component.pinnedExt = {
+    component.ext = {
       tag: 'kanban/next',
       origin: '',
       config: { pinned: ['https://example.com/next'] },
     };
+    component.ngOnChanges({
+      ext: {
+        previousValue: undefined,
+        currentValue: component.ext,
+        firstChange: true,
+        isFirstChange: () => true,
+      },
+    });
 
     expect(component.pinnedPage.content).toEqual([]);
   });
