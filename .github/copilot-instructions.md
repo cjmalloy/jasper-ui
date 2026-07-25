@@ -447,7 +447,7 @@ See `src/theme/common.scss`, `src/theme/light.scss`, and `src/theme/dark.scss` f
 # Alpine `TLS: unspecified error`
 
 If the Jasper-UI Docker build reports `TLS: unspecified error` while fetching
-an APK index, use the Debian-based Nginx image for the deploy stage and install
+an APK index, you must use the Debian-based Nginx image for the deploy stage and install
 `jq` and `moreutils` with APT instead. Then run the normal Compose command:
 
 ```sh
