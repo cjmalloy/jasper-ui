@@ -1,7 +1,19 @@
 import { expect, type Page } from '@playwright/test';
 import { Client, type IMessage } from '@stomp/stompjs';
+import { createHmac } from 'node:crypto';
 
-const adminHeaders = { 'User-Role': 'ROLE_ADMIN' };
+const debugSecret = Buffer.from(
+  'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM=',
+  'base64',
+);
+const encodeJwt = (value: string | Buffer) => Buffer.from(value).toString('base64url');
+const jwtBody = [
+  encodeJwt(JSON.stringify({ alg: 'HS256', typ: 'JWT' })),
+  encodeJwt(JSON.stringify({ verified_email: true, sub: 'debug', auth: 'ROLE_ADMIN' })),
+].join('.');
+const adminHeaders = {
+  jwt: `${jwtBody}.${createHmac('sha256', debugSecret).update(jwtBody).digest('base64url')}`,
+};
 
 export interface StompEventSubscription {
   message: Promise<IMessage>;
@@ -32,14 +44,10 @@ async function subscribeStomp(api: string, destination: string): Promise<StompEv
     client.onWebSocketError = event => reject(new Error(`WebSocket connection failed: ${event.type}`));
     client.onStompError = frame => reject(new Error(frame.body || frame.headers['message']));
     client.onConnect = () => {
-      const receipt = `subscribe-${Date.now()}-${Math.random()}`;
-      client.watchForReceipt(receipt, () => resolve({
+      client.subscribe(destination, resolveMessage, adminHeaders);
+      resolve({
         message,
         close: () => client.deactivate(),
-      }));
-      client.subscribe(destination, resolveMessage, {
-        ...adminHeaders,
-        receipt,
       });
     };
     client.activate();
