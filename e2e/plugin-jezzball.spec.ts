@@ -285,6 +285,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await game.press('Enter');
     await advanceGame(page, 8);
     await expect(game.locator('.jezzball-lives')).toHaveText('Lives: 2');
+    await game.evaluate(element => element.setAttribute('data-game-session', 'active'));
 
     const finalSave = page.waitForResponse(resp => (
       resp.url().includes('/api/v1/ref') && resp.request().method() === 'PATCH' && resp.ok()
@@ -292,6 +293,9 @@ test.describe.serial('JezzBall Plugin', () => {
     await advanceGame(page, 2_401, 50);
     await finalSave;
     await expect(game.locator('.jezzball-overlay')).toContainText(/Game over · score \d+/);
+    const score = (await game.locator('.jezzball-score').textContent())?.replace('Score: ', '');
+    await expect(page.locator('.full-page.ref .jezzball-final-score')).toHaveText(`🏆️ ${score}`);
+    await expect(game).toHaveAttribute('data-game-session', 'active');
   });
 
   test('repeats the atom sweep with swapped colors', async () => {

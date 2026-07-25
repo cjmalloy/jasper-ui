@@ -198,6 +198,14 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    const previousRef = changes.ref?.previousValue as Ref | undefined;
+    const currentRef = changes.ref?.currentValue as Ref | undefined;
+    if (previousRef && currentRef
+      && previousRef.url === currentRef.url
+      && previousRef.origin === currentRef.origin
+      && this.admin.getPluginUi(previousRef.tags).some(plugin => plugin.config?.ignoreUpdates)) {
+      return;
+    }
     const changesRef = changes.ref && changes.ref.currentValue?.modifiedString !== changes.ref.previousValue?.modifiedString;
     const changesTags = changes.tags && !isEqual(changes.tags.previousValue, changes.tags.currentValue);
     if (changesRef || changesTags || changes.text) {

@@ -52,9 +52,10 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 1,
+    version: 2,
     type: 'plugin',
     editingViewer: true,
+    ignoreUpdates: true,
     experimental: true,
     submitText: true,
     add: true,
