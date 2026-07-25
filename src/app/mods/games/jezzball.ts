@@ -52,7 +52,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 3,
+    version: 4,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -234,9 +234,10 @@ export const jezzballPlugin: Plugin = {
         const labels = ${jezzballLabelsSource};
         const initial = api && api.initial && typeof api.initial === 'object' ? api.initial : {};
         const writable = !api || api.writable !== false;
-        let level = Number.isSafeInteger(initial.level) && initial.level > 0 ? initial.level : 1;
-        let score = Number.isFinite(initial.score) && initial.score >= 0 ? Math.floor(initial.score) : 0;
         let savedMap = typeof initial.map === 'string' ? initial.map : '';
+        const hasSavedMap = !!parseMap(savedMap);
+        let level = hasSavedMap && Number.isSafeInteger(initial.level) && initial.level > 0 ? initial.level : 1;
+        let score = hasSavedMap && Number.isFinite(initial.score) && initial.score >= 0 ? Math.floor(initial.score) : 0;
         let lives = Number.isSafeInteger(initial.lives) && initial.lives >= 0 ? initial.lives : 3;
         let remaining = Number.isFinite(initial.time) && initial.time >= 0 ?
           Math.min(initial.time, LEVEL_SECONDS) : LEVEL_SECONDS;
@@ -948,12 +949,17 @@ export const jezzballPlugin: Plugin = {
           jezzballApp(root, {
             url: ref && ref.url,
             initial: Object.assign({}, initial, {
+              map: ref && ref.comment,
               score: ref && ref.plugins && ref.plugins['plugin/score'],
             }),
             writable: !actions || !!actions.plugin,
             save: actions && actions.plugin ? function(state, savedScore) {
+              const pluginState = Object.assign({}, state);
+              const map = pluginState.map;
+              delete pluginState.map;
+              actions.comment(map);
               actions.plugin(
-                'plugin/jezzball', state,
+                'plugin/jezzball', pluginState,
                 'plugin/score', savedScore
               );
             } : undefined,
@@ -989,7 +995,7 @@ export const jezzballPlugin: Plugin = {
       </div>
     `,
   },
-  defaults: { level: 1, lives: 2, time: 120, area: 0, final: false, map: '' },
+  defaults: { level: 1, lives: 2, time: 120, area: 0, final: false },
   schema: {
     optionalProperties: {
       level: { type: 'uint32' },
@@ -997,7 +1003,6 @@ export const jezzballPlugin: Plugin = {
       time: { type: 'float64' },
       area: { type: 'uint8' },
       final: { type: 'boolean' },
-      map: { type: 'string' },
     },
   },
 };

@@ -109,7 +109,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
     await page.locator('[name=title]').fill(title);
     await page.locator('.select-plugin select').selectOption('plugin/jezzball');
-    await page.locator('.editor textarea').fill('A saved JezzBall game.');
+    await page.locator('.editor textarea').fill(savedMap);
     await page.getByText('show advanced').click();
     await page.locator('[name=published]').fill('2026-01-01T00:00');
     await page.locator('[name=published]').blur();
@@ -132,7 +132,6 @@ test.describe.serial('JezzBall Plugin', () => {
               time: 23,
               area: 25,
               final: true,
-              map: savedMap,
             },
             'plugin/score': 450,
           },
@@ -267,8 +266,15 @@ test.describe.serial('JezzBall Plugin', () => {
         && body.some(op => op.path === '/plugins/plugin~1jezzball')
         && body.some(op => op.path === '/plugins/plugin~1score');
     });
+    const resetMapSave = page.waitForResponse(resp => {
+      if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
+      const body = resp.request().postDataJSON();
+      return Array.isArray(body)
+        && body.some(op => op.path === '/comment' && op.value === '.'.repeat(32) + '\n' +
+          Array(23).fill('.'.repeat(32)).join('\n'));
+    });
     await game.locator('.jezzball-new-game').click();
-    await resetSave;
+    await Promise.all([resetSave, resetMapSave]);
     await expect(game).toBeFocused();
     await expect(game.locator('.jezzball-level')).toHaveText('Level 1');
     await expect(game.locator('.jezzball-score')).toHaveText('Score 0');
@@ -312,10 +318,7 @@ test.describe.serial('JezzBall Plugin', () => {
       const state = resp.request().postDataJSON()
         .find((op: { path: string }) => op.path === '/plugins/plugin~1jezzball')?.value;
       if (!state?.final) return false;
-      const rows = state.map?.split('\n');
-      expect(rows).toHaveLength(24);
-      expect(rows.every((row: string) => row.length === 32)).toBe(true);
-      expect(state.map).not.toMatch(/[12]/);
+      expect(state).not.toHaveProperty('map');
       expect(state).not.toHaveProperty('score');
       expect(state).toEqual(expect.objectContaining({
         lives: expect.any(Number),
@@ -324,8 +327,19 @@ test.describe.serial('JezzBall Plugin', () => {
       }));
       return true;
     });
+    const finalMapSave = page.waitForResponse(resp => {
+      if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
+      const map = resp.request().postDataJSON()
+        .find((op: { path: string }) => op.path === '/comment')?.value;
+      if (!map) return false;
+      const rows = map.split('\n');
+      expect(rows).toHaveLength(24);
+      expect(rows.every((row: string) => row.length === 32)).toBe(true);
+      expect(map).not.toMatch(/[12]/);
+      return true;
+    });
     await advanceGame(page, 2_401, 50);
-    await finalSave;
+    await Promise.all([finalSave, finalMapSave]);
     await expect(game.locator('.jezzball-overlay')).toContainText(/Game over · score \d+/);
     const score = (await game.locator('.jezzball-score').textContent())?.replace('Score: ', '');
     await expect(page.locator('.full-page.ref .jezzball-final-score')).toHaveText(`🏆️ ${score}`);
@@ -466,7 +480,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await page.setContent(`<style>${css}</style>${ui.replace('{{defer el (jezzball ref actions el)}}', '')}`);
     await page.evaluate(source => {
       let helper: (
-        ref: { plugins: Record<string, unknown> },
+        ref: { comment?: string; plugins: Record<string, unknown> },
         actions: object,
         element: Document,
       ) => () => void = () => () => {};
@@ -495,6 +509,7 @@ test.describe.serial('JezzBall Plugin', () => {
       );
       document.head.appendChild(script);
       helper({
+        comment: '#'.repeat(32) + '\\n' + Array(23).fill('.'.repeat(32)).join('\\n'),
         plugins: {
           'plugin/jezzball': { level: 7, lives: 8, time: 120, area: 0, final: true },
           'plugin/score': 600,
@@ -502,8 +517,8 @@ test.describe.serial('JezzBall Plugin', () => {
       }, {}, document)();
       helper({
         plugins: {
-          'plugin/jezzball': { level: 1, lives: 2, time: 120, area: 0, final: true },
-          'plugin/score': 0,
+          'plugin/jezzball': { level: 7, lives: 8, time: 120, area: 0, final: true },
+          'plugin/score': 600,
         },
       }, {}, document)();
     }, scriptSource);
