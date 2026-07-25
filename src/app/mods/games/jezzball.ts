@@ -18,7 +18,7 @@ const jezzballLabels = {
   confirmNewGame: $localize`This will clear your high score of {score}. Start a new game?`,
   level: $localize`Level: {level}`,
   lives: $localize`Lives: {lives}`,
-  filled: $localize`Area Cleared {filled}%`,
+  filled: $localize`Area Cleared: {filled}%`,
   time: $localize`Time Left: {time}`,
   score: $localize`Score: {score}`,
   wallVertical: $localize`↕`,
