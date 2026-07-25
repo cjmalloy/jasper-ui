@@ -9,6 +9,7 @@ import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { merge3 } from '../util/diff';
+import { escapePath } from '../util/json-patch';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -36,6 +37,10 @@ export class ActionService {
         o?.unsubscribe();
         o = this.comment$(comment, ref).subscribe();
       }, 500),
+      plugin: (tag: string, value: unknown, ...plugins: unknown[]) => {
+        if (!ref) throw 'Error: No ref to save';
+        this.plugin(tag, value, ...plugins, ref);
+      },
       event: (event: string) => {
         this.event(event, ref);
       },
@@ -128,6 +133,51 @@ export class ActionService {
       }),
       tap(cursor => runInAction(() => {
         ref.comment = comment;
+        ref.modifiedString = cursor;
+        ref.modified = DateTime.fromISO(cursor);
+      })),
+    );
+  }
+
+  plugin(...args: [tag: string, value: unknown, ...plugins: unknown[], ref: Ref]) {
+    const ref = args.at(-1) as Ref;
+    this.store.eventBus.runAndRefresh(this.plugin$(...args), ref);
+  }
+
+  plugin$(...args: [tag: string, value: unknown, ...plugins: unknown[], ref: Ref]): Observable<string> {
+    const ref = args.pop() as Ref;
+    const [tag, value, ...plugins] = args;
+    if (plugins.length % 2) throw new Error('Plugin updates require tag/value pairs');
+    const entries: [string, unknown][] = [[tag, value]];
+    for (let i = 0; i < plugins.length; i += 2) {
+      const plugin = plugins[i];
+      if (typeof plugin !== 'string') throw new Error('Plugin update tags must be strings');
+      entries.push([plugin, plugins[i + 1]]);
+    }
+    const updates = Object.fromEntries(entries);
+    const save = (target: Ref) => this.refs.patch(
+      target.url,
+      this.store.account.origin,
+      target.modifiedString!,
+      target.plugins ? entries.map(([tag, value]) => ({
+        op: 'add' as const,
+        path: '/plugins/' + escapePath(tag),
+        value,
+      })) : [{
+        op: 'add',
+        path: '/plugins',
+        value: updates,
+      }],
+    );
+    return save(ref).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          return this.refs.get(ref.url, this.store.account.origin).pipe(switchMap(save));
+        }
+        return throwError(() => err);
+      }),
+      tap(cursor => runInAction(() => {
+        ref.plugins = { ...ref.plugins, ...updates };
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
       })),

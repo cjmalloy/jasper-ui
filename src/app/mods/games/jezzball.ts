@@ -847,12 +847,12 @@ export const jezzballPlugin: Plugin = {
           const initial = ref && ref.plugins && ref.plugins['plugin/jezzball'] || {};
           jezzballApp(root, {
             initial: initial,
-            writable: !actions || !!actions.update,
-            save: actions && actions.update ? function(state) {
-              actions.update({
-                'plugin/jezzball': { level: state.level, score: state.score, final: state.final },
-                'plugin/score': state.score,
-              });
+            writable: !actions || !!actions.plugin,
+            save: actions && actions.plugin ? function(state) {
+              actions.plugin(
+                'plugin/jezzball', { level: state.level, score: state.score, final: state.final },
+                'plugin/score', state.score
+              );
             } : undefined,
           });
         };

@@ -36,6 +36,7 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
+import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
@@ -151,6 +152,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     private editor: EditorService,
     private refs: RefService,
     private store: Store,
+    private auth: AuthzService,
     public el: ElementRef,
   ) { }
 
@@ -536,7 +538,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   @memo
   get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
-    return {
+    const api: PluginApi = {
       comment: (comment: string) => {
         if (this.ref) {
           runInAction(() => this.ref!.comment = comment);
@@ -583,6 +585,22 @@ export class ViewerComponent implements OnChanges, OnDestroy {
         };
       },
     };
+    if (!this.ref?.modified || this.auth.writeAccess(this.ref)) {
+      api.plugin = (tag: string, value: unknown, ...plugins: unknown[]) => {
+        if (this.ref?.modified) {
+          actions.plugin!(tag, value, ...plugins);
+        } else if (this.ref) {
+          const updates = [tag, value, ...plugins];
+          runInAction(() => {
+            this.ref!.plugins ||= {};
+            for (let i = 0; i < updates.length; i += 2) {
+              this.ref!.plugins![updates[i] as string] = updates[i + 1];
+            }
+          });
+        }
+      };
+    }
+    return api;
   }
 
   @memo

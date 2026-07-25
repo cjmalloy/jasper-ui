@@ -3,6 +3,7 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { firstValueFrom, of } from 'rxjs';
 
 import { ActionService } from './action.service';
 
@@ -23,5 +24,48 @@ describe('ActionService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('should store a single plugin value', async () => {
+    const ref = {
+      url: 'https://example.com',
+      origin: '',
+      modifiedString: '2026-01-01T00:00:00Z',
+    };
+    const patch = vi.spyOn((service as any).refs, 'patch').mockReturnValue(of('2026-01-01T00:00:01Z'));
+
+    await firstValueFrom(service.plugin$('plugin/score', 42, ref));
+
+    expect(patch).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', [{
+      op: 'add',
+      path: '/plugins',
+      value: { 'plugin/score': 42 },
+    }]);
+  });
+
+  it('should store multiple plugin values in one patch', async () => {
+    const ref = {
+      url: 'https://example.com',
+      origin: '',
+      modifiedString: '2026-01-01T00:00:00Z',
+      plugins: { existing: true },
+    };
+    const patch = vi.spyOn((service as any).refs, 'patch').mockReturnValue(of('2026-01-01T00:00:01Z'));
+
+    await firstValueFrom(service.plugin$(
+      'plugin/a', { enabled: true },
+      'plugin/b', 42,
+      ref,
+    ));
+
+    expect(patch).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', [
+      { op: 'add', path: '/plugins/plugin~1a', value: { enabled: true } },
+      { op: 'add', path: '/plugins/plugin~1b', value: 42 },
+    ]);
+    expect(ref.plugins).toEqual({
+      existing: true,
+      'plugin/a': { enabled: true },
+      'plugin/b': 42,
+    });
   });
 });
