@@ -3,7 +3,7 @@
      [style.grid-template-columns]="gridTemplateColumns">
   @for (ref of pinned; track ref.origin + '@' + ref.url) {
     <div class="list-number">&bullet;</div>
-    @if (query.bulkToolsOpen && page === query.page) {
+    @if (bulkSelectable) {
       <div class="bulk-select-cell"></div>
     }
     <app-ref class="pinned ref-list-item"
@@ -19,7 +19,7 @@
   @if (insertNewAtTop) {
     @for (ref of newRefs; track ref.origin + '@' + ref.url) {
       <div class="list-number">&bullet;</div>
-      @if (query.bulkToolsOpen && page === query.page) {
+      @if (bulkSelectable) {
         <div class="bulk-select-cell"></div>
       }
       <app-ref class="ref-list-item"
@@ -36,7 +36,7 @@
   @for (ref of page?.content; track ref.origin + '@' + ref.url; let i = $index) {
     @if (!hide?.includes($any(ref.modified?.valueOf()) || 0)) {
       <div class="list-number">{{ getNumber(i) }}</div>
-      @if (query.bulkToolsOpen && page === query.page) {
+      @if (bulkSelectable) {
         <input class="bulk-select-cell bulk-select"
                type="checkbox"
                [checked]="query.isBulkSelected(ref)"
@@ -58,7 +58,7 @@
   @if (!insertNewAtTop) {
     @for (ref of newRefs; track ref.origin + '@' + ref.url; let i = $index) {
       <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
-      @if (query.bulkToolsOpen && page === query.page) {
+      @if (bulkSelectable) {
         <div class="bulk-select-cell"></div>
       }
       <app-ref class="ref-list-item"
