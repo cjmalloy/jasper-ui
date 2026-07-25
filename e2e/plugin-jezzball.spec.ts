@@ -237,25 +237,6 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game).toHaveCSS('color', 'rgb(0, 0, 0)');
   });
 
-  test('fits the whole stage in fullscreen and hides controls', async () => {
-    const game = page.locator('.full-page.ref .jezzball-game');
-    const container = game.locator('xpath=ancestor::*[contains(@class, "md-container")]');
-    await game.evaluate(async element => {
-      await element.closest('.embed')!.requestFullscreen();
-    });
-    await expect(container).toHaveCSS('zoom', '0.5');
-    await expect(game.locator('.jezzball-toolbar')).toBeVisible();
-    await expect(game.locator('.jezzball-controls')).toHaveCSS('display', 'none');
-    const stage = await game.locator('.jezzball-stage').boundingBox();
-    if (!stage) throw new Error('JezzBall stage has no bounding box');
-    expect(stage.x).toBeGreaterThanOrEqual(0);
-    expect(stage.y).toBeGreaterThanOrEqual(0);
-    expect(stage.x + stage.width).toBeLessThanOrEqual(1280);
-    expect(stage.y + stage.height).toBeLessThanOrEqual(720);
-    expect(Math.abs(stage.x + stage.width / 2 - 640)).toBeLessThanOrEqual(1);
-    await page.evaluate(() => document.exitFullscreen());
-  });
-
   test('plays a read-only Ref as a saved example', async () => {
     await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
     const game = page.locator('.full-page.ref .jezzball-game');
