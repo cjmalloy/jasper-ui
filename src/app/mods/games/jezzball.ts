@@ -52,7 +52,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 4,
+    version: 1,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -234,6 +234,7 @@ export const jezzballPlugin: Plugin = {
         const labels = ${jezzballLabelsSource};
         const initial = api && api.initial && typeof api.initial === 'object' ? api.initial : {};
         const writable = !api || api.writable !== false;
+        let savedMap = api.comment;
         let level = Number.isSafeInteger(initial.level) && initial.level > 0 ? initial.level : 1;
         let score = Number.isFinite(api.score) && api.score >= 0 ? Math.floor(api.score) : 0;
         let lives = Number.isSafeInteger(initial.lives) && initial.lives >= 0 ? initial.lives : 3;
@@ -362,7 +363,7 @@ export const jezzballPlugin: Plugin = {
 
         function resetLevel() {
           occupied = new Uint8Array(COLS * ROWS);
-          savedMap = '';
+          savedMap = emptyMap();
           wall = null;
           remaining = LEVEL_SECONDS;
           paused = false;
@@ -939,6 +940,7 @@ export const jezzballPlugin: Plugin = {
         return function() {
           jezzballApp(el.querySelector('.jezzball-game'), {
             url: ref && ref.url,
+            comment: ref && ref.comment,
             initial: initial = ref && ref.plugins && ref.plugins['plugin/jezzball'] || {},
             score: ref && ref.plugins && ref.plugins['plugin/score'],
             writable: !actions || !!actions.plugin,
