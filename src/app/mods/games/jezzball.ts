@@ -52,7 +52,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 1,
+    version: 2,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -67,7 +67,7 @@ export const jezzballPlugin: Plugin = {
       { query: 'plugin/jezzball', label: $localize`🟣️ JezzBall`, title: $localize`JezzBall games`, group: $localize`Games 🕹️` },
     ],
     // language=Handlebars
-    infoUi: `{{#if final}}<span class="jezzball-final-score">🏆️ {{score}}</span>{{/if}}`,
+    infoUi: `{{#if final}}<span class="jezzball-final-score">🏆️ {{lookup ref.plugins "plugin/score"}}</span>{{/if}}`,
     // language=CSS
     css: `
       .jezzball-game {
@@ -238,9 +238,18 @@ export const jezzballPlugin: Plugin = {
         const writable = !api || api.writable !== false;
         let level = Number.isSafeInteger(initial.level) && initial.level > 0 ? initial.level : 1;
         let score = Number.isFinite(initial.score) && initial.score >= 0 ? Math.floor(initial.score) : 0;
-        let checkpoint = { level: level, score: score, final: !!initial.final };
-        let lives = 3;
-        let remaining = LEVEL_SECONDS;
+        let savedMap = typeof initial.map === 'string' ? initial.map : '';
+        let lives = Number.isSafeInteger(initial.lives) && initial.lives >= 0 ? initial.lives : 3;
+        let remaining = Number.isFinite(initial.time) && initial.time >= 0 ?
+          Math.min(initial.time, LEVEL_SECONDS) : LEVEL_SECONDS;
+        let checkpoint = {
+          level: level,
+          lives: lives,
+          time: remaining,
+          area: Number.isSafeInteger(initial.area) && initial.area >= 0 && initial.area <= 100 ? initial.area : 0,
+          final: !!initial.final,
+          map: savedMap,
+        };
         let occupied = new Uint8Array(COLS * ROWS);
         let balls = [];
         let wall = null;
@@ -288,6 +297,34 @@ export const jezzballPlugin: Plugin = {
           return x + y * COLS;
         }
 
+        function parseMap(map) {
+          if (typeof map !== 'string') return null;
+          const rows = map.split('\\n');
+          if (rows.length !== ROWS || rows.some(row => row.length !== COLS || /[^.#12]/.test(row))) return null;
+          return rows;
+        }
+
+        function serializeMap(includeWall) {
+          const cells = Array.from({ length: ROWS }, function(_, y) {
+            return Array.from({ length: COLS }, function(_, x) {
+              return occupied[id(x, y)] ? '#' : '.';
+            });
+          });
+          if (includeWall && wall) {
+            for (const half of [wall.negative, wall.positive]) {
+              if (half.destroyed) continue;
+              for (const cellId of half.cells) {
+                cells[Math.floor(cellId / COLS)][cellId % COLS] = String(half.color);
+              }
+            }
+          }
+          return cells.map(row => row.join('')).join('\\n');
+        }
+
+        function emptyMap() {
+          return Array(ROWS).fill('.'.repeat(COLS)).join('\\n');
+        }
+
         function isOccupied(x, y) {
           return x < 0 || y < 0 || x >= COLS || y >= ROWS || occupied[id(x, y)] !== 0;
         }
@@ -329,6 +366,7 @@ export const jezzballPlugin: Plugin = {
 
         function resetLevel() {
           occupied = new Uint8Array(COLS * ROWS);
+          savedMap = '';
           wall = null;
           remaining = LEVEL_SECONDS;
           paused = false;
@@ -342,6 +380,7 @@ export const jezzballPlugin: Plugin = {
         }
 
         function percentFilled() {
+          if (checkpoint.final) return checkpoint.area;
           let count = 0;
           for (const value of occupied) {
             if (value) count++;
@@ -494,8 +533,15 @@ export const jezzballPlugin: Plugin = {
           if (filled >= TARGET) {
             score += level * 100 + filled * 5 + Math.ceil(remaining) + lives * 25;
             level++;
-            checkpoint = { level: level, score: score, final: false };
-            if (api && typeof api.save === 'function') api.save(checkpoint);
+            checkpoint = {
+              level: level,
+              lives: lives,
+              time: remaining,
+              area: filled,
+              final: false,
+              map: serializeMap(false),
+            };
+            if (api && typeof api.save === 'function') api.save(checkpoint, score);
             playSound(720, 0.16);
             showMessage(format(labels.levelComplete, { level: level - 1 }), labels.continue, resetLevel);
           }
@@ -518,10 +564,20 @@ export const jezzballPlugin: Plugin = {
           running = false;
           paused = false;
           playSound(80, 0.3);
-          checkpoint = { level: level, score: score, final: true };
+          const died = lives <= 0;
+          if (!died) wall = null;
+          savedMap = serializeMap(died);
+          checkpoint = {
+            level: level,
+            lives: Math.max(0, lives),
+            time: Math.max(0, remaining),
+            area: percentFilled(),
+            final: true,
+            map: savedMap,
+          };
           if (!finalSaved && api && typeof api.save === 'function') {
             finalSaved = true;
-            api.save(checkpoint);
+            api.save(checkpoint, score);
           }
           showMessage(format(labels.gameOver, { score: score }), labels.newGame, function() {
             if (writable && score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) {
@@ -530,8 +586,15 @@ export const jezzballPlugin: Plugin = {
             }
             level = 1;
             score = 0;
-            checkpoint = { level: 1, score: 0, final: false };
-            if (writable && api && typeof api.save === 'function') api.save(checkpoint);
+            checkpoint = {
+              level: 1,
+              lives: 2,
+              time: LEVEL_SECONDS,
+              area: 0,
+              final: false,
+              map: emptyMap(),
+            };
+            if (writable && api && typeof api.save === 'function') api.save(checkpoint, score);
             resetLevel();
           });
         }
@@ -583,6 +646,16 @@ export const jezzballPlugin: Plugin = {
 
         function updateBalls(dt) {
           for (const ball of balls) {
+            const cellX = Math.floor(ball.x);
+            const cellY = Math.floor(ball.y);
+            if (!cellBlocked(cellX, cellY) &&
+                cellBlocked(cellX - 1, cellY) && cellBlocked(cellX + 1, cellY) &&
+                cellBlocked(cellX, cellY - 1) && cellBlocked(cellX, cellY + 1)) {
+              ball.x = cellX + 0.5;
+              ball.y = cellY + 0.5;
+              ball.spin -= dt * 7;
+              continue;
+            }
             const targetX = ball.x + ball.vx * dt;
             const targetY = ball.y + ball.vy * dt;
             const bouncedX = targetX - BALL_RADIUS < 0 || targetX + BALL_RADIUS > COLS ||
@@ -640,6 +713,18 @@ export const jezzballPlugin: Plugin = {
             g.moveTo(0, (y + 0.5) * CELL);
             g.lineTo(canvas.width, (y + 0.5) * CELL);
             g.stroke();
+          }
+
+          const background = parseMap(savedMap);
+          if (background) {
+            for (let y = 0; y < ROWS; y++) {
+              for (let x = 0; x < COLS; x++) {
+                const cell = background[y][x];
+                if (cell === '.') continue;
+                g.fillStyle = cell === '1' ? '#e3424f' : cell === '2' ? '#2f8ee5' : '#000';
+                g.fillRect(x * CELL, y * CELL, CELL, CELL);
+              }
+            }
           }
 
           for (let y = 0; y < ROWS; y++) {
@@ -835,13 +920,20 @@ export const jezzballPlugin: Plugin = {
 
         if (checkpoint.final) {
           placeBalls();
-          lives = balls.length;
+          if (!Number.isSafeInteger(initial.lives)) lives = balls.length;
           showMessage(format(labels.finalScore, { score: score }), labels.newGame, function() {
             if (score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) return;
             level = 1;
             score = 0;
-            checkpoint = { level: 1, score: 0, final: false };
-            if (writable && api && typeof api.save === 'function') api.save(checkpoint);
+            checkpoint = {
+              level: 1,
+              lives: 2,
+              time: LEVEL_SECONDS,
+              area: 0,
+              final: false,
+              map: emptyMap(),
+            };
+            if (writable && api && typeof api.save === 'function') api.save(checkpoint, score);
             resetLevel();
           });
         } else {
@@ -857,12 +949,14 @@ export const jezzballPlugin: Plugin = {
           const initial = ref && ref.plugins && ref.plugins['plugin/jezzball'] || {};
           jezzballApp(root, {
             url: ref && ref.url,
-            initial: initial,
+            initial: Object.assign({}, initial, {
+              score: ref && ref.plugins && ref.plugins['plugin/score'],
+            }),
             writable: !actions || !!actions.plugin,
-            save: actions && actions.plugin ? function(state) {
+            save: actions && actions.plugin ? function(state, savedScore) {
               actions.plugin(
-                'plugin/jezzball', { level: state.level, score: state.score, final: state.final },
-                'plugin/score', state.score
+                'plugin/jezzball', state,
+                'plugin/score', savedScore
               );
             } : undefined,
           });
@@ -897,12 +991,15 @@ export const jezzballPlugin: Plugin = {
       </div>
     `,
   },
-  defaults: { level: 1, score: 0, final: false },
+  defaults: { level: 1, lives: 2, time: 120, area: 0, final: false, map: '' },
   schema: {
     optionalProperties: {
       level: { type: 'uint32' },
-      score: { type: 'float64' },
+      lives: { type: 'uint8' },
+      time: { type: 'float64' },
+      area: { type: 'uint8' },
       final: { type: 'boolean' },
+      map: { type: 'string' },
     },
   },
 };

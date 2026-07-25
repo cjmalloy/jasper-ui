@@ -70,6 +70,11 @@ async function trackBallCenters(canvas: ReturnType<Page['locator']>) {
 
 test.describe.serial('JezzBall Plugin', () => {
   const title = 'JezzBall E2E Game';
+  const savedMap = [
+    ...Array(6).fill('#'.repeat(32)),
+    `12${'.'.repeat(30)}`,
+    ...Array(17).fill('.'.repeat(32)),
+  ].join('\n');
   let page: Page;
   let gamePath: string;
 
@@ -121,7 +126,14 @@ test.describe.serial('JezzBall Plugin', () => {
           tags: [...(body.tags || []), 'plugin/score'],
           plugins: {
             ...body.plugins,
-            'plugin/jezzball': { level: 101, score: 450, final: true },
+            'plugin/jezzball': {
+              level: 101,
+              lives: 1,
+              time: 23,
+              area: 25,
+              final: true,
+              map: savedMap,
+            },
             'plugin/score': 450,
           },
         }),
@@ -143,7 +155,8 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-canvas')).toBeVisible();
     await expect(game.locator('.jezzball-overlay')).toContainText('Final score 450');
     await expect(game.locator('.jezzball-level')).toHaveText('Level: 101');
-    await expect(game.locator('.jezzball-lives')).toHaveText('Lives: 50');
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives: 1');
+    await expect(game.locator('.jezzball-time')).toHaveText('Time Left: 23');
     await expect(page.locator('.full-page.ref .jezzball-final-score')).toHaveText('🏆️ 450');
     await expect(game.locator('.jezzball-score')).toHaveCSS('font-variant-numeric', 'tabular-nums');
 
@@ -162,15 +175,22 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(sound).toHaveText('🔊');
     await sound.click();
     await expect(sound).toHaveText('🔇');
-    await expect(game.locator('.jezzball-filled')).toHaveText('Area Cleared 0%');
+    await expect(game.locator('.jezzball-filled')).toHaveText('Area Cleared 25%');
     const backgroundPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
       [...element.getContext('2d')!.getImageData(1 * 25 + 5, 1 * 25 + 5, 1, 1).data]
     ));
-    expect(backgroundPixel.slice(0, 3)).toEqual([119, 119, 119]);
+    expect(backgroundPixel.slice(0, 3)).toEqual([0, 0, 0]);
     const gridPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
       [...element.getContext('2d')!.getImageData(1 * 25 + 12, 1 * 25 + 5, 1, 1).data]
     ));
     expect(gridPixel[0]).toBeGreaterThan(backgroundPixel[0]);
+    const partialWallPixels = await canvas.evaluate((element: HTMLCanvasElement) => {
+      const context = element.getContext('2d')!;
+      return [0, 1].map(x => (
+        [...context.getImageData(x * 25 + 12, 6 * 25 + 12, 1, 1).data].slice(0, 3)
+      ));
+    });
+    expect(partialWallPixels).toEqual([[227, 66, 79], [47, 142, 229]]);
     const hudPositions = await game.evaluate(element => {
       const rect = (selector: string) => element.querySelector(selector)!.getBoundingClientRect();
       const stage = rect('.jezzball-stage');
@@ -287,9 +307,23 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-lives')).toHaveText('Lives: 2');
     await game.evaluate(element => element.setAttribute('data-game-session', 'active'));
 
-    const finalSave = page.waitForResponse(resp => (
-      resp.url().includes('/api/v1/ref') && resp.request().method() === 'PATCH' && resp.ok()
-    ));
+    const finalSave = page.waitForResponse(resp => {
+      if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
+      const state = resp.request().postDataJSON()
+        .find((op: { path: string }) => op.path === '/plugins/plugin~1jezzball')?.value;
+      if (!state?.final) return false;
+      const rows = state.map?.split('\n');
+      expect(rows).toHaveLength(24);
+      expect(rows.every((row: string) => row.length === 32)).toBe(true);
+      expect(state.map).not.toMatch(/[12]/);
+      expect(state).not.toHaveProperty('score');
+      expect(state).toEqual(expect.objectContaining({
+        lives: expect.any(Number),
+        time: 0,
+        area: expect.any(Number),
+      }));
+      return true;
+    });
     await advanceGame(page, 2_401, 50);
     await finalSave;
     await expect(game.locator('.jezzball-overlay')).toContainText(/Game over · score \d+/);
@@ -423,8 +457,9 @@ test.describe.serial('JezzBall Plugin', () => {
     if (!css) throw new Error('JezzBall plugin has no CSS');
     if (!infoUi) throw new Error('JezzBall plugin has no info UI');
     const Handlebars = (await import('handlebars')).default;
-    expect(Handlebars.compile(infoUi)({ final: true, score: 450 })).toContain('🏆️ 450');
-    expect(Handlebars.compile(infoUi)({ final: false, score: 450 })).toBe('');
+    const info = { ref: { plugins: { 'plugin/score': 450 } } };
+    expect(Handlebars.compile(infoUi)({ ...info, final: true })).toContain('🏆️ 450');
+    expect(Handlebars.compile(infoUi)({ ...info, final: false })).toBe('');
     const scriptSource = snippet.match(/<script>([\s\S]*)<\/script>/)?.[1];
     if (!scriptSource) throw new Error('JezzBall plugin has no script');
     await page.goto('about:blank');
@@ -445,7 +480,12 @@ test.describe.serial('JezzBall Plugin', () => {
       const script = document.createElement('script');
       script.textContent = source;
       document.head.appendChild(script);
-      helper({ plugins: { 'plugin/jezzball': { level: 1, score: 0, final: true } } }, {}, document)();
+      helper({
+        plugins: {
+          'plugin/jezzball': { level: 1, lives: 2, time: 120, area: 0, final: true },
+          'plugin/score': 0,
+        },
+      }, {}, document)();
     }, scriptSource);
     await installDeterministicGameClock(page);
     await placeTestBalls(page, [
