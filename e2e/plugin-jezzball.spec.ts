@@ -181,7 +181,7 @@ test.describe.serial('JezzBall Plugin', () => {
     ));
     expect(backgroundPixel.slice(0, 3)).toEqual([0, 0, 0]);
     const gridPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
-      [...element.getContext('2d')!.getImageData(1 * 25 + 12, 1 * 25 + 5, 1, 1).data]
+      [...element.getContext('2d')!.getImageData(1 * 25 + 12, 7 * 25 + 5, 1, 1).data]
     ));
     expect(gridPixel[0]).toBeGreaterThan(backgroundPixel[0]);
     const partialWallPixels = await canvas.evaluate((element: HTMLCanvasElement) => {
