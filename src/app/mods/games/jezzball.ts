@@ -13,6 +13,7 @@ const jezzballLabels = {
   fast: $localize`🐇`,
   soundOn: $localize`🔊`,
   soundOff: $localize`🔇`,
+  startGame: $localize`Start game`,
   newGame: $localize`New game`,
   continue: $localize`Continue`,
   confirmNewGame: $localize`This will clear your high score of {score}. Start a new game?`,
@@ -1010,7 +1011,10 @@ export const jezzballPlugin: Plugin = {
           if (!restoreBalls()) placeBalls();
           if (!Number.isSafeInteger(initial.lives)) lives = balls.length;
           showMessage(format(labels.finalScore, { score: score }), labels.newGame, function() {
-            if (writable && score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) return;
+            if (writable && score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) {
+              overlay.classList.add('visible');
+              return;
+            }
             level = 1;
             score = 0;
             checkpoint = {
@@ -1024,7 +1028,8 @@ export const jezzballPlugin: Plugin = {
             resetLevel();
           });
         } else {
-          resetLevel();
+          restoreBalls();
+          showMessage(format(labels.level, { level: level }), labels.startGame, resetLevel);
         }
         frame = requestAnimationFrame(loop);
         return root._jezzballDestroy;

@@ -158,6 +158,9 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-time')).toHaveText('Time Left: 23');
     await expect(page.locator('.full-page.ref .jezzball-final-score')).toHaveText('🏆️ 450');
     await expect(game.locator('.jezzball-score')).toHaveCSS('font-variant-numeric', 'tabular-nums');
+    page.once('dialog', dialog => dialog.dismiss());
+    await game.locator('.jezzball-new-game').click();
+    await expect(game.locator('.jezzball-overlay')).toHaveClass(/visible/);
 
     const direction = game.locator('.jezzball-direction');
     const canvas = game.locator('.jezzball-canvas');
@@ -269,6 +272,7 @@ test.describe.serial('JezzBall Plugin', () => {
     const game = page.locator('.full-page.ref .jezzball-game');
     await expect(game.locator('.jezzball-overlay')).toContainText('Final score 450');
     await installDeterministicGameClock(page);
+    page.once('dialog', dialog => dialog.accept());
 
     const resetSave = page.waitForResponse(resp => {
       if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
@@ -313,6 +317,13 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-level')).toHaveText('Level: 2');
     await expect(game.locator('.jezzball-score')).not.toHaveText('Score: 0');
 
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(game.locator('.jezzball-overlay')).toContainText('Level: 2');
+    await expect(game.locator('.jezzball-new-game')).toHaveText('Start game');
+    const restoredBackground = await game.locator('.jezzball-canvas').evaluate((element: HTMLCanvasElement) => (
+      [...element.getContext('2d')!.getImageData(0, 0, 1, 1).data].slice(0, 3)
+    ));
+    expect(restoredBackground).toEqual([0, 0, 0]);
     await game.locator('.jezzball-new-game').click();
     await expect(game).toBeFocused();
     await game.press('Space');

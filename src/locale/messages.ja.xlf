@@ -7155,6 +7155,10 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="3091918474470553761" datatype="html">
         <source>🔊</source>
       </trans-unit>
+      <trans-unit id="1123557981657403007" datatype="html">
+        <source>Start game</source>
+        <target>ゲーム開始</target>
+      </trans-unit>
       <trans-unit id="2128624502640961509" datatype="html">
         <source>New game</source>
         <target>新しいゲーム</target>
