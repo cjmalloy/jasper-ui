@@ -72,7 +72,7 @@ test.describe.serial('JezzBall Plugin', () => {
   const title = 'JezzBall E2E Game';
   const savedMap = [
     ...Array(6).fill('#'.repeat(32)),
-    `12${'.'.repeat(30)}`,
+    `12o${'.'.repeat(29)}`,
     ...Array(17).fill('.'.repeat(32)),
   ].join('\n');
   let page: Page;
@@ -123,7 +123,7 @@ test.describe.serial('JezzBall Plugin', () => {
       await route.continue({
         postData: JSON.stringify({
           ...body,
-          tags: [...(body.tags || []), 'plugin/score'],
+          tags: [...(body.tags || []), 'plugin/jezzball', 'plugin/score'],
           plugins: {
             ...body.plugins,
             'plugin/jezzball': {
@@ -190,6 +190,17 @@ test.describe.serial('JezzBall Plugin', () => {
       ));
     });
     expect(partialWallPixels).toEqual([[227, 66, 79], [47, 142, 229]]);
+    const savedLeadingDots = await canvas.evaluate((element: HTMLCanvasElement) => {
+      const context = element.getContext('2d')!;
+      return [0, 1].flatMap(x => [8, 17].flatMap(offsetX => [8, 17].map(offsetY => (
+        [...context.getImageData(x * 25 + offsetX, 6 * 25 + offsetY, 1, 1).data].slice(0, 3)
+      ))));
+    });
+    expect(savedLeadingDots).toEqual(Array(8).fill([255, 255, 255]));
+    const savedBallPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
+      [...element.getContext('2d')!.getImageData(2.5 * 25, 6.5 * 25, 1, 1).data].slice(0, 3)
+    ));
+    expect(savedBallPixel).not.toEqual([119, 119, 119]);
     const hudPositions = await game.evaluate(element => {
       const rect = (selector: string) => element.querySelector(selector)!.getBoundingClientRect();
       const stage = rect('.jezzball-stage');
@@ -503,6 +514,17 @@ test.describe.serial('JezzBall Plugin', () => {
           stepBalls: function() {
             updateBalls(0.05);
             return { x: balls[0].x, y: balls[0].y, spin: balls[0].spin };
+          },
+          completeClippingWall: function() {
+            occupied.fill(0);
+            occupied[id(10, 10)] = 3;
+            balls = [{ x: 10.9, y: 10.5, vx: 5, vy: 5, spin: 1 }];
+            wall = {
+              negative: { destroyed: false },
+              positive: { destroyed: true },
+            };
+            completeWall();
+            return { x: balls[0].x, y: balls[0].y, clipping: hitsBoard(balls[0].x, balls[0].y) };
           }
         };
         frame = requestAnimationFrame(loop);`,
@@ -582,6 +604,7 @@ test.describe.serial('JezzBall Plugin', () => {
       _jezzballTest: {
         setTrappedBall: () => void;
         stepBalls: () => { x: number; y: number; spin: number };
+        completeClippingWall: () => { x: number; y: number; clipping: boolean };
       };
     }) => {
       element._jezzballTest.setTrappedBall();
@@ -591,6 +614,13 @@ test.describe.serial('JezzBall Plugin', () => {
     expect(trappedBall.x).toBe(10.5);
     expect(trappedBall.y).toBe(10.5);
     expect(trappedBall.spin).toBeCloseTo(0.3);
+    const pushedBall = await game.evaluate((element: HTMLElement & {
+      _jezzballTest: {
+        completeClippingWall: () => { x: number; y: number; clipping: boolean };
+      };
+    }) => element._jezzballTest.completeClippingWall());
+    expect(pushedBall.clipping).toBe(false);
+    expect(pushedBall.x).toBeGreaterThan(11);
   });
 
   test('keeps the surviving half when an atom hits the other half', async () => {

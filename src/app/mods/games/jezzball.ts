@@ -52,7 +52,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 1,
+    version: 2,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -297,7 +297,7 @@ export const jezzballPlugin: Plugin = {
         function parseMap(map) {
           if (typeof map !== 'string') return null;
           const rows = map.split('\\n');
-          if (rows.length !== ROWS || rows.some(row => row.length !== COLS || /[^.#12]/.test(row))) return null;
+          if (rows.length !== ROWS || rows.some(row => row.length !== COLS || /[^.#12o]/.test(row))) return null;
           return rows;
         }
 
@@ -312,6 +312,21 @@ export const jezzballPlugin: Plugin = {
               if (half.destroyed) continue;
               for (const cellId of half.cells) {
                 cells[Math.floor(cellId / COLS)][cellId % COLS] = String(half.color);
+              }
+            }
+          }
+          for (const ball of balls) {
+            const ballX = Math.max(0, Math.min(COLS - 1, Math.floor(ball.x)));
+            const ballY = Math.max(0, Math.min(ROWS - 1, Math.floor(ball.y)));
+            let saved = false;
+            for (let radius = 0; radius < Math.max(COLS, ROWS) && !saved; radius++) {
+              for (let y = Math.max(0, ballY - radius); y <= Math.min(ROWS - 1, ballY + radius) && !saved; y++) {
+                for (let x = Math.max(0, ballX - radius); x <= Math.min(COLS - 1, ballX + radius); x++) {
+                  if (Math.max(Math.abs(x - ballX), Math.abs(y - ballY)) !== radius || cells[y][x] !== '.') continue;
+                  cells[y][x] = 'o';
+                  saved = true;
+                  break;
+                }
               }
             }
           }
@@ -359,6 +374,23 @@ export const jezzballPlugin: Plugin = {
             } while (balls.some(ball => Math.hypot(ball.x - x, ball.y - y) < 2) && attempts < 100);
             balls.push({ x: x, y: y, vx: velocity.vx, vy: velocity.vy, spin: Math.random() * Math.PI * 2 });
           }
+        }
+
+        function restoreBalls() {
+          const map = parseMap(savedMap);
+          if (!map) return false;
+          const positions = [];
+          for (let y = 0; y < ROWS; y++) {
+            for (let x = 0; x < COLS; x++) {
+              if (map[y][x] === 'o') positions.push({ x: x + 0.5, y: y + 0.5 });
+            }
+          }
+          if (!positions.length) return false;
+          balls = positions.map(function(position) {
+            const velocity = randomVelocity();
+            return { x: position.x, y: position.y, vx: velocity.vx, vy: velocity.vy, spin: Math.random() * Math.PI * 2 };
+          });
+          return true;
         }
 
         function resetLevel() {
@@ -517,6 +549,42 @@ export const jezzballPlugin: Plugin = {
           }
         }
 
+        function pushBallsOutOfWalls() {
+          for (const ball of balls) {
+            if (!hitsBoard(ball.x, ball.y)) continue;
+            const candidates = [];
+            const minX = Math.max(0, Math.floor(ball.x - BALL_RADIUS));
+            const maxX = Math.min(COLS - 1, Math.floor(ball.x + BALL_RADIUS));
+            const minY = Math.max(0, Math.floor(ball.y - BALL_RADIUS));
+            const maxY = Math.min(ROWS - 1, Math.floor(ball.y + BALL_RADIUS));
+            for (let y = minY; y <= maxY; y++) {
+              for (let x = minX; x <= maxX; x++) {
+                if (!occupied[id(x, y)] || !circleTouchesCell(ball.x, ball.y, x, y)) continue;
+                candidates.push(
+                  { x: x - BALL_RADIUS - 0.001, y: ball.y },
+                  { x: x + 1 + BALL_RADIUS + 0.001, y: ball.y },
+                  { x: ball.x, y: y - BALL_RADIUS - 0.001 },
+                  { x: ball.x, y: y + 1 + BALL_RADIUS + 0.001 },
+                  { x: x - BALL_RADIUS - 0.001, y: y - BALL_RADIUS - 0.001 },
+                  { x: x + 1 + BALL_RADIUS + 0.001, y: y - BALL_RADIUS - 0.001 },
+                  { x: x - BALL_RADIUS - 0.001, y: y + 1 + BALL_RADIUS + 0.001 },
+                  { x: x + 1 + BALL_RADIUS + 0.001, y: y + 1 + BALL_RADIUS + 0.001 },
+                );
+              }
+            }
+            const available = candidates.filter(position =>
+              position.x >= BALL_RADIUS && position.x <= COLS - BALL_RADIUS &&
+              position.y >= BALL_RADIUS && position.y <= ROWS - BALL_RADIUS &&
+              !hitsBoard(position.x, position.y));
+            available.sort((a, b) =>
+              Math.hypot(a.x - ball.x, a.y - ball.y) - Math.hypot(b.x - ball.x, b.y - ball.y));
+            if (available.length) {
+              ball.x = available[0].x;
+              ball.y = available[0].y;
+            }
+          }
+        }
+
         function completeWall() {
           if (!wall) return;
           if ([wall.negative, wall.positive].every(half => half.destroyed)) {
@@ -526,6 +594,7 @@ export const jezzballPlugin: Plugin = {
           wall = null;
           playSound(480, 0.08);
           fillCapturedAreas();
+          pushBallsOutOfWalls();
           const filled = percentFilled();
           if (filled >= TARGET) {
             score += level * 100 + filled * 5 + Math.ceil(remaining) + lives * 25;
@@ -714,9 +783,34 @@ export const jezzballPlugin: Plugin = {
             for (let y = 0; y < ROWS; y++) {
               for (let x = 0; x < COLS; x++) {
                 const cell = background[y][x];
-                if (cell === '.') continue;
+                if (cell === '.' || cell === 'o') continue;
                 g.fillStyle = cell === '1' ? '#e3424f' : cell === '2' ? '#2f8ee5' : '#000';
                 g.fillRect(x * CELL, y * CELL, CELL, CELL);
+              }
+            }
+            for (let y = 0; y < ROWS; y++) {
+              for (let x = 0; x < COLS; x++) {
+                const color = background[y][x];
+                if (color !== '1' && color !== '2') continue;
+                const direction = color === '1' ? 1 : -1;
+                const horizontal = [x - 1, x + 1].some(nx =>
+                  nx >= 0 && nx < COLS && (background[y][nx] === '1' || background[y][nx] === '2'));
+                const vertical = [y - 1, y + 1].some(ny =>
+                  ny >= 0 && ny < ROWS && (background[ny][x] === '1' || background[ny][x] === '2'));
+                const next = horizontal && !vertical ? background[y][x + direction] :
+                  vertical && !horizontal && background[y + direction] ? background[y + direction][x] : null;
+                if (next === color) continue;
+                g.strokeStyle = '#ececf2';
+                g.lineWidth = 2;
+                g.strokeRect(x * CELL + 2, y * CELL + 2, CELL - 4, CELL - 4);
+                g.fillStyle = '#fff';
+                for (const offsetX of [8, 17]) {
+                  for (const offsetY of [8, 17]) {
+                    g.beginPath();
+                    g.arc(x * CELL + offsetX, y * CELL + offsetY, 2, 0, Math.PI * 2);
+                    g.fill();
+                  }
+                }
               }
             }
           }
@@ -913,10 +1007,10 @@ export const jezzballPlugin: Plugin = {
         };
 
         if (checkpoint.final) {
-          placeBalls();
+          if (!restoreBalls()) placeBalls();
           if (!Number.isSafeInteger(initial.lives)) lives = balls.length;
           showMessage(format(labels.finalScore, { score: score }), labels.newGame, function() {
-            if (score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) return;
+            if (writable && score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) return;
             level = 1;
             score = 0;
             checkpoint = {
