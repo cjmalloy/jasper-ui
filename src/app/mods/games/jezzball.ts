@@ -52,10 +52,9 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 2,
+    version: 1,
     type: 'plugin',
     editingViewer: true,
-    ignoreUpdates: true,
     experimental: true,
     submitText: true,
     add: true,
@@ -218,7 +217,12 @@ export const jezzballPlugin: Plugin = {
     <script>
       function jezzballApp(root, api) {
         if (!root) return function() {};
-        if (root._jezzballDestroy) root._jezzballDestroy();
+        if (root._jezzballDestroy) {
+          if (root._jezzballUrl === (api && api.url)) return root._jezzballDestroy;
+          root._jezzballDestroy();
+          root.removeAttribute('data-game-session');
+        }
+        root._jezzballUrl = api && api.url;
 
         const COLS = 32;
         const ROWS = 24;
@@ -852,6 +856,7 @@ export const jezzballPlugin: Plugin = {
           const root = el && el.querySelector ? el.querySelector('.jezzball-game') : document.querySelector('.jezzball-game');
           const initial = ref && ref.plugins && ref.plugins['plugin/jezzball'] || {};
           jezzballApp(root, {
+            url: ref && ref.url,
             initial: initial,
             writable: !actions || !!actions.plugin,
             save: actions && actions.plugin ? function(state) {

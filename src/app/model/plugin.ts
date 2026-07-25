@@ -64,10 +64,6 @@ export interface Plugin extends Config {
      */
     editingViewer?: boolean;
     /**
-     * Keep the viewer session running when the Ref receives updates.
-     */
-    ignoreUpdates?: boolean;
-    /**
      * Provides custom editor.
      */
     editor?: boolean;
