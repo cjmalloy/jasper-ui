@@ -273,9 +273,8 @@ test.describe.serial('JezzBall Plugin', () => {
     const resetSave = page.waitForResponse(resp => {
       if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
       const body = resp.request().postDataJSON();
-      return Array.isArray(body)
-        && body.some(op => op.path === '/plugins/plugin~1jezzball')
-        && body.some(op => op.path === '/plugins/plugin~1score');
+      return body?.plugins?.['plugin/jezzball'] !== undefined
+        && body?.plugins?.['plugin/score'] !== undefined;
     });
     const resetMapSave = page.waitForResponse(resp => {
       if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
