@@ -9,7 +9,7 @@ import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { merge3 } from '../util/diff';
-import { escapePath } from '../util/json-patch';
+import { escapePath, OpPatch } from '../util/json-patch';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -155,20 +155,19 @@ export class ActionService {
       entries.push([plugin, plugins[i + 1]]);
     }
     const updates = Object.fromEntries(entries);
-    const save = (target: Ref) => this.refs.patch(
-      target.url,
-      this.store.account.origin,
-      target.modifiedString!,
-      target.plugins ? entries.map(([tag, value]) => ({
-        op: 'add' as const,
-        path: '/plugins/' + escapePath(tag),
-        value,
-      })) : [{
-        op: 'add',
-        path: '/plugins',
-        value: updates,
-      }],
-    );
+    const tags = entries.map(([t]) => t);
+    const save = (target: Ref) => {
+      const missingTags = tags.filter(t => !hasTag(t, target));
+      const tagOps: OpPatch[] = missingTags.length
+        ? target.tags
+          ? missingTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
+          : [{ op: 'add' as const, path: '/tags', value: missingTags }]
+        : [];
+      const pluginOps: OpPatch[] = target.plugins
+        ? entries.map(([t, v]) => ({ op: 'add' as const, path: '/plugins/' + escapePath(t), value: v }))
+        : [{ op: 'add' as const, path: '/plugins', value: updates }];
+      return this.refs.patch(target.url, this.store.account.origin, target.modifiedString!, [...tagOps, ...pluginOps]);
+    };
     return save(ref).pipe(
       catchError(err => {
         if (err.status === 409) {
@@ -178,6 +177,8 @@ export class ActionService {
       }),
       tap(cursor => runInAction(() => {
         ref.plugins = { ...ref.plugins, ...updates };
+        const newTags = tags.filter(t => !hasTag(t, ref));
+        if (newTags.length) ref.tags = [...(ref.tags || []), ...newTags];
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
       })),

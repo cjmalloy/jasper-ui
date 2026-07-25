@@ -15,6 +15,7 @@ const jezzballLabels = {
   soundOff: $localize`🔇`,
   newGame: $localize`New game`,
   continue: $localize`Continue`,
+  confirmNewGame: $localize`This will clear your high score of {score}. Start a new game?`,
   level: $localize`Level: {level}`,
   lives: $localize`Lives: {lives}`,
   filled: $localize`Area Cleared {filled}%`,
@@ -251,7 +252,6 @@ export const jezzballPlugin: Plugin = {
         let keyboardMode = false;
         const keyboardCursor = { x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) };
 
-        root.classList.add('jezzball-game');
         const canvas = root.querySelector('.jezzball-canvas');
         const g = canvas.getContext('2d', { alpha: false });
         const levelEl = root.querySelector('.jezzball-level');
@@ -267,7 +267,6 @@ export const jezzballPlugin: Plugin = {
         const overlay = root.querySelector('.jezzball-overlay');
         const overlayMessage = overlay.querySelector('strong');
         const newGameButton = overlay.querySelector('.jezzball-new-game');
-        root.tabIndex = 0;
         root.setAttribute('aria-label', labels.help);
         exampleEl.textContent = labels.savedExample;
         exampleEl.title = labels.savedExampleTitle;
@@ -520,6 +519,7 @@ export const jezzballPlugin: Plugin = {
             api.save(checkpoint);
           }
           showMessage(format(labels.gameOver, { score: score }), labels.newGame, function() {
+            if (score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) return;
             level = 1;
             score = 0;
             checkpoint = { level: 1, score: 0, final: false };
@@ -827,6 +827,7 @@ export const jezzballPlugin: Plugin = {
           placeBalls();
           lives = balls.length;
           showMessage(format(labels.finalScore, { score: score }), labels.newGame, function() {
+            if (score > 0 && !window.confirm(format(labels.confirmNewGame, { score: score }))) return;
             level = 1;
             score = 0;
             checkpoint = { level: 1, score: 0, final: false };
@@ -860,7 +861,7 @@ export const jezzballPlugin: Plugin = {
     `,
     // language=Handlebars
     ui: `
-      <div class="jezzball-game">
+      <div class="jezzball-game" tabindex="0">
         <div class="jezzball-toolbar">
           <span class="jezzball-level"></span>
           <span class="jezzball-example"></span>

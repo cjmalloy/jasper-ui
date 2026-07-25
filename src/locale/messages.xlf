@@ -123,7 +123,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">594</context>
+          <context context-type="linenumber">613</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2936656004239818017" datatype="html">
@@ -260,7 +260,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">595</context>
+          <context context-type="linenumber">614</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/chess.ts</context>
@@ -287,10 +287,6 @@
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.html</context>
           <context context-type="linenumber">202</context>
         </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">10</context>
-        </context-group>
       </trans-unit>
       <trans-unit id="61146899238241461" datatype="html">
         <source>Change playback speed</source>
@@ -310,56 +306,56 @@
         <source>Illegal move <x id="PH" equiv-text="renderMove(p, from, to)"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">279</context>
+          <context context-type="linenumber">310</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">456</context>
+          <context context-type="linenumber">487</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">750</context>
+          <context context-type="linenumber">749</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8350303712541512324" datatype="html">
         <source>Game Over</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">408</context>
+          <context context-type="linenumber">439</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">950</context>
+          <context context-type="linenumber">949</context>
         </context-group>
       </trans-unit>
       <trans-unit id="554149296192196884" datatype="html">
         <source>Not your turn</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">409</context>
+          <context context-type="linenumber">440</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">412</context>
+          <context context-type="linenumber">443</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">951</context>
+          <context context-type="linenumber">950</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">954</context>
+          <context context-type="linenumber">953</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6947524598307975659" datatype="html">
         <source>Must move</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">410</context>
+          <context context-type="linenumber">441</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">952</context>
+          <context context-type="linenumber">951</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8031128496622857527" datatype="html">
@@ -368,7 +364,7 @@
 Please Reload.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">604</context>
+          <context context-type="linenumber">623</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/chess/chess.component.ts</context>
@@ -379,32 +375,32 @@ Please Reload.</source>
         <source>Double 6s</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">1174</context>
+          <context context-type="linenumber">1128</context>
         </context-group>
       </trans-unit>
       <trans-unit id="269137713886171303" datatype="html">
         <source><x id="PH" equiv-text="piecesHitThisTurn"/> pieces hit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">1183</context>
+          <context context-type="linenumber">1137</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">1232</context>
+          <context context-type="linenumber">1186</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3195148963394868807" datatype="html">
         <source>Red all home</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">1207</context>
+          <context context-type="linenumber">1161</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2828116563312710431" datatype="html">
         <source>Black all home</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
-          <context context-type="linenumber">1223</context>
+          <context context-type="linenumber">1177</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5896623720033494810" datatype="html">
@@ -1046,7 +1042,7 @@ Please Reload.</source>
         <source>No blog entries found</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/blog/blog.component.ts</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">34</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4803311945684398494" datatype="html">
@@ -1367,11 +1363,11 @@ Please Reload.</source>
         <source>Upload failed</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/chat/chat.component.ts</context>
-          <context context-type="linenumber">558</context>
+          <context context-type="linenumber">559</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/chat/chat.component.ts</context>
-          <context context-type="linenumber">600</context>
+          <context context-type="linenumber">601</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8323509891710996119" datatype="html">
@@ -1754,7 +1750,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.ts</context>
-          <context context-type="linenumber">62</context>
+          <context context-type="linenumber">66</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4408775712398931801" datatype="html">
@@ -1765,7 +1761,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.ts</context>
-          <context context-type="linenumber">63</context>
+          <context context-type="linenumber">67</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2027728006273101192" datatype="html">
@@ -1776,7 +1772,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.ts</context>
-          <context context-type="linenumber">64</context>
+          <context context-type="linenumber">68</context>
         </context-group>
       </trans-unit>
       <trans-unit id="399555370246611212" datatype="html">
@@ -1787,7 +1783,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.ts</context>
-          <context context-type="linenumber">65</context>
+          <context context-type="linenumber">69</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2399648951045649806" datatype="html">
@@ -1798,7 +1794,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.ts</context>
-          <context context-type="linenumber">66</context>
+          <context context-type="linenumber">70</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2396411664047486324" datatype="html">
@@ -1809,7 +1805,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.ts</context>
-          <context context-type="linenumber">67</context>
+          <context context-type="linenumber">71</context>
         </context-group>
       </trans-unit>
       <trans-unit id="315165434902780936" datatype="html">
@@ -1820,7 +1816,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.ts</context>
-          <context context-type="linenumber">68</context>
+          <context context-type="linenumber">72</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8665808995635367636" datatype="html">
@@ -1831,7 +1827,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.ts</context>
-          <context context-type="linenumber">69</context>
+          <context context-type="linenumber">73</context>
         </context-group>
       </trans-unit>
       <trans-unit id="757632267116192774" datatype="html">
@@ -1977,7 +1973,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">67</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5409276551556370509" datatype="html">
@@ -2534,19 +2530,19 @@ Please Reload.</source>
         <source>Repost</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/folder/file/file.component.ts</context>
-          <context context-type="linenumber">150</context>
+          <context context-type="linenumber">149</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/kanban/kanban-card/kanban-card.component.ts</context>
-          <context context-type="linenumber">294</context>
+          <context context-type="linenumber">295</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/notebook/note/note.component.ts</context>
-          <context context-type="linenumber">288</context>
+          <context context-type="linenumber">289</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.ts</context>
-          <context context-type="linenumber">995</context>
+          <context context-type="linenumber">967</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5743757503664322992" datatype="html">
@@ -2655,11 +2651,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.ts</context>
-          <context context-type="linenumber">880</context>
+          <context context-type="linenumber">852</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/viewer/viewer.component.ts</context>
-          <context context-type="linenumber">485</context>
+          <context context-type="linenumber">486</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4452427314943113135" datatype="html">
@@ -2928,7 +2924,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref-list/ref-list.component.ts</context>
-          <context context-type="linenumber">43</context>
+          <context context-type="linenumber">44</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/template/template-list/template-list.component.html</context>
@@ -3129,33 +3125,33 @@ Please Reload.</source>
         <source>Untitled</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.ts</context>
-          <context context-type="linenumber">862</context>
+          <context context-type="linenumber">834</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/viewer/viewer.component.ts</context>
-          <context context-type="linenumber">491</context>
+          <context context-type="linenumber">492</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6987106121922189987" datatype="html">
         <source>Untitled Audio</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.ts</context>
-          <context context-type="linenumber">874</context>
+          <context context-type="linenumber">846</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/viewer/viewer.component.ts</context>
-          <context context-type="linenumber">465</context>
+          <context context-type="linenumber">466</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5011079755860721986" datatype="html">
         <source>Untitled Video</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.ts</context>
-          <context context-type="linenumber">877</context>
+          <context context-type="linenumber">849</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/viewer/viewer.component.ts</context>
-          <context context-type="linenumber">475</context>
+          <context context-type="linenumber">476</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8884893797337416129" datatype="html">
@@ -4491,7 +4487,7 @@ Please Reload.</source>
         <source>Add comment</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/editor/editor.component.ts</context>
-          <context context-type="linenumber">123</context>
+          <context context-type="linenumber">129</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/editor.type.ts</context>
@@ -4502,7 +4498,7 @@ Please Reload.</source>
         <source>+ Add comment</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/editor/editor.component.ts</context>
-          <context context-type="linenumber">125</context>
+          <context context-type="linenumber">131</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/editor.type.ts</context>
@@ -4513,7 +4509,7 @@ Please Reload.</source>
         <source>Locking is permanent once saved. Are you sure you want to lock?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/editor/editor.component.ts</context>
-          <context context-type="linenumber">410</context>
+          <context context-type="linenumber">414</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7978273686665519179" datatype="html">
@@ -6238,11 +6234,15 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">45</context>
+          <context context-type="linenumber">40</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">716</context>
+          <context context-type="linenumber">63</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
+          <context context-type="linenumber">906</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/help.ts</context>
@@ -8568,7 +8568,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">744</context>
+          <context context-type="linenumber">934</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/lens.ts</context>
@@ -8766,141 +8766,168 @@ Private tags start with an underscore.
           <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="2816819274320746859" datatype="html">
+        <source>This will clear your high score of {score}. Start a new game?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
+          <context context-type="linenumber">18</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="3544610376396588577" datatype="html">
         <source>Level: {level}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">18</context>
+          <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6852183882416144233" datatype="html">
         <source>Lives: {lives}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">19</context>
+          <context context-type="linenumber">20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3467789196078141437" datatype="html">
         <source>Area Cleared {filled}%</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">20</context>
+          <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6955037067445975424" datatype="html">
         <source>Time Left: {time}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">21</context>
+          <context context-type="linenumber">22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7301821102666615096" datatype="html">
         <source>Score: {score}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">22</context>
+          <context context-type="linenumber">23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6990153219965469167" datatype="html">
         <source>↕</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">23</context>
+          <context context-type="linenumber">24</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6126475216671204597" datatype="html">
         <source>↔</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">24</context>
+          <context context-type="linenumber">25</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1010824126943413606" datatype="html">
         <source>Level {level} complete</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">25</context>
+          <context context-type="linenumber">26</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8135923080030537232" datatype="html">
         <source>Game over · score {score}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">26</context>
+          <context context-type="linenumber">27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7935139414809961172" datatype="html">
         <source>Final score {score}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">27</context>
+          <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2671274276626285315" datatype="html">
         <source>Click, press Enter, or tap with two fingers to build a wall. Two-finger alignment sets its direction. Use the arrow keys to move the keyboard cursor. Right-click, Space, or the direction button changes direction. Press P to pause.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">28</context>
+          <context context-type="linenumber">29</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4617000983840234050" datatype="html">
+        <source>🏆️ Score</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
+          <context context-type="linenumber">35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6543363048987109722" datatype="html">
         <source>🟣️ JezzBall</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">34</context>
+          <context context-type="linenumber">37</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">36</context>
+          <context context-type="linenumber">52</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">54</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">711</context>
+          <context context-type="linenumber">67</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">713</context>
+          <context context-type="linenumber">901</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
+          <context context-type="linenumber">903</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7369467455665573995" datatype="html">
+        <source>Store a numeric score on a Ref.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
+          <context context-type="linenumber">41</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4580907610151762865" datatype="html">
+        <source>🏆️ score</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
+          <context context-type="linenumber">43</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7123653594948067002" datatype="html">
+        <source>Score</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
+          <context context-type="linenumber">43</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5885261957820095227" datatype="html">
         <source>Play a faithful remake of the classic JezzBall game.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">46</context>
+          <context context-type="linenumber">64</context>
         </context-group>
-      </trans-unit>
-      <trans-unit id="4617000983840234050" datatype="html">
-        <source>🏆️ Score</source>
-      </trans-unit>
-      <trans-unit id="7369467455665573995" datatype="html">
-        <source>Store a numeric score on a Ref.</source>
-      </trans-unit>
-      <trans-unit id="4580907610151762865" datatype="html">
-        <source>🏆️ score</source>
-      </trans-unit>
-      <trans-unit id="7123653594948067002" datatype="html">
-        <source>Score</source>
       </trans-unit>
       <trans-unit id="550762586054059391" datatype="html">
         <source>🟣️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">47</context>
+          <context context-type="linenumber">65</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">717</context>
+          <context context-type="linenumber">907</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6291710928695103454" datatype="html">
         <source>JezzBall games</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">67</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1634079419998908383" datatype="html">
@@ -15962,7 +15989,7 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Errors: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ref/errors/errors.component.ts</context>
-          <context context-type="linenumber">75</context>
+          <context context-type="linenumber">68</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4739818603756173797" datatype="html">
@@ -16139,7 +16166,7 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Thread: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ref/thread/thread.component.ts</context>
-          <context context-type="linenumber">99</context>
+          <context context-type="linenumber">100</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8092531450014955572" datatype="html">
@@ -16752,7 +16779,7 @@ Enter the origin to confirm:</source>
         <source>Submit: Direct Message</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/dm/dm.component.ts</context>
-          <context context-type="linenumber">114</context>
+          <context context-type="linenumber">116</context>
         </context-group>
       </trans-unit>
       <trans-unit id="299752307307418747" datatype="html">
@@ -16806,21 +16833,21 @@ Enter the origin to confirm:</source>
         <source>Submit: Invoice</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/invoice/invoice.component.ts</context>
-          <context context-type="linenumber">81</context>
+          <context context-type="linenumber">83</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5484116244420278790" datatype="html">
         <source>QR Code must be a valid URI according to RFC 3986.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/invoice/invoice.component.ts</context>
-          <context context-type="linenumber">178</context>
+          <context context-type="linenumber">176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5507553432660865286" datatype="html">
         <source>QR Code must not be blank.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/invoice/invoice.component.ts</context>
-          <context context-type="linenumber">181</context>
+          <context context-type="linenumber">179</context>
         </context-group>
       </trans-unit>
       <trans-unit id="837260473628534595" datatype="html">

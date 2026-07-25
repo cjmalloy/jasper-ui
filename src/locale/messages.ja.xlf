@@ -7163,6 +7163,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Continue</source>
         <target>続ける</target>
       </trans-unit>
+      <trans-unit id="2816819274320746859" datatype="html">
+        <source>This will clear your high score of {score}. Start a new game?</source>
+        <target>ハイスコア {score} がリセットされます。新しいゲームを始めますか？</target>
+      </trans-unit>
       <trans-unit id="3544610376396588577" datatype="html">
         <source>Level: {level}</source>
         <target>レベル: {level}</target>
