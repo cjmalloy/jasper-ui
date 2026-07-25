@@ -36,7 +36,8 @@ describe('AdminService', () => {
     expect(scrapePlugin.config?.form?.find(f => f.key === 'textSelectors')?.expressions?.hide).toBe('!field.parent.model.text');
   });
 
-  it('should provide valid defaults for JezzBall', () => {
+  it('should allow defaults and partial state for JezzBall', () => {
     expect(service.isValid(jezzballPlugin.schema, jezzballPlugin.defaults)).toBe(true);
+    expect(service.isValid(jezzballPlugin.schema, {})).toBe(true);
   });
 });

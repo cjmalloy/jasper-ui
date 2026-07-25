@@ -887,7 +887,7 @@ export const jezzballPlugin: Plugin = {
   },
   defaults: { level: 1, score: 0, final: false },
   schema: {
-    properties: {
+    optionalProperties: {
       level: { type: 'uint32' },
       score: { type: 'float64' },
       final: { type: 'boolean' },
