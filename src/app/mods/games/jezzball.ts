@@ -393,6 +393,16 @@ export const jezzballPlugin: Plugin = {
           return true;
         }
 
+        function restoreOccupied() {
+          const map = parseMap(savedMap);
+          if (!map) return;
+          for (let y = 0; y < ROWS; y++) {
+            for (let x = 0; x < COLS; x++) {
+              if (map[y][x] === '#') occupied[id(x, y)] = 3;
+            }
+          }
+        }
+
         function resetLevel() {
           occupied = new Uint8Array(COLS * ROWS);
           savedMap = emptyMap();
@@ -1028,6 +1038,7 @@ export const jezzballPlugin: Plugin = {
           });
         } else {
           restoreBalls();
+          restoreOccupied();
           showMessage(format(labels.level, { level: level }), labels.continue, resetLevel);
         }
         frame = requestAnimationFrame(loop);
