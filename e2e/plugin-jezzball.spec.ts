@@ -228,7 +228,7 @@ test.describe.serial('JezzBall Plugin', () => {
     const game = page.locator('.full-page.ref .jezzball-game');
     const container = game.locator('xpath=ancestor::*[contains(@class, "md-container")]');
     await game.evaluate(async element => {
-      await element.closest('app-viewer')!.requestFullscreen();
+      await element.closest('.embed')!.requestFullscreen();
     });
     await expect(container).toHaveCSS('zoom', '0.5');
     await expect(game.locator('.jezzball-toolbar')).toBeVisible();
