@@ -301,7 +301,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await levelSave;
     await expect(game.locator('.jezzball-overlay')).toContainText('Level 1 complete');
     await expect(game.locator('.jezzball-level')).toHaveText('Level 2');
-    await expect(game.locator('.jezzball-score')).not.toHaveText('Score 0');
+    await expect(game.locator('.jezzball-score')).not.toHaveText('Score: 0');
 
     await game.locator('.jezzball-new-game').click();
     await expect(game).toBeFocused();
