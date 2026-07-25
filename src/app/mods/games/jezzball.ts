@@ -949,17 +949,13 @@ export const jezzballPlugin: Plugin = {
           jezzballApp(root, {
             url: ref && ref.url,
             initial: Object.assign({}, initial, {
-              map: ref && ref.comment,
               score: ref && ref.plugins && ref.plugins['plugin/score'],
             }),
             writable: !actions || !!actions.plugin,
             save: actions && actions.plugin ? function(state, savedScore) {
-              const pluginState = Object.assign({}, state);
-              const map = pluginState.map;
-              delete pluginState.map;
-              actions.comment(map);
+              actions.comment(ref.comment);
               actions.plugin(
-                'plugin/jezzball', pluginState,
+                'plugin/jezzball', state,
                 'plugin/score', savedScore
               );
             } : undefined,
