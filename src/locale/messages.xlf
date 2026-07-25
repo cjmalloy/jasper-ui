@@ -8787,8 +8787,8 @@ Private tags start with an underscore.
           <context context-type="linenumber">20</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3467789196078141437" datatype="html">
-        <source>Area Cleared {filled}%</source>
+      <trans-unit id="2904241715043080692" datatype="html">
+        <source>Area Cleared: {filled}%</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">21</context>

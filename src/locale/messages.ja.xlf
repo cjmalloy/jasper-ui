@@ -7175,8 +7175,8 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Lives: {lives}</source>
         <target>残機: {lives}</target>
       </trans-unit>
-      <trans-unit id="3467789196078141437" datatype="html">
-        <source>Area Cleared {filled}%</source>
+      <trans-unit id="2904241715043080692" datatype="html">
+        <source>Area Cleared: {filled}%</source>
         <target>クリアした面積 {filled}%</target>
       </trans-unit>
       <trans-unit id="6955037067445975424" datatype="html">
