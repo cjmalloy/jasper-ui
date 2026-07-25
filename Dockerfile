@@ -45,4 +45,4 @@ COPY docker/60-set-title.sh /docker-entrypoint.d
 COPY docker/70-csp.sh /docker-entrypoint.d
 COPY docker/80-nsgw.sh /docker-entrypoint.d
 COPY docker/90-logging.sh /docker-entrypoint.d
-WORKDIR /usr/share/nginx/html/
+WORKDIR /var/lib/jasper/
