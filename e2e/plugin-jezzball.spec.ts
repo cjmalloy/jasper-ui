@@ -142,13 +142,17 @@ test.describe.serial('JezzBall Plugin', () => {
     const game = page.locator('.full-page.ref .jezzball-game');
     await expect(game.locator('.jezzball-canvas')).toBeVisible();
     await expect(game.locator('.jezzball-overlay')).toContainText('Final score 450');
+    await expect(game.locator('.jezzball-level')).toHaveText('Level: 101');
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives: 50');
     await expect(page.locator('.full-page.ref .jezzball-final-score')).toHaveText('🏆️ 450');
     await expect(game.locator('.jezzball-score')).toHaveCSS('font-variant-numeric', 'tabular-nums');
 
     const direction = game.locator('.jezzball-direction');
     const canvas = game.locator('.jezzball-canvas');
+    await expect(direction).toHaveText('↕');
     await expect(canvas).toHaveCSS('cursor', 'ns-resize');
     await direction.click();
+    await expect(direction).toHaveText('↔');
     await expect(canvas).toHaveCSS('cursor', 'ew-resize');
     const speed = game.locator('.jezzball-speed');
     await expect(speed).toHaveText('🐇');
@@ -158,6 +162,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(sound).toHaveText('🔊');
     await sound.click();
     await expect(sound).toHaveText('🔇');
+    await expect(game.locator('.jezzball-filled')).toHaveText('Area Cleared 0%');
     const backgroundPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
       [...element.getContext('2d')!.getImageData(1 * 25 + 5, 1 * 25 + 5, 1, 1).data]
     ));

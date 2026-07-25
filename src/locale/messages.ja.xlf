@@ -7168,33 +7168,31 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Continue</source>
         <target>続ける</target>
       </trans-unit>
-      <trans-unit id="8755464126317616831" datatype="html">
-        <source>Level {level}</source>
-        <target>レベル {level}</target>
+      <trans-unit id="3544610376396588577" datatype="html">
+        <source>Level: {level}</source>
+        <target>レベル: {level}</target>
       </trans-unit>
-      <trans-unit id="1663762044916325727" datatype="html">
-        <source>Lives {lives}</source>
-        <target>残機 {lives}</target>
+      <trans-unit id="6852183882416144233" datatype="html">
+        <source>Lives: {lives}</source>
+        <target>残機: {lives}</target>
       </trans-unit>
-      <trans-unit id="6134450866822012379" datatype="html">
-        <source>Filled {filled}%</source>
-        <target>占有率 {filled}%</target>
+      <trans-unit id="3467789196078141437" datatype="html">
+        <source>Area Cleared {filled}%</source>
+        <target>クリアした面積 {filled}%</target>
       </trans-unit>
-      <trans-unit id="9024032865625543959" datatype="html">
-        <source>Time {time}</source>
-        <target>残り時間 {time}</target>
+      <trans-unit id="6955037067445975424" datatype="html">
+        <source>Time Left: {time}</source>
+        <target>残り時間: {time}</target>
       </trans-unit>
-      <trans-unit id="2747457531544510288" datatype="html">
-        <source>Score {score}</source>
-        <target>スコア {score}</target>
+      <trans-unit id="7301821102666615096" datatype="html">
+        <source>Score: {score}</source>
+        <target>スコア: {score}</target>
       </trans-unit>
-      <trans-unit id="8006598437672035003" datatype="html">
-        <source>Wall ↕</source>
-        <target>壁 ↕</target>
+      <trans-unit id="6990153219965469167" datatype="html">
+        <source>↕</source>
       </trans-unit>
-      <trans-unit id="2676701399964654601" datatype="html">
-        <source>Wall ↔</source>
-        <target>壁 ↔</target>
+      <trans-unit id="6126475216671204597" datatype="html">
+        <source>↔</source>
       </trans-unit>
       <trans-unit id="1010824126943413606" datatype="html">
         <source>Level {level} complete</source>

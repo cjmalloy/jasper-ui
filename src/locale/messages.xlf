@@ -8762,50 +8762,50 @@ Private tags start with an underscore.
           <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8755464126317616831" datatype="html">
-        <source>Level {level}</source>
+      <trans-unit id="3544610376396588577" datatype="html">
+        <source>Level: {level}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1663762044916325727" datatype="html">
-        <source>Lives {lives}</source>
+      <trans-unit id="6852183882416144233" datatype="html">
+        <source>Lives: {lives}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6134450866822012379" datatype="html">
-        <source>Filled {filled}%</source>
+      <trans-unit id="3467789196078141437" datatype="html">
+        <source>Area Cleared {filled}%</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">20</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="9024032865625543959" datatype="html">
-        <source>Time {time}</source>
+      <trans-unit id="6955037067445975424" datatype="html">
+        <source>Time Left: {time}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2747457531544510288" datatype="html">
-        <source>Score {score}</source>
+      <trans-unit id="7301821102666615096" datatype="html">
+        <source>Score: {score}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">22</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8006598437672035003" datatype="html">
-        <source>Wall ↕</source>
+      <trans-unit id="6990153219965469167" datatype="html">
+        <source>↕</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">23</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2676701399964654601" datatype="html">
-        <source>Wall ↔</source>
+      <trans-unit id="6126475216671204597" datatype="html">
+        <source>↔</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">24</context>
