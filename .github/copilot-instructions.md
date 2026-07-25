@@ -447,19 +447,16 @@ See `src/theme/common.scss`, `src/theme/light.scss`, and `src/theme/dark.scss` f
 # Alpine `TLS: unspecified error`
 
 If the Jasper-UI Docker build reports `TLS: unspecified error` while fetching
-an APK index, retry the root Dockerfile build with host networking to populate
-the build cache, then run the normal Compose command:
+an APK index, you must use the Debian-based Nginx image for the deploy stage and install
+`jq` and `moreutils` with APT instead. Then run the normal Compose command:
 
 ```sh
-docker build --network=host -t jasper-ui .
 docker compose --profile server up --build
 ```
 
-For the Playwright suite, populate the same client-image cache before running
-the normal E2E command:
+For the Playwright suite, run the normal E2E command:
 
 ```sh
-docker build --network=host -t jasper-ui .
 npm run pw:ci
 docker compose -f e2e/docker-compose.yaml down -v
 ```
