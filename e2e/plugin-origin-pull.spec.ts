@@ -6,7 +6,6 @@ import {
   mod,
   openSidebar,
   subscribeMain,
-  subscribeRepl,
   waitForCronToggleResponse,
   waitForUserActionResponse,
 } from './setup';
@@ -117,7 +116,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}repl : creates ref and streams pull', async ({ page }) => {
-    const cursor = await subscribeRepl('/topic/cursor/@repl');
+    const cursor = await subscribeMain('/topic/cursor/@repl');
     try {
       await test.step('create remote source ref', async () => {
         await createRemoteTextRef(page, pullTestTitle);
