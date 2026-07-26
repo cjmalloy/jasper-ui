@@ -19,14 +19,14 @@ describe('aiQueryPlugin', () => {
         return { data: { content: [] } };
       }),
     };
-    class GoogleGenAI {
-      models = {
-        generateContent: async () => ({
-          candidates: [{ content: { parts: [{ text: 'A basic answer' }] } }],
-          usageMetadata: {
-            promptTokenCount: 2,
-            candidatesTokenCount: 3,
-            totalTokenCount: 5,
+    class OpenAI {
+      responses = {
+        create: async () => ({
+          output_text: 'A basic answer',
+          usage: {
+            input_tokens: 2,
+            output_tokens: 3,
+            total_tokens: 5,
           },
         }),
       };
@@ -36,7 +36,7 @@ describe('aiQueryPlugin', () => {
       'uuid': { v4: () => 'test-id' },
       'axios': axios,
       'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
-      '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
+      'openai': OpenAI,
     })[module];
     const output = vi.fn();
     const run = new Function(
@@ -55,8 +55,8 @@ describe('aiQueryPlugin', () => {
       tags: expect.arrayContaining(['+plugin/delta/ai', 'plugin/llm']),
       plugins: {
         'plugin/llm': expect.objectContaining({
-          provider: 'gemini',
-          model: 'gemini-3.1-pro-preview-customtools',
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
         }),
       },
     });
