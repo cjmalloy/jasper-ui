@@ -240,6 +240,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         ? this.proxy.getFetch(thumbnailPlugin.url, ref.origin, 'thumbnail', true)
         : thumbnailPlugin.url;
       el.style.backgroundImage = `url(${url})`;
+      el.style.backgroundSize = thumbnailPlugin.radius ? 'cover' : 'contain';
     }
     return el;
   }
