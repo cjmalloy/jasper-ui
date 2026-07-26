@@ -19,14 +19,14 @@ describe('aiQueryPlugin', () => {
         return { data: { content: [] } };
       }),
     };
-    class GoogleGenAI {
-      models = {
-        generateContent: async () => ({
-          candidates: [{ content: { parts: [{ text: 'A basic answer' }] } }],
-          usageMetadata: {
-            promptTokenCount: 2,
-            candidatesTokenCount: 3,
-            totalTokenCount: 5,
+    class OpenAI {
+      responses = {
+        create: async () => ({
+          output_text: 'A basic answer',
+          usage: {
+            input_tokens: 2,
+            output_tokens: 3,
+            total_tokens: 5,
           },
         }),
       };
@@ -36,7 +36,7 @@ describe('aiQueryPlugin', () => {
       'uuid': { v4: () => 'test-id' },
       'axios': axios,
       'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
-      '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
+      'openai': OpenAI,
     })[module];
     const output = vi.fn();
     const run = new Function(
@@ -55,10 +55,68 @@ describe('aiQueryPlugin', () => {
       tags: expect.arrayContaining(['+plugin/delta/ai', 'plugin/llm']),
       plugins: {
         'plugin/llm': expect.objectContaining({
-          provider: 'gemini',
-          model: 'gemini-3.1-pro-preview-customtools',
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
         }),
       },
+    });
+  });
+
+  it('uses Grok 4.5 reasoning and web search for xAI', async () => {
+    const response = {
+      url: 'ai:response',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: [],
+      plugins: { 'plugin/llm': { provider: 'x', search: true } },
+    };
+    const axios = {
+      get: vi.fn(async (_url: string, options: { params: { query: string } }) => {
+        const query = options.params.query;
+        if (query.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
+        return { data: { content: [] } };
+      }),
+    };
+    const create = vi.fn(async () => ({
+      output_text: 'A Grok answer',
+      usage: {
+        input_tokens: 2,
+        output_tokens: 3,
+        total_tokens: 5,
+      },
+    }));
+    class OpenAI {
+      responses = { create };
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
+      'openai': OpenAI,
+    })[module];
+    const output = vi.fn();
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+
+    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
+
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      model: 'grok-4.5',
+      reasoning_effort: 'high',
+      tools: [{ type: 'web_search' }],
+    }));
+    const bundle = JSON.parse(output.mock.calls[0][0]);
+    expect(bundle.ref[0].plugins['plugin/llm']).toMatchObject({
+      provider: 'x',
+      model: 'grok-4.5',
+      thinking: true,
     });
   });
 
@@ -69,6 +127,7 @@ describe('aiQueryPlugin', () => {
       comment: '',
       tags: ['+plugin/placeholder'],
       sources: ['https://example.test/image.png'],
+      plugins: { 'plugin/llm': { provider: 'gemini' } },
     };
     const source = {
       url: 'https://example.test/image.png',
@@ -145,7 +204,7 @@ describe('aiQueryPlugin', () => {
       tags: ['+plugin/placeholder'],
       sources: [],
       modified: 'placeholder-cursor',
-      plugins: { 'plugin/llm': { json: true } },
+      plugins: { 'plugin/llm': { provider: 'gemini', json: true } },
     };
     const axios = {
       get: vi.fn(async (_url: string, options: { params: { query: string } }) => {
@@ -246,7 +305,7 @@ describe('aiQueryPlugin', () => {
       comment: '',
       tags: ['+plugin/placeholder'],
       sources: [],
-      plugins: { 'plugin/llm': { json: true } },
+      plugins: { 'plugin/llm': { provider: 'gemini', json: true } },
     };
     const axios = {
       get: vi.fn(async (_url: string, options: { params: { query: string } }) => {
