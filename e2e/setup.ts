@@ -33,7 +33,11 @@ async function subscribeStomp(api: string, destination: string): Promise<StompEv
   broker.protocol = broker.protocol === 'https:' ? 'wss:' : 'ws:';
 
   let resolveMessage!: (message: IMessage) => void;
-  const message = new Promise<IMessage>(resolve => resolveMessage = resolve);
+  let rejectMessage!: (error: Error) => void;
+  const message = new Promise<IMessage>((resolve, reject) => {
+    resolveMessage = resolve;
+    rejectMessage = reject;
+  });
   const client = new Client({
     brokerURL: broker.toString(),
     connectHeaders: adminHeaders,
@@ -41,14 +45,19 @@ async function subscribeStomp(api: string, destination: string): Promise<StompEv
   });
 
   return new Promise((resolve, reject) => {
-    client.onWebSocketError = event => reject(new Error(`WebSocket connection failed: ${event.type}`));
-    client.onStompError = frame => reject(new Error(frame.body || frame.headers['message']));
+    let ready = false;
+    const fail = (error: Error) => ready ? rejectMessage(error) : reject(error);
+    client.onWebSocketError = event => fail(new Error(`WebSocket connection failed: ${event.type}`));
+    client.onStompError = frame => fail(new Error(frame.body || frame.headers['message']));
     client.onConnect = () => {
       client.subscribe(destination, resolveMessage, adminHeaders);
-      resolve({
-        message,
-        close: () => client.deactivate(),
-      });
+      setTimeout(() => {
+        ready = true;
+        resolve({
+          message,
+          close: () => client.deactivate(),
+        });
+      }, 250);
     };
     client.activate();
   });
