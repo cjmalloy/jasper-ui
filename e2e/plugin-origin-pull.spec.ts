@@ -5,6 +5,7 @@ import {
   deleteRef,
   mod,
   openSidebar,
+  subscribeMain,
   subscribeRepl,
   waitForCronToggleResponse,
   waitForUserActionResponse,
@@ -69,14 +70,19 @@ test.describe.serial('Origin Pull Plugin', () => {
   }
 
   async function runManualPull(page: Page) {
-    await page.goto(`/ref/e/${encodeURIComponent(replApiProxy)}?debug=ADMIN`);
-    await page.locator('.full-page.ref .actions .show-more').click();
-    const menu = page.locator('.advanced-actions');
-    await menu.locator('.fake-link', { hasText: 'pull' }).click();
-    const actionResponsePromise = waitForUserActionResponse(page);
-    await menu.locator('.fake-link', { hasText: 'yes' }).click();
-    await actionResponsePromise;
-    await expect(menu).toBeHidden();
+    const cursor = await subscribeMain('/topic/cursor/@repl');
+    try {
+      await page.goto(`/ref/e/${encodeURIComponent(replApiProxy)}?debug=ADMIN`);
+      await page.locator('.full-page.ref .actions .show-more').click();
+      const menu = page.locator('.advanced-actions');
+      await menu.locator('.fake-link', { hasText: 'pull' }).click();
+      const actionResponsePromise = waitForUserActionResponse(page);
+      await menu.locator('.fake-link', { hasText: 'yes' }).click();
+      await Promise.all([actionResponsePromise, cursor.message]);
+      await expect(menu).toBeHidden();
+    } finally {
+      await cursor.close();
+    }
   }
 
   async function clearReplicatedOrigin(page: Page) {
