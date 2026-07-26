@@ -549,6 +549,11 @@ Handlebars.registerHelper('human', (value: any) => {
   }
   return String(value);
 });
+Handlebars.registerHelper('number', (value: any) => {
+  if (value === null || value === undefined || value === '') return '';
+  const num = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(num) ? num.toLocaleString() : '';
+});
 Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => ref.metadata?.plugins?.[plugin]);
 Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
 Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
