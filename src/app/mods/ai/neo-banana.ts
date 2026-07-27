@@ -116,7 +116,8 @@ export const neoQueryPlugin: Plugin = {
         delete cache.metadata;
         refs.push({
           ...cache,
-          title: description || prompt,
+          title: ref.title,
+          comment: description || prompt,
           sources,
           tags,
           plugins: {
