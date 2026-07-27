@@ -134,8 +134,8 @@ layout. This plugin will be suggested when you submit a link ending in an image 
 20. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
 `wiki://Page_name`. You can link to a Wiki page using the double `[[bracket syntax]]` in all
 markdown fields. Does not add data to the Ref.
-21. **Blog:** View and organize collections of blog posts with tag-based filtering and
-title/body formatting.
+21. **Blog:** View and organize collections of blog posts with tag-based filtering,
+title/body formatting, and inline comments and replies.
 22. **Chat:** Real-time chat rooms where multiple users can message each other. Includes chatroom
 embeds, a user lobby for tracking online users, and optional video call support.
 23. **Kanban:** Organize tasks on a visual board with customizable columns (To Do, In Progress,
@@ -148,9 +148,10 @@ source of this Ref is the URL to be reposted.
 27. **Hide:** Mark Refs as hidden for the current user.
 28. **Save:** Save Refs to a personal list for the current user.
 29. **Mark as Read:** Track read status for Refs across multiple sessions.
-30. **AI:** Send Refs to an AI for responses. Includes support for DALL·E image generation,
-a Navi chat assistant, automatic summarization, and translation. Configurable LLM settings
-with optional web search context.
+30. **AI:** Send Refs to an AI for responses, including images, audio, video, and PDFs.
+Includes support for DALL·E and Neo Banana image generation, a Navi chat assistant,
+automatic summarization, and translation. Configurable LLM settings with optional web search
+context.
 31. **Delta:** Apply server-side scripts to transform Refs. Includes a scheduler for running
 scripts on configurable intervals.
 32. **RSS/Atom Feed:** Import entries from an RSS or Atom feed. The feed will be scraped on an
@@ -178,13 +179,15 @@ Adds a modlist tab to the inbox for reviewing unmoderated posts.
 integrated chatroom for game commentary.
 47. **Backgammon:** Play backgammon with piece dragging, dice rolling, game replay controls, and
 customizable player names.
-48. **Help Popups:** Enable contextual help popups that guide users through different parts of
+48. **JezzBall:** Play a faithful remake of the classic JezzBall game with level progression,
+saved games, and score tracking.
+49. **Help Popups:** Enable contextual help popups that guide users through different parts of
 the application.
-49. **Map:** View Refs on an interactive map. Includes GeoJSON and GeoPackage support for point,
+50. **Map:** View Refs on an interactive map. Includes GeoJSON and GeoPackage support for point,
 line, polygon, and multi-geometry data.
-50. **Drafts:** Save edits to a Ref before publishing, then commit or revert them later.
-51. **Duration:** Store media duration metadata in a tag and display it in the Ref info area.
-52. **Grid:** View query results in a configurable multi-column grid.
+51. **Drafts:** Save edits to a Ref before publishing, then commit or revert them later.
+52. **Duration:** Store media duration metadata in a tag and display it in the Ref info area.
+53. **Grid:** View query results in a configurable multi-column grid.
 
 ## Coming Soon
 1. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
