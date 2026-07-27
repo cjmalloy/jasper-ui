@@ -116,15 +116,11 @@ export const neoQueryPlugin: Plugin = {
         delete cache.metadata;
         refs.push({
           ...cache,
-          title: ref.title || undefined,
-          comment: description || prompt,
+          title: description || prompt,
           sources,
           tags,
           plugins: {
             ...cache.plugins,
-            'plugin/alt': {
-              text: description || prompt,
-            },
           },
         });
       }
