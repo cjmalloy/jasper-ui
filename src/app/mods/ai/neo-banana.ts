@@ -84,9 +84,9 @@ export const neoQueryPlugin: Plugin = {
       if (ref.tags?.includes('plugin/comment')) tags.push('plugin/comment', 'internal');
       if (ref.tags?.includes('plugin/thread')) tags.push('plugin/thread', 'internal');
       const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
-      const ai = ref.tags?.filter(tag => tag.startsWith('+plugin/delta/ai/')) || [];
+      const aiTags = ref.tags?.filter(tag => tag.startsWith('+plugin/delta/ai/')) || [];
       const mailboxes = ref.tags?.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) || [];
-      tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)), ...ai.map(tag => tag.substring(1)));
+      tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)), ...aiTags.map(tag => tag.substring(1)));
       tags = tags.filter(uniq);
       const sources = [ref.url];
       if (ref.sources && (ref.tags?.includes('plugin/thread') || ref.tags?.includes('plugin/comment'))) {
@@ -116,15 +116,12 @@ export const neoQueryPlugin: Plugin = {
         delete cache.metadata;
         refs.push({
           ...cache,
-          title: ref.title || undefined,
+          title: ref.title,
           comment: description || prompt,
           sources,
           tags,
           plugins: {
             ...cache.plugins,
-            'plugin/alt': {
-              text: description || prompt,
-            },
           },
         });
       }

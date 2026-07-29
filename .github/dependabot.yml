@@ -48,6 +48,9 @@ updates:
     playwright:
       patterns:
         - "@playwright/*"
+  ignore:
+    - dependency-name: "@playwright/*"
+      versions: ["1.62.x"]
 - package-ecosystem: github-actions
   directory: /
   schedule:

@@ -36,6 +36,7 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
+import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
@@ -151,6 +152,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     private editor: EditorService,
     private refs: RefService,
     private store: Store,
+    private auth: AuthzService,
     public el: ElementRef,
   ) { }
 
@@ -196,9 +198,11 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    const newRef = changes.ref && changes.ref.currentValue?.url !== changes.ref.previousValue?.url;
     const changesRef = changes.ref && changes.ref.currentValue?.modifiedString !== changes.ref.previousValue?.modifiedString;
     const changesTags = changes.tags && !isEqual(changes.tags.previousValue, changes.tags.currentValue);
     if (changesRef || changesTags || changes.text) {
+      if (this.editingViewer && !newRef) return;
       this.init();
     }
   }
@@ -536,7 +540,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   @memo
   get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
-    return {
+    const api: PluginApi = {
       comment: (comment: string) => {
         if (this.ref) {
           runInAction(() => this.ref!.comment = comment);
@@ -583,6 +587,27 @@ export class ViewerComponent implements OnChanges, OnDestroy {
         };
       },
     };
+    if (!this.ref?.modified || this.auth.writeAccess(this.ref)) {
+      api.patch = (patch: Partial<Ref>) => {
+        if (this.ref?.modified) {
+          actions.patch!(patch);
+        } else if (this.ref) {
+          runInAction(() => {
+            const plugins = patch.plugins ? { ...this.ref!.plugins, ...patch.plugins } : this.ref!.plugins;
+            Object.assign(this.ref!, patch);
+            if (patch.plugins) {
+              this.ref!.plugins = plugins;
+              for (const updateTag of Object.keys(patch.plugins)) {
+                if (!hasTag(updateTag, this.ref!)) {
+                  this.ref!.tags = [...(this.ref!.tags || []), updateTag];
+                }
+              }
+            }
+          });
+        }
+      };
+    }
+    return api;
   }
 
   @memo
