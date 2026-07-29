@@ -1,5 +1,14 @@
 import { expect, type Page, type Response, test } from '@playwright/test';
-import { clearAll, clearOrigin, deleteRef, mod, openSidebar, waitForCronToggleResponse, waitForUserActionResponse } from './setup';
+import {
+  clearAll,
+  clearOrigin,
+  deleteRef,
+  mod,
+  openSidebar,
+  subscribeMain,
+  waitForCronToggleResponse,
+  waitForUserActionResponse,
+} from './setup';
 
 test.describe.serial('Origin Pull Plugin', () => {
   test.setTimeout(90_000);
@@ -60,14 +69,19 @@ test.describe.serial('Origin Pull Plugin', () => {
   }
 
   async function runManualPull(page: Page) {
-    await page.goto(`/ref/e/${encodeURIComponent(replApiProxy)}?debug=ADMIN`);
-    await page.locator('.full-page.ref .actions .show-more').click();
-    const menu = page.locator('.advanced-actions');
-    await menu.locator('.fake-link', { hasText: 'pull' }).click();
-    const actionResponsePromise = waitForUserActionResponse(page);
-    await menu.locator('.fake-link', { hasText: 'yes' }).click();
-    await actionResponsePromise;
-    await expect(menu).toBeHidden();
+    const cursor = await subscribeMain('/topic/cursor/@repl');
+    try {
+      await page.goto(`/ref/e/${encodeURIComponent(replApiProxy)}?debug=ADMIN`);
+      await page.locator('.full-page.ref .actions .show-more').click();
+      const menu = page.locator('.advanced-actions');
+      await menu.locator('.fake-link', { hasText: 'pull' }).click();
+      const actionResponsePromise = waitForUserActionResponse(page);
+      await menu.locator('.fake-link', { hasText: 'yes' }).click();
+      await Promise.all([actionResponsePromise, cursor.message]);
+      await expect(menu).toBeHidden();
+    } finally {
+      await cursor.close();
+    }
   }
 
   async function clearReplicatedOrigin(page: Page) {
@@ -88,6 +102,10 @@ test.describe.serial('Origin Pull Plugin', () => {
     await mod(page, '#mod-root', '#mod-origin');
   });
 
+  test('@\u{ff20}repl : clear all', async ({ page }) => {
+    await clearAll(page, replUrl, '@repl');
+  });
+
   test('@\u{ff20}main : creates a remote origin', async ({ page }) => {
     await clearReplicatedOrigin(page);
     await createRemoteOrigin(page, 'Testing Remote @repl', true);
@@ -97,14 +115,16 @@ test.describe.serial('Origin Pull Plugin', () => {
     await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'disable' }).first()).toBeVisible();
   });
 
-  test('@\u{ff20}repl : clear all', async ({ page }) => {
-    await clearAll(page, replUrl, '@repl');
-  });
-
   test('@\u{ff20}repl : creates ref and streams pull', async ({ page }) => {
-    await test.step('create remote source ref', async () => {
-      await createRemoteTextRef(page, pullTestTitle);
-    });
+    const cursor = await subscribeMain('/topic/cursor/@repl');
+    try {
+      await test.step('create remote source ref', async () => {
+        await createRemoteTextRef(page, pullTestTitle);
+        await cursor.message;
+      });
+    } finally {
+      await cursor.close();
+    }
     await test.step('expect pulled ref', async () => {
       await expectPulled(page, pullTestTitle);
     });
