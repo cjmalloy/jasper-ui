@@ -286,7 +286,7 @@ jobs:
   deploy:
     needs: build
     environment:
-      name: github-pages
+      name: ubuntu-24.04-arm
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
