@@ -1,4 +1,67 @@
 import { expect, type Page } from '@playwright/test';
+import { Client, type IMessage } from '@stomp/stompjs';
+import { createHmac } from 'node:crypto';
+
+const debugSecret = Buffer.from(
+  'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM=',
+  'base64',
+);
+const encodeJwt = (value: string | Buffer) => Buffer.from(value).toString('base64url');
+const jwtBody = [
+  encodeJwt(JSON.stringify({ alg: 'HS256', typ: 'JWT' })),
+  encodeJwt(JSON.stringify({ verified_email: true, sub: 'debug', auth: 'ROLE_ADMIN' })),
+].join('.');
+const adminHeaders = {
+  jwt: `${jwtBody}.${createHmac('sha256', debugSecret).update(jwtBody).digest('base64url')}`,
+};
+
+export interface StompEventSubscription {
+  message: Promise<IMessage>;
+  close: () => Promise<void>;
+}
+
+export function subscribeMain(destination: string) {
+  return subscribeStomp(process.env.MAIN_API || 'http://localhost:8081', destination);
+}
+
+export function subscribeRepl(destination: string) {
+  return subscribeStomp(process.env.REPL_API || 'http://localhost:8083', destination);
+}
+
+async function subscribeStomp(api: string, destination: string): Promise<StompEventSubscription> {
+  const broker = new URL('/api/stomp/websocket', api);
+  broker.protocol = broker.protocol === 'https:' ? 'wss:' : 'ws:';
+
+  let resolveMessage!: (message: IMessage) => void;
+  let rejectMessage!: (error: Error) => void;
+  const message = new Promise<IMessage>((resolve, reject) => {
+    resolveMessage = resolve;
+    rejectMessage = reject;
+  });
+  const client = new Client({
+    brokerURL: broker.toString(),
+    connectHeaders: adminHeaders,
+    reconnectDelay: 0,
+  });
+
+  return new Promise((resolve, reject) => {
+    let ready = false;
+    const fail = (error: Error) => ready ? rejectMessage(error) : reject(error);
+    client.onWebSocketError = event => fail(new Error(`WebSocket connection failed: ${event.type}`));
+    client.onStompError = frame => fail(new Error(frame.body || frame.headers['message']));
+    client.onConnect = () => {
+      client.subscribe(destination, resolveMessage, adminHeaders);
+      setTimeout(() => {
+        ready = true;
+        resolve({
+          message,
+          close: () => client.deactivate(),
+        });
+      }, 250);
+    };
+    client.activate();
+  });
+}
 
 export async function clearMods(page: Page, base = '') {
   await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
