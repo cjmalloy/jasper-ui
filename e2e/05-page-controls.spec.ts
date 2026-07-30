@@ -1,19 +1,33 @@
 import { expect, test } from '@playwright/test';
 
-const dateSorts = ['published', 'created'] as const;
+const dateSorts = ['published', 'created', 'modified'] as const;
 
 for (const field of dateSorts) {
   test(`secretly cursor-pages duplicate ${field} dates`, async ({ page }) => {
     const date = '2024-01-02T00:00:00.000Z';
-    const first = ref(`${field}-first`, `${field} first`, date, '2024-01-01T00:00:00.000Z');
-    const anchor = ref(`${field}-anchor`, `${field} anchor`, date, '2024-01-01T00:00:00.001Z');
-    const next = ref(`${field}-next`, `${field} next`, date, '2024-01-01T00:00:00.002Z');
-    const older = ref(`${field}-older`, `${field} older`, '2024-01-01T00:00:00.000Z');
+    const modified = field === 'modified' ? date : '2024-01-01T00:00:00.000Z';
+    const first = ref(`${field}-first`, `${field} first`, date, modified, '@a');
+    const anchor = ref(`${field}-anchor`, `${field} anchor`, date, modified, '@b');
+    const next = ref(
+      `${field}-next`,
+      `${field} next`,
+      date,
+      field === 'modified' ? modified : '2024-01-01T00:00:00.001Z',
+      field === 'modified' ? '@c' : '@a',
+    );
+    const older = ref(`${field}-older`, `${field} older`, '2024-01-01T00:00:00.000Z', undefined, '@a');
+    const stableSort = [
+      `${field},DESC`,
+      ...(field === 'modified' ? [] : ['modified,ASC']),
+      'origin,ASC',
+    ];
+    const offsetRequests: URL[] = [];
     const cursorRequests: URL[] = [];
 
     await page.route('**/api/v1/ref/page**', async route => {
       const url = new URL(route.request().url());
-      if (url.searchParams.getAll('sort')[0] !== `${field},DESC`) {
+      const sort = url.searchParams.getAll('sort');
+      if (sort[0] !== `${field},DESC`) {
         await route.fallback();
         return;
       }
@@ -24,11 +38,13 @@ for (const field of dateSorts) {
         });
         return;
       }
+      offsetRequests.push(url);
+      const stable = stableSort.every((value, index) => sort[index] === value) && sort.length === stableSort.length;
       if (url.searchParams.get('page') === '1') {
-        await route.fulfill({ json: refPage([anchor, next], 1, 2, 4) });
+        await route.fulfill({ json: refPage(stable ? [next, older] : [anchor, next], 1, 2, 4) });
         return;
       }
-      await route.fulfill({ json: refPage([first, anchor], 0, 2, 4) });
+      await route.fulfill({ json: refPage(stable ? [first, anchor] : [anchor, first], 0, 2, 4) });
     });
 
     await page.goto(`/tag/public?debug=ADMIN&view=list&sort=${field},DESC&pageSize=2&pageNumber=0`);
@@ -39,6 +55,7 @@ for (const field of dateSorts) {
     await page.locator('.next-page').click();
 
     await expect.poll(() => cursorRequests.length).toBe(1);
+    await expect.poll(() => offsetRequests.some(request => request.searchParams.get('page') === '1')).toBe(true);
     await expect(links).toHaveText([
       `${field} next`,
       `${field} older`,
@@ -49,17 +66,21 @@ for (const field of dateSorts) {
       `${field} next`,
       `${field} older`,
     ]);
+    for (const request of [...offsetRequests, ...cursorRequests]) {
+      expect(request.searchParams.getAll('sort')).toEqual(stableSort);
+    }
     expect(cursorRequests[0].searchParams.has('page')).toBe(false);
     expect(Number(cursorRequests[0].searchParams.get('size'))).toBeGreaterThan(2);
     expect(page.url()).toContain('pageNumber=1');
+    expect(new URL(page.url()).searchParams.getAll('sort')).toEqual([`${field},DESC`]);
     expect(page.url()).not.toContain(`${field}Before`);
   });
 }
 
-function ref(slug: string, title: string, date: string, modified = date) {
+function ref(slug: string, title: string, date: string, modified = date, origin = '') {
   return {
     url: `https://example.com/${slug}`,
-    origin: '',
+    origin,
     title,
     tags: ['public'],
     published: date,

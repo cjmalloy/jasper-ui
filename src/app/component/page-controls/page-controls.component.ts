@@ -12,6 +12,7 @@ import { RefService } from '../../service/api/ref.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
+import { stableDateSortArgs } from '../../util/query';
 
 const CURSOR_PAGE_ATTEMPTS = 3;
 const CURSOR_PAGE_PADDING = 8;
@@ -189,18 +190,10 @@ export class PageControlsComponent {
     const cursorKey = `${sort.field}${sort.direction === 'DESC' ? 'Before' : 'After'}`;
     const requestedSize = requested.page.size || requested.content.length;
     const size = Math.min((requestedSize + CURSOR_PAGE_PADDING) * Math.pow(2, attempt), MAX_CURSOR_PAGE_SIZE);
-    const hasModified = args.sort?.some(s => s === 'modified' || s === 'modified,ASC' || s === 'modified,DESC');
-    const hasOrigin = args.sort?.some(s => s === 'origin' || s === 'origin,ASC' || s === 'origin,DESC');
-    const stableSort = [
-      ...(args.sort || []),
-      ...(!hasModified ? ['modified,ASC' as const] : []),
-      ...(!hasOrigin ? ['origin,ASC' as const] : []),
-    ];
     const cursorArgs = {
-      ...args,
+      ...stableDateSortArgs(args),
       page: 0,
       size,
-      sort: stableSort,
       [cursorKey]: cursor,
     };
 

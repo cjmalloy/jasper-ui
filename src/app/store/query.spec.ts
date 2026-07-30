@@ -35,4 +35,21 @@ describe('QueryStore', () => {
     expect(refs.getCurrent).toHaveBeenCalledWith(source.url);
     expect(store.sourcesOf).toEqual(source);
   });
+
+  it('uses hidden tie-breakers for the original date-sorted page request', () => {
+    const refs = {
+      page: vi.fn(() => of(Page.of([]))),
+      getCurrent: vi.fn(),
+    } as unknown as RefService;
+    const store = new QueryStore(refs);
+    const args = { query: 'test', sort: ['published,DESC' as const] };
+
+    store.setArgs(args);
+
+    expect(refs.page).toHaveBeenCalledWith({
+      query: 'test',
+      sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
+    });
+    expect(store.args).toBe(args);
+  });
 });

@@ -6,6 +6,7 @@ import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
+import { stableDateSortArgs } from '../util/query';
 
 @Injectable({
   providedIn: 'root'
@@ -77,7 +78,7 @@ export class QueryStore {
   refresh() {
     if (this.args) {
       this.running?.unsubscribe();
-      this.running = this.refs.page(this.args).pipe(
+      this.running = this.refs.page(stableDateSortArgs(this.args)).pipe(
         catchError((err: HttpErrorResponse) => {
           runInAction(() => this.error = err);
           return EMPTY;
