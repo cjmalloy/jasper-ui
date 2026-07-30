@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 const dateSorts = ['published', 'created', 'modified'] as const;
 
 for (const field of dateSorts) {
-  test(`uses one stable request per page for duplicate ${field} dates`, async ({ page }) => {
+  test(`secretly cursor-pages duplicate ${field} dates`, async ({ page }) => {
     const date = '2024-01-02T00:00:00.000Z';
     const modified = field === 'modified' ? date : '2024-01-01T00:00:00.000Z';
     const first = ref(`${field}-first`, `${field} first`, date, modified, '@a');
@@ -54,7 +54,8 @@ for (const field of dateSorts) {
 
     await page.locator('.next-page').click();
 
-    await expect.poll(() => offsetRequests.filter(request => request.searchParams.get('page') === '1').length).toBe(1);
+    await expect.poll(() => cursorRequests.length).toBe(1);
+    await expect.poll(() => offsetRequests.some(request => request.searchParams.get('page') === '1')).toBe(true);
     await expect(links).toHaveText([
       `${field} next`,
       `${field} older`,
@@ -67,9 +68,9 @@ for (const field of dateSorts) {
     ]);
     for (const request of [...offsetRequests, ...cursorRequests]) {
       expect(request.searchParams.getAll('sort')).toEqual(stableSort);
-      expect(request.searchParams.get('size')).toBe('2');
     }
-    expect(cursorRequests).toEqual([]);
+    expect(cursorRequests[0].searchParams.has('page')).toBe(false);
+    expect(Number(cursorRequests[0].searchParams.get('size'))).toBeGreaterThan(2);
     expect(page.url()).toContain('pageNumber=1');
     expect(new URL(page.url()).searchParams.getAll('sort')).toEqual([`${field},DESC`]);
     expect(page.url()).not.toContain(`${field}Before`);
