@@ -69,7 +69,7 @@ describe('PageControlsComponent', () => {
     expect(refs.page.mock.calls[0][0]).toMatchObject({
       query: 'public',
       page: undefined,
-      size: 12,
+      size: 5,
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
       publishedBefore: '2024-01-02T00:00:00.001Z',
     });
@@ -97,7 +97,7 @@ describe('PageControlsComponent', () => {
     expect(refs.page).toHaveBeenCalledOnce();
     expect(refs.page.mock.calls[0][0]).toMatchObject({
       page: undefined,
-      size: 12,
+      size: 5,
       sort: ['published,ASC', 'modified,DESC', 'origin,DESC'],
       publishedAfter: '2024-01-01T23:59:59.999Z',
     });

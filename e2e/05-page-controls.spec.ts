@@ -75,7 +75,7 @@ for (const field of dateSorts) {
     expect(offsetRequests[0].searchParams.getAll('sort')).toEqual([`${field},DESC`]);
     expect(cursorRequests[0].searchParams.getAll('sort')).toEqual(stableSort);
     expect(cursorRequests[0].searchParams.has('page')).toBe(false);
-    expect(Number(cursorRequests[0].searchParams.get('size'))).toBeGreaterThan(2);
+    expect(cursorRequests[0].searchParams.get('size')).toBe('5');
     expect(page.url()).toContain('pageNumber=1');
     expect(new URL(page.url()).searchParams.getAll('sort')).toEqual([`${field},DESC`]);
     expect(page.url()).not.toContain(`${field}Before`);

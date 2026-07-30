@@ -13,7 +13,7 @@ import { Store } from '../../store/store';
 import { stableDateSortArgs } from '../../util/query';
 
 const CURSOR_PAGE_ATTEMPTS = 3;
-const CURSOR_PAGE_PADDING = 8;
+const CURSOR_PAGE_PADDING = 1;
 const MAX_CURSOR_PAGE_SIZE = 2000;
 const DATE_SORTS = ['created', 'modified', 'published'] as const;
 
