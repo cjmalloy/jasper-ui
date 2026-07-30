@@ -7,11 +7,11 @@ import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
 
-type CursorPage = {
+interface PendingCursor {
   args: RefPageArgs;
-  page: number;
+  target: number;
   request: Observable<Page<Ref>>;
-};
+}
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +27,7 @@ export class QueryStore {
   private running?: Subscription;
   private runningSources?: Subscription;
   private runningResponses?: Subscription;
-  private cursorPage?: CursorPage;
+  private pendingCursor?: PendingCursor;
 
   constructor(
     private refs: RefService,
@@ -49,32 +49,32 @@ export class QueryStore {
     this.running?.unsubscribe();
     this.runningSources?.unsubscribe();
     this.runningResponses?.unsubscribe();
-    this.cursorPage = undefined;
+    this.pendingCursor = undefined;
   }
 
   close() {
-    this.cursorPage = undefined;
+    this.pendingCursor = undefined;
     if (this.running && !this.running.closed) this.clear()
   }
 
   setArgs(args: RefPageArgs) {
-    const cursorPage = this.takeCursorPage(args);
+    const cursorRequest = this.takeCursor(args);
     if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
     this.args = args;
-    this.refresh(cursorPage);
+    this.refresh(cursorRequest);
   }
 
-  queueCursorPage(page: number, request: Observable<Page<Ref>>) {
+  queueCursorPage(target: number, request: Observable<Page<Ref>>) {
     if (!this.args) return;
-    this.cursorPage = {
+    this.pendingCursor = {
       args: { ...this.args },
-      page,
+      target,
       request,
     };
   }
 
   setRelatedArgs(args: RefPageArgs) {
-    this.cursorPage = undefined;
+    this.pendingCursor = undefined;
     this.args = args;
     this.runningSources?.unsubscribe();
     if (args.sources) {
@@ -94,10 +94,10 @@ export class QueryStore {
     }
   }
 
-  refresh(request?: Observable<Page<Ref>>) {
+  refresh(pageRequest?: Observable<Page<Ref>>) {
     if (this.args) {
       this.running?.unsubscribe();
-      this.running = (request || this.refs.page(this.args)).pipe(
+      this.running = (pageRequest ?? this.refs.page(this.args)).pipe(
         catchError((err: HttpErrorResponse) => {
           runInAction(() => this.error = err);
           return EMPTY;
@@ -118,14 +118,14 @@ export class QueryStore {
     }
   }
 
-  private takeCursorPage(args: RefPageArgs) {
-    const cursorPage = this.cursorPage;
-    this.cursorPage = undefined;
-    if (cursorPage?.page !== Number(args.page)) return undefined;
+  private takeCursor(args: RefPageArgs): Observable<Page<Ref>> | undefined {
+    const pending = this.pendingCursor;
+    this.pendingCursor = undefined;
+    if (pending?.target !== Number(args.page)) return undefined;
     if (!isEqual(
-      omit(cursorPage.args, 'page', 'obsolete'),
+      omit(pending.args, 'page', 'obsolete'),
       omit(args, 'page', 'obsolete'),
     )) return undefined;
-    return cursorPage.request;
+    return pending.request;
   }
 }

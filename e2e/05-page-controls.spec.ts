@@ -3,19 +3,36 @@ import { expect, test } from '@playwright/test';
 const dateSorts = ['published', 'created', 'modified'] as const;
 
 for (const field of dateSorts) {
-  test(`cursor-pages duplicate ${field} dates only from prev and next`, async ({ page }) => {
+  test(`uses cursors for next and previous pages with duplicate ${field} dates`, async ({ page }) => {
     const date = '2024-01-02T00:00:00.000Z';
     const modified = field === 'modified' ? date : '2024-01-01T00:00:00.000Z';
-    const first = ref(`${field}-first`, `${field} first`, date, modified, '@a');
-    const anchor = ref(`${field}-anchor`, `${field} anchor`, date, modified, '@b');
-    const next = ref(
-      `${field}-next`,
-      `${field} next`,
+    const first = ref({
+      slug: `${field}-first`,
+      title: `${field} first`,
       date,
-      field === 'modified' ? modified : '2024-01-01T00:00:00.001Z',
-      field === 'modified' ? '@c' : '@a',
-    );
-    const older = ref(`${field}-older`, `${field} older`, '2024-01-01T00:00:00.000Z', undefined, '@a');
+      modified,
+      origin: '@a',
+    });
+    const anchor = ref({
+      slug: `${field}-anchor`,
+      title: `${field} anchor`,
+      date,
+      modified,
+      origin: '@b',
+    });
+    const next = ref({
+      slug: `${field}-next`,
+      title: `${field} next`,
+      date,
+      modified: field === 'modified' ? modified : '2024-01-01T00:00:00.001Z',
+      origin: field === 'modified' ? '@c' : '@a',
+    });
+    const older = ref({
+      slug: `${field}-older`,
+      title: `${field} older`,
+      date: '2024-01-01T00:00:00.000Z',
+      origin: '@a',
+    });
     const stableSort = [
       `${field},DESC`,
       ...(field === 'modified' ? [] : ['modified,ASC']),
@@ -31,14 +48,24 @@ for (const field of dateSorts) {
         cursorRequests.push(url);
         const size = Number(url.searchParams.get('size'));
         await route.fulfill({
-          json: refPage([first, anchor, next, older].slice(0, size), 0, size, 4),
+          json: refPage(
+            [first, anchor, next, older].slice(0, size),
+            0,
+            size,
+            4,
+          ),
         });
         return;
       }
       if (url.searchParams.has(`${field}After`)) {
         cursorRequests.push(url);
         await route.fulfill({
-          json: refPage([next, anchor, first], 0, Number(url.searchParams.get('size')), 3),
+          json: refPage(
+            [next, anchor, first],
+            0,
+            Number(url.searchParams.get('size')),
+            3,
+          ),
         });
         return;
       }
@@ -74,11 +101,13 @@ for (const field of dateSorts) {
     ]);
     expect(offsetRequests).toHaveLength(1);
     expect(offsetRequests[0].searchParams.getAll('sort')).toEqual([`${field},DESC`]);
-    for (const request of cursorRequests.slice(0, 2)) {
+    const [initial, retry] = cursorRequests;
+    for (const request of [initial, retry]) {
       expect(request.searchParams.getAll('sort')).toEqual(stableSort);
       expect(request.searchParams.has('page')).toBe(false);
     }
-    expect(cursorRequests.slice(0, 2).map(request => request.searchParams.get('size'))).toEqual(['3', '6']);
+    expect([initial, retry].map(request => request.searchParams.get('size')))
+      .toEqual(['3', '6']);
     expect(page.url()).toContain('pageNumber=1');
     expect(new URL(page.url()).searchParams.getAll('sort')).toEqual([`${field},DESC`]);
     expect(page.url()).not.toContain(`${field}Before`);
@@ -88,27 +117,38 @@ for (const field of dateSorts) {
     await expect.poll(() => cursorRequests.length).toBe(3);
     await expect(links).toHaveText([`${field} first`, `${field} anchor`]);
     expect(offsetRequests).toHaveLength(1);
-    expect(cursorRequests[2].searchParams.getAll('sort')).toEqual(
-      stableSort.map(value => value.endsWith(',DESC')
-        ? value.replace(/,DESC$/, ',ASC')
-        : value.replace(/,ASC$/, ',DESC')),
-    );
-    expect(cursorRequests[2].searchParams.has('page')).toBe(false);
+    const previous = cursorRequests[2];
+    expect(previous.searchParams.getAll('sort')).toEqual(reverseSort(stableSort));
+    expect(previous.searchParams.has('page')).toBe(false);
     expect(page.url()).toContain('pageNumber=0');
     expect(page.url()).not.toContain(`${field}After`);
   });
 }
 
-function ref(slug: string, title: string, date: string, modified = date, origin = '') {
+interface RefValues {
+  slug: string;
+  title: string;
+  date: string;
+  modified?: string;
+  origin?: string;
+}
+
+function ref(values: RefValues) {
   return {
-    url: `https://example.com/${slug}`,
-    origin,
-    title,
+    url: `https://example.com/${values.slug}`,
+    origin: values.origin ?? '',
+    title: values.title,
     tags: ['public'],
-    published: date,
-    created: date,
-    modified,
+    published: values.date,
+    created: values.date,
+    modified: values.modified ?? values.date,
   };
+}
+
+function reverseSort(sort: string[]) {
+  return sort.map(value => value.endsWith(',DESC')
+    ? value.replace(/,DESC$/, ',ASC')
+    : value.replace(/,ASC$/, ',DESC'));
 }
 
 function refPage(content: ReturnType<typeof ref>[], number: number, size: number, totalElements: number) {

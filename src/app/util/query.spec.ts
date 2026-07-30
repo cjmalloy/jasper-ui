@@ -7,7 +7,7 @@ import {
   getFiltersQuery,
   negate,
   negatable,
-  stableDateSortArgs,
+  withStableDateSort,
   toggle,
   UrlFilter,
 } from './query';
@@ -256,9 +256,9 @@ describe('Query Utils', () => {
     });
   });
 
-  describe('stableDateSortArgs', () => {
+  describe('withStableDateSort', () => {
     it('adds modified and origin tie-breakers to date sorts', () => {
-      expect(stableDateSortArgs({ sort: ['published,DESC'] }).sort).toEqual([
+      expect(withStableDateSort({ sort: ['published,DESC'] }).sort).toEqual([
         'published,DESC',
         'modified,ASC',
         'origin,ASC',
@@ -266,7 +266,7 @@ describe('Query Utils', () => {
     });
 
     it('does not duplicate an existing modified tie-breaker', () => {
-      expect(stableDateSortArgs({ sort: ['modified,DESC'] }).sort).toEqual([
+      expect(withStableDateSort({ sort: ['modified,DESC'] }).sort).toEqual([
         'modified,DESC',
         'origin,ASC',
       ]);
@@ -274,7 +274,7 @@ describe('Query Utils', () => {
 
     it('leaves non-date sorts unchanged', () => {
       const args = { sort: ['title,ASC' as const] };
-      expect(stableDateSortArgs(args)).toBe(args);
+      expect(withStableDateSort(args)).toBe(args);
     });
   });
 });

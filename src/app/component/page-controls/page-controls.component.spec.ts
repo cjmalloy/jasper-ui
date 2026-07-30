@@ -10,25 +10,29 @@ import { QueryStore } from '../../store/query';
 
 import { PageControlsComponent } from './page-controls.component';
 
+const OLD_DATE = '2024-01-01T00:00:00.000Z';
+const OLD_DATE_PLUS_1 = '2024-01-01T00:00:00.001Z';
+const DATE = '2024-01-02T00:00:00.000Z';
+
 describe('PageControlsComponent', () => {
   let component: PageControlsComponent;
   let fixture: ComponentFixture<PageControlsComponent>;
-  let query: {
+  let queryStore: {
     args?: RefPageArgs;
     page?: Page<Ref>;
     queueCursorPage: ReturnType<typeof vi.fn>;
   };
-  let refs: { page: ReturnType<typeof vi.fn> };
+  let refService: { page: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
-    query = { queueCursorPage: vi.fn() };
-    refs = { page: vi.fn() };
+    queryStore = { queueCursorPage: vi.fn() };
+    refService = { page: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [PageControlsComponent],
       providers: [
         provideRouter([]),
-        { provide: QueryStore, useValue: query },
-        { provide: RefService, useValue: refs },
+        { provide: QueryStore, useValue: queryStore },
+        { provide: RefService, useValue: refService },
       ],
     }).compileComponents();
   });
@@ -44,38 +48,50 @@ describe('PageControlsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('queues one stable cursor request when next is pressed', () => {
-    const first = ref('first', '2024-01-02T00:00:00.000Z', undefined, '2024-01-01T00:00:00.000Z', '@a');
-    const anchor = ref('anchor', '2024-01-02T00:00:00.000Z', undefined, '2024-01-01T00:00:00.000Z', '@b');
-    const next = ref('next', '2024-01-02T00:00:00.000Z', undefined, '2024-01-01T00:00:00.001Z', '@a');
-    const older = ref('older', '2024-01-01T00:00:00.000Z');
+  it('starts next-page cursor requests at destination size plus padding', () => {
+    const first = ref('first', {
+      published: DATE,
+      modified: OLD_DATE,
+      origin: '@a',
+    });
+    const anchor = ref('anchor', {
+      published: DATE,
+      modified: OLD_DATE,
+      origin: '@b',
+    });
+    const next = ref('next', {
+      published: DATE,
+      modified: OLD_DATE_PLUS_1,
+      origin: '@a',
+    });
+    const older = ref('older', { published: OLD_DATE });
     const current = refPage([first, anchor], 0, 2, 4);
-    query.args = { query: 'public', page: 0, size: 2, sort: ['published,DESC'] };
-    query.page = current;
+    queryStore.args = { query: 'public', page: 0, size: 2, sort: ['published,DESC'] };
+    queryStore.page = current;
     component.page = current;
-    refs.page.mockImplementation((args: RefPageArgs) => of(
-      refPage([first, anchor, next, older].slice(0, args.size), 0, args.size!, 4),
-    ));
+    refService.page.mockImplementation((args: RefPageArgs) => {
+      const requestSize = args.size!;
+      const content = [first, anchor, next, older].slice(0, requestSize);
+      return of(refPage(content, 0, requestSize, 4));
+    });
 
     component.cursorPage(1);
 
-    expect(refs.page).not.toHaveBeenCalled();
-    expect(query.queueCursorPage).toHaveBeenCalledOnce();
-    expect(query.queueCursorPage.mock.calls[0][0]).toBe(1);
+    expect(refService.page).not.toHaveBeenCalled();
+    expect(queryStore.queueCursorPage).toHaveBeenCalledOnce();
+    expect(queryStore.queueCursorPage.mock.calls[0][0]).toBe(1);
 
-    let result: Page<Ref> | undefined;
-    (query.queueCursorPage.mock.calls[0][1] as Observable<Page<Ref>>)
-      .subscribe(page => result = page);
+    const result = loadCursor();
 
-    expect(refs.page).toHaveBeenCalledTimes(2);
-    expect(refs.page.mock.calls[0][0]).toMatchObject({
+    expect(refService.page).toHaveBeenCalledTimes(2);
+    expect(refService.page.mock.calls[0][0]).toMatchObject({
       query: 'public',
       page: undefined,
       size: 3,
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
       publishedBefore: '2024-01-02T00:00:00.001Z',
     });
-    expect(refs.page.mock.calls[1][0]).toMatchObject({
+    expect(refService.page.mock.calls[1][0]).toMatchObject({
       size: 6,
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
       publishedBefore: '2024-01-02T00:00:00.001Z',
@@ -85,24 +101,34 @@ describe('PageControlsComponent', () => {
   });
 
   it('reverses the stable cursor request when prev is pressed', () => {
-    const first = ref('first', '2024-01-02T00:00:00.000Z', undefined, '2024-01-01T00:00:00.000Z', '@a');
-    const previousLast = ref('previous-last', '2024-01-02T00:00:00.000Z', undefined, '2024-01-01T00:00:00.000Z', '@b');
-    const anchor = ref('anchor', '2024-01-02T00:00:00.000Z', undefined, '2024-01-01T00:00:00.001Z', '@a');
-    const older = ref('older', '2024-01-01T00:00:00.000Z');
+    const first = ref('first', {
+      published: DATE,
+      modified: OLD_DATE,
+      origin: '@a',
+    });
+    const previousLast = ref('previous-last', {
+      published: DATE,
+      modified: OLD_DATE,
+      origin: '@b',
+    });
+    const anchor = ref('anchor', {
+      published: DATE,
+      modified: OLD_DATE_PLUS_1,
+      origin: '@a',
+    });
+    const older = ref('older', { published: OLD_DATE });
     const current = refPage([anchor, older], 1, 2, 4);
-    query.args = { query: 'public', page: 1, size: 2, sort: ['published,DESC'] };
-    query.page = current;
+    queryStore.args = { query: 'public', page: 1, size: 2, sort: ['published,DESC'] };
+    queryStore.page = current;
     component.page = current;
-    refs.page.mockReturnValue(of(refPage([anchor, previousLast, first], 0, 3, 3)));
+    refService.page.mockReturnValue(of(refPage([anchor, previousLast, first], 0, 3, 3)));
 
     component.cursorPage(0);
 
-    let result: Page<Ref> | undefined;
-    (query.queueCursorPage.mock.calls[0][1] as Observable<Page<Ref>>)
-      .subscribe(page => result = page);
+    const result = loadCursor();
 
-    expect(refs.page).toHaveBeenCalledOnce();
-    expect(refs.page.mock.calls[0][0]).toMatchObject({
+    expect(refService.page).toHaveBeenCalledOnce();
+    expect(refService.page.mock.calls[0][0]).toMatchObject({
       page: undefined,
       size: 3,
       sort: ['published,ASC', 'modified,DESC', 'origin,DESC'],
@@ -113,79 +139,101 @@ describe('PageControlsComponent', () => {
   });
 
   it('uses an after cursor for ascending next-page navigation', () => {
-    const first = ref('first', '2024-01-01T00:00:00.000Z');
-    const anchor = ref('anchor', '2024-01-02T00:00:00.000Z');
-    const next = ref('next', '2024-01-03T00:00:00.000Z');
-    const last = ref('last', '2024-01-04T00:00:00.000Z');
+    const first = ref('first', { published: '2024-01-01T00:00:00.000Z' });
+    const anchor = ref('anchor', { published: '2024-01-02T00:00:00.000Z' });
+    const next = ref('next', { published: '2024-01-03T00:00:00.000Z' });
+    const last = ref('last', { published: '2024-01-04T00:00:00.000Z' });
     const current = refPage([first, anchor], 0, 2, 4);
-    query.args = { query: 'public', page: 0, size: 2, sort: ['published,ASC'] };
-    query.page = current;
+    queryStore.args = { query: 'public', page: 0, size: 2, sort: ['published,ASC'] };
+    queryStore.page = current;
     component.page = current;
-    refs.page.mockReturnValue(of(refPage([anchor, next, last], 0, 3, 3)));
+    refService.page.mockReturnValue(of(refPage([anchor, next, last], 0, 3, 3)));
 
     component.cursorPage(1);
-    (query.queueCursorPage.mock.calls[0][1] as Observable<Page<Ref>>)
-      .subscribe(() => {});
+    loadCursor();
 
-    expect(refs.page.mock.calls[0][0]).toMatchObject({
+    expect(refService.page.mock.calls[0][0]).toMatchObject({
       sort: ['published,ASC', 'modified,ASC', 'origin,ASC'],
       publishedAfter: '2024-01-01T23:59:59.999Z',
     });
   });
 
   it('falls back to the offset request when the cursor cannot reconstruct the page', () => {
-    const first = ref('first', '2024-01-02T00:00:00.000Z');
-    const anchor = ref('anchor', '2024-01-02T00:00:00.000Z');
-    const offset = refPage([ref('next', '2024-01-01T00:00:00.000Z')], 1, 2, 3);
+    const first = ref('first', { published: DATE });
+    const anchor = ref('anchor', { published: DATE });
+    const offset = refPage([ref('next', { published: OLD_DATE })], 1, 2, 3);
     const current = refPage([first, anchor], 0, 2, 3);
-    query.args = { query: 'public', page: 0, size: 2, sort: ['published,DESC'] };
-    query.page = current;
+    queryStore.args = { query: 'public', page: 0, size: 2, sort: ['published,DESC'] };
+    queryStore.page = current;
     component.page = current;
-    refs.page.mockImplementation((args: RefPageArgs) => of(
-      args.publishedBefore ? refPage([], 0, 11, 0) : offset,
-    ));
+    refService.page.mockImplementation((args: RefPageArgs) => {
+      if (args.publishedBefore) return of(refPage([], 0, args.size!, 0));
+      return of(offset);
+    });
 
     component.cursorPage(1);
-    let result: Page<Ref> | undefined;
-    (query.queueCursorPage.mock.calls[0][1] as Observable<Page<Ref>>)
-      .subscribe(page => result = page);
+    const result = loadCursor();
 
-    expect(refs.page).toHaveBeenCalledTimes(2);
-    expect(refs.page.mock.calls[1][0]).toEqual({ ...query.args, page: 1 });
+    expect(refService.page).toHaveBeenCalledTimes(2);
+    expect(refService.page.mock.calls[1][0]).toEqual({ ...queryStore.args, page: 1 });
     expect(result).toBe(offset);
   });
 
-  it('does not queue cursors for unrelated pages, sorts, or modified clicks', () => {
-    const current = refPage([ref('first', '2024-01-02T00:00:00.000Z')], 0, 1, 2);
-    query.args = { query: 'public', page: 0, size: 1, sort: ['title,ASC'] };
-    query.page = current;
+  it('does not prepare cursor navigation for non-date sorts', () => {
+    const current = refPage([ref('first', { published: DATE })], 0, 1, 2);
+    queryStore.args = { query: 'public', page: 0, size: 1, sort: ['title,ASC'] };
+    queryStore.page = current;
     component.page = current;
 
     component.cursorPage(1);
-    expect(query.queueCursorPage).not.toHaveBeenCalled();
 
-    query.args = { ...query.args, sort: ['published,DESC'] };
-    component.cursorPage(1, new MouseEvent('click', { ctrlKey: true }));
-    expect(query.queueCursorPage).not.toHaveBeenCalled();
-
-    component.page = refPage([...current.content], 0, 1, 2);
-    component.cursorPage(1);
-    expect(query.queueCursorPage).not.toHaveBeenCalled();
+    expect(queryStore.queueCursorPage).not.toHaveBeenCalled();
   });
+
+  it('does not prepare cursor navigation for modified clicks', () => {
+    const current = refPage([ref('first', { published: DATE })], 0, 1, 2);
+    queryStore.args = { query: 'public', page: 0, size: 1, sort: ['published,DESC'] };
+    queryStore.page = current;
+    component.page = current;
+
+    component.cursorPage(1, new MouseEvent('click', { ctrlKey: true }));
+
+    expect(queryStore.queueCursorPage).not.toHaveBeenCalled();
+  });
+
+  it('does not prepare cursor navigation for a page outside the query store', () => {
+    const current = refPage([ref('first', { published: DATE })], 0, 1, 2);
+    queryStore.args = { query: 'public', page: 0, size: 1, sort: ['published,DESC'] };
+    queryStore.page = current;
+    component.page = refPage([...current.content], 0, 1, 2);
+
+    component.cursorPage(1);
+
+    expect(queryStore.queueCursorPage).not.toHaveBeenCalled();
+  });
+
+  function loadCursor() {
+    const request = queryStore.queueCursorPage.mock.calls[0][1] as Observable<Page<Ref>>;
+    let result: Page<Ref> | undefined;
+    request.subscribe(page => result = page);
+    return result;
+  }
 });
 
-function ref(
-  url: string,
-  published?: string,
-  created?: string,
-  modified = published,
-  origin = '',
-): Ref {
+interface RefValues {
+  published?: string;
+  created?: string;
+  modified?: string;
+  origin?: string;
+}
+
+function ref(url: string, values: RefValues = {}): Ref {
+  const modified = values.modified ?? values.published;
   return {
     url: `https://example.com/${url}`,
-    origin,
-    published: published ? DateTime.fromISO(published) : undefined,
-    created: created ? DateTime.fromISO(created) : undefined,
+    origin: values.origin ?? '',
+    published: values.published ? DateTime.fromISO(values.published) : undefined,
+    created: values.created ? DateTime.fromISO(values.created) : undefined,
     modified: modified ? DateTime.fromISO(modified) : undefined,
   };
 }

@@ -7,7 +7,7 @@ import { braces, fixClientQuery, hasPrefix } from './tag';
 const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
 const DEFAULT_DESC_PREFIXES = ['metadata->'];
 const DEFAULT_DESC_EXACT = ['created', 'published', 'modified', 'rank'];
-const DATE_SORTS = ['created', 'modified', 'published'];
+const DATE_SORT_FIELDS = ['created', 'modified', 'published'];
 export const defaultDesc = (sort: string) =>
   DEFAULT_DESC_EXACT.includes(sort) ||
   DEFAULT_DESC_PREFIXES.some(prefix => sort.startsWith(prefix)) ||
@@ -131,17 +131,18 @@ export function getArgs(
   };
 }
 
-export function stableDateSortArgs(args: RefPageArgs): RefPageArgs {
-  const [field] = args.sort?.[0]?.split(',') || [];
-  if (!DATE_SORTS.includes(field)) return args;
-  const hasModified = args.sort?.some(s => s === 'modified' || s === 'modified,ASC' || s === 'modified,DESC');
-  const hasOrigin = args.sort?.some(s => s === 'origin' || s === 'origin,ASC' || s === 'origin,DESC');
+export function withStableDateSort(args: RefPageArgs): RefPageArgs {
+  const sort = args.sort ?? [];
+  const [primaryField] = sort[0]?.split(',') ?? [];
+  if (!DATE_SORT_FIELDS.includes(primaryField)) return args;
+
+  const sortFields = sort.map(value => value.split(',')[0]);
   return {
     ...args,
     sort: [
-      ...(args.sort || []),
-      ...(!hasModified ? ['modified,ASC' as const] : []),
-      ...(!hasOrigin ? ['origin,ASC' as const] : []),
+      ...sort,
+      ...(!sortFields.includes('modified') ? ['modified,ASC' as const] : []),
+      ...(!sortFields.includes('origin') ? ['origin,ASC' as const] : []),
     ],
   };
 }

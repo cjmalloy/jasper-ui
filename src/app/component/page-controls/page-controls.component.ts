@@ -10,15 +10,43 @@ import { RefService } from '../../service/api/ref.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
-import { stableDateSortArgs } from '../../util/query';
+import { withStableDateSort } from '../../util/query';
 
-const CURSOR_PAGE_ATTEMPTS = 3;
+const MAX_CURSOR_PAGE_ATTEMPTS = 3;
 const CURSOR_PAGE_PADDING = 1;
 const MAX_CURSOR_PAGE_SIZE = 2000;
-const DATE_SORTS = ['created', 'modified', 'published'] as const;
+const DATE_SORT_FIELDS = ['created', 'modified', 'published'] as const;
 
-type DateSort = typeof DATE_SORTS[number];
+type DateSortField = typeof DATE_SORT_FIELDS[number];
 type SortDirection = 'ASC' | 'DESC';
+type CursorBound = 'Before' | 'After';
+type CursorFilter = `${DateSortField}${CursorBound}`;
+
+interface DateSort {
+  field: DateSortField;
+  direction: SortDirection;
+}
+
+interface CursorMove {
+  anchor: Ref;
+  bound: CursorBound;
+  reverse: boolean;
+  target: number;
+}
+
+interface CursorPlan {
+  anchor: Ref;
+  request: RefPageArgs;
+  fallback: RefPageArgs;
+  initialSize: number;
+  reverse: boolean;
+  contentSize: number;
+  page: Page<Ref>['page'];
+}
+
+function isDateSortField(value: string | undefined): value is DateSortField {
+  return DATE_SORT_FIELDS.some(field => field === value);
+}
 
 @Component({
   selector: 'app-page-controls',
@@ -104,43 +132,23 @@ export class PageControlsComponent {
     delay(() => window.scrollTo(0, 0), 400);
   }
 
-  cursorPage(pageNumber: number, event?: MouseEvent) {
-    if (event && (event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)) return;
-    const page = this.page as Page<Ref> | undefined;
+  cursorPage(target: number, event?: MouseEvent) {
+    if (!this.plainClick(event)) return;
+
+    const page = this.currentPage();
     const args = this.query.args;
-    if (!page || page !== this.query.page || !args || !page.content.length) return;
+    if (!page || !args) return;
 
-    const step = pageNumber - page.page.number;
     const sort = this.dateSort(args);
-    if (Math.abs(step) !== 1 || !sort) return;
+    if (!sort) return;
 
-    const anchor = step > 0 ? page.content.at(-1)! : page.content[0];
-    const before = (step > 0) === (sort.direction === 'DESC');
-    const cursor = this.dateCursor(anchor, sort.field, before);
-    if (!cursor) return;
+    const move = this.cursorMove(page, target, sort);
+    if (!move) return;
 
-    const pageSize = page.page.size || page.content.length;
-    const contentSize = Math.min(pageSize, page.page.totalElements - pageNumber * pageSize);
-    if (contentSize <= 0) return;
+    const plan = this.cursorPlan(page, args, sort, move);
+    if (!plan) return;
 
-    const request = defer(() => this.loadCursorPage(
-        args,
-        { ...page.page, number: pageNumber },
-        contentSize + CURSOR_PAGE_PADDING,
-        contentSize,
-        anchor,
-        sort,
-        cursor,
-        before,
-        step < 0,
-      )).pipe(
-      catchError(() => EMPTY),
-      defaultIfEmpty(undefined),
-      switchMap(cursorPage => cursorPage
-        ? of(cursorPage)
-        : this.refs.page({ ...args, page: pageNumber })),
-    );
-    this.query.queueCursorPage(pageNumber, request);
+    this.query.queueCursorPage(target, this.loadOrFallback(plan));
   }
 
   outOfPageSizeRange(size: number) {
@@ -151,87 +159,164 @@ export class PageControlsComponent {
     return !this.colSizes.includes(size);
   }
 
-  private dateSort(args: RefPageArgs): { field: DateSort, direction: SortDirection } | undefined {
+  private currentPage(): Page<Ref> | undefined {
+    const page = this.page as Page<Ref> | undefined;
+    if (!page || page !== this.query.page || page.content.length === 0) return undefined;
+    return page;
+  }
+
+  private dateSort(args: RefPageArgs): DateSort | undefined {
     const [field, direction] = args.sort?.[0]?.split(',') || [];
-    if (!DATE_SORTS.includes(field as DateSort)) return undefined;
+    if (!isDateSortField(field)) return undefined;
     return {
-      field: field as DateSort,
+      field,
       direction: direction === 'ASC' ? 'ASC' : 'DESC',
     };
   }
 
-  private dateCursor(ref: Ref, field: DateSort, before: boolean) {
+  private cursorMove(page: Page<Ref>, target: number, sort: DateSort): CursorMove | undefined {
+    if (target === page.page.number + 1) {
+      const anchor = page.content.at(-1)!;
+      return {
+        anchor,
+        bound: sort.direction === 'DESC' ? 'Before' : 'After',
+        reverse: false,
+        target,
+      };
+    }
+
+    if (target === page.page.number - 1) {
+      const anchor = page.content[0];
+      return {
+        anchor,
+        bound: sort.direction === 'DESC' ? 'After' : 'Before',
+        reverse: true,
+        target,
+      };
+    }
+
+    return undefined;
+  }
+
+  private cursorPlan(
+    page: Page<Ref>,
+    args: RefPageArgs,
+    sort: DateSort,
+    move: CursorMove,
+  ): CursorPlan | undefined {
+    const contentSize = this.contentSize(page, move.target);
+    if (contentSize <= 0) return undefined;
+
+    const cursor = this.cursorValue(move.anchor, sort.field, move.bound);
+    if (!cursor) return undefined;
+
+    const stableArgs = withStableDateSort(args);
+    const stableSort = stableArgs.sort ?? [];
+    const filter = `${sort.field}${move.bound}` as CursorFilter;
+
+    return {
+      anchor: move.anchor,
+      request: {
+        ...stableArgs,
+        page: undefined,
+        sort: move.reverse ? this.reverseSort(stableSort) : stableSort,
+        [filter]: cursor,
+      },
+      fallback: { ...args, page: move.target },
+      initialSize: contentSize + CURSOR_PAGE_PADDING,
+      reverse: move.reverse,
+      contentSize,
+      page: { ...page.page, number: move.target },
+    };
+  }
+
+  private cursorValue(ref: Ref, field: DateSortField, bound: CursorBound) {
     const value = field === 'modified' ? ref.modifiedString || ref.modified : ref[field];
     const date = typeof value === 'string' ? DateTime.fromISO(value) : value;
     if (!date?.isValid) return undefined;
-    return (before
+
+    return (bound === 'Before'
       ? date.plus({ milliseconds: 1 })
       : date.minus({ milliseconds: 1 })
     ).toUTC().toISO() || undefined;
   }
 
-  private loadCursorPage(
-    args: RefPageArgs,
-    page: Page<Ref>['page'],
-    initialSize: number,
-    contentSize: number,
-    anchor: Ref,
-    sort: { field: DateSort, direction: SortDirection },
-    cursor: string,
-    before: boolean,
-    reverse: boolean,
-    attempt = 0,
-  ): Observable<Page<Ref>> {
-    const cursorKey = `${sort.field}${before ? 'Before' : 'After'}` as
-      `${DateSort}${'Before' | 'After'}`;
-    const stableArgs = stableDateSortArgs(args);
-    const size = Math.min(initialSize * Math.pow(2, attempt), MAX_CURSOR_PAGE_SIZE);
-    const cursorArgs: RefPageArgs = {
-      ...stableArgs,
-      page: undefined,
+  private contentSize(page: Page<Ref>, target: number) {
+    const pageSize = page.page.size || page.content.length;
+    const firstElement = target * pageSize;
+    const remainingElements = page.page.totalElements - firstElement;
+    return Math.min(pageSize, remainingElements);
+  }
+
+  private loadOrFallback(plan: CursorPlan): Observable<Page<Ref>> {
+    return defer(() => this.loadCursorPage(plan)).pipe(
+      catchError(() => EMPTY),
+      defaultIfEmpty(undefined),
+      switchMap(cursorPage => cursorPage
+        ? of(cursorPage)
+        : this.refs.page(plan.fallback)),
+    );
+  }
+
+  private loadCursorPage(plan: CursorPlan, attempt = 0): Observable<Page<Ref>> {
+    const size = this.requestSize(plan.initialSize, attempt);
+    const args = {
+      ...plan.request,
       size,
-      sort: reverse ? this.reverseSort(stableArgs.sort || []) : stableArgs.sort,
-      [cursorKey]: cursor,
     };
 
-    return this.refs.page(cursorArgs).pipe(
+    return this.refs.page(args).pipe(
       switchMap(response => {
-        const anchorIndex = response.content.findIndex(ref => this.sameRef(ref, anchor));
-        let content = anchorIndex < 0
-          ? []
-          : response.content.slice(anchorIndex + 1, anchorIndex + 1 + contentSize);
-        if (reverse) content = content.reverse();
-        if (content.length === contentSize) {
-          return of({
-            content,
-            page: { ...page },
-          });
-        }
-        const nextSize = Math.min(size * 2, MAX_CURSOR_PAGE_SIZE);
-        if (attempt + 1 >= CURSOR_PAGE_ATTEMPTS ||
-            response.content.length < size ||
-            nextSize === size) return EMPTY;
-        return this.loadCursorPage(
-          args,
-          page,
-          initialSize,
-          contentSize,
-          anchor,
-          sort,
-          cursor,
-          before,
-          reverse,
-          attempt + 1,
-        );
+        const page = this.reconstruct(response, plan);
+        if (page) return of(page);
+        if (!this.canRetry(response, size, attempt)) return EMPTY;
+        return this.loadCursorPage(plan, attempt + 1);
       }),
     );
+  }
+
+  private reconstruct(response: Page<Ref>, plan: CursorPlan): Page<Ref> | undefined {
+    const anchorIndex = response.content.findIndex(ref => this.sameRef(ref, plan.anchor));
+    if (anchorIndex < 0) return undefined;
+
+    const contentStart = anchorIndex + 1;
+    const contentEnd = contentStart + plan.contentSize;
+    const content = response.content.slice(contentStart, contentEnd);
+    if (content.length !== plan.contentSize) return undefined;
+
+    return {
+      content: plan.reverse ? content.reverse() : content,
+      page: { ...plan.page },
+    };
+  }
+
+  private canRetry(response: Page<Ref>, size: number, attempt: number) {
+    const attemptsRemain = attempt + 1 < MAX_CURSOR_PAGE_ATTEMPTS;
+    const responseMayHaveMore = response.content.length >= size;
+    const sizeCanGrow = size < MAX_CURSOR_PAGE_SIZE;
+    return attemptsRemain && responseMayHaveMore && sizeCanGrow;
+  }
+
+  private requestSize(initialSize: number, attempt: number) {
+    return Math.min(initialSize * 2 ** attempt, MAX_CURSOR_PAGE_SIZE);
   }
 
   private reverseSort(sort: RefSort[]): RefSort[] {
     return sort.map(value => {
       const [field, direction] = value.split(',');
-      return `${field},${direction === 'DESC' ? 'ASC' : 'DESC'}` as RefSort;
+      const reverseDirection = direction === 'DESC' ? 'ASC' : 'DESC';
+      return `${field},${reverseDirection}` as RefSort;
     });
+  }
+
+  private plainClick(event?: MouseEvent) {
+    return !event || (
+      event.button === 0 &&
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.shiftKey
+    );
   }
 
   private sameRef(a: Ref, b: Ref) {

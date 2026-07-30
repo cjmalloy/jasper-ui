@@ -51,31 +51,45 @@ describe('QueryStore', () => {
     expect(store.args).toBe(args);
   });
 
-  it('uses a queued cursor request only for its matching page navigation', () => {
+  it('uses a queued cursor request for its matching page navigation', () => {
     const offsetPage = Page.of([]);
     const cursorPage = Page.of([{ url: 'https://example.com/cursor' }]);
-    const page = vi.fn(() => of(offsetPage));
+    const loadOffsetPage = vi.fn(() => of(offsetPage));
     const refs = {
-      page,
+      page: loadOffsetPage,
       getCurrent: vi.fn(),
     } as unknown as RefService;
     const store = new QueryStore(refs);
     const args = { query: 'test', page: 0, size: 2, sort: ['published,DESC' as const] };
 
     store.setArgs(args);
-    page.mockClear();
+    loadOffsetPage.mockClear();
     store.queueCursorPage(1, of(cursorPage));
     store.setArgs({ ...args, page: 1 });
 
-    expect(page).not.toHaveBeenCalled();
+    expect(loadOffsetPage).not.toHaveBeenCalled();
     expect(store.page).toBe(cursorPage);
+  });
 
+  it('discards a queued cursor request when the navigation does not match', () => {
+    const offsetPage = Page.of([]);
+    const cursorPage = Page.of([{ url: 'https://example.com/cursor' }]);
+    const loadOffsetPage = vi.fn(() => of(offsetPage));
+    const refs = {
+      page: loadOffsetPage,
+      getCurrent: vi.fn(),
+    } as unknown as RefService;
+    const store = new QueryStore(refs);
+    const args = { query: 'test', page: 1, size: 2, sort: ['published,DESC' as const] };
+
+    store.setArgs(args);
+    loadOffsetPage.mockClear();
     store.queueCursorPage(2, of(cursorPage));
     const directArgs = { ...args, page: 3 };
     store.setArgs(directArgs);
 
-    expect(page).toHaveBeenCalledOnce();
-    expect(page).toHaveBeenCalledWith(directArgs);
+    expect(loadOffsetPage).toHaveBeenCalledOnce();
+    expect(loadOffsetPage).toHaveBeenCalledWith(directArgs);
     expect(store.page).toBe(offsetPage);
   });
 });
