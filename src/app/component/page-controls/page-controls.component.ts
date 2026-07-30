@@ -156,7 +156,7 @@ export class PageControlsComponent {
 
   private dateCursor(ref: Ref, sort: { field: DateSort, direction: SortDirection }) {
     const value = sort.field === 'modified' ? ref.modifiedString || ref.modified : ref[sort.field];
-    const date = DateTime.isDateTime(value) ? value : value ? DateTime.fromISO(value) : undefined;
+    const date = typeof value === 'string' ? DateTime.fromISO(value) : value;
     if (!date?.isValid) return undefined;
     return (sort.direction === 'DESC'
       ? date.plus({ milliseconds: 1 })
