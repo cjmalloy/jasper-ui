@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, HostBinding, inject, In
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { delay } from 'lodash-es';
+import { delay, isEqual, omit } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
 import { catchError, EMPTY, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -18,6 +18,7 @@ const CURSOR_PAGE_PADDING = 8;
 const MAX_CURSOR_PAGE_SIZE = 2000;
 const DATE_SORTS = ['created', 'modified', 'published'] as const;
 const CURSOR_PAGES = new WeakSet<Page<any>>();
+const PREVIOUS_PAGES = new WeakMap<QueryStore, { args: RefPageArgs, page: Page<Ref> }>();
 
 type DateSort = typeof DATE_SORTS[number];
 type SortDirection = 'ASC' | 'DESC';
@@ -71,23 +72,31 @@ export class PageControlsComponent {
       return;
     }
     if (CURSOR_PAGES.has(value) || value !== this.query.page) return;
+    const previous = PREVIOUS_PAGES.get(this.query);
+    const args = this.query.args!;
+    PREVIOUS_PAGES.set(this.query, { args, page: value as Page<Ref> });
 
-    const sort = this.dateSort(this.query.args);
-    const pageNumber = Number(this.query.args?.page);
+    const sort = this.dateSort(args);
+    const pageNumber = Number(args.page);
     if (!sort || !pageNumber || pageNumber !== value.page.number || !value.content.length) return;
 
-    const anchor = value.content[0] as Ref;
+    const previousAnchor = previous?.page.page.number === pageNumber - 1
+      && isEqual(omit(previous.args, 'page'), omit(args, 'page'))
+      ? previous.page.content.at(-1)
+      : undefined;
+    const anchor = previousAnchor || value.content[0] as Ref;
     const cursor = this.dateCursor(anchor, sort);
     if (!cursor) return;
 
-    const args = { ...this.query.args, sort: [...this.query.args!.sort!] };
+    const cursorArgs = { ...args, sort: [...args.sort!] };
     this.cursorRequest?.unsubscribe();
-    this.cursorRequest = this.loadCursorPage(args, value as Page<Ref>, anchor, sort, cursor).pipe(
+    this.cursorRequest = this.loadCursorPage(cursorArgs, value as Page<Ref>, anchor, sort, cursor, Boolean(previousAnchor)).pipe(
       catchError(() => EMPTY),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(page => {
       if (this.query.page !== value) return;
       CURSOR_PAGES.add(page);
+      PREVIOUS_PAGES.set(this.query, { args, page });
       runInAction(() => this.query.page = page);
     });
   }
@@ -174,6 +183,7 @@ export class PageControlsComponent {
     anchor: Ref,
     sort: { field: DateSort, direction: SortDirection },
     cursor: string,
+    afterAnchor = false,
     attempt = 0,
   ): Observable<Page<Ref>> {
     const cursorKey = `${sort.field}${sort.direction === 'DESC' ? 'Before' : 'After'}`;
@@ -197,9 +207,10 @@ export class PageControlsComponent {
     return this.refs.page(cursorArgs).pipe(
       switchMap(page => {
         const anchorIndex = page.content.findIndex(ref => this.sameRef(ref, anchor));
+        const start = anchorIndex + (afterAnchor ? 1 : 0);
         const content = anchorIndex < 0
           ? []
-          : page.content.slice(anchorIndex, anchorIndex + requested.content.length);
+          : page.content.slice(start, start + requested.content.length);
         if (content.length === requested.content.length) {
           return of({
             content,
@@ -208,7 +219,7 @@ export class PageControlsComponent {
         }
         const nextSize = Math.min(size * 2, MAX_CURSOR_PAGE_SIZE);
         if (attempt + 1 >= CURSOR_PAGE_ATTEMPTS || page.content.length < size || nextSize === size) return EMPTY;
-        return this.loadCursorPage(args, requested, anchor, sort, cursor, attempt + 1);
+        return this.loadCursorPage(args, requested, anchor, sort, cursor, afterAnchor, attempt + 1);
       }),
     );
   }
