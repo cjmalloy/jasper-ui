@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mod } from './setup';
+import { mod, openSidebar } from './setup';
 
 test.describe.serial('Ext defaults', () => {
   test('enable Ext default mods', async ({ page }) => {
@@ -29,6 +29,18 @@ test.describe.serial('Ext defaults', () => {
       }));
       return Math.abs(editorWidth - containerWidth);
     }).toBeLessThan(40);
+  });
+
+  test('shows synchronized bulk-selection checkboxes for Exts', async ({ page }) => {
+    await page.goto('/tags?debug=ADMIN', { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    await page.locator('.bulk summary').click();
+
+    const checkboxes = page.locator('.ext-list .bulk-select');
+    await expect(checkboxes.first()).toBeVisible();
+    await expect(checkboxes.first()).toBeChecked();
+    await checkboxes.first().uncheck();
+    await expect(checkboxes.first()).not.toBeChecked();
   });
 
   test('configures and loads multiple default sorts and date filters', async ({ page }) => {

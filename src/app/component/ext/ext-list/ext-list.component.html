@@ -1,6 +1,13 @@
-<div class="list-container">
+<div class="list-container" [style.grid-template-columns]="gridTemplateColumns">
   @for (ext of page?.content; track ext; let i = $index) {
     <div class="list-number">{{ i + page!.page.number * page!.page.size + 1 }}</div>
+    @if (query.bulkToolsOpen && page === query.page) {
+      <input class="bulk-select-cell bulk-select"
+             type="checkbox"
+             [checked]="query.isBulkSelected(ext)"
+             i18n-aria-label aria-label="Select {{ ext.name || ext.tag }}"
+             (change)="query.setBulkSelected(ext, $any($event.target).checked)">
+    }
     <app-ext [ext]="ext"></app-ext>
   }
 </div>

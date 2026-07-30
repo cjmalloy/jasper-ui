@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
+import { ExtStore } from '../../../store/ext';
 import { LoadingComponent } from '../../loading/loading.component';
 import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { ExtComponent } from '../ext.component';
@@ -26,7 +27,7 @@ export class ExtListComponent implements HasChanges {
 
   private _page?: Page<Ext>;
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, public query: ExtStore) { }
 
   saveChanges() {
     return !this.list?.find(r => !r.saveChanges());
@@ -34,6 +35,12 @@ export class ExtListComponent implements HasChanges {
 
   get page() {
     return this._page;
+  }
+
+  get gridTemplateColumns() {
+    return this.query.bulkToolsOpen && this.page === this.query.page
+      ? 'min-content min-content auto'
+      : '';
   }
 
   @Input()
