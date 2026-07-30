@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 const dateSorts = ['published', 'created', 'modified'] as const;
 
 for (const field of dateSorts) {
-  test(`secretly cursor-pages duplicate ${field} dates`, async ({ page }) => {
+  test(`uses one stable request per page for duplicate ${field} dates`, async ({ page }) => {
     const date = '2024-01-02T00:00:00.000Z';
     const modified = field === 'modified' ? date : '2024-01-01T00:00:00.000Z';
     const first = ref(`${field}-first`, `${field} first`, date, modified, '@a');
@@ -33,9 +33,8 @@ for (const field of dateSorts) {
       }
       if (url.searchParams.has(`${field}Before`)) {
         cursorRequests.push(url);
-        const size = Number(url.searchParams.get('size'));
         await route.fulfill({
-          json: refPage([first, anchor, next, older].slice(0, size), 0, size, 4),
+          json: refPage([first, anchor, next, older], 0, Number(url.searchParams.get('size')), 4),
         });
         return;
       }
@@ -55,8 +54,7 @@ for (const field of dateSorts) {
 
     await page.locator('.next-page').click();
 
-    await expect.poll(() => cursorRequests.length).toBe(2);
-    await expect.poll(() => offsetRequests.some(request => request.searchParams.get('page') === '1')).toBe(true);
+    await expect.poll(() => offsetRequests.filter(request => request.searchParams.get('page') === '1').length).toBe(1);
     await expect(links).toHaveText([
       `${field} next`,
       `${field} older`,
@@ -69,9 +67,9 @@ for (const field of dateSorts) {
     ]);
     for (const request of [...offsetRequests, ...cursorRequests]) {
       expect(request.searchParams.getAll('sort')).toEqual(stableSort);
+      expect(request.searchParams.get('size')).toBe('2');
     }
-    expect(cursorRequests.every(request => !request.searchParams.has('page'))).toBe(true);
-    expect(cursorRequests.map(request => Number(request.searchParams.get('size')))).toEqual([3, 6]);
+    expect(cursorRequests).toEqual([]);
     expect(page.url()).toContain('pageNumber=1');
     expect(new URL(page.url()).searchParams.getAll('sort')).toEqual([`${field},DESC`]);
     expect(page.url()).not.toContain(`${field}Before`);

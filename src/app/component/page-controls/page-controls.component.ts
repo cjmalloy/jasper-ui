@@ -1,27 +1,10 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, HostBinding, inject, Input } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, HostBinding, Input } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { delay, isEqual, omit } from 'lodash-es';
-import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
-import { catchError, EMPTY, Observable, of, Subscription, switchMap } from 'rxjs';
+import { delay } from 'lodash-es';
 import { Page } from '../../model/page';
-import { Ref, RefPageArgs } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
 import { BookmarkService } from '../../service/bookmark.service';
-import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
-import { stableDateSortArgs } from '../../util/query';
-
-const CURSOR_PAGE_ATTEMPTS = 3;
-const MAX_CURSOR_PAGE_SIZE = 2000;
-const DATE_SORTS = ['created', 'modified', 'published'] as const;
-const CURSOR_PAGES = new WeakSet<Page<any>>();
-const PREVIOUS_PAGES = new WeakMap<QueryStore, { args: RefPageArgs, page: Page<Ref> }>();
-
-type DateSort = typeof DATE_SORTS[number];
-type SortDirection = 'ASC' | 'DESC';
 
 @Component({
   selector: 'app-page-controls',
@@ -38,10 +21,8 @@ type SortDirection = 'ASC' | 'DESC';
 })
 export class PageControlsComponent {
 
-  private destroyRef = inject(DestroyRef);
-  private _page?: Page<any>;
-  private cursorRequest?: Subscription;
-
+  @Input()
+  page?: Page<any>;
   @Input()
   showPageLast = true;
   @Input()
@@ -56,50 +37,7 @@ export class PageControlsComponent {
   constructor(
     public store: Store,
     private bookmarks: BookmarkService,
-    private query: QueryStore,
-    private refs: RefService,
   ) { }
-
-  get page() {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<any> | undefined) {
-    this._page = value;
-    if (!value) {
-      this.cursorRequest?.unsubscribe();
-      return;
-    }
-    if (CURSOR_PAGES.has(value) || value !== this.query.page) return;
-    const previous = PREVIOUS_PAGES.get(this.query);
-    const args = this.query.args!;
-    PREVIOUS_PAGES.set(this.query, { args, page: value as Page<Ref> });
-
-    const sort = this.dateSort(args);
-    const pageNumber = Number(args.page);
-    if (!sort || !pageNumber || pageNumber !== value.page.number || !value.content.length) return;
-
-    const previousAnchor = previous?.page.page.number === pageNumber - 1
-      && isEqual(omit(previous.args, 'page'), omit(args, 'page'))
-      ? previous.page.content.at(-1)
-      : undefined;
-    const anchor = previousAnchor || value.content[0] as Ref;
-    const cursor = this.dateCursor(anchor, sort);
-    if (!cursor) return;
-
-    const cursorArgs = { ...args, sort: [...args.sort!] };
-    this.cursorRequest?.unsubscribe();
-    this.cursorRequest = this.loadCursorPage(cursorArgs, value as Page<Ref>, anchor, sort, cursor, Boolean(previousAnchor)).pipe(
-      catchError(() => EMPTY),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(page => {
-      if (this.query.page !== value) return;
-      CURSOR_PAGES.add(page);
-      PREVIOUS_PAGES.set(this.query, { args, page });
-      runInAction(() => this.query.page = page);
-    });
-  }
 
   @HostBinding('class.print-hide')
   get fullResults() {
@@ -156,67 +94,5 @@ export class PageControlsComponent {
 
   outOfColSizeRange(size: number) {
     return !this.colSizes.includes(size);
-  }
-
-  private dateSort(args?: RefPageArgs): { field: DateSort, direction: SortDirection } | undefined {
-    const [field, direction] = args?.sort?.[0]?.split(',') || [];
-    if (!DATE_SORTS.includes(field as DateSort)) return undefined;
-    return {
-      field: field as DateSort,
-      direction: direction === 'ASC' ? 'ASC' : 'DESC',
-    };
-  }
-
-  private dateCursor(ref: Ref, sort: { field: DateSort, direction: SortDirection }) {
-    const value = sort.field === 'modified' ? ref.modifiedString || ref.modified : ref[sort.field];
-    const date = typeof value === 'string' ? DateTime.fromISO(value) : value;
-    if (!date?.isValid) return undefined;
-    return (sort.direction === 'DESC'
-      ? date.plus({ milliseconds: 1 })
-      : date.minus({ milliseconds: 1 })
-    ).toUTC().toISO() || undefined;
-  }
-
-  private loadCursorPage(
-    args: RefPageArgs,
-    requested: Page<Ref>,
-    anchor: Ref,
-    sort: { field: DateSort, direction: SortDirection },
-    cursor: string,
-    afterAnchor = false,
-    attempt = 0,
-  ): Observable<Page<Ref>> {
-    const cursorKey = `${sort.field}${sort.direction === 'DESC' ? 'Before' : 'After'}`;
-    const requestedSize = requested.page.size || requested.content.length;
-    const size = Math.min((requestedSize + (afterAnchor ? 1 : 0)) * Math.pow(2, attempt), MAX_CURSOR_PAGE_SIZE);
-    const cursorArgs = {
-      ...stableDateSortArgs(args),
-      page: 0,
-      size,
-      [cursorKey]: cursor,
-    };
-
-    return this.refs.page(cursorArgs).pipe(
-      switchMap(page => {
-        const anchorIndex = page.content.findIndex(ref => this.sameRef(ref, anchor));
-        const start = anchorIndex + (afterAnchor ? 1 : 0);
-        const content = anchorIndex < 0
-          ? []
-          : page.content.slice(start, start + requested.content.length);
-        if (content.length === requested.content.length) {
-          return of({
-            content,
-            page: { ...requested.page },
-          });
-        }
-        const nextSize = Math.min(size * 2, MAX_CURSOR_PAGE_SIZE);
-        if (attempt + 1 >= CURSOR_PAGE_ATTEMPTS || page.content.length < size || nextSize === size) return EMPTY;
-        return this.loadCursorPage(args, requested, anchor, sort, cursor, afterAnchor, attempt + 1);
-      }),
-    );
-  }
-
-  private sameRef(a: Ref, b: Ref) {
-    return a.url === b.url && (a.origin || '') === (b.origin || '');
   }
 }
