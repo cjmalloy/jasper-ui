@@ -16,7 +16,7 @@ describe('QueryStore', () => {
 
     store.setArgs({ query: 'test', sources: source.url });
 
-    expect(refs.page).toHaveBeenCalled();
+    expect(refs.page).toHaveBeenCalledOnce();
     expect(refs.getCurrent).toHaveBeenCalledWith(source.url);
     expect(store.sourcesOf).toEqual(source);
   });
@@ -46,6 +46,7 @@ describe('QueryStore', () => {
 
     store.setArgs(args);
 
+    expect(refs.page).toHaveBeenCalledOnce();
     expect(refs.page).toHaveBeenCalledWith({
       query: 'test',
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
