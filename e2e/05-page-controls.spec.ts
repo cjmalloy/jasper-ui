@@ -29,8 +29,9 @@ for (const field of dateSorts) {
       const sort = url.searchParams.getAll('sort');
       if (url.searchParams.has(`${field}Before`)) {
         cursorRequests.push(url);
+        const size = Number(url.searchParams.get('size'));
         await route.fulfill({
-          json: refPage([first, anchor, next, older], 0, Number(url.searchParams.get('size')), 4),
+          json: refPage([first, anchor, next, older].slice(0, size), 0, size, 4),
         });
         return;
       }
@@ -60,7 +61,7 @@ for (const field of dateSorts) {
 
     await page.locator('.next-page').click();
 
-    await expect.poll(() => cursorRequests.length).toBe(1);
+    await expect.poll(() => cursorRequests.length).toBe(2);
     await expect(links).toHaveText([
       `${field} next`,
       `${field} older`,
@@ -73,24 +74,26 @@ for (const field of dateSorts) {
     ]);
     expect(offsetRequests).toHaveLength(1);
     expect(offsetRequests[0].searchParams.getAll('sort')).toEqual([`${field},DESC`]);
-    expect(cursorRequests[0].searchParams.getAll('sort')).toEqual(stableSort);
-    expect(cursorRequests[0].searchParams.has('page')).toBe(false);
-    expect(cursorRequests[0].searchParams.get('size')).toBe('5');
+    for (const request of cursorRequests.slice(0, 2)) {
+      expect(request.searchParams.getAll('sort')).toEqual(stableSort);
+      expect(request.searchParams.has('page')).toBe(false);
+    }
+    expect(cursorRequests.slice(0, 2).map(request => request.searchParams.get('size'))).toEqual(['3', '6']);
     expect(page.url()).toContain('pageNumber=1');
     expect(new URL(page.url()).searchParams.getAll('sort')).toEqual([`${field},DESC`]);
     expect(page.url()).not.toContain(`${field}Before`);
 
     await page.locator('.prev-page').click();
 
-    await expect.poll(() => cursorRequests.length).toBe(2);
+    await expect.poll(() => cursorRequests.length).toBe(3);
     await expect(links).toHaveText([`${field} first`, `${field} anchor`]);
     expect(offsetRequests).toHaveLength(1);
-    expect(cursorRequests[1].searchParams.getAll('sort')).toEqual(
+    expect(cursorRequests[2].searchParams.getAll('sort')).toEqual(
       stableSort.map(value => value.endsWith(',DESC')
         ? value.replace(/,DESC$/, ',ASC')
         : value.replace(/,ASC$/, ',DESC')),
     );
-    expect(cursorRequests[1].searchParams.has('page')).toBe(false);
+    expect(cursorRequests[2].searchParams.has('page')).toBe(false);
     expect(page.url()).toContain('pageNumber=0');
     expect(page.url()).not.toContain(`${field}After`);
   });

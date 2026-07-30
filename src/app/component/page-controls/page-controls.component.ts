@@ -126,7 +126,7 @@ export class PageControlsComponent {
     const request = defer(() => this.loadCursorPage(
         args,
         { ...page.page, number: pageNumber },
-        page.content.length + contentSize + CURSOR_PAGE_PADDING,
+        contentSize + CURSOR_PAGE_PADDING,
         contentSize,
         anchor,
         sort,

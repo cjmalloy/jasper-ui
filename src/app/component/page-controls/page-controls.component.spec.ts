@@ -53,7 +53,9 @@ describe('PageControlsComponent', () => {
     query.args = { query: 'public', page: 0, size: 2, sort: ['published,DESC'] };
     query.page = current;
     component.page = current;
-    refs.page.mockReturnValue(of(refPage([first, anchor, next, older], 0, 12, 4)));
+    refs.page.mockImplementation((args: RefPageArgs) => of(
+      refPage([first, anchor, next, older].slice(0, args.size), 0, args.size!, 4),
+    ));
 
     component.cursorPage(1);
 
@@ -65,11 +67,16 @@ describe('PageControlsComponent', () => {
     (query.queueCursorPage.mock.calls[0][1] as Observable<Page<Ref>>)
       .subscribe(page => result = page);
 
-    expect(refs.page).toHaveBeenCalledOnce();
+    expect(refs.page).toHaveBeenCalledTimes(2);
     expect(refs.page.mock.calls[0][0]).toMatchObject({
       query: 'public',
       page: undefined,
-      size: 5,
+      size: 3,
+      sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
+      publishedBefore: '2024-01-02T00:00:00.001Z',
+    });
+    expect(refs.page.mock.calls[1][0]).toMatchObject({
+      size: 6,
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
       publishedBefore: '2024-01-02T00:00:00.001Z',
     });
@@ -86,7 +93,7 @@ describe('PageControlsComponent', () => {
     query.args = { query: 'public', page: 1, size: 2, sort: ['published,DESC'] };
     query.page = current;
     component.page = current;
-    refs.page.mockReturnValue(of(refPage([anchor, previousLast, first], 0, 12, 3)));
+    refs.page.mockReturnValue(of(refPage([anchor, previousLast, first], 0, 3, 3)));
 
     component.cursorPage(0);
 
@@ -97,7 +104,7 @@ describe('PageControlsComponent', () => {
     expect(refs.page).toHaveBeenCalledOnce();
     expect(refs.page.mock.calls[0][0]).toMatchObject({
       page: undefined,
-      size: 5,
+      size: 3,
       sort: ['published,ASC', 'modified,DESC', 'origin,DESC'],
       publishedAfter: '2024-01-01T23:59:59.999Z',
     });
@@ -114,7 +121,7 @@ describe('PageControlsComponent', () => {
     query.args = { query: 'public', page: 0, size: 2, sort: ['published,ASC'] };
     query.page = current;
     component.page = current;
-    refs.page.mockReturnValue(of(refPage([first, anchor, next, last], 0, 12, 4)));
+    refs.page.mockReturnValue(of(refPage([anchor, next, last], 0, 3, 3)));
 
     component.cursorPage(1);
     (query.queueCursorPage.mock.calls[0][1] as Observable<Page<Ref>>)
