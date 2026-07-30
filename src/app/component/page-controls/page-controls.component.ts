@@ -15,7 +15,6 @@ import { Store } from '../../store/store';
 import { stableDateSortArgs } from '../../util/query';
 
 const CURSOR_PAGE_ATTEMPTS = 3;
-const CURSOR_PAGE_PADDING = 8;
 const MAX_CURSOR_PAGE_SIZE = 2000;
 const DATE_SORTS = ['created', 'modified', 'published'] as const;
 const CURSOR_PAGES = new WeakSet<Page<any>>();
@@ -189,7 +188,7 @@ export class PageControlsComponent {
   ): Observable<Page<Ref>> {
     const cursorKey = `${sort.field}${sort.direction === 'DESC' ? 'Before' : 'After'}`;
     const requestedSize = requested.page.size || requested.content.length;
-    const size = Math.min((requestedSize + CURSOR_PAGE_PADDING) * Math.pow(2, attempt), MAX_CURSOR_PAGE_SIZE);
+    const size = Math.min((requestedSize + (afterAnchor ? 1 : 0)) * Math.pow(2, attempt), MAX_CURSOR_PAGE_SIZE);
     const cursorArgs = {
       ...stableDateSortArgs(args),
       page: 0,
