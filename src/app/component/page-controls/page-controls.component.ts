@@ -17,6 +17,7 @@ const CURSOR_PAGE_ATTEMPTS = 3;
 const CURSOR_PAGE_PADDING = 8;
 const MAX_CURSOR_PAGE_SIZE = 2000;
 const DATE_SORTS = ['created', 'modified', 'published'] as const;
+const CURSOR_PAGES = new WeakSet<Page<any>>();
 
 type DateSort = typeof DATE_SORTS[number];
 type SortDirection = 'ASC' | 'DESC';
@@ -39,7 +40,6 @@ export class PageControlsComponent {
   private destroyRef = inject(DestroyRef);
   private _page?: Page<any>;
   private cursorRequest?: Subscription;
-  private cursorPages = new WeakSet<Page<any>>();
 
   @Input()
   showPageLast = true;
@@ -66,7 +66,11 @@ export class PageControlsComponent {
   @Input()
   set page(value: Page<any> | undefined) {
     this._page = value;
-    if (!value || this.cursorPages.has(value) || value !== this.query.page) return;
+    if (!value) {
+      this.cursorRequest?.unsubscribe();
+      return;
+    }
+    if (CURSOR_PAGES.has(value) || value !== this.query.page) return;
 
     const sort = this.dateSort(this.query.args);
     const pageNumber = Number(this.query.args?.page);
@@ -83,7 +87,7 @@ export class PageControlsComponent {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(page => {
       if (this.query.page !== value) return;
-      this.cursorPages.add(page);
+      CURSOR_PAGES.add(page);
       runInAction(() => this.query.page = page);
     });
   }

@@ -37,7 +37,7 @@ for (const field of dateSorts) {
       `${field} anchor`,
       `${field} older`,
     ]);
-    expect(cursorRequests[0].searchParams.get('page')).toBe('0');
+    expect(cursorRequests[0].searchParams.has('page')).toBe(false);
     expect(Number(cursorRequests[0].searchParams.get('size'))).toBeGreaterThan(2);
     expect(page.url()).toContain('pageNumber=1');
     expect(page.url()).not.toContain(`${field}Before`);
