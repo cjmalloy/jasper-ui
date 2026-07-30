@@ -56,7 +56,7 @@ describe('PageControlsComponent', () => {
       query: 'public',
       page: 0,
       size: 10,
-      sort: ['published,DESC'],
+      sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
       publishedBefore: '2024-01-02T00:00:00.001Z',
     });
     expect(query.args).toEqual({ query: 'public', page: 1, size: 2, sort: ['published,DESC'] });
@@ -90,11 +90,13 @@ describe('PageControlsComponent', () => {
     expect(refs.page.mock.calls[0][0]).toMatchObject({
       page: 0,
       size: 10,
+      sort: ['created,DESC', 'modified,ASC', 'origin,ASC'],
       createdBefore: '2024-01-02T00:00:00.001Z',
     });
     expect(refs.page.mock.calls[1][0]).toMatchObject({
       page: 0,
       size: 20,
+      sort: ['created,DESC', 'modified,ASC', 'origin,ASC'],
       createdBefore: '2024-01-02T00:00:00.001Z',
     });
     expect(query.page?.content).toEqual([anchor, older]);
@@ -113,6 +115,7 @@ describe('PageControlsComponent', () => {
 
     expect(refs.page.mock.calls[0][0]).toMatchObject({
       page: 0,
+      sort: ['published,ASC', 'modified,ASC', 'origin,ASC'],
       publishedAfter: '2023-12-31T23:59:59.999Z',
     });
   });
