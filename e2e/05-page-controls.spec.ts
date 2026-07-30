@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 const dateSorts = ['published', 'created', 'modified'] as const;
 
 for (const field of dateSorts) {
-  test(`uses one stable request per page for duplicate ${field} dates`, async ({ page }) => {
+  test(`cursor-pages duplicate ${field} dates only from prev and next`, async ({ page }) => {
     const date = '2024-01-02T00:00:00.000Z';
     const modified = field === 'modified' ? date : '2024-01-01T00:00:00.000Z';
     const first = ref(`${field}-first`, `${field} first`, date, modified, '@a');
@@ -27,10 +27,6 @@ for (const field of dateSorts) {
     await page.route('**/api/v1/ref/page**', async route => {
       const url = new URL(route.request().url());
       const sort = url.searchParams.getAll('sort');
-      if (sort[0] !== `${field},DESC`) {
-        await route.fallback();
-        return;
-      }
       if (url.searchParams.has(`${field}Before`)) {
         cursorRequests.push(url);
         await route.fulfill({
@@ -38,13 +34,23 @@ for (const field of dateSorts) {
         });
         return;
       }
-      offsetRequests.push(url);
-      const stable = stableSort.every((value, index) => sort[index] === value) && sort.length === stableSort.length;
-      if (url.searchParams.get('page') === '1') {
-        await route.fulfill({ json: refPage(stable ? [next, older] : [anchor, next], 1, 2, 4) });
+      if (url.searchParams.has(`${field}After`)) {
+        cursorRequests.push(url);
+        await route.fulfill({
+          json: refPage([next, anchor, first], 0, Number(url.searchParams.get('size')), 3),
+        });
         return;
       }
-      await route.fulfill({ json: refPage(stable ? [first, anchor] : [anchor, first], 0, 2, 4) });
+      if (sort[0] !== `${field},DESC`) {
+        await route.fallback();
+        return;
+      }
+      offsetRequests.push(url);
+      if (url.searchParams.get('page') === '1') {
+        await route.fulfill({ json: refPage([anchor, next], 1, 2, 4) });
+        return;
+      }
+      await route.fulfill({ json: refPage([first, anchor], 0, 2, 4) });
     });
 
     await page.goto(`/tag/public?debug=ADMIN&view=list&sort=${field},DESC&pageSize=2&pageNumber=0`);
@@ -54,7 +60,7 @@ for (const field of dateSorts) {
 
     await page.locator('.next-page').click();
 
-    await expect.poll(() => offsetRequests.filter(request => request.searchParams.get('page') === '1').length).toBe(1);
+    await expect.poll(() => cursorRequests.length).toBe(1);
     await expect(links).toHaveText([
       `${field} next`,
       `${field} older`,
@@ -65,14 +71,28 @@ for (const field of dateSorts) {
       `${field} next`,
       `${field} older`,
     ]);
-    for (const request of [...offsetRequests, ...cursorRequests]) {
-      expect(request.searchParams.getAll('sort')).toEqual(stableSort);
-      expect(request.searchParams.get('size')).toBe('2');
-    }
-    expect(cursorRequests).toEqual([]);
+    expect(offsetRequests).toHaveLength(1);
+    expect(offsetRequests[0].searchParams.getAll('sort')).toEqual([`${field},DESC`]);
+    expect(cursorRequests[0].searchParams.getAll('sort')).toEqual(stableSort);
+    expect(cursorRequests[0].searchParams.has('page')).toBe(false);
+    expect(Number(cursorRequests[0].searchParams.get('size'))).toBeGreaterThan(2);
     expect(page.url()).toContain('pageNumber=1');
     expect(new URL(page.url()).searchParams.getAll('sort')).toEqual([`${field},DESC`]);
     expect(page.url()).not.toContain(`${field}Before`);
+
+    await page.locator('.prev-page').click();
+
+    await expect.poll(() => cursorRequests.length).toBe(2);
+    await expect(links).toHaveText([`${field} first`, `${field} anchor`]);
+    expect(offsetRequests).toHaveLength(1);
+    expect(cursorRequests[1].searchParams.getAll('sort')).toEqual(
+      stableSort.map(value => value.endsWith(',DESC')
+        ? value.replace(/,DESC$/, ',ASC')
+        : value.replace(/,ASC$/, ',DESC')),
+    );
+    expect(cursorRequests[1].searchParams.has('page')).toBe(false);
+    expect(page.url()).toContain('pageNumber=0');
+    expect(page.url()).not.toContain(`${field}After`);
   });
 }
 

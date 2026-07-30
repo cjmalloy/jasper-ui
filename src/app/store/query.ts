@@ -2,11 +2,16 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { action, makeAutoObservable, observable, runInAction } from 'mobx';
-import { catchError, EMPTY, Subscription } from 'rxjs';
+import { catchError, EMPTY, Observable, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
-import { stableDateSortArgs } from '../util/query';
+
+type CursorPage = {
+  args: RefPageArgs;
+  page: number;
+  request: Observable<Page<Ref>>;
+};
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +27,7 @@ export class QueryStore {
   private running?: Subscription;
   private runningSources?: Subscription;
   private runningResponses?: Subscription;
+  private cursorPage?: CursorPage;
 
   constructor(
     private refs: RefService,
@@ -43,19 +49,32 @@ export class QueryStore {
     this.running?.unsubscribe();
     this.runningSources?.unsubscribe();
     this.runningResponses?.unsubscribe();
+    this.cursorPage = undefined;
   }
 
   close() {
+    this.cursorPage = undefined;
     if (this.running && !this.running.closed) this.clear()
   }
 
   setArgs(args: RefPageArgs) {
+    const cursorPage = this.takeCursorPage(args);
     if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
     this.args = args;
-    this.refresh();
+    this.refresh(cursorPage);
+  }
+
+  queueCursorPage(page: number, request: Observable<Page<Ref>>) {
+    if (!this.args) return;
+    this.cursorPage = {
+      args: { ...this.args },
+      page,
+      request,
+    };
   }
 
   setRelatedArgs(args: RefPageArgs) {
+    this.cursorPage = undefined;
     this.args = args;
     this.runningSources?.unsubscribe();
     if (args.sources) {
@@ -75,10 +94,10 @@ export class QueryStore {
     }
   }
 
-  refresh() {
+  refresh(request?: Observable<Page<Ref>>) {
     if (this.args) {
       this.running?.unsubscribe();
-      this.running = this.refs.page(stableDateSortArgs(this.args)).pipe(
+      this.running = (request || this.refs.page(this.args)).pipe(
         catchError((err: HttpErrorResponse) => {
           runInAction(() => this.error = err);
           return EMPTY;
@@ -97,5 +116,16 @@ export class QueryStore {
         ).subscribe(ref => runInAction(() => this.responseOf = ref));
       }
     }
+  }
+
+  private takeCursorPage(args: RefPageArgs) {
+    const cursorPage = this.cursorPage;
+    this.cursorPage = undefined;
+    if (cursorPage?.page !== Number(args.page)) return undefined;
+    if (!isEqual(
+      omit(cursorPage.args, 'page', 'obsolete'),
+      omit(args, 'page', 'obsolete'),
+    )) return undefined;
+    return cursorPage.request;
   }
 }
