@@ -10,7 +10,7 @@ import { RefService } from '../../service/api/ref.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
-import { withStableDateSort } from '../../util/query';
+import { defaultDesc, withStableDateSort } from '../../util/query';
 
 const CURSOR_PAGE_PADDING = 1;
 const DATE_SORT_FIELDS = ['created', 'modified', 'published'] as const;
@@ -288,7 +288,9 @@ export class PageControlsComponent {
   private reverseSort(sort: RefSort[]): RefSort[] {
     return sort.map(value => {
       const [field, direction] = value.split(',');
-      const reverseDirection = direction === 'DESC' ? 'ASC' : 'DESC';
+      const reverseDirection = direction
+        ? direction === 'DESC' ? 'ASC' : 'DESC'
+        : defaultDesc(field) ? 'ASC' : 'DESC';
       return `${field},${reverseDirection}` as RefSort;
     });
   }

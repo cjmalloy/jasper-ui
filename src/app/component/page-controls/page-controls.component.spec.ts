@@ -113,7 +113,7 @@ describe('PageControlsComponent', () => {
     });
     const older = ref('older', { published: OLD_DATE });
     const current = refPage([anchor, older], 1, 2, 4);
-    queryStore.args = { query: 'public', page: 1, size: 2, sort: ['published,DESC'] };
+    queryStore.args = { query: 'public', page: 1, size: 2, sort: ['published'] };
     queryStore.page = current;
     component.page = current;
     refService.page.mockReturnValue(of(refPage([anchor, previousLast, first], 0, 3, 3)));
