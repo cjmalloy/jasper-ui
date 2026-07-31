@@ -6,6 +6,7 @@ import { catchError, EMPTY, Observable, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
+import { withStableDateSort } from '../util/query';
 
 interface PendingCursor {
   args: RefPageArgs;
@@ -97,7 +98,7 @@ export class QueryStore {
   refresh(pageRequest?: Observable<Page<Ref>>) {
     if (this.args) {
       this.running?.unsubscribe();
-      this.running = (pageRequest ?? this.refs.page(this.args)).pipe(
+      this.running = (pageRequest ?? this.refs.page(withStableDateSort(this.args))).pipe(
         catchError((err: HttpErrorResponse) => {
           runInAction(() => this.error = err);
           return EMPTY;

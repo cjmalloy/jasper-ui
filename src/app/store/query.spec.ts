@@ -36,7 +36,7 @@ describe('QueryStore', () => {
     expect(store.sourcesOf).toEqual(source);
   });
 
-  it('leaves ordinary date-sorted page requests unchanged', () => {
+  it('uses hidden tie-breakers for ordinary date-sorted page requests', () => {
     const refs = {
       page: vi.fn(() => of(Page.of([]))),
       getCurrent: vi.fn(),
@@ -47,7 +47,10 @@ describe('QueryStore', () => {
     store.setArgs(args);
 
     expect(refs.page).toHaveBeenCalledOnce();
-    expect(refs.page).toHaveBeenCalledWith(args);
+    expect(refs.page).toHaveBeenCalledWith({
+      query: 'test',
+      sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
+    });
     expect(store.args).toBe(args);
   });
 
@@ -89,7 +92,10 @@ describe('QueryStore', () => {
     store.setArgs(directArgs);
 
     expect(loadOffsetPage).toHaveBeenCalledOnce();
-    expect(loadOffsetPage).toHaveBeenCalledWith(directArgs);
+    expect(loadOffsetPage).toHaveBeenCalledWith({
+      ...directArgs,
+      sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
+    });
     expect(store.page).toBe(offsetPage);
   });
 });

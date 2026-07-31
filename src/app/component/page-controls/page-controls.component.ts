@@ -42,11 +42,6 @@ interface CursorPlan {
   page: Page<Ref>['page'];
 }
 
-interface CursorCache {
-  content: Ref[];
-  keys: Set<string>;
-}
-
 function isDateSortField(value: string | undefined): value is DateSortField {
   return DATE_SORT_FIELDS.some(field => field === value);
 }
@@ -225,7 +220,7 @@ export class PageControlsComponent {
         sort: move.reverse ? this.reverseSort(stableSort) : stableSort,
         [filter]: cursor,
       },
-      fallback: { ...args, page: move.target },
+      fallback: { ...stableArgs, page: move.target },
       initialSize: contentSize + CURSOR_PAGE_PADDING,
       reverse: move.reverse,
       contentSize,
@@ -261,39 +256,18 @@ export class PageControlsComponent {
     );
   }
 
-  private loadCursorPage(
-    plan: CursorPlan,
-    page = 0,
-    cache: CursorCache = { content: [], keys: new Set() },
-  ): Observable<Page<Ref>> {
-    const size = plan.initialSize;
+  private loadCursorPage(plan: CursorPlan): Observable<Page<Ref>> {
     const args = {
       ...plan.request,
-      page: page || undefined,
-      size,
+      size: plan.initialSize,
     };
 
     return this.refs.page(args).pipe(
       switchMap(response => {
-        const added = this.cache(response.content, cache);
-        const reconstructed = this.reconstruct(cache.content, plan);
-        if (reconstructed) return of(reconstructed);
-        if (!this.canRetry(response, size, page, added)) return EMPTY;
-        return this.loadCursorPage(plan, page + 1, cache);
+        const page = this.reconstruct(response.content, plan);
+        return page ? of(page) : EMPTY;
       }),
     );
-  }
-
-  private cache(content: Ref[], cache: CursorCache) {
-    let added = 0;
-    for (const ref of content) {
-      const key = JSON.stringify([ref.url, ref.origin || '']);
-      if (cache.keys.has(key)) continue;
-      cache.keys.add(key);
-      cache.content.push(ref);
-      added++;
-    }
-    return added;
   }
 
   private reconstruct(content: Ref[], plan: CursorPlan): Page<Ref> | undefined {
@@ -309,12 +283,6 @@ export class PageControlsComponent {
       content: plan.reverse ? pageContent.reverse() : pageContent,
       page: { ...plan.page },
     };
-  }
-
-  private canRetry(response: Page<Ref>, size: number, page: number, added: number) {
-    const pagesRemain = page + 1 < response.page.totalPages;
-    const responseMayHaveMore = response.content.length >= size;
-    return added > 0 && pagesRemain && responseMayHaveMore;
   }
 
   private reverseSort(sort: RefSort[]): RefSort[] {

@@ -47,14 +47,12 @@ for (const field of dateSorts) {
       if (url.searchParams.has(`${field}Before`)) {
         cursorRequests.push(url);
         const size = Number(url.searchParams.get('size'));
-        const requestPage = Number(url.searchParams.get('page') ?? 0);
-        const start = requestPage * size;
         await route.fulfill({
           json: refPage(
-            [first, anchor, next, older].slice(start, start + size),
-            requestPage,
+            [anchor, next, older].slice(0, size),
+            0,
             size,
-            4,
+            3,
           ),
         });
         return;
@@ -90,7 +88,7 @@ for (const field of dateSorts) {
 
     await page.locator('.next-page').click();
 
-    await expect.poll(() => cursorRequests.length).toBe(2);
+    await expect.poll(() => cursorRequests.length).toBe(1);
     await expect(links).toHaveText([
       `${field} next`,
       `${field} older`,
@@ -102,25 +100,21 @@ for (const field of dateSorts) {
       `${field} older`,
     ]);
     expect(offsetRequests).toHaveLength(1);
-    expect(offsetRequests[0].searchParams.getAll('sort')).toEqual([`${field},DESC`]);
-    const [initial, retry] = cursorRequests;
-    for (const request of [initial, retry]) {
-      expect(request.searchParams.getAll('sort')).toEqual(stableSort);
-    }
-    expect(initial.searchParams.has('page')).toBe(false);
-    expect(retry.searchParams.get('page')).toBe('1');
-    expect([initial, retry].map(request => request.searchParams.get('size')))
-      .toEqual(['3', '3']);
+    expect(offsetRequests[0].searchParams.getAll('sort')).toEqual(stableSort);
+    const [nextRequest] = cursorRequests;
+    expect(nextRequest.searchParams.getAll('sort')).toEqual(stableSort);
+    expect(nextRequest.searchParams.has('page')).toBe(false);
+    expect(nextRequest.searchParams.get('size')).toBe('3');
     expect(page.url()).toContain('pageNumber=1');
     expect(new URL(page.url()).searchParams.getAll('sort')).toEqual([`${field},DESC`]);
     expect(page.url()).not.toContain(`${field}Before`);
 
     await page.locator('.prev-page').click();
 
-    await expect.poll(() => cursorRequests.length).toBe(3);
+    await expect.poll(() => cursorRequests.length).toBe(2);
     await expect(links).toHaveText([`${field} first`, `${field} anchor`]);
     expect(offsetRequests).toHaveLength(1);
-    const previous = cursorRequests[2];
+    const previous = cursorRequests[1];
     expect(previous.searchParams.getAll('sort')).toEqual(reverseSort(stableSort));
     expect(previous.searchParams.has('page')).toBe(false);
     expect(page.url()).toContain('pageNumber=0');

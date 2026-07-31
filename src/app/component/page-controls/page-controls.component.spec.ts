@@ -48,7 +48,7 @@ describe('PageControlsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('loads tied cursor results in fixed-size pages', () => {
+  it('loads tied cursor results in one padded request', () => {
     const first = ref('first', {
       published: DATE,
       modified: OLD_DATE,
@@ -69,13 +69,10 @@ describe('PageControlsComponent', () => {
     queryStore.args = { query: 'public', page: 0, size: 2, sort: ['published,DESC'] };
     queryStore.page = current;
     component.page = current;
-    const refs = [first, anchor, next, older];
     refService.page.mockImplementation((args: RefPageArgs) => {
       const requestSize = args.size!;
-      const requestPage = args.page ?? 0;
-      const start = requestPage * requestSize;
-      const content = refs.slice(start, start + requestSize);
-      return of(refPage(content, requestPage, requestSize, refs.length));
+      const content = [anchor, next, older].slice(0, requestSize);
+      return of(refPage(content, 0, requestSize, 3));
     });
 
     component.cursorPage(1);
@@ -86,7 +83,7 @@ describe('PageControlsComponent', () => {
 
     const result = loadCursor();
 
-    expect(refService.page).toHaveBeenCalledTimes(2);
+    expect(refService.page).toHaveBeenCalledOnce();
     expect(refService.page.mock.calls[0][0]).toMatchObject({
       query: 'public',
       page: undefined,
@@ -94,46 +91,8 @@ describe('PageControlsComponent', () => {
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
       publishedBefore: '2024-01-02T00:00:00.001Z',
     });
-    expect(refService.page.mock.calls[1][0]).toMatchObject({
-      page: 1,
-      size: 3,
-      sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
-      publishedBefore: '2024-01-02T00:00:00.001Z',
-    });
     expect(result?.content).toEqual([next, older]);
     expect(result?.page).toEqual({ ...current.page, number: 1 });
-  });
-
-  it('keeps loading fixed-size pages until it reaches a deeply tied anchor', () => {
-    const refs = Array.from({ length: 12 }, (_, index) => ref(`ref-${index}`, {
-      published: DATE,
-      modified: `2024-01-01T00:00:00.${index.toString().padStart(3, '0')}Z`,
-    }));
-    const anchor = refs[9];
-    const current = refPage([refs[8], anchor], 4, 2, refs.length);
-    queryStore.args = { query: 'public', page: 4, size: 2, sort: ['published,DESC'] };
-    queryStore.page = current;
-    component.page = current;
-    refService.page.mockImplementation((args: RefPageArgs) => {
-      const requestSize = args.size!;
-      const requestPage = args.page ?? 0;
-      const start = requestPage * requestSize;
-      return of(refPage(
-        refs.slice(start, start + requestSize),
-        requestPage,
-        requestSize,
-        refs.length,
-      ));
-    });
-
-    component.cursorPage(5);
-    const result = loadCursor();
-
-    expect(refService.page).toHaveBeenCalledTimes(4);
-    expect(refService.page.mock.calls.map(([args]) => args.size)).toEqual([3, 3, 3, 3]);
-    expect(refService.page.mock.calls.map(([args]) => args.page)).toEqual([undefined, 1, 2, 3]);
-    expect(result?.content).toEqual([refs[10], refs[11]]);
-    expect(result?.page).toEqual({ ...current.page, number: 5 });
   });
 
   it('reverses the stable cursor request when prev is pressed', () => {
@@ -195,7 +154,7 @@ describe('PageControlsComponent', () => {
     });
   });
 
-  it('falls back to the offset request when the cursor cannot reconstruct the page', () => {
+  it('falls back without retrying when the cursor cannot reconstruct the page', () => {
     const first = ref('first', { published: DATE });
     const anchor = ref('anchor', { published: DATE });
     const offset = refPage([ref('next', { published: OLD_DATE })], 1, 2, 3);
@@ -204,7 +163,12 @@ describe('PageControlsComponent', () => {
     queryStore.page = current;
     component.page = current;
     refService.page.mockImplementation((args: RefPageArgs) => {
-      if (args.publishedBefore) return of(refPage([], 0, args.size!, 0));
+      if (args.publishedBefore) {
+        return of(refPage([
+          ref('unrelated-1', { published: DATE }),
+          anchor,
+        ], 0, args.size!, 4));
+      }
       return of(offset);
     });
 
@@ -212,7 +176,11 @@ describe('PageControlsComponent', () => {
     const result = loadCursor();
 
     expect(refService.page).toHaveBeenCalledTimes(2);
-    expect(refService.page.mock.calls[1][0]).toEqual({ ...queryStore.args, page: 1 });
+    expect(refService.page.mock.calls[1][0]).toEqual({
+      ...queryStore.args,
+      page: 1,
+      sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
+    });
     expect(result).toBe(offset);
   });
 
