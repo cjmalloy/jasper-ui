@@ -12,9 +12,7 @@ import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { withStableDateSort } from '../../util/query';
 
-const MAX_CURSOR_PAGE_ATTEMPTS = 3;
 const CURSOR_PAGE_PADDING = 1;
-const MAX_CURSOR_PAGE_SIZE = 2000;
 const DATE_SORT_FIELDS = ['created', 'modified', 'published'] as const;
 
 type DateSortField = typeof DATE_SORT_FIELDS[number];
@@ -42,6 +40,11 @@ interface CursorPlan {
   reverse: boolean;
   contentSize: number;
   page: Page<Ref>['page'];
+}
+
+interface CursorCache {
+  content: Ref[];
+  keys: Set<string>;
 }
 
 function isDateSortField(value: string | undefined): value is DateSortField {
@@ -258,47 +261,60 @@ export class PageControlsComponent {
     );
   }
 
-  private loadCursorPage(plan: CursorPlan, attempt = 0): Observable<Page<Ref>> {
-    const size = this.requestSize(plan.initialSize, attempt);
+  private loadCursorPage(
+    plan: CursorPlan,
+    page = 0,
+    cache: CursorCache = { content: [], keys: new Set() },
+  ): Observable<Page<Ref>> {
+    const size = plan.initialSize;
     const args = {
       ...plan.request,
+      page: page || undefined,
       size,
     };
 
     return this.refs.page(args).pipe(
       switchMap(response => {
-        const page = this.reconstruct(response, plan);
-        if (page) return of(page);
-        if (!this.canRetry(response, size, attempt)) return EMPTY;
-        return this.loadCursorPage(plan, attempt + 1);
+        const added = this.cache(response.content, cache);
+        const reconstructed = this.reconstruct(cache.content, plan);
+        if (reconstructed) return of(reconstructed);
+        if (!this.canRetry(response, size, page, added)) return EMPTY;
+        return this.loadCursorPage(plan, page + 1, cache);
       }),
     );
   }
 
-  private reconstruct(response: Page<Ref>, plan: CursorPlan): Page<Ref> | undefined {
-    const anchorIndex = response.content.findIndex(ref => this.sameRef(ref, plan.anchor));
+  private cache(content: Ref[], cache: CursorCache) {
+    let added = 0;
+    for (const ref of content) {
+      const key = JSON.stringify([ref.url, ref.origin || '']);
+      if (cache.keys.has(key)) continue;
+      cache.keys.add(key);
+      cache.content.push(ref);
+      added++;
+    }
+    return added;
+  }
+
+  private reconstruct(content: Ref[], plan: CursorPlan): Page<Ref> | undefined {
+    const anchorIndex = content.findIndex(ref => this.sameRef(ref, plan.anchor));
     if (anchorIndex < 0) return undefined;
 
     const contentStart = anchorIndex + 1;
     const contentEnd = contentStart + plan.contentSize;
-    const content = response.content.slice(contentStart, contentEnd);
-    if (content.length !== plan.contentSize) return undefined;
+    const pageContent = content.slice(contentStart, contentEnd);
+    if (pageContent.length !== plan.contentSize) return undefined;
 
     return {
-      content: plan.reverse ? content.reverse() : content,
+      content: plan.reverse ? pageContent.reverse() : pageContent,
       page: { ...plan.page },
     };
   }
 
-  private canRetry(response: Page<Ref>, size: number, attempt: number) {
-    const attemptsRemain = attempt + 1 < MAX_CURSOR_PAGE_ATTEMPTS;
+  private canRetry(response: Page<Ref>, size: number, page: number, added: number) {
+    const pagesRemain = page + 1 < response.page.totalPages;
     const responseMayHaveMore = response.content.length >= size;
-    const sizeCanGrow = size < MAX_CURSOR_PAGE_SIZE;
-    return attemptsRemain && responseMayHaveMore && sizeCanGrow;
-  }
-
-  private requestSize(initialSize: number, attempt: number) {
-    return Math.min(initialSize * 2 ** attempt, MAX_CURSOR_PAGE_SIZE);
+    return added > 0 && pagesRemain && responseMayHaveMore;
   }
 
   private reverseSort(sort: RefSort[]): RefSort[] {
