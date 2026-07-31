@@ -47,10 +47,12 @@ for (const field of dateSorts) {
       if (url.searchParams.has(`${field}Before`)) {
         cursorRequests.push(url);
         const size = Number(url.searchParams.get('size'));
+        const requestPage = Number(url.searchParams.get('page') ?? 0);
+        const start = requestPage * size;
         await route.fulfill({
           json: refPage(
-            [first, anchor, next, older].slice(0, size),
-            0,
+            [first, anchor, next, older].slice(start, start + size),
+            requestPage,
             size,
             4,
           ),
@@ -104,10 +106,11 @@ for (const field of dateSorts) {
     const [initial, retry] = cursorRequests;
     for (const request of [initial, retry]) {
       expect(request.searchParams.getAll('sort')).toEqual(stableSort);
-      expect(request.searchParams.has('page')).toBe(false);
     }
+    expect(initial.searchParams.has('page')).toBe(false);
+    expect(retry.searchParams.get('page')).toBe('1');
     expect([initial, retry].map(request => request.searchParams.get('size')))
-      .toEqual(['3', '6']);
+      .toEqual(['3', '3']);
     expect(page.url()).toContain('pageNumber=1');
     expect(new URL(page.url()).searchParams.getAll('sort')).toEqual([`${field},DESC`]);
     expect(page.url()).not.toContain(`${field}Before`);
