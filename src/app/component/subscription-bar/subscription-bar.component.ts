@@ -1,9 +1,9 @@
 import { Location } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationCancel, NavigationEnd, NavigationError, NavigationSkipped, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { filter, take } from 'rxjs';
+import { filter, Subscription, take } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -23,6 +23,7 @@ import { Store } from '../../store/store';
 })
 export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
+  private clearAfterNavigation?: Subscription;
 
   bookmarks: TagPreview[] = [];
   subs: TagPreview[] = [];
@@ -56,6 +57,7 @@ export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.clearAfterNavigation?.unsubscribe();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
@@ -72,11 +74,20 @@ export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
     if (this.currentIndex > this.startIndex) this.location.back();
   }
 
-  clearLastSelected() {
+  clearLastSelected(event: Event) {
+    const target = event.target;
+    if (!(target instanceof Element) || !target.closest('a')) return;
+
     this.store.view.clearLastSelected();
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd),
+    this.clearAfterNavigation?.unsubscribe();
+    this.clearAfterNavigation = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError ||
+        event instanceof NavigationSkipped),
       take(1),
-    ).subscribe(() => this.store.view.clearLastSelected());
+    ).subscribe(event => {
+      if (event instanceof NavigationEnd) this.store.view.clearLastSelected();
+    });
   }
 }

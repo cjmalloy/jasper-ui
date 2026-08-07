@@ -66,7 +66,9 @@ describe('SubscriptionBarComponent', () => {
     const ref = { url: 'https://example.com' } as any;
     component.store.view.setRef(ref);
 
-    fixture.nativeElement.querySelector('.subs').click();
+    component.clearLastSelected({
+      target: fixture.nativeElement.querySelector('.subs a'),
+    } as unknown as Event);
     component.store.view.clearRef();
     expect(component.store.view.lastSelected).toMatchObject(ref);
 
@@ -74,5 +76,20 @@ describe('SubscriptionBarComponent', () => {
     (router.events as Subject<NavigationEnd>).next(new NavigationEnd(1, '/home', '/home'));
 
     expect(component.store.view.lastSelected).toBeUndefined();
+  });
+
+  it('does not clear the last selected ref after a non-link click', () => {
+    const ref = { url: 'https://example.com' } as any;
+    component.store.view.setRef(ref);
+
+    component.clearLastSelected({
+      target: fixture.nativeElement.querySelector('.subs'),
+    } as unknown as Event);
+    component.store.view.clearRef();
+
+    const router = TestBed.inject(Router);
+    (router.events as Subject<NavigationEnd>).next(new NavigationEnd(1, '/home', '/home'));
+
+    expect(component.store.view.lastSelected).toMatchObject(ref);
   });
 });
