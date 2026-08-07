@@ -39,7 +39,7 @@ export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
     public location: Location,
     private el: ElementRef,
     private help: HelpService,
-    router: Router,
+    private router: Router,
   ) {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
@@ -70,5 +70,13 @@ export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
 
   back() {
     if (this.currentIndex > this.startIndex) this.location.back();
+  }
+
+  clearLastSelected() {
+    this.store.view.clearLastSelected();
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      take(1),
+    ).subscribe(() => this.store.view.clearLastSelected());
   }
 }

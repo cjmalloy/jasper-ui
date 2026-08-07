@@ -61,4 +61,18 @@ describe('SubscriptionBarComponent', () => {
     component.back();
     expect(back).toHaveBeenCalledOnce();
   });
+
+  it('clears the last selected ref after link navigation', () => {
+    const ref = { url: 'https://example.com' } as any;
+    component.store.view.setRef(ref);
+
+    fixture.nativeElement.querySelector('.subs').click();
+    component.store.view.clearRef();
+    expect(component.store.view.lastSelected).toMatchObject(ref);
+
+    const router = TestBed.inject(Router);
+    (router.events as Subject<NavigationEnd>).next(new NavigationEnd(1, '/home', '/home'));
+
+    expect(component.store.view.lastSelected).toBeUndefined();
+  });
 });
