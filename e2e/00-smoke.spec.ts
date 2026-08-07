@@ -43,6 +43,24 @@ test.describe.serial('Smoke Tests', () => {
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
   });
 
+  test('restores the selected ref only on browser back', async ({ page }) => {
+    await page.goto('/tag/@*?debug=ADMIN', { waitUntil: 'networkidle' });
+    const ref = page.locator('.ref-list-item.ref', { hasText: 'Title' });
+    await expect(ref).toBeVisible();
+
+    await ref.locator('.actions a', { hasText: 'permalink' }).first().click();
+    await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
+    await page.goBack({ waitUntil: 'networkidle' });
+    await expect(ref).toHaveClass(/last-selected/);
+
+    await ref.locator('.actions a', { hasText: 'permalink' }).first().click();
+    await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
+    await page.locator('.subscription-bar .subs a', { hasText: /^all$/ }).click();
+    await expect(ref).toBeVisible();
+    await page.waitForTimeout(500);
+    await expect(ref).not.toHaveClass(/last-selected/);
+  });
+
   test('deletes a ref', async ({ page }) => {
     await page.goto(`/ref/e/${encodeURIComponent('https://jasperkm.info/')}?debug=ADMIN`);
     const deleteLink = page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' }).first();
