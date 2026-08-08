@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
-import { action, makeAutoObservable, observable, runInAction } from 'mobx';
+import { action, makeAutoObservable, observableRef, observableStruct, runInAction } from 'mobx';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
@@ -26,8 +26,8 @@ export class QueryStore {
     private refs: RefService,
   ) {
     makeAutoObservable(this, {
-      args: observable.struct,
-      page: observable.ref,
+      args: observableStruct,
+      page: observableRef,
       clear: action,
     });
     this.clear(); // Initial observables may not be null for MobX
