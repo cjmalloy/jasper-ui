@@ -1,9 +1,9 @@
-import { AsyncPipe } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { AsyncPipe, DOCUMENT } from '@angular/common';
+import { Component, HostListener, Inject, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import DOMPurify from 'dompurify';
-import { catchError, finalize, of, Subscription } from 'rxjs';
+import { catchError, finalize, fromEvent, of, Subscription } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
 import { mapRef, Ref, RefUpdates, writeRef } from '../../model/ref';
@@ -89,6 +89,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   dropFilled = false;
 
   constructor(
+    @Inject(DOCUMENT) document: Document,
     private config: ConfigService,
     public store: Store,
     private admin: AdminService,
@@ -97,6 +98,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     private stomp: StompService,
     private router: Router,
   ) {
+    fromEvent<DragEvent>(document, 'drop', { capture: true })
+      .pipe(takeUntilDestroyed())
+      .subscribe(event => this.documentDrop(event));
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'clip' && event.ref?.url) {
         this.addItem({ ref: event.ref });
@@ -234,7 +238,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (!this.dropDragDepth) this.resetDropState();
   }
 
-  @HostListener('document:drop', ['$event'])
   documentDrop(event: DragEvent) {
     if (this.isDropZoneTarget(event.target as HTMLElement | null)) return;
     this.resetDropState();
