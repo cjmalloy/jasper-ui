@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observableRef, observableShallow } from 'mobx';
 import { Ref } from '../model/ref';
 
 export class OriginStore {
@@ -12,12 +12,12 @@ export class OriginStore {
 
   constructor() {
     makeAutoObservable(this, {
-      origins: observable.shallow,
-      list: observable.ref,
-      lookup: observable.ref,
-      tunnelLookup: observable.ref,
-      reverseLookup: observable.ref,
-      originMap: observable.ref,
+      origins: observableShallow,
+      list: observableRef,
+      lookup: observableRef,
+      tunnelLookup: observableRef,
+      reverseLookup: observableRef,
+      originMap: observableRef,
     });
   }
 

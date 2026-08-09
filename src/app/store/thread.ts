@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { action, makeAutoObservable, observable, runInAction } from 'mobx';
+import { action, makeAutoObservable, observableRef, observableStruct, runInAction } from 'mobx';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs, RefSort } from '../model/ref';
@@ -25,10 +25,10 @@ export class ThreadStore {
     private refs: RefService,
   ) {
     makeAutoObservable(this, {
-      args: observable.struct,
-      cache: observable.ref,
-      pages: observable.ref,
-      latest: observable.ref,
+      args: observableStruct,
+      cache: observableRef,
+      pages: observableRef,
+      latest: observableRef,
       clear: action,
       setArgs: action,
       add: action,
