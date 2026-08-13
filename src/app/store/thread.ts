@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { action, makeAutoObservable, observableRef, observableStruct, runInAction } from 'mobx';
-import { catchError, EMPTY, Subscription } from 'rxjs';
+import { catchError, EMPTY, finalize, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs, RefSort } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
@@ -16,10 +16,13 @@ export class ThreadStore {
   args?: RefPageArgs = {} as any;
   pages: Page<Ref>[] = [];
   error?: HttpErrorResponse = {} as any;
-  cache = new Map<string | undefined, Ref[]>();
+  cache = new Map<string, Ref[]>();
   latest: Ref[] = [];
+  loaded = false;
 
   private loading?: Subscription;
+  private loadingPage = false;
+  private loadingSources = new Map<string, Subscription>();
 
   constructor(
     private refs: RefService,
@@ -39,14 +42,20 @@ export class ThreadStore {
   }
 
   clear() {
+    this.loading?.unsubscribe();
+    this.loading = undefined;
+    for (const loading of this.loadingSources.values()) loading.unsubscribe();
+    this.loadingSources.clear();
+    this.loadingPage = false;
     this.error = undefined;
     this.args = {
       size: this.defaultBatchSize,
       page: 0,
     };
     this.pages = [];
-    this.cache.clear();
-    this.loading?.unsubscribe();
+    this.cache = new Map();
+    this.latest = [];
+    this.loaded = false;
   }
 
   setArgs(top?: string, sort?: RefSort | RefSort[], filters?: UrlFilter[], search?: string) {
@@ -61,56 +70,72 @@ export class ThreadStore {
   }
 
   add(ref: Ref) {
-    if (!ref.sources?.[0]) return;
-    if (this.cache.has(ref.sources?.[0])) {
-      const arr = this.cache.get(ref.sources?.[0])!;
-      if (!arr.find(x => x.url === ref.url)) arr.push(ref);
-    } else {
-      this.cache.set(ref.sources?.[0], [ref]);
-    }
+    const cache = new Map(this.cache);
+    if (this.addToCache(cache, ref)) this.cache = cache;
   }
 
   addPage(page: Page<Ref>) {
-    if (!page.content.length) return;
-    this.pages.push(page);
-    for (const r of page.content) this.add(r);
+    const cache = new Map(this.cache);
+    for (const ref of page.content) this.addToCache(cache, ref);
+    this.pages = [...this.pages, page];
+    this.cache = cache;
     this.latest = page.content;
+    this.loaded = true;
   }
 
   loadMore() {
-    this.args = {
+    if (this.loadingPage || (this.loaded && !this.hasMore)) return;
+    this.loadingPage = true;
+    this.error = undefined;
+    const args = {
       ...this.args,
       page: this.pages.length,
     };
-    this.loading = this.refs.page(this.args).pipe(
+    this.loading = this.refs.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        runInAction(() => {
+          this.error = err;
+          this.loaded = true;
+        });
         return EMPTY;
       }),
+      finalize(() => runInAction(() => this.loadingPage = false)),
     ).subscribe(page => runInAction(() => this.addPage(page)));
   }
 
   loadAdHoc(source?: string) {
+    if (!source || this.loadingSources.has(source)) return;
+    this.error = undefined;
+    const existing = this.cache.get(source)?.length || 0;
     const args = {
       ...this.args,
       responses: source,
+      size: existing ? 20 : this.defaultBatchSize,
+      page: existing ? Math.floor(existing / 20) : 0,
     };
-    const existing = this.cache.get(source)?.length;
-    if (existing) {
-      args.size = 20;
-      args.page = Math.floor(existing / 20);
-    }
-    this.loading = this.refs.page(args).pipe(
+    const loading = new Subscription();
+    this.loadingSources.set(source, loading);
+    loading.add(this.refs.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
         runInAction(() => this.error = err);
         return EMPTY;
       }),
+      finalize(() => runInAction(() => this.loadingSources.delete(source))),
     ).subscribe(page => runInAction(() => {
-      if (source) {
-        for (const ref of page.content) this.add(ref);
-        runInAction(() => this.latest = page.content);
-      }
-    }));
+      const cache = new Map(this.cache);
+      for (const ref of page.content) this.addToCache(cache, ref);
+      this.cache = cache;
+      this.latest = page.content;
+    })));
+  }
+
+  private addToCache(cache: Map<string, Ref[]>, ref: Ref) {
+    const source = ref.sources?.[0];
+    if (!source) return false;
+    const comments = cache.get(source) || [];
+    if (comments.some(comment => comment.url === ref.url && comment.origin === ref.origin)) return false;
+    cache.set(source, [...comments, ref]);
+    return true;
   }
 
   get hasMore() {

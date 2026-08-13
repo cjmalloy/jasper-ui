@@ -282,12 +282,10 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
     return hasTag('plugin/delete', this.ref);
   }
 
-  @memo
   get comments() {
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
-  @memo
   get moreComments() {
     return this.comments > (this.thread.cache.get(this.ref.url)?.length || 0) + this.newComments;
   }

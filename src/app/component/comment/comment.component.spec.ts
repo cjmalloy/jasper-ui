@@ -30,4 +30,17 @@ describe('CommentComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('recomputes whether more comments remain after cache updates', () => {
+    component.ref = {
+      url: 'parent',
+      metadata: { plugins: { 'plugin/comment': 1 } },
+    };
+    component.init();
+    expect(component.moreComments).toBe(true);
+
+    component.thread.add({ url: 'child', origin: '', sources: ['parent'] });
+
+    expect(component.moreComments).toBe(false);
+  });
 });

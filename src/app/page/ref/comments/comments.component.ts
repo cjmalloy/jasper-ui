@@ -22,6 +22,7 @@ import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
   selector: 'app-ref-comments',
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss'],
+  host: { 'class': 'ref-comments' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FakeLinkDirective,
