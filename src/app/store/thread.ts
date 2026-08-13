@@ -84,7 +84,7 @@ export class ThreadStore {
   }
 
   loadMore() {
-    if (this.loadingPage || (this.loaded && !this.hasMore)) return;
+    if (this.loadingPage || (this.loaded && !this.error && !this.hasMore)) return;
     this.loadingPage = true;
     this.error = undefined;
     const args = {
@@ -93,10 +93,7 @@ export class ThreadStore {
     };
     this.loading = this.refs.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => {
-          this.error = err;
-          this.loaded = true;
-        });
+        runInAction(() => this.error = err);
         return EMPTY;
       }),
       finalize(() => runInAction(() => this.loadingPage = false)),

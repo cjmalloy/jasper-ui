@@ -50,6 +50,18 @@ describe('ThreadStore', () => {
     expect(store.latest).toEqual([]);
   });
 
+  it('allows retrying a failed initial load', () => {
+    store.setArgs('top');
+    requests[0].error({ status: 500 });
+
+    expect(store.loaded).toBe(false);
+    expect(store.error?.status).toBe(500);
+
+    store.loadMore();
+
+    expect(refs.page).toHaveBeenCalledTimes(2);
+  });
+
   it('indexes every loaded comment under its immediate parent', () => {
     const parent = ref('parent', 'top');
     const child = ref('child', 'parent');

@@ -4,6 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { MarkdownModule } from 'ngx-markdown';
 import { Subject } from 'rxjs';
 import { ThreadStore } from '../../../store/thread';
 
@@ -15,7 +16,10 @@ describe('CommentThreadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [forwardRef(() => CommentThreadComponent)],
+      imports: [
+        forwardRef(() => CommentThreadComponent),
+        MarkdownModule.forRoot(),
+      ],
       providers: [
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
@@ -42,9 +46,12 @@ describe('CommentThreadComponent', () => {
     fixture.componentRef.setInput('source', 'parent');
     fixture.detectChanges();
     expect(component.comments).toEqual([first]);
+    expect(fixture.nativeElement.querySelectorAll('.comment')).toHaveLength(1);
 
     thread.add(second);
+    fixture.detectChanges();
     expect(component.comments).toEqual([first, second]);
+    expect(fixture.nativeElement.querySelectorAll('.comment')).toHaveLength(2);
   });
 
   it('does not pad a page-sized cache with empty comments', () => {
@@ -56,5 +63,6 @@ describe('CommentThreadComponent', () => {
     fixture.detectChanges();
 
     expect(component.comments).toHaveLength(1);
+    expect(fixture.nativeElement.querySelectorAll('.comment')).toHaveLength(1);
   });
 });

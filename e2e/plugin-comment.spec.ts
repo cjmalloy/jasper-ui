@@ -23,11 +23,13 @@ test.describe.serial('Comment threads', () => {
   test('finishes loading an empty comment thread', async ({ page }) => {
     await page.goto(`/ref/e/${encodeURIComponent(url)}/comments?debug=ADMIN`, { waitUntil: 'networkidle' });
 
-    await expect(page.locator('.comment-thread')).toBeVisible();
+    await expect(page.locator('.comment-thread')).toHaveCount(1);
     await expect(page.locator('.comment-thread > .comment')).toHaveCount(0);
   });
 
   test('loads nested children on the initial render', async ({ page }) => {
+    await page.goto(`/ref/e/${encodeURIComponent(url)}/comments?debug=ADMIN`, { waitUntil: 'networkidle' });
+
     const reply = async (scope: Locator, text: string) => {
       await scope.locator('.comment-reply textarea').fill(text);
       const submitted = page.waitForResponse(response => (
