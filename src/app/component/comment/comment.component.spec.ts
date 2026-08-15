@@ -47,4 +47,24 @@ describe('CommentComponent', () => {
 
     expect(component.moreComments).toBe(false);
   });
+
+  it('does not double-count new comments that arrive in the cache', () => {
+    component.ref = {
+      url: 'parent',
+      metadata: { plugins: { 'plugin/comment': 20 } },
+    };
+    component.init();
+    const reply = { url: 'reply', origin: '', sources: ['parent'] };
+    component.newComments$.next(reply);
+    for (let i = 0; i < 19; i++) {
+      component.thread.add({ url: `child-${i}`, origin: '', sources: ['parent'] });
+    }
+    component.thread.add(reply);
+
+    expect(component.moreComments).toBe(true);
+
+    component.thread.add({ url: 'last-child', origin: '', sources: ['parent'] });
+
+    expect(component.moreComments).toBe(false);
+  });
 });

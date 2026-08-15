@@ -109,7 +109,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
   showLoadMore = true;
 
   commentEdited$ = new Subject<Ref>();
-  newComments = 0;
+  newComments = new Set<string>();
   newComments$ = new Subject<Ref | undefined>();
   icons: Icon[] = [];
   actions: Action[] = [];
@@ -152,7 +152,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
     ).subscribe(ref => {
       this.replying = false;
       if (ref) {
-        this.newComments++;
+        this.newComments.add(`${ref.origin || ''}\0${ref.url}`);
         this.ref.metadata ||= {};
         this.ref.metadata.plugins ||= {};
         this.ref.metadata.plugins['plugin/comment'] ||= 0;
@@ -287,7 +287,11 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
   }
 
   get moreComments() {
-    return this.comments > (this.thread.cache.get(this.ref.url)?.length || 0) + this.newComments;
+    const comments = new Set(this.newComments);
+    for (const comment of this.thread.cache.get(this.ref.url) || []) {
+      comments.add(`${comment.origin || ''}\0${comment.url}`);
+    }
+    return this.comments > comments.size;
   }
 
   @memo
