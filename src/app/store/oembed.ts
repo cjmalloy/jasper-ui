@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { makeAutoObservable, observable, runInAction } from 'mobx';
+import { makeAutoObservable, observableRef, runInAction } from 'mobx';
 import { catchError, Observable, of, shareReplay, Subject, throwError } from 'rxjs';
 import { Oembed } from '../model/oembed';
 import { OEmbedService } from '../service/api/oembed.service';
@@ -17,7 +17,7 @@ export class OembedStore {
     private oembeds: OEmbedService,
   ) {
     makeAutoObservable(this, {
-      cache: observable.ref,
+      cache: observableRef,
     });
   }
 

@@ -1,5 +1,5 @@
 import { flatten, isArray, without } from 'lodash-es';
-import { action, autorun, makeAutoObservable, observable } from 'mobx';
+import { action, autorun, makeAutoObservable, observableShallow } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -26,10 +26,10 @@ export class SubmitStore {
     private eventBus: EventBus,
   ) {
     makeAutoObservable(this, {
-      submitGenId: observable.shallow,
-      submitDm: observable.shallow,
-      files: observable.shallow,
-      caching: observable.shallow,
+      submitGenId: observableShallow,
+      submitDm: observableShallow,
+      files: observableShallow,
+      caching: observableShallow,
       setRef: action,
       setExt: action,
     });
