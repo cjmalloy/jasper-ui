@@ -53,14 +53,26 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   @ViewChildren('comment')
   list?: QueryList<CommentComponent>;
 
-  comments: Ref[] = [];
+  comments?: Ref[] = [];
   newComments: Ref[] = [];
 
   constructor(
     public store: Store,
     public thread: ThreadStore,
   ) {
-    this.disposers.push(autorun(() => this.updateComments()));
+    this.disposers.push(autorun(() => {
+      if (thread.latest.length) {
+        this.comments = thread.cache.get(this.source);
+        if (this.comments && this.newComments.length) {
+          const newUrls = new Set(this.newComments.map(c => c.url));
+          this.comments = this.comments.filter(c => !newUrls.has(c.url));
+        }
+        if (this.comments && this.pageSize) {
+          this.comments = [...this.comments!];
+          this.comments.length = this.pageSize;
+        }
+      }
+    }));
   }
 
   saveChanges(): boolean {
@@ -70,32 +82,23 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ngOnInit(): void {
     this.newComments$.pipe(
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(comment => {
-      if (!comment) return;
-      this.newComments.unshift(comment);
-      this.updateComments();
-    });
+    ).subscribe(comment => comment && this.newComments.unshift(comment));
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.source) this.newComments = [];
     if (changes.source || changes.pageSize) {
-      this.updateComments();
+      this.newComments = [];
+      this.comments = this.thread.cache.get(this.source);
+      if (this.comments && this.pageSize) {
+        this.comments = [...this.comments!];
+        this.comments.length = this.pageSize;
+      }
     }
   }
 
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-  }
-
-  private updateComments() {
-    let comments = this.thread.cache.get(this.source) || [];
-    if (this.newComments.length) {
-      const newRefs = new Set(this.newComments.map(comment => `${comment.origin || ''}\0${comment.url}`));
-      comments = comments.filter(comment => !newRefs.has(`${comment.origin || ''}\0${comment.url}`));
-    }
-    this.comments = this.pageSize === undefined ? comments : comments.slice(0, this.pageSize);
   }
 
 }
