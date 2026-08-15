@@ -16,7 +16,7 @@ describe('QueryStore', () => {
 
     store.setArgs({ query: 'test', sources: source.url });
 
-    expect(refs.page).toHaveBeenCalled();
+    expect(refs.page).toHaveBeenCalledOnce();
     expect(refs.getCurrent).toHaveBeenCalledWith(source.url);
     expect(store.sourcesOf).toEqual(source);
   });
@@ -34,5 +34,68 @@ describe('QueryStore', () => {
     expect(refs.page).not.toHaveBeenCalled();
     expect(refs.getCurrent).toHaveBeenCalledWith(source.url);
     expect(store.sourcesOf).toEqual(source);
+  });
+
+  it('uses hidden tie-breakers for ordinary date-sorted page requests', () => {
+    const refs = {
+      page: vi.fn(() => of(Page.of([]))),
+      getCurrent: vi.fn(),
+    } as unknown as RefService;
+    const store = new QueryStore(refs);
+    const args = { query: 'test', sort: ['published,DESC' as const] };
+
+    store.setArgs(args);
+
+    expect(refs.page).toHaveBeenCalledOnce();
+    expect(refs.page).toHaveBeenCalledWith({
+      query: 'test',
+      sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
+    });
+    expect(store.args).toBe(args);
+  });
+
+  it('uses a queued cursor request for its matching page navigation', () => {
+    const offsetPage = Page.of([]);
+    const cursorPage = Page.of([{ url: 'https://example.com/cursor' }]);
+    const loadOffsetPage = vi.fn(() => of(offsetPage));
+    const refs = {
+      page: loadOffsetPage,
+      getCurrent: vi.fn(),
+    } as unknown as RefService;
+    const store = new QueryStore(refs);
+    const args = { query: 'test', page: 0, size: 2, sort: ['published,DESC' as const] };
+
+    store.setArgs(args);
+    loadOffsetPage.mockClear();
+    store.queueCursorPage(1, of(cursorPage));
+    store.setArgs({ ...args, page: 1 });
+
+    expect(loadOffsetPage).not.toHaveBeenCalled();
+    expect(store.page).toBe(cursorPage);
+  });
+
+  it('discards a queued cursor request when the navigation does not match', () => {
+    const offsetPage = Page.of([]);
+    const cursorPage = Page.of([{ url: 'https://example.com/cursor' }]);
+    const loadOffsetPage = vi.fn(() => of(offsetPage));
+    const refs = {
+      page: loadOffsetPage,
+      getCurrent: vi.fn(),
+    } as unknown as RefService;
+    const store = new QueryStore(refs);
+    const args = { query: 'test', page: 1, size: 2, sort: ['published,DESC' as const] };
+
+    store.setArgs(args);
+    loadOffsetPage.mockClear();
+    store.queueCursorPage(2, of(cursorPage));
+    const directArgs = { ...args, page: 3 };
+    store.setArgs(directArgs);
+
+    expect(loadOffsetPage).toHaveBeenCalledOnce();
+    expect(loadOffsetPage).toHaveBeenCalledWith({
+      ...directArgs,
+      sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
+    });
+    expect(store.page).toBe(offsetPage);
   });
 });

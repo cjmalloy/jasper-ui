@@ -7,6 +7,7 @@ import { braces, fixClientQuery, hasPrefix } from './tag';
 const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
 const DEFAULT_DESC_PREFIXES = ['metadata->'];
 const DEFAULT_DESC_EXACT = ['created', 'published', 'modified', 'rank'];
+const DATE_SORT_FIELDS = ['created', 'modified', 'published'];
 export const defaultDesc = (sort: string) =>
   DEFAULT_DESC_EXACT.includes(sort) ||
   DEFAULT_DESC_PREFIXES.some(prefix => sort.startsWith(prefix)) ||
@@ -127,6 +128,22 @@ export function getArgs(
     page: pageNumber,
     size: pageSize,
     ...getRefFilter(filters),
+  };
+}
+
+export function withStableDateSort(args: RefPageArgs): RefPageArgs {
+  const sort = args.sort ?? [];
+  const [primaryField] = sort[0]?.split(',') ?? [];
+  if (!DATE_SORT_FIELDS.includes(primaryField)) return args;
+
+  const sortFields = sort.map(value => value.split(',')[0]);
+  return {
+    ...args,
+    sort: [
+      ...sort,
+      ...(!sortFields.includes('modified') ? ['modified,ASC' as const] : []),
+      ...(!sortFields.includes('origin') ? ['origin,ASC' as const] : []),
+    ],
   };
 }
 
