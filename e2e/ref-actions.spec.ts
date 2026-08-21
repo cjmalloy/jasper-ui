@@ -88,7 +88,7 @@ test.describe.serial('Ref Actions', () => {
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
   });
 
-  test('shows retry after a websocket error update in a thread', async () => {
+  test('shows retry after a websocket error update in a thread', async ({ browser }) => {
     const summaryUrl = new URL(page.url());
     const threadUrl = new URL(summaryUrl);
     threadUrl.pathname = threadUrl.pathname.startsWith('/ref/e/')
@@ -97,7 +97,8 @@ test.describe.serial('Ref Actions', () => {
     threadUrl.searchParams.set('debug', 'MOD');
     await page.goto(threadUrl.toString(), { waitUntil: 'networkidle' });
 
-    const updater = await page.context().newPage();
+    const updaterContext = await browser.newContext();
+    const updater = await updaterContext.newPage();
     try {
       summaryUrl.searchParams.set('debug', 'ADMIN');
       await updater.goto(summaryUrl.toString(), { waitUntil: 'networkidle' });
@@ -127,7 +128,7 @@ test.describe.serial('Ref Actions', () => {
       await retryUpdate;
       await expect(page.locator('.full-page.ref .info .icon', { hasText: '⚠️' })).toHaveCount(0);
     } finally {
-      await updater.close();
+      await updaterContext.close();
     }
   });
 
