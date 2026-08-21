@@ -54,7 +54,7 @@
     "luxon": "^3.7.2",
     "maplibre-gl": "^6.4.0",
     "marked": "^18.0.9",
-    "marked-katex-extension": "^5.1.10",
+    "marked-katex-extension": "^5.1.11",
     "mermaid": "^11.16.1",
     "mobx": "^7.0.0",
     "mobx-angular": "^4.8.0",
