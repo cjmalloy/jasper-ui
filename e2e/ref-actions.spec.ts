@@ -98,17 +98,18 @@ test.describe.serial('Ref Actions', () => {
     const updater = await updaterContext.newPage();
     try {
       await updater.goto(`${origin}/ref/e/${encodeURIComponent(refUrl!)}?debug=ADMIN`, { waitUntil: 'networkidle' });
-      await updater.locator('.full-page.ref .actions .fake-link', { hasText: 'tag' }).first().click();
-      const tagUpdate = updater.waitForResponse(response => {
-        const url = new URL(response.url());
-        return url.pathname.endsWith('/api/v1/tags')
-          && response.request().method() === 'POST'
-          && url.searchParams.get('tag') === '+plugin/error'
-          && response.ok();
-      });
-      await updater.locator('.full-page.ref .inline-tagging input').fill('+plugin/error');
-      await updater.locator('.full-page.ref .inline-tagging input').press('Enter');
-      await tagUpdate;
+      await updater.locator('.full-page.ref .actions .fake-link', { hasText: 'edit' }).first().click();
+      const tagList = updater.locator('.full-page.ref .form-group').filter({
+        has: updater.getByRole('button', { name: '+ Add another tag' }),
+      }).first();
+      await tagList.getByRole('button', { name: '+ Add another tag' }).click();
+      await tagList.locator('input').last().fill('+plugin/error');
+      const refUpdate = updater.waitForResponse(response =>
+        response.url().includes('/api/v1/ref')
+        && response.request().method() === 'PUT'
+        && response.ok());
+      await updater.locator('.full-page.ref form.form button', { hasText: 'save' }).click();
+      await refUpdate;
 
       await expect(page.locator('.full-page.ref .info .icon', { hasText: '⚠️' })).toBeVisible();
       const retry = page.locator('.full-page.ref .actions').getByText('retry', { exact: true });
