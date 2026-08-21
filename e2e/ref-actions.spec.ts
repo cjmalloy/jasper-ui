@@ -88,6 +88,49 @@ test.describe.serial('Ref Actions', () => {
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
   });
 
+  test('shows retry after a websocket error update in a thread', async () => {
+    const summaryUrl = new URL(page.url());
+    const threadUrl = new URL(summaryUrl);
+    threadUrl.pathname = threadUrl.pathname.startsWith('/ref/e/')
+      ? threadUrl.pathname.replace('/ref/e/', '/ref/thread/e/')
+      : threadUrl.pathname.replace('/ref/', '/ref/thread/');
+    threadUrl.searchParams.set('debug', 'MOD');
+    await page.goto(threadUrl.toString(), { waitUntil: 'networkidle' });
+
+    const updater = await page.context().newPage();
+    try {
+      summaryUrl.searchParams.set('debug', 'ADMIN');
+      await updater.goto(summaryUrl.toString(), { waitUntil: 'networkidle' });
+      await updater.locator('.full-page.ref .actions .fake-link', { hasText: 'tag' }).first().click();
+      const tagUpdate = updater.waitForResponse(response => {
+        const url = new URL(response.url());
+        return url.pathname.endsWith('/api/v1/tags')
+          && response.request().method() === 'POST'
+          && url.searchParams.get('tag') === '+plugin/error'
+          && response.ok();
+      });
+      await updater.locator('.full-page.ref .inline-tagging input').fill('+plugin/error');
+      await updater.locator('.full-page.ref .inline-tagging input').press('Enter');
+      await tagUpdate;
+
+      await expect(page.locator('.full-page.ref .info .icon', { hasText: '⚠️' })).toBeVisible();
+      const retry = page.locator('.full-page.ref .actions').getByText('retry', { exact: true });
+      await expect(retry).toBeVisible();
+      const retryUpdate = page.waitForResponse(response => {
+        const url = new URL(response.url());
+        return url.pathname.endsWith('/api/v1/tags')
+          && response.request().method() === 'DELETE'
+          && url.searchParams.get('tag') === '+plugin/error'
+          && response.ok();
+      });
+      await retry.click();
+      await retryUpdate;
+      await expect(page.locator('.full-page.ref .info .icon', { hasText: '⚠️' })).toHaveCount(0);
+    } finally {
+      await updater.close();
+    }
+  });
+
   test.describe('New Comments/Threads/Replies Indicators', () => {
     test('should clear localStorage for clean test', async () => {
       await page.evaluate(() => localStorage.clear());
