@@ -89,19 +89,15 @@ test.describe.serial('Ref Actions', () => {
   });
 
   test('shows retry after a websocket error update in a thread', async ({ browser }) => {
-    const summaryUrl = new URL(page.url());
-    const threadUrl = new URL(summaryUrl);
-    threadUrl.pathname = threadUrl.pathname.startsWith('/ref/e/')
-      ? threadUrl.pathname.replace('/ref/e/', '/ref/thread/e/')
-      : threadUrl.pathname.replace('/ref/', '/ref/thread/');
-    threadUrl.searchParams.set('debug', 'MOD');
-    await page.goto(threadUrl.toString(), { waitUntil: 'networkidle' });
+    const refUrl = await page.locator('.full-page.ref').getAttribute('data-ref-url');
+    expect(refUrl).toBeTruthy();
+    const origin = new URL(page.url()).origin;
+    await page.goto(`${origin}/ref/thread/e/${encodeURIComponent(refUrl!)}?debug=MOD`, { waitUntil: 'networkidle' });
 
     const updaterContext = await browser.newContext();
     const updater = await updaterContext.newPage();
     try {
-      summaryUrl.searchParams.set('debug', 'ADMIN');
-      await updater.goto(summaryUrl.toString(), { waitUntil: 'networkidle' });
+      await updater.goto(`${origin}/ref/e/${encodeURIComponent(refUrl!)}?debug=ADMIN`, { waitUntil: 'networkidle' });
       await updater.locator('.full-page.ref .actions .fake-link', { hasText: 'tag' }).first().click();
       const tagUpdate = updater.waitForResponse(response => {
         const url = new URL(response.url());
