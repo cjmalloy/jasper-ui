@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { clearMods, openSidebar } from './setup';
+import { mod, openSidebar } from './setup';
 
 test.describe.serial('Ref Actions', () => {
   let page: Page;
@@ -13,7 +13,7 @@ test.describe.serial('Ref Actions', () => {
   });
 
   test('clear mods', async () => {
-    await clearMods(page);
+    await mod(page, '#mod-error');
   });
 
   test('creates a ref', async () => {
