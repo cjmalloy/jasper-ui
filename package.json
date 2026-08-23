@@ -55,7 +55,7 @@
     "maplibre-gl": "^6.4.1",
     "marked": "^18.0.9",
     "marked-katex-extension": "^5.1.10",
-    "mermaid": "^11.16.1",
+    "mermaid": "^11.17.0",
     "mobx": "^7.0.3",
     "mobx-angular": "^4.8.0",
     "monaco-editor": "^0.56.0",
