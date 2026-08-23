@@ -298,7 +298,7 @@ export function getTitleFromFilename(url: string): string | null {
 
 export function sanitizePath(value: string) {
   if (!value) return '';
-  return encodeURIComponent(value.trim().split('\n', 1)[0]
+  return encodeURIComponent(value.trim().split('\n', 1)[0].trim()
     .replace(/[/]/g, ' ')
     .replace(/[?%;]/g, '')
   );
