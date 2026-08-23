@@ -113,5 +113,11 @@
     "fs": false,
     "os": false,
     "path": false
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "@parcel/watcher@2.5.6": true,
+    "lmdb@3.5.6": true,
+    "msgpackr-extract@3.0.4": true
   }
 }
