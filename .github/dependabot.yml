@@ -27,11 +27,15 @@ updates:
         - "zone.js"
         - "typescript"
         - "tslib"
-        - "ngx-markdown"
         - "ngx-monaco-editor"
     formly:
       patterns:
         - "@ngx-formly/*"
+    marked:
+      patterns:
+        - "ngx-markdown"
+        - "marked"
+        - "marked-*"
     ag-grid:
       patterns:
         - "ag-grid-angular"
