@@ -1,5 +1,5 @@
 import { isEqual, uniq } from 'lodash-es';
-import { action, makeAutoObservable, observable } from 'mobx';
+import { action, makeAutoObservable, observableShallow } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -67,10 +67,10 @@ export class ViewStore {
       setRef: action,
       preloadRef: action,
       setLastSelected: action,
-      exts: observable.shallow,
-      extTemplates: observable.shallow,
-      inboxTabs: observable.shallow,
-      settingsTabs: observable.shallow,
+      exts: observableShallow,
+      extTemplates: observableShallow,
+      inboxTabs: observableShallow,
+      settingsTabs: observableShallow,
     });
     this.clear(); // Initial observables may not be null for MobX
   }

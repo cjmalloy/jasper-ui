@@ -1,5 +1,16 @@
 /// <reference types="vitest/globals" />
-import { defaultDesc, getArgs, getFilter, getFilters, getFiltersQuery, negate, negatable, toggle, UrlFilter } from './query';
+import {
+  defaultDesc,
+  getArgs,
+  getFilter,
+  getFilters,
+  getFiltersQuery,
+  negate,
+  negatable,
+  withStableDateSort,
+  toggle,
+  UrlFilter,
+} from './query';
 
 describe('Query Utils', () => {
   describe('defaultDesc', () => {
@@ -242,6 +253,28 @@ describe('Query Utils', () => {
       const filters: UrlFilter[] = ['!plugin/vote' as UrlFilter];
       const args = getArgs('science', undefined, filters);
       expect(args.noPluginResponse).toContain('plugin/vote');
+    });
+  });
+
+  describe('withStableDateSort', () => {
+    it('adds modified and origin tie-breakers to date sorts', () => {
+      expect(withStableDateSort({ sort: ['published,DESC'] }).sort).toEqual([
+        'published,DESC',
+        'modified,ASC',
+        'origin,ASC',
+      ]);
+    });
+
+    it('does not duplicate an existing modified tie-breaker', () => {
+      expect(withStableDateSort({ sort: ['modified,DESC'] }).sort).toEqual([
+        'modified,DESC',
+        'origin,ASC',
+      ]);
+    });
+
+    it('leaves non-date sorts unchanged', () => {
+      const args = { sort: ['title,ASC' as const] };
+      expect(withStableDateSort(args)).toBe(args);
     });
   });
 });

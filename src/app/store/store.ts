@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observableRef } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { AccountStore } from './account';
 import { EventBus } from './bus';
@@ -34,7 +34,7 @@ export class Store {
     private route: RouterStore,
   ) {
     makeAutoObservable(this, {
-      local: observable.ref,
+      local: observableRef,
     });
   }
 

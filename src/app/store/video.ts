@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observableRef, observableShallow } from 'mobx';
 
 export class VideoStore {
 
@@ -11,10 +11,10 @@ export class VideoStore {
 
   constructor() {
     makeAutoObservable(this, {
-      stream: observable.ref,
-      peers: observable.shallow,
-      streams: observable.shallow,
-      hungup: observable.shallow,
+      stream: observableRef,
+      peers: observableShallow,
+      streams: observableShallow,
+      hungup: observableShallow,
     });
     this.stream = undefined;
   }

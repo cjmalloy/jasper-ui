@@ -207,7 +207,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           modifiedString: this.store.view.ref?.modifiedString,
         };
         runInAction(() => Object.assign(this.store.view.ref!, merged));
-        this.store.eventBus.refresh(merged);
+        this.store.eventBus.refresh(this.store.view.ref!);
       });
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
