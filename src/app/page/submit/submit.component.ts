@@ -197,9 +197,9 @@ export class SubmitPage implements OnInit, OnDestroy {
         map(page => {
           this.responsesToUrl = page;
           this.responsesToUrlFor = url;
-          return false;
+          return exists;
         }),
-        catchError(err => of(false)),
+        catchError(() => of(exists)),
       )),
     );
   }
