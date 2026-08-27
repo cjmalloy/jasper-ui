@@ -196,6 +196,18 @@ test.describe.serial('Bookmark Formly Type', () => {
     expect(value).toMatch(/science\?sort=published/);
   });
 
+  test('preserves an empty filter override when editing params', async ({ page }) => {
+    await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
+    const bookmarkField = await addBookmark(page, 'science?filter=');
+    await bookmarkField.locator('.filter-toggle').click();
+    await page.locator('.params-panel').locator('select.big').first().selectOption('published');
+    await page.locator('label', { hasText: 'Bookmarks' }).first().click();
+    await bookmarkField.locator('.crumbs-left').click();
+
+    const value = await bookmarkField.locator('input.grow:not(.preview)').inputValue();
+    expect(value).toContain('filter=');
+  });
+
   test('params are not percent-encoded for readable characters', async ({ page }) => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     const bookmarkField = await addBookmark(page, 'science');
