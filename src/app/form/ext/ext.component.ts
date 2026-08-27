@@ -239,7 +239,7 @@ export class ExtFormComponent  {
       return this.allFilters.find(option => option.filter.startsWith(prefix))?.filter || filter;
     }
     if (this.allFilters.some(option => option.filter === filter)) return filter;
-    if (filter.startsWith('!') || filter.startsWith('user/!') || filter.startsWith('query/!(')) {
+    if (negatable(filter)) {
       const toggled = toggle(filter);
       return this.allFilters.find(option => option.filter === toggled)?.filter || filter;
     }
