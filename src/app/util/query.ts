@@ -1,5 +1,5 @@
 import { isArray, uniq, without } from 'lodash-es';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { braces, fixClientQuery, hasPrefix } from './tag';
@@ -257,6 +257,12 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
 }
 
 export function fixDateTime(t: string) {
+  const relative = t.toUpperCase();
+  if (relative === 'NOW') return DateTime.now().toUTC().toISO()!;
+  if (relative.startsWith('P')) {
+    const duration = Duration.fromISO(relative);
+    if (duration.isValid) return DateTime.now().minus(duration).toUTC().toISO()!;
+  }
   return DateTime.fromISO(t).toUTC().toISO()!;
 }
 
