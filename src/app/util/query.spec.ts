@@ -222,6 +222,12 @@ describe('Query Utils', () => {
 
         expect(args.publishedBefore).toBe('2026-07-09T23:36:00.000Z');
       });
+
+      it('should reject incomplete ISO durations', () => {
+        const args = getArgs('science', undefined, ['published/before/P']);
+
+        expect(args.publishedBefore).toBeNull();
+      });
     });
 
     it('should extract source filters', () => {

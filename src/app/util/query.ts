@@ -259,7 +259,7 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
 export function fixDateTime(t: string) {
   const relative = t.toUpperCase();
   if (relative === 'NOW') return DateTime.now().toUTC().toISO()!;
-  if (relative.startsWith('P')) {
+  if (relative.startsWith('P') && /\d/.test(relative)) {
     const duration = Duration.fromISO(relative);
     if (duration.isValid) return DateTime.now().minus(duration).toUTC().toISO()!;
   }
