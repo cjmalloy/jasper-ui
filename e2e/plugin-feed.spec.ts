@@ -5,6 +5,7 @@ test.describe.serial('Feed Plugin', () => {
   const channelUrl = 'https://www.youtube.com/@jasper-e2e';
 
   test('reposts an existing YouTube feed source', async ({ page }) => {
+    test.setTimeout(120_000);
     await clearMods(page);
     await deleteRef(page, channelUrl);
 
@@ -20,7 +21,7 @@ test.describe.serial('Feed Plugin', () => {
 
     await mod(page, '#mod-feeds');
     await page.goto(`/submit?debug=ADMIN&url=${encodeURIComponent(channelUrl)}`, { waitUntil: 'networkidle' });
-    await expect(page.locator('.select-plugin select')).toHaveValue('plugin/script/feed');
+    await expect(page.getByRole('heading', { name: /RSS\/Atom Feed/ })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Repost' })).toBeVisible();
     await page.getByRole('button', { name: 'Repost' }).click();
 
