@@ -73,11 +73,11 @@
               <select [id]="id + '-defaultFilter-' + i"
                       (input)="setFilter(i, $any($event.target).value)">
                 @for (opt of allFilters; track opt) {
-                  <option [value]="opt.filter" [selected]="opt.filter === filterOption(filter)">{{ opt.label || opt.filter }}</option>
+                  <option [value]="opt.filter" [selected]="opt.filter === filterOption(filter)">{{ filterOptionLabel(filter, opt) }}</option>
                 }
               </select>
               @if (negatable(filter)) {
-                <button type="button" (click)="toggleFilter(i)">{{ store.account.querySymbol('!') }}</button>
+                <button class="default-filter-negate" type="button" (click)="toggleFilter(i)">{{ store.account.querySymbol('!') }}</button>
               }
               <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
             </span>

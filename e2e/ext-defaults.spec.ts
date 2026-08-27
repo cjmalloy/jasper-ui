@@ -58,8 +58,12 @@ test.describe.serial('Ext defaults', () => {
     await expect(range).toBeVisible();
     await expect(page.locator('.default-filter-date-range output').first()).toHaveText('15 minutes');
     const queryFilter = page.locator('.default-filter-row').last();
-    await queryFilter.locator('button').first().click();
+    const queryFilterOption = queryFilter.locator('option:checked');
+    await expect(queryFilterOption).toHaveText('public');
+    await queryFilter.locator('.default-filter-negate').click();
     await expect(queryFilter.locator('select')).toHaveValue('query/public');
+    await expect(queryFilterOption).not.toHaveText('public');
+    await expect(queryFilterOption).toContainText('public');
 
     const save = page.waitForResponse(response => (
       response.url().includes('/api/v1/ext') &&

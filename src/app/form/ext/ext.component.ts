@@ -246,6 +246,14 @@ export class ExtFormComponent  {
     return filter;
   }
 
+  filterOptionLabel(filter: UrlFilter, option: FilterItem) {
+    const label = option.label || option.filter;
+    if (negatable(filter) && option.filter !== filter && option.filter === this.filterOption(filter)) {
+      return this.store.account.querySymbol('!') + label;
+    }
+    return label;
+  }
+
   filterIsDate(filter: UrlFilter) {
     return /^(modified|response|published|created)\/(before|after)\//.test(filter);
   }

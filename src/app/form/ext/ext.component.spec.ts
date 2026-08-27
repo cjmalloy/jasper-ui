@@ -72,7 +72,7 @@ describe('ExtFormComponent', () => {
     expect(component.defaultFilter.value).toHaveLength(1);
   });
 
-  it('keeps a negated default filter matched to its base option', () => {
+  it('shows a negated default filter on its base option', () => {
     component.allFilters = [
       { filter: 'query/private', label: 'private' },
       { filter: 'query/public', label: 'public' },
@@ -82,15 +82,25 @@ describe('ExtFormComponent', () => {
     ], { nonNullable: true }));
     fixture.detectChanges();
 
-    component.toggleFilter(0);
+    const row = fixture.nativeElement.querySelector('.default-filter-row');
+    const select = row.querySelector('select') as HTMLSelectElement;
+    const button = row.querySelector('.default-filter-negate') as HTMLButtonElement;
+    expect(select.selectedOptions[0].textContent).toBe('public');
+
+    button.click();
     fixture.detectChanges();
 
     expect(component.defaultFilter.value[0]).toBe('query/!(public)');
     expect(component.filterOption(component.defaultFilter.value[0])).toBe('query/public');
-    expect(fixture.nativeElement.querySelector('.default-filter-row select').value).toBe('query/public');
+    expect(select.value).toBe('query/public');
+    expect(select.selectedOptions[0].textContent).toBe(component.store.account.querySymbol('!') + 'public');
+
+    button.click();
+    fixture.detectChanges();
+    expect(select.selectedOptions[0].textContent).toBe('public');
   });
 
-  it('keeps a default filter matched when its base option is negated', () => {
+  it('shows a toggled default filter when its base option is negated', () => {
     component.allFilters = [
       { filter: 'query/public', label: 'public' },
       { filter: 'user/!plugin/user/read', label: 'unread' },
@@ -105,7 +115,9 @@ describe('ExtFormComponent', () => {
 
     expect(component.defaultFilter.value[0]).toBe('user/plugin/user/read');
     expect(component.filterOption(component.defaultFilter.value[0])).toBe('user/!plugin/user/read');
-    expect(fixture.nativeElement.querySelector('.default-filter-row select').value).toBe('user/!plugin/user/read');
+    const select = fixture.nativeElement.querySelector('.default-filter-row select') as HTMLSelectElement;
+    expect(select.value).toBe('user/!plugin/user/read');
+    expect(select.selectedOptions[0].textContent).toBe(component.store.account.querySymbol('!') + 'unread');
   });
 
   it('includes date filters in the available default filters', () => {
