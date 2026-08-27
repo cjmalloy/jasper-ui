@@ -254,6 +254,11 @@ export class ExtFormComponent  {
     return label;
   }
 
+  hasFilterOption(filter: UrlFilter) {
+    const selected = this.filterOption(filter);
+    return this.allFilters.some(option => option.filter === selected);
+  }
+
   filterIsDate(filter: UrlFilter) {
     return /^(modified|response|published|created)\/(before|after)\//.test(filter);
   }

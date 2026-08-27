@@ -120,6 +120,27 @@ describe('ExtFormComponent', () => {
     expect(select.selectedOptions[0].textContent).toBe(component.store.account.querySymbol('!') + 'unread');
   });
 
+  it('shows an unmatched default filter when it is toggled', () => {
+    component.allFilters = [
+      { filter: 'query/public', label: 'public' },
+    ];
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'query/missing',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    const row = fixture.nativeElement.querySelector('.default-filter-row');
+    const select = row.querySelector('select') as HTMLSelectElement;
+    expect(select.value).toBe('query/missing');
+
+    (row.querySelector('.default-filter-negate') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(component.defaultFilter.value[0]).toBe('query/!(missing)');
+    expect(select.value).toBe('query/!(missing)');
+    expect(select.selectedOptions[0].textContent).toBe('query/!(missing)');
+  });
+
   it('includes date filters in the available default filters', () => {
     expect(component.allFilters.map(filter => filter.filter)).toEqual(expect.arrayContaining([
       expect.stringMatching(/^modified\/before\//),
