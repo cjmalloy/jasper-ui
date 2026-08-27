@@ -94,7 +94,7 @@ test.describe.serial('Ext defaults', () => {
   test('removes a focused sidebar date filter with one click', async ({ page }) => {
     await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
     const filters = page.locator('.filter .controls');
-    await expect(filters).toHaveCount(2);
+    await expect(filters).toHaveCount(3);
     await page.locator('.filter input[type="datetime-local"]').first().focus();
 
     const remove = filters.first().locator('.remove-filter');
@@ -110,7 +110,7 @@ test.describe.serial('Ext defaults', () => {
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await query;
 
-    await expect(filters).toHaveCount(1);
+    await expect(filters).toHaveCount(2);
   });
 
   test('configures and renders a Markdown header', async ({ page }) => {
