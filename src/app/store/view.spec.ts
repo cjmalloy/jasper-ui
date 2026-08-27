@@ -42,6 +42,13 @@ describe('ViewStore defaults', () => {
     expect(store.filter).toEqual(['query/science', 'obsolete']);
   });
 
+  it('uses an explicit empty filter parameter instead of home Ext defaults', () => {
+    const store = createStore({ filter: '' });
+
+    expect(store.urlFilters).toEqual([]);
+    expect(store.filter).toEqual([]);
+  });
+
   it('loads default filters from the tag Ext', () => {
     const store = createStore({}, 'tag', 'science');
     store.exts = [{
