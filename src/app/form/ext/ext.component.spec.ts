@@ -72,6 +72,24 @@ describe('ExtFormComponent', () => {
     expect(component.defaultFilter.value).toHaveLength(1);
   });
 
+  it('keeps a negated default filter matched to its base option', () => {
+    component.allFilters = [
+      { filter: 'query/private', label: 'private' },
+      { filter: 'query/public', label: 'public' },
+    ];
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'query/public',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    component.toggleFilter(0);
+    fixture.detectChanges();
+
+    expect(component.defaultFilter.value[0]).toBe('query/!(public)');
+    expect(component.filterOption(component.defaultFilter.value[0])).toBe('query/public');
+    expect(fixture.nativeElement.querySelector('.default-filter-row select').value).toBe('query/public');
+  });
+
   it('includes date filters in the available default filters', () => {
     expect(component.allFilters.map(filter => filter.filter)).toEqual(expect.arrayContaining([
       expect.stringMatching(/^modified\/before\//),
