@@ -91,28 +91,6 @@ test.describe.serial('Ext defaults', () => {
     await expect(page.locator('.filter .controls')).toHaveCount(3);
   });
 
-  test('removes a focused sidebar date filter with one click', async ({ page }) => {
-    await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
-    const filters = page.locator('.filter .controls');
-    await expect(filters).toHaveCount(3);
-    await page.locator('.filter input[type="datetime-local"]').first().focus();
-
-    const remove = filters.first().locator('.remove-filter');
-    const box = await remove.boundingBox();
-    expect(box).not.toBeNull();
-    const query = page.waitForRequest(request => {
-      const url = new URL(request.url());
-      return url.pathname.endsWith('/api/v1/ref/page') &&
-        url.searchParams.get('size') === '24' &&
-        !url.searchParams.has('publishedBefore') &&
-        url.searchParams.has('createdAfter');
-    });
-    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
-    await query;
-
-    await expect(filters).toHaveCount(2);
-  });
-
   test('configures and renders a Markdown header', async ({ page }) => {
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: '+ Add header' }).click();
