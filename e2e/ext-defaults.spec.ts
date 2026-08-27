@@ -47,7 +47,8 @@ test.describe.serial('Ext defaults', () => {
     const filterCreate = page.locator('.default-filter-create');
     await filterCreate.selectOption({ label: '📅️ published before' });
     await filterCreate.selectOption({ label: '✨️ created after' });
-    await expect(page.locator('.default-filter-row')).toHaveCount(2);
+    await filterCreate.selectOption('query/public');
+    await expect(page.locator('.default-filter-row')).toHaveCount(3);
     await page.locator('.default-filter-row input[type="datetime-local"]').first().fill('2026-07-09T12:30');
     await page.keyboard.down('Control');
     const range = page.locator('.default-filter-row input[type="range"]').first();
@@ -56,6 +57,9 @@ test.describe.serial('Ext defaults', () => {
     await page.keyboard.up('Control');
     await expect(range).toBeVisible();
     await expect(page.locator('.default-filter-date-range output').first()).toHaveText('15 minutes');
+    const queryFilter = page.locator('.default-filter-row').last();
+    await queryFilter.locator('button').first().click();
+    await expect(queryFilter.locator('select')).toHaveValue('query/public');
 
     const save = page.waitForResponse(response => (
       response.url().includes('/api/v1/ext') &&
@@ -63,17 +67,19 @@ test.describe.serial('Ext defaults', () => {
       response.ok()
     ));
     await page.locator('button', { hasText: 'Save' }).click();
-    await save;
+    const saveResponse = await save;
+    expect(saveResponse.request().postDataJSON().config.defaultFilter).toContain('query/!(public)');
 
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await expect(page.locator('.default-sort-row select').first()).toHaveValue('published');
     await expect(page.locator('.default-sort-row select').nth(1)).toHaveValue('modified');
     await expect(page.locator('.default-filter-row select').first()).toHaveValue(/^published\/before\//);
     await expect(page.locator('.default-filter-row select').nth(1)).toHaveValue(/^created\/after\//);
+    await expect(page.locator('.default-filter-row select').nth(2)).toHaveValue('query/public');
 
     await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await expect(page.locator('.sort .controls')).toHaveCount(2);
-    await expect(page.locator('.filter .controls')).toHaveCount(2);
+    await expect(page.locator('.filter .controls')).toHaveCount(3);
   });
 
   test('configures and renders a Markdown header', async ({ page }) => {
