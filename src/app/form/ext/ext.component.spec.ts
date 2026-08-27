@@ -72,6 +72,42 @@ describe('ExtFormComponent', () => {
     expect(component.defaultFilter.value).toHaveLength(1);
   });
 
+  it('keeps a negated default filter matched to its base option', () => {
+    component.allFilters = [
+      { filter: 'query/private', label: 'private' },
+      { filter: 'query/public', label: 'public' },
+    ];
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'query/public',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    component.toggleFilter(0);
+    fixture.detectChanges();
+
+    expect(component.defaultFilter.value[0]).toBe('query/!(public)');
+    expect(component.filterOption(component.defaultFilter.value[0])).toBe('query/public');
+    expect(fixture.nativeElement.querySelector('.default-filter-row select').value).toBe('query/public');
+  });
+
+  it('keeps a default filter matched when its base option is negated', () => {
+    component.allFilters = [
+      { filter: 'query/public', label: 'public' },
+      { filter: 'user/!plugin/user/read', label: 'unread' },
+    ];
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'user/!plugin/user/read',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    component.toggleFilter(0);
+    fixture.detectChanges();
+
+    expect(component.defaultFilter.value[0]).toBe('user/plugin/user/read');
+    expect(component.filterOption(component.defaultFilter.value[0])).toBe('user/!plugin/user/read');
+    expect(fixture.nativeElement.querySelector('.default-filter-row select').value).toBe('user/!plugin/user/read');
+  });
+
   it('includes date filters in the available default filters', () => {
     expect(component.allFilters.map(filter => filter.filter)).toEqual(expect.arrayContaining([
       expect.stringMatching(/^modified\/before\//),

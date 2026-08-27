@@ -234,9 +234,16 @@ export class ExtFormComponent  {
   }
 
   filterOption(filter: UrlFilter) {
-    if (!this.filterIsDate(filter)) return filter;
-    const prefix = filter.substring(0, filter.lastIndexOf('/') + 1);
-    return this.allFilters.find(option => option.filter.startsWith(prefix))?.filter || filter;
+    if (this.filterIsDate(filter)) {
+      const prefix = filter.substring(0, filter.lastIndexOf('/') + 1);
+      return this.allFilters.find(option => option.filter.startsWith(prefix))?.filter || filter;
+    }
+    if (this.allFilters.some(option => option.filter === filter)) return filter;
+    if (negatable(filter)) {
+      const toggled = toggle(filter);
+      return this.allFilters.find(option => option.filter === toggled)?.filter || filter;
+    }
+    return filter;
   }
 
   filterIsDate(filter: UrlFilter) {
