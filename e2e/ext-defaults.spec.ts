@@ -76,37 +76,26 @@ test.describe.serial('Ext defaults', () => {
     await expect(page.locator('.filter .controls')).toHaveCount(2);
   });
 
-  test('removes sidebar default date filters with one click and updates the query', async ({ page }) => {
+  test('removes a focused sidebar date filter with one click', async ({ page }) => {
     await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
     const filters = page.locator('.filter .controls');
     await expect(filters).toHaveCount(2);
-
     await page.locator('.filter input[type="datetime-local"]').first().focus();
-    const firstRemove = filters.first().locator('.remove-filter');
-    const firstRemoveBox = await firstRemove.boundingBox();
-    expect(firstRemoveBox).not.toBeNull();
-    await page.mouse.click(
-      firstRemoveBox!.x + firstRemoveBox!.width / 2,
-      firstRemoveBox!.y + firstRemoveBox!.height / 2,
-    );
 
-    await expect(filters).toHaveCount(1);
-    expect(new URL(page.url()).searchParams.getAll('filter')).toHaveLength(1);
-
-    const unfilteredQuery = page.waitForRequest(request => {
+    const remove = filters.first().locator('.remove-filter');
+    const box = await remove.boundingBox();
+    expect(box).not.toBeNull();
+    const query = page.waitForRequest(request => {
       const url = new URL(request.url());
       return url.pathname.endsWith('/api/v1/ref/page') &&
         url.searchParams.get('size') === '24' &&
         !url.searchParams.has('publishedBefore') &&
-        !url.searchParams.has('createdAfter');
+        url.searchParams.has('createdAfter');
     });
-    await filters.first().locator('.remove-filter').click();
-    await unfilteredQuery;
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await query;
 
-    await expect(filters).toHaveCount(0);
-    const url = new URL(page.url());
-    expect(url.searchParams.has('filter')).toBe(true);
-    expect(url.searchParams.get('filter')).toBe('');
+    await expect(filters).toHaveCount(1);
   });
 
   test('configures and renders a Markdown header', async ({ page }) => {

@@ -22,10 +22,6 @@ describe('HTTP Utils', () => {
       expect(qs).toBe('filter=+plugin/delete');
     });
 
-    it('should preserve an empty filter override', () => {
-      expect(encodeBookmarkParams('/tag/science?filter=')).toBe('filter=');
-    });
-
     it('should return empty string when no relevant params', () => {
       expect(encodeBookmarkParams('/tag/science?pageSize=20&cols=3')).toBe('');
     });
@@ -57,10 +53,6 @@ describe('HTTP Utils', () => {
     it('should encode multiple filter values', () => {
       expect(encodeBookmarkParams({ filter: ['+plugin/delete', 'obsolete'] }))
         .toBe('filter=+plugin/delete&filter=obsolete');
-    });
-
-    it('should encode an empty filter override', () => {
-      expect(encodeBookmarkParams({ filter: '' })).toBe('filter=');
     });
 
     it('should encode URL in sources filter (only & and #)', () => {

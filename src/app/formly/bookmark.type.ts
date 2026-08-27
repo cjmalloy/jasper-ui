@@ -254,7 +254,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   private formChanges?: Subscription;
   private filterOptions?: Subscription;
   private _query = '';
-  private hasFilterParam = false;
 
   constructor(
     private router: Router,
@@ -289,7 +288,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
           this.query = '';
           this.sorts = [];
           this.filters = [];
-          this.hasFilterParam = false;
           this.searchText = '';
           this.buildAllFilters();
         }
@@ -579,7 +577,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     if (idx === -1) {
       this.sorts = [];
       this.filters = [];
-      this.hasFilterParam = false;
       this.searchText = '';
       this.buildAllFilters();
       return;
@@ -587,7 +584,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     const params = parseBookmarkParams(value.substring(idx + 1));
     this.sorts = [params['sort']].flat().filter(Boolean);
     this.filters = [params['filter']].flat().filter(Boolean);
-    this.hasFilterParam = 'filter' in params;
     this.searchText = params['search'] || '';
     this.buildAllFilters();
   }
@@ -597,11 +593,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     const sorts = this.sorts.filter(s => !!s && !s.startsWith(','));
     const filters = this.filters.filter(f => !!f);
     if (sorts.length) p['sort'] = sorts;
-    if (filters.length) {
-      p['filter'] = filters;
-    } else if (this.hasFilterParam) {
-      p['filter'] = '';
-    }
+    if (filters.length) p['filter'] = filters;
     if (this.searchText) p['search'] = this.searchText;
     return encodeBookmarkParams(p);
   }
@@ -725,7 +717,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   // Filter management
   addFilter(value: string) {
     if (!value) return;
-    this.hasFilterParam = true;
     this.filters.push(value);
     this.buildAllFilters();
     this.updateFormValue();
@@ -738,7 +729,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   removeFilter(index: number) {
-    this.hasFilterParam = true;
     this.filters.splice(index, 1);
     this.buildAllFilters();
     this.updateFormValue();

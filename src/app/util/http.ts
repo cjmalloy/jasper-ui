@@ -193,7 +193,7 @@ export function encodeBookmarkParams(input: string | Record<string, string | str
     const parsed = parseBookmarkParams(qs);
     const p: Record<string, string | string[]> = {};
     if (parsed['sort']) p['sort'] = parsed['sort'];
-    if ('filter' in parsed) p['filter'] = parsed['filter'];
+    if (parsed['filter']) p['filter'] = parsed['filter'];
     if (parsed['search']) p['search'] = parsed['search'];
     if (parsed['view']) p['view'] = parsed['view'];
     return encodeBookmarkParams(p);
@@ -202,7 +202,7 @@ export function encodeBookmarkParams(input: string | Record<string, string | str
   for (const key of Object.keys(input)) {
     const values = Array.isArray(input[key]) ? input[key] as string[] : [input[key] as string];
     for (const v of values) {
-      if (v || key === 'filter') pairs.push(`${key}=${encodeBookmarkValue(v)}`);
+      if (v) pairs.push(`${key}=${encodeBookmarkValue(v)}`);
     }
   }
   return pairs.join('&');

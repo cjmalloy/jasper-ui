@@ -11,6 +11,7 @@ import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
+import { BookmarkService } from '../../service/bookmark.service';
 import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
@@ -46,6 +47,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
     private mod: ModService,
     private exts: ExtService,
+    private bookmarks: BookmarkService,
   ) {
     this.disposers.push(autorun(() => this.mod.setTitle(this.store.view.name)));
     runInAction(() => {
@@ -83,7 +85,10 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit() {
     this.disposers.push(autorun(() => {
-      const filters = this.store.view.filter;
+      const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
+      if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
+        this.bookmarks.filters = this.store.view.viewExtFilter;
+      }
       const hideInternal = !this.admin.getPlugins(this.store.view.queryTags.map(localTag)).length;
       const args = getArgs(
         this.store.view.tag,

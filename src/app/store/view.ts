@@ -442,8 +442,7 @@ export class ViewStore {
   }
 
   get filter(): UrlFilter[] {
-    if (this.route.routeSnapshot?.queryParams['filter'] !== undefined) return this.urlFilters;
-    return this.viewExtFilter || [];
+    return this.urlFilters.length ? this.urlFilters : this.viewExtFilter || [];
   }
 
   get queryFilters(): string[] {
