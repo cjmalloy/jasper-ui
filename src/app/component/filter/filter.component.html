@@ -29,7 +29,7 @@
     @if (negatable(filter)) {
       <button type="button" (click)="toggleQuery(i)">{{ store.account.querySymbol('!') }}</button>
     }
-    <button type="button" class="remove-filter" (mousedown)="$event.preventDefault()" (click)="removeFilter(i)" i18n>&ndash;</button>
+    <button type="button" class="remove-filter" (mousedown)="onRemoveMouseDown($event)" (click)="removeFilter(i)" i18n>&ndash;</button>
   </div>
   @if (filter.startsWith('modified/') || filter.startsWith('response/') || filter.startsWith('published/') || filter.startsWith('created/')) {
     <input type="datetime-local"

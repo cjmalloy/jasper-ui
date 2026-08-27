@@ -56,4 +56,20 @@ describe('FilterComponent', () => {
       expect(component.toDate('published/before/not-a-date')).toBe('');
     });
   });
+
+  describe('onRemoveMouseDown', () => {
+    it('only prevents default when a date input is focused', () => {
+      const preventDefault = vi.fn();
+      const event = { preventDefault } as unknown as MouseEvent;
+
+      component.clearFocus();
+      component.onRemoveMouseDown(event);
+      expect(preventDefault).not.toHaveBeenCalled();
+
+      component.focus();
+      component.onRemoveMouseDown(event);
+      expect(preventDefault).toHaveBeenCalledTimes(1);
+      expect(component.hasFocus()).toBe(false);
+    });
+  });
 });

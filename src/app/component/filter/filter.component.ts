@@ -379,6 +379,13 @@ export class FilterComponent implements OnChanges, OnDestroy {
     this.setFilters();
   }
 
+  onRemoveMouseDown(event: MouseEvent) {
+    if (this.hasFocus()) {
+      event.preventDefault();
+    }
+    this.clearFocus();
+  }
+
   setFilters() {
     this.bookmarks.filters = filter(this.filters, f => !!f);
   }
