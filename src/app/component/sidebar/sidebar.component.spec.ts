@@ -31,4 +31,11 @@ describe('SidebarComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('preserves an empty filter override in a bookmark', () => {
+    component.tag = 'science';
+    vi.spyOn(component.router, 'url', 'get').mockReturnValue('/tag/science?filter=');
+
+    expect(component.bookmark).toBe('science?filter=');
+  });
 });
