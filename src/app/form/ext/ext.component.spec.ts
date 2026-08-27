@@ -91,8 +91,8 @@ describe('ExtFormComponent', () => {
     fixture.detectChanges();
 
     expect(component.defaultFilter.value[0]).toBe('query/!(public)');
-    expect(component.filterOption(component.defaultFilter.value[0])).toBe('query/public');
-    expect(select.value).toBe('query/public');
+    expect(component.filterOption(component.defaultFilter.value[0])).toBe('query/!(public)');
+    expect(select.value).toBe('query/!(public)');
     expect(select.selectedOptions[0].textContent).toBe(component.store.account.querySymbol('!') + 'public');
 
     button.click();
@@ -114,10 +114,30 @@ describe('ExtFormComponent', () => {
     fixture.detectChanges();
 
     expect(component.defaultFilter.value[0]).toBe('user/plugin/user/read');
-    expect(component.filterOption(component.defaultFilter.value[0])).toBe('user/!plugin/user/read');
+    expect(component.filterOption(component.defaultFilter.value[0])).toBe('user/plugin/user/read');
     const select = fixture.nativeElement.querySelector('.default-filter-row select') as HTMLSelectElement;
-    expect(select.value).toBe('user/!plugin/user/read');
+    expect(select.value).toBe('user/plugin/user/read');
     expect(select.selectedOptions[0].textContent).toBe(component.store.account.querySymbol('!') + 'unread');
+  });
+
+  it('updates a negated default filter from its dropdown', () => {
+    component.allFilters = [
+      { filter: 'query/private', label: 'private' },
+      { filter: 'query/public', label: 'public' },
+    ];
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'query/!(public)',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('.default-filter-row select') as HTMLSelectElement;
+    select.value = 'query/private';
+    select.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(component.defaultFilter.value[0]).toBe('query/private');
+    expect(select.value).toBe('query/private');
+    expect(select.selectedOptions[0].textContent).toBe('private');
   });
 
   it('shows an unmatched default filter when it is toggled', () => {

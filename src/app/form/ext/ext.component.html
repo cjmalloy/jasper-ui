@@ -73,10 +73,10 @@
               <select [id]="id + '-defaultFilter-' + i"
                       (input)="setFilter(i, $any($event.target).value)">
                 @if (!hasFilterOption(filter)) {
-                  <option [value]="filter" selected>{{ filter }}</option>
+                  <option [value]="filter" selected>{{ filterOptionLabel(filter) }}</option>
                 }
                 @for (opt of allFilters; track opt) {
-                  <option [value]="opt.filter" [selected]="opt.filter === filterOption(filter)">{{ filterOptionLabel(filter, opt) }}</option>
+                  <option [value]="opt.filter" [selected]="opt.filter === filterOption(filter)">{{ opt.label || opt.filter }}</option>
                 }
               </select>
               @if (negatable(filter)) {

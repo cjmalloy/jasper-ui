@@ -63,8 +63,12 @@ test.describe.serial('Ext defaults', () => {
     const negate = queryFilter.locator('.default-filter-negate');
     const negateSymbol = await negate.textContent();
     await negate.click();
-    await expect(queryFilter.locator('select')).toHaveValue('query/public');
+    await expect(queryFilter.locator('select')).toHaveValue('query/!(public)');
     await expect(queryFilterOption).toHaveText(negateSymbol! + queryFilterLabel!);
+    await queryFilter.locator('select').selectOption('query/public');
+    await expect(queryFilter.locator('select')).toHaveValue('query/public');
+    await negate.click();
+    await expect(queryFilter.locator('select')).toHaveValue('query/!(public)');
 
     const save = page.waitForResponse(response => (
       response.url().includes('/api/v1/ext') &&
@@ -80,7 +84,7 @@ test.describe.serial('Ext defaults', () => {
     await expect(page.locator('.default-sort-row select').nth(1)).toHaveValue('modified');
     await expect(page.locator('.default-filter-row select').first()).toHaveValue(/^published\/before\//);
     await expect(page.locator('.default-filter-row select').nth(1)).toHaveValue(/^created\/after\//);
-    await expect(page.locator('.default-filter-row select').nth(2)).toHaveValue('query/public');
+    await expect(page.locator('.default-filter-row select').nth(2)).toHaveValue('query/!(public)');
 
     await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await expect(page.locator('.sort .controls')).toHaveCount(2);

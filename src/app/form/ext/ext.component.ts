@@ -234,24 +234,14 @@ export class ExtFormComponent  {
   }
 
   filterOption(filter: UrlFilter) {
-    if (this.filterIsDate(filter)) {
-      const prefix = filter.substring(0, filter.lastIndexOf('/') + 1);
-      return this.allFilters.find(option => option.filter.startsWith(prefix))?.filter || filter;
-    }
-    if (this.allFilters.some(option => option.filter === filter)) return filter;
-    if (negatable(filter)) {
-      const toggled = toggle(filter);
-      return this.allFilters.find(option => option.filter === toggled)?.filter || filter;
-    }
-    return filter;
+    if (!this.filterIsDate(filter)) return filter;
+    const prefix = filter.substring(0, filter.lastIndexOf('/') + 1);
+    return this.allFilters.find(option => option.filter.startsWith(prefix))?.filter || filter;
   }
 
-  filterOptionLabel(filter: UrlFilter, option: FilterItem) {
-    const label = option.label || option.filter;
-    if (negatable(filter) && option.filter !== filter && option.filter === this.filterOption(filter)) {
-      return this.store.account.querySymbol('!') + label;
-    }
-    return label;
+  filterOptionLabel(filter: UrlFilter) {
+    const option = negatable(filter) && this.allFilters.find(item => item.filter === toggle(filter));
+    return option ? this.store.account.querySymbol('!') + (option.label || option.filter) : filter;
   }
 
   hasFilterOption(filter: UrlFilter) {
