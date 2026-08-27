@@ -367,7 +367,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   set(index: number, filter: UrlFilter, isoDate: string) {
     this.clearFocus();
-    if (!isoDate) return;
+    if (!isoDate || this.filters[index] !== filter) return;
     // @ts-ignore
     this.filters[index] = filter.substring(0, filter.lastIndexOf('/') + 1) + isoDate;
     this.sync();
