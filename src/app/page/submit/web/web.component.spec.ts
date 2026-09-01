@@ -59,13 +59,13 @@ describe('SubmitWebPage', () => {
     expect(component.serverError).toEqual(['Already exists']);
 
     const addTag = vi.spyOn(component, 'addTag');
-    const addSource = vi.spyOn(component, 'addSource');
+    const setLinks = vi.spyOn(component.refForm.sourcesFormComponent, 'setLinks');
     component.prepareRepost();
     await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(component.url).toMatch(/^internal:/);
     expect(addTag).toHaveBeenCalledWith('plugin/repost');
-    expect(addSource).toHaveBeenCalledWith('https://example.com');
+    expect(setLinks).toHaveBeenCalledWith(['https://example.com']);
     expect(component.alreadyExists).toBe(false);
     expect(component.submitted).toBe(false);
   });
