@@ -154,7 +154,7 @@ if 'entries' in info:
             'tags': child_tags,
             'plugins': {'plugin/audio': {'url': cache_data['url']}}
         }
-        output_refs.append({**cache_data, **child_ref})
+        output_refs.append(child_ref)
         source_urls.append(entry_url)
     ref.pop('metadata', None)
     ref.setdefault('tags', []).append('plugin/playlist')
