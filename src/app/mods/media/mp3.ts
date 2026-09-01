@@ -171,7 +171,7 @@ else:
         ref['tags'] = [t for t in ref['tags'] if not (t + '/').startswith('_plugin/delta/mp3/') and not (t + '/').startswith('plugin/embed/')]
         ref.setdefault('plugins', {}).setdefault('plugin/audio', {})['url'] = cache_data['url']
         ref.setdefault('plugins', {}).pop('plugin/embed', None)
-        output_refs.append({**cache_data, **ref})
+        output_refs.append(ref)
 print(json.dumps({'ref': output_refs}))
     `,
   },
