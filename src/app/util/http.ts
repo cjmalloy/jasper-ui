@@ -116,7 +116,7 @@ export function fixUrl(url: string, banlist: typeof banlistConfig) {
     }
   }
   if (isTracking(url, banlist)) {
-    if (url.startsWith('https://www.youtube.com/')) {
+    if (url.startsWith('https://www.youtube.com/') || url.startsWith('https://music.youtube.com/')) {
       if (url.includes('&si=')) {
         url = url.substring(0, url.indexOf('&si='));
       }

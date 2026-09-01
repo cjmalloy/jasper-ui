@@ -24,12 +24,14 @@ export const banlistConfig: Template = {
     expandShorteners: {
       'https://youtu.be/': 'https://www.youtube.com/watch?v=',
       'https://m.youtube.com/': 'https://www.youtube.com/',
+      'https://music.youtube.com/': 'https://www.youtube.com/',
       'https://youtube.com/': 'https://www.youtube.com/',
     },
     stripTrackers: [
       '//x.com/',
       '//twitter.com/',
       '//www.youtube.com/',
+      '//music.youtube.com/',
       '//www.amazon.',
     ],
   },
