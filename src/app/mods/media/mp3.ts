@@ -32,70 +32,98 @@ import yt_dlp
 ref = json.load(sys.stdin)
 origin = ref.get('origin', '')
 url = ref.get('plugins', {}).get('plugin/embed', {}).get('url', ref.get('url', ''))
-with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-  base_name = temp_file.name
-try:
-  ydl_opts = {
-    'outtmpl': f'{base_name}',
+base_opts = {
     'remote_components': ['ejs:github'],
     'js_runtimes': {'bun': {'path': os.environ['JASPER_NODE']}},
     'noprogress': True,
     'format': 'bestaudio[ext=m4a]/bestaudio[ext=mp3]/bestaudio',
     'postprocessors': [{
-      'key': 'FFmpegExtractAudio',
-      'preferredcodec': 'mp3',
-      'preferredquality': '256K',
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '256K',
     }],
-  }
-  saveStdout = sys.stdout
-  sys.stdout = sys.stderr
-  try:
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-      info = ydl.extract_info(url, download=True)
-      ext = info.get('ext', 'mp4')
-  except Exception as e:
-    if 'This live event will begin in' in str(e):
-      sys.exit(0)
-    raise
-  finally:
-    sys.stdout = saveStdout
+}
+def process_single_track(track_url, track_title):
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        base_name = temp_file.name
+    try:
+        ydl_opts = {**base_opts, 'outtmpl': f'{base_name}'}
 
-  # Read the file content
-  with open(base_name, 'rb') as f:
-    file_data = f.read()
-  response = requests.post(
-    f"{os.environ['JASPER_API']}/pub/api/v1/repl/cache",
-    data=file_data,
-    headers={
-      'Local-Origin': origin or 'default',
-      'User-Role': 'ROLE_ADMIN',
-      'Content-Type': 'mp3',
-    },
-    params={
-      'origin': origin,
-      'title': ref.get('title', ''),
-      'mime': 'mp3',
-    }
-  )
-  if not response.ok:
-    print(f"Error {response.status_code}: {response.text}", file=sys.stderr)
-    sys.exit(1)
-  cache = response.json()
-  ref.pop('metadata', None)
-  ref.setdefault('tags', []).append('plugin/video')
-  ref['tags'] = [t for t in ref['tags'] if not (t + '/').startswith('_plugin/delta/mp3/') and not (t + '/').startswith('plugin/embed/')]
-  ref.setdefault('plugins', {}).setdefault('plugin/video', {})['url'] = cache['url']
-  ref.setdefault('plugins', {}).pop('plugin/embed', None)
-  print(json.dumps({
-    'ref': [{
-      **cache,
-      **ref,
-    }],
-  }))
-finally:
-  # Clean up both the base temp file and the downloaded file
-  if os.path.exists(base_name):
-    os.remove(base_name)
+        saveStdout = sys.stdout
+        sys.stdout = sys.stderr
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.extract_info(track_url, download=True)
+        except Exception as e:
+            if 'This live event will begin in' in str(e):
+                return None
+            raise
+        finally:
+            sys.stdout = saveStdout
+
+        with open(base_name, 'rb') as f:
+            file_data = f.read()
+
+        response = requests.post(
+            f"{os.environ['JASPER_API']}/pub/api/v1/repl/cache",
+            data=file_data,
+            headers={
+                'Local-Origin': origin or 'default',
+                'User-Role': 'ROLE_ADMIN',
+                'Content-Type': 'mp3',
+            },
+            params={
+                'origin': origin,
+                'title': track_title,
+                'mime': 'mp3',
+            }
+        )
+        if not response.ok:
+            print(f"Error {response.status_code}: {response.text}", file=sys.stderr)
+            sys.exit(1)
+        return response.json()
+    finally:
+        if os.path.exists(base_name):
+            os.remove(base_name)
+with yt_dlp.YoutubeDL({**base_opts, 'extract_flat': True}) as ydl:
+    info = ydl.extract_info(url, download=False)
+output_refs = []
+source_urls = []
+if 'entries' in info:
+    playlist_title = info.get('title', ref.get('title', 'Playlist'))
+    for index, entry in enumerate(info['entries']):
+        if not entry: continue
+        entry_url = entry.get('url') or entry.get('webpage_url')
+        entry_title = entry.get('title') or f"Track {index + 1}"
+        formatted_title = f"{index + 1:02d} - {entry_title}"
+        cache_data = process_single_track(entry_url, formatted_title)
+        if not cache_data: continue
+        child_ref = {
+            'url': entry_url,
+            'origin': origin,
+            'title': formatted_title,
+            'tags': ['plugin/video'],
+            'plugins': {'plugin/video': {'url': cache_data['url']}}
+        }
+        output_refs.append({**cache_data, **child_ref})
+        source_urls.append(entry_url)
+    ref.pop('metadata', None)
+    ref.setdefault('tags', []).append('plugin/video')
+    ref['tags'] = [t for t in ref['tags'] if not (t + '/').startswith('_plugin/delta/mp3/') and not (t + '/').startswith('plugin/embed/')]
+    ref.setdefault('plugins', {}).pop('plugin/embed', None)
+    ref['sources'] = source_urls
+    output_refs.insert(0, ref)
+else:
+    track_title = info.get('title', ref.get('title', ''))
+    cache_data = process_single_track(url, track_title)
+    if cache_data:
+        ref.pop('metadata', None)
+        ref.setdefault('tags', []).append('plugin/video')
+        ref['tags'] = [t for t in ref['tags'] if not (t + '/').startswith('_plugin/delta/mp3/') and not (t + '/').startswith('plugin/embed/')]
+        ref.setdefault('plugins', {}).setdefault('plugin/video', {})['url'] = cache_data['url']
+        ref.setdefault('plugins', {}).pop('plugin/embed', None)
+        output_refs.append({**cache_data, **ref})
+print(json.dumps({'ref': output_refs}))
     `,
   },
 };
