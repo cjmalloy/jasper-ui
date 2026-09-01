@@ -17,8 +17,9 @@ test.describe('Submit', () => {
     await page.locator('[name=title]').fill('Repost');
 
     await page.locator('button.submit-button', { hasText: 'Submit' }).click();
-    const repost = page.locator('button.submit-button', { hasText: 'Repost' });
+    const repost = page.locator('button.repost-button', { hasText: 'Repost' });
     await expect(repost).toBeEnabled();
+    await expect(page.locator('button.submit-button', { hasText: 'Submit' })).toBeDisabled();
     await repost.click();
 
     await expect(page.locator('button.submit-button', { hasText: 'Submit' })).toBeEnabled();

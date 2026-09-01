@@ -60,7 +60,7 @@ describe('SubmitWebPage', () => {
 
     const addTag = vi.spyOn(component, 'addTag');
     const addSource = vi.spyOn(component, 'addSource');
-    component.submit();
+    component.prepareRepost();
     await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(component.url).toMatch(/^internal:/);

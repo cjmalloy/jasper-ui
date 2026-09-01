@@ -358,13 +358,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       return;
     }
     if (this.alreadyExists) {
-      const url = this.url;
-      this.url = 'internal:' + uuid();
-      this.addTag('plugin/repost');
-      this.addSource(url);
-      this.alreadyExists = false;
-      this.serverError = [];
-      this.submitted = false;
       return;
     }
     this.serverError = [];
@@ -413,6 +406,16 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
       this.router.navigate(['/ref', this.url], { queryParams: { published }, replaceUrl: true});
     });
+  }
+
+  prepareRepost() {
+    const url = this.url;
+    this.url = 'internal:' + uuid();
+    this.addTag('plugin/repost');
+    this.addSource(url);
+    this.alreadyExists = false;
+    this.serverError = [];
+    this.submitted = false;
   }
 
   private addFeedTags(...tags: string[]) {
