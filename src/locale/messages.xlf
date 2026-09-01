@@ -607,6 +607,10 @@ Please Reload.</source>
           <context context-type="linenumber">41</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/media/mp3.ts</context>
+          <context context-type="linenumber">17</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/ytdlp.ts</context>
           <context context-type="linenumber">16</context>
         </context-group>
@@ -6333,6 +6337,10 @@ Private tags start with an underscore.
           <context context-type="linenumber">80</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/media/mp3.ts</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/pdf.ts</context>
           <context context-type="linenumber">18</context>
         </context-group>
@@ -10515,6 +10523,38 @@ Home / End: Jump to start/end
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/image.ts</context>
           <context context-type="linenumber">188</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5737935482794867026" datatype="html">
+        <source>💽 Get MP3</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/media/mp3.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/media/mp3.ts</context>
+          <context context-type="linenumber">9</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4875039529426838067" datatype="html">
+        <source>Download mp3s using YT-DLP.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/media/mp3.ts</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3035787833538201954" datatype="html">
+        <source>mp3</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/media/mp3.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1231158014532721840" datatype="html">
+        <source>Download mp3 YT-DLP.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/media/mp3.ts</context>
+          <context context-type="linenumber">16</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3407050941409332755" datatype="html">
