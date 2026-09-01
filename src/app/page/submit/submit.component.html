@@ -169,7 +169,6 @@
               <app-loading [inline]="true"></app-loading>
             }
             <button class="submit-button" type="submit"
-                    [disabled]="submitForm.invalid && !repost"
                     i18n-title title="Submit link"
                     i18n>@if (repost) { Repost } @else { Next }</button>
           </span>

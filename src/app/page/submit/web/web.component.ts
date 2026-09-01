@@ -378,7 +378,16 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     const published = this.webForm.value.published ? DateTime.fromISO(this.webForm.value.published) : DateTime.now();
     const ref = this.writeRef(true);
     const finalTags = ref.tags;
-    this.submitting = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
+    const save = this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref).pipe(
+      catchError((res: HttpErrorResponse) => {
+        if (res.status !== 409) return throwError(() => res);
+        delete this.submitting;
+        this.serverError = printError(res);
+        this.alreadyExists = true;
+        return EMPTY;
+      }),
+    );
+    this.submitting = save.pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/user/vote/up')) {
           this.ts.createResponse('plugin/user/vote/up', this.url).subscribe();
@@ -395,10 +404,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
-        if (res.status === 409) {
-          this.alreadyExists = true;
-          return EMPTY;
-        }
         return throwError(() => res);
       }),
     ).subscribe(() => {

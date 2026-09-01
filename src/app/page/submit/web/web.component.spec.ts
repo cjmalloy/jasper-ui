@@ -42,8 +42,9 @@ describe('SubmitWebPage', () => {
     expect(component).toBeTruthy();
   });
 
-  it('offers to convert an already existing ref into a repost', () => {
+  it('converts an already existing ref into a repost before resubmitting', async () => {
     component.url = 'https://example.com';
+    await new Promise(resolve => setTimeout(resolve, 10));
     vi.spyOn(component.webForm, 'valid', 'get').mockReturnValue(true);
     vi.spyOn(component, 'syncEditor').mockImplementation(() => {});
     vi.spyOn(component, 'writeRef').mockReturnValue({ tags: [] } as any);
@@ -60,6 +61,7 @@ describe('SubmitWebPage', () => {
     const addTag = vi.spyOn(component, 'addTag');
     const addSource = vi.spyOn(component, 'addSource');
     component.submit();
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(component.url).toMatch(/^internal:/);
     expect(addTag).toHaveBeenCalledWith('plugin/repost');
