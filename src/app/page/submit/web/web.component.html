@@ -31,7 +31,11 @@
       @if (admin.getPlugin('plugin/editing')) {
         <button type="button" [disabled]="submitting || saving || submitted || webForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
       }
-      <button type="submit" [disabled]="submitting || submitted && !webForm.valid" i18n>Submit</button>
+      @if (alreadyExists) {
+        <button class="repost-button" type="button" [disabled]="submitting || saving" (click)="prepareRepost()" i18n>Repost</button>
+      }
+      <button class="submit-button" type="submit" [disabled]="submitting || alreadyExists || (submitted && !webForm.valid)"
+              i18n>Submit</button>
     </span>
   </form>
 </ng-container>

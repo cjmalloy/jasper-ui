@@ -165,7 +165,10 @@
 
           <span><!-- Buttons --></span>
           <span class="buttons right">
-            <button type="submit" [disabled]="!submitForm.valid && !existingRef"
+            @if (submitForm.pending) {
+              <app-loading [inline]="true"></app-loading>
+            }
+            <button class="submit-button" type="submit"
                     i18n-title title="Submit link"
                     i18n>@if (repost) { Repost } @else { Next }</button>
           </span>
