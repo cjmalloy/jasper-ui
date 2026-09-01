@@ -412,7 +412,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     const url = this.url;
     this.url = 'internal:' + uuid();
     this.addTag('plugin/repost');
-    this.addSource(url);
+const sources = (this.webForm.value.sources || []).filter((source: string) => source !== url);
+    this.refForm.sourcesFormComponent.setLinks([url, ...sources]);
     this.alreadyExists = false;
     this.serverError = [];
     this.submitted = false;
