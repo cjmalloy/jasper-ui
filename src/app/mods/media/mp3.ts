@@ -44,6 +44,8 @@ base_opts = {
         'preferredquality': '256K',
     }],
 }
+def has_tag(tag, tags):
+    return tag in tags or any(t.startswith(tag + '/') for t in tags)
 def process_single_track(track_url, track_title):
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         base_name = temp_file.name
@@ -55,7 +57,7 @@ def process_single_track(track_url, track_title):
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(track_url, download=True)
-                ext = info.get('ext', 'mp3')
+                ext = info.get('ext', 'mp3').lower()
         except Exception as e:
             if 'This live event will begin in' in str(e):
                 return None
@@ -84,7 +86,7 @@ def process_single_track(track_url, track_title):
           'flac': 'audio/flac',
           'aac': 'audio/aac',
         }
-        mime = mime_types.get(ext.lower(), 'application/octet-stream')
+        mime = mime_types.get(ext, 'application/octet-stream')
         response = requests.post(
             f"{os.environ['JASPER_API']}/pub/api/v1/repl/cache",
             data=file_data,
@@ -95,7 +97,7 @@ def process_single_track(track_url, track_title):
             },
             params={
                 'origin': origin,
-                'title': track_title,
+                'title': track_title + '.' + ext,
                 'mime': mime,
             }
         )
@@ -126,6 +128,17 @@ output_refs = []
 source_urls = []
 if 'entries' in info:
     playlist_title = info.get('title', ref.get('title', 'Playlist'))
+    parent_tags = ref.get('tags', [])
+    child_extra_tags = []
+    if has_tag('public', parent_tags):
+        for t in parent_tags:
+            if t == 'public' or t.startswith('public/'):
+                if t not in child_extra_tags:
+                    child_extra_tags.append(t)
+    for t in parent_tags:
+        if t.startswith('_user/') or t.startswith('+user/') or t.startswith('user/'):
+            if t not in child_extra_tags:
+                child_extra_tags.append(t)
     for index, entry in enumerate(info['entries']):
         if not entry: continue
         entry_url = entry.get('url') or entry.get('webpage_url')
@@ -133,17 +146,18 @@ if 'entries' in info:
         formatted_title = f"{index + 1:02d} - {entry_title}"
         cache_data = process_single_track(entry_url, formatted_title)
         if not cache_data: continue
+        child_tags = ['plugin/audio'] + child_extra_tags
         child_ref = {
             'url': entry_url,
             'origin': origin,
             'title': formatted_title,
-            'tags': ['plugin/audio'],
+            'tags': child_tags,
             'plugins': {'plugin/audio': {'url': cache_data['url']}}
         }
         output_refs.append({**cache_data, **child_ref})
         source_urls.append(entry_url)
     ref.pop('metadata', None)
-    ref.setdefault('tags', []).append('plugin/audio')
+    ref.setdefault('tags', []).append('plugin/playlist')
     ref['tags'] = [t for t in ref['tags'] if not (t + '/').startswith('_plugin/delta/mp3/') and not (t + '/').startswith('plugin/embed/')]
     ref.setdefault('plugins', {}).pop('plugin/embed', None)
     ref['sources'] = source_urls
