@@ -1404,6 +1404,10 @@ formly-list-section .form-array > formly-field > formly-group {
     text-align: right;
     line-height: 24px;
   }
+  & > .buttons:last-child {
+    position: sticky;
+    bottom: 0;
+  }
   label {
     user-select: none;
     white-space: nowrap;
