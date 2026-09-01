@@ -104,6 +104,7 @@ import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 import { equalBundle } from '../util/diff';
 import { neoMod } from '../mods/ai/neo-banana';
+import { mp3Mod } from '../mods/media/mp3';
 
 @Injectable({
   providedIn: 'root',
@@ -193,6 +194,7 @@ export class AdminService {
     audioMod,
     videoMod,
     ytdlpMod,
+    mp3Mod,
     markitdownMod,
     voteMod,
     imageMod,
