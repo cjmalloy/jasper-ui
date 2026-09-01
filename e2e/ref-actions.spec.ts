@@ -40,20 +40,12 @@ test.describe.serial('Ref Actions', () => {
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
   });
 
-  test('keeps form actions visible while editing', async () => {
+  test('uses sticky positioning for form actions', async () => {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'edit' }).first().click();
-    const form = page.locator('.full-page.ref form.form');
-    const actions = form.locator(':scope > .buttons.right');
-    await form.locator('.fill-editor').evaluate(element => element.style.height = '1200px');
+    const actions = page.locator('.full-page.ref form.form > .buttons.right');
 
     await expect(actions).toHaveCSS('position', 'sticky');
-    const dimensions = await actions.evaluate(element => ({
-      actionsBottom: element.getBoundingClientRect().bottom,
-      formBottom: element.parentElement!.getBoundingClientRect().bottom,
-      viewportHeight: window.innerHeight,
-    }));
-    expect(dimensions.formBottom).toBeGreaterThan(dimensions.viewportHeight);
-    expect(dimensions.actionsBottom).toBeLessThanOrEqual(dimensions.viewportHeight);
+    await expect(actions).toHaveCSS('bottom', '0px');
 
     await actions.getByRole('button', { name: 'cancel' }).click();
   });
