@@ -5,7 +5,7 @@ import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 import { SubmitPage } from './submit.component';
 
@@ -41,5 +41,29 @@ describe('SubmitPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('queues submission until async validation completes', () => {
+    const validation = new Subject<null>();
+    component.url.setAsyncValidators(() => validation);
+    component.url.setValue('https://example.com');
+    const navigate = vi.spyOn(component['router'], 'navigate');
+
+    component.submit();
+
+    expect(navigate).not.toHaveBeenCalled();
+    validation.next(null);
+    validation.complete();
+    expect(navigate).toHaveBeenCalled();
+  });
+
+  it('does not submit an invalid link', () => {
+    component.url.setAsyncValidators(() => of({ invalid: true }));
+    component.url.setValue('not a link');
+    const navigate = vi.spyOn(component['router'], 'navigate');
+
+    component.submit();
+
+    expect(navigate).not.toHaveBeenCalled();
   });
 });

@@ -14,9 +14,10 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { debounce, defer, isString, uniq, uniqBy, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, forkJoin, map, mergeMap, Observable, of, Subscription, switchMap, timer } from 'rxjs';
+import { catchError, filter, forkJoin, map, mergeMap, Observable, of, Subscription, switchMap, take, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
 import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -62,6 +63,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
     AudioUploadComponent,
     VideoUploadComponent,
     ImageUploadComponent,
+    LoadingComponent,
     AsyncPipe,
     TagPreviewPipe,
   ],
@@ -86,6 +88,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   listId = 'list-' + uuid();
   autocomplete: { value: string, label: string }[] = [];
   private searching?: Subscription;
+  private submitQueued = false;
 
   constructor(
     public admin: AdminService,
@@ -213,10 +216,27 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   get repost() {
-    return !this.submitForm.valid && this.existingRef;
+    return !this.submitForm.valid &&
+      this.existingRef?.url === this.fixed(this.url.value) &&
+      this.existingRef.origin === this.store.account.origin;
   }
 
   submit() {
+    if (this.submitForm.pending) {
+      if (!this.submitQueued) {
+        this.submitQueued = true;
+        this.submitForm.statusChanges.pipe(
+          filter(status => status !== 'PENDING'),
+          take(1),
+        ).subscribe(() => {
+          this.submitQueued = false;
+          this.submit();
+        });
+      }
+      return;
+    }
+    if (!this.submitForm.valid && !this.repost) return;
+
     let tags = this.store.submit.tags;
     if (this.repost) {
       tags.push('plugin/repost')

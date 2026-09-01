@@ -11,6 +11,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import {
   catchError,
+  EMPTY,
   firstValueFrom,
   forkJoin,
   interval,
@@ -74,6 +75,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   saving?: Subscription;
   defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
+  alreadyExists = false;
 
   private oldSubmit: string[] = [];
   private _refForm?: RefFormComponent;
@@ -355,6 +357,16 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       this.saving.add(() => this.submit());
       return;
     }
+    if (this.alreadyExists) {
+      const url = this.url;
+      this.url = 'internal:' + uuid();
+      this.addTag('plugin/repost');
+      this.addSource(url);
+      this.alreadyExists = false;
+      this.serverError = [];
+      this.submitted = false;
+      return;
+    }
     this.serverError = [];
     this.submitted = true;
     this.webForm.markAllAsTouched();
@@ -383,6 +395,10 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
+        if (res.status === 409) {
+          this.alreadyExists = true;
+          return EMPTY;
+        }
         return throwError(() => res);
       }),
     ).subscribe(() => {
