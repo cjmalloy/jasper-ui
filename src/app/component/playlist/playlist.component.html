@@ -12,7 +12,7 @@
       <button class="next-track" type="button" (click)="next()">▶️</button>
     </div>
   </div>
-  @if (sources()!.content.length) {
+  @if (ref()?.sources?.length) {
     <details open>
       <summary i18n>Playlist</summary>
       <ol class="playlist-menu">
