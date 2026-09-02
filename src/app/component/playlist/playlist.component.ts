@@ -55,7 +55,7 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
   }
 
   title(url?: string) {
-    return getTitle(this.sources()?.content.find(s => s.url === url));
+    return getTitle(this.sources()?.content.find(s => s.url === url) || (url ? { url } : undefined));
   }
 
   seek(index: number) {
