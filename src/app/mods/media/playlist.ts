@@ -8,7 +8,7 @@ export const playlistPlugin: Plugin = {
   name: $localize`⏭️ Playlist`,
   config: {
     name: $localize`⏭️ Playlist`,
-    version: 1,
+    version: 2,
     type: 'semantic',
     default: true,
     add: true,
@@ -19,6 +19,9 @@ export const playlistPlugin: Plugin = {
     filters: [
       { query: 'plugin/playlist', label: $localize`⏭️ playlist`, title: $localize`Playlists`, group: $localize`Media 🎬️` },
     ],
+    advancedActions: [
+      { event: 'media', label: $localize`media` },
+    ]
   },
 };
 
