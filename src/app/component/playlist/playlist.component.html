@@ -1,5 +1,27 @@
-<app-viewer [ref]="page" (click)="next()"></app-viewer>
-<div class="playlist-controls">
-  <button type="button" (click)="back()">◀️</button>
-  <button type="button" (click)="next()">▶️</button>
-</div>
+@if (sources()) {
+  <div class="playlist-container">
+    <h6>{{ title(current.get()?.url) }}</h6>
+    <app-viewer [ref]="current.get()"
+                [autoplay]="autoplay()"
+                (playing)="autoplay.set(true)"
+                (pausing)="autoplay.set(false)"
+                (ended)="next(repeat())"></app-viewer>
+    <div class="playlist-controls">
+      <button type="button" (click)="back()">◀️</button>
+      <button type="button" (click)="repeat.set(!repeat())" [class.selected]="repeat()">🔁</button>
+      <button type="button" (click)="next()">▶️</button>
+    </div>
+  </div>
+  @if (sources()!.content.length) {
+    <details open>
+      <summary i18n>Playlist</summary>
+      <ol class="playlist-menu">
+        @for (s of ref()!.sources; track s) {
+          <li (click)="seek(s)" [class.selected]="s === current.get()?.url">{{ title(s) }}</li>
+        }
+      </ol>
+    </details>
+  }
+} @else {
+  <app-loading></app-loading>
+}

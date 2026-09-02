@@ -63,7 +63,10 @@
            class="video-expand"
            [autoplay]="autoplay"
            controls
-           [appResize]="!disableResize">
+           [appResize]="!disableResize"
+           (playing)="playing.emit(videoUrl)"
+           (pause)="!this.ended && pausing.emit(videoUrl)"
+           (ended)="ended.emit(videoUrl)">
       <source [src]="videoUrl">
     </video>
   }
@@ -71,7 +74,10 @@
     <audio #audio
            class="no-resize audio-expand"
            [autoplay]="autoplay"
-           controls>
+           controls
+           (playing)="playing.emit(audioUrl)"
+           (pause)="!this.ended && pausing.emit(audioUrl)"
+           (ended)="ended.emit(audioUrl)">
       <source [src]="audioUrl">
     </audio>
   }

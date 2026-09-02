@@ -1,3 +1,48 @@
-.playlist-controls button {
-  margin: 4px;
+:host {
+  display: flex;
+}
+
+h6 {
+  text-align: center;
+}
+
+.playlist-container {
+  flex: 1;
+  audio, video {
+    margin: auto;
+  }
+}
+
+summary {
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+details:not([open]) {
+  margin-right: 48px;
+}
+
+details[open] {
+  flex: 1;
+}
+
+.playlist-menu {
+  .selected {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+  li:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
+.playlist-controls {
+  text-align: center;
+  button {
+    margin: 4px;
+    &.selected {
+      filter: drop-shadow(0 0 4px #888);
+    }
+  }
 }
