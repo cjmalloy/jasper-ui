@@ -25,6 +25,7 @@ export const mp3DeltaPlugin: Plugin = {
     // language=python
     script: `
 import tempfile
+import glob
 import os
 import sys
 import requests
@@ -44,35 +45,35 @@ def has_tag(tag, tags):
 def process_single_track(track_url, track_title):
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         base_name = temp_file.name
-    saveStdout = sys.stdout
-    sys.stdout = sys.stderr
     try:
+        saveStdout = sys.stdout
+        sys.stdout = sys.stderr
         try:
-            with yt_dlp.YoutubeDL({
-              **base_opts,
-              'outtmpl': f'{base_name}.%(ext)s',
-              'writethumbnail': True,
-              'cachedir': False,
-              'break_on_existing': False,
-              'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '256',
-              }, {
-                'key': 'FFmpegMetadata',
-                'add_metadata': True,
-              }, {
-                'key': 'EmbedThumbnail',
-              }]
-            }) as ydl:
-                ydl.extract_info(track_url, download=True)
-        except Exception as e:
-            if 'This live event will begin in' in str(e):
-                return None
-            raise
-    finally:
-        sys.stdout = saveStdout
-    try:
+            try:
+                with yt_dlp.YoutubeDL({
+                  **base_opts,
+                  'outtmpl': f'{base_name}.%(ext)s',
+                  'writethumbnail': True,
+                  'cachedir': False,
+                  'break_on_existing': False,
+                  'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '256',
+                  }, {
+                    'key': 'FFmpegMetadata',
+                    'add_metadata': True,
+                  }, {
+                    'key': 'EmbedThumbnail',
+                  }]
+                }) as ydl:
+                    ydl.extract_info(track_url, download=True)
+            except Exception as e:
+                if 'This live event will begin in' in str(e):
+                    return None
+                raise
+        finally:
+            sys.stdout = saveStdout
         downloaded_file = f'{base_name}.mp3'
         with open(downloaded_file, 'rb') as f:
             file_data = f.read()
@@ -95,10 +96,8 @@ def process_single_track(track_url, track_title):
             sys.exit(1)
         return response.json()
     finally:
-        for clean_ext in ['mp3', 'm4a', 'webm', 'ogg', 'opus', 'jpg', 'png', 'webp']:
-            target_path = f"{base_name}.{clean_ext}"
-            if os.path.exists(target_path):
-                os.remove(target_path)
+        for target_path in [base_name] + glob.glob(f'{base_name}.*'):
+            os.remove(target_path)
 saveStdout = sys.stdout
 sys.stdout = sys.stderr
 try:
