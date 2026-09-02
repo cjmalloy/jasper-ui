@@ -119,7 +119,7 @@ export class SubmitPage implements OnInit, OnDestroy {
       } else {
         this.url.setValue(this.store.submit.url);
         this.validations.push({ name: $localize`Valid link`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
-        this.validations.push({ name: $localize`Not submitted yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
+        this.validations.push({ name: $localize`Not submitted yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists || this.feed)) });
         this.validations.push({ name: $localize`No link shorteners`, passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
       }
       this.url.updateValueAndValidity();
@@ -199,9 +199,9 @@ export class SubmitPage implements OnInit, OnDestroy {
         map(page => {
           this.responsesToUrl = page;
           this.responsesToUrlFor = url;
-          return false;
+          return exists;
         }),
-        catchError(err => of(false)),
+        catchError(() => of(exists)),
       )),
     );
   }
@@ -215,7 +215,11 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   get repost() {
-    return !this.submitForm.valid && this.existingRef;
+    return !this.feed && !this.submitForm.valid && this.existingRef;
+  }
+
+  get feed() {
+    return this.plugin === 'plugin/script/feed';
   }
 
   submit() {
