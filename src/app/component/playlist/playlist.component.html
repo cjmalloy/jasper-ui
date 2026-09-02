@@ -16,11 +16,11 @@
     <details open>
       <summary i18n>Playlist</summary>
       <ol class="playlist-menu">
-        @for (s of ref()!.sources; track s) {
+        @for (s of ref()!.sources; track s; let i = $index) {
           <li tabindex="0"
               [class.selected]="s === current.get()?.url"
-              (keydown)="$event.key === 'Enter' && seek(s) || true"
-              (click)="seek(s)">{{ title(s) }}</li>
+              (keydown)="$event.key === 'Enter' && seek(i) || true"
+              (click)="seek(i)">{{ title(s) }}</li>
         }
       </ol>
     </details>

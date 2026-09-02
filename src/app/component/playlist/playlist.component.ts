@@ -23,7 +23,14 @@ export class PlaylistComponent implements OnChanges {
   repeat = model(true);
   autoplay = model(false);
 
-  current = computed(() => this.sources()?.content.find(ref => ref.url === this.ref()!.sources![this.index()]))
+  current = computed<Ref>(() => {
+    const sources = this.sources();
+    const index = this.index();
+    const ref = this.ref();
+    if (!sources || !ref) return { } as Ref;
+    const url = ref.sources![index];
+    return sources.content.find(ref => ref.url === url) || { url }
+  });
   sources = model<Page<Ref> | undefined>(undefined);
 
   constructor(
@@ -44,8 +51,8 @@ export class PlaylistComponent implements OnChanges {
     return getTitle(this.sources()?.content.find(s => s.url === url));
   }
 
-  seek(url: string) {
-    this.index.set(this.ref()?.sources?.indexOf(url) || 0);
+  seek(index: number) {
+    this.index.set(index);
   }
 
   back() {
