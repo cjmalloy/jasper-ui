@@ -1,5 +1,5 @@
 import { Component, forwardRef, input, model, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { catchError, Observable, of, Subscription, switchMap } from 'rxjs';
+import { catchError, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { ViewerComponent } from '../viewer/viewer.component';
@@ -91,9 +91,12 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
         if (page + 1 >= batch.page.totalPages) return of(Page.of(next));
         return this.loadSources(url, fallbackTotalPages, size, page + 1, next, batch.page.totalPages);
       }),
-      catchError(() => size > 1
-        ? this.loadSources(url, fallbackTotalPages, Math.max(1, Math.floor(size / 2)))
-        : this.loadSources(url, fallbackTotalPages, size, page + 1, content, totalPages)),
+      catchError(err => {
+        if (err.status !== 413) return throwError(() => err);
+        return size > 1
+          ? this.loadSources(url, fallbackTotalPages, Math.max(1, Math.floor(size / 2)))
+          : this.loadSources(url, fallbackTotalPages, size, page + 1, content, totalPages)
+      }),
     );
   }
 }
