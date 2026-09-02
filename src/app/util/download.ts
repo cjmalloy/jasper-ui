@@ -58,7 +58,14 @@ export function downloadPluginExport(plugin: Plugin, html: string) {
     .then(content => FileSaver.saveAs(content, title + '.zip'));
 }
 
-async function fetchUrlAsset(url: string): Promise<{ blob: Blob, name: string }> {
+async function fetchUrlAsset(proxy: ProxyService, url: string): Promise<{ blob: Blob, name: string }> {
+  if (proxy.isProxied(url)) {
+    const cleanUrl = url.split('?')[0].split('#')[0];
+    const filename = decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
+    const proxiedUrl = getSearchParams(url).get('url')!;
+    const proxiedOrigin = getSearchParams(url).get('origin') || '';
+    return firstValueFrom(proxy.download(proxiedUrl, proxiedOrigin, filename));
+  }
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Failed to fetch remote asset: ${response.statusText}`);
   const blob = await response.blob();
@@ -82,21 +89,21 @@ async function fetchUrlAsset(url: string): Promise<{ blob: Blob, name: string }>
   return { blob, name };
 }
 
-export async function downloadUrl(url: string) {
+export async function downloadUrl(proxy: ProxyService, url: string) {
   try {
-    const { blob, name } = await fetchUrlAsset(url);
+    const { blob, name } = await fetchUrlAsset(proxy, url);
     FileSaver.saveAs(blob, name);
   } catch (error) {
     console.error(`Error downloading asset from URL: ${url}`, error);
   }
 }
 
-export async function downloadPlaylist(urls: string[], filename: string) {
+export async function downloadPlaylist(proxy: ProxyService, urls: string[], filename: string) {
   const files = new Set<string>();
   const zip = new JSZip();
   const downloadPromises = urls.map(async (url: string) => {
     try {
-      const { blob, name } = await fetchUrlAsset(url);
+      const { blob, name } = await fetchUrlAsset(proxy, url);
       let num = 0;
       let filename = name;
       let ext = name.includes('.') ? name.substring(name.lastIndexOf('.')) : '';

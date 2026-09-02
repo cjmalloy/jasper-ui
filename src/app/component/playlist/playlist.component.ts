@@ -68,7 +68,7 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
             mediaList.push(this.proxy.getFetch(image, s.origin, this.getFilename(s, $localize`Untitled Image`)));
           }
         }
-        downloadPlaylist(mediaList, this.ref()!.title || 'playlist');
+        downloadPlaylist(this.proxy, mediaList, this.ref()!.title || 'playlist');
       }
     });
   }

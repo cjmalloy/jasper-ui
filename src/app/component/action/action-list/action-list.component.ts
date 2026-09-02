@@ -27,6 +27,7 @@ import { downloadRef, downloadUrl } from '../../../util/download';
 import { memo, MemoCache } from '../../../util/memo';
 import { ConfirmActionComponent } from '../confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../inline-button/inline-button.component';
+import { ProxyService } from '../../../service/api/proxy.service';
 
 @Component({
   selector: 'app-action-list',
@@ -62,6 +63,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   constructor(
     private config: ConfigService,
+    private proxy: ProxyService,
     private acts: ActionService,
     private overlay: Overlay,
     private el: ElementRef<HTMLElement>,
@@ -94,7 +96,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   downloadMedia() {
     if (!this.mediaAttachment) return;
-    downloadUrl(this.mediaAttachment);
+    downloadUrl(this.proxy, this.mediaAttachment);
   }
 
   @HostListener('window:resize')
