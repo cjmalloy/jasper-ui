@@ -195,7 +195,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
       const parentWidth = this.el.nativeElement.parentElement.offsetWidth;
       this.width = this.embed?.width || ((this.thread || !this.config.mobile) ? Math.floor(parentWidth * 0.6) : parentWidth - 12);
-      this.height = this.embed?.height || this.config.mobile ? window.innerHeight : Math.floor(window.innerHeight * 0.8);
+this.height = this.embed?.height || (this.config.mobile ? window.innerHeight : Math.floor(window.innerHeight * 0.8));
       if (hasTag('plugin/fullscreen', this.ref)) {
         this.width = screen.width;
         this.height = screen.height;
