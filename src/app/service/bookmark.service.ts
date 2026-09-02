@@ -45,7 +45,7 @@ export class BookmarkService {
 
   set filters(filters: string[]) {
     this.router.navigate([], {
-      queryParams: { filter: filters.length ? filters : null, pageNumber: null },
+      queryParams: { filter: filters.length ? filters : '', pageNumber: null },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });

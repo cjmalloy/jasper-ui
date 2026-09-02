@@ -91,6 +91,20 @@ test.describe.serial('Ext defaults', () => {
     await expect(page.locator('.filter .controls')).toHaveCount(3);
   });
 
+  test('removes all Ext default filters', async ({ page }) => {
+    await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    const filters = page.locator('.filter .controls');
+    await expect(filters).toHaveCount(3);
+
+    for (let count = 3; count > 0; count--) {
+      await filters.first().locator('.remove-filter').click();
+      await expect(filters).toHaveCount(count - 1);
+    }
+
+    expect(new URL(page.url()).searchParams.has('filter')).toBe(true);
+    expect(new URL(page.url()).searchParams.get('filter')).toBe('');
+  });
+
   test('configures and renders a Markdown header', async ({ page }) => {
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: '+ Add header' }).click();
