@@ -1,4 +1,14 @@
-import { Component, forwardRef, input, model, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  forwardRef,
+  input,
+  model,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges
+} from '@angular/core';
 import { catchError, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
@@ -8,11 +18,9 @@ import { LoadingComponent } from '../loading/loading.component';
 import { getTitle } from '../../util/format';
 import { computed } from 'mobx';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { defer } from 'lodash-es';
 import { Store } from '../../store/store';
 import { hasTag } from '../../util/tag';
 import { ProxyService } from '../../service/api/proxy.service';
-import { memo } from '../../util/memo';
 import { getExtension } from '../../util/http';
 import { AdminService } from '../../service/admin.service';
 import { downloadPlaylist } from '../../util/download';
@@ -21,6 +29,7 @@ import { downloadPlaylist } from '../../util/download';
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => ViewerComponent),
     LoadingComponent,
@@ -49,6 +58,7 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
     private refs: RefService,
     private proxy: ProxyService,
     private store: Store,
+    private cd: ChangeDetectorRef,
   ) {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'media' && this.ref() && this.store.eventBus.isRef(event, this.ref()!) && this.sources()?.content.length) {
@@ -106,15 +116,18 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
 
   seek(index: number) {
     this.index.set(index);
+    this.cd.detectChanges();
   }
 
   back() {
     this.index.set((this.index() - 1 + this.ref()!.sources!.length) % this.ref()!.sources!.length);
+    this.cd.detectChanges();
   }
 
   next(loop = true) {
     if (!loop && this.index() + 1 >= this.ref()!.sources!.length) return;
     this.index.set((this.index() + 1) % this.ref()!.sources!.length);
+    this.cd.detectChanges();
   }
 
   private loadSources(
