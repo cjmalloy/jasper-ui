@@ -7,9 +7,9 @@
                 (pausing)="autoplay.set(false)"
                 (ended)="next(repeat())"></app-viewer>
     <div class="playlist-controls">
-      <button type="button" (click)="back()">◀️</button>
-      <button type="button" (click)="repeat.set(!repeat())" [class.selected]="repeat()">🔁</button>
-      <button type="button" (click)="next()">▶️</button>
+      <button class="previous-track" type="button" (click)="back()">◀️</button>
+      <button class="repeat-toggle" type="button" (click)="repeat.set(!repeat())" [class.selected]="repeat()">🔁</button>
+      <button class="next-track" type="button" (click)="next()">▶️</button>
     </div>
   </div>
   @if (sources()!.content.length) {
