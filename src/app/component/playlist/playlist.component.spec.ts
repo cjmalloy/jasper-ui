@@ -58,9 +58,9 @@ describe('PlaylistComponent', () => {
     setPlaylist({ url: 'tag:/playlist', origin: '', sources: urls });
 
     for (let size = 20; size > 1; size = Math.max(1, Math.floor(size / 2))) {
-      request(0, size).flush('server error', { status: 500, statusText: 'Server Error' });
+      request(0, size).flush('payload too large', { status: 413, statusText: 'Payload Too Large' });
     }
-    request(0, 1).flush('server error', { status: 500, statusText: 'Server Error' });
+    request(0, 1).flush('payload too large', { status: 413, statusText: 'Payload Too Large' });
     request(1, 1).flush(page([working], 1, 1, urls.length));
 
     expect(component.sources()?.content).toEqual([working]);
