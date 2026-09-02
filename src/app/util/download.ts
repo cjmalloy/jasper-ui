@@ -102,7 +102,7 @@ export async function downloadPlaylist(urls: string[], filename: string) {
       let ext = name.includes('.') ? name.substring(name.lastIndexOf('.')) : '';
       while (files.has(filename)) {
         num++;
-        filename = ext ? name.substring(0, name.lastIndexOf('.')) + ' (' + num + ').' + ext : name + ' (' + num + ')';
+        filename = ext ? `${name.substring(0, name.lastIndexOf('.'))} (${num})${ext}` : `${name} (${num})`;
       }
       zip.file(filename, blob);
       files.add(filename);
