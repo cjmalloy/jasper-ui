@@ -454,7 +454,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return '100vh';
     }
-    return '67%';
+return '67vh';
   }
 
   @memo
