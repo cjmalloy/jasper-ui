@@ -94,4 +94,12 @@ describe('SubmitPage', () => {
 
     await expect(resolveExists(url)).resolves.toBe(true);
   });
+
+  it('submits an existing YouTube channel as a feed instead of a repost', () => {
+    component.plugin = 'plugin/script/feed';
+    component.existingRef = { url: 'https://www.youtube.com/@existing', origin: '' };
+    component.submitForm.setErrors({ error: 'Not submitted yet' });
+
+    expect(component.repost).toBe(false);
+  });
 });
