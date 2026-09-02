@@ -1,4 +1,5 @@
-import { Component, forwardRef, input, model, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, input, model, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { catchError, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { ViewerComponent } from '../viewer/viewer.component';
@@ -6,6 +7,8 @@ import { Page } from '../../model/page';
 import { LoadingComponent } from '../loading/loading.component';
 import { getTitle } from '../../util/format';
 import { computed } from 'mobx';
+
+export const PLAYLIST_PAGE_SIZE = 50;
 
 @Component({
   selector: 'app-playlist',
@@ -16,7 +19,7 @@ import { computed } from 'mobx';
     LoadingComponent,
   ],
 })
-export class PlaylistComponent implements OnChanges {
+export class PlaylistComponent implements OnChanges, OnDestroy {
 
   ref = input<Ref | undefined>(undefined);
   index = model(0);
@@ -32,19 +35,25 @@ export class PlaylistComponent implements OnChanges {
     return sources.content.find(ref => ref.url === url) || { url }
   });
   sources = model<Page<Ref> | undefined>(undefined);
+  private loading?: Subscription;
 
   constructor(
     private refs: RefService,
   ) { }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref?.currentValue?.sources?.length) {
-      this.index.set(0);
-      this.refs.page({
-        sources: this.ref()?.url,
-        size: 2000,
-      }).subscribe(page => this.sources.set(page));
-    }
+    if (!changes.ref) return;
+    this.loading?.unsubscribe();
+    this.sources.set(undefined);
+    const ref = changes.ref.currentValue as Ref | undefined;
+    if (!ref?.sources?.length) return;
+    this.index.set(0);
+    this.loading = this.loadSources(ref.url, ref.sources.length)
+      .subscribe(page => this.sources.set(page));
+  }
+
+  ngOnDestroy() {
+    this.loading?.unsubscribe();
   }
 
   title(url?: string) {
@@ -62,5 +71,31 @@ export class PlaylistComponent implements OnChanges {
   next(loop = true) {
     if (!loop && this.index() + 1 >= this.ref()!.sources!.length) return;
     this.index.set((this.index() + 1) % this.ref()!.sources!.length);
+  }
+
+  private loadSources(
+    url: string,
+    fallbackTotalPages: number,
+    size = PLAYLIST_PAGE_SIZE,
+    page = 0,
+    content: Ref[] = [],
+    totalPages?: number,
+  ): Observable<Page<Ref>> {
+    if (page >= (totalPages ?? fallbackTotalPages)) return of(Page.of(content));
+    return this.refs.page({
+      sources: url,
+      page,
+      size,
+      sort: ['modified,DESC', 'url', 'origin'],
+    }).pipe(
+      switchMap(batch => {
+        const next = [...content, ...batch.content];
+        if (page + 1 >= batch.page.totalPages) return of(Page.of(next));
+        return this.loadSources(url, fallbackTotalPages, size, page + 1, next, batch.page.totalPages);
+      }),
+      catchError(() => size > 1
+        ? this.loadSources(url, fallbackTotalPages, Math.max(1, Math.floor(size / 2)))
+        : this.loadSources(url, fallbackTotalPages, size, page + 1, content, totalPages)),
+    );
   }
 }
