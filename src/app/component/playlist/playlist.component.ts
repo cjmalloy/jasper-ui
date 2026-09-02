@@ -51,7 +51,7 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
     private store: Store,
   ) {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
-      if (event.event === 'media' && event.ref?.url === this.ref()?.url && this.sources()?.content.length) {
+      if (event.event === 'media' && this.ref() && this.store.eventBus.isRef(event, this.ref()!) && this.sources()?.content.length) {
         const mediaList = [];
         for (const s of this.sources()!.content) {
           const file = this.getTag('plugin/file', s);
