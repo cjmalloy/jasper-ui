@@ -193,8 +193,9 @@ export class ViewerComponent implements OnChanges, OnDestroy {
         });
     }
     if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
-      this.width = this.embed?.width || (this.el.nativeElement.parentElement.offsetWidth - ((this.thread || !this.config.mobile) ? 32 : 12));
-      this.height = this.embed?.height || window.innerHeight;
+      const parentWidth = this.el.nativeElement.parentElement.offsetWidth;
+      this.width = this.embed?.width || ((this.thread || !this.config.mobile) ? Math.floor(parentWidth * 0.6) : parentWidth - 12);
+      this.height = this.embed?.height || this.config.mobile ? window.innerHeight : Math.floor(window.innerHeight * 0.8);
       if (hasTag('plugin/fullscreen', this.ref)) {
         this.width = screen.width;
         this.height = screen.height;
@@ -334,8 +335,8 @@ export class ViewerComponent implements OnChanges, OnDestroy {
           });
       } else {
         i.src = embedUrl(this.embed?.url || this.ref?.url);
-        i.style.width = this.embedWidth;
-        i.style.height = this.embedHeight;
+        if (!i.style.width) i.style.width = this.embedWidth;
+        if (!i.style.height) i.style.height = this.embedHeight;
         this.embedReady = true;
       }
     } else {
@@ -445,7 +446,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return this.thread ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
-    return `calc(min(100%, ${this.config.huge ? '67vw' : '80vw'}))`;
+    return this.config.huge ? '67%' : '80%';
   }
 
   get embedHeight() {
@@ -453,7 +454,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return '100vh';
     }
-    return '67vh';
+    return '67%';
   }
 
   @memo

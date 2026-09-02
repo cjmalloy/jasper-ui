@@ -8,8 +8,6 @@ import { LoadingComponent } from '../loading/loading.component';
 import { getTitle } from '../../util/format';
 import { computed } from 'mobx';
 
-export const PLAYLIST_PAGE_SIZE = 50;
-
 @Component({
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
@@ -76,7 +74,7 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
   private loadSources(
     url: string,
     fallbackTotalPages: number,
-    size = PLAYLIST_PAGE_SIZE,
+    size = 20,
     page = 0,
     content: Ref[] = [],
     totalPages?: number,
@@ -86,7 +84,7 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
       sources: url,
       page,
       size,
-      sort: ['modified,DESC', 'url', 'origin'],
+      sort: ['modified', 'origin'],
     }).pipe(
       switchMap(batch => {
         const next = [...content, ...batch.content];

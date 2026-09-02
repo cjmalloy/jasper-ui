@@ -7,10 +7,7 @@ h6 {
 }
 
 .playlist-container {
-  flex: 1;
-  audio, video {
-    margin: auto;
-  }
+  flex: 1 60em;
 }
 
 summary {
@@ -23,7 +20,8 @@ details:not([open]) {
 }
 
 details[open] {
-  flex: 1;
+  flex: 1 60em;
+  min-width: 300px;
 }
 
 .playlist-menu {
