@@ -8,6 +8,9 @@ import { Tag } from '../model/tag';
 import { writeTemplate } from '../model/template';
 import { writeUser } from '../model/user';
 import { Type } from '../store/view';
+import { getSearchParams } from './http';
+import { ProxyService } from '../service/api/proxy.service';
+import { firstValueFrom } from 'rxjs';
 
 export function file(obj: any) {
   return new Blob([JSON.stringify(obj, null, 2)], {type: 'text/plain;charset=utf-8'});
@@ -53,4 +56,61 @@ export function downloadPluginExport(plugin: Plugin, html: string) {
   zip.file(title + '.html', html);
   return zip.generateAsync({ type: 'blob' })
     .then(content => FileSaver.saveAs(content, title + '.zip'));
+}
+
+async function fetchUrlAsset(url: string): Promise<{ blob: Blob, name: string }> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch remote asset: ${response.statusText}`);
+  const blob = await response.blob();
+  const cleanUrl = url.split('?')[0].split('#')[0];
+  let name = decodeURIComponent(cleanUrl.substring(cleanUrl.lastIndexOf('/') + 1));
+  if (!name) name = 'file';
+  const disposition = response.headers.get('Content-Disposition') || response.headers.get('content-disposition');
+  if (disposition) {
+    const filenameStarRegex = /filename\*=\s*([^\s;]+)/i;
+    const filenameRegex = /filename=\s*((['"]).*?\2|[^;\n]*)/i;
+    const starMatch = filenameStarRegex.exec(disposition);
+    const standardMatch = filenameRegex.exec(disposition);
+    if (starMatch?.[1]) {
+      const rawValue = starMatch[1];
+      const cleanValue = rawValue.replace(/^utf-8''/i, '');
+      name = decodeURIComponent(cleanValue);
+    } else if (standardMatch?.[1]) {
+      name = standardMatch[1].replace(/['"]/g, '');
+    }
+  }
+  return { blob, name };
+}
+
+export async function downloadUrl(url: string) {
+  try {
+    const { blob, name } = await fetchUrlAsset(url);
+    FileSaver.saveAs(blob, name);
+  } catch (error) {
+    console.error(`Error downloading asset from URL: ${url}`, error);
+  }
+}
+
+export async function downloadPlaylist(urls: string[], filename: string) {
+  const files = new Set<string>();
+  const zip = new JSZip();
+  const downloadPromises = urls.map(async (url: string) => {
+    try {
+      const { blob, name } = await fetchUrlAsset(url);
+      let num = 0;
+      let filename = name;
+      let ext = name.includes('.') ? name.substring(name.lastIndexOf('.')) : '';
+      while (files.has(filename)) {
+        num++;
+        filename = ext ? name.substring(0, name.lastIndexOf('.')) + ' (' + num + ').' + ext : name + ' (' + num + ')';
+      }
+      zip.file(filename, blob);
+      files.add(filename);
+    } catch (error) {
+      console.error(`Skipping file in bulk zip due to error fetching: ${url}`, error);
+    }
+  });
+  await Promise.all(downloadPromises);
+  return zip.generateAsync({ type: 'blob' })
+    .then(content => FileSaver.saveAs(content, `${filename}.zip`));
 }

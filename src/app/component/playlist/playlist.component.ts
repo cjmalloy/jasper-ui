@@ -7,6 +7,15 @@ import { Page } from '../../model/page';
 import { LoadingComponent } from '../loading/loading.component';
 import { getTitle } from '../../util/format';
 import { computed } from 'mobx';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { defer } from 'lodash-es';
+import { Store } from '../../store/store';
+import { hasTag } from '../../util/tag';
+import { ProxyService } from '../../service/api/proxy.service';
+import { memo } from '../../util/memo';
+import { getExtension } from '../../util/http';
+import { AdminService } from '../../service/admin.service';
+import { downloadPlaylist } from '../../util/download';
 
 @Component({
   selector: 'app-playlist',
@@ -36,8 +45,45 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
   private loading?: Subscription;
 
   constructor(
+    private admin: AdminService,
     private refs: RefService,
-  ) { }
+    private proxy: ProxyService,
+    private store: Store,
+  ) {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.event === 'media' && event.ref?.url === this.ref()?.url && this.sources()?.content.length) {
+        const mediaList = [];
+        for (const s of this.sources()!.content) {
+          const file = this.getTag('plugin/file', s);
+          const audio = this.getTag('plugin/audio', s);
+          const video = this.getTag('plugin/video', s);
+          const image = this.getTag('plugin/image', s);
+          if (file) {
+            mediaList.push(this.proxy.getFetch(s.url, s.origin, this.getFilename(s)));
+          } else if (audio && (audio.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
+            mediaList.push(this.proxy.getFetch(audio, s.origin, this.getFilename(s, $localize`Untitled Audio`)));
+          } else if (video && (video.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
+            mediaList.push(this.proxy.getFetch(video, s.origin, this.getFilename(s, $localize`Untitled Video`)));
+          } else if (image && (image.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
+            mediaList.push(this.proxy.getFetch(image, s.origin, this.getFilename(s, $localize`Untitled Image`)));
+          }
+        }
+        downloadPlaylist(mediaList, this.ref()!.title || 'playlist');
+      }
+    });
+  }
+
+  getTag(tag: string, ref: Ref) {
+    return this.admin.getPlugin(tag) &&
+      hasTag(tag, ref) &&
+      (ref?.plugins?.[tag]?.url || ref.url);
+  }
+
+  getFilename(ref: Ref, d = $localize`Untitled`) {
+    const ext = getExtension(ref.url) || '';
+    const filename = ref.title || d;
+    return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (!changes.ref) return;
