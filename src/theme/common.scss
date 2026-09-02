@@ -1885,6 +1885,12 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
+.playlist-container {
+  audio, video {
+    margin: auto;
+  }
+}
+
 .sidebar .toggle:active {
   transform: scale(0.99) translateY(1px);
 }
