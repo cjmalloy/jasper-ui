@@ -221,11 +221,11 @@ export const aiQueryPlugin: Plugin = {
         },
         x: {
           init(config) {
-            config.model ||= 'grok-4.5';
+            config.model ||= 'grok-4.6';
             config.maxTokens ||= 4096;
             config.thinking = true;
             config.pdf = true;
-            config.image = ['grok-4.5', 'grok-4-fast', 'grok-4', 'grok-2-vision-latest'].includes(config.model);
+            config.image = ['grok-4.6', 'grok-4.5', 'grok-4-fast', 'grok-4', 'grok-2-vision-latest'].includes(config.model);
             config.audio = false;
             config.video = false;
           },
@@ -352,7 +352,7 @@ export const aiQueryPlugin: Plugin = {
         },
         anthropic: {
           init(config) {
-            config.model ||= 'claude-fable-5';
+            config.model ||= 'claude-fable-5-1';
             config.maxTokens ||= 4096;
             config.thinkingTokens ||= 4096
             config.pdf = true;
