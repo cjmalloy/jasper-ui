@@ -139,19 +139,19 @@ export const aiQueryPlugin: Plugin = {
       const providers = {
         openai: {
           init(config) {
-            config.model ||= config.vision ? 'gpt-5.6-sol' : config.audio ? 'gpt-audio' : 'gpt-5.6-sol';
+            config.model ||= config.vision ? 'gpt-6-astra' : config.audio ? 'gpt-audio' : 'gpt-6-astra';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
             config.image = [
-              'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
+              'gpt-6-astra', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
               'gpt-5.5', 'gpt-5.4-pro', 'gpt-5.4',
               'gpt-5.2-pro', 'gpt-5.2', 'gpt-5.1', 'gpt-5',
               'gpt-5-mini', 'gpt-5-nano', 'gpt-5.3-codex', 'gpt-5.2-codex', 'gpt-5.1-codex', 'gpt-5-codex'
             ].includes(config.model);
             config.audio = ['gpt-audio', 'gpt-4o-audio-preview', 'gpt-4o-mini-audio-preview'].includes(config.model);
             config.imageGeneration = !config.audio && [
-              'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
+              'gpt-6-astra', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
               'gpt-5.5', 'gpt-5.4-pro', 'gpt-5.4',
               'gpt-5.2-pro', 'gpt-5.2', 'gpt-5.1', 'gpt-5'
             ].includes(config.model);
