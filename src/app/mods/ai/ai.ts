@@ -264,7 +264,6 @@ export const aiQueryPlugin: Plugin = {
               input,
               tools: config.search ? [{ type: 'web_search' }] : undefined,
               max_output_tokens: config.maxTokens,
-              reasoning_effort: config.model === 'grok-4.5' ? 'high' : undefined,
               text: {
                 format: { type: config.json ? 'json_object' : 'text' },
               },
