@@ -47,7 +47,7 @@ export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], que
   zip.file(type + '.json', file(page.content!.map(write(type))));
   if (exts.length) zip.file('ext.json', file(exts.map(writeExt)));
   return zip.generateAsync({ type: 'blob' })
-    .then(content => FileSaver.(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));
+    .then(content => saveAs(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));
 }
 
 export async function downloadSet(ref: Ref[], ext: Ext[], title: string) {
