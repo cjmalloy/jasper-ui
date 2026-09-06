@@ -1,5 +1,6 @@
 import * as FileSaver from 'file-saver';
 import JSZip from 'jszip';
+import { firstValueFrom } from 'rxjs';
 import { Ext, writeExt } from '../model/ext';
 import { Page } from '../model/page';
 import { Plugin, writePlugin } from '../model/plugin';
@@ -7,13 +8,14 @@ import { Ref, writeRef } from '../model/ref';
 import { Tag } from '../model/tag';
 import { writeTemplate } from '../model/template';
 import { writeUser } from '../model/user';
+import { ProxyService } from '../service/api/proxy.service';
+import { config } from '../service/config.service';
 import { Type } from '../store/view';
 import { getSearchParams } from './http';
-import { ProxyService } from '../service/api/proxy.service';
-import { firstValueFrom } from 'rxjs';
 
 export async function saveAs(file: Blob, defaultFilename: string) {
   if (config().electron) {
+    // @ts-ignore
     window.electronAPI.saveAs(await file.arrayBuffer(), defaultFilename);
   } else {
     FileSaver.saveAs(file, defaultFilename);
