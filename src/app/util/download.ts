@@ -12,16 +12,24 @@ import { getSearchParams } from './http';
 import { ProxyService } from '../service/api/proxy.service';
 import { firstValueFrom } from 'rxjs';
 
+export async function saveAs(file: Blob, defaultFilename: string) {
+  if (config().electron) {
+    window.electronAPI.saveAs(await file.arrayBuffer(), defaultFilename);
+  } else {
+    FileSaver.saveAs(file, defaultFilename);
+  }
+}
+
 export function file(obj: any) {
   return new Blob([JSON.stringify(obj, null, 2)], {type: 'text/plain;charset=utf-8'});
 }
 
 export function downloadTag(tag: Tag) {
-  FileSaver.saveAs(file(tag), (tag.name || tag.tag.replace('/', '_')) + '.json');
+  saveAs(file(tag), (tag.name || tag.tag.replace('/', '_')) + '.json');
 }
 
 export function downloadRef(ref: Ref) {
-  FileSaver.saveAs(file(ref), (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/, '_')) + '.json');
+  (file(ref), (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/, '_')) + '.json');
 }
 
 function write(type: Type): any {
@@ -39,7 +47,7 @@ export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], que
   zip.file(type + '.json', file(page.content!.map(write(type))));
   if (exts.length) zip.file('ext.json', file(exts.map(writeExt)));
   return zip.generateAsync({ type: 'blob' })
-    .then(content => FileSaver.saveAs(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));
+    .then(content => FileSaver.(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));
 }
 
 export async function downloadSet(ref: Ref[], ext: Ext[], title: string) {
@@ -47,7 +55,7 @@ export async function downloadSet(ref: Ref[], ext: Ext[], title: string) {
   zip.file('ref.json', file(ref.map(writeRef)));
   zip.file('ext.json', file(ext.map(writeExt)));
   return zip.generateAsync({ type: 'blob' })
-    .then(content => FileSaver.saveAs(content, title + '.zip'));
+    .then(content => saveAs(content, title + '.zip'));
 }
 
 export function downloadPluginExport(plugin: Plugin, html: string) {
@@ -55,7 +63,7 @@ export function downloadPluginExport(plugin: Plugin, html: string) {
   const zip = new JSZip();
   zip.file(title + '.html', html);
   return zip.generateAsync({ type: 'blob' })
-    .then(content => FileSaver.saveAs(content, title + '.zip'));
+    .then(content => saveAs(content, title + '.zip'));
 }
 
 async function fetchUrlAsset(proxy: ProxyService, url: string): Promise<{ blob: Blob, name: string }> {
@@ -92,7 +100,7 @@ async function fetchUrlAsset(proxy: ProxyService, url: string): Promise<{ blob: 
 export async function downloadUrl(proxy: ProxyService, url: string) {
   try {
     const { blob, name } = await fetchUrlAsset(proxy, url);
-    FileSaver.saveAs(blob, name);
+    saveAs(blob, name);
   } catch (error) {
     console.error(`Error downloading asset from URL: ${url}`, error);
   }
@@ -119,5 +127,5 @@ export async function downloadPlaylist(proxy: ProxyService, urls: string[], file
   });
   await Promise.all(downloadPromises);
   return zip.generateAsync({ type: 'blob' })
-    .then(content => FileSaver.saveAs(content, `${filename}.zip`));
+    .then(content => saveAs(content, `${filename}.zip`));
 }
