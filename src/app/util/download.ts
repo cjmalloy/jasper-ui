@@ -102,7 +102,7 @@ async function fetchUrlAsset(proxy: ProxyService, url: string): Promise<{ blob: 
 export async function downloadUrl(proxy: ProxyService, url: string) {
   try {
     const { blob, name } = await fetchUrlAsset(proxy, url);
-    saveAs(blob, name);
+    await saveAs(blob, name);
   } catch (error) {
     console.error(`Error downloading asset from URL: ${url}`, error);
   }
