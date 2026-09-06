@@ -29,7 +29,7 @@ export function downloadTag(tag: Tag) {
 }
 
 export function downloadRef(ref: Ref) {
-  (file(ref), (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/, '_')) + '.json');
+  saveAs(file(ref), (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/, '_')) + '.json');
 }
 
 function write(type: Type): any {
