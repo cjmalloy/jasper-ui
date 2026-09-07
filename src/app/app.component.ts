@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationCancel, NavigationEnd, NavigationError, NavigationSkipped, NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
@@ -54,6 +55,25 @@ export class AppComponent implements AfterViewInit {
     private router: Router,
     private vc: ViewContainerRef,
   ) {
+    let currentEntry = 0;
+    let nextEntry = 0;
+    // Angular assigns a new navigation ID even when revisiting a history entry.
+    const historyEntries = new Map<number, number>();
+    this.router.events.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event instanceof NavigationStart) {
+        const extras = this.router.currentNavigation()?.extras;
+        nextEntry = event.restoredState
+          ? historyEntries.get(event.restoredState.navigationId) ?? event.restoredState.navigationId
+          : extras?.replaceUrl || extras?.skipLocationChange ? currentEntry : event.id;
+        runInAction(() => this.store.view.restoreLastSelectedScroll =
+          event.navigationTrigger === 'popstate' && nextEntry < currentEntry);
+      } else if (event instanceof NavigationEnd) {
+        historyEntries.set(event.id, nextEntry);
+        currentEntry = nextEntry;
+      } else if (event instanceof NavigationCancel || event instanceof NavigationError || event instanceof NavigationSkipped) {
+        runInAction(() => this.store.view.restoreLastSelectedScroll = false);
+      }
+    });
     document.body.style.height = '';
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
     window.addEventListener('keyup', event => {

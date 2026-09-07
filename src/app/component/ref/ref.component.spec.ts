@@ -38,6 +38,46 @@ describe('RefComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it.each([false, true])('only scrolls to the selected Ref when restoring Back navigation (%s)', restore => {
+    vi.useFakeTimers();
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    try {
+      component.ref = { url: 'https://example.com/selected' };
+      component.scrollToLatest = true;
+      component.store.view.setLastSelected(component.ref);
+      component.store.view.restoreLastSelectedScroll = restore;
+
+      component.ngAfterViewInit();
+      vi.advanceTimersByTime(400);
+
+      expect(component.lastSelected).toBe(true);
+      expect(scroll).toHaveBeenCalledTimes(restore ? 1 : 0);
+    } finally {
+      scroll.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not run a pending selected-item scroll after forward navigation', () => {
+    vi.useFakeTimers();
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    try {
+      component.ref = { url: 'https://example.com/selected' };
+      component.scrollToLatest = true;
+      component.store.view.setLastSelected(component.ref);
+      component.store.view.restoreLastSelectedScroll = true;
+      component.ngAfterViewInit();
+
+      component.store.view.restoreLastSelectedScroll = false;
+      vi.advanceTimersByTime(400);
+
+      expect(scroll).not.toHaveBeenCalled();
+    } finally {
+      scroll.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
   it('keeps the disabled Ref URL in thumbnail data while editing', () => {
     component.ref = { url: 'cache:image-id', origin: '' };
     component.editForm.get('url')!.setValue(component.ref.url);

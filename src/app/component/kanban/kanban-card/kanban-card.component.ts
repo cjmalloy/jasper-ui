@@ -144,7 +144,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   ngAfterViewInit(): void {
     delay(() => {
-      if (this.lastSelected) {
+      if (!this.destroyRef.destroyed && this.store.view.restoreLastSelectedScroll && this.lastSelected) {
         this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
       }
     }, 400);

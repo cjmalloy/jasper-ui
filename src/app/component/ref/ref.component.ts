@@ -413,7 +413,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   ngAfterViewInit(): void {
     delay(() => {
-      if (this.lastSelected) {
+      if (!this.destroyRef.destroyed && this.store.view.restoreLastSelectedScroll && this.lastSelected) {
         scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' });
       }
     }, 400);

@@ -176,9 +176,11 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
   }
 
   ngAfterViewInit(): void {
-    if (this.scrollToLatest && this.lastSelected) {
-      delay(() => scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' }), 400);
-    }
+    delay(() => {
+      if (!this.destroyRef.destroyed && this.store.view.restoreLastSelectedScroll && this.scrollToLatest && this.lastSelected) {
+        scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' });
+      }
+    }, 400);
   }
 
   init() {

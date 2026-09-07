@@ -49,6 +49,7 @@ export class ViewStore {
   ref?: Ref = {} as any;
   top?: Ref = {} as any;
   lastSelected?: Ref = {} as any;
+  restoreLastSelectedScroll = false;
   versions = 0;
   exts: Ext[] = [];
   extTemplates: Template[] = [];
