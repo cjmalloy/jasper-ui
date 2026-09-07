@@ -2,7 +2,7 @@
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Event, NavigationCancel, NavigationEnd, NavigationStart, provideRouter, Router } from '@angular/router';
+import { Event, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, provideRouter, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { AppComponent } from './app.component';
 import { ExtService } from './service/api/ext.service';
@@ -99,14 +99,20 @@ describe('AppComponent', () => {
     expect(component.store.view.restoreLastSelectedScroll).toBe(true);
   });
 
-  it('does not restore scrolling or advance history for a canceled navigation', () => {
+  it.each(['canceled', 'failed'])('does not restore scrolling or advance history for a %s navigation', result => {
     navigate(1);
     navigate(2);
+    const currentPosition = historyState.jasperScrollPosition;
     const events = TestBed.inject(Router).events as Subject<Event>;
     events.next(new NavigationStart(3, '/page/1', 'popstate', historyEntries.get(1)!.state));
     expect(component.store.view.restoreLastSelectedScroll).toBe(true);
-    events.next(new NavigationCancel(3, '/home', 'Unsaved changes'));
+    // Angular's rollback replaces history state with its own navigation ID.
+    historyState = { navigationId: 2 };
+    events.next(result === 'canceled'
+      ? new NavigationCancel(3, '/page/1', 'Unsaved changes')
+      : new NavigationError(3, '/page/1', new Error('Failed navigation')));
     expect(component.store.view.restoreLastSelectedScroll).toBe(false);
+    expect(historyState.jasperScrollPosition).toBe(currentPosition);
 
     navigate(4, 1);
     expect(component.store.view.restoreLastSelectedScroll).toBe(true);

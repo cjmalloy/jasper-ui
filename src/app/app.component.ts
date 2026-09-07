@@ -76,6 +76,7 @@ export class AppComponent implements AfterViewInit {
         if (!skipLocationChange) currentUrl = event.urlAfterRedirects;
         window.history.replaceState({ ...window.history.state, jasperScrollPosition: currentEntry }, '');
       } else if (event instanceof NavigationCancel || event instanceof NavigationError || event instanceof NavigationSkipped) {
+        window.history.replaceState({ ...window.history.state, jasperScrollPosition: currentEntry }, '');
         runInAction(() => this.store.view.restoreLastSelectedScroll = false);
       }
     });
