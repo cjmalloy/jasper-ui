@@ -125,7 +125,7 @@ export class AppComponent implements AfterViewInit {
         event.restoredState &&
         event.restoredState.navigationId > currentNavigationId;
       runInAction(() => this.store.view.back = !isLinkClick && !isForwardButton);
-      currentNavigationId = event.id;
+      currentNavigationId = event.restoredState?.navigationId ?? event.id;
     });
   }
 
