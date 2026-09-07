@@ -124,10 +124,7 @@ export class AppComponent implements AfterViewInit {
       const isForwardButton = event.navigationTrigger === 'popstate' &&
         event.restoredState &&
         event.restoredState.navigationId > currentNavigationId;
-      if (isLinkClick || isForwardButton) {
-        this.store.view.clearRef();
-        this.store.view.clearLastSelected();
-      }
+      runInAction(() => this.store.view.back = !isLinkClick && !isForwardButton);
       currentNavigationId = event.id;
     });
   }
