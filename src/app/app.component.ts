@@ -1,10 +1,20 @@
-import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  HostBinding,
+  HostListener,
+  isDevMode,
+  ViewContainerRef
+} from '@angular/core';
+import { NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
+import { filter } from 'rxjs';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { UserClipboardComponent } from './component/user-clipboard/user-clipboard.component';
+import { userClipboardPlugin } from './mods/clipboard';
 import { pdfPlugin, pdfUrl } from './mods/media/pdf';
 import { pipPlugin } from './mods/system/pip';
 import { archivePlugin, archiveUrl } from './mods/tools/archive';
@@ -16,7 +26,6 @@ import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
 import { memo } from './util/memo';
-import { userClipboardPlugin } from './mods/clipboard';
 
 @Component({
   selector: 'app-root',
@@ -103,10 +112,23 @@ export class AppComponent implements AfterViewInit {
         createPip(this.vc, ref!, this.pipPlugin.config?.windowConfig);
       }
     });
-
     window.visualViewport?.addEventListener('resize', event => {
       const vv = event?.target as VisualViewport;
       runInAction(() => this.store.viewportHeight = vv.height);
+    });
+    let currentNavigationId = 0;
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationStart)
+    ).subscribe((event: NavigationStart) => {
+      const isLinkClick = event.navigationTrigger === 'imperative';
+      const isForwardButton = event.navigationTrigger === 'popstate' &&
+        event.restoredState &&
+        event.restoredState.navigationId > currentNavigationId;
+      if (isLinkClick || isForwardButton) {
+        this.store.view.clearRef();
+        this.store.view.clearLastSelected();
+      }
+      currentNavigationId = event.id;
     });
   }
 
