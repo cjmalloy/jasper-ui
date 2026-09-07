@@ -55,21 +55,26 @@ export class AppComponent implements AfterViewInit {
     private router: Router,
     private vc: ViewContainerRef,
   ) {
-    let currentEntry = 0;
-    let nextEntry = 0;
-    // Angular assigns a new navigation ID even when revisiting a history entry.
-    const historyEntries = new Map<number, number>();
+    let currentEntry = window.history.state?.jasperScrollPosition ?? 0;
+    let nextEntry = currentEntry;
+    let currentUrl = this.router.url;
+    let historyNavigation = false;
+    let skipLocationChange = false;
+    // Persist positions because Angular navigation IDs change on Back and restart on reload.
     this.router.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event instanceof NavigationStart) {
         const extras = this.router.currentNavigation()?.extras;
-        nextEntry = event.restoredState
-          ? historyEntries.get(event.restoredState.navigationId) ?? event.restoredState.navigationId
-          : extras?.replaceUrl || extras?.skipLocationChange ? currentEntry : event.id;
+        historyNavigation = event.navigationTrigger === 'popstate';
+        skipLocationChange = !!extras?.skipLocationChange;
+        nextEntry = event.restoredState?.['jasperScrollPosition']
+          ?? (event.restoredState || extras?.replaceUrl || extras?.skipLocationChange ? currentEntry : currentEntry + 1);
         runInAction(() => this.store.view.restoreLastSelectedScroll =
-          event.navigationTrigger === 'popstate' && nextEntry < currentEntry);
+          historyNavigation && nextEntry < currentEntry);
       } else if (event instanceof NavigationEnd) {
-        historyEntries.set(event.id, nextEntry);
+        if (!historyNavigation && event.urlAfterRedirects === currentUrl) nextEntry = currentEntry;
         currentEntry = nextEntry;
+        if (!skipLocationChange) currentUrl = event.urlAfterRedirects;
+        window.history.replaceState({ ...window.history.state, jasperScrollPosition: currentEntry }, '');
       } else if (event instanceof NavigationCancel || event instanceof NavigationError || event instanceof NavigationSkipped) {
         runInAction(() => this.store.view.restoreLastSelectedScroll = false);
       }

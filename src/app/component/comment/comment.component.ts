@@ -3,6 +3,8 @@ import {
 } from '@angular/common';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
+  DestroyRef,
+  inject,
   AfterViewInit,
   Component,
   ElementRef,
@@ -84,6 +86,8 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   ],
 })
 export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
+  private destroyRef = inject(DestroyRef);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   maxContext = 20;

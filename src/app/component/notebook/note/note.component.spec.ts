@@ -30,4 +30,20 @@ describe('NoteComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it.each([false, true])('only restores selected-note scrolling on Back (%s)', restore => {
+    vi.useFakeTimers();
+    const scroll = fixture.nativeElement.scrollIntoView = vi.fn();
+    try {
+      component.store.view.setLastSelected(component.ref);
+      component.store.view.restoreLastSelectedScroll = restore;
+      component.ngAfterViewInit();
+      vi.advanceTimersByTime(400);
+
+      expect(component.lastSelected).toBe(true);
+      expect(scroll).toHaveBeenCalledTimes(restore ? 1 : 0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

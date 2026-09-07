@@ -30,4 +30,22 @@ describe('CommentComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it.each([false, true])('only restores selected-comment scrolling on Back (%s)', restore => {
+    vi.useFakeTimers();
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    try {
+      component.scrollToLatest = true;
+      component.store.view.setLastSelected(component.ref);
+      component.store.view.restoreLastSelectedScroll = restore;
+      component.ngAfterViewInit();
+      vi.advanceTimersByTime(400);
+
+      expect(component.lastSelected).toBe(true);
+      expect(scroll).toHaveBeenCalledTimes(restore ? 1 : 0);
+    } finally {
+      scroll.mockRestore();
+      vi.useRealTimers();
+    }
+  });
 });
