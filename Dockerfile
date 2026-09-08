@@ -21,8 +21,7 @@ CMD mkdir -p /report && \
       --reporters=default \
       --reporters=html \
       2>&1 | tee /report/test-output.log; echo ${PIPESTATUS[0]} > /report/exit-code.txt) && \
-    (if [ -d html ]; then cp -r html/. /report/ 2>/dev/null || true; fi) && \
-    (if [ -d coverage ]; then mkdir -p /report/coverage && cp -r coverage/. /report/coverage/ 2>/dev/null || true; fi) && \
+    (if [ -d .vitest ]; then cp -r .vitest/. /report/; fi) && \
     exit $(cat /report/exit-code.txt)
 
 FROM nginx:1.31.5 AS deploy
