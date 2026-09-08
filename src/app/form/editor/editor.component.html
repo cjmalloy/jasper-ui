@@ -107,25 +107,46 @@
       </div>
       <app-loading class="upload-loading" [batch]="true"></app-loading>
     }
-    <textarea #editor
-              [disabled]="!!uploads.length"
-              [id]="id"
-              [formControl]="control"
-              (focusin)="editing = true"
-              (pointerup)="onSelect($event)"
-              (select)="onSelect()"
-              (selectionchange)="onSelect()"
-              (input)="setText($any($event).target.value)"
-              (blur)="blurText($any($event).target.value)"
-              (focus)="focusText()"
-              [class.dropping]="dropping"
-              (dragenter)="dropping = true"
-              (dragleave)="dragLeave(editor, $any($event.target))"
-              (drop)="drop($event, $event.dataTransfer?.items)"
-              (paste)="drop($event, $event.clipboardData?.items)"
-              [appFillWidth]="fillWidth"
-              [padding]="padding"
-              [appAutofocus]="autoFocus"></textarea>
+    @defer (when admin.getPlugin('plugin/monaco')) {
+      <app-code #monacoEditor
+                [id]="id"
+                [formControl]="control"
+                language="markdown"
+                (focusin)="editing = true; focusText()"
+                (pointerup)="onSelect($event)"
+                (select)="onSelect()"
+                (selectionchange)="onSelect()"
+                (input)="setText(control.value)"
+                (focusout)="blurText(control.value)"
+                [class.dropping]="dropping"
+                (dragenter)="dropping = true"
+                (dragleave)="dragLeave($any($event.currentTarget), $any($event.target))"
+                (drop)="drop($event, $event.dataTransfer?.items)"
+                (paste)="drop($event, $event.clipboardData?.items)"
+                [appFillWidth]="fillWidth"
+                [padding]="padding"
+                [appAutofocus]="autoFocus"></app-code>
+    } @placeholder {
+      <textarea #editor
+                [disabled]="!!uploads.length"
+                [id]="id"
+                [formControl]="control"
+                (focusin)="editing = true"
+                (pointerup)="onSelect($event)"
+                (select)="onSelect()"
+                (selectionchange)="onSelect()"
+                (input)="setText($any($event).target.value)"
+                (blur)="blurText($any($event).target.value)"
+                (focus)="focusText()"
+                [class.dropping]="dropping"
+                (dragenter)="dropping = true"
+                (dragleave)="dragLeave(editor, $any($event.target))"
+                (drop)="drop($event, $event.dataTransfer?.items)"
+                (paste)="drop($event, $event.clipboardData?.items)"
+                [appFillWidth]="fillWidth"
+                [padding]="padding"
+                [appAutofocus]="autoFocus"></textarea>
+    }
     <div class="floating-toggles">
     </div>
   </div>
@@ -135,7 +156,7 @@
             [origin]="store.account.origin"
             [text]="currentText"
             [plugins]="allTags"
-            [appLimitWidth]="editor"
+            [appLimitWidth]="editor?.nativeElement"
             (postProcessMarkdown)="postProcessMarkdown()"
             (pointerup)="onSelectPreview()"></app-md>
     <textarea #hiddenMeasure

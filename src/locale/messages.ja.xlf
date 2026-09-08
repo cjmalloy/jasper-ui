@@ -3021,6 +3021,14 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="7736392907940185086" datatype="html">
         <source>LaTeX</source>
       </trans-unit>
+      <trans-unit id="7122235473851712542" datatype="html">
+        <source>⌨️ Monaco Editor</source>
+        <target>⌨️ Monacoエディター</target>
+      </trans-unit>
+      <trans-unit id="5251780875410997791" datatype="html">
+        <source>Activates built-in monaco editor (like vscode).</source>
+        <target>組み込みのMonacoエディター（VS Codeのようなもの）を有効にします。</target>
+      </trans-unit>
       <trans-unit id="6817971173758446472" datatype="html">
         <source>📧️ Email</source>
         <target>📧️ Eメール</target>
