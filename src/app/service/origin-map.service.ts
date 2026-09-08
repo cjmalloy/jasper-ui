@@ -5,8 +5,10 @@ import { catchError, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { isPushing, isReplicating } from '../mods/sync/origin';
+import { AccountAlias } from '../store/origin';
 import { Store } from '../store/store';
-import { defaultOrigin, subOrigin } from '../util/tag';
+import { userAuthors } from '../util/format';
+import { defaultOrigin, localTag, subOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
@@ -36,6 +38,7 @@ export class OriginMapService {
         this.store.origins.tunnelLookup = this.tunnelLookup;
         this.store.origins.reverseLookup = this.reverseLookup;
         this.store.origins.originMap = this.originMap;
+        this.store.origins.accountAliases = this.accountAliases;
       })),
       catchError(err => {
         console.error("Error looking up origin cross references.");
@@ -158,4 +161,51 @@ export class OriginMapService {
           originMapFor(remote)
         ]));
   }
+
+  /**
+   * Account selector relationships normalized from this origin's perspective.
+   */
+  private get accountAliases(): AccountAlias[] {
+    const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
+    const result: AccountAlias[] = [];
+    const add = (origin: string, local: string, remote: string) => {
+      if (!local || !remote) return;
+      result.push({ origin, local: localTag(local), remote: localTag(remote) });
+    };
+    for (const ref of this.origins) {
+      const aliases: string[] = uniq(config(ref)?.aliases || []);
+      const authors = userAuthors(ref);
+      if (ref.origin === this.store.account.origin) {
+        const origin = subOrigin(ref.origin, config(ref)?.local);
+        for (const author of authors) {
+          for (const alias of aliases) add(origin, author, alias);
+        }
+      } else if (isReplicating(this.store.account.origin || '', ref, this.selfApis)) {
+        for (const alias of aliases) {
+          for (const author of authors) add(ref.origin || '', alias, author);
+        }
+      }
+    }
+    return uniq(result.map(alias => JSON.stringify(alias))).map(alias => JSON.parse(alias));
+  }
+
+  aliasesFor(selector: string, origin?: string): string[] {
+    const local = localTag(selector);
+    return uniq(this.store.origins.accountAliases
+      .filter(alias => origin === undefined || alias.origin === origin)
+      .filter(alias => selectorMatches(alias.local, local))
+      .map(alias => alias.remote + local.substring(alias.local.length) + alias.origin));
+  }
+
+  isCurrentAccountRef(ref: Ref, selector = this.store.account.tag): boolean {
+    const selectors = ref.origin === this.store.account.origin
+      ? [localTag(selector)]
+      : this.aliasesFor(selector, ref.origin).map(localTag);
+    return userAuthors(ref).some(author =>
+      selectors.some(candidate => selectorMatches(candidate, localTag(author))));
+  }
+}
+
+export function selectorMatches(selector: string, candidate: string): boolean {
+  return candidate === selector || candidate.startsWith(selector + '/');
 }
