@@ -46,12 +46,15 @@ test.describe.serial('SkiFree plugin', () => {
   });
 
   test('responds to short arrow-key holds and direction reversals', async ({ page }) => {
-    await page.clock.install();
+    await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
     await page.goto(gameUrl, { waitUntil: 'networkidle' });
-    await page.clock.pauseAt(new Date());
     const game = page.locator('.skifree-game');
+    await expect(game).toHaveAttribute('data-state', 'over');
+    await page.clock.pauseAt(new Date('2026-01-01T00:01:00Z'));
     const speed = async () => Number((await game.locator('.skifree-speed').innerText()).match(/\d+/)![0]);
     await game.locator('.skifree-start').click();
+    await expect(game).toHaveAttribute('data-state', 'skiing');
+    await expect(game).toBeFocused();
     await page.keyboard.down('ArrowRight');
     await page.clock.runFor(300);
     await page.keyboard.up('ArrowRight');
