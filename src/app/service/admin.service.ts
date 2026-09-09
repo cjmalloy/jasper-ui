@@ -28,6 +28,7 @@ import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
 import { jezzballMod } from '../mods/games/jezzball';
+import { skiFreeMod } from '../mods/games/skifree';
 import { helpMod } from '../mods/help';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
@@ -203,6 +204,7 @@ export class AdminService {
     chessMod,
     backgammonMod,
     jezzballMod,
+    skiFreeMod,
     pollMod,
     todoMod,
     ninjaTriangleMod,
