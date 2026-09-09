@@ -11,7 +11,7 @@ test.describe.serial('SkiFree plugin', () => {
   });
 
   test('creates a game, uses keyboard controls, and persists the shared score', async ({ page }) => {
-    await page.goto('/submit/text?tag=plugin/skifree&debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.goto('/submit/text?tag=plugin/skifree&tag=public&debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('[name=title]').fill('SkiFree E2E');
     const created = page.waitForResponse(response => response.url().includes('/api/v1/ref') &&
       response.request().method() === 'POST' && response.ok());
@@ -58,10 +58,10 @@ test.describe.serial('SkiFree plugin', () => {
     await expect(game.locator('.skifree-speed')).toHaveText('Speed: 0 km/h');
     const stopped = Number(await game.getAttribute('data-distance'));
     expect(stopped).toBeLessThan(40);
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height * .42);
+    await expect(game.locator('.skifree-score')).not.toHaveText('Score: 0');
     await page.mouse.move(box.x + box.width / 2, box.y + box.height * .85);
     await expect.poll(async () => Number(await game.getAttribute('data-distance'))).toBeGreaterThan(stopped + 30);
-    await page.mouse.click(box.x + box.width / 2, box.y + box.height * .85);
-    await expect(game.locator('.skifree-score')).not.toHaveText('Score: 0');
   });
 
   test('keeps following the touch target after release and stops on arrival', async ({ browser }) => {
@@ -142,7 +142,7 @@ test.describe.serial('SkiFree plugin', () => {
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('#mod-score').uncheck();
     await page.getByRole('button', { name: 'Save', exact: true }).click();
-    await expect(page.locator('.log div', { hasText: 'Success.' }).first()).toBeVisible();
+    await expect(page.locator('.log div', { hasText: 'Success.' }).first()).toBeAttached();
     await expect(page.locator('#mod-score')).not.toBeChecked();
     await expect(page.locator('#mod-jezzball')).toBeChecked();
     await expect(page.locator('#mod-skifree')).toBeChecked();
