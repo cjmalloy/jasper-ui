@@ -3,6 +3,7 @@ import { Plugin } from '../../model/plugin';
 import { Mod } from '../../model/tag';
 import { Template } from '../../model/template';
 import { RootConfig } from '../root';
+import { scorePlugin } from './score';
 
 const skiLabels = {
   name: $localize`⛷️ SkiFree`,
@@ -13,15 +14,8 @@ const skiLabels = {
   start: $localize`Start skiing`,
   newGame: $localize`New game`,
   continue: $localize`Continue`,
-  pause: $localize`Pause`,
   resume: $localize`Resume`,
   paused: $localize`Paused`,
-  finish: $localize`Finish run`,
-  fast: $localize`Fast mode (F)`,
-  jump: $localize`Jump`,
-  left: $localize`Turn left`,
-  right: $localize`Turn right`,
-  brake: $localize`Brake`,
   course: $localize`Course`,
   distance: $localize`Distance: {distance} m`,
   speed: $localize`Speed: {speed} km/h`,
@@ -34,7 +28,7 @@ const skiLabels = {
   warning: $localize`Yeti! Press F to outrun it!`,
   savedExample: $localize`Saved example`,
   savedExampleTitle: $localize`This Ref is read-only; progress will not be saved.`,
-  help: $localize`Left/Right: steer · Down: downhill · Up: brake · Space: jump · F: fast · P: pause. Move the mouse or drag on the snow to steer. Jump from ramps and turn in the air for tricks. Slalom and freestyle finish at 1,000 m; continue skiing to meet the yeti at 2,000 m.`,
+  help: $localize`Move the pointer to lead the skier; click or tap to jump. Keep the pointer near the bottom to ski downhill. Left/Right: steer · Down: downhill · Up: brake · Space: jump · F: fast · P/Escape: pause · End: finish run · Enter: start/continue. Jump from ramps and turn in the air for tricks. Courses finish at 1,000 m; the yeti appears at 2,000 m.`,
 };
 const skiLabelsSource = JSON.stringify(skiLabels).replace(/</g, '\\u003c');
 
@@ -57,11 +51,8 @@ export const skiFreePlugin: Plugin = {
     filters: [
       { query: 'plugin/skifree', label: skiLabels.name, title: skiLabels.name, group: $localize`Games 🕹️` },
     ],
-    sorts: [
-      { sort: 'plugins->plugin/skifree->score:num', label: $localize`🏆️ score`, title: $localize`Score` },
-    ],
     // language=Handlebars
-    infoUi: `{{#if final}}<span class="skifree-final-score">🏆️ {{number score}}</span>{{/if}}`,
+    infoUi: `{{#if final}}<span class="skifree-final-score">🏆️ {{number (lookup ref.plugins "plugin/score")}}</span>{{/if}}`,
     // language=CSS
     css: `
       .skifree-game {
@@ -69,55 +60,51 @@ export const skiFreePlugin: Plugin = {
         width: min(100%, 800px);
         margin: auto;
         color: var(--text);
-        font: 14px system-ui, sans-serif;
+        font: 13px monospace;
       }
       .skifree-game * { box-sizing: border-box; }
-      .skifree-toolbar, .skifree-hud, .skifree-touch-controls {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 8px;
-      }
-      .skifree-toolbar button, .skifree-toolbar select, .skifree-overlay button,
-      .skifree-touch-controls button {
-        padding: 6px 10px;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        background: var(--card);
-        color: var(--text);
+      .skifree-overlay button, .skifree-course {
+        padding: 8px 14px;
+        border: 1px solid #555;
+        border-radius: 0;
+        background: #fff;
+        color: #111;
         cursor: pointer;
         font: inherit;
       }
-      .skifree-game button:disabled { opacity: .5; cursor: default; }
-      .skifree-game button[aria-pressed="true"] { border: 2px solid var(--text); }
       .skifree-game :focus-visible { outline: 2px solid #1686ce; outline-offset: 2px; }
-      .skifree-hud { font-variant-numeric: tabular-nums; background: var(--card); }
-      .skifree-stage { position: relative; overflow: hidden; border: 1px solid var(--border); border-radius: 6px; }
+      .skifree-stage { position: relative; overflow: hidden; background: #fff; color: #111; }
+      .skifree-hud {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        display: grid;
+        gap: 3px;
+        font-variant-numeric: tabular-nums;
+        pointer-events: none;
+        text-shadow: 1px 1px #fff, -1px -1px #fff;
+      }
       .skifree-canvas { display: block; width: 100%; aspect-ratio: 6 / 5; touch-action: none; }
       .skifree-overlay {
         position: absolute;
         inset: 0;
         display: grid;
         place-content: center;
-        gap: 16px;
+        gap: 12px;
         padding: 20px;
         text-align: center;
-        background: var(--bg);
-        color: var(--text);
-        opacity: .96;
+        background: rgba(255, 255, 255, .8);
+        color: #111;
       }
-      .skifree-overlay[hidden], .skifree-example[hidden] { display: none; }
-      .skifree-message { font-size: 24px; }
+      .skifree-game [hidden] { display: none; }
+      .skifree-message { font-size: 26px; }
       .skifree-result { white-space: pre-line; }
-      .skifree-example { color: var(--text); }
+      .skifree-example { display: block; padding: 4px; }
       .skifree-help { margin: 8px; font-size: 12px; line-height: 1.5; }
-      .skifree-status { min-height: 24px; text-align: center; font-weight: bold; }
-      .skifree-touch-controls button { min-width: 48px; min-height: 44px; touch-action: none; user-select: none; }
-      :fullscreen .skifree-game { width: min(100%, calc((100vh - 230px) * 6 / 5)); }
+      .skifree-status { position: absolute; right: 12px; top: 12px; max-width: 45%; text-align: right; pointer-events: none; }
+      :fullscreen .skifree-game { width: min(100%, calc((100vh - 90px) * 6 / 5)); }
       @media (max-width: 600px) {
-        .skifree-toolbar, .skifree-hud { gap: 4px; padding: 4px; font-size: 12px; }
+        .skifree-hud, .skifree-status { font-size: 10px; }
       }
     `,
     // language=HTML
@@ -136,20 +123,16 @@ export const skiFreePlugin: Plugin = {
         const find = name => root.querySelector('.skifree-' + name);
         const overlay = find('overlay');
         const course = find('course');
-        const pauseButton = find('pause');
-        const fastButton = find('fast');
-        const finishButton = find('finish');
         const startButton = find('start');
         const W = 720, H = 600, ANCHOR = 180, COURSE_END = 4000, YETI_START = 8000;
         const modes = ['free', 'slalom', 'freestyle'];
         let mode = modes.includes(initial.mode) ? initial.mode : 'free';
         let state = 'ready';
-        let player, objects, tracks, yeti, distance, elapsed, points, missed, speed, angle;
+        let player, camera, objects, tracks, yeti, distance, elapsed, points, missed, speed, angle;
         let jumpTime, jumpDuration, spin, crashTime, immunity, nextRow, nextGate, courseDone, fast;
         let frame = 0, last = 0, accumulator = 0, destroyed = false;
         let pointer = null, pointerId = null;
         const keys = new Set();
-        const held = new Set();
         const listeners = [];
         let overlayAction;
 
@@ -166,7 +149,6 @@ export const skiFreePlugin: Plugin = {
         }
         function clearInput() {
           keys.clear();
-          held.clear();
           pointer = null;
           if (pointerId !== null && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
           pointerId = null;
@@ -189,6 +171,7 @@ export const skiFreePlugin: Plugin = {
         }
         function reset() {
           player = { x: 0, y: 0 };
+          camera = { x: 0, y: 0 };
           objects = [];
           tracks = [];
           yeti = null;
@@ -234,10 +217,10 @@ export const skiFreePlugin: Plugin = {
         function save(final) {
           const result = {
             mode: mode, distance: Math.floor(distance), time: Math.round((elapsed + missed * 5) * 10) / 10,
-            missed: missed, score: score(), final: final,
+            missed: missed, final: final,
           };
-          if (writable && typeof api.save === 'function') api.save(result);
-          return resultText(result, result.score);
+          if (writable && typeof api.save === 'function') api.save(result, score());
+          return resultText(result, score());
         }
         function finish(caught) {
           if (state !== 'skiing' && state !== 'paused') return;
@@ -294,21 +277,29 @@ export const skiFreePlugin: Plugin = {
             crashTime -= dt;
             if (crashTime <= 0) immunity = 1.2;
           } else {
-            let turn = (keys.has('arrowright') || held.has('right') ? 1 : 0) -
-              (keys.has('arrowleft') || held.has('left') ? 1 : 0);
+            let turn = (keys.has('arrowright') ? 1 : 0) - (keys.has('arrowleft') ? 1 : 0);
+            let pointerGap = Infinity;
             if (turn) {
               angle = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, angle + turn * dt * 2.2));
               if (jumpTime > 0) spin += dt * 7;
             } else if (pointer) {
-              const target = Math.atan2(pointer.x - W / 2, Math.max(35, pointer.y - ANCHOR));
-              angle += (Math.max(-1.5, Math.min(1.5, target)) - angle) * Math.min(1, dt * 7);
+              const dx = pointer.x - (W / 2 + player.x - camera.x);
+              const dy = pointer.y - (ANCHOR + player.y - camera.y);
+              pointerGap = Math.hypot(dx, dy);
+              const target = Math.atan2(dx, dy);
+              const difference = Math.atan2(Math.sin(target - angle), Math.cos(target - angle));
+              if (pointerGap > 3) angle += difference * Math.min(1, dt * 10);
+              if (jumpTime > 0) spin += Math.abs(difference) * dt * 3;
             }
             if (keys.has('arrowdown')) angle *= Math.max(0, 1 - dt * 8);
-            const braking = keys.has('arrowup') || held.has('brake');
-            const targetSpeed = braking ? 0 : (fast ? 470 : 205) * Math.max(.15, Math.cos(angle));
+            const braking = keys.has('arrowup') || pointerGap < 4;
+            const targetSpeed = braking ? 0 :
+              Math.min((fast ? 470 : 205) * Math.max(.2, Math.cos(angle)), pointerGap * 3);
             speed += (targetSpeed - speed) * Math.min(1, dt * (braking ? 10 : 2));
             player.x += Math.sin(angle) * speed * dt;
             player.y += Math.cos(angle) * speed * dt;
+            camera.x = Math.max(player.x - W * .35, Math.min(player.x + W * .35, camera.x));
+            camera.y = Math.max(player.y + ANCHOR - H * .55, Math.min(player.y + ANCHOR - 80, camera.y));
             distance = Math.max(distance, player.y / 4);
             if (jumpTime > 0) {
               jumpTime = Math.max(0, jumpTime - dt);
@@ -369,14 +360,11 @@ export const skiFreePlugin: Plugin = {
           find('speed').textContent = format(labels.speed, { speed: Math.round(speed * .9) });
           find('status').textContent = yeti && state === 'skiing' ? labels.warning :
             mode === 'slalom' ? format(labels.missed, { missed: missed }) : '';
-          pauseButton.textContent = state === 'paused' ? labels.resume : labels.pause;
-          pauseButton.disabled = state !== 'skiing' && state !== 'paused';
-          finishButton.disabled = !['skiing', 'paused', 'course-complete'].includes(state);
-          fastButton.setAttribute('aria-pressed', String(fast));
-          fastButton.disabled = state !== 'skiing';
           course.disabled = !['ready', 'over'].includes(state);
+          course.hidden = course.disabled;
           root.dataset.state = state;
           root.dataset.distance = String(Math.floor(distance));
+          root.dataset.fast = String(fast);
         }
         function line(color, width, points) {
           g.strokeStyle = color;
@@ -427,7 +415,7 @@ export const skiFreePlugin: Plugin = {
           g.restore();
         }
         function drawObject(o) {
-          const x = Math.round(W / 2 + o.x - player.x), y = Math.round(ANCHOR + o.y - player.y);
+          const x = Math.round(W / 2 + o.x - camera.x), y = Math.round(ANCHOR + o.y - camera.y);
           if (x < -100 || x > W + 100 || y < -80 || y > H + 80) return;
           g.save();
           g.translate(x, y);
@@ -474,7 +462,7 @@ export const skiFreePlugin: Plugin = {
         }
         function drawYeti() {
           if (!yeti) return;
-          const x = W / 2 + yeti.x - player.x, y = ANCHOR + yeti.y - player.y;
+          const x = W / 2 + yeti.x - camera.x, y = ANCHOR + yeti.y - camera.y;
           const stride = Math.sin(elapsed * 15) * 9;
           g.save();
           g.translate(x, y);
@@ -501,13 +489,13 @@ export const skiFreePlugin: Plugin = {
           g.fillStyle = '#fff';
           g.fillRect(0, 0, W, H);
           for (const t of tracks) {
-            const x = W / 2 + t.x - player.x, y = ANCHOR + t.y - player.y;
+            const x = W / 2 + t.x - camera.x, y = ANCHOR + t.y - camera.y;
             for (const offset of [-5, 5]) {
               line('#d8e2ec', 1, [[x + offset, y], [x + offset - Math.sin(t.angle) * 8, y - Math.cos(t.angle) * 8]]);
             }
           }
           if (mode !== 'free') {
-            const y = ANCHOR + COURSE_END - player.y;
+            const y = ANCHOR + COURSE_END - camera.y;
             if (y > -40 && y < H + 40) {
               for (let x = 0; x < W; x += 16) {
                 g.fillStyle = x % 32 ? '#fff' : '#333';
@@ -520,7 +508,7 @@ export const skiFreePlugin: Plugin = {
           const sorted = objects.slice().sort((a, b) => a.y - b.y);
           for (const o of sorted) if (o.y <= player.y) drawObject(o);
           if (immunity <= 0 || Math.floor(elapsed * 10) % 2) {
-            skier(W / 2, ANCHOR, angle, '#197dcb', height(), crashTime > 0);
+            skier(W / 2 + player.x - camera.x, ANCHOR + player.y - camera.y, angle, '#197dcb', height(), crashTime > 0);
           }
           for (const o of sorted) if (o.y > player.y) drawObject(o);
           drawYeti();
@@ -543,12 +531,16 @@ export const skiFreePlugin: Plugin = {
         function keyDown(event) {
           if (event.target.closest('button, select, input, textarea') || event.ctrlKey || event.metaKey || event.altKey) return;
           const key = event.key.toLowerCase();
-          if (!['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' ', 'f', 'p', 'enter'].includes(key)) return;
+          if (!['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' ', 'f', 'p', 'escape', 'end', 'enter'].includes(key)) return;
           event.preventDefault();
           pointer = null;
           if (key.startsWith('arrow')) keys.add(key);
           if (event.repeat) return;
-          if (key === 'p') togglePause();
+          if (key === 'p' || key === 'escape') togglePause();
+          if (key === 'end') {
+            if (state === 'course-complete') state = 'paused';
+            finish(false);
+          }
           if (key === 'f') toggleFast();
           if (key === ' ') jump(false);
           if (key === 'enter' && !overlay.hidden) overlayAction();
@@ -566,36 +558,7 @@ export const skiFreePlugin: Plugin = {
         course.setAttribute('aria-label', labels.course);
         for (const option of course.options) option.textContent = labels[option.value];
         course.value = mode;
-        fastButton.textContent = labels.fast;
-        finishButton.textContent = labels.finish;
-        for (const control of ['left', 'brake', 'right', 'jump']) {
-          const button = find(control);
-          button.setAttribute('aria-label', labels[control]);
-          button.title = labels[control];
-          on(button, 'pointerdown', event => {
-            event.preventDefault();
-            root.focus({ preventScroll: true });
-            button.setPointerCapture(event.pointerId);
-            if (control === 'jump') jump(false);
-            else held.add(control);
-          });
-          on(button, 'pointerup', () => held.delete(control));
-          on(button, 'pointercancel', () => held.delete(control));
-          on(button, 'lostpointercapture', () => held.delete(control));
-          on(button, 'click', event => {
-            if (event.detail) return;
-            if (control === 'jump') jump(false);
-            else if (control === 'brake') speed = 0;
-            else angle = Math.max(-1.5, Math.min(1.5, angle + (control === 'left' ? -.3 : .3)));
-          });
-        }
         on(startButton, 'click', () => overlayAction());
-        on(pauseButton, 'click', () => { togglePause(); root.focus({ preventScroll: true }); });
-        on(fastButton, 'click', () => { toggleFast(); root.focus({ preventScroll: true }); });
-        on(finishButton, 'click', () => {
-          if (state === 'course-complete') state = 'paused';
-          finish(false);
-        });
         on(root, 'keydown', keyDown);
         on(root, 'keyup', event => keys.delete(event.key.toLowerCase()));
         on(canvas, 'pointerdown', event => {
@@ -605,13 +568,14 @@ export const skiFreePlugin: Plugin = {
           pointerId = event.pointerId;
           canvas.setPointerCapture(pointerId);
           point(event);
+          jump(false);
         });
         on(canvas, 'pointermove', event => {
           if (state === 'skiing' && (event.pointerType === 'mouse' || event.pointerId === pointerId)) point(event);
         });
-        const release = () => { pointerId = null; pointer = null; };
+        const release = () => { pointerId = null; };
         on(canvas, 'pointerup', release);
-        on(canvas, 'pointercancel', release);
+        on(canvas, 'pointercancel', () => { release(); pointer = null; });
         on(canvas, 'lostpointercapture', release);
         on(canvas, 'pointerleave', () => { if (pointerId === null) pointer = null; });
         on(window, 'blur', () => { clearInput(); if (state === 'skiing') togglePause(); });
@@ -630,7 +594,7 @@ export const skiFreePlugin: Plugin = {
         reset();
         if (initial.final || number(initial.distance)) {
           state = 'over';
-          message(labels.finished, labels.newGame, start, resultText(initial, initial.score));
+          message(labels.finished, labels.newGame, start, resultText(initial, api.score));
         } else {
           message(labels.name, labels.start, start);
         }
@@ -643,9 +607,10 @@ export const skiFreePlugin: Plugin = {
         return function() {
           skiFreeApp(el.querySelector('.skifree-game'), {
             initial: ref && ref.plugins && ref.plugins['plugin/skifree'],
+            score: ref && ref.plugins && ref.plugins['plugin/score'],
             writable: !actions || !!actions.patch,
-            save: actions && actions.patch ? function(state) {
-              actions.patch({ plugins: { 'plugin/skifree': state } });
+            save: actions && actions.patch ? function(state, score) {
+              actions.patch({ plugins: { 'plugin/skifree': state, 'plugin/score': score } });
             } : undefined,
           });
         };
@@ -655,32 +620,21 @@ export const skiFreePlugin: Plugin = {
     // language=Handlebars
     ui: `
       <div class="skifree-game" tabindex="0">
-        <div class="skifree-toolbar">
-          <select class="skifree-course"><option value="free"></option><option value="slalom"></option><option value="freestyle"></option></select>
-          <button class="skifree-pause" type="button"></button>
-          <button class="skifree-fast" type="button" aria-pressed="false"></button>
-          <button class="skifree-finish" type="button"></button>
-          <span class="skifree-example"></span>
-        </div>
-        <div class="skifree-hud">
-          <span class="skifree-distance"></span><span class="skifree-speed"></span>
-          <span class="skifree-time"></span><span class="skifree-score"></span>
-        </div>
         <div class="skifree-stage">
           <canvas class="skifree-canvas" width="720" height="600"></canvas>
+          <div class="skifree-hud">
+            <span class="skifree-distance"></span><span class="skifree-speed"></span>
+            <span class="skifree-time"></span><span class="skifree-score"></span>
+          </div>
+          <div class="skifree-status" role="status"></div>
           <div class="skifree-overlay">
             <strong class="skifree-message"></strong>
             <span class="skifree-result"></span>
+            <select class="skifree-course"><option value="free"></option><option value="slalom"></option><option value="freestyle"></option></select>
             <button class="skifree-start" type="button"></button>
           </div>
         </div>
-        <div class="skifree-status" role="status"></div>
-        <div class="skifree-touch-controls">
-          <button class="skifree-left" type="button">◀</button>
-          <button class="skifree-brake" type="button">■</button>
-          <button class="skifree-right" type="button">▶</button>
-          <button class="skifree-jump" type="button">⤴</button>
-        </div>
+        <span class="skifree-example"></span>
         <p class="skifree-help"></p>
         {{defer el (skifree ref actions el)}}
       </div>
@@ -693,7 +647,6 @@ export const skiFreePlugin: Plugin = {
       distance: { type: 'float64' },
       time: { type: 'float64' },
       missed: { type: 'uint32' },
-      score: { type: 'float64' },
       final: { type: 'boolean' },
     },
   },
@@ -726,12 +679,12 @@ export const skiFreeTemplate: Template = {
   },
   defaults: <RootConfig> {
     submitText: true,
-    defaultSort: ['plugins->plugin/skifree->score:num,DESC', 'modified,DESC'],
+    defaultSort: ['plugins->plugin/score:num,DESC', 'modified,DESC'],
     defaultCols: 1,
   },
 };
 
 export const skiFreeMod: Mod = {
-  plugin: [skiFreePlugin],
+  plugin: [scorePlugin, skiFreePlugin],
   template: [skiFreeTemplate],
 };

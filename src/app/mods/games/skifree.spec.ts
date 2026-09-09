@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import { validate } from 'jtd';
+import { scorePlugin } from './score';
 import { skiFreeMod, skiFreePlugin, skiFreeTemplate } from './skifree';
 
 interface SkiResult {
@@ -7,7 +8,6 @@ interface SkiResult {
   distance: number;
   time: number;
   missed: number;
-  score: number;
   final: boolean;
 }
 
@@ -17,7 +17,7 @@ describe('SkiFree mod', () => {
   let now: number;
   let destroy: () => void;
   let save: ReturnType<typeof vi.fn>;
-  let app: (root: HTMLElement, api: { writable?: boolean; initial?: object; save?: typeof save }) => () => void;
+  let app: (root: HTMLElement, api: { writable?: boolean; initial?: object; score?: unknown; save?: typeof save }) => () => void;
 
   const element = <T extends HTMLElement = HTMLElement>(name: string) => root.querySelector<T>(`.skifree-${name}`)!;
   const key = (value: string, type = 'keydown') => root.dispatchEvent(new KeyboardEvent(type, { key: value, bubbles: true, cancelable: true }));
@@ -48,6 +48,11 @@ describe('SkiFree mod', () => {
     root.innerHTML = skiFreePlugin.config!.ui!;
     root = root.firstElementChild as HTMLDivElement;
     document.body.appendChild(root);
+    const canvas = element<HTMLCanvasElement>('canvas');
+    canvas.setPointerCapture = vi.fn();
+    canvas.hasPointerCapture = vi.fn(() => false);
+    canvas.releasePointerCapture = vi.fn();
+    vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 720, height: 600 } as DOMRect);
     const source = skiFreePlugin.config!.snippet!.replace(/<\/?script>/g, '');
     app = new Function('Handlebars', source + '; return skiFreeApp;')({ registerHelper: vi.fn() });
     destroy = app(root, { save });
@@ -61,9 +66,9 @@ describe('SkiFree mod', () => {
   });
 
   it('is a self-contained plugin/template bundle with score sorting', () => {
-    expect(skiFreeMod.plugin).toEqual([skiFreePlugin]);
+    expect(skiFreeMod.plugin).toEqual([scorePlugin, skiFreePlugin]);
     expect(skiFreeMod.template).toEqual([skiFreeTemplate]);
-    expect(skiFreeTemplate.defaults.defaultSort[0]).toBe('plugins->plugin/skifree->score:num,DESC');
+    expect(skiFreeTemplate.defaults.defaultSort[0]).toBe('plugins->plugin/score:num,DESC');
     expect(validate(skiFreePlugin.schema!, skiFreePlugin.defaults)).toEqual([]);
   });
 
@@ -81,7 +86,7 @@ describe('SkiFree mod', () => {
     expect(root.dataset.state).toBe('paused');
     expect(root.dataset.distance).toBe(distance);
     expect(element('time').textContent).toBe(time);
-    element('pause').click();
+    key('p');
     advance(1);
     expect(root.dataset.state).toBe('skiing');
     expect(Number(root.dataset.distance)).toBeGreaterThan(Number(distance));
@@ -99,7 +104,7 @@ describe('SkiFree mod', () => {
     key('ArrowDown', 'keyup');
     expect(element('score').textContent).not.toBe('Score: 0');
     key('f');
-    expect(element('fast').getAttribute('aria-pressed')).toBe('true');
+    expect(root.dataset.fast).toBe('true');
     advance(3);
     expect(Number(element('speed').textContent!.match(/\d+/)![0])).toBeGreaterThan(250);
     key('ArrowUp');
@@ -131,7 +136,7 @@ describe('SkiFree mod', () => {
     expect(validate(skiFreePlugin.schema!, result)).toEqual([]);
     expect(result.distance).toBe(1000);
     expect(result.missed).toBeGreaterThan(0);
-    expect(result.time).toBeGreaterThan(20 + result.missed * 5);
+    expect(result.time).toBeCloseTo(20 + result.missed * 5, 0);
     expect(result.final).toBe(false);
     element('start').click();
     advance(1);
@@ -147,7 +152,7 @@ describe('SkiFree mod', () => {
     advance(30);
     expect(root.dataset.state).toBe('course-complete');
     expect(save.mock.calls[0][0].mode).toBe('freestyle');
-    expect(save.mock.calls[0][0].score).toBeGreaterThan(0);
+    expect(save.mock.calls[0][1]).toBeGreaterThan(0);
   });
 
   it('spawns the yeti after 2,000 m and saves the caught result once', () => {
@@ -175,12 +180,12 @@ describe('SkiFree mod', () => {
   });
 
   it('shows saved results safely and lets read-only examples play without writing', () => {
-    destroy = app(root, { writable: false, initial: { final: true, distance: 123, score: 250, time: 10, mode: 'free' }, save });
+    destroy = app(root, { writable: false, initial: { final: true, distance: 123, time: 10, mode: 'free' }, score: 250, save });
     expect(element('result').textContent).toContain('Score: 250');
     expect(element('example').hidden).toBe(false);
     start();
     advance(2);
-    element('finish').click();
+    key('End');
     expect(root.dataset.state).toBe('over');
     expect(save).not.toHaveBeenCalled();
     expect(element('result').textContent).toContain('Distance:');
@@ -191,19 +196,20 @@ describe('SkiFree mod', () => {
     advance(2);
     key(' ');
     advance(1);
-    element('finish').click();
+    key('End');
     expect(save).toHaveBeenCalledTimes(1);
     const result = save.mock.calls[0][0];
     expect(validate(skiFreePlugin.schema!, result)).toEqual([]);
     expect(result.final).toBe(true);
-    expect(result.score).toBeGreaterThan(0);
+    expect(save.mock.calls[0][1]).toBeGreaterThan(0);
+    expect(validate(scorePlugin.schema!, save.mock.calls[0][1])).toEqual([]);
     element('start').click();
     expect(root.dataset.distance).toBe('0');
     expect(element('score').textContent).toBe('Score: 0');
     expect(save).toHaveBeenCalledTimes(1);
   });
 
-  it('pauses on focus loss, cleans up detached instances, and isolates simultaneous games', () => {
+  it('pauses on focus loss and cleans up detached instances', () => {
     start();
     window.dispatchEvent(new Event('blur'));
     expect(root.dataset.state).toBe('paused');
@@ -214,11 +220,45 @@ describe('SkiFree mod', () => {
     expect(cancelAnimationFrame).toHaveBeenCalled();
     expect(callback).toBeUndefined();
     key('f');
-    expect(element('fast').getAttribute('aria-pressed')).toBe('false');
+    expect(root.dataset.fast).toBe('false');
+  });
+
+  it('chases the pointer, stops at its destination, and scrolls when led downhill', () => {
+    start();
+    const canvas = element('canvas');
+    const move = (y: number) => {
+      const event = new MouseEvent('pointermove', { clientX: 360, clientY: y });
+      Object.defineProperty(event, 'pointerType', { value: 'mouse' });
+      canvas.dispatchEvent(event);
+    };
+    move(250);
+    advance(5);
+    const distance = Number(root.dataset.distance);
+    expect(distance).toBeGreaterThan(10);
+    expect(distance).toBeLessThan(30);
+    advance(3);
+    expect(Number(root.dataset.distance)).toBeLessThanOrEqual(distance + 1);
+    move(580);
+    advance(5);
+    expect(Number(root.dataset.distance)).toBeGreaterThan(distance + 100);
+    expect(root.querySelector('.skifree-touch-controls')).toBeNull();
+    expect(root.querySelector('.skifree-toolbar')).toBeNull();
+  });
+
+  it('jumps on a touch/pointer press and keeps chasing the target after release', () => {
+    start();
+    const canvas = element('canvas');
+    const event = new MouseEvent('pointerdown', { clientX: 360, clientY: 580, button: 0, cancelable: true });
+    Object.defineProperties(event, { pointerId: { value: 1 }, pointerType: { value: 'touch' } });
+    canvas.dispatchEvent(event);
+    canvas.dispatchEvent(new Event('pointerup'));
+    advance(2);
+    expect(element('score').textContent).not.toBe('Score: 0');
+    expect(Number(root.dataset.distance)).toBeGreaterThan(40);
   });
 
   it('normalizes malformed saved values rather than rendering markup or NaN', () => {
-    destroy = app(root, { initial: { final: true, distance: Infinity, time: -1, score: '<img src=x>', mode: 'unknown' }, save });
+    destroy = app(root, { initial: { final: true, distance: Infinity, time: -1, mode: 'unknown' }, score: '<img src=x>', save });
     expect(element('result').textContent).toContain('Time: 0.0 s');
     expect(element('result').textContent).toContain('Score: 0');
     expect(element('result').querySelector('img')).toBeNull();

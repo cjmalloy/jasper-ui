@@ -28,6 +28,7 @@ import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
 import { jezzballMod } from '../mods/games/jezzball';
+import { scoreMod } from '../mods/games/score';
 import { skiFreeMod } from '../mods/games/skifree';
 import { helpMod } from '../mods/help';
 import { homeMod } from '../mods/home';
@@ -203,6 +204,7 @@ export class AdminService {
     pipMod,
     chessMod,
     backgammonMod,
+    scoreMod,
     jezzballMod,
     skiFreeMod,
     pollMod,
@@ -979,11 +981,13 @@ export class AdminService {
   }
 
   getInstalledMod(mod: string) {
+    const bundle = this.getMod(mod);
+    const pluginTags = new Set(bundle?.plugin?.map(p => p.tag));
     const result =  {
-      plugin: Object.values(this.status.plugins).filter(p => modId(p) === mod),
+      plugin: Object.values(this.status.plugins).filter(p => modId(p) === mod || pluginTags.has(p.tag)),
       template: Object.values(this.status.templates).filter(t => modId(t) === mod),
     };
-    if (!result.plugin.length && !result.template.length) return undefined;
+    if (!result.plugin.some(p => modId(p) === mod) && !result.template.length) return undefined;
     return {
       ...this.getMod(mod) || {}, // Refs, Exts, Users
       ...result

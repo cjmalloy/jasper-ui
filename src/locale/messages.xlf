@@ -291,10 +291,6 @@
           <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.html</context>
           <context context-type="linenumber">202</context>
         </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">16</context>
-        </context-group>
       </trans-unit>
       <trans-unit id="61146899238241461" datatype="html">
         <source>Change playback speed</source>
@@ -1985,11 +1981,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">67</context>
+          <context context-type="linenumber">51</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">58</context>
+          <context context-type="linenumber">52</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5409276551556370509" datatype="html">
@@ -3970,7 +3966,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">15</context>
+          <context context-type="linenumber">16</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6051249637437105861" datatype="html">
@@ -6277,23 +6273,23 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">40</context>
+          <context context-type="linenumber">47</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">63</context>
+          <context context-type="linenumber">1088</context>
         </context-group>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">1104</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">54</context>
+          <context context-type="sourcefile">src/app/mods/games/score.ts</context>
+          <context context-type="linenumber">12</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">709</context>
+          <context context-type="linenumber">48</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
+          <context context-type="linenumber">662</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/help.ts</context>
@@ -8619,11 +8615,11 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">1132</context>
+          <context context-type="linenumber">1116</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">724</context>
+          <context context-type="linenumber">677</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/lens.ts</context>
@@ -8754,72 +8750,61 @@ Private tags start with an underscore.
         <source>Saved example</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">8</context>
+          <context context-type="linenumber">9</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">35</context>
+          <context context-type="linenumber">29</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8350568145674123707" datatype="html">
         <source>This Ref is read-only; progress will not be saved.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">9</context>
+          <context context-type="linenumber">10</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">36</context>
+          <context context-type="linenumber">30</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7052225887348535774" datatype="html">
         <source>⏸️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">10</context>
+          <context context-type="linenumber">11</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6156229848246254828" datatype="html">
         <source>⏯️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">11</context>
+          <context context-type="linenumber">12</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2768384540935341624" datatype="html">
         <source>🐢</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">12</context>
+          <context context-type="linenumber">13</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1470672407066453787" datatype="html">
         <source>🐇</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">13</context>
+          <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3091918474470553761" datatype="html">
         <source>🔊</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">14</context>
+          <context context-type="linenumber">15</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2128624502640961509" datatype="html">
         <source>New game</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">16</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">14</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="6962699013778688473" datatype="html">
-        <source>Continue</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">17</context>
@@ -8829,222 +8814,225 @@ Private tags start with an underscore.
           <context context-type="linenumber">15</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="6962699013778688473" datatype="html">
+        <source>Continue</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
+          <context context-type="linenumber">18</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="2816819274320746859" datatype="html">
         <source>This will clear your high score of {score}. Start a new game?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">18</context>
+          <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3544610376396588577" datatype="html">
         <source>Level: {level}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">19</context>
+          <context context-type="linenumber">20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6852183882416144233" datatype="html">
         <source>Lives: {lives}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">20</context>
+          <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2904241715043080692" datatype="html">
         <source>Area Cleared: {filled}%</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">21</context>
+          <context context-type="linenumber">22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6955037067445975424" datatype="html">
         <source>Time Left: {time}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">22</context>
+          <context context-type="linenumber">23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7301821102666615096" datatype="html">
         <source>Score: {score}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">23</context>
+          <context context-type="linenumber">24</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">29</context>
+          <context context-type="linenumber">23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6990153219965469167" datatype="html">
         <source>↕</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">24</context>
+          <context context-type="linenumber">25</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6126475216671204597" datatype="html">
         <source>↔</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">25</context>
+          <context context-type="linenumber">26</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1010824126943413606" datatype="html">
         <source>Level {level} complete</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">26</context>
+          <context context-type="linenumber">27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8135923080030537232" datatype="html">
         <source>Game over · score {score}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">27</context>
+          <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7935139414809961172" datatype="html">
         <source>Final score {score}</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">28</context>
+          <context context-type="linenumber">29</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2671274276626285315" datatype="html">
         <source>Click, press Enter, or tap with two fingers to build a wall. Two-finger alignment sets its direction. Use the arrow keys to move the keyboard cursor. Right-click, Space, or the direction button changes direction. Press P to pause.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">29</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4617000983840234050" datatype="html">
-        <source>🏆️ Score</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">35</context>
+          <context context-type="linenumber">30</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6543363048987109722" datatype="html">
         <source>🟣️ JezzBall</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">37</context>
+          <context context-type="linenumber">36</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">52</context>
+          <context context-type="linenumber">38</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">54</context>
+          <context context-type="linenumber">51</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">67</context>
+          <context context-type="linenumber">1083</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">1099</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">1101</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="7369467455665573995" datatype="html">
-        <source>Store a numeric score on a Ref.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">41</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4580907610151762865" datatype="html">
-        <source>🏆️ score</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">43</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">61</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="7123653594948067002" datatype="html">
-        <source>Score</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">43</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">61</context>
+          <context context-type="linenumber">1085</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5885261957820095227" datatype="html">
         <source>Play a faithful remake of the classic JezzBall game.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">64</context>
+          <context context-type="linenumber">48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="550762586054059391" datatype="html">
         <source>🟣️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">65</context>
+          <context context-type="linenumber">49</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">1105</context>
+          <context context-type="linenumber">1089</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6291710928695103454" datatype="html">
         <source>JezzBall games</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
-          <context context-type="linenumber">67</context>
+          <context context-type="linenumber">51</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4617000983840234050" datatype="html">
+        <source>🏆️ Score</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/score.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/score.ts</context>
+          <context context-type="linenumber">9</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7369467455665573995" datatype="html">
+        <source>Store a numeric score on a Ref.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/score.ts</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4580907610151762865" datatype="html">
+        <source>🏆️ score</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/score.ts</context>
+          <context context-type="linenumber">15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7123653594948067002" datatype="html">
+        <source>Score</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/games/score.ts</context>
+          <context context-type="linenumber">15</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5215012533382702037" datatype="html">
         <source>⛷️ SkiFree</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">8</context>
+          <context context-type="linenumber">9</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7244793868883326122" datatype="html">
         <source>Ski downhill, race through slalom gates, and perform freestyle jumps. Watch out for the yeti!</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">9</context>
+          <context context-type="linenumber">10</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4736417326589826053" datatype="html">
         <source>Free ski</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">10</context>
+          <context context-type="linenumber">11</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2567298400199221938" datatype="html">
         <source>Slalom</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">11</context>
+          <context context-type="linenumber">12</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4304080776856302187" datatype="html">
         <source>Freestyle</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">12</context>
+          <context context-type="linenumber">13</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8532303232778991972" datatype="html">
         <source>Start skiing</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">13</context>
+          <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7182974689040833178" datatype="html">
@@ -9061,127 +9049,85 @@ Private tags start with an underscore.
           <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1809243019568158753" datatype="html">
-        <source>Finish run</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">19</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="7013370296538418261" datatype="html">
-        <source>Fast mode (F)</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">20</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4649711232397678200" datatype="html">
-        <source>Jump</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">21</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="6091512527573222472" datatype="html">
-        <source>Turn left</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">22</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="2047124244659395425" datatype="html">
-        <source>Turn right</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">23</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="3665192834699816142" datatype="html">
-        <source>Brake</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">24</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="8317457230285174180" datatype="html">
         <source>Course</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">25</context>
+          <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="411665401568924948" datatype="html">
         <source>Distance: {distance} m</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">26</context>
+          <context context-type="linenumber">20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8785553675114940196" datatype="html">
         <source>Speed: {speed} km/h</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">27</context>
+          <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6074473046101532411" datatype="html">
         <source>Time: {time} s</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">28</context>
+          <context context-type="linenumber">22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5888879082613450048" datatype="html">
         <source>Missed gates: {missed} (+5 s each)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">30</context>
+          <context context-type="linenumber">24</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5138432972938946505" datatype="html">
         <source>Course complete!</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">31</context>
+          <context context-type="linenumber">25</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9145829963424241140" datatype="html">
         <source>The yeti caught you!</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">32</context>
+          <context context-type="linenumber">26</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2242225600916024174" datatype="html">
         <source>Run finished</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9184622975823117462" datatype="html">
         <source>Yeti! Press F to outrun it!</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">34</context>
+          <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="5823292437074019065" datatype="html">
-        <source>Left/Right: steer · Down: downhill · Up: brake · Space: jump · F: fast · P: pause. Move the mouse or drag on the snow to steer. Jump from ramps and turn in the air for tricks. Slalom and freestyle finish at 1,000 m; continue skiing to meet the yeti at 2,000 m.</source>
+      <trans-unit id="8720950824021781866" datatype="html">
+        <source>Move the pointer to lead the skier; click or tap to jump. Keep the pointer near the bottom to ski downhill. Left/Right: steer · Down: downhill · Up: brake · Space: jump · F: fast · P/Escape: pause · End: finish run · Enter: start/continue. Jump from ramps and turn in the air for tricks. Courses finish at 1,000 m; the yeti appears at 2,000 m.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">37</context>
+          <context context-type="linenumber">31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="760175102243382739" datatype="html">
         <source>⛷️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">56</context>
+          <context context-type="linenumber">50</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/skifree.ts</context>
-          <context context-type="linenumber">710</context>
+          <context context-type="linenumber">663</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1634079419998908383" datatype="html">
@@ -17565,123 +17511,123 @@ Enter the origin to confirm:</source>
         <source>Installing <x id="PH" equiv-text="def.title || def.url"/> ref...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">995</context>
+          <context context-type="linenumber">999</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4147619993239863788" datatype="html">
         <source>Ref <x id="PH" equiv-text="def.title || def.url"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1003</context>
+          <context context-type="linenumber">1007</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3630868986759354735" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> ext...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1014</context>
+          <context context-type="linenumber">1018</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3297602259759413939" datatype="html">
         <source>Ext <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1018</context>
+          <context context-type="linenumber">1022</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3524609671751595375" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> user...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1029</context>
+          <context context-type="linenumber">1033</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8104259115775582236" datatype="html">
         <source>User <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1033</context>
+          <context context-type="linenumber">1037</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4744345424867452582" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> plugin...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1044</context>
+          <context context-type="linenumber">1048</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6857764545124483676" datatype="html">
         <source>Plugin <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1049</context>
+          <context context-type="linenumber">1053</context>
         </context-group>
       </trans-unit>
       <trans-unit id="663969018956266050" datatype="html">
         <source>Deleting <x id="PH" equiv-text="p.name || p.tag"/> plugin...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1060</context>
+          <context context-type="linenumber">1064</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7341203762945439729" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> template...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1069</context>
+          <context context-type="linenumber">1073</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1914752778486056818" datatype="html">
         <source>Template <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1074</context>
+          <context context-type="linenumber">1078</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8397044276128761089" datatype="html">
         <source>Deleting <x id="PH" equiv-text="t.name || t.tag"/> template...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1085</context>
+          <context context-type="linenumber">1089</context>
         </context-group>
       </trans-unit>
       <trans-unit id="898435854656311367" datatype="html">
         <source>Installing <x id="PH" equiv-text="mod"/> mod...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1095</context>
+          <context context-type="linenumber">1099</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1117</context>
+          <context context-type="linenumber">1121</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4164502271007019945" datatype="html">
         <source>Deleting <x id="PH" equiv-text="mod"/> mod...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1131</context>
+          <context context-type="linenumber">1135</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7393705938004595273" datatype="html">
         <source>Updating <x id="PH" equiv-text="def.name || def.tag"/> plugin...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1143</context>
+          <context context-type="linenumber">1147</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7325078987927217893" datatype="html">
         <source>Updating <x id="PH" equiv-text="def.name || def.tag"/> template...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1152</context>
+          <context context-type="linenumber">1156</context>
         </context-group>
       </trans-unit>
       <trans-unit id="612983901370848355" datatype="html">
         <source>Logging <x id="PH" equiv-text="mod || ref.url"/> receipt...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1181</context>
+          <context context-type="linenumber">1185</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9116115446897812158" datatype="html">
