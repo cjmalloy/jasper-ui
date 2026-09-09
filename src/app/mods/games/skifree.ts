@@ -37,7 +37,7 @@ export const skiFreePlugin: Plugin = {
   name: skiLabels.name,
   config: {
     mod: skiLabels.name,
-    version: 2,
+    version: 3,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -280,7 +280,7 @@ export const skiFreePlugin: Plugin = {
             let turn = (keys.has('arrowright') ? 1 : 0) - (keys.has('arrowleft') ? 1 : 0);
             let pointerGap = Infinity;
             if (turn) {
-              angle = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, angle + turn * dt * 2.2));
+              angle = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, angle + turn * dt * 8));
               if (jumpTime > 0) spin += dt * 7;
             } else if (pointer) {
               const dx = pointer.x - (W / 2 + player.x - camera.x);

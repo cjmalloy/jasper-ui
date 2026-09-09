@@ -113,6 +113,28 @@ describe('SkiFree mod', () => {
     key('ArrowUp', 'keyup');
   });
 
+  it.each([
+    ['ArrowLeft', 'ArrowRight', -1],
+    ['ArrowRight', 'ArrowLeft', 1],
+  ])('turns promptly with %s and reverses without waiting for key repeat', (direction, opposite, sign) => {
+    const rotation = vi.spyOn(element<HTMLCanvasElement>('canvas').getContext('2d')!, 'rotate');
+    start();
+    key(direction);
+    advance(.3);
+    expect(rotation).toHaveBeenLastCalledWith(-sign * Math.PI / 2 * .65);
+    key(direction, 'keyup');
+    advance(.3);
+    expect(rotation).toHaveBeenLastCalledWith(-sign * Math.PI / 2 * .65);
+    key(opposite);
+    advance(.5);
+    expect(rotation).toHaveBeenLastCalledWith(sign * Math.PI / 2 * .65);
+    key(opposite, 'keyup');
+    key('ArrowDown');
+    advance(.5);
+    expect(rotation.mock.lastCall![0]).toBeCloseTo(0, 1);
+    key('ArrowDown', 'keyup');
+  });
+
   it('recovers from obstacle collisions instead of ending the run', () => {
     vi.mocked(Math.random).mockReturnValue(.5);
     destroy = app(root, { save });

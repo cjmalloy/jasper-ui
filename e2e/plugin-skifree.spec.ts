@@ -45,6 +45,30 @@ test.describe.serial('SkiFree plugin', () => {
     await expect(page.locator('.skifree-result')).toContainText(`Score: ${patch.plugins['plugin/score']}`);
   });
 
+  test('responds to short arrow-key holds and direction reversals', async ({ page }) => {
+    await page.clock.install();
+    await page.goto(gameUrl, { waitUntil: 'networkidle' });
+    await page.clock.pauseAt(new Date());
+    const game = page.locator('.skifree-game');
+    const speed = async () => Number((await game.locator('.skifree-speed').innerText()).match(/\d+/)![0]);
+    await game.locator('.skifree-start').click();
+    await page.keyboard.down('ArrowRight');
+    await page.clock.runFor(300);
+    await page.keyboard.up('ArrowRight');
+    await page.clock.runFor(1500);
+    expect(await speed()).toBeLessThan(60);
+    await page.keyboard.down('ArrowLeft');
+    await page.clock.runFor(500);
+    await page.keyboard.up('ArrowLeft');
+    await page.clock.runFor(1000);
+    expect(await speed()).toBeLessThan(60);
+    await page.keyboard.down('ArrowDown');
+    await page.clock.runFor(1000);
+    await page.keyboard.up('ArrowDown');
+    expect(await speed()).toBeGreaterThan(120);
+    await expect(game).toHaveAttribute('data-state', 'skiing');
+  });
+
   test('follows the mouse, stops at its target, and jumps on click without an on-screen controller', async ({ page }) => {
     await page.goto(gameUrl, { waitUntil: 'networkidle' });
     const game = page.locator('.skifree-game');
