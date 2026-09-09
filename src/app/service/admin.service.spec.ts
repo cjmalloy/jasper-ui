@@ -3,9 +3,10 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
-import { jezzballMod, jezzballPlugin } from '../mods/games/jezzball';
+import { jezzballMod, jezzballPlugin, jezzballTemplate } from '../mods/games/jezzball';
 import { scoreMod, scorePlugin } from '../mods/games/score';
 import { skiFreeMod, skiFreePlugin } from '../mods/games/skifree';
 import { scrapePlugin } from '../mods/sync/scrape';
@@ -47,6 +48,28 @@ describe('AdminService', () => {
     service.status.plugins['plugin/skifree'] = skiFreePlugin;
     expect(service.getInstalledMod(skiFreePlugin.config!.mod!)?.plugin).toEqual([scorePlugin, skiFreePlugin]);
     expect(service.getInstalledMod(scorePlugin.config!.mod!)?.plugin).toEqual([scorePlugin]);
+  });
+
+  it.each([scorePlugin, jezzballPlugin])('removes only $tag when the installed score still belongs to JezzBall', plugin => {
+    const legacyScore = {
+      ...scorePlugin,
+      config: { ...scorePlugin.config, mod: jezzballPlugin.config!.mod, version: 1 },
+    };
+    service.status.plugins = {
+      [legacyScore.tag]: legacyScore,
+      [jezzballPlugin.tag]: jezzballPlugin,
+      [skiFreePlugin.tag]: skiFreePlugin,
+    };
+    service.status.templates = { [jezzballTemplate.tag]: jezzballTemplate };
+    const deletePlugin = vi.spyOn(service, 'deletePlugin$').mockReturnValue(of(null));
+    const deleteTemplate = vi.spyOn(service, 'deleteTemplate$').mockReturnValue(of(null));
+
+    service.deleteMod$(plugin.config!.mod!, () => {}).subscribe(() => {});
+
+    expect(deletePlugin.mock.calls.map(([p]) => p.tag)).toEqual([plugin.tag]);
+    expect(deleteTemplate.mock.calls.map(([t]) => t.tag)).toEqual(
+      plugin === jezzballPlugin ? [jezzballTemplate.tag] : [],
+    );
   });
 
   it('should keep formly expressions serializable for built-in mods', () => {

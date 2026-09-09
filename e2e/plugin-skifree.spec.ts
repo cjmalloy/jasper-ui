@@ -16,10 +16,12 @@ test.describe.serial('SkiFree plugin', () => {
     const created = page.waitForResponse(response => response.url().includes('/api/v1/ref') &&
       response.request().method() === 'POST' && response.ok());
     await page.getByRole('button', { name: 'Submit', exact: true }).click();
-    await created;
+    const ref = (await created).request().postDataJSON();
     const game = page.locator('.skifree-game');
     await expect(game).toBeVisible();
-    gameUrl = page.url();
+    const url = new URL(`/ref/e/${encodeURIComponent(ref.url)}`, page.url());
+    url.searchParams.set('debug', 'ADMIN');
+    gameUrl = url.href;
     await game.locator('.skifree-start').click();
     await game.press('Space');
     await expect(game.locator('.skifree-score')).not.toHaveText('Score: 0');
@@ -62,7 +64,7 @@ test.describe.serial('SkiFree plugin', () => {
     await expect(game.locator('.skifree-score')).not.toHaveText('Score: 0');
   });
 
-  test('supports touch pointer input', async ({ browser }) => {
+  test('keeps following the touch target after release and stops on arrival', async ({ browser }) => {
     const context = await browser.newContext({ hasTouch: true, viewport: { width: 1280, height: 900 } });
     const page = await context.newPage();
     try {
@@ -72,9 +74,14 @@ test.describe.serial('SkiFree plugin', () => {
       const canvas = game.locator('.skifree-canvas');
       await canvas.scrollIntoViewIfNeeded();
       const box = (await canvas.boundingBox())!;
-      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height * .85);
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height * .42);
       await expect(game.locator('.skifree-score')).not.toHaveText('Score: 0');
-      await expect.poll(async () => Number(await game.getAttribute('data-distance'))).toBeGreaterThan(30);
+      await expect.poll(async () => Number(await game.getAttribute('data-distance'))).toBeGreaterThan(10);
+      await expect(game.locator('.skifree-speed')).toHaveText('Speed: 0 km/h');
+      const stopped = Number(await game.getAttribute('data-distance'));
+      expect(stopped).toBeLessThan(40);
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height * .85);
+      await expect.poll(async () => Number(await game.getAttribute('data-distance'))).toBeGreaterThan(stopped + 30);
     } finally {
       await context.close();
     }
@@ -106,7 +113,9 @@ test.describe.serial('SkiFree plugin', () => {
     page.on('request', request => {
       if (request.url().includes('/api/v1/ref') && request.method() === 'PATCH') patches.push(request.url());
     });
-    await page.goto(gameUrl.replace('debug=ADMIN', 'debug=VIEWER'), { waitUntil: 'networkidle' });
+    const url = new URL(gameUrl);
+    url.searchParams.set('debug', 'VIEWER');
+    await page.goto(url.href, { waitUntil: 'networkidle' });
     const game = page.locator('.skifree-game');
     await expect(game.locator('.skifree-example')).toBeVisible();
     await game.locator('.skifree-start').click();
@@ -115,5 +124,27 @@ test.describe.serial('SkiFree plugin', () => {
     await game.press('End');
     await expect(game).toHaveAttribute('data-state', 'over');
     expect(patches).toEqual([]);
+  });
+
+  test('removes a legacy Score installation without uninstalling either game', async ({ page }) => {
+    await mod(page, '#mod-experiments', '#mod-jezzball', '#mod-skifree');
+    await page.route('**/api/v1/plugin/page**', async route => {
+      const response = await route.fetch();
+      const body = await response.json();
+      const score = body.content.find((plugin: { tag: string }) => plugin.tag === 'plugin/score');
+      const jezzball = body.content.find((plugin: { tag: string }) => plugin.tag === 'plugin/jezzball');
+      if (score && jezzball) {
+        score.config.mod = jezzball.config.mod;
+        score.config.version = 1;
+      }
+      await route.fulfill({ response, json: body });
+    });
+    await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.locator('#mod-score').uncheck();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(page.locator('.log div', { hasText: 'Success.' }).first()).toBeVisible();
+    await expect(page.locator('#mod-score')).not.toBeChecked();
+    await expect(page.locator('#mod-jezzball')).toBeChecked();
+    await expect(page.locator('#mod-skifree')).toBeChecked();
   });
 });

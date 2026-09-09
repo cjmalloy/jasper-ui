@@ -5,6 +5,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+import { jezzballPlugin } from '../../../mods/games/jezzball';
+import { scorePlugin } from '../../../mods/games/score';
 import { AdminService } from '../../../service/admin.service';
 
 import { SettingsSetupPage } from './setup.component';
@@ -26,6 +28,8 @@ describe('SettingsSetupPage', () => {
                 init$: of(null),
                 getPlugin() { },
                 getTemplate() { },
+                deleteMod$: vi.fn(() => of(null)),
+                installMod$: vi.fn(() => of(null)),
                 def: { plugins: {}, templates: {} },
                 status: { plugins: {}, templates: {} }
             }
@@ -48,5 +52,28 @@ describe('SettingsSetupPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('uses the displayed Score group when uninstalling a legacy JezzBall-owned score', () => {
+    component.admin.def.plugins = {
+      [scorePlugin.tag]: scorePlugin,
+      [jezzballPlugin.tag]: jezzballPlugin,
+    };
+    component.admin.status.plugins = {
+      [scorePlugin.tag]: { ...scorePlugin, config: { ...scorePlugin.config, mod: jezzballPlugin.config!.mod, version: 1 } },
+      [jezzballPlugin.tag]: jezzballPlugin,
+    };
+    component.adminForm = new UntypedFormGroup({
+      mods: new UntypedFormGroup({
+        [scorePlugin.tag]: new UntypedFormControl(false),
+        [jezzballPlugin.tag]: new UntypedFormControl(true),
+      }),
+    });
+    vi.spyOn(component, 'reset').mockImplementation(() => {});
+
+    component.install();
+
+    expect(component.admin.deleteMod$).toHaveBeenCalledExactlyOnceWith(scorePlugin.config!.mod, expect.any(Function));
+    expect(component.admin.installMod$).not.toHaveBeenCalled();
   });
 });

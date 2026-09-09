@@ -1134,10 +1134,10 @@ export class AdminService {
     return concat(...[
       of(null).pipe(tap(() => _($localize`Deleting ${mod} mod...`))),
       ...Object.values(this.status.plugins)
-        .filter(p => modId(p) === mod)
+        .filter(p => modId(this.def.plugins[p.tag] || p) === mod)
         .map(p => this.deletePlugin$(p!, _)),
       ...Object.values(this.status.templates)
-        .filter(t => modId(t) === mod)
+        .filter(t => modId(this.def.templates[t.tag] || t) === mod)
         .map(t => this.deleteTemplate$(t!, _)),
     ]).pipe(toArray());
   }

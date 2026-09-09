@@ -37,7 +37,7 @@ export const skiFreePlugin: Plugin = {
   name: skiLabels.name,
   config: {
     mod: skiLabels.name,
-    version: 1,
+    version: 2,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -577,7 +577,7 @@ export const skiFreePlugin: Plugin = {
         on(canvas, 'pointerup', release);
         on(canvas, 'pointercancel', () => { release(); pointer = null; });
         on(canvas, 'lostpointercapture', release);
-        on(canvas, 'pointerleave', () => { if (pointerId === null) pointer = null; });
+        on(canvas, 'pointerleave', event => { if (event.pointerType === 'mouse' && pointerId === null) pointer = null; });
         on(window, 'blur', () => { clearInput(); if (state === 'skiing') togglePause(); });
         on(document, 'visibilitychange', () => { if (document.hidden && state === 'skiing') togglePause(); });
         on(root, 'focusout', event => {

@@ -248,13 +248,22 @@ describe('SkiFree mod', () => {
   it('jumps on a touch/pointer press and keeps chasing the target after release', () => {
     start();
     const canvas = element('canvas');
-    const event = new MouseEvent('pointerdown', { clientX: 360, clientY: 580, button: 0, cancelable: true });
+    const event = new MouseEvent('pointerdown', { clientX: 360, clientY: 250, button: 0, cancelable: true });
     Object.defineProperties(event, { pointerId: { value: 1 }, pointerType: { value: 'touch' } });
     canvas.dispatchEvent(event);
     canvas.dispatchEvent(new Event('pointerup'));
+    canvas.dispatchEvent(new Event('lostpointercapture'));
+    const leave = new Event('pointerleave');
+    Object.defineProperty(leave, 'pointerType', { value: 'touch' });
+    canvas.dispatchEvent(leave);
     advance(2);
     expect(element('score').textContent).not.toBe('Score: 0');
-    expect(Number(root.dataset.distance)).toBeGreaterThan(40);
+    expect(Number(root.dataset.distance)).toBeGreaterThan(10);
+    expect(Number(root.dataset.distance)).toBeLessThan(30);
+    expect(element('speed').textContent).toBe('Speed: 0 km/h');
+    const distance = root.dataset.distance;
+    advance(3);
+    expect(root.dataset.distance).toBe(distance);
   });
 
   it('normalizes malformed saved values rather than rendering markup or NaN', () => {
