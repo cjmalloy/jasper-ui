@@ -516,7 +516,8 @@ export const skiFreePlugin: Plugin = {
         function loop(now) {
           if (destroyed) return;
           if (!root.isConnected) { root._skiFreeDestroy(); return; }
-          if (state === 'skiing') {
+          const wasSkiing = state === 'skiing';
+          if (wasSkiing) {
             accumulator += last ? Math.min((now - last) / 1000, .1) : 0;
             while (accumulator >= 1 / 120 && state === 'skiing') {
               update(1 / 120);
@@ -524,8 +525,10 @@ export const skiFreePlugin: Plugin = {
             }
           }
           last = now;
-          draw();
-          hud();
+          if (wasSkiing) {
+            draw();
+            hud();
+          }
           frame = requestAnimationFrame(loop);
         }
         function keyDown(event) {
