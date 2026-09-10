@@ -7262,6 +7262,80 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Neo Banana image-generation signature tag.</source>
         <target>Neo Banana画像生成シグネチャタグ。</target>
       </trans-unit>
+      <trans-unit id="5215012533382702037" datatype="html">
+        <source>⛷️ SkiFree</source>
+      </trans-unit>
+      <trans-unit id="7244793868883326122" datatype="html">
+        <source>Ski downhill, race through slalom gates, and perform freestyle jumps. Watch out for the yeti!</source>
+        <target>雪の斜面を滑り降り、スラロームの旗門を通過し、フリースタイルのジャンプを決めましょう。イエティにご注意！</target>
+      </trans-unit>
+      <trans-unit id="4736417326589826053" datatype="html">
+        <source>Free ski</source>
+        <target>フリースキー</target>
+      </trans-unit>
+      <trans-unit id="2567298400199221938" datatype="html">
+        <source>Slalom</source>
+        <target>スラローム</target>
+      </trans-unit>
+      <trans-unit id="4304080776856302187" datatype="html">
+        <source>Freestyle</source>
+        <target>フリースタイル</target>
+      </trans-unit>
+      <trans-unit id="8532303232778991972" datatype="html">
+        <source>Start skiing</source>
+        <target>滑り始める</target>
+      </trans-unit>
+      <trans-unit id="7182974689040833178" datatype="html">
+        <source>Resume</source>
+        <target>再開</target>
+      </trans-unit>
+      <trans-unit id="840264455199725883" datatype="html">
+        <source>Paused</source>
+        <target>一時停止中</target>
+      </trans-unit>
+      <trans-unit id="8317457230285174180" datatype="html">
+        <source>Course</source>
+        <target>コース</target>
+      </trans-unit>
+      <trans-unit id="411665401568924948" datatype="html">
+        <source>Distance: {distance} m</source>
+        <target>距離: {distance} m</target>
+      </trans-unit>
+      <trans-unit id="8785553675114940196" datatype="html">
+        <source>Speed: {speed} km/h</source>
+        <target>速度: {speed} km/h</target>
+      </trans-unit>
+      <trans-unit id="6074473046101532411" datatype="html">
+        <source>Time: {time} s</source>
+        <target>タイム: {time} 秒</target>
+      </trans-unit>
+      <trans-unit id="5888879082613450048" datatype="html">
+        <source>Missed gates: {missed} (+5 s each)</source>
+        <target>通過できなかった旗門: {missed}（1つにつき5秒加算）</target>
+      </trans-unit>
+      <trans-unit id="5138432972938946505" datatype="html">
+        <source>Course complete!</source>
+        <target>コース完走！</target>
+      </trans-unit>
+      <trans-unit id="9145829963424241140" datatype="html">
+        <source>The yeti caught you!</source>
+        <target>イエティに捕まってしまいました！</target>
+      </trans-unit>
+      <trans-unit id="2242225600916024174" datatype="html">
+        <source>Run finished</source>
+        <target>滑走終了</target>
+      </trans-unit>
+      <trans-unit id="9184622975823117462" datatype="html">
+        <source>Yeti! Press F to outrun it!</source>
+        <target>イエティだ！Fキーで加速して逃げよう！</target>
+      </trans-unit>
+      <trans-unit id="8720950824021781866" datatype="html">
+        <source>Move the pointer to lead the skier; click or tap to jump. Keep the pointer near the bottom to ski downhill. Left/Right: steer · Down: downhill · Up: brake · Space: jump · F: fast · P/Escape: pause · End: finish run · Enter: start/continue. Jump from ramps and turn in the air for tricks. Courses finish at 1,000 m; the yeti appears at 2,000 m.</source>
+        <target>ポインターを動かしてスキーヤーを誘導し、クリックまたはタップでジャンプします。ポインターを画面下部に置くと斜面を滑り降ります。←/→: 方向転換 · ↓: 直滑降 · ↑: ブレーキ · Space: ジャンプ · F: 加速 · P/Escape: 一時停止 · End: 滑走終了 · Enter: 開始/続行。ジャンプ台から飛び、空中で回転して技を決めましょう。コースは1,000 mで終了し、2,000 mでイエティが現れます。</target>
+      </trans-unit>
+      <trans-unit id="760175102243382739" datatype="html">
+        <source>⛷️</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>
