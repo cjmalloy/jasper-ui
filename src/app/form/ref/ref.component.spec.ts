@@ -5,6 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { JasperFormlyModule } from '../../formly/formly.module';
+import { ProxyService } from '../../service/api/proxy.service';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 
 import { RefFormComponent } from './ref.component';
@@ -72,6 +73,54 @@ describe('RefFormComponent', () => {
     component.url.disable();
 
     expect(component.thumbnailRefs[0].url).toBe('cache:image-id');
+  });
+
+  it('does not proxy a new feed URL when its thumbnail is empty', () => {
+    vi.spyOn(component.admin, 'getPlugin').mockImplementation(tag =>
+      ['plugin/thumbnail', 'plugin/image'].includes(tag) ? { config: { proxy: true } } as any : undefined);
+    vi.spyOn(component.admin, 'getEmbeds').mockReturnValue([]);
+    const getFetch = vi.spyOn(TestBed.inject(ProxyService), 'getFetch').mockReturnValue('proxy-thumbnail');
+    component.creating = true;
+    component.url.setValue('https://example.com/feed.xml');
+    component.tags.push(new UntypedFormControl('plugin/script/feed'));
+    component.tags.push(new UntypedFormControl('plugin/thumbnail'));
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.thumbnail-preview .thumbnail')).not.toBeNull();
+    expect(getFetch).not.toHaveBeenCalled();
+  });
+
+  it('still previews an explicit thumbnail while creating a feed', () => {
+    vi.spyOn(component.admin, 'getPlugin').mockImplementation(tag =>
+      ['plugin/thumbnail', 'plugin/image'].includes(tag) ? { config: { proxy: true } } as any : undefined);
+    const getFetch = vi.spyOn(TestBed.inject(ProxyService), 'getFetch').mockReturnValue('proxy-thumbnail');
+    component.creating = true;
+    component.url.setValue('https://example.com/feed.xml');
+    component.tags.push(new UntypedFormControl('plugin/script/feed'));
+    component.tags.push(new UntypedFormControl('plugin/thumbnail'));
+    (component.group.get('plugins') as UntypedFormGroup).addControl(
+      'plugin/thumbnail', new UntypedFormControl({ url: 'https://example.com/thumbnail.png' }));
+
+    fixture.detectChanges();
+
+    expect(getFetch).toHaveBeenCalledWith('https://example.com/thumbnail.png', '', 'thumbnail', true);
+    expect(fixture.nativeElement.querySelector('.thumbnail').style.backgroundImage).toContain('proxy-thumbnail');
+  });
+
+  it('still previews cached image uploads while creating a Ref', () => {
+    vi.spyOn(component.admin, 'getPlugin').mockImplementation(tag =>
+      ['plugin/thumbnail', 'plugin/image'].includes(tag) ? {} as any : undefined);
+    vi.spyOn(component.admin, 'getEmbeds').mockReturnValue(['plugin/image']);
+    const getFetch = vi.spyOn(TestBed.inject(ProxyService), 'getFetch').mockReturnValue('proxy-thumbnail');
+    component.creating = true;
+    component.url.setValue('cache:image-id');
+    component.tags.push(new UntypedFormControl('plugin/image'));
+
+    fixture.detectChanges();
+
+    expect(getFetch).toHaveBeenCalledWith('cache:image-id', '', 'thumbnail', true);
+    expect(fixture.nativeElement.querySelector('.thumbnail').style.backgroundImage).toContain('proxy-thumbnail');
   });
 
   it('should extract title from filename when scrape returns no title', async () => {
