@@ -126,7 +126,8 @@
 @if (pdfUrl) {
   <div class="embed-container"
        [appResizeHandle]="!disableResize && !fullscreen"
-       [child]="pdfIframe">
+       [child]="pdfIframe"
+       [initChild]="true">
     <iframe #pdfIframe
             class="embed-expand ready"
             src="about:blank"
