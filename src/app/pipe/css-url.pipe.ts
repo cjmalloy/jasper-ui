@@ -6,8 +6,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class CssUrlPipe implements PipeTransform {
 
-  transform(url: string | null): string | null {
-    if (!url) return '';
+  transform(url: string | null, skip = ''): string | null {
+    if (!url || url === skip) return '';
     return `url("${url}")`;
   }
 

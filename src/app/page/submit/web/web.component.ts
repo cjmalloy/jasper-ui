@@ -205,14 +205,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
                 this.refForm.scrapeTitle();
               }
             } else {
-              // Feed url already exists, just post the page and drop the feed plugin
-              this.setTitle($localize`Submit: Web Link`);
-              this.removeTag('plugin/script/feed', 'internal');
-              this.bookmarks.tags = without(this.bookmarks.tags, 'plugin/script/feed', 'internal');
-              if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
-                const username = url.substring(url.indexOf('@'));
-                if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
-              } else if (!this.store.submit.title) {
+              // No RSS URL found or found value already exists
+              if (!this.store.submit.title) {
                 this.refForm.scrapeTitle();
               }
             }
@@ -371,7 +365,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     const published = this.webForm.value.published ? DateTime.fromISO(this.webForm.value.published) : DateTime.now();
     const ref = this.writeRef(true);
     const finalTags = ref.tags;
-    const save = this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref).pipe(
+    this.submitting = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status !== 409) return throwError(() => res);
         delete this.submitting;
@@ -379,8 +373,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         this.alreadyExists = true;
         return EMPTY;
       }),
-    );
-    this.submitting = save.pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/user/vote/up')) {
           this.ts.createResponse('plugin/user/vote/up', this.url).subscribe();
@@ -412,7 +404,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     const url = this.url;
     this.url = 'internal:' + uuid();
     this.addTag('plugin/repost');
-const sources = (this.webForm.value.sources || []).filter((source: string) => source !== url);
+    const sources = (this.webForm.value.sources || []).filter((source: string) => source !== url);
     this.refForm.sourcesFormComponent.setLinks([url, ...sources]);
     this.webForm.markAsDirty();
     this.alreadyExists = false;
