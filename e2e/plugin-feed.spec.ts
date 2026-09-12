@@ -3,7 +3,7 @@ import { mod } from './setup';
 
 test.describe.serial('Feed submission', () => {
   test('enable feed and thumbnail plugins', async ({ page }) => {
-    await mod(page, '#mod-root', '#mod-feed', '#mod-thumbnail', '#mod-images', '#mod-filecache');
+    await mod(page, '#mod-root', '#mod-feeds', '#mod-thumbnail', '#mod-images', '#mod-filecache');
   });
 
   for (const theme of ['light', 'dark'] as const) {
@@ -35,7 +35,7 @@ test.describe.serial('Feed submission', () => {
         waitUntil: 'networkidle',
       });
       await page.getByRole('button', { name: 'Next', exact: true }).click();
-      await expect(page.locator('[name=url]')).toHaveValue(feedUrl);
+      await expect(page.locator('[name=url][type=text]')).toHaveValue(feedUrl);
       await expect(page.locator('[name=title]')).toHaveValue(title);
       await expect(page.locator('body')).toHaveClass(new RegExp(`${theme}-theme`));
       await expect(page.locator('.thumbnail-preview .thumbnail')).toBeVisible();
