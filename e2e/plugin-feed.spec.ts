@@ -41,8 +41,10 @@ test.describe.serial('RSS Feed Submission', () => {
       await expect(page.locator('[name=title]')).toHaveValue(title);
       await expect(page.locator('.thumbnail-preview .thumbnail')).toHaveCSS('background-image', 'none');
       expect(prematureCacheRequests).toEqual([]);
+      const screenshot = testInfo.outputPath(`feed-preview-${theme}.png`);
+      await page.screenshot({ path: screenshot, fullPage: true });
       await testInfo.attach(`feed-preview-${theme}`, {
-        body: await page.screenshot({ fullPage: true }),
+        path: screenshot,
         contentType: 'image/png',
       });
 
