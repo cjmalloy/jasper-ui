@@ -85,8 +85,8 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit() {
     this.disposers.push(autorun(() => {
-      const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
-      if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
+      const filters = this.store.view.filter;
+      if (!Object.hasOwn(this.store.view.route.routeSnapshot?.queryParams || {}, 'filter') && this.store.view.viewExtFilter?.length) {
         this.bookmarks.filters = this.store.view.viewExtFilter;
       }
       const hideInternal = !this.admin.getPlugins(this.store.view.queryTags.map(localTag)).length;

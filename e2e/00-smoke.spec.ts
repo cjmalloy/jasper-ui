@@ -28,6 +28,36 @@ test.describe.serial('Smoke Tests', () => {
     await clearMods(page, process.env.REPL_URL || 'http://localhost:8082');
   });
 
+  test('removes a focused sidebar date filter with one click', async ({ page }) => {
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    const filter = page.locator('.filter');
+    const filteredQuery = page.waitForRequest(request => {
+      const url = new URL(request.url());
+      return url.pathname.endsWith('/api/v1/ref/page') && url.searchParams.has('publishedBefore');
+    });
+    await filter.locator('select.big').selectOption({ label: '📅️ published before' });
+    await filteredQuery;
+
+    const filters = filter.locator('.controls');
+    await expect(filters).toHaveCount(1);
+    const date = filter.locator('input[type="datetime-local"]');
+    await date.focus();
+    await expect(date).toBeFocused();
+
+    const remove = filters.locator('.remove-filter');
+    const box = await remove.boundingBox();
+    expect(box).not.toBeNull();
+    const unfilteredQuery = page.waitForRequest(request => {
+      const url = new URL(request.url());
+      return url.pathname.endsWith('/api/v1/ref/page') && !url.searchParams.has('publishedBefore');
+    });
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await unfilteredQuery;
+
+    await expect(filters).toHaveCount(0);
+  });
+
   test('creates a ref', async ({ page }) => {
     // Clean up any existing ref from a previous failed run/retry
     await deleteRef(page, 'https://jasperkm.info/');

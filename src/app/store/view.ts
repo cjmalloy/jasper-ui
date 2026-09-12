@@ -443,7 +443,7 @@ export class ViewStore {
   }
 
   get filter(): UrlFilter[] {
-    return this.urlFilters.length ? this.urlFilters : this.viewExtFilter || [];
+    return Object.hasOwn(this.route.routeSnapshot?.queryParams || {}, 'filter') ? this.urlFilters : this.viewExtFilter || [];
   }
 
   get queryFilters(): string[] {

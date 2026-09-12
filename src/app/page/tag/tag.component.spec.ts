@@ -47,4 +47,25 @@ describe('TagPage', () => {
     expect(getPlugins).toHaveBeenCalledWith(['plugin/test']);
     expect(component.query.args?.query).not.toContain('!internal');
   });
+
+  it('should preserve an empty filter override for a tag Ext', () => {
+    runInAction(() => {
+      component.store.view.route.routeSnapshot = {
+        queryParams: { filter: '' },
+        firstChild: {
+          params: { tag: 'science' },
+          url: [{ path: 'tag' }],
+        },
+      } as any;
+      component.store.view.exts = [{
+        tag: 'science',
+        origin: '',
+        config: { defaultFilter: ['query/public'] },
+      }];
+    });
+
+    fixture.detectChanges();
+
+    expect(component.query.args?.query).not.toContain('public');
+  });
 });
