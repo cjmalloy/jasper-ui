@@ -205,14 +205,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
                 this.refForm.scrapeTitle();
               }
             } else {
-              // Feed url already exists, just post the page and drop the feed plugin
-              this.setTitle($localize`Submit: Web Link`);
-              this.removeTag('plugin/script/feed', 'internal');
-              this.bookmarks.tags = without(this.bookmarks.tags, 'plugin/script/feed', 'internal');
-              if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
-                const username = url.substring(url.indexOf('@'));
-                if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
-              } else if (!this.store.submit.title) {
+              // No RSS URL found or found value already exists
+              if (!this.store.submit.title) {
                 this.refForm.scrapeTitle();
               }
             }
