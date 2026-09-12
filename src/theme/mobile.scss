@@ -366,9 +366,13 @@ $tablet-width: 948px;
     width: min(100%, 100vw - 16px);
   }
 
+  .playlist {
+    display: block !important;
+  }
+
   .embed:not(.comment-body) {
     position: relative;
-    left: 0;
+    left: -8px;
     margin: 0;
     width: min(100%, 100vw - 16px);
   }
@@ -379,17 +383,25 @@ $tablet-width: 948px;
   }
 
   .video-expand {
-    width: 100vw;
-    height: 100vh;
+    width: calc(100vw - 16px) !important;
+  }
+
+  .code {
+    max-width: calc(100% - 16px);
   }
 
   .full-page {
     .embed {
       width: calc(100vw - 10px);
+      left: 0;
     }
     &.thread .embed {
       width: unset;
     }
+  }
+
+  .thread .embed {
+    left: 0 !important;
   }
 
   .info, .actions, .advanced-actions * {

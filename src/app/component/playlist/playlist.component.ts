@@ -3,27 +3,28 @@ import {
   ChangeDetectorRef,
   Component,
   forwardRef,
+  HostBinding,
   input,
   model,
   OnChanges,
   OnDestroy,
   SimpleChanges
 } from '@angular/core';
-import { catchError, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
-import { Ref } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
-import { ViewerComponent } from '../viewer/viewer.component';
-import { Page } from '../../model/page';
-import { LoadingComponent } from '../loading/loading.component';
-import { getTitle } from '../../util/format';
-import { computed } from 'mobx';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Store } from '../../store/store';
-import { hasTag } from '../../util/tag';
-import { ProxyService } from '../../service/api/proxy.service';
-import { getExtension } from '../../util/http';
+import { computed } from 'mobx';
+import { catchError, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { Page } from '../../model/page';
+import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
+import { ProxyService } from '../../service/api/proxy.service';
+import { RefService } from '../../service/api/ref.service';
+import { Store } from '../../store/store';
 import { downloadPlaylist } from '../../util/download';
+import { getTitle } from '../../util/format';
+import { getExtension } from '../../util/http';
+import { hasTag } from '../../util/tag';
+import { LoadingComponent } from '../loading/loading.component';
+import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
   selector: 'app-playlist',
@@ -36,6 +37,7 @@ import { downloadPlaylist } from '../../util/download';
   ],
 })
 export class PlaylistComponent implements OnChanges, OnDestroy {
+  @HostBinding('class') css = 'playlist';
 
   ref = input<Ref | undefined>(undefined);
   index = model(0);
