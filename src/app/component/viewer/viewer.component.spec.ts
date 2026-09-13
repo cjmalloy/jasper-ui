@@ -42,10 +42,10 @@ describe('ViewerComponent', () => {
     const nested = createEmbed(first.injector.get(ViewContainerRef), ref);
     const sibling = createEmbed(vc, ref);
 
-    expect(component.embedNesting).toBe(0);
+    expect(fixture.debugElement.injector.get(EMBED_NESTING)).toBe(0);
     expect(vc.injector.get(EMBED_NESTING)).toBe(0);
-    expect(first.instance.embedNesting).toBe(1);
-    expect(nested.instance.embedNesting).toBe(2);
-    expect(sibling.instance.embedNesting).toBe(1);
+    expect(first.injector.get(EMBED_NESTING)).toBe(1);
+    expect(nested.injector.get(EMBED_NESTING)).toBe(2);
+    expect(sibling.injector.get(EMBED_NESTING)).toBe(1);
   });
 });
