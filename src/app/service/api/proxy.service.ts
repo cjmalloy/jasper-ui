@@ -5,7 +5,7 @@ import { mapRef, Ref } from '../../model/ref';
 import { Resource } from '../../model/resource';
 import { catchAll } from '../../mods/sync/scrape';
 import { Store } from '../../store/store';
-import { params, sanitizePath } from '../../util/http';
+import { getSearchParams, params, sanitizePath } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 import { RefService } from './ref.service';
@@ -119,16 +119,16 @@ export class ProxyService {
     );
   }
 
-  getFetch(url: string, origin = '', filename = 'file', thumbnail = false) {
+  getFetch(url: string, origin = '', filename = 'file', thumbnail = false, prefetch = true) {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
-    if (this.config.prefetch && this.store.account.user) this.prefetch(url, origin, filename);
+    if (prefetch && this.config.prefetch && this.store.account.user) this.prefetch(url, origin, filename);
     if (thumbnail) return `${this.base}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
     return `${this.base}/${sanitizePath(filename.trim())}?url=${encodeURIComponent(url)}&origin=${origin}`;
   }
 
   isProxied(url?: string) {
-    return url && url.startsWith(this.base);
+    return url && url.startsWith(this.base) && getSearchParams(url).get('url');
   }
 
   defaults(): Observable<any> {
