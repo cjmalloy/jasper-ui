@@ -147,6 +147,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   private _oembed?: Oembed;
   private width = 0;
   private height = 0;
+  private pdfIframeEl?: ElementRef<HTMLIFrameElement>;
 
   constructor(
     public config: ConfigService,
@@ -194,8 +195,8 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     }
     if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
       const parentWidth = this.el.nativeElement.parentElement.offsetWidth;
-      this.width = this.embed?.width || ((this.thread || !this.config.mobile) ? Math.floor(parentWidth * 0.6) : parentWidth - 12);
-this.height = this.embed?.height || (this.config.mobile ? window.innerHeight : Math.floor(window.innerHeight * 0.8));
+      this.width = this.embed?.width || ((this.thread || !this.config.mobile) ? Math.floor(parentWidth * 0.6) : parentWidth - 16);
+      this.height = this.embed?.height || (this.config.mobile ? window.innerHeight : Math.floor(window.innerHeight * 0.8));
       if (hasTag('plugin/fullscreen', this.ref)) {
         this.width = screen.width;
         this.height = screen.height;
@@ -204,6 +205,7 @@ this.height = this.embed?.height || (this.config.mobile ? window.innerHeight : M
     }
     this.reload(this.currentAudio);
     this.reload(this.currentVideo);
+    this.pdfIframe = this.pdfIframeEl;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -297,15 +299,16 @@ this.height = this.embed?.height || (this.config.mobile ? window.innerHeight : M
   }
 
   @ViewChild('pdfIframe')
-  set pdfIframe(value: ElementRef<HTMLIFrameElement>) {
+  set pdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
+    this.pdfIframeEl = value;
     if (!value) return;
     const iframe = value.nativeElement;
     let url = this.pdfUrl;
     if (!url) return;
     if (url.startsWith('//')) url = location.protocol + url;
     this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe, false);
-    iframe.style.width = this.embedWidth;
-    iframe.style.height = this.embedHeight;
+    iframe.style.width ||= this.embedWidth;
+    iframe.style.height ||= this.embedHeight;
   }
 
   set oembed(oembed: Oembed | null) {
