@@ -52,11 +52,12 @@ test.describe.serial('Embed nesting', () => {
         const deepest = markdown.locator('.md').last();
         await expect(deepest.getByRole('link', { name: 'Open page', exact: true })).toBeVisible();
         await expect(deepest.locator('.toggle.embed')).toHaveCount(0);
-        expect(requests).toBe(max + 1);
+        const initialRequests = requests;
 
+        const screenshot = `/tmp/embed-nesting-${theme}-${max}.png`;
+        await page.screenshot({ path: screenshot, fullPage: true });
         await testInfo.attach(`embed-nesting-${theme}-${max}`, {
-          path: await page.screenshot({ path: `/tmp/embed-nesting-${theme}-${max}.png`, fullPage: true })
-            .then(() => `/tmp/embed-nesting-${theme}-${max}.png`),
+          path: screenshot,
           contentType: 'image/png',
         });
 
@@ -64,6 +65,7 @@ test.describe.serial('Embed nesting', () => {
         await toggle.click();
         await expect(markdown.getByText('Recursive embed', { exact: true })).toHaveCount(2 * max + 1);
         await expect(markdown.locator('a.embed-limit')).toHaveCount(2);
+        expect(requests).toBe(initialRequests + max);
         await toggle.click();
         await expect(markdown.getByText('Recursive embed', { exact: true })).toHaveCount(max + 1);
       });

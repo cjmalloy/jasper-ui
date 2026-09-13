@@ -12,7 +12,7 @@ import { wikiUriFormat } from '../mods/org/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
-import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc } from '../util/embed';
+import { canEmbed, createEmbed, createLens, createLink, createRef, embedUrl, parseSrc } from '../util/embed';
 import { getArray, parseBookmarkParams } from '../util/http';
 import { getArgs, getFilters, UrlFilter } from '../util/query';
 import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
@@ -26,8 +26,6 @@ import { EditorService } from './editor.service';
   providedIn: 'root'
 })
 export class EmbedService {
-
-  private markdownHosts = new WeakSet<Element>();
 
   constructor(
     private config: ConfigService,
@@ -331,13 +329,7 @@ export class EmbedService {
   postProcess(vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
     const el = vc.element.nativeElement as HTMLDivElement;
     const subscriptions: Subscription[] = [];
-    let nesting = 0;
-    for (let parent = el.parentElement; parent; parent = parent.parentElement) {
-      if (this.markdownHosts.has(parent)) nesting++;
-    }
-    // Track DOM ancestry rather than the call stack: nested renders can load asynchronously.
-    this.markdownHosts.add(el);
-    if (nesting >= this.config.maxEmbedNesting) {
+    if (!canEmbed(vc)) {
       el.querySelectorAll<HTMLElement>('.inline-ref, .inline-embed').forEach(t => {
         const link = document.createElement('a');
         link.className = 'embed-limit';

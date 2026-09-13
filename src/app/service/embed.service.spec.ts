@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ViewContainerRef } from '@angular/core';
+import { Injector, Type, ViewContainerRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { marked } from 'marked';
@@ -10,6 +10,7 @@ import { of, Subject } from 'rxjs';
 import { MockInstance } from 'vitest';
 
 import { Ref } from '../model/ref';
+import { EMBED_NESTING, createLens, createRef } from '../util/embed';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
@@ -48,41 +49,43 @@ describe('EmbedService', () => {
       vi.spyOn(TestBed.inject(AdminService), 'getEmbeds').mockReturnValue([]);
     });
 
-    function container(parent?: Element, html = `<div class="loading inline-embed">${url}</div>`) {
+    function container(injector = TestBed.inject(Injector), html = `<div class="loading inline-embed">${url}</div>`) {
       const el = document.createElement('div');
       el.innerHTML = html;
       el.querySelectorAll<HTMLElement>('.inline-ref, .inline-embed').forEach(t => t.innerText = t.textContent || '');
-      parent?.append(el);
-      const createComponent = vi.fn(() => ({
+      const createComponent = vi.fn((component: Type<unknown>, options?: { injector: Injector }) => ({
+        injector: options?.injector || injector,
         location: { nativeElement: document.createElement('div') },
         instance: { init: vi.fn() },
       }));
-      const vc = { element: { nativeElement: el }, createComponent } as unknown as ViewContainerRef;
+      const vc = { element: { nativeElement: el }, injector, createComponent } as unknown as ViewContainerRef;
       const event = vi.fn();
       return { el, vc, event, createComponent };
     }
 
     it.each([1, 3, 5])('stops asynchronous recursive embeds at depth %i', async max => {
       TestBed.inject(ConfigService).maxEmbedNesting = max;
-      let parent: Element | undefined;
+      let injector = TestBed.inject(Injector);
       for (let depth = 0; depth <= max; depth++) {
-        const current = container(parent);
+        const current = container(injector);
         const cleanup = service.postProcess(current.vc, current.event);
         expect(getCurrent).toHaveBeenCalledTimes(Math.min(depth + 1, max));
         expect(current.el.querySelector('.loading')).toBeNull();
-        parent = current.el.firstElementChild!;
+        injector = current.createComponent.mock.results[0].value.injector;
+        expect(injector.get(EMBED_NESTING)).toBe(Math.min(depth + 1, max));
         await Promise.resolve();
         cleanup();
       }
     });
 
     it('does not share nesting limits between sibling embeds', () => {
-      TestBed.inject(ConfigService).maxEmbedNesting = 2;
-      const root = container(undefined, '');
-      service.postProcess(root.vc, root.event);
-      const siblings = [container(root.el), container(root.el)];
+      TestBed.inject(ConfigService).maxEmbedNesting = 1;
+      const siblings = [container(), container()];
       siblings.forEach(sibling => service.postProcess(sibling.vc, sibling.event));
       expect(getCurrent).toHaveBeenCalledTimes(2);
+      siblings.forEach(sibling => {
+        expect(sibling.createComponent.mock.results[0].value.injector.get(EMBED_NESTING)).toBe(1);
+      });
     });
 
     it('does not increase depth when a markdown host is reprocessed', () => {
@@ -106,11 +109,27 @@ describe('EmbedService', () => {
       expect(root.createComponent).not.toHaveBeenCalled();
     });
 
+    it('propagates nesting through inline refs and query lenses', () => {
+      const root = container();
+      const inlineRef = createRef(root.vc, ref);
+      const child = container(inlineRef.injector);
+      const lens = createLens(child.vc, {}, {
+        content: [],
+        page: { number: 0, size: 0, totalPages: 0, totalElements: 0 },
+      }, 'recursive');
+      expect(inlineRef.injector.get(EMBED_NESTING)).toBe(1);
+      expect(lens.injector.get(EMBED_NESTING)).toBe(2);
+      const nested = container(lens.injector);
+      service.postProcess(nested.vc, nested.event);
+      expect(nested.createComponent.mock.results[0].value.injector.get(EMBED_NESTING)).toBe(3);
+    });
+
     it('preserves links but stops refs, queries, media, and toggles at the limit', () => {
       TestBed.inject(ConfigService).maxEmbedNesting = 1;
-      const root = container(undefined, '');
+      const root = container();
       service.postProcess(root.vc, root.event);
-      const child = container(root.el, `
+      getCurrent.mockClear();
+      const child = container(root.createComponent.mock.results[0].value.injector, `
         <div class="loading inline-ref">${url}</div>
         <div class="loading inline-embed">/tag/recursive</div>
         <picture><source src="unsafe:https://example.com/image"><img></picture>

@@ -42,7 +42,7 @@ import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
-import { embedUrl } from '../../util/embed';
+import { EMBED_NESTING, embedUrl } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
@@ -82,6 +82,7 @@ import { TodoComponent } from '../todo/todo.component';
   ],
 })
 export class ViewerComponent implements OnChanges, OnDestroy {
+  readonly embedNesting = inject(EMBED_NESTING);
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroyRef = inject(DestroyRef);

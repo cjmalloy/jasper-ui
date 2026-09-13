@@ -1,4 +1,4 @@
-import { ComponentRef, ViewContainerRef } from '@angular/core';
+import { ComponentRef, InjectionToken, Injector, Type, ViewContainerRef } from '@angular/core';
 import { flatten, uniq } from 'lodash-es';
 import { CommentComponent } from '../component/comment/comment.component';
 import { LensComponent } from '../component/lens/lens.component';
@@ -9,8 +9,29 @@ import { Ext } from '../model/ext';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { PipWindowConfig } from '../mods/system/pip';
+import { ConfigService } from '../service/config.service';
 import { handleMediaKeydown } from './keyboard';
 import { hasTag } from './tag';
+
+export const EMBED_NESTING = new InjectionToken<number>('embedNesting', {
+  providedIn: 'root',
+  factory: () => 0,
+});
+
+export function canEmbed(vc: ViewContainerRef) {
+  return vc.injector.get(EMBED_NESTING) < vc.injector.get(ConfigService).maxEmbedNesting;
+}
+
+function createNestedComponent<T>(vc: ViewContainerRef, component: Type<T>): ComponentRef<T> {
+  const nesting = vc.injector.get(EMBED_NESTING) + 1;
+  // Scope the count to this embed and its descendants, including asynchronous renders.
+  return vc.createComponent(component, {
+    injector: Injector.create({
+      parent: vc.injector,
+      providers: [{ provide: EMBED_NESTING, useValue: nesting }],
+    }),
+  });
+}
 
 export function parseSrc(html: string) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -28,7 +49,7 @@ export function createLink(vc: ViewContainerRef, url: string, text: string, titl
 }
 
 export function createEmbed(vc: ViewContainerRef, ref: Ref, pip = false): ComponentRef<ViewerComponent> {
-  const c = vc.createComponent(ViewerComponent);
+  const c = createNestedComponent(vc, ViewerComponent);
   if (hasTag('plugin/seamless', ref)) {
     ref.tags = uniq([...ref.tags || [], 'plugin/seamless']);
   }
@@ -40,13 +61,13 @@ export function createEmbed(vc: ViewContainerRef, ref: Ref, pip = false): Compon
 
 export function createRef(vc: ViewContainerRef, ref: Ref, showToggle?: boolean): ComponentRef<RefComponent|CommentComponent> {
   if (hasTag('plugin/comment', ref)) {
-    const c = vc.createComponent(CommentComponent);
+    const c = createNestedComponent(vc, CommentComponent);
     c.instance.ref = ref;
     c.instance.depth = 0;
     c.instance.init();
     return c;
   } else {
-    const c = vc.createComponent(RefComponent);
+    const c = createNestedComponent(vc, RefComponent);
     c.instance.ref = ref;
     c.instance.showToggle = !!showToggle;
     c.instance.expandInline = hasTag('plugin/thread', ref);
@@ -56,7 +77,7 @@ export function createRef(vc: ViewContainerRef, ref: Ref, showToggle?: boolean):
 }
 
 export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, tag: string, ext?: Ext): ComponentRef<LensComponent> {
-  const c = vc.createComponent(LensComponent);
+  const c = createNestedComponent(vc, LensComponent);
   c.instance.page = page;
   c.instance.pageControls = false;
   c.instance.tag = tag;
