@@ -414,6 +414,10 @@ Please Reload.</source>
         <source>bob</source>
         <target>ボブ</target>
       </trans-unit>
+      <trans-unit id="6631335043395560353" datatype="html">
+        <source>Embed one more level</source>
+        <target>もう1階層埋め込む</target>
+      </trans-unit>
       <trans-unit id="2236371857137398396" datatype="html">
         <source> No results found </source>
         <target> 結果が見つかりませんでした </target>
