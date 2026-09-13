@@ -26,6 +26,7 @@ config="
   \"maxPlugins\": ${JASPER_MAX_PLUGINS-0},
   \"maxTemplates\": ${JASPER_MAX_TEMPLATES-0},
   \"maxOrigins\": ${JASPER_MAX_ORIGINS-0},
+  \"maxEmbedNesting\": ${JASPER_MAX_EMBED_NESTING-3},
   \"fetchBatch\": ${JASPER_FETCH_BATCH-0},
   \"token\": \"${JASPER_TOKEN}\",
   \"prefetch\": ${JASPER_PREFETCH:-false},

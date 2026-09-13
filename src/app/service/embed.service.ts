@@ -27,6 +27,8 @@ import { EditorService } from './editor.service';
 })
 export class EmbedService {
 
+  private markdownHosts = new WeakSet<Element>();
+
   constructor(
     private config: ConfigService,
     private admin: AdminService,
@@ -329,6 +331,23 @@ export class EmbedService {
   postProcess(vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
     const el = vc.element.nativeElement as HTMLDivElement;
     const subscriptions: Subscription[] = [];
+    let nesting = 0;
+    for (let parent = el.parentElement; parent; parent = parent.parentElement) {
+      if (this.markdownHosts.has(parent)) nesting++;
+    }
+    // Track DOM ancestry rather than the call stack: nested renders can load asynchronously.
+    this.markdownHosts.add(el);
+    if (nesting >= this.config.maxEmbedNesting) {
+      el.querySelectorAll<HTMLElement>('.inline-ref, .inline-embed').forEach(t => {
+        const link = document.createElement('a');
+        link.className = 'embed-limit';
+        link.setAttribute('href', t.textContent || '');
+        link.textContent = t.textContent;
+        link.title = t.title;
+        t.replaceWith(link);
+      });
+      el.querySelectorAll('picture, img, audio, video, .toggle.inline, .toggle.embed').forEach(t => t.remove());
+    }
     const lookup = this.store.origins.originMap.get(origin || '');
     const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
     userTags.forEach(t => {

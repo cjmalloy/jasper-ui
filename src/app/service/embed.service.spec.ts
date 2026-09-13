@@ -1,11 +1,19 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ViewContainerRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { marked } from 'marked';
 import { MarkdownModule } from 'ngx-markdown';
+import { of, Subject } from 'rxjs';
+import { MockInstance } from 'vitest';
 
+import { Ref } from '../model/ref';
+import { AdminService } from './admin.service';
+import { RefService } from './api/ref.service';
+import { ConfigService } from './config.service';
+import { EditorService } from './editor.service';
 import { EmbedService } from './embed.service';
 
 describe('EmbedService', () => {
@@ -26,6 +34,103 @@ describe('EmbedService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  describe('embed nesting', () => {
+    const url = '/ref/wiki:Recursive';
+    const ref: Ref = { url: 'wiki:Recursive', origin: '', comment: `![](${url})` };
+    let getCurrent: MockInstance<RefService['getCurrent']>;
+
+    beforeEach(() => {
+      getCurrent = vi.spyOn(TestBed.inject(RefService), 'getCurrent').mockReturnValue(of(ref));
+      vi.spyOn(TestBed.inject(EditorService), 'getUrlType').mockReturnValue('ref');
+      vi.spyOn(TestBed.inject(EditorService), 'getRefUrl').mockImplementation(url => url);
+      vi.spyOn(TestBed.inject(AdminService), 'getEmbeds').mockReturnValue([]);
+    });
+
+    function container(parent?: Element, html = `<div class="loading inline-embed">${url}</div>`) {
+      const el = document.createElement('div');
+      el.innerHTML = html;
+      el.querySelectorAll<HTMLElement>('.inline-ref, .inline-embed').forEach(t => t.innerText = t.textContent || '');
+      parent?.append(el);
+      const createComponent = vi.fn(() => ({
+        location: { nativeElement: document.createElement('div') },
+        instance: { init: vi.fn() },
+      }));
+      const vc = { element: { nativeElement: el }, createComponent } as unknown as ViewContainerRef;
+      const event = vi.fn();
+      return { el, vc, event, createComponent };
+    }
+
+    it.each([1, 3, 5])('stops asynchronous recursive embeds at depth %i', async max => {
+      TestBed.inject(ConfigService).maxEmbedNesting = max;
+      let parent: Element | undefined;
+      for (let depth = 0; depth <= max; depth++) {
+        const current = container(parent);
+        const cleanup = service.postProcess(current.vc, current.event);
+        expect(getCurrent).toHaveBeenCalledTimes(Math.min(depth + 1, max));
+        expect(current.el.querySelector('.loading')).toBeNull();
+        parent = current.el.firstElementChild!;
+        await Promise.resolve();
+        cleanup();
+      }
+    });
+
+    it('does not share nesting limits between sibling embeds', () => {
+      TestBed.inject(ConfigService).maxEmbedNesting = 2;
+      const root = container(undefined, '');
+      service.postProcess(root.vc, root.event);
+      const siblings = [container(root.el), container(root.el)];
+      siblings.forEach(sibling => service.postProcess(sibling.vc, sibling.event));
+      expect(getCurrent).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not increase depth when a markdown host is reprocessed', () => {
+      TestBed.inject(ConfigService).maxEmbedNesting = 1;
+      const root = container(undefined, '');
+      service.postProcess(root.vc, root.event);
+      service.postProcess(root.vc, root.event);
+      root.el.innerHTML = `<div class="inline-embed">${url}</div>`;
+      (root.el.firstElementChild as HTMLElement).innerText = url;
+      service.postProcess(root.vc, root.event);
+      expect(getCurrent).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps pending requests cancellable', () => {
+      const response = new Subject<Ref>();
+      getCurrent.mockReturnValue(response);
+      const root = container();
+      const cleanup = service.postProcess(root.vc, root.event);
+      cleanup();
+      response.next(ref);
+      expect(root.createComponent).not.toHaveBeenCalled();
+    });
+
+    it('preserves links but stops refs, queries, media, and toggles at the limit', () => {
+      TestBed.inject(ConfigService).maxEmbedNesting = 1;
+      const root = container(undefined, '');
+      service.postProcess(root.vc, root.event);
+      const child = container(root.el, `
+        <div class="loading inline-ref">${url}</div>
+        <div class="loading inline-embed">/tag/recursive</div>
+        <picture><source src="unsafe:https://example.com/image"><img></picture>
+        <img src="unsafe:https://example.com/image">
+        <audio><source src="https://example.com/audio"></audio>
+        <video><source src="https://example.com/video"></video>
+        <span class="toggle inline" title="${url}"></span>
+        <span class="toggle embed" title="${url}"></span>
+        <a href="/tag/notes">Notes</a>
+      `);
+      const loadQuery = vi.spyOn(service, 'loadQuery$');
+      service.postProcess(child.vc, child.event);
+      expect(getCurrent).not.toHaveBeenCalled();
+      expect(loadQuery).not.toHaveBeenCalled();
+      expect(child.event).not.toHaveBeenCalled();
+      expect(child.el.querySelector('.loading, .toggle, img, picture, audio, video')).toBeNull();
+      expect(child.createComponent).toHaveBeenCalledTimes(3);
+      expect(child.createComponent.mock.results.map(result => (result.value.instance as any).url))
+        .toEqual([url, '/tag/recursive', '/tag/notes']);
+    });
   });
 
   describe('hashTag tokenizer', () => {
