@@ -12,7 +12,7 @@ import { wikiUriFormat } from '../mods/org/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
-import { canEmbed, createEmbed, createLens, createLink, createRef, embedUrl, parseSrc } from '../util/embed';
+import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc } from '../util/embed';
 import { getArray, parseBookmarkParams } from '../util/http';
 import { getArgs, getFilters, UrlFilter } from '../util/query';
 import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
@@ -329,17 +329,6 @@ export class EmbedService {
   postProcess(vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
     const el = vc.element.nativeElement as HTMLDivElement;
     const subscriptions: Subscription[] = [];
-    if (!canEmbed(vc)) {
-      el.querySelectorAll<HTMLElement>('.inline-ref, .inline-embed').forEach(t => {
-        const link = document.createElement('a');
-        link.className = 'embed-limit';
-        link.setAttribute('href', t.textContent || '');
-        link.textContent = t.textContent;
-        link.title = t.title;
-        t.replaceWith(link);
-      });
-      el.querySelectorAll('picture, img, audio, video, .toggle.inline, .toggle.embed').forEach(t => t.remove());
-    }
     const lookup = this.store.origins.originMap.get(origin || '');
     const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
     userTags.forEach(t => {

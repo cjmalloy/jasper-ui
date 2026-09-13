@@ -1,6 +1,7 @@
 import { ComponentRef, InjectionToken, Injector, Type, ViewContainerRef } from '@angular/core';
 import { flatten, uniq } from 'lodash-es';
 import { CommentComponent } from '../component/comment/comment.component';
+import { EmbedPlaceholderComponent } from '../component/embed-placeholder/embed-placeholder.component';
 import { LensComponent } from '../component/lens/lens.component';
 import { NavComponent } from '../component/nav/nav.component';
 import { RefComponent } from '../component/ref/ref.component';
@@ -18,19 +19,29 @@ export const EMBED_NESTING = new InjectionToken<number>('embedNesting', {
   factory: () => 0,
 });
 
-export function canEmbed(vc: ViewContainerRef) {
-  return vc.injector.get(EMBED_NESTING) < vc.injector.get(ConfigService).maxEmbedNesting;
-}
-
-function createNestedComponent<T>(vc: ViewContainerRef, component: Type<T>): ComponentRef<T> {
+function createNestedComponent<T>(
+  vc: ViewContainerRef,
+  component: Type<T>,
+  init: (instance: T) => void,
+): ComponentRef<T> | ComponentRef<EmbedPlaceholderComponent> {
   const nesting = vc.injector.get(EMBED_NESTING) + 1;
-  // Scope the count to this embed and its descendants, including asynchronous renders.
-  return vc.createComponent(component, {
-    injector: Injector.create({
-      parent: vc.injector,
-      providers: [{ provide: EMBED_NESTING, useValue: nesting }],
-    }),
-  });
+  const create = (container: ViewContainerRef) => {
+    // Keep the actual depth after a click so descendants still require another click.
+    const c = container.createComponent(component, {
+      injector: Injector.create({
+        parent: vc.injector,
+        providers: [{ provide: EMBED_NESTING, useValue: nesting }],
+      }),
+    });
+    init(c.instance);
+    return c;
+  };
+  if (nesting > vc.injector.get(ConfigService).maxEmbedNesting) {
+    const placeholder = vc.createComponent(EmbedPlaceholderComponent);
+    placeholder.instance.create = create;
+    return placeholder;
+  }
+  return create(vc);
 }
 
 export function parseSrc(html: string) {
@@ -48,47 +59,47 @@ export function createLink(vc: ViewContainerRef, url: string, text: string, titl
   return c;
 }
 
-export function createEmbed(vc: ViewContainerRef, ref: Ref, pip = false): ComponentRef<ViewerComponent> {
-  const c = createNestedComponent(vc, ViewerComponent);
-  if (hasTag('plugin/seamless', ref)) {
-    ref.tags = uniq([...ref.tags || [], 'plugin/seamless']);
-  }
-  c.instance.ref = ref;
-  c.instance.fullscreen = pip;
-  c.instance.init();
-  return c;
+export function createEmbed(vc: ViewContainerRef, ref: Ref, pip = false) {
+  return createNestedComponent(vc, ViewerComponent, instance => {
+    if (hasTag('plugin/seamless', ref)) {
+      ref.tags = uniq([...ref.tags || [], 'plugin/seamless']);
+    }
+    instance.ref = ref;
+    instance.fullscreen = pip;
+    instance.init();
+  });
 }
 
-export function createRef(vc: ViewContainerRef, ref: Ref, showToggle?: boolean): ComponentRef<RefComponent|CommentComponent> {
+export function createRef(vc: ViewContainerRef, ref: Ref, showToggle?: boolean) {
   if (hasTag('plugin/comment', ref)) {
-    const c = createNestedComponent(vc, CommentComponent);
-    c.instance.ref = ref;
-    c.instance.depth = 0;
-    c.instance.init();
-    return c;
+    return createNestedComponent(vc, CommentComponent, instance => {
+      instance.ref = ref;
+      instance.depth = 0;
+      instance.init();
+    });
   } else {
-    const c = createNestedComponent(vc, RefComponent);
-    c.instance.ref = ref;
-    c.instance.showToggle = !!showToggle;
-    c.instance.expandInline = hasTag('plugin/thread', ref);
-    c.instance.init();
-    return c;
+    return createNestedComponent(vc, RefComponent, instance => {
+      instance.ref = ref;
+      instance.showToggle = !!showToggle;
+      instance.expandInline = hasTag('plugin/thread', ref);
+      instance.init();
+    });
   }
 }
 
-export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, tag: string, ext?: Ext): ComponentRef<LensComponent> {
-  const c = createNestedComponent(vc, LensComponent);
-  c.instance.page = page;
-  c.instance.pageControls = false;
-  c.instance.tag = tag;
-  c.instance.ext = ext;
-  c.instance.size = params.size;
-  c.instance.cols = params.cols;
-  c.instance.sort = flatten([params.sort || []]);
-  c.instance.filter = flatten([params.filter || []]);
-  c.instance.search = params.search;
-  c.instance.init();
-  return c;
+export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, tag: string, ext?: Ext) {
+  return createNestedComponent(vc, LensComponent, instance => {
+    instance.page = page;
+    instance.pageControls = false;
+    instance.tag = tag;
+    instance.ext = ext;
+    instance.size = params.size;
+    instance.cols = params.cols;
+    instance.sort = flatten([params.sort || []]);
+    instance.filter = flatten([params.filter || []]);
+    instance.search = params.search;
+    instance.init();
+  });
 }
 
 export async function createPip(vc: ViewContainerRef, ref: Ref, config: PipWindowConfig) {

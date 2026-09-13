@@ -8,7 +8,7 @@ test.describe.serial('Embed nesting', () => {
 
   for (const theme of ['light', 'dark'] as const) {
     for (const max of [3, 1]) {
-      test(`caps recursive embeds at ${max} in ${theme} mode`, async ({ page }, testInfo) => {
+      test(`expands recursive embeds one level beyond ${max} in ${theme} mode`, async ({ page }, testInfo) => {
         await page.emulateMedia({ colorScheme: theme });
         if (max !== 3) {
           await page.route('**/assets/config.json', async route => {
@@ -47,11 +47,29 @@ test.describe.serial('Embed nesting', () => {
         await expect(page.locator('body')).toHaveClass(new RegExp(`${theme}-theme`));
         const markdown = page.locator('.full-page.ref .md').first();
         await expect(markdown.getByText('Recursive embed', { exact: true })).toHaveCount(max + 1);
-        await expect(markdown.locator('a.embed-limit')).toHaveAttribute('href', href);
+        const expand = markdown.getByRole('button', { name: 'Embed one more level', exact: true });
+        await expect(expand).toHaveCount(1);
+        await expect(expand).toBeVisible();
         await expect(markdown.locator('.loading')).toHaveCount(0);
         const deepest = markdown.locator('.md').last();
         await expect(deepest.getByRole('link', { name: 'Open page', exact: true })).toBeVisible();
-        await expect(deepest.locator('.toggle.embed')).toHaveCount(0);
+        await expect(deepest.locator('.toggle.embed')).toHaveCount(1);
+
+        for (const input of ['click', 'keyboard']) {
+          const previousRequests = requests;
+          const previousCount = await markdown.getByText('Recursive embed', { exact: true }).count();
+          if (input === 'click') {
+            await expand.click();
+          } else {
+            await expand.focus();
+            await expand.press('Enter');
+          }
+          await expect(markdown.getByText('Recursive embed', { exact: true })).toHaveCount(previousCount + 1);
+          await expect(expand).toHaveCount(1);
+          await expect(expand).toBeVisible();
+          await page.waitForLoadState('networkidle');
+          expect(requests).toBe(previousRequests + 1);
+        }
         const initialRequests = requests;
 
         const screenshot = `/tmp/embed-nesting-${theme}-${max}.png`;
@@ -63,11 +81,12 @@ test.describe.serial('Embed nesting', () => {
 
         const toggle = markdown.locator(':scope > p > .toggle.embed').first();
         await toggle.click();
-        await expect(markdown.getByText('Recursive embed', { exact: true })).toHaveCount(2 * max + 1);
-        await expect(markdown.locator('a.embed-limit')).toHaveCount(2);
-        expect(requests).toBe(initialRequests + max);
+        await expect(markdown.getByText('Recursive embed', { exact: true })).toHaveCount(2 * max + 3);
+        await expect(expand).toHaveCount(2);
+        expect(requests).toBe(initialRequests + max + 1);
         await toggle.click();
-        await expect(markdown.getByText('Recursive embed', { exact: true })).toHaveCount(max + 1);
+        await expect(markdown.getByText('Recursive embed', { exact: true })).toHaveCount(max + 3);
+        await expect(expand).toHaveCount(1);
       });
     }
   }

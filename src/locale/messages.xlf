@@ -1597,6 +1597,13 @@ Please Reload.</source>
           <context context-type="linenumber">9</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="6631335043395560353" datatype="html">
+        <source>Embed one more level</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/embed-placeholder/embed-placeholder.component.ts</context>
+          <context context-type="linenumber">10,11</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="2236371857137398396" datatype="html">
         <source> No results found </source>
         <context-group purpose="location">

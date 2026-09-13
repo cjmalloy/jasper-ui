@@ -9,8 +9,14 @@ import { MarkdownModule } from 'ngx-markdown';
 import { of, Subject } from 'rxjs';
 import { MockInstance } from 'vitest';
 
+import { CommentComponent } from '../component/comment/comment.component';
+import { EmbedPlaceholderComponent } from '../component/embed-placeholder/embed-placeholder.component';
+import { LensComponent } from '../component/lens/lens.component';
+import { NavComponent } from '../component/nav/nav.component';
+import { RefComponent } from '../component/ref/ref.component';
+import { ViewerComponent } from '../component/viewer/viewer.component';
 import { Ref } from '../model/ref';
-import { EMBED_NESTING, createLens, createRef } from '../util/embed';
+import { EMBED_NESTING, createEmbed, createLens, createRef } from '../util/embed';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
@@ -44,7 +50,8 @@ describe('EmbedService', () => {
 
     beforeEach(() => {
       getCurrent = vi.spyOn(TestBed.inject(RefService), 'getCurrent').mockReturnValue(of(ref));
-      vi.spyOn(TestBed.inject(EditorService), 'getUrlType').mockReturnValue('ref');
+      vi.spyOn(TestBed.inject(EditorService), 'getUrlType')
+        .mockImplementation(url => url.startsWith('/tag/') ? 'tag' : 'ref');
       vi.spyOn(TestBed.inject(EditorService), 'getRefUrl').mockImplementation(url => url);
       vi.spyOn(TestBed.inject(AdminService), 'getEmbeds').mockReturnValue([]);
     });
@@ -56,7 +63,7 @@ describe('EmbedService', () => {
       const createComponent = vi.fn((component: Type<unknown>, options?: { injector: Injector }) => ({
         injector: options?.injector || injector,
         location: { nativeElement: document.createElement('div') },
-        instance: { init: vi.fn() },
+        instance: { init: vi.fn(), create: undefined as ((vc: ViewContainerRef) => void) | undefined },
       }));
       const vc = { element: { nativeElement: el }, injector, createComponent } as unknown as ViewContainerRef;
       const event = vi.fn();
@@ -69,10 +76,18 @@ describe('EmbedService', () => {
       for (let depth = 0; depth <= max; depth++) {
         const current = container(injector);
         const cleanup = service.postProcess(current.vc, current.event);
-        expect(getCurrent).toHaveBeenCalledTimes(Math.min(depth + 1, max));
+        expect(getCurrent).toHaveBeenCalledTimes(depth + 1);
         expect(current.el.querySelector('.loading')).toBeNull();
-        injector = current.createComponent.mock.results[0].value.injector;
+        const created = current.createComponent.mock.results[0].value;
+        injector = created.injector;
         expect(injector.get(EMBED_NESTING)).toBe(Math.min(depth + 1, max));
+        if (depth === max) {
+          expect(current.createComponent).toHaveBeenCalledWith(EmbedPlaceholderComponent);
+          expect(created.instance.init).not.toHaveBeenCalled();
+          expect(created.instance.create).toBeTypeOf('function');
+        } else {
+          expect(created.instance.init).toHaveBeenCalledOnce();
+        }
         await Promise.resolve();
         cleanup();
       }
@@ -124,7 +139,43 @@ describe('EmbedService', () => {
       expect(nested.createComponent.mock.results[0].value.injector.get(EMBED_NESTING)).toBe(3);
     });
 
-    it('preserves links but stops refs, queries, media, and toggles at the limit', () => {
+    it.each([
+      ['viewer', (vc: ViewContainerRef) => createEmbed(vc, ref, true), ViewerComponent],
+      ['ref', (vc: ViewContainerRef) => createRef(vc, ref, true), RefComponent],
+      ['comment', (vc: ViewContainerRef) => createRef(vc, { ...ref, tags: ['plugin/comment'] }), CommentComponent],
+      ['lens', (vc: ViewContainerRef) => createLens(vc, { sort: 'created' }, {
+        content: [ref],
+        page: { number: 0, size: 1, totalPages: 1, totalElements: 1 },
+      }, 'recursive'), LensComponent],
+    ] as const)('defers %s initialization and expands only one level', (_name, create, component) => {
+      TestBed.inject(ConfigService).maxEmbedNesting = 1;
+      const injector = Injector.create({
+        parent: TestBed.inject(Injector),
+        providers: [{ provide: EMBED_NESTING, useValue: 1 }],
+      });
+      const root = container(injector);
+      create(root.vc);
+      expect(root.createComponent).toHaveBeenCalledWith(EmbedPlaceholderComponent);
+      const placeholder = root.createComponent.mock.results[0].value;
+      expect(placeholder.instance.init).not.toHaveBeenCalled();
+
+      const content = container(injector);
+      placeholder.instance.create!(content.vc);
+      expect(content.createComponent).toHaveBeenCalledWith(component, expect.anything());
+      const expanded = content.createComponent.mock.results[0].value;
+      expect(expanded.instance.init).toHaveBeenCalledOnce();
+      expect(expanded.injector.get(EMBED_NESTING)).toBe(2);
+
+      const nested = container(expanded.injector);
+      create(nested.vc);
+      expect(nested.createComponent).toHaveBeenCalledWith(EmbedPlaceholderComponent);
+      expect(nested.createComponent.mock.results[0].value.instance.init).not.toHaveBeenCalled();
+      const sibling = container(injector);
+      create(sibling.vc);
+      expect(sibling.createComponent).toHaveBeenCalledWith(EmbedPlaceholderComponent);
+    });
+
+    it('preserves links and toggles and uses placeholders for refs, queries, and media at the limit', () => {
       TestBed.inject(ConfigService).maxEmbedNesting = 1;
       const root = container();
       service.postProcess(root.vc, root.event);
@@ -140,15 +191,19 @@ describe('EmbedService', () => {
         <span class="toggle embed" title="${url}"></span>
         <a href="/tag/notes">Notes</a>
       `);
-      const loadQuery = vi.spyOn(service, 'loadQuery$');
+      const loadQuery = vi.spyOn(service, 'loadQuery$').mockReturnValue(of({
+        params: {},
+        page: { content: [], page: { number: 0, size: 0, totalPages: 0, totalElements: 0 } },
+        ext: undefined,
+      }));
       service.postProcess(child.vc, child.event);
-      expect(getCurrent).not.toHaveBeenCalled();
-      expect(loadQuery).not.toHaveBeenCalled();
-      expect(child.event).not.toHaveBeenCalled();
-      expect(child.el.querySelector('.loading, .toggle, img, picture, audio, video')).toBeNull();
-      expect(child.createComponent).toHaveBeenCalledTimes(3);
-      expect(child.createComponent.mock.results.map(result => (result.value.instance as any).url))
-        .toEqual([url, '/tag/recursive', '/tag/notes']);
+      expect(getCurrent).toHaveBeenCalledOnce();
+      expect(loadQuery).toHaveBeenCalledWith('/tag/recursive');
+      expect(child.event).toHaveBeenCalledTimes(2);
+      expect(child.el.querySelectorAll('.toggle')).toHaveLength(2);
+      expect(child.el.querySelector('.loading, img, picture, audio, video')).toBeNull();
+      expect(child.createComponent.mock.calls.map(([component]) => component))
+        .toEqual([...Array(6).fill(EmbedPlaceholderComponent), NavComponent]);
     });
   });
 
