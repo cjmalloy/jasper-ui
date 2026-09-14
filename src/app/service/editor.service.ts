@@ -131,11 +131,14 @@ export class EditorService {
       }
     });
     const audioProvider = (api: PluginApi): Plugin => ({
+      startConversion(conversion) {
+        conversion.skipTagNames.delete('AUDIO');
+      },
       converters: {
         AUDIO: {
           startTag(conversion): boolean {
             const { element } = conversion;
-            const source = element.find('source')?.attr('src');
+            const source = element.find('source')?.attr('src') || element.attr('src');
             if (!source) {
               return false; // No source found, skip
             }
@@ -152,11 +155,14 @@ export class EditorService {
       }
     });
     const videoProvider = (api: PluginApi): Plugin => ({
+      startConversion(conversion) {
+        conversion.skipTagNames.delete('VIDEO');
+      },
       converters: {
         VIDEO: {
           startTag(conversion): boolean {
             const { element } = conversion;
-            const source = element.find('source')?.attr('src');
+            const source = element.find('source')?.attr('src') || element.attr('src');
             if (!source) {
               return false; // No source found, skip
             }
