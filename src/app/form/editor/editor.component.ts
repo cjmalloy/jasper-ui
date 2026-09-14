@@ -593,7 +593,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         baseUri: this.url,
         inline: true,
       });
-      const md = this.europa.convert(this.editor!.nativeElement.value);
+      const md = (this.europa.convert(this.editor!.nativeElement.value) as string)
+        .replace(/\\\\/g, '\\')
+        .replace(/\\begin{([a-zA-Z]+)\\?(\*)?}/g, '$$$$ \\begin{$1$2}')
+        .replace(/\\end{([a-zA-Z]+)\\?(\*)?}/g, '\\end{$1$2} $$$$')
+        .replace(/\\\(/g, '$')
+        .replace(/\\\)/g, '$')
+        .replace(/\\\[/g, '$$')
+        .replace(/\\]/g, '$$');
       this.syncText(md);
     } else if (event === 'scrape') {
       this.scrape.emit();
