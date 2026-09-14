@@ -61,13 +61,12 @@ describe('ViewerComponent', () => {
     expect(placeholder.instance).toBeInstanceOf(EmbedPlaceholderComponent);
     expect(init).not.toHaveBeenCalled();
     placeholder.changeDetectorRef.detectChanges();
-    const button = placeholder.location.nativeElement.querySelector('.embed-expand') as HTMLButtonElement;
-    expect(button.type).toBe('button');
+    const button = placeholder.location.nativeElement.querySelector('.load-more') as HTMLLinkElement;
     button.click();
     button.click();
     placeholder.changeDetectorRef.detectChanges();
     expect(init).toHaveBeenCalledOnce();
-    expect(placeholder.location.nativeElement.querySelector('.embed-expand')).toBeNull();
+    expect(placeholder.location.nativeElement.querySelector('.load-more')).toBeNull();
 
     const viewer = init.mock.instances[0] as ViewerComponent;
     expect(viewer.ref).toBe(ref);
