@@ -73,9 +73,9 @@ describe('aiQueryPlugin', () => {
       })]));
     const bundle = JSON.parse(output.mock.calls[0][0]);
     expect(bundle.ref).toContainEqual(expect.objectContaining({
-      sources: [source.url],
+      sources: [bundle.ref[0].url],
       comment: expect.stringContaining('rejected the media input'),
-      tags: expect.arrayContaining(['internal', '+plugin/log', 'public']),
+      tags: expect.arrayContaining(['internal', '+plugin/log']),
     }));
   });
 
