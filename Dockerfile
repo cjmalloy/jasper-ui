@@ -24,7 +24,7 @@ CMD mkdir -p /report && \
     (if [ -d .vitest ]; then cp -r .vitest/. /report/; fi) && \
     exit $(cat /report/exit-code.txt)
 
-FROM nginx:1.31.5 AS deploy
+FROM nginx:1.31.6 AS deploy
 RUN apt-get update && apt-get install -y --no-install-recommends jq moreutils && rm -rf /var/lib/apt/lists/*
 WORKDIR /var/lib/jasper/
 COPY --from=builder /app/dist/jasper-ui/browser ./
