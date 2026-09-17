@@ -18,6 +18,7 @@ test.describe.serial('BBCode plugin', () => {
       const text = '[b]Bold [i]nested[/i][/b]\n[quote]Quoted[/quote]\n'
         + '[list][*]First[*]Second[/list]\n[code][b]literal[/b][/code]\n'
         + '[url=https://example.com/]Example[/url]\n**Markdown**\n'
+        + '[url]tag:/bbcode-test[/url]\n[url=ftp://example.com/file]Download[/url]\n'
         + '<script>alert(1)</script>[url=javascript:alert(1)]unsafe link[/url]';
       await textarea.fill(text);
       if (!await editor.locator('.md').isVisible()) {
@@ -31,6 +32,8 @@ test.describe.serial('BBCode plugin', () => {
       await expect(preview.locator('li')).toHaveText(['First', 'Second']);
       await expect(preview.locator('pre code')).toHaveText('[b]literal[/b]');
       await expect(preview).toContainText('**Markdown**');
+      await expect(preview.getByRole('link', { name: 'tag:/bbcode-test', exact: true })).toBeVisible();
+      await expect(preview.getByRole('link', { name: 'Download', exact: true })).toHaveAttribute('href', 'ftp://example.com/file');
       await expect(preview.locator('script, a[href^="javascript:"]')).toHaveCount(0);
       await expect(textarea).toHaveValue(text);
 
@@ -53,6 +56,8 @@ test.describe.serial('BBCode plugin', () => {
       const viewer = page.locator('.full-page.ref .bbcode');
       await expect(viewer.locator('strong em')).toHaveText('nested');
       await expect(viewer.locator('a', { hasText: 'Example' })).toHaveAttribute('href', 'https://example.com/');
+      await expect(viewer.getByRole('link', { name: 'tag:/bbcode-test', exact: true })).toBeVisible();
+      await expect(viewer.getByRole('link', { name: 'Download', exact: true })).toHaveAttribute('href', 'ftp://example.com/file');
       await expect(viewer).toContainText('**Markdown**');
       await expect(viewer.locator('script, a[href^="javascript:"]')).toHaveCount(0);
       const viewerScreenshot = testInfo.outputPath(`bbcode-viewer-${theme}.png`);

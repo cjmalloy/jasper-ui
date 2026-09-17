@@ -1,7 +1,17 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
+import { ConfigService } from '../service/config.service';
 import { bbcodeToHtml } from './bbcode';
 
 describe('bbcodeToHtml', () => {
+  let config: ConfigService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideHttpClient()] });
+    config = TestBed.inject(ConfigService);
+  });
+
   function render(text: string) {
     const element = document.createElement('div');
     element.innerHTML = bbcodeToHtml(text);
@@ -48,6 +58,27 @@ describe('bbcodeToHtml', () => {
     expect(element.querySelectorAll('a')[2].getAttribute('href')).toBe('mailto:test@example.com');
     expect(element.querySelectorAll('a')[3].getAttribute('href')).toBe('mailto:test@example.com');
     expect(element.querySelector('img')?.getAttribute('src')).toBe('unsafe:cache:photo.png');
+  });
+
+  it.each([
+    'tag:/some-tag', 'cache:photo.png', 'ftp://example.com/file',
+    'tel:+123456789', 'magnet:?xt=urn:btih:example', 'HTTPS://example.com/',
+  ])('renders supported link URLs: %s', url => {
+    const element = render(`[url]${url}[/url][url=${url}]link[/url]`);
+    expect(Array.from(element.querySelectorAll('a'), link => link.getAttribute('href'))).toEqual([url, url]);
+  });
+
+  it('uses configured schemes rather than a fixed external link allowlist', () => {
+    config.allowedSchemes = ['isbn:'];
+    expect(render('[url]isbn:9781234567890[/url]').querySelector('a')?.getAttribute('href')).toBe('isbn:9781234567890');
+    expect(render('[url]https://example.com/[/url][url]isbn-extra:test[/url]').querySelector('a')).toBeNull();
+    expect(render('[img]isbn:9781234567890[/img]').querySelector('img')).toBeNull();
+    expect(render('[url]tag:/some-tag[/url]').querySelector('a')?.getAttribute('href')).toBe('tag:/some-tag');
+  });
+
+  it.each(['javascript:', 'data:', 'vbscript:'])('rejects dangerous schemes even when configured: %s', scheme => {
+    config.allowedSchemes = [scheme];
+    expect(render(`[url]${scheme.toUpperCase()}test[/url]`).querySelector('a')).toBeNull();
   });
 
   it.each([

@@ -1,4 +1,5 @@
 import { escape } from 'lodash-es';
+import { config } from '../service/config.service';
 
 interface Frame {
   tag: string;
@@ -19,7 +20,11 @@ const elements: Record<string, string> = {
 function safeUrl(value: string, image = false) {
   const url = value.trim();
   if (/[\u0000-\u0020\u007f<>"\\]/.test(url)) return undefined;
-  if (/^(https?:\/\/|cache:)/i.test(url) || (!image && /^(mailto:|\/(?!\/))/i.test(url))) return url;
+  if (image) return /^(https?:\/\/|cache:)/i.test(url) ? url : undefined;
+  if (/^(javascript:|data:|vbscript:)/i.test(url)) return undefined;
+  if (/^(cache:|tag:\/|\/(?!\/))/i.test(url)) return url;
+  const scheme = url.match(/^[a-z][a-z0-9+.-]*:/i)?.[0].toLowerCase();
+  if (scheme && config().allowedSchemes.some(value => value.toLowerCase() === scheme)) return url;
   return undefined;
 }
 
