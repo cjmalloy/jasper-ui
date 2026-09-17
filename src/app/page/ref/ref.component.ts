@@ -229,6 +229,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   markRead(ref: Ref) {
-    markRead(this.admin, this.ts, ref);
+    runInAction(() => markRead(this.admin, this.ts, ref));
   }
 }
