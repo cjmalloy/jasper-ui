@@ -125,6 +125,11 @@ export function getMailbox(tag: string, local: string): string {
   }
 }
 
+export function cursorSettingsUrl(origin: string, local: string): string {
+  if (!origin || origin === local) return 'tag:/plugin/inbox';
+  return `tag:/plugin/outbox/${removeParentOrigin(origin, local).substring(1)}`;
+}
+
 export function getLocalMailbox(mailbox: string, local: string, origin: string, lookup?: Map<string, Map<string, string>>) {
   if (!origin || origin === local) return localTag(mailbox);
   if (hasPrefix(mailbox, 'plugin/outbox')) {

@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { Ref } from '../model/ref';
-import { getMailbox, isMailbox, mailboxes, notifications } from './mailbox';
+import { cursorSettingsUrl, getMailbox, isMailbox, mailboxes, notifications } from './mailbox';
 
 describe('MailboxPlugin', () => {
   it('isMailbox', () => {
@@ -33,6 +33,12 @@ describe('MailboxPlugin', () => {
     expect(getMailbox('user/bob@test', '')).toEqual('plugin/outbox/test/user/bob');
     expect(getMailbox('+user/bob@test', '')).toEqual('plugin/outbox/test/user/bob');
     expect(getMailbox('_user/bob@test', '')).toEqual('plugin/outbox/test/user/bob');
+  });
+  it('uses reverse-origin cursor settings URLs', () => {
+    expect(cursorSettingsUrl('', '')).toEqual('tag:/plugin/inbox');
+    expect(cursorSettingsUrl('@city', '')).toEqual('tag:/plugin/outbox/city');
+    expect(cursorSettingsUrl('@city.home', '')).toEqual('tag:/plugin/outbox/city.home');
+    expect(cursorSettingsUrl('@home.city', '@home')).toEqual('tag:/plugin/outbox/city');
   });
   it('getLocalMailbox', () => {
     expect(getMailbox('plugin/inbox/user/bob', '')).toEqual('plugin/inbox/user/bob');
