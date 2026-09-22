@@ -143,6 +143,31 @@ describe('ytdlpMetaDeltaPlugin', () => {
     }]);
   });
 
+  it.each([
+    'https://example.test/playlist',
+    'https://example.test/embedded-playlist',
+    'https://example.test/canonical-playlist',
+  ])('keeps children distinct when they inherit the playlist webpage URL %s', playlistUrl => {
+    const refs = getRefs({
+      url: 'https://example.test/playlist',
+      tags: ['plugin/embed'],
+      plugins: { 'plugin/embed': { url: 'https://example.test/embedded-playlist' } },
+    }, {
+      webpage_url: 'https://example.test/canonical-playlist',
+      entries: [
+        { webpage_url: playlistUrl, url: 'https://example.test/first.mp4' },
+        { webpage_url: playlistUrl, url: 'https://example.test/second.mp4' },
+        { webpage_url: playlistUrl },
+        { url: playlistUrl },
+      ],
+    });
+
+    const sources = ['https://example.test/first.mp4', 'https://example.test/second.mp4'];
+    expect(refs[0].sources).toEqual(sources);
+    expect(refs.slice(1).map(ref => ref.url)).toEqual(sources);
+    expect(refs.slice(1).map(ref => ref.plugins?.['plugin/embed'].url)).toEqual(sources);
+  });
+
   it('preserves single-video behavior and picks the highest resolution storyboard', () => {
     const ref: Ref = {
       url: 'https://example.test/video',

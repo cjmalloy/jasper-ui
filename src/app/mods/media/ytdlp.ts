@@ -201,11 +201,14 @@ output_refs = [ref]
 if 'entries' in info:
     parent_tags = ref.get('tags', [])
     child_tags = [t for t in parent_tags if t == 'public' or t.startswith(('public/', '_user/', '+user/', 'user/'))]
+    playlist_urls = {url, ref.get('url'), info.get('webpage_url')}
     source_urls = []
     for index, entry in enumerate(info['entries']):
         if not entry: continue
         entry_url = entry.get('webpage_url') or entry.get('url')
-        if not entry_url: continue
+        if entry_url in playlist_urls:
+            entry_url = entry.get('url')
+        if not entry_url or entry_url in playlist_urls: continue
         child_ref = {
             'url': entry_url,
             'origin': ref.get('origin', ''),
