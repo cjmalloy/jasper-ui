@@ -100,7 +100,7 @@ export class SettingsSetupPage implements OnDestroy {
       if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
       } else {
-        deletes.push(modId(status));
+        deletes.push(modId(def));
       }
     }
     for (const template in this.admin.def.templates) {
@@ -111,7 +111,7 @@ export class SettingsSetupPage implements OnDestroy {
       if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
       } else {
-        deletes.push(modId(status));
+        deletes.push(modId(def));
       }
     }
     const _ = (msg?: string) => this.installMessages.push(msg!);
