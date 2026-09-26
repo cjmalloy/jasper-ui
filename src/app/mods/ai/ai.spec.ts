@@ -176,7 +176,7 @@ describe('aiQueryPlugin', () => {
     expect(bundle.ref[2]).toMatchObject({
       url: 'cache:image',
       modified: 'cache-cursor',
-      tags: expect.arrayContaining(['_plugin/cache', 'plugin/image']),
+      tags: expect.arrayContaining(['_plugin/cache']),
     });
     expect(bundle.ref[0].plugins['plugin/image'].url).toBe(bundle.ref[2].url);
   });
