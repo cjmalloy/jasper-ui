@@ -92,10 +92,10 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
   }
 
   addSource(value = '') {
-    if (this.ref.sources?.length || 0 < 1) {
+    if ((this.ref.sources?.length || 0) < 1) {
       this.sources.push(this.top);
     }
-    if (this.ref.sources?.length || 0 < 2) {
+    if ((this.ref.sources?.length || 0) < 2) {
       this.sources.push(this.top);
     }
     this.sources.push(value);
