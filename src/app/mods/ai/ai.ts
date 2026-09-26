@@ -139,7 +139,7 @@ export const aiQueryPlugin: Plugin = {
       const providers = {
         openai: {
           init(config) {
-            config.model ||= config.vision ? 'gpt-6-astra' : config.audio ? 'gpt-audio' : 'gpt-6-astra';
+            config.model ||= config.vision ? 'gpt-5.6-sol' : config.audio ? 'gpt-audio' : 'gpt-5.6-sol';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
@@ -351,7 +351,7 @@ export const aiQueryPlugin: Plugin = {
         },
         anthropic: {
           init(config) {
-            config.model ||= 'claude-fable-5-1';
+            config.model ||= 'claude-opus-5-5';
             config.maxTokens ||= 4096;
             config.thinkingTokens ||= 4096
             config.pdf = true;
