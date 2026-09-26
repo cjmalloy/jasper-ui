@@ -58,6 +58,7 @@ export class ResizeDirective {
   onTouchstart(e: TouchEvent) {
     if (this.enabled === false) return;
     if (e.touches.length != 2) return;
+    if (window.visualViewport && window.visualViewport.scale > 1.01) return;
     this.zone.run(() => {
       e.preventDefault();
       this.oldZoom = this.zoom;
