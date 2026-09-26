@@ -32,6 +32,7 @@ export class ConfigService {
   maxTemplates = 1000;
   maxExts = 1000;
   maxOrigins = 1000;
+  maxEmbedNesting = 3;
   fetchBatch = 50;
 
   // Debug token

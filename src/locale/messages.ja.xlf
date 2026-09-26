@@ -414,6 +414,10 @@ Please Reload.</source>
         <source>bob</source>
         <target>ボブ</target>
       </trans-unit>
+      <trans-unit id="6631335043395560353" datatype="html">
+        <source>Embed one more level</source>
+        <target>もう1階層埋め込む</target>
+      </trans-unit>
       <trans-unit id="2236371857137398396" datatype="html">
         <source> No results found </source>
         <target> 結果が見つかりませんでした </target>
@@ -4013,6 +4017,21 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="3833089498789579825" datatype="html">
         <source>Host Fingerprint:</source>
         <target>ホストフィンガープリント:</target>
+      </trans-unit>
+      <trans-unit id="5737935482794867026" datatype="html">
+        <source>💽 Get MP3</source>
+        <target>💽 MP3を取得</target>
+      </trans-unit>
+      <trans-unit id="4875039529426838067" datatype="html">
+        <source>Download mp3s using YT-DLP.</source>
+        <target>YT-DLPを使用してMP3をダウンロードする。</target>
+      </trans-unit>
+      <trans-unit id="3035787833538201954" datatype="html">
+        <source>mp3</source>
+      </trans-unit>
+      <trans-unit id="1231158014532721840" datatype="html">
+        <source>Download mp3 YT-DLP.</source>
+        <target>YT-DLPでMP3をダウンロードする。</target>
       </trans-unit>
       <trans-unit id="3407050941409332755" datatype="html">
         <source>📄️ PDF</source>

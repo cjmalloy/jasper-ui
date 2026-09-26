@@ -239,6 +239,16 @@ export class ExtFormComponent  {
     return this.allFilters.find(option => option.filter.startsWith(prefix))?.filter || filter;
   }
 
+  filterOptionLabel(filter: UrlFilter) {
+    const option = negatable(filter) && this.allFilters.find(item => item.filter === toggle(filter));
+    return option ? this.store.account.querySymbol('!') + (option.label || option.filter) : filter;
+  }
+
+  hasFilterOption(filter: UrlFilter) {
+    const selected = this.filterOption(filter);
+    return this.allFilters.some(option => option.filter === selected);
+  }
+
   filterIsDate(filter: UrlFilter) {
     return /^(modified|response|published|created)\/(before|after)\//.test(filter);
   }

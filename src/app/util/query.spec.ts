@@ -201,6 +201,35 @@ describe('Query Utils', () => {
       expect(args.modifiedAfter).toContain('2023-01-0');
     });
 
+    describe('relative date filters', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-07-09T23:36:00Z'));
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('should resolve ISO durations in published-before Ext defaults', () => {
+        const args = getArgs('science', undefined, ['published/before/p1d']);
+
+        expect(args.publishedBefore).toBe('2026-07-08T23:36:00.000Z');
+      });
+
+      it('should resolve now in published-before Ext defaults', () => {
+        const args = getArgs('science', undefined, ['published/before/NoW']);
+
+        expect(args.publishedBefore).toBe('2026-07-09T23:36:00.000Z');
+      });
+
+      it('should reject incomplete ISO durations', () => {
+        const args = getArgs('science', undefined, ['published/before/P']);
+
+        expect(args.publishedBefore).toBeNull();
+      });
+    });
+
     it('should extract source filters', () => {
       const filters: UrlFilter[] = ['sources/http://example.com' as UrlFilter];
       const args = getArgs('science', undefined, filters);

@@ -74,6 +74,14 @@ export function handleMediaKeydown(event: KeyboardEvent, media: HTMLMediaElement
       event.stopPropagation();
       media.muted = !media.muted;
       break;
+    case 'n':
+    case 'N':
+      if (event.repeat) return;
+      if (!event.shiftKey) return;
+      event.preventDefault();
+      event.stopPropagation();
+      media.dispatchEvent(new Event('ended'));
+      break;
     case ',':
       if (!isVideo) return;
       event.preventDefault();
@@ -121,8 +129,4 @@ export function handleMediaKeydown(event: KeyboardEvent, media: HTMLMediaElement
       }
       break;
   }
-}
-
-export function handleVideoKeydown(event: KeyboardEvent, video: HTMLVideoElement) {
-  handleMediaKeydown(event, video);
 }

@@ -38,6 +38,7 @@ export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
 
 export class ViewStore {
 
+  back = false;
   floatingSidebar = true;
   sidebarExpanded = true;
   defaultPageSize = 24;
@@ -98,7 +99,7 @@ export class ViewStore {
   }
 
   clearRef(ref?: Ref) {
-    if (this.ref && (!ref || ref.url !== this.ref?.url)) this.lastSelected = this.ref;
+    if (this.back && this.ref && (!ref || ref.url !== this.ref?.url)) this.lastSelected = this.ref;
     this.ref = undefined;
     this.top = undefined;
   }

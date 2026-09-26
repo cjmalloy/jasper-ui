@@ -615,8 +615,8 @@ export class EmbedService {
   }
 
   async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement, width = '100px', scroll = true) {
-    iframe.style.width = (oembed.width ? oembed.width + 'px' : width);
-    if (oembed.height) iframe.style.height = oembed.height + 'px';
+    if (!iframe.style.width) iframe.style.width = (oembed.width ? oembed.width + 'px' : width);
+    if (!iframe.style.height && oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
       if (oembed.html.startsWith('<iframe')) {
         iframe.src = embedUrl(parseSrc(oembed.html));
@@ -626,7 +626,7 @@ export class EmbedService {
     } else {
       iframe.src = embedUrl(oembed.url);
     }
-    if (!oembed.height) {
+    if (!iframe.style.height && !oembed.height) {
       iframe.style.height = (oembed.width ? oembed.width + 'px' : width);
       const doCheck = async () => {
         let doc: Document | undefined;

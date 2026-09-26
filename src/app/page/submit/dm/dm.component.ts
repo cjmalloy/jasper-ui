@@ -355,7 +355,14 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
   }
 
+  get top() {
+    return this.sources.value[1] || this.sources.value[0] || this._url;
+  }
+
   addSource(value = '') {
+    while (this.sources.value.length < 2) {
+      this.sources.push(this.fb.control(this.top, LinksFormComponent.validators));
+    }
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
     this.submitted = false;
   }

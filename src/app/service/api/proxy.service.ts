@@ -5,7 +5,7 @@ import { mapRef, Ref } from '../../model/ref';
 import { Resource } from '../../model/resource';
 import { catchAll } from '../../mods/sync/scrape';
 import { Store } from '../../store/store';
-import { params, sanitizePath } from '../../util/http';
+import { getSearchParams, params, sanitizePath } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 import { RefService } from './ref.service';
@@ -71,6 +71,38 @@ export class ProxyService {
     );
   }
 
+  download(url: string, origin = '', filename = 'file'): Observable<{ blob: Blob, name: string }> {
+    return this.http.get(`${this.base}/${sanitizePath(filename)}`, {
+      params: params({ url, origin }),
+      observe: 'response',
+      responseType: 'blob',
+    }).pipe(
+      map(res => {
+        let name = '';
+        const disposition = res.headers.get('Content-Disposition') || res.headers.get('content-disposition');
+        if (disposition) {
+          const filenameStarRegex = /filename\*=\s*([^\s;]+)/i;
+          const filenameRegex = /filename=\s*((['"]).*?\2|[^;\n]*)/i;
+          const starMatch = filenameStarRegex.exec(disposition);
+          const standardMatch = filenameRegex.exec(disposition);
+          if (starMatch?.[1]) {
+            const rawValue = starMatch[1];
+            const cleanValue = rawValue.replace(/^utf-8''/i, '');
+            name = decodeURIComponent(cleanValue);
+          } else if (standardMatch?.[1]) {
+            name = standardMatch[1].replace(/['"]/g, '');
+          }
+        }
+        return {
+          blob: res.body || new Blob(),
+          name: name || filename || 'file'
+        };
+      }),
+      catchError(err => this.login.handleHttpError(err))
+    );
+  }
+
+
   save(file: File, origin = ''): Observable<HttpEvent<Ref>> {
     return this.http.post(`${this.base}`, file, {
       params: params({ title: file.name, mime: file.type, origin }),
@@ -87,16 +119,16 @@ export class ProxyService {
     );
   }
 
-  getFetch(url: string, origin = '', filename = 'file', thumbnail = false) {
+  getFetch(url: string, origin = '', filename = 'file', thumbnail = false, prefetch = true) {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
-    if (this.config.prefetch && this.store.account.user) this.prefetch(url, origin, filename);
+    if (prefetch && this.config.prefetch && this.store.account.user) this.prefetch(url, origin, filename);
     if (thumbnail) return `${this.base}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
     return `${this.base}/${sanitizePath(filename.trim())}?url=${encodeURIComponent(url)}&origin=${origin}`;
   }
 
   isProxied(url?: string) {
-    return url && url.startsWith(this.base);
+    return url && url.startsWith(this.base) && getSearchParams(url).get('url');
   }
 
   defaults(): Observable<any> {

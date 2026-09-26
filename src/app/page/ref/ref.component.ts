@@ -182,9 +182,10 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.watchSelf = this.stomp.watchRef(url).pipe(
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ud => {
+        if (!this.store.view.ref) return;
         MemoCache.clear(this);
         // Merge updates with existing Ref because updates do not contain any private tags
-        const tags = uniq([...this.store.view.ref!.tags || [], ...ud.tags || []])
+        const tags = uniq([...this.store.view.ref.tags || [], ...ud.tags || []])
           .filter(t => privateTag(t) || ud.tags?.includes(t));
         const merged: Ref = {
           ...ud,
@@ -192,22 +193,22 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           metadata: {
             ...ud.metadata,
             plugins: {
-              ...pickBy(this.store.view.ref?.metadata?.plugins, (v, k) => tags.includes(k)),
+              ...pickBy(this.store.view.ref.metadata?.plugins, (v, k) => tags.includes(k)),
               ...ud.metadata?.plugins || {},
             }
           },
           plugins: {
-            ...pickBy(this.store.view.ref!.plugins, (v, k) => tags.includes(k)),
+            ...pickBy(this.store.view.ref.plugins, (v, k) => tags.includes(k)),
             ...ud.plugins || {},
           },
           // Don't allow editing an update Ref, as we cannot tell when a private
           // tag was deleted
           // TODO: mark Ref as modified remotely to warn user before editing
-          modified: this.store.view.ref?.modified,
-          modifiedString: this.store.view.ref?.modifiedString,
+          modified: this.store.view.ref.modified,
+          modifiedString: this.store.view.ref.modifiedString,
         };
         runInAction(() => Object.assign(this.store.view.ref!, merged));
-        this.store.eventBus.refresh(this.store.view.ref!);
+        this.store.eventBus.refresh(this.store.view.ref);
       });
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
@@ -228,6 +229,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   markRead(ref: Ref) {
-    markRead(this.admin, this.ts, ref);
+    runInAction(() => markRead(this.admin, this.ts, ref));
   }
 }

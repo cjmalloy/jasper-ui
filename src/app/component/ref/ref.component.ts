@@ -1,19 +1,17 @@
-import {
-  AsyncPipe
-} from '@angular/common';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  DestroyRef,
-  inject,
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -21,8 +19,7 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren,
-  ChangeDetectionStrategy
+  ViewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -32,6 +29,7 @@ import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
 import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
 import { DiffComponent } from '../../form/diff/diff.component';
 import { writePlugins } from '../../form/plugins/plugins.component';
@@ -133,39 +131,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   css = 'ref list-item';
   @HostBinding('class')
   allCss = this.getPluginClasses();
-  @HostBinding('attr.data-ref-url')
-  get refUrlAttr() {
-    return this.ref?.url;
-  }
-  @HostBinding('attr.data-ref-origin')
-  get refOriginAttr() {
-    return this.ref?.origin || undefined;
-  }
-  @HostBinding('attr.data-ref-title')
-  get refTitleAttr() {
-    return this.title || undefined;
-  }
-  @HostBinding('attr.data-ref-thumbnail-url')
-  get refThumbnailUrlAttr() {
-    if (!this.thumbnail) return undefined;
-    return this.refThumbnailUrl() || undefined;
-  }
-  @HostBinding('attr.data-ref-thumbnail-color')
-  get refThumbnailColorAttr() {
-    if (!this.thumbnail) return undefined;
-    return this.refThumbnailString('color') || undefined;
-  }
-  @HostBinding('attr.data-ref-thumbnail-emoji')
-  get refThumbnailEmojiAttr() {
-    if (!this.thumbnail) return undefined;
-    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
-  }
-  @HostBinding('attr.data-ref-thumbnail-radius')
-  get refThumbnailRadiusAttr() {
-    if (!this.thumbnail) return undefined;
-    const radius = Number(this.refThumbnailPlugin?.['radius']);
-    return Number.isFinite(radius) ? `${radius}` : undefined;
-  }
   private destroyRef = inject(DestroyRef);
 
   @ViewChildren('action')
@@ -441,6 +406,46 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p),
       ...(this.ref.metadata?.userUrls || []).map(p => 'user-response-' + p)
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
+  }
+
+  @HostBinding('attr.data-ref-url')
+  get refUrlAttr() {
+    return this.ref?.url;
+  }
+
+  @HostBinding('attr.data-ref-origin')
+  get refOriginAttr() {
+    return this.ref?.origin || undefined;
+  }
+
+  @HostBinding('attr.data-ref-title')
+  get refTitleAttr() {
+    return this.title || undefined;
+  }
+
+  @HostBinding('attr.data-ref-thumbnail-url')
+  get refThumbnailUrlAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailUrl() || undefined;
+  }
+
+  @HostBinding('attr.data-ref-thumbnail-color')
+  get refThumbnailColorAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailString('color') || undefined;
+  }
+
+  @HostBinding('attr.data-ref-thumbnail-emoji')
+  get refThumbnailEmojiAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
+  }
+
+  @HostBinding('attr.data-ref-thumbnail-radius')
+  get refThumbnailRadiusAttr() {
+    if (!this.thumbnail) return undefined;
+    const radius = Number(this.refThumbnailPlugin?.['radius']);
+    return Number.isFinite(radius) ? `${radius}` : undefined;
   }
 
   @HostBinding('class.last-selected')

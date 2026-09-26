@@ -1,4 +1,4 @@
-FROM node:26.7.0 AS builder
+FROM node:26.10.0 AS builder
 WORKDIR /app
 RUN npm i -g @angular/cli@20.3.15
 COPY package.json package-lock.json ./
@@ -7,7 +7,7 @@ RUN npm ci
 COPY . ./
 RUN npm run build
 
-FROM node:26.7.0 AS test
+FROM node:26.10.0 AS test
 WORKDIR /app
 RUN npm i -g @angular/cli@20.3.15
 COPY --from=builder /app ./
@@ -21,11 +21,10 @@ CMD mkdir -p /report && \
       --reporters=default \
       --reporters=html \
       2>&1 | tee /report/test-output.log; echo ${PIPESTATUS[0]} > /report/exit-code.txt) && \
-    (if [ -d html ]; then cp -r html/. /report/ 2>/dev/null || true; fi) && \
-    (if [ -d coverage ]; then mkdir -p /report/coverage && cp -r coverage/. /report/coverage/ 2>/dev/null || true; fi) && \
+    (if [ -d .vitest ]; then cp -r .vitest/. /report/; fi) && \
     exit $(cat /report/exit-code.txt)
 
-FROM nginx:1.31.4 AS deploy
+FROM nginx:1.31.6 AS deploy
 RUN apt-get update && apt-get install -y --no-install-recommends jq moreutils && rm -rf /var/lib/apt/lists/*
 WORKDIR /var/lib/jasper/
 COPY --from=builder /app/dist/jasper-ui/browser ./

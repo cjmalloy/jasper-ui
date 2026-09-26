@@ -17,6 +17,7 @@ import { MobxAngularModule } from 'mobx-angular';
 import { catchError, forkJoin, map, mergeMap, Observable, of, Subscription, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
 import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -62,6 +63,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
     AudioUploadComponent,
     VideoUploadComponent,
     ImageUploadComponent,
+    LoadingComponent,
     AsyncPipe,
     TagPreviewPipe,
   ],
