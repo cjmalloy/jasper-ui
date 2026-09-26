@@ -7,6 +7,7 @@ import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/form
 import { uniq, without } from 'lodash-es';
 import { catchError, forkJoin, map, of, Subject, Subscription, switchMap, throwError } from 'rxjs';
 import { EditorComponent } from '../../../form/editor/editor.component';
+import { LinksFormComponent } from '../../../form/links/links.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
@@ -84,6 +85,20 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
       ...this.editorTags,
       ...getMailboxes(this.comment.value, this.store.account.origin),
     ]);
+  }
+
+  get top() {
+    return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
+  }
+
+  addSource(value = '') {
+    if (this.ref.sources?.length || 0 < 1) {
+      this.sources.push(this.top);
+    }
+    if (this.ref.sources?.length || 0 < 2) {
+      this.sources.push(this.top);
+    }
+    this.sources.push(value);
   }
 
   save() {
