@@ -998,7 +998,7 @@ export class AdminService {
       })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Ref ${def.title || def.url} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`⚠️ Ref ${def.title || def.url} already exists...`);
           return of(null);
         }
         return throwError(() => err);
@@ -1013,7 +1013,7 @@ export class AdminService {
       switchMap(() => this.exts.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Ext ${def.name || def.tag} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`⚠️ Ext ${def.name || def.tag} already exists...`);
           return of(null);
         }
         return throwError(() => err);
@@ -1028,7 +1028,7 @@ export class AdminService {
       switchMap(() => this.users.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`User ${def.name || def.tag} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`⚠️ User ${def.name || def.tag} already exists...`);
           return of(null);
         }
         return throwError(() => err);
@@ -1044,7 +1044,7 @@ export class AdminService {
       switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Plugin ${def.name || def.tag} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`⚠️ Plugin ${def.name || def.tag} already exists...`);
           return of(null);
         }
         return throwError(() => err);
@@ -1069,7 +1069,7 @@ export class AdminService {
       switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Template ${def.name || def.tag} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`⚠️ Template ${def.name || def.tag} already exists...`);
           return of(null);
         }
         return throwError(() => err);
