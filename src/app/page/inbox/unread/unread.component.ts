@@ -1,12 +1,12 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
+import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
+import { from, Subscription } from 'rxjs';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
-import { RefPageArgs } from '../../../model/ref';
-import { newest } from '../../../mods/mailbox';
 import { AccountService } from '../../../service/account.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
@@ -23,7 +23,8 @@ import { Store } from '../../../store/store';
 export class InboxUnreadPage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
-  private lastNotified?: DateTime;
+  private readThrough = new Map<string, DateTime>();
+  private load?: Subscription;
 
   constructor(
     private mod: ModService,
@@ -31,6 +32,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     public query: QueryStore,
     private account: AccountService,
     private router: Router,
+    private destroyRef: DestroyRef,
   ) {
     mod.setTitle($localize`Inbox: Unread`);
     store.view.clear(['modified']);
@@ -39,38 +41,46 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      let cleared = Promise.resolve();
       if (this.store.view.pageNumber) {
         this.router.navigate([], {
           queryParams: { pageNumber: null },
           queryParamsHandling: 'merge',
           replaceUrl: true
         });
-        if (this.lastNotified) {
-          this.account.clearNotifications(this.lastNotified);
-        }
+        cleared = this.clearNotifications();
       }
-      const args: RefPageArgs = {
-        query: this.store.account.notificationsQuery,
-        modifiedAfter: this.store.account.config.lastNotified,
-        sort: ['modified,ASC'],
-        size: this.store.view.pageSize,
-      };
-      defer(() => this.query.setArgs(args));
+      defer(() => {
+        from(cleared).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+          this.load?.unsubscribe();
+          this.load = this.account.notificationPage$(this.store.view.pageSize).subscribe(page =>
+            runInAction(() => this.query.page = page));
+        });
+      });
     }));
     this.disposers.push(autorun(() => {
       if (this.query.page && this.query.page!.content.length) {
-        this.lastNotified = newest(this.query.page!.content)!.modified!;
+        for (const ref of this.query.page.content) {
+          const origin = ref.origin || '';
+          if (!ref.modified || this.readThrough.get(origin) && ref.modified <= this.readThrough.get(origin)!) continue;
+          this.readThrough.set(origin, ref.modified);
+        }
       }
     }));
   }
 
   ngOnDestroy() {
     this.query.close();
+    this.load?.unsubscribe();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    if (this.lastNotified) {
-      this.account.clearNotifications(this.lastNotified);
-    }
+    this.clearNotifications();
   }
 
+  private clearNotifications(): Promise<void> {
+    const cleared = Promise.all(Array.from(this.readThrough,
+      ([origin, cursor]) => this.account.clearNotifications(cursor, [origin])));
+    this.readThrough.clear();
+    return cleared.then(() => undefined);
+  }
 }
