@@ -3,7 +3,7 @@ import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, Token, Tokens, TokensList } from 'marked';
 import { MarkdownService, MarkedRenderer } from 'ngx-markdown';
-import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, retry, Subscription, switchMap } from 'rxjs';
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
@@ -408,6 +408,7 @@ export class EmbedService {
     inlineRefs.forEach(t => {
       const url = t.innerText;
       subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+        retry(1),
         catchError(() => of(null)),
       ).subscribe(ref => {
         if (ref) {
@@ -435,6 +436,7 @@ export class EmbedService {
         }));
       } else {
         subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+          retry(1),
           catchError(() => of(null)),
           switchMap(ref => {
             const expandPlugins = this.admin.getEmbeds(ref);
@@ -501,6 +503,7 @@ export class EmbedService {
           const type = this.editor.getUrlType(url);
           if (type === 'ref') {
             subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+              retry(1),
               catchError(() => of(null)),
             ).subscribe(ref => {
               if (ref) {
@@ -570,6 +573,7 @@ export class EmbedService {
               }));
             } else {
               subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+                retry(1),
                 catchError(() => of(null)),
               ).subscribe(ref => {
                 if (ref) {

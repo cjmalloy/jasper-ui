@@ -222,7 +222,7 @@ export const naviPlugin: Plugin = {
 export const systemPrompt: Ref = {
   url: 'system:prompt',
   title: $localize`System Prompt`,
-  tags: ['public', 'internal', '+system/prompt'],
+  tags: ['public', 'internal', '+system/prompt', 'plugin/code/md'],
   // language=Markdown
   comment: `
 Your name is Navi. You are a helpful assistant for a knowledge management database codenamed Jasper.
@@ -1369,18 +1369,18 @@ Your reply should always start with {"ref":[{
 export const modPrompt: Ref = {
   url: 'system:mod-prompt',
   title: $localize`Mod List`,
-  tags: ['public', 'internal', '+system/prompt'],
+  tags: ['public', 'internal', '+system/prompt', 'plugin/code/md'],
 };
 export const extPrompt: Ref = {
   url: 'system:ext-prompt',
   title: $localize`Ext List`,
-  tags: ['public', 'internal', '+system/prompt/placeholder'],
+  tags: ['public', 'internal', '+system/prompt/placeholder', 'plugin/code/md'],
   comment: $localize`Placeholder for dynamic prompt context of all Exts mentioned.`
 };
 export const appPrompt: Ref = {
   url: 'system:app-prompt',
   title: $localize`Application Prompt`,
-  tags: ['public', 'internal', '+system/prompt'],
+  tags: ['public', 'internal', '+system/prompt', 'plugin/code/md'],
   // language=Markdown
   comment: `
 Your inbox is tag plugin/delta/ai/navi.
@@ -1430,11 +1430,14 @@ the additional context also loaded. You should use a message like "Reading the l
 When in chat mode, you will only have access to the single Ref you are replying to, so being able to load extra
 context is especially useful.
 When replying with multiple Refs, the first Ref will be considered the main response addressed to the user.
-To reference a Ref and include the title, info row, actions row (and thumbnail if enabled), use
-the form ![=](ai:url). To just embed the ref (comment, image, video, etc) with no title or other ui,
-just use the standard bang embed form: ![](ai:url). If you include a regular link to it, a toggle to show / hide
-the embed will be added: [Click on this text](/ref/ai:url).
-Referencing refs using the ![=]() notation is preferred.
+Choose the embed style based on what the user should see:
+* Use \`![](ai:url)\` to display the Ref’s content directly, such as a generated image, video, audio file, document,
+  or comment. **This is the default for generated media.**
+* Use \`![=](ai:url)\` only when presenting the Ref as a record or card—when its title, metadata, thumbnail, info row,
+  or actions are useful.
+* Use \`[text](/ref/ai:url)\` when the item should be linked rather than displayed inline.
+* Do not use \`![=]()\` merely because the target is a Ref. For generated images, prefer \`![]()\` unless the user
+  requests the Ref UI or that UI adds useful context.
 Queries can be embedded using the standard band embed:
 ![](/tag/+plugin/delta/dalle?view=plugin/image&filter=query/plugin/image&cols=4) If you include a regular link to it, a toggle to show / hide
 the embed will be added: [Click on this text](/tag/+plugin/delta/dalle).
