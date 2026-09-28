@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, isDevMode } from '@angular/core';
+import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { tap } from 'rxjs/operators';
 import { memo } from '../util/memo';
@@ -50,6 +51,7 @@ export class ConfigService {
 
   constructor(
     private http: HttpClient,
+    private router: Router,
   ) {
     // @ts-ignore
     window.configService = this;
@@ -100,8 +102,7 @@ export class ConfigService {
 
   open(path: string) {
     if (this.electron) {
-      // @ts-ignore
-      window.location = this.base + path;
+      this.router.navigate([path]);
     } else {
       window.open(this.base + path);
     }
