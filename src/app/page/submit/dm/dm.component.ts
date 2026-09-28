@@ -281,7 +281,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
 
   clickPreview(input: HTMLInputElement) {
     if (this.store.hotkey) {
-      window.open(this.config.base + 'tag/' + input.value);
+      this.config.tag(input.value);
     } else {
       this.edit(input);
     }
