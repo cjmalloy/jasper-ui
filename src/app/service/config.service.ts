@@ -102,7 +102,7 @@ export class ConfigService {
 
   open(path: string) {
     if (this.electron) {
-      this.router.navigate([path]);
+      this.router.navigate(['/' + path]);
     } else {
       window.open(this.base + path);
     }
