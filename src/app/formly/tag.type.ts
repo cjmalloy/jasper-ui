@@ -140,7 +140,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
 
   clickPreview(input: HTMLInputElement) {
     if (this.store.hotkey) {
-      this.configs.open('tag/' + input.value);
+      this.configs.tag(input.value);
     } else {
       this.edit(input);
     }

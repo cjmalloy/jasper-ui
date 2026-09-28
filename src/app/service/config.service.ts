@@ -100,11 +100,19 @@ export class ConfigService {
     }
   }
 
-  open(path: string) {
+  ref(url: string) {
     if (this.electron) {
-      this.router.navigate(['/' + path]);
+      this.router.navigate(['/ref', url]);
     } else {
-      window.open(this.base + path);
+      window.open(this.base + 'ref/' + url);
+    }
+  }
+
+  tag(tag: string) {
+    if (this.electron) {
+      this.router.navigate(['/tag', tag]);
+    } else {
+      window.open(this.base + 'tag/' + tag);
     }
   }
 }
