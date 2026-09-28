@@ -409,7 +409,7 @@ export const aiQueryPlugin: Plugin = {
             };
             if (config.search) {
               toolUse.tools.push({
-                type: 'web_search_20250305',
+                type: 'web_search_20260318',
                 name: 'web_search',
                 max_uses: 10,
               });
@@ -420,11 +420,6 @@ export const aiQueryPlugin: Plugin = {
                 description: 'JSON responses in bundle format',
                 input_schema: config.bundle ? fullBundleSchema : bundleSchema,
               });
-              if (config.search) {
-                toolUse.tool_choice = { type: 'any' };
-              } else {
-                toolUse.tool_choice = { type: 'tool', name: 'bundle' };
-              }
             }
             const res = await anthropic.messages.create({
               model: config.model,
