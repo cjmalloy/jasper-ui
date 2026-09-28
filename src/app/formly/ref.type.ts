@@ -173,7 +173,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
 
   clickPreview(input: HTMLInputElement) {
     if (this.store.hotkey) {
-      window.open(this.configs.base + 'ref/' + input.value);
+      this.configs.open('ref/' + input.value);
     } else {
       this.edit(input);
     }

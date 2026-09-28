@@ -7,7 +7,7 @@ import { v4 as uuid } from 'uuid';
 import { Config } from '../model/tag';
 import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
-import { ConfigService } from '../service/config.service';
+import { config, ConfigService } from '../service/config.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { getErrorMessage } from './errors';
@@ -140,7 +140,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
 
   clickPreview(input: HTMLInputElement) {
     if (this.store.hotkey) {
-      window.open(this.configs.base + 'tag/' + input.value);
+      this.configs.open('tag/' + input.value);
     } else {
       this.edit(input);
     }

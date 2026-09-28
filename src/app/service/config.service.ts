@@ -97,4 +97,13 @@ export class ConfigService {
       window.location = this.loginLink;
     }
   }
+
+  open(path: string) {
+    if (this.electron) {
+      // @ts-ignore
+      window.location = this.base + path;
+    } else {
+      window.open(this.base + path);
+    }
+  }
 }
