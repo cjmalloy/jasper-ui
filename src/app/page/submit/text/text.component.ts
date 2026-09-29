@@ -194,9 +194,9 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
           this.addSource(s)
         }
       }));
-      if (!this.store.submit.filesEmpty) {
-        const files = [...this.store.submit.files];
-        runInAction(() => this.store.submit.clearFiles());
+      if (this.store.submit.embedFiles.length) {
+        const files = [...this.store.submit.embedFiles];
+        runInAction(() => this.store.submit.setEmbedFiles());
         defer(() => {
           if (this.editorComponent instanceof EditorComponent) this.editorComponent.upload(files as any);
         });

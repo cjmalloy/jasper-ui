@@ -325,7 +325,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     }
     if (!files.length) return false;
     event.preventDefault();
-    runInAction(() => this.store.submit.addFiles(files));
+    runInAction(() => this.store.submit.setEmbedFiles(files));
     this.router.navigate(['/submit/text'], { queryParams: { tag: this.store.submit.tags } });
     return true;
   }

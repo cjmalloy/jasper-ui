@@ -15,6 +15,7 @@ export class SubmitStore {
   submitGenId: Plugin[] = [];
   submitDm: Plugin[] = [];
   files: File[] = [] as any;
+  embedFiles: File[] = [] as any;
   caching: Map<File, Saving> = new Map<File, Saving>();
   exts: Ext[] = [];
   refs: Ref[] = [];
@@ -29,6 +30,7 @@ export class SubmitStore {
       submitGenId: observableShallow,
       submitDm: observableShallow,
       files: observableShallow,
+      embedFiles: observableShallow,
       caching: observableShallow,
       setRef: action,
       setExt: action,
@@ -192,6 +194,10 @@ export class SubmitStore {
   clearFiles() {
     if (this.filesEmpty) return;
     this.files = [] as any;
+  }
+
+  setEmbedFiles(files: File[] = []) {
+    this.embedFiles = files;
   }
 
   foundRef(url: string) {
