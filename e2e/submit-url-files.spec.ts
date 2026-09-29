@@ -1,5 +1,5 @@
 import { expect, type Locator, test } from '@playwright/test';
-import { clearMods } from './setup';
+import { mod } from './setup';
 
 async function dispatchFileEvent(target: Locator, type: 'drop' | 'paste', name: string) {
   await target.evaluate((element, [eventType, fileName]) => {
@@ -13,21 +13,21 @@ async function dispatchFileEvent(target: Locator, type: 'drop' | 'paste', name: 
 }
 
 test.describe.serial('Submit URL input files', () => {
-  test('clear mods', async ({ page }) => {
-    await clearMods(page);
+  test('enable file cache mod', async ({ page }) => {
+    await mod(page, '#mod-filecache');
   });
 
-  test('dropping a file on the url input opens upload page', async ({ page }) => {
+  test('dropping a file on the url input embeds it in a text post', async ({ page }) => {
     await page.goto('/submit?debug=USER', { waitUntil: 'networkidle' });
     await dispatchFileEvent(page.locator('input#url'), 'drop', 'dropped.txt');
-    await expect(page).toHaveURL(/\/submit\/upload/);
-    await expect(page.locator('.ref .link')).toContainText('dropped.txt');
+    await expect(page).toHaveURL(/\/submit\/text/);
+    await expect(page.locator('.editor textarea:not(.measurer)')).toHaveValue(/!\[=\]\(internal:/);
   });
 
-  test('pasting a file into the url input opens upload page', async ({ page }) => {
+  test('pasting a file into the url input embeds it in a text post', async ({ page }) => {
     await page.goto('/submit?debug=USER', { waitUntil: 'networkidle' });
     await dispatchFileEvent(page.locator('input#url'), 'paste', 'pasted.txt');
-    await expect(page).toHaveURL(/\/submit\/upload/);
-    await expect(page.locator('.ref .link')).toContainText('pasted.txt');
+    await expect(page).toHaveURL(/\/submit\/text/);
+    await expect(page.locator('.editor textarea:not(.measurer)')).toHaveValue(/!\[=\]\(internal:/);
   });
 });

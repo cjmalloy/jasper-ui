@@ -314,6 +314,7 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   uploadFiles(event: Event, items?: DataTransferItemList) {
     if (!items) return false;
+    if (!this.admin.getPlugin('plugin/file')) return false;
     const files: File[] = [];
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
@@ -324,8 +325,8 @@ export class SubmitPage implements OnInit, OnDestroy {
     }
     if (!files.length) return false;
     event.preventDefault();
-    this.store.submit.addFiles(files);
-    this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.submit.tags } });
+    runInAction(() => this.store.submit.addFiles(files));
+    this.router.navigate(['/submit/text'], { queryParams: { tag: this.store.submit.tags } });
     return true;
   }
 
