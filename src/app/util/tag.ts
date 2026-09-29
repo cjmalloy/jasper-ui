@@ -79,6 +79,12 @@ export function hasTag(tag: string | undefined, ref: Ref | string[] | undefined)
   return !!find(tags, t => expandedTagsInclude(t, tag)) !== not;
 }
 
+export function addTags(ref: Ref, ...tags: string[]) {
+  ref.tags ||= [];
+  ref.tags = uniq([...ref.tags, ...tags]);
+  return ref;
+}
+
 export function test(query: string, ref: Ref | string[] | undefined) {
   if (!query) return false;
   const tags = isArray(ref) ? ref : ref?.tags;
