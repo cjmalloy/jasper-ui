@@ -333,7 +333,7 @@ export class ChatEntryComponent implements OnChanges {
   delete$ = () => {
     this.serverError = [];
     return (this.admin.getPlugin('plugin/delete')
-        ? this.refs.update(deleteNotice(this.ref))
+        ? this.refs.update(deleteNotice(this.ref, t => this.auth.canAddTag(t)))
         : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
     ).pipe(
       tap(() => this.deleted = true),

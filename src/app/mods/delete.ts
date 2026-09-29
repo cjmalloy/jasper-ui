@@ -3,7 +3,7 @@ import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Mod, Tag } from '../model/tag';
-import { hasTag, localTag, publicTag, tagOrigin } from '../util/tag';
+import { hasPrefix, hasTag, localTag, publicTag, tagOrigin } from '../util/tag';
 
 export const deletePlugin: Plugin = {
   tag: 'plugin/delete',
@@ -26,7 +26,12 @@ export const deletePlugin: Plugin = {
   },
 };
 
-export function deleteNotice(ref: Ref): Ref {
+/**
+ * Clear a Ref and mark it as deleted.
+ * Protected and private tags are removed if canRemoveTag returns true,
+ * except for user tags which are kept to preserve ownership.
+ */
+export function deleteNotice(ref: Ref, canRemoveTag?: (tag: string) => boolean): Ref {
   if (hasTag('locked', ref)) {
     ref.tags!.push('plugin/delete', 'internal');
     return ref;
@@ -35,7 +40,7 @@ export function deleteNotice(ref: Ref): Ref {
   tags.push(...filter(ref.tags, t => {
     if (ref.plugins?.[t]) return false;
     if (t.startsWith('+plugin/')) return false;
-    if (!publicTag(t)) return true;
+    if (!publicTag(t)) return hasPrefix(t, 'user') || !canRemoveTag?.(t);
     if (t === 'locked') return true;
     if (t === 'public') return true;
     return false;

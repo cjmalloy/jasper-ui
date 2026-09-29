@@ -268,7 +268,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   delete$ = () => {
     if (this.type === 'ref') {
       return this.batch$<Ref>(ref => ref.origin === this.store.account.origin && !hasTag('plugin/delete', ref) && this.admin.getPlugin('plugin/delete')
-        ? this.refs.update(deleteNotice(ref))
+        ? this.refs.update(deleteNotice(ref, t => this.auth.canAddTag(t)))
         : this.refs.delete(ref.url, ref.origin)
       );
     } else if (this.type === 'ext' || this.type === 'user') {

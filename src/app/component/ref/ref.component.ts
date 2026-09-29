@@ -1513,7 +1513,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return (this.local && hasTag('locked', this.ref)
         ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin)
         : this.local && !hasTag('plugin/delete', this.ref) && this.admin.getPlugin('plugin/delete')
-          ? this.refs.update(deleteNotice(this.ref))
+          ? this.refs.update(deleteNotice(this.ref, t => this.auth.canAddTag(t)))
           : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
     ).pipe(
       tap((cursor: string) => {
