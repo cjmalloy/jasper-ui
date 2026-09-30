@@ -312,6 +312,24 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
   }
 
+  uploadFiles(event: Event, items?: DataTransferItemList) {
+    if (!items) return false;
+    if (!this.admin.getPlugin('plugin/file')) return false;
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      if (d?.kind === 'file') {
+        const file = d.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    if (!files.length) return false;
+    event.preventDefault();
+    runInAction(() => this.store.submit.setEmbedFiles(files));
+    this.router.navigate(['/submit/text'], { queryParams: { tag: this.store.submit.tags } });
+    return true;
+  }
+
   getUrlPlugin() {
     defer(() => {
       if (!this.plugin && this.url.value) {

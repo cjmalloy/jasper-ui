@@ -117,7 +117,8 @@
                    formControlName="url"
                    appAutofocus
                    (input)="search(url.value)"
-                   (paste)="getUrlPlugin()">
+                   (drop)="uploadFiles($event, $event.dataTransfer?.items)"
+                   (paste)="uploadFiles($event, $event.clipboardData?.items) || getUrlPlugin()">
           }
           @if (!store.submit.wiki) {
             @if ((!plugin || plugin === 'plugin/qr') && admin.getPlugin('plugin/qr')) {
