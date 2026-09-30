@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
 import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
 import { Subject } from 'rxjs';
@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import { MdPostDirective } from '../../directive/md-post.directive';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
+import { bbcodeToHtml } from '../../util/bbcode';
 
 @Component({
   selector: 'app-md',
@@ -17,7 +18,7 @@ import { Store } from '../../store/store';
     MdPostDirective,
   ]
 })
-export class MdComponent {
+export class MdComponent implements AfterViewChecked {
 
   @Input()
   origin? = '';
@@ -45,6 +46,8 @@ export class MdComponent {
 
   private _text = '';
   private _value? = '';
+  private _bbValue?: string;
+  private renderedBB?: string;
 
   constructor(
     public admin: AdminService,
@@ -60,6 +63,22 @@ export class MdComponent {
   set text(value: string | undefined) {
     this._text = value || '';
     delete this._value;
+    delete this._bbValue;
+  }
+
+  get bbcode() {
+    return !!this.plugins?.includes('plugin/bb');
+  }
+
+  get bbValue() {
+    return this._bbValue ??= bbcodeToHtml(this._text);
+  }
+
+  ngAfterViewChecked() {
+    const value = this.bbcode ? this.bbValue : undefined;
+    if (value === this.renderedBB) return;
+    this.renderedBB = value;
+    if (value !== undefined) this.postProcessMarkdown.next();
   }
 
   get value() {

@@ -1,4 +1,11 @@
-<div class="md"
+@if (bbcode) {
+  <div class="md bbcode"
+       [innerHTML]="bbValue"
+       [data]="bbValue"
+       [origin]="origin"
+       [appMdPost]="postProcessMarkdown"></div>
+} @else {
+  <div class="md"
      markdown
      [data]="value"
      [origin]="origin"
@@ -10,3 +17,4 @@
      [mermaid]="mermaid"
      [mermaidOptions]="mermaidOptions"
      [clipboard]="clipboard"></div>
+}

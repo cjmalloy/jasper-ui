@@ -34,6 +34,35 @@ describe('EditorComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should insert BBCode images and attachment links when plugin/bb is selected', () => {
+    component.createdTags = ['plugin/bb'];
+    component.init();
+    const source = vi.spyOn(component.addSource, 'next');
+    component.attachUrls(
+      { url: 'cache:photo.png', tags: ['plugin/image'] },
+      { url: 'cache:file.pdf', tags: ['plugin/pdf'] },
+    );
+    expect(component.control.value).toBe('[img]cache:photo.png[/img]\n[url]cache:file.pdf[/url]\n');
+    expect(source).toHaveBeenCalledTimes(2);
+  });
+
+  it('should preserve Markdown attachment syntax by default', () => {
+    component.attachUrls({ url: 'cache:photo.png', tags: ['plugin/image'] });
+    expect(component.control.value).toBe('![](cache:photo.png)\n\n');
+  });
+
+  it('should link selected text using BBCode and escape URL delimiters', async () => {
+    component.createdTags = ['plugin/bb'];
+    component.init();
+    component.control.setValue('selected');
+    component.editor!.nativeElement.value = 'selected';
+    component.editor!.nativeElement.setSelectionRange(0, 8);
+    component.onSelect();
+    await fixture.whenStable();
+    component.attachUrls({ url: 'https://example.com/[file]', tags: [] });
+    expect(component.control.value).toBe('[url=https://example.com/%5bfile%5d]selected[/url]\n');
+  });
+
   it('should initialize with empty uploads array', () => {
     expect(component.uploads).toEqual([]);
   });
