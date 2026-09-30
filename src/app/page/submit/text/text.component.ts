@@ -41,6 +41,7 @@ import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
+import { readFileAsString } from '../../../util/async';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
@@ -196,9 +197,17 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       }));
       if (this.store.submit.embedFiles.length) {
         const files = [...this.store.submit.embedFiles];
-        runInAction(() => this.store.submit.setEmbedFiles());
         defer(() => {
-          if (this.editorComponent instanceof EditorComponent) this.editorComponent.upload(files as any);
+          if (this.customEditor) {
+            runInAction(() => this.store.submit.setEmbedFiles());
+            forkJoin(files.map(f => readFileAsString(f))).subscribe(texts => {
+              this.comment.setValue(texts.join('\n'));
+              this.comment.markAsDirty();
+            });
+          } else if (this.editorComponent instanceof EditorComponent) {
+            runInAction(() => this.store.submit.setEmbedFiles());
+            this.editorComponent.upload(files as any);
+          }
         });
       }
     });
