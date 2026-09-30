@@ -7266,6 +7266,123 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Neo Banana image-generation signature tag.</source>
         <target>Neo Banana画像生成シグネチャタグ。</target>
       </trans-unit>
+      <trans-unit id="20995857315515580" datatype="html">
+        <source>🥊️ Boxing Round</source>
+        <target>🥊️ ボクシングラウンド</target>
+      </trans-unit>
+      <trans-unit id="617246215530336241" datatype="html">
+        <source>🥊️ Boxing Judge</source>
+        <target>🥊️ ボクシングジャッジ</target>
+      </trans-unit>
+      <trans-unit id="1461941183603173495" datatype="html">
+        <source>Stores the cached 10 second clips, draft punch log and official score for an AI judged boxing round.</source>
+        <target>AIが判定するボクシングラウンドのキャッシュ済み10秒クリップ、パンチログ下書き、公式スコアを保存します。</target>
+      </trans-unit>
+      <trans-unit id="5144920882177082781" datatype="html">
+        <source>🥊️</source>
+      </trans-unit>
+      <trans-unit id="1960493453593467604" datatype="html">
+        <source>🥊️ boxing</source>
+        <target>🥊️ ボクシング</target>
+      </trans-unit>
+      <trans-unit id="4399281170290974699" datatype="html">
+        <source>AI judged boxing rounds</source>
+        <target>AIが判定したボクシングラウンド</target>
+      </trans-unit>
+      <trans-unit id="916404068768712849" datatype="html">
+        <source>🥊️⏳️ AI Boxing Judge</source>
+        <target>🥊️⏳️ AIボクシングジャッジ</target>
+      </trans-unit>
+      <trans-unit id="1432948259314338808" datatype="html">
+        <source>Add to an m3u8 playlist Ref to judge a boxing round with Gemini.
+Runs repeatedly, cutting one 10 second low-res (480p @ 10fps with a burned in wall-clock) and one high-res clip per run.
+Each new clip creates a plugin/delta/boxing.preview response with all cached clips so far.
+After the final clip a plugin/delta/boxing.judge response is created to verify, score and render a 30 second replay.</source>
+        <target>m3u8プレイリストのRefに追加して、Geminiでボクシングのラウンドを判定します。
+繰り返し実行され、実行ごとに10秒の低解像度クリップ（480p @ 10fps、壁時計のタイムスタンプ焼き込み）と高解像度クリップを1つずつ切り出します。
+新しいクリップごとに、これまでのキャッシュ済みクリップをすべて含む plugin/delta/boxing.preview レスポンスが作成されます。
+最後のクリップの後、plugin/delta/boxing.judge レスポンスが作成され、検証、採点、30秒のリプレイの作成を行います。</target>
+      </trans-unit>
+      <trans-unit id="3590039076574309023" datatype="html">
+        <source>judge boxing</source>
+        <target>ボクシング判定</target>
+      </trans-unit>
+      <trans-unit id="4187594914269780859" datatype="html">
+        <source>Judge this boxing round with AI.</source>
+        <target>このボクシングラウンドをAIで判定します。</target>
+      </trans-unit>
+      <trans-unit id="8404086825729291288" datatype="html">
+        <source>Stop judging this boxing round.</source>
+        <target>このボクシングラウンドの判定を停止します。</target>
+      </trans-unit>
+      <trans-unit id="7621963991290882235" datatype="html">
+        <source>Round:</source>
+        <target>ラウンド:</target>
+      </trans-unit>
+      <trans-unit id="622398743023116717" datatype="html">
+        <source>Clips:</source>
+        <target>クリップ数:</target>
+      </trans-unit>
+      <trans-unit id="8368099253350595503" datatype="html">
+        <source>Clip Seconds:</source>
+        <target>クリップ秒数:</target>
+      </trans-unit>
+      <trans-unit id="3958481289392412689" datatype="html">
+        <source>🥊️📺️ Boxing Preview</source>
+        <target>🥊️📺️ ボクシングプレビュー</target>
+      </trans-unit>
+      <trans-unit id="115016052121176636" datatype="html">
+        <source>Draft punch log from the cached low-res clips. Only clips not analyzed by a previous preview are sent to Gemini.</source>
+        <target>キャッシュされた低解像度クリップからのパンチログ下書き。以前のプレビューで分析されていないクリップのみがGeminiに送信されます。</target>
+      </trans-unit>
+      <trans-unit id="4569639964051974583" datatype="html">
+        <source>🥊️📺️ Boxing Draft</source>
+        <target>🥊️📺️ ボクシング下書き</target>
+      </trans-unit>
+      <trans-unit id="9013314222723052301" datatype="html">
+        <source>Draft punch log signature tag.</source>
+        <target>パンチログ下書きの署名タグ。</target>
+      </trans-unit>
+      <trans-unit id="173419402957219851" datatype="html">
+        <source>📺️</source>
+      </trans-unit>
+      <trans-unit id="3866143247902767079" datatype="html">
+        <source>📺️ boxing drafts</source>
+        <target>📺️ ボクシング下書き</target>
+      </trans-unit>
+      <trans-unit id="8132809211161468204" datatype="html">
+        <source>Draft AI boxing punch logs</source>
+        <target>AIボクシングのパンチログ下書き</target>
+      </trans-unit>
+      <trans-unit id="7112451903783585243" datatype="html">
+        <source>🥊️🏁️ Boxing Final Judge</source>
+        <target>🥊️🏁️ ボクシング最終判定</target>
+      </trans-unit>
+      <trans-unit id="6415432065825477351" datatype="html">
+        <source>Verifies clean power punches against the high-res clips, scores the round on the 10-9 must system
+and renders a 30 second replay and slow-motion video with commentary and the round score as subtitles.</source>
+        <target>高解像度クリップでクリーンなパワーパンチを検証し、10ポイント・マスト・システムでラウンドを採点し
+解説とラウンドスコアを字幕にした30秒のリプレイとスローモーション動画を作成します。</target>
+      </trans-unit>
+      <trans-unit id="4051247444451643921" datatype="html">
+        <source>🥊️🏁️ Boxing Score</source>
+        <target>🥊️🏁️ ボクシングスコア</target>
+      </trans-unit>
+      <trans-unit id="5960508965414718944" datatype="html">
+        <source>Official round score and highlight video signature tag.</source>
+        <target>公式ラウンドスコアとハイライト動画の署名タグ。</target>
+      </trans-unit>
+      <trans-unit id="2995881088650640377" datatype="html">
+        <source>🏁️</source>
+      </trans-unit>
+      <trans-unit id="4701821912187981677" datatype="html">
+        <source>🏁️ boxing scores</source>
+        <target>🏁️ ボクシングスコア</target>
+      </trans-unit>
+      <trans-unit id="8642987629362141363" datatype="html">
+        <source>Official AI boxing round scores</source>
+        <target>AIボクシングの公式ラウンドスコア</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
