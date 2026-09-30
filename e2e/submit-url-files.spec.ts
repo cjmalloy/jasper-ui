@@ -14,7 +14,7 @@ async function dispatchFileEvent(target: Locator, type: 'drop' | 'paste', name: 
 
 test.describe.serial('Submit URL input files', () => {
   test('enable file cache mod', async ({ page }) => {
-    await mod(page, '#mod-filecache');
+    await mod(page, '#mod-filecache', '#mod-plugin\\/code');
   });
 
   test('dropping a file on the url input embeds it in a text post', async ({ page }) => {
@@ -29,5 +29,19 @@ test.describe.serial('Submit URL input files', () => {
     await dispatchFileEvent(page.locator('input#url'), 'paste', 'pasted.txt');
     await expect(page).toHaveURL(/\/submit\/text/);
     await expect(page.locator('.editor textarea:not(.measurer)')).toHaveValue(/!\[=\]\(internal:/);
+  });
+
+  test('dropping a file on the url input with a custom editor sets the file contents', async ({ page }) => {
+    await page.goto('/submit?tag=plugin/code&debug=USER', { waitUntil: 'networkidle' });
+    await dispatchFileEvent(page.locator('input#url'), 'drop', 'dropped.txt');
+    await expect(page).toHaveURL(/\/submit\/text/);
+    await expect(page.locator('.fill-editor .monaco-editor .view-lines')).toContainText('hello');
+  });
+
+  test('pasting a file into the url input with a custom editor sets the file contents', async ({ page }) => {
+    await page.goto('/submit?tag=plugin/code&debug=USER', { waitUntil: 'networkidle' });
+    await dispatchFileEvent(page.locator('input#url'), 'paste', 'pasted.txt');
+    await expect(page).toHaveURL(/\/submit\/text/);
+    await expect(page.locator('.fill-editor .monaco-editor .view-lines')).toContainText('hello');
   });
 });
