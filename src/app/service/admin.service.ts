@@ -13,6 +13,7 @@ import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../mode
 import { Template } from '../model/template';
 import { User } from '../model/user';
 import { aiMod } from '../mods/ai/ai';
+import { boxingMod } from '../mods/ai/boxing';
 import { dalleMod } from '../mods/ai/dalle';
 import { naviMod } from '../mods/ai/navi';
 import { summaryMod } from '../mods/ai/summary';
@@ -179,6 +180,7 @@ export class AdminService {
     naviMod,
     dalleMod,
     neoMod,
+    boxingMod,
     summaryMod,
     translateMod,
     pdfMod,
