@@ -300,7 +300,7 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
     const tags = [...remove.map(t => `-${t}`), ...add];
     if (!tags.length) return;
     this.tags.patch(tags, ref.url, ref.origin).pipe(
-      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), ref.origin!)),
       catchError(() => {
         // Revert
         ref.tags = oldTags;

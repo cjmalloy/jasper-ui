@@ -151,7 +151,7 @@ export class NotebookComponent implements OnInit, HasChanges {
 
   addNewRef(ref: Ref) {
     // TODO: verify read before clearing?
-    this.accounts.clearNotificationsIfNone(ref.modified);
+    this.accounts.clearNotificationsIfNone(ref.modified, ref.origin!);
     if (!this.page?.content.find(r => r.url === ref.url)) {
       const index = this.newRefs.findIndex(r => r.url === ref.url);
       if (index !== -1) {

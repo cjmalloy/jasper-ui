@@ -17,6 +17,7 @@ export class AccountStore {
   ext?: Ext = {} as Ext;
   defaultConfig: UserConfig = {};
   ignoreNotifications: number[] = [];
+  notificationCursors = new Map<string, string>();
 
   /**
    * Is admin.
