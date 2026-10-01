@@ -153,9 +153,10 @@ describe('CommentEditComponent', () => {
         'plugin/comment': {},
         'plugin/missing': {},
         'plugin/schema': { a: 1 },
+        'plugin/uninstalled': {},
       },
     };
-    component.editorTags = ['plugin/comment', 'internal', 'plugin/schema'];
+    component.editorTags = ['plugin/comment', 'internal', 'plugin/schema', 'plugin/uninstalled'];
     vi.spyOn(component['admin'], 'getPlugin').mockImplementation((tag: string) => {
       if (tag === 'plugin/comment') return { tag };
       if (tag === 'plugin/schema') return { tag, schema: { optionalProperties: { a: { type: 'int32' } } } };
@@ -174,6 +175,7 @@ describe('CommentEditComponent', () => {
     expect(pluginPatches).toEqual([
       { op: 'remove', path: '/plugins/plugin~1comment' },
       { op: 'remove', path: '/plugins/plugin~1missing' },
+      { op: 'remove', path: '/plugins/plugin~1uninstalled' },
     ]);
   });
 });

@@ -24,7 +24,7 @@ import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
 import { Ref } from '../../model/ref';
 import { Role, User } from '../../model/user';
-import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
+import { ignoreExistingNotice, isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { cronPlugin } from '../../mods/system/script';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -318,7 +318,7 @@ export class UserComponent implements OnChanges, HasChanges {
     const os = [];
     if (this.user) {
       const deleteNotice = !isDeletorTag(this.user.tag) && this.admin.getPlugin('plugin/delete')
-        ? this.users.create(tagDeleteNotice(this.user))
+        ? ignoreExistingNotice(this.users.create(tagDeleteNotice(this.user)))
         : of(null);
       os.push(this.users.delete(this.qualifiedTag).pipe(
         tap(() => this.deleted = true),

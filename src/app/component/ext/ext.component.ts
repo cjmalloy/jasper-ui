@@ -26,7 +26,7 @@ import { HasChanges } from '../../guard/pending-changes.guard';
 import { equalsExt, Ext, writeExt } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
 import { Template } from '../../model/template';
-import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
+import { ignoreExistingNotice, isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
@@ -279,7 +279,7 @@ export class ExtComponent implements OnChanges, HasChanges {
       return of(null);
     } else {
       const deleteNotice = !isDeletorTag(this.ext.tag) && this.admin.getPlugin('plugin/delete')
-        ? this.exts.create(tagDeleteNotice(this.ext))
+        ? ignoreExistingNotice(this.exts.create(tagDeleteNotice(this.ext)))
         : of(null);
       return this.exts.delete(this.qualifiedTag).pipe(
         tap(() => this.deleted = true),

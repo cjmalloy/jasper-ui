@@ -130,9 +130,9 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
       });
     }
     for (const p of Object.keys(this.ref.plugins || {})) {
-      const plugin = this.admin.getPlugin(p);
-      if (!hasTag(p, finalTags) || plugin && !plugin.schema) {
-        // Server rejects plugin data for missing tags or schemaless plugins
+      const plugin = this.admin.getPlugin(p) || this.admin.status.disabledPlugins[p];
+      if (!hasTag(p, finalTags) || !plugin?.schema) {
+        // Server rejects plugin data for missing tags, missing plugins, or schemaless plugins
         patches.push({
           op: 'remove',
           path: '/plugins/' + escapePath(p),
