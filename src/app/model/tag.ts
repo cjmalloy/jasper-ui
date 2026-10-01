@@ -316,10 +316,10 @@ export interface FilterConfig {
    */
   query?: string;
   /**
-   * Filter based on URL scheme.
+   * Filter based on URL scheme, including the trailing colon (e.g. https:).
    * If set, no other filter types must be set.
    */
-  scheme?: string;
+  scheme?: `${string}:`;
   /**
    * Filter based on sources to a Ref.
    * If set, no other filter types must be set.

@@ -213,7 +213,8 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       if (result.noResponses) console.warn('Multiple noResponses filters (last wins)');
       result.noResponses = f.substring('noResponses/'.length)
     } else if (f.startsWith('scheme/')) {
-      result.scheme = f.substring('scheme/'.length)
+      const scheme = f.substring('scheme/'.length);
+      result.scheme = scheme.endsWith(':') ? scheme : `${scheme}:`;
     } else if (f.startsWith('user/')) {
       const p = f.substring('user/'.length);
       if (hasPrefix(p, 'plugin')) {

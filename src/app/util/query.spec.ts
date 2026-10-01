@@ -243,9 +243,14 @@ describe('Query Utils', () => {
     });
 
     it('should handle scheme filter', () => {
-      const filters: UrlFilter[] = ['scheme/https' as UrlFilter];
+      const filters: UrlFilter[] = ['scheme/https:'];
       const args = getArgs('science', undefined, filters);
-      expect(args.scheme).toBe('https');
+      expect(args.scheme).toBe('https:');
+    });
+
+    it('should normalize legacy scheme filters', () => {
+      const args = getArgs('science', undefined, ['scheme/https']);
+      expect(args.scheme).toBe('https:');
     });
 
     it('should handle obsolete filter', () => {
