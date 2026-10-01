@@ -126,4 +126,54 @@ describe('CommentEditComponent', () => {
     const addPatches = patches.filter(p => p.op === 'add' && p.path === '/tags/-');
     expect(addPatches.length).toBe(0);
   });
+  it('should remove multiple tags in descending index order', () => {
+    component.ref = {
+      url: 'test-url',
+      tags: ['public', 'plugin/comment', 'internal', 'plugin/latex'],
+    };
+    component.editorTags = ['plugin/comment', 'internal'];
+
+    const patches: any[] = [];
+    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
+      patches.push(...patchList);
+      return { pipe: () => ({ subscribe: () => {} }) } as any;
+    });
+
+    component.save();
+
+    const removePatches = patches.filter(p => p.op === 'remove' && p.path.startsWith('/tags/'));
+    expect(removePatches.map(p => p.path)).toEqual(['/tags/3', '/tags/0']);
+  });
+
+  it('should remove plugin data rejected by the server', () => {
+    component.ref = {
+      url: 'test-url',
+      tags: ['plugin/comment', 'internal'],
+      plugins: {
+        'plugin/comment': {},
+        'plugin/missing': {},
+        'plugin/schema': { a: 1 },
+      },
+    };
+    component.editorTags = ['plugin/comment', 'internal', 'plugin/schema'];
+    vi.spyOn(component['admin'], 'getPlugin').mockImplementation((tag: string) => {
+      if (tag === 'plugin/comment') return { tag };
+      if (tag === 'plugin/schema') return { tag, schema: { optionalProperties: { a: { type: 'int32' } } } };
+      return undefined;
+    });
+
+    const patches: any[] = [];
+    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
+      patches.push(...patchList);
+      return { pipe: () => ({ subscribe: () => {} }) } as any;
+    });
+
+    component.save();
+
+    const pluginPatches = patches.filter(p => p.path.startsWith('/plugins/'));
+    expect(pluginPatches).toEqual([
+      { op: 'remove', path: '/plugins/plugin~1comment' },
+      { op: 'remove', path: '/plugins/plugin~1missing' },
+    ]);
+  });
 });
