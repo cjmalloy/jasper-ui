@@ -10,14 +10,13 @@ import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
-import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { Store } from '../../../store/store';
 import { getIfNew, getMailboxes } from '../../../util/editor';
 import { printError } from '../../../util/http';
-import { escapePath, OpPatch } from '../../../util/json-patch';
-import { getVisibilityTags, hasTag } from '../../../util/tag';
+import { OpPatch } from '../../../util/json-patch';
+import { getVisibilityTags } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
@@ -51,7 +50,6 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
   completedUploads: Ref[] = [];
 
   constructor(
-    private admin: AdminService,
     private store: Store,
     private refs: RefService,
     private ts: TaggingService,
@@ -128,16 +126,6 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
         op: 'remove',
         path: '/tags/' + i,
       });
-    }
-    for (const p of Object.keys(this.ref.plugins || {})) {
-      const plugin = this.admin.getPlugin(p) || this.admin.status.disabledPlugins[p];
-      if (!hasTag(p, finalTags) || !plugin?.schema) {
-        // Server rejects plugin data for missing tags, missing plugins, or schemaless plugins
-        patches.push({
-          op: 'remove',
-          path: '/plugins/' + escapePath(p),
-        });
-      }
     }
     for (const s of this.sources) {
       patches.push({

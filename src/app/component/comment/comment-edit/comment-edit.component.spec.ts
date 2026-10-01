@@ -144,38 +144,4 @@ describe('CommentEditComponent', () => {
     const removePatches = patches.filter(p => p.op === 'remove' && p.path.startsWith('/tags/'));
     expect(removePatches.map(p => p.path)).toEqual(['/tags/3', '/tags/0']);
   });
-
-  it('should remove plugin data rejected by the server', () => {
-    component.ref = {
-      url: 'test-url',
-      tags: ['plugin/comment', 'internal'],
-      plugins: {
-        'plugin/comment': {},
-        'plugin/missing': {},
-        'plugin/schema': { a: 1 },
-        'plugin/uninstalled': {},
-      },
-    };
-    component.editorTags = ['plugin/comment', 'internal', 'plugin/schema', 'plugin/uninstalled'];
-    vi.spyOn(component['admin'], 'getPlugin').mockImplementation((tag: string) => {
-      if (tag === 'plugin/comment') return { tag };
-      if (tag === 'plugin/schema') return { tag, schema: { optionalProperties: { a: { type: 'int32' } } } };
-      return undefined;
-    });
-
-    const patches: any[] = [];
-    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
-      patches.push(...patchList);
-      return { pipe: () => ({ subscribe: () => {} }) } as any;
-    });
-
-    component.save();
-
-    const pluginPatches = patches.filter(p => p.path.startsWith('/plugins/'));
-    expect(pluginPatches).toEqual([
-      { op: 'remove', path: '/plugins/plugin~1comment' },
-      { op: 'remove', path: '/plugins/plugin~1missing' },
-      { op: 'remove', path: '/plugins/plugin~1uninstalled' },
-    ]);
-  });
 });
