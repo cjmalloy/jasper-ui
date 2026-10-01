@@ -16,7 +16,7 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
-import { convertFilter, FilterGroup, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
+import { convertFilter, FilterGroup, FilterItem, negatable, normalizeScheme, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
@@ -260,7 +260,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
         if (f.startsWith('query/')) setToggles.push(f);
         if (f.startsWith('user/')) setToggles.push(f);
         if (f.startsWith('!') || hasPrefix(f, 'plugin')) setToggles.push(f);
-        if (f.startsWith('scheme/')) this.loadFilter({ group: $localize`Schemes 🏳️️`, scheme: f.substring('scheme/'.length)});
+        if (f.startsWith('scheme/')) this.loadFilter({ group: $localize`Schemes 🏳️️`, scheme: normalizeScheme(f.substring('scheme/'.length))});
         if (f.startsWith('sources/')) this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Sources ⤴️`, sources: f.substring('sources/'.length) });
         if (f.startsWith('responses/')) this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Responses ⤵️`, responses: f.substring('responses/'.length) });
       }

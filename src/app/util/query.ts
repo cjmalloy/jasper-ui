@@ -42,6 +42,10 @@ export type UrlFilter = Filter |
 
 export type SortItem = { value: RefSort | TagSort, label: string, title?: string };
 
+export function normalizeScheme(scheme: string): `${string}:` {
+  return `${scheme.replace(/:$/, '')}:`;
+}
+
 export function negatable(filter: string) {
   if (!filter) return false;
   if (filter === 'obsolete') return true;
@@ -213,8 +217,7 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       if (result.noResponses) console.warn('Multiple noResponses filters (last wins)');
       result.noResponses = f.substring('noResponses/'.length)
     } else if (f.startsWith('scheme/')) {
-      const scheme = f.substring('scheme/'.length);
-      result.scheme = scheme.endsWith(':') ? scheme : `${scheme}:`;
+      result.scheme = normalizeScheme(f.substring('scheme/'.length));
     } else if (f.startsWith('user/')) {
       const p = f.substring('user/'.length);
       if (hasPrefix(p, 'plugin')) {

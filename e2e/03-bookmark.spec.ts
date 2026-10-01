@@ -144,6 +144,8 @@ test.describe.serial('Bookmark Formly Type', () => {
     const filterRow = popup.locator('.controls').first();
     await expect(filterRow).toBeVisible();
     await expect(filterRow.locator('select')).toContainText('obsolete');
+    await popup.locator('select.big').last().selectOption('scheme/https:');
+    await expect(popup.locator('.controls').last().locator('select')).toHaveValue('scheme/https:');
   });
 
   test('removes a filter via the minus button', async ({ page }) => {

@@ -26,7 +26,7 @@ import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
-import { convertFilter, convertSort, defaultDesc, FilterGroup, FilterItem, negatable, SortItem, toggle, UrlFilter } from '../util/query';
+import { convertFilter, convertSort, defaultDesc, FilterGroup, FilterItem, negatable, normalizeScheme, SortItem, toggle, UrlFilter } from '../util/query';
 import { access, fixClientQuery, getStrictPrefix, hasPrefix, isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
 import { encodeBookmarkParams, parseBookmarkParams } from '../util/http';
 import { getErrorMessage } from './errors';
@@ -560,7 +560,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
         } else if (f.startsWith('user/')) {
           this.loadFilter({ group: $localize`Filters 🕵️️`, user: f.substring('user/'.length) as any });
         } else if (f.startsWith('scheme/')) {
-          this.loadFilter({ group: $localize`Filters 🕵️️`, scheme: f.substring('scheme/'.length) });
+          this.loadFilter({ group: $localize`Filters 🕵️️`, scheme: normalizeScheme(f.substring('scheme/'.length)) });
         } else if (f.startsWith('sources/')) {
           this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Sources ⤴️`, sources: f.substring('sources/'.length) });
         } else if (f.startsWith('responses/')) {
