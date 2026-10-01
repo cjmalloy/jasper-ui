@@ -148,6 +148,13 @@ test.describe.serial('Bookmark Formly Type', () => {
     await expect(popup.locator('.controls').last().locator('select')).toHaveValue('scheme/https:');
   });
 
+  test('keeps legacy scheme filters selected in bookmark params', async ({ page }) => {
+    await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
+    const bookmarkField = await addBookmark(page, 'science?filter=scheme/https');
+    await bookmarkField.locator('.filter-preview').click();
+    await expect(page.locator('.params-panel .controls select').first()).toHaveValue('scheme/https:');
+  });
+
   test('removes a filter via the minus button', async ({ page }) => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     const bookmarkField = await addBookmark(page);

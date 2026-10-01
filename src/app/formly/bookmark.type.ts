@@ -583,7 +583,8 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     }
     const params = parseBookmarkParams(value.substring(idx + 1));
     this.sorts = [params['sort']].flat().filter(Boolean);
-    this.filters = [params['filter']].flat().filter(Boolean);
+    this.filters = [params['filter']].flat().filter(Boolean)
+      .map(f => f.startsWith('scheme/') ? `scheme/${normalizeScheme(f.substring('scheme/'.length))}` : f);
     this.searchText = params['search'] || '';
     this.buildAllFilters();
   }

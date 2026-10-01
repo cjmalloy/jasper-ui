@@ -64,6 +64,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
     this.disposers.push(autorun(() => {
       this.filters = toJS(this.store.view.filter);
       if (!Array.isArray(this.filters)) this.filters = [this.filters];
+      this.filters = this.filters.map(f => f.startsWith('scheme/') ? `scheme/${normalizeScheme(f.substring('scheme/'.length))}` as UrlFilter : f);
       this.sync();
     }));
   }
