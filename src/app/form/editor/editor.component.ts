@@ -11,19 +11,19 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
   Input,
   OnChanges,
   OnDestroy,
-  Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
   ViewContainerRef,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  output
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
@@ -81,8 +81,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private disposers: IReactionDisposer[] = [];
 
-  @Input()
-  id = 'editor-' + uuid();
+  readonly id = input('editor-' + uuid());
 
   @HostBinding('class.stacked')
   stacked = true;
@@ -109,38 +108,25 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @ViewChild('fileUpload')
   fileUpload!: ElementRef<HTMLInputElement>;
 
-  @Input()
-  hasTags = true;
-  @Input()
-  selectResponseType = false;
-  @Input()
-  tags?: UntypedFormArray;
+  readonly hasTags = input(true);
+  readonly selectResponseType = input(false);
+  readonly tags = input<UntypedFormArray>();
   @Input()
   createdTags: string[] = [];
   @Input()
   control!: UntypedFormControl;
-  @Input()
-  autoFocus = false;
+  readonly autoFocus = input(false);
   @Input()
   addButton = false;
-  @Input()
-  url = '';
-  @Input()
-  addCommentTitle = $localize`Add comment`;
-  @Input()
-  addCommentLabel = $localize`+ Add comment`;
-  @Input()
-  fillWidth?: HTMLElement;
-  @Output()
-  syncEditor = new EventEmitter<string>();
-  @Output()
-  syncTags = new EventEmitter<string[]>();
-  @Output()
-  addSource = new EventEmitter<string>();
-  @Output()
-  scrape = new EventEmitter<void>();
-  @Output()
-  uploadCompleted = new EventEmitter<Ref>();
+  readonly url = input('');
+  readonly addCommentTitle = input($localize `Add comment`);
+  readonly addCommentLabel = input($localize `+ Add comment`);
+  readonly fillWidth = input<HTMLElement>();
+  readonly syncEditor = output<string>();
+  readonly syncTags = output<string[]>();
+  readonly addSource = output<string>();
+  readonly scrape = output<void>();
+  readonly uploadCompleted = output<Ref>();
 
   dropping = false;
   overlayRef?: OverlayRef;
@@ -192,9 +178,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   init() {
     MemoCache.clear(this);
-    if (this.selectResponseType && this.responseButtons.length) {
+    if (this.selectResponseType() && this.responseButtons.length) {
       this.toggleIndex = 0;
-      const tags = this.tags?.value || this.createdTags;
+      const tags = this.tags()?.value || this.createdTags;
       for (const p of this.responseButtons) {
         if (hasTag(p.tag, tags)) {
           this.toggleIndex = this.responseButtons.indexOf(p);
@@ -212,8 +198,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
       }
     }));
-    if (this.tags) {
-      this.tags.valueChanges.pipe(
+    const tags = this.tags();
+    if (tags) {
+      tags.valueChanges.pipe(
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(() => {
         this.init();
@@ -326,8 +313,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get allTags() {
+    const tags = this.tags();
     return uniq([
-      ...without(this.tags ? this.tags.value : this.createdTags, ...this.allResponseTags),
+      ...without(tags ? tags.value : this.createdTags, ...this.allResponseTags),
       ...this.responseTags,
     ]);
   }
@@ -367,22 +355,23 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get responseTags() {
-    if (!this.selectResponseType || !this.responseButtons.length) return [];
+    if (!this.selectResponseType() || !this.responseButtons.length) return [];
     const p = this.responseButtons[this.toggleIndex];
     return p.config?.reply || [p.tag];
   }
 
   @memo
   get allResponseTags() {
-    if (!this.selectResponseType) return [];
+    if (!this.selectResponseType()) return [];
     return this.responseButtons.flatMap(p => p.config?.reply || [p.tag]);
   }
 
   @memo
   get scheme() {
-    if (!this.url) return '';
-    if (!this.url.includes(':')) return '';
-    return this.url.substring(0, this.url.indexOf(':') + 1);
+    const url = this.url();
+    if (!url) return '';
+    if (!url.includes(':')) return '';
+    return url.substring(0, url.indexOf(':') + 1);
   }
 
   @memo
@@ -396,11 +385,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   updateTags(tags: string[]) {
-    if (!this.tags) {
+    if (!this.tags()) {
       this.createdTags = tags;
       MemoCache.clear(this);
     }
-    this.syncTags.next(tags);
+    this.syncTags.emit(tags);
   }
 
   toggleTag(button: EditorButton) {
@@ -422,7 +411,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   setResponse(tag: string) {
-    const tags = this.tags?.value || this.createdTags;
+    const tags = this.tags()?.value || this.createdTags;
     if (!hasTag(tag, tags)) {
       const responses = this.responseButtons.map(p => p.tag);
       this.toggleIndex = responses.indexOf(tag);
@@ -460,7 +449,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (!value) {
       // Do not throttle
       this._text = value;
-      this.syncEditor.next(this._text);
+      this.syncEditor.emit(this._text);
     }
     // Clear previous throttled values
     this.syncTextThrottled(value);
@@ -470,7 +459,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   syncTextThrottled = debounce((value: string) => {
     if (this._text === value) return;
     this._text = value;
-    this.syncEditor.next(this._text);
+    this.syncEditor.emit(this._text);
   }, 400);
 
   togglePreview() {
@@ -589,8 +578,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (button.eventDone) this.loadingEvents[button.eventDone] = true;
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
-        absolute: !!this.url,
-        baseUri: this.url,
+        absolute: !!this.url(),
+        baseUri: this.url(),
         inline: true,
       });
       const md = this.europa.convert(this.editor!.nativeElement.value);
@@ -731,7 +720,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   attachUrls(...refs: (Ref | null)[]) {
     refs = refs.filter(u => !!u);
     if (!refs.length) return;
-    for (const ref of refs) this.addSource.next(ref!.url);
+    for (const ref of refs) this.addSource.emit(ref!.url);
     const text = this.currentText;
     const embed = (ref: Ref) => hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
     if (refs.length === 1) {

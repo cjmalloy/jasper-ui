@@ -7,7 +7,7 @@
 @if (page) {
   @if (emptyMessage && !page.content.length) {
     <p class="no-results">{{ emptyMessage }}</p>
-  } @else if (pageControls) {
+  } @else if (pageControls()) {
     <app-page-controls [page]="page"
                        [defaultCols]="cols"></app-page-controls>
   }

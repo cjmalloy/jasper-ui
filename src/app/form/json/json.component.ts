@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, ChangeDetectionStrategy, input } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
@@ -20,8 +20,7 @@ export class JsonComponent implements OnDestroy {
 
   @Input()
   group!: UntypedFormGroup;
-  @Input()
-  fieldName = 'source';
+  readonly fieldName = input('source');
 
   options: any = {
     language: 'json',

@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, ElementRef, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, ElementRef, Input, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AdminService } from '../../service/admin.service';
@@ -28,8 +28,7 @@ export class NavComponent implements OnInit {
   text = '';
   @Input()
   css = '';
-  @Input()
-  external = false;
+  readonly external = input(false);
 
   nav?: (string|number)[];
 
@@ -46,7 +45,7 @@ export class NavComponent implements OnInit {
   ngOnInit() {
     if (this.localUrl) {
       this.nav = this.getNav();
-      if (this.nav[0] === '/tag' && !this.external && !this.hasText) {
+      if (this.nav[0] === '/tag' && !this.external() && !this.hasText) {
         this.editor.getTagPreview(this.nav[1] as string)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(x => {
@@ -54,7 +53,7 @@ export class NavComponent implements OnInit {
             this.title ||= x?.tag || '';
           });
       }
-    } else if (!this.external) {
+    } else if (!this.external()) {
       this.vis.notifyVisible(this.el, () => {
         this.refs.exists(this.url).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(exists => {
           if (exists) {

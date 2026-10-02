@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, HostBinding, Input, ChangeDetectionStrategy, input } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -24,8 +24,7 @@ export class LinksFormComponent {
 
   @Input()
   group?: UntypedFormGroup;
-  @Input()
-  fieldName = 'links';
+  readonly fieldName = input('links');
 
   model: string[] = [];
   field = {
@@ -74,7 +73,7 @@ export class LinksFormComponent {
   }
 
   get links() {
-    return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
+    return this.group?.get(this.fieldName()) as UntypedFormArray | undefined;
   }
 
   setLinks(values: string[]) {

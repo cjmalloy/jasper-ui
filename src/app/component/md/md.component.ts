@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, Input, Output, ChangeDetectionStrategy, input } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
 import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
 import { Subject } from 'rxjs';
@@ -19,12 +19,10 @@ import { Store } from '../../store/store';
 })
 export class MdComponent {
 
-  @Input()
-  origin? = '';
+  readonly origin = input<string | undefined>('');
   @Input()
   plugins?: string[];
-  @Input()
-  disableSanitizer = false;
+  readonly disableSanitizer = input(false);
   @Output()
   postProcessMarkdown: Subject<void> = new Subject();
   @Input()

@@ -16,7 +16,7 @@
                    position="bottom-left"
                    unit="imperial"></mgl-control>
     </mgl-map>
-    @if (pageControls) {
+    @if (pageControls()) {
       <app-page-controls [page]="page"></app-page-controls>
     }
   }

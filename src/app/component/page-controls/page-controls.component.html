@@ -8,7 +8,7 @@
          [queryParams]="{ pageNumber: store.view.defaultPageNumber ? 0 : null }"
          queryParamsHandling="merge" i18n>first</a>
       <span> | </span>
-      @if (showPrev) {
+      @if (showPrev()) {
         <a class="prev-page"
            routerLink="./"
            routerLinkActive="disabled"
@@ -25,7 +25,7 @@
        (click)="cursorPage(next, $event); scrollUp()"
        queryParamsHandling="merge" i18n>next</a>
     <span> | </span>
-    @if (showPageLast) {
+    @if (showPageLast()) {
       <a class="last-page"
          routerLink="./"
          [class.disabled]="page.page.number === page.page.totalPages - 1"
@@ -44,7 +44,7 @@
     }
   </select>
 
-  @if (!hideCols && (cols || colsChanged)) {
+  @if (!hideCols() && (cols || colsChanged)) {
     <label for="cols" i18n> cols: </label>
     <select id="cols" [(ngModel)]="cols">
       <option [value]="0" i18n>default</option>

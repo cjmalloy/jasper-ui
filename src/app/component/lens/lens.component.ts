@@ -1,4 +1,4 @@
-import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy, input } from '@angular/core';
 import { MobxAngularModule } from 'mobx-angular';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -49,8 +49,7 @@ export class LensComponent implements OnChanges, HasChanges {
   ext?: Ext;
   @Input()
   tag = '';
-  @Input()
-  fullPage = false;
+  readonly fullPage = input(false);
   @Input()
   cols? = 0;
   @Input()
@@ -65,10 +64,8 @@ export class LensComponent implements OnChanges, HasChanges {
   page?: Page<Ref>;
   @Input()
   pageControls = true;
-  @Input()
-  showAlarm = true;
-  @Input()
-  showVotes = false;
+  readonly showAlarm = input(true);
+  readonly showVotes = input(false);
 
   plugins?: string[];
   header?: string;

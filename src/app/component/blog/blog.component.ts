@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -28,10 +28,8 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
 export class BlogComponent implements HasChanges {
   private destroyRef = inject(DestroyRef);
 
-  @Input()
-  pageControls = true;
-  @Input()
-  emptyMessage = $localize`No blog entries found`;
+  readonly pageControls = input(true);
+  readonly emptyMessage = input($localize `No blog entries found`);
 
   pinned: Ref[] = [];
   colStyle = '';

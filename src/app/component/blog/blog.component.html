@@ -8,10 +8,10 @@
     @for (ref of page.content; track ref.origin + '@' + ref.url) {
       <app-blog-entry [ref]="ref" [blog]="ext"></app-blog-entry>
     } @empty {
-      <p class="no-results">{{ emptyMessage }}</p>
+      <p class="no-results">{{ emptyMessage() }}</p>
     }
   </div>
-  @if (pageControls && page.content.length) {
+  @if (pageControls() && page.content.length) {
     <app-page-controls [defaultCols]="cols" [page]="page"></app-page-controls>
   }
 } @else {

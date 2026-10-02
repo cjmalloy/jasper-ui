@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
@@ -48,12 +48,9 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
 })
 export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
-  @Input()
-  tag = '';
-  @Input()
-  ext?: Ext;
-  @Input()
-  pageControls = true;
+  readonly tag = input('');
+  readonly ext = input<Ext>();
+  readonly pageControls = input(true);
   @Input()
   emptyMessage = 'No results found';
 
@@ -87,7 +84,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   @memo
   get mapStyle() {
     return {
-      ...this.ext?.config?.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
+      ...this.ext()?.config?.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
       ...this.admin.getTemplate('map')?.config?.mapStyle || {},
     };
   }

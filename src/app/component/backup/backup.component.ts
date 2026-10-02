@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectionStrategy, input } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, Observable, of, throwError } from 'rxjs';
@@ -25,10 +25,8 @@ export class BackupComponent {
 
   @Input()
   id!: string;
-  @Input()
-  size? = 0;
-  @Input()
-  origin = '';
+  readonly size = input<number | undefined>(0);
+  readonly origin = input('');
 
   @ViewChild('restoreButton', { read: ElementRef })
   restoreButton?: ElementRef<HTMLElement>;
@@ -70,7 +68,7 @@ export class BackupComponent {
   }
 
   get fileSize() {
-    return readableBytes(this.size || 0);
+    return readableBytes(this.size() || 0);
   }
 
   get downloadLink() {
@@ -78,12 +76,13 @@ export class BackupComponent {
     if (link.startsWith('//')) link = location.protocol + link;
     if (link.startsWith("_")) link = link.substring(1);
     if (!link.endsWith(".zip")) link = link + '.zip';
-    if (this.origin) link += '?origin=' + encodeURIComponent(this.origin)
+    const origin = this.origin();
+    if (origin) link += '?origin=' + encodeURIComponent(origin)
     return link;
   }
 
   get downloadLinkAuth() {
-    return this.downloadLink + (this.origin ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
+    return this.downloadLink + (this.origin() ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
   }
 
   showRestoreOptions() {
@@ -123,7 +122,7 @@ export class BackupComponent {
       newerThan: this.restoreOptionsForm.value.newerThan || undefined,
     };
     this.closeRestoreOptions();
-    this.backups.restore(this.origin, this.id, options).pipe(
+    this.backups.restore(this.origin(), this.id, options).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -145,7 +144,7 @@ export class BackupComponent {
   }
 
   delete$ = () => {
-    return this.backups.delete(this.origin, this.id).pipe(
+    return this.backups.delete(this.origin(), this.id).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

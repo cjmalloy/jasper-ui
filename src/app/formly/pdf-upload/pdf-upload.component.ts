@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { Component, EventEmitter, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, output } from '@angular/core';
 import { catchError, last, map } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -16,8 +16,7 @@ import { readFileAsDataURL } from '../../util/async';
 })
 export class PdfUploadComponent {
 
-  @Output()
-  data = new EventEmitter<Saving | undefined | string>();
+  readonly data = output<Saving | undefined | string>();
 
   constructor(
     private store: Store,
@@ -25,10 +24,10 @@ export class PdfUploadComponent {
   ) { }
 
   readPdf(files?: FileList) {
-    this.data.next(undefined)
+    this.data.emit(undefined)
     if (!files || !files.length) return;
     const file = files[0]!;
-    this.data.next({ name: file.name });
+    this.data.emit({ name: file.name });
     this.proxy.save(file, this.store.account.origin).pipe(
       map(event => {
         switch (event.type) {
@@ -36,7 +35,7 @@ export class PdfUploadComponent {
             return event.body;
           case HttpEventType.UploadProgress:
             const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-            this.data.next({ name: file.name, progress: percentDone });
+            this.data.emit({ name: file.name, progress: percentDone });
             return null;
         }
         return null;
@@ -44,6 +43,6 @@ export class PdfUploadComponent {
       last(),
       map((ref: Ref | null) => ref?.url),
       catchError(err => readFileAsDataURL(file)) // base64
-    ).subscribe(url => this.data.next({ url, name: file.name }));
+    ).subscribe(url => this.data.emit({ url, name: file.name }));
   }
 }

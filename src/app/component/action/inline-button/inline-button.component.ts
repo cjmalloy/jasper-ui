@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -14,10 +14,8 @@ import { ActionComponent } from '../action.component';
 })
 export class InlineButtonComponent extends ActionComponent {
 
-  @Input()
-  action: () => Observable<any|never> = () => of(null);
-  @Input()
-  minDelayMs = 1000;
+  readonly action = input<() => Observable<any | never>>(() => of(null));
+  readonly minDelayMs = input(1000);
 
   acting = false;
   minTimeout = false;
@@ -33,8 +31,8 @@ export class InlineButtonComponent extends ActionComponent {
   act() {
     this.acting = true;
     this.minTimeout = true;
-    setTimeout(() => this.minTimeout = false, this.minDelayMs);
-    this.action().pipe(
+    setTimeout(() => this.minTimeout = false, this.minDelayMs());
+    this.action()().pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

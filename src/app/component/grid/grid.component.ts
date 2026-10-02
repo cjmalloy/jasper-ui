@@ -4,7 +4,8 @@ import {
   Component,
   Input,
   OnDestroy,
-  ViewEncapsulation
+  ViewEncapsulation,
+  input
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -45,12 +46,10 @@ export class GridComponent implements OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   private rowDataUpdates$ = new Subject<Ref[]>();
 
-  @Input()
-  tag = '';
+  readonly tag = input('');
   @Input()
   ext?: Ext;
-  @Input()
-  pageControls = true;
+  readonly pageControls = input(true);
   @Input()
   emptyMessage = 'No results found';
 

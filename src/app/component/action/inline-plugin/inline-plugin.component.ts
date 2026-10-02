@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ViewChild, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -20,14 +20,10 @@ import { ActionComponent } from '../action.component';
 })
 export class InlinePluginComponent extends ActionComponent {
 
-  @Input()
-  action: (plugins: any) => Observable<any|never> = () => of(null);
-  @Input()
-  plugin!: Plugin;
-  @Input()
-  value?: Partial<Ref>;
-  @Output()
-  error = new EventEmitter<string>();
+  readonly action = input<(plugins: any) => Observable<any | never>>(() => of(null));
+  readonly plugin = input.required<Plugin>();
+  readonly value = input<Partial<Ref>>();
+  readonly error = output<string>();
 
   editing = false;
   acting = false;
@@ -45,9 +41,9 @@ export class InlinePluginComponent extends ActionComponent {
   set gen(c: GenFormComponent) {
     if (!c) return;
     this.group = this.fb.group({
-      [this.plugin.tag]: this.fb.group({}),
+      [this.plugin().tag]: this.fb.group({}),
     });
-    defer(() => c.setValue(this.value?.plugins || {}));
+    defer(() => c.setValue(this.value()?.plugins || {}));
   }
 
   override reset() {
@@ -62,7 +58,7 @@ export class InlinePluginComponent extends ActionComponent {
   save() {
     this.editing = false;
     this.acting = true;
-    this.action(this.group.value).pipe(
+    this.action()(this.group.value).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

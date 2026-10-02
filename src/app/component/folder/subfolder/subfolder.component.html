@@ -10,6 +10,6 @@
   <!--    <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>-->
   <!--    <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>-->
   <!--  </div>-->
-  <a [routerLink]="['/tag', ext?.tag + (ext?.origin || '@')]"
-     [style.pointer-events]="dragging ? 'none' : undefined">{{ name }}</a>
+  <a [routerLink]="['/tag', ext()?.tag + (ext()?.origin || '@')]"
+     [style.pointer-events]="dragging() ? 'none' : undefined">{{ name() }}</a>
 </div>

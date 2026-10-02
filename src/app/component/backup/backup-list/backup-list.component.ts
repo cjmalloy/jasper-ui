@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import { BackupRef } from '../../../service/api/backup.service';
 import { LoadingComponent } from '../../loading/loading.component';
 import { BackupComponent } from '../backup.component';
@@ -12,9 +12,7 @@ import { BackupComponent } from '../backup.component';
 })
 export class BackupListComponent {
 
-  @Input()
-  list?: BackupRef[];
-  @Input()
-  origin = '';
+  readonly list = input<BackupRef[]>();
+  readonly origin = input('');
 
 }

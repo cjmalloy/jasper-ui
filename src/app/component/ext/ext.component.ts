@@ -11,7 +11,8 @@ import {
   SimpleChanges,
   ViewChild,
   ViewChildren,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -66,8 +67,7 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   @Input()
   ext!: Ext;
-  @Input()
-  useEditPage = false;
+  readonly useEditPage = input(false);
 
   editForm!: UntypedFormGroup;
   submitted = false;

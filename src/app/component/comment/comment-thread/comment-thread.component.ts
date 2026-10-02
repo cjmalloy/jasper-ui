@@ -10,7 +10,8 @@ import {
   QueryList,
   SimpleChanges,
   ViewChildren,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -37,16 +38,12 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   private destroyRef = inject(DestroyRef);
   private disposers: IReactionDisposer[] = [];
 
-  @Input()
-  source = '';
-  @Input()
-  scrollToLatest = false;
+  readonly source = input('');
+  readonly scrollToLatest = input(false);
   @Input()
   depth = 7;
-  @Input()
-  pageSize?: number;
-  @Input()
-  context = 0;
+  readonly pageSize = input<number>();
+  readonly context = input(0);
   @Input()
   newComments$!: Observable<Ref | undefined>;
 
@@ -62,14 +59,15 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ) {
     this.disposers.push(autorun(() => {
       if (thread.latest.length) {
-        this.comments = thread.cache.get(this.source);
+        this.comments = thread.cache.get(this.source());
         if (this.comments && this.newComments.length) {
           const newUrls = new Set(this.newComments.map(c => c.url));
           this.comments = this.comments.filter(c => !newUrls.has(c.url));
         }
-        if (this.comments && this.pageSize) {
+        const pageSize = this.pageSize();
+        if (this.comments && pageSize) {
           this.comments = [...this.comments!];
-          this.comments.length = this.pageSize;
+          this.comments.length = pageSize;
         }
       }
     }));
@@ -88,10 +86,11 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ngOnChanges(changes: SimpleChanges) {
     if (changes.source || changes.pageSize) {
       this.newComments = [];
-      this.comments = this.thread.cache.get(this.source);
-      if (this.comments && this.pageSize) {
+      this.comments = this.thread.cache.get(this.source());
+      const pageSize = this.pageSize();
+      if (this.comments && pageSize) {
         this.comments = [...this.comments!];
-        this.comments.length = this.pageSize;
+        this.comments.length = pageSize;
       }
     }
   }

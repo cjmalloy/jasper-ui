@@ -1,15 +1,14 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import {
   Component,
-  EventEmitter,
   HostBinding,
   HostListener,
-  Input,
   NgZone,
   OnChanges,
-  Output,
   SimpleChanges,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  output
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
@@ -35,18 +34,12 @@ import { TodoItemComponent } from './item/item.component';
 })
 export class TodoComponent implements OnChanges {
 
-  @Input()
-  ref?: Ref;
-  @Input()
-  text? = '';
-  @Input()
-  origin = '';
-  @Input()
-  tags?: string[];
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly ref = input<Ref>();
+  readonly text = input<string | undefined>('');
+  readonly origin = input('');
+  readonly tags = input<string[]>();
+  readonly comment = output<string>();
+  readonly copied = output<string>();
 
   lines: string[] = [];
   addText = '';
@@ -70,12 +63,13 @@ export class TodoComponent implements OnChanges {
   }
 
   init() {
-    this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
-    if (!this.watch && this.ref) {
-      const watch = this.actions.watch(this.ref);
+    this.lines = (this.ref()?.comment || this.text() || '').split('\n')?.filter(l => !!l) || [];
+    const ref = this.ref();
+    if (!this.watch && ref) {
+      const watch = this.actions.watch(ref);
       this.comment$ = watch.comment$;
       this.watch = watch.ref$.subscribe(update => {
-        this.ref!.comment = update.comment;
+        this.ref()!.comment = update.comment;
         this.init();
       });
     }
@@ -98,7 +92,7 @@ export class TodoComponent implements OnChanges {
   }
 
   get local() {
-    return this.ref?.origin === this.store.account.origin;
+    return this.ref()?.origin === this.store.account.origin;
   }
 
   drop(event: CdkDragDrop<string, string, string>) {
@@ -122,12 +116,12 @@ export class TodoComponent implements OnChanges {
 
   save$(comment: string) {
     this.comment.emit(comment);
-    if (!this.ref) return of();
+    if (!this.ref()) return of();
     return this.comment$(comment).pipe(
       tap(() => {
         if (!this.local) {
           this.copied.emit(this.store.account.origin);
-          this.store.eventBus.refresh(this.ref);
+          this.store.eventBus.refresh(this.ref());
         }
       }),
     );

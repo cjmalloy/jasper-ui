@@ -1,14 +1,14 @@
 import {
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
   Input,
   NgZone,
-  Output,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  output
 } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
@@ -31,15 +31,14 @@ export class TodoItemComponent {
   @HostBinding('class.unlocked')
   unlocked = false;
 
-  @Input()
-  pressToUnlock = false;
-  @Input()
-  plugins: string[] = [];
-  @Input()
-  origin = '';
+  readonly pressToUnlock = input(false);
+  readonly plugins = input<string[]>([]);
+  readonly origin = input('');
 
-  @Output()
-  update = new EventEmitter<{ text: string, checked: boolean }>();
+  readonly update = output<{
+    text: string;
+    checked: boolean;
+}>();
 
   checked = false;
   editing = false;
@@ -56,7 +55,7 @@ export class TodoItemComponent {
   ) { }
 
   get local() {
-    return this.origin === this.store.account.origin;
+    return this.origin() === this.store.account.origin;
   }
 
   @Input()
@@ -86,11 +85,11 @@ export class TodoItemComponent {
 
   toggle() {
     this.checked = !this.checked;
-    this.update.next({ text: this.text, checked: this.checked });
+    this.update.emit({ text: this.text, checked: this.checked });
   }
 
   edit() {
-    this.update.next({ text: this.text, checked: this.checked });
+    this.update.emit({ text: this.text, checked: this.checked });
     this.editing = false;
   }
 }

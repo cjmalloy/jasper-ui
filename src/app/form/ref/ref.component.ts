@@ -3,16 +3,16 @@ import { AsyncPipe } from '@angular/common';
 import {
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
   Input,
   OnChanges,
-  Output,
   SimpleChanges,
   ViewChild,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  output
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -75,12 +75,10 @@ export class RefFormComponent implements OnChanges {
 
   @Input()
   creating = false;
-  @Input()
-  origin? = '';
+  readonly origin = input<string | undefined>('');
   @Input()
   group!: UntypedFormGroup;
-  @Output()
-  toggleTag = new EventEmitter<string>();
+  readonly toggleTag = output<string>();
 
   @ViewChild('tagsFormComponent')
   tagsFormComponent!: TagsFormComponent;
@@ -157,7 +155,7 @@ export class RefFormComponent implements OnChanges {
   }
 
   get thumbnailRefs() {
-    return [{ ...this.group.getRawValue(), origin: this.creating ? this.store.account.origin : this.origin }];
+    return [{ ...this.group.getRawValue(), origin: this.creating ? this.store.account.origin : this.origin() }];
   }
 
   get thumbnailPlugin() {
@@ -375,7 +373,7 @@ export class RefFormComponent implements OnChanges {
 
   togglePlugin(tag: string) {
     MemoCache.clear(this);
-    this.toggleTag.next(tag);
+    this.toggleTag.emit(tag);
     if (tag) {
       if (hasTag(tag, this.tags.value)) {
         this.tagsFormComponent.removeTagAndChildren(tag);

@@ -1,8 +1,8 @@
 <div class="md"
      markdown
      [data]="value"
-     [origin]="origin"
-     [disableSanitizer]="disableSanitizer"
+     [origin]="origin()"
+     [disableSanitizer]="disableSanitizer()"
      [appMdPost]="postProcessMarkdown"
      (ready)="postProcessMarkdown.next()"
      [katex]="!!plugins?.includes('plugin/latex')"

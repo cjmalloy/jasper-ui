@@ -3,14 +3,14 @@ import {
   inject,
   AfterViewInit,
   Component,
-  EventEmitter,
   Input,
   OnChanges,
-  Output,
   QueryList,
   SimpleChanges,
   ViewChildren,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  output
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -38,12 +38,10 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   @ViewChildren('gen')
   gens?: QueryList<GenFormComponent>;
 
-  @Input()
-  fieldName = 'plugins';
+  readonly fieldName = input('plugins');
   @Input()
   group: UntypedFormGroup;
-  @Output()
-  togglePlugin = new EventEmitter<string>();
+  readonly togglePlugin = output<string>();
 
   icons: Icon[] = [];
   forms: Plugin[] = [];
@@ -54,7 +52,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   ) {
     this.group = fb.group({
       tags: fb.array([]),
-      [this.fieldName]: pluginsForm(fb, admin, []),
+      [this.fieldName()]: pluginsForm(fb, admin, []),
     });
   }
 
@@ -67,7 +65,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
       }
     }
     if (!this.plugins) {
-      this.group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this.allTags));
+      this.group.addControl(this.fieldName(), pluginsForm(this.fb, this.admin, this.allTags));
     } else if (this.allTags) {
       for (const t of this.allTags) {
         if (!this.plugins.contains(t)) {
@@ -106,7 +104,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   get plugins() {
-    return this.group.get(this.fieldName) as UntypedFormGroup;
+    return this.group.get(this.fieldName()) as UntypedFormGroup;
   }
 
   get empty() {

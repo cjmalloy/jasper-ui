@@ -12,7 +12,7 @@
     <app-form-gen #gen
                   [plugins]="plugins"
                   [plugin]="plugin"
-                  (togglePlugin)="togglePlugin.next($event)"
+                  (togglePlugin)="togglePlugin.emit($event)"
                   [children]="admin.getPluginSubForms(plugin.tag)"></app-form-gen>
   }
 }

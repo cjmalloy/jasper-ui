@@ -1,10 +1,10 @@
 <ng-container *mobxAutorun>
   @for (ref of newRefs; track ref) {
-    @if (commentView) {
+    @if (commentView()) {
       <app-comment [ref]="ref"
-                   [showLoadMore]="showLoadMore"
+                   [showLoadMore]="showLoadMore()"
                    [depth]="depth"
-                   [context]="context"></app-comment>
+                   [context]="context()"></app-comment>
     } @else {
       <app-ref [ref]="ref"
                [class.thread]="true"
@@ -15,11 +15,11 @@
   }
   @if (depth > 0) {
     @for (ref of list; track ref) {
-      @if (commentView) {
+      @if (commentView()) {
         <app-comment [ref]="ref"
-                     [showLoadMore]="showLoadMore"
+                     [showLoadMore]="showLoadMore()"
                      [depth]="depth"
-                     [context]="context"></app-comment>
+                     [context]="context()"></app-comment>
       } @else {
         <app-ref [ref]="ref"
                  [class.thread]="true"

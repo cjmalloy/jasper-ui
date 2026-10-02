@@ -3,7 +3,6 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
@@ -11,9 +10,10 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  input,
+  output
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
@@ -97,33 +97,23 @@ export class ViewerComponent implements OnChanges, OnDestroy {
 
   @Input()
   ref?: Ref;
-  @Input()
-  commentControl?: FormControl<string>;
+  readonly commentControl = input<FormControl<string>>();
   @Input()
   tags?: string[];
-  @Input()
-  expand = true;
-  @Input()
-  autoplay = false;
+  readonly expand = input(true);
+  readonly autoplay = input(false);
   @Input()
   text? = '';
-  @Input()
-  origin? = '';
-  @Input()
-  disableResize = false;
+  readonly origin = input<string | undefined>('');
+  readonly disableResize = input(false);
   @Input()
   @HostBinding('class.fullscreen')
   fullscreen = false;
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
-  @Output()
-  playing = new EventEmitter<string>();
-  @Output()
-  pausing = new EventEmitter<string>();
-  @Output()
-  ended = new EventEmitter<string>();
+  readonly comment = output<string>();
+  readonly copied = output<string>();
+  readonly playing = output<string>();
+  readonly pausing = output<string>();
+  readonly ended = output<string>();
 
   repost?: Ref;
   lens?: boolean;
@@ -406,7 +396,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
 
   @memo
   get currentOrigin() {
-    return this.origin || this.ref?.origin || this.store.account.origin;
+    return this.origin() || this.ref?.origin || this.store.account.origin;
   }
 
   @memo

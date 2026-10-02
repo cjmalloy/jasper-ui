@@ -1,7 +1,7 @@
 import {
   AsyncPipe
 } from '@angular/common';
-import { DestroyRef, inject, Component, forwardRef, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, forwardRef, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, of, throwError } from 'rxjs';
@@ -49,16 +49,11 @@ export class FileComponent implements OnChanges {
 
   @Input()
   ref!: Ref;
-  @Input()
-  expanded = false;
-  @Input()
-  expandInline = false;
-  @Input()
-  showToggle = false;
-  @Input()
-  dragging = false;
-  @Input()
-  fetchRepost = true;
+  readonly expanded = input(false);
+  readonly expandInline = input(false);
+  readonly showToggle = input(false);
+  readonly dragging = input(false);
+  readonly fetchRepost = input(true);
 
   repostRef?: Ref;
   expandPlugins: string[] = [];
@@ -88,7 +83,7 @@ export class FileComponent implements OnChanges {
       this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
 
       this.expandPlugins = this.admin.getEmbeds(this.ref);
-      if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
+      if (this.repost && this.ref && this.fetchRepost() && this.repostRef?.url != repost(this.ref)) {
         (this.store.view.top?.url === this.ref.sources![0]
             ? of(this.store.view.top)
             : this.refs.getCurrent(this.url)

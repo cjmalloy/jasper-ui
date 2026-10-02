@@ -2,14 +2,13 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
   Component,
-  EventEmitter,
-  Input,
   OnDestroy,
-  Output,
   TemplateRef,
   ViewChild,
   ViewContainerRef,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  output
 } from '@angular/core';
 import { loadImage } from '../../util/image';
 import { QrScanner, scanImage } from '../../util/qr-scanner';
@@ -27,10 +26,8 @@ export class QrScannerComponent implements OnDestroy {
   @ViewChild('video')
   video!: TemplateRef<HTMLVideoElement>;
 
-  @Input()
-  upload = true;
-  @Output()
-  data = new EventEmitter<string>();
+  readonly upload = input(true);
+  readonly data = output<string>();
 
   scanner?: QrScanner;
   overlayRef?: OverlayRef;
@@ -52,7 +49,7 @@ export class QrScannerComponent implements OnDestroy {
     const file = files[0]!;
     loadImage(file)
       .then(image => scanImage(image))
-      .then(qr => qr?.data && this.data.next(qr.data));
+      .then(qr => qr?.data && this.data.emit(qr.data));
   }
 
   scanQr() {
@@ -69,7 +66,7 @@ export class QrScannerComponent implements OnDestroy {
     });
     this.overlayRef.attach(new TemplatePortal(this.video, this.viewContainerRef));
     this.scanner ||= new QrScanner(this.overlayRef.overlayElement.firstElementChild as HTMLVideoElement, data => {
-      if (data) this.data.next(data);
+      if (data) this.data.emit(data);
       this.stopScanQr();
     }, this.camera);
 

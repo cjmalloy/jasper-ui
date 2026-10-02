@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, forwardRef, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, forwardRef, Input, ViewChild, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -37,16 +37,12 @@ export class CommentReplyComponent implements HasChanges {
 
   @Input()
   to!: Ref;
-  @Input()
-  selectResponseType = false;
+  readonly selectResponseType = input(false);
   @Input()
   tags: string[] = [];
-  @Input()
-  showCancel = false;
-  @Input()
-  autofocus = false;
-  @Output()
-  save = new EventEmitter<Ref|undefined>();
+  readonly showCancel = input(false);
+  readonly autofocus = input(false);
+  readonly save = output<Ref | undefined>();
 
   @ViewChild('editor')
   editor?: EditorComponent

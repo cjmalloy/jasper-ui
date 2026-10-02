@@ -4,7 +4,7 @@
 @if (editing) {
   <span class="inline-select">
     <select #inlineSelect
-            [value]="value"
+            [value]="value()"
             (change)="save(inlineSelect)">
       <ng-content select="option"></ng-content>
     </select>&nbsp;

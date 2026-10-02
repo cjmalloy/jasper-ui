@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MobxAngularModule } from 'mobx-angular';
 import { Observable } from 'rxjs';
@@ -24,20 +24,14 @@ import { CommentComponent } from '../comment.component';
 export class ThreadSummaryComponent implements OnInit, OnChanges {
   private destroyRef = inject(DestroyRef);
 
-  @Input()
-  source = '';
-  @Input()
-  commentView = false;
-  @Input()
-  query = '';
+  readonly source = input('');
+  readonly commentView = input(false);
+  readonly query = input('');
   @Input()
   depth = 1;
-  @Input()
-  pageSize = 5;
-  @Input()
-  context = 0;
-  @Input()
-  showLoadMore = true;
+  readonly pageSize = input(5);
+  readonly context = input(0);
+  readonly showLoadMore = input(true);
   @Input()
   newRefs$?: Observable<Ref | undefined>;
 
@@ -61,9 +55,9 @@ export class ThreadSummaryComponent implements OnInit, OnChanges {
     if (changes.source) {
       this.newRefs = [];
       this.refs.page({
-        ...getArgs(this.query, this.store.view.sort, this.store.view.filter),
-        responses: this.source,
-        size: this.pageSize,
+        ...getArgs(this.query(), this.store.view.sort, this.store.view.filter),
+        responses: this.source(),
+        size: this.pageSize(),
       }).pipe(
         takeUntilDestroyed(this.destroyRef)
       ).subscribe(page => {

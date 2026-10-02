@@ -7,12 +7,12 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   Input,
-  Output,
   ViewChild,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  output
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -94,10 +94,8 @@ export class ExtFormComponent  {
 
   @Input()
   group!: UntypedFormGroup;
-  @Input()
-  showClear = false;
-  @Output()
-  clear = new EventEmitter<void>();
+  readonly showClear = input(false);
+  readonly clear = output<void>();
 
   @ViewChild('mainFormlyForm')
   mainFormlyForm?: FormlyForm;

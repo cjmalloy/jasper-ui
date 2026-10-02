@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild, ChangeDetectionStrategy, output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
@@ -16,8 +16,7 @@ import { access } from '../../util/tag';
 })
 export class SelectTemplateComponent {
 
-  @Output()
-  templateChange = new EventEmitter<string>();
+  readonly templateChange = output<string>();
 
   @ViewChild('select')
   select?: ElementRef<HTMLSelectElement>;

@@ -15,7 +15,8 @@ import {
   SimpleChanges,
   ViewChild,
   ViewChildren,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -99,8 +100,7 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
 
-  @Input()
-  blog?: Ext;
+  readonly blog = input<Ext>();
   @Input()
   ref!: Ref;
 
@@ -306,8 +306,9 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
   @memo
   get tags() {
     let result = interestingTags(this.ref.tags);
-    if (!this.blog?.config?.filterTags) return result;
-    return intersection(result, this.blog.config.tags || []);
+    const blog = this.blog();
+    if (!blog?.config?.filterTags) return result;
+    return intersection(result, blog.config.tags || []);
   }
 
   @memo

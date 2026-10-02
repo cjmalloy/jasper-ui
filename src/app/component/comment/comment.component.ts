@@ -15,7 +15,8 @@ import {
   SimpleChanges,
   ViewChild,
   ViewChildren,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -99,14 +100,11 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
 
   @Input()
   ref!: Ref;
-  @Input()
-  scrollToLatest = false;
+  readonly scrollToLatest = input(false);
   @Input()
   depth?: number | null = 7;
-  @Input()
-  context = 0
-  @Input()
-  showLoadMore = true;
+  readonly context = input(0);
+  readonly showLoadMore = input(true);
 
   commentEdited$ = new Subject<Ref>();
   newComments = 0;
@@ -176,7 +174,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
   }
 
   ngAfterViewInit(): void {
-    if (this.scrollToLatest && this.lastSelected) {
+    if (this.scrollToLatest() && this.lastSelected) {
       delay(() => scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' }), 400);
     }
   }

@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild, ChangeDetectionStrategy, input, output } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -33,16 +33,11 @@ export class UserFormComponent implements OnInit {
 
   @Input()
   group!: UntypedFormGroup;
-  @Input()
-  showPubKey = true;
-  @Input()
-  fillWidth?: HTMLElement;
-  @Output()
-  tagChanges = new EventEmitter<string>();
-  @Input()
-  showClear = false;
-  @Output()
-  clear = new EventEmitter<void>();
+  readonly showPubKey = input(true);
+  readonly fillWidth = input<HTMLElement>();
+  readonly tagChanges = output<string>();
+  readonly showClear = input(false);
+  readonly clear = output<void>();
   @Input()
   externalErrors: string[] = [];
 
@@ -112,7 +107,7 @@ export class UserFormComponent implements OnInit {
       defer(() => this.validate(input));
     } else {
       this.showedError = false;
-      this.tagChanges.next(input.value)
+      this.tagChanges.emit(input.value)
     }
   }
 

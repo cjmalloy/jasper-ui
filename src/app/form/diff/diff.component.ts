@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -27,14 +27,11 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   original!: T;
   @Input()
   modified!: T;
-  @Input()
-  readOnly = false;
+  readonly readOnly = input(false);
   @Input()
   resizable = true;
-  @Input()
-  fullHeight = false;
-  @Output()
-  modifiedChange = new EventEmitter<T>();
+  readonly fullHeight = input(false);
+  readonly modifiedChange = output<T>();
 
   originalModel: DiffEditorModel = { code: '', language: 'json' };
   modifiedModel: DiffEditorModel = { code: '', language: 'json' };
@@ -53,7 +50,7 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
       this.options = {
         ...this.options,
         theme: store.darkTheme ? 'vs-dark' : 'vs',
-        readOnly: this.readOnly,
+        readOnly: this.readOnly(),
       }
     }));
   }

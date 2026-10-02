@@ -11,7 +11,8 @@ import {
   OnDestroy,
   OnInit,
   SimpleChanges,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
@@ -82,12 +83,9 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @Input()
   tag = '';
-  @Input()
-  activeExts: Ext[] = [];
-  @Input()
-  showToggle = true;
-  @Input()
-  home = false;
+  readonly activeExts = input<Ext[]>([]);
+  readonly showToggle = input(true);
+  readonly home = input(false);
   @Input()
   @HostBinding('class.floating')
   floating = true;
@@ -202,7 +200,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
       if (this.tag) {
         this.localTag = localTag(this.tag);
         this.plugin = this.admin.getPlugin(this.tag);
-        if (this.home) {
+        if (this.home()) {
           this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
         } else if (this.plugin) {
           this.addTags = uniq([
@@ -328,7 +326,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @memo
   get userConfig() {
-    if (!this.user && !this.home) return null;
+    if (!this.user && !this.home()) return null;
     return this.store.account.ext?.config as UserConfig;
   }
 
@@ -392,7 +390,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @memo
   get homeWriteAccess() {
-    return this.home && this.admin.home && this.auth.tagWriteAccess('config/home');
+    return this.home() && this.admin.home && this.auth.tagWriteAccess('config/home');
   }
 
   @memo

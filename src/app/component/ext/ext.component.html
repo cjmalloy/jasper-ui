@@ -34,12 +34,12 @@
         <a class="fake-link" (click)="copy()" i18n>copy</a>
       }
       @if (local && writeAccess) {
-        @if (useEditPage) {
+        @if (useEditPage()) {
           <a [routerLink]="['/ext/', ext.tag]" i18n>edit</a>
         } @else {
           <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
         }
-      } @else if (useEditPage) {
+      } @else if (useEditPage()) {
         <a [routerLink]="['/ext/', ext.tag]" i18n>source</a>
       } @else {
         <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>

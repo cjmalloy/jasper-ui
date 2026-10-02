@@ -7,7 +7,6 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
@@ -15,11 +14,12 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  Output,
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  input,
+  output
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -146,26 +146,18 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   ref!: Ref;
   @Input()
   expanded = false;
-  @Input()
-  plugins?: string[];
+  readonly plugins = input<string[]>();
   @Input()
   expandInline = false;
   @Input()
   showToggle = false;
-  @Input()
-  scrollToLatest = false;
-  @Input()
-  hideEdit = false;
-  @Input()
-  disableResize = false;
-  @Input()
-  showAlarm = true;
-  @Input()
-  showObsolete = true;
-  @Input()
-  fetchRepost = true;
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly scrollToLatest = input(false);
+  readonly hideEdit = input(false);
+  readonly disableResize = input(false);
+  readonly showAlarm = input(true);
+  readonly showObsolete = input(true);
+  readonly fetchRepost = input(true);
+  readonly copied = output<string>();
 
   repostRef?: Ref;
   editForm: UntypedFormGroup;
@@ -322,7 +314,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
     MemoCache.clear(this);
-    if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
+    if (this.repost && this.ref && this.fetchRepost() && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
           : this.refs.getCurrent(this.url)
@@ -450,7 +442,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @HostBinding('class.last-selected')
   get lastSelected() {
-    return this.scrollToLatest && this.store.view.lastSelected?.url === this.ref.url;
+    return this.scrollToLatest() && this.store.view.lastSelected?.url === this.ref.url;
   }
 
   @HostBinding('class.upload')

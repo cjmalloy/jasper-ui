@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -14,12 +14,9 @@ import { ActionComponent } from '../action.component';
 })
 export class InlineSelectComponent extends ActionComponent {
 
-  @Input()
-  action: (value: any) => Observable<any|never> = () => of(null);
-  @Input()
-  value?: any;
-  @Output()
-  error = new EventEmitter<string>();
+  readonly action = input<(value: any) => Observable<any | never>>(() => of(null));
+  readonly value = input<any>();
+  readonly error = output<string>();
 
   editing = false;
   acting = false;
@@ -36,7 +33,7 @@ export class InlineSelectComponent extends ActionComponent {
   save(field: HTMLSelectElement) {
     this.editing = false;
     this.acting = true;
-    this.action((field.value || '').trim()).pipe(
+    this.action()((field.value || '').trim()).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

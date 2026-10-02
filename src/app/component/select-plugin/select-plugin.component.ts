@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer, uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
@@ -16,16 +16,11 @@ import { AuthzService } from '../../service/authz.service';
 })
 export class SelectPluginComponent implements OnChanges {
 
-  @Input()
-  id = 'plugin-' + uuid();
-  @Input()
-  add = false;
-  @Input()
-  text = false;
-  @Input()
-  settings = false;
-  @Output()
-  pluginChange = new EventEmitter<string>();
+  readonly id = input('plugin-' + uuid());
+  readonly add = input(false);
+  readonly text = input(false);
+  readonly settings = input(false);
+  readonly pluginChange = output<string>();
 
   @ViewChild('select')
   select?: ElementRef<HTMLSelectElement>;
@@ -46,9 +41,9 @@ export class SelectPluginComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     this.plugins = uniqBy([
       ...(this.customPlugin ? [this.customPlugin] : []),
-      ...(this.add ? this.addPlugins : []),
-      ...(this.text ? this.textPlugins : []),
-      ...(this.settings ? this.settingsPlugins : []),
+      ...(this.add() ? this.addPlugins : []),
+      ...(this.text() ? this.textPlugins : []),
+      ...(this.settings() ? this.settingsPlugins : []),
       ...this.submitPlugins
     ], 'tag');
   }

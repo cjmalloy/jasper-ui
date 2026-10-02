@@ -11,19 +11,19 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
   Input,
   NgZone,
   OnChanges,
-  Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
   ViewContainerRef,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  output
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -75,15 +75,11 @@ export class NoteComponent implements OnChanges, AfterViewInit {
 
   @Input()
   ref!: Ref;
-  @Input()
-  pressToUnlock = false;
-  @Input()
-  hideSwimLanes = true;
-  @Input()
-  ext?: Ext;
+  readonly pressToUnlock = input(false);
+  readonly hideSwimLanes = input(true);
+  readonly ext = input<Ext>();
 
-  @Output()
-  copied = new EventEmitter<Ref>();
+  readonly copied = output<Ref>();
 
   repostRef?: Ref;
   @HostBinding('class.full-size')
@@ -251,9 +247,9 @@ export class NoteComponent implements OnChanges, AfterViewInit {
 
   @memo
   get badges() {
-    const badges = intersection(this.ref.tags, this.ext?.config?.badges || []);
-    if (this.hideSwimLanes) return badges;
-    return difference(badges, this.ext?.config?.swimLanes || []);
+    const badges = intersection(this.ref.tags, this.ext()?.config?.badges || []);
+    if (this.hideSwimLanes()) return badges;
+    return difference(badges, this.ext()?.config?.swimLanes || []);
   }
 
   @memo
@@ -263,7 +259,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
 
   @memo
   get allBadgeExts$() {
-    return this.exts.getCachedExts(this.ext?.config?.badges || [], this.ref.origin || '');
+    return this.exts.getCachedExts(this.ext()?.config?.badges || [], this.ref.origin || '');
   }
 
   @HostBinding('class.last-selected')
@@ -292,7 +288,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
 
   @HostListener('contextmenu', ['$event'])
   contextMenu(event: MouseEvent) {
-    if (this.pressToUnlock) {
+    if (this.pressToUnlock()) {
       // no badge menu on mobile
       return;
     }

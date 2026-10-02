@@ -1,7 +1,7 @@
 import { KeyValuePipe } from '@angular/common';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -55,12 +55,9 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
-  @Input()
-  type: Type = 'ref';
-  @Input()
-  viewExt?: Ext;
-  @Input()
-  activeExts: Ext[] = [];
+  readonly type = input<Type>('ref');
+  readonly viewExt = input<Ext>();
+  readonly activeExts = input<Ext[]>([]);
 
   defaults?: Partial<Ref>;
   forms: Plugin[] = [];
@@ -98,7 +95,8 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
         ...sortOrder(this.admin.getAdvancedActions(commonTags))]);
       this.groupedActions = groupBy(this.actions, a => this.label(a));
       delete this.defaults;
-      const xs = [...(this.viewExt ? [this.viewExt] : []), ...this.activeExts, this.admin.getTemplate('')] as Tag[];
+      const viewExt = this.viewExt();
+      const xs = [...(viewExt ? [viewExt] : []), ...this.activeExts(), this.admin.getTemplate('')] as Tag[];
       this.refs.getDefaults(...xs.filter(x => x).map(x => x.tag)).subscribe(d => this.defaults = d?.ref)
     }));
   }
@@ -151,7 +149,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   get queryStore() {
-    switch (this.type) {
+    switch (this.type()) {
       case 'ref': return this.query;
       case 'ext': return this.ext
       case 'user': return this.user;
@@ -161,7 +159,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   get service() {
-    switch (this.type) {
+    switch (this.type()) {
       case 'ref': return this.refs;
       case 'ext': return this.exts
       case 'user': return this.users
@@ -171,7 +169,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   get tagService() {
-    switch (this.type) {
+    switch (this.type()) {
       case 'ref': throw 'Not a tag';
       case 'ext': return this.exts
       case 'user': return this.users
@@ -186,7 +184,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   get name() {
     let name = '';
-    name = this.store.view.name || this.type;
+    name = this.store.view.name || this.type();
     if (this.store.view.search) {
       name += ' search(' + this.store.view.search + ')';
     }
@@ -205,12 +203,12 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   download() {
-    downloadPage(this.type, this.items, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
+    downloadPage(this.type(), this.items, this.type() !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
   }
 
   get items() {
     let result = this.queryStore.page!;
-    if (this.type === 'ref' && this.store.view.ref) {
+    if (this.type() === 'ref' && this.store.view.ref) {
       result = {...result};
       result.content = [...result.content] as any;
       result.content.unshift(this.store.view.ref as any);
@@ -266,12 +264,13 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   delete$ = () => {
-    if (this.type === 'ref') {
+    const type = this.type();
+    if (type === 'ref') {
       return this.batch$<Ref>(ref => ref.origin === this.store.account.origin && !hasTag('plugin/delete', ref) && this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(ref))
         : this.refs.delete(ref.url, ref.origin)
       );
-    } else if (this.type === 'ext' || this.type === 'user') {
+    } else if (type === 'ext' || type === 'user') {
       return this.batch$<Ext | User>(tag => this.tagService.delete(tag.tag + tag.origin).pipe(
         switchMap(() => !isDeletorTag(tag.tag) && this.admin.getPlugin('plugin/delete')
           ? this.tagService.create(tagDeleteNotice(tag))
@@ -287,7 +286,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   forceDelete$ = () => {
-    if (this.type === 'ref') {
+    if (this.type() === 'ref') {
       return this.batch$<Ref>(ref => this.refs.delete(ref.url, ref.origin));
     } else {
       return this.delete$();

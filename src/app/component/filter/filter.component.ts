@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, input } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
@@ -34,10 +34,8 @@ export class FilterComponent implements OnChanges, OnDestroy {
   @ViewChild('create')
   create?: ElementRef<HTMLSelectElement>;
 
-  @Input()
-  activeExts: Ext[] = [];
-  @Input()
-  type?: Type;
+  readonly activeExts = input<Ext[]>([]);
+  readonly type = input<Type>();
 
   modifiedBeforeFilter: FilterItem = { filter: `modified/before/${DateTime.now().toISO()}`, label: $localize`🕓️ modified before` };
   modifiedAfterFilter: FilterItem = { filter: `modified/after/${DateTime.now().toISO()}`, label: $localize`🕓️ modified after` };
@@ -70,9 +68,9 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.activeExts || changes.type) {
-      if (this.type === 'ref') {
+      if (this.type() === 'ref') {
         this.allFilters = [];
-        for (const ext of this.activeExts) {
+        for (const ext of this.activeExts()) {
           for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
             this.loadFilter({
               group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || '#' + ext.tag,
@@ -209,19 +207,19 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   get rootConfigs() {
     if (!this.admin.getTemplate('')) return [];
-    return this.activeExts.map(x => x.config).filter(c => !!c) as RootConfig[];
+    return this.activeExts().map(x => x.config).filter(c => !!c) as RootConfig[];
   }
 
   get userConfigs() {
     if (!this.admin.getTemplate('user')) return [];
-    return this.activeExts
+    return this.activeExts()
       .filter(x => hasPrefix(x.tag, 'user'))
       .map(x => x.config).filter(c => !!c) as UserConfig[];
   }
 
   get kanbanExts() {
     if (!this.admin.getTemplate('kanban')) return [];
-    return this.activeExts
+    return this.activeExts()
       .filter(x => hasPrefix(x.tag, 'kanban'))
       .filter(x => x.config);
   }

@@ -14,7 +14,8 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  input
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subscription } from 'rxjs';
@@ -38,16 +39,14 @@ import { ProxyService } from '../../../service/api/proxy.service';
 })
 export class ActionListComponent implements AfterViewInit, OnChanges {
 
-  @Input()
-  ref!: Ref;
-  @Input()
-  repostRef?: Ref;
-  @Input()
-  showDownload = true;
+  readonly ref = input.required<Ref>();
+  readonly repostRef = input<Ref>();
+  readonly showDownload = input(true);
   @Input()
   mediaAttachment = '';
-  @Input()
-  groupedActions?: { [key: string]: Action[] } = {};
+  readonly groupedActions = input<{
+    [key: string]: Action[];
+} | undefined>({});
   @Input()
   groupedAdvancedActions?: { [key: string]: Action[] };
 
@@ -87,11 +86,11 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   apply$ = (actions: Action[]) => () => {
     this.closeAdvanced();
-    return this.acts.apply$(actions, this.ref, this.repostRef);
+    return this.acts.apply$(actions, this.ref(), this.repostRef());
   }
 
   download() {
-    downloadRef(writeRef(this.ref));
+    downloadRef(writeRef(this.ref()));
   }
 
   downloadMedia() {
@@ -112,7 +111,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   @memo
   get actions() {
-    return Object.keys(this.groupedActions as any).length;
+    return Object.keys(this.groupedActions() as any).length;
   }
 
   @memo

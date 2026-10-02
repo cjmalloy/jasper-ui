@@ -1,4 +1,4 @@
-@for (a of groupedActions | keyvalue; track a.key; let i = $index) {
+@for (a of groupedActions() | keyvalue; track a.key; let i = $index) {
   @if (i < actions - hiddenActions) {
     @if (a.value[0].confirm) {
       <app-confirm-action [action]="apply$(a.value)"
@@ -15,7 +15,7 @@
   <ng-template #actionsMenu>
     <div class="context-menu advanced-actions" (click)="$event.stopPropagation()">
       @if (hiddenActions) {
-        @for (a of groupedActions | keyvalue; track a.key; let i = $index) {
+        @for (a of groupedActions() | keyvalue; track a.key; let i = $index) {
           @if (i >= actions - hiddenActions) {
             @if (a.value[0].confirm) {
               <app-confirm-action [action]="apply$(a.value)"
@@ -27,7 +27,7 @@
           }
         }
       }
-      @if (showDownload) {
+      @if (showDownload()) {
         <a class="fake-link"
            (click)="download()" i18n>download</a>
       }
@@ -49,7 +49,7 @@
       }
     </div>
   </ng-template>
-} @else if (showDownload) {
+} @else if (showDownload()) {
   <a class="fake-link"
      (click)="download()" i18n>download</a>
 }

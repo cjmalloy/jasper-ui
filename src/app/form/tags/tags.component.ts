@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
@@ -16,12 +16,10 @@ export class TagsFormComponent implements OnChanges {
   static validators = [Validators.pattern(TAG_REGEX)];
   @HostBinding('class') css = 'form-group';
 
-  @Input()
-  origin? = '';
+  readonly origin = input<string | undefined>('');
   @Input()
   group?: UntypedFormGroup;
-  @Input()
-  fieldName = 'tags';
+  readonly fieldName = input('tags');
 
   field = {
     type: 'tags',
@@ -44,7 +42,7 @@ export class TagsFormComponent implements OnChanges {
   ) {  }
 
   ngOnChanges(changes: SimpleChanges) {
-    this.field.fieldArray.props.origin = this.origin;
+    this.field.fieldArray.props.origin = this.origin();
   }
 
   @Input()
@@ -73,7 +71,7 @@ export class TagsFormComponent implements OnChanges {
   }
 
   get tags() {
-    return this.group?.get(this.fieldName) as UntypedFormArray;
+    return this.group?.get(this.fieldName()) as UntypedFormArray;
   }
 
   get model() {

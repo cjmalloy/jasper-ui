@@ -136,10 +136,10 @@
               }
             </span>
           }
-          @if (showObsolete && ref.metadata?.obsolete) {
+          @if (showObsolete() && ref.metadata?.obsolete) {
             <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Obsolete">⏮️</span>
           }
-          @if (showAlarm && alarm) {
+          @if (showAlarm() && alarm) {
             <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔️</span>
           }
           @for (icon of icons; track icon) {
@@ -182,8 +182,8 @@
         @if (expanded && expandInline && !editing && !viewSource) {
           <app-viewer #viewer class="viewer-inline"
                       [ref]="bareRef"
-                      [tags]="plugins || currentTags"
-                      [disableResize]="disableResize"
+                      [tags]="plugins() || currentTags"
+                      [disableResize]="disableResize()"
                       [fullscreen]="fullscreen"
                       (contextmenu)="unlockViewer($event)"
                       (copied)="copied.emit($event)"></app-viewer>
@@ -241,7 +241,7 @@
               <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
             }
           }
-          @if (!hideEdit) {
+          @if (!hideEdit()) {
             @if (ref.created && writeAccess) {
               <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
             } @else {
@@ -326,8 +326,8 @@
 @if (expanded && !expandInline && !editing && !viewSource) {
   <app-viewer #viewer class="viewer-below"
               [ref]="bareRef"
-              [tags]="plugins || currentTags"
-              [disableResize]="disableResize"
+              [tags]="plugins() || currentTags"
+              [disableResize]="disableResize()"
               [fullscreen]="fullscreen"
               (contextmenu)="unlockViewer($event)"
               (copied)="copied.emit($event)"></app-viewer>
