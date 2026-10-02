@@ -151,7 +151,8 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.comment-reply textarea').fill(replyText);
     await page.locator('.comment-reply textarea').blur();
     const submitPromise = page.waitForResponse(isRefPost);
-    await page.locator('.comment-reply button', { hasText: 'reply' }).click();
+    await expect(page.locator('.comment-reply-submit')).toBeEnabled();
+    await page.locator('.comment-reply-submit').click();
     await submitPromise;
   });
 

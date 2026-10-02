@@ -1,16 +1,16 @@
-<app-editor #editor [control]="comment"
+<app-editor #editor [control]="comment()"
             [createdTags]="ref().tags || []"
             (syncTags)="editorTags.set($event)"
             (addSource)="addSource($event)"
-            (uploadCompleted)="completedUploads.set([...completedUploads(), $event])"
+            (uploadCompleted)="uploadCompleted($event)"
             [autoFocus]="true"></app-editor>
 @for (e of serverError(); track e) {
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
 }
-<button type="button" [disabled]="editing()" (click)="save()" i18n>save</button>
+<button class="comment-save" type="button" [disabled]="editing()" (click)="save()" i18n>save</button>
 @if (editing()) {
   <app-loading [inline]="true"></app-loading>
 } @else {
-  <button type="button" (click)="cancel()" i18n>cancel</button>
+  <button class="comment-cancel" type="button" (click)="cancel()" i18n>cancel</button>
 }

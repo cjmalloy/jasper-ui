@@ -1,6 +1,6 @@
-import { DestroyRef, inject, Component, forwardRef, OnInit, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
+import { Component, computed, forwardRef, ChangeDetectionStrategy, input, linkedSignal } from '@angular/core';
+import { rxResource, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { EMPTY, Observable, switchMap } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
@@ -19,8 +19,7 @@ import { CommentComponent } from '../comment.component';
     forwardRef(() => RefComponent),
   ]
 })
-export class ThreadSummaryComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
+export class ThreadSummaryComponent {
 
   readonly source = input('');
   readonly commentView = input(false);
@@ -31,33 +30,29 @@ export class ThreadSummaryComponent implements OnInit {
   readonly showLoadMore = input(true);
   readonly newRefs$ = input<Observable<Ref | undefined>>();
 
-  readonly newRefs = signal<Ref[]>([]);
-  readonly list = signal<Ref[]>([]);
+  readonly newRefs = linkedSignal({
+    source: () => [this.source(), this.query(), this.pageSize()],
+    computation: () => [] as Ref[],
+  });
+  private readonly pageResource = rxResource({
+    params: () => ({
+      ...getArgs(this.query(), this.store.view.sort(), this.store.view.filter()),
+      responses: this.source(),
+      size: this.pageSize(),
+    }),
+    stream: ({ params }) => this.refs.page(params),
+  });
+  readonly list = computed(() => this.pageResource.hasValue() ? this.pageResource.value().content : []);
 
   constructor(
     private refs: RefService,
     private store: Store,
   ) {
-    effect(() => {
-      const source = this.source();
-      this.newRefs.set([]);
-      this.refs.page({
-        ...getArgs(this.query(), this.store.view.sort(), this.store.view.filter()),
-        responses: source,
-        size: this.pageSize(),
-      }).pipe(
-        takeUntilDestroyed(this.destroyRef)
-      ).subscribe(page => {
-        this.list.set(page.content);
-      });
-    });
-  }
-
-  ngOnInit(): void {
-    this.newRefs$()?.pipe(
-      takeUntilDestroyed(this.destroyRef),
+    toObservable(this.newRefs$).pipe(
+      switchMap(refs => refs ?? EMPTY),
+      takeUntilDestroyed(),
     ).subscribe(comment => {
-      if (comment) this.newRefs.set([comment, ...this.newRefs()]);
+      if (comment) this.newRefs.update(refs => [comment, ...refs]);
     });
   }
 
