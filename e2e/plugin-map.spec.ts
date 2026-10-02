@@ -260,6 +260,15 @@ test.describe.serial('Map Plugin', () => {
   });
 
   test('plugin/map embeds the ref geo features', async ({ page }) => {
+    // Record every scale the embed shows, to catch a jump from the default view
+    await page.addInitScript(() => {
+      (window as any).mapScales = [];
+      new MutationObserver(() => {
+        const scale = document.querySelector('.map-embed .maplibregl-ctrl-scale')?.textContent;
+        const scales = (window as any).mapScales;
+        if (scale && scales[scales.length - 1] !== scale) scales.push(scale);
+      }).observe(document, { subtree: true, childList: true, characterData: true });
+    });
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/map&tag=plugin/geo/point', { waitUntil: 'networkidle' });
     await page.locator('[name=title]').fill('Map Plugin Test');
@@ -278,6 +287,8 @@ test.describe.serial('Map Plugin', () => {
 
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-map')).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-marker')).toBeVisible();
+    // Map is created fitted to the features instead of jumping there from the style's default view
+    expect(await page.evaluate(() => (window as any).mapScales)).toHaveLength(1);
     // Ref markers show the Ref title
     await expect(page.locator('.full-page.ref .map-embed .map-thumbnail')).toHaveAttribute('title', 'Map Plugin Test');
     // Address search is shown when geocoding is configured

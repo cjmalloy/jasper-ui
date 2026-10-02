@@ -211,6 +211,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       MemoCache.clear(this);
     }
     if (changes['bbox'] && !changes['bbox'].firstChange) {
+      MemoCache.clear(this);
       this.fit();
     }
   }
@@ -318,10 +319,17 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     if (!this.map) return;
     const bounds = this.bounds;
     if (!bounds) return;
-    this.map.fitBounds(bounds, { padding: 40, maxZoom: 14, animate: false });
+    this.map.fitBounds(bounds, { ...this.fitBoundsOptions, animate: false });
   }
 
-  private get bounds(): LngLatBounds | undefined {
+  readonly fitBoundsOptions = { padding: 40, maxZoom: 14 };
+
+  /**
+   * Bounds the map is created with, so it doesn't render the style's
+   * default center first and then jump to the features.
+   */
+  @memo
+  get bounds(): LngLatBounds | undefined {
     const bbox = this.bbox?.filter(n => typeof n === 'number' && isFinite(n));
     if (bbox?.length === 4) return new LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
     if (bbox?.length === 6) return new LngLatBounds([bbox[0], bbox[1]], [bbox[3], bbox[4]]);
