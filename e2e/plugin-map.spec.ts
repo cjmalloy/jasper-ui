@@ -195,6 +195,8 @@ test.describe.serial('Map Plugin', () => {
 
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-map')).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-marker')).toBeVisible();
+    // Ref markers show the Ref title
+    await expect(page.locator('.full-page.ref .map-embed .map-thumbnail')).toHaveAttribute('title', 'Map Plugin Test');
     // Address search is shown when geocoding is configured
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-top-left .maplibregl-ctrl-geocoder--input')).toBeVisible();
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-bottom-left .maplibregl-ctrl-zoom-in')).toBeVisible();
@@ -219,6 +221,27 @@ test.describe.serial('Map Plugin', () => {
     const point = page.locator('.location-field').first();
     await expect(point.locator('input').nth(0)).toHaveValue('-63.57');
     await expect(point.locator('input').nth(1)).toHaveValue('44.65');
+  });
+
+  test('map click submits a ref at the reverse geocoded address', async ({ page }) => {
+    await page.route('https://nominatim.openstreetmap.org/reverse**', route => route.fulfill({
+      headers: CORS,
+      json: { display_name: 'Dartmouth, Nova Scotia, Canada', lat: '44.67', lon: '-63.57' },
+    }));
+    await page.goto('/ref/e/' + encodeURIComponent(URL) + '?debug=ADMIN', { waitUntil: 'networkidle' });
+    const embed = page.locator('.full-page.ref .map-embed');
+    const canvas = embed.locator('.maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    const box = (await canvas.boundingBox())!;
+    await canvas.click({ position: { x: box.width * 0.75, y: box.height / 2 } });
+    const found = embed.locator('.geocode-marker');
+    await expect(found).toHaveAttribute('title', 'Dartmouth, Nova Scotia, Canada');
+    await found.click();
+    await expect(page).toHaveURL(/\/submit\/text\?/);
+    await expect(page.locator('[name=title]')).toHaveValue('Dartmouth, Nova Scotia, Canada');
+    const point = page.locator('.location-field').first();
+    await expect(point.locator('input').nth(0)).not.toHaveValue('');
+    await expect(point.locator('input').nth(1)).not.toHaveValue('');
   });
 
   test('cleanup', async ({ page }) => {

@@ -9,7 +9,7 @@ import {
 } from '@maplibre/ngx-maplibre-gl';
 import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { FeatureCollection } from 'geojson';
-import type { GeoJSONSource } from 'maplibre-gl';
+import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
 import { LngLatBounds, Map, Marker } from 'maplibre-gl';
 import { catchError, forkJoin, map as rxMap, of, Subject, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -23,6 +23,7 @@ import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { GeocodeService } from '../../service/geocode.service';
 import { Store } from '../../store/store';
+import { getTitle } from '../../util/format';
 import { geoFeatures, hasLocation } from '../../util/geo';
 import { GeocoderPosition, isConfigured } from '../../util/geocode';
 import { memo, MemoCache } from '../../util/memo';
@@ -80,6 +81,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private geocoderPosition?: GeocoderPosition;
   private removeGeocoder?: () => void;
   private searchMarker?: Marker;
+  private reverseGeocode?: AbortController;
 
   constructor(
     private router: Router,
@@ -134,18 +136,22 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
   /**
    * Mark an address search result. Clicking the marker submits a new Ref there.
+   * Returns a function to update the marker's title.
    */
-  private showSearchResult(location: [number, number], name: string) {
-    if (!this.map) return;
+  private showSearchResult(location: [number, number], name = '') {
+    if (!this.map) return undefined;
     this.clearSearchResult();
     const marker = new Marker({ color: '#e5a50a', className: 'geocode-marker' })
-      .setLngLat(location)
-      .addTo(this.map);
+      .setLngLat(location);
     const el = marker.getElement();
-    const label = $localize`Submit a Ref here`;
-    el.title = label;
+    const setName = (value: string) => {
+      name = value;
+      const label = name || $localize`Submit a Ref here`;
+      el.title = label;
+      el.setAttribute('aria-label', label);
+    };
+    setName(name);
     el.setAttribute('role', 'button');
-    el.setAttribute('aria-label', label);
     el.tabIndex = 0;
     const activate = (e: Event) => {
       e.stopPropagation();
@@ -165,13 +171,36 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         activate(e);
       }
     });
+    marker.addTo(this.map);
     this.searchMarker = marker;
+    return setName;
   }
 
   private clearSearchResult() {
+    this.reverseGeocode?.abort();
+    this.reverseGeocode = undefined;
     this.searchMarker?.remove();
     this.searchMarker = undefined;
   }
+
+  /**
+   * Clicking the map marks that point, titled with its reverse geocoded address.
+   */
+  private mapClick = (e: MapMouseEvent) => {
+    if ((e.originalEvent?.target as Element | null)?.closest?.('.maplibregl-marker')) return;
+    const { lng, lat } = e.lngLat.wrap();
+    const location: [number, number] = [round(lng), round(lat)];
+    const setName = this.showSearchResult(location);
+    if (!setName || !this.geocoding) return;
+    const controller = this.reverseGeocode = new AbortController();
+    this.geocoder.reverse(location, controller.signal)
+      .then(result => {
+        if (!controller.signal.aborted && result?.name) setName(result.name);
+      })
+      .catch(err => {
+        if (!controller.signal.aborted) console.error('Reverse geocoding error:', err);
+      });
+  };
 
   saveChanges() {
     return true;
@@ -235,6 +264,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   mapLoaded(map: Map) {
     this.map = map;
     this.updateGeocoder();
+    map.on('click', this.mapClick);
     map.addSource('geo-features', { type: 'geojson', data: this.geoData });
     // Line layer for LineString and MultiLineString
     map.addLayer({
@@ -335,6 +365,9 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         const el = this.createMarkerElement(ref);
         const marker = el ? new Marker({ element: el }) : new Marker();
         marker.addClassName('map-thumbnail');
+        const title = getTitle(ref);
+        marker.getElement().title = title;
+        marker.getElement().setAttribute('aria-label', title);
         marker.setLngLat(pointFeature.geometry.coordinates).addTo(map);
         marker.on('click', () => this.router.navigate(['/ref', ref.url]));
         this.markers.push(marker);
@@ -399,4 +432,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private filterPlugins(plugins: Ref['plugins'], geo: boolean) {
     return Object.fromEntries(Object.entries(plugins || {}).filter(([key]) => key.startsWith('plugin/geo/') === geo));
   }
+}
+
+function round(n: number) {
+  return Math.round(n * 1e6) / 1e6;
 }
