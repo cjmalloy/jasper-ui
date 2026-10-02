@@ -47,12 +47,17 @@ export class AppComponent implements AfterViewInit {
   electron = this.config.electron;
 
   readonly debug = computed(() => !isDevMode() && this.store.account.debug());
-  website = 'https://github.com/cjmalloy/jasper-ui';
+  readonly website = computed(() => {
+    const base = 'https://github.com/cjmalloy/jasper-ui';
+    return !this.store.account.debug() && this.config.version
+      ? base + '/releases/tag/' + this.config.version
+      : base;
+  });
 
-  pdfPlugin = this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin || undefined;
-  archivePlugin = this.admin.getPlugin('plugin/archive') as typeof archivePlugin || undefined;
-  pipPlugin = this.admin.getPlugin('plugin/pip') as typeof pipPlugin || undefined;
-  userClipboardPlugin = this.admin.getPlugin('plugin/user/clipboard') as typeof userClipboardPlugin || undefined;
+  readonly pdfPlugin = computed(() => this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin | undefined);
+  readonly archivePlugin = computed(() => this.admin.getPlugin('plugin/archive') as typeof archivePlugin | undefined);
+  readonly pipPlugin = computed(() => this.admin.getPlugin('plugin/pip') as typeof pipPlugin | undefined);
+  readonly userClipboardPlugin = computed(() => this.admin.getPlugin('plugin/user/clipboard') as typeof userClipboardPlugin | undefined);
 
   constructor(
     public config: ConfigService,
@@ -65,7 +70,6 @@ export class AppComponent implements AfterViewInit {
     private vc: ViewContainerRef,
   ) {
     document.body.style.height = '';
-    if (!this.store.account.debug() && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
     window.addEventListener('keyup', event => {
       const hotkey = !this.hotkeyActive(event) || this.hotkey(event.key);
       if (this.store.hotkey() && hotkey) {
@@ -98,19 +102,22 @@ export class AppComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.store.eventBus.events.subscribe(({ event, ref, repost }) => {
-      if (event === 'pdf' && this.pdfPlugin) {
-        let pdf = pdfUrl(this.pdfPlugin, ref, repost);
+      const pdfPlugin = this.pdfPlugin();
+      const archivePlugin = this.archivePlugin();
+      const pipPlugin = this.pipPlugin();
+      if (event === 'pdf' && pdfPlugin) {
+        let pdf = pdfUrl(pdfPlugin, ref, repost);
         if (!pdf) return;
-        if (pdf.url.startsWith('cache:') || this.pdfPlugin.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin, pdf.title + (pdf.title.toLowerCase().endsWith('.pdf') ? '' : '.pdf'));
+        if (pdf.url.startsWith('cache:') || pdfPlugin.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin, pdf.title + (pdf.title.toLowerCase().endsWith('.pdf') ? '' : '.pdf'));
         open(pdf.url, '_blank');
       }
-      if (event === 'archive' && this.archivePlugin) {
-        let url = archiveUrl(this.archivePlugin, ref, repost);
+      if (event === 'archive' && archivePlugin) {
+        let url = archiveUrl(archivePlugin, ref, repost);
         if (!url) return;
         open(url, '_blank');
       }
-      if (event === 'pip' && this.pipPlugin) {
-        createPip(this.vc, ref!, this.pipPlugin.config?.windowConfig);
+      if (event === 'pip' && pipPlugin) {
+        createPip(this.vc, ref!, pipPlugin.config?.windowConfig);
       }
     });
     window.visualViewport?.addEventListener('resize', event => {
