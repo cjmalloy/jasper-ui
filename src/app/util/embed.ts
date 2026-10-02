@@ -11,7 +11,6 @@ import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { PipWindowConfig } from '../mods/system/pip';
 import { ConfigService } from '../service/config.service';
-import { handleMediaKeydown } from './keyboard';
 import { hasTag } from './tag';
 
 export const EMBED_NESTING = new InjectionToken<number>('embedNesting', {
@@ -102,65 +101,49 @@ export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, t
   });
 }
 
-export async function createPip(vc: ViewContainerRef, ref: Ref, config: PipWindowConfig) {
+export function browseUrl(ref: Ref) {
+  return new URL('browse/', document.baseURI).href + ref.url;
+}
+
+/**
+ * Open the /browse/ route for a Ref in a floating window.
+ * Uses Document Picture-in-Picture when available, since PiP windows cannot be
+ * navigated the browse route is loaded in a full size iframe.
+ * Falls back to a popup window (ex. in Electron, where jasper-app can hook it
+ * with setWindowOpenHandler).
+ * Returns the opened window, if any.
+ */
+export async function createPip(ref: Ref, config?: PipWindowConfig, popup = false): Promise<Window | null> {
+  const url = browseUrl(ref);
+  const width = config?.width || 450;
+  const height = config?.height || 600;
+  if (popup || !('documentPictureInPicture' in window)) {
+    return open(url, '_blank', `popup,width=${width},height=${height}`);
+  }
   // @ts-ignore
-  const pipWindow = await documentPictureInPicture.requestWindow(config);
-  const pipStyle = `
+  const pipWindow: Window = await documentPictureInPicture.requestWindow({ ...config, width, height });
+  pipWindow.document.head.innerHTML = `
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <style>
-    html {
-      overflow: hidden;
-    }
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      & > .embed {
-        display: contents;
-        & > *:first-child {
-          width: 100% !important;
-          height: 100% !important;
-          &.embed-container,
-          &.embed-container > iframe {
-            position: absolute;
-            left: 0;
-            top: 0;
-            margin: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-          }
-          &.audio-expand {
-            height: 54px !important;
-          }
-          &.code {
-            display: contents;
-            & > .md {
-              display: contents;
-              & > pre {
-                max-width: unset !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: auto !important;
-              }
-            }
-          }
-        }
-      }
+      overflow: hidden;
+    }
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: none;
     }
   </style>`;
-  pipWindow.document.head.innerHTML = document.head.innerHTML + pipStyle;
-  document.body.classList.forEach(c => pipWindow.document.body.classList.add(c));
-  pipWindow.document.body.append(createEmbed(vc, ref, true).location.nativeElement);
-  pipWindow.document.addEventListener('keydown', (event: KeyboardEvent) => {
-    const video = pipWindow.document.querySelector('video');
-    if (video) {
-      handleMediaKeydown(event, video);
-      return;
-    }
-    const audio = pipWindow.document.querySelector('audio');
-    if (audio) handleMediaKeydown(event, audio);
-  }, { capture: true });
+  const iframe = pipWindow.document.createElement('iframe');
+  iframe.src = url;
+  iframe.allow = 'autoplay; fullscreen; picture-in-picture; clipboard-write';
+  pipWindow.document.body.append(iframe);
+  return pipWindow;
 }
 
 export function embedUrl(url: string) {

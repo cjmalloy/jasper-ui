@@ -58,6 +58,10 @@ export class ViewStore {
   modUpdates = new Set<string>();
   inboxTabs: Plugin[] = [];
   settingsTabs: Plugin[] = [];
+  /**
+   * URLs of Refs currently open in a Picture-in-Picture window.
+   */
+  pip: string[] = [];
 
   constructor(
     public route: RouterStore,
@@ -68,6 +72,8 @@ export class ViewStore {
       setRef: action,
       preloadRef: action,
       setLastSelected: action,
+      addPip: action,
+      removePip: action,
       exts: observableShallow,
       extTemplates: observableShallow,
       inboxTabs: observableShallow,
@@ -231,6 +237,19 @@ export class ViewStore {
 
   get refPath() {
     return this.browser ? '/browse' : '/ref';
+  }
+
+  addPip(url: string) {
+    this.pip = [...this.pip, url];
+  }
+
+  removePip(url: string) {
+    const i = this.pip.indexOf(url);
+    if (i >= 0) this.pip = this.pip.filter((_, j) => j !== i);
+  }
+
+  inPip(url?: string) {
+    return !!url && this.pip.includes(url);
   }
 
   get current(): View | undefined {

@@ -5,7 +5,7 @@ import {
   HostBinding,
   HostListener,
   isDevMode,
-  ViewContainerRef
+  NgZone,
 } from '@angular/core';
 import { NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { runInAction } from 'mobx';
@@ -14,6 +14,7 @@ import { filter } from 'rxjs';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { UserClipboardComponent } from './component/user-clipboard/user-clipboard.component';
+import { Ref } from './model/ref';
 import { userClipboardPlugin } from './mods/clipboard';
 import { pdfPlugin, pdfUrl } from './mods/media/pdf';
 import { pipPlugin } from './mods/system/pip';
@@ -61,7 +62,7 @@ export class AppComponent implements AfterViewInit {
     private origins: OriginService,
     private scrape: ScrapeService,
     private router: Router,
-    private vc: ViewContainerRef,
+    private zone: NgZone,
   ) {
     document.body.style.height = '';
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
@@ -108,8 +109,8 @@ export class AppComponent implements AfterViewInit {
         if (!url) return;
         open(url, '_blank');
       }
-      if (event === 'pip' && this.pipPlugin) {
-        createPip(this.vc, ref!, this.pipPlugin.config?.windowConfig);
+      if (event === 'pip' && this.pipPlugin && ref?.url) {
+        this.pip(ref);
       }
       if (event === 'browse' && ref?.url) {
         open('/browse/' + ref.url, '_blank', 'toolbar=no,menubar=no');
@@ -130,6 +131,28 @@ export class AppComponent implements AfterViewInit {
       runInAction(() => this.store.view.back = !isLinkClick && !isForwardButton);
       currentNavigationId = event.restoredState?.navigationId ?? event.id;
     });
+  }
+
+  async pip(ref: Ref) {
+    const url = ref.url;
+    let win: Window | null = null;
+    try {
+      win = await createPip(ref, this.pipPlugin?.config?.windowConfig, this.config.electron);
+    } catch (e) {
+      console.error('Failed to open Picture-in-Picture', e);
+    }
+    if (!win) return;
+    this.store.view.addPip(url);
+    let restored = false;
+    const restore = () => {
+      if (restored) return;
+      restored = true;
+      clearInterval(poll);
+      this.zone.run(() => this.store.view.removePip(url));
+    };
+    // Popup windows lose listeners when they navigate, so also poll for close
+    const poll = setInterval(() => win!.closed && restore(), 500);
+    win.addEventListener('pagehide', restore);
   }
 
   @memo
