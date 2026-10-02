@@ -164,6 +164,53 @@ test.describe.serial('Map Plugin', () => {
     await expect(point.locator('input').nth(1)).toHaveValue('44.65');
   });
 
+  test('location input map picker expands the address search while in use', async ({ page }) => {
+    await page.route('https://nominatim.openstreetmap.org/search**', route => route.fulfill({
+      headers: CORS,
+      json: [{ display_name: 'Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' }],
+    }));
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    await point.locator('input').nth(0).fill('-63.5');
+    await point.locator('input').nth(1).fill('44.6');
+    await point.locator('.location-map-toggle').click();
+    const map = point.locator('.location-map mgl-map');
+    await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
+    const mapWidth = (await map.boundingBox())!.width;
+    const geocoder = point.locator('.location-map .maplibregl-ctrl-geocoder');
+    const search = geocoder.locator('.maplibregl-ctrl-geocoder--input');
+    const width = async () => (await geocoder.boundingBox())!.width;
+
+    // Default size while not in use
+    const initial = await width();
+    expect(initial).toBeLessThan(mapWidth * 0.6);
+
+    // Expands while focused
+    await search.focus();
+    await expect.poll(width).toBeGreaterThan(mapWidth * 0.75);
+    expect(await width()).toBeLessThanOrEqual(mapWidth - 20);
+
+    // Stays expanded after blur while there is a query
+    await search.fill('Halifax');
+    await search.press('Enter');
+    const suggestions = geocoder.locator('.suggestions');
+    await expect(suggestions.locator('li', { hasText: 'Nova Scotia' })).toBeVisible();
+    // Results dropdown expands with the box
+    expect((await suggestions.boundingBox())!.width).toBeGreaterThan(mapWidth * 0.75);
+    await search.blur();
+    await expect.poll(width).toBeGreaterThan(mapWidth * 0.75);
+
+    // Shrinks back when empty and unfocused
+    await search.fill('');
+    await search.blur();
+    await expect.poll(width).toBeCloseTo(initial, 0);
+
+    // The map still renders at full size
+    expect((await map.boundingBox())!.width).toBeCloseTo(mapWidth, 0);
+    expect((await map.boundingBox())!.height).toBeGreaterThan(250);
+  });
+
   test('title scraper reverse geocodes the location', async ({ page }) => {
     await page.route('https://nominatim.openstreetmap.org/reverse**', route => route.fulfill({
       headers: CORS,
@@ -206,6 +253,13 @@ test.describe.serial('Map Plugin', () => {
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-bottom-left .maplibregl-ctrl-zoom-in')).toBeVisible();
     // Zoom controls sit above the scale bar
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-bottom-left > .maplibregl-ctrl-scale:last-child')).toBeVisible();
+    // Map renders at full size and the address search expands while in use
+    const embedMap = (await page.locator('.full-page.ref .map-embed mgl-map').boundingBox())!;
+    expect(embedMap.height).toBeGreaterThan(300);
+    const geocoder = page.locator('.full-page.ref .map-embed .maplibregl-ctrl-geocoder');
+    expect((await geocoder.boundingBox())!.width).toBeLessThan(embedMap.width * 0.6);
+    await geocoder.locator('.maplibregl-ctrl-geocoder--input').focus();
+    await expect.poll(async () => (await geocoder.boundingBox())!.width).toBeGreaterThan(embedMap.width * 0.75);
   });
 
   test('map search result submits a ref at that location', async ({ page }) => {
