@@ -1,22 +1,22 @@
 <div class="link">
-  @if (!inProgress) {
-    <a [href]="downloadLinkAuth">{{ id() }}</a>
+  @if (!inProgress()) {
+    <a [href]="downloadLinkAuth()">{{ id() }}</a>
   } @else {
     <span>{{ id().substring(1) }}</span>
   }
 </div>
 <div class="stack">
   <div class="info">
-    @if (inProgress) {
+    @if (inProgress()) {
       <span i18n>in progress...</span>
     } @else if (size()) {
-      <span>{{ fileSize }}</span>
+      <span>{{ fileSize() }}</span>
     }
   </div>
   <div class="actions">
-    <a [routerLink]="['/ref', downloadLink]" i18n>ref</a>
+    <a [routerLink]="['/ref', downloadLink()]" i18n>ref</a>
     @if (store.account.admin()) {
-      @if (!inProgress) {
+      @if (!inProgress()) {
         <app-confirm-action #restoreButton [action]="restore$">restore</app-confirm-action>
       }
       <app-confirm-action [action]="delete$">delete</app-confirm-action>

@@ -102,13 +102,14 @@ export class ActionListComponent implements AfterViewInit {
   }
 
   onResize() {
+    this.cachedActionWidths = undefined;
     if (!this.actions()) return;
     this.measureVisible();
   }
 
   measureVisible() {
     if (!this.actions()) return;
-    this.hiddenActions.set(this.actions() - this.visible);
+    this.hiddenActions.set(this.actions() - this.visible());
   }
   readonly actions = computed(() => {
     return Object.keys(this.groupedActions() as any).length;
@@ -118,7 +119,7 @@ export class ActionListComponent implements AfterViewInit {
 
   /**
    * Widths of the rendered actions, measured from the DOM. Cached until the
-   * inputs change, since hidden actions are removed from the DOM.
+   * inputs change or the container resizes.
    */
   actionWidths() {
     if (this.cachedActionWidths) return this.cachedActionWidths;
@@ -132,7 +133,7 @@ export class ActionListComponent implements AfterViewInit {
     return this.cachedActionWidths = result;
   }
 
-  get visible() {
+  visible() {
     if (this.config.mobile) return this.actions();
     const el = this.el.nativeElement;
     const parentWidth = el.parentElement!.offsetWidth;

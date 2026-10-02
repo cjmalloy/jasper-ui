@@ -27,4 +27,13 @@ describe('ActionListComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('clears measured action widths on resize', () => {
+    const cachedWidths = component.actionWidths();
+    expect(component.actionWidths()).toBe(cachedWidths);
+
+    component.onResize();
+
+    expect(component.actionWidths()).not.toBe(cachedWidths);
+  });
 });

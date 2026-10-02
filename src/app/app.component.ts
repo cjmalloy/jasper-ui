@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  computed,
   isDevMode,
   ViewContainerRef
 } from '@angular/core';
@@ -45,7 +46,7 @@ export class AppComponent implements AfterViewInit {
 
   electron = this.config.electron;
 
-  debug = !isDevMode() && this.store.account.debug();
+  readonly debug = computed(() => !isDevMode() && this.store.account.debug());
   website = 'https://github.com/cjmalloy/jasper-ui';
 
   pdfPlugin = this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin || undefined;
