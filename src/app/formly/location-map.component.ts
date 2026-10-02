@@ -286,8 +286,15 @@ function sanitize(geometry: any): Geometry | undefined {
       const ps = positions(c);
       return ps.length > 1 ? { type: 'LineString', coordinates: ps } : { type: 'MultiPoint', coordinates: ps };
     }
-    case 'MultiLineString':
-      return { type: 'MultiLineString', coordinates: (Array.isArray(c) ? c : []).map(positions).filter(l => l.length > 1) };
+    case 'MultiLineString': {
+      const lines = (Array.isArray(c) ? c : []).map(positions).filter(l => l.length);
+      return {
+        type: 'GeometryCollection',
+        geometries: lines.map(l => l.length > 1
+          ? { type: 'LineString', coordinates: l }
+          : { type: 'Point', coordinates: l[0] }),
+      };
+    }
     case 'Polygon':
       return polygon(Array.isArray(c) ? c : []);
     case 'MultiPolygon': {
