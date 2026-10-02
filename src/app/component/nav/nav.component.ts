@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, Input, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, input, linkedSignal, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AdminService } from '../../service/admin.service';
@@ -20,20 +20,14 @@ import { hasPrefix } from '../../util/tag';
 export class NavComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
-  @Input()
-  url: string = '';
-  @Input()
-  get title() { return this._title(); }
-  set title(value: string) { this._title.set(value); }
-  @Input()
-  get text() { return this._text(); }
-  set text(value: string) { this._text.set(value); }
-  @Input()
-  css = '';
+  readonly url = input('');
+  readonly titleInput = input('', { alias: 'title' });
+  readonly title = linkedSignal(() => this.titleInput());
+  readonly textInput = input('', { alias: 'text' });
+  readonly text = linkedSignal(() => this.textInput());
+  readonly css = input('');
   readonly external = input(false);
 
-  private readonly _title = signal('');
-  private readonly _text = signal('');
   private readonly _nav = signal<(string|number)[] | undefined>(undefined);
   get nav() { return this._nav(); }
   set nav(value: (string|number)[] | undefined) { this._nav.set(value); }
@@ -55,15 +49,15 @@ export class NavComponent implements OnInit {
         this.editor.getTagPreview(this.nav[1] as string)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(x => {
-            this.text = x?.name || this.text || x?.tag || '';
-            this.title ||= x?.tag || '';
+            this.text.set(x?.name || this.text() || x?.tag || '');
+            this.title.set(this.title() || x?.tag || '');
           });
       }
     } else if (!this.external()) {
       this.vis.notifyVisible(this.el, () => {
-        this.refs.exists(this.url).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(exists => {
+        this.refs.exists(this.url()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(exists => {
           if (exists) {
-            this.nav = ['/ref', this.url];
+            this.nav = ['/ref', this.url()];
           }
         });
       });
@@ -72,10 +66,11 @@ export class NavComponent implements OnInit {
 
 
   getNav() {
-    if (this.url.toLowerCase().startsWith('tag:/')) {
-      return ['/tag', getPath(this.url.substring('tag:'.length))!.substring(1)];
+    const url = this.url();
+    if (url.toLowerCase().startsWith('tag:/')) {
+      return ['/tag', getPath(url.substring('tag:'.length))!.substring(1)];
     }
-    let path = getPath(this.url) || '';
+    let path = getPath(url) || '';
     const basePath = getPath(this.baseHref)!;
     if (path.startsWith(basePath)) {
       path = path.substring(basePath.length);
@@ -93,14 +88,15 @@ export class NavComponent implements OnInit {
   }
 
   get query() {
-    return parseBookmarkParams(this.url);
+    return parseBookmarkParams(this.url());
   }
 
   get localUrl() {
-    if (this.url.toLowerCase().startsWith('tag:/'))return true
-    if (this.url.startsWith(this.baseHref)) return true
-    if (this.url.startsWith(getPath(this.baseHref)!)) return true;
-    if (this.url.startsWith('/')) return true;
+    const url = this.url();
+    if (url.toLowerCase().startsWith('tag:/'))return true
+    if (url.startsWith(this.baseHref)) return true
+    if (url.startsWith(getPath(this.baseHref)!)) return true;
+    if (url.startsWith('/')) return true;
     return false;
   }
 
@@ -109,17 +105,19 @@ export class NavComponent implements OnInit {
   }
 
   get hasText() {
-    if (!this.text || hasPrefix(this.text, 'user') || hasPrefix(this.text, 'plugin')) return false;
-    if (this.url.startsWith('/tag/') || this.url.toLowerCase().startsWith('tag:/')) {
-      if (this.text === '#' + this.url.substring(5)) return false;
+    const text = this.text();
+    const url = this.url();
+    if (!text || hasPrefix(text, 'user') || hasPrefix(text, 'plugin')) return false;
+    if (url.startsWith('/tag/') || url.toLowerCase().startsWith('tag:/')) {
+      if (text === '#' + url.substring(5)) return false;
     }
-    return this.text != this.url;
+    return text != url;
   }
 
   markRead(event: MouseEvent) {
     if (!this.admin.getPlugin('plugin/user/read')) return;
     if (event.button !== 0 && event.button !== 1) return;
-    this.ts.createResponse('plugin/user/read', this.url).subscribe();
+    this.ts.createResponse('plugin/user/read', this.url()).subscribe();
   }
 
 }

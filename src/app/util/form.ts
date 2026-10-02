@@ -1,3 +1,4 @@
+import { computed, effect, linkedSignal, Signal } from '@angular/core';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Duration } from 'luxon';
 
@@ -16,4 +17,21 @@ export function scrollToFirstInvalid() {
     left: 0,
     behavior: 'smooth'
   });
+}
+
+/**
+ * Signal tracking the value of a reactive forms control.
+ * Must be called in an injection context.
+ */
+export function controlValue<T = any>(control: () => AbstractControl<T> | null | undefined): Signal<T | undefined> {
+  const current = computed(control);
+  const value = linkedSignal(() => current()?.value);
+  effect(onCleanup => {
+    const c = current();
+    if (!c) return;
+    value.set(c.value);
+    const sub = c.valueChanges.subscribe(v => value.set(v));
+    onCleanup(() => sub.unsubscribe());
+  });
+  return value.asReadonly();
 }

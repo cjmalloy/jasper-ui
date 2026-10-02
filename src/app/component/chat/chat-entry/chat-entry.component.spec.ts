@@ -27,7 +27,7 @@ describe('ChatEntryComponent', () => {
 
     fixture = TestBed.createComponent(ChatEntryComponent);
     component = fixture.componentInstance;
-    component.ref = {url: ''};
+    fixture.componentRef.setInput('ref', {url: ''});
     fixture.detectChanges();
   });
 

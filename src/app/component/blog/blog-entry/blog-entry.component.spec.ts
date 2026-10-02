@@ -29,7 +29,7 @@ describe('BlogEntryComponent', () => {
 
     fixture = TestBed.createComponent(BlogEntryComponent);
     component = fixture.componentInstance;
-    component.ref = { url: '' };
+    fixture.componentRef.setInput('ref', { url: '' });
     fixture.detectChanges();
   });
 

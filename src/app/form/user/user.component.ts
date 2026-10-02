@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ChangeDetectionStrategy, input, output, viewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ChangeDetectionStrategy, input, output, viewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -31,15 +31,13 @@ import { TagsFormComponent } from '../tags/tags.component';
 })
 export class UserFormComponent implements OnInit {
 
-  @Input()
-  group!: UntypedFormGroup;
+  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
   readonly showPubKey = input(true);
   readonly fillWidth = input<HTMLElement>();
   readonly tagChanges = output<string>();
   readonly showClear = input(false);
   readonly clear = output<void>();
-  @Input()
-  externalErrors: string[] = [];
+  readonly externalErrors = input<string[]>([]);
 
   readonly fill = viewChild<ElementRef>('fill');
 
@@ -60,6 +58,10 @@ export class UserFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.pubKey.disable();
+  }
+
+  get group(): UntypedFormGroup {
+    return this.groupInput();
   }
 
   get tag() {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, input, signal, viewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, signal, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -25,27 +25,27 @@ export class UserListComponent implements HasChanges {
 
   readonly list = viewChildren(UserComponent);
 
-  private _page?: Page<User>;
-  private cache: Map<string, Profile | undefined> = new Map();
-  private readonly cacheVersion = signal(0);
+  readonly pageInput = input<Page<User> | undefined>(undefined, { alias: 'page' });
+  private readonly fetched = signal<Record<string, Profile | undefined>>({});
+  private requested = new Set<string>();
 
   constructor(
     private router: Router,
     private profiles: ProfileService,
-  ) { }
+  ) {
+    effect(() => {
+      this.pageInput();
+      this.requested.clear();
+      this.fetched.set({});
+    });
+  }
 
   saveChanges() {
     return !this.list()?.find(u => !u.saveChanges());
   }
 
   get page() {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<User> | undefined) {
-    this.cache.clear();
-    this._page = value;
+    return this.pageInput();
   }
 
   hasUser(tag: string) {
@@ -53,23 +53,15 @@ export class UserListComponent implements HasChanges {
   }
 
   getProfile(user: User) {
-    this.cacheVersion();
     const tag = user.tag + user.origin;
-    if (!this._page) this._page = {} as any;
-    if (!this.cache.has(tag)) {
-      const profile = find(this.scim()?.content, p => p.tag === tag);
-      if (profile) {
-        this.cache.set(tag, profile);
-      } else {
-        this.cache.set(tag, undefined);
-        this.profiles.getProfile(tag).pipe(
-          catchError(e => of(undefined))
-        ).subscribe(p => {
-          this.cache.set(tag, p as Profile);
-          this.cacheVersion.update(v => v + 1);
-        });
-      }
+    const profile = find(this.scim()?.content, p => p.tag === tag);
+    if (profile) return profile;
+    if (!this.requested.has(tag)) {
+      this.requested.add(tag);
+      this.profiles.getProfile(tag).pipe(
+        catchError(e => of(undefined))
+      ).subscribe(p => this.fetched.update(fetched => ({ ...fetched, [tag]: p as Profile })));
     }
-    return this.cache.get(tag) || undefined;
+    return this.fetched()[tag] || undefined;
   }
 }

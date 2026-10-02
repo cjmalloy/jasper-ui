@@ -1,5 +1,5 @@
-<div [class]="'help-popup arrow-' + arrowPosition">
-  <div class="help-text">{{ text }}</div>
+<div [class]="'help-popup arrow-' + arrowPosition()">
+  <div class="help-text">{{ text() }}</div>
   <hr>
   <div class="stepper-controls">
     @if (store.helpStepIndex > 0) {

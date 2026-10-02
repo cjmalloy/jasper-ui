@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, computed } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
@@ -13,7 +13,6 @@ import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { getTitle } from '../../../util/format';
-import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
 
 @Component({
@@ -54,7 +53,6 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref)), { injector: this.injector });
     effect(() => {
-      MemoCache.clear(this);
       const top = this.store.view.url;
       const sort = this.store.view.sort;
       const filter = this.store.view.filter;
@@ -77,29 +75,19 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
     this.newComments$.complete();
   }
 
-  @memo
-  get depth() {
-    return this.store.view.depth || 7;
-  }
+  readonly depth = computed(() => this.store.view.depth || 7);
 
-  @memo
-  get comment() {
-    return this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref);
-  }
+  readonly comment = computed(() => this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref));
 
-  @memo
-  get mailboxes() {
-    return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
-  }
+  readonly mailboxes = computed(() => mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap));
 
-  @memo
-  get replyTags(): string[] {
+  readonly replyTags = computed((): string[] => {
     const tags = [
       'plugin/comment',
       'internal',
       ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
-      ...this.mailboxes,
+      ...this.mailboxes(),
     ];
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
-  }
+  });
 }

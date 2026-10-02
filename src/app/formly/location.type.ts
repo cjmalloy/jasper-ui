@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
+import { controlValue } from '../util/form';
 
 @Component({
   selector: 'formly-field-location',
@@ -58,7 +59,7 @@ import { getErrorMessage } from './errors';
 export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
 
   private showedError = false;
-  private readonly coordsVersion = signal(0);
+  private readonly coords = controlValue<number[]>(() => this.formControl);
 
   constructor(
     private config: FormlyConfig,
@@ -67,13 +68,11 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
   }
 
   get lng(): number {
-    this.coordsVersion();
-    return this.formControl.value?.[0] ?? 0;
+    return this.coords()?.[0] ?? 0;
   }
 
   get lat(): number {
-    this.coordsVersion();
-    return this.formControl.value?.[1] ?? 0;
+    return this.coords()?.[1] ?? 0;
   }
 
   setLng(value: string) {
@@ -98,7 +97,6 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
         pos => {
           this.formControl.setValue([pos.coords.longitude, pos.coords.latitude]);
           this.formControl.markAsDirty();
-          this.coordsVersion.update(value => value + 1);
         },
         err => console.error('Geolocation error:', err.message),
       );

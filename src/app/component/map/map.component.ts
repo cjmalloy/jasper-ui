@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, input, OnChanges, OnDestroy, signal, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, OnDestroy, signal, ViewEncapsulation } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
@@ -21,7 +21,6 @@ import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
-import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
@@ -46,13 +45,13 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
     ResizeHandleDirective
   ]
 })
-export class MapComponent implements OnChanges, OnDestroy, HasChanges {
+export class MapComponent implements OnDestroy, HasChanges {
 
   readonly tag = input('');
   readonly ext = input<Ext>();
   readonly pageControls = input(true);
-  @Input()
-  emptyMessage = 'No results found';
+  readonly emptyMessage = input('No results found');
+  readonly pageInput = input<Page<Ref> | undefined>(undefined, { alias: 'page' });
 
   private _page?: Page<Ref>;
   private map?: Map;
@@ -78,27 +77,30 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       takeUntilDestroyed(),
     ).subscribe(mapData => {
       this.mapData = mapData;
-      MemoCache.clear(this);
       this.updateMapData();
     });
+    effect(() => {
+      const value = this.pageInput();
+      this.mapDataUpdates$.next(value?.content || []);
+      if (value && value.page.number !== undefined && value.page.number > 0 && value.page.number >= value.page.totalPages) {
+        this.router.navigate([], {
+          queryParams: {
+            pageNumber: value.page.totalPages - 1
+          },
+          queryParamsHandling: 'merge',
+        });
+      }
+    });
   }
-
-  @memo
-  get mapStyle() {
+  readonly mapStyle = computed(() => {
     return {
       ...this.ext()?.config?.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
       ...this.admin.getTemplate('map')?.config?.mapStyle || {},
     };
-  }
+  });
 
   saveChanges() {
     return true;
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['ext']) {
-      MemoCache.clear(this);
-    }
   }
 
   ngOnDestroy() {
@@ -111,42 +113,24 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   get page(): Page<Ref> | undefined {
-    return this._page;
+    return this.pageInput();
   }
 
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    MemoCache.clear(this);
-    this._page = value;
-    this.mapDataUpdates$.next(value?.content || []);
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
-        this.router.navigate([], {
-          queryParams: {
-            pageNumber: this._page.page.totalPages - 1
-          },
-          queryParamsHandling: 'merge',
-        });
-      }
-    }
-  }
-
-  @memo
-  get geoData(): FeatureCollection {
+  readonly geoData = computed((): FeatureCollection => {
     return {
       type: 'FeatureCollection',
       features: this.mapData.flatMap(([ref]) => features(ref)).filter(f =>
         f.type === 'Feature' && f.geometry != null && f.geometry.type !== 'Point'
       ) || [],
     };
-  }
+  });
   onMapError(event: any) {
     console.error('MapLibre Engine Error:', event.error);
   }
 
   mapLoaded(map: Map) {
     this.map = map;
-    map.addSource('geo-features', { type: 'geojson', data: this.geoData });
+    map.addSource('geo-features', { type: 'geojson', data: this.geoData() });
     // Line layer for LineString and MultiLineString
     map.addLayer({
       id: 'geo-lines',
@@ -198,7 +182,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     if (!this.map) return;
     const source = this.map.getSource('geo-features') as GeoJSONSource | undefined;
     if (source) {
-      source.setData(this.geoData);
+      source.setData(this.geoData());
     }
     this.clearMarkers();
     this.addMarkers(this.map);

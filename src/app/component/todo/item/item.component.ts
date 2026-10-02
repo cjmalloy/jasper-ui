@@ -1,10 +1,8 @@
 import {
   Component,
   ElementRef,
+  effect,
   forwardRef,
-  HostBinding,
-  HostListener,
-  Input,
   ChangeDetectionStrategy,
   input,
   output,
@@ -19,7 +17,12 @@ import { MdComponent } from '../../md/md.component';
   selector: 'app-todo-item',
   templateUrl: './item.component.html',
   styleUrls: ['./item.component.scss'],
-  host: { 'class': 'todo-item' },
+  host: {
+    'class': 'todo-item',
+    '[class.unlocked]': 'unlocked()',
+    '(touchend)': 'touchend($event)',
+    '(press)': 'unlock($event)',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AutofocusDirective,
@@ -28,9 +31,7 @@ import { MdComponent } from '../../md/md.component';
 })
 export class TodoItemComponent {
 
-  @HostBinding('class.unlocked')
-  get unlocked() { return this.unlockedSignal(); }
-  private readonly unlockedSignal = signal(false);
+  readonly unlocked = signal(false);
 
   readonly pressToUnlock = input(false);
   readonly plugins = input<string[]>([]);
@@ -58,39 +59,37 @@ export class TodoItemComponent {
   get hovering() { return this.hoveringSignal(); }
   set hovering(value: boolean) { this.hoveringSignal.set(value); }
 
-  private _line = '';
+  readonly line = input('', { alias: 'line' });
 
   constructor(
     private store: Store,
     public config: ConfigService,
     private el: ElementRef,
-  ) { }
+  ) {
+    effect(() => this.setLine(this.line()));
+  }
 
   get local() {
     return this.origin() === this.store.account.origin;
   }
 
-  @Input()
-  set line(value: string) {
-    this._line = value;
+  private setLine(value: string) {
     if (value) {
       this.checked = !!/^[\s-]*\[([\sxX]*)]/.exec(value)?.[1]?.trim() || false;
-      this.text = this._line.replace(/^[\s-]*\[[\sxX]*]\s*/g, '');
+      this.text = value.replace(/^[\s-]*\[[\sxX]*]\s*/g, '');
     } else {
       this.checked = false;
       this.text = '';
     }
   }
 
-  @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
-    this.unlockedSignal.set(false);
+    this.unlocked.set(false);
   }
 
-  @HostListener('press', ['$event'])
   unlock(event: any) {
     if (!this.config.mobile) return;
-    this.unlockedSignal.set(true);
+    this.unlocked.set(true);
     this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
   }

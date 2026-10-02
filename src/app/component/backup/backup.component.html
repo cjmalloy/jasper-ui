@@ -1,8 +1,8 @@
 <div class="link">
   @if (!inProgress) {
-    <a [href]="downloadLinkAuth">{{ id }}</a>
+    <a [href]="downloadLinkAuth">{{ id() }}</a>
   } @else {
-    <span>{{ id.substring(1) }}</span>
+    <span>{{ id().substring(1) }}</span>
   }
 </div>
 <div class="stack">

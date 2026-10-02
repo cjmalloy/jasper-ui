@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, DestroyRef, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -39,10 +39,9 @@ import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlValue } from '../../../util/form';
 import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { memo, MemoCache } from '../../../util/memo';
 import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/tag';
 
 @Component({
@@ -65,7 +64,7 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
     LoadingComponent,
   ]
 })
-export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
+export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
@@ -77,10 +76,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
 
   limitWidth?: HTMLElement;
 
-  @ViewChild('fill')
-  set fill(value: ElementRef | undefined) {
-    defer(() => this.limitWidth = value?.nativeElement);
-  }
+  readonly fill = viewChild<ElementRef>('fill');
 
   readonly editorComponent = viewChild<EditorComponent>('ed');
 
@@ -96,6 +92,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   private showedError = false;
   private addedMailboxes: string[] = [];
   private searching?: Subscription;
+  private readonly tagsValue = controlValue<string[]>(() => this.tags);
 
   constructor(
     public config: ConfigService,
@@ -117,6 +114,10 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       sources: fb.array([]),
       comment: [''],
       tags: fb.array([]),
+    });
+    effect(() => {
+      const fill = this.fill();
+      defer(() => this.limitWidth = fill?.nativeElement);
     });
     if (this.admin.editing) {
       interval(5_000).pipe(
@@ -147,10 +148,6 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
       if (tags.length) this.addTags(tags);
     }, { injector: this.injector });
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    MemoCache.clear(this);
   }
 
   ngOnDestroy() {
@@ -216,7 +213,6 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       return;
     }
     tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
-    MemoCache.clear(this);
   }
 
   setTags(value: string[]) {
@@ -228,7 +224,6 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       return;
     }
     tagsFormComponent.setTags(value);
-    MemoCache.clear(this);
   }
 
   get showError() {
@@ -332,30 +327,26 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin), ...hasPrefix(tag, '+user') ? [localTag(tag).substring(1)] : [] ];
   }
 
-  @memo
-  get codeLang() {
-    for (const t of this.tags.value) {
+  readonly codeLang = computed(() => {
+    for (const t of this.tagsValue() || []) {
       if (hasPrefix(t, 'plugin/code')) {
         return t.split('/')[2];
       }
     }
     return '';
-  }
+  });
 
-  @memo
-  get codeOptions() {
-    return {
-      language: this.codeLang,
-      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
-      automaticLayout: true,
-    };
-  }
+  readonly codeOptions = computed(() => ({
+    language: this.codeLang(),
+    theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+    automaticLayout: true,
+  }));
 
-  @memo
-  get customEditor() {
-    if (!this.tags?.value) return false;
-    return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
-  }
+  readonly customEditor = computed(() => {
+    const tags = this.tagsValue();
+    if (!tags) return false;
+    return some(this.admin.editor, t => hasTag(t.tag, tags));
+  });
 
   get top() {
     return this.sources.value[1] || this.sources.value[0] || this._url;

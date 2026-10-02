@@ -11,11 +11,7 @@ import { ConfigService } from '../config.service';
 function isTestEnvironment(): boolean {
   // Check for Vitest/Jest test environment
   // @ts-ignore
-  if (typeof globalThis !== 'undefined' && (globalThis.__vitest_worker__ || globalThis.jest)) return true;
-  // Check for Zone.js test zone (Angular TestBed)
-  // @ts-ignore
-  if (typeof Zone !== 'undefined' && Zone.current?.name === 'ProxyZone') return true;
-  return false;
+  return typeof globalThis !== 'undefined' && !!(globalThis.__vitest_worker__ || globalThis.jest);
 }
 
 @Injectable({

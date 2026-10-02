@@ -1,11 +1,11 @@
-<div class="link" [class.remote]="!local">
-  @if (preview | async; as p) {
-    <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ p.name || '#' + p.tag }}</a>
+<div class="link" [class.remote]="!local()">
+  @if (preview() | async; as p) {
+    <a [routerLink]="['/tag', extLink()]" [appTitle]="ext">{{ p.name || '#' + p.tag }}</a>
   } @else {
-    <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ ext.name || template?.name || plugin?.name || '#' + ext.tag }}</a>
+    <a [routerLink]="['/tag', extLink()]" [appTitle]="ext">{{ ext.name || template?.name || plugin?.name || '#' + ext.tag }}</a>
   }
   @if (ext.name) {
-    <span class="host">({{ qualifiedTag }})</span>
+    <span class="host">({{ qualifiedTag() }})</span>
   } @else if (ext.origin) {
     <span class="host">({{ ext.origin }})</span>
   }
@@ -20,20 +20,20 @@
     @for (icon of icons; track icon) {
       <span class="icon" (click)="bookmarks.toggleTag(icon.tag)" [title]="icon.tag">{{ icon.config!.view! }}</span>
     }
-    @if (!local) {
+    @if (!local()) {
       &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', ext.origin]">{{ ext.origin || 'default' }}</a>
     }
   </div>
   <div class="actions">
     @if (!ext.upload) {
-      @if (parent) {
-        <a [routerLink]="['/tags', parent]" i18n>parent</a>
+      @if (parent()) {
+        <a [routerLink]="['/tags', parent()]" i18n>parent</a>
       }
-      <a [routerLink]="['/tags', extLink]" i18n>tags</a>
-      @if (!local) {
+      <a [routerLink]="['/tags', extLink()]" i18n>tags</a>
+      @if (!local()) {
         <a class="fake-link" (click)="copy()" i18n>copy</a>
       }
-      @if (local && writeAccess) {
+      @if (local() && writeAccess) {
         @if (useEditPage()) {
           <a [routerLink]="['/ext/', ext.tag]" i18n>edit</a>
         } @else {
@@ -51,8 +51,8 @@
     }
     @if (store.account.user && ext.upload) {
       <a class="fake-link" (click)="upload()" i18n>upload</a>
-      @if (parent) {
-        <a [routerLink]="['/tags', parent]" i18n>parent</a>
+      @if (parent()) {
+        <a [routerLink]="['/tags', parent()]" i18n>parent</a>
       }
       <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
       <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>

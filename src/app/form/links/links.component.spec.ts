@@ -24,7 +24,7 @@ describe('LinksFormComponent', () => {
 
     fixture = TestBed.createComponent(LinksFormComponent);
     component = fixture.componentInstance;
-    component.group = new UntypedFormGroup({ links: new UntypedFormControl({}) });
+    fixture.componentRef.setInput('group', new UntypedFormGroup({ links: new UntypedFormControl({}) }));
     fixture.detectChanges();
   });
 

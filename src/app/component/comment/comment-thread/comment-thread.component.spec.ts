@@ -24,7 +24,7 @@ describe('CommentThreadComponent', () => {
 
     fixture = TestBed.createComponent(CommentThreadComponent);
     component = fixture.componentInstance;
-    component.newComments$ = new Subject();
+    fixture.componentRef.setInput('newComments$', new Subject());
     fixture.detectChanges();
   });
 

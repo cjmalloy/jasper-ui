@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, Input, input, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -15,8 +15,7 @@ import { Store } from '../../store/store';
 })
 export class JsonComponent {
 
-  @Input()
-  group!: UntypedFormGroup;
+  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
   readonly fieldName = input('source');
 
   private readonly _options = signal<any>({
@@ -36,6 +35,8 @@ export class JsonComponent {
       }
     });
   }
+
+  get group(): UntypedFormGroup { return this.groupInput(); }
 
   get options(): any { return this._options(); }
   set options(value: any) { this._options.set(value); }

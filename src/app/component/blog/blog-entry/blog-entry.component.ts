@@ -8,14 +8,12 @@ import {
   inject,
   Component,
   forwardRef,
-  HostBinding,
-  Input,
-  OnChanges,
-  SimpleChanges,
-  ViewChild,
   ChangeDetectionStrategy,
+  effect,
   input,
+  linkedSignal,
   signal,
+  viewChild,
   viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -57,7 +55,6 @@ import { downloadRef } from '../../../util/download';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
-import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, isAuthorTag, localTag, removeTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionListComponent } from '../../action/action-list/action-list.component';
 import { ActionComponent } from '../../action/action.component';
@@ -74,7 +71,7 @@ import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summ
   selector: 'app-blog-entry',
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss'],
-  host: { 'class': 'blog-entry' },
+  host: { 'class': 'blog-entry', '[attr.tabindex]': '0', '[class.deleted]': 'deleted' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
@@ -93,18 +90,17 @@ import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summ
     AsyncPipe,
   ],
 })
-export class BlogEntryComponent implements OnChanges, HasChanges {
-  @HostBinding('attr.tabindex') tabIndex = 0;
+export class BlogEntryComponent implements HasChanges {
   private destroyRef = inject(DestroyRef);
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
+  readonly refForm = viewChild<RefFormComponent>('refForm');
 
   readonly blog = input<Ext>();
-  private readonly refSignal = signal<Ref | undefined>(undefined);
-
-  @Input()
+  readonly refInput = input.required<Ref>({ alias: 'ref' });
+  private readonly refSignal = linkedSignal(() => this.refInput());
+  get ref() { return this.refSignal(); }
   set ref(value: Ref) { this.refSignal.set(value); }
-  get ref() { return this.refSignal()!; }
 
   private readonly repostRefSignal = signal<Ref | undefined>(undefined);
   get repostRef() { return this.repostRefSignal(); }
@@ -117,7 +113,6 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
   private readonly groupedActionsSignal = signal<{ [key: string]: Action[] }>({});
   private readonly editingSignal = signal(false);
   private readonly viewSourceSignal = signal(false);
-  @HostBinding('class.deleted')
   get deleted() { return this.deletedSignal(); }
   private readonly deletedSignal = signal(false);
   private readonly writeAccessSignal = signal(false);
@@ -182,6 +177,18 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
+    effect(() => {
+      this.refInput();
+      this.init();
+    });
+    effect(() => {
+      const value = this.refForm();
+      const ref = this.ref;
+      defer(() => {
+        value?.setRef(ref);
+        this.editor.syncEditor(this.fb, this.editForm, ref.comment);
+      });
+    });
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
@@ -202,7 +209,6 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
   }
 
   init() {
-    MemoCache.clear(this);
     this.submitted = false;
     this.deleted = false;
     this.editing = false;
@@ -225,45 +231,31 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref) {
-      this.init();
-    }
-  }
-
-
-  @memo
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
   }
 
-  @memo
   get repost() {
     return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 
-  @memo
   get bareRepost() {
     return this.repost && !this.ref.title && !this.ref.comment;
   }
 
-  @memo
   get currentRef() {
     return this.repost ? this.repostRef : this.ref;
   }
 
-  @memo
   get bareRef() {
     return this.bareRepost ? this.repostRef : this.ref;
   }
 
-  @memo
   get url() {
     return this.repost ? this.ref.sources![0] : this.ref.url;
   }
 
-  @memo
   get title(): string {
     const title = (this.ref.title || '').trim();
     const comment = (this.ref.comment || '').trim();
@@ -273,15 +265,6 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     return comment.substring(0, 140);
   }
 
-  @ViewChild('refForm')
-  set refForm(value: RefFormComponent) {
-    defer(() => {
-      value?.setRef(this.ref);
-      this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
-    });
-  }
-
-  @memo
   get canInvoice() {
     if (!this.local) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
@@ -289,23 +272,19 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     return hasTag('queue', this.ref);
   }
 
-  @memo
   get local() {
     return this.ref.origin === this.store.account.origin;
   }
 
-  @memo
   get localhost() {
     return this.ref.url.startsWith(this.config.base);
   }
 
-  @memo
   get pdf() {
     if (!this.admin.getPlugin('plugin/pdf')) return null;
     return this.ref.plugins?.['plugin/pdf']?.url || this.findPdf;
   }
 
-  @memo
   get findPdf() {
     if (!this.ref.alternateUrls) return null;
     for (const s of this.ref.alternateUrls) {
@@ -316,24 +295,20 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     return null;
   }
 
-  @memo
   get archive() {
     const plugin = this.admin.getPlugin('plugin/archive');
     if (!plugin) return null;
     return this.ref.plugins?.['plugin/archive']?.url || findArchive(plugin, this.ref);
   }
 
-  @memo
   get isAuthor() {
     return isAuthorTag(this.store.account.tag, this.ref);
   }
 
-  @memo
   get isRecipient() {
     return hasTag(this.store.account.mailbox, this.ref);
   }
 
-  @memo
   get authors() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return uniq([
@@ -342,12 +317,10 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     ]);
   }
 
-  @memo
   get authorExts$() {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
-  @memo
   get tags() {
     let result = interestingTags(this.ref.tags);
     const blog = this.blog();
@@ -355,39 +328,32 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     return intersection(result, blog.config.tags || []);
   }
 
-  @memo
   get tagExts$() {
     return this.editor.getTagsPreview(this.tags, this.ref.origin || '');
   }
 
-  @memo
   get tagLink() {
     return this.url.toLowerCase().startsWith('tag:/');
   }
 
-  @memo
   get clickableLink() {
     return clickableLink(this.ref.url);
   }
 
-  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
-  @memo
   get responses() {
     return this.ref.metadata?.responses || 0;
   }
 
-  @memo
   get sources() {
     const sources = uniq(this.ref?.sources).filter(s => s != this.ref.url);
     return sources.length || 0;
   }
 
-  @memo
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');
@@ -395,12 +361,10 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     return formatAuthor(user);
   }
 
-  @memo
   get mailboxes() {
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
   }
 
-  @memo
   get replyTags(): string[] {
     const tags = [
       'plugin/comment',

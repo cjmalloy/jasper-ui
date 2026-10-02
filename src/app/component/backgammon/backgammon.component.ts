@@ -3,9 +3,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  HostBinding,
-  HostListener,
-  Input,
+  linkedSignal,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -542,20 +540,25 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
   templateUrl: './backgammon.component.html',
   styleUrls: ['./backgammon.component.scss'],
   hostDirectives: [CdkDropListGroup],
-  host: { 'class': 'backgammon-board' },
+  host: {
+    'class': 'backgammon-board',
+    '[class.red]': 'red',
+    '[class.loaded]': 'loaded',
+    '[class.resizing]': 'resizing',
+    '[class.replay-mode]': 'replayMode',
+    '(window:resize)': 'onResize()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CdkDropList, CdkDrag]
 })
 export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
 
-  @Input()
-  @HostBinding('class.red')
   get red() { return this.redSignal(); } // TODO: Save in local storage
   set red(value: boolean) { this.redSignal.set(value); }
-  private readonly redSignal = signal(false);
+  readonly redInput = input(false, { alias: 'red' });
+  private readonly redSignal = linkedSignal(() => this.redInput());
   readonly ref = input<Ref>();
-  @Input()
-  text? = '';
+  readonly text = input('', { alias: 'text' });
   readonly comment = output<string>();
   readonly copied = output<string>();
 
@@ -565,13 +568,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   private readonly startSignal = signal<number | undefined>(undefined);
   private readonly rollingSignal = signal<Piece | undefined>(undefined);
   private readonly dragSourceSignal = signal(-1);
-  @HostBinding('class.loaded')
   get loaded() { return this.loadedSignal(); }
   private readonly loadedSignal = signal(false);
-  @HostBinding('class.resizing')
   get resizing() { return this.resizingSignal(); }
   private readonly resizingSignal = signal(0);
-  @HostBinding('class.replay-mode')
   get replayMode() { return this.replayModeSignal(); }
   private readonly replayModeSignal = signal(false);
   private readonly translateSignal = signal<number | undefined>(undefined);
@@ -670,7 +670,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         }
       });
     }
-    this.reset(this.ref()?.comment || this.text);
+    this.reset(this.ref()?.comment || this.text());
   }
 
   ngAfterViewInit() {
@@ -683,7 +683,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       const ref = this.ref();
       if (!ref || newRef) {
         this.watch?.unsubscribe();
-        if (ref || this.text != null) this.init();
+        if (ref || this.text() != null) this.init();
       } else if (changes.ref && !changes.ref.firstChange) {
         // Check if end game tags were added
         const prevEnded = !!(changes.ref.previousValue && (
@@ -716,7 +716,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     return !ref?.created || ref.upload || ref?.origin === this.store.account.origin;
   }
 
-  @HostListener('window:resize')
   onResize() {
     const dim = Math.floor(hasTag('plugin/fullscreen', this.ref()) ? Math.min(
       screen.width / 28,

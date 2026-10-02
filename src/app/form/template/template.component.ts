@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -19,19 +19,19 @@ import { JsonComponent } from '../json/json.component';
 })
 export class TemplateFormComponent {
 
-  @Input()
-  group!: UntypedFormGroup;
-  @Input()
-  configErrors: string[] = [];
-  @Input()
-  defaultsErrors: string[] = [];
-  @Input()
-  schemaErrors: string[] = [];
+  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
+  readonly configErrors = input<string[]>([]);
+  readonly defaultsErrors = input<string[]>([]);
+  readonly schemaErrors = input<string[]>([]);
 
   id = 'template-' + uuid();
   editingConfig = false;
   editingDefaults = false;
   editingSchema = false;
+
+  get group(): UntypedFormGroup {
+    return this.groupInput();
+  }
 
   get tag() {
     return this.group.get('tag') as UntypedFormControl;

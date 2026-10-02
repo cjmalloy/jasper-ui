@@ -2,9 +2,7 @@ import {
   AfterViewInit,
   Directive,
   ElementRef,
-  HostBinding,
-  HostListener,
-  Input,
+  input,
   OnDestroy,
   signal
 } from '@angular/core';
@@ -13,28 +11,25 @@ import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';
 
 @Directive({
-    selector: '[appResizeHandle]',
+  selector: '[appResizeHandle]',
+  host: {
+    '[style.cursor]': 'cursor()',
+    '[class.resize-dragging]': 'dragging()',
+    '[class.resize-handle]': 'enabled',
+    '(pointerdown)': 'onPointerDown($event)',
+    '(window:pointermove)': 'onPointerMove($event)',
+    '(window:pointerup)': 'onPointerUp($event)',
+  },
 })
 export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
-  private readonly _cursor = signal('auto');
-  private readonly _dragging = signal(false);
+  readonly cursor = signal('auto');
+  readonly dragging = signal(false);
 
-  @HostBinding('style.cursor')
-  get cursor() { return this._cursor(); }
-  set cursor(value: string) { this._cursor.set(value); }
+  readonly hitArea = input(24);
+  readonly appResizeHandle = input<boolean | string | undefined>(true);
+  readonly child = input<HTMLElement | undefined>();
+  readonly initChild = input(false);
 
-  @Input()
-  hitArea = 24;
-  @Input()
-  appResizeHandle?: boolean | string = true;
-  @Input()
-  child?: HTMLElement;
-  @Input()
-  initChild = false;
-
-  @HostBinding('class.resize-dragging')
-  get dragging() { return this._dragging(); }
-  set dragging(value: boolean) { this._dragging.set(value); }
   x = 0;
   y = 0;
   width = 0;
@@ -51,20 +46,20 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
     return this.config.mobile ? 'row-resize' : 'se-resize';
   }
 
-  @HostBinding('class.resize-handle')
   get enabled() {
-    return this.appResizeHandle !== 'false' && this.appResizeHandle !== false;
+    return this.appResizeHandle() !== 'false' && this.appResizeHandle() !== false;
   }
 
   ngAfterViewInit() {
     if (!this.enabled) return;
     this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.shrinkContainer()) || undefined;
-    if (this.child) {
-      if (this.initChild) {
-        this.child.style.width = this.el.nativeElement.style.width || (this.config.mobile ? 'min(100%, 100vw - 16px)' : 'min(100%, 80vw)');
-        this.child.style.height = this.el.nativeElement.style.height || '80vh';
+    const child = this.child();
+    if (child) {
+      if (this.initChild()) {
+        child.style.width = this.el.nativeElement.style.width || (this.config.mobile ? 'min(100%, 100vw - 16px)' : 'min(100%, 80vw)');
+        child.style.height = this.el.nativeElement.style.height || '80vh';
       }
-      this.resizeObserver?.observe(this.child);
+      this.resizeObserver?.observe(child);
     }
   }
 
@@ -73,18 +68,18 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   }
 
   shrinkContainer() {
-    if (!this.child) return;
-    this.el.nativeElement.style.width = this.child.style.width;
-    this.el.nativeElement.style.height = this.child.style.height;
+    const child = this.child();
+    if (!child) return;
+    this.el.nativeElement.style.width = child.style.width;
+    this.el.nativeElement.style.height = child.style.height;
   }
 
-  @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent) {
     if (!this.enabled) return;
     if (event.button) return;
     if (this.hit(event)) {
-      this.dragging = true;
-      this.cursor = 'grabbing';
+      this.dragging.set(true);
+      this.cursor.set('grabbing');
       this.x = event.clientX;
       this.y = event.clientY;
       this.width = this.el.nativeElement.offsetWidth;
@@ -95,10 +90,9 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
     }
   }
 
-  @HostListener('window:pointermove', ['$event'])
   onPointerMove(event: PointerEvent) {
     if (!this.enabled) return;
-    if (this.dragging) {
+    if (this.dragging()) {
       const dx = event.clientX - this.x;
       const dy = event.clientY - this.y;
       this.setWidth((this.width + dx) + 'px');
@@ -108,38 +102,39 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
       event.stopImmediatePropagation();
     } else {
       const cursor = this.hit(event) ? this.resizeCursor : 'auto';
-      if (this.cursor !== cursor) {
-        this.cursor = cursor;
+      if (this.cursor() !== cursor) {
+        this.cursor.set(cursor);
       }
     }
   }
 
-  @HostListener('window:pointerup', ['$event'])
   onPointerUp(event: PointerEvent) {
     if (!this.enabled) return;
-    if (this.dragging) {
-      this.cursor = this.hit(event) ? this.resizeCursor : 'auto';
+    if (this.dragging()) {
+      this.cursor.set(this.hit(event) ? this.resizeCursor : 'auto');
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      defer(() => this.dragging = false);
+      defer(() => this.dragging.set(false));
     }
   }
 
   private hit(event: PointerEvent) {
     const x = this.el.nativeElement.offsetWidth - relativeX(event.clientX, this.el.nativeElement);
     const y = this.el.nativeElement.offsetHeight - relativeY(event.clientY, this.el.nativeElement);
-    return x + y < this.hitArea;
+    return x + y < this.hitArea();
   }
 
   private setWidth(width: string) {
     this.el.nativeElement.style.width = width;
-    if (this.child) this.child.style.width = width;
+    const child = this.child();
+    if (child) child.style.width = width;
   }
 
   private setHeight(height: string) {
     this.el.nativeElement.style.height = height;
-    if (this.child) this.child.style.height = height;
+    const child = this.child();
+    if (child) child.style.height = height;
   }
 
 }

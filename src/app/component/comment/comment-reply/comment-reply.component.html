@@ -1,11 +1,10 @@
-@if (state()) {<ng-container></ng-container>}
 <form>
   <app-editor #editor [control]="comment"
               [createdTags]="tags || []"
               [selectResponseType]="selectResponseType()"
               (syncTags)="syncTags($event)"
               (addSource)="addSource($event)"
-              (uploadCompleted)="completedUploads.push($event)"
+              (uploadCompleted)="completedUploads = [...completedUploads, $event]"
               [autoFocus]="autofocus()"></app-editor>
 </form>
 @for (e of serverError; track e) {

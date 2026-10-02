@@ -1,7 +1,9 @@
 import { KeyValuePipe } from '@angular/common';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, Component, effect, ElementRef, input, OnChanges, OnDestroy, signal, SimpleChanges, untracked } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, effect, ElementRef, input, OnDestroy, signal, untracked,
+  computed
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
 import { catchError, concat, last, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -34,7 +36,6 @@ import { UserStore } from '../../store/user';
 import { Type } from '../../store/view';
 import { downloadPage } from '../../util/download';
 import { getScheme, printError } from '../../util/http';
-import { memo, MemoCache } from '../../util/memo';
 import { expandedTagsInclude, hasTag, isAuthorTag, subOrigin } from '../../util/tag';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
@@ -50,7 +51,7 @@ import { LoadingComponent } from '../loading/loading.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
-export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class BulkComponent implements AfterViewInit, OnDestroy {
 
   private defaultsSub?: Subscription;
 
@@ -103,7 +104,6 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
       const viewExt = this.viewExt();
       const activeExts = this.activeExts();
       untracked(() => {
-        MemoCache.clear(this);
         const commonTags = intersection(...map(page?.content, ref => ref.tags || []));
         this.forms = this.admin.bulkForm;
         this.actions = uniqueConfigs([
@@ -122,21 +122,13 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.help.pushStep(this.el?.nativeElement, $localize`Bulk actions will only affect all Refs in the current page.`);
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.type || changes.activeExts) {
-      MemoCache.clear(this);
-    }
-  }
-
   ngOnDestroy() {
     this.defaultsSub?.unsubscribe();
   }
-
-  @memo
-  get urls() {
+  readonly urls = computed(() => {
     if (!this.query.page?.content.length) return [];
     return uniq(this.query.page!.content.map(ref => ref.url));
-  }
+  });
 
   batch$<T>(fn: (e: T) => Observable<any> | void) {
     if (this.batchRunning) return of(null);

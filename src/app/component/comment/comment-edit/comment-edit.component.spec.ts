@@ -24,8 +24,8 @@ describe('CommentEditComponent', () => {
 
     fixture = TestBed.createComponent(CommentEditComponent);
     component = fixture.componentInstance;
-    component.ref = { url: '' };
-    component.commentEdited$ = new Subject<Ref>();
+    fixture.componentRef.setInput('ref', { url: '' });
+    fixture.componentRef.setInput('commentEdited$', new Subject<Ref>());
     fixture.detectChanges();
   });
 
@@ -35,11 +35,11 @@ describe('CommentEditComponent', () => {
 
   it('should preserve existing tags when editing only comment text', () => {
     // Setup component with existing tags
-    component.ref = {
+    fixture.componentRef.setInput('ref', {
       url: 'test-url',
       tags: ['tag1', 'tag2', 'existing-tag'],
       comment: 'Original comment'
-    };
+    });
     // When editing only comment, editor doesn't change tags so editorTags should remain the same
     component.editorTags = ['tag1', 'tag2', 'existing-tag']; // Editor preserves existing tags
 
@@ -69,11 +69,11 @@ describe('CommentEditComponent', () => {
 
   it('should add new tags when provided through editor', () => {
     // Setup component with existing tags
-    component.ref = {
+    fixture.componentRef.setInput('ref', {
       url: 'test-url',
       tags: ['existing-tag'],
       comment: 'Original comment'
-    };
+    });
     // Editor adds a new tag while keeping existing ones
     component.editorTags = ['existing-tag', 'new-tag']; // Editor now includes both existing and new
 
@@ -99,11 +99,11 @@ describe('CommentEditComponent', () => {
 
   it('should remove tags when they are removed through editor', () => {
     // Setup component with existing tags including 'public'
-    component.ref = {
+    fixture.componentRef.setInput('ref', {
       url: 'test-url',
       tags: ['public', 'important', 'project'],
       comment: 'Original comment'
-    };
+    });
     // Editor removes 'public' tag (like public/private toggle)
     component.editorTags = ['important', 'project']; // 'public' removed by editor
 
@@ -127,10 +127,10 @@ describe('CommentEditComponent', () => {
     expect(addPatches.length).toBe(0);
   });
   it('should remove multiple tags in descending index order', () => {
-    component.ref = {
+    fixture.componentRef.setInput('ref', {
       url: 'test-url',
       tags: ['public', 'plugin/comment', 'internal', 'plugin/latex'],
-    };
+    });
     component.editorTags = ['plugin/comment', 'internal'];
 
     const patches: any[] = [];

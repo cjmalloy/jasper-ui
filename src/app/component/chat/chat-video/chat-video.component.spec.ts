@@ -116,7 +116,7 @@ describe('ChatVideoComponent', () => {
       // Setup localStorage to indicate user was in a call
       localStorage.setItem('video', 'true');
       mockStore.video.enabled = false;
-      component.url = 'test://response';
+      fixture.componentRef.setInput('url', 'test://response');
       mockTaggingService.getResponse.mockReturnValue(of({} as Ref));
 
       fixture.detectChanges();
@@ -251,7 +251,7 @@ describe('ChatVideoComponent', () => {
     });
 
     it('should use custom URL when provided', () => {
-      component.url = 'test://response';
+      fixture.componentRef.setInput('url', 'test://response');
 
       component.hangup();
 

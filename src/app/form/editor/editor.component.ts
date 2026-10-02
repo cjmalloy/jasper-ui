@@ -12,18 +12,16 @@ import {
   Component,
   ElementRef,
   forwardRef,
-  HostBinding,
-  HostListener,
-  Input,
-  OnChanges,
+  computed,
+  linkedSignal,
   OnDestroy,
-  SimpleChanges,
   TemplateRef,
   ViewContainerRef,
   ChangeDetectionStrategy,
   input,
   output,
   signal,
+  untracked,
   viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -49,8 +47,8 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
-import { memo, MemoCache } from '../../util/memo';
 import { expandedTagsInclude, hasTag, test } from '../../util/tag';
+import { controlValue } from '../../util/form';
 
 export interface EditorUpload {
   id: string;
@@ -66,7 +64,17 @@ export interface EditorUpload {
   selector: 'app-editor',
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
-  host: { 'class': 'editor' },
+  host: {
+    'class': 'editor',
+    '[class.stacked]': 'stacked',
+    '[class.fullscreen]': 'fullscreen',
+    '[class.help]': 'help',
+    '[class.md-preview]': 'preview',
+    '[class.add-button]': 'addButtonClass()',
+    '[class.editing]': 'editing',
+    '[style.padding.px]': 'padding',
+    '(window:scroll)': 'preventScroll()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => MdComponent),
@@ -77,7 +85,7 @@ export interface EditorUpload {
     LimitWidthDirective,
   ],
 })
-export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
+export class EditorComponent implements AfterViewInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
 
   readonly id = input('editor-' + uuid());
@@ -99,12 +107,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   readonly hasTags = input(true);
   readonly selectResponseType = input(false);
   readonly tags = input<UntypedFormArray>();
-  @Input()
-  createdTags: string[] = [];
-  @Input()
-  control!: UntypedFormControl;
+  readonly createdTagsInput = input<string[]>([], { alias: 'createdTags' });
+  private readonly createdTagsSignal = linkedSignal(() => this.createdTagsInput());
+  readonly controlInput = input.required<UntypedFormControl>({ alias: 'control' });
   readonly autoFocus = input(false);
-  private readonly _addButton = signal(false);
+  readonly addButton = input(false);
   readonly url = input('');
   readonly addCommentTitle = input($localize `Add comment`);
   readonly addCommentLabel = input($localize `+ Add comment`);
@@ -126,6 +133,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   files = !!this.admin.getPlugin('plugin/file');
   private readonly _loadingEvents = signal<any>({});
 
+  private readonly tagsValue = controlValue<string[]>(() => this.tags());
   private readonly _text = signal('');
   private readonly _editing = signal(false);
   private _padding = 8;
@@ -161,6 +169,17 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.loadingEvents = { ...this.loadingEvents, [event.event]: false };
     });
     effect(() => {
+      this.tags();
+      this.tagsValue();
+      this.createdTagsInput();
+      this.url();
+      this.init();
+    });
+    effect(() => {
+      const scraping = this.scraping();
+      this.loadingEvents = { ...untracked(() => this.loadingEvents), 'scrape-done': scraping };
+    });
+    effect(() => {
       const height = this.store.viewportHeight - 4;
       if (this.overlayRef) {
         this.overlayRef.updateSize({ height });
@@ -170,19 +189,15 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     });
   }
 
-  @HostBinding('class.stacked')
   get stacked(): boolean { return this._stacked(); }
   set stacked(value: boolean) { this._stacked.set(value); }
 
-  @HostBinding('class.fullscreen')
   get fullscreen(): boolean { return this._fullscreen(); }
   set fullscreen(value: boolean) { this._fullscreen.set(value); }
 
-  @HostBinding('class.help')
   get help(): boolean { return this._help(); }
   set help(value: boolean) { this._help.set(value); }
 
-  @HostBinding('class.md-preview')
   get preview(): boolean { return this._preview(); }
   set preview(value: boolean) { this._preview.set(value); }
 
@@ -207,40 +222,27 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   get loadingEvents(): any { return this._loadingEvents(); }
   set loadingEvents(value: any) { this._loadingEvents.set(value); }
 
-  get addButton(): boolean { return this._addButton(); }
-  @Input()
-  set addButton(value: boolean) { this._addButton.set(value); }
+  get createdTags(): string[] { return this.createdTagsSignal(); }
+  set createdTags(value: string[]) { this.createdTagsSignal.set(value); }
+
+  get control(): UntypedFormControl { return this.controlInput(); }
 
   init() {
-    MemoCache.clear(this);
-    if (this.selectResponseType() && this.responseButtons.length) {
+    if (this.selectResponseType() && this.responseButtons().length) {
       this.toggleIndex = 0;
       const tags = this.tags()?.value || this.createdTags;
-      for (const p of this.responseButtons) {
+      for (const p of this.responseButtons()) {
         if (hasTag(p.tag, tags)) {
-          this.toggleIndex = this.responseButtons.indexOf(p);
+          this.toggleIndex = this.responseButtons().indexOf(p);
         }
       }
     }
   }
 
   ngAfterViewInit(): void {
-    const tags = this.tags();
-    if (tags) {
-      tags.valueChanges.pipe(
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(() => {
-        this.init();
-      });
-    } else {
+    if (!this.tags()) {
       this.init();
-      this.updateTags(this.editing ? this.initTags : this.allTags);
-    }
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.tags || changes.createdTags || changes.url) {
-      this.init();
+      this.updateTags(this.editing ? this.initTags() : this.allTags());
     }
   }
 
@@ -250,12 +252,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
   }
 
-  @Input()
-  set scraping(value: boolean) {
-    this.loadingEvents = { ...this.loadingEvents, 'scrape-done': value };
-  }
+  readonly scraping = input(false);
 
-  @HostListener('window:scroll')
   preventScroll() {
     if (this.overlayRef) {
       window.scrollTo(0, 0);
@@ -309,12 +307,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     editor.nativeElement.scrollTop = hiddenMeasure.nativeElement.scrollHeight - editor.nativeElement.clientHeight / 2;
   }
 
-  @HostBinding('class.add-button')
-  get addButtonClass() {
-    return this.addButton && !this.editing && !this.currentText;
-  }
+  readonly addButtonClass = computed(() => this.addButton() && !this.editing && !this.currentText);
 
-  @HostBinding('style.padding.px')
   get padding(): number {
     if (this.fullscreen) return 0;
     return this._padding + 8;
@@ -328,82 +322,58 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     return this._editing();
   }
 
-  @HostBinding('class.editing')
   set editing(value: boolean) {
     if (!this._editing() && value) {
       this._editing.set(true);
-      this.updateTags(this.initTags);
+      this.updateTags(this.initTags());
     }
   }
 
-  @memo
-  get allTags() {
-    const tags = this.tags();
+  readonly allTags = computed(() => {
+    const tags = this.tags() ? this.tagsValue() || [] : this.createdTags;
     return uniq([
-      ...without(tags ? tags.value : this.createdTags, ...this.allResponseTags),
-      ...this.responseTags,
+      ...without(tags, ...this.allResponseTags()),
+      ...this.responseTags(),
     ]);
-  }
+  });
 
-  @memo
-  get initTags() {
-    return [
-      ...without(intersection(this.store.account.defaultEditors(this.editors), this.editorButtons.filter(b => this.visible(b)).map(b => b.toggle!)), ...this.allTags),
-      ...this.allTags,
-    ];
-  }
+  readonly initTags = computed(() => [
+    ...without(intersection(this.store.account.defaultEditors(this.editors()), this.editorButtons().filter(b => this.visible(b)).map(b => b.toggle!)), ...this.allTags()),
+    ...this.allTags(),
+  ]);
 
-  @memo
-  get editors() {
-    return this.editorButtons.map(p => p?.toggle as string).filter(p => !!p);
-  }
+  readonly editors = computed(() => this.editorButtons().map(p => p?.toggle as string).filter(p => !!p));
 
-  @memo
-  get editorButtons(): EditorButton[] {
-    return sortOrder(this.admin.getEditorButtons(this.allTags, this.scheme)).reverse();
-  }
+  readonly editorButtons = computed((): EditorButton[] => sortOrder(this.admin.getEditorButtons(this.allTags(), this.scheme())).reverse());
 
-  @memo
-  get responseButtons() {
-    return this.admin.responseButton;
-  }
+  readonly responseButtons = computed(() => this.admin.responseButton);
 
-  @memo
-  get editorRibbons() {
-    return sortOrder(this.editorButtons.filter(b => b.ribbon && this.visible(b)).map(b => this.setButtonOn(b)));
-  }
+  readonly editorRibbons = computed(() => sortOrder(this.editorButtons().filter(b => b.ribbon && this.visible(b)).map(b => this.setButtonOn(b))));
 
-  @memo
-  get editorPushButtons() {
-    return sortOrder(this.editorButtons.filter(b => !b.ribbon && this.visible(b)).map(b => this.setButtonOn(b)));
-  }
+  readonly editorPushButtons = computed(() => sortOrder(this.editorButtons().filter(b => !b.ribbon && this.visible(b)).map(b => this.setButtonOn(b))));
 
-  @memo
-  get responseTags() {
-    if (!this.selectResponseType() || !this.responseButtons.length) return [];
-    const p = this.responseButtons[this.toggleIndex];
+  readonly responseTags = computed(() => {
+    if (!this.selectResponseType() || !this.responseButtons().length) return [];
+    const p = this.responseButtons()[this.toggleIndex];
     return p.config?.reply || [p.tag];
-  }
+  });
 
-  @memo
-  get allResponseTags() {
+  readonly allResponseTags = computed(() => {
     if (!this.selectResponseType()) return [];
-    return this.responseButtons.flatMap(p => p.config?.reply || [p.tag]);
-  }
+    return this.responseButtons().flatMap(p => p.config?.reply || [p.tag]);
+  });
 
-  @memo
-  get scheme() {
+  readonly scheme = computed(() => {
     const url = this.url();
     if (!url) return '';
     if (!url.includes(':')) return '';
     return url.substring(0, url.indexOf(':') + 1);
-  }
+  });
 
-  @memo
-  get helpLinks() {
+  readonly helpLinks = computed(() => {
     const helpConfig = this.admin.getTemplate('config/help');
     return helpConfig?.config?.editorHelpLinks || [];
-  }
+  });
 
   get currentText() {
     return this._text() || this.control?.value || '';
@@ -412,21 +382,20 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   updateTags(tags: string[]) {
     if (!this.tags()) {
       this.createdTags = tags;
-      MemoCache.clear(this);
-    }
+      }
     this.syncTags.emit(tags);
   }
 
   toggleTag(button: EditorButton) {
     if (button.event) this.fireEvent(button);
     const toggle = button.toggle!;
-    if (hasTag(toggle, this.allTags)) {
-      this.updateTags(this.allTags.filter(t => !expandedTagsInclude(t, toggle)));
+    if (hasTag(toggle, this.allTags())) {
+      this.updateTags(this.allTags().filter(t => !expandedTagsInclude(t, toggle)));
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.removeConfigArray$('editors', toggle).subscribe();
       }
     } else if (toggle !== 'locked' || confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
-      this.updateTags([...this.allTags, toggle]);
+      this.updateTags([...this.allTags(), toggle]);
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.addConfigArray$('editors', toggle).subscribe();
       }
@@ -438,7 +407,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   setResponse(tag: string) {
     const tags = this.tags()?.value || this.createdTags;
     if (!hasTag(tag, tags)) {
-      const responses = this.responseButtons.map(p => p.tag);
+      const responses = this.responseButtons().map(p => p.tag);
       this.toggleIndex = responses.indexOf(tag);
       this.updateTags([...without(tags, ...responses), tag]);
     }
@@ -593,10 +562,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   private visible(button: EditorButton) {
-    if (button.scheme && button.scheme !== this.scheme) return false;
+    if (button.scheme && button.scheme !== this.scheme()) return false;
     if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
     if (button.global) return true;
-    return test(button.query || button._parent!.tag, this.allTags);
+    return test(button.query || button._parent!.tag, this.allTags());
   }
 
   fireEvent(button: EditorButton) {
@@ -626,7 +595,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   private setButtonOn(b: EditorButton) {
-    b._on = !!b.toggle && hasTag(b.toggle, this.allTags);
+    b._on = !!b.toggle && hasTag(b.toggle, this.allTags());
     return b;
   }
 

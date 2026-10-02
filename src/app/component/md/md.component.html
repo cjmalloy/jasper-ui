@@ -1,12 +1,12 @@
 <div class="md"
      markdown
-     [data]="value"
+     [data]="value()"
      [origin]="origin()"
      [disableSanitizer]="disableSanitizer()"
-     [appMdPost]="postProcessMarkdown"
-     (ready)="postProcessMarkdown.next()"
-     [katex]="!!plugins?.includes('plugin/latex')"
+     [appMdPost]="postProcessMarkdownSubject"
+     (ready)="postProcessMarkdownSubject.next(); postProcessMarkdown.emit()"
+     [katex]="!!plugins()?.includes('plugin/latex')"
      [katexOptions]="katexOptions"
-     [mermaid]="mermaid"
+     [mermaid]="mermaid()"
      [mermaidOptions]="mermaidOptions"
-     [clipboard]="clipboard"></div>
+     [clipboard]="clipboard()"></div>

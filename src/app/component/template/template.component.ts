@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { ChangeDetectionStrategy, Component, HostBinding, Input, OnChanges, signal, SimpleChanges, viewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, viewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -25,15 +25,20 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent]
+  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent],
+  host: {
+    '[attr.tabindex]': '0',
+    '[class.deleted]': 'deleted',
+    '[class]': 'pluginClass',
+  },
 })
-export class TemplateComponent implements OnChanges, HasChanges {
+export class TemplateComponent implements HasChanges {
   css = 'template list-item';
-  @HostBinding('attr.tabindex') tabIndex = 0;
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
-  private readonly _template = signal<Template>({} as Template);
+  readonly templateInput = input<Template>({} as Template, { alias: 'template' });
+  readonly templateSignal = linkedSignal(() => this.templateInput());
   private readonly _deleted = signal(false);
   private readonly _serverError = signal<string[]>([]);
   private readonly _configErrors = signal<string[]>([]);
@@ -41,15 +46,13 @@ export class TemplateComponent implements OnChanges, HasChanges {
   private readonly _schemaErrors = signal<string[]>([]);
   private readonly _saving = signal<Subscription | undefined>(undefined);
 
-  @Input()
-  get template() { return this._template(); }
-  set template(value: Template) { this._template.set(value); }
+  get template() { return this.templateSignal(); }
+  set template(value: Template) { this.templateSignal.set(value); }
 
   editForm: UntypedFormGroup;
   submitted = false;
   editing = false;
   viewSource = false;
-  @HostBinding('class.deleted')
   get deleted() { return this._deleted(); }
   set deleted(value: boolean) { this._deleted.set(value); }
   get serverError() { return this._serverError(); }
@@ -70,6 +73,10 @@ export class TemplateComponent implements OnChanges, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = templateForm(fb);
+    effect(() => {
+      this.templateInput();
+      this.init();
+    });
   }
 
   saveChanges() {
@@ -86,15 +93,8 @@ export class TemplateComponent implements OnChanges, HasChanges {
     });
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.template) {
-      this.init();
-    }
-  }
-
-  @HostBinding('class')
   get pluginClass() {
-    return this.css + ' ' + this.template.tag
+    return this.css + ' ' + (this.template.tag || '')
       .replace(/[+_]/g, '')
       .replace(/\//g, '_')
       .replace(/\./g, '-');

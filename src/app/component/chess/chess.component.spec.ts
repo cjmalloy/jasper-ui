@@ -22,7 +22,7 @@ describe('ChessComponent', () => {
 
     fixture = TestBed.createComponent(ChessComponent);
     component = fixture.componentInstance;
-    component.ref = { url: '' };
+    fixture.componentRef.setInput('ref', { url: '' });
     fixture.detectChanges();
   });
 

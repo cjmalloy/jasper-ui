@@ -1,8 +1,8 @@
 @if (page) {
-  @if (emptyMessage && !page.content.length) {
-    <p class="no-results">{{ emptyMessage }}</p>
+  @if (emptyMessage() && !page.content.length) {
+    <p class="no-results">{{ emptyMessage() }}</p>
   } @else{
-    <mgl-map [mapStyle]="mapStyle"
+    <mgl-map [mapStyle]="mapStyle()"
              (mapError)="onMapError($event)"
              (mapLoad)="mapLoaded($event)"
              appResizeHandle>

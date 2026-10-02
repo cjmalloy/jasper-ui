@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, Input, input, OnInit, output, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, OnInit, output, signal, untracked } from '@angular/core';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
@@ -21,13 +21,10 @@ import { Mod } from '../../model/tag';
 })
 export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod> implements OnInit {
 
-  @Input()
-  original!: T;
-  @Input()
-  modified!: T;
+  readonly original = input.required<T>();
+  readonly modified = input.required<T>();
   readonly readOnly = input(false);
-  @Input()
-  resizable = true;
+  readonly resizable = input(true);
   readonly fullHeight = input(false);
   readonly modifiedChange = output<T>();
 
@@ -59,13 +56,15 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   set options(value: any) { this._options.set(value); }
 
   ngOnInit() {
-    const entity = this.original && (this.original.hasOwnProperty('url') || this.original.hasOwnProperty('tag'));
+    const original = this.original();
+    const modified = this.modified();
+    const entity = original && (original.hasOwnProperty('url') || original.hasOwnProperty('tag'));
     this.originalModel = {
-      code: (entity ? formatDiff : formatBundleDiff)(this.original as any),
+      code: (entity ? formatDiff : formatBundleDiff)(original as any),
       language: 'json'
     };
     this.modifiedModel = {
-      code: (entity ? formatDiff : formatBundleDiff)(this.modified as any),
+      code: (entity ? formatDiff : formatBundleDiff)(modified as any),
       language: 'json'
     };
   }

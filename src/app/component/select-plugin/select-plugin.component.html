@@ -1,10 +1,10 @@
-@if (plugins.length) {
+@if (plugins().length) {
   <select #select
           [id]="id()"
           class="big"
-          (input)="pluginChange.emit(select.value)">
+          (input)="plugin.set(select.value)">
     <option value="" i18n>🧰️</option>
-    @for (p of plugins; track p.tag) {
+    @for (p of plugins(); track p.tag) {
       <option [value]="p.tag">{{ p.name || '#' + p.tag }}</option>
     }
   </select>

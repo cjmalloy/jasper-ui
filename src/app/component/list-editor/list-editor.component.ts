@@ -1,15 +1,15 @@
-import { Component, HostBinding, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-list-editor',
   templateUrl: './list-editor.component.html',
   styleUrls: ['./list-editor.component.scss'],
+  host: { 'class': 'listbox form-group' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class ListEditorComponent {
-  @HostBinding('class') css = 'listbox form-group';
 
   readonly list = input<string[]>([]);
   readonly type = input('email');

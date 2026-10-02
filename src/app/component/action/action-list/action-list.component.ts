@@ -7,15 +7,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  HostListener,
-  Input,
-  OnChanges,
-  SimpleChanges,
+  effect,
   TemplateRef,
   ViewContainerRef,
   input,
   signal,
-  viewChild
+  viewChild,
+  computed
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subscription } from 'rxjs';
@@ -25,7 +23,6 @@ import { Action } from '../../../model/tag';
 import { ActionService } from '../../../service/action.service';
 import { ConfigService } from '../../../service/config.service';
 import { downloadRef, downloadUrl } from '../../../util/download';
-import { memo, MemoCache } from '../../../util/memo';
 import { ConfirmActionComponent } from '../confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../inline-button/inline-button.component';
 import { ProxyService } from '../../../service/api/proxy.service';
@@ -35,20 +32,17 @@ import { ProxyService } from '../../../service/api/proxy.service';
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(window:resize)': 'onResize()' },
   imports: [FakeLinkDirective, ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
-export class ActionListComponent implements AfterViewInit, OnChanges {
+export class ActionListComponent implements AfterViewInit {
 
   readonly ref = input.required<Ref>();
   readonly repostRef = input<Ref>();
   readonly showDownload = input(true);
-  @Input()
-  mediaAttachment = '';
-  readonly groupedActions = input<{
-    [key: string]: Action[];
-} | undefined>({});
-  @Input()
-  groupedAdvancedActions?: { [key: string]: Action[] };
+  readonly mediaAttachment = input('');
+  readonly groupedActions = input<Record<string, Action[]> | undefined>({});
+  readonly groupedAdvancedActions = input<Record<string, Action[]>>();
 
   readonly actionsMenu = viewChild.required<TemplateRef<any>>('actionsMenu');
 
@@ -69,21 +63,26 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
     private overlay: Overlay,
     private el: ElementRef<HTMLElement>,
     private viewContainerRef: ViewContainerRef,
-  ) { }
+  ) {
+    effect(() => {
+      this.ref();
+      this.repostRef();
+      this.showDownload();
+      this.mediaAttachment();
+      this.groupedActions();
+      this.groupedAdvancedActions();
+      defer(() => this.onResize());
+    });
+  }
 
   ngAfterViewInit() {
     this.resizeObserver?.observe(this.el.nativeElement!.parentElement!);
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    MemoCache.clear(this);
-    defer(() => this.onResize());
-  }
-
-  @memo
-  get advanced() {
-    return this.groupedAdvancedActions && Object.keys(this.groupedAdvancedActions as any).length > 0;
-  }
+  readonly advanced = computed(() => {
+    const actions = this.groupedAdvancedActions();
+    return !!actions && Object.keys(actions).length > 0;
+  });
 
   apply$ = (actions: Action[]) => () => {
     this.closeAdvanced();
@@ -95,28 +94,23 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
   }
 
   downloadMedia() {
-    if (!this.mediaAttachment) return;
-    downloadUrl(this.proxy, this.mediaAttachment);
+    if (!this.mediaAttachment()) return;
+    downloadUrl(this.proxy, this.mediaAttachment());
   }
 
-  @HostListener('window:resize')
   onResize() {
-    if (!this.actions) return;
+    if (!this.actions()) return;
     this.measureVisible();
   }
 
   measureVisible() {
-    if (!this.actions) return;
-    this.hiddenActions = this.actions - this.visible;
+    if (!this.actions()) return;
+    this.hiddenActions = this.actions() - this.visible;
   }
-
-  @memo
-  get actions() {
+  readonly actions = computed(() => {
     return Object.keys(this.groupedActions() as any).length;
-  }
-
-  @memo
-  get actionWidths() {
+  });
+  readonly actionWidths = computed(() => {
     const el = this.el.nativeElement;
     const result: number[] = [];
     for (let i = 0; i < el.children.length; i++) {
@@ -125,10 +119,10 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
       result.push(e.offsetWidth + parseInt(s.marginLeft) + parseInt(s.marginRight));
     }
     return result;
-  }
+  });
 
   get visible() {
-    if (this.config.mobile) return this.actions;
+    if (this.config.mobile) return this.actions();
     const el = this.el.nativeElement;
     const parentWidth = el.parentElement!.offsetWidth;
     let result = 0;
@@ -138,7 +132,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
       const s = getComputedStyle(e);
       childWidth += e.offsetWidth + parseInt(s.marginLeft) + parseInt(s.marginRight);
     }
-    for (const w of this.actionWidths) {
+    for (const w of this.actionWidths()) {
       childWidth += w;
       if (childWidth < parentWidth) result++;
     }

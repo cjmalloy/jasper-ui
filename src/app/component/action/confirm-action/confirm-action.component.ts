@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -15,8 +15,7 @@ import { ActionComponent } from '../action.component';
 export class ConfirmActionComponent extends ActionComponent {
 
   readonly message = input($localize `are you sure?`);
-  @Input()
-  warning = '';
+  readonly warning = input('');
   readonly action = input<() => Observable<any | never>>(() => of(null));
   readonly minDelayMs = input(1000);
 

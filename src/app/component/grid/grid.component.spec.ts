@@ -160,7 +160,8 @@ describe('GridComponent', () => {
     });
 
     it('should apply formatters to ext config columnDefs when provided', () => {
-      component.ext = { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published', type: 'dateTime' }] } } as any;
+      fixture.componentRef.setInput('ext', { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published', type: 'dateTime' }] } } as any);
+      fixture.detectChanges();
       const defs = component.columnDefs;
       expect(typeof defs[0].valueFormatter).toBe('function');
     });
@@ -181,7 +182,8 @@ describe('GridComponent', () => {
         title: 'Original title',
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       const req = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
@@ -205,7 +207,8 @@ describe('GridComponent', () => {
         title: 'Repost title',
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       http.expectNone(request => request.url.endsWith('/api/v1/ref/page'));
       expect(component.rowData).toEqual([repostRef]);
@@ -219,7 +222,8 @@ describe('GridComponent', () => {
         sources: ['https://example.com/original'],
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       const req = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
@@ -250,13 +254,15 @@ describe('GridComponent', () => {
         title: 'Second original',
       };
 
-      component.page = Page.of([firstRepost]);
+      fixture.componentRef.setInput('page', Page.of([firstRepost]));
+      fixture.detectChanges();
       const firstReq = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
         && request.params.get('url') === firstRepost.sources![0]
       );
 
-      component.page = Page.of([secondRepost]);
+      fixture.componentRef.setInput('page', Page.of([secondRepost]));
+      fixture.detectChanges();
 
       expect(firstReq.cancelled).toBe(true);
       const secondReq = http.expectOne(request =>

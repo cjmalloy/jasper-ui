@@ -17,9 +17,9 @@
     <app-json [id]="id + '-config'"
               fieldName="config"
               [group]="group"></app-json>
-    @if (configErrors.length) {
+    @if (configErrors().length) {
       <span><!-- Errors --></span>
-      @for (e of configErrors; track e) {
+      @for (e of configErrors(); track e) {
         <div>
           <span class="error">{{ e }}</span>
         </div>
@@ -36,9 +36,9 @@
     <app-json [id]="id + '-defaults'"
               fieldName="defaults"
               [group]="group"></app-json>
-    @if (defaultsErrors.length) {
+    @if (defaultsErrors().length) {
       <span><!-- Errors --></span>
-      @for (e of defaultsErrors; track e) {
+      @for (e of defaultsErrors(); track e) {
         <div>
           <span class="error">{{ e }}</span>
         </div>
@@ -55,9 +55,9 @@
     <app-json [id]="id + '-schema'"
               fieldName="schema"
               [group]="group"></app-json>
-    @if (schemaErrors.length) {
+    @if (schemaErrors().length) {
       <span><!-- Errors --></span>
-      @for (e of schemaErrors; track e) {
+      @for (e of schemaErrors(); track e) {
         <div>
           <span class="error">{{ e }}</span>
         </div>

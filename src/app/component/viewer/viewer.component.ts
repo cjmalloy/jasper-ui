@@ -3,17 +3,14 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  effect,
   forwardRef,
-  HostBinding,
-  HostListener,
   inject,
-  Input,
-  OnChanges,
   OnDestroy,
-  SimpleChanges,
-  ViewChild,
   input,
+  linkedSignal,
   output,
+  untracked,
   viewChild,
   signal,
 } from '@angular/core';
@@ -47,7 +44,6 @@ import { embedUrl } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
-import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
@@ -65,6 +61,13 @@ import { TodoComponent } from '../todo/todo.component';
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss'],
+  host: {
+    '[class]': 'pluginClasses',
+    '[attr.tabindex]': 'tabIndex',
+    '[class.fullscreen]': 'fullscreen',
+    '[attr.title]': 'title',
+    '(keydown)': 'onKeydown($event)',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefComponent),
@@ -82,15 +85,9 @@ import { TodoComponent } from '../todo/todo.component';
     LoadingComponent,
   ],
 })
-export class ViewerComponent implements OnChanges, OnDestroy {
-  readonly state = signal(0);
-
-  private markState() {
-    this.state.update(value => value + 1);
-  }
-
-  @HostBinding('class') css = 'embed print-images';
-  @HostBinding('tabindex') tabIndex = 0;
+export class ViewerComponent implements OnDestroy {
+  css = 'embed print-images';
+  tabIndex = 0;
   private destroyRef = inject(DestroyRef);
   private videoKeydownHandler?: (event: KeyboardEvent) => void;
   private audioKeydownHandler?: (event: KeyboardEvent) => void;
@@ -100,50 +97,111 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   private currentAudio?: HTMLAudioElement;
 
   readonly iframe = viewChild.required<ElementRef>('iframe');
+  readonly videoEl = viewChild<ElementRef<HTMLVideoElement>>('video');
+  readonly audioEl = viewChild<ElementRef<HTMLAudioElement>>('audio');
+  readonly pdfIframeEl = viewChild<ElementRef<HTMLIFrameElement>>('pdfIframe');
 
-  @Input()
-  ref?: Ref;
+  readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
+  private readonly refSignal = linkedSignal(() => this.refInput());
+  get ref() {
+    return this.refSignal();
+  }
+  set ref(value: Ref | undefined) {
+    this.refSignal.set(value);
+  }
   readonly commentControl = input<FormControl<string>>();
-  @Input()
-  tags?: string[];
+  readonly tagsInput = input<string[] | undefined>(undefined, { alias: 'tags' });
+  private readonly tagsSignal = linkedSignal(() => this.tagsInput());
+  get tags() {
+    return this.tagsSignal();
+  }
+  set tags(value: string[] | undefined) {
+    this.tagsSignal.set(value);
+  }
   readonly expand = input(true);
   readonly autoplay = input(false);
-  @Input()
-  text? = '';
+  readonly textInput = input<string | undefined>('', { alias: 'text' });
+  private readonly textSignal = linkedSignal(() => this.textInput());
+  get text() {
+    return this.textSignal() || '';
+  }
+  set text(value: string | undefined) {
+    this.textSignal.set(value || '');
+  }
   readonly origin = input<string | undefined>('');
   readonly disableResize = input(false);
-  @Input()
-  @HostBinding('class.fullscreen')
-  fullscreen = false;
+  readonly fullscreenInput = input(false, { alias: 'fullscreen' });
+  private readonly fullscreenSignal = linkedSignal(() => this.fullscreenInput());
+  get fullscreen() {
+    return this.fullscreenSignal();
+  }
+  set fullscreen(value: boolean) {
+    this.fullscreenSignal.set(value);
+  }
   readonly comment = output<string>();
   readonly copied = output<string>();
   readonly playing = output<string>();
   readonly pausing = output<string>();
   readonly ended = output<string>();
 
-  repost?: Ref;
-  lens?: boolean;
-  lensPage?: Page<Ref>;
-  ext?: Ext;
-  lensQuery = '';
-  lensSize = 24;
-  lensCols = 0;
-  lensSort: RefSort[] = [];
-  lensFilter: UrlFilter[] = [];
-  lensSearch = '';
-  image? : string;
-  playlist = false;
-  todo = false;
-  backgammon = false;
-  chess = false;
-  chessWhite = true;
-  uis = this.admin.getPluginUi(this.currentTags);
-  embedReady = false;
+  private readonly repostSignal = signal<Ref | undefined>(undefined);
+  get repost() { return this.repostSignal(); }
+  set repost(value: Ref | undefined) { this.repostSignal.set(value); }
+  private readonly lensSignal = signal<boolean | undefined>(undefined);
+  get lens() { return this.lensSignal(); }
+  set lens(value: boolean | undefined) { this.lensSignal.set(value); }
+  private readonly lensPageSignal = signal<Page<Ref> | undefined>(undefined);
+  get lensPage() { return this.lensPageSignal(); }
+  set lensPage(value: Page<Ref> | undefined) { this.lensPageSignal.set(value); }
+  private readonly extSignal = signal<Ext | undefined>(undefined);
+  get ext() { return this.extSignal(); }
+  set ext(value: Ext | undefined) { this.extSignal.set(value); }
+  private readonly lensQuerySignal = signal('');
+  get lensQuery() { return this.lensQuerySignal(); }
+  set lensQuery(value: string) { this.lensQuerySignal.set(value); }
+  private readonly lensSizeSignal = signal(24);
+  get lensSize() { return this.lensSizeSignal(); }
+  set lensSize(value: number) { this.lensSizeSignal.set(value); }
+  private readonly lensColsSignal = signal(0);
+  get lensCols() { return this.lensColsSignal(); }
+  set lensCols(value: number) { this.lensColsSignal.set(value); }
+  private readonly lensSortSignal = signal<RefSort[]>([]);
+  get lensSort() { return this.lensSortSignal(); }
+  set lensSort(value: RefSort[]) { this.lensSortSignal.set(value); }
+  private readonly lensFilterSignal = signal<UrlFilter[]>([]);
+  get lensFilter() { return this.lensFilterSignal(); }
+  set lensFilter(value: UrlFilter[]) { this.lensFilterSignal.set(value); }
+  private readonly lensSearchSignal = signal('');
+  get lensSearch() { return this.lensSearchSignal(); }
+  set lensSearch(value: string) { this.lensSearchSignal.set(value); }
+  private readonly imageSignal = signal<string | undefined>(undefined);
+  get image() { return this.imageSignal(); }
+  set image(value: string | undefined) { this.imageSignal.set(value); }
+  private readonly playlistSignal = signal(false);
+  get playlist() { return this.playlistSignal(); }
+  set playlist(value: boolean) { this.playlistSignal.set(value); }
+  private readonly todoSignal = signal(false);
+  get todo() { return this.todoSignal(); }
+  set todo(value: boolean) { this.todoSignal.set(value); }
+  private readonly backgammonSignal = signal(false);
+  get backgammon() { return this.backgammonSignal(); }
+  set backgammon(value: boolean) { this.backgammonSignal.set(value); }
+  private readonly chessSignal = signal(false);
+  get chess() { return this.chessSignal(); }
+  set chess(value: boolean) { this.chessSignal.set(value); }
+  private readonly chessWhiteSignal = signal(true);
+  get chessWhite() { return this.chessWhiteSignal(); }
+  set chessWhite(value: boolean) { this.chessWhiteSignal.set(value); }
+  private readonly uisSignal = signal<ReturnType<AdminService['getPluginUi']>>([]);
+  get uis() { return this.uisSignal(); }
+  set uis(value: ReturnType<AdminService['getPluginUi']>) { this.uisSignal.set(value); }
+  private readonly embedReadySignal = signal(false);
+  get embedReady() { return this.embedReadySignal(); }
+  set embedReady(value: boolean) { this.embedReadySignal.set(value); }
 
-  private _oembed?: Oembed;
+  private readonly oembedSignal = signal<Oembed | undefined>(undefined);
   private width = 0;
   private height = 0;
-  private pdfIframeEl?: ElementRef<HTMLIFrameElement>;
 
   constructor(
     public config: ConfigService,
@@ -157,10 +215,19 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     private store: Store,
     private auth: AuthzService,
     public el: ElementRef,
-  ) { }
+  ) {
+    effect(() => {
+      this.ref;
+      this.tags;
+      this.text;
+      untracked(() => this.init());
+    });
+    effect(() => this.setVideo(this.videoEl()));
+    effect(() => this.setAudio(this.audioEl()));
+    effect(() => this.setPdfIframe(this.pdfIframeEl()));
+  }
 
   init() {
-    MemoCache.clear(this);
     this.playlist = !!this.admin.getPlugin('plugin/playlist') && hasTag('plugin/playlist', this.currentTags);
     this.todo = !!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags);
     this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags);
@@ -173,7 +240,6 @@ export class ViewerComponent implements OnChanges, OnDestroy {
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => {
         this.repost = ref;
-        this.markState();
       });
     }
     const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref) ? this.ref?.sources?.[0] : this.ref?.url);
@@ -190,8 +256,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
           this.lensSort = params.sort;
           this.lensFilter = params.filter;
           this.lensSearch = params.search;
-          this.markState();
-        });
+          });
     }
     if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
       const parentWidth = this.el.nativeElement.parentElement.offsetWidth;
@@ -203,25 +268,13 @@ export class ViewerComponent implements OnChanges, OnDestroy {
       }
       this.oembeds.get(this.ref.url, this.theme, this.width, this.height).subscribe(oembed => {
         this.oembed = oembed;
-        this.markState();
       });
     }
     this.reload(this.currentAudio);
     this.reload(this.currentVideo);
-    this.pdfIframe = this.pdfIframeEl;
+    this.setPdfIframe(this.pdfIframeEl());
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    const newRef = changes.ref && changes.ref.currentValue?.url !== changes.ref.previousValue?.url;
-    const changesRef = changes.ref && changes.ref.currentValue?.modifiedString !== changes.ref.previousValue?.modifiedString;
-    const changesTags = changes.tags && !isEqual(changes.tags.previousValue, changes.tags.currentValue);
-    if (changesRef || changesTags || changes.text) {
-      if (this.editingViewer && !newRef) return;
-      this.init();
-    }
-  }
-
-  @HostListener('keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {
     if (event.defaultPrevented) return;
     if (this.currentVideo) {
@@ -246,16 +299,12 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     this.removeVideoListener();
   }
 
-  @HostBinding('class')
-  @memo
   get pluginClasses() {
     return this.css + ' ' + templates(this.tags, 'plugin')
       .map(t => t.replace(/\//g, '_').replace(/\./g, '-'))
       .join(' ');
   }
 
-  @HostBinding('attr.title')
-  @memo
   get title() {
     if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) {
       return this.text || this.ref?.comment;
@@ -263,8 +312,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     return undefined;
   }
 
-  @ViewChild('video')
-  set video(value: ElementRef<HTMLVideoElement>) {
+  private setVideo(value: ElementRef<HTMLVideoElement> | undefined) {
     this.removeVideoListener();
     if (!value) return;
     const video = value.nativeElement;
@@ -291,8 +339,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     }
   }
 
-  @ViewChild('audio')
-  set audio(value: ElementRef<HTMLAudioElement>) {
+  private setAudio(value: ElementRef<HTMLAudioElement> | undefined) {
     this.removeAudioListener();
     if (!value) return;
     const audio = value.nativeElement;
@@ -301,9 +348,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     audio.addEventListener('keydown', this.audioKeydownHandler, { capture: true });
   }
 
-  @ViewChild('pdfIframe')
-  set pdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
-    this.pdfIframeEl = value;
+  private setPdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
     if (!value) return;
     const iframe = value.nativeElement;
     let url = this.pdfUrl;
@@ -315,14 +360,13 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   }
 
   set oembed(oembed: Oembed | null) {
-    if (isEqual(this._oembed, oembed)) return;
-    this._oembed = oembed || undefined;
+    if (isEqual(this.oembed, oembed)) return;
+    this.oembedSignal.set(oembed || undefined);
     const iframe = this.iframe();
     if (oembed?.url && oembed?.type === 'photo') {
       // Image embed
       this.tags = without(this.currentTags, 'plugin/embed');
       this.image = embedUrl(oembed.url);
-      MemoCache.clear(this);
     } else if (iframe) {
       const i = iframe.nativeElement;
       if (oembed) {
@@ -338,62 +382,51 @@ export class ViewerComponent implements OnChanges, OnDestroy {
               i.style.marginBottom = -1 * marginTop + 'px';
             }
             this.embedReady = true;
-            MemoCache.clear(this);
-            this.markState();
-          });
+              });
       } else {
         i.src = embedUrl(this.embed?.url || this.ref?.url);
         if (!i.style.width) i.style.width = this.embedWidth;
         if (!i.style.height) i.style.height = this.embedHeight;
         this.embedReady = true;
-        this.markState();
       }
     } else {
-      delete this._oembed;
+      this.oembedSignal.set(undefined);
       defer(() => this.oembed = oembed);
     }
   }
 
-  @memo
   get oembed(): Oembed | undefined {
-    return this._oembed;
+    return this.oembedSignal();
   }
 
-  @memo
   get mod() {
     if (!this.admin.getPlugin('plugin/mod')) return false;
     if (!hasTag('plugin/mod', this.currentTags))  return false;
     return this.ref?.plugins?.['plugin/mod'];
   }
 
-  @memo
   get hls() {
     return getExtension(this.ref?.plugins?.['plugin/video']?.url || this.ref?.url) === '.m3u8' || this.tags?.includes('plugin/hls');
   }
 
-  @memo
   get twitter() {
     return this.oembed?.provider_name === 'Twitter';
   }
 
-  @memo
   get zoom() {
     return this.oembed?.html && !this.oembed.html.startsWith('<iframe');
   }
 
-  @memo
   get resizable() {
     if (this.config.mobile) return false;
     if (this.ref?.plugins?.['plugin/embed']?.noResize) return false;
     return !this.oembed || !this.oembed.html || this.oembed.html.startsWith('<iframe');
   }
 
-  @memo
   get editingViewer() {
     return some(this.admin.editingViewer, t => hasTag(t.tag, this.currentTags));
   }
 
-  @memo
   get editingRef(): Ref | undefined {
     if (!hasTag('plugin/editing', this.currentTags)) return undefined;
     const data = this.ref?.plugins?.['plugin/editing'];
@@ -403,19 +436,16 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     return result;
   }
 
-  @memo
   get hideComment() {
     if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) return true;
     if (this.admin.getPlugin('plugin/table') && hasTag('plugin/table', this.currentTags)) return false;
     return this.editingViewer || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
   }
 
-  @memo
   get currentOrigin() {
     return this.origin() || this.ref?.origin || this.store.account.origin;
   }
 
-  @memo
   get currentText() {
     if (this.hideComment) return '';
     const value = this.text || this.ref?.comment || '';
@@ -426,25 +456,21 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     return '';
   }
 
-  @memo
   get currentCode() {
     if (!this.code) return '';
     const value = this.text || this.ref?.comment || '';
     return '```' + this.codeLang + '\n' + value + '\n```';
   }
 
-  @memo
   get currentTags() {
     return this.tags || this.ref?.tags || [];
   }
 
-  @memo
   get thread() {
     if (!this.admin.getPlugin('plugin/thread')) return false;
     return hasTag('plugin/thread', this.currentTags) || this.ref?.metadata?.plugins?.['plugin/thread'];
   }
 
-  @memo
   get embed() {
     if (!hasTag('plugin/embed', this.currentTags)) return undefined;
     return this.ref?.plugins?.['plugin/embed'];
@@ -466,12 +492,10 @@ export class ViewerComponent implements OnChanges, OnDestroy {
 return '67vh';
   }
 
-  @memo
   get embedIframe() {
     return hasTag('plugin/embed', this.currentTags);
   }
 
-  @memo
   get audioUrl() {
     if (!hasTag('plugin/audio', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
@@ -481,7 +505,6 @@ return '67vh';
     return url;
   }
 
-  @memo
   get videoUrl() {
     if (!hasTag('plugin/video', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
@@ -491,7 +514,6 @@ return '67vh';
     return url;
   }
 
-  @memo
   get imageUrl() {
     if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
@@ -501,19 +523,16 @@ return '67vh';
     return url;
   }
 
-  @memo
   getFilename(d = $localize`Untitled`) {
     const ext = this.ref?.url ? getExtension(this.ref.url) || '' : '';
     const filename = this.ref?.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
-  @memo
   get code() {
     return this.admin.getPlugin('plugin/code') && hasTag('plugin/code', this.currentTags);
   }
 
-  @memo
   get codeLang() {
     if (!this.code) return '';
     for (const t of this.currentTags) {
@@ -524,7 +543,6 @@ return '67vh';
     return '';
   }
 
-  @memo
   get qrUrl() {
     if (!hasTag('plugin/qr', this.currentTags)) return '';
     return this.ref?.plugins?.['plugin/qr']?.url || this.ref?.url;
@@ -534,13 +552,11 @@ return '67vh';
     return this.store.darkTheme ? 'dark' : undefined;
   }
 
-  @memo
   get pdf(): string | undefined {
     if (!this.admin.getPlugin('plugin/pdf')) return undefined;
     return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref, this.repost)?.url;
   }
 
-  @memo
   get pdfUrl() {
     const url = this.pdf;
     if (!url) return url;
@@ -548,7 +564,6 @@ return '67vh';
     return this.proxy.getFetch(url, this.currentOrigin, this.getFilename());
   }
 
-  @memo
   get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
     const api: PluginApi = {
@@ -560,7 +575,6 @@ return '67vh';
         }
         if (this.ref?.modified) actions.comment(comment);
         this.comment.emit(comment);
-        this.markState();
       },
       event: (event: string) => {
         actions.event(event);
@@ -582,8 +596,7 @@ return '67vh';
           comment$: (comment: string) => {
             this.text = comment;
             subject$.next({ comment: this.text } as RefUpdates)
-            this.markState();
-            return of();
+                return of();
           },
         };
       },
@@ -595,8 +608,7 @@ return '67vh';
           append$: (value: string) => {
             this.text += value;
             subject$.next(value);
-            this.markState();
-            return of();
+                return of();
           },
         };
       },
@@ -616,25 +628,21 @@ return '67vh';
               }
             }
           }
-          this.markState();
-        }
+          }
       };
     }
     return api;
   }
 
-  @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
     return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.refOrDefault, this.el.nativeElement, this.uiActions));
   }
 
-  @memo
   uiCss(tag: string) {
     return 'ui ' + tag.replace(/\//g, '_').replace(/\./g, '-');
   }
 
-  @memo
   get refOrDefault() {
     return this.ref || { url: '', comment: this.text, tags: this.tags };
   }

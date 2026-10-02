@@ -29,15 +29,15 @@ describe('GenComponent', () => {
 
     fixture = TestBed.createComponent(GenFormComponent);
     component = fixture.componentInstance;
-    component.plugin = {
+    fixture.componentRef.setInput('plugin', {
       tag: 'plugin/test',
       config: {
         form: [],
       }
-    };
-    component.plugins = new UntypedFormGroup({
-      'plugin/test': new UntypedFormGroup({}),
     });
+    fixture.componentRef.setInput('plugins', new UntypedFormGroup({
+      'plugin/test': new UntypedFormGroup({}),
+    }));
     fixture.detectChanges();
   });
 
@@ -46,7 +46,7 @@ describe('GenComponent', () => {
   });
 
   it('should create an editor input', () => {
-    component.plugin = {
+    fixture.componentRef.setInput('plugin', {
       tag: 'plugin/test',
       config: {
         form: [{
@@ -54,8 +54,7 @@ describe('GenComponent', () => {
           type: 'editor',
         }],
       },
-    };
-    component.ngOnChanges({});
+    });
 
     fixture.detectChanges();
 

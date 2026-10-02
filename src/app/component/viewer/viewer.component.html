@@ -1,4 +1,3 @@
-@if (state()) {<ng-container></ng-container>}
 @if (ref || tags) {
   @if (repost) {
     <app-ref class="expand"
@@ -98,7 +97,7 @@
   @if (backgammon) {
     <app-backgammon class="no-resize"
                     [ref]="ref"
-                    [text]="text"
+                    [text]="text || ''"
                     (comment)="comment.emit($event)"
                     (copied)="copied.emit($event)"></app-backgammon>
   }

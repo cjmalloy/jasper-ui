@@ -93,7 +93,8 @@ describe('MapComponent', () => {
         },
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       const req = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
@@ -143,7 +144,8 @@ describe('MapComponent', () => {
         },
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       const req = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
@@ -179,7 +181,8 @@ describe('MapComponent', () => {
         },
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       expect(component.mapData).toEqual([[repostRef]]);
     });
@@ -211,13 +214,15 @@ describe('MapComponent', () => {
         },
       };
 
-      component.page = Page.of([firstRepost]);
+      fixture.componentRef.setInput('page', Page.of([firstRepost]));
+      fixture.detectChanges();
       const firstReq = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
         && request.params.get('url') === firstRepost.sources![0]
       );
 
-      component.page = Page.of([secondRepost]);
+      fixture.componentRef.setInput('page', Page.of([secondRepost]));
+      fixture.detectChanges();
 
       expect(firstReq.cancelled).toBe(true);
       const secondReq = http.expectOne(request =>

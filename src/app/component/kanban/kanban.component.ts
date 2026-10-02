@@ -4,16 +4,13 @@ import { AsyncPipe } from '@angular/common';
 import {
   Component,
   forwardRef,
-  HostListener,
-  Input,
-  OnChanges,
   OnDestroy,
-  QueryList,
-  SimpleChanges,
-  ViewChildren,
   ChangeDetectionStrategy,
   input,
-  signal
+  signal,
+  viewChildren,
+  effect,
+  untracked
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -48,7 +45,7 @@ export interface KanbanDrag {
   selector: 'app-kanban',
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss'],
-  host: { 'class': 'kanban ext' },
+  host: { 'class': 'kanban ext', '(window:resize)': 'onResize()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => KanbanColumnComponent),
@@ -63,14 +60,13 @@ export interface KanbanDrag {
     AsyncPipe,
   ],
 })
-export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
+export class KanbanComponent implements OnDestroy, HasChanges {
 
-  @ViewChildren(KanbanColumnComponent)
-  list?: QueryList<KanbanColumnComponent>;
+  readonly list = viewChildren(KanbanColumnComponent);
 
   readonly query = input<string>();
-  @Input()
-  ext?: Ext;
+  readonly extInput = input<Ext | undefined>(undefined, { alias: 'ext' });
+  get ext() { return this.extInput(); }
   readonly pageControls = input(true);
   readonly fullPage = input(false);
   readonly size = input(8);
@@ -93,24 +89,37 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
     public store: Store,
     public exts: ExtService,
     private tags: TaggingService,
-  ) { }
+  ) {
+    effect(() => {
+      this.extInput();
+      untracked(() => this.loadExt());
+    });
+    effect(() => {
+      this.query();
+      this.extInput();
+      this.pageControls();
+      this.fullPage();
+      this.size();
+      this.sort();
+      this.filter();
+      this.search();
+      untracked(() => this.onResize());
+    });
+  }
 
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list().find(r => !r.saveChanges());
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ext) {
-      this.preloadExts();
-    }
-    this.onResize();
+  private loadExt() {
+    this.preloadExts();
   }
+
 
   ngOnDestroy() {
     this.updates.complete();
   }
 
-  @HostListener('window:resize')
   onResize() {
     const margin = 20;
     const minColSize = 320;

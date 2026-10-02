@@ -7,13 +7,11 @@ import {
   Component,
   ElementRef,
   forwardRef,
-  HostBinding,
-  Input,
-  OnChanges,
   OnDestroy,
-  SimpleChanges,
   ChangeDetectionStrategy,
+  effect,
   input,
+  linkedSignal,
   viewChildren,
   viewChild,
   signal,
@@ -50,7 +48,6 @@ import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/http';
-import { memo, MemoCache } from '../../util/memo';
 import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin } from '../../util/tag';
 import { ActionListComponent } from '../action/action-list/action-list.component';
 import { ActionComponent } from '../action/action.component';
@@ -65,7 +62,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   selector: 'app-comment',
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
-  host: { 'class': 'comment' },
+  host: { 'class': 'comment', '[attr.tabindex]': '0', '[class.last-selected]': 'lastSelected' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
@@ -81,15 +78,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
     AsyncPipe,
   ],
 })
-export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
-  readonly state = signal(0);
-
-  private markState() {
-    this.state.update(value => value + 1);
-  }
-
-  @HostBinding('attr.tabindex') tabIndex = 0;
-
+export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   maxContext = 20;
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
@@ -97,27 +86,54 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
   readonly editComponent = viewChild<CommentEditComponent>('editComponent');
   readonly threadComponent = viewChild<CommentThreadComponent>('threadComponent');
 
-  @Input()
-  ref!: Ref;
+  readonly refInput = input.required<Ref>({ alias: 'ref' });
+  private readonly refSignal = linkedSignal(() => this.refInput());
+  get ref() { return this.refSignal(); }
+  set ref(value: Ref) { this.refSignal.set(value); }
   readonly scrollToLatest = input(false);
-  @Input()
-  depth?: number | null = 7;
+  readonly depthInput = input<number | null | undefined>(7, { alias: 'depth' });
+  private readonly depthSignal = linkedSignal(() => this.depthInput());
+  get depth() { return this.depthSignal(); }
+  set depth(value: number | null | undefined) { this.depthSignal.set(value); }
   readonly context = input(0);
   readonly showLoadMore = input(true);
 
   commentEdited$ = new Subject<Ref>();
-  newComments = 0;
+  private readonly newCommentsSignal = signal(0);
   newComments$ = new Subject<Ref | undefined>();
-  icons: Icon[] = [];
-  actions: Action[] = [];
-  groupedActions: { [key: string]: Action[] } = {};
-  collapsed = false;
-  replying = false;
-  editing = false;
-  writeAccess = false;
-  taggingAccess = false;
-  deleteAccess = false;
-  serverError: string[] = [];
+  private readonly iconsSignal = signal<Icon[]>([]);
+  private readonly actionsSignal = signal<Action[]>([]);
+  private readonly groupedActionsSignal = signal<Record<string, Action[]>>({});
+  private readonly collapsedSignal = signal(false);
+  private readonly replyingSignal = signal(false);
+  private readonly editingSignal = signal(false);
+  private readonly writeAccessSignal = signal(false);
+  private readonly taggingAccessSignal = signal(false);
+  private readonly deleteAccessSignal = signal(false);
+  private readonly serverErrorSignal = signal<string[]>([]);
+
+  get newComments() { return this.newCommentsSignal(); }
+  set newComments(value: number) { this.newCommentsSignal.set(value); }
+  get icons() { return this.iconsSignal(); }
+  set icons(value: Icon[]) { this.iconsSignal.set(value); }
+  get actions() { return this.actionsSignal(); }
+  set actions(value: Action[]) { this.actionsSignal.set(value); }
+  get groupedActions() { return this.groupedActionsSignal(); }
+  set groupedActions(value: Record<string, Action[]>) { this.groupedActionsSignal.set(value); }
+  get collapsed() { return this.collapsedSignal(); }
+  set collapsed(value: boolean) { this.collapsedSignal.set(value); }
+  get replying() { return this.replyingSignal(); }
+  set replying(value: boolean) { this.replyingSignal.set(value); }
+  get editing() { return this.editingSignal(); }
+  set editing(value: boolean) { this.editingSignal.set(value); }
+  get writeAccess() { return this.writeAccessSignal(); }
+  set writeAccess(value: boolean) { this.writeAccessSignal.set(value); }
+  get taggingAccess() { return this.taggingAccessSignal(); }
+  set taggingAccess(value: boolean) { this.taggingAccessSignal.set(value); }
+  get deleteAccess() { return this.deleteAccessSignal(); }
+  set deleteAccess(value: boolean) { this.deleteAccessSignal.set(value); }
+  get serverError() { return this.serverErrorSignal(); }
+  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
 
   constructor(
     public admin: AdminService,
@@ -131,6 +147,10 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
     private bookmarks: BookmarkService,
     private el: ElementRef<HTMLDivElement>,
   ) {
+    effect(() => {
+      this.refInput();
+      this.init();
+    });
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
@@ -143,7 +163,6 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
           this.serverError = event.errors;
         }
       }
-      this.markState();
     });
     this.newComments$.pipe(
       takeUntilDestroyed(),
@@ -155,9 +174,9 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
         this.ref.metadata.plugins ||= {};
         this.ref.metadata.plugins['plugin/comment'] ||= 0;
         this.ref.metadata.plugins['plugin/comment']++;
+        this.ref = { ...this.ref, metadata: { ...this.ref.metadata, plugins: { ...this.ref.metadata.plugins } } };
         if (this.depth === 0) this.depth = 1;
       }
-      this.markState();
     });
     this.commentEdited$.pipe(
       takeUntilDestroyed(),
@@ -165,7 +184,6 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
       this.editing = false;
       this.ref = ref;
       this.init();
-      this.markState();
     });
   }
 
@@ -185,7 +203,6 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
   }
 
   init() {
-    MemoCache.clear(this);
     this.editing = false;
     this.actionComponents()?.forEach(c => c.reset());
     this.collapsed = !this.store.local.isRefToggled('comment:' + this.ref.url, true);
@@ -197,34 +214,24 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
     this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref) {
-      this.init();
-    }
-  }
-
   ngOnDestroy(): void {
     this.commentEdited$.complete();
     this.newComments$.complete();
   }
 
-  @HostBinding('class.last-selected')
   get lastSelected() {
     return this.store.view.lastSelected?.url === this.ref.url;
   }
 
-  @memo
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
   }
 
-  @memo
   get modifiedIsSubmitted() {
     return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created!, 'seconds').seconds) <= 5;
   }
 
-  @memo
   get canInvoice() {
     if (this.ref.origin) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
@@ -232,17 +239,14 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
     return hasTag('queue', this.ref);
   }
 
-  @memo
   get isAuthor() {
     return this.authors.includes(this.store.account.tag);
   }
 
-  @memo
   get isRecipient() {
     return hasTag(this.store.account.mailbox, this.ref);
   }
 
-  @memo
   get authors() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return uniq([
@@ -251,17 +255,14 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
     ]);
   }
 
-  @memo
   get authorExts$() {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
-  @memo
   get mailboxes() {
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
   }
 
-  @memo
   get replyTags(): string[] {
     const tags = [
       ...this.admin.reply.filter(p => hasTag(p.tag, this.ref)).flatMap(p => p.config!.reply as string[]),
@@ -270,58 +271,47 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
-  @memo
   get tagged() {
     return interestingTags(this.ref.tags);
   }
 
-  @memo
   get tagExts$() {
     return this.editor.getTagsPreview(this.tagged, this.ref.origin || '');
   }
 
-  @memo
   get deleted() {
     return hasTag('plugin/delete', this.ref);
   }
 
-  @memo
   get comments() {
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
-  @memo
   get moreComments() {
     return this.comments > (this.thread.cache.get(this.ref.url)?.length || 0) + this.newComments;
   }
 
-  @memo
   get responses() {
     return this.ref.metadata?.responses || 0;
   }
 
-  @memo
   get sources() {
     const sources = uniq(this.ref?.sources).filter(s => s != this.ref.url);
     return sources.length || 0;
   }
 
-  @memo
   get upvote() {
     return hasUserUrlResponse('plugin/user/vote/up', this.ref);
   }
 
-  @memo
   get downvote() {
     return hasUserUrlResponse('plugin/user/vote/down', this.ref);
   }
 
-  @memo
   get score() {
     return score(this.ref);
   }
 
-  @memo
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');
@@ -395,6 +385,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
       this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
       this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref.url), this.ref);
     }
+    this.ref = { ...this.ref, metadata: { ...this.ref.metadata, userUrls: [...this.ref.metadata.userUrls] } };
   }
 
   voteDown() {
@@ -411,6 +402,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
       this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
       this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref.url), this.ref);
     }
+    this.ref = { ...this.ref, metadata: { ...this.ref.metadata, userUrls: [...this.ref.metadata.userUrls] } };
   }
 
   forceDelete$ = () => {

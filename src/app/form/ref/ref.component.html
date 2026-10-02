@@ -77,8 +77,8 @@
                        class="shrink"
                        [add]="true"
                        i18n-title title="Add Plugin"
-                       (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
-  @if (creating && thumbnail) {
+                       (pluginChange)="togglePlugin($event); pluginSelect.plugin.set('')"></app-select-plugin>
+  @if (creating() && thumbnail) {
     <div class="thumbnail-preview">
       <div class="thumbnail"
            [style.background-image]="thumbnailRefs | thumbnail: !thumbnailEmoji && !thumbnailColor : false | async | cssUrl: url.value"
@@ -92,12 +92,12 @@
                     (togglePlugin)="togglePlugin($event)"
                     [group]="group"></app-form-plugins>
 
-  @if (customEditor) {
+  @if (customEditor()) {
     <span><!-- Editor --></span>
     <div #fill class="fill-editor">
       <ngx-monaco-editor #ed
                          [formControl]="comment"
-                         [options]="codeOptions"
+                         [options]="codeOptions()"
                          [style.width]="'min(900px, 50vw)'"
                          [style.height]="'min(200px, 90vh)'"
                          appResizeHandle

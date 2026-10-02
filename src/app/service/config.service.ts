@@ -3,7 +3,6 @@ import { Injectable, isDevMode } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { tap } from 'rxjs/operators';
-import { memo } from '../util/memo';
 
 export function config(): ConfigService {
   // @ts-ignore
@@ -57,9 +56,9 @@ export class ConfigService {
     window.configService = this;
   }
 
-  @memo
+  private _base?: string;
   get base() {
-    return document.getElementsByTagName('base')[0].href;
+    return this._base ??= document.getElementsByTagName('base')[0].href;
   }
 
   get loginLink() {

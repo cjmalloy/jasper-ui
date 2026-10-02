@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, forwardRef, Input, OnInit, ChangeDetectionStrategy, input, viewChildren, signal } from '@angular/core';
+import { DestroyRef, inject, Component, effect, forwardRef, OnInit, ChangeDetectionStrategy, input, untracked, viewChildren, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
@@ -28,12 +28,6 @@ import { RefComponent } from '../ref.component';
   ],
 })
 export class RefListComponent implements OnInit, HasChanges {
-  readonly state = signal(0);
-
-  private markState() {
-    this.state.update(value => value + 1);
-  }
-
   private destroyRef = inject(DestroyRef);
 
   readonly hide = input<number[]>();
@@ -41,8 +35,10 @@ export class RefListComponent implements OnInit, HasChanges {
   readonly showPageLast = input(true);
   readonly showAlarm = input(true);
   readonly pageControls = input(true);
-  @Input()
-  emptyMessage = $localize`No results found`;
+  readonly emptyMessageInput = input($localize`No results found`, { alias: 'emptyMessage' });
+  get emptyMessage() {
+    return this.emptyMessageInput();
+  }
   readonly showToggle = input(true);
   readonly expandInline = input(false);
   readonly showVotes = input(false);
@@ -53,32 +49,44 @@ export class RefListComponent implements OnInit, HasChanges {
 
   readonly list = viewChildren(RefComponent);
 
-  pinned: Ref[] = [];
-  newRefs: Ref[] = [];
+  private readonly pinnedSignal = signal<Ref[]>([]);
+  get pinned() { return this.pinnedSignal(); }
+  set pinned(value: Ref[]) { this.pinnedSignal.set(value); }
+  private readonly newRefsSignal = signal<Ref[]>([]);
+  get newRefs() { return this.newRefsSignal(); }
+  set newRefs(value: Ref[]) { this.newRefsSignal.set(value); }
 
-  private _page?: Page<Ref>;
-  private _ext?: Ext;
-  private _expanded?: boolean;
-  private _cols = 0;
+  readonly pageInput = input<Page<Ref> | undefined>(undefined, { alias: 'page' });
+  readonly extInput = input<Ext | undefined>(undefined, { alias: 'ext' });
+  readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
+  readonly expandedInput = input<boolean | undefined>(undefined, { alias: 'expanded' });
 
   constructor(
     private accounts: AccountService,
     private router: Router,
     private store: Store,
     private refs: RefService,
-  ) { }
+  ) {
+    effect(() => {
+      const ext = this.ext;
+      untracked(() => this.loadPinned(ext));
+    });
+    effect(() => {
+      const page = this.page;
+      if (!page) return;
+      untracked(() => this.checkPage(page));
+    });
+  }
 
   saveChanges() {
     return !this.list()?.find(r => !r.saveChanges());
   }
 
   get ext() {
-    return this._ext;
+    return this.extInput();
   }
 
-  @Input()
-  set ext(value: Ext | undefined) {
-    this._ext = value;
+  private loadPinned(value: Ext | undefined) {
     if (!value?.config?.pinned?.length) {
       this.pinned = [];
     } else {
@@ -87,16 +95,8 @@ export class RefListComponent implements OnInit, HasChanges {
           catchError(err => of({ url: pin })),
           takeUntilDestroyed(this.destroyRef),
         )))
-        .subscribe(pinned => {
-          this.pinned = pinned;
-          this.markState();
-        });
+        .subscribe(pinned => this.pinned = pinned);
     }
-  }
-
-  @Input()
-  set cols(value: number | undefined) {
-    this._cols = value || 0;
   }
 
   get colStyle() {
@@ -108,32 +108,25 @@ export class RefListComponent implements OnInit, HasChanges {
   }
 
   get cols() {
-    if (this._cols) return this._cols;
+    if (this.colsInput()) return this.colsInput();
     return this.ext?.config?.defaultCols;
   }
 
   get expanded(): boolean {
-    if (this._expanded === undefined) return this._ext?.config?.defaultExpanded;
-    return this._expanded;
-  }
-
-  @Input()
-  set expanded(value: boolean) {
-    this._expanded = value;
+    if (this.expandedInput() === undefined) return !!this.ext?.config?.defaultExpanded;
+    return this.expandedInput()!;
   }
 
   get page(): Page<Ref> | undefined {
-    return this._page;
+    return this.pageInput();
   }
 
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
+  private checkPage(page: Page<Ref>) {
+    if (page) {
+      if (page.page.number > 0 && page.page.number >= page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.page.totalPages - 1,
+            pageNumber: page.page.totalPages - 1,
           },
           queryParamsHandling: 'merge',
           replaceUrl: true,
@@ -147,7 +140,6 @@ export class RefListComponent implements OnInit, HasChanges {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(ref => {
       if (ref) this.addNewRef(ref);
-      this.markState();
     });
   }
 
@@ -182,6 +174,5 @@ export class RefListComponent implements OnInit, HasChanges {
       }
     }
     this.store.eventBus.refresh(ref);
-    this.markState();
   }
 }

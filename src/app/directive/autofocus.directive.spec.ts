@@ -12,7 +12,7 @@ describe('AutofocusDirective', () => {
     });
   });
   it('should create an instance', () => {
-    const directive = new AutofocusDirective({} as any, TestBed.inject(Router));
+    const directive = TestBed.runInInjectionContext(() => new AutofocusDirective({} as any, TestBed.inject(Router)));
     expect(directive).toBeTruthy();
   });
 });

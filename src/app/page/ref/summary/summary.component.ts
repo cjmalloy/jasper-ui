@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, viewChildren, effect, inject, Injector } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, viewChildren, effect, inject, Injector, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
@@ -18,7 +18,6 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { getTitle } from '../../../util/format';
-import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
@@ -67,7 +66,6 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle(getTitle(this.store.view.ref)), { injector: this.injector });
     effect(() => {
-      MemoCache.clear(this);
       const top = this.store.view.url;
       const sort = this.store.view.sort;
       const filter = this.store.view.filter;
@@ -95,62 +93,43 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
     this.newThread$.complete();
   }
 
-  @memo
-  get top() {
-    return top(this.store.view.ref);
-  }
+  readonly top = computed(() => top(this.store.view.ref));
 
-  @memo
-  get responseSet() {
-    return this.comments || this.threads || this.admin.responseButton.find(p => hasTag(p.tag, this.replyTags));
-  }
+  readonly responseSet = computed(() => this.comments() || this.threads() || this.admin.responseButton.find(p => hasTag(p.tag, this.replyTags())));
 
-  @memo
-  get dm() {
-    return !!this.admin.getTemplate('dm') && hasTag('dm', this.store.view.ref);
-  }
+  readonly dm = computed(() => !!this.admin.getTemplate('dm') && hasTag('dm', this.store.view.ref));
 
-  @memo
-  get comments() {
+  readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
-  }
+  });
 
-  @memo
-  get threads() {
+  readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['plugin/thread'] || 0;
-  }
+  });
 
-  @memo
-  get responses() {
-    return this.store.view.ref?.metadata?.responses || 0;
-  }
+  readonly responses = computed(() => this.store.view.ref?.metadata?.responses || 0);
 
-  @memo
-  get mailboxes() {
-    return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
-  }
+  readonly mailboxes = computed(() => mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap));
 
-  @memo
-  get replyTags(): string[] {
+  readonly replyTags = computed((): string[] => {
     const tags = [
-      ...this.comments ? ['plugin/comment'] : this.threads ? ['plugin/thread'] : [],
+      ...this.comments() ? ['plugin/comment'] : this.threads() ? ['plugin/thread'] : [],
       ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
-      ...this.mailboxes,
+      ...this.mailboxes(),
     ];
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
-  }
+  });
 
   get moreComments() {
-    const topComments = this.thread.cache.get(this.top);
+    const topComments = this.thread.cache.get(this.top());
     if (!topComments) return false;
     return topComments.length > this.summaryItems;
   }
 
   onReply(ref?: Ref) {
     if (ref && this.store.view.ref) {
-      MemoCache.clear(this);
       updateMetadata(this.store.view.ref!, ref);
     }
     this.store.eventBus.reload(ref);

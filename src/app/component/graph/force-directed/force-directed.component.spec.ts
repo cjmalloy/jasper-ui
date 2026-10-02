@@ -26,7 +26,7 @@ describe('ForceDirectedComponent', () => {
 
     fixture = TestBed.createComponent(ForceDirectedComponent);
     component = fixture.componentInstance;
-    component.content = [{ url: '' }];
+    fixture.componentRef.setInput('content', [{ url: '' }]);
     fixture.detectChanges();
   });
 

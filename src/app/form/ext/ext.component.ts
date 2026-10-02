@@ -7,7 +7,6 @@ import {
   Component,
   ElementRef,
   forwardRef,
-  Input,
   ChangeDetectionStrategy,
   input,
   output,
@@ -92,7 +91,7 @@ export class ExtFormComponent  {
     'P100Y',
   ];
 
-  private readonly _group = signal<UntypedFormGroup | undefined>(undefined, { equal: () => false });
+  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
   readonly showClear = input(false);
   readonly clear = output<void>();
 
@@ -122,11 +121,7 @@ export class ExtFormComponent  {
   ) { }
 
   get group(): UntypedFormGroup {
-    return this._group()!;
-  }
-  @Input()
-  set group(value: UntypedFormGroup) {
-    this._group.set(value);
+    return this.groupInput();
   }
 
   get form(): FormlyFieldConfig[] | undefined { return this._form(); }

@@ -12,18 +12,17 @@ import {
   Component,
   ElementRef,
   forwardRef,
-  HostBinding,
-  HostListener,
-  Input,
-  OnChanges,
-  SimpleChanges,
   TemplateRef,
   ViewContainerRef,
   ChangeDetectionStrategy,
   input,
   output,
   signal,
-  viewChild
+  viewChild,
+  computed,
+  linkedSignal,
+  effect,
+  untracked
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -43,7 +42,6 @@ import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { memo, MemoCache } from '../../../util/memo';
 import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
 import { ChessComponent } from '../../chess/chess.component';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -54,7 +52,15 @@ import { TodoComponent } from '../../todo/todo.component';
   selector: 'app-note',
   templateUrl: './note.component.html',
   styleUrls: ['./note.component.scss'],
-  host: { 'class': 'note' },
+  host: {
+    'class': 'note',
+    '[class.unlocked]': 'unlocked',
+    '[class.full-size]': 'todo',
+    '(click)': 'onClick()',
+    '(touchend)': 'touchend($event)',
+    '(press)': 'unlock($event)',
+    '(contextmenu)': 'contextMenu($event)',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => MdComponent),
@@ -67,17 +73,16 @@ import { TodoComponent } from '../../todo/todo.component';
     CssUrlPipe,
   ],
 })
-export class NoteComponent implements OnChanges, AfterViewInit {
+export class NoteComponent implements AfterViewInit {
   private destroyRef = inject(DestroyRef);
 
-  @HostBinding('class.unlocked')
   get unlocked() { return this.unlockedSignal(); }
   private readonly unlockedSignal = signal(false);
 
-  private readonly refSignal = signal<Ref | undefined>(undefined);
-  @Input()
+  readonly refInput = input.required<Ref>({ alias: 'ref' });
+  readonly refSignal = linkedSignal(() => this.refInput());
+  get ref() { return this.refSignal(); }
   set ref(value: Ref) { this.refSignal.set(value); }
-  get ref() { return this.refSignal()!; }
   readonly pressToUnlock = input(false);
   readonly hideSwimLanes = input(true);
   readonly ext = input<Ext>();
@@ -88,7 +93,6 @@ export class NoteComponent implements OnChanges, AfterViewInit {
   get repostRef() { return this.repostRefSignal(); }
   set repostRef(value: Ref | undefined) { this.repostRefSignal.set(value); }
 
-  @HostBinding('class.full-size')
   get todo() { return this.todoSignal(); }
   private readonly todoSignal = signal(false);
   private readonly chessSignal = signal(false);
@@ -118,17 +122,21 @@ export class NoteComponent implements OnChanges, AfterViewInit {
     private overlay: Overlay,
     private el: ElementRef,
     private viewContainerRef: ViewContainerRef,
-  ) { }
+  ) {
+    effect(() => {
+      this.refInput();
+      untracked(() => this.init());
+    });
+  }
 
   init() {
-    MemoCache.clear(this);
     this.todoSignal.set(!!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo'));
     this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
     this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
-    if (this.repost && this.ref && this.repostRef?.url != repost(this.ref)) {
+    if (this.repost() && this.ref && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
-          : this.refs.getCurrent(this.url)
+          : this.refs.getCurrent(this.url())
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
         takeUntilDestroyed(this.destroyRef),
@@ -136,168 +144,113 @@ export class NoteComponent implements OnChanges, AfterViewInit {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref) {
-      this.init();
-    }
-  }
-
   ngAfterViewInit(): void {
     delay(() => {
-      if (this.lastSelected) {
+      if (this.lastSelected()) {
         this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
       }
     }, 400);
   }
 
 
-  @HostListener('click')
   onClick() {
-    if (!this.lastSelected && this.store.view.lastSelected) {
+    if (!this.lastSelected() && this.store.view.lastSelected) {
       this.store.view.clearLastSelected();
     }
   }
-
-  @memo
-  get remote() {
-    return this.ref.modified && this.origin !== this.store.account.origin;
-  }
-
-  @memo
-  get origin() {
-    return this.repost ? this.repostRef?.origin : this.ref.origin;
-  }
-
-  @memo
-  @HostBinding('class.no-write')
-  get noWrite() {
+  readonly remote = computed(() => {
+    return this.ref.modified && this.origin() !== this.store.account.origin;
+  });
+  readonly origin = computed(() => {
+    return this.repost() ? this.repostRef?.origin : this.ref.origin;
+  });
+  readonly noWrite = computed(() => {
     return !this.auth.writeAccess(this.ref);
-  }
-
-  @memo
-  get repost() {
+  });
+  readonly repost = computed(() => {
     return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
-  }
-
-  @memo
-  get bareRepost() {
-    return this.repost && !this.ref.title && !this.ref.comment;
-  }
-
-  @memo
-  get url() {
-    return this.repost ? this.ref.sources![0] : this.ref.url;
-  }
-
-  @memo
-  get currentText() {
+  });
+  readonly bareRepost = computed(() => {
+    return this.repost() && !this.ref.title && !this.ref.comment;
+  });
+  readonly url = computed(() => {
+    return this.repost() ? this.ref.sources![0] : this.ref.url;
+  });
+  readonly currentText = computed(() => {
     if (this.chess || this.todo) return '';
     const value = this.ref?.comment || this.repostRef?.comment || '';
     if (this.ref?.title || hasComment(value)) return value;
     return '';
-  }
-
-  @memo
-  get thumbnail() {
+  });
+  readonly thumbnail = computed(() => {
     return this.admin.getPlugin('plugin/thumbnail') &&
       hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
-  }
-
-  @memo
-  get thumbnailColor() {
-    return this.thumbnail &&
+  });
+  readonly thumbnailColor = computed(() => {
+    return this.thumbnail() &&
       (this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color);
-  }
-
-  @memo
-  get thumbnailEmoji() {
-    return this.thumbnail &&
+  });
+  readonly thumbnailEmoji = computed(() => {
+    return this.thumbnail() &&
       (this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji) || '';
-  }
-
-  @memo
-  get thumbnailRadius() {
-    return this.thumbnail &&
+  });
+  readonly thumbnailRadius = computed(() => {
+    return this.thumbnail() &&
       (this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius) || 0;
-  }
-
-  @memo
-  get dependents() {
+  });
+  readonly dependents = computed(() => {
     return !hasTag('plugin/comment', this.ref) && !hasTag('plugin/thread', this.ref) && this.ref.sources?.length || 0;
-  }
-
-  @memo
-  get dependencies() {
+  });
+  readonly dependencies = computed(() => {
     return this.ref.metadata?.responses || 0;
-  }
-
-  @memo
-  get thread() {
+  });
+  readonly thread = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return '';
-    if (!hasTag('plugin/thread', this.ref) && !this.threads) return '';
+    if (!hasTag('plugin/thread', this.ref) && !this.threads()) return '';
     return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
-  }
-
-  @memo
-  get threads() {
+  });
+  readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
-  }
-
-  @memo
-  get comment() {
+  });
+  readonly comment = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return hasTag('plugin/comment', this.ref) || this.comments;
-  }
-
-  @memo
-  get comments() {
+    return hasTag('plugin/comment', this.ref) || this.comments();
+  });
+  readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
-  }
-
-  @memo
-  get badges() {
+  });
+  readonly badges = computed(() => {
     const badges = intersection(this.ref.tags, this.ext()?.config?.badges || []);
     if (this.hideSwimLanes()) return badges;
     return difference(badges, this.ext()?.config?.swimLanes || []);
-  }
-
-  @memo
-  get badgeExts$() {
-    return this.exts.getCachedExts(this.badges, this.ref.origin || '');
-  }
-
-  @memo
-  get allBadgeExts$() {
+  });
+  readonly badgeExts$ = computed(() => {
+    return this.exts.getCachedExts(this.badges(), this.ref.origin || '');
+  });
+  readonly allBadgeExts$ = computed(() => {
     return this.exts.getCachedExts(this.ext()?.config?.badges || [], this.ref.origin || '');
-  }
-
-  @HostBinding('class.last-selected')
-  get lastSelected() {
+  });
+  readonly lastSelected = computed(() => {
     return this.store.view.lastSelected?.url === this.ref.url;
-  }
+  });
 
-  @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
     this.unlockedSignal.set(false);
   }
 
-  @HostListener('press', ['$event'])
   unlock(event: any) {
     if (!this.config.mobile) return;
     this.unlockedSignal.set(true);
     this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
   }
-
-  @memo
-  get title() {
-    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
+  readonly title = computed(() => {
+    if (this.bareRepost()) return getTitle(this.repostRef) || $localize`Repost`;
     return getTitle(this.ref);
-  }
+  });
 
-  @HostListener('contextmenu', ['$event'])
   contextMenu(event: MouseEvent) {
     if (this.pressToUnlock()) {
       // no badge menu on mobile

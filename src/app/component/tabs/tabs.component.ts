@@ -2,34 +2,35 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  ContentChildren,
   ElementRef,
-  HostBinding,
-  HostListener,
-  QueryList,
   contentChildren,
-  signal
+  effect,
+  signal,
+  computed
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { ConfigService } from '../../service/config.service';
-import { memo, MemoCache } from '../../util/memo';
 import { SettingsComponent } from '../settings/settings.component';
 
 @Component({
   selector: 'app-tabs',
   templateUrl: './tabs.component.html',
   styleUrl: './tabs.component.scss',
-  host: { 'class': 'tabs' },
+  host: {
+    'class': 'tabs',
+    '[class.measuring]': 'measuring',
+    '[class.floating-tabs]': 'floatingTabs',
+    '(window:resize)': 'onResize()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, SettingsComponent]
 })
 export class TabsComponent implements AfterViewInit {
 
   readonly routerLinks = contentChildren(RouterLink);
-  @ContentChildren(RouterLink, { read: ElementRef })
-  anchors!: QueryList<ElementRef>;
+  readonly anchors = contentChildren(RouterLink, { read: ElementRef });
 
   private readonly _options = signal<string[]>([], { equal: () => false });
   private readonly _hidden = signal(0);
@@ -41,7 +42,6 @@ export class TabsComponent implements AfterViewInit {
   get hidden() { return this._hidden(); }
   set hidden(value: number) { this._hidden.set(value); }
 
-  @HostBinding('class.measuring')
   get measuring() { return this._measuring(); }
   set measuring(value: boolean) { this._measuring.set(value); }
 
@@ -50,23 +50,25 @@ export class TabsComponent implements AfterViewInit {
   constructor(
     private config: ConfigService,
     private el: ElementRef<HTMLElement>,
-  ) { }
+  ) {
+    effect(() => {
+      this.anchors();
+      defer(() => {
+        this.measuring = true;
+        this.updateTabs();
+      });
+    });
+  }
 
   ngAfterViewInit() {
     this.updateTabs();
-    this.anchors.changes.subscribe(value => {
-      this.measuring = true;
-      this.updateTabs();
-    });
     defer(() => this.resizeObserver?.observe(this.el.nativeElement!.parentElement!));
   }
 
-  @HostBinding('class.floating-tabs')
   get floatingTabs() {
     return this.config.mini || this.hidden > 0 && this.hidden === this.options.length;
   }
 
-  @HostListener('window:resize')
   onResize() {
     if (!this.options.length) return;
     defer(() => {
@@ -83,11 +85,10 @@ export class TabsComponent implements AfterViewInit {
   }
 
   updateTabs() {
-    MemoCache.clear(this);
     this.hidden = 0;
     this.options = [];
     this.map.clear();
-    const tabs = this.anchors.toArray();
+    const tabs = this.anchors();
     for (const t of tabs) {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
@@ -101,7 +102,7 @@ export class TabsComponent implements AfterViewInit {
   }
 
   hideTabs() {
-    const tabs = this.anchors.toArray();
+    const tabs = this.anchors();
     let i = this.options.length - 1;
     for (const t of tabs) {
       const el = t.nativeElement as HTMLAnchorElement;
@@ -116,11 +117,9 @@ export class TabsComponent implements AfterViewInit {
     }
     this.measuring = false;
   }
-
-  @memo
-  get tabWidths() {
+  readonly tabWidths = computed(() => {
     const result: number[] = [];
-    const tabs = this.anchors.toArray();
+    const tabs = this.anchors();
     for (const t of tabs) {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
@@ -128,7 +127,7 @@ export class TabsComponent implements AfterViewInit {
       result.push(el.offsetWidth + 8.5);
     }
     return result;
-  }
+  });
 
   get currentTabWidth() {
     const el = this.el.nativeElement;
@@ -176,7 +175,7 @@ export class TabsComponent implements AfterViewInit {
     let childWidth = current + this.childWidths.reduce((a, b) => a + b);
     if (childWidth > width) return 0;
     let skipped = false;
-    for (const w of this.tabWidths) {
+    for (const w of this.tabWidths()) {
       if (!skipped && w === current) {
         skipped = true;
         continue;

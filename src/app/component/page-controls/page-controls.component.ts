@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding, Input, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
@@ -50,7 +50,10 @@ function isDateSortField(value: string | undefined): value is DateSortField {
   selector: 'app-page-controls',
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
-  host: { 'class': 'page-controls' },
+  host: {
+    'class': 'page-controls',
+    '[class.print-hide]': 'fullResults',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
@@ -61,8 +64,7 @@ function isDateSortField(value: string | undefined): value is DateSortField {
 })
 export class PageControlsComponent {
 
-  @Input()
-  page?: Page<any>;
+  readonly page = input<Page<any> | undefined>();
   readonly showPageLast = input(true);
   readonly hideCols = input(false);
   readonly showPrev = input(true);
@@ -76,32 +78,33 @@ export class PageControlsComponent {
     private bookmarks: BookmarkService,
     private query: QueryStore,
     private refs: RefService,
-  ) { }
+  ) {
+    effect(() => {
+      const value = this.defaultCols();
+      this.colsChanged ||= value !== undefined;
+    });
+  }
 
-  @HostBinding('class.print-hide')
   get fullResults() {
-    return this.page?.page.totalPages === 1;
+    return this.page()?.page.totalPages === 1;
   }
 
-  @Input()
-  set defaultCols(value: number | undefined) {
-    this.colsChanged ||= value !== undefined;
-  }
+  readonly defaultCols = input<number | undefined>();
 
   get hasQuery() {
     return this.store.view.pageNumber !== undefined;
   }
 
   get prev() {
-    return Math.max(0, this.page!.page.number - 1);
+    return Math.max(0, this.page()!.page.number - 1);
   }
 
   get next() {
-    return Math.max(0, Math.min(this.last, this.page!.page.number + 1));
+    return Math.max(0, Math.min(this.last, this.page()!.page.number + 1));
   }
 
   get last() {
-    return Math.max(0, this.page!.page.totalPages - 1);
+    return Math.max(0, this.page()!.page.totalPages - 1);
   }
 
   get pageSize() {
@@ -155,7 +158,7 @@ export class PageControlsComponent {
   }
 
   private currentPage(): Page<Ref> | undefined {
-    const page = this.page as Page<Ref> | undefined;
+    const page = this.page() as Page<Ref> | undefined;
     if (!page || page !== this.query.page || page.content.length === 0) return undefined;
     return page;
   }

@@ -11,6 +11,6 @@
 @if (store.view.ref) {
   <app-comment-reply #reply
                      [to]="to"
-                     [tags]="replyTags"
+                     [tags]="replyTags()"
                      (save)="newRefs$.next($event)"></app-comment-reply>
 }

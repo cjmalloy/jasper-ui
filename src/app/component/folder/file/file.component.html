@@ -1,14 +1,14 @@
-@if (iconEmoji || iconColor) {
+@if (iconEmoji() || iconColor()) {
   <div class="file-icon thumbnail"
        [style.background-image]="[repostRef, ref] | thumbnail | async | cssUrl"
-       [style.background-color]="iconColor"
-       [style.border-radius.px]="iconRadius">{{ iconEmoji }}</div>
-} @else if (thumbnail) {
+       [style.background-color]="iconColor()"
+       [style.border-radius.px]="iconRadius()">{{ iconEmoji() }}</div>
+} @else if (thumbnail()) {
   <div class="file-icon thumbnail"
        [style.background-image]="[repostRef, ref] | thumbnail: true | async | cssUrl"
-       [style.border-radius.px]="iconRadius">{{ iconEmoji }}</div>
-} @else if (iconEmojiDefaults) {
-  <div class="file-icon thumbnail">{{ iconEmojiDefaults }}</div>
+       [style.border-radius.px]="iconRadius()">{{ iconEmoji() }}</div>
+} @else if (iconEmojiDefaults()) {
+  <div class="file-icon thumbnail">{{ iconEmojiDefaults() }}</div>
 } @else {
   <div class="file-icon thumbnail" [class.default-thumbnail]="true"></div>
 }
@@ -23,9 +23,9 @@
     </div>
   }
   <a [routerLink]="['/ref', ref.url]"
-     [queryParams]="{ origin: nonLocalOrigin }"
+     [queryParams]="{ origin: nonLocalOrigin() }"
      (click)="saveRef()"
-     [style.pointer-events]="dragging() ? 'none' : undefined">{{ title }}</a>
+     [style.pointer-events]="dragging() ? 'none' : undefined">{{ title() }}</a>
 </div>
 @if (expanded()) {
   <app-viewer [ref]="ref"></app-viewer>

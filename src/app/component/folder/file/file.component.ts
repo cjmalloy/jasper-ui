@@ -1,7 +1,19 @@
 import {
   AsyncPipe
 } from '@angular/common';
-import { DestroyRef, inject, Component, forwardRef, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  forwardRef,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+  effect,
+  untracked
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, of, throwError } from 'rxjs';
@@ -25,7 +37,6 @@ import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
 import { getTitle, templates } from '../../../util/format';
 import { getScheme } from '../../../util/http';
-import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, isAuthorTag, repost } from '../../../util/tag';
 import { ViewerComponent } from '../../viewer/viewer.component';
 
@@ -34,6 +45,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   templateUrl: './file.component.html',
   styleUrls: ['./file.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { 'tabindex': '0' },
   imports: [
     forwardRef(() => ViewerComponent),
     RouterLink,
@@ -42,13 +54,14 @@ import { ViewerComponent } from '../../viewer/viewer.component';
     CssUrlPipe,
   ],
 })
-export class FileComponent implements OnChanges {
+export class FileComponent {
   css = 'file ';
-  @HostBinding('attr.tabindex') tabIndex = 0;
   private destroyRef = inject(DestroyRef);
 
-  @Input()
-  ref!: Ref;
+  readonly refInput = input.required<Ref>({ alias: 'ref' });
+  readonly refSignal = linkedSignal(() => this.refInput());
+  get ref() { return this.refSignal(); }
+  set ref(value: Ref) { this.refSignal.set(value); }
   readonly expanded = input(false);
   readonly expandInline = input(false);
   readonly showToggle = input(false);
@@ -76,119 +89,91 @@ export class FileComponent implements OnChanges {
     private refs: RefService,
     public store: Store,
     private auth: AuthzService,
-  ) { }
+  ) {
+    effect(() => {
+      this.refInput();
+      untracked(() => this.loadRef());
+    });
+  }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref) {
-      MemoCache.clear(this);
-      this.editing = false;
-      this.viewSource = false;
-      this.writeAccess = this.auth.writeAccess(this.ref);
-      this.taggingAccess = this.auth.taggingAccess(this.ref);
-      this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
-      this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
+  private loadRef() {
+    this.editing = false;
+    this.viewSource = false;
+    this.writeAccess = this.auth.writeAccess(this.ref);
+    this.taggingAccess = this.auth.taggingAccess(this.ref);
+    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
+    this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
 
-      this.expandPlugins = this.admin.getEmbeds(this.ref);
-      if (this.repost && this.ref && this.fetchRepost() && this.repostRef?.url != repost(this.ref)) {
-        (this.store.view.top?.url === this.ref.sources![0]
-            ? of(this.store.view.top)
-            : this.refs.getCurrent(this.url)
-        ).pipe(
-          catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-          takeUntilDestroyed(this.destroyRef),
-        ).subscribe(ref => {
-          this.repostRef = ref;
-          if (!ref) return;
-          MemoCache.clear(this);
-          if (this.bareRepost) {
-            this.expandPlugins = this.admin.getEmbeds(ref);
-          } else {
-            this.expandPlugins = [...this.expandPlugins, 'plugin/repost'];
-          }
-        });
-      }
+    this.expandPlugins = this.admin.getEmbeds(this.ref);
+    if (this.repost() && this.ref && this.fetchRepost() && this.repostRef?.url != repost(this.ref)) {
+      (this.store.view.top?.url === this.ref.sources![0]
+          ? of(this.store.view.top)
+          : this.refs.getCurrent(this.url())
+      ).pipe(
+        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe(ref => {
+        this.repostRef = ref;
+        if (!ref) return;
+        if (this.bareRepost()) {
+          this.expandPlugins = this.admin.getEmbeds(ref);
+        } else {
+          this.expandPlugins = [...this.expandPlugins, 'plugin/repost'];
+        }
+      });
     }
   }
 
-
-  @memo
-  @HostBinding('class')
-  get pluginClasses() {
+  readonly pluginClasses = computed(() => {
     return this.css + templates(this.ref.tags, 'plugin')
       .map(t => t.replace(/\//g, '_').replace(/\./g, '-'))
       .join(' ');
-  }
-
-  @memo
-  get nonLocalOrigin() {
+  });
+  readonly nonLocalOrigin = computed(() => {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
-  }
-
-  @memo
-  get local() {
+  });
+  readonly local = computed(() => {
     return this.ref.origin === this.store.account.origin;
-  }
-
-  @memo
-  get repost() {
+  });
+  readonly repost = computed(() => {
     return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
-  }
-
-  @memo
-  get bareRepost() {
-    return this.repost && !this.ref.title && !this.ref.comment;
-  }
-
-  @memo
-  get url() {
-    return this.repost ? this.ref.sources![0] : this.ref.url;
-  }
-
-  @memo
-  get title() {
-    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
+  });
+  readonly bareRepost = computed(() => {
+    return this.repost() && !this.ref.title && !this.ref.comment;
+  });
+  readonly url = computed(() => {
+    return this.repost() ? this.ref.sources![0] : this.ref.url;
+  });
+  readonly title = computed(() => {
+    if (this.bareRepost()) return getTitle(this.repostRef) || $localize`Repost`;
     return getTitle(this.ref);
-  }
-  @memo
-  get thumbnail() {
+  });
+  readonly thumbnail = computed(() => {
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
     return hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
-  }
-
-  @memo
-  get iconColor() {
-    if (!this.thumbnail) return '';
+  });
+  readonly iconColor = computed(() => {
+    if (!this.thumbnail()) return '';
     return this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color || '';
-  }
-
-  @memo
-  get iconEmoji() {
-    if (!this.thumbnail) return '';
+  });
+  readonly iconEmoji = computed(() => {
+    if (!this.thumbnail()) return '';
     return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
-  }
-
-  @memo
-  get iconEmojiDefaults() {
+  });
+  readonly iconEmojiDefaults = computed(() => {
     const icon = this.icons.filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
     return icon?.label || icon?.thumbnail;
-  }
-
-  @memo
-  get iconRadius() {
+  });
+  readonly iconRadius = computed(() => {
     return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || undefined;
-  }
-
-  @memo
-  @HostBinding('class.sent')
-  get isAuthor() {
+  });
+  readonly isAuthor = computed(() => {
     return isAuthorTag(this.store.account.tag, this.ref);
-  }
-
-  @memo
-  get isRecipient() {
+  });
+  readonly isRecipient = computed(() => {
     return hasTag(this.store.account.mailbox, this.ref);
-  }
+  });
 
   saveRef() {
     this.store.view.preloadRef(this.ref, this.repostRef);
@@ -199,7 +184,7 @@ export class FileComponent implements OnChanges {
   }
 
   visible(v: Visibility) {
-    return visible(this.ref, v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor(), this.isRecipient());
   }
 
   active(a: TagAction | ResponseAction | Icon) {

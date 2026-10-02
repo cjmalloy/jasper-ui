@@ -2,8 +2,6 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  HostBinding,
-  HostListener,
   isDevMode,
   ViewContainerRef
 } from '@angular/core';
@@ -23,12 +21,18 @@ import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
-import { memo } from './util/memo';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  host: {
+    '[class.electron]': 'electron',
+    '(window:blur)': 'removeHotkey()',
+    '(window:offline)': 'offline()',
+    '(window:online)': 'online()',
+    '(window:paste)': 'paste($event)',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     LoginPopupComponent,
@@ -39,7 +43,6 @@ import { memo } from './util/memo';
 })
 export class AppComponent implements AfterViewInit {
 
-  @HostBinding('class.electron')
   electron = this.config.electron;
 
   debug = !isDevMode() && this.store.account.debug;
@@ -126,10 +129,7 @@ export class AppComponent implements AfterViewInit {
     });
   }
 
-  @memo
-  get macos() {
-    return /Macintosh/i.test(navigator.userAgent);
-  }
+  readonly macos = /Macintosh/i.test(navigator.userAgent);
 
   hotkey(key: string) {
     return this.macos ? key === 'Meta' : key === 'Control';
@@ -139,7 +139,6 @@ export class AppComponent implements AfterViewInit {
     return this.macos ? event.metaKey : event.ctrlKey;
   }
 
-  @HostListener('window:blur')
   removeHotkey() {
     if (this.store.hotkey) {
       this.store.hotkey = false;
@@ -147,21 +146,18 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
-  @HostListener('window:offline')
   offline() {
     if (!this.store.offline) {
       this.store.offline = true;
     }
   }
 
-  @HostListener('window:online')
   online() {
     if (this.store.offline) {
       this.store.offline = false;
     }
   }
 
-  @HostListener('window:paste', ['$event'])
   paste(event: ClipboardEvent) {
     const items = event.clipboardData?.items;
     if (!items) return;

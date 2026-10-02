@@ -6,17 +6,14 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  effect,
   forwardRef,
-  HostBinding,
-  HostListener,
   inject,
-  Input,
-  OnChanges,
   OnDestroy,
-  SimpleChanges,
-  ViewChild,
   input,
+  linkedSignal,
   output,
+  untracked,
   viewChildren,
   viewChild,
   signal,
@@ -65,7 +62,6 @@ import {
   urlSummary
 } from '../../util/format';
 import { getExtension, getScheme, printError } from '../../util/http';
-import { memo, MemoCache } from '../../util/memo';
 import { markRead } from '../../util/response';
 import {
   storyboardAnimation,
@@ -104,6 +100,32 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  host: {
+    '[class]': 'allCss',
+    '[class.deleted]': 'deleted',
+    '[class.mobile-unlock]': 'mobileUnlock',
+    '[class.storyboard-ready]': 'storyboardLoaded',
+    '[attr.data-ref-url]': 'refUrlAttr',
+    '[attr.data-ref-origin]': 'refOriginAttr',
+    '[attr.data-ref-title]': 'refTitleAttr',
+    '[attr.data-ref-thumbnail-url]': 'refThumbnailUrlAttr',
+    '[attr.data-ref-thumbnail-color]': 'refThumbnailColorAttr',
+    '[attr.data-ref-thumbnail-emoji]': 'refThumbnailEmojiAttr',
+    '[attr.data-ref-thumbnail-radius]': 'refThumbnailRadiusAttr',
+    '[class.last-selected]': 'lastSelected',
+    '[class.upload]': 'uploadedFile',
+    '[class.exists]': 'existsFile',
+    '[class.outdated]': 'modifiedFile',
+    '[class.sent]': 'isAuthor',
+    '[style.--storyboard-url]': 'storyboardUrl',
+    '[style.--storyboard-size]': 'storyboardSize',
+    '[style.--storyboard-margin]': 'storyboardMargin',
+    '[style.--storyboard-width]': 'storyboardWidth',
+    '[style.--storyboard-height]': 'storyboardHeight',
+    '[style.--storyboard-animation]': 'storyboardAnimation',
+    '(fullscreenchange)': 'onFullscreenChange()',
+    '(click)': 'onClick()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
@@ -126,32 +148,53 @@ import { ViewerComponent } from '../viewer/viewer.component';
     CssUrlPipe,
   ],
 })
-export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
-  readonly state = signal(0);
-
-  private markState() {
-    this.state.update(value => value + 1);
-  }
+export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   css = 'ref list-item';
-  @HostBinding('class')
-  allCss = this.getPluginClasses();
+  private readonly allCssSignal = signal(this.css);
+  get allCss() { return this.allCssSignal(); }
+  set allCss(value: string) { this.allCssSignal.set(value); }
   private destroyRef = inject(DestroyRef);
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
   readonly refForm = viewChild<RefFormComponent>('refForm');
   readonly reply = viewChild<CommentReplyComponent>('reply');
   readonly diffEditor = viewChild<any>('diffEditor');
+  readonly viewer = viewChild<ViewerComponent>('viewer');
 
-  @Input()
-  ref!: Ref;
-  @Input()
-  expanded = false;
+  readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
+  private readonly refSignal = linkedSignal(() => this.refInput());
+  get ref(): Ref {
+    return this.refSignal()!;
+  }
+  set ref(value: Ref) {
+    this.refSignal.set(value);
+  }
+  readonly expandedInput = input(false, { alias: 'expanded' });
+  private readonly expandedSignal = linkedSignal(() => this.expandedInput());
+  get expanded() {
+    return this.expandedSignal();
+  }
+  set expanded(value: boolean) {
+    this.expandedSignal.set(value);
+  }
   readonly plugins = input<string[]>();
-  @Input()
-  expandInline = false;
-  @Input()
-  showToggle = false;
+  readonly expandInlineInput = input(false, { alias: 'expandInline' });
+  private readonly expandInlineSignal = linkedSignal(() => this.expandInlineInput());
+  get expandInline() {
+    return this.expandInlineSignal();
+  }
+  set expandInline(value: boolean) {
+    this.expandInlineSignal.set(value);
+  }
+  readonly showToggleInput = input(false, { alias: 'showToggle' });
+  private readonly showToggleSignal = linkedSignal(() => this.showToggleInput());
+  get showToggle() {
+    return this.showToggleSignal();
+  }
+  set showToggle(value: boolean) {
+    this.showToggleSignal.set(value);
+  }
   readonly scrollToLatest = input(false);
   readonly hideEdit = input(false);
   readonly disableResize = input(false);
@@ -160,45 +203,99 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   readonly fetchRepost = input(true);
   readonly copied = output<string>();
 
-  repostRef?: Ref;
+  private readonly repostRefSignal = signal<Ref | undefined>(undefined);
+  get repostRef() {
+    return this.repostRefSignal();
+  }
+  set repostRef(value: Ref | undefined) {
+    this.repostRefSignal.set(value);
+  }
   editForm: UntypedFormGroup;
-  submitted = false;
-  invalid = false;
-  overwritten = false;
-  overwrite = true;
-  expandPlugins: string[] = [];
-  icons: Icon[] = [];
-  alarm?: string;
-  actions: Action[] = [];
-  groupedActions: { [key: string]: Action[] } = {};
-  advancedActions: Action[] = [];
-  groupedAdvancedActions: { [key: string]: Action[] } = {};
-  infoUis: Plugin[] = [];
-  @HostBinding('class.deleted')
-  deleted = false;
-  @HostBinding('class.mobile-unlock')
-  mobileUnlock = false;
-  @HostBinding('class.storyboard-ready')
-  storyboardLoaded = false;
-  actionsExpanded?: boolean;
-  replying = false;
-  writeAccess = false;
-  taggingAccess = false;
-  deleteAccess = false;
-  serverError: string[] = [];
-  publishChanged = false;
-  diffOriginal?: Ref;
-  diffModified?: Ref;
-  fullscreen = false;
+  private readonly submittedSignal = signal(false);
+  get submitted() { return this.submittedSignal(); }
+  set submitted(value: boolean) { this.submittedSignal.set(value); }
+  private readonly invalidSignal = signal(false);
+  get invalid() { return this.invalidSignal(); }
+  set invalid(value: boolean) { this.invalidSignal.set(value); }
+  private readonly overwrittenSignal = signal(false);
+  get overwritten() { return this.overwrittenSignal(); }
+  set overwritten(value: boolean) { this.overwrittenSignal.set(value); }
+  private readonly overwriteSignal = signal(true);
+  get overwrite() { return this.overwriteSignal(); }
+  set overwrite(value: boolean) { this.overwriteSignal.set(value); }
+  private readonly expandPluginsSignal = signal<string[]>([]);
+  get expandPlugins() { return this.expandPluginsSignal(); }
+  set expandPlugins(value: string[]) { this.expandPluginsSignal.set(value); }
+  private readonly iconsSignal = signal<Icon[]>([]);
+  get icons() { return this.iconsSignal(); }
+  set icons(value: Icon[]) { this.iconsSignal.set(value); }
+  private readonly alarmSignal = signal<string | undefined>(undefined);
+  get alarm() { return this.alarmSignal(); }
+  set alarm(value: string | undefined) { this.alarmSignal.set(value); }
+  private readonly actionsSignal = signal<Action[]>([]);
+  get actions() { return this.actionsSignal(); }
+  set actions(value: Action[]) { this.actionsSignal.set(value); }
+  private readonly groupedActionsSignal = signal<Record<string, Action[]>>({});
+  get groupedActions() { return this.groupedActionsSignal(); }
+  set groupedActions(value: Record<string, Action[]>) { this.groupedActionsSignal.set(value); }
+  private readonly advancedActionsSignal = signal<Action[]>([]);
+  get advancedActions() { return this.advancedActionsSignal(); }
+  set advancedActions(value: Action[]) { this.advancedActionsSignal.set(value); }
+  private readonly groupedAdvancedActionsSignal = signal<Record<string, Action[]>>({});
+  get groupedAdvancedActions() { return this.groupedAdvancedActionsSignal(); }
+  set groupedAdvancedActions(value: Record<string, Action[]>) { this.groupedAdvancedActionsSignal.set(value); }
+  private readonly infoUisSignal = signal<Plugin[]>([]);
+  get infoUis() { return this.infoUisSignal(); }
+  set infoUis(value: Plugin[]) { this.infoUisSignal.set(value); }
+  private readonly deletedSignal = signal(false);
+  get deleted() { return this.deletedSignal(); }
+  set deleted(value: boolean) { this.deletedSignal.set(value); }
+  private readonly mobileUnlockSignal = signal(false);
+  get mobileUnlock() { return this.mobileUnlockSignal(); }
+  set mobileUnlock(value: boolean) { this.mobileUnlockSignal.set(value); }
+  private readonly storyboardLoadedSignal = signal(false);
+  get storyboardLoaded() { return this.storyboardLoadedSignal(); }
+  set storyboardLoaded(value: boolean) { this.storyboardLoadedSignal.set(value); }
+  private readonly actionsExpandedSignal = signal<boolean | undefined>(undefined);
+  get actionsExpanded() { return this.actionsExpandedSignal(); }
+  set actionsExpanded(value: boolean | undefined) { this.actionsExpandedSignal.set(value); }
+  private readonly replyingSignal = signal(false);
+  get replying() { return this.replyingSignal(); }
+  set replying(value: boolean) { this.replyingSignal.set(value); }
+  private readonly writeAccessSignal = signal(false);
+  get writeAccess() { return this.writeAccessSignal(); }
+  set writeAccess(value: boolean) { this.writeAccessSignal.set(value); }
+  private readonly taggingAccessSignal = signal(false);
+  get taggingAccess() { return this.taggingAccessSignal(); }
+  set taggingAccess(value: boolean) { this.taggingAccessSignal.set(value); }
+  private readonly deleteAccessSignal = signal(false);
+  get deleteAccess() { return this.deleteAccessSignal(); }
+  set deleteAccess(value: boolean) { this.deleteAccessSignal.set(value); }
+  private readonly serverErrorSignal = signal<string[]>([]);
+  get serverError() { return this.serverErrorSignal(); }
+  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
+  private readonly publishChangedSignal = signal(false);
+  get publishChanged() { return this.publishChangedSignal(); }
+  set publishChanged(value: boolean) { this.publishChangedSignal.set(value); }
+  private readonly diffOriginalSignal = signal<Ref | undefined>(undefined);
+  get diffOriginal() { return this.diffOriginalSignal(); }
+  set diffOriginal(value: Ref | undefined) { this.diffOriginalSignal.set(value); }
+  private readonly diffModifiedSignal = signal<Ref | undefined>(undefined);
+  get diffModified() { return this.diffModifiedSignal(); }
+  set diffModified(value: Ref | undefined) { this.diffModifiedSignal.set(value); }
+  private readonly fullscreenSignal = signal(false);
+  get fullscreen() { return this.fullscreenSignal(); }
+  set fullscreen(value: boolean) { this.fullscreenSignal.set(value); }
 
-  submitting?: Subscription;
+  private readonly submittingSignal = signal<Subscription | undefined>(undefined);
+  get submitting() { return this.submittingSignal(); }
+  set submitting(value: Subscription | undefined) { this.submittingSignal.set(value); }
   private refreshTap?: () => void;
-  private _editing = false;
-  private _viewSource = false;
-  private _diffing = false;
+  private readonly editingSignal = signal(false);
+  private readonly viewSourceSignal = signal(false);
+  private readonly diffingSignal = signal(false);
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
-  private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
   private focusViewer = false;
   private preloadingUrl = '';
@@ -221,27 +318,19 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private imgs: ImageService,
   ) {
     this.editForm = refForm(fb);
+    effect(() => {
+      if (!this.refInput()) return;
+      untracked(() => this.init());
+    });
+    effect(() => this.handleViewer(this.viewer()));
     this.editForm.valueChanges.pipe(
       takeUntilDestroyed(),
     ).subscribe(throttle(value => {
       if (!this.editing) return;
       if (!value?.title && !value?.comment || !value?.tags?.length) return;
-      MemoCache.clear(this, 'title');
-      MemoCache.clear(this, 'thumbnail');
-      MemoCache.clear(this, 'thumbnailRefs');
-      MemoCache.clear(this, 'thumbnailRadius');
-      MemoCache.clear(this, 'thumbnailColor');
-      MemoCache.clear(this, 'thumbnailEmoji');
-      MemoCache.clear(this, 'thumbnailEmojiDefaults');
-      MemoCache.clear(this, 'storyboardUrl');
-      MemoCache.clear(this, 'storyboardSize');
-      MemoCache.clear(this, 'storyboardMargin');
-      MemoCache.clear(this, 'storyboardHeight');
-      MemoCache.clear(this, 'storyboardAnimation');
       defer(() => {
         // Let Formly finish rebuilding tag rows before derived Ref UI state reacts.
         this.initFields({ ...this.ref, ...value });
-        this.markState();
       });
     }, 400, { leading: true, trailing: true }));
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
@@ -284,7 +373,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (event.event === 'toggle-all-closed') {
         this.expanded = false;
       }
-      this.markState();
     });
   }
 
@@ -295,8 +383,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   init() {
-    MemoCache.clear(this);
-    this.serverError.length = 0;
+    this.serverError = [];
     this.submitted = false;
     this.invalid = false;
     this.overwritten = false;
@@ -315,7 +402,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
-    MemoCache.clear(this);
     if (this.repost && this.ref && this.fetchRepost() && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
@@ -326,15 +412,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       ).subscribe(ref => {
         this.repostRef = ref;
         if (!ref) return;
-        MemoCache.clear(this);
         if (this.bareRepost) {
           this.expandPlugins = this.admin.getEmbeds(ref);
           this.allCss = this.getPluginClasses();
         } else {
-          this.expandPlugins.push('plugin/repost');
+          this.expandPlugins = [...this.expandPlugins, 'plugin/repost'];
         }
         this.preloadStoryboard();
-        this.markState();
       });
     }
     this.preloadStoryboard();
@@ -347,7 +431,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.imgs.getImage(url).then(() => {
       if (this.preloadingUrl === url) {
         this.storyboardLoaded = true;
-        this.markState();
       }
     }).catch(() => {
       // If preloading fails, storyboard-ready class is never set and hover shows original thumbnail
@@ -364,12 +447,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.groupedAdvancedActions = groupBy(this.advancedActions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
     this.infoUis = this.admin.getPluginInfoUis(ref.tags);
     this.allCss = this.getPluginClasses()
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref) {
-      this.init();
-    }
   }
 
   ngAfterViewInit(): void {
@@ -404,62 +481,51 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
   }
 
-  @HostBinding('attr.data-ref-url')
   get refUrlAttr() {
     return this.ref?.url;
   }
 
-  @HostBinding('attr.data-ref-origin')
   get refOriginAttr() {
     return this.ref?.origin || undefined;
   }
 
-  @HostBinding('attr.data-ref-title')
   get refTitleAttr() {
     return this.title || undefined;
   }
 
-  @HostBinding('attr.data-ref-thumbnail-url')
   get refThumbnailUrlAttr() {
     if (!this.thumbnail) return undefined;
     return this.refThumbnailUrl() || undefined;
   }
 
-  @HostBinding('attr.data-ref-thumbnail-color')
   get refThumbnailColorAttr() {
     if (!this.thumbnail) return undefined;
     return this.refThumbnailString('color') || undefined;
   }
 
-  @HostBinding('attr.data-ref-thumbnail-emoji')
   get refThumbnailEmojiAttr() {
     if (!this.thumbnail) return undefined;
     return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
   }
 
-  @HostBinding('attr.data-ref-thumbnail-radius')
   get refThumbnailRadiusAttr() {
     if (!this.thumbnail) return undefined;
     const radius = Number(this.refThumbnailPlugin?.['radius']);
     return Number.isFinite(radius) ? `${radius}` : undefined;
   }
 
-  @HostBinding('class.last-selected')
   get lastSelected() {
     return this.scrollToLatest() && this.store.view.lastSelected?.url === this.ref.url;
   }
 
-  @HostBinding('class.upload')
   get uploadedFile() {
     return this.ref.upload;
   }
 
-  @HostBinding('class.exists')
   get existsFile() {
     return this.ref.exists;
   }
 
-  @HostBinding('class.outdated')
   get modifiedFile() {
     return this.ref.outdated;
   }
@@ -487,38 +553,26 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     }
   }
 
-  @memo
-  @HostBinding('style.--storyboard-url')
   get storyboardUrl(): string | null {
     return storyboardUrl(this.storyboardRawUrl);
   }
 
-  @memo
-  @HostBinding('style.--storyboard-size')
   get storyboardSize(): string | null {
     return storyboardSize(this.storyboardData);
   }
 
-  @memo
-  @HostBinding('style.--storyboard-margin')
   get storyboardMargin(): string | null {
     return storyboardMargin(this.storyboardData);
   }
 
-  @memo
-  @HostBinding('style.--storyboard-width')
   get storyboardWidth(): string | null {
     return storyboardWidth(this.storyboardData);
   }
 
-  @memo
-  @HostBinding('style.--storyboard-height')
   get storyboardHeight(): string | null {
     return storyboardHeight(this.storyboardData);
   }
 
-  @memo
-  @HostBinding('style.--storyboard-animation')
   get storyboardAnimation(): string | null {
     const animation = storyboardAnimation(this.storyboardData);
     if (!animation) return null;
@@ -547,7 +601,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return hasTag('plugin/pip', this.currentTags);
   }
 
-  @HostListener('fullscreenchange')
   onFullscreenChange() {
     if (!this.fullscreen) return;
     if (document.fullscreenElement) return;
@@ -555,14 +608,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (this.closeOffFullscreen) this.expanded = false;
   }
 
-  @HostListener('click')
   onClick() {
     this.store.view.clearLastSelected(this.ref.url);
   }
 
-  @ViewChild('viewer')
-  set viewer(value: ViewerComponent | undefined) {
-    this._viewer = value;
+  private handleViewer(value: ViewerComponent | undefined) {
     if (value) {
       if (this.fullscreen) {
         value.el.nativeElement.requestFullscreen().catch((err: TypeError) => {
@@ -578,17 +628,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     }
   }
 
-  get viewer() {
-    return this._viewer;
-  }
-
   get viewSource(): boolean {
-    return this._viewSource;
+    return this.viewSourceSignal();
   }
 
   set viewSource(value: boolean) {
-    if (this._viewSource === value) return;
-    this._viewSource = value;
+    if (this.viewSource === value) return;
+    this.viewSourceSignal.set(value);
     if (value) {
       this.syncEditor();
     } else {
@@ -597,35 +643,29 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   get diffing(): boolean {
-    return this._diffing;
+    return this.diffingSignal();
   }
 
   set diffing(value: boolean) {
-    if (this._diffing === value) return;
-    this._diffing = value;
+    if (this.diffing === value) return;
+    this.diffingSignal.set(value);
     if (value) {
       this.diff()
     }
   }
 
   get editing(): boolean {
-    return this._editing;
+    return this.editingSignal();
   }
 
   set editing(value: boolean) {
-    if (this._editing === value) return;
-    this._editing = value;
+    if (this.editing === value) return;
+    this.editingSignal.set(value);
     if (value) {
       this.syncEditor();
-      MemoCache.clear(this, 'storyboardUrl');
-      MemoCache.clear(this, 'storyboardSize');
-      MemoCache.clear(this, 'storyboardMargin');
-      MemoCache.clear(this, 'storyboardHeight');
-      MemoCache.clear(this, 'storyboardAnimation');
     } else {
       if (this.expanded) this.focusViewer = true;
       defer(() => {
-        MemoCache.clear(this);
         this.init();
       });
     }
@@ -642,88 +682,71 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     }
   }
 
-  @memo
   get local() {
     return this.ref.origin === this.store.account.origin;
   }
 
-  @memo
   get localhost() {
     return this.ref.url.startsWith(this.config.base);
   }
 
-  @memo
   get repost() {
     return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 
-  @memo
   get bareRepost() {
     return this.repost && !this.ref.title && !this.ref.comment;
   }
 
-  @memo
   get currentRef() {
     return this.repost ? this.repostRef : this.ref;
   }
 
-  @memo
   get currentTags() {
     return uniq([...(this.repost ? this.repostRef?.tags : this.ref.tags) || [], ...this.expandPlugins]);
   }
 
-  @memo
   get bareRef() {
     return this.bareRepost ? this.repostRef : this.ref;
   }
 
-  @memo
   get commentNoTitle() {
     if (this.altText) return false;
     return this.bareRef?.title && this.bareRef?.comment || hasComment(this.bareRef?.comment || '');
   }
 
-  @memo
   get feed() {
     return !!this.admin.getPlugin('plugin/script/feed') && hasTag('plugin/script/feed', this.ref);
   }
 
-  @memo
   get thread() {
     return !!this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.ref);
   }
 
-  @memo
   get comment() {
     return !!this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.ref);
   }
 
-  @memo
   get dm() {
     return !!this.admin.getTemplate('dm') && hasTag('dm', this.ref);
   }
 
-  @memo
   get email() {
     return !!this.admin.getTemplate('email') && hasTag('email', this.ref);
   }
 
-  @memo
   get remote() {
     return !!this.admin.getPlugin('+plugin/origin') && hasTag('+plugin/origin', this.ref);
   }
 
-  @memo
   get originPull() {
     return !!this.admin.getPlugin('+plugin/origin/pull') && hasTag('+plugin/origin/pull', this.ref);
   }
 
-  @memo
   get originPush() {
     return !!this.admin.getPlugin('+plugin/origin/push') && hasTag('+plugin/origin/push', this.ref);
   }
 
-  @memo
   get localOrigin() {
     if (this.originPull || this.originPush) {
       return this.ref.plugins?.['+plugin/origin']?.local && subOrigin(this.ref.origin, this.ref.plugins?.['+plugin/origin']?.local);
@@ -731,7 +754,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return undefined;
   }
 
-  @memo
   get remoteOrigin() {
     if (this.originPull || this.originPush) {
       return this.ref.plugins?.['+plugin/origin']?.remote;
@@ -739,7 +761,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return undefined;
   }
 
-  @memo
   get thumbnail() {
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
     if (this.editing) {
@@ -752,7 +773,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return hasTag('plugin/image', this.ref) || hasTag('plugin/image', this.repostRef);
   }
 
-  @memo
   get thumbnailRefs() {
     return this.editing ? [{ ...this.editForm.getRawValue(), origin: this.ref.origin }] : [this.repostRef, this.ref];
   }
@@ -778,67 +798,57 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return typeof value === 'string' ? value : '';
   }
 
-  @memo
   get thumbnailColor() {
     if (!this.thumbnail) return '';
     if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
     return this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color || '';
   }
 
-  @memo
   get thumbnailEmoji() {
     if (!this.thumbnail) return '';
     if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
     return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
   }
 
-  @memo
   get thumbnailEmojiDefaults() {
     const icon = this.icons.filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
     return icon?.label || icon?.thumbnail;
   }
 
-  @memo
   get thumbnailRadius() {
     if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
     return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
   }
 
-  @memo
   get file() {
     return this.admin.getPlugin('plugin/file') &&
       hasTag('plugin/file', this.currentRef);
   }
 
-  @memo
   get audio() {
     return this.admin.getPlugin('plugin/audio') &&
       hasTag('plugin/audio', this.currentRef) &&
       (this.ref?.plugins?.['plugin/audio']?.url || this.url);
   }
 
-  @memo
   get video() {
     return this.admin.getPlugin('plugin/video') &&
       hasTag('plugin/video', this.currentRef) &&
       (this.ref?.plugins?.['plugin/video']?.url || this.url);
   }
 
-  @memo
   get image() {
     return this.admin.getPlugin('plugin/image') &&
       hasTag('plugin/image', this.currentRef) &&
       (this.ref?.plugins?.['plugin/image']?.url || this.url);
   }
 
-  @memo
   getFilename(d = $localize`Untitled`) {
     const ext = getExtension(this.url) || '';
     const filename = this.ref?.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
-  @memo
   get mediaAttachment() {
     if (this.file) {
       return this.proxy.getFetch(this.url, this.origin, this.getFilename());
@@ -855,7 +865,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return '';
   }
 
-  @memo
   get canInvoice() {
     if (!this.local) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
@@ -863,18 +872,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return hasTag('queue', this.ref);
   }
 
-  @memo
-  @HostBinding('class.sent')
   get isAuthor() {
     return isAuthorTag(this.store.account.tag, this.ref);
   }
 
-  @memo
   get isRecipient() {
     return hasTag(this.store.account.mailbox, this.ref);
   }
 
-  @memo
   get authors() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return uniq([
@@ -883,12 +888,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     ]);
   }
 
-  @memo
   get authorExts$() {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
-  @memo
   get recipients() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     const userRecipients = without(addressedTo(this.ref), ...this.authors).map(a => {
@@ -901,17 +904,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     ];
   }
 
-  @memo
   get recipientExts$() {
     return this.exts.getCachedExts(this.recipients, this.ref.origin || '').pipe(this.admin.recipientFallback);
   }
 
-  @memo
   get mailboxes() {
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
   }
 
-  @memo
   get replySources() {
     const sources = [this.ref.url];
     if (this.comment || this.thread || this.email) {
@@ -922,7 +922,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return sources;
   }
 
-  @memo
   get replyTags(): string[] {
     const tags = [
       ...this.admin.reply.filter(p => hasTag(p.tag, this.ref)).flatMap(p => p.config!.reply as string[]),
@@ -931,62 +930,51 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
-  @memo
   get replyTo() {
     return this.authors.join(' ')
   }
 
-  @memo
   get tags() {
     return interestingTags(this.ref.tags);
   }
 
-  @memo
   get tagExts$() {
     return this.editor.getTagsPreview(this.tags, this.ref.origin || '');
   }
 
-  @memo
   get url() {
     return this.repost ? this.ref.sources![0] : this.ref.url;
   }
 
-  @memo
   get origin() {
     return this.bareRef?.origin;
   }
 
-  @memo
   get link() {
     if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin, this.getFilename());
     return this.url;
   }
 
-  @memo
   get title() {
     if (this.editing) return getTitle(this.editForm.value);
     if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
     return getTitle(this.ref);
   }
 
-  @memo
   get defaultView() {
     if (this.thread || this.threads || this.dm) return 'thread';
     if (this.comment) return 'comments';
     return undefined;
   }
 
-  @memo
   get host() {
     return urlSummary(this.url);
   }
 
-  @memo
   get tagLink() {
     return this.url.toLowerCase().startsWith('tag:/');
   }
 
-  @memo
   get editingLink() {
     if (!hasTag('plugin/editing', this.ref)) return undefined;
     if (this.url.startsWith('comment:')) {
@@ -995,7 +983,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
   }
 
-  @memo
   get submitRoute() {
     if (this.url.startsWith('comment:')) {
       return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
@@ -1003,20 +990,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
   }
 
-  @memo
   get clickableLink() {
     if (this.file) return true;
     return clickableLink(this.url);
   }
 
-  @memo
   get redundantLink() {
     if (this.editingLink) return true;
     if (!this.clickableLink) return true;
     return this.expandPlugins.length;
   }
 
-  @memo
   get altText() {
     if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) {
       return this.bareRef?.comment;
@@ -1024,69 +1008,58 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return undefined;
   }
 
-  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
-  @memo
   get newCommentsCount() {
     const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'comments');
     if (!lastSeen) return 0;
     return Math.max(0, this.comments - lastSeen);
   }
 
-  @memo
   get errors() {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
     return this.ref.metadata?.plugins?.['+plugin/log'] || 0;
   }
 
-  @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
   }
 
-  @memo
   get newThreadsCount() {
     const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'threads');
     if (!lastSeen) return 0;
     return Math.max(0,  this.threads - lastSeen);
   }
 
-  @memo
   get responses() {
     return this.ref.metadata?.responses || 0;
   }
 
-  @memo
   get newResponsesCount() {
     const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'replies');
     if (!lastSeen) return 0;
     return Math.max(0, this.responses - lastSeen);
   }
 
-  @memo
   get sources() {
     const sources = uniq(this.ref?.sources).filter(s => s != this.ref.url);
     return sources.length || 0;
   }
 
-  @memo
   get top() {
     return top(this.ref);
   }
 
-  @memo
   get parent() {
     const sources = uniq(this.ref.sources).filter(s => s != this.ref.url);
     if (sources.length === 1) return sources[0];
     return false;
   }
 
-  @memo
   get parentComment() {
     if (!hasTag('plugin/comment', this.ref)) return false;
     if (this.ref.sources?.[0] === this.ref.url) return false;
@@ -1095,7 +1068,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return false;
   }
 
-  @memo
   get parentCommentTop() {
     if (!hasTag('plugin/comment', this.ref)) return false;
     if (this.ref.sources?.[0] === this.ref.url) return false;
@@ -1104,7 +1076,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return false;
   }
 
-  @memo
   get parentThreadTop() {
     if (!hasTag('plugin/thread', this.ref)) return false;
     if (this.ref.sources?.[0] === this.ref.url) return false;
@@ -1114,27 +1085,22 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return false;
   }
 
-  @memo
   get publishedIsSubmitted() {
     return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created!, 'seconds').seconds) <= 5;
   }
 
-  @memo
   get modifiedIsSubmitted() {
     return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created!, 'seconds').seconds) <= 5;
   }
 
-  @memo
   get upvote() {
     return hasUserUrlResponse('plugin/user/vote/up', this.ref);
   }
 
-  @memo
   get downvote() {
     return hasUserUrlResponse('plugin/user/vote/down', this.ref);
   }
 
-  @memo
   get isView() {
     return isRef(this.ref, this.store.view.ref);
   }
@@ -1149,14 +1115,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (this.store.hotkey && this.admin.getPlugin('plugin/fullscreen')) {
         this.fullscreen = true;
         this.closeOffFullscreen = !this.expanded;
-        if (this.viewer) {
-          this.viewer.el.nativeElement.requestFullscreen().catch(() => {
+        const viewer = this.viewer();
+        if (viewer) {
+          viewer.el.nativeElement.requestFullscreen().catch(() => {
             console.warn('Could not make fullscreen.');
           });
         }
         this.focusViewer = true;
         this.expanded = true;
-        this.markState();
       } else if (this.pipRequired) {
         this.store.eventBus.fire('pip', this.ref);
         read = true;
@@ -1185,7 +1151,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.initFields(this.ref);
   }
 
-  @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
     return hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref));
@@ -1328,12 +1293,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         tap(cursor => {
           this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
           this.editForm.reset();
-          delete this.submitting;
+          this.submitting = undefined;
           this.editing = false;
-          this.markState();
-        }),
+          }),
         catchError((res: HttpErrorResponse) => {
-          delete this.submitting;
+          this.submitting = undefined;
           if (res.status === 400) {
             this.invalid = true;
             console.log(res.message);
@@ -1343,11 +1307,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
             this.overwritten = true;
             this.refs.get(this.ref.url, this.ref.origin).subscribe(x => {
               this.overwrittenModified = x.modifiedString;
-              this.markState();
-            });
+                  });
           }
-          this.markState();
-          return throwError(() => res);
+            return throwError(() => res);
         }),
       ), ref);
     }
@@ -1394,7 +1356,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       tap(ref => {
         this.ref = ref;
         this.init();
-        this.markState();
       })
     );
   }
@@ -1432,7 +1393,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       this.diffOriginal = remote;
       this.diffModified = local;
       this.diffing = true;
-      this.markState();
     });
   }
 
@@ -1444,12 +1404,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
       tap(cursor => {
         this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
-        delete this.submitting;
+        this.submitting = undefined;
         this.diffing = false;
-        this.markState();
       }),
       catchError((res: HttpErrorResponse) => {
-        delete this.submitting;
+        this.submitting = undefined;
         if (res.status === 400) {
           this.invalid = true;
           console.error('Invalid ref data:', res.message);
@@ -1459,10 +1418,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           this.overwritten = true;
           this.refs.get(this.ref.url, this.ref.origin).subscribe(x => {
             this.overwrittenModified = x.modifiedString;
-            this.markState();
-          });
+              });
         }
-        this.markState();
         return throwError(() => res);
       }),
     ), ref);

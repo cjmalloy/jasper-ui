@@ -1,4 +1,4 @@
-import { Component, forwardRef, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, forwardRef, input, ChangeDetectionStrategy } from '@angular/core';
 import { Mod } from '../../model/tag';
 import { ExtComponent } from '../ext/ext.component';
 import { PluginComponent } from '../plugin/plugin.component';
@@ -20,5 +20,5 @@ import { UserComponent } from '../user/user.component';
   ],
 })
 export class ModComponent {
-  @Input() mod?: Mod;
+  readonly mod = input<Mod | undefined>();
 }

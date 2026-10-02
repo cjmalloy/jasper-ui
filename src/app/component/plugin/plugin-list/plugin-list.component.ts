@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, viewChildren } from '@angular/core';
+import { Component, effect, input, ChangeDetectionStrategy, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -19,26 +19,22 @@ export class PluginListComponent implements HasChanges {
 
   readonly list = viewChildren(PluginComponent);
 
-  private _page?: Page<Plugin>;
+  readonly page = input<Page<Plugin> | undefined>();
 
-  constructor(private router: Router) { }
+  constructor(private router: Router) {
+    effect(() => this.checkPage(this.page()));
+  }
 
   saveChanges() {
     return !this.list()?.find(p => !p.saveChanges());
   }
 
-  get page() {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Plugin> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
+  private checkPage(page: Page<Plugin> | undefined) {
+    if (page) {
+      if (page.page.number > 0 && page.page.number >= page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.page.totalPages - 1
+            pageNumber: page.page.totalPages - 1
           },
           queryParamsHandling: "merge",
         });

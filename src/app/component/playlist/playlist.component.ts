@@ -2,13 +2,11 @@ import {
   ChangeDetectionStrategy,
   computed,
   Component,
+  effect,
   forwardRef,
-  HostBinding,
   input,
   model,
-  OnChanges,
   OnDestroy,
-  SimpleChanges
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -30,13 +28,13 @@ import { ViewerComponent } from '../viewer/viewer.component';
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { 'class': 'playlist' },
   imports: [
     forwardRef(() => ViewerComponent),
     LoadingComponent,
   ],
 })
-export class PlaylistComponent implements OnChanges, OnDestroy {
-  @HostBinding('class') css = 'playlist';
+export class PlaylistComponent implements OnDestroy {
 
   ref = input<Ref | undefined>(undefined);
   index = model(0);
@@ -81,6 +79,7 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
         downloadPlaylist(this.proxy, mediaList, this.ref()!.title || 'playlist');
       }
     });
+    effect(() => this.loadRef(this.ref()));
   }
 
   getTag(tag: string, ref: Ref) {
@@ -95,11 +94,9 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (!changes.ref) return;
+  private loadRef(ref: Ref | undefined) {
     this.loading?.unsubscribe();
     this.sources.set(undefined);
-    const ref = changes.ref.currentValue as Ref | undefined;
     if (!ref?.sources?.length) return;
     this.index.set(0);
     this.loading = this.loadSources(ref.url, ref.sources.length)

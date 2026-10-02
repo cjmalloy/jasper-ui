@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, ChangeDetectionStrategy, viewChild, effect, Injector, signal } from '@angular/core';
+import { DestroyRef, inject, Component, ChangeDetectionStrategy, viewChild, effect, Injector, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer, uniq } from 'lodash-es';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
@@ -17,7 +17,6 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getTitle } from '../../../util/format';
-import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
@@ -99,7 +98,6 @@ export class RefThreadComponent implements HasChanges {
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref)), { injector: this.injector });
     effect(() => {
-      MemoCache.clear(this);
       if (this.store.view.ref) {
         const threadCount = this.store.view.ref.metadata?.plugins?.['plugin/thread'] || 0;
         this.store.local.setLastSeenCount(this.store.view.url, 'threads', threadCount);
@@ -137,25 +135,18 @@ export class RefThreadComponent implements HasChanges {
     this.query.close();
   }
 
-  @memo
-  get thread() {
-    return this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.store.view.ref);
-  }
+  readonly thread = computed(() => this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.store.view.ref));
 
-  @memo
-  get mailboxes() {
-    return this.to ? mailboxes(this.to, this.store.account.tag, this.store.origins.originMap) : [];
-  }
+  readonly mailboxes = computed(() => this.to ? mailboxes(this.to, this.store.account.tag, this.store.origins.originMap) : []);
 
-  @memo
-  get replyTags(): string[] {
+  readonly replyTags = computed((): string[] => {
     const tags = [
       'plugin/thread',
       'internal',
       ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
-      ...this.mailboxes,
+      ...this.mailboxes(),
     ];
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
-  }
+  });
 
 }

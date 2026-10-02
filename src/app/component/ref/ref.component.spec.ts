@@ -30,7 +30,7 @@ describe('RefComponent', () => {
 
     fixture = TestBed.createComponent(RefComponent);
     component = fixture.componentInstance;
-    component.ref = { url: '' };
+    fixture.componentRef.setInput('ref', { url: '' });
     fixture.detectChanges();
   });
 
@@ -39,15 +39,16 @@ describe('RefComponent', () => {
   });
 
   it('keeps the disabled Ref URL in thumbnail data while editing', () => {
-    component.ref = { url: 'cache:image-id', origin: '' };
+    fixture.componentRef.setInput('ref', { url: 'cache:image-id', origin: '' });
+    fixture.detectChanges();
     component.editForm.get('url')!.setValue(component.ref.url);
-    (component as any)._editing = true;
+    component.editing = true;
 
     expect(component.thumbnailRefs[0]?.url).toBe('cache:image-id');
   });
 
   it('preserves protected and private plugin tags when copying', () => {
-    component.ref = {
+    fixture.componentRef.setInput('ref', {
       url: 'https://example.com',
       origin: '@remote',
       tags: ['public', '+restricted', '_private', '+plugin/secret', '_plugin/cache'],
@@ -55,7 +56,8 @@ describe('RefComponent', () => {
         '+plugin/secret': { value: 'secret' },
         '_plugin/cache': { value: 'cached' },
       },
-    };
+    });
+    fixture.detectChanges();
     const refs = (component as any).refs;
     const auth = (component as any).auth;
     vi.spyOn(auth, 'canAddTag').mockReturnValue(true);

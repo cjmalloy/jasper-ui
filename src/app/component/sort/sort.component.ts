@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, Input, OnChanges, signal, SimpleChanges, untracked, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, input, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
@@ -15,11 +15,10 @@ import { convertSort, defaultDesc, SortItem } from '../../util/query';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormsModule]
 })
-export class SortComponent implements OnChanges {
+export class SortComponent {
   readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
-  @Input()
-  type?: Type;
+  readonly type = input<Type>('ref');
 
   allRefSorts = this.admin.refSorts.map(convertSort);
   allTagSorts = this.admin.tagSorts.map(convertSort);
@@ -40,28 +39,22 @@ export class SortComponent implements OnChanges {
     public admin: AdminService,
     public store: Store,
   ) {
-    this.type = 'ref';
     effect(() => {
       const sort = this.store.view.sort;
       untracked(() => this.sorts = Array.isArray(sort) ? [...sort] : [sort]);
     });
     effect(() => {
       const isSearch = this.store.view.isSearch;
-      untracked(() => this.rebuildSorts(isSearch));
+      const type = this.type();
+      untracked(() => this.rebuildSorts(type, isSearch));
     });
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.type) {
-      this.rebuildSorts(this.store.view.isSearch);
-    }
-  }
-
-  private rebuildSorts(isSearch: boolean) {
-    if (this.type === 'ref') {
+  private rebuildSorts(type: Type, isSearch: boolean) {
+    if (type === 'ref') {
       this.allSorts = [...this.allRefSorts];
       if (isSearch) {
         this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` });

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -31,6 +31,7 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   selector: 'app-ext-page',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
+  host: { 'class': 'full-page-form' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
@@ -73,7 +74,6 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   private readonly _overwrittenModified = signal<string | undefined>('');
   get overwrittenModified() { return this._overwrittenModified(); }
   set overwrittenModified(value: string | undefined) { this._overwrittenModified.set(value); }
-  @HostBinding('class') css = 'full-page-form';
 
   readonly form = viewChild<ExtFormComponent>('form');
   created = false;

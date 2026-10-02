@@ -35,11 +35,11 @@ describe('ExtFormComponent', () => {
 
     fixture = TestBed.createComponent(ExtFormComponent);
     component = fixture.componentInstance;
-    component.group = new UntypedFormGroup({
+    fixture.componentRef.setInput('group', new UntypedFormGroup({
       tag: new UntypedFormControl(),
       name: new UntypedFormControl(),
       config: new UntypedFormGroup({}),
-    });
+    }));
     detectInputChanges();
   });
 

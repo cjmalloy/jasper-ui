@@ -23,7 +23,7 @@ describe('FolderComponent', () => {
 
     fixture = TestBed.createComponent(FolderComponent);
     component = fixture.componentInstance;
-    component.ext = { tag: 'folder'};
+    fixture.componentRef.setInput('ext', { tag: 'folder'});
     fixture.detectChanges();
   });
 

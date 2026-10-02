@@ -26,7 +26,7 @@ describe('EditorComponent', () => {
 
     fixture = TestBed.createComponent(EditorComponent);
     component = fixture.componentInstance;
-    component.control = new UntypedFormControl();
+    fixture.componentRef.setInput('control', new UntypedFormControl());
     fixture.detectChanges();
   });
 
@@ -39,7 +39,7 @@ describe('EditorComponent', () => {
   });
 
   it('should show the editor after clicking the add button', async () => {
-    component.addButton = true;
+    fixture.componentRef.setInput('addButton', true);
     fixture.detectChanges();
 
     fixture.nativeElement.querySelector('button').click();

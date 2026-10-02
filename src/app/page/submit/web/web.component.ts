@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, OnDestroy, ViewChild, ChangeDetectionStrategy, effect, inject, Injector } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -235,6 +235,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         }
       }, { injector: this.injector });
     });
+    effect(() => this.setRefForm(this.refFormView()), { injector: this.injector });
   }
 
   ngOnDestroy() {
@@ -244,8 +245,9 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     return this._refForm!;
   }
 
-  @ViewChild('refForm')
-  set refForm(value: RefFormComponent) {
+  readonly refFormView = viewChild<RefFormComponent>('refForm');
+
+  setRefForm(value: RefFormComponent | undefined) {
     this._refForm = value;
     defer(() => this.limitWidth = value?.fill()?.nativeElement);
   }

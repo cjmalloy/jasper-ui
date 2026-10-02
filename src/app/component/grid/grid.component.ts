@@ -2,8 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
-  HostBinding,
-  Input,
   OnDestroy,
   signal,
   ViewEncapsulation,
@@ -34,7 +32,10 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
   styleUrl: './grid.component.scss',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { 'class': 'grid ext' },
+  host: {
+    'class': 'grid ext',
+    '[attr.data-theme-version]': 'themeVersion',
+  },
   imports: [
     AgGridModule,
     PageControlsComponent,
@@ -49,22 +50,19 @@ export class GridComponent implements OnDestroy, HasChanges {
   private readonly _themeVersion = signal(0);
   private themeVersionCount = 0;
 
-  @HostBinding('attr.data-theme-version')
   get themeVersion() { return this._themeVersion(); }
 
   readonly tag = input('');
-  @Input()
-  ext?: Ext;
+  readonly ext = input<Ext | undefined>();
   readonly pageControls = input(true);
-  @Input()
-  emptyMessage = 'No results found';
+  readonly emptyMessage = input('No results found');
 
   defaultCols: ColDef[] = this.admin.getTemplate('grid')?.defaults?.columnDefs || gridTemplate.defaults.columnDefs;
   get rowData() { return this._rowData(); }
   set rowData(value: Ref[]) { this._rowData.set(value); }
 
-  private _page?: Page<Ref>;
-  private _cols = 0;
+  readonly page = input<Page<Ref> | undefined>();
+  readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
 
   constructor(
     public store: Store,
@@ -77,6 +75,7 @@ export class GridComponent implements OnDestroy, HasChanges {
       this.store.darkTheme;
       this._themeVersion.set(++this.themeVersionCount);
     });
+    effect(() => this.updatePage(this.page()));
     this.rowDataUpdates$.pipe(
       switchMap(content => {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content);
@@ -97,7 +96,7 @@ export class GridComponent implements OnDestroy, HasChanges {
   }
 
   get columnDefs(): ColDef[] {
-    return this.applyFormatters(this.ext?.config?.columnDefs || this.defaultCols);
+    return this.applyFormatters(this.ext()?.config?.columnDefs || this.defaultCols);
   }
 
   applyFormatters(cols: ColDef[]): ColDef[] {
@@ -137,19 +136,13 @@ export class GridComponent implements OnDestroy, HasChanges {
     return dt.isValid ? dt.toLocaleString(format) : '';
   }
 
-  get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    this._page = value;
+  private updatePage(value: Page<Ref> | undefined) {
     this.rowDataUpdates$.next(value?.content || []);
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
+    if (value) {
+      if (value.page.number > 0 && value.page.number >= value.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.page.totalPages - 1
+            pageNumber: value.page.totalPages - 1
           },
           queryParamsHandling: 'merge',
         });
@@ -172,13 +165,8 @@ export class GridComponent implements OnDestroy, HasChanges {
     return !!ref.sources?.[0] && hasTag('plugin/repost', ref) && !ref.title && !ref.comment;
   }
 
-  @Input()
-  set cols(value: number | undefined) {
-    this._cols = value || 0;
-  }
-
   get cols() {
-    if (this._cols) return this._cols;
-    return this.ext?.config?.defaultCols;
+    if (this.colsInput()) return this.colsInput();
+    return this.ext()?.config?.defaultCols;
   }
 }

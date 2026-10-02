@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, Input, OnInit, ChangeDetectionStrategy, input, signal, viewChildren } from '@angular/core';
+import { DestroyRef, inject, Component, OnInit, ChangeDetectionStrategy, effect, input, signal, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of } from 'rxjs';
@@ -34,8 +34,7 @@ export class NotebookComponent implements OnInit, HasChanges {
   readonly showPageLast = input(true);
   readonly showAlarm = input(true);
   readonly pageControls = input(true);
-  @Input()
-  emptyMessage = 'No results found';
+  readonly emptyMessage = input('No results found');
   readonly showToggle = input(true);
   readonly expandInline = input(false);
   readonly showVotes = input(false);
@@ -54,44 +53,49 @@ export class NotebookComponent implements OnInit, HasChanges {
   get newRefs() { return this.newRefsSignal(); }
   set newRefs(value: Ref[]) { this.newRefsSignal.set(value); }
 
-  private _page?: Page<Ref>;
-  private _ext?: Ext;
-  private _expanded?: boolean;
-  private _cols = 0;
+  readonly extInput = input<Ext | undefined>(undefined, { alias: 'ext' });
+  readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
+  readonly expandedInput = input<boolean | undefined>(undefined, { alias: 'expanded' });
+  readonly pageInput = input<Page<Ref> | undefined>(undefined, { alias: 'page' });
 
   constructor(
     private accounts: AccountService,
     private router: Router,
     private store: Store,
     private refs: RefService,
-  ) { }
+  ) {
+    effect(() => {
+      const value = this.extInput();
+      if (!value?.config?.pinned?.length) {
+        this.pinned = [];
+      } else {
+        forkJoin((value.config.pinned as string[])
+          .map(pin => this.refs.getCurrent(pin).pipe(
+            catchError(err => of({ url: pin })),
+            takeUntilDestroyed(this.destroyRef),
+          )))
+          .subscribe(pinned => this.pinned = pinned);
+      }
+    });
+    effect(() => {
+      const page = this.pageInput();
+      if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {
+        this.router.navigate([], {
+          queryParams: {
+            pageNumber: page.page.totalPages - 1,
+          },
+          queryParamsHandling: 'merge',
+        });
+      }
+    });
+  }
 
   saveChanges() {
     return !this.list()?.find(r => !r.saveChanges());
   }
 
   get ext() {
-    return this._ext;
-  }
-
-  @Input()
-  set ext(value: Ext | undefined) {
-    this._ext = value;
-    if (!value?.config?.pinned?.length) {
-      this.pinned = [];
-    } else {
-      forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({ url: pin })),
-          takeUntilDestroyed(this.destroyRef),
-        )))
-        .subscribe(pinned => this.pinned = pinned);
-    }
-  }
-
-  @Input()
-  set cols(value: number | undefined) {
-    this._cols = value || 0;
+    return this.extInput();
   }
 
   get colStyle() {
@@ -103,37 +107,17 @@ export class NotebookComponent implements OnInit, HasChanges {
   }
 
   get cols() {
-    if (this._cols) return this._cols;
+    if (this.colsInput()) return this.colsInput();
     return this.ext?.config?.defaultCols;
   }
 
   get expanded(): boolean {
-    if (this._expanded === undefined) return this._ext?.config?.defaultExpanded;
-    return this._expanded;
-  }
-
-  @Input()
-  set expanded(value: boolean) {
-    this._expanded = value;
+    if (this.expandedInput() === undefined) return this.ext?.config?.defaultExpanded;
+    return this.expandedInput()!;
   }
 
   get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
-        this.router.navigate([], {
-          queryParams: {
-            pageNumber: this._page.page.totalPages - 1,
-          },
-          queryParamsHandling: 'merge',
-        });
-      }
-    }
+    return this.pageInput();
   }
 
   ngOnInit(): void {

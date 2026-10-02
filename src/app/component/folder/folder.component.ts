@@ -1,5 +1,5 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input, signal } from '@angular/core';
+import { Component, effect, ElementRef, ChangeDetectionStrategy, input, signal, untracked } from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { catchError, of, Subscription } from 'rxjs';
@@ -27,11 +27,12 @@ import { SubfolderComponent } from './subfolder/subfolder.component';
     CdkDrag,
   ],
 })
-export class FolderComponent implements OnChanges, HasChanges {
+export class FolderComponent implements HasChanges {
 
   readonly tag = input<string>();
-  @Input()
-  ext?: Ext;
+  readonly extInput = input<Ext | undefined>(undefined, { alias: 'ext' });
+  get ext() { return this.extInput(); }
+  readonly pageInput = input<Page<Ref> | undefined>(undefined, { alias: 'page' });
   readonly pinned = input<Ref[] | null>();
   readonly emptyMessage = input('');
 
@@ -67,7 +68,6 @@ export class FolderComponent implements OnChanges, HasChanges {
   get dragging() { return this.draggingSignal(); }
   set dragging(value: boolean) { this.draggingSignal.set(value); }
 
-  private _page?: Page<Ref>;
   private folderSubscription?: Subscription;
 
   // TODO: handle resize moving relatively positioned moved tiles
@@ -77,68 +77,73 @@ export class FolderComponent implements OnChanges, HasChanges {
     private router: Router,
     private exts: ExtService,
     private el: ElementRef<HTMLElement>,
-  ) { }
+  ) {
+    effect(() => {
+      this.tag();
+      untracked(() => this.loadTag());
+    });
+    effect(() => {
+      this.extInput();
+      untracked(() => this.loadExt());
+    });
+    effect(() => {
+      const page = this.pageInput();
+      if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {
+        this.router.navigate([], {
+          queryParams: {
+            pageNumber: page.page.totalPages - 1
+          },
+          queryParamsHandling: "merge",
+        });
+      }
+    });
+  }
 
   saveChanges() {
     // TODO
     return true;
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.tag) {
-      this.folderExts = undefined;
-      this.parent = undefined;
-      const tag = this.tag();
-      if (tag?.includes('/')) {
-        this.exts.getCachedExt(tag.substring(0, tag.lastIndexOf('/')), tagOrigin(tag) || '@')
-          .subscribe(ext => this.parent = ext);
-      }
-      this.folderSubscription?.unsubscribe();
-      if (!tag) return;
-      this.folderSubscription = this.exts.page({
-        query: defaultOrigin(tag, (this.ext?.origin || '@')),
-        level: level(tag) + 1,
-        size: 100
-      }).pipe(
-        catchError(() => of(undefined)),
-      ).subscribe(page => {
-        this.folderExts = page?.content;
-      });
+  private loadTag() {
+    this.folderExts = undefined;
+    this.parent = undefined;
+    const tag = this.tag();
+    if (tag?.includes('/')) {
+      this.exts.getCachedExt(tag.substring(0, tag.lastIndexOf('/')), tagOrigin(tag) || '@')
+        .subscribe(ext => this.parent = ext);
     }
-    if (changes.ext) {
-      this.files = {};
-      this.subfolders = {};
-      this.flatten = this.ext?.config?.flatten;
-      if (!this.ext) return;
-      this.cursor = this.ext.modifiedString!;
-      this.files = mapValues(this.ext.config.files || {}, p => this.transform(p));
-      for (const e of Object.entries<Pos>(this.ext.config.subfolders || {})) {
-        this.subfolders[this.ext.tag + (e[0] !== '..' ? '/' + e[0] : '')] = this.transform(e[1]);
-      }
+    this.folderSubscription?.unsubscribe();
+    if (!tag) return;
+    this.folderSubscription = this.exts.page({
+      query: defaultOrigin(tag, (this.ext?.origin || '@')),
+      level: level(tag) + 1,
+      size: 100
+    }).pipe(
+      catchError(() => of(undefined)),
+    ).subscribe(page => {
+      this.folderExts = page?.content;
+    });
+  }
+
+  private loadExt() {
+    this.files = {};
+    this.subfolders = {};
+    this.flatten = this.ext?.config?.flatten;
+    if (!this.ext) return;
+    this.cursor = this.ext.modifiedString!;
+    this.files = mapValues(this.ext.config?.files || {}, p => this.transform(p));
+    for (const e of Object.entries<Pos>(this.ext.config?.subfolders || {})) {
+      this.subfolders[this.ext.tag + (e[0] !== '..' ? '/' + e[0] : '')] = this.transform(e[1]);
     }
   }
+
 
   get local() {
     return this.ext?.origin === this.store.account.origin;
   }
 
   get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
-        this.router.navigate([], {
-          queryParams: {
-            pageNumber: this._page.page.totalPages - 1
-          },
-          queryParamsHandling: "merge",
-        });
-      }
-    }
+    return this.pageInput();
   }
 
   startMoving(target: HTMLElement) {

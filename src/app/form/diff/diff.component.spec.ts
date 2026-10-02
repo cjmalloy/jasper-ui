@@ -34,8 +34,8 @@ describe('DiffComponent', () => {
     
     fixture = TestBed.createComponent(DiffComponent);
     component = fixture.componentInstance;
-    component.original = { url: 'http://test.com', origin: '', title: 'Original' };
-    component.modified = { url: 'http://test.com', origin: '', title: 'Modified' };
+    fixture.componentRef.setInput('original', { url: 'http://test.com', origin: '', title: 'Original' });
+    fixture.componentRef.setInput('modified', { url: 'http://test.com', origin: '', title: 'Modified' });
     fixture.detectChanges();
   });
 
@@ -67,9 +67,9 @@ describe('DiffComponent', () => {
     fixture.destroy();
     fixture = TestBed.createComponent(DiffComponent);
     component = fixture.componentInstance;
-    component.original = { url: 'http://test.com', origin: '', title: 'Original' };
-    component.modified = { url: 'http://test.com', origin: '', title: 'Modified' };
-    component.resizable = false;
+    fixture.componentRef.setInput('original', { url: 'http://test.com', origin: '', title: 'Original' });
+    fixture.componentRef.setInput('modified', { url: 'http://test.com', origin: '', title: 'Modified' });
+    fixture.componentRef.setInput('resizable', false);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.resize-handle')).toBeFalsy();

@@ -1,4 +1,4 @@
-import { Component, forwardRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
+import { Component, computed, forwardRef, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -41,32 +41,23 @@ import { ViewerComponent } from '../viewer/viewer.component';
     ViewerComponent,
   ],
 })
-export class LensComponent implements OnChanges, HasChanges {
+export class LensComponent implements HasChanges {
 
-  @Input()
-  ext?: Ext;
-  @Input()
-  tag = '';
+  readonly ext = input<Ext | undefined>();
+  readonly tag = input('');
   readonly fullPage = input(false);
-  @Input()
-  cols? = 0;
-  @Input()
-  size = 24;
-  @Input()
-  sort: RefSort[] = [];
-  @Input()
-  filter: UrlFilter[] = [];
-  @Input()
-  search = '';
-  @Input()
-  page?: Page<Ref>;
-  @Input()
-  pageControls = true;
+  readonly cols = input(0);
+  readonly size = input(24);
+  readonly sort = input<RefSort[]>([]);
+  readonly filter = input<UrlFilter[]>([]);
+  readonly search = input('');
+  readonly page = input<Page<Ref> | undefined>();
+  readonly pageControls = input(true);
   readonly showAlarm = input(true);
   readonly showVotes = input(false);
 
-  plugins?: string[];
-  header?: string;
+  readonly plugins = computed(() => hasPrefix(this.ext()?.tag, 'plugin') ? [this.ext()!.tag] : undefined);
+  readonly header = computed(() => this.ext()?.config?.header);
 
   readonly list = viewChildren<HasChanges>('lens');
 
@@ -80,23 +71,8 @@ export class LensComponent implements OnChanges, HasChanges {
     return !this.list()?.find(t => !t.saveChanges());
   }
 
-  init() {
-    this.header = this.ext?.config?.header;
-    if (hasPrefix(this.ext?.tag, 'plugin')) {
-      this.plugins = [this.ext!.tag];
-    } else {
-      this.plugins = undefined;
-    }
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ext) {
-      this.init();
-    }
-  }
-
   isTemplate(template: string) {
-    return this.admin.getTemplate(template) && hasPrefix(this.ext?.tag, template);
+    return this.admin.getTemplate(template) && hasPrefix(this.ext()?.tag, template);
   }
 
   cssClass(tag?: string) {

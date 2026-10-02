@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, input, OnChanges, signal, SimpleChanges, untracked, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, input, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
@@ -26,7 +26,7 @@ import { hasPrefix } from '../../util/tag';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormsModule]
 })
-export class FilterComponent implements OnChanges {
+export class FilterComponent {
 
   readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
@@ -61,6 +61,11 @@ export class FilterComponent implements OnChanges {
     private editor: EditorService,
   ) {
     effect(() => {
+      this.activeExts();
+      this.type();
+      untracked(() => this.loadFilters());
+    });
+    effect(() => {
       const filter = this.store.view.filter;
       untracked(() => {
         this.filters = Array.isArray(filter) ? [...filter] : [filter];
@@ -69,139 +74,138 @@ export class FilterComponent implements OnChanges {
     });
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.activeExts || changes.type) {
-      if (this.type() === 'ref') {
-        this.allFilters = [];
-        for (const ext of this.activeExts()) {
-          for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
-            this.loadFilter({
-              group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || '#' + ext.tag,
-              ...f,
-            });
-          }
-        }
-        this.pushFilter({
-          label: $localize`Queries 🔎️️`, filters: [],
-        });
-        if (this.auth.hasRole('ROLE_USER')) {
-          this.pushFilter({
-            label: $localize`Lists ☰`, filters: [],
-          });
-        }
-        this.pushFilter({
-          label: $localize`Media 🎬️`, filters: [],
-        }, {
-          label: $localize`Games 🕹️`, filters: [],
-        }, {
-          label: $localize`Time ⏱️`,
-          filters: [
-            this.modifiedBeforeFilter,
-            this.modifiedAfterFilter,
-            this.responseBeforeFilter,
-            this.responseAfterFilter,
-            this.publishedBeforeFilter,
-            this.publishedAfterFilter,
-            this.createdBeforeFilter,
-            this.createdAfterFilter,
-          ],
-        }, {
-          label: $localize`Filters 🕵️️`, filters: [],
-        }, {
-          label: $localize`Delta Δ`, filters: [],
-        }, {
-          label: $localize`Mod Tools 🛡️`, filters: [],
-        });
-        for (const e of this.kanbanExts) {
-          const group = $localize`Kanban 📋️`;
-          const k = e.config! as KanbanConfig;
-          if (k.columns?.length) {
-            this.allFilters.push({
-              label: group,
-              filters: [],
-            });
-            const kanbanTags = uniq([
-              ...k.columns,
-              ...k.swimLanes || [],
-              ...k.badges || []
-            ]);
-            this.editor.getTagsPreview(kanbanTags, e.origin || '').subscribe(ps => {
-              for (const p of ps) {
-                this.loadFilter({
-                  group,
-                  label: p.name || '#' + p.tag,
-                  query: p.tag,
-                });
-              }
-              if (k.columns?.length && k.showColumnBacklog) {
-                this.loadFilter({
-                  group,
-                  label: k.columnBacklogTitle || $localize`🚫️ no column`,
-                  query: (k.columns || []).map(t => '!' + t).join(':'),
-                });
-              }
-              if (k.swimLanes?.length && k.showSwimLaneBacklog) {
-                this.loadFilter({
-                  group,
-                  label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`,
-                  query: k.swimLanes!.map(t => '!' + t).join(':'),
-                });
-              }
-              if (k.badges?.length) {
-                this.loadFilter({
-                  group: group,
-                  label: $localize`🚫️ no badges`,
-                  query: k.badges.map(t => '!' + t).join(':'),
-                });
-              }
-            });
-          }
-        }
-        this.pushFilter({
-          label: $localize`Plugins 🧰️`, filters: [],
-        }, {
-          label: $localize`Schemes 🏳️️`, filters: [],
-        }, {
-          label: $localize`Templates 🎨️`, filters: [],
-        });
-        for (const f of this.admin.filters) this.loadFilter(f);
-        this.pushFilter({
-          label: $localize`Filters 🕵️️`,
-          filters: [
-            { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
-            { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
-          ],
-        });
-      } else {
-        this.allFilters = [];
-        this.pushFilter({
-          label: $localize`Time ⏱️`,
-          filters : [
-            this.modifiedBeforeFilter,
-            this.modifiedAfterFilter,
-          ],
-        });
-        if (this.admin.getPlugin('plugin/delete')) {
-          this.pushFilter({
-            label: $localize`Filters 🕵️️`,
-            filters : [
-              { filter: 'plugin/delete', label: $localize`🗑️ deleted` },
-            ],
+  private loadFilters() {
+    if (this.type() === 'ref') {
+      this.allFilters = [];
+      for (const ext of this.activeExts()) {
+        for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
+          this.loadFilter({
+            group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || '#' + ext.tag,
+            ...f,
           });
         }
       }
       this.pushFilter({
-        label: $localize`Origins 🏛️`,
-        filters: this.store.origins.list.map(o => ({ filter: 'query/' + (o || '*') as UrlFilter,
-          label:
-            !o ? $localize`✴️ local`
-              : o === this.store.account.origin ? $localize`🏛️ ${o}`
-                : !this.store.account.origin ? $localize`🏛️ ${o}`
-                  : $localize`🪆 ${o}` })),
+        label: $localize`Queries 🔎️️`, filters: [],
       });
-      this.sync();
+      if (this.auth.hasRole('ROLE_USER')) {
+        this.pushFilter({
+          label: $localize`Lists ☰`, filters: [],
+        });
+      }
+      this.pushFilter({
+        label: $localize`Media 🎬️`, filters: [],
+      }, {
+        label: $localize`Games 🕹️`, filters: [],
+      }, {
+        label: $localize`Time ⏱️`,
+        filters: [
+          this.modifiedBeforeFilter,
+          this.modifiedAfterFilter,
+          this.responseBeforeFilter,
+          this.responseAfterFilter,
+          this.publishedBeforeFilter,
+          this.publishedAfterFilter,
+          this.createdBeforeFilter,
+          this.createdAfterFilter,
+        ],
+      }, {
+        label: $localize`Filters 🕵️️`, filters: [],
+      }, {
+        label: $localize`Delta Δ`, filters: [],
+      }, {
+        label: $localize`Mod Tools 🛡️`, filters: [],
+      });
+      for (const e of this.kanbanExts) {
+        const group = $localize`Kanban 📋️`;
+        const k = e.config! as KanbanConfig;
+        if (k.columns?.length) {
+          this.allFilters.push({
+            label: group,
+            filters: [],
+          });
+          const kanbanTags = uniq([
+            ...k.columns,
+            ...k.swimLanes || [],
+            ...k.badges || []
+          ]);
+          this.editor.getTagsPreview(kanbanTags, e.origin || '').subscribe(ps => {
+            for (const p of ps) {
+              this.loadFilter({
+                group,
+                label: p.name || '#' + p.tag,
+                query: p.tag,
+              });
+            }
+            if (k.columns?.length && k.showColumnBacklog) {
+              this.loadFilter({
+                group,
+                label: k.columnBacklogTitle || $localize`🚫️ no column`,
+                query: (k.columns || []).map(t => '!' + t).join(':'),
+              });
+            }
+            if (k.swimLanes?.length && k.showSwimLaneBacklog) {
+              this.loadFilter({
+                group,
+                label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`,
+                query: k.swimLanes!.map(t => '!' + t).join(':'),
+              });
+            }
+            if (k.badges?.length) {
+              this.loadFilter({
+                group: group,
+                label: $localize`🚫️ no badges`,
+                query: k.badges.map(t => '!' + t).join(':'),
+              });
+            }
+          });
+        }
+      }
+      this.pushFilter({
+        label: $localize`Plugins 🧰️`, filters: [],
+      }, {
+        label: $localize`Schemes 🏳️️`, filters: [],
+      }, {
+        label: $localize`Templates 🎨️`, filters: [],
+      });
+      for (const f of this.admin.filters) this.loadFilter(f);
+      this.pushFilter({
+        label: $localize`Filters 🕵️️`,
+        filters: [
+          { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
+          { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
+        ],
+      });
+    } else {
+      this.allFilters = [];
+      this.pushFilter({
+        label: $localize`Time ⏱️`,
+        filters : [
+          this.modifiedBeforeFilter,
+          this.modifiedAfterFilter,
+        ],
+      });
+      if (this.admin.getPlugin('plugin/delete')) {
+        this.pushFilter({
+          label: $localize`Filters 🕵️️`,
+          filters : [
+            { filter: 'plugin/delete', label: $localize`🗑️ deleted` },
+          ],
+        });
+      }
     }
+    this.pushFilter({
+      label: $localize`Origins 🏛️`,
+      filters: this.store.origins.list.map(o => ({ filter: 'query/' + (o || '*') as UrlFilter,
+        label:
+          !o ? $localize`✴️ local`
+            : o === this.store.account.origin ? $localize`🏛️ ${o}`
+              : !this.store.account.origin ? $localize`🏛️ ${o}`
+                : $localize`🪆 ${o}` })),
+    });
+    this.sync();
   }
+
 
   get rootConfigs() {
     if (!this.admin.getTemplate('')) return [];

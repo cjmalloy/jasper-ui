@@ -1,4 +1,4 @@
-import { Component, OnChanges, SimpleChanges, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 import { ListEditorComponent } from '../../component/list-editor/list-editor.component';
@@ -12,23 +12,26 @@ import { CodeComponent } from '../code/code.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ListEditorComponent, CodeComponent]
 })
-export class ThemesFormComponent implements OnChanges {
+export class ThemesFormComponent {
 
   readonly fieldName = input('themes');
   readonly label = input($localize `theme`);
   readonly group = input.required<UntypedFormGroup>();
 
-  keys: string[] = [];
+  private readonly _keys = signal<string[]>([]);
   selectedTheme?: string;
 
   constructor(
     private fb: UntypedFormBuilder,
-  ) { }
+  ) {
+    effect(() => {
+      this.group();
+      this._keys.set(Object.keys(this.themes.value));
+    });
+  }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.group?.currentValue) {
-      this.keys = Object.keys(this.themes.value);
-    }
+  get keys() {
+    return this._keys();
   }
 
   get themes() {
@@ -42,10 +45,12 @@ export class ThemesFormComponent implements OnChanges {
 
   addTheme(name: string, value = '') {
     this.themes.addControl(name, this.fb.control(value));
+    this._keys.set(Object.keys(this.themes.value));
   }
 
   removeTheme(name: string) {
     this.themes.removeControl(name);
+    this._keys.set(Object.keys(this.themes.value));
   }
 
   edit(name?: string) {

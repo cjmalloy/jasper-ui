@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy, input, signal } from '@angular/core';
+import { DestroyRef, inject, Component, forwardRef, OnInit, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 import { Ref } from '../../../model/ref';
@@ -19,57 +19,51 @@ import { CommentComponent } from '../comment.component';
     forwardRef(() => RefComponent),
   ]
 })
-export class ThreadSummaryComponent implements OnInit, OnChanges {
-  readonly state = signal(0);
-
-  private markState() {
-    this.state.update(value => value + 1);
-  }
-
+export class ThreadSummaryComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   readonly source = input('');
   readonly commentView = input(false);
   readonly query = input('');
-  @Input()
-  depth = 1;
+  readonly depthInput = input(1, { alias: 'depth' });
+  get depth() { return this.depthInput(); }
   readonly pageSize = input(5);
   readonly context = input(0);
   readonly showLoadMore = input(true);
-  @Input()
-  newRefs$?: Observable<Ref | undefined>;
+  readonly newRefs$ = input<Observable<Ref | undefined>>();
 
-  newRefs: Ref[] = [];
-  list: Ref[] = [];
+  private readonly newRefsSignal = signal<Ref[]>([]);
+  private readonly listSignal = signal<Ref[]>([]);
+  get newRefs() { return this.newRefsSignal(); }
+  set newRefs(value: Ref[]) { this.newRefsSignal.set(value); }
+  get list() { return this.listSignal(); }
+  set list(value: Ref[]) { this.listSignal.set(value); }
 
   constructor(
     private refs: RefService,
     private store: Store,
-  ) { }
-
-  ngOnInit(): void {
-    this.newRefs$?.pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(comment => {
-      if (comment) this.newRefs = [comment, ...this.newRefs];
-      this.markState();
-    });
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.source) {
+  ) {
+    effect(() => {
+      const source = this.source();
       this.newRefs = [];
       this.refs.page({
         ...getArgs(this.query(), this.store.view.sort, this.store.view.filter),
-        responses: this.source(),
+        responses: source,
         size: this.pageSize(),
       }).pipe(
         takeUntilDestroyed(this.destroyRef)
       ).subscribe(page => {
         this.list = page.content;
-        this.markState();
       });
-    }
+    });
+  }
+
+  ngOnInit(): void {
+    this.newRefs$()?.pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(comment => {
+      if (comment) this.newRefs = [comment, ...this.newRefs];
+    });
   }
 
 

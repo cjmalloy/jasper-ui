@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, Input, ChangeDetectionStrategy, input, signal, viewChildren } from '@angular/core';
+import { DestroyRef, inject, Component, ChangeDetectionStrategy, effect, input, signal, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -30,28 +30,48 @@ export class BlogComponent implements HasChanges {
 
   readonly pageControls = input(true);
   readonly emptyMessage = input($localize `No blog entries found`);
+  readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
+  readonly extInput = input<Ext | undefined>(undefined, { alias: 'ext' });
+  readonly pageInput = input<Page<Ref> | undefined>(undefined, { alias: 'page' });
 
   private readonly pinnedSignal = signal<Ref[]>([]);
-  private readonly colStyleSignal = signal('');
   error: any;
 
   get pinned() { return this.pinnedSignal(); }
   set pinned(value: Ref[]) { this.pinnedSignal.set(value); }
 
-  get colStyle() { return this.colStyleSignal(); }
-  set colStyle(value: string) { this.colStyleSignal.set(value); }
-
   readonly list = viewChildren(BlogEntryComponent);
-
-  private _page?: Page<Ref>;
-  private _ext?: Ext;
-  private _cols? = 0;
 
   constructor(
     private router: Router,
     private store: Store,
     private refs: RefService,
-  ) { }
+  ) {
+    effect(() => {
+      const value = this.extInput();
+      if (!value?.config?.pinned?.length) {
+        this.pinned = [];
+      } else {
+        forkJoin((value.config.pinned as string[])
+          .map(pin => this.refs.getCurrent(pin).pipe(
+            catchError(err => of({url: pin})),
+            takeUntilDestroyed(this.destroyRef),
+          )))
+          .subscribe(pinned => this.pinned = pinned);
+      }
+    });
+    effect(() => {
+      const page = this.pageInput();
+      if (page?.page.number && page.page.number >= page.page.totalPages) {
+        this.router.navigate([], {
+          queryParams: {
+            pageNumber: page.page.totalPages - 1
+          },
+          queryParamsHandling: 'merge',
+        });
+      }
+    });
+  }
 
 
   saveChanges() {
@@ -59,60 +79,25 @@ export class BlogComponent implements HasChanges {
   }
 
   get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
-  @Input()
-  set cols(value: number | undefined) {
-    this._cols = value;
-    if (!value) {
-      this.colStyle = '';
-    } else {
-      this.colStyle = ' 1fr'.repeat(value);
-    }
+    return this.pageInput();
   }
 
   get cols() {
-    if (this._cols) return this._cols;
+    const cols = this.colsInput();
+    if (cols) return cols;
     return this.config?.defaultCols;
   }
 
+  get colStyle() {
+    return this.cols ? ' 1fr'.repeat(this.cols) : '';
+  }
+
   get ext() {
-    return this._ext;
+    return this.extInput();
   }
 
   get config() {
     return this.ext?.config as RootConfig | undefined;
-  }
-
-  @Input()
-  set ext(value: Ext | undefined) {
-    this._ext = value;
-    if (!value?.config?.pinned?.length) {
-      this.pinned = [];
-    } else {
-      forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({url: pin})),
-          takeUntilDestroyed(this.destroyRef),
-        )))
-        .subscribe(pinned => this.pinned = pinned);
-    }
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
-        this.router.navigate([], {
-          queryParams: {
-            pageNumber: this._page.page.totalPages - 1
-          },
-          queryParamsHandling: "merge",
-        })
-      }
-    }
   }
 
 }

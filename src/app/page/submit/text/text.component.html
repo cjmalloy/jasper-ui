@@ -29,15 +29,15 @@
                        class="shrink"
                        [text]="true"
                        i18n-title title="Add Plugin"
-                       (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
+                       (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin.set('')"></app-select-plugin>
     <app-form-plugins #plugins id="plugins" [group]="textForm"></app-form-plugins>
 
-    @if (customEditor) {
+    @if (customEditor()) {
       <span><!-- Editor --></span>
       <div #fill class="fill-editor">
         <ngx-monaco-editor #ed
                            [formControl]="comment"
-                           [options]="codeOptions"
+                           [options]="codeOptions()"
                            [style.width]="'min(900px, 50vw)'"
                            [style.height]="'min(200px, 90vh)'"
                            [appFillWidth]="fill"

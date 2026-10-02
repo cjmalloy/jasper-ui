@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, Injector, signal } from '@angular/core';
+import { DestroyRef, inject, Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, Injector, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
@@ -18,7 +18,7 @@ import { StompService } from '../../service/api/stomp.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { memo, MemoCache } from '../../util/memo';
+import { computedBy } from '../../util/computed-by';
 import { markRead } from '../../util/response';
 import { hasTag, privateTag, top } from '../../util/tag';
 
@@ -84,68 +84,47 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     this.store.view.clearRef();
   }
 
-  @memo
-  get refWarning() {
-    const warn = this.sources > 0 && this.store.view.published && +this.store.view.ref!.published! !== +DateTime.fromISO(this.store.view.published);
+  readonly refWarning = computed(() => {
+    const warn = this.sources() > 0 && this.store.view.published && +this.store.view.ref!.published! !== +DateTime.fromISO(this.store.view.published);
     if (this.store.view.published) this.router.navigate([], { queryParams: { published: null }, queryParamsHandling: 'merge', replaceUrl: true });
     return warn;
-  }
+  });
 
-  @memo
-  get expandedOnLoad() {
-    return this.store.view.current === 'ref/thread' ||
-      this.store.local.isRefToggled(this.store.view.url, this.store.view.current === 'ref/summary' || this.fullscreen?.onload);
-  }
+  readonly expandedOnLoad = computed(() => this.store.view.current === 'ref/thread' ||
+    this.store.local.isRefToggled(this.store.view.url, this.store.view.current === 'ref/summary' || this.fullscreen()?.onload));
 
-  @memo
-  get fullscreen() {
+  readonly fullscreen = computed(() => {
     if (!this.admin.getPlugin('plugin/fullscreen')) return undefined;
     return this.store.view.ref?.plugins?.['plugin/fullscreen'];
-  }
+  });
 
-  @memo
-  get comment() {
-    return this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref);
-  }
+  readonly comment = computed(() => this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref));
 
-  @memo
-  get comments() {
+  readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
-  }
+  });
 
-  @memo
-  get thread() {
-    return this.admin.getPlugin('plugin/thread') && (hasTag('plugin/thread', this.store.view.ref) || this.store.view.current === 'ref/thread');
-  }
+  readonly thread = computed(() => this.admin.getPlugin('plugin/thread') && (hasTag('plugin/thread', this.store.view.ref) || this.store.view.current === 'ref/thread'));
 
-  @memo
-  get threads() {
+  readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return hasTag('plugin/thread', this.store.view.ref) || this.store.view.ref?.metadata?.plugins?.['plugin/thread'];
-  }
+  });
 
-  @memo
-  get logs() {
+  readonly logs = computed(() => {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
     return this.store.view.ref?.metadata?.plugins?.['+plugin/log'];
-  }
+  });
 
-  @memo
-  get responses() {
-    return this.store.view.ref?.metadata?.responses || 0;
-  }
+  readonly responses = computed(() => this.store.view.ref?.metadata?.responses || 0);
 
-  @memo
-  get sources() {
+  readonly sources = computed(() => {
     const sources = (this.store.view.ref?.sources || []).filter( s => s != this.store.view.url);
     return sources.length || 0;
-  }
+  });
 
-  @memo
-  get alts() {
-    return this.store.view.ref?.alternateUrls?.length || 0;
-  }
+  readonly alts = computed(() => this.store.view.ref?.alternateUrls?.length || 0);
 
   reload(url?: string) {
     url ||= this.url || '';
@@ -172,7 +151,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         )),
       tap(([ref, top]) => this.store.view.setRef(ref, top)),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(() => MemoCache.clear(this));
+    ).subscribe();
     if (this.config.websockets && this.watchUrl !== url) {
       this.watchUrl = url;
       this.watchSelf?.unsubscribe();
@@ -180,7 +159,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ud => {
         if (!this.store.view.ref) return;
-        MemoCache.clear(this);
         // Merge updates with existing Ref because updates do not contain any private tags
         const tags = uniq([...this.store.view.ref.tags || [], ...ud.tags || []])
           .filter(t => privateTag(t) || ud.tags?.includes(t));
@@ -204,7 +182,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           modified: this.store.view.ref.modified,
           modifiedString: this.store.view.ref.modifiedString,
         };
-        Object.assign(this.store.view.ref!, merged);
+        this.store.view.setRef({ ...this.store.view.ref!, ...merged }, this.store.view.top);
         this.store.eventBus.refresh(this.store.view.ref);
       });
       this.watchResponses?.unsubscribe();
@@ -220,10 +198,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     }
   }
 
-  @memo
-  isWiki(url: string) {
-    return !this.admin.isWikiExternal() && isWiki(url, this.admin.getWikiPrefix());
-  }
+  readonly isWiki = computedBy((url: string) => !this.admin.isWikiExternal() && isWiki(url, this.admin.getWikiPrefix()));
 
   markRead(ref: Ref) {
     markRead(this.admin, this.ts, ref);

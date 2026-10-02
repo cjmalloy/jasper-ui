@@ -20,6 +20,7 @@ describe('ActionListComponent', () => {
     }).compileComponents();
     fixture = TestBed.createComponent(ActionListComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('ref', { url: 'test:1' });
     fixture.detectChanges();
   });
 

@@ -3,9 +3,7 @@ import {
   inject,
   AfterViewInit,
   Component,
-  Input,
-  OnChanges,
-  SimpleChanges,
+  effect,
   ChangeDetectionStrategy,
   input,
   output,
@@ -31,14 +29,14 @@ import { GenFormComponent } from './gen/gen.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
-export class PluginsFormComponent implements OnChanges, AfterViewInit {
+export class PluginsFormComponent implements AfterViewInit {
   private destroyRef = inject(DestroyRef);
 
   readonly gens = viewChildren<GenFormComponent>('gen');
 
   readonly fieldName = input('plugins');
-  @Input()
-  group: UntypedFormGroup;
+  readonly groupInput = input<UntypedFormGroup | undefined>(undefined, { alias: 'group' });
+  private readonly defaultGroup: UntypedFormGroup;
   readonly togglePlugin = output<string>();
 
   private readonly _icons = signal<Icon[]>([]);
@@ -48,9 +46,14 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
     public admin: AdminService,
     private fb: UntypedFormBuilder,
   ) {
-    this.group = fb.group({
+    this.defaultGroup = fb.group({
       tags: fb.array([]),
       [this.fieldName()]: pluginsForm(fb, admin, []),
+    });
+    effect(() => {
+      this.groupInput();
+      this.fieldName();
+      this.init();
     });
   }
 
@@ -80,9 +83,10 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
         }
       }
     }
-    this.forms = this.admin.getPluginForms(this.allTags);
+    const forms = this.admin.getPluginForms(this.allTags);
+    this.forms = forms;
     this.icons = sortOrder(this.admin.getIcons(this.allTags, this.plugins.value, getScheme(this.group.value.url))
-      .filter(i => !this.forms.find(p => p.tag === i.tag)))
+      .filter(i => !forms.find(p => p.tag === i.tag)))
       .filter(i => this.showIcon(i));
   }
 
@@ -92,12 +96,9 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
     ).subscribe(() => this.init());
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.group) {
-      this.init();
-    }
+  get group(): UntypedFormGroup {
+    return this.groupInput() || this.defaultGroup;
   }
-
 
   get tags() {
     return this.group.get('tags') as UntypedFormArray;

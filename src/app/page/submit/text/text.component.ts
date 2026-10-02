@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -40,9 +40,8 @@ import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { readFileAsString } from '../../../util/async';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlValue } from '../../../util/form';
 import { printError } from '../../../util/http';
-import { memo, MemoCache } from '../../../util/memo';
 import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
@@ -67,7 +66,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
     forwardRef(() => RefFormComponent),
   ],
 })
-export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
+export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private readonly injector = inject(Injector);
   private generatedUrl = 'comment:' + uuid();
@@ -79,12 +78,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
 
   limitWidth?: HTMLElement;
 
-  @ViewChild('fill')
-  set fill(value: ElementRef | undefined) {
-    this._fill = value;
-    defer(() => this.limitWidth = this._advancedFill?.nativeElement || value?.nativeElement);
-  }
-  private _fill?: ElementRef;
+  readonly fill = viewChild<ElementRef>('fill');
   private _advancedFill?: ElementRef;
 
   readonly editorComponent = viewChild<EditorComponent>('ed');
@@ -101,6 +95,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
   private cursor?: string;
+  private readonly tagsValue = controlValue<string[]>(() => this.tags);
 
   constructor(
     public config: ConfigService,
@@ -119,6 +114,11 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     this.textForm = refForm(fb);
     this.ensureUrl();
     store.submit.wikiPrefix = admin.getWikiPrefix();
+    effect(() => {
+      const fill = this.fill();
+      defer(() => this.limitWidth = this._advancedFill?.nativeElement || fill?.nativeElement);
+    });
+    effect(() => this.setAdvancedForm(this.advancedForm()));
   }
 
   async saveChanges() {
@@ -160,7 +160,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       effect(() => {
-        MemoCache.clear(this);
         const url = this.ensureUrl();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
           this.mod.setTitle($localize`Submit: Wiki`);
@@ -194,7 +193,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         const files = [...this.store.submit.embedFiles];
         defer(() => {
           const editorComponent = this.editorComponent();
-          if (this.customEditor) {
+          if (this.customEditor()) {
             this.store.submit.setEmbedFiles();
             forkJoin(files.map(f => readFileAsString(f))).subscribe(texts => {
               this.comment.setValue(texts.join('\n'));
@@ -207,10 +206,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         });
       }
     });
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    MemoCache.clear(this);
   }
 
   ngOnDestroy() {
@@ -250,14 +245,15 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     this.advanced = true;
   }
 
-  @ViewChild('advancedForm')
-  set advancedForm(value: RefFormComponent | undefined) {
+  readonly advancedForm = viewChild<RefFormComponent>('advancedForm');
+
+  private setAdvancedForm(value: RefFormComponent | undefined) {
     if (this.savedRef && value) {
       value.setRef(this.savedRef);
       delete this.savedRef;
     }
     this._advancedFill = value?.fill();
-    defer(() => this.limitWidth = value?.fill()?.nativeElement || this._fill?.nativeElement);
+    defer(() => this.limitWidth = value?.fill()?.nativeElement || this.fill()?.nativeElement);
   }
 
   get url() {
@@ -280,30 +276,26 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     return this.textForm.get('tags') as UntypedFormArray;
   }
 
-  @memo
-  get codeLang() {
-    for (const t of this.tags.value) {
+  readonly codeLang = computed(() => {
+    for (const t of this.tagsValue() || []) {
       if (hasPrefix(t, 'plugin/code')) {
         return t.split('/')[2];
       }
     }
     return '';
-  }
+  });
 
-  @memo
-  get codeOptions() {
-    return {
-      language: this.codeLang,
-      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
-      automaticLayout: true,
-    };
-  }
+  readonly codeOptions = computed(() => ({
+    language: this.codeLang(),
+    theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+    automaticLayout: true,
+  }));
 
-  @memo
-  get customEditor() {
-    if (!this.tags?.value) return false;
-    return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
-  }
+  readonly customEditor = computed(() => {
+    const tags = this.tagsValue();
+    if (!tags) return false;
+    return some(this.admin.editor, t => hasTag(t.tag, tags));
+  });
 
   setTags(value: string[]) {
     const tagsFormComponent = this.tagsFormComponent();
@@ -331,7 +323,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     }
     tagsFormComponent.addTag(...values);
     this.submitted = false;
-    MemoCache.clear(this);
   }
 
   get top() {

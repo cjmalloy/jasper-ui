@@ -15,13 +15,13 @@ describe('TemplateFormComponent', () => {
 
     fixture = TestBed.createComponent(TemplateFormComponent);
     component = fixture.componentInstance;
-    component.group = new UntypedFormGroup({
+    fixture.componentRef.setInput('group', new UntypedFormGroup({
       tag: new UntypedFormControl(),
       name: new UntypedFormControl(),
       config: new UntypedFormControl(),
       defaults: new UntypedFormControl(),
       schema: new UntypedFormControl(),
-    });
+    }));
     fixture.detectChanges();
   });
 

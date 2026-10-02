@@ -4,11 +4,7 @@ import {
   Component,
   ElementRef,
   forwardRef,
-  HostBinding,
-  HostListener,
-  Input,
-  OnChanges,
-  SimpleChanges,
+  computed,
   ChangeDetectionStrategy,
   input,
   output,
@@ -42,18 +38,23 @@ import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { getScheme, getTitleFromFilename } from '../../util/http';
-import { memo, MemoCache } from '../../util/memo';
 import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
 import { EditorComponent } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
+import { controlValue } from '../../util/form';
 
 @Component({
   selector: 'app-ref-form',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  host: { 'class': 'nested-form' },
+  host: {
+    'class': 'nested-form',
+    '[class.show-drops]': 'dropping',
+    '(dragenter)': 'onDragEnter()',
+    '(window:dragend)': 'onDragEnd()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => EditorComponent),
@@ -72,12 +73,12 @@ import { TagsFormComponent } from '../tags/tags.component';
     CssUrlPipe,
   ],
 })
-export class RefFormComponent implements OnChanges {
+export class RefFormComponent {
 
-  private readonly _creating = signal(false);
   readonly origin = input<string | undefined>('');
-  @Input()
-  group!: UntypedFormGroup;
+  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
+  readonly creating = input(false);
+  private readonly tagsValue = controlValue<string[]>(() => this.tags);
   readonly toggleTag = output<string>();
 
   readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
@@ -108,7 +109,6 @@ export class RefFormComponent implements OnChanges {
     private fb: UntypedFormBuilder,
   ) { }
 
-  @HostBinding('class.show-drops')
   get dropping(): boolean { return this._dropping(); }
   set dropping(value: boolean) { this._dropping.set(value); }
 
@@ -133,12 +133,8 @@ export class RefFormComponent implements OnChanges {
   get completedUploads(): Ref[] { return this._completedUploads(); }
   set completedUploads(value: Ref[]) { this._completedUploads.set(value); }
 
-  get creating(): boolean { return this._creating(); }
-  @Input()
-  set creating(value: boolean) { this._creating.set(value); }
-
-  ngOnChanges(changes: SimpleChanges) {
-    MemoCache.clear(this);
+  get group(): UntypedFormGroup {
+    return this.groupInput();
   }
 
   get web() {
@@ -177,7 +173,7 @@ export class RefFormComponent implements OnChanges {
   }
 
   get thumbnailRefs() {
-    return [{ ...this.group.getRawValue(), origin: this.creating ? this.store.account.origin : this.origin() }];
+    return [{ ...this.group.getRawValue(), origin: this.creating() ? this.store.account.origin : this.origin() }];
   }
 
   get thumbnailPlugin() {
@@ -214,7 +210,6 @@ export class RefFormComponent implements OnChanges {
       defer(() => this.setTags(value));
       return;
     }
-    MemoCache.clear(this);
     tagsFormComponent.setTags(value);
   }
 
@@ -233,37 +228,31 @@ export class RefFormComponent implements OnChanges {
     return $localize`Add ` + this.editorLabel.toLowerCase();
   }
 
-  @memo
-  get codeLang() {
-    for (const t of this.tags.value) {
+  readonly codeLang = computed(() => {
+    for (const t of this.tagsValue() || []) {
       if (hasPrefix(t, 'plugin/code')) {
         return t.split('/')[2];
       }
     }
     return '';
-  }
+  });
 
-  @memo
-  get codeOptions() {
-    return {
-      language: this.codeLang,
-      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
-      automaticLayout: true,
-    };
-  }
+  readonly codeOptions = computed(() => ({
+    language: this.codeLang(),
+    theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+    automaticLayout: true,
+  }));
 
-  @memo
-  get customEditor() {
-    if (!this.tags?.value) return false;
-    return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
-  }
+  readonly customEditor = computed(() => {
+    const tags = this.tagsValue();
+    if (!tags) return false;
+    return some(this.admin.editor, t => hasTag(t.tag, tags));
+  });
 
-  @HostListener('dragenter')
   onDragEnter() {
     this.dropping = true;
   }
 
-  @HostListener('window:dragend')
   onDragEnd() {
     this.dropping = false;
   }
@@ -404,7 +393,6 @@ export class RefFormComponent implements OnChanges {
   }
 
   togglePlugin(tag: string) {
-    MemoCache.clear(this);
     this.toggleTag.emit(tag);
     if (tag) {
       if (hasTag(tag, this.tags.value)) {
@@ -426,7 +414,6 @@ export class RefFormComponent implements OnChanges {
       this.altsFormComponent().setLinks(ref.alternateUrls || []);
       this.tagsFormComponent().setTags(ref.tags || []);
       this.pluginsFormComponent().setValue(ref.plugins);
-      MemoCache.clear(this);
     });
   }
 }

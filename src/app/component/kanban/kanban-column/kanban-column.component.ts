@@ -8,8 +8,6 @@ import {
   inject,
   AfterViewInit,
   Component,
-  HostBinding,
-  HostListener,
   OnChanges,
   SimpleChanges,
   ChangeDetectionStrategy,
@@ -55,7 +53,17 @@ interface PendingUpload {
   selector: 'app-kanban-column',
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss'],
-  host: { 'class': 'kanban-column' },
+  host: {
+    'class': 'kanban-column',
+    '[class.dropping]': 'dropping',
+    '[class.empty]': 'empty',
+    '(touchstart)': 'touchstart($event)',
+    '(contextmenu)': 'contextmenu($event)',
+    '(drop)': 'handleDrop($event)',
+    '(dragenter)': 'handleDragEnter($event)',
+    '(dragover)': 'handleDragOver($event)',
+    '(dragleave)': 'dragLeave($event)',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
@@ -84,7 +92,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   private readonly pressToUnlockSignal = signal(false);
   private readonly addingSignal = signal<PendingUpload[]>([]);
   private readonly failedSignal = signal<{ text: string; error: string }[]>([]);
-  @HostBinding('class.dropping')
   get dropping() { return this.droppingSignal(); }
   private readonly droppingSignal = signal(false);
 
@@ -148,7 +155,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   }
 
 
-  @HostBinding('class.empty')
   get empty() {
     return !this.page?.content.length;
   }
@@ -163,12 +169,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     return this.page.page.number < this.page.page.totalPages - 1;
   }
 
-  @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
     this.pressToUnlock = true;
   }
 
-  @HostListener('contextmenu', ['$event'])
   contextmenu(event: MouseEvent) {
     if (this.pressToUnlock) event.preventDefault();
   }
@@ -399,7 +403,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     }
   }
 
-  @HostListener('drop', ['$event'])
   handleDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
@@ -421,20 +424,17 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     }
   }
 
-  @HostListener('dragenter', ['$event'])
   handleDragEnter(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dropping = true;
   }
 
-  @HostListener('dragover', ['$event'])
   handleDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
   }
 
-  @HostListener('dragleave', ['$event'])
   dragLeave(event: DragEvent) {
     if (this.dropping && event.target === event.currentTarget) {
       this.dropping = false;

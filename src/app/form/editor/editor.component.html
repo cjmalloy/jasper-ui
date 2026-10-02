@@ -1,4 +1,4 @@
-@if (addButton && !editing && !currentText) {
+@if (addButton() && !editing && !currentText) {
   <button type="button"
           (click)="addComment()"
           [title]="addCommentTitle()">{{ addCommentLabel() }}</button>
@@ -9,7 +9,7 @@
               (click)="toggleFullscreen()"
               i18n-title title="Fullscreen editor"
               i18n>⛶</button>
-      @if (helpLinks.length) {
+      @if (helpLinks().length) {
         <button #helpButton
                 type="button"
                 (click)="toggleHelp()"
@@ -28,7 +28,7 @@
                 i18n-title title="Show preview"
                 i18n>📝️</button>
       }
-      @for (button of editorPushButtons; track button) {
+      @for (button of editorPushButtons(); track button) {
         @if (button.event) {
           @if (button.eventDone && loadingEvents[button.eventDone]) {
             <app-loading class="event-loading"
@@ -46,7 +46,7 @@
         }
       }
       @if (hasTags()) {
-        @for (button of editorRibbons; track button; let i = $index) {
+        @for (button of editorRibbons(); track button; let i = $index) {
           <div class="editor-toggle">
             <input type="checkbox"
                    [style.display]="'none'"
@@ -58,9 +58,9 @@
                    [title]="button.title || ''">{{ (button._on ? button.labelOn : button.labelOff) || button.label }}</label>
           </div>
         }
-        @if (selectResponseType() && responseButtons.length > 1) {
+        @if (selectResponseType() && responseButtons().length > 1) {
           <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
-            @for (plugin of responseButtons; track plugin.tag; let i=$index) {
+            @for (plugin of responseButtons(); track plugin.tag; let i=$index) {
               <button type="button"
                       class="response-button"
                       (click)="setResponse(plugin.tag)"
@@ -134,7 +134,7 @@
             class="expand"
             [origin]="store.account.origin"
             [text]="currentText"
-            [plugins]="allTags"
+            [plugins]="allTags()"
             [appLimitWidth]="editor"
             (postProcessMarkdown)="postProcessMarkdown()"
             (pointerup)="onSelectPreview()"></app-md>
@@ -149,7 +149,7 @@
 
   <ng-template #help>
     <div class="context-menu" (click)="$event.stopPropagation()">
-      @for (link of helpLinks; track link.url) {
+      @for (link of helpLinks(); track link.url) {
         <div (click)="toggleHelp()">
           <a target="_blank" rel="noopener noreferrer" [href]="link.url">{{ link.label }}</a>
         </div>

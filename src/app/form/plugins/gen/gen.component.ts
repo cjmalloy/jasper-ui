@@ -1,10 +1,9 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, computed, input, output } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
-import { memo, MemoCache } from '../../../util/memo';
 
 @Component({
   selector: 'app-form-gen',
@@ -13,14 +12,12 @@ import { memo, MemoCache } from '../../../util/memo';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
-export class GenFormComponent implements OnInit, OnChanges {
+export class GenFormComponent implements OnInit {
 
   readonly bulk = input(false);
   readonly promoteAdvanced = input(false);
-  @Input()
-  plugins!: UntypedFormGroup;
-  @Input()
-  plugin!: Plugin;
+  readonly pluginsInput = input.required<UntypedFormGroup>({ alias: 'plugins' });
+  readonly pluginInput = input.required<Plugin>({ alias: 'plugin' });
   readonly children = input<Plugin[]>([]);
   readonly togglePlugin = output<string>();
 
@@ -36,16 +33,19 @@ export class GenFormComponent implements OnInit, OnChanges {
     private admin: AdminService,
   ) { }
 
-  ngOnChanges(changes: SimpleChanges) {
-    MemoCache.clear(this);
+  get plugins() {
+    return this.pluginsInput();
+  }
+
+  get plugin() {
+    return this.pluginInput();
   }
 
   get group() {
     return this.plugins.get(this.plugin.tag) as UntypedFormGroup | undefined;
   }
 
-  @memo
-  get form() {
+  readonly form = computed(() => {
     if (this.bulk()) {
       if (this.plugin.config?.bulkForm === true) {
         return cloneDeep(this.plugin.config?.form || this.plugin.config?.advancedForm);
@@ -53,13 +53,12 @@ export class GenFormComponent implements OnInit, OnChanges {
       return cloneDeep(this.plugin.config?.bulkForm);
     }
     return cloneDeep(this.plugin.config?.form);
-  }
+  });
 
-  @memo
-  get advancedForm() {
+  readonly advancedForm = computed(() => {
     if (this.bulk()) return undefined;
     return cloneDeep(this.plugin.config?.advancedForm);
-  }
+  });
 
   get childrenOn() {
     for (let i = this.children().length - 1; i >= 0; i--) {

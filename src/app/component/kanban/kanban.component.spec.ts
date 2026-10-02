@@ -40,9 +40,7 @@ describe('KanbanComponent', () => {
       const mockColumn1 = { saveChanges: () => true } as any;
       const mockColumn2 = { saveChanges: () => true } as any;
 
-      component.list = {
-        find: vi.fn().mockReturnValue(undefined) // No column returns false
-      } as any;
+      (component as any).list = () => [mockColumn1, mockColumn2];
 
       expect(component.saveChanges()).toBe(true);
     });
@@ -52,9 +50,7 @@ describe('KanbanComponent', () => {
       const mockColumnAllowing = { saveChanges: () => true } as any;
       const mockColumnPreventing = { saveChanges: () => false } as any;
 
-      component.list = {
-        find: vi.fn().mockReturnValue(mockColumnPreventing) // One column returns false
-      } as any;
+      (component as any).list = () => [mockColumnAllowing, mockColumnPreventing];
 
       expect(component.saveChanges()).toBe(false);
     });

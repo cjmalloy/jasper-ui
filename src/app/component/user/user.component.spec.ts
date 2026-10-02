@@ -26,7 +26,8 @@ describe('UserComponent', () => {
 
     fixture = TestBed.createComponent(UserComponent);
     component = fixture.componentInstance;
-    component.user = { tag: 'user/test' };
+    fixture.componentRef.setInput('user', { tag: 'user/test' });
+    fixture.detectChanges();
     fixture.detectChanges();
   });
 
@@ -36,8 +37,8 @@ describe('UserComponent', () => {
 
   it('downloads a connection ref for the user and origin', () => {
     component.config.api = 'https://remote.example/api';
-    component.user = { tag: '+user/test', origin: '@example' };
-    component.ngOnChanges({ user: {} as any });
+    fixture.componentRef.setInput('user', { tag: '+user/test', origin: '@example' });
+    fixture.detectChanges();
 
     expect(component.connectionRef).toEqual({
       url: 'https://remote.example/api',
@@ -62,8 +63,8 @@ describe('UserComponent', () => {
 
   it('recommends the API hostname as the local alias for the default origin', () => {
     component.config.api = 'https://jasper.example/api';
-    component.user = { tag: '+user/test', origin: '' };
-    component.ngOnChanges({ user: {} as any });
+    fixture.componentRef.setInput('user', { tag: '+user/test', origin: '' });
+    fixture.detectChanges();
 
     expect(component.connectionRef).toEqual(expect.objectContaining({
       plugins: expect.objectContaining({
@@ -74,8 +75,8 @@ describe('UserComponent', () => {
 
   it('recommends a tilde-prefixed first path as the local alias', () => {
     component.config.api = 'https://jasper.example/~test/api';
-    component.user = { tag: '+user/test', origin: '' };
-    component.ngOnChanges({ user: {} as any });
+    fixture.componentRef.setInput('user', { tag: '+user/test', origin: '' });
+    fixture.detectChanges();
 
     expect(component.connectionRef).toEqual(expect.objectContaining({
       plugins: expect.objectContaining({
@@ -86,7 +87,8 @@ describe('UserComponent', () => {
 
   it('templates a connection from an existing origin Ref', () => {
     component.config.api = 'https://jasper.example/api';
-    component.user = { tag: '+user/test', origin: '@example' };
+    fixture.componentRef.setInput('user', { tag: '+user/test', origin: '@example' });
+    fixture.detectChanges();
     component.store.origins.origins = [{
       url: 'https://origin.example/custom-api',
       origin: '',
@@ -95,7 +97,6 @@ describe('UserComponent', () => {
         '+plugin/origin': { local: '@example', remote: '@jasper' },
       },
     }];
-    component.ngOnChanges({ user: {} as any });
 
     expect(component.connectionRef).toEqual(expect.objectContaining({
       url: 'https://origin.example/custom-api',

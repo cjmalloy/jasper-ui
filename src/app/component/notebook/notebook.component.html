@@ -20,8 +20,8 @@
 </div>
 @if (page) {
   @if (!page.content.length) {
-    @if (!newRefs.length && emptyMessage) {
-      <p class="no-results">{{ emptyMessage }}</p>
+    @if (!newRefs.length && emptyMessage()) {
+      <p class="no-results">{{ emptyMessage() }}</p>
     }
   } @else if (pageControls()) {
     <app-page-controls [showPageLast]="showPageLast()"

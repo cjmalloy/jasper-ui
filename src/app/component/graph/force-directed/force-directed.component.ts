@@ -8,8 +8,6 @@ import {
   effect,
   ElementRef,
   forwardRef,
-  HostListener,
-  Input,
   OnDestroy,
   TemplateRef,
   ViewContainerRef,
@@ -40,6 +38,10 @@ import { RefListComponent } from '../../ref/ref-list/ref-list.component';
   selector: 'app-force-directed',
   templateUrl: './force-directed.component.html',
   styleUrls: ['./force-directed.component.scss'],
+  host: {
+    '(window:resize)': 'onResize()',
+    '(window:click)': 'onWindowClick()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
@@ -51,6 +53,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   readonly filter = input<string[]>();
   readonly depth = input(0);
   readonly tag = input<(string | null) | undefined>('science');
+  readonly content = input<Ref[]>([]);
 
   readonly maxLoad = input(30);
   readonly nodeStroke = input('#d0d0d0');
@@ -106,6 +109,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
       this.linkStroke = this.store.darkTheme ? this.linkStrokeDarkTheme() : this.linkStrokeLightTheme();
       this.update();
     });
+    effect(() => this.loadContent(this.content()));
   }
 
   saveChanges() {
@@ -117,8 +121,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     this.store.graph.set([]);
   }
 
-  @Input()
-  set content(refs: Ref[]) {
+  private loadContent(refs: Ref[]) {
     this.graphs.list(refs.map(r => r.url))
       .subscribe(nodes => {
         this.store.graph.set(nodes.filter(n => !!n) as RefNode[]);
@@ -142,13 +145,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     this.init();
   }
 
-  @HostListener('window:resize')
   onResize() {
     this.simulation?.alpha(0.3);
     this.update();
   }
 
-  @HostListener('window:click')
   onWindowClick() {
     this.close();
   }
@@ -314,7 +315,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
 
   restart(ref: GraphNode) {
     this.simulation?.alpha(0.3);
-    this.content = [...this.store.graph.grabNodeOrSelection(ref)];
+    this.loadContent([...this.store.graph.grabNodeOrSelection(ref)]);
     this.close();
   }
 

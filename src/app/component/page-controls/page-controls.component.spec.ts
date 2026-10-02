@@ -40,7 +40,8 @@ describe('PageControlsComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(PageControlsComponent);
     component = fixture.componentInstance;
-    component.page = Page.of([]);
+    fixture.componentRef.setInput('page', Page.of([]));
+    fixture.detectChanges();
     fixture.detectChanges();
   });
 
@@ -68,7 +69,8 @@ describe('PageControlsComponent', () => {
     const current = refPage([first, anchor], 0, 2, 4);
     queryStore.args = { query: 'public', page: 0, size: 2, sort: ['published,DESC'] };
     queryStore.page = current;
-    component.page = current;
+    fixture.componentRef.setInput('page', current);
+    fixture.detectChanges();
     refService.page.mockImplementation((args: RefPageArgs) => {
       const requestSize = args.size!;
       const content = [anchor, next, older].slice(0, requestSize);
@@ -115,7 +117,8 @@ describe('PageControlsComponent', () => {
     const current = refPage([anchor, older], 1, 2, 4);
     queryStore.args = { query: 'public', page: 1, size: 2, sort: ['published'] };
     queryStore.page = current;
-    component.page = current;
+    fixture.componentRef.setInput('page', current);
+    fixture.detectChanges();
     refService.page.mockReturnValue(of(refPage([anchor, previousLast, first], 0, 3, 3)));
 
     component.cursorPage(0);
@@ -141,7 +144,8 @@ describe('PageControlsComponent', () => {
     const current = refPage([first, anchor], 0, 2, 4);
     queryStore.args = { query: 'public', page: 0, size: 2, sort: ['published,ASC'] };
     queryStore.page = current;
-    component.page = current;
+    fixture.componentRef.setInput('page', current);
+    fixture.detectChanges();
     refService.page.mockReturnValue(of(refPage([anchor, next, last], 0, 3, 3)));
 
     component.cursorPage(1);
@@ -161,7 +165,8 @@ describe('PageControlsComponent', () => {
     const current = refPage([first, anchor], 0, 2, 3);
     queryStore.args = { query: 'public', page: 0, size: 2, sort: ['published,DESC'] };
     queryStore.page = current;
-    component.page = current;
+    fixture.componentRef.setInput('page', current);
+    fixture.detectChanges();
     refService.page.mockImplementation((args: RefPageArgs) => {
       if (args.publishedBefore) {
         return of(refPage([
@@ -188,7 +193,8 @@ describe('PageControlsComponent', () => {
     const current = refPage([ref('first', { published: DATE })], 0, 1, 2);
     queryStore.args = { query: 'public', page: 0, size: 1, sort: ['title,ASC'] };
     queryStore.page = current;
-    component.page = current;
+    fixture.componentRef.setInput('page', current);
+    fixture.detectChanges();
 
     component.cursorPage(1);
 
@@ -199,7 +205,8 @@ describe('PageControlsComponent', () => {
     const current = refPage([ref('first', { published: DATE })], 0, 1, 2);
     queryStore.args = { query: 'public', page: 0, size: 1, sort: ['published,DESC'] };
     queryStore.page = current;
-    component.page = current;
+    fixture.componentRef.setInput('page', current);
+    fixture.detectChanges();
 
     component.cursorPage(1, new MouseEvent('click', { ctrlKey: true }));
 
@@ -210,7 +217,8 @@ describe('PageControlsComponent', () => {
     const current = refPage([ref('first', { published: DATE })], 0, 1, 2);
     queryStore.args = { query: 'public', page: 0, size: 1, sort: ['published,DESC'] };
     queryStore.page = current;
-    component.page = refPage([...current.content], 0, 1, 2);
+    fixture.componentRef.setInput('page', refPage([...current.content], 0, 1, 2));
+    fixture.detectChanges();
 
     component.cursorPage(1);
 

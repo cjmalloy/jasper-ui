@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -23,6 +23,7 @@ import { prefix, setPublic } from '../../util/tag';
   selector: 'app-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
+  host: { 'class': 'full-page-form' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
@@ -39,7 +40,6 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
   private readonly _externalErrors = signal<string[]>([]);
   get externalErrors() { return this._externalErrors(); }
   set externalErrors(value: string[]) { this._externalErrors.set(value); }
-  @HostBinding('class') css = 'full-page-form';
 
   readonly userForm = viewChild.required<UserFormComponent>('form');
   profileForm: UntypedFormGroup;

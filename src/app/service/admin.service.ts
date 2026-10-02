@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
@@ -92,7 +92,7 @@ import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
-import { memo, MemoCache } from '../util/memo';
+import { computedBy } from '../util/computed-by';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
@@ -105,18 +105,30 @@ import { equalBundle } from '../util/diff';
 import { neoMod } from '../mods/ai/neo-banana';
 import { mp3Mod } from '../mods/media/mp3';
 
+export interface AdminStatus {
+  plugins: Record<string, Plugin>;
+  disabledPlugins: Record<string, Plugin>;
+  templates: Record<string, Template>;
+  disabledTemplates: Record<string, Template>;
+  receipts: Record<string, Ref>;
+}
+
+function emptyStatus(): AdminStatus {
+  return {
+    plugins: {},
+    disabledPlugins: {},
+    templates: {},
+    disabledTemplates: {},
+    receipts: {},
+  };
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class AdminService {
 
-  status = {
-    plugins: <Record<string, Plugin>> {},
-    disabledPlugins: <Record<string, Plugin>> {},
-    templates: <Record<string, Template>> {},
-    disabledTemplates: <Record<string, Template>> {},
-    receipts: <Record<string, Ref>> {},
-  };
+  private readonly _status = signal<AdminStatus>(emptyStatus());
 
   mods: Mod[] = [
     debugMod,
@@ -217,6 +229,24 @@ export class AdminService {
   _cache = new Map<string, any>();
   private firstRun = false;
 
+  get status(): AdminStatus {
+    return this._status();
+  }
+
+  private updateStatus(fn: (status: AdminStatus) => void) {
+    const status = this._status();
+    const next: AdminStatus = {
+      plugins: {...status.plugins},
+      disabledPlugins: {...status.disabledPlugins},
+      templates: {...status.templates},
+      disabledTemplates: {...status.disabledTemplates},
+      receipts: {...status.receipts},
+    };
+    fn(next);
+    this._cache.clear();
+    this._status.set(next);
+  }
+
   constructor(
     private config: ConfigService,
     private auth: AuthzService,
@@ -242,13 +272,8 @@ export class AdminService {
 
   get init$() {
     this._cache.clear();
-    MemoCache.clear(this);
     this.store.view.clearModChanges();
-    this.status.plugins = {};
-    this.status.disabledPlugins = {};
-    this.status.templates = {};
-    this.status.disabledTemplates = {};
-    this.status.receipts = {};
+    this._status.set(emptyStatus());
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
       switchMap(() => this.loadReceipts$()),
@@ -358,13 +383,17 @@ export class AdminService {
   }
 
   private pluginToStatus(list: Plugin[]) {
-    for (const p of list) {
-      if (p.config?.disabled) {
-        this.status.disabledPlugins[p.tag] = p;
-      } else {
-        this.status.plugins[p.tag] = p;
-        this.def.plugins[p.tag] ||= clear(p);
+    this.updateStatus(status => {
+      for (const p of list) {
+        if (p.config?.disabled) {
+          status.disabledPlugins[p.tag] = p;
+        } else {
+          status.plugins[p.tag] = p;
+          this.def.plugins[p.tag] ||= clear(p);
+        }
       }
+    });
+    for (const p of list) {
       if (this.needsUpdate(this.def.plugins[p.tag], p)) {
         console.log(p.tag + ' needs update');
         this.store.view.addModUpdate(modId(p));
@@ -373,13 +402,17 @@ export class AdminService {
   }
 
   private templateToStatus(list: Template[]) {
-    for (const t of list) {
-      if (t.config?.disabled) {
-        this.status.disabledTemplates[t.tag] = t;
-      } else {
-        this.status.templates[t.tag] = t;
-        this.def.templates[t.tag] ||= t;
+    this.updateStatus(status => {
+      for (const t of list) {
+        if (t.config?.disabled) {
+          status.disabledTemplates[t.tag] = t;
+        } else {
+          status.templates[t.tag] = t;
+          this.def.templates[t.tag] ||= t;
+        }
       }
+    });
+    for (const t of list) {
       if (this.needsUpdate(this.def.templates[t.tag], t)) {
         console.log((t.tag || 'Root template') + ' needs update');
         this.store.view.addModUpdate(modId(t));
@@ -393,7 +426,7 @@ export class AdminService {
       if (this.store.view.modChanges.has(mod)) continue;
       const current = this.getInstalledMod(mod);
       if (!current) continue;
-      this.status.receipts[mod] = r;
+      this.updateStatus(status => status.receipts[mod] = r);
       this.store.view.setModChange(mod, !equalBundle(current, r.plugins?.['plugin/mod']));
     }
   }
@@ -468,10 +501,11 @@ export class AdminService {
 
   configProperty(...names: string[]): [Plugin | Template] {
     const key = names.join(':');
+    const status = this.status;
     if (!this._cache.has(key)) {
       this._cache.set(key, [
-        ...Object.values(this.status.plugins),
-        ...Object.values(this.status.templates)
+        ...Object.values(status.plugins),
+        ...Object.values(status.templates)
       ].filter(p => {
         for (const n of names) {
           if (n.startsWith('!')) {
@@ -488,8 +522,9 @@ export class AdminService {
 
   pluginConfigProperty(...names: string[]): Plugin[] {
     const key = names.join(':');
+    const status = this.status;
     if (!this._cache.has(key)) {
-      this._cache.set(key, Object.values(this.status.plugins).filter(p => {
+      this._cache.set(key, Object.values(status.plugins).filter(p => {
         for (const n of names) {
           if (n.startsWith('!')) {
             if (p?.config?.[n.substring(1)]) return false;
@@ -505,8 +540,9 @@ export class AdminService {
 
   templateConfigProperty(...names: string[]): Template[] {
     const key = 't!'+names.join(':');
+    const status = this.status;
     if (!this._cache.has(key)) {
-      this._cache.set(key, Object.values(this.status.templates).filter(p => {
+      this._cache.set(key, Object.values(status.templates).filter(p => {
         for (const n of names) {
           if (n.startsWith('!')) {
             if (p?.config?.[n.substring(1)]) return false;
@@ -635,8 +671,9 @@ export class AdminService {
   }
 
   get embeddable(): string[] {
+    const status = this.status;
     if (!this._cache.has('embeddable')) {
-      this._cache.set('embeddable', Object.values(this.status.plugins).filter(p => {
+      this._cache.set('embeddable', Object.values(status.plugins).filter(p => {
         if (!p) return false;
         if (p?.config?.embeddable) return true;
         if (p?.config?.editingViewer) return true;
@@ -796,21 +833,18 @@ export class AdminService {
       .filter(t => hasPrefix(tag, t.tag));
   }
 
-  @memo
-  getPlugin(tag: string) {
+  readonly getPlugin = computedBy((tag: string) => {
     return Object.values(this.status.plugins).find(p => p?.tag === tag);
-  }
+  });
 
-  @memo
-  searchPlugins(text: string) {
+  readonly searchPlugins = computedBy((text: string) => {
     text = text.toLowerCase();
     return Object.values(this.status.plugins).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
-  }
+  });
 
-  @memo
-  getParentPlugins(tag: string) {
+  readonly getParentPlugins = computedBy((tag: string) => {
     return this.getPlugins([tag]);
-  }
+  });
 
   getPlugins(tags: string[] | undefined) {
     if (!tags) return [];
@@ -832,10 +866,9 @@ export class AdminService {
     return this.forms.filter(p => hasTag(p.tag, match));
   }
 
-  @memo
-  getPluginSubForms(parent: string) {
+  readonly getPluginSubForms = computedBy((parent: string) => {
     return this.forms.filter(p => p.config?.submitChild && directChild(p.tag, parent));
-  }
+  });
 
   getTemplate(tag: string) {
     if (this.status.templates[tag]) return this.status.templates[tag];
@@ -845,11 +878,10 @@ export class AdminService {
     });
   }
 
-  @memo
-  searchTemplates(text: string) {
+  readonly searchTemplates = computedBy((text: string) => {
     text = text.toLowerCase();
     return Object.values(this.status.templates).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
-  }
+  });
 
   defaultConfig(tag: string) {
     return reduce(this.getTemplates(tag).map(t => t.defaults || {}), (prev, curr) => {
@@ -862,8 +894,11 @@ export class AdminService {
     return this.settings.filter(p => hasTag(p.tag, match));
   }
 
-  @memo
   getTemplates(tag = ''): Template[] {
+    return this._getTemplates(tag);
+  }
+
+  private readonly _getTemplates: (tag: string) => Template[] = computedBy((tag: string): Template[] => {
     const template = this.getTemplate(tag);
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
     if (template) {
@@ -873,7 +908,7 @@ export class AdminService {
       return this.getTemplates(parent!);
     }
     return [];
-  }
+  });
 
   getTemplateUi(tag = ''): Template[] {
     const template = this.getTemplate(tag);
@@ -1175,7 +1210,7 @@ export class AdminService {
       tap(() => _('\u00A0'.repeat(4) + $localize`Logging ${mod || ref.url} receipt...`)),
       switchMap(() => this.refs.delete(ref.url, ref.origin)),
       switchMap(() => this.refs.create(ref)),
-      tap(() => this.status.receipts[mod] = ref),
+      tap(() => this.updateStatus(status => status.receipts[mod] = ref)),
       tap(() => _('', 1)),
     );
   }

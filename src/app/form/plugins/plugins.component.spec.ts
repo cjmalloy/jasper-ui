@@ -26,10 +26,10 @@ describe('PluginsFormComponent', () => {
 
     fixture = TestBed.createComponent(PluginsFormComponent);
     component = fixture.componentInstance;
-    component.group = new UntypedFormGroup({
+    fixture.componentRef.setInput('group', new UntypedFormGroup({
       tags: new UntypedFormArray([]),
       plugins: new UntypedFormGroup({}),
-    });
+    }));
     fixture.detectChanges();
   });
 

@@ -1,4 +1,4 @@
-import { Component, HostBinding, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
@@ -10,13 +10,14 @@ import { Store } from '../../../store/store';
   selector: 'app-subfolder',
   templateUrl: './subfolder.component.html',
   styleUrls: ['./subfolder.component.scss'],
-  host: { 'class': 'subfolder' },
+  host: {
+    'class': 'subfolder',
+    'tabindex': '0',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink]
 })
 export class SubfolderComponent {
-  @HostBinding('attr.tabindex') tabIndex = 0;
-
   readonly ext = input<Ext>();
   readonly name = input<string>();
   readonly dragging = input(false);

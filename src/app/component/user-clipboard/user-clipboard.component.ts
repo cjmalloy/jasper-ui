@@ -1,5 +1,5 @@
 import { AsyncPipe, DOCUMENT } from '@angular/common';
-import { Component, HostListener, Inject, OnDestroy, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import DOMPurify from 'dompurify';
@@ -62,7 +62,17 @@ interface DragState {
   selector: 'app-user-clipboard',
   templateUrl: './user-clipboard.component.html',
   styleUrls: ['./user-clipboard.component.scss'],
-  host: { 'class': 'user-clipboard' },
+  host: {
+    'class': 'user-clipboard',
+    '(document:dragenter)': 'dragEnter($event)',
+    '(document:dragleave)': 'documentDragLeave($event)',
+    '(document:dragstart)': 'dragStart($event)',
+    '(window:resize)': 'resize()',
+    '(document:dragend)': 'dragEnd()',
+    '(document:copy)': 'copy($event)',
+    '(document:paste)': 'paste($event)',
+    '(document:focusin)': 'focusIn($event)',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
@@ -71,15 +81,8 @@ interface DragState {
   ],
 })
 export class UserClipboardComponent implements OnInit, OnDestroy {
-  readonly state = signal(0);
-
-  private markState() {
-    this.state.update(value => value + 1);
-  }
-
-
   remote?: Ref;
-  items: ClipboardItem[] = [];
+  private readonly itemsSignal = signal<ClipboardItem[]>([]);
   private watch?: Subscription;
   private save?: Subscription;
   private drag?: DragState;
@@ -90,9 +93,18 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private savingRemote = false;
   private resizeClamp?: number;
   private loading = false;
-  dropVisible = false;
-  dropActive = false;
-  dropFilled = false;
+  private readonly dropVisibleSignal = signal(false);
+  private readonly dropActiveSignal = signal(false);
+  private readonly dropFilledSignal = signal(false);
+
+  get items() { return this.itemsSignal(); }
+  set items(value: ClipboardItem[]) { this.itemsSignal.set(value); }
+  get dropVisible() { return this.dropVisibleSignal(); }
+  set dropVisible(value: boolean) { this.dropVisibleSignal.set(value); }
+  get dropActive() { return this.dropActiveSignal(); }
+  set dropActive(value: boolean) { this.dropActiveSignal.set(value); }
+  get dropFilled() { return this.dropFilledSignal(); }
+  set dropFilled(value: boolean) { this.dropFilledSignal.set(value); }
 
   constructor(
     @Inject(DOCUMENT) document: Document,
@@ -108,13 +120,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed())
       .subscribe(event => {
         this.documentDrop(event);
-        this.markState();
       });
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'clip' && event.ref?.url) {
         this.addItem({ ref: event.ref });
       }
-      this.markState();
     });
   }
 
@@ -125,7 +135,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       catchError(() => of(undefined)),
     ).subscribe(() => {
       this.loadRemote();
-      this.markState();
     });
   }
 
@@ -236,14 +245,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.persistLocal();
   }
 
-  @HostListener('document:dragenter', ['$event'])
   dragEnter(event: DragEvent) {
     if (this.isDropZoneTarget(event.target as HTMLElement | null)) return;
     this.dropDragDepth++;
     this.dropVisible = true;
   }
 
-  @HostListener('document:dragleave', ['$event'])
   documentDragLeave(event: DragEvent) {
     if (this.isDropZoneTarget(event.target as HTMLElement | null)) return;
     this.dropDragDepth = Math.max(0, this.dropDragDepth - 1);
@@ -287,22 +294,18 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.draggedRef = undefined;
     window.setTimeout(() => {
       this.dropFilled = false;
-      this.markState();
     }, 800);
   }
 
-  @HostListener('document:dragstart', ['$event'])
   dragStart(event: DragEvent) {
     this.draggedRef = this.refFromTarget(event.target as HTMLElement | null);
   }
 
-  @HostListener('window:resize')
   resize() {
     if (this.resizeClamp) window.clearTimeout(this.resizeClamp);
     this.resizeClamp = window.setTimeout(() => {
       this.resizeClamp = undefined;
       this.clampBubblePositions();
-      this.markState();
     }, 100);
   }
 
@@ -318,7 +321,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (changed) this.persistLocal();
   }
 
-  @HostListener('document:dragend')
   dragEnd() {
     this.resetDropState();
     this.draggedRef = undefined;
@@ -378,7 +380,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (element.hasPointerCapture(pointerId)) element.releasePointerCapture(pointerId);
   }
 
-  @HostListener('document:copy', ['$event'])
   copy(event: ClipboardEvent) {
     if (!this.interceptCopy) return;
     const item = this.clipboardItem(event.target, false);
@@ -387,14 +388,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.addItem(item);
   }
 
-  @HostListener('document:paste', ['$event'])
   paste(event: ClipboardEvent) {
     if (!this.interceptCopy) return;
     event.preventDefault();
     event.stopPropagation();
   }
 
-  @HostListener('document:focusin', ['$event'])
   focusIn(event: FocusEvent) {
     if (!this.hasPendingPaste()) return;
     this.pasteInto(event.target as HTMLElement);
@@ -855,7 +854,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       // flushed after the current save, rather than being overwritten here.
       if (!this.pendingRemotePersist) this.applyRemote(ref);
       this.persistRemote();
-      this.markState();
     });
   }
 
@@ -974,6 +972,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private persistLocal() {
+    this.items = [...this.items];
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.items.map(item => ({
         ...this.serializeLocal(item),
@@ -1006,7 +1005,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         this.save = undefined;
         // Leave finalize's call stack before starting the queued save.
         if (this.pendingRemotePersist) window.setTimeout(() => this.persistRemote(), 0);
-        this.markState();
       }),
     ).subscribe();
   }

@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { LensComponent } from '../../component/lens/lens.component';
@@ -20,6 +20,9 @@ import { hasPrefix, localTag } from '../../util/tag';
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
+  host: {
+    '[class.no-footer-padding]': 'noFooterPadding',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     LensComponent,
@@ -111,7 +114,6 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     this.query.close();
   }
 
-  @HostBinding('class.no-footer-padding')
   get noFooterPadding() {
     return this.store.view.isTemplate('kanban');
   }

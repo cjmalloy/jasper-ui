@@ -1,9 +1,8 @@
-@if (state()) {<ng-container></ng-container>}
 <app-editor #editor [control]="comment"
             [createdTags]="ref.tags || []"
             (syncTags)="editorTags = $event"
             (addSource)="addSource($event)"
-            (uploadCompleted)="completedUploads.push($event)"
+            (uploadCompleted)="completedUploads = [...completedUploads, $event]"
             [autoFocus]="true"></app-editor>
 @for (e of serverError; track e) {
   <span><!-- Unexpected Error --></span>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Input, input, OnChanges, output, signal, SimpleChanges, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, model, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer, uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
@@ -14,13 +14,12 @@ import { AuthzService } from '../../service/authz.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
-export class SelectPluginComponent implements OnChanges {
+export class SelectPluginComponent {
 
   readonly id = input('plugin-' + uuid());
   readonly add = input(false);
   readonly text = input(false);
   readonly settings = input(false);
-  readonly pluginChange = output<string>();
 
   readonly select = viewChild<ElementRef<HTMLSelectElement>>('select');
 
@@ -30,44 +29,38 @@ export class SelectPluginComponent implements OnChanges {
   settingsPlugins = this.admin.submitSettings.filter(p => this.auth.canAddTag(p.tag));
 
   private readonly _customPlugin = signal<Plugin | undefined>(undefined);
-  private readonly _plugins = signal<Plugin[]>([], { equal: () => false });
+  readonly plugin = model('');
   get customPlugin() { return this._customPlugin(); }
   set customPlugin(value: Plugin | undefined) { this._customPlugin.set(value); }
-  get plugins() { return this._plugins(); }
-  set plugins(value: Plugin[]) { this._plugins.set(value); }
+  readonly plugins = computed(() => uniqBy([
+    ...(this.customPlugin ? [this.customPlugin] : []),
+    ...(this.add() ? this.addPlugins : []),
+    ...(this.text() ? this.textPlugins : []),
+    ...(this.settings() ? this.settingsPlugins : []),
+    ...this.submitPlugins
+  ], 'tag'));
 
   constructor(
     private admin: AdminService,
     private auth: AuthzService,
-  ) {  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    this.plugins = uniqBy([
-      ...(this.customPlugin ? [this.customPlugin] : []),
-      ...(this.add() ? this.addPlugins : []),
-      ...(this.text() ? this.textPlugins : []),
-      ...(this.settings() ? this.settingsPlugins : []),
-      ...this.submitPlugins
-    ], 'tag');
+  ) {
+    effect(() => this.selectPlugin(this.plugin()));
   }
 
-  @Input()
-  set plugin(value: string) {
+  private selectPlugin(value: string) {
     const select = this.select();
     if (!select) {
-      if (value) defer(() => this.plugin = value);
+      if (value) defer(() => this.selectPlugin(value));
     } else {
-      if (!this.plugins.find(p => p?.tag === value)) {
+      if (!this.plugins().find(p => p?.tag === value)) {
         const plugin = this.admin.getPlugin(value);
         if (plugin) {
           this.customPlugin = plugin;
-          this.plugins.unshift(plugin);
-          this._plugins.set(this.plugins);
           defer(() => this.select()!.nativeElement.selectedIndex = 1);
           return;
         }
       }
-      select!.nativeElement.selectedIndex = this.plugins.map(p => p.tag).indexOf(value) + 1;
+      select!.nativeElement.selectedIndex = this.plugins().map(p => p.tag).indexOf(value) + 1;
     }
   }
 

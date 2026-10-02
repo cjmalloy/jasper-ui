@@ -3,11 +3,9 @@ import {
   inject,
   Component,
   forwardRef,
-  Input,
-  OnChanges,
   OnInit,
-  SimpleChanges,
   ChangeDetectionStrategy,
+  effect,
   input,
   viewChildren,
   signal,
@@ -30,32 +28,33 @@ import { CommentComponent } from '../comment.component';
     forwardRef(() => CommentComponent),
   ],
 })
-export class CommentThreadComponent implements OnInit, OnChanges, HasChanges {
-  readonly state = signal(0);
-
-  private markState() {
-    this.state.update(value => value + 1);
-  }
-
+export class CommentThreadComponent implements OnInit, HasChanges {
   private destroyRef = inject(DestroyRef);
 
   readonly source = input('');
   readonly scrollToLatest = input(false);
-  @Input()
-  depth = 7;
+  readonly depthInput = input(7, { alias: 'depth' });
+  get depth() { return this.depthInput(); }
   readonly pageSize = input<number>();
   readonly context = input(0);
-  @Input()
-  newComments$!: Observable<Ref | undefined>;
+  readonly newComments$ = input<Observable<Ref | undefined>>();
 
   readonly list = viewChildren<CommentComponent>('comment');
 
-  newComments: Ref[] = [];
+  private readonly newCommentsSignal = signal<Ref[]>([]);
+  get newComments() { return this.newCommentsSignal(); }
+  set newComments(value: Ref[]) { this.newCommentsSignal.set(value); }
 
   constructor(
     public store: Store,
     public thread: ThreadStore,
-  ) { }
+  ) {
+    effect(() => {
+      this.source();
+      this.pageSize();
+      this.newComments = [];
+    });
+  }
 
   get comments(): Ref[] | undefined {
     let comments = this.thread.cache.get(this.source());
@@ -76,18 +75,10 @@ export class CommentThreadComponent implements OnInit, OnChanges, HasChanges {
   }
 
   ngOnInit(): void {
-    this.newComments$.pipe(
+    this.newComments$()?.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(comment => {
       if (comment) this.newComments = [comment, ...this.newComments];
-      this.markState();
     });
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.source || changes.pageSize) {
-      this.newComments = [];
-      this.markState();
-    }
   }
 }

@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { DestroyRef, inject, AfterViewInit, Component, forwardRef, Input, ChangeDetectionStrategy, viewChild, signal } from '@angular/core';
+import { DestroyRef, inject, AfterViewInit, Component, forwardRef, ChangeDetectionStrategy, input, linkedSignal, viewChild, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
@@ -31,28 +31,34 @@ import { LoadingComponent } from '../../loading/loading.component';
   ]
 })
 export class CommentEditComponent implements AfterViewInit, HasChanges {
-  readonly state = signal(0);
-
-  private markState() {
-    this.state.update(value => value + 1);
-  }
-
   private destroyRef = inject(DestroyRef);
 
-  serverError: string[] = [];
+  private readonly serverErrorSignal = signal<string[]>([]);
 
-  @Input()
-  ref!: Ref;
-  @Input()
-  commentEdited$!: Subject<Ref>;
+  readonly refInput = input.required<Ref>({ alias: 'ref' });
+  private readonly refSignal = linkedSignal(() => this.refInput());
+  get ref() { return this.refSignal(); }
+  set ref(value: Ref) { this.refSignal.set(value); }
+  readonly commentEdited$ = input.required<Subject<Ref>>();
 
   readonly editor = viewChild<EditorComponent>('editor');
 
-  editing?: Subscription;
+  private readonly editingSignal = signal<Subscription | undefined>(undefined);
   commentForm: UntypedFormGroup;
-  editorTags: string[] = [];
-  sources: string[] = [];
-  completedUploads: Ref[] = [];
+  private readonly editorTagsSignal = signal<string[]>([]);
+  private readonly sourcesSignal = signal<string[]>([]);
+  private readonly completedUploadsSignal = signal<Ref[]>([]);
+
+  get serverError() { return this.serverErrorSignal(); }
+  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
+  get editing() { return this.editingSignal(); }
+  set editing(value: Subscription | undefined) { this.editingSignal.set(value); }
+  get editorTags() { return this.editorTagsSignal(); }
+  set editorTags(value: string[]) { this.editorTagsSignal.set(value); }
+  get sources() { return this.sourcesSignal(); }
+  set sources(value: string[]) { this.sourcesSignal.set(value); }
+  get completedUploads() { return this.completedUploadsSignal(); }
+  set completedUploads(value: Ref[]) { this.completedUploadsSignal.set(value); }
 
   constructor(
     private store: Store,
@@ -98,12 +104,12 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
 
   addSource(value = '') {
     if ((this.ref.sources?.length || 0) < 1) {
-      this.sources.push(this.top);
+      this.sources = [...this.sources, this.top];
     }
     if ((this.ref.sources?.length || 0) < 2) {
-      this.sources.push(this.top);
+      this.sources = [...this.sources, this.top];
     }
-    this.sources.push(value);
+    this.sources = [...this.sources, value];
   }
 
   save() {
@@ -151,23 +157,21 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        delete this.editing;
+        this.editing = undefined;
         this.serverError = printError(res);
-        this.markState();
         return throwError(() => res);
       }),
     ).subscribe(res => {
-      delete this.editing;
+      this.editing = undefined;
       this.ref = res;
       this.completedUploads = [];
 
-      this.commentEdited$.next(res);
-      this.markState();
+      this.commentEdited$().next(res);
     });
   }
 
   cancel() {
     this.editing?.unsubscribe();
-    this.commentEdited$.next(this.ref);
+    this.commentEdited$().next(this.ref);
   }
 }

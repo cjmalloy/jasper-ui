@@ -8,12 +8,10 @@ import {
   inject,
   Component,
   forwardRef,
-  HostBinding,
-  Input,
-  OnChanges,
-  SimpleChanges,
   ChangeDetectionStrategy,
+  effect,
   input,
+  linkedSignal,
   viewChildren,
   signal,
 } from '@angular/core';
@@ -34,7 +32,6 @@ import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 import { authors, clickableLink, formatAuthor, getNiceTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, localTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
@@ -48,7 +45,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   selector: 'app-chat-entry',
   templateUrl: './chat-entry.component.html',
   styleUrls: ['./chat-entry.component.scss'],
-  host: { 'class': 'chat-entry' },
+  host: { 'class': 'chat-entry', '[attr.tabindex]': '0' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
@@ -63,32 +60,41 @@ import { ViewerComponent } from '../../viewer/viewer.component';
     AsyncPipe,
   ],
 })
-export class ChatEntryComponent implements OnChanges {
-  readonly state = signal(0);
-
-  private markState() {
-    this.state.update(value => value + 1);
-  }
-
-  @HostBinding('attr.tabindex') tabIndex = 0;
+export class ChatEntryComponent {
   private destroyRef = inject(DestroyRef);
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
-  @Input()
-  ref!: Ref;
+  readonly refInput = input.required<Ref>({ alias: 'ref' });
+  private readonly refSignal = linkedSignal(() => this.refInput());
+  get ref() { return this.refSignal(); }
+  set ref(value: Ref) { this.refSignal.set(value); }
   readonly focused = input(false);
   readonly loading = input(true);
 
-  noComment: Ref = {} as any;
-  repostRef?: Ref;
-  deleted = false;
-  writeAccess = false;
-  taggingAccess = false;
-  deleteAccess = false;
-  serverError: string[] = [];
+  private readonly noCommentSignal = signal<Ref>({} as any);
+  private readonly repostRefSignal = signal<Ref | undefined>(undefined);
+  private readonly deletedSignal = signal(false);
+  private readonly writeAccessSignal = signal(false);
+  private readonly taggingAccessSignal = signal(false);
+  private readonly deleteAccessSignal = signal(false);
+  private readonly serverErrorSignal = signal<string[]>([]);
+  private readonly allowActionsSignal = signal(false);
 
-  private _allowActions = false;
+  get noComment() { return this.noCommentSignal(); }
+  set noComment(value: Ref) { this.noCommentSignal.set(value); }
+  get repostRef() { return this.repostRefSignal(); }
+  set repostRef(value: Ref | undefined) { this.repostRefSignal.set(value); }
+  get deleted() { return this.deletedSignal(); }
+  set deleted(value: boolean) { this.deletedSignal.set(value); }
+  get writeAccess() { return this.writeAccessSignal(); }
+  set writeAccess(value: boolean) { this.writeAccessSignal.set(value); }
+  get taggingAccess() { return this.taggingAccessSignal(); }
+  set taggingAccess(value: boolean) { this.taggingAccessSignal.set(value); }
+  get deleteAccess() { return this.deleteAccessSignal(); }
+  set deleteAccess(value: boolean) { this.deleteAccessSignal.set(value); }
+  get serverError() { return this.serverErrorSignal(); }
+  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
 
   constructor(
     private config: ConfigService,
@@ -98,10 +104,17 @@ export class ChatEntryComponent implements OnChanges {
     private exts: ExtService,
     private ts: TaggingService,
     private refs: RefService,
-  ) { }
+  ) {
+    effect(() => {
+      this.refInput();
+      this.init();
+    });
+    effect(() => {
+      if (!this.focused() && !this.allowActionsSignal()) this.actionComponents()?.forEach(c => c.reset());
+    });
+  }
 
   init() {
-    MemoCache.clear(this);
     this.actionComponents()?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
@@ -120,7 +133,6 @@ export class ChatEntryComponent implements OnChanges {
           ...ref,
           comment: '',
         };
-        this.markState();
       });
     } else {
       this.noComment = {
@@ -130,17 +142,6 @@ export class ChatEntryComponent implements OnChanges {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref) {
-      this.init();
-    } else if (changes.focused) {
-      MemoCache.clear(this);
-      if (!this.focused() && !this._allowActions) this.actionComponents()?.forEach(c => c.reset());
-    }
-  }
-
-
-  @memo
   get title() {
     const title = (this.ref?.title || '').trim();
     if (title) return title;
@@ -150,30 +151,27 @@ export class ChatEntryComponent implements OnChanges {
   }
 
   get allowActions(): boolean {
-    return this._allowActions || this.focused() || !!this.actionComponents()?.find(c => c.active());
+    return this.allowActionsSignal() || this.focused() || !!this.actionComponents()?.find(c => c.active());
   }
 
   set allowActions(value: boolean) {
-    if (value === this._allowActions) return;
+    if (value === this.allowActionsSignal()) return;
     if (value) {
-      defer(() => this._allowActions = value);
+      defer(() => this.allowActionsSignal.set(value));
     } else {
-      this._allowActions = false;
+      this.allowActionsSignal.set(false);
     }
   }
 
-  @memo
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
   }
 
-  @memo
   get localhost() {
     return this.ref.url.startsWith(this.config.base);
   }
 
-  @memo
   get authors() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return uniq([
@@ -182,114 +180,93 @@ export class ChatEntryComponent implements OnChanges {
     ]);
   }
 
-  @memo
   get authorExts$() {
     return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
-  @memo
   get tagLink() {
     return this.url.toLowerCase().startsWith('tag:/');
   }
 
-  @memo
   get clickableLink() {
     return clickableLink(this.url);
   }
 
-  @memo
   get url() {
     return this.repost ? this.ref.sources![0] : this.ref.url;
   }
 
-  @memo
   get currentRef() {
     return this.repost ? this.repostRef : this.ref;
   }
 
-  @memo
   get bareRef() {
     return this.bareRepost ? this.repostRef : this.ref;
   }
 
-  @memo
   get repost() {
     return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 
-  @memo
   get bareRepost() {
     return this.repost && !this.ref.title && !this.ref.comment;
   }
 
-  @memo
   get approved() {
     return hasTag('_moderated', this.currentRef);
   }
 
-  @memo
   get locked() {
     return hasTag('locked', this.currentRef);
   }
 
-  @memo
   get qr() {
     return hasTag('plugin/qr', this.currentRef);
   }
 
-  @memo
   get audio() {
     return hasTag('plugin/audio', this.currentRef) ||
       this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/audio');
   }
 
-  @memo
   get video() {
     return hasTag('plugin/video', this.currentRef) ||
       this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/image');
   }
 
-  @memo
   get image() {
     return hasTag('plugin/image', this.currentRef) ||
       this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/image');
   }
 
-  @memo
   get media() {
     return this.qr || this.audio || this.video || this.image;
   }
 
-  @memo
   get expand() {
     return this.currentRef?.comment || this.media;
   }
 
-  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
-  @memo
   get chatroom() {
     return this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.ref);
   }
 
-  @memo
   get thread() {
     if (!this.admin.getPlugin('plugin/thread')) return '';
     if (!hasTag('plugin/thread', this.ref) && !this.threads) return '';
     return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
   }
 
-  @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
   }
 
-  @memo
   formatAuthor(user: string) {
     if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
       user = user.replace(this.store.account.origin, '');
@@ -321,7 +298,6 @@ export class ChatEntryComponent implements OnChanges {
       this.serverError = [];
       this.ref = ref;
       this.init();
-      this.markState();
     });
   }
 

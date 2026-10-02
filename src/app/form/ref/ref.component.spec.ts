@@ -32,7 +32,7 @@ describe('RefFormComponent', () => {
     fixture = TestBed.createComponent(RefFormComponent);
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
-    component.group = new UntypedFormGroup({
+    fixture.componentRef.setInput('group', new UntypedFormGroup({
       url: new UntypedFormControl(),
       published: new UntypedFormControl(),
       title: new UntypedFormControl(),
@@ -41,7 +41,7 @@ describe('RefFormComponent', () => {
       alternateUrls: new UntypedFormArray([]),
       tags: new UntypedFormArray([]),
       plugins: new UntypedFormGroup({}),
-    });
+    }));
     fixture.detectChanges();
   });
 
@@ -62,7 +62,7 @@ describe('RefFormComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.thumbnail-preview')).toBeNull();
 
-    component.creating = true;
+    fixture.componentRef.setInput('creating', true);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.thumbnail-preview .thumbnail')).not.toBeNull();
   });

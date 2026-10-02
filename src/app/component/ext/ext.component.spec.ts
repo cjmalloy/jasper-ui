@@ -28,7 +28,7 @@ describe('ExtComponent', () => {
 
     fixture = TestBed.createComponent(ExtComponent);
     component = fixture.componentInstance;
-    component.ext = { tag: 'ext' };
+    fixture.componentRef.setInput('ext', { tag: 'ext' });
     fixture.detectChanges();
   });
 

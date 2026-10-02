@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, input } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
@@ -9,16 +9,15 @@ import { hasPrefix, hasTag } from '../../util/tag';
   selector: 'app-tags',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
+  host: { 'class': 'form-group' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
-export class TagsFormComponent implements OnChanges {
+export class TagsFormComponent {
   static validators = [Validators.pattern(TAG_REGEX)];
-  @HostBinding('class') css = 'form-group';
 
   readonly origin = input<string | undefined>('');
-  @Input()
-  group?: UntypedFormGroup;
+  readonly groupInput = input<UntypedFormGroup | undefined>(undefined, { alias: 'group' });
   readonly fieldName = input('tags');
 
   field = {
@@ -37,37 +36,32 @@ export class TagsFormComponent implements OnChanges {
     },
   };
 
+  readonly emoji = input<string | undefined>(undefined);
+  readonly label = input<string | undefined>(undefined);
+  readonly showLabel = input<boolean | undefined>(undefined);
+  readonly add = input<string | undefined>(undefined);
+  readonly showAdd = input<boolean | undefined>(undefined);
+
   constructor(
     private fb: FormBuilder,
-  ) {  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    this.field.fieldArray.props.origin = this.origin();
+  ) {
+    effect(() => {
+      this.field.fieldArray.props.origin = this.origin();
+      const emoji = this.emoji();
+      if (emoji !== undefined) this.field.fieldArray.props.label = emoji;
+      const label = this.label();
+      if (label !== undefined) this.field.props.label = label;
+      const showLabel = this.showLabel();
+      if (showLabel !== undefined) this.field.props.showLabel = showLabel;
+      const add = this.add();
+      if (add !== undefined) this.field.props.addText = add;
+      const showAdd = this.showAdd();
+      if (showAdd !== undefined) this.field.props.showAdd = showAdd;
+    });
   }
 
-  @Input()
-  set emoji(value: string) {
-    this.field.fieldArray.props.label = value;
-  }
-
-  @Input()
-  set label(value: string) {
-    this.field.props.label = value;
-  }
-
-  @Input()
-  set showLabel(value: boolean) {
-    this.field.props.showLabel = value;
-  }
-
-  @Input()
-  set add(value: string) {
-    this.field.props.addText = value;
-  }
-
-  @Input()
-  set showAdd(value: boolean) {
-    this.field.props.showAdd = value;
+  get group() {
+    return this.groupInput();
   }
 
   get tags() {

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { ChangeDetectionStrategy, Component, HostBinding, Input, OnChanges, signal, SimpleChanges, viewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, viewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -26,15 +26,20 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent]
+  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent],
+  host: {
+    '[attr.tabindex]': '0',
+    '[class.deleted]': 'deleted',
+    '[class]': 'pluginClass',
+  },
 })
-export class PluginComponent implements OnChanges, HasChanges {
+export class PluginComponent implements HasChanges {
   css = 'plugin list-item';
-  @HostBinding('attr.tabindex') tabIndex = 0;
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
-  private readonly _plugin = signal<Plugin>({} as Plugin);
+  readonly pluginInput = input<Plugin>({} as Plugin, { alias: 'plugin' });
+  readonly pluginSignal = linkedSignal(() => this.pluginInput());
   private readonly _deleted = signal(false);
   private readonly _serverError = signal<string[]>([]);
   private readonly _configErrors = signal<string[]>([]);
@@ -42,15 +47,13 @@ export class PluginComponent implements OnChanges, HasChanges {
   private readonly _schemaErrors = signal<string[]>([]);
   private readonly _saving = signal<Subscription | undefined>(undefined);
 
-  @Input()
-  get plugin() { return this._plugin(); }
-  set plugin(value: Plugin) { this._plugin.set(value); }
+  get plugin() { return this.pluginSignal(); }
+  set plugin(value: Plugin) { this.pluginSignal.set(value); }
 
   editForm: UntypedFormGroup;
   submitted = false;
   editing = false;
   viewSource = false;
-  @HostBinding('class.deleted')
   get deleted() { return this._deleted(); }
   set deleted(value: boolean) { this._deleted.set(value); }
   get serverError() { return this._serverError(); }
@@ -72,6 +75,10 @@ export class PluginComponent implements OnChanges, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = pluginForm(fb);
+    effect(() => {
+      this.pluginInput();
+      this.init();
+    });
   }
 
   saveChanges() {
@@ -88,15 +95,8 @@ export class PluginComponent implements OnChanges, HasChanges {
     });
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.plugin) {
-      this.init();
-    }
-  }
-
-  @HostBinding('class')
   get pluginClass() {
-    return this.css + ' ' + this.plugin.tag
+    return this.css + ' ' + (this.plugin.tag || '')
       .replace(/[+_]/g, '')
       .replace(/\//g, '_')
       .replace(/\./g, '-');

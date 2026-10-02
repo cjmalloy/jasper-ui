@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, ElementRef, HostBinding, Input, signal, TemplateRef, ViewContainerRef, input, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, signal, TemplateRef, ViewContainerRef, input, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, Observable, of, throwError } from 'rxjs';
@@ -18,20 +18,21 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   selector: 'app-backup',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
+  host: {
+    '[class.deleted]': 'deleted',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
 })
 export class BackupComponent {
 
-  @Input()
-  id!: string;
+  readonly id = input.required<string>();
   readonly size = input<number | undefined>(0);
   readonly origin = input('');
 
   readonly restoreButton = viewChild('restoreButton', { read: ElementRef });
   readonly restoreOptionsTemplate = viewChild.required<TemplateRef<any>>('restoreOptions');
 
-  @HostBinding('class.deleted')
   get deleted() { return this._deleted(); }
   set deleted(value: boolean) { this._deleted.set(value); }
   private readonly _deleted = signal(false);
@@ -68,7 +69,7 @@ export class BackupComponent {
   }
 
   get inProgress() {
-    return this.id.startsWith('_');
+    return this.id().startsWith('_');
   }
 
   get fileSize() {
@@ -76,7 +77,7 @@ export class BackupComponent {
   }
 
   get downloadLink() {
-    var link = this.backups.base + '/' + this.id;
+    var link = this.backups.base + '/' + this.id();
     if (link.startsWith('//')) link = location.protocol + link;
     if (link.startsWith("_")) link = link.substring(1);
     if (!link.endsWith(".zip")) link = link + '.zip';
@@ -127,7 +128,7 @@ export class BackupComponent {
       newerThan: this.restoreOptionsForm.value.newerThan || undefined,
     };
     this.closeRestoreOptions();
-    this.backups.restore(this.origin(), this.id, options).pipe(
+    this.backups.restore(this.origin(), this.id(), options).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -149,7 +150,7 @@ export class BackupComponent {
   }
 
   delete$ = () => {
-    return this.backups.delete(this.origin(), this.id).pipe(
+    return this.backups.delete(this.origin(), this.id()).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

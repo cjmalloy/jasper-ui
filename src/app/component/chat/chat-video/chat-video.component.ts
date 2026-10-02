@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { map, Observable } from 'rxjs';
 import { TitleDirective } from '../../../directive/title.directive';
@@ -23,15 +23,9 @@ import { hasTag } from '../../../util/tag';
   ],
 })
 export class ChatVideoComponent implements AfterViewInit {
-  readonly state = signal(0);
 
-  private markState() {
-    this.state.update(value => value + 1);
-  }
-
-
-  @Input()
-  url = 'tag:/chat';
+  readonly urlInput = input('tag:/chat', { alias: 'url' });
+  get url() { return this.urlInput(); }
 
   constructor(
     public store: Store,

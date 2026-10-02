@@ -82,9 +82,9 @@
                 fieldName="external"
                 [style.pointer-events]="store.account.mod ? 'auto' : 'none'"
                 [group]="group"></app-json>
-      @if (externalErrors.length) {
+      @if (externalErrors().length) {
         <span><!-- Errors --></span>
-        @for (e of externalErrors; track e) {
+        @for (e of externalErrors(); track e) {
           <div>
             <span class="error">{{ e }}</span>
           </div>

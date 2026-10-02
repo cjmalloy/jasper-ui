@@ -1,6 +1,7 @@
 import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { Injectable } from '@angular/core';
+import { outputToObservable } from '@angular/core/rxjs-interop';
 import { defer, delay } from 'lodash-es';
 import { takeUntil } from 'rxjs/operators';
 import { HelpPopupComponent } from '../component/help-popup/help-popup.component';
@@ -118,7 +119,7 @@ export class HelpService {
     });
     const popupPortal = new ComponentPortal(HelpPopupComponent);
     const popupRef = this.overlayRef.attach(popupPortal);
-    popupRef.instance.text = currentStep.text;
+    popupRef.setInput('text', currentStep.text);
     const detach$ = this.overlayRef.detachments();
     const positionStrategy = this.overlayRef.getConfig().positionStrategy as FlexibleConnectedPositionStrategy;
     positionStrategy.positionChanges.pipe(takeUntil(detach$)).subscribe(change => {
@@ -126,19 +127,19 @@ export class HelpService {
       this.applyBackdropSpotlight(element);
       const pair = change.connectionPair;
       if (pair.overlayX === 'start' && pair.overlayY === 'center') {
-        popupRef.instance.arrowPosition = 'left';
+        popupRef.setInput('arrowPosition', 'left');
       } else if (pair.overlayX === 'end' && pair.overlayY === 'center') {
-        popupRef.instance.arrowPosition = 'right';
+        popupRef.setInput('arrowPosition', 'right');
       } else if (pair.overlayY === 'top') {
-        popupRef.instance.arrowPosition = 'top';
+        popupRef.setInput('arrowPosition', 'top');
       } else if (pair.overlayY === 'bottom') {
-        popupRef.instance.arrowPosition = 'bottom';
+        popupRef.setInput('arrowPosition', 'bottom');
       }
     });
     defer(() => positionStrategy.reapplyLastPosition());
-    popupRef.instance.nextClick.pipe(takeUntil(detach$)).subscribe(() => this.nextStep());
-    popupRef.instance.previousClick.pipe(takeUntil(detach$)).subscribe(() => this.previousStep());
-    popupRef.instance.doneClick.pipe(takeUntil(detach$)).subscribe(() => this.endTour());
+    outputToObservable(popupRef.instance.nextClick).pipe(takeUntil(detach$)).subscribe(() => this.nextStep());
+    outputToObservable(popupRef.instance.previousClick).pipe(takeUntil(detach$)).subscribe(() => this.previousStep());
+    outputToObservable(popupRef.instance.doneClick).pipe(takeUntil(detach$)).subscribe(() => this.endTour());
     this.overlayRef.backdropClick().pipe(takeUntil(detach$)).subscribe(() => this.endTour());
   }
 

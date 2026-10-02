@@ -1,27 +1,25 @@
-import { Directive, ElementRef, HostBinding, Input, OnDestroy, OnInit, signal } from '@angular/core';
+import { Directive, effect, ElementRef, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Ref } from '../model/ref';
 import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageService, width } from '../service/image.service';
 import { Store } from '../store/store';
 
-@Directive({ selector: '[appImage]' })
+@Directive({
+  selector: '[appImage]',
+  host: {
+    '[class.loading]': 'loading()',
+  },
+})
 export class ImageDirective implements OnInit, OnDestroy {
-  @Input()
-  grid = false;
-  @Input()
-  padding = 8;
-  @Input()
-  ref?: Ref;
-  @Input('defaultWidth')
-  defaultWidth?: number;
-  @Input('defaultHeight')
-  defaultHeight?: number;
+  readonly grid = input(false);
+  readonly padding = input(8);
+  readonly ref = input<Ref | undefined>();
+  readonly defaultWidth = input<number | undefined>(undefined, { alias: 'defaultWidth' });
+  readonly defaultHeight = input<number | undefined>(undefined, { alias: 'defaultHeight' });
+  readonly url = input('', { alias: 'appImage' });
 
-  @HostBinding('class.loading')
-  get loading() { return this._loading(); }
-  set loading(value: boolean) { this._loading.set(value); }
-  private readonly _loading = signal(true);
+  readonly loading = signal(true);
 
   private dim: Dim = { width: 0, height: 0 };
   private resizeObserver?: ResizeObserver;
@@ -35,17 +33,19 @@ export class ImageDirective implements OnInit, OnDestroy {
   ) {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
-        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
-          if (this.loading && this.loadingUrl) {
-            this.url = this.loadingUrl;
+        const ref = this.ref();
+        if (ref?.url && this.store.eventBus.isRef(event, ref)) {
+          if (this.loading() && this.loadingUrl) {
+            this.loadUrl(this.loadingUrl);
           }
         }
       }
     });
+    effect(() => this.loadUrl(this.url()));
   }
 
   ngOnInit() {
-    if (this.grid) {
+    if (this.grid()) {
       this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize());
       this.resizeObserver?.observe(this.el);
     } else {
@@ -74,26 +74,28 @@ export class ImageDirective implements OnInit, OnDestroy {
   }
 
   get defaultWidthPx() {
-    if (!this.defaultWidth) return undefined;
-    if (this.config.mobile && this.defaultWidth > window.innerWidth) return 'calc(100vw - 32px)'
-    return this.defaultWidth + 'px'
+    const defaultWidth = this.defaultWidth();
+    if (!defaultWidth) return undefined;
+    if (this.config.mobile && defaultWidth > window.innerWidth) return 'calc(100vw - 32px)'
+    return defaultWidth + 'px'
   }
 
   get defaultHeightPx() {
-    if (!this.defaultHeight) return undefined;
-    return this.defaultHeight + 'px'
+    const defaultHeight = this.defaultHeight();
+    if (!defaultHeight) return undefined;
+    return defaultHeight + 'px'
   }
 
-  @Input('appImage')
-  set url(value: string) {
-    this.loading = true;
+  private loadUrl(value: string) {
+    if (!value) return;
+    this.loading.set(true);
     this.loadingUrl = value;
     this.el.style.backgroundRepeat = 'no-repeat';
     this.el.style.backgroundPosition = 'center center';
     this.el.style.backgroundSize = 'unset';
     this.imgs.getImage(value)
       .then((dim: Dim) => {
-        this.loading = false;
+        this.loading.set(false);
         this.el.style.backgroundImage = `url('${value}')`;
         this.el.style.backgroundSize = this.config.mobile ? 'cover' : 'contain';
         this.dim = dim;
@@ -102,24 +104,27 @@ export class ImageDirective implements OnInit, OnDestroy {
   }
 
   private onResize() {
-    if (this.defaultWidth && this.defaultHeight) {
-      this.el.style.width = this.defaultWidth + 'px';
-      this.el.style.height = this.defaultHeight + 'px';
+    const defaultWidth = this.defaultWidth();
+    const defaultHeight = this.defaultHeight();
+    if (defaultWidth && defaultHeight) {
+      this.el.style.width = defaultWidth + 'px';
+      this.el.style.height = defaultHeight + 'px';
       this.el.style.backgroundSize = '100% 100%';
       return;
     }
-    const parentWidth = this.parentWidth - (this.grid ? 0 : this.padding);
-    if (this.config.mobile && !this.grid && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
+    const grid = this.grid();
+    const parentWidth = this.parentWidth - (grid ? 0 : this.padding());
+    if (this.config.mobile && !grid && (!defaultWidth || defaultWidth >= window.innerWidth)) {
       this.el.style.width = parentWidth + 'px';
       this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
-    } else if (this.grid || this.dim.width > parentWidth && (!this.defaultWidth || this.defaultWidth >= parentWidth)) {
+    } else if (grid || this.dim.width > parentWidth && (!defaultWidth || defaultWidth >= parentWidth)) {
       this.el.style.width = parentWidth + 'px';
       this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
-    } else if (this.defaultWidth) {
+    } else if (defaultWidth) {
       this.el.style.width = this.defaultWidthPx;
-      this.el.style.height = this.defaultHeightPx || height(this.defaultWidth, this.dim) + 'px';
-    } else if (this.defaultHeight) {
-      this.el.style.width = width(this.defaultHeight, this.dim) + 'px';
+      this.el.style.height = this.defaultHeightPx || height(defaultWidth, this.dim) + 'px';
+    } else if (defaultHeight) {
+      this.el.style.width = width(defaultHeight, this.dim) + 'px';
       this.el.style.height = this.defaultHeightPx;
     } else {
       this.el.style.width = this.dim.width + 'px';

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, forwardRef, Input, ChangeDetectionStrategy, input, output, viewChild, signal } from '@angular/core';
+import { Component, forwardRef, ChangeDetectionStrategy, input, linkedSignal, output, viewChild, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -34,32 +34,38 @@ import { LoadingComponent } from '../../loading/loading.component';
   ]
 })
 export class CommentReplyComponent implements HasChanges {
-  readonly state = signal(0);
 
-  private markState() {
-    this.state.update(value => value + 1);
-  }
-
-
-  @Input()
-  to!: Ref;
+  readonly to = input.required<Ref>();
   readonly selectResponseType = input(false);
-  @Input()
-  tags: string[] = [];
+  readonly tagsInput = input<string[]>([], { alias: 'tags' });
+  private readonly tagsSignal = linkedSignal(() => this.tagsInput());
+  get tags() { return this.tagsSignal(); }
+  set tags(value: string[]) { this.tagsSignal.set(value); }
   readonly showCancel = input(false);
   readonly autofocus = input(false);
   readonly save = output<Ref | undefined>();
 
   readonly editor = viewChild<EditorComponent>('editor');
 
-  editorTags: string[] = [];
-  editorSources: string[] = [];
-  completedUploads: Ref[] = [];
+  private readonly editorTagsSignal = signal<string[]>([]);
+  private readonly editorSourcesSignal = signal<string[]>([]);
+  private readonly completedUploadsSignal = signal<Ref[]>([]);
 
-  replying?: Subscription;
+  private readonly replyingSignal = signal<Subscription | undefined>(undefined);
   commentForm: UntypedFormGroup;
-  serverError: string[] = [];
+  private readonly serverErrorSignal = signal<string[]>([]);
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
+
+  get editorTags() { return this.editorTagsSignal(); }
+  set editorTags(value: string[]) { this.editorTagsSignal.set(value); }
+  get editorSources() { return this.editorSourcesSignal(); }
+  set editorSources(value: string[]) { this.editorSourcesSignal.set(value); }
+  get completedUploads() { return this.completedUploadsSignal(); }
+  set completedUploads(value: Ref[]) { this.completedUploadsSignal.set(value); }
+  get replying() { return this.replyingSignal(); }
+  set replying(value: Subscription | undefined) { this.replyingSignal.set(value); }
+  get serverError() { return this.serverErrorSignal(); }
+  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
 
   constructor(
     public admin: AdminService,
@@ -82,14 +88,14 @@ export class CommentReplyComponent implements HasChanges {
   }
 
   get inheritedPlugins() {
-    const plugins = this.admin.getPlugins(this.to.tags)
+    const plugins = this.admin.getPlugins(this.to().tags)
       .filter(p => p.config?.inherit)
       .map(p => p.tag);
-    return pickBy(this.to.plugins, (data, tag) => hasTag(tag, plugins));
+    return pickBy(this.to().plugins, (data, tag) => hasTag(tag, plugins));
   }
 
   addSource(add: any) {
-    this.editorSources.push(add);
+    this.editorSources = [...this.editorSources, add];
   }
 
   syncTags(tags: string[]) {
@@ -107,20 +113,20 @@ export class CommentReplyComponent implements HasChanges {
       ...getMailboxes(value, this.store.account.origin),
       ...Object.keys(inheritedPlugins),
     ]));
-    const sources = [this.to.url];
+    const sources = [this.to().url];
     if (hasTag('plugin/comment', tags) || hasTag('plugin/thread', tags)) {
-      if (hasTag('plugin/comment', this.to) || hasTag('plugin/thread', this.to)) {
+      if (hasTag('plugin/comment', this.to()) || hasTag('plugin/thread', this.to())) {
         // Parent may be the top
-        sources.push(this.to.sources?.[1] || this.to.url);
+        sources.push(this.to().sources?.[1] || this.to().url);
       } else {
         // Parent is the top
-        sources.push(this.to.url);
+        sources.push(this.to().url);
       }
     }
     const ref: Ref = {
       url,
       origin: this.store.account.origin,
-      title: (hasTag('plugin/email', this.to) || hasTag('plugin/thread', this.to)) ? getRe(this.to.title) : '',
+      title: (hasTag('plugin/email', this.to()) || hasTag('plugin/thread', this.to())) ? getRe(this.to().title) : '',
       comment: value,
       sources: [...sources, ...this.editorSources],
       tags,
@@ -145,14 +151,13 @@ export class CommentReplyComponent implements HasChanges {
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((err: HttpErrorResponse) => {
-        delete this.replying;
+        this.replying = undefined;
         this.serverError = printError(err);
         this.comment.enable();
-        this.markState();
         return throwError(() => err);
       }),
     ).subscribe(() => {
-      delete this.replying;
+      this.replying = undefined;
       this.serverError = [];
       this.comment.enable();
       this.commentForm.reset();
@@ -171,7 +176,6 @@ export class CommentReplyComponent implements HasChanges {
         }
       };
       this.save.emit(update);
-      this.markState();
     });
   }
 

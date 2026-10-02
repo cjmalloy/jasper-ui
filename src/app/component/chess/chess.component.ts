@@ -2,9 +2,8 @@ import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cd
 import {
   Component,
   ElementRef,
-  HostBinding,
-  HostListener,
-  Input,
+  input,
+  linkedSignal,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -33,24 +32,28 @@ type AnimationState = { from: Square; to: Square; capture?: { square: Square; pi
   templateUrl: './chess.component.html',
   styleUrls: ['./chess.component.scss'],
   hostDirectives: [CdkDropListGroup],
-  host: { 'class': 'chess-board' },
+  host: {
+    'class': 'chess-board',
+    '[class.flip]': 'flip',
+    '(window:resize)': 'onResize()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CdkDropList, CdkDrag]
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
-  private readonly refSignal = signal<Ref | undefined>(undefined);
-  private readonly textSignal = signal<string | undefined>('');
-  private readonly whiteSignal = signal(true);
-  @Input()
-  set ref(value: Ref | undefined) { this.refSignal.set(value); }
+  readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
+  readonly textInput = input<string | undefined>('', { alias: 'text' });
+  readonly whiteInput = input(true, { alias: 'white' });
+  private readonly refSignal = linkedSignal(() => this.refInput());
+  private readonly textSignal = linkedSignal(() => this.textInput());
+  private readonly whiteSignal = linkedSignal(() => this.whiteInput());
   get ref() { return this.refSignal(); }
-  @Input()
-  set text(value: string | undefined) { this.textSignal.set(value); }
+  set ref(value: Ref | undefined) { this.refSignal.set(value); }
   get text() { return this.textSignal(); }
-  @Input()
-  set white(value: boolean) { this.whiteSignal.set(value); }
+  set text(value: string | undefined) { this.textSignal.set(value); }
   get white() { return this.whiteSignal(); } // TODO: Save in local storage
+  set white(value: boolean) { this.whiteSignal.set(value); }
   readonly comment = output<string>();
   readonly copied = output<string>();
 
@@ -67,7 +70,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   animationQueue: AnimationState[] = [];
   private readonly movingPieceSignal = signal<{ piece: Piece; from: Square; to: Square } | undefined>(undefined);
   private readonly capturedPieceSignal = signal<{ piece: Piece; square: Square } | undefined>(undefined);
-  @HostBinding('class.flip')
   get flip() { return this.flipSignal(); }
   private readonly flipSignal = signal(false);
 
@@ -234,7 +236,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  @HostListener('window:resize')
   onResize() {
     const dim = Math.floor(this.el.nativeElement.offsetWidth / 8);
     const fontSize = Math.floor(0.75 * dim);

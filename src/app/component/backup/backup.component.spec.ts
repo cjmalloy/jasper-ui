@@ -22,7 +22,7 @@ describe('BackupComponent', () => {
 
     fixture = TestBed.createComponent(BackupComponent);
     component = fixture.componentInstance;
-    component.id = 'test';
+    fixture.componentRef.setInput('id', 'test');
     fixture.detectChanges();
   });
 

@@ -2,14 +2,15 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   Component,
-  HostBinding,
-  Input,
-  OnChanges,
-  SimpleChanges,
-  ViewChild,
   ChangeDetectionStrategy,
+  effect,
+  input,
+  linkedSignal,
   signal,
-  viewChildren
+  viewChild,
+  viewChildren,
+  computed,
+  untracked
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -36,7 +37,6 @@ import { Store } from '../../store/store';
 import { downloadRef, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
-import { memo, MemoCache } from '../../util/memo';
 import { localTag, subOrigin, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
@@ -48,17 +48,21 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  host: { 'class': 'profile list-item' },
+  host: {
+    'class': 'profile list-item',
+    'tabindex': '0',
+    '[class.deleted]': 'deleted',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
-export class UserComponent implements OnChanges, HasChanges {
-  @HostBinding('attr.tabindex') tabIndex = 0;
-
+export class UserComponent implements HasChanges {
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
-  private readonly _profile = signal<Profile | undefined>(undefined);
-  private readonly _user = signal<User | undefined>(undefined);
+  readonly profileInput = input<Profile | undefined>(undefined, { alias: 'profile' });
+  readonly userInput = input<User | undefined>(undefined, { alias: 'user' });
+  private readonly _profile = linkedSignal(() => this.profileInput());
+  private readonly _user = linkedSignal(() => this.userInput());
   private readonly _ext = signal<Ext | undefined>(undefined);
   private readonly _deleted = signal(false);
   private readonly _writeAccess = signal(false);
@@ -66,12 +70,11 @@ export class UserComponent implements OnChanges, HasChanges {
   private readonly _externalErrors = signal<string[]>([]);
   private readonly _genKey = signal(false);
 
-  @Input()
   get profile() { return this._profile(); }
   set profile(value: Profile | undefined) { this._profile.set(value); }
-  @Input()
   get user() { return this._user(); }
   set user(value: User | undefined) { this._user.set(value); }
+  readonly refForm = viewChild<UserFormComponent>('refForm');
 
   editForm: UntypedFormGroup;
   get ext() { return this._ext(); }
@@ -81,7 +84,6 @@ export class UserComponent implements OnChanges, HasChanges {
   viewSource = false;
   get genKey() { return this._genKey(); }
   set genKey(value: boolean) { this._genKey.set(value); }
-  @HostBinding('class.deleted')
   get deleted() { return this._deleted(); }
   set deleted(value: boolean) { this._deleted.set(value); }
   get writeAccess() { return this._writeAccess(); }
@@ -101,7 +103,17 @@ export class UserComponent implements OnChanges, HasChanges {
     private exts: ExtService,
     private fb: FormBuilder,
   ) {
+    effect(() => {
+      this.userInput();
+      this.profileInput();
+      untracked(() => this.init());
+    });
     this.editForm = userForm(fb, true);
+    effect(() => {
+      const refForm = this.refForm();
+      const user = this.user;
+      if (user) defer(() => refForm?.setUser(user));
+    });
   }
 
   saveChanges() {
@@ -109,66 +121,41 @@ export class UserComponent implements OnChanges, HasChanges {
   }
 
   init() {
-    MemoCache.clear(this);
     this.actionComponents()?.forEach(c => c.reset());
-    this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
-    if (this.created && !this.profile) {
+    this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag()) && this.auth.hasRole(this.role());
+    if (this.created() && !this.profile) {
       this.exts.getCachedExt(this.user!.tag, this.user!.origin)
         .subscribe(x => this.ext = x);
-      this.profiles.getProfile(this.qualifiedTag)
+      this.profiles.getProfile(this.qualifiedTag())
         .subscribe(profile => this.profile = profile);
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.user || changes.profile) {
-      this.init();
-    }
-  }
-
-  @ViewChild('refForm')
-  set refForm(value: UserFormComponent) {
-    if (this.user) defer(() => value?.setUser(this.user!));
-  }
-
-  @memo
-  get created() {
+  readonly created = computed(() => {
     return this.user?.modified;
-  }
-
-  @memo
-  get qualifiedTag() {
+  });
+  readonly qualifiedTag = computed(() => {
     return this.profile?.tag || (this.user!.tag + this.user!.origin);
-  }
-
-  @memo
-  get localTag() {
+  });
+  readonly localTag = computed(() => {
     return localTag(this.profile?.tag) || this.user!.tag;
-  }
-
-  @memo
-  get origin() {
+  });
+  readonly origin = computed(() => {
     return tagOrigin(this.profile?.tag) || this.user?.origin || '';
-  }
-
-  @memo
-  get recommendedAlias() {
+  });
+  readonly recommendedAlias = computed(() => {
     const api = new URL(this.config.api, location.href);
     const firstPath = api.pathname.split('/').filter(Boolean)[0];
     return firstPath?.startsWith('~') && firstPath.length > 1
       ? '@' + firstPath.substring(1)
       : '@' + api.hostname;
-  }
-
-  @memo
-  get local() {
+  });
+  readonly local = computed(() => {
     return this.profile?.tag || (!this.user || this.user?.origin === this.store.account.origin);
-  }
-
-  @memo
-  get role() {
+  });
+  readonly role = computed(() => {
     return getRole(this.profile?.role, this.user?.role);
-  }
+  });
 
   download() {
     if (!this.user) {
@@ -186,16 +173,16 @@ export class UserComponent implements OnChanges, HasChanges {
 
   get connectionRef(): Ref {
     const template = this.store.origins.origins.find(ref =>
-      subOrigin(ref.origin, ref.plugins?.['+plugin/origin']?.local) === this.origin);
-    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin || this.recommendedAlias;
+      subOrigin(ref.origin, ref.plugins?.['+plugin/origin']?.local) === this.origin());
+    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin() || this.recommendedAlias();
     return {
       url: template?.url || new URL(this.config.api, document.baseURI).href,
       title: template?.title || local,
       tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
         '+plugin/cron': { ...cronPlugin.defaults },
-        '+plugin/origin': { remote: this.origin, local },
-        '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag },
+        '+plugin/origin': { remote: this.origin(), local },
+        '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag() },
       },
     };
   }
@@ -205,7 +192,7 @@ export class UserComponent implements OnChanges, HasChanges {
   }
 
   setPassword$ = (password: string) => {
-    return this.profiles.changePassword({ tag: this.qualifiedTag, password }).pipe(
+    return this.profiles.changePassword({ tag: this.qualifiedTag(), password }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
@@ -222,8 +209,8 @@ export class UserComponent implements OnChanges, HasChanges {
     this.serverError = [];
     role = role.toUpperCase().trim() as Role;
     if (this.config.scim) {
-      return this.profiles.changeRole({ tag: this.qualifiedTag, role }).pipe(
-        switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
+      return this.profiles.changeRole({ tag: this.qualifiedTag(), role }).pipe(
+        switchMap(() => this.profiles.getProfile(this.qualifiedTag())),
         tap(profile => {
           this.profile = profile;
           this.init();
@@ -234,7 +221,7 @@ export class UserComponent implements OnChanges, HasChanges {
         }),
       );
     } else {
-      const user = { ...(this.user || { tag: this.qualifiedTag }), role };
+      const user = { ...(this.user || { tag: this.qualifiedTag() }), role };
       this.user = user;
       return this.users.update(user).pipe(
         tap(cursor => {
@@ -250,8 +237,8 @@ export class UserComponent implements OnChanges, HasChanges {
   }
 
   activate$ = () => {
-    return this.profiles.activate(this.qualifiedTag).pipe(
-      switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
+    return this.profiles.activate(this.qualifiedTag()).pipe(
+      switchMap(() => this.profiles.getProfile(this.qualifiedTag())),
       tap(profile => {
         this.profile = profile;
         this.init();
@@ -264,8 +251,8 @@ export class UserComponent implements OnChanges, HasChanges {
   }
 
   deactivate$ = () => {
-    return this.profiles.deactivate(this.qualifiedTag).pipe(
-      switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
+    return this.profiles.deactivate(this.qualifiedTag()).pipe(
+      switchMap(() => this.profiles.getProfile(this.qualifiedTag())),
       tap(profile => {
         this.profile = profile;
         this.init();
@@ -287,8 +274,8 @@ export class UserComponent implements OnChanges, HasChanges {
     const updates: User = {
       ...(this.user || {}),
       ...this.editForm.value,
-      tag: this.localTag,
-      origin: this.origin,
+      tag: this.localTag(),
+      origin: this.origin(),
       readAccess: uniq([...this.editForm.value.readAccess, ...this.editForm.value.notifications]),
     };
     this.externalErrors = [];
@@ -333,7 +320,7 @@ export class UserComponent implements OnChanges, HasChanges {
       const deleteNotice = !isDeletorTag(this.user.tag) && this.admin.getPlugin('plugin/delete')
         ? this.users.create(tagDeleteNotice(this.user))
         : of(null);
-      os.push(this.users.delete(this.qualifiedTag).pipe(
+      os.push(this.users.delete(this.qualifiedTag()).pipe(
         tap(() => this.deleted = true),
         switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
@@ -343,7 +330,7 @@ export class UserComponent implements OnChanges, HasChanges {
       ));
     }
     if (this.profile) {
-      os.push(this.profiles.delete(this.qualifiedTag).pipe(
+      os.push(this.profiles.delete(this.qualifiedTag()).pipe(
         catchError((err: HttpErrorResponse) => {
           this.serverError = [...this.serverError, ...printError(err)];
           return throwError(() => err);
@@ -357,12 +344,12 @@ export class UserComponent implements OnChanges, HasChanges {
 
   keygen$ = () => {
     this.serverError = [];
-    return this.users.keygen(this.qualifiedTag).pipe(
+    return this.users.keygen(this.qualifiedTag()).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = [...this.serverError, ...printError(err)];
         return throwError(() => err);
       }),
-      switchMap(() => this.users.get(this.qualifiedTag)),
+      switchMap(() => this.users.get(this.qualifiedTag())),
       tap(user => {
         this.user = user;
         this.serverError = [];

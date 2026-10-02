@@ -1,43 +1,60 @@
-import { Directive, ElementRef, HostBinding, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, input, signal } from '@angular/core';
 
-@Directive({ selector: '[appResize]' })
+@Directive({
+  selector: '[appResize]',
+  host: {
+    '[style.z-index]': 'zIndex',
+    '[style.width]': 'width',
+    '[style.height]': 'height',
+    '(mousedown)': 'onMousedown($event)',
+    '(touchstart)': 'onTouchstart($event)',
+    '(click)': 'onClick($event)',
+    '(window:mousemove)': 'onMousemove($event)',
+    '(window:touchmove)': 'onTouchmove($event)',
+    '(window:contextmenu)': 'onCancel($event)',
+    '(window:mouseup)': 'onCancel($event)',
+    '(window:touchend)': 'onCancel($event)',
+    '(window:touchcancel)': 'onCancel($event)',
+  },
+})
 export class ResizeDirective {
 
-  @Input('appResize')
-  enabled?: boolean;
+  readonly enabled = input<boolean | undefined>(undefined, { alias: 'appResize' });
 
-  @HostBinding('style.z-index')
   get zIndex() {
     return this.dirty ? 1 : 0;
   }
 
-  @HostBinding('style.width')
   get width() {
-    if (!this.enabled || !this.dim) return this.el.nativeElement.style.width;
-    return this.dim.x + 'px'
+    const dim = this.dim;
+    if (!this.enabled() || !dim) return this.el.nativeElement.style.width;
+    return dim.x + 'px'
   }
 
-  @HostBinding('style.height')
   get height() {
-    if (!this.enabled || !this.dim) return this.el.nativeElement.style.height;
-    return this.dim.y + 'px';
+    const dim = this.dim;
+    if (!this.enabled() || !dim) return this.el.nativeElement.style.height;
+    return dim.y + 'px';
   }
 
   minPx = 2;
   zoom = 1;
-  dim?: {x: number, y: number};
+  private readonly dimSignal = signal<{x: number, y: number} | undefined>(undefined);
   oldZoom = 1;
   dragStart?: {x: number, y: number};
   startDim?: {x: number, y: number};
   dragging = false;
   wasDragging = false;
-  dirty = false;
+  private readonly dirtySignal = signal(false);
+  get dim() { return this.dimSignal(); }
+  set dim(value: {x: number, y: number} | undefined) { this.dimSignal.set(value); }
+  get dirty() { return this.dirtySignal(); }
+  set dirty(value: boolean) { this.dirtySignal.set(value); }
 
   constructor(private el: ElementRef) { }
 
-  @HostListener('mousedown', ['$event'])
   onMousedown(e: MouseEvent) {
-    if (this.enabled === false) return;
+    if (this.enabled() === false) return;
     if (e.button) return;
     e.preventDefault();
     this.oldZoom = this.zoom;
@@ -51,9 +68,8 @@ export class ResizeDirective {
     };
   }
 
-  @HostListener('touchstart', ['$event'])
   onTouchstart(e: TouchEvent) {
-    if (this.enabled === false) return;
+    if (this.enabled() === false) return;
     if (e.touches.length != 2) return;
     if (window.visualViewport && window.visualViewport.scale > 1.01) return;
     e.preventDefault();
@@ -72,18 +88,16 @@ export class ResizeDirective {
     };
   }
 
-  @HostListener('click', ['$event'])
   onClick(e: MouseEvent) {
-    if (this.enabled === false) return;
+    if (this.enabled() === false) return;
     if (this.wasDragging) {
       e.preventDefault();
     }
     this.wasDragging = false;
   }
 
-  @HostListener('window:mousemove', ['$event'])
   onMousemove(e: MouseEvent) {
-    if (this.enabled === false) return;
+    if (this.enabled() === false) return;
     if (!this.dragStart || !this.startDim) return;
     if (!this.dragging) {
       if (Math.abs(e.clientX - this.dragStart.x) < this.minPx &&
@@ -98,15 +112,15 @@ export class ResizeDirective {
     const dx = (e.clientX - this.dragStart.x) / this.startDim.x;
     const dy = (e.clientY - this.dragStart.y) / this.startDim.y;
     const l = (dx + dy) / 2;
-    this.dim ??= { ...this.startDim };
-    this.dim.x = Math.floor(this.startDim.x * (1 + l));
-    this.dim.y = this.dim.x * this.startDim.y / this.startDim.x;
+    const dim = { ...(this.dim || this.startDim) };
+    dim.x = Math.floor(this.startDim.x * (1 + l));
+    dim.y = dim.x * this.startDim.y / this.startDim.x;
+    this.dim = dim;
     this.dirty = true;
   }
 
-  @HostListener('window:touchmove', ['$event'])
   onTouchmove(e: TouchEvent) {
-    if (this.enabled === false) return;
+    if (this.enabled() === false) return;
     if (!this.dragStart || !this.startDim) return;
     if (!this.dragStart || !this.startDim) return;
     if (!this.dragging) {
@@ -123,18 +137,15 @@ export class ResizeDirective {
     const dx = (dims.w - this.dragStart.x) / this.startDim.x;
     const dy = (dims.h - this.dragStart.y) / this.startDim.y;
     const l = (dx + dy) / 2;
-    this.dim ??= { ...this.startDim };
-    this.dim.x = Math.floor(this.startDim.x * (1 + l));
-    this.dim.y = this.dim.x * this.startDim.y / this.startDim.x;
+    const dim = { ...(this.dim || this.startDim) };
+    dim.x = Math.floor(this.startDim.x * (1 + l));
+    dim.y = dim.x * this.startDim.y / this.startDim.x;
+    this.dim = dim;
     this.dirty = true;
   }
 
-  @HostListener('window:contextmenu', ['$event'])
-  @HostListener('window:mouseup', ['$event'])
-  @HostListener('window:touchend', ['$event'])
-  @HostListener('window:touchcancel', ['$event'])
   onCancel(e: Event) {
-    if (this.enabled === false) return;
+    if (this.enabled() === false) return;
     delete this.dragStart;
     if (this.dragging) {
       this.dragging = false;

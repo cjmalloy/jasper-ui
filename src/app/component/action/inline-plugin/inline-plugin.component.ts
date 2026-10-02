@@ -1,4 +1,4 @@
-import { Component, ViewChild, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, input, output, signal, viewChild } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -24,6 +24,7 @@ export class InlinePluginComponent extends ActionComponent {
   readonly plugin = input.required<Plugin>();
   readonly value = input<Partial<Ref>>();
   readonly error = output<string>();
+  readonly gen = viewChild<GenFormComponent>('gen');
 
   private readonly editingSignal = signal(false);
   private readonly actingSignal = signal(false);
@@ -41,15 +42,14 @@ export class InlinePluginComponent extends ActionComponent {
     private fb: FormBuilder,
   ) {
     super();
-  }
-
-  @ViewChild('gen')
-  set gen(c: GenFormComponent) {
-    if (!c) return;
-    this.group = this.fb.group({
-      [this.plugin().tag]: this.fb.group({}),
+    effect(() => {
+      const gen = this.gen();
+      if (!gen) return;
+      this.group = this.fb.group({
+        [this.plugin().tag]: this.fb.group({}),
+      });
+      defer(() => gen.setValue(this.value()?.plugins || {}));
     });
-    defer(() => c.setValue(this.value()?.plugins || {}));
   }
 
   override reset() {

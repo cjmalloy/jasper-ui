@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Input, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, input, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -26,32 +26,27 @@ export class QueryComponent {
   get breadcrumbs() { return this._breadcrumbs(); }
   set breadcrumbs(value: Crumb[]) { this._breadcrumbs.set(value); }
 
-  private _query = '';
+  readonly query = input('');
+  readonly editor = viewChild<ElementRef<HTMLInputElement>>('editor');
 
   constructor(
     private router: Router,
     private exts: ExtService,
     private admin: AdminService,
     public store: Store,
-  ) { }
-
-  get query(): string {
-    return this._query;
+  ) {
+    effect(() => {
+      const query = this.query();
+      this.editing = false;
+      this.breadcrumbs = this.queryCrumbs(query);
+    });
+    effect(() => this.focusEditor(this.editor()));
   }
 
-  @Input()
-  set query(value: string) {
-    if (this._query === value) return;
-    this.editing = false;
-    this._query = value;
-    this.breadcrumbs = this.queryCrumbs(this._query);
-  }
-
-  @ViewChild("editor")
-  set editor(ref: ElementRef<HTMLInputElement>) {
+  private focusEditor(ref: ElementRef<HTMLInputElement> | undefined) {
     const el = ref?.nativeElement;
     if (!el) return;
-    if (!this._query) return;
+    if (!this.query()) return;
     el.focus();
     if (!this.select) return;
     defer(() => {
@@ -235,7 +230,7 @@ export class QueryComponent {
 
   blur(value: string) {
     this.replaceOnClipboardPaste = false;
-    if (value === this.query) {
+    if (value === this.query()) {
       this.editing = false;
     }
   }

@@ -24,7 +24,7 @@ describe('CommentComponent', () => {
 
     fixture = TestBed.createComponent(CommentComponent);
     component = fixture.componentInstance;
-    component.ref = { url: '' };
+    fixture.componentRef.setInput('ref', { url: '' });
     fixture.detectChanges();
   });
 

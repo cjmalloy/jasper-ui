@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, input, output, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
@@ -17,6 +17,7 @@ import { access } from '../../util/tag';
 export class SelectTemplateComponent {
 
   readonly templateChange = output<string>();
+  readonly template = input('', { alias: 'template' });
 
   readonly select = viewChild<ElementRef<HTMLSelectElement>>('select');
 
@@ -29,12 +30,13 @@ export class SelectTemplateComponent {
   constructor(
     private admin: AdminService,
     private auth: AuthzService,
-  ) {  }
+  ) {
+    effect(() => this.selectTemplate(this.template()));
+  }
 
-  @Input()
-  set template(value: string) {
+  private selectTemplate(value: string) {
     if (!this.select()) {
-      if (value) defer(() => this.template = value);
+      if (value) defer(() => this.selectTemplate(value));
     } else {
       let hit = this.templates.map(t => t.tag).indexOf(value) + 1;
       if (!hit) {

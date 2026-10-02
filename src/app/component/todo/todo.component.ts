@@ -1,10 +1,7 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import {
   Component,
-  HostBinding,
-  HostListener,
-  OnChanges,
-  SimpleChanges,
+  effect,
   ChangeDetectionStrategy,
   input,
   output,
@@ -23,7 +20,11 @@ import { TodoItemComponent } from './item/item.component';
   selector: 'app-todo',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
-  host: { 'class': 'todo-list' },
+  host: {
+    'class': 'todo-list',
+    '[class.empty]': 'empty',
+    '(touchstart)': 'touchstart($event)',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkDropList,
@@ -32,7 +33,7 @@ import { TodoItemComponent } from './item/item.component';
     TodoItemComponent,
   ]
 })
-export class TodoComponent implements OnChanges {
+export class TodoComponent {
 
   readonly ref = input<Ref>();
   readonly text = input<string | undefined>('');
@@ -74,6 +75,11 @@ export class TodoComponent implements OnChanges {
     if (config.mobile) {
       this.pressToUnlock = true;
     }
+    effect(() => {
+      this.ref();
+      this.text();
+      this.init();
+    });
   }
 
   init() {
@@ -89,18 +95,10 @@ export class TodoComponent implements OnChanges {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref || changes.text) {
-      this.init();
-    }
-  }
-
-  @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
     this.pressToUnlock = true;
   }
 
-  @HostBinding('class.empty')
   get empty() {
     return !this.lines.length;
   }

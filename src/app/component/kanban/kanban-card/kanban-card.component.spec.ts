@@ -23,7 +23,7 @@ describe('KanbanCardComponent', () => {
 
     fixture = TestBed.createComponent(KanbanCardComponent);
     component = fixture.componentInstance;
-    component.ref = {url: ''};
+    fixture.componentRef.setInput('ref', {url: ''});
     fixture.detectChanges();
   });
 

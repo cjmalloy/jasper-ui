@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { Component, HostBinding, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
@@ -11,6 +11,7 @@ import { getPath } from '../util/http';
   selector: 'formly-list-section',
   host: {
     '(jasper-clipboard-paste)': 'clipboardPaste($any($event))',
+    '[title]': 'title',
   },
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
@@ -63,7 +64,6 @@ export class ListTypeComponent extends FieldArrayType {
     super();
   }
 
-  @HostBinding('title')
   get title() {
     return this.props.title || '';
   }
