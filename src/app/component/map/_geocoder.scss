@@ -73,3 +73,8 @@
     color: #b0b0b0;
   }
 }
+
+// Address search result marker
+.maplibregl-marker.geocode-marker {
+  cursor: pointer;
+}

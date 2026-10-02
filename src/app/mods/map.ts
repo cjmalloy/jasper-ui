@@ -225,6 +225,19 @@ export const mapTemplate: Template = {
         ],
       },
     }, {
+      key: 'geocoderPosition',
+      type: 'select',
+      defaultValue: 'top-left',
+      props: {
+        label: $localize`Search Position: `,
+        options: [
+          { value: 'top-left', label: $localize`Top Left` },
+          { value: 'top-right', label: $localize`Top Right` },
+          { value: 'bottom-left', label: $localize`Bottom Left` },
+          { value: 'bottom-right', label: $localize`Bottom Right` },
+        ],
+      },
+    }, {
       key: 'photonUrl',
       type: 'url',
       props: {
@@ -515,6 +528,7 @@ export const mapTemplate: Template = {
   },
   defaults: {
     geocodingProvider: 'osm',
+    geocoderPosition: 'top-left',
     photonUrl: 'https://photon.komoot.io',
     mapStyle: {
       center: [-64, 45],
@@ -560,6 +574,7 @@ export const mapTemplate: Template = {
   schema: {
     optionalProperties: {
       geocodingProvider: { enum: ['google', 'photon', 'osm'] },
+      geocoderPosition: { enum: ['top-left', 'top-right', 'bottom-left', 'bottom-right'] },
       googleMapsApiKey: { type: 'string' },
       photonUrl: { type: 'string' },
       mapStyle: {

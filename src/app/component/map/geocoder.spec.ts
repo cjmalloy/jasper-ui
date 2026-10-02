@@ -60,4 +60,29 @@ describe('geocoder', () => {
     expect(map.off).toHaveBeenCalledWith('styledata', listeners['styledata']);
     expect(map.removeControl).toHaveBeenCalled();
   });
+
+  it('uses the configured position and reports results', () => {
+    const container = document.createElement('div');
+    let control: any;
+    const map = {
+      getContainer: () => container,
+      getStyle: () => ({}),
+      on: vi.fn(),
+      off: vi.fn(),
+      addControl: vi.fn((c: any) => container.appendChild((control = c).onAdd(map))),
+      removeControl: vi.fn((c: any) => c.onRemove()),
+    };
+    const onResult = vi.fn();
+    const onClear = vi.fn();
+    const remove = addGeocoder(map as unknown as Map, {} as GeocodeService, 'top-right', onResult, onClear);
+    expect(map.addControl).toHaveBeenCalledWith(expect.anything(), 'top-right');
+    const [feature] = toFeatureCollection([{ name: 'Halifax', location: [-63.57, 44.65] }]).features;
+    control._eventEmitter.emit('result', { result: feature });
+    expect(onResult).toHaveBeenCalledWith([-63.57, 44.65], 'Halifax');
+    control._eventEmitter.emit('clear');
+    expect(onClear).toHaveBeenCalled();
+    remove();
+    control._eventEmitter.emit('result', { result: feature });
+    expect(onResult).toHaveBeenCalledTimes(1);
+  });
 });

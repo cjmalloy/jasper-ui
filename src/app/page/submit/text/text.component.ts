@@ -191,6 +191,14 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
             this.addTag('plugin/thumbnail');
           }
         }
+        const location = this.store.submit.location;
+        if (location) {
+          this.addTag('plugin/geo/point');
+          this.plugins.setValue({
+            ...this.textForm.value.plugins || {},
+            'plugin/geo/point': { type: 'Feature', geometry: { type: 'Point', coordinates: location } },
+          });
+        }
         for (const s of this.store.submit.sources) {
           this.addSource(s)
         }

@@ -1,9 +1,11 @@
 export type GeocodingProvider = 'google' | 'photon' | 'osm';
+export type GeocoderPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 export interface GeocodingConfig {
   geocodingProvider?: GeocodingProvider;
   googleMapsApiKey?: string;
   photonUrl?: string;
+  geocoderPosition?: GeocoderPosition;
 }
 
 export interface GeocodeResult {

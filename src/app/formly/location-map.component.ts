@@ -12,6 +12,7 @@ import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
 import { GeocodeService } from '../service/geocode.service';
 import { geoFeatures, hasLocation } from '../util/geo';
+import { GeocoderPosition, isConfigured } from '../util/geocode';
 import { closedRings, LocationPicker } from './location-picker';
 
 /**
@@ -53,15 +54,22 @@ export class LocationMapComponent implements OnDestroy {
   private lastActiveValue?: any;
 
   private geocoding = false;
+  private geocoderPosition?: GeocoderPosition;
   private removeGeocoder?: () => void;
+  private searchMarker?: Marker;
 
   constructor(
     private admin: AdminService,
     private geocoder: GeocodeService,
     private zone: NgZone,
   ) {
-    geocoder.configured$.pipe(takeUntilDestroyed()).subscribe(configured => {
-      this.geocoding = configured;
+    geocoder.config$.pipe(takeUntilDestroyed()).subscribe(config => {
+      this.geocoding = isConfigured(config);
+      if (this.geocoderPosition !== config.geocoderPosition) {
+        this.removeGeocoder?.();
+        this.removeGeocoder = undefined;
+      }
+      this.geocoderPosition = config.geocoderPosition;
       this.updateGeocoder();
     });
   }
@@ -150,6 +158,7 @@ export class LocationMapComponent implements OnDestroy {
     this.watch?.unsubscribe();
     this.removeGeocoder?.();
     this.removeGeocoder = undefined;
+    this.clearSearchResult();
     for (const marker of this.markers.values()) marker.remove();
     this.markers.clear();
     this.map = undefined;
@@ -157,11 +166,44 @@ export class LocationMapComponent implements OnDestroy {
 
   private updateGeocoder() {
     if (this.geocoding && this.map && !this.removeGeocoder) {
-      this.removeGeocoder = addGeocoder(this.map, this.geocoder);
+      this.removeGeocoder = addGeocoder(this.map, this.geocoder, this.geocoderPosition,
+        location => this.zone.run(() => this.showSearchResult(location)),
+        () => this.zone.run(() => this.clearSearchResult()));
     } else if (!this.geocoding && this.removeGeocoder) {
       this.removeGeocoder();
       this.removeGeocoder = undefined;
+      this.clearSearchResult();
     }
+  }
+
+  /**
+   * Mark an address search result. Clicking the marker moves the active
+   * location there.
+   */
+  private showSearchResult(location: [number, number]) {
+    if (!this.map) return;
+    this.clearSearchResult();
+    const marker = new Marker({ color: '#e5a50a', className: 'geocode-marker' })
+      .setLngLat(location)
+      .addTo(this.map);
+    const el = marker.getElement();
+    el.title = $localize`Move the location here`;
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      this.zone.run(() => {
+        this.clearSearchResult();
+        const active = this.picker.active && this.locations.includes(this.picker.active)
+          ? this.picker.active
+          : this.locations[0];
+        if (active) this.pick(active, location);
+      });
+    });
+    this.searchMarker = marker;
+  }
+
+  private clearSearchResult() {
+    this.searchMarker?.remove();
+    this.searchMarker = undefined;
   }
 
   private select(control: AbstractControl) {

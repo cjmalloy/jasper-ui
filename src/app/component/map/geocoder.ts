@@ -1,7 +1,8 @@
 import MaplibreGeocoder, { type CarmenGeojsonFeature, type MaplibreGeocoderSuggestion } from '@maplibre/maplibre-gl-geocoder';
 import type { Map } from 'maplibre-gl';
 import { GeocodeService } from '../../service/geocode.service';
-import { GeocodeResult } from '../../util/geocode';
+import { isPosition } from '../../util/geo';
+import { GeocodeResult, GeocoderPosition } from '../../util/geocode';
 
 const DARK_BASEMAP = /dark|satellite|hybrid/i;
 
@@ -42,10 +43,17 @@ export function isDarkBasemap(style?: { name?: string }) {
 }
 
 /**
- * Add an address search control to the map. Choosing a result only moves the map.
+ * Add an address search control to the map. Choosing a result moves the map
+ * and calls onResult with the location found.
  * Returns a function to remove the control.
  */
-export function addGeocoder(map: Map, geocoder: GeocodeService): () => void {
+export function addGeocoder(
+  map: Map,
+  geocoder: GeocodeService,
+  position: GeocoderPosition = 'top-left',
+  onResult?: (location: [number, number], name: string) => void,
+  onClear?: () => void,
+): () => void {
   const control = new MaplibreGeocoder({
     // All results come from the externalGeocoder
     forwardGeocode: async () => ({ type: 'FeatureCollection', features: [] }),
@@ -68,7 +76,15 @@ export function addGeocoder(map: Map, geocoder: GeocodeService): () => void {
     trackProximity: false,
     showResultsWhileTyping: false,
   });
-  map.addControl(control, 'top-left');
+  const result = ({ result }: { result: CarmenGeojsonFeature }) => {
+    const location = result?.center || (result?.geometry as any)?.coordinates;
+    if (!isPosition(location)) return;
+    onResult?.([location[0], location[1]], result.place_name || result.text || '');
+  };
+  const clear = () => onClear?.();
+  control.on('result', result);
+  control.on('clear', clear);
+  map.addControl(control, position);
   const el = map.getContainer().querySelector<HTMLElement>('.maplibregl-ctrl-geocoder');
   // Keep events from reaching the map or any form the map is in
   const stop = (e: Event) => {
@@ -92,6 +108,8 @@ export function addGeocoder(map: Map, geocoder: GeocodeService): () => void {
   theme();
   return () => {
     map.off('styledata', theme);
+    control.off('result', result);
+    control.off('clear', clear);
     for (const e of events) el?.removeEventListener(e, stop);
     try {
       map.removeControl(control);

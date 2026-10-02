@@ -24,6 +24,7 @@ import { RefService } from '../../service/api/ref.service';
 import { GeocodeService } from '../../service/geocode.service';
 import { Store } from '../../store/store';
 import { geoFeatures, hasLocation } from '../../util/geo';
+import { GeocoderPosition, isConfigured } from '../../util/geocode';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
@@ -76,7 +77,9 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private mapDataUpdates$ = new Subject<Ref[]>();
   mapData: MapEntry[] = [];
   private geocoding = false;
+  private geocoderPosition?: GeocoderPosition;
   private removeGeocoder?: () => void;
+  private searchMarker?: Marker;
 
   constructor(
     private router: Router,
@@ -86,8 +89,13 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     private store: Store,
     private geocoder: GeocodeService,
   ) {
-    geocoder.configured$.pipe(takeUntilDestroyed()).subscribe(configured => {
-      this.geocoding = configured;
+    geocoder.config$.pipe(takeUntilDestroyed()).subscribe(config => {
+      this.geocoding = isConfigured(config);
+      if (this.geocoderPosition !== config.geocoderPosition) {
+        this.removeGeocoder?.();
+        this.removeGeocoder = undefined;
+      }
+      this.geocoderPosition = config.geocoderPosition;
       this.updateGeocoder();
     });
     this.mapDataUpdates$.pipe(
@@ -114,11 +122,44 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
   private updateGeocoder() {
     if (this.geocoding && this.map && !this.removeGeocoder) {
-      this.removeGeocoder = addGeocoder(this.map, this.geocoder);
+      this.removeGeocoder = addGeocoder(this.map, this.geocoder, this.geocoderPosition,
+        (location, name) => this.showSearchResult(location, name),
+        () => this.clearSearchResult());
     } else if (!this.geocoding && this.removeGeocoder) {
       this.removeGeocoder();
       this.removeGeocoder = undefined;
+      this.clearSearchResult();
     }
+  }
+
+  /**
+   * Mark an address search result. Clicking the marker submits a new Ref there.
+   */
+  private showSearchResult(location: [number, number], name: string) {
+    if (!this.map) return;
+    this.clearSearchResult();
+    const marker = new Marker({ color: '#e5a50a', className: 'geocode-marker' })
+      .setLngLat(location)
+      .addTo(this.map);
+    const el = marker.getElement();
+    el.title = $localize`Submit a Ref here`;
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      this.clearSearchResult();
+      this.router.navigate(['/submit/text'], {
+        queryParams: {
+          tag: 'plugin/geo/point',
+          location: location.join(','),
+          ...name ? { title: name } : {},
+        },
+      });
+    });
+    this.searchMarker = marker;
+  }
+
+  private clearSearchResult() {
+    this.searchMarker?.remove();
+    this.searchMarker = undefined;
   }
 
   saveChanges() {
@@ -137,6 +178,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   ngOnDestroy() {
     this.mapDataUpdates$.complete();
     this.clearMarkers();
+    this.clearSearchResult();
     this.removeGeocoder = undefined;
     try {
       this.map?.remove();

@@ -148,9 +148,16 @@ test.describe.serial('Map Plugin', () => {
     await result.click();
     expect(query).toBe('Halifax');
     await expect(result).toBeHidden();
-    // Search only moves the map, not the location
+    // Search only marks the result, it does not move the location
+    const found = point.locator('.location-map .geocode-marker');
+    await expect(found).toBeVisible();
     await expect(point.locator('input').nth(0)).toHaveValue('-63.5');
     await expect(point.locator('input').nth(1)).toHaveValue('44.6');
+    // Clicking the result marker moves the location there
+    await found.click();
+    await expect(found).toHaveCount(0);
+    await expect(point.locator('input').nth(0)).toHaveValue('-63.57');
+    await expect(point.locator('input').nth(1)).toHaveValue('44.65');
   });
 
   test('title scraper reverse geocodes the location', async ({ page }) => {
@@ -189,7 +196,29 @@ test.describe.serial('Map Plugin', () => {
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-map')).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-marker')).toBeVisible();
     // Address search is shown when geocoding is configured
-    await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-geocoder--input')).toBeVisible();
+    await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-top-left .maplibregl-ctrl-geocoder--input')).toBeVisible();
+    await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-bottom-left .maplibregl-ctrl-zoom-in')).toBeVisible();
+  });
+
+  test('map search result submits a ref at that location', async ({ page }) => {
+    await page.route('https://nominatim.openstreetmap.org/search**', route => route.fulfill({
+      headers: CORS,
+      json: [{ display_name: 'Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' }],
+    }));
+    await page.goto('/ref/e/' + encodeURIComponent(URL) + '?debug=ADMIN', { waitUntil: 'networkidle' });
+    const embed = page.locator('.full-page.ref .map-embed');
+    const search = embed.locator('.maplibregl-ctrl-geocoder--input');
+    await search.fill('Halifax');
+    await search.press('Enter');
+    await embed.locator('.maplibregl-ctrl-geocoder .suggestions li', { hasText: 'Nova Scotia' }).click();
+    const found = embed.locator('.geocode-marker');
+    await expect(found).toBeVisible();
+    await found.click();
+    await expect(page).toHaveURL(/\/submit\/text\?/);
+    await expect(page.locator('[name=title]')).toHaveValue('Halifax, Nova Scotia, Canada');
+    const point = page.locator('.location-field').first();
+    await expect(point.locator('input').nth(0)).toHaveValue('-63.57');
+    await expect(point.locator('input').nth(1)).toHaveValue('44.65');
   });
 
   test('cleanup', async ({ page }) => {

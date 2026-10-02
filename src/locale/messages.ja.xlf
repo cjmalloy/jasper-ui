@@ -7312,6 +7312,34 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Search address</source>
         <target>住所を検索</target>
       </trans-unit>
+      <trans-unit id="2149672055824381063" datatype="html">
+        <source>Search Position: </source>
+        <target>検索の位置: </target>
+      </trans-unit>
+      <trans-unit id="7437546388321615771" datatype="html">
+        <source>Top Left</source>
+        <target>左上</target>
+      </trans-unit>
+      <trans-unit id="8224585816284521000" datatype="html">
+        <source>Top Right</source>
+        <target>右上</target>
+      </trans-unit>
+      <trans-unit id="6072329911847367445" datatype="html">
+        <source>Bottom Left</source>
+        <target>左下</target>
+      </trans-unit>
+      <trans-unit id="4924851972474284371" datatype="html">
+        <source>Bottom Right</source>
+        <target>右下</target>
+      </trans-unit>
+      <trans-unit id="9186765879953866634" datatype="html">
+        <source>Submit a Ref here</source>
+        <target>ここにRefを投稿</target>
+      </trans-unit>
+      <trans-unit id="2792509567173760071" datatype="html">
+        <source>Move the location here</source>
+        <target>位置をここに移動</target>
+      </trans-unit>
       <trans-unit id="6574802489883645842" datatype="html">
         <source>Google Maps API key is not configured.</source>
         <target>Google Maps APIキーが設定されていません。</target>
