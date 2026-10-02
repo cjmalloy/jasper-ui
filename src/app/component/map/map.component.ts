@@ -231,7 +231,10 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         c.forEach(extend);
       }
     };
-    this.mapData.flatMap(([ref]) => features(ref)).forEach(f => extend((f?.geometry as any)?.coordinates));
+    this.mapData
+      .flatMap(([ref]) => features(ref))
+      .flatMap(geoFeatures)
+      .forEach(f => extend((f.geometry as any).coordinates));
     return bounds.isEmpty() ? undefined : bounds;
   }
 
