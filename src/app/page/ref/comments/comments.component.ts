@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, computed, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, computed, untracked, afterNextRender, DestroyRef } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
@@ -27,7 +27,7 @@ import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
     LoadingComponent,
   ],
 })
-export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
+export class RefCommentsComponent implements HasChanges {
 
   private readonly injector = inject(Injector);
   newComments$ = new Subject<Ref | undefined>();
@@ -49,7 +49,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
     return !reply || reply.saveChanges();
   }
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref())), { injector: this.injector });
     effect(() => {
@@ -70,11 +70,11 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
         this.store.eventBus.refresh(this.store.view.ref()!);
       }
     });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.newComments$.complete();
-  }
+  });
 
   readonly depth = computed(() => this.store.view.depth() || 7);
 
@@ -86,7 +86,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
     const tags = [
       'plugin/comment',
       'internal',
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref())).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply().filter(p => hasTag(p.tag, this.store.view.ref())).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes(),
     ];
     return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal, untracked } from '@angular/core';
+import { computed, Component, ChangeDetectionStrategy, viewChild, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { LensComponent } from '../../component/lens/lens.component';
@@ -21,7 +21,7 @@ import { hasPrefix, localTag } from '../../util/tag';
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
   host: {
-    '[class.no-footer-padding]': 'noFooterPadding',
+    '[class.no-footer-padding]': "noFooterPadding()",
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -32,7 +32,7 @@ import { hasPrefix, localTag } from '../../util/tag';
     LoadingComponent,
   ],
 })
-export class TagPage implements OnDestroy, HasChanges {
+export class TagPage implements HasChanges {
 
   readonly loading = signal<boolean>(false);
 
@@ -56,7 +56,7 @@ export class TagPage implements OnDestroy, HasChanges {
             ? 'published'
             : 'created'
       ]);
-      this.store.view.extTemplates.set(this.admin.view);
+      this.store.view.extTemplates.set(this.admin.view());
     };
     effect(() => {
       this.store.view.urlQueryTags();
@@ -82,7 +82,7 @@ export class TagPage implements OnDestroy, HasChanges {
       const filters = this.store.view.filter().length ? this.store.view.filter() : this.store.view.viewExtFilter();
       if (!this.store.view.filter().length && this.store.view.viewExtFilter()?.length) {
         const viewExtFilter = this.store.view.viewExtFilter();
-        untracked(() => this.bookmarks.filters = viewExtFilter);
+        untracked(() => this.bookmarks.setFilters(viewExtFilter));
       }
       const hideInternal = !this.admin.getPlugins(this.store.view.queryTags().map(localTag)).length;
       const args = getArgs(
@@ -107,11 +107,11 @@ export class TagPage implements OnDestroy, HasChanges {
     return !lens || lens.saveChanges();
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 
-  get noFooterPadding() {
+  readonly noFooterPadding = computed(() => {
     return this.store.view.isTemplate('kanban');
-  }
+  });
 }

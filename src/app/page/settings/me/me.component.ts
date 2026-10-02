@@ -30,7 +30,8 @@ export class SettingsMePage implements HasChanges {
 
   readonly submitted = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
-  readonly editing = signal<Subscription | undefined>(undefined);
+  readonly editing = signal(false);
+  private editingSubscription?: Subscription;
 
   readonly form = viewChild<ExtFormComponent>('form');
   editForm!: UntypedFormGroup;
@@ -63,7 +64,8 @@ export class SettingsMePage implements HasChanges {
       return;
     }
     const ext = this.store.account.ext()!;
-    this.editing.set(this.exts.update({
+    this.editing.set(true);
+    this.editingSubscription = this.exts.update({
       ...ext,
       ...this.editForm.value,
       tag: ext.tag, // Need to fetch because control is disabled
@@ -75,15 +77,16 @@ export class SettingsMePage implements HasChanges {
       tap(() => this.accounts.clearCache()),
       switchMap(() => this.accounts.initExt$),
       catchError((res: HttpErrorResponse) => {
-        this.editing.set(undefined);
+        this.editing.set(false);
         this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.editing.set(undefined);
+      this.editing.set(false);
       this.editForm.markAsPristine();
       this.location.back();
-    }));
+    });
+    this.editingSubscription?.add(() => this.editing.set(false));
   }
 
   protected readonly isDevMode = isDevMode;

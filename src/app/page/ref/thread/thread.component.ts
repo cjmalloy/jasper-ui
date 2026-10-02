@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, ChangeDetectionStrategy, viewChild, effect, Injector, signal, computed, untracked } from '@angular/core';
+import { DestroyRef, inject, Component, ChangeDetectionStrategy, viewChild, effect, Injector, signal, computed, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer, uniq } from 'lodash-es';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
@@ -64,7 +64,7 @@ export class RefThreadComponent implements HasChanges {
       && (!list || list.saveChanges());
   }
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     effect(() => {
       if (this.store.view.pageSize()) {
         this.store.view.defaultPageNumber.set(Math.floor(((this.to()?.metadata?.plugins?.['plugin/thread'] || 1) - 1) / this.store.view.pageSize()));
@@ -133,11 +133,11 @@ export class RefThreadComponent implements HasChanges {
         }
       }
     });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 
   readonly thread = computed(() => this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.store.view.ref()));
 
@@ -147,7 +147,7 @@ export class RefThreadComponent implements HasChanges {
     const tags = [
       'plugin/thread',
       'internal',
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref())).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply().filter(p => hasTag(p.tag, this.store.view.ref())).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes(),
     ];
     return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));

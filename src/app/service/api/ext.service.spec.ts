@@ -34,6 +34,21 @@ describe('ExtService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('cancels queued batches and cached update subscriptions when destroyed', () => {
+    vi.useFakeTimers();
+    const updates = new Subject<Ext>();
+    vi.spyOn(service['stomp'], 'watchExt').mockReturnValue(updates);
+    service.prefillCache({ tag: 'cached', origin: '' });
+    const page = vi.spyOn(service, 'page');
+    service.getCachedExt('pending', '').subscribe();
+
+    TestBed.resetTestingModule();
+    vi.advanceTimersByTime(EXT_BATCH_THROTTLE_MS);
+
+    expect(page).not.toHaveBeenCalled();
+    expect(updates.observed).toBe(false);
+  });
+
   it('should return cached ext immediately', async () => {
     const testExt = { tag: 'test', origin: '', name: 'Test' };
     service.prefillCache(testExt);

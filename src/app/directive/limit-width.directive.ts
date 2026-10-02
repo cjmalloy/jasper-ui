@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, effect, ElementRef, input, OnDestroy } from '@angular/core';
+import { Directive, effect, ElementRef, input, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { throttle } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 
@@ -8,7 +8,7 @@ import { ConfigService } from '../service/config.service';
     '(window:resize)': 'onWindowResize($event)',
   },
 })
-export class LimitWidthDirective implements OnDestroy, AfterViewInit {
+export class LimitWidthDirective {
 
   resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.fill()) || undefined;
 
@@ -27,14 +27,14 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
     });
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     this.fill();
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.resizeObserver?.disconnect();
     this.fill.cancel();
-  }
+  });
 
   onWindowResize(event: UIEvent) {
     this.fill();

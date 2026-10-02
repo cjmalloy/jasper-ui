@@ -58,7 +58,7 @@
                     [tags]="tags"
                     (syncTags)="setTags($event)"
                     (addSource)="addSource($event)"
-                    (uploadCompleted)="completedUploads().push($event)"
+                    (uploadCompleted)="addCompletedUpload($event)"
                     [fillWidth]="fill"
                     [autoFocus]="true"></app-editor>
       </div>
@@ -82,7 +82,7 @@
 
   <span><!-- Buttons --></span>
   <span class="buttons right">
-    @if (randomURL && (addAnother || store.hotkey())) {
+    @if (randomURL() && (addAnother || store.hotkey())) {
       <div class="add-more" i18n-title title="Will not clear form to all another Ref.">
         <input id="addAnother" type="checkbox" [checked]="addAnother" (input)="addAnother = !addAnother">
         <label for="addAnother" i18n>Add another</label>

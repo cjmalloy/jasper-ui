@@ -202,7 +202,7 @@ export class UploadPage {
         }),
         catchError((res: HttpErrorResponse) => {
           this.store.submit.removeCaching(file);
-          this.serverErrors.set([...this.serverErrors(), ...printError(res)]);
+          this.serverErrors.update(errors => [...errors, ...printError(res)]);
           return throwError(() => res);
         }),
       ).subscribe(ref => {
@@ -379,8 +379,8 @@ export class UploadPage {
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
-        this.erroredRefs.set([...this.erroredRefs(), ref]);
-        this.serverErrors.set([...this.serverErrors(), ...printError(res)]);
+        this.erroredRefs.update(refs => [...refs, ref]);
+        this.serverErrors.update(errors => [...errors, ...printError(res)]);
         return of(null);
       }),
     );
@@ -407,8 +407,8 @@ export class UploadPage {
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
-        this.erroredExts.set([...this.erroredExts(), ext]);
-        this.serverErrors.set([...this.serverErrors(), ...printError(res)]);
+        this.erroredExts.update(exts => [...exts, ext]);
+        this.serverErrors.update(errors => [...errors, ...printError(res)]);
         return of(null);
       }),
     );
@@ -426,9 +426,9 @@ export class UploadPage {
       return;
     }
     if (field.value) {
-      this.bookmarks.tags = field.value.startsWith('-')
-        ? without(this.bookmarks.tags, field.value.substring(1))
-        : uniq([...this.bookmarks.tags, field.value]);
+      this.bookmarks.setTags(field.value.startsWith('-')
+        ? without(this.bookmarks.tags(), field.value.substring(1))
+        : uniq([...this.bookmarks.tags(), field.value]));
       this.store.submit.tagRefs(field.value.toLowerCase().trim().split(/\s+/));
       this.store.eventBus.fire('refresh:uploads');
       field.value = '';

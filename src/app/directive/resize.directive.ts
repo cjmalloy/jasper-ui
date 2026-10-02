@@ -1,9 +1,9 @@
-import { Directive, ElementRef, input, signal } from '@angular/core';
+import { computed, Directive, ElementRef, input, signal } from '@angular/core';
 
 @Directive({
   selector: '[appResize]',
   host: {
-    '[style.z-index]': 'zIndex',
+    '[style.z-index]': "zIndex()",
     '[style.width]': 'width',
     '[style.height]': 'height',
     '(mousedown)': 'onMousedown($event)',
@@ -21,9 +21,9 @@ export class ResizeDirective {
 
   readonly enabled = input<boolean | undefined>(undefined, { alias: 'appResize' });
 
-  get zIndex() {
+  readonly zIndex = computed(() => {
     return this.dirty() ? 1 : 0;
-  }
+  });
 
   get width() {
     const dim = this.dim();

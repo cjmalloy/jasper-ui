@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
+import { Component, forwardRef, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -58,7 +58,7 @@ import { getVisibilityTags } from '../../../util/tag';
     forwardRef(() => RefFormComponent),
   ],
 })
-export class SubmitWebPage implements AfterViewInit, HasChanges {
+export class SubmitWebPage implements HasChanges {
 
   private readonly injector = inject(Injector);
 
@@ -68,8 +68,10 @@ export class SubmitWebPage implements AfterViewInit, HasChanges {
   readonly serverError = signal<string[]>([]);
 
   readonly limitWidth = signal<HTMLElement | undefined>(undefined);
-  readonly submitting = signal<Subscription | undefined>(undefined);
-  readonly saving = signal<Subscription | undefined>(undefined);
+  readonly submitting = signal(false);
+  private submittingSubscription?: Subscription;
+  readonly saving = signal(false);
+  private savingSubscription?: Subscription;
   readonly defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
   readonly loadingDefaults = signal<Ext[]>([]);
   readonly alreadyExists = signal<boolean>(false);
@@ -94,7 +96,7 @@ export class SubmitWebPage implements AfterViewInit, HasChanges {
   ) {
     this.setTitle($localize`Submit: Web Link`);
     this.webForm = refForm(fb);
-    if (this.admin.editing) {
+    if (this.admin.editing()) {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
@@ -104,16 +106,16 @@ export class SubmitWebPage implements AfterViewInit, HasChanges {
   }
 
   async saveChanges() {
-    if (this.admin.editing && this.webForm.dirty) {
+    if (this.admin.editing() && this.webForm.dirty) {
       return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
         .pipe(map(() => true), catchError(() => of(false))));
     }
     return !this.webForm?.dirty;
   }
 
-  ngAfterViewInit(): void {
+  private readonly initializeView = afterNextRender(() => {
     this.url = this.store.submit.url()?.trim();
-    if (this.admin.editing && this.url) {
+    if (this.admin.editing() && this.url) {
       this.refs.getEditing(this.url).subscribe(draft => {
         if (!draft) return;
         this.cursor = draft.modifiedString;
@@ -250,7 +252,7 @@ export class SubmitWebPage implements AfterViewInit, HasChanges {
       const value = this.refFormView();
       untracked(() => this.setRefForm(value));
     }, { injector: this.injector });
-  }
+  });
 
   get refForm(): RefFormComponent {
     return this._refForm!;
@@ -289,17 +291,19 @@ export class SubmitWebPage implements AfterViewInit, HasChanges {
 
   saveForLater(leave = false) {
     const savedValue = JSON.stringify(this.webForm.value);
-    this.saving.set(this.refs.saveEdit(this.writeRef(), this.cursor)
+    this.saving.set(true);
+    this.savingSubscription = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        this.saving.set(undefined);
+        this.saving.set(false);
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        this.saving.set(undefined);
+        this.saving.set(false);
         this.cursor = cursor;
         if (JSON.stringify(this.webForm.value) === savedValue) this.webForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      }));
+      });
+    this.savingSubscription?.add(() => this.saving.set(false));
   }
 
   setTitle(title: string) {
@@ -356,7 +360,7 @@ export class SubmitWebPage implements AfterViewInit, HasChanges {
 
   submit() {
     if (this.saving()) {
-      this.saving()!.add(() => this.submit());
+      this.savingSubscription?.add(() => this.submit());
       return;
     }
     if (this.alreadyExists()) {
@@ -373,10 +377,11 @@ export class SubmitWebPage implements AfterViewInit, HasChanges {
     const published = this.webForm.value.published ? DateTime.fromISO(this.webForm.value.published) : DateTime.now();
     const ref = this.writeRef(true);
     const finalTags = ref.tags;
-    this.submitting.set((this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
+    this.submitting.set(true);
+    this.submittingSubscription = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status !== 409) return throwError(() => res);
-        this.submitting.set(undefined);
+        this.submitting.set(false);
         this.serverError.set(printError(res));
         this.alreadyExists.set(true);
         return EMPTY;
@@ -395,17 +400,18 @@ export class SubmitWebPage implements AfterViewInit, HasChanges {
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        this.submitting.set(undefined);
+        this.submitting.set(false);
         this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.submitting.set(undefined);
+      this.submitting.set(false);
       this.webForm.markAsPristine();
       this.refForm.completedUploads.set([]);
 
       this.router.navigate(['/ref', this.url], { queryParams: { published }, replaceUrl: true});
-    }));
+    });
+    this.submittingSubscription?.add(() => this.submitting.set(false));
   }
 
   prepareRepost() {

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, afterNextRender } from '@angular/core';
 import { LoadingComponent } from '../../component/loading/loading.component';
 
 @Component({
@@ -8,10 +8,10 @@ import { LoadingComponent } from '../../component/loading/loading.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LoadingComponent]
 })
-export class LoginPage implements OnInit {
+export class LoginPage {
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     window.close();
-  }
+  });
 
 }

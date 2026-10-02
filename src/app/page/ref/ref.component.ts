@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, Injector, signal, computed } from '@angular/core';
+import { DestroyRef, inject, Component, ChangeDetectionStrategy, viewChild, effect, Injector, signal, computed, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
@@ -37,7 +37,7 @@ import { hasTag, privateTag, top } from '../../util/tag';
     LoadingComponent,
   ],
 })
-export class RefPage implements OnInit, OnDestroy, HasChanges {
+export class RefPage implements HasChanges {
 
   private readonly injector = inject(Injector);
 
@@ -66,7 +66,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     return !ref || ref.saveChanges();
   }
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     this.url = this.store.view.url();
     if (this.url) this.reload(this.url);
     effect(() => {
@@ -76,11 +76,11 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.url = url;
       this.reload(url);
     }, { injector: this.injector });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.store.view.clearRef();
-  }
+  });
 
   readonly refWarning = computed(() => {
     const warn = this.sources() > 0 && this.store.view.published() && +this.store.view.ref()!.published! !== +DateTime.fromISO(this.store.view.published());

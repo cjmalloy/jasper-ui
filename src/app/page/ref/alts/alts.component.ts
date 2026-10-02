@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
 import { defer } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -18,7 +18,7 @@ import { getArgs } from '../../../util/query';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent]
 })
-export class RefAltsComponent implements OnDestroy, HasChanges {
+export class RefAltsComponent implements HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -70,8 +70,8 @@ export class RefAltsComponent implements OnDestroy, HasChanges {
     return !list || list.saveChanges();
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 
 }

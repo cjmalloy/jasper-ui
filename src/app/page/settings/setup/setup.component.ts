@@ -2,7 +2,7 @@ import { KeyValuePipe } from '@angular/common';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, viewChild, signal } from '@angular/core';
+import { Component, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, viewChild, signal, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, uniq } from 'lodash-es';
@@ -41,13 +41,14 @@ interface ModUpdatePreview {
     LoadingComponent,
   ],
 })
-export class SettingsSetupPage implements OnDestroy {
+export class SettingsSetupPage {
 
   readonly submitted = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
   readonly installMessages = signal<string[]>([]);
   readonly mergeState = signal<ModUpdatePreview | undefined>(undefined);
-  readonly mergeSaving = signal<Subscription | undefined>(undefined);
+  readonly mergeSaving = signal(false);
+  private mergeSavingSubscription?: Subscription;
 
   readonly mergePopup = viewChild<TemplateRef<any>>('mergePopup');
 
@@ -56,8 +57,8 @@ export class SettingsSetupPage implements OnDestroy {
   adminForm: UntypedFormGroup;
   mergePopupSub = new Subscription();
   modGroups = configGroups({
-    ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
-    ...this.admin.status.plugins, ...this.admin.status.templates,
+    ...this.admin.status().disabledPlugins, ...this.admin.status().disabledTemplates,
+    ...this.admin.status().plugins, ...this.admin.status().templates,
     ...this.admin.def.plugins, ...this.admin.def.templates });
 
   private mergePopupRef?: OverlayRef;
@@ -77,9 +78,9 @@ export class SettingsSetupPage implements OnDestroy {
     this.clear();
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.cancelMerge();
-  }
+  });
 
   install() {
     this.serverError.set([]);
@@ -95,7 +96,7 @@ export class SettingsSetupPage implements OnDestroy {
     for (const plugin in this.admin.def.plugins) {
       const formName = plugin.replace(/[.]/g, '-');
       const def = this.admin.def.plugins[plugin];
-      const status = this.admin.status.plugins[plugin] || this.admin.status.disabledPlugins[plugin];
+      const status = this.admin.status().plugins[plugin] || this.admin.status().disabledPlugins[plugin];
       if (!!status === !!this.adminForm.value.mods[formName]) continue;
       if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
@@ -106,7 +107,7 @@ export class SettingsSetupPage implements OnDestroy {
     for (const template in this.admin.def.templates) {
       const formName = template.replace(/[.]/g, '-');
       const def = this.admin.def.templates[template];
-      const status = this.admin.status.templates[template] || this.admin.status.disabledTemplates[template];
+      const status = this.admin.status().templates[template] || this.admin.status().disabledTemplates[template];
       if (!!status === !!this.adminForm.value.mods[formName]) continue;
       if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
@@ -114,7 +115,7 @@ export class SettingsSetupPage implements OnDestroy {
         deletes.push(modId(status));
       }
     }
-    const _ = (msg?: string) => this.installMessages.set([...this.installMessages(), msg!]);
+    const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
     if (!deletes.length && !installs.length) {
       this.submitted.set(true);
       _($localize`Success.`);
@@ -143,23 +144,23 @@ export class SettingsSetupPage implements OnDestroy {
   clear() {
     this.adminForm.reset({
       mods: formSafeNames({
-        ...this.admin.status.plugins,
-        ...this.admin.status.disabledPlugins,
-        ...this.admin.status.templates,
-        ...this.admin.status.disabledTemplates,
+        ...this.admin.status().plugins,
+        ...this.admin.status().disabledPlugins,
+        ...this.admin.status().templates,
+        ...this.admin.status().disabledTemplates,
       }),
     });
   }
 
   updateAll() {
-    const _ = (msg?: string) => this.installMessages.set([...this.installMessages(), msg!]);
+    const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
     const mods: string[] = [];
-    for (const plugin in this.admin.status.plugins) {
-      const m = modId(this.admin.status.plugins[plugin]);
+    for (const plugin in this.admin.status().plugins) {
+      const m = modId(this.admin.status().plugins[plugin]);
       if (this.store.view.modUpdates().has(m)) mods.push(m);
     }
-    for (const template in this.admin.status.templates) {
-      const m = modId(this.admin.status.templates[template]);
+    for (const template in this.admin.status().templates) {
+      const m = modId(this.admin.status().templates[template]);
       if (this.store.view.modUpdates().has(m)) mods.push(m);
     }
     concat(...uniq(mods).map(mod => {
@@ -196,7 +197,7 @@ export class SettingsSetupPage implements OnDestroy {
   updateMod(config: Config) {
     const mod = modId(config);
     const receipt = this.admin.getMod(mod)!;
-    const _ = (msg?: string) => this.installMessages.set([...this.installMessages(), msg!]);
+    const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
     if (!this.admin.getTemplate('config/diff') || !this.hasCustomChanges(config)) {
       this.admin.updateMod$(mod, receipt, receipt, _).subscribe(() => {
         this.reset();
@@ -233,7 +234,7 @@ export class SettingsSetupPage implements OnDestroy {
         conflict: false,
       };
     }
-    const base = this.admin.status.receipts[mod]?.plugins?.['plugin/mod'];
+    const base = this.admin.status().receipts[mod]?.plugins?.['plugin/mod'];
     if (base && !equalBundle(current, base)) {
       const merged = merge3(formatBundleDiff(current), formatBundleDiff(base), formatBundleDiff(target));
       if (!merged.result || merged.conflict) {
@@ -298,14 +299,14 @@ export class SettingsSetupPage implements OnDestroy {
 
   installed(config: Config) {
     const mod = modId(config);
-    return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p)) ||
-      Object.values(this.admin.status.templates).find(t => t && mod === modId(t));
+    return Object.values(this.admin.status().plugins).find(p => p && mod === modId(p)) ||
+      Object.values(this.admin.status().templates).find(t => t && mod === modId(t));
   }
 
   disabled(config: Config) {
     const mod = modId(config);
-    return Object.values(this.admin.status.disabledPlugins).find(p => p && mod === modId(p)) ||
-      Object.values(this.admin.status.disabledTemplates).find(t => t && mod === modId(t));
+    return Object.values(this.admin.status().disabledPlugins).find(p => p && mod === modId(p)) ||
+      Object.values(this.admin.status().disabledTemplates).find(t => t && mod === modId(t));
   }
 
   modLabel([tag, e]: [string, Config]) {
@@ -315,23 +316,25 @@ export class SettingsSetupPage implements OnDestroy {
   applyMerge(bundle: Mod | null) {
     if (!this.mergeState() || !bundle) return;
     this.serverError.set([]);
-    const _ = (msg?: string) => this.installMessages.set([...this.installMessages(), msg!]);
-    this.mergeSaving.set(this.admin.updateMod$(this.mergeState()!.mod, bundle, this.admin.getMod(this.mergeState()!.mod)!, _)
+    const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
+    this.mergeSaving.set(true);
+    this.mergeSavingSubscription = this.admin.updateMod$(this.mergeState()!.mod, bundle, this.admin.getMod(this.mergeState()!.mod)!, _)
       .pipe(catchError((res: HttpErrorResponse) => {
-        this.mergeSaving.set(undefined);
+        this.mergeSaving.set(false);
         return throwError(() => res);
       }))
       .subscribe(() => {
         this.cancelMerge();
         this.reset();
         _($localize`Success.`);
-      }));
+      });
+    this.mergeSavingSubscription?.add(() => this.mergeSaving.set(false));
   }
 
   cancelMerge() {
     this.mergeState.set(undefined);
-    this.mergeSaving()?.unsubscribe();
-    this.mergeSaving.set(undefined);
+    this.mergeSavingSubscription?.unsubscribe();
+    this.mergeSaving.set(false);
     this.mergePopupSub.unsubscribe();
     this.mergePopupSub = new Subscription();
     this.mergePopupRef?.dispose();

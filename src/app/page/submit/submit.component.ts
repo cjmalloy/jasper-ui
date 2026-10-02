@@ -1,5 +1,6 @@
+import { controlValue } from '../../util/form';
 import { AsyncPipe } from '@angular/common';
-import { Component, OnDestroy, ChangeDetectionStrategy, effect, signal, untracked } from '@angular/core';
+import { computed, Component, ChangeDetectionStrategy, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -65,7 +66,9 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
     TagPreviewPipe,
   ],
 })
-export class SubmitPage implements OnDestroy {
+export class SubmitPage {
+  private readonly controlState0 = controlValue(() => this.submitForm);
+
 
   readonly uploading = signal<boolean>(false);
   readonly progress = signal<number | undefined>(undefined);
@@ -96,13 +99,13 @@ export class SubmitPage implements OnDestroy {
   ) {
     mod.setTitle($localize`Submit: Link`);
     this.submitForm = fb.group({
-      url: ['', [Validators.required], [this.validator]],
+      url: ['', [Validators.required], [this.validator()]],
       scrape: [true],
     });
     {
       store.submit.wikiPrefix.set(admin.getWikiPrefix());
-      store.submit.submitGenId.set(this.admin.submitGenId.filter(p => p.config?.submitDm || this.auth.canAddTag(p.tag)));
-      store.submit.submitDm.set(this.admin.submitDm);
+      store.submit.submitGenId.set(this.admin.submitGenId().filter(p => p.config?.submitDm || this.auth.canAddTag(p.tag)));
+      store.submit.submitDm.set(this.admin.submitDm());
     };
     effect(() => {
       this.store.submit.wiki();
@@ -137,38 +140,38 @@ export class SubmitPage implements OnDestroy {
     });
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.searching?.unsubscribe();
-  }
+  });
 
-  get selectedPlugin() {
+  readonly selectedPlugin = computed(() => {
     if (!this.plugin()) {
       this._selectedPlugin = undefined;
     } else if (this._selectedPlugin?.tag != this.plugin()) {
       this._selectedPlugin = this.admin.getPlugin(this.plugin());
     }
     return this._selectedPlugin;
-  }
+  });
 
   get url() {
     return this.submitForm.get('url') as UntypedFormControl;
   }
 
-  get placeholder() {
+  readonly placeholder = computed(() => {
     return this.store.submit.wiki() ? '' : $localize`URL...`;
-  }
+  });
 
   get wikify() {
     return wikiUriFormat(this.url.value);
   }
 
-  get validator(): AsyncValidatorFn {
+  readonly validator = computed<AsyncValidatorFn>(() => {
     return (control: AbstractControl) => this.validLink(control);
-  }
+  });
 
-  get bannedUrls() {
+  readonly bannedUrls = computed(() => {
     return this.admin.getTemplate('config/banlist')?.config?.bannedUrls || this.admin.def.templates['config/banlist']?.config?.bannedUrls;
-  }
+  });
 
   submitInternal(tag: string) {
     return uniq([...without(this.store.submit.tags(), ...this.store.submit.submitGenId().map(p => p.tag)), tag]);
@@ -205,19 +208,20 @@ export class SubmitPage implements OnDestroy {
 
   isShortener(url: string) {
     url = url.toLowerCase();
-    for (const frag of this.bannedUrls) {
+    for (const frag of this.bannedUrls()) {
       if (url.includes(frag)) return true;
     }
     return false;
   }
 
-  get repost() {
+  readonly repost = computed(() => {
+    this.controlState0();
     return !this.submitForm.valid && this.existingRef();
-  }
+  });
 
   submit() {
     let tags = this.store.submit.tags();
-    if (this.repost) {
+    if (this.repost()) {
       tags.push('plugin/repost')
     }
     if (this.url.value.trim().toLowerCase().startsWith('<iframe')) {

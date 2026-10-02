@@ -74,8 +74,8 @@ export class UserPage implements HasChanges {
               defer(() => this.userForm().setUser({
                 tag: this.store.view.localTag(),
                 origin: this.store.view.origin(),
-                readAccess: this.admin.readAccess.map(t => setPublic(prefix(t, this.store.view.localTag()))),
-                writeAccess: this.admin.writeAccess.map(t => setPublic(prefix(t, this.store.view.localTag()))),
+                readAccess: this.admin.readAccess().map(t => setPublic(prefix(t, this.store.view.localTag()))),
+                writeAccess: this.admin.writeAccess().map(t => setPublic(prefix(t, this.store.view.localTag()))),
               }));
             }
           });
@@ -129,14 +129,14 @@ export class UserPage implements HasChanges {
       if (!updates.external) delete updates.external;
       if (updates.external) updates.external = JSON.parse(updates.external);
     } catch (e: any) {
-      this.externalErrors.set([...this.externalErrors(), e.message]);
+      this.externalErrors.update(errors => [...errors, e.message]);
     }
     const entities: Observable<any>[] = [
       (this.store.view.selectedUser()
         ? this.users.update(updates)
         : this.users.create(updates)).pipe(
         catchError((res: HttpErrorResponse) => {
-          this.serverError.set([...this.serverError(), ...printError(res)]);
+          this.serverError.update(errors => [...errors, ...printError(res)]);
           return throwError(() => res);
         }),
       )
@@ -162,7 +162,7 @@ export class UserPage implements HasChanges {
       } else {
         entities.push(this.profiles.create(profile).pipe(
           catchError((res: HttpErrorResponse) => {
-            this.serverError.set([...this.serverError(), ...printError(res)]);
+            this.serverError.update(errors => [...errors, ...printError(res)]);
             return throwError(() => res);
           }),
         ));

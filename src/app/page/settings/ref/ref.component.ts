@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, viewChild, effect, signal, DestroyRef } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -17,7 +17,7 @@ import { getArgs } from '../../../util/query';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent],
 })
-export class SettingsRefPage implements OnDestroy, HasChanges {
+export class SettingsRefPage implements HasChanges {
 
   readonly plugin = signal<Plugin | undefined>(undefined);
   readonly writeAccess = signal<boolean>(false);
@@ -56,9 +56,9 @@ export class SettingsRefPage implements OnDestroy, HasChanges {
     return !list || list.saveChanges();
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 
   loadDefaults() {
     if (!this.plugin()?.config?.defaultsConfirm || confirm(this.plugin()?.config?.defaultsConfirm)) {
@@ -75,5 +75,5 @@ export class SettingsRefPage implements OnDestroy, HasChanges {
 
 export const getSettings = () => {
   const auth = inject(AuthzService);
-  return inject(AdminService).settings.find(p => auth.tagReadAccess(p.tag))?.tag || '';
+  return inject(AdminService).settings().find(p => auth.tagReadAccess(p.tag))?.tag || '';
 };

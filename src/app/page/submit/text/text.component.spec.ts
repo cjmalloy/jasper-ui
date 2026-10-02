@@ -38,6 +38,17 @@ describe('SubmitTextPage', () => {
     expect(component).toBeTruthy();
   });
 
+  it('adds completed uploads without mutating the previous snapshot', () => {
+    const previous = component.completedUploads();
+    const ref = { url: 'cache:uploaded' };
+
+    component.addCompletedUpload(ref);
+
+    expect(previous).toEqual([]);
+    expect(component.completedUploads()).toEqual([ref]);
+    expect(component.completedUploads()).not.toBe(previous);
+  });
+
   it('should initialize a generated url for text posts', () => {
     expect(component.url.value).toMatch(/^comment:/);
   });

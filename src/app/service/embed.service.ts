@@ -1,4 +1,4 @@
-import { Injectable, ViewContainerRef } from '@angular/core';
+import { computed, Injectable, ViewContainerRef } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, Token, Tokens, TokensList } from 'marked';
@@ -138,11 +138,11 @@ export class EmbedService {
           return out;
         }
       },
-      extensions: this.extensions,
+      extensions: this.extensions(),
     });
   }
 
-  private get extensions() {
+  private readonly extensions = computed(() => {
     const self = this;
     return [{
       name: 'userTag',
@@ -318,7 +318,7 @@ export class EmbedService {
         return `<sup>${this.parser.parseInline(token.tokens)}</sup>`;
       }
     }];
-  }
+  });
 
   /**
    * Post process a markdown render.
@@ -458,7 +458,7 @@ export class EmbedService {
                 t.parentNode?.insertBefore(warn, t);
                 t.remove();
               } else {
-                return this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined).pipe(
+                return this.oembeds.get(url, this.store.darkTheme() ? 'dark' : undefined).pipe(
                   catchError(() => of(null)),
                   map(oembed => {
                     const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
@@ -713,7 +713,7 @@ export class EmbedService {
     }
     const ext = exts.find(x => x.modifiedString && x.tag === view);
     if (ext) return ext;
-    const t = this.admin.view.find(t => t.tag === view);
+    const t = this.admin.view().find(t => t.tag === view);
     if (t) {
       return { tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } };
     }

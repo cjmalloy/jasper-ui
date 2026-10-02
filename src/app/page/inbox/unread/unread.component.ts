@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy, effect, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, untracked, DestroyRef, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -18,7 +18,7 @@ import { Store } from '../../../store/store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent]
 })
-export class InboxUnreadPage implements OnDestroy {
+export class InboxUnreadPage {
 
   private lastNotified?: DateTime;
 
@@ -64,11 +64,11 @@ export class InboxUnreadPage implements OnDestroy {
     });
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
     if (this.lastNotified) {
       this.account.clearNotifications(this.lastNotified);
     }
-  }
+  });
 
 }

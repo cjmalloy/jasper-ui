@@ -241,7 +241,7 @@ export class AccountService {
       if (count === 0) {
         this.clearNotifications(readDate);
       } else {
-        this.store.account.ignoreNotifications.set([...this.store.account.ignoreNotifications(), readDate.valueOf()]);
+        this.store.account.ignoreNotifications.update(dates => [...dates, readDate.valueOf()]);
       }
     });
   }

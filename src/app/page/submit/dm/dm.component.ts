@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, DestroyRef, ElementRef, forwardRef, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked } from '@angular/core';
+import { Component, DestroyRef, ElementRef, forwardRef, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -64,7 +64,9 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
     LoadingComponent,
   ]
 })
-export class SubmitDmPage implements AfterViewInit, HasChanges {
+export class SubmitDmPage implements HasChanges {
+  private readonly controlState0 = controlValue(() => this.to);
+
 
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
@@ -85,8 +87,10 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
   readonly preview = signal<string>('');
   readonly editing = signal<boolean>(false);
   readonly autocomplete = signal<{ value: string, label: string }[]>([]);
-  readonly submitting = signal<Subscription | undefined>(undefined);
-  readonly saving = signal<Subscription | undefined>(undefined);
+  readonly submitting = signal(false);
+  private submittingSubscription?: Subscription;
+  readonly saving = signal(false);
+  private savingSubscription?: Subscription;
   readonly completedUploads = signal<Ref[]>([]);
   private cursor?: string;
   private showedError = false;
@@ -119,7 +123,7 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
       const fill = this.fill();
       defer(() => this.limitWidth.set(fill?.nativeElement));
     });
-    if (this.admin.editing) {
+    if (this.admin.editing()) {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
@@ -128,15 +132,19 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
     }
   }
 
+  addCompletedUpload(ref: Ref) {
+    this.completedUploads.update(uploads => [...uploads, ref]);
+  }
+
   async saveChanges() {
-    if (this.admin.editing && this.dmForm.dirty) {
+    if (this.admin.editing() && this.dmForm.dirty) {
       return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
         .pipe(map(() => true), catchError(() => of(false))));
     }
     return !this.dmForm?.dirty;
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     effect(() => {
       this.store.submit.dmPlugin();
       this.store.submit.to();
@@ -155,7 +163,7 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
         if (tags.length) this.addTags(tags);
       });
     }, { injector: this.injector });
-  }
+  });
 
   get to() {
     return this.dmForm.get('to') as UntypedFormControl;
@@ -177,23 +185,26 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
     return this.dmForm.get('tags') as UntypedFormArray;
   }
 
-  get notes() {
+  readonly notes = computed(() => {
+    this.controlState0();
     return !this.to.value || this.to.value === this.store.account.tag();
-  }
+  });
 
   saveForLater(leave = false) {
     const savedValue = JSON.stringify(this.dmForm.value);
-    this.saving.set(this.refs.saveEdit(this.writeRef(), this.cursor)
+    this.saving.set(true);
+    this.savingSubscription = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        this.saving.set(undefined);
+        this.saving.set(false);
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        this.saving.set(undefined);
+        this.saving.set(false);
         this.cursor = cursor;
         if (JSON.stringify(this.dmForm.value) === savedValue) this.dmForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      }));
+      });
+    this.savingSubscription?.add(() => this.saving.set(false));
   }
 
   writeRef() {
@@ -210,7 +221,7 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
 
   addTags(value: string[]) {
     const tagsFormComponent = this.tagsFormComponent();
-    if (!tagsFormComponent?.tags) {
+    if (!tagsFormComponent?.tags()) {
       defer(() => {
         if (!this.destroyRef.destroyed) this.addTags(value);
       });
@@ -221,7 +232,7 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
 
   setTags(value: string[]) {
     const tagsFormComponent = this.tagsFormComponent();
-    if (!tagsFormComponent?.tags) {
+    if (!tagsFormComponent?.tags()) {
       defer(() => {
         if (!this.destroyRef.destroyed) this.setTags(value);
       });
@@ -342,14 +353,14 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
 
   readonly codeOptions = computed(() => ({
     language: this.codeLang(),
-    theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+    theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
     automaticLayout: true,
   }));
 
   readonly customEditor = computed(() => {
     const tags = this.tagsValue();
     if (!tags) return false;
-    return some(this.admin.editor, t => hasTag(t.tag, tags));
+    return some(this.admin.editor(), t => hasTag(t.tag, tags));
   });
 
   get top() {
@@ -370,7 +381,7 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
 
   submit() {
     if (this.saving()) {
-      this.saving()!.add(() => this.submit());
+      this.savingSubscription?.add(() => this.submit());
       return;
     }
     this.serverError.set([]);
@@ -395,7 +406,8 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
       tags: finalTags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
     };
-    this.submitting.set((this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
+    this.submitting.set(true);
+    this.submittingSubscription = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       switchMap(res => {
         const finalVisibilityTags = getVisibilityTags(finalTags);
         if (!finalVisibilityTags.length) return of(res);
@@ -405,16 +417,17 @@ export class SubmitDmPage implements AfterViewInit, HasChanges {
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        this.submitting.set(undefined);
+        this.submitting.set(false);
         this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.submitting.set(undefined);
+      this.submitting.set(false);
       this.dmForm.markAsPristine();
       this.completedUploads.set([]);
 
       this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }, replaceUrl: true});
-    }));
+    });
+    this.submittingSubscription?.add(() => this.submitting.set(false));
   }
 }
