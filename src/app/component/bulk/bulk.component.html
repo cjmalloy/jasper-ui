@@ -5,7 +5,7 @@
       <app-loading [batch]="true"></app-loading>
     }
   </summary>
-  @if (empty) {
+  @if (empty()) {
     <span i18n>no results</span>
   } @else {
     <span class="fake-link" (click)="download()" i18n>download</span>
@@ -29,8 +29,8 @@
                            [appTitle]="f">{{ f.tag.substring('plugin/'.length) }}</app-inline-plugin>
       }
       @for (a of groupedActions() | keyvalue; track a.key) {
-        @if (a.value[0].confirm) {
-          <app-confirm-action [message]="a.value[0].confirm!"
+        @if (a.value[0].confirm; as message) {
+          <app-confirm-action [message]="message"
                               [action]="doAction$(a.value)"
                               [appTitle]="a.value">{{ a.key }}</app-confirm-action>
         } @else {
@@ -42,6 +42,9 @@
   }
 
   @for (e of serverError(); track e) {
+    <div class="error">{{ e }}</div>
+  }
+  @for (e of defaultsError(); track e) {
     <div class="error">{{ e }}</div>
   }
 </details>
