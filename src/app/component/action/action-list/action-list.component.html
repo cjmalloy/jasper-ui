@@ -1,12 +1,14 @@
 @for (a of groupedActions() | keyvalue; track a.key; let i = $index) {
-  @if (i < actions() - hiddenActions()) {
-    @if (a.value[0].confirm) {
-      <app-confirm-action [action]="apply$(a.value)"
-                          [appTitle]="a.value">{{ a.key }}</app-confirm-action>
-    } @else {
-      <app-inline-button [action]="apply$(a.value)"
-                         [appTitle]="a.value">{{ a.key }}</app-inline-button>
-    }
+  @if (a.value[0].confirm) {
+    <app-confirm-action class="list-action"
+                        [class.overflow-action]="i >= actions() - hiddenActions()"
+                        [action]="apply$(a.value)"
+                        [appTitle]="a.value">{{ a.key }}</app-confirm-action>
+  } @else {
+    <app-inline-button class="list-action"
+                       [class.overflow-action]="i >= actions() - hiddenActions()"
+                       [action]="apply$(a.value)"
+                       [appTitle]="a.value">{{ a.key }}</app-inline-button>
   }
 }
 @if (advanced() || hiddenActions() || mediaAttachment()) {
