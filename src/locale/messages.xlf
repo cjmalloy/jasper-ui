@@ -6030,40 +6030,40 @@ Private tags start with an underscore.
         <source>Longitude</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">14,15</context>
+          <context context-type="linenumber">15,16</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">19,20</context>
+          <context context-type="linenumber">20,21</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8314090883669143391" datatype="html">
         <source>Latitude</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">29,30</context>
+          <context context-type="linenumber">30,31</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">36,37</context>
+          <context context-type="linenumber">37,38</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4772721104824624055" datatype="html">
         <source>Use current location</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">45,46</context>
+          <context context-type="linenumber">46,47</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">47,48</context>
+          <context context-type="linenumber">48,49</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3854602051337754678" datatype="html">
         <source>📍️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">51,52</context>
+          <context context-type="linenumber">52,53</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
@@ -6074,18 +6074,18 @@ Private tags start with an underscore.
         <source>Pick location on map</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">54,55</context>
+          <context context-type="linenumber">55,56</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">56,57</context>
+          <context context-type="linenumber">57,58</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8029759513718323145" datatype="html">
         <source>🗺️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">62,63</context>
+          <context context-type="linenumber">63,64</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
