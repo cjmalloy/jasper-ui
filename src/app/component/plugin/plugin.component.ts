@@ -1,11 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { pluginForm, PluginFormComponent } from '../../form/plugin/plugin.component';
+import { DiffComponent } from '../../form/diff/diff.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Plugin, writePlugin } from '../../model/plugin';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
@@ -26,7 +27,7 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent]
+  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent, DiffComponent]
 })
 export class PluginComponent implements OnChanges, HasChanges {
   css = 'plugin list-item';
@@ -35,6 +36,9 @@ export class PluginComponent implements OnChanges, HasChanges {
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
 
+  @ViewChild('diffEditor')
+  diffEditor?: DiffComponent<Plugin>;
+
   @Input()
   plugin!: Plugin;
 
@@ -42,6 +46,9 @@ export class PluginComponent implements OnChanges, HasChanges {
   submitted = false;
   editing = false;
   viewSource = false;
+  diffing = false;
+  diffLocal?: Plugin;
+  diffRemote?: Plugin;
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
@@ -49,6 +56,7 @@ export class PluginComponent implements OnChanges, HasChanges {
   defaultsErrors: string[] = [];
   schemaErrors: string[] = [];
   saving?: Subscription;
+  loadingDiff?: Subscription;
 
   constructor(
     private mod: ModService,
@@ -102,6 +110,57 @@ export class PluginComponent implements OnChanges, HasChanges {
 
   get local() {
     return this.origin === this.store.account.origin;
+  }
+
+  get canDiff() {
+    return !this.local && this.created && !!this.admin.getTemplate('config/diff');
+  }
+
+  toggleDiff() {
+    if (this.diffing || this.loadingDiff) {
+      this.loadingDiff?.unsubscribe();
+      delete this.loadingDiff;
+      this.diffing = false;
+      return;
+    }
+    this.serverError = [];
+    this.loadingDiff = this.plugins.get(this.plugin.tag + this.store.account.origin).pipe(
+      catchError((err: HttpErrorResponse) => {
+        delete this.loadingDiff;
+        this.serverError = err.status === 404
+          ? [$localize`No local version found.`]
+          : printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(local => {
+      delete this.loadingDiff;
+      this.diffLocal = local;
+      this.diffRemote = this.plugin;
+      this.editing = false;
+      this.viewSource = false;
+      this.diffing = true;
+    });
+  }
+
+  saveDiff() {
+    const merged = this.diffEditor?.getModifiedContent();
+    if (!merged || !this.diffLocal) return;
+    this.saving = this.plugins.update({
+      ...merged,
+      tag: this.diffLocal.tag,
+      origin: this.store.account.origin,
+      modifiedString: this.diffLocal.modifiedString,
+    }).pipe(
+      catchError((err: HttpErrorResponse) => {
+        delete this.saving;
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(() => {
+      delete this.saving;
+      this.serverError = [];
+      this.diffing = false;
+    });
   }
 
   save() {
