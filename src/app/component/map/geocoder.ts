@@ -2,7 +2,7 @@ import MaplibreGeocoder, { type CarmenGeojsonFeature, type MaplibreGeocoderSugge
 import type { Map } from 'maplibre-gl';
 import { GeocodeService } from '../../service/geocode.service';
 import { isPosition } from '../../util/geo';
-import { GeocodeResult, GeocoderPosition } from '../../util/geocode';
+import { GeocodeResult, GeocoderPosition, GeocodeView } from '../../util/geocode';
 
 const DARK_BASEMAP = /dark|satellite|hybrid/i;
 
@@ -43,6 +43,25 @@ export function isDarkBasemap(style?: { name?: string }) {
 }
 
 /**
+ * The current map view, used to bias geocoding results.
+ */
+export function currentView(map: Map): GeocodeView | undefined {
+  try {
+    const c = map.getCenter().wrap();
+    const view: GeocodeView = { center: [c.lng, c.lat] };
+    const b = map.getBounds();
+    const west = clamp(b.getWest(), -180, 180);
+    const east = clamp(b.getEast(), -180, 180);
+    const south = clamp(b.getSouth(), -90, 90);
+    const north = clamp(b.getNorth(), -90, 90);
+    if (west < east && south < north) view.bbox = [west, south, east, north];
+    return view;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Add an address search control to the map. Choosing a result moves the map
  * and calls onResult with the location found.
  * Returns a function to remove the control.
@@ -60,7 +79,7 @@ export function addGeocoder(
   }, {
     externalGeocoder: async query => {
       try {
-        return toFeatureCollection(await geocoder.geocode(query)).features;
+        return toFeatureCollection(await geocoder.geocode(query, undefined, currentView(map))).features;
       } catch (e) {
         console.error('Geocoding error:', e);
         throw e;
@@ -115,6 +134,10 @@ export function addGeocoder(
       map.removeControl(control);
     } catch { }
   };
+}
+
+function clamp(n: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, n));
 }
 
 function escapeHtml(text: string) {

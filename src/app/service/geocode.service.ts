@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { catchError, firstValueFrom, map, Observable, of, timeout } from 'rxjs';
 import { mapTemplate } from '../mods/map';
 import { Store } from '../store/store';
-import { geocode, GeocodeResult, GeocodingConfig, reverseGeocode } from '../util/geocode';
+import { geocode, GeocodeResult, GeocodeView, GeocodingConfig, reverseGeocode } from '../util/geocode';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 
@@ -34,8 +34,8 @@ export class GeocodeService {
     );
   }
 
-  async geocode(query: string, signal?: AbortSignal): Promise<GeocodeResult[]> {
-    return geocode(query, await firstValueFrom(this.config$), signal);
+  async geocode(query: string, signal?: AbortSignal, view?: GeocodeView): Promise<GeocodeResult[]> {
+    return geocode(query, await firstValueFrom(this.config$), signal, view);
   }
 
   async reverse(location: [number, number], signal?: AbortSignal): Promise<GeocodeResult | undefined> {

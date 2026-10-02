@@ -6,15 +6,15 @@
              (mapError)="onMapError($event)"
              (mapLoad)="mapLoaded($event)"
              appResizeHandle>
+      <mgl-control mglScale
+                   position="bottom-left"
+                   unit="imperial"></mgl-control>
       <mgl-control mglNavigation
                    position="bottom-left"
                    [visualizePitch]="true"
                    [visualizeRoll]="true"
                    [showCompass]="true"
                    [showZoom]="true"></mgl-control>
-      <mgl-control mglScale
-                   position="bottom-left"
-                   unit="imperial"></mgl-control>
     </mgl-map>
     @if (pageControls) {
       <app-page-controls [page]="page"></app-page-controls>

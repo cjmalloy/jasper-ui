@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import type { Map } from 'maplibre-gl';
 import { GeocodeService } from '../../service/geocode.service';
-import { addGeocoder, isDarkBasemap, renderResult, toFeatureCollection } from './geocoder';
+import { addGeocoder, currentView, isDarkBasemap, renderResult, toFeatureCollection } from './geocoder';
 
 describe('geocoder', () => {
 
@@ -84,5 +84,16 @@ describe('geocoder', () => {
     remove();
     control._eventEmitter.emit('result', { result: feature });
     expect(onResult).toHaveBeenCalledTimes(1);
+  });
+
+  it('gets the current view', () => {
+    const map = (center: [number, number], [w, s, e, n]: number[]) => ({
+      getCenter: () => ({ wrap: () => ({ lng: center[0], lat: center[1] }) }),
+      getBounds: () => ({ getWest: () => w, getSouth: () => s, getEast: () => e, getNorth: () => n }),
+    }) as unknown as Map;
+    expect(currentView(map([-63.5, 44.6], [-64, 44, -63, 45]))).toEqual({ center: [-63.5, 44.6], bbox: [-64, 44, -63, 45] });
+    expect(currentView(map([0, 0], [-200, -95, 200, 95]))).toEqual({ center: [0, 0], bbox: [-180, -90, 180, 90] });
+    expect(currentView(map([0, 0], [170, -10, 190, 10]))).toEqual({ center: [0, 0], bbox: [170, -10, 180, 10] });
+    expect(currentView(map([0, 0], [190, -10, 200, 10]))).toEqual({ center: [0, 0] });
   });
 });

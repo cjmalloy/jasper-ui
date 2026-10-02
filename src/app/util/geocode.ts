@@ -14,21 +14,32 @@ export interface GeocodeResult {
   location: [number, number];
 }
 
+export interface GeocodeView {
+  /** [longitude, latitude] */
+  center: [number, number];
+  /** [west, south, east, north] */
+  bbox?: [number, number, number, number];
+}
+
 export const DEFAULT_PHOTON_URL = 'https://photon.komoot.io';
 export const GOOGLE_GEOCODE_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
 export const NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
 
-const LIMIT = 5;
+const LIMIT = 10;
 
-export function geocodeUrl(query: string, config: GeocodingConfig): string {
+export function geocodeUrl(query: string, config: GeocodingConfig, view?: GeocodeView): string {
   const q = encodeURIComponent(query);
+  const [west, south, east, north] = view?.bbox || [];
   switch (provider(config)) {
     case 'google':
-      return `${GOOGLE_GEOCODE_URL}?address=${q}&key=${encodeURIComponent(googleKey(config))}`;
+      return `${GOOGLE_GEOCODE_URL}?address=${q}&key=${encodeURIComponent(googleKey(config))}`
+        + (view?.bbox ? `&bounds=${south},${west}|${north},${east}` : '');
     case 'photon':
-      return `${photonUrl(config)}/api/?q=${q}&limit=${LIMIT}`;
+      return `${photonUrl(config)}/api/?q=${q}&limit=${LIMIT}`
+        + (view ? `&lat=${view.center[1]}&lon=${view.center[0]}` : '');
     default:
-      return `${NOMINATIM_URL}/search?format=jsonv2&limit=${LIMIT}&q=${q}`;
+      return `${NOMINATIM_URL}/search?format=jsonv2&limit=${LIMIT}&q=${q}`
+        + (view?.bbox ? `&viewbox=${west},${south},${east},${north}` : '');
   }
 }
 
@@ -75,9 +86,21 @@ export function parseGeocode(response: any, config: GeocodingConfig): GeocodeRes
 /**
  * Find locations matching an address or place name.
  */
-export async function geocode(query: string, config: GeocodingConfig, signal?: AbortSignal): Promise<GeocodeResult[]> {
+export async function geocode(query: string, config: GeocodingConfig, signal?: AbortSignal, view?: GeocodeView): Promise<GeocodeResult[]> {
   if (!query.trim()) return [];
-  return parseGeocode(await get(geocodeUrl(query.trim(), config), signal), config);
+  const results = parseGeocode(await get(geocodeUrl(query.trim(), config, view), signal), config);
+  return view ? sortByDistance(results, view.center) : results;
+}
+
+/**
+ * Sort results nearest first by great-circle distance. Ties keep the
+ * provider's order.
+ */
+export function sortByDistance(results: GeocodeResult[], center: [number, number]): GeocodeResult[] {
+  return results
+    .map((r, i) => ({ r, i, d: distance(r.location, center) }))
+    .sort((a, b) => a.d - b.d || a.i - b.i)
+    .map(({ r }) => r);
 }
 
 /**
@@ -93,6 +116,17 @@ export async function reverseGeocode(location: [number, number], config: Geocodi
 export function isConfigured(config: GeocodingConfig) {
   if (!config.geocodingProvider) return false;
   return provider(config) !== 'google' || !!config.googleMapsApiKey;
+}
+
+/**
+ * Haversine distance in radians.
+ */
+function distance([lng1, lat1]: [number, number], [lng2, lat2]: [number, number]) {
+  const rad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * rad;
+  const dLng = (lng2 - lng1) * rad;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2;
+  return 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 function provider(config: GeocodingConfig): GeocodingProvider {
