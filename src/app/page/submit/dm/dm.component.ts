@@ -12,7 +12,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { debounce, defer, some, uniq, without } from 'lodash-es';
+import { debounce, defer, isEqual, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, firstValueFrom, forkJoin, interval, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -355,7 +355,7 @@ export class SubmitDmPage implements HasChanges {
     language: this.codeLang(),
     theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
     automaticLayout: true,
-  }));
+  }), { equal: isEqual });
 
   readonly customEditor = computed(() => {
     const tags = this.tagsValue();

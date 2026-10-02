@@ -18,7 +18,7 @@ import {
   UntypedFormControl,
   UntypedFormGroup
 } from '@angular/forms';
-import { defer, some } from 'lodash-es';
+import { defer, isEqual, some } from 'lodash-es';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -245,7 +245,7 @@ export class RefFormComponent {
     language: this.codeLang(),
     theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
     automaticLayout: true,
-  }));
+  }), { equal: isEqual });
 
   readonly customEditor = computed(() => {
     this.rootControlState();

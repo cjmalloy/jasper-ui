@@ -9,7 +9,7 @@ import {
   UntypedFormGroup
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, some, uniq, without } from 'lodash-es';
+import { defer, isEqual, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, firstValueFrom, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -309,7 +309,7 @@ export class SubmitTextPage implements HasChanges {
     language: this.codeLang(),
     theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
     automaticLayout: true,
-  }));
+  }), { equal: isEqual });
 
   readonly customEditor = computed(() => {
     const tags = this.tagsValue();

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input, linkedSignal, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { isEqual } from 'lodash-es';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
@@ -29,14 +30,18 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   readonly modifiedChange = output<T>();
 
   private readonly entity = computed(() => 'url' in this.original() || 'tag' in this.original());
+  /**
+   * Models and options bound to the Monaco diff editor must stay referentially
+   * stable: every new reference makes ngx-monaco-editor rebuild the editor.
+   */
   readonly originalModel = computed<DiffEditorModel>(() => ({
     code: (this.entity() ? formatDiff : formatBundleDiff)(this.original() as any),
     language: 'json',
-  }));
-  readonly modifiedModel = linkedSignal<DiffEditorModel>(() => ({
+  }), { equal: isEqual });
+  readonly modifiedModel = computed<DiffEditorModel>(() => ({
     code: (this.entity() ? formatDiff : formatBundleDiff)(this.modified() as any),
     language: 'json',
-  }));
+  }), { equal: isEqual });
 
   readonly options = computed(() => ({
     language: 'json',
@@ -44,7 +49,9 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
     renderSideBySide: !this.config.mobile,
     theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
     readOnly: this.readOnly(),
-  }));
+  }), { equal: isEqual });
+
+  private editor?: any;
 
   constructor(
     public config: ConfigService,
@@ -52,17 +59,12 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   ) { }
 
   initEditor(editor: any) {
-    editor.onDidUpdateDiff(() => {
-      this.modifiedModel.set({
-        ...this.modifiedModel(),
-        code: editor.getModel().modified.getValue(),
-      });
-    });
+    this.editor = editor;
   }
 
   getModifiedContent(): T | null {
     try {
-      return JSON.parse(this.modifiedModel().code);
+      return JSON.parse(this.editor?.getModel()?.modified?.getValue() ?? this.modifiedModel().code);
     } catch (e) {
       // TODO: Show error in editor
       return null;

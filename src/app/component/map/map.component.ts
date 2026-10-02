@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, untracked, ViewEncapsulation, DestroyRef, inject } from '@angular/core';
+import { isEqual } from 'lodash-es';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
@@ -89,7 +90,7 @@ export class MapComponent implements HasChanges {
       ...this.ext()?.config?.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
       ...this.admin.getTemplate('map')?.config?.mapStyle || {},
     };
-  });
+  }, { equal: isEqual });
 
   saveChanges() {
     return true;

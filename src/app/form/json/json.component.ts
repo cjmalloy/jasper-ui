@@ -1,5 +1,6 @@
 import { controlValue } from '../../util/form';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { isEqual } from 'lodash-es';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -25,7 +26,7 @@ export class JsonComponent {
     language: 'json',
     automaticLayout: true,
     theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
-  }));
+  }), { equal: isEqual });
 
   constructor(
     public config: ConfigService,

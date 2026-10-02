@@ -1,4 +1,5 @@
 import { computed, ChangeDetectionStrategy, Component, effect, signal, ViewEncapsulation, input, untracked, DestroyRef, inject } from '@angular/core';
+import { isEqual } from 'lodash-es';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
@@ -72,7 +73,7 @@ export class GridComponent implements HasChanges {
 
   readonly columnDefs = computed<ColDef[]>(() => {
     return this.applyFormatters(this.ext()?.config?.columnDefs || this.defaultCols());
-  });
+  }, { equal: isEqual });
 
   applyFormatters(cols: ColDef[]): ColDef[] {
     return cols.map(col => {

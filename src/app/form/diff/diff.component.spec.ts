@@ -75,15 +75,35 @@ describe('DiffComponent', () => {
     expect(fixture.nativeElement.querySelector('.resize-handle')).toBeFalsy();
   });
 
+  function fakeEditor(code: string) {
+    return { getModel: () => ({ modified: { getValue: () => code } }) };
+  }
+
   it('should return parsed JSON from getModifiedContent', () => {
-    component.modifiedModel.update(m => ({ ...m, code: '{"url":"http://test.com","title":"Test"}' }));
+    component.initEditor(fakeEditor('{"url":"http://test.com","title":"Test"}'));
     const content = component.getModifiedContent();
     expect(content).toEqual({ url: 'http://test.com', title: 'Test' });
   });
 
+  it('should return unedited modified content before the editor loads', () => {
+    expect(component.getModifiedContent()).toEqual(expect.objectContaining({ title: 'Modified' }));
+  });
+
   it('should return null for invalid JSON in getModifiedContent', () => {
-    component.modifiedModel.update(m => ({ ...m, code: 'not valid json' }));
+    component.initEditor(fakeEditor('not valid json'));
     const content = component.getModifiedContent();
     expect(content).toBeNull();
+  });
+
+  it('should keep editor models and options referentially stable', () => {
+    const original = component.originalModel();
+    const modified = component.modifiedModel();
+    const options = component.options();
+    component.initEditor(fakeEditor('{"edited":true}'));
+    fixture.componentRef.setInput('modified', { url: 'http://test.com', origin: '', title: 'Modified' });
+    fixture.detectChanges();
+    expect(component.originalModel()).toBe(original);
+    expect(component.modifiedModel()).toBe(modified);
+    expect(component.options()).toBe(options);
   });
 });
