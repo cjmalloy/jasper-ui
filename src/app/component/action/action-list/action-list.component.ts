@@ -9,12 +9,12 @@ import {
   ElementRef,
   HostListener,
   Input,
-  NgZone,
   OnChanges,
   SimpleChanges,
   TemplateRef,
   ViewContainerRef,
   input,
+  signal,
   viewChild
 } from '@angular/core';
 import { defer } from 'lodash-es';
@@ -34,7 +34,7 @@ import { ProxyService } from '../../../service/api/proxy.service';
   selector: 'app-action-list',
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class ActionListComponent implements AfterViewInit, OnChanges {
@@ -52,8 +52,11 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   readonly actionsMenu = viewChild.required<TemplateRef<any>>('actionsMenu');
 
-  hiddenActions = 0;
+  private readonly hiddenActionsSignal = signal(0);
   overlayRef?: OverlayRef;
+
+  get hiddenActions() { return this.hiddenActionsSignal(); }
+  set hiddenActions(value: number) { this.hiddenActionsSignal.set(value); }
 
   private overlayEvents?: Subscription;
   private overlayResizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.overlayRef?.updatePosition()) || undefined;
@@ -66,7 +69,6 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
     private overlay: Overlay,
     private el: ElementRef<HTMLElement>,
     private viewContainerRef: ViewContainerRef,
-    private zone: NgZone,
   ) { }
 
   ngAfterViewInit() {
@@ -169,7 +171,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
           case 'touchstart':
           case 'mousedown':
           case 'contextmenu':
-            this.zone.run(() => this.closeAdvanced());
+            this.closeAdvanced();
         }
       });
       this.overlayResizeObserver?.observe(this.overlayRef.overlayElement);

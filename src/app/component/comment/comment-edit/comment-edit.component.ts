@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { DestroyRef, inject, AfterViewInit, Component, forwardRef, Input, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { DestroyRef, inject, AfterViewInit, Component, forwardRef, Input, ChangeDetectionStrategy, viewChild, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
@@ -24,13 +24,19 @@ import { LoadingComponent } from '../../loading/loading.component';
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],
   host: { 'class': 'comment-edit' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => EditorComponent),
     LoadingComponent,
   ]
 })
 export class CommentEditComponent implements AfterViewInit, HasChanges {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
   private destroyRef = inject(DestroyRef);
 
   serverError: string[] = [];
@@ -147,6 +153,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
       catchError((res: HttpErrorResponse) => {
         delete this.editing;
         this.serverError = printError(res);
+        this.markState();
         return throwError(() => res);
       }),
     ).subscribe(res => {
@@ -155,6 +162,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
       this.completedUploads = [];
 
       this.commentEdited$.next(res);
+      this.markState();
     });
   }
 

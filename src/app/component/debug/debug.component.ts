@@ -22,7 +22,7 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './debug.component.html',
   styleUrls: ['./debug.component.scss'],
   host: { 'class': 'debug actions' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, LoadingComponent]
 })
 export class DebugComponent {

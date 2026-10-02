@@ -8,6 +8,7 @@ import {
   SimpleChanges,
   ViewChild,
   ChangeDetectionStrategy,
+  signal,
   viewChildren
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
@@ -48,7 +49,7 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   host: { 'class': 'profile list-item' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserComponent implements OnChanges, HasChanges {
@@ -56,22 +57,39 @@ export class UserComponent implements OnChanges, HasChanges {
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
+  private readonly _profile = signal<Profile | undefined>(undefined);
+  private readonly _user = signal<User | undefined>(undefined);
+  private readonly _ext = signal<Ext | undefined>(undefined);
+  private readonly _deleted = signal(false);
+  private readonly _writeAccess = signal(false);
+  private readonly _serverError = signal<string[]>([]);
+  private readonly _externalErrors = signal<string[]>([]);
+  private readonly _genKey = signal(false);
+
   @Input()
-  profile?: Profile;
+  get profile() { return this._profile(); }
+  set profile(value: Profile | undefined) { this._profile.set(value); }
   @Input()
-  user?: User;
+  get user() { return this._user(); }
+  set user(value: User | undefined) { this._user.set(value); }
 
   editForm: UntypedFormGroup;
-  ext?: Ext;
+  get ext() { return this._ext(); }
+  set ext(value: Ext | undefined) { this._ext.set(value); }
   submitted = false;
   editing = false;
   viewSource = false;
-  genKey = false;
+  get genKey() { return this._genKey(); }
+  set genKey(value: boolean) { this._genKey.set(value); }
   @HostBinding('class.deleted')
-  deleted = false;
-  writeAccess = false;
-  serverError: string[] = [];
-  externalErrors: string[] = [];
+  get deleted() { return this._deleted(); }
+  set deleted(value: boolean) { this._deleted.set(value); }
+  get writeAccess() { return this._writeAccess(); }
+  set writeAccess(value: boolean) { this._writeAccess.set(value); }
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
+  get externalErrors() { return this._externalErrors(); }
+  set externalErrors(value: string[]) { this._externalErrors.set(value); }
 
   constructor(
     public admin: AdminService,
@@ -216,12 +234,11 @@ export class UserComponent implements OnChanges, HasChanges {
         }),
       );
     } else {
-      this.user ||= { tag: this.qualifiedTag };
-      this.user.role = role;
-      return this.users.update(this.user).pipe(
+      const user = { ...(this.user || { tag: this.qualifiedTag }), role };
+      this.user = user;
+      return this.users.update(user).pipe(
         tap(cursor => {
-          this.user!.modifiedString = cursor;
-          this.user!.modified = DateTime.fromISO(cursor);
+          this.user = { ...this.user!, modifiedString: cursor, modified: DateTime.fromISO(cursor) };
           this.init();
         }),
         catchError((res: HttpErrorResponse) => {
@@ -290,9 +307,7 @@ export class UserComponent implements OnChanges, HasChanges {
       }),
     ).subscribe(cursor => {
       this.editForm.reset();
-      this.user = updates;
-      this.user.modifiedString = cursor;
-      this.user.modified = DateTime.fromISO(cursor);
+      this.user = { ...updates, modifiedString: cursor, modified: DateTime.fromISO(cursor) };
       this.serverError = [];
       this.editing = false;
       this.init();
@@ -330,7 +345,7 @@ export class UserComponent implements OnChanges, HasChanges {
     if (this.profile) {
       os.push(this.profiles.delete(this.qualifiedTag).pipe(
         catchError((err: HttpErrorResponse) => {
-          this.serverError.push(...printError(err));
+          this.serverError = [...this.serverError, ...printError(err)];
           return throwError(() => err);
         }),
       ));
@@ -344,7 +359,7 @@ export class UserComponent implements OnChanges, HasChanges {
     this.serverError = [];
     return this.users.keygen(this.qualifiedTag).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError.push(...printError(err));
+        this.serverError = [...this.serverError, ...printError(err)];
         return throwError(() => err);
       }),
       switchMap(() => this.users.get(this.qualifiedTag)),

@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, effect, inject, Injector, signal } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -12,8 +12,6 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { debounce, defer, isString, uniq, uniqBy, without } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, forkJoin, map, mergeMap, Observable, of, Subscription, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -48,10 +46,9 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RefComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     RouterOutlet,
@@ -69,24 +66,41 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   ],
 })
 export class SubmitPage implements OnInit, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+
+  private readonly injector = inject(Injector);
+
+  private readonly _uploading = signal<boolean>(false);
+  get uploading() { return this._uploading(); }
+  set uploading(value: boolean) { this._uploading.set(value); }
+  private readonly _progress = signal<number | undefined>(undefined);
+  get progress() { return this._progress(); }
+  set progress(value: number | undefined) { this._progress.set(value); }
+  private readonly _validations = signal<Validation[]>([]);
+  get validations() { return this._validations(); }
+  set validations(value: Validation[]) { this._validations.set(value); }
+  private readonly _serverErrors = signal<string[]>([]);
+  get serverErrors() { return this._serverErrors(); }
+  set serverErrors(value: string[]) { this._serverErrors.set(value); }
+  private readonly _existingRef = signal<Ref | undefined>(undefined);
+  get existingRef() { return this._existingRef(); }
+  set existingRef(value: Ref | undefined) { this._existingRef.set(value); }
+  private readonly _responsesToUrl = signal<Page<Ref>>(Page.of([]));
+  get responsesToUrl() { return this._responsesToUrl(); }
+  set responsesToUrl(value: Page<Ref>) { this._responsesToUrl.set(value); }
+  private readonly _responsesToUrlFor = signal<string | undefined>(undefined);
+  get responsesToUrlFor() { return this._responsesToUrlFor(); }
+  set responsesToUrlFor(value: string | undefined) { this._responsesToUrlFor.set(value); }
+  private readonly _autocomplete = signal<{ value: string, label: string }[]>([]);
+  get autocomplete() { return this._autocomplete(); }
+  set autocomplete(value: { value: string, label: string }[]) { this._autocomplete.set(value); }
 
   submitForm: UntypedFormGroup;
-
-  uploading = false;
-  progress?: number;
-  validations: Validation[] = [];
 
   genUrl = 'internal:' + uuid();
   plugin = '';
   private _selectedPlugin?: Plugin;
-  serverErrors: string[] = [];
-  existingRef?: Ref;
-  responsesToUrl: Page<Ref> = Page.of([]);
-  responsesToUrlFor?: string;
 
   listId = 'list-' + uuid();
-  autocomplete: { value: string, label: string }[] = [];
   private searching?: Subscription;
 
   constructor(
@@ -103,25 +117,26 @@ export class SubmitPage implements OnInit, OnDestroy {
       url: ['', [Validators.required], [this.validator]],
       scrape: [true],
     });
-    runInAction(() => {
+    {
       store.submit.wikiPrefix = admin.getWikiPrefix();
       store.submit.submitGenId = this.admin.submitGenId.filter(p => p.config?.submitDm || this.auth.canAddTag(p.tag));
       store.submit.submitDm = this.admin.submitDm;
-    });
+    };
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
-      this.validations.length = 0;
+    effect(() => {
+      const validations: Validation[] = [];
       if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-        this.validations.push({ name: $localize`Valid title`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
-        this.validations.push({ name: $localize`Not created yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
+        validations.push({ name: $localize`Valid title`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
+        validations.push({ name: $localize`Not created yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
       } else {
         this.url.setValue(this.store.submit.url);
-        this.validations.push({ name: $localize`Valid link`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
-        this.validations.push({ name: $localize`Not submitted yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
-        this.validations.push({ name: $localize`No link shorteners`, passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
+        validations.push({ name: $localize`Valid link`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
+        validations.push({ name: $localize`Not submitted yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
+        validations.push({ name: $localize`No link shorteners`, passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
       }
+      this.validations = validations;
       this.url.updateValueAndValidity();
       if (this.url.value) {
         const tags = [
@@ -135,12 +150,10 @@ export class SubmitPage implements OnInit, OnDestroy {
           }
         }
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.searching?.unsubscribe();
   }
 
@@ -325,7 +338,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     }
     if (!files.length) return false;
     event.preventDefault();
-    runInAction(() => this.store.submit.setEmbedFiles(files));
+    this.store.submit.setEmbedFiles(files);
     this.router.navigate(['/submit/text'], { queryParams: { tag: this.store.submit.tags } });
     return true;
   }

@@ -5,7 +5,7 @@ import {
 } from '@angular/cdk/scrolling';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpEventType } from '@angular/common/http';
-import { DestroyRef, inject, Component, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy, input, viewChild } from '@angular/core';
+import { DestroyRef, inject, Component, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy, input, viewChild, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
@@ -59,7 +59,7 @@ export interface ChatUpload {
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   host: { 'class': 'chat ext' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     ChatEntryComponent,
@@ -72,6 +72,12 @@ export interface ChatUpload {
   ],
 })
 export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
   private destroyRef = inject(DestroyRef);
   itemSize = 18.5;
 
@@ -205,6 +211,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       catchError(err => {
         this.setPoll(true);
         this.messages ||= [];
+        this.markState();
         return throwError(() => err);
       }),
       takeUntilDestroyed(this.destroyRef),
@@ -220,6 +227,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
       defer(() => this.viewport().checkViewportSize());
       if (!this.scrollLock) this.scrollDown();
+      this.markState();
     });
   }
 
@@ -243,6 +251,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         this.loadingPrev = false;
         this.messages ||= [];
         this.setPoll(true);
+        this.markState();
         return throwError(() => err);
       }),
       takeUntilDestroyed(this.destroyRef),
@@ -266,6 +275,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       } else {
         this.viewport().scrollToIndex(0, 'smooth');
       }
+      this.markState();
     });
   }
 
@@ -368,6 +378,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
             sources: [ ref.url, ...ref.sources || [] ],
           };
           this.sending.push(ref);
+          this.markState();
           return this.refs.create(ref);
         } else if (err.status === 409) {
           // Ref already exists, repost
@@ -381,6 +392,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         } else {
           pull(this.sending, ref);
           this.errored.push(ref);
+          this.markState();
         }
         return throwError(err);
       }),
@@ -397,15 +409,18 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
             sources: [ ref.url, ...ref.sources || [] ],
           };
           this.sending.push(ref);
+          this.markState();
           return this.refs.create(ref);
         } else {
           pull(this.sending, ref);
           this.errored.push(ref);
+          this.markState();
         }
         return throwError(err);
       }),
     )).subscribe(cursor => {
       this.fetch();
+      this.markState();
     });
   }
 
@@ -516,6 +531,8 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         progress: 0
       };
       this.uploads.push(upload);
+      this.uploads = [...this.uploads];
+      this.markState();
       upload.subscription = this.upload$(file, upload).subscribe(ref => {
         if (ref && !upload.error) {
           upload.completed = true;
@@ -524,6 +541,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
           this.add(ref.url);
           this.uploads = this.uploads.filter(u => u.id !== upload.id);
         }
+        this.markState();
       });
     });
   }
@@ -542,6 +560,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         ])
       };
       upload.progress = 50; // Simulate progress for text files
+      this.markState();
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
@@ -552,10 +571,14 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
           ref.modified = DateTime.fromISO(cursor);
           return ref;
         }),
-        tap(() => upload.progress = 100),
+        tap(() => {
+          upload.progress = 100;
+          this.markState();
+        }),
         catchError(err => {
           upload.error = err.message || $localize`Upload failed`;
           upload.progress = 0;
+          this.markState();
           return readFileAsDataURL(file).pipe(map(url => ({
             ...ref,
             url,
@@ -582,6 +605,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
               upload.progress = percentDone;
+              this.markState();
               return null;
           }
           return null;
@@ -598,6 +622,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         catchError(err => {
           upload.error = err.message || $localize`Upload failed`;
           upload.progress = 0;
+          this.markState();
           return readFileAsDataURL(file).pipe(map(url => ({
             url,
             tags,

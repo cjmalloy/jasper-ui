@@ -4,8 +4,8 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
+  effect,
   ElementRef,
   forwardRef,
   HostListener,
@@ -20,8 +20,6 @@ import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import { filter } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -46,13 +44,10 @@ import { RefListComponent } from '../../ref/ref-list/ref-list.component';
   imports: [
     FakeLinkDirective,
     forwardRef(() => RefListComponent),
-    MobxAngularModule,
     LoadingComponent,
   ],
 })
 export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
-
   readonly filter = input<string[]>();
   readonly depth = input(0);
   readonly tag = input<(string | null) | undefined>('science');
@@ -100,8 +95,17 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     private graphs: GraphService,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
-    private cd: ChangeDetectorRef,
   ) {
+    effect(() => {
+      this.store.graph.nodes;
+      this.store.graph.links;
+      this.store.graph.selected;
+      this.store.graph.timeline;
+      this.store.graph.arrows;
+      this.selectedStroke = this.store.darkTheme ? this.selectedStrokeDarkTheme() : this.selectedStrokeLightTheme();
+      this.linkStroke = this.store.darkTheme ? this.linkStrokeDarkTheme() : this.linkStrokeLightTheme();
+      this.update();
+    });
   }
 
   saveChanges() {
@@ -110,8 +114,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.store.graph.set([]);
   }
 
@@ -129,23 +131,15 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
             if (this.figure()) {
               this.update()
             }
-            this.cd.markForCheck();
           });
         } else if (this.figure()) {
           this.update();
         }
-        this.cd.markForCheck();
       });
   }
 
   ngAfterViewInit(): void {
     this.init();
-    this.disposers.push(autorun(() => {
-      this.selectedStroke = this.store.darkTheme ? this.selectedStrokeDarkTheme() : this.selectedStrokeLightTheme();
-      this.linkStroke = this.store.darkTheme ? this.linkStrokeDarkTheme() : this.linkStrokeLightTheme();
-      this.update();
-      this.cd.markForCheck();
-    }));
   }
 
   @HostListener('window:resize')
@@ -183,7 +177,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
-      this.cd.markForCheck();
     });
   }
 
@@ -287,7 +280,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
-      this.cd.markForCheck();
     });
     this.close();
   }
@@ -298,7 +290,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
-      this.cd.markForCheck();
     });
     this.close();
   }
@@ -311,7 +302,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
-      this.cd.markForCheck();
     });
     this.close();
   }
@@ -336,12 +326,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
 
   toggleTimeline() {
     this.simulation?.alpha(0.5);
-    runInAction(() => this.store.graph.timeline = !this.store.graph.timeline);
+    this.store.graph.timeline = !this.store.graph.timeline;
     this.close();
   }
 
   toggleArrows() {
-    runInAction(() => this.store.graph.arrows = !this.store.graph.arrows);
+    this.store.graph.arrows = !this.store.graph.arrows;
     this.close();
   }
 

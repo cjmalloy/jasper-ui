@@ -10,7 +10,8 @@ import {
   OnInit,
   SimpleChanges,
   ChangeDetectionStrategy,
-  output
+  output,
+  signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Chess, Square } from 'chess.js';
@@ -33,35 +34,66 @@ type AnimationState = { from: Square; to: Square; capture?: { square: Square; pi
   styleUrls: ['./chess.component.scss'],
   hostDirectives: [CdkDropListGroup],
   host: { 'class': 'chess-board' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CdkDropList, CdkDrag]
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
+  private readonly refSignal = signal<Ref | undefined>(undefined);
+  private readonly textSignal = signal<string | undefined>('');
+  private readonly whiteSignal = signal(true);
   @Input()
-  ref?: Ref;
+  set ref(value: Ref | undefined) { this.refSignal.set(value); }
+  get ref() { return this.refSignal(); }
   @Input()
-  text? = '';
+  set text(value: string | undefined) { this.textSignal.set(value); }
+  get text() { return this.textSignal(); }
   @Input()
-  white = true; // TODO: Save in local storage
+  set white(value: boolean) { this.whiteSignal.set(value); }
+  get white() { return this.whiteSignal(); } // TODO: Save in local storage
   readonly comment = output<string>();
   readonly copied = output<string>();
 
-  turn: PieceColor = 'w';
-  from?: Square;
-  to?: Square;
-  moves: Square[] = [];
+  private readonly turnSignal = signal<PieceColor>('w');
+  private readonly fromSignal = signal<Square | undefined>(undefined);
+  private readonly toSignal = signal<Square | undefined>(undefined);
+  private readonly movesSignal = signal<Square[]>([]);
   chess = new Chess();
-  pieces: (Piece | null)[] = flatten(this.chess.board());
-  writeAccess = false;
-  translate: string[] = [];
-  lastMoveTo?: Square;
-  animating = false;
+  private readonly piecesSignal = signal<(Piece | null)[]>(flatten(this.chess.board()));
+  private readonly writeAccessSignal = signal(false);
+  private readonly translateSignal = signal<string[]>([]);
+  private readonly lastMoveToSignal = signal<Square | undefined>(undefined);
+  private readonly animatingSignal = signal(false);
   animationQueue: AnimationState[] = [];
-  movingPiece?: { piece: Piece; from: Square; to: Square };
-  capturedPiece?: { piece: Piece; square: Square };
+  private readonly movingPieceSignal = signal<{ piece: Piece; from: Square; to: Square } | undefined>(undefined);
+  private readonly capturedPieceSignal = signal<{ piece: Piece; square: Square } | undefined>(undefined);
   @HostBinding('class.flip')
-  flip = false;
+  get flip() { return this.flipSignal(); }
+  private readonly flipSignal = signal(false);
+
+  get turn() { return this.turnSignal(); }
+  set turn(value: PieceColor) { this.turnSignal.set(value); }
+  get from() { return this.fromSignal(); }
+  set from(value: Square | undefined) { this.fromSignal.set(value); }
+  get to() { return this.toSignal(); }
+  set to(value: Square | undefined) { this.toSignal.set(value); }
+  get moves() { return this.movesSignal(); }
+  set moves(value: Square[]) { this.movesSignal.set(value); }
+  get pieces() { return this.piecesSignal(); }
+  set pieces(value: (Piece | null)[]) { this.piecesSignal.set(value); }
+  get writeAccess() { return this.writeAccessSignal(); }
+  set writeAccess(value: boolean) { this.writeAccessSignal.set(value); }
+  get translate() { return this.translateSignal(); }
+  set translate(value: string[]) { this.translateSignal.set(value); }
+  get lastMoveTo() { return this.lastMoveToSignal(); }
+  set lastMoveTo(value: Square | undefined) { this.lastMoveToSignal.set(value); }
+  get animating() { return this.animatingSignal(); }
+  set animating(value: boolean) { this.animatingSignal.set(value); }
+  get movingPiece() { return this.movingPieceSignal(); }
+  set movingPiece(value: { piece: Piece; from: Square; to: Square } | undefined) { this.movingPieceSignal.set(value); }
+  get capturedPiece() { return this.capturedPieceSignal(); }
+  set capturedPiece(value: { piece: Piece; square: Square } | undefined) { this.capturedPieceSignal.set(value); }
+  set flip(value: boolean) { this.flipSignal.set(value); }
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private fen = '';
@@ -300,8 +332,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         }
       });
     }
-    delete this.from;
-    delete this.to;
+    this.from = undefined;
+    this.to = undefined;
   }
 
   get history() {
@@ -342,7 +374,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const square = this.getCoord(index);
     const p = this.chess.get(square);
     if (this.from === square) {
-      delete this.from;
+      this.from = undefined;
       this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
     } else if (this.turn === p?.color) {
       this.from = square;
@@ -373,8 +405,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   processAnimationQueue() {
     if (this.animationQueue.length === 0) {
       this.animating = false;
-      delete this.movingPiece;
-      delete this.capturedPiece;
+      this.movingPiece = undefined;
+      this.capturedPiece = undefined;
       this.render();
       this.check();
       return;
@@ -414,13 +446,13 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
     // Animate the piece moving to its destination with translation
     const movingPiece = animation.to;
-    this.translate.push(movingPiece);
+    this.translate = [...this.translate, movingPiece];
 
     // Remove captured piece animation after it completes (delay + duration)
     // Capture animation: 1.0s delay + 0.8s animation = 1.8s total
     if (animation.capture) {
       delay(() => {
-        delete this.capturedPiece;
+        this.capturedPiece = undefined;
       }, 1800);
     }
 
@@ -428,10 +460,10 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const totalDuration = animation.capture ? 1900 : 1600;
     delay(() => {
       this.translate = without(this.translate, movingPiece);
-      delete this.movingPiece;
+      this.movingPiece = undefined;
       // capturedPiece already deleted above if it existed
       if (!animation.capture) {
-        delete this.capturedPiece;
+        this.capturedPiece = undefined;
       }
       // Process next animation after current one completes
       this.processAnimationQueue();

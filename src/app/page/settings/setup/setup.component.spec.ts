@@ -27,7 +27,8 @@ describe('SettingsSetupPage', () => {
                 getPlugin() { },
                 getTemplate() { },
                 def: { plugins: {}, templates: {} },
-                status: { plugins: {}, templates: {} }
+                status: { plugins: {}, templates: {}, disabledPlugins: {}, disabledTemplates: {} },
+                themes: [],
             }
         },
         provideHttpClient(withXhr(), withInterceptorsFromDi()),

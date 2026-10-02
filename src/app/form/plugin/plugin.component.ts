@@ -14,7 +14,7 @@ import { JsonComponent } from '../json/json.component';
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, JsonComponent]
 })
 export class PluginFormComponent {

@@ -1,8 +1,6 @@
-import { DestroyRef, inject, Component, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { DestroyRef, inject, Component, ChangeDetectionStrategy, viewChild, effect, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
@@ -28,20 +26,22 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   templateUrl: './thread.component.html',
   styleUrls: ['./thread.component.scss'],
   host: { 'class': 'thread' },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, RefListComponent, LoadingComponent, CommentReplyComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RefListComponent, LoadingComponent, CommentReplyComponent]
 })
 export class RefThreadComponent implements HasChanges {
 
-  private disposers: IReactionDisposer[] = [];
+  private readonly injector = inject(Injector);
+
+  private readonly _to = signal<Ref | undefined>(this.store.view.ref);
+  get to(): Ref { return this._to() || this.store.view.ref!; }
+  set to(value: Ref | undefined) { this._to.set(value); }
   private destroyRef = inject(DestroyRef);
 
   readonly reply = viewChild<CommentReplyComponent>('reply');
   readonly list = viewChild<RefListComponent>('list');
 
   newRefs$ = new Subject<Ref | undefined>();
-
-  to = this.store.view.ref!;
 
   private watchUrl = '';
   private watch?: Subscription;
@@ -56,7 +56,7 @@ export class RefThreadComponent implements HasChanges {
     private refs: RefService,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = ['published,ASC']);
+    store.view.defaultSort = ['published,ASC'];
   }
 
   saveChanges() {
@@ -67,12 +67,12 @@ export class RefThreadComponent implements HasChanges {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (this.store.view.pageSize) {
-        runInAction(() => this.store.view.defaultPageNumber = Math.floor(((this.to.metadata?.plugins?.['plugin/thread'] || 1) - 1) / this.store.view.pageSize));
+        this.store.view.defaultPageNumber = Math.floor(((this.to?.metadata?.plugins?.['plugin/thread'] || 1) - 1) / this.store.view.pageSize);
       }
-    }));
-    this.disposers.push(autorun(() => {
+    }, { injector: this.injector });
+    effect(() => {
       const args = getArgs(
         'plugin/thread:!plugin/delete',
         this.store.view.sort,
@@ -83,8 +83,8 @@ export class RefThreadComponent implements HasChanges {
       );
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    }));
-    this.disposers.push(autorun(() => {
+    }, { injector: this.injector });
+    effect(() => {
       const args = getArgs(
         'plugin/thread:!plugin/delete',
         this.store.view.sort,
@@ -95,10 +95,10 @@ export class RefThreadComponent implements HasChanges {
       );
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref))));
-    this.disposers.push(autorun(() => {
+    effect(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => {
       MemoCache.clear(this);
       if (this.store.view.ref) {
         const threadCount = this.store.view.ref.metadata?.plugins?.['plugin/thread'] || 0;
@@ -111,22 +111,22 @@ export class RefThreadComponent implements HasChanges {
           this.watch?.unsubscribe();
           this.watch = this.stomp.watchResponse(topUrl).pipe(
             switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
-            tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
+            tap(ref => updateMetadata(this.store.view.ref!, ref)),
             filter(ref => hasTag('plugin/thread', ref)),
             catchError(err => of(undefined)),
             takeUntilDestroyed(this.destroyRef),
           ).subscribe(ref => this.newRefs$.next(ref));
         }
       }
-    }));
-    this.disposers.push(autorun(() => {
+    }, { injector: this.injector });
+    effect(() => {
       if (this.query.page) {
-        this.to = this.query.page?.content?.filter(ref => !hasTag('+plugin/placeholder', ref))?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref!;
+        this.to = this.query.page?.content?.filter(ref => !hasTag('+plugin/placeholder', ref))?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref;
       }
-    }));
+    }, { injector: this.injector });
     this.newRefs$.subscribe(c => {
       if (c && this.store.view.ref) {
-        if (hasTag('plugin/thread', c) && !hasTag('+plugin/placeholder', c) && c.published! > this.to.published!) {
+        if (hasTag('plugin/thread', c) && !hasTag('+plugin/placeholder', c) && (!this.to || c.published! > this.to.published!)) {
           this.to = c;
         }
       }
@@ -135,8 +135,6 @@ export class RefThreadComponent implements HasChanges {
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @memo
@@ -146,7 +144,7 @@ export class RefThreadComponent implements HasChanges {
 
   @memo
   get mailboxes() {
-    return mailboxes(this.to, this.store.account.tag, this.store.origins.originMap);
+    return this.to ? mailboxes(this.to, this.store.account.tag, this.store.origins.originMap) : [];
   }
 
   @memo

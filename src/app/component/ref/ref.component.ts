@@ -3,7 +3,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
@@ -19,14 +18,14 @@ import {
   input,
   output,
   viewChildren,
-  viewChild
+  viewChild,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
 import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
@@ -105,7 +104,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
@@ -128,6 +127,12 @@ import { ViewerComponent } from '../viewer/viewer.component';
   ],
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
   css = 'ref list-item';
   @HostBinding('class')
   allCss = this.getPluginClasses();
@@ -213,7 +218,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private router: Router,
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
-    private cd: ChangeDetectorRef,
     private imgs: ImageService,
   ) {
     this.editForm = refForm(fb);
@@ -237,7 +241,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       defer(() => {
         // Let Formly finish rebuilding tag rows before derived Ref UI state reacts.
         this.initFields({ ...this.ref, ...value });
-        cd.detectChanges();
+        this.markState();
       });
     }, 400, { leading: true, trailing: true }));
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
@@ -280,6 +284,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (event.event === 'toggle-all-closed') {
         this.expanded = false;
       }
+      this.markState();
     });
   }
 
@@ -329,6 +334,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           this.expandPlugins.push('plugin/repost');
         }
         this.preloadStoryboard();
+        this.markState();
       });
     }
     this.preloadStoryboard();
@@ -341,6 +347,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.imgs.getImage(url).then(() => {
       if (this.preloadingUrl === url) {
         this.storyboardLoaded = true;
+        this.markState();
       }
     }).catch(() => {
       // If preloading fails, storyboard-ready class is never set and hover shows original thumbnail
@@ -620,7 +627,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       defer(() => {
         MemoCache.clear(this);
         this.init();
-        this.cd.detectChanges();
       });
     }
   }
@@ -1150,7 +1156,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         }
         this.focusViewer = true;
         this.expanded = true;
-        this.cd.detectChanges();
+        this.markState();
       } else if (this.pipRequired) {
         this.store.eventBus.fire('pip', this.ref);
         read = true;
@@ -1195,16 +1201,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   tag$ = (tag: string) => {
     if (this.ref.upload) {
-      runInAction(() => {
-        this.ref.tags ||= [];
-        for (const t of tag.split(' ').filter(t => !!t.trim())) {
-          if (t.startsWith('-')) {
-            this.ref.tags = this.ref.tags.filter(r => expandedTagsInclude(r, t.substring(1)));
-          } else if (!hasTag(t, this.ref)) {
-            this.ref.tags.push(t);
-          }
+      this.ref.tags ||= [];
+      for (const t of tag.split(' ').filter(t => !!t.trim())) {
+        if (t.startsWith('-')) {
+          this.ref.tags = this.ref.tags.filter(r => expandedTagsInclude(r, t.substring(1)));
+        } else if (!hasTag(t, this.ref)) {
+          this.ref.tags.push(t);
         }
-      });
+      }
       this.init();
       return of(null);
     } else {
@@ -1326,6 +1330,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           this.editForm.reset();
           delete this.submitting;
           this.editing = false;
+          this.markState();
         }),
         catchError((res: HttpErrorResponse) => {
           delete this.submitting;
@@ -1336,8 +1341,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           }
           if (res.status === 409) {
             this.overwritten = true;
-            this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
+            this.refs.get(this.ref.url, this.ref.origin).subscribe(x => {
+              this.overwrittenModified = x.modifiedString;
+              this.markState();
+            });
           }
+          this.markState();
           return throwError(() => res);
         }),
       ), ref);
@@ -1385,6 +1394,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       tap(ref => {
         this.ref = ref;
         this.init();
+        this.markState();
       })
     );
   }
@@ -1422,6 +1432,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       this.diffOriginal = remote;
       this.diffModified = local;
       this.diffing = true;
+      this.markState();
     });
   }
 
@@ -1435,6 +1446,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
         delete this.submitting;
         this.diffing = false;
+        this.markState();
       }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
@@ -1445,8 +1457,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         }
         if (res.status === 409) {
           this.overwritten = true;
-          this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
+          this.refs.get(this.ref.url, this.ref.origin).subscribe(x => {
+            this.overwrittenModified = x.modifiedString;
+            this.markState();
+          });
         }
+        this.markState();
         return throwError(() => res);
       }),
     ), ref);

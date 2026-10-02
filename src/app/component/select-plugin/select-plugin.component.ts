@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input, output, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, input, OnChanges, output, signal, SimpleChanges, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer, uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
@@ -11,7 +11,7 @@ import { AuthzService } from '../../service/authz.service';
   templateUrl: './select-plugin.component.html',
   styleUrls: ['./select-plugin.component.scss'],
   host: { 'class': 'select-plugin' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class SelectPluginComponent implements OnChanges {
@@ -29,8 +29,12 @@ export class SelectPluginComponent implements OnChanges {
   textPlugins = this.admin.submitText.filter(p => this.auth.canAddTag(p.tag));
   settingsPlugins = this.admin.submitSettings.filter(p => this.auth.canAddTag(p.tag));
 
-  customPlugin?: Plugin;
-  plugins: Plugin[] = [];
+  private readonly _customPlugin = signal<Plugin | undefined>(undefined);
+  private readonly _plugins = signal<Plugin[]>([], { equal: () => false });
+  get customPlugin() { return this._customPlugin(); }
+  set customPlugin(value: Plugin | undefined) { this._customPlugin.set(value); }
+  get plugins() { return this._plugins(); }
+  set plugins(value: Plugin[]) { this._plugins.set(value); }
 
   constructor(
     private admin: AdminService,
@@ -58,6 +62,7 @@ export class SelectPluginComponent implements OnChanges {
         if (plugin) {
           this.customPlugin = plugin;
           this.plugins.unshift(plugin);
+          this._plugins.set(this.plugins);
           defer(() => this.select()!.nativeElement.selectedIndex = 1);
           return;
         }

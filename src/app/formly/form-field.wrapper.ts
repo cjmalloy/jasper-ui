@@ -16,7 +16,7 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
       </div>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CdkDragHandle],
 })
 export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> {

@@ -1,5 +1,4 @@
 import { Component, forwardRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
-import { MobxAngularModule } from 'mobx-angular';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -26,9 +25,8 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-lens',
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MobxAngularModule,
     LoadingComponent,
     forwardRef(() => RefComponent),
     forwardRef(() => ForceDirectedComponent),

@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, Input, OnInit, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
+import { DestroyRef, inject, Component, Input, OnInit, ChangeDetectionStrategy, input, signal, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of } from 'rxjs';
@@ -19,7 +19,7 @@ import { NoteComponent } from './note/note.component';
   templateUrl: './notebook.component.html',
   styleUrl: './notebook.component.scss',
   host: { 'class': 'notebook ext' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     NoteComponent,
     PageControlsComponent,
@@ -45,8 +45,14 @@ export class NotebookComponent implements OnInit, HasChanges {
 
   readonly list = viewChildren(RefComponent);
 
-  pinned: Ref[] = [];
-  newRefs: Ref[] = [];
+  private readonly pinnedSignal = signal<Ref[]>([]);
+  private readonly newRefsSignal = signal<Ref[]>([]);
+
+  get pinned() { return this.pinnedSignal(); }
+  set pinned(value: Ref[]) { this.pinnedSignal.set(value); }
+
+  get newRefs() { return this.newRefsSignal(); }
+  set newRefs(value: Ref[]) { this.newRefsSignal.set(value); }
 
   private _page?: Page<Ref>;
   private _ext?: Ext;

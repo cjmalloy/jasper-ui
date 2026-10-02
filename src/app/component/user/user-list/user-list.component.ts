@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, input, signal, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -16,7 +16,7 @@ import { UserComponent } from '../user.component';
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss'],
   host: { 'class': 'user-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [UserComponent, LoadingComponent, PageControlsComponent]
 })
 export class UserListComponent implements HasChanges {
@@ -27,6 +27,7 @@ export class UserListComponent implements HasChanges {
 
   private _page?: Page<User>;
   private cache: Map<string, Profile | undefined> = new Map();
+  private readonly cacheVersion = signal(0);
 
   constructor(
     private router: Router,
@@ -52,6 +53,7 @@ export class UserListComponent implements HasChanges {
   }
 
   getProfile(user: User) {
+    this.cacheVersion();
     const tag = user.tag + user.origin;
     if (!this._page) this._page = {} as any;
     if (!this.cache.has(tag)) {
@@ -62,7 +64,10 @@ export class UserListComponent implements HasChanges {
         this.cache.set(tag, undefined);
         this.profiles.getProfile(tag).pipe(
           catchError(e => of(undefined))
-        ).subscribe(p => this.cache.set(tag, p as Profile));
+        ).subscribe(p => {
+          this.cache.set(tag, p as Profile);
+          this.cacheVersion.update(v => v + 1);
+        });
       }
     }
     return this.cache.get(tag) || undefined;

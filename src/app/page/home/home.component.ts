@@ -1,8 +1,6 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -19,17 +17,17 @@ import { getArgs } from '../../util/query';
   selector: 'app-home-page',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     LensComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     SidebarComponent,
   ],
 })
 export class HomePage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+
+  private readonly injector = inject(Injector);
 
   readonly lens = viewChild<LensComponent>('lens');
 
@@ -45,13 +43,13 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
     store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
     query.clear();
     if (admin.home) {
-      exts.getCachedExt('config/home' + (store.account.origin || '@')).subscribe(x => runInAction(() => {
+      exts.getCachedExt('config/home' + (store.account.origin || '@')).subscribe(x => {
         if (x.modified) {
           store.view.exts = [x];
         } else {
           store.view.exts = [ { ...this.exts.defaultExt('config/home'), config: admin.getDefaults('config/home') }];
         }
-      }));
+      });
     }
   }
 
@@ -61,8 +59,8 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    runInAction(() => this.store.view.extTemplates = this.admin.view);
-    this.disposers.push(autorun(() => {
+    this.store.view.extTemplates = this.admin.view;
+    effect(() => {
       if (this.store.view.forYou) {
         this.account.forYouQuery$.subscribe(q => {
           const args = getArgs(
@@ -86,13 +84,11 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
         );
         defer(() => this.query.setArgs(args));
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
 }

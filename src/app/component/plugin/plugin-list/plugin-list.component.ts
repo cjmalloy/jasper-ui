@@ -12,7 +12,7 @@ import { PluginComponent } from '../plugin.component';
   templateUrl: './plugin-list.component.html',
   styleUrls: ['./plugin-list.component.scss'],
   host: { 'class': 'plugin-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PluginComponent, PageControlsComponent, LoadingComponent]
 })
 export class PluginListComponent implements HasChanges {

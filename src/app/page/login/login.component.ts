@@ -5,7 +5,7 @@ import { LoadingComponent } from '../../component/loading/loading.component';
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LoadingComponent]
 })
 export class LoginPage implements OnInit {

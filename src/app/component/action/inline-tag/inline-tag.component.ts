@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, uniqBy } from 'lodash-es';
@@ -20,7 +20,7 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-tag.component.html',
   styleUrls: ['./inline-tag.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
@@ -30,10 +30,19 @@ export class InlineTagComponent extends ActionComponent {
 
   readonly tags = input<string[]>();
 
-  editing = false;
-  acting = false;
+  private readonly editingSignal = signal(false);
+  private readonly actingSignal = signal(false);
+  private readonly autocompleteSignal = signal<{ value: string; label: string }[]>([]);
+
+  get editing() { return this.editingSignal(); }
+  set editing(value: boolean) { this.editingSignal.set(value); }
+
+  get acting() { return this.actingSignal(); }
+  set acting(value: boolean) { this.actingSignal.set(value); }
+
+  get autocomplete() { return this.autocompleteSignal(); }
+  set autocomplete(value: { value: string; label: string }[]) { this.autocompleteSignal.set(value); }
   id = 'tag-' + uuid();
-  autocomplete: { value: string; label: string }[] = [];
 
   private searching?: Subscription;
 

@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, ElementRef, Input, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, Input, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AdminService } from '../../service/admin.service';
@@ -14,7 +14,7 @@ import { hasPrefix } from '../../util/tag';
   selector: 'app-nav',
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink]
 })
 export class NavComponent implements OnInit {
@@ -23,14 +23,20 @@ export class NavComponent implements OnInit {
   @Input()
   url: string = '';
   @Input()
-  title = '';
+  get title() { return this._title(); }
+  set title(value: string) { this._title.set(value); }
   @Input()
-  text = '';
+  get text() { return this._text(); }
+  set text(value: string) { this._text.set(value); }
   @Input()
   css = '';
   readonly external = input(false);
 
-  nav?: (string|number)[];
+  private readonly _title = signal('');
+  private readonly _text = signal('');
+  private readonly _nav = signal<(string|number)[] | undefined>(undefined);
+  get nav() { return this._nav(); }
+  set nav(value: (string|number)[] | undefined) { this._nav.set(value); }
 
   constructor(
     private config: ConfigService,
@@ -70,7 +76,7 @@ export class NavComponent implements OnInit {
       return ['/tag', getPath(this.url.substring('tag:'.length))!.substring(1)];
     }
     let path = getPath(this.url) || '';
-    const basePath = getPath(this.config.base)!;
+    const basePath = getPath(this.baseHref)!;
     if (path.startsWith(basePath)) {
       path = path.substring(basePath.length);
     }
@@ -92,10 +98,14 @@ export class NavComponent implements OnInit {
 
   get localUrl() {
     if (this.url.toLowerCase().startsWith('tag:/'))return true
-    if (this.url.startsWith(this.config.base)) return true
-    if (this.url.startsWith(getPath(this.config.base)!)) return true;
+    if (this.url.startsWith(this.baseHref)) return true
+    if (this.url.startsWith(getPath(this.baseHref)!)) return true;
     if (this.url.startsWith('/')) return true;
     return false;
+  }
+
+  private get baseHref() {
+    return document.getElementsByTagName('base')[0]?.href || document.baseURI || location.origin + '/';
   }
 
   get hasText() {

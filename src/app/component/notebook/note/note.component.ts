@@ -15,7 +15,6 @@ import {
   HostBinding,
   HostListener,
   Input,
-  NgZone,
   OnChanges,
   SimpleChanges,
   TemplateRef,
@@ -23,6 +22,7 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
+  signal,
   viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -55,7 +55,7 @@ import { TodoComponent } from '../../todo/todo.component';
   templateUrl: './note.component.html',
   styleUrls: ['./note.component.scss'],
   host: { 'class': 'note' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => MdComponent),
     LoadingComponent,
@@ -71,23 +71,36 @@ export class NoteComponent implements OnChanges, AfterViewInit {
   private destroyRef = inject(DestroyRef);
 
   @HostBinding('class.unlocked')
-  unlocked = false;
+  get unlocked() { return this.unlockedSignal(); }
+  private readonly unlockedSignal = signal(false);
 
+  private readonly refSignal = signal<Ref | undefined>(undefined);
   @Input()
-  ref!: Ref;
+  set ref(value: Ref) { this.refSignal.set(value); }
+  get ref() { return this.refSignal()!; }
   readonly pressToUnlock = input(false);
   readonly hideSwimLanes = input(true);
   readonly ext = input<Ext>();
 
   readonly copied = output<Ref>();
 
-  repostRef?: Ref;
+  private readonly repostRefSignal = signal<Ref | undefined>(undefined);
+  get repostRef() { return this.repostRefSignal(); }
+  set repostRef(value: Ref | undefined) { this.repostRefSignal.set(value); }
+
   @HostBinding('class.full-size')
-  todo = false;
-  chess = false;
-  chessWhite = true;
+  get todo() { return this.todoSignal(); }
+  private readonly todoSignal = signal(false);
+  private readonly chessSignal = signal(false);
+  private readonly chessWhiteSignal = signal(true);
+  get chess() { return this.chessSignal(); }
+  set chess(value: boolean) { this.chessSignal.set(value); }
+  get chessWhite() { return this.chessWhiteSignal(); }
+  set chessWhite(value: boolean) { this.chessWhiteSignal.set(value); }
   overlayRef?: OverlayRef;
-  autoClose = true;
+  private readonly autoCloseSignal = signal(true);
+  get autoClose() { return this.autoCloseSignal(); }
+  set autoClose(value: boolean) { this.autoCloseSignal.set(value); }
 
   readonly cardMenu = viewChild.required<TemplateRef<any>>('cardMenu');
 
@@ -105,12 +118,11 @@ export class NoteComponent implements OnChanges, AfterViewInit {
     private overlay: Overlay,
     private el: ElementRef,
     private viewContainerRef: ViewContainerRef,
-    private zone: NgZone,
   ) { }
 
   init() {
     MemoCache.clear(this);
-    this.todo = !!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo');
+    this.todoSignal.set(!!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo'));
     this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
     this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
     if (this.repost && this.ref && this.repostRef?.url != repost(this.ref)) {
@@ -268,13 +280,13 @@ export class NoteComponent implements OnChanges, AfterViewInit {
 
   @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
-    this.zone.run(() => this.unlocked = false);
+    this.unlockedSignal.set(false);
   }
 
   @HostListener('press', ['$event'])
   unlock(event: any) {
     if (!this.config.mobile) return;
-    this.unlocked = true;
+    this.unlockedSignal.set(true);
     this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
   }
@@ -314,7 +326,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
           case 'touchstart':
           case 'mousedown':
           case 'contextmenu':
-            this.zone.run(() => this.close());
+            this.close();
         }
       });
     });
@@ -335,13 +347,12 @@ export class NoteComponent implements OnChanges, AfterViewInit {
   toggleBadge(tag: string, event?: MouseEvent) {
     if (hasTag(tag, this.ref.tags)) {
       this.tags.delete(tag, this.ref.url, this.ref.origin).subscribe(() => {
-        this.ref.tags = this.ref.tags!.filter(t => expandedTagsInclude(t, tag));
+        this.ref = { ...this.ref, tags: this.ref.tags!.filter(t => expandedTagsInclude(t, tag)) };
         this.init();
       });
     } else {
       this.tags.create(tag, this.ref.url, this.ref.origin).subscribe(() => {
-        this.ref.tags ||= [];
-        this.ref.tags.push(tag);
+        this.ref = { ...this.ref, tags: [...(this.ref.tags || []), tag] };
         this.init();
       });
     }

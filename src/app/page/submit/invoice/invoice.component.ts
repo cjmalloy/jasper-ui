@@ -40,7 +40,7 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     EditorComponent,
     ReactiveFormsModule,

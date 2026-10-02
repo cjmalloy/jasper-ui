@@ -9,12 +9,12 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
+  signal,
   viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
-import { toJS } from 'mobx';
 import { TitleDirective } from '../../directive/title.directive';
 import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
@@ -28,7 +28,7 @@ import { GenFormComponent } from './gen/gen.component';
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss'],
   host: { 'class': 'plugins-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent implements OnChanges, AfterViewInit {
@@ -41,8 +41,8 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   group: UntypedFormGroup;
   readonly togglePlugin = output<string>();
 
-  icons: Icon[] = [];
-  forms: Plugin[] = [];
+  private readonly _icons = signal<Icon[]>([]);
+  private readonly _forms = signal<Plugin[]>([]);
 
   constructor(
     public admin: AdminService,
@@ -53,6 +53,12 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
       [this.fieldName()]: pluginsForm(fb, admin, []),
     });
   }
+
+  get icons(): Icon[] { return this._icons(); }
+  set icons(value: Icon[]) { this._icons.set(value); }
+
+  get forms(): Plugin[] { return this._forms(); }
+  set forms(value: Plugin[]) { this._forms.set(value); }
 
   init() {
     if (this.plugins) {
@@ -110,7 +116,6 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   setValue(value: any) {
-    value = toJS(value);
     defer(() => {
       this.plugins.patchValue(value);
       this.gens()!.forEach(g => g.setValue(value))

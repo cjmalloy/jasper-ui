@@ -1,5 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, input, output } from '@angular/core';
-import { autorun, IReactionDisposer } from 'mobx';
+import { ChangeDetectionStrategy, Component, effect, Input, input, OnInit, output, signal, untracked } from '@angular/core';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
@@ -17,11 +16,10 @@ import { Mod } from '../../model/tag';
   templateUrl: './diff.component.html',
   styleUrl: './diff.component.scss',
   host: { 'class': 'diff-editor' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MonacoEditorModule, ResizeHandleDirective]
 })
-export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod> implements OnInit, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod> implements OnInit {
 
   @Input()
   original!: T;
@@ -36,24 +34,29 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   originalModel: DiffEditorModel = { code: '', language: 'json' };
   modifiedModel: DiffEditorModel = { code: '', language: 'json' };
 
-  options: any = {
+  private readonly _options = signal<any>({
     language: 'json',
     automaticLayout: true,
     renderSideBySide: !this.config.mobile,
-  };
+  });
 
   constructor(
     public config: ConfigService,
     private store: Store,
   ) {
-    this.disposers.push(autorun(() => {
+    effect(() => {
+      const theme = store.darkTheme ? 'vs-dark' : 'vs';
+      const readOnly = this.readOnly();
       this.options = {
-        ...this.options,
-        theme: store.darkTheme ? 'vs-dark' : 'vs',
-        readOnly: this.readOnly(),
+        ...untracked(() => this.options),
+        theme,
+        readOnly,
       }
-    }));
+    });
   }
+
+  get options(): any { return this._options(); }
+  set options(value: any) { this._options.set(value); }
 
   ngOnInit() {
     const entity = this.original && (this.original.hasOwnProperty('url') || this.original.hasOwnProperty('tag'));
@@ -65,11 +68,6 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
       code: (entity ? formatDiff : formatBundleDiff)(this.modified as any),
       language: 'json'
     };
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   initEditor(editor: any) {

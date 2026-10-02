@@ -4,7 +4,7 @@ import { Component, HostBinding, Input, ChangeDetectionStrategy } from '@angular
   selector: 'app-loading',
   templateUrl: './loading.component.html',
   styleUrls: ['./loading.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'loading-dots' }
 })
 export class LoadingComponent {

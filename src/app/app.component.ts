@@ -8,8 +8,6 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import { NavigationStart, Router, RouterOutlet } from '@angular/router';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { filter } from 'rxjs';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
@@ -31,9 +29,8 @@ import { memo } from './util/memo';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MobxAngularModule,
     LoginPopupComponent,
     SubscriptionBarComponent,
     UserClipboardComponent,
@@ -68,28 +65,28 @@ export class AppComponent implements AfterViewInit {
     window.addEventListener('keyup', event => {
       const hotkey = !this.hotkeyActive(event) || this.hotkey(event.key);
       if (this.store.hotkey && hotkey) {
-        runInAction(() => this.store.hotkey = false);
+        this.store.hotkey = false;
         document.body.classList.remove('hotkey');
       }
     }, { capture: true });
     window.addEventListener('keydown', event => {
       const hotkey = this.hotkeyActive(event) || this.hotkey(event.key);
       if (this.store.hotkey !== hotkey) {
-        runInAction(() => this.store.hotkey = hotkey);
+        this.store.hotkey = hotkey;
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
     window.addEventListener('pointerenter', event => {
       const hotkey = this.hotkeyActive(event);
       if (this.store.hotkey !== hotkey) {
-        runInAction(() => this.store.hotkey = hotkey);
+        this.store.hotkey = hotkey;
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
     window.addEventListener('pointerout', event => {
       const hotkey = this.hotkeyActive(event);
       if (this.store.hotkey !== hotkey) {
-        runInAction(() => this.store.hotkey = hotkey);
+        this.store.hotkey = hotkey;
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
@@ -114,7 +111,7 @@ export class AppComponent implements AfterViewInit {
     });
     window.visualViewport?.addEventListener('resize', event => {
       const vv = event?.target as VisualViewport;
-      runInAction(() => this.store.viewportHeight = vv.height);
+      this.store.viewportHeight = vv.height;
     });
     let currentNavigationId = 0;
     this.router.events.pipe(
@@ -124,7 +121,7 @@ export class AppComponent implements AfterViewInit {
       const isForwardButton = event.navigationTrigger === 'popstate' &&
         event.restoredState &&
         event.restoredState.navigationId > currentNavigationId;
-      runInAction(() => this.store.view.back = !isLinkClick && !isForwardButton);
+      this.store.view.back = !isLinkClick && !isForwardButton;
       currentNavigationId = event.restoredState?.navigationId ?? event.id;
     });
   }
@@ -145,7 +142,7 @@ export class AppComponent implements AfterViewInit {
   @HostListener('window:blur')
   removeHotkey() {
     if (this.store.hotkey) {
-      runInAction(() => this.store.hotkey = false);
+      this.store.hotkey = false;
       document.body.classList.remove('hotkey');
     }
   }
@@ -153,14 +150,14 @@ export class AppComponent implements AfterViewInit {
   @HostListener('window:offline')
   offline() {
     if (!this.store.offline) {
-      runInAction(() => this.store.offline = true);
+      this.store.offline = true;
     }
   }
 
   @HostListener('window:online')
   online() {
     if (this.store.offline) {
-      runInAction(() => this.store.offline = false);
+      this.store.offline = false;
     }
   }
 

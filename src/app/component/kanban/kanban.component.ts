@@ -12,14 +12,13 @@ import {
   SimpleChanges,
   ViewChildren,
   ChangeDetectionStrategy,
-  input
+  input,
+  signal
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
@@ -50,10 +49,9 @@ export interface KanbanDrag {
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss'],
   host: { 'class': 'kanban ext' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => KanbanColumnComponent),
-    MobxAngularModule,
     LoadingComponent,
     CdkDropListGroup,
     CdkScrollable,
@@ -83,7 +81,7 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   error: any;
   updates = new Subject<KanbanDrag>();
 
-  private _disableSwimLanes?: boolean;
+  private readonly disableSwimLanesSignal = signal<boolean | undefined>(undefined);
 
   private defaultConfig: KanbanConfig = {
     columns: []
@@ -117,17 +115,16 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
     const margin = 20;
     const minColSize = 320;
     const sidebarSize = 354;
-    runInAction(() => {
-      this.store.view.floatingSidebar = innerWidth - sidebarSize < margin + minColSize * (this.columns.length + (this.showColumnBacklog ? 1 : 0))
-    });
+    this.store.view.floatingSidebar = innerWidth - sidebarSize < margin + minColSize * (this.columns.length + (this.showColumnBacklog ? 1 : 0));
   }
 
   get disableSwimLanes(): boolean {
-    return this._disableSwimLanes === undefined ? !!this.kanbanConfig.hideSwimLanes : this._disableSwimLanes;
+    const value = this.disableSwimLanesSignal();
+    return value === undefined ? !!this.kanbanConfig.hideSwimLanes : value;
   }
 
   set disableSwimLanes(value: boolean) {
-    this._disableSwimLanes = value;
+    this.disableSwimLanesSignal.set(value);
   }
 
   get columns(): string[] {

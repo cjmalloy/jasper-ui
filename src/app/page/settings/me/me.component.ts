@@ -1,10 +1,8 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, isDevMode, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, isDevMode, ChangeDetectionStrategy, viewChild, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -25,18 +23,23 @@ import { printError } from '../../../util/http';
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
 })
 export class SettingsMePage implements HasChanges {
 
+  private readonly _submitted = signal<boolean>(false);
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
+  private readonly _serverError = signal<string[]>([]);
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
+  private readonly _editing = signal<Subscription | undefined>(undefined);
+  get editing() { return this._editing(); }
+  set editing(value: Subscription | undefined) { this._editing.set(value); }
+
   readonly form = viewChild<ExtFormComponent>('form');
-
-  submitted = false;
   editForm!: UntypedFormGroup;
-  serverError: string[] = [];
-
-  editing?: Subscription;
 
   constructor(
     public config: ConfigService,
@@ -75,15 +78,15 @@ export class SettingsMePage implements HasChanges {
         ...this.editForm.value.config,
       },
     }).pipe(
-      tap(() => runInAction(() => this.accounts.clearCache())),
+      tap(() => this.accounts.clearCache()),
       switchMap(() => this.accounts.initExt$),
       catchError((res: HttpErrorResponse) => {
-        delete this.editing;
+        this.editing = undefined;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      delete this.editing;
+      this.editing = undefined;
       this.editForm.markAsPristine();
       this.location.back();
     });

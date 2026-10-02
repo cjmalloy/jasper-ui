@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -11,8 +11,6 @@ import {
 import { Router } from '@angular/router';
 import { defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, firstValueFrom, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -52,11 +50,10 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     forwardRef(() => EditorComponent),
-    MobxAngularModule,
     ReactiveFormsModule,
     LimitWidthDirective,
     NavComponent,
@@ -71,7 +68,8 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   ],
 })
 export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+
+  private readonly injector = inject(Injector);
   private generatedUrl = 'comment:' + uuid();
 
   submitted = false;
@@ -120,7 +118,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     mod.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
     this.ensureUrl();
-    runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
+    store.submit.wikiPrefix = admin.getWikiPrefix();
   }
 
   async saveChanges() {
@@ -161,7 +159,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         });
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
-      this.disposers.push(autorun(() => {
+      effect(() => {
         MemoCache.clear(this);
         const url = this.ensureUrl();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
@@ -191,19 +189,19 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         for (const s of this.store.submit.sources) {
           this.addSource(s)
         }
-      }));
+      }, { injector: this.injector });
       if (this.store.submit.embedFiles.length) {
         const files = [...this.store.submit.embedFiles];
         defer(() => {
           const editorComponent = this.editorComponent();
           if (this.customEditor) {
-            runInAction(() => this.store.submit.setEmbedFiles());
+            this.store.submit.setEmbedFiles();
             forkJoin(files.map(f => readFileAsString(f))).subscribe(texts => {
               this.comment.setValue(texts.join('\n'));
               this.comment.markAsDirty();
             });
           } else if (editorComponent instanceof EditorComponent) {
-            runInAction(() => this.store.submit.setEmbedFiles());
+            this.store.submit.setEmbedFiles();
             editorComponent.upload(files as any);
           }
         });
@@ -216,8 +214,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get randomURL() {

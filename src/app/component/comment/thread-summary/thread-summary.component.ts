@@ -1,6 +1,5 @@
-import { DestroyRef, inject, Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy, input } from '@angular/core';
+import { DestroyRef, inject, Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MobxAngularModule } from 'mobx-angular';
 import { Observable } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
@@ -14,14 +13,19 @@ import { CommentComponent } from '../comment.component';
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
   host: { 'class': 'thread-summary' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => CommentComponent),
     forwardRef(() => RefComponent),
-    MobxAngularModule,
   ]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
   private destroyRef = inject(DestroyRef);
 
   readonly source = input('');
@@ -48,6 +52,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(comment => {
       if (comment) this.newRefs = [comment, ...this.newRefs];
+      this.markState();
     });
   }
 
@@ -62,6 +67,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges {
         takeUntilDestroyed(this.destroyRef)
       ).subscribe(page => {
         this.list = page.content;
+        this.markState();
       });
     }
   }

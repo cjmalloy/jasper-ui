@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
@@ -57,8 +57,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 
-  progress?: number;
-  uploading = false;
+  private readonly _progress = signal<number | undefined>(undefined);
+  private readonly _uploading = signal(false);
   files = !!this.admin.getPlugin('plugin/file');
 
   private showedError = false;
@@ -66,10 +66,15 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
   constructor(
     private config: FormlyConfig,
     private admin: AdminService,
-    private cd: ChangeDetectorRef,
   ) {
     super();
   }
+
+  get progress(): number | undefined { return this._progress(); }
+  set progress(value: number | undefined) { this._progress.set(value); }
+
+  get uploading(): boolean { return this._uploading(); }
+  set uploading(value: boolean) { this._uploading.set(value); }
 
   /**
    * Overrides the <input> type. Not related to the formly field type.
@@ -108,6 +113,5 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
       this.uploading = true;
       this.progress = event.progress || undefined;
     }
-    this.cd.detectChanges();
   }
 }

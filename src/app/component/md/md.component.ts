@@ -11,7 +11,7 @@ import { Store } from '../../store/store';
   selector: 'app-md',
   templateUrl: './md.component.html',
   styleUrls: ['./md.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MarkdownComponent,
     MdPostDirective,

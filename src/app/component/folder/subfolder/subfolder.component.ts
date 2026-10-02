@@ -11,7 +11,7 @@ import { Store } from '../../../store/store';
   templateUrl: './subfolder.component.html',
   styleUrls: ['./subfolder.component.scss'],
   host: { 'class': 'subfolder' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink]
 })
 export class SubfolderComponent {

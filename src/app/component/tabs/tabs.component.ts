@@ -1,14 +1,14 @@
 import {
   AfterViewInit,
-  ChangeDetectorRef,
+  ChangeDetectionStrategy,
   Component,
   ContentChildren,
   ElementRef,
   HostBinding,
   HostListener,
   QueryList,
-  ChangeDetectionStrategy,
-  contentChildren
+  contentChildren,
+  signal
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -22,7 +22,7 @@ import { SettingsComponent } from '../settings/settings.component';
   templateUrl: './tabs.component.html',
   styleUrl: './tabs.component.scss',
   host: { 'class': 'tabs' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, SettingsComponent]
 })
 export class TabsComponent implements AfterViewInit {
@@ -31,19 +31,25 @@ export class TabsComponent implements AfterViewInit {
   @ContentChildren(RouterLink, { read: ElementRef })
   anchors!: QueryList<ElementRef>;
 
-  options: string[] = [];
+  private readonly _options = signal<string[]>([], { equal: () => false });
+  private readonly _hidden = signal(0);
+  private readonly _measuring = signal(true);
+
+  get options() { return this._options(); }
+  set options(value: string[]) { this._options.set(value); }
   map = new Map<string, number>();
-  hidden = 0;
+  get hidden() { return this._hidden(); }
+  set hidden(value: number) { this._hidden.set(value); }
 
   @HostBinding('class.measuring')
-  measuring = true;
+  get measuring() { return this._measuring(); }
+  set measuring(value: boolean) { this._measuring.set(value); }
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
 
   constructor(
     private config: ConfigService,
     private el: ElementRef<HTMLElement>,
-    private cd: ChangeDetectorRef,
   ) { }
 
   ngAfterViewInit() {
@@ -90,6 +96,7 @@ export class TabsComponent implements AfterViewInit {
       this.options.push(value);
       this.map.set(value, tabs.indexOf(t));
     }
+    this._options.set(this.options);
     defer(() => this.onResize());
   }
 
@@ -108,7 +115,6 @@ export class TabsComponent implements AfterViewInit {
       }
     }
     this.measuring = false;
-    this.cd.markForCheck();
   }
 
   @memo

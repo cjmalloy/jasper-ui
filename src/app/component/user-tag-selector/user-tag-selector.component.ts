@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -12,14 +12,21 @@ import { Store } from '../../store/store';
   selector: 'app-user-tag-selector',
   templateUrl: './user-tag-selector.component.html',
   styleUrls: ['./user-tag-selector.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class UserTagSelectorComponent implements OnDestroy {
 
-  preview = '';
-  editing = false;
-  autocomplete: { value: string, label: string }[] = [];
+  private readonly _preview = signal('');
+  private readonly _editing = signal(false);
+  private readonly _autocomplete = signal<{ value: string, label: string }[]>([]);
+
+  get preview() { return this._preview(); }
+  set preview(value: string) { this._preview.set(value); }
+  get editing() { return this._editing(); }
+  set editing(value: boolean) { this._editing.set(value); }
+  get autocomplete() { return this._autocomplete(); }
+  set autocomplete(value: { value: string, label: string }[]) { this._autocomplete.set(value); }
 
   private previewing?: Subscription;
   private searching?: Subscription;
@@ -30,7 +37,6 @@ export class UserTagSelectorComponent implements OnDestroy {
     private editor: EditorService,
     private exts: ExtService,
     public store: Store,
-    private cd: ChangeDetectorRef,
   ) {
     this.getPreview(this.store.local.selectedUserTag);
   }
@@ -54,7 +60,6 @@ export class UserTagSelectorComponent implements OnDestroy {
     this.previewing?.unsubscribe();
     this.previewing = this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
       this.preview = x?.name || x?.tag || '';
-      this.cd.detectChanges();
     });
   }
 
@@ -89,7 +94,6 @@ export class UserTagSelectorComponent implements OnDestroy {
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: x.tag, label: x.name || x.tag }));
       this.autocomplete = uniqBy(this.autocomplete, 'value');
-      this.cd.detectChanges();
     });
   }, 400);
 }

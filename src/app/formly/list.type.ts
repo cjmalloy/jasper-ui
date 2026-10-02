@@ -44,7 +44,7 @@ import { getPath } from '../util/http';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkDropList,
     CdkScrollable,

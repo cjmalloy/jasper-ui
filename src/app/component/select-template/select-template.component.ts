@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ChangeDetectionStrategy, output, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, output, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
@@ -11,7 +11,7 @@ import { access } from '../../util/tag';
   templateUrl: './select-template.component.html',
   styleUrls: ['./select-template.component.scss'],
   host: { 'class': 'select-template' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class SelectTemplateComponent {
@@ -22,7 +22,9 @@ export class SelectTemplateComponent {
 
   submitTemplates = this.admin.tmplSubmit.filter(p => this.auth.canAddTag(p.tag));
 
-  templates: Template[] = [...this.submitTemplates];
+  private readonly _templates = signal<Template[]>([...this.submitTemplates], { equal: () => false });
+  get templates() { return this._templates(); }
+  set templates(value: Template[]) { this._templates.set(value); }
 
   constructor(
     private admin: AdminService,
@@ -42,6 +44,7 @@ export class SelectTemplateComponent {
         const template = this.admin.getTemplate(value);
         if (template) {
           this.templates.unshift(template);
+          this._templates.set(this.templates);
           defer(() => this.select()!.nativeElement.selectedIndex = 1);
           return;
         }

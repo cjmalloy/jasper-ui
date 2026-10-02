@@ -1,10 +1,8 @@
-import { DestroyRef, inject, Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { DestroyRef, inject, Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../component/loading/loading.component';
@@ -28,10 +26,9 @@ import { hasTag, privateTag, top } from '../../util/tag';
   selector: 'app-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RefComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     RouterLinkActive,
@@ -41,12 +38,15 @@ import { hasTag, privateTag, top } from '../../util/tag';
   ],
 })
 export class RefPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+
+  private readonly injector = inject(Injector);
+
+  private readonly _newResponses = signal<number>(0);
+  get newResponses() { return this._newResponses(); }
+  set newResponses(value: number) { this._newResponses.set(value); }
   private destroyRef = inject(DestroyRef);
 
   readonly ref = viewChild<RefComponent>('ref');
-
-  newResponses = 0;
   private url = '';
   private watchSelf?: Subscription;
   private watchUrl = '';
@@ -71,18 +71,16 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     this.url = this.store.view.url;
     if (this.url) this.reload(this.url);
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const url = this.store.view.url;
       if (!url) return;
       if (url === this.url) return;
       this.url = url;
       this.reload(url);
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.store.view.clearRef();
   }
 
@@ -156,8 +154,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       return;
     }
     this.newResponses = 0;
-    this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() =>
-      this.store.view.versions = count));
+    this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions = count);
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     (url === this.store.view.ref?.url
         ? of(this.store.view.ref)
@@ -173,7 +170,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           map(top => [ref, top]),
           catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
         )),
-      tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
+      tap(([ref, top]) => this.store.view.setRef(ref, top)),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => MemoCache.clear(this));
     if (this.config.websockets && this.watchUrl !== url) {
@@ -207,7 +204,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           modified: this.store.view.ref.modified,
           modifiedString: this.store.view.ref.modifiedString,
         };
-        runInAction(() => Object.assign(this.store.view.ref!, merged));
+        Object.assign(this.store.view.ref!, merged);
         this.store.eventBus.refresh(this.store.view.ref);
       });
       this.watchResponses?.unsubscribe();
@@ -229,6 +226,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   markRead(ref: Ref) {
-    runInAction(() => markRead(this.admin, this.ts, ref));
+    markRead(this.admin, this.ts, ref);
   }
 }

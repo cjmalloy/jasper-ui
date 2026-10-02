@@ -12,12 +12,12 @@ import {
   OnInit,
   SimpleChanges,
   ChangeDetectionStrategy,
-  input
+  effect,
+  input,
+  signal
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, finalize, forkJoin, map, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
@@ -57,12 +57,11 @@ import { SortComponent } from '../sort/sort.component';
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
   host: { 'class': 'sidebar' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     ExtComponent,
     forwardRef(() => MdComponent),
-    MobxAngularModule,
     SearchComponent,
     QueryComponent,
     FilterComponent,
@@ -78,7 +77,6 @@ import { SortComponent } from '../sort/sort.component';
   ]
 })
 export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -95,21 +93,42 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   plugin?: Plugin;
   mailPlugin?: Plugin;
   tagTemplate?: Template;
-  template?: Template;
+  private readonly templateSignal = signal<Template | undefined>(undefined);
   writeAccess = false;
   ui: Template[] = [];
   genUrl = 'internal:' + uuid();
-  bookmarkExts: Ext[] = [];
-  tagSubExts: Ext[] = [];
-  userSubExts: Ext[] = [];
+  private readonly bookmarkExtsSignal = signal<Ext[]>([]);
+  private readonly tagSubExtsSignal = signal<Ext[]>([]);
+  private readonly userSubExtsSignal = signal<Ext[]>([]);
 
-  savingBookmark = false;
-  savingSub = false;
-  savingAlarm = false;
+  private readonly savingBookmarkSignal = signal(false);
+  private readonly savingSubSignal = signal(false);
+  private readonly savingAlarmSignal = signal(false);
 
-  private _expanded = false;
+  private readonly expandedSignal = signal(false);
   private _ext?: Ext;
   private lastView = this.store.view.current;
+
+  get template() { return this.templateSignal(); }
+  set template(value: Template | undefined) { this.templateSignal.set(value); }
+
+  get bookmarkExts() { return this.bookmarkExtsSignal(); }
+  set bookmarkExts(value: Ext[]) { this.bookmarkExtsSignal.set(value); }
+
+  get tagSubExts() { return this.tagSubExtsSignal(); }
+  set tagSubExts(value: Ext[]) { this.tagSubExtsSignal.set(value); }
+
+  get userSubExts() { return this.userSubExtsSignal(); }
+  set userSubExts(value: Ext[]) { this.userSubExtsSignal.set(value); }
+
+  get savingBookmark() { return this.savingBookmarkSignal(); }
+  set savingBookmark(value: boolean) { this.savingBookmarkSignal.set(value); }
+
+  get savingSub() { return this.savingSubSignal(); }
+  set savingSub(value: boolean) { this.savingSubSignal.set(value); }
+
+  get savingAlarm() { return this.savingAlarmSignal(); }
+  set savingAlarm(value: boolean) { this.savingAlarmSignal.set(value); }
 
   constructor(
     public router: Router,
@@ -141,18 +160,15 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
         this.expanded = false;
       }
     });
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
-      this.expanded = this.store.view.sidebarExpanded;
-    }));
-    this.disposers.push(autorun(() => {
+    effect(() => {
+      this.expandedSignal.set(this.store.view.sidebarExpanded);
+    });
+    effect(() => {
       if (this.store.view.ref) {
         MemoCache.clear(this);
       }
-    }));
-    this.disposers.push(autorun(() => {
+    });
+    effect(() => {
       if (!this.store.view.template) {
         this.template = undefined;
       } else if (!isQuery(this.store.view.template) && this.template?.tag !== this.store.view.template) {
@@ -160,7 +176,10 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
           catchError(() => of(undefined))
         ).subscribe(t => this.template = t);
       }
-    }));
+    });
+  }
+
+  ngOnInit(): void {
   }
 
   ngAfterViewInit() {
@@ -230,8 +249,6 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @memo
@@ -246,7 +263,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   @Input()
   set ext(value: Ext | undefined) {
     this._ext = value;
-    runInAction(() => this.store.view.floatingSidebar = !value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined);
+    this.store.view.floatingSidebar = !value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined;
   }
 
   get existing() {
@@ -254,15 +271,15 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   get expanded(): boolean {
-    return this._expanded;
+    return this.expandedSignal();
   }
 
   @Input()
   @HostBinding('class.expanded')
   set expanded(value: boolean) {
     localStorage.setItem('sidebar-expanded', ''+value);
-    this._expanded = value;
-    runInAction(() => this.store.view.sidebarExpanded = value);
+    this.expandedSignal.set(value);
+    this.store.view.sidebarExpanded = value;
   }
 
   @memo
@@ -463,7 +480,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   startChat() {
-    runInAction(() => this.store.view.ref?.tags?.push('plugin/chat'));
+    this.store.view.ref?.tags?.push('plugin/chat');
     this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe();
   }
 }

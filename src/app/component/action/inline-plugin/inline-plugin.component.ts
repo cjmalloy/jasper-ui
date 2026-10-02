@@ -1,4 +1,4 @@
-import { Component, ViewChild, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ViewChild, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -15,7 +15,7 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-plugin.component.html',
   styleUrls: ['./inline-plugin.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, GenFormComponent, LoadingComponent]
 })
 export class InlinePluginComponent extends ActionComponent {
@@ -25,8 +25,14 @@ export class InlinePluginComponent extends ActionComponent {
   readonly value = input<Partial<Ref>>();
   readonly error = output<string>();
 
-  editing = false;
-  acting = false;
+  private readonly editingSignal = signal(false);
+  private readonly actingSignal = signal(false);
+
+  get editing() { return this.editingSignal(); }
+  set editing(value: boolean) { this.editingSignal.set(value); }
+
+  get acting() { return this.actingSignal(); }
+  set acting(value: boolean) { this.actingSignal.set(value); }
 
   group: UntypedFormGroup = this.fb.group({});
 

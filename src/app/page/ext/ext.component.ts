@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -9,8 +9,6 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
@@ -33,9 +31,8 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   selector: 'app-ext-page',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MobxAngularModule,
     RouterLink,
     SettingsComponent,
     ReactiveFormsModule,
@@ -46,28 +43,46 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   ],
 })
 export class ExtPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+
+  private readonly injector = inject(Injector);
+
+  private readonly _template = signal<string>('');
+  get template() { return this._template(); }
+  set template(value: string) { this._template.set(value); }
+  private readonly _submitted = signal<boolean>(false);
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
+  private readonly _invalid = signal<boolean>(false);
+  get invalid() { return this._invalid(); }
+  set invalid(value: boolean) { this._invalid.set(value); }
+  private readonly _overwritten = signal<boolean>(false);
+  get overwritten() { return this._overwritten(); }
+  set overwritten(value: boolean) { this._overwritten.set(value); }
+  private readonly _serverError = signal<string[]>([]);
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
+  private readonly _creating = signal<Subscription | undefined>(undefined);
+  get creating() { return this._creating(); }
+  set creating(value: Subscription | undefined) { this._creating.set(value); }
+  private readonly _editing = signal<Subscription | undefined>(undefined);
+  get editing() { return this._editing(); }
+  set editing(value: Subscription | undefined) { this._editing.set(value); }
+  private readonly _deleting = signal<Subscription | undefined>(undefined);
+  get deleting() { return this._deleting(); }
+  set deleting(value: Subscription | undefined) { this._deleting.set(value); }
+  private readonly _overwrittenModified = signal<string | undefined>('');
+  get overwrittenModified() { return this._overwrittenModified(); }
+  set overwrittenModified(value: string | undefined) { this._overwrittenModified.set(value); }
   @HostBinding('class') css = 'full-page-form';
 
   readonly form = viewChild<ExtFormComponent>('form');
-
-  template = '';
   created = false;
-  submitted = false;
-  invalid = false;
-  overwritten = false;
   overwrite = false;
   extForm: UntypedFormGroup;
   editForm!: UntypedFormGroup;
-  serverError: string[] = [];
 
   templates = this.admin.tmplSubmit;
 
-  creating?: Subscription;
-  editing?: Subscription;
-  deleting?: Subscription;
-
-  private overwrittenModified? = '';
 
   constructor(
     private mod: ModService,
@@ -88,23 +103,23 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (!this.store.view.tag) {
         this.template = '';
         this.tag.setValue('');
-        runInAction(() => this.store.view.exts = []);
+        this.store.view.exts = [];
       } else {
         const tag = this.store.view.localTag + this.store.account.origin;
         this.exts.get(tag).pipe(
           catchError(() => of(undefined)),
         ).subscribe(ext => this.setExt(tag, ext));
       }
-    }));
+    }, { injector: this.injector });
   }
 
   setExt(tag: string, ext?: Ext) {
     tag = localTag(tag);
-    runInAction(() => this.store.view.exts = ext ? [ext] : []);
+    this.store.view.exts = ext ? [ext] : [];
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);
@@ -132,8 +147,6 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get tag() {
@@ -185,12 +198,12 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       }),
       switchMap(() => this.exts.get(tag)),
       catchError((res: HttpErrorResponse) => {
-        delete this.creating;
+        this.creating = undefined;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(ext => {
-      delete this.creating;
+      this.creating = undefined;
       this.serverError = [];
       this.setExt(tag, ext);
       this.router.navigate(['/ext', ext.tag]);
@@ -221,7 +234,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     };
     this.editing = this.exts.update(ext).pipe(
       catchError((res: HttpErrorResponse) => {
-        delete this.editing;
+        this.editing = undefined;
         if (res.status === 400) {
           this.invalid = true;
           console.log(res.message);
@@ -235,7 +248,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      delete this.editing;
+      this.editing = undefined;
       this.editForm.markAsPristine();
       if (ext.tag === 'config/home' && this.admin.home) {
         this.router.navigate(['/home']);
@@ -255,12 +268,12 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       this.deleting = this.exts.delete(ext.tag + ext.origin).pipe(
         switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
-          delete this.deleting;
+          this.deleting = undefined;
           this.serverError = printError(err);
           return throwError(() => err);
         }),
       ).subscribe(() => {
-        delete this.deleting;
+        this.deleting = undefined;
         this.router.navigate(['/tag', ext.tag]);
       });
     }

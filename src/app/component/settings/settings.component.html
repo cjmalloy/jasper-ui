@@ -1,4 +1,3 @@
-<ng-container *mobxAutorun>
   @if (!store.account.signedIn) {
     @if (config.login) {
       <a [href]="config.loginLink" i18n>login</a>
@@ -54,4 +53,3 @@
       | <a routerLink="/submit/dm" [queryParams]="{ to: config.support }" i18n>help</a>
     }
   }
-</ng-container>

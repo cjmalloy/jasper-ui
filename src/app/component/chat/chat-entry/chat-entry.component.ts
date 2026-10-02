@@ -14,7 +14,8 @@ import {
   SimpleChanges,
   ChangeDetectionStrategy,
   input,
-  viewChildren
+  viewChildren,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -48,7 +49,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   templateUrl: './chat-entry.component.html',
   styleUrls: ['./chat-entry.component.scss'],
   host: { 'class': 'chat-entry' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
@@ -63,6 +64,12 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class ChatEntryComponent implements OnChanges {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroyRef = inject(DestroyRef);
 
@@ -113,6 +120,7 @@ export class ChatEntryComponent implements OnChanges {
           ...ref,
           comment: '',
         };
+        this.markState();
       });
     } else {
       this.noComment = {
@@ -313,6 +321,7 @@ export class ChatEntryComponent implements OnChanges {
       this.serverError = [];
       this.ref = ref;
       this.init();
+      this.markState();
     });
   }
 

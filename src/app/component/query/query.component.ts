@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, signal, ViewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -14,7 +14,7 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
   selector: 'app-query',
   templateUrl: './query.component.html',
   styleUrls: ['./query.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, RouterLink]
 })
 export class QueryComponent {
@@ -22,7 +22,9 @@ export class QueryComponent {
   editing = false;
   replaceOnClipboardPaste = false;
   select: boolean | Crumb[] = false;
-  breadcrumbs: Crumb[] = [];
+  private readonly _breadcrumbs = signal<Crumb[]>([], { equal: () => false });
+  get breadcrumbs() { return this._breadcrumbs(); }
+  set breadcrumbs(value: Crumb[]) { this._breadcrumbs.set(value); }
 
   private _query = '';
 
@@ -223,6 +225,7 @@ export class QueryComponent {
               const plugin = this.admin.getPlugin(ext.tag);
               if (plugin?.name) t.text = plugin.name;
             }
+            this._breadcrumbs.set(this.breadcrumbs);
           }
         });
       }

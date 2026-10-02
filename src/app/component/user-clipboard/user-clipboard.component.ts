@@ -1,5 +1,5 @@
 import { AsyncPipe, DOCUMENT } from '@angular/common';
-import { Component, HostListener, Inject, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, HostListener, Inject, OnDestroy, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import DOMPurify from 'dompurify';
@@ -63,7 +63,7 @@ interface DragState {
   templateUrl: './user-clipboard.component.html',
   styleUrls: ['./user-clipboard.component.scss'],
   host: { 'class': 'user-clipboard' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
     CssUrlPipe,
@@ -71,6 +71,12 @@ interface DragState {
   ],
 })
 export class UserClipboardComponent implements OnInit, OnDestroy {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
 
   remote?: Ref;
   items: ClipboardItem[] = [];
@@ -100,11 +106,15 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   ) {
     fromEvent<DragEvent>(document, 'drop', { capture: true })
       .pipe(takeUntilDestroyed())
-      .subscribe(event => this.documentDrop(event));
+      .subscribe(event => {
+        this.documentDrop(event);
+        this.markState();
+      });
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'clip' && event.ref?.url) {
         this.addItem({ ref: event.ref });
       }
+      this.markState();
     });
   }
 
@@ -113,7 +123,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.loadRemote();
     this.watch = this.stomp.watchResponse('tag:/plugin/user/clipboard').pipe(
       catchError(() => of(undefined)),
-    ).subscribe(() => this.loadRemote());
+    ).subscribe(() => {
+      this.loadRemote();
+      this.markState();
+    });
   }
 
   ngOnDestroy() {
@@ -272,7 +285,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       }
     }
     this.draggedRef = undefined;
-    window.setTimeout(() => this.dropFilled = false, 800);
+    window.setTimeout(() => {
+      this.dropFilled = false;
+      this.markState();
+    }, 800);
   }
 
   @HostListener('document:dragstart', ['$event'])
@@ -286,6 +302,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.resizeClamp = window.setTimeout(() => {
       this.resizeClamp = undefined;
       this.clampBubblePositions();
+      this.markState();
     }, 100);
   }
 
@@ -838,6 +855,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       // flushed after the current save, rather than being overwritten here.
       if (!this.pendingRemotePersist) this.applyRemote(ref);
       this.persistRemote();
+      this.markState();
     });
   }
 
@@ -988,6 +1006,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         this.save = undefined;
         // Leave finalize's call stack before starting the queued save.
         if (this.pendingRemotePersist) window.setTimeout(() => this.persistRemote(), 0);
+        this.markState();
       }),
     ).subscribe();
   }

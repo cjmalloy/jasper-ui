@@ -1,9 +1,11 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
+  effect,
+  HostBinding,
   Input,
   OnDestroy,
+  signal,
   ViewEncapsulation,
   input
 } from '@angular/core';
@@ -12,7 +14,6 @@ import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, forkJoin, of, Subject, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -43,8 +44,13 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
 export class GridComponent implements OnDestroy, HasChanges {
   private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
-  private disposers: IReactionDisposer[] = [];
   private rowDataUpdates$ = new Subject<Ref[]>();
+  private readonly _rowData = signal<Ref[]>([]);
+  private readonly _themeVersion = signal(0);
+  private themeVersionCount = 0;
+
+  @HostBinding('attr.data-theme-version')
+  get themeVersion() { return this._themeVersion(); }
 
   readonly tag = input('');
   @Input()
@@ -54,7 +60,8 @@ export class GridComponent implements OnDestroy, HasChanges {
   emptyMessage = 'No results found';
 
   defaultCols: ColDef[] = this.admin.getTemplate('grid')?.defaults?.columnDefs || gridTemplate.defaults.columnDefs;
-  rowData: Ref[] = [];
+  get rowData() { return this._rowData(); }
+  set rowData(value: Ref[]) { this._rowData.set(value); }
 
   private _page?: Page<Ref>;
   private _cols = 0;
@@ -64,14 +71,12 @@ export class GridComponent implements OnDestroy, HasChanges {
     private admin: AdminService,
     private refs: RefService,
     private router: Router,
-    private cd: ChangeDetectorRef,
   ) {
     ModuleRegistry.registerModules([ AllCommunityModule ]);
-    this.disposers.push(autorun(() => {
-      // Access the observable to subscribe
+    effect(() => {
       this.store.darkTheme;
-      this.cd.markForCheck();
-    }));
+      this._themeVersion.set(++this.themeVersionCount);
+    });
     this.rowDataUpdates$.pipe(
       switchMap(content => {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content);
@@ -80,7 +85,6 @@ export class GridComponent implements OnDestroy, HasChanges {
       takeUntilDestroyed(),
     ).subscribe(rowData => {
       this.rowData = rowData;
-      this.cd.markForCheck();
     });
   }
 
@@ -90,8 +94,6 @@ export class GridComponent implements OnDestroy, HasChanges {
 
   ngOnDestroy() {
     this.rowDataUpdates$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get columnDefs(): ColDef[] {

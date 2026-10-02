@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, input, OnChanges, OnDestroy, signal, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
@@ -35,7 +35,7 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
   styleUrls: ['./map.component.scss'],
   encapsulation: ViewEncapsulation.None,
   host: { 'class': 'map ext' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MglComponent,
     ControlComponent,
@@ -58,7 +58,9 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private map?: Map;
   private markers: Marker[] = [];
   private mapDataUpdates$ = new Subject<Ref[]>();
-  mapData: MapEntry[] = [];
+  private readonly _mapData = signal<MapEntry[]>([]);
+  get mapData() { return this._mapData(); }
+  set mapData(value: MapEntry[]) { this._mapData.set(value); }
 
   constructor(
     private router: Router,

@@ -8,6 +8,7 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
+  signal,
   viewChild
 } from '@angular/core';
 import { loadImage } from '../../util/image';
@@ -18,7 +19,7 @@ import { Camera, hasCamera, listCameras } from '../../util/webcam';
   selector: 'app-qr-scanner',
   templateUrl: './qr-scanner.component.html',
   styleUrls: ['./qr-scanner.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'form-array' }
 })
 export class QrScannerComponent implements OnDestroy {
@@ -28,16 +29,29 @@ export class QrScannerComponent implements OnDestroy {
   readonly upload = input(true);
   readonly data = output<string>();
 
-  scanner?: QrScanner;
+  private readonly _scanner = signal<QrScanner | undefined>(undefined);
   overlayRef?: OverlayRef;
-  hasFlash = false;
-  cameras?: Camera[];
-  checkedCamera = false;
+  private readonly _hasFlash = signal(false);
+  private readonly _hasCamera = signal<boolean | undefined>(undefined);
+  private readonly _cameras = signal<Camera[] | undefined>(undefined);
+  private readonly _checkedCamera = signal(false);
 
   constructor(
     private viewContainerRef: ViewContainerRef,
     private overlay: Overlay,
   ) { }
+
+  get scanner(): QrScanner | undefined { return this._scanner(); }
+  set scanner(value: QrScanner | undefined) { this._scanner.set(value); }
+
+  get hasFlash(): boolean { return this._hasFlash(); }
+  set hasFlash(value: boolean) { this._hasFlash.set(value); }
+
+  get cameras(): Camera[] | undefined { return this._cameras(); }
+  set cameras(value: Camera[] | undefined) { this._cameras.set(value); }
+
+  get checkedCamera(): boolean { return this._checkedCamera(); }
+  set checkedCamera(value: boolean) { this._checkedCamera.set(value); }
 
   ngOnDestroy() {
     this.stopScanQr();
@@ -90,6 +104,8 @@ export class QrScannerComponent implements OnDestroy {
   }
 
   get hasCamera() {
+    const detected = this._hasCamera();
+    if (detected !== undefined) return detected;
     if (localStorage.getItem('hasCamera') === 'true') return true;
     if (!this.checkedCamera) hasCamera().then(value => this.hasCamera = value);
     this.checkedCamera = true;
@@ -97,6 +113,7 @@ export class QrScannerComponent implements OnDestroy {
   }
 
   set hasCamera(value: boolean) {
+    this._hasCamera.set(value);
     localStorage.setItem('hasCamera', ''+value);
   }
 

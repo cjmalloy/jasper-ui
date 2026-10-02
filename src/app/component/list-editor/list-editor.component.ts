@@ -5,7 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   selector: 'app-list-editor',
   templateUrl: './list-editor.component.html',
   styleUrls: ['./list-editor.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class ListEditorComponent {

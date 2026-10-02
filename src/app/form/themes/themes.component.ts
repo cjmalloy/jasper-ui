@@ -9,7 +9,7 @@ import { CodeComponent } from '../code/code.component';
   templateUrl: './themes.component.html',
   styleUrls: ['./themes.component.scss'],
   host: { 'class': 'form-group' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ListEditorComponent, CodeComponent]
 })
 export class ThemesFormComponent implements OnChanges {

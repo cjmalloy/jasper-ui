@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { runInAction } from 'mobx';
 
 import { TagPage } from './tag.component';
 
@@ -33,13 +32,13 @@ describe('TagPage', () => {
   });
 
   it('should include internal refs for an origin-qualified plugin query', () => {
-    runInAction(() => component.store.view.route.routeSnapshot = {
+    component.store.view.route.routeSnapshot = {
       queryParams: {},
       firstChild: {
         params: { tag: 'plugin/test@remote' },
         url: [{ path: 'tag' }],
       },
-    } as any);
+    } as any;
     const getPlugins = vi.spyOn(component.admin, 'getPlugins').mockReturnValue([{} as any]);
 
     fixture.detectChanges();

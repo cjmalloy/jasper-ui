@@ -15,7 +15,7 @@ import { URI_REGEX } from '../../util/format';
   selector: 'app-links',
   templateUrl: './links.component.html',
   styleUrls: ['./links.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class LinksFormComponent {

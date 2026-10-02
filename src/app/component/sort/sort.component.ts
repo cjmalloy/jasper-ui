@@ -1,7 +1,6 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, Input, OnChanges, signal, SimpleChanges, untracked, viewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
@@ -13,12 +12,10 @@ import { convertSort, defaultDesc, SortItem } from '../../util/query';
   templateUrl: './sort.component.html',
   styleUrls: ['./sort.component.scss'],
   host: { 'class': 'sort form-group' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormsModule]
 })
-export class SortComponent implements OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
-
+export class SortComponent implements OnChanges {
   readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
   @Input()
@@ -26,11 +23,16 @@ export class SortComponent implements OnChanges, OnDestroy {
 
   allRefSorts = this.admin.refSorts.map(convertSort);
   allTagSorts = this.admin.tagSorts.map(convertSort);
-  allSorts: SortItem[] = [
+  private readonly _allSorts = signal<SortItem[]>([
     { value: 'modified', label: $localize`🕓️ modified` },
     { value: 'origin:len', label: $localize`🪆 nesting` },
-  ];
-  sorts: string[] = [];
+  ]);
+  private readonly _sorts = signal<string[]>([], { equal: () => false });
+
+  get allSorts() { return this._allSorts(); }
+  set allSorts(value: SortItem[]) { this._allSorts.set(value); }
+  get sorts() { return this._sorts(); }
+  set sorts(value: string[]) { this._sorts.set(value); }
   replace = false;
 
   constructor(
@@ -39,13 +41,14 @@ export class SortComponent implements OnChanges, OnDestroy {
     public store: Store,
   ) {
     this.type = 'ref';
-    this.disposers.push(autorun(() => {
-      this.sorts = toJS(this.store.view.sort);
-      if (!Array.isArray(this.sorts)) this.sorts = [this.sorts];
-    }));
-    this.disposers.push(autorun(() => {
-      this.rebuildSorts(this.store.view.isSearch);
-    }));
+    effect(() => {
+      const sort = this.store.view.sort;
+      untracked(() => this.sorts = Array.isArray(sort) ? [...sort] : [sort]);
+    });
+    effect(() => {
+      const isSearch = this.store.view.isSearch;
+      untracked(() => this.rebuildSorts(isSearch));
+    });
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);
@@ -68,15 +71,11 @@ export class SortComponent implements OnChanges, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
-
   addSort(value: string) {
     this.replace = false;
     if (!this.sorts) this.sorts = [];
     this.sorts.push('');
+    this._sorts.set(this.sorts);
     this.create()!.nativeElement.selectedIndex = 0;
     this.setSortCol(this.sorts.length - 1, value);
   }
@@ -84,18 +83,21 @@ export class SortComponent implements OnChanges, OnDestroy {
   setSortCol(index: number, value: string) {
     const dir = this.sortDir(value)
     this.sorts[index] = value + ',' + dir;
+    this._sorts.set(this.sorts);
     this.setSort();
   }
 
   setSortDir(index: number, value: string) {
     const col = this.sortCol(this.sorts[index])
     this.sorts[index] = col + ',' + value;
+    this._sorts.set(this.sorts);
     if (col) this.setSort();
   }
 
   removeSort(index: number) {
     this.replace = false;
     this.sorts.splice(index, 1);
+    this._sorts.set(this.sorts);
     this.setSort();
   }
 

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
@@ -10,7 +10,7 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-password.component.html',
   styleUrls: ['./inline-password.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, AutofocusDirective, LoadingComponent]
 })
 export class InlinePasswordComponent extends ActionComponent {
@@ -18,8 +18,14 @@ export class InlinePasswordComponent extends ActionComponent {
   readonly action = input<(password: string) => Observable<any | never>>(() => of(null));
   readonly error = output<string>();
 
-  editing = false;
-  acting = false;
+  private readonly editingSignal = signal(false);
+  private readonly actingSignal = signal(false);
+
+  get editing() { return this.editingSignal(); }
+  set editing(value: boolean) { this.editingSignal.set(value); }
+
+  get acting() { return this.actingSignal(); }
+  set acting(value: boolean) { this.actingSignal.set(value); }
 
   override reset() {
     this.editing = false;

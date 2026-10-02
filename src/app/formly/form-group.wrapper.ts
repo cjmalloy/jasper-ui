@@ -3,7 +3,7 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 
 @Component({
   selector: 'formly-wrapper-form-field',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
       <!-- Label -->

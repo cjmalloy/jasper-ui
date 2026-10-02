@@ -3,12 +3,12 @@ import {
   Component,
   HostBinding,
   HostListener,
-  NgZone,
   OnChanges,
   SimpleChanges,
   ChangeDetectionStrategy,
   input,
-  output
+  output,
+  signal
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
@@ -24,7 +24,7 @@ import { TodoItemComponent } from './item/item.component';
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
   host: { 'class': 'todo-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkDropList,
     CdkDrag,
@@ -41,11 +41,26 @@ export class TodoComponent implements OnChanges {
   readonly comment = output<string>();
   readonly copied = output<string>();
 
-  lines: string[] = [];
-  addText = '';
-  pushText: string[] = [];
-  pressToUnlock = false;
-  serverErrors: string[] = [];
+  private readonly linesSignal = signal<string[]>([]);
+  private readonly addTextSignal = signal('');
+  private readonly pushTextSignal = signal<string[]>([]);
+  private readonly pressToUnlockSignal = signal(false);
+  private readonly serverErrorsSignal = signal<string[]>([]);
+
+  get lines() { return this.linesSignal(); }
+  set lines(value: string[]) { this.linesSignal.set(value); }
+
+  get addText() { return this.addTextSignal(); }
+  set addText(value: string) { this.addTextSignal.set(value); }
+
+  get pushText() { return this.pushTextSignal(); }
+  set pushText(value: string[]) { this.pushTextSignal.set(value); }
+
+  get pressToUnlock() { return this.pressToUnlockSignal(); }
+  set pressToUnlock(value: boolean) { this.pressToUnlockSignal.set(value); }
+
+  get serverErrors() { return this.serverErrorsSignal(); }
+  set serverErrors(value: string[]) { this.serverErrorsSignal.set(value); }
 
   private watch?: Subscription;
   private pushing?: Subscription;
@@ -55,7 +70,6 @@ export class TodoComponent implements OnChanges {
     public config: ConfigService,
     private store: Store,
     private actions: ActionService,
-    private zone: NgZone,
   ) {
     if (config.mobile) {
       this.pressToUnlock = true;
@@ -83,7 +97,7 @@ export class TodoComponent implements OnChanges {
 
   @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
-    this.zone.run(() => this.pressToUnlock = true);
+    this.pressToUnlock = true;
   }
 
   @HostBinding('class.empty')
@@ -97,11 +111,12 @@ export class TodoComponent implements OnChanges {
 
   drop(event: CdkDragDrop<string, string, string>) {
     if (event.previousContainer.data === event.container.data) {
-      this.lines.splice(event.previousIndex, 1);
+        this.lines.splice(event.previousIndex, 1);
     } else {
       // TODO: Delete from prev
     }
     this.lines.splice(event.currentIndex, 0, event.item.data);
+    this.lines = [...this.lines];
     this.save$(this.lines.join('\n'))?.subscribe();
   }
 
@@ -111,6 +126,7 @@ export class TodoComponent implements OnChanges {
     } else {
       this.lines[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
     }
+    this.lines = [...this.lines];
     this.save$(this.lines.join('\n'))?.subscribe();
   }
 
@@ -131,7 +147,7 @@ export class TodoComponent implements OnChanges {
     cancel?.preventDefault();
     this.addText = this.addText.trim();
     if (!this.addText) return;
-    this.pushText.push(`- [ ] ${this.addText}`);
+    this.pushText = [...this.pushText, `- [ ] ${this.addText}`];
     this.addText = '';
     if (!this.pushing) this.pushing = this.push$().subscribe();
   }

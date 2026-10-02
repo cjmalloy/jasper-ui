@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
@@ -56,9 +56,9 @@ import { getErrorMessage } from './errors';
 export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
   listId = 'list-' + uuid();
-  preview = '';
-  editing = false;
-  autocomplete: { value: string, label: string }[] = [];
+  private readonly _preview = signal('');
+  private readonly _editing = signal(false);
+  private readonly _autocomplete = signal<{ value: string, label: string }[]>([]);
 
   private showedError = false;
   private previewing?: Subscription;
@@ -72,10 +72,18 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     private editor: EditorService,
     private exts: ExtService,
     public store: Store,
-    private cd: ChangeDetectorRef,
   ) {
     super();
   }
+
+  get preview(): string { return this._preview(); }
+  set preview(value: string) { this._preview.set(value); }
+
+  get editing(): boolean { return this._editing(); }
+  set editing(value: boolean) { this._editing.set(value); }
+
+  get autocomplete(): { value: string, label: string }[] { return this._autocomplete(); }
+  set autocomplete(value: { value: string, label: string }[]) { this._autocomplete.set(value); }
 
   ngAfterViewInit() {
     if (this.model) this.getPreview(this.model[this.key as any]);
@@ -119,7 +127,6 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     this.previewing?.unsubscribe();
     this.previewing = this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
       this.preview = x?.name || x?.tag || '';
-      this.cd.detectChanges();
     });
   }
 
@@ -155,10 +162,8 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     const getTemplates = (text: string, size = 5) => this.admin.searchTemplates(text).slice(0, size).map(toEntry);
     if (this.field.type === 'plugin') {
       this.autocomplete = derank(getPlugins(value));
-      this.cd.detectChanges();
     } else if (this.field.type === 'template') {
       this.autocomplete = derank(getTemplates(value));
-      this.cd.detectChanges();
     } else {
       this.searching?.unsubscribe();
       this.searching = this.exts.page({
@@ -174,7 +179,6 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
         if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(value, 5 - this.autocomplete.length));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(value, 5 - this.autocomplete.length));
         this.autocomplete = derank(uniqBy(this.autocomplete, 'value'));
-        this.cd.detectChanges();
       });
     }
   }, 400);

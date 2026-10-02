@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, isString, uniqBy } from 'lodash-es';
@@ -83,12 +83,12 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
 
   listId = 'list-' + uuid();
   previewUrl = '';
-  preview = '';
-  editing = false;
-  progress = 0;
-  uploading = false;
+  private readonly _preview = signal('');
+  private readonly _editing = signal(false);
+  private readonly _progress = signal(0);
+  private readonly _uploading = signal(false);
   files = !!this.admin.getPlugin('plugin/file');
-  autocomplete: { value: string, label: string }[] = [];
+  private readonly _autocomplete = signal<{ value: string, label: string }[]>([]);
 
   private showedError = false;
   private previewing?: Subscription;
@@ -103,10 +103,24 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     private editor: EditorService,
     private proxy: ProxyService,
     private admin: AdminService,
-    private cd: ChangeDetectorRef,
   ) {
     super();
   }
+
+  get preview(): string { return this._preview(); }
+  set preview(value: string) { this._preview.set(value); }
+
+  get editing(): boolean { return this._editing(); }
+  set editing(value: boolean) { this._editing.set(value); }
+
+  get progress(): number { return this._progress(); }
+  set progress(value: number) { this._progress.set(value); }
+
+  get uploading(): boolean { return this._uploading(); }
+  set uploading(value: boolean) { this._uploading.set(value); }
+
+  get autocomplete(): { value: string, label: string }[] { return this._autocomplete(); }
+  set autocomplete(value: { value: string, label: string }[]) { this._autocomplete.set(value); }
 
   ngAfterViewInit() {
     if (this.model) this.getPreview(this.model[this.key as any]);
@@ -154,11 +168,9 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     ).subscribe(ref => {
       if (ref) {
         this.preview = getPageTitle(ref);
-        this.cd.detectChanges();
       } else if (value.toLowerCase().startsWith('tag:/')) {
         this.editor.getTagPreview(value.substring('tag:/'.length)).subscribe(x => {
           this.preview = x?.name || x?.tag || '';
-          this.cd.detectChanges();
         });
       }
     });
@@ -187,7 +199,6 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
       size: 3,
     }).subscribe(page => {
       this.autocomplete = uniqBy(page.content, ref => ref.url).map(ref => ({ value: ref.url, label: getPageTitle(ref) }));
-      this.cd.detectChanges();
     })
   }, 400);
 
@@ -204,7 +215,6 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
       this.uploading = true;
       this.progress = event.progress || 0;
     }
-    this.cd.detectChanges();
   }
 
   upload(event: Event, items?: DataTransferItemList) {

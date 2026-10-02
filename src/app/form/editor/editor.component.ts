@@ -6,9 +6,9 @@ import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
 import {
   DestroyRef,
+  effect,
   inject,
   AfterViewInit,
-  ChangeDetectorRef,
   Component,
   ElementRef,
   forwardRef,
@@ -23,6 +23,7 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
+  signal,
   viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -30,7 +31,6 @@ import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl 
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, filter, last, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
@@ -67,7 +67,7 @@ export interface EditorUpload {
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
   host: { 'class': 'editor' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => MdComponent),
     LoadingComponent,
@@ -79,18 +79,13 @@ export interface EditorUpload {
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
-  private disposers: IReactionDisposer[] = [];
 
   readonly id = input('editor-' + uuid());
 
-  @HostBinding('class.stacked')
-  stacked = true;
-  @HostBinding('class.fullscreen')
-  fullscreen = false;
-  @HostBinding('class.help')
-  help = false;
-  @HostBinding('class.md-preview')
-  preview = this.store.local.showPreview;
+  private readonly _stacked = signal(true);
+  private readonly _fullscreen = signal(false);
+  private readonly _help = signal(false);
+  private readonly _preview = signal(this.store.local.showPreview);
 
   readonly helpButton = viewChild<ElementRef<HTMLButtonElement>>('helpButton');
   readonly editor = viewChild<ElementRef<HTMLTextAreaElement>>('editor');
@@ -109,8 +104,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input()
   control!: UntypedFormControl;
   readonly autoFocus = input(false);
-  @Input()
-  addButton = false;
+  private readonly _addButton = signal(false);
   readonly url = input('');
   readonly addCommentTitle = input($localize `Add comment`);
   readonly addCommentLabel = input($localize `+ Add comment`);
@@ -121,19 +115,19 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   readonly scrape = output<void>();
   readonly uploadCompleted = output<Ref>();
 
-  dropping = false;
+  private readonly _dropping = signal(false);
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
-  toggleIndex = 0;
-  initialFullscreen = false;
-  focused?: boolean = false;
-  progress = 0;
-  uploads: EditorUpload[] = [];
+  private readonly _toggleIndex = signal(0);
+  private readonly _initialFullscreen = signal(false);
+  private readonly _focused = signal<boolean | undefined>(false);
+  private readonly _progress = signal(0);
+  private readonly _uploads = signal<EditorUpload[]>([]);
   files = !!this.admin.getPlugin('plugin/file');
-  loadingEvents: any = {};
+  private readonly _loadingEvents = signal<any>({});
 
-  private _text? = '';
-  private _editing = false;
+  private readonly _text = signal('');
+  private readonly _editing = signal(false);
   private _padding = 8;
 
   private europa?: Europa;
@@ -159,15 +153,63 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     private el: ElementRef,
     private vc: ViewContainerRef,
     private fb: FormBuilder,
-    private cd: ChangeDetectorRef,
   ) {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
-      this.loadingEvents[event.event] = false;
+      this.loadingEvents = { ...this.loadingEvents, [event.event]: false };
+    });
+    effect(() => {
+      const height = this.store.viewportHeight - 4;
+      if (this.overlayRef) {
+        this.overlayRef.updateSize({ height });
+        document.body.style.height = height + 'px';
+        this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
+      }
     });
   }
+
+  @HostBinding('class.stacked')
+  get stacked(): boolean { return this._stacked(); }
+  set stacked(value: boolean) { this._stacked.set(value); }
+
+  @HostBinding('class.fullscreen')
+  get fullscreen(): boolean { return this._fullscreen(); }
+  set fullscreen(value: boolean) { this._fullscreen.set(value); }
+
+  @HostBinding('class.help')
+  get help(): boolean { return this._help(); }
+  set help(value: boolean) { this._help.set(value); }
+
+  @HostBinding('class.md-preview')
+  get preview(): boolean { return this._preview(); }
+  set preview(value: boolean) { this._preview.set(value); }
+
+  get dropping(): boolean { return this._dropping(); }
+  set dropping(value: boolean) { this._dropping.set(value); }
+
+  get toggleIndex(): number { return this._toggleIndex(); }
+  set toggleIndex(value: number) { this._toggleIndex.set(value); }
+
+  get initialFullscreen(): boolean { return this._initialFullscreen(); }
+  set initialFullscreen(value: boolean) { this._initialFullscreen.set(value); }
+
+  get focused(): boolean | undefined { return this._focused(); }
+  set focused(value: boolean | undefined) { this._focused.set(value); }
+
+  get progress(): number { return this._progress(); }
+  set progress(value: number) { this._progress.set(value); }
+
+  get uploads(): EditorUpload[] { return this._uploads(); }
+  set uploads(value: EditorUpload[]) { this._uploads.set(value); }
+
+  get loadingEvents(): any { return this._loadingEvents(); }
+  set loadingEvents(value: any) { this._loadingEvents.set(value); }
+
+  get addButton(): boolean { return this._addButton(); }
+  @Input()
+  set addButton(value: boolean) { this._addButton.set(value); }
 
   init() {
     MemoCache.clear(this);
@@ -183,14 +225,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.disposers.push(autorun(() => {
-      const height = this.store.viewportHeight - 4;
-      if (this.overlayRef) {
-        this.overlayRef.updateSize({ height });
-        document.body.style.height = height + 'px';
-        this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
-      }
-    }));
     const tags = this.tags();
     if (tags) {
       tags.valueChanges.pipe(
@@ -211,8 +245,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
@@ -220,7 +252,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @Input()
   set scraping(value: boolean) {
-    this.loadingEvents['scrape-done'] = value;
+    this.loadingEvents = { ...this.loadingEvents, 'scrape-done': value };
   }
 
   @HostListener('window:scroll')
@@ -293,17 +325,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   get editing(): boolean {
-    return this._editing;
+    return this._editing();
   }
 
   @HostBinding('class.editing')
   set editing(value: boolean) {
-    if (!this._editing && value) {
-      defer(() => {
-        this._editing = true;
-        this.updateTags(this.initTags);
-        this.cd.detectChanges();
-      });
+    if (!this._editing() && value) {
+      this._editing.set(true);
+      this.updateTags(this.initTags);
     }
   }
 
@@ -377,7 +406,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   get currentText() {
-    return this._text || this.control?.value || '';
+    return this._text() || this.control?.value || '';
   }
 
   updateTags(tags: string[]) {
@@ -437,15 +466,15 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   setText = debounce((value: string) => {
-    if (this._text === value) return;
-    this._text = value;
+    if (this._text() === value) return;
+    this._text.set(value);
   }, 400, { leading: true, trailing: true, maxWait: 3000 });
 
   syncText(value: string) {
     if (!value) {
       // Do not throttle
-      this._text = value;
-      this.syncEditor.emit(this._text);
+      this._text.set(value);
+      this.syncEditor.emit(this._text());
     }
     // Clear previous throttled values
     this.syncTextThrottled(value);
@@ -453,9 +482,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   syncTextThrottled = debounce((value: string) => {
-    if (this._text === value) return;
-    this._text = value;
-    this.syncEditor.emit(this._text);
+    if (this._text() === value) return;
+    this._text.set(value);
+    this.syncEditor.emit(this._text());
   }, 400);
 
   togglePreview() {
@@ -490,7 +519,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.focused ||= this.focused === undefined || this.fullscreen;
     if (this.fullscreen) {
       document.documentElement.style.overflowY = 'auto';
-      this._text = this.currentText;
+      this._text.set(this.currentText);
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
       this.scrollTop = editor.nativeElement.scrollTop;
@@ -572,7 +601,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   fireEvent(button: EditorButton) {
     const event = button.event!;
-    if (button.eventDone) this.loadingEvents[button.eventDone] = true;
+    if (button.eventDone) this.loadingEvents = { ...this.loadingEvents, [button.eventDone]: true };
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
         absolute: !!this.url(),
@@ -640,12 +669,17 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
           upload.completed = true;
           upload.progress = 100;
           upload.ref = ref;
+          this.refreshUploads();
           // Emit upload completion so parent can tag it
           this.uploadCompleted.emit(ref);
         }
         this.checkAllUploadsComplete();
       });
     });
+  }
+
+  private refreshUploads() {
+    this.uploads = [...this.uploads];
   }
 
   upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
@@ -663,16 +697,21 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         ])
       };
       upload.progress = 50; // Simulate progress for text files
+      this.refreshUploads();
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
           comment: contents,
         })),
         map(cursor => ref),
-        tap(() => upload.progress = 100),
+        tap(() => {
+          upload.progress = 100;
+          this.refreshUploads();
+        }),
         catchError(err => {
           upload.error = err.message || 'Upload failed';
           upload.progress = 0;
+          this.refreshUploads();
           return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
         }),
       );
@@ -697,6 +736,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
               this.progress = percentDone;
               upload.progress = percentDone;
+              this.refreshUploads();
               return null;
           }
           return null;
@@ -708,6 +748,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         catchError(err => {
           upload.error = err.message || 'Upload failed';
           upload.progress = 0;
+          this.refreshUploads();
           return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
         }),
       );

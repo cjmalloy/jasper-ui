@@ -1,7 +1,5 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -15,12 +13,12 @@ import { getArgs } from '../../../util/query';
   selector: 'app-ref-versions',
   templateUrl: './versions.component.html',
   styleUrls: ['./versions.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, RefListComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RefListComponent]
 })
 export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
 
-  private disposers: IReactionDisposer[] = [];
+  private readonly injector = inject(Injector);
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -31,7 +29,7 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = ['published']);
+    store.view.defaultSort = ['published'];
   }
 
   saveChanges() {
@@ -40,7 +38,7 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = getArgs(
         '',
         this.store.view.sort,
@@ -52,15 +50,13 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
       args.url = this.store.view.url;
       args.obsolete = this.store.view.ref?.metadata?.obsolete ? null : true;
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref))));
+    effect(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref)), { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
 }

@@ -1,9 +1,8 @@
-import { Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy, input, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, input, OnChanges, signal, SimpleChanges, untracked, viewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
 import { KanbanConfig } from '../../mods/org/kanban';
@@ -24,12 +23,10 @@ import { hasPrefix } from '../../util/tag';
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
   host: { 'class': 'filter form-group' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormsModule]
 })
-export class FilterComponent implements OnChanges, OnDestroy {
-
-  private disposers: IReactionDisposer[] = [];
+export class FilterComponent implements OnChanges {
 
   readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
@@ -45,8 +42,13 @@ export class FilterComponent implements OnChanges, OnDestroy {
   createdBeforeFilter: FilterItem = { filter: `created/before/${DateTime.now().toISO()}`, label: $localize`✨️ created before` };
   createdAfterFilter: FilterItem = { filter: `created/after/${DateTime.now().toISO()}`, label: $localize`✨️ created after` };
 
-  allFilters: FilterGroup[] = [];
-  filters: UrlFilter[] = [];
+  private readonly _allFilters = signal<FilterGroup[]>([], { equal: () => false });
+  private readonly _filters = signal<UrlFilter[]>([], { equal: () => false });
+
+  get allFilters() { return this._allFilters(); }
+  set allFilters(value: FilterGroup[]) { this._allFilters.set(value); }
+  get filters() { return this._filters(); }
+  set filters(value: UrlFilter[]) { this._filters.set(value); }
 
   emoji = emoji($localize`🪄️`) || $localize`🔍️`;
 
@@ -58,11 +60,13 @@ export class FilterComponent implements OnChanges, OnDestroy {
     private bookmarks: BookmarkService,
     private editor: EditorService,
   ) {
-    this.disposers.push(autorun(() => {
-      this.filters = toJS(this.store.view.filter);
-      if (!Array.isArray(this.filters)) this.filters = [this.filters];
-      this.sync();
-    }));
+    effect(() => {
+      const filter = this.store.view.filter;
+      untracked(() => {
+        this.filters = Array.isArray(filter) ? [...filter] : [filter];
+        this.sync();
+      });
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -199,11 +203,6 @@ export class FilterComponent implements OnChanges, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
-
   get rootConfigs() {
     if (!this.admin.getTemplate('')) return [];
     return this.activeExts().map(x => x.config).filter(c => !!c) as RootConfig[];
@@ -291,6 +290,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
       }
     }
     this.filters = pullAll(this.filters, setToggles.map(toggle));
+    this._allFilters.set(this.allFilters);
   }
 
   loadFilter(filter: FilterConfig) {
@@ -304,6 +304,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
         filters: [convertFilter(filter)],
       });
     }
+    this._allFilters.set(this.allFilters);
   }
 
   pushFilter(...fgs: FilterGroup[]) {
@@ -315,6 +316,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
         this.allFilters.push(fg);
       }
     }
+    this._allFilters.set(this.allFilters);
   }
 
   addFilter(value: UrlFilter) {

@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, forwardRef, Input, OnInit, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
+import { DestroyRef, inject, Component, forwardRef, Input, OnInit, ChangeDetectionStrategy, input, viewChildren, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
@@ -20,7 +20,7 @@ import { RefComponent } from '../ref.component';
   templateUrl: './ref-list.component.html',
   styleUrls: ['./ref-list.component.scss'],
   host: { 'class': 'ref-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefComponent),
     PageControlsComponent,
@@ -28,6 +28,12 @@ import { RefComponent } from '../ref.component';
   ],
 })
 export class RefListComponent implements OnInit, HasChanges {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
   private destroyRef = inject(DestroyRef);
 
   readonly hide = input<number[]>();
@@ -81,7 +87,10 @@ export class RefListComponent implements OnInit, HasChanges {
           catchError(err => of({ url: pin })),
           takeUntilDestroyed(this.destroyRef),
         )))
-        .subscribe(pinned => this.pinned = pinned);
+        .subscribe(pinned => {
+          this.pinned = pinned;
+          this.markState();
+        });
     }
   }
 
@@ -136,7 +145,10 @@ export class RefListComponent implements OnInit, HasChanges {
   ngOnInit(): void {
     this.newRefs$()?.pipe(
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(ref => ref && this.addNewRef(ref));
+    ).subscribe(ref => {
+      if (ref) this.addNewRef(ref);
+      this.markState();
+    });
   }
 
 
@@ -160,6 +172,7 @@ export class RefListComponent implements OnInit, HasChanges {
       const index = this.newRefs.findIndex(r => r.url === ref.url);
       if (index !== -1) {
         this.newRefs[index] = ref;
+        this.newRefs = [...this.newRefs];
       } else if (this.insertNewAtTop()) {
         this.newRefs = [ref, ...this.newRefs];
         return;
@@ -169,5 +182,6 @@ export class RefListComponent implements OnInit, HasChanges {
       }
     }
     this.store.eventBus.refresh(ref);
+    this.markState();
   }
 }

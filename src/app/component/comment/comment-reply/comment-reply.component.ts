@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, forwardRef, Input, ChangeDetectionStrategy, input, output, viewChild } from '@angular/core';
+import { Component, forwardRef, Input, ChangeDetectionStrategy, input, output, viewChild, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -26,7 +26,7 @@ import { LoadingComponent } from '../../loading/loading.component';
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
   host: { 'class': 'comment-reply' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => EditorComponent),
     ReactiveFormsModule,
@@ -34,6 +34,12 @@ import { LoadingComponent } from '../../loading/loading.component';
   ]
 })
 export class CommentReplyComponent implements HasChanges {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
 
   @Input()
   to!: Ref;
@@ -142,6 +148,7 @@ export class CommentReplyComponent implements HasChanges {
         delete this.replying;
         this.serverError = printError(err);
         this.comment.enable();
+        this.markState();
         return throwError(() => err);
       }),
     ).subscribe(() => {
@@ -164,6 +171,7 @@ export class CommentReplyComponent implements HasChanges {
         }
       };
       this.save.emit(update);
+      this.markState();
     });
   }
 

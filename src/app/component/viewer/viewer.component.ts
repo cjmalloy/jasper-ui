@@ -14,14 +14,14 @@ import {
   ViewChild,
   input,
   output,
-  viewChild
+  viewChild,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
-import { runInAction } from 'mobx';
 import { BehaviorSubject, catchError, of, Subject, throwError } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -65,7 +65,7 @@ import { TodoComponent } from '../todo/todo.component';
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefComponent),
     forwardRef(() => PlaylistComponent),
@@ -83,6 +83,12 @@ import { TodoComponent } from '../todo/todo.component';
   ],
 })
 export class ViewerComponent implements OnChanges, OnDestroy {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroyRef = inject(DestroyRef);
@@ -165,7 +171,10 @@ export class ViewerComponent implements OnChanges, OnDestroy {
       this.refs.getCurrent(this.ref.sources[0]).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
         takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => this.repost = ref);
+      ).subscribe(ref => {
+        this.repost = ref;
+        this.markState();
+      });
     }
     const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref) ? this.ref?.sources?.[0] : this.ref?.url);
     if (queryUrl && hasTag('plugin/lens', this.ref)) {
@@ -181,6 +190,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
           this.lensSort = params.sort;
           this.lensFilter = params.filter;
           this.lensSearch = params.search;
+          this.markState();
         });
     }
     if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
@@ -191,7 +201,10 @@ export class ViewerComponent implements OnChanges, OnDestroy {
         this.width = screen.width;
         this.height = screen.height;
       }
-      this.oembeds.get(this.ref.url, this.theme, this.width, this.height).subscribe(oembed => this.oembed = oembed);
+      this.oembeds.get(this.ref.url, this.theme, this.width, this.height).subscribe(oembed => {
+        this.oembed = oembed;
+        this.markState();
+      });
     }
     this.reload(this.currentAudio);
     this.reload(this.currentVideo);
@@ -326,12 +339,14 @@ export class ViewerComponent implements OnChanges, OnDestroy {
             }
             this.embedReady = true;
             MemoCache.clear(this);
+            this.markState();
           });
       } else {
         i.src = embedUrl(this.embed?.url || this.ref?.url);
         if (!i.style.width) i.style.width = this.embedWidth;
         if (!i.style.height) i.style.height = this.embedHeight;
         this.embedReady = true;
+        this.markState();
       }
     } else {
       delete this._oembed;
@@ -539,12 +554,13 @@ return '67vh';
     const api: PluginApi = {
       comment: (comment: string) => {
         if (this.ref) {
-          runInAction(() => this.ref!.comment = comment);
+          this.ref.comment = comment;
         } else {
           this.text = comment;
         }
         if (this.ref?.modified) actions.comment(comment);
         this.comment.emit(comment);
+        this.markState();
       },
       event: (event: string) => {
         actions.event(event);
@@ -566,6 +582,7 @@ return '67vh';
           comment$: (comment: string) => {
             this.text = comment;
             subject$.next({ comment: this.text } as RefUpdates)
+            this.markState();
             return of();
           },
         };
@@ -578,6 +595,7 @@ return '67vh';
           append$: (value: string) => {
             this.text += value;
             subject$.next(value);
+            this.markState();
             return of();
           },
         };
@@ -588,18 +606,17 @@ return '67vh';
         if (this.ref?.modified) {
           actions.patch!(patch);
         } else if (this.ref) {
-          runInAction(() => {
-            const plugins = patch.plugins ? { ...this.ref!.plugins, ...patch.plugins } : this.ref!.plugins;
-            Object.assign(this.ref!, patch);
-            if (patch.plugins) {
-              this.ref!.plugins = plugins;
-              for (const updateTag of Object.keys(patch.plugins)) {
-                if (!hasTag(updateTag, this.ref!)) {
-                  this.ref!.tags = [...(this.ref!.tags || []), updateTag];
-                }
+          const plugins = patch.plugins ? { ...this.ref.plugins, ...patch.plugins } : this.ref.plugins;
+          Object.assign(this.ref, patch);
+          if (patch.plugins) {
+            this.ref.plugins = plugins;
+            for (const updateTag of Object.keys(patch.plugins)) {
+              if (!hasTag(updateTag, this.ref)) {
+                this.ref.tags = [...(this.ref.tags || []), updateTag];
               }
             }
-          });
+          }
+          this.markState();
         }
       };
     }

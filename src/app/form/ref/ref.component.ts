@@ -12,6 +12,7 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
+  signal,
   viewChild
 } from '@angular/core';
 import {
@@ -53,7 +54,7 @@ import { TagsFormComponent } from '../tags/tags.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => EditorComponent),
     CdkDropListGroup,
@@ -73,8 +74,7 @@ import { TagsFormComponent } from '../tags/tags.component';
 })
 export class RefFormComponent implements OnChanges {
 
-  @Input()
-  creating = false;
+  private readonly _creating = signal(false);
   readonly origin = input<string | undefined>('');
   @Input()
   group!: UntypedFormGroup;
@@ -87,17 +87,16 @@ export class RefFormComponent implements OnChanges {
   readonly fill = viewChild<ElementRef>('fill');
   readonly editorComponent = viewChild<EditorComponent>('ed');
 
-  @HostBinding('class.show-drops')
-  dropping = false;
+  private readonly _dropping = signal(false);
 
   id = 'ref-' + uuid();
-  oembed?: Oembed;
-  scraped?: Ref;
-  ref?: Ref;
-  scrapingTitle = false;
-  scrapingPublished = false;
-  scrapingAll = false;
-  completedUploads: Ref[] = [];
+  private readonly _oembed = signal<Oembed | undefined>(undefined);
+  private readonly _scraped = signal<Ref | undefined>(undefined);
+  private readonly _ref = signal<Ref | undefined>(undefined);
+  private readonly _scrapingTitle = signal(false);
+  private readonly _scrapingPublished = signal(false);
+  private readonly _scrapingAll = signal(false);
+  private readonly _completedUploads = signal<Ref[]>([]);
 
   constructor(
     public config: ConfigService,
@@ -108,6 +107,35 @@ export class RefFormComponent implements OnChanges {
     private store: Store,
     private fb: UntypedFormBuilder,
   ) { }
+
+  @HostBinding('class.show-drops')
+  get dropping(): boolean { return this._dropping(); }
+  set dropping(value: boolean) { this._dropping.set(value); }
+
+  get oembed(): Oembed | undefined { return this._oembed(); }
+  set oembed(value: Oembed | undefined) { this._oembed.set(value); }
+
+  get scraped(): Ref | undefined { return this._scraped(); }
+  set scraped(value: Ref | undefined) { this._scraped.set(value); }
+
+  get ref(): Ref | undefined { return this._ref(); }
+  set ref(value: Ref | undefined) { this._ref.set(value); }
+
+  get scrapingTitle(): boolean { return this._scrapingTitle(); }
+  set scrapingTitle(value: boolean) { this._scrapingTitle.set(value); }
+
+  get scrapingPublished(): boolean { return this._scrapingPublished(); }
+  set scrapingPublished(value: boolean) { this._scrapingPublished.set(value); }
+
+  get scrapingAll(): boolean { return this._scrapingAll(); }
+  set scrapingAll(value: boolean) { this._scrapingAll.set(value); }
+
+  get completedUploads(): Ref[] { return this._completedUploads(); }
+  set completedUploads(value: Ref[]) { this._completedUploads.set(value); }
+
+  get creating(): boolean { return this._creating(); }
+  @Input()
+  set creating(value: boolean) { this._creating.set(value); }
 
   ngOnChanges(changes: SimpleChanges) {
     MemoCache.clear(this);
@@ -265,17 +293,22 @@ export class RefFormComponent implements OnChanges {
       tap(s => {
         this.scraped = s;
         if (s.modified && this.ref?.modified) {
-          this.ref!.modifiedString = s.modifiedString;
-          this.ref!.modified = s.modified;
+          const ref: Ref = {
+            ...this.ref,
+            modifiedString: s.modifiedString,
+            modified: s.modified,
+            tags: [...this.ref.tags || []],
+            plugins: { ...this.ref.plugins || {} },
+          };
           if (hasTag('_plugin/cache', s)) {
-            if (!hasTag('_plugin/cache', this.ref)) {
-              this.ref!.tags ||= [];
-              this.ref!.tags.push('_plugin/cache');
+            if (!hasTag('_plugin/cache', ref)) {
+              ref.tags ||= [];
+              ref.tags.push('_plugin/cache');
             }
-            this.ref!.plugins ||= {}
-            this.ref!.plugins['_plugin/cache'] = s.plugins?.['_plugin/cache'];
+            ref.plugins ||= {}
+            ref.plugins['_plugin/cache'] = s.plugins?.['_plugin/cache'];
           }
-          this.setRef(this.ref!);
+          this.setRef(ref);
         }
       }),
     );
@@ -364,6 +397,10 @@ export class RefFormComponent implements OnChanges {
     } else {
       this.scrape$.subscribe(s => this.setComment(s.comment || ''));
     }
+  }
+
+  addCompletedUpload(ref: Ref) {
+    this.completedUploads = [...this.completedUploads, ref];
   }
 
   togglePlugin(tag: string) {

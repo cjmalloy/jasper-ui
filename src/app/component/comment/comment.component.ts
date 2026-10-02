@@ -15,13 +15,12 @@ import {
   ChangeDetectionStrategy,
   input,
   viewChildren,
-  viewChild
+  viewChild,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { Subject } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -67,12 +66,11 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
   host: { 'class': 'comment' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     CommentThreadComponent,
     forwardRef(() => ViewerComponent),
-    MobxAngularModule,
     RouterLink,
     TitleDirective,
     CommentEditComponent,
@@ -84,6 +82,12 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   ],
 })
 export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   maxContext = 20;
@@ -139,6 +143,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
           this.serverError = event.errors;
         }
       }
+      this.markState();
     });
     this.newComments$.pipe(
       takeUntilDestroyed(),
@@ -152,6 +157,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
         this.ref.metadata.plugins['plugin/comment']++;
         if (this.depth === 0) this.depth = 1;
       }
+      this.markState();
     });
     this.commentEdited$.pipe(
       takeUntilDestroyed(),
@@ -159,6 +165,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
       this.editing = false;
       this.ref = ref;
       this.init();
+      this.markState();
     });
   }
 
@@ -423,8 +430,6 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
   loadMore() {
     this.depth ||= 0;
     this.depth++;
-    runInAction(() => {
-      this.thread.loadAdHoc(this.ref?.url);
-    });
+    this.thread.loadAdHoc(this.ref?.url);
   }
 }

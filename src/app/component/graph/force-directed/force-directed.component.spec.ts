@@ -5,7 +5,6 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { runInAction } from 'mobx';
 
 import { ForceDirectedComponent } from './force-directed.component';
 
@@ -36,7 +35,8 @@ describe('ForceDirectedComponent', () => {
   });
 
   it('should draw nodes when the graph store changes', () => {
-    runInAction(() => component.store.graph.nodes = [{ url: 'https://example.com' }]);
+    component.store.graph.nodes = [{ url: 'https://example.com' }];
+    fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelectorAll('.force-directed-graph circle')).toHaveLength(1);
   });

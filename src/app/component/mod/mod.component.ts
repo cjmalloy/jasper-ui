@@ -10,7 +10,7 @@ import { UserComponent } from '../user/user.component';
   selector: 'app-mod',
   templateUrl: './mod.component.html',
   styleUrl: './mod.component.scss',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefComponent),
     forwardRef(() => ExtComponent),

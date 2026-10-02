@@ -21,7 +21,7 @@ import { TagsFormComponent } from '../tags/tags.component';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     TagsFormComponent,

@@ -12,7 +12,7 @@ import { TemplateComponent } from '../template.component';
   templateUrl: './template-list.component.html',
   styleUrls: ['./template-list.component.scss'],
   host: { 'class': 'template-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TemplateComponent, PageControlsComponent, LoadingComponent]
 })
 export class TemplateListComponent implements HasChanges {

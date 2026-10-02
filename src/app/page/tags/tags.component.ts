@@ -1,8 +1,6 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -20,10 +18,9 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   selector: 'app-tags-page',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ExtListComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     SidebarComponent,
@@ -31,9 +28,11 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
 })
 export class TagsPage implements OnInit, OnDestroy, HasChanges {
 
-  private disposers: IReactionDisposer[] = [];
+  private readonly injector = inject(Injector);
 
-  title = '';
+  private readonly _title = signal<string>('');
+  get title() { return this._title(); }
+  set title(value: string) { this._title.set(value); }
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
 
   readonly list = viewChild<ExtListComponent>('list');
@@ -57,7 +56,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || '';
       this.exts.getCachedExt(this.store.view.template)
         .subscribe(ext => this.title = ext.name || this.title);
@@ -80,13 +79,11 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   templateIs(tag: string): boolean {

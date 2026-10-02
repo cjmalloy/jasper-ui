@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -9,7 +9,7 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-button.component.html',
   styleUrls: ['./inline-button.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, LoadingComponent]
 })
 export class InlineButtonComponent extends ActionComponent {
@@ -17,8 +17,14 @@ export class InlineButtonComponent extends ActionComponent {
   readonly action = input<() => Observable<any | never>>(() => of(null));
   readonly minDelayMs = input(1000);
 
-  acting = false;
-  minTimeout = false;
+  private readonly actingSignal = signal(false);
+  private readonly minTimeoutSignal = signal(false);
+
+  get acting() { return this.actingSignal(); }
+  set acting(value: boolean) { this.actingSignal.set(value); }
+
+  get minTimeout() { return this.minTimeoutSignal(); }
+  set minTimeout(value: boolean) { this.minTimeoutSignal.set(value); }
 
   override reset() {
     this.acting = false;

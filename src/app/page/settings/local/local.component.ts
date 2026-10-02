@@ -7,7 +7,7 @@ import { Store } from '../../../store/store';
   selector: 'app-settings-local-page',
   templateUrl: './local.component.html',
   styleUrls: ['./local.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
 })
 export class SettingsLocalPage {

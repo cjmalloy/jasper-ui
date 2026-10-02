@@ -1,7 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
 import { AdminService } from '../../service/admin.service';
@@ -14,9 +12,8 @@ import { Store } from '../../store/store';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   host: { 'class': 'settings' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     RouterLinkActive,
@@ -35,9 +32,9 @@ export class SettingsPage implements OnInit {
 
   ngOnInit(): void {
     if (!this.store.view.settingsTabs.length) {
-      runInAction(() => {
+      {
         this.store.view.settingsTabs = this.admin.settings.filter(p => this.auth.tagReadAccess(p.tag));
-      });
+      };
     }
   }
 

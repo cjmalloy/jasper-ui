@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, ElementRef, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, ElementRef, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -23,7 +23,7 @@ import { printError } from '../../../util/http';
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
   host: { 'class': 'backup' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
 })
 export class SettingsBackupPage {
@@ -34,11 +34,20 @@ export class SettingsBackupPage {
   originForm: UntypedFormGroup;
   backupOptionsForm: UntypedFormGroup;
 
-  list?: BackupRef[];
-  uploading = false;
-  serverError: string[] = [];
-  backupOrigins: string[] = this.store.origins.list;
+  private readonly _list = signal<BackupRef[] | undefined>(undefined);
+  private readonly _uploading = signal(false);
+  private readonly _serverError = signal<string[]>([]);
+  private readonly _backupOrigins = signal<string[]>(this.store.origins.list);
   backupOptionsRef?: OverlayRef;
+
+  get list() { return this._list(); }
+  set list(value: BackupRef[] | undefined) { this._list.set(value); }
+  get uploading() { return this._uploading(); }
+  set uploading(value: boolean) { this._uploading.set(value); }
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
+  get backupOrigins() { return this._backupOrigins(); }
+  set backupOrigins(value: string[]) { this._backupOrigins.set(value); }
 
   constructor(
     private mod: ModService,
@@ -49,7 +58,6 @@ export class SettingsBackupPage {
     private fb: UntypedFormBuilder,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
-    private cd: ChangeDetectorRef,
   ) {
     mod.setTitle($localize`Settings: Backup & Restore`);
     this.fetchBackups();
@@ -70,7 +78,6 @@ export class SettingsBackupPage {
     this.origins.list()
       .subscribe(origins => {
         this.backupOrigins = uniq([...this.store.origins.list, ...origins]);
-        this.cd.markForCheck();
       });
   }
 
@@ -85,7 +92,7 @@ export class SettingsBackupPage {
   }
 
   fetchBackups(origin?: string) {
-    delete this.list;
+    this.list = undefined;
     this.backups.list(origin === undefined ? this.origin : origin)
       .subscribe(list => this.list = sortBy(list, 'id').reverse());
   }
@@ -144,8 +151,7 @@ export class SettingsBackupPage {
         return throwError(() => res);
       }),
     ).subscribe(id => {
-      this.list ||= [];
-      this.list.unshift({ id: '_' + id });
+      this.list = [{ id: '_' + id }, ...(this.list || [])];
     });
   }
 
@@ -162,8 +168,7 @@ export class SettingsBackupPage {
       }),
     ).subscribe(() => {
       this.uploading = false;
-      this.list ||= [];
-      this.list.unshift({ id: files[0].name });
+      this.list = [{ id: files[0].name }, ...(this.list || [])];
     });
   }
 

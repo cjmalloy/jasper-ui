@@ -10,7 +10,7 @@ import { memo, MemoCache } from '../../../util/memo';
   selector: 'app-form-gen',
   templateUrl: './gen.component.html',
   styleUrls: ['./gen.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class GenFormComponent implements OnInit, OnChanges {

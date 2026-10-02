@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { Component, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, viewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, Input, OnChanges, signal, SimpleChanges, viewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -24,7 +24,7 @@ import { LoadingComponent } from '../loading/loading.component';
   selector: 'app-template',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent]
 })
 export class TemplateComponent implements OnChanges, HasChanges {
@@ -33,20 +33,35 @@ export class TemplateComponent implements OnChanges, HasChanges {
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
+  private readonly _template = signal<Template>({} as Template);
+  private readonly _deleted = signal(false);
+  private readonly _serverError = signal<string[]>([]);
+  private readonly _configErrors = signal<string[]>([]);
+  private readonly _defaultsErrors = signal<string[]>([]);
+  private readonly _schemaErrors = signal<string[]>([]);
+  private readonly _saving = signal<Subscription | undefined>(undefined);
+
   @Input()
-  template!: Template;
+  get template() { return this._template(); }
+  set template(value: Template) { this._template.set(value); }
 
   editForm: UntypedFormGroup;
   submitted = false;
   editing = false;
   viewSource = false;
   @HostBinding('class.deleted')
-  deleted = false;
-  serverError: string[] = [];
-  configErrors: string[] = [];
-  defaultsErrors: string[] = [];
-  schemaErrors: string[] = [];
-  saving?: Subscription;
+  get deleted() { return this._deleted(); }
+  set deleted(value: boolean) { this._deleted.set(value); }
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
+  get configErrors() { return this._configErrors(); }
+  set configErrors(value: string[]) { this._configErrors.set(value); }
+  get defaultsErrors() { return this._defaultsErrors(); }
+  set defaultsErrors(value: string[]) { this._defaultsErrors.set(value); }
+  get schemaErrors() { return this._schemaErrors(); }
+  set schemaErrors(value: string[]) { this._schemaErrors.set(value); }
+  get saving() { return this._saving(); }
+  set saving(value: Subscription | undefined) { this._saving.set(value); }
 
   constructor(
     public admin: AdminService,
@@ -137,12 +152,12 @@ export class TemplateComponent implements OnChanges, HasChanges {
     this.saving = this.templates.update(template).pipe(
       switchMap(() => this.templates.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {
-        delete this.saving;
+        this.saving = undefined;
         this.serverError = printError(err);
         return throwError(() => err);
       }),
     ).subscribe(template => {
-      delete this.saving;
+      this.saving = undefined;
       this.editForm.reset();
       this.serverError = [];
       this.editing = false;

@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, input, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, HostBinding, Input, signal, TemplateRef, ViewContainerRef, input, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, Observable, of, throwError } from 'rxjs';
@@ -18,7 +18,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   selector: 'app-backup',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
 })
 export class BackupComponent {
@@ -32,12 +32,18 @@ export class BackupComponent {
   readonly restoreOptionsTemplate = viewChild.required<TemplateRef<any>>('restoreOptions');
 
   @HostBinding('class.deleted')
-  deleted = false;
-  serverError: string[] = [];
+  get deleted() { return this._deleted(); }
+  set deleted(value: boolean) { this._deleted.set(value); }
+  private readonly _deleted = signal(false);
+  private readonly _serverError = signal<string[]>([]);
+  private readonly _backupKey = signal('');
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
   restoreOptionsForm: UntypedFormGroup;
   restoreOptionsRef?: OverlayRef;
 
-  private backupKey = '';
+  get backupKey() { return this._backupKey(); }
+  set backupKey(value: string) { this._backupKey.set(value); }
 
   constructor(
     public admin: AdminService,

@@ -66,6 +66,9 @@ describe('VideoService', () => {
       }),
       addStream: vi.fn(),
       remove: vi.fn(),
+      setHungup: vi.fn((user: string, value: boolean) => {
+        videoStore.hungup = new Map([...videoStore.hungup, [user, value]]);
+      }),
       reset: vi.fn(),
       hangup: vi.fn(),
     };
@@ -452,6 +455,9 @@ describe('VideoService', () => {
         call: vi.fn(),
         addStream: vi.fn(),
         remove: vi.fn(),
+        setHungup: vi.fn((user: string, value: boolean) => {
+          videoStore.hungup = new Map([...videoStore.hungup, [user, value]]);
+        }),
         reset: vi.fn(),
         hangup: vi.fn(),
       };

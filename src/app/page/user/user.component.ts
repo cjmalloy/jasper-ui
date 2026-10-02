@@ -1,10 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { SettingsComponent } from '../../component/settings/settings.component';
 import { LimitWidthDirective } from '../../directive/limit-width.directive';
@@ -25,19 +23,26 @@ import { prefix, setPublic } from '../../util/tag';
   selector: 'app-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
 export class UserPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+
+  private readonly injector = inject(Injector);
+
+  private readonly _submitted = signal<boolean>(false);
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
+  private readonly _serverError = signal<string[]>([]);
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
+  private readonly _externalErrors = signal<string[]>([]);
+  get externalErrors() { return this._externalErrors(); }
+  set externalErrors(value: string[]) { this._externalErrors.set(value); }
   @HostBinding('class') css = 'full-page-form';
 
   readonly userForm = viewChild.required<UserFormComponent>('form');
-
-  submitted = false;
   profileForm: UntypedFormGroup;
-  serverError: string[] = [];
-  externalErrors: string[] = [];
 
   constructor(
     private mod: ModService,
@@ -63,14 +68,14 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (!this.store.view.tag) {
-        runInAction(() => this.store.view.selectedUser = undefined);
+        this.store.view.selectedUser = undefined;
       } else {
         const tag = this.store.view.localTag + this.store.account.origin;
         this.users.get(tag).pipe(
           catchError(() => of(undefined)),
-        ).subscribe(user => runInAction(() => {
+        ).subscribe(user => {
           this.store.view.selectedUser = user;
           if (user) {
             this.profileForm.setControl('user', userForm(this.fb, true));
@@ -84,14 +89,12 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
               writeAccess: this.admin.writeAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
             }));
           }
-        }));
+        });
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get active() {
@@ -135,14 +138,14 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
       if (!updates.external) delete updates.external;
       if (updates.external) updates.external = JSON.parse(updates.external);
     } catch (e: any) {
-      this.externalErrors.push(e.message);
+      this.externalErrors = [...this.externalErrors, e.message];
     }
     const entities: Observable<any>[] = [
       (this.store.view.selectedUser
         ? this.users.update(updates)
         : this.users.create(updates)).pipe(
         catchError((res: HttpErrorResponse) => {
-          this.serverError.push(...printError(res));
+          this.serverError = [...this.serverError, ...printError(res)];
           return throwError(() => res);
         }),
       )
@@ -168,7 +171,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
       } else {
         entities.push(this.profiles.create(profile).pipe(
           catchError((res: HttpErrorResponse) => {
-            this.serverError.push(...printError(res));
+            this.serverError = [...this.serverError, ...printError(res)];
             return throwError(() => res);
           }),
         ));

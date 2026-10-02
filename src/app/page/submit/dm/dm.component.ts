@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -14,8 +14,6 @@ import {
 import { Router } from '@angular/router';
 import { debounce, defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, firstValueFrom, forkJoin, interval, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -52,10 +50,9 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   templateUrl: './dm.component.html',
   styleUrls: ['./dm.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => EditorComponent),
-    MobxAngularModule,
     ReactiveFormsModule,
     LimitWidthDirective,
     AutofocusDirective,
@@ -69,7 +66,9 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   ]
 })
 export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+
+  private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
   private _url = 'comment:' + uuid();
 
   submitted = false;
@@ -137,18 +136,17 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   ngAfterViewInit() {
-    defer(() => {
-      this.disposers.push(autorun(() => {
-        if (this.store.submit.dmPlugin) {
-          this.setTo(this.store.submit.dmPlugin);
-        } if (this.store.submit.to.length) {
-          this.setTo(this.store.submit.to.join(' '));
-        } else {
-          this.setTo('');
-        }
-        this.addTags([...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])]);
-      }));
-    });
+    effect(() => {
+      if (this.store.submit.dmPlugin) {
+        this.setTo(this.store.submit.dmPlugin);
+      } if (this.store.submit.to.length) {
+        this.setTo(this.store.submit.to.join(' '));
+      } else {
+        this.setTo('');
+      }
+      const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+      if (tags.length) this.addTags(tags);
+    }, { injector: this.injector });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -156,8 +154,6 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get to() {
@@ -214,7 +210,9 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   addTags(value: string[]) {
     const tagsFormComponent = this.tagsFormComponent();
     if (!tagsFormComponent?.tags) {
-      defer(() => this.addTags(value));
+      defer(() => {
+        if (!this.destroyRef.destroyed) this.addTags(value);
+      });
       return;
     }
     tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
@@ -224,7 +222,9 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   setTags(value: string[]) {
     const tagsFormComponent = this.tagsFormComponent();
     if (!tagsFormComponent?.tags) {
-      defer(() => this.setTags(value));
+      defer(() => {
+        if (!this.destroyRef.destroyed) this.setTags(value);
+      });
       return;
     }
     tagsFormComponent.setTags(value);
@@ -321,7 +321,9 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   getPreview(value: string) {
     if (!value) return;
     if (this.showedError) return;
-    forkJoin(value.split(/[,\s]+/).filter(t => !!t).map( part => this.preview$(part))).subscribe(xs => {
+    forkJoin(value.split(/[,\s]+/).filter(t => !!t).map( part => this.preview$(part))).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(xs => {
       this.preview = xs.map(x => x?.name || x?.tag || '').join(',  ');
     });
   }

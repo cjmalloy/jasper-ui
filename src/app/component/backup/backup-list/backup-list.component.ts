@@ -7,7 +7,7 @@ import { BackupComponent } from '../backup.component';
   selector: 'app-backup-list',
   templateUrl: './backup-list.component.html',
   styleUrls: ['./backup-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LoadingComponent, BackupComponent]
 })
 export class BackupListComponent {

@@ -9,7 +9,7 @@ import { hasPrefix, hasTag } from '../../util/tag';
   selector: 'app-tags',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class TagsFormComponent implements OnChanges {

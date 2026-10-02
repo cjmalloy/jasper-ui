@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { Directive, ElementRef, HostBinding, Input, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Ref } from '../model/ref';
 import { ConfigService } from '../service/config.service';
@@ -19,7 +19,9 @@ export class ImageDirective implements OnInit, OnDestroy {
   defaultHeight?: number;
 
   @HostBinding('class.loading')
-  loading = true;
+  get loading() { return this._loading(); }
+  set loading(value: boolean) { this._loading.set(value); }
+  private readonly _loading = signal(true);
 
   private dim: Dim = { width: 0, height: 0 };
   private resizeObserver?: ResizeObserver;

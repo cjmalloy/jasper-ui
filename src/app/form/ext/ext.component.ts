@@ -4,7 +4,6 @@ import {
 import {
   DestroyRef,
   inject,
-  ChangeDetectorRef,
   Component,
   ElementRef,
   forwardRef,
@@ -12,6 +11,7 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
+  signal,
   viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -48,7 +48,7 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefComponent),
     ReactiveFormsModule,
@@ -61,8 +61,8 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
 })
 export class ExtFormComponent  {
   private destroyRef = inject(DestroyRef);
-  allSorts = this.admin.refSorts.map(convertSort);
-  allFilters: FilterItem[] = [
+  private readonly _allSorts = signal(this.admin.refSorts.map(convertSort));
+  private readonly _allFilters = signal<FilterItem[]>([
     { filter: `modified/before/${DateTime.now().toISO()}`, label: $localize`🕓️ modified before` },
     { filter: `modified/after/${DateTime.now().toISO()}`, label: $localize`🕓️ modified after` },
     { filter: `response/before/${DateTime.now().toISO()}`, label: $localize`🧵️ response before` },
@@ -72,7 +72,7 @@ export class ExtFormComponent  {
     { filter: `created/before/${DateTime.now().toISO()}`, label: $localize`✨️ created before` },
     { filter: `created/after/${DateTime.now().toISO()}`, label: $localize`✨️ created after` },
     ...this.admin.filters.map(convertFilter),
-  ];
+  ]);
   datePresets = [
     'now',
     'PT1M',
@@ -92,8 +92,7 @@ export class ExtFormComponent  {
     'P100Y',
   ];
 
-  @Input()
-  group!: UntypedFormGroup;
+  private readonly _group = signal<UntypedFormGroup | undefined>(undefined, { equal: () => false });
   readonly showClear = input(false);
   readonly clear = output<void>();
 
@@ -101,10 +100,10 @@ export class ExtFormComponent  {
   readonly advancedFormlyForm = viewChild<FormlyForm>('advancedFormlyForm');
 
   id = 'ext-' + uuid();
-  form?: FormlyFieldConfig[];
-  advancedForm?: FormlyFieldConfig[];
-  loadingDefaults = false;
-  defaults?: Ref;
+  private readonly _form = signal<FormlyFieldConfig[] | undefined>(undefined);
+  private readonly _advancedForm = signal<FormlyFieldConfig[] | undefined>(undefined);
+  private readonly _loadingDefaults = signal(false);
+  private readonly _defaults = signal<Ref | undefined>(undefined);
 
   options: FormlyFormOptions = {
     formState: {
@@ -119,9 +118,34 @@ export class ExtFormComponent  {
     public admin: AdminService,
     public store: Store,
     private refs: RefService,
-    private cd: ChangeDetectorRef,
     private el: ElementRef<HTMLElement>,
   ) { }
+
+  get group(): UntypedFormGroup {
+    return this._group()!;
+  }
+  @Input()
+  set group(value: UntypedFormGroup) {
+    this._group.set(value);
+  }
+
+  get form(): FormlyFieldConfig[] | undefined { return this._form(); }
+  set form(value: FormlyFieldConfig[] | undefined) { this._form.set(value); }
+
+  get advancedForm(): FormlyFieldConfig[] | undefined { return this._advancedForm(); }
+  set advancedForm(value: FormlyFieldConfig[] | undefined) { this._advancedForm.set(value); }
+
+  get loadingDefaults(): boolean { return this._loadingDefaults(); }
+  set loadingDefaults(value: boolean) { this._loadingDefaults.set(value); }
+
+  get defaults(): Ref | undefined { return this._defaults(); }
+  set defaults(value: Ref | undefined) { this._defaults.set(value); }
+
+  get allSorts() { return this._allSorts(); }
+  set allSorts(value) { this._allSorts.set(value); }
+
+  get allFilters(): FilterItem[] { return this._allFilters(); }
+  set allFilters(value: FilterItem[]) { this._allFilters.set(value); }
 
 
   get user() {
@@ -335,7 +359,6 @@ export class ExtFormComponent  {
     const mainFormlyForm = this.mainFormlyForm();
     const advancedFormlyForm = this.advancedFormlyForm();
     if (!mainFormlyForm || !advancedFormlyForm) {
-      this.cd.markForCheck();
       defer(() => this.setModel(ext));
       return;
     }
@@ -361,7 +384,6 @@ export class ExtFormComponent  {
         this.loadingDefaults = false;
       }
     });
-    this.cd.markForCheck();
   }
 
   createDefaults() {
@@ -376,7 +398,9 @@ export class ExtFormComponent  {
           published: DateTime.now(),
           modified: DateTime.now(),
         };
-        this.refs.create(this.defaults).subscribe(cursor => this.defaults!.modifiedString = cursor);
+        this.refs.create(this.defaults).subscribe(cursor => {
+          if (this.defaults) this.defaults = { ...this.defaults, modifiedString: cursor };
+        });
         return of(this.defaults);
       })
     ).subscribe(ref => {

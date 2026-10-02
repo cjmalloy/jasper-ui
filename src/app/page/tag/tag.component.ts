@@ -1,8 +1,6 @@
-import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
@@ -22,10 +20,9 @@ import { hasPrefix, localTag } from '../../util/tag';
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     LensComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     SidebarComponent,
@@ -33,9 +30,12 @@ import { hasPrefix, localTag } from '../../util/tag';
   ],
 })
 export class TagPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
 
-  loading = true;
+  private readonly injector = inject(Injector);
+
+  private readonly _loading = signal<boolean>(false);
+  get loading() { return this._loading(); }
+  set loading(value: boolean) { this._loading.set(value); }
 
   readonly lens = viewChild<LensComponent>('lens');
 
@@ -48,8 +48,8 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     private exts: ExtService,
     private bookmarks: BookmarkService,
   ) {
-    this.disposers.push(autorun(() => this.mod.setTitle(this.store.view.name)));
-    runInAction(() => {
+    effect(() => this.mod.setTitle(this.store.view.name), { injector: this.injector });
+    {
       this.store.view.clear([
         !!this.admin.getPlugin('plugin/user/vote/up')
           ? 'plugins->plugin/user/vote:decay'
@@ -58,10 +58,10 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
             : 'created'
       ]);
       this.store.view.extTemplates = this.admin.view;
-    });
-    this.disposers.push(autorun(() => {
+    };
+    effect(() => {
       if (!this.store.view.urlQueryTags.length) {
-        runInAction(() => this.store.view.exts = []);
+        this.store.view.exts = [];
         this.loading = false;
       } else {
         this.loading = true;
@@ -69,12 +69,12 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
           .pipe(this.admin.extFallbacks)
           .subscribe(exts => {
             if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts.map(x => x.tag + x.origin + x.modifiedString).sort())) {
-              runInAction(() => this.store.view.exts = exts);
+              this.store.view.exts = exts;
             }
             this.loading = false;
           });
       }
-    }));
+    }, { injector: this.injector });
     this.query.clear();
   }
 
@@ -84,7 +84,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit() {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
       if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
         this.bookmarks.filters = this.store.view.viewExtFilter;
@@ -100,17 +100,15 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
       );
       if (hasPrefix(this.store.view.viewExt?.tag, 'kanban') ||
           hasPrefix(this.store.view.viewExt?.tag, 'chat')) {
-        runInAction(() => this.query.setRelatedArgs(args));
+        this.query.setRelatedArgs(args);
         return;
       }
-      runInAction(() => this.query.setArgs(args));
-    }));
+      this.query.setArgs(args);
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @HostBinding('class.no-footer-padding')

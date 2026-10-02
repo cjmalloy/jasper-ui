@@ -2,9 +2,8 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as d3 from 'd3';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
-import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
+import { cloneDeep, defer, isEqual, omitBy, uniqWith } from 'lodash-es';
 import { DateTime, Duration, DurationObjectUnits } from 'luxon';
-import { toJS } from 'mobx';
 import { v4 as uuid } from 'uuid';
 import { interestingTags } from '../util/format';
 import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
@@ -589,8 +588,8 @@ export function hydrate(config: any, field: string, model: any): string {
 
 export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
   const hydrated = hydrate(action, 'emit', {
-    action: toJS(action),
-    ref: toJS(ref),
+    action: cloneDeep(action),
+    ref: cloneDeep(ref),
     user: user,
   });
   return filterModels(JSON.parse(hydrated));

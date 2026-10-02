@@ -15,6 +15,7 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
   input,
+  signal,
   viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -74,7 +75,7 @@ import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summ
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss'],
   host: { 'class': 'blog-entry' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
@@ -99,26 +100,71 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly blog = input<Ext>();
+  private readonly refSignal = signal<Ref | undefined>(undefined);
+
   @Input()
-  ref!: Ref;
+  set ref(value: Ref) { this.refSignal.set(value); }
+  get ref() { return this.refSignal()!; }
 
-  repostRef?: Ref;
+  private readonly repostRefSignal = signal<Ref | undefined>(undefined);
+  get repostRef() { return this.repostRefSignal(); }
+  set repostRef(value: Ref | undefined) { this.repostRefSignal.set(value); }
+
   editForm: UntypedFormGroup;
-  submitted = false;
-  icons: Icon[] = [];
-  actions: Action[] = [];
-  groupedActions: { [key: string]: Action[] } = {};
-  editing = false;
-  viewSource = false;
+  private readonly submittedSignal = signal(false);
+  private readonly iconsSignal = signal<Icon[]>([]);
+  private readonly actionsSignal = signal<Action[]>([]);
+  private readonly groupedActionsSignal = signal<{ [key: string]: Action[] }>({});
+  private readonly editingSignal = signal(false);
+  private readonly viewSourceSignal = signal(false);
   @HostBinding('class.deleted')
-  deleted = false;
-  writeAccess = false;
-  taggingAccess = false;
-  deleteAccess = false;
-  replying = false;
-  serverError: string[] = [];
+  get deleted() { return this.deletedSignal(); }
+  private readonly deletedSignal = signal(false);
+  private readonly writeAccessSignal = signal(false);
+  private readonly taggingAccessSignal = signal(false);
+  private readonly deleteAccessSignal = signal(false);
+  private readonly replyingSignal = signal(false);
+  private readonly serverErrorSignal = signal<string[]>([]);
 
-  submitting?: Subscription;
+  private readonly submittingSignal = signal<Subscription | undefined>(undefined);
+
+  get submitted() { return this.submittedSignal(); }
+  set submitted(value: boolean) { this.submittedSignal.set(value); }
+
+  get icons() { return this.iconsSignal(); }
+  set icons(value: Icon[]) { this.iconsSignal.set(value); }
+
+  get actions() { return this.actionsSignal(); }
+  set actions(value: Action[]) { this.actionsSignal.set(value); }
+
+  get groupedActions() { return this.groupedActionsSignal(); }
+  set groupedActions(value: { [key: string]: Action[] }) { this.groupedActionsSignal.set(value); }
+
+  get editing() { return this.editingSignal(); }
+  set editing(value: boolean) { this.editingSignal.set(value); }
+
+  get viewSource() { return this.viewSourceSignal(); }
+  set viewSource(value: boolean) { this.viewSourceSignal.set(value); }
+
+  set deleted(value: boolean) { this.deletedSignal.set(value); }
+
+  get writeAccess() { return this.writeAccessSignal(); }
+  set writeAccess(value: boolean) { this.writeAccessSignal.set(value); }
+
+  get taggingAccess() { return this.taggingAccessSignal(); }
+  set taggingAccess(value: boolean) { this.taggingAccessSignal.set(value); }
+
+  get deleteAccess() { return this.deleteAccessSignal(); }
+  set deleteAccess(value: boolean) { this.deleteAccessSignal.set(value); }
+
+  get replying() { return this.replyingSignal(); }
+  set replying(value: boolean) { this.replyingSignal.set(value); }
+
+  get serverError() { return this.serverErrorSignal(); }
+  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
+
+  get submitting() { return this.submittingSignal(); }
+  set submitting(value: Subscription | undefined) { this.submittingSignal.set(value); }
 
   summaryItems = 5;
 
@@ -445,13 +491,13 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     }).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin).pipe(takeUntilDestroyed(this.destroyRef))),
       catchError((err: HttpErrorResponse) => {
-        delete this.submitting;
+        this.submitting = undefined;
         this.serverError = printError(err);
         return throwError(() => err);
       }),
     ).subscribe(ref => {
       this.editForm.reset();
-      delete this.submitting;
+      this.submitting = undefined;
       this.serverError = [];
       this.editing = false;
       this.ref = ref;

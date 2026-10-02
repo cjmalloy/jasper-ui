@@ -1,6 +1,6 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
+  computed,
   Component,
   forwardRef,
   HostBinding,
@@ -11,7 +11,6 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { computed } from 'mobx';
 import { catchError, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -30,7 +29,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => ViewerComponent),
     LoadingComponent,
@@ -60,7 +59,6 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
     private refs: RefService,
     private proxy: ProxyService,
     private store: Store,
-    private cd: ChangeDetectorRef,
   ) {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'media' && this.ref() && this.store.eventBus.isRef(event, this.ref()!) && this.sources()?.content.length) {
@@ -118,18 +116,15 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
 
   seek(index: number) {
     this.index.set(index);
-    this.cd.detectChanges();
   }
 
   back() {
     this.index.set((this.index() - 1 + this.ref()!.sources!.length) % this.ref()!.sources!.length);
-    this.cd.detectChanges();
   }
 
   next(loop = true) {
     if (!loop && this.index() + 1 >= this.ref()!.sources!.length) return;
     this.index.set((this.index() + 1) % this.ref()!.sources!.length);
-    this.cd.detectChanges();
   }
 
   private loadSources(

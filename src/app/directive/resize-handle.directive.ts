@@ -1,13 +1,12 @@
 import {
   AfterViewInit,
-  ChangeDetectorRef,
   Directive,
   ElementRef,
   HostBinding,
   HostListener,
   Input,
-  NgZone,
-  OnDestroy
+  OnDestroy,
+  signal
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
@@ -17,7 +16,12 @@ import { relativeX, relativeY } from '../util/math';
     selector: '[appResizeHandle]',
 })
 export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
-  @HostBinding('style.cursor') cursor = 'auto';
+  private readonly _cursor = signal('auto');
+  private readonly _dragging = signal(false);
+
+  @HostBinding('style.cursor')
+  get cursor() { return this._cursor(); }
+  set cursor(value: string) { this._cursor.set(value); }
 
   @Input()
   hitArea = 24;
@@ -29,7 +33,8 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   initChild = false;
 
   @HostBinding('class.resize-dragging')
-  dragging = false;
+  get dragging() { return this._dragging(); }
+  set dragging(value: boolean) { this._dragging.set(value); }
   x = 0;
   y = 0;
   width = 0;
@@ -40,8 +45,6 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   constructor(
     private config: ConfigService,
     private el: ElementRef,
-    private zone: NgZone,
-    private cd: ChangeDetectorRef,
   ) { }
 
   get resizeCursor() {
@@ -75,11 +78,6 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
     this.el.nativeElement.style.height = this.child.style.height;
   }
 
-  @HostListener('fullscreenchange')
-  onFullscreenChange() {
-    this.cd.markForCheck();
-  }
-
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent) {
     if (!this.enabled) return;
@@ -101,19 +99,17 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   onPointerMove(event: PointerEvent) {
     if (!this.enabled) return;
     if (this.dragging) {
-      this.zone.run(() => {
-        const dx = event.clientX - this.x;
-        const dy = event.clientY - this.y;
-        this.setWidth((this.width + dx) + 'px');
-        this.setHeight((this.height + dy) + 'px');
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-      });
+      const dx = event.clientX - this.x;
+      const dy = event.clientY - this.y;
+      this.setWidth((this.width + dx) + 'px');
+      this.setHeight((this.height + dy) + 'px');
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
     } else {
       const cursor = this.hit(event) ? this.resizeCursor : 'auto';
       if (this.cursor !== cursor) {
-        this.zone.run(() => this.cursor = cursor);
+        this.cursor = cursor;
       }
     }
   }

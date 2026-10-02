@@ -51,7 +51,7 @@ function isDateSortField(value: string | undefined): value is DateSortField {
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
   host: { 'class': 'page-controls' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     RouterLinkActive,

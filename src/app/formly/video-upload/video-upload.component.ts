@@ -11,7 +11,7 @@ import { readFileAsDataURL } from '../../util/async';
   selector: 'app-video-upload',
   templateUrl: './video-upload.component.html',
   styleUrls: ['./video-upload.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'form-array' }
 })
 export class VideoUploadComponent {

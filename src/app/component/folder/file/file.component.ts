@@ -1,7 +1,7 @@
 import {
   AsyncPipe
 } from '@angular/common';
-import { DestroyRef, inject, Component, forwardRef, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input } from '@angular/core';
+import { DestroyRef, inject, Component, forwardRef, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, of, throwError } from 'rxjs';
@@ -33,7 +33,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   selector: 'app-file',
   templateUrl: './file.component.html',
   styleUrls: ['./file.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => ViewerComponent),
     RouterLink,
@@ -55,8 +55,8 @@ export class FileComponent implements OnChanges {
   readonly dragging = input(false);
   readonly fetchRepost = input(true);
 
-  repostRef?: Ref;
-  expandPlugins: string[] = [];
+  private readonly repostRefSignal = signal<Ref | undefined>(undefined);
+  private readonly expandPluginsSignal = signal<string[]>([]);
   icons: Icon[] = [];
   actions: Action[] = [];
   editing = false;
@@ -64,6 +64,12 @@ export class FileComponent implements OnChanges {
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
+
+  get repostRef() { return this.repostRefSignal(); }
+  set repostRef(value: Ref | undefined) { this.repostRefSignal.set(value); }
+
+  get expandPlugins() { return this.expandPluginsSignal(); }
+  set expandPlugins(value: string[]) { this.expandPluginsSignal.set(value); }
 
   constructor(
     public admin: AdminService,
@@ -97,7 +103,7 @@ export class FileComponent implements OnChanges {
           if (this.bareRepost) {
             this.expandPlugins = this.admin.getEmbeds(ref);
           } else {
-            this.expandPlugins.push('plugin/repost');
+            this.expandPlugins = [...this.expandPlugins, 'plugin/repost'];
           }
         });
       }

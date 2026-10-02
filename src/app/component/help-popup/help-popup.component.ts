@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
-import { MobxAngularModule } from 'mobx-angular';
 import { Store } from '../../store/store';
 
 @Component({
@@ -7,8 +6,7 @@ import { Store } from '../../store/store';
   templateUrl: './help-popup.component.html',
   styleUrls: ['./help-popup.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule]
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HelpPopupComponent {
   @Input()

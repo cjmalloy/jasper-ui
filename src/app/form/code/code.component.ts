@@ -1,6 +1,5 @@
-import { Component, Input, OnDestroy, ChangeDetectionStrategy, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, Input, input, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { autorun, IReactionDisposer } from 'mobx';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
@@ -10,33 +9,35 @@ import { Store } from '../../store/store';
   selector: 'app-code',
   templateUrl: './code.component.html',
   styleUrls: ['./code.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
-export class CodeComponent implements OnDestroy {
-
-  private disposers: IReactionDisposer[] = [];
+export class CodeComponent {
 
   @Input()
   group!: UntypedFormGroup;
   readonly fieldName = input('source');
 
-  options: any = {
+  private readonly _options = signal<any>({
     language: 'css',
     automaticLayout: true,
-  };
+  });
 
   constructor(
     public config: ConfigService,
     private store: Store,
   ) {
-    this.disposers.push(autorun(() => {
+    effect(() => {
+      const theme = store.darkTheme ? 'vs-dark' : 'vs';
       this.options = {
-        ...this.options,
-        theme: store.darkTheme ? 'vs-dark' : 'vs',
+        ...untracked(() => this.options),
+        theme,
       }
-    }));
+    });
   }
+
+  get options(): any { return this._options(); }
+  set options(value: any) { this._options.set(value); }
 
   @Input()
   set language(value: string) {
@@ -44,11 +45,6 @@ export class CodeComponent implements OnDestroy {
       ...this.options,
       language: value,
     }
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
 }

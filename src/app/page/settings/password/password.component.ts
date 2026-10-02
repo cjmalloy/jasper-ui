@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
@@ -13,14 +13,18 @@ import { printError } from '../../../util/http';
   selector: 'app-settings-password-page',
   templateUrl: './password.component.html',
   styleUrls: ['./password.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class SettingsPasswordPage {
 
-  submitted = false;
+  private readonly _submitted = signal<boolean>(false);
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
+  private readonly _serverError = signal<string[]>([]);
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
   passwordForm!: UntypedFormGroup;
-  serverError: string[] = [];
 
   constructor(
     public admin: AdminService,

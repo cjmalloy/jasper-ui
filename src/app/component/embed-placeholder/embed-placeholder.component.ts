@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, ViewContainerRef, viewChild } from 
   selector: 'app-embed-placeholder',
   templateUrl: 'embed-placeholder.component.html',
   styleUrl: './embed-placeholder.component.scss',
-  changeDetection: ChangeDetectionStrategy.Eager
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EmbedPlaceholderComponent {
 

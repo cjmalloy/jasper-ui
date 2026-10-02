@@ -5,16 +5,14 @@ import {
   forwardRef,
   Input,
   OnChanges,
-  OnDestroy,
   OnInit,
   SimpleChanges,
   ChangeDetectionStrategy,
   input,
-  viewChildren
+  viewChildren,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { Observable } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -27,15 +25,19 @@ import { CommentComponent } from '../comment.component';
   templateUrl: './comment-thread.component.html',
   styleUrls: ['./comment-thread.component.scss'],
   host: { 'class': 'comment-thread' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => CommentComponent),
-    MobxAngularModule,
   ],
 })
-export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, HasChanges {
+export class CommentThreadComponent implements OnInit, OnChanges, HasChanges {
+  readonly state = signal(0);
+
+  private markState() {
+    this.state.update(value => value + 1);
+  }
+
   private destroyRef = inject(DestroyRef);
-  private disposers: IReactionDisposer[] = [];
 
   readonly source = input('');
   readonly scrollToLatest = input(false);
@@ -48,27 +50,25 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
 
   readonly list = viewChildren<CommentComponent>('comment');
 
-  comments?: Ref[] = [];
   newComments: Ref[] = [];
 
   constructor(
     public store: Store,
     public thread: ThreadStore,
-  ) {
-    this.disposers.push(autorun(() => {
-      if (thread.latest.length) {
-        this.comments = thread.cache.get(this.source());
-        if (this.comments && this.newComments.length) {
-          const newUrls = new Set(this.newComments.map(c => c.url));
-          this.comments = this.comments.filter(c => !newUrls.has(c.url));
-        }
-        const pageSize = this.pageSize();
-        if (this.comments && pageSize) {
-          this.comments = [...this.comments!];
-          this.comments.length = pageSize;
-        }
-      }
-    }));
+  ) { }
+
+  get comments(): Ref[] | undefined {
+    let comments = this.thread.cache.get(this.source());
+    if (comments && this.newComments.length) {
+      const newUrls = new Set(this.newComments.map(c => c.url));
+      comments = comments.filter(c => !newUrls.has(c.url));
+    }
+    const pageSize = this.pageSize();
+    if (comments && pageSize) {
+      comments = [...comments];
+      comments.length = pageSize;
+    }
+    return comments;
   }
 
   saveChanges(): boolean {
@@ -78,24 +78,16 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ngOnInit(): void {
     this.newComments$.pipe(
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(comment => comment && this.newComments.unshift(comment));
+    ).subscribe(comment => {
+      if (comment) this.newComments = [comment, ...this.newComments];
+      this.markState();
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.source || changes.pageSize) {
       this.newComments = [];
-      this.comments = this.thread.cache.get(this.source());
-      const pageSize = this.pageSize();
-      if (this.comments && pageSize) {
-        this.comments = [...this.comments!];
-        this.comments.length = pageSize;
-      }
+      this.markState();
     }
   }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
-
 }

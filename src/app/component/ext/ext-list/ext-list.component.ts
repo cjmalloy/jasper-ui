@@ -12,7 +12,7 @@ import { ExtComponent } from '../ext.component';
   templateUrl: './ext-list.component.html',
   styleUrls: ['./ext-list.component.scss'],
   host: { 'class': 'ext-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ExtComponent,
     PageControlsComponent,

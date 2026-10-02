@@ -12,7 +12,8 @@ import {
   SimpleChanges,
   ChangeDetectionStrategy,
   input,
-  output
+  output,
+  signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { cloneDeep, defer, delay, filter, range, uniq } from 'lodash-es';
@@ -542,43 +543,80 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
   styleUrls: ['./backgammon.component.scss'],
   hostDirectives: [CdkDropListGroup],
   host: { 'class': 'backgammon-board' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CdkDropList, CdkDrag]
 })
 export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
 
   @Input()
   @HostBinding('class.red')
-  red = false; // TODO: Save in local storage
+  get red() { return this.redSignal(); } // TODO: Save in local storage
+  set red(value: boolean) { this.redSignal.set(value); }
+  private readonly redSignal = signal(false);
   readonly ref = input<Ref>();
   @Input()
   text? = '';
   readonly comment = output<string>();
   readonly copied = output<string>();
 
-  state: GameState = createInitialGameState();
-  moveRedOff = false;
-  moveBlackOff = false;
-  start?: number;
-  rolling?: Piece;
-  dragSource = -1;
+  private readonly stateSignal = signal<GameState>(createInitialGameState());
+  private readonly moveRedOffSignal = signal(false);
+  private readonly moveBlackOffSignal = signal(false);
+  private readonly startSignal = signal<number | undefined>(undefined);
+  private readonly rollingSignal = signal<Piece | undefined>(undefined);
+  private readonly dragSourceSignal = signal(-1);
   @HostBinding('class.loaded')
-  loaded = false;
+  get loaded() { return this.loadedSignal(); }
+  private readonly loadedSignal = signal(false);
   @HostBinding('class.resizing')
-  resizing = 0;
+  get resizing() { return this.resizingSignal(); }
+  private readonly resizingSignal = signal(0);
   @HostBinding('class.replay-mode')
-  replayMode = false;
-  translate?: number;
-  animating = false;
+  get replayMode() { return this.replayModeSignal(); }
+  private readonly replayModeSignal = signal(false);
+  private readonly translateSignal = signal<number | undefined>(undefined);
+  private readonly animatingSignal = signal(false);
   animationQueue: AnimationState[] = [];
-  animatedPiece?: AnimationState;
+  private readonly animatedPieceSignal = signal<AnimationState | undefined>(undefined);
 
-  replayPosition = 0;
-  replayPlaying = false;
-  replaySpeed = 1; // 1x, 2x, 3x, 4x
-  replayAnimations: AnimationState[] = [];
-  importantEvents: number[] = [];
+  private readonly replayPositionSignal = signal(0);
+  private readonly replayPlayingSignal = signal(false);
+  private readonly replaySpeedSignal = signal(1); // 1x, 2x, 3x, 4x
+  private readonly replayAnimationsSignal = signal<AnimationState[]>([]);
+  private readonly importantEventsSignal = signal<number[]>([]);
   importantEventTypes: Map<number, string> = new Map();
+
+  get state() { return this.stateSignal(); }
+  set state(value: GameState) { this.stateSignal.set(value); }
+  get moveRedOff() { return this.moveRedOffSignal(); }
+  set moveRedOff(value: boolean) { this.moveRedOffSignal.set(value); }
+  get moveBlackOff() { return this.moveBlackOffSignal(); }
+  set moveBlackOff(value: boolean) { this.moveBlackOffSignal.set(value); }
+  get start() { return this.startSignal(); }
+  set start(value: number | undefined) { this.startSignal.set(value); }
+  get rolling() { return this.rollingSignal(); }
+  set rolling(value: Piece | undefined) { this.rollingSignal.set(value); }
+  get dragSource() { return this.dragSourceSignal(); }
+  set dragSource(value: number) { this.dragSourceSignal.set(value); }
+  set loaded(value: boolean) { this.loadedSignal.set(value); }
+  set resizing(value: number) { this.resizingSignal.set(value); }
+  set replayMode(value: boolean) { this.replayModeSignal.set(value); }
+  get translate() { return this.translateSignal(); }
+  set translate(value: number | undefined) { this.translateSignal.set(value); }
+  get animating() { return this.animatingSignal(); }
+  set animating(value: boolean) { this.animatingSignal.set(value); }
+  get animatedPiece() { return this.animatedPieceSignal(); }
+  set animatedPiece(value: AnimationState | undefined) { this.animatedPieceSignal.set(value); }
+  get replayPosition() { return this.replayPositionSignal(); }
+  set replayPosition(value: number) { this.replayPositionSignal.set(value); }
+  get replayPlaying() { return this.replayPlayingSignal(); }
+  set replayPlaying(value: boolean) { this.replayPlayingSignal.set(value); }
+  get replaySpeed() { return this.replaySpeedSignal(); }
+  set replaySpeed(value: number) { this.replaySpeedSignal.set(value); }
+  get replayAnimations() { return this.replayAnimationsSignal(); }
+  set replayAnimations(value: AnimationState[]) { this.replayAnimationsSignal.set(value); }
+  get importantEvents() { return this.importantEventsSignal(); }
+  set importantEvents(value: number[]) { this.importantEventsSignal.set(value); }
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
@@ -700,7 +738,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (index < 0) {
       this.onClickBar();
     } else {
-      delete this.start;
+      this.start = undefined;
       this.onClick(index);
     }
     const dim = Math.floor(this.el.nativeElement.offsetWidth / 24);
@@ -796,14 +834,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.lastState = applyMove(state, state.turn, this.start, index);
       this.clearMoves();
       this.save(state.turn!, this.start, index);
-      delete this.start;
+      this.start = undefined;
       return;
     }
     if (index === this.start) {
-      delete this.start;
+      this.start = undefined;
       return this.clearMoves();
     }
-    delete this.start;
+    this.start = undefined;
     if (p !== state.turn) return this.clearMoves();
     const move = state.moves[index];
     if (!move) return this.clearMoves();
@@ -832,7 +870,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.lastState = applyMove(state, state.turn!, this.start, -2);
       this.clearMoves();
       this.save(state.turn!, this.start, -2);
-      delete this.start;
+      this.start = undefined;
     }
   }
 
@@ -1030,8 +1068,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   processAnimationQueue() {
     this.animating = false;
-    delete this.animatedPiece;
-    delete this.rolling;
+    this.animatedPiece = undefined;
+    this.rolling = undefined;
     if (this.animationQueue.length === 0) return;
 
     this.animating = true;
@@ -1204,8 +1242,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (this.replayPlaying) throw 'must pause before seeking';
     const pos = typeof position === 'string' ? parseFloat(position) : position;
     if (isNaN(pos) || pos < 0) return;
-    delete this.animatedPiece;
-    delete this.rolling;
+    this.animatedPiece = undefined;
+    this.rolling = undefined;
 
     if (pos >= this.replayAnimations.length) {
       this.replayPosition = this.replayAnimations.length + 1;
@@ -1224,8 +1262,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   processReplayAnimationQueue() {
-    delete this.animatedPiece;
-    delete this.rolling;
+    this.animatedPiece = undefined;
+    this.rolling = undefined;
     if (!this.replayPlaying) return;
 
     if (this.replayAnimations.length === 0) {
@@ -1274,8 +1312,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.animationHandler = 0;
     }
     this.replayPlaying = false;
-    delete this.animatedPiece;
-    delete this.rolling;
+    this.animatedPiece = undefined;
+    this.rolling = undefined;
   }
 
   startSeeking() {

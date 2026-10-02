@@ -11,13 +11,13 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
   input,
+  signal,
   viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { toJS } from 'mobx';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
@@ -47,7 +47,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'ext list-item' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     forwardRef(() => ExtFormComponent),
@@ -63,24 +63,36 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
+  private readonly _ext = signal<Ext>({} as Ext);
   @Input()
-  ext!: Ext;
+  get ext() { return this._ext(); }
+  set ext(value: Ext) { this._ext.set(value); }
   readonly useEditPage = input(false);
 
   editForm!: UntypedFormGroup;
   submitted = false;
-  invalid = false;
-  overwritten = false;
+  private readonly _invalid = signal(false);
+  private readonly _overwritten = signal(false);
   overwrite = true;
   icons: Template[] = [];
   template?: Template;
   plugin?: Plugin;
   editing = false;
   viewSource = false;
+  private readonly _deleted = signal(false);
+  private readonly _writeAccess = signal(false);
+  private readonly _serverError = signal<string[]>([]);
   @HostBinding('class.deleted')
-  deleted = false;
-  writeAccess = false;
-  serverError: string[] = [];
+  get deleted() { return this._deleted(); }
+  set deleted(value: boolean) { this._deleted.set(value); }
+  get invalid() { return this._invalid(); }
+  set invalid(value: boolean) { this._invalid.set(value); }
+  get overwritten() { return this._overwritten(); }
+  set overwritten(value: boolean) { this._overwritten.set(value); }
+  get writeAccess() { return this._writeAccess(); }
+  set writeAccess(value: boolean) { this._writeAccess.set(value); }
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
 
   private overwrittenModified? = '';
 
@@ -143,7 +155,7 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   @ViewChild('extForm')
   set extForm(value: ExtFormComponent) {
-    value?.setValue(toJS(this.ext));
+    value?.setValue(this.ext);
   }
 
   @memo
@@ -232,9 +244,12 @@ export class ExtComponent implements OnChanges, HasChanges {
         return throwError(() => err);
       }),
     ).subscribe(cursor => {
-      this.ext.modifiedString = cursor;
-      this.ext.modified = DateTime.fromISO(cursor);
-      this.ext.origin = this.store.account.origin;
+      this.ext = {
+        ...this.ext,
+        modifiedString: cursor,
+        modified: DateTime.fromISO(cursor),
+        origin: this.store.account.origin,
+      };
       this.store.submit.removeExt(this.ext);
       this.init();
     });

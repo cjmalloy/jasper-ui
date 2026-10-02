@@ -1,8 +1,7 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
-import { toJS } from 'mobx';
 import { catchError, of, Subscription } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -21,7 +20,7 @@ import { SubfolderComponent } from './subfolder/subfolder.component';
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
   host: { 'class': 'folder ext' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FileComponent,
     SubfolderComponent,
@@ -38,14 +37,35 @@ export class FolderComponent implements OnChanges, HasChanges {
 
   error: any;
 
-  parent?: Ext;
-  flatten = false;
-  files: Record<string, string | undefined> = {};
-  subfolders: Record<string, string | undefined> = {};
-  folderExts?: Ext[];
-  cursor = '';
-  dragging = false;
+  private readonly parentSignal = signal<Ext | undefined>(undefined);
+  private readonly flattenSignal = signal(false);
+  private readonly filesSignal = signal<Record<string, string | undefined>>({});
+  private readonly subfoldersSignal = signal<Record<string, string | undefined>>({});
+  private readonly folderExtsSignal = signal<Ext[] | undefined>(undefined);
+  private readonly cursorSignal = signal('');
+  private readonly draggingSignal = signal(false);
   zIndex = 1;
+
+  get parent() { return this.parentSignal(); }
+  set parent(value: Ext | undefined) { this.parentSignal.set(value); }
+
+  get flatten() { return this.flattenSignal(); }
+  set flatten(value: boolean) { this.flattenSignal.set(value); }
+
+  get files() { return this.filesSignal(); }
+  set files(value: Record<string, string | undefined>) { this.filesSignal.set(value); }
+
+  get subfolders() { return this.subfoldersSignal(); }
+  set subfolders(value: Record<string, string | undefined>) { this.subfoldersSignal.set(value); }
+
+  get folderExts() { return this.folderExtsSignal(); }
+  set folderExts(value: Ext[] | undefined) { this.folderExtsSignal.set(value); }
+
+  get cursor() { return this.cursorSignal(); }
+  set cursor(value: string) { this.cursorSignal.set(value); }
+
+  get dragging() { return this.draggingSignal(); }
+  set dragging(value: boolean) { this.draggingSignal.set(value); }
 
   private _page?: Page<Ref>;
   private folderSubscription?: Subscription;
@@ -66,8 +86,8 @@ export class FolderComponent implements OnChanges, HasChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.tag) {
-      delete this.folderExts;
-      delete this.parent;
+      this.folderExts = undefined;
+      this.parent = undefined;
       const tag = this.tag();
       if (tag?.includes('/')) {
         this.exts.getCachedExt(tag.substring(0, tag.lastIndexOf('/')), tagOrigin(tag) || '@')
@@ -91,8 +111,8 @@ export class FolderComponent implements OnChanges, HasChanges {
       this.flatten = this.ext?.config?.flatten;
       if (!this.ext) return;
       this.cursor = this.ext.modifiedString!;
-      this.files = mapValues(toJS(this.ext.config.files) || {}, p => this.transform(p));
-      for (const e of Object.entries<Pos>(toJS(this.ext.config.subfolders) || {})) {
+      this.files = mapValues(this.ext.config.files || {}, p => this.transform(p));
+      for (const e of Object.entries<Pos>(this.ext.config.subfolders || {})) {
         this.subfolders[this.ext.tag + (e[0] !== '..' ? '/' + e[0] : '')] = this.transform(e[1]);
       }
     }

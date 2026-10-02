@@ -1,7 +1,5 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -15,15 +13,14 @@ import { getArgs, UrlFilter } from '../../../util/query';
   selector: 'app-ref-responses',
   templateUrl: './responses.component.html',
   styleUrls: ['./responses.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MobxAngularModule,
     RefListComponent,
   ],
 })
 export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
 
-  private disposers: IReactionDisposer[] = [];
+  private readonly injector = inject(Injector);
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -34,7 +31,7 @@ export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = ['published']);
+    store.view.defaultSort = ['published'];
   }
 
   saveChanges() {
@@ -43,7 +40,7 @@ export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const hideInternal = !this.admin.getPlugins(this.store.view.queryTags).length;
       const args = getArgs(
         '',
@@ -55,21 +52,19 @@ export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
       );
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref))));
-    this.disposers.push(autorun(() => {
+    effect(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => {
       if (this.store.view.ref) {
         const responsesCount = this.store.view.ref.metadata?.responses || 0;
         this.store.local.setLastSeenCount(this.store.view.url, 'replies', responsesCount);
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
 }

@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { TemplateListComponent } from '../../../component/template/template-list/template-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -18,16 +17,18 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   selector: 'app-settings-template-page',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TemplateListComponent],
 })
 export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
 
-  serverError: string[] = [];
+  private readonly injector = inject(Injector);
+
+  private readonly _serverError = signal<string[]>([]);
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
 
   readonly list = viewChild<TemplateListComponent>('list');
-
-  private disposers: IReactionDisposer[] = [];
 
   constructor(
     private mod: ModService,
@@ -46,7 +47,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = {
         query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
         search: this.store.view.search,
@@ -56,13 +57,11 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   upload(files?: FileList) {

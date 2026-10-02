@@ -1,4 +1,3 @@
-<ng-container *mobxAutorun>
   <input type="search"
          class="dont-hide"
          i18n-placeholder
@@ -8,4 +7,3 @@
          (keydown)="$event.key === 'Enter' && submit() || true"
          [incremental]="store.account.config.liveSearch"
          (search)="search()">
-</ng-container>

@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, Input, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
+import { DestroyRef, inject, Component, Input, ChangeDetectionStrategy, input, signal, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -18,7 +18,7 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   templateUrl: './blog.component.html',
   styleUrls: ['./blog.component.scss'],
   host: { 'class': 'blog ext' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     BlogEntryComponent,
     PageControlsComponent,
@@ -31,9 +31,15 @@ export class BlogComponent implements HasChanges {
   readonly pageControls = input(true);
   readonly emptyMessage = input($localize `No blog entries found`);
 
-  pinned: Ref[] = [];
-  colStyle = '';
+  private readonly pinnedSignal = signal<Ref[]>([]);
+  private readonly colStyleSignal = signal('');
   error: any;
+
+  get pinned() { return this.pinnedSignal(); }
+  set pinned(value: Ref[]) { this.pinnedSignal.set(value); }
+
+  get colStyle() { return this.colStyleSignal(); }
+  set colStyle(value: string) { this.colStyleSignal.set(value); }
 
   readonly list = viewChildren(BlogEntryComponent);
 

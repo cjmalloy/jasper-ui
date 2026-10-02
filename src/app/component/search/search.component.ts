@@ -1,9 +1,7 @@
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
@@ -14,14 +12,14 @@ import { View } from '../../store/view';
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
   host: { 'class': 'search form-group' },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, ReactiveFormsModule]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule]
 })
-export class SearchComponent implements OnDestroy {
+export class SearchComponent {
+  private readonly _searchValue = signal('');
 
-  private disposers: IReactionDisposer[] = [];
-
-  searchValue = '';
+  get searchValue() { return this._searchValue(); }
+  set searchValue(value: string) { this._searchValue.set(value); }
   replace = false;
 
   private searchEvent = false;
@@ -31,17 +29,13 @@ export class SearchComponent implements OnDestroy {
     public store: Store,
     public admin: AdminService,
   ) {
-    this.disposers.push(autorun(() => {
-      this.searchValue = toJS(this.store.view.search) || '';
-    }));
+    effect(() => {
+      const search = this.store.view.search;
+      untracked(() => this.searchValue = search || '');
+    });
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   change(target: HTMLInputElement) {

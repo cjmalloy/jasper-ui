@@ -10,11 +10,11 @@ import {
   Component,
   HostBinding,
   HostListener,
-  NgZone,
   OnChanges,
   SimpleChanges,
   ChangeDetectionStrategy,
-  input
+  input,
+  signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -56,7 +56,7 @@ interface PendingUpload {
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss'],
   host: { 'class': 'kanban-column' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     KanbanCardComponent,
@@ -78,14 +78,35 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   readonly filter = input<UrlFilter[]>([]);
   readonly search = input('');
 
-  page?: Page<Ref>;
-  mutated = false;
-  addText = '';
-  pressToUnlock = false;
-  adding: PendingUpload[] = [];
-  failed: { text: string; error: string }[] = [];
+  private readonly pageSignal = signal<Page<Ref> | undefined>(undefined);
+  private readonly mutatedSignal = signal(false);
+  private readonly addTextSignal = signal('');
+  private readonly pressToUnlockSignal = signal(false);
+  private readonly addingSignal = signal<PendingUpload[]>([]);
+  private readonly failedSignal = signal<{ text: string; error: string }[]>([]);
   @HostBinding('class.dropping')
-  dropping = false;
+  get dropping() { return this.droppingSignal(); }
+  private readonly droppingSignal = signal(false);
+
+  get page() { return this.pageSignal(); }
+  set page(value: Page<Ref> | undefined) { this.pageSignal.set(value); }
+
+  get mutated() { return this.mutatedSignal(); }
+  set mutated(value: boolean) { this.mutatedSignal.set(value); }
+
+  get addText() { return this.addTextSignal(); }
+  set addText(value: string) { this.addTextSignal.set(value); }
+
+  get pressToUnlock() { return this.pressToUnlockSignal(); }
+  set pressToUnlock(value: boolean) { this.pressToUnlockSignal.set(value); }
+
+  get adding() { return this.addingSignal(); }
+  set adding(value: PendingUpload[]) { this.addingSignal.set(value); }
+
+  get failed() { return this.failedSignal(); }
+  set failed(value: { text: string; error: string }[]) { this.failedSignal.set(value); }
+
+  set dropping(value: boolean) { this.droppingSignal.set(value); }
 
   private currentRequest?: Subscription;
   private runningSources?: Subscription;
@@ -101,7 +122,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     private oembeds: OembedStore,
     private refs: RefService,
     private tags: TaggingService,
-    private zone: NgZone,
     private proxy: ProxyService,
   ) {
     if (config.mobile) {
@@ -145,7 +165,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
 
   @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
-    this.zone.run(() => this.pressToUnlock = true);
+    this.pressToUnlock = true;
   }
 
   @HostListener('contextmenu', ['$event'])
@@ -156,7 +176,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   clear(removeCurrent = true) {
     this._sort = [...this.sort()];
     this._filter = [...this.filter()];
-    if (removeCurrent) delete this.page;
+    if (removeCurrent) this.page = undefined;
     const args = getArgs(
       this.query(),
       this.sort(),
@@ -180,6 +200,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
             // @ts-ignore
             res.content[0]['pinned'] = true
             page.content.unshift(res.content[0]);
+            this.page = { ...page, content: [...page.content] };
           }
         });
       }
@@ -193,6 +214,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
             // @ts-ignore
             res.content[0]['pinned'] = true
             page.content.unshift(res.content[0]);
+            this.page = { ...page, content: [...page.content] };
           }
         });
       }
@@ -207,12 +229,14 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         this.mutated ||= event.from !== event.to;
         this.page.page.totalElements--;
         this.page.content.splice(this.page.content.indexOf(event.ref), 1);
+        this.page = { ...this.page, content: [...this.page.content] };
       }
     }
     if (event.to === query) {
       this.mutated ||= event.from !== event.to;
       this.page.page.totalElements++;
       this.page.content.splice(Math.min(event.index, this.page.content.length - 1), 0, event.ref);
+      this.page = { ...this.page, content: [...this.page.content] };
     }
   }
 
@@ -221,6 +245,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     const index = this.page.content.findIndex(r => r.url === ref.url);
     if (index < 0) return;
     this.page.content.splice(index, 1, ref);
+    this.page = { ...this.page, content: [...this.page.content] };
   }
 
   loadMore() {
@@ -244,7 +269,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     const text = this.addText;
     this.addText = '';
     const uploadId = uuid();
-    this.adding.push({ id: uploadId, name: text });
+    this.adding = [...this.adding, { id: uploadId, name: text }];
     const tagsWithAuthor = this.getTagsWithAuthor();
     const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
@@ -311,8 +336,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
         if (uploadIndex !== -1) {
           this.adding.splice(uploadIndex, 1);
+          this.adding = [...this.adding];
         }
-        this.failed.push({ text, error: printError(err).join('\n') });
+        this.failed = [...this.failed, { text, error: printError(err).join('\n') }];
         return throwError(err);
       }),
       tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
@@ -321,6 +347,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
       const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
       if (uploadIndex !== -1) {
         this.adding.splice(uploadIndex, 1);
+        this.adding = [...this.adding];
       }
       if (!this.page) {
         console.error('Should not happen, will probably get cleared.');
@@ -328,18 +355,21 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
       }
       ref.modified = DateTime.fromISO(cursor);
       ref.modifiedString = cursor;
-      this.page!.content.push(ref)
+      this.page!.content.push(ref);
+      this.page = { ...this.page!, content: [...this.page!.content] };
     });
   }
 
   retry(failedItem: { text: string; error: string }) {
     this.failed.splice(this.failed.indexOf(failedItem), 1);
+    this.failed = [...this.failed];
     this.addText = failedItem.text;
     this.add();
   }
 
   dismissFailed(failedItem: { text: string; error: string }) {
     this.failed.splice(this.failed.indexOf(failedItem), 1);
+    this.failed = [...this.failed];
   }
 
   private getTagsWithAuthor(): string[] {
@@ -418,7 +448,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     files.forEach(file => {
       const uploadId = uuid();
       const fileName = file.name;
-      this.adding.push({ id: uploadId, name: fileName, progress: 0 });
+      this.adding = [...this.adding, { id: uploadId, name: fileName, progress: 0 }];
 
       this.uploadFile$(file, uploadId).subscribe({
         next: ref => {
@@ -430,8 +460,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
           const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
           if (uploadIndex !== -1) {
             this.adding.splice(uploadIndex, 1);
+            this.adding = [...this.adding];
           }
-          this.failed.push({ text: fileName, error: printError(err).join('\n') });
+          this.failed = [...this.failed, { text: fileName, error: printError(err).join('\n') }];
         }
       });
     });
@@ -449,7 +480,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         tags: [...tagsWithAuthor, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
       };
       const upload = this.adding.find(u => u.id === uploadId);
-      if (upload) upload.progress = 50;
+      if (upload) {
+        upload.progress = 50;
+        this.adding = [...this.adding];
+      }
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
@@ -458,7 +492,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         map(() => ref),
         tap(() => {
           const upload = this.adding.find(u => u.id === uploadId);
-          if (upload) upload.progress = 100;
+          if (upload) {
+            upload.progress = 100;
+            this.adding = [...this.adding];
+          }
         }),
         catchError(err => {
           console.warn('File upload failed, falling back to base64 encoding:', err);
@@ -485,7 +522,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
               const upload = this.adding.find(u => u.id === uploadId);
-              if (upload) upload.progress = percentDone;
+              if (upload) {
+                upload.progress = percentDone;
+                this.adding = [...this.adding];
+              }
               return null;
           }
           return null;
@@ -514,8 +554,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
     if (uploadIndex !== -1) {
       this.adding.splice(uploadIndex, 1);
+      this.adding = [...this.adding];
     }
     this.page!.content.push(ref);
+    this.page = { ...this.page!, content: [...this.page!.content] };
   }
 
   private refreshPage(i: number, pinned?: Ref[]) {
@@ -535,6 +577,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         this.page!.content[pageOffset + offset] = page.content[offset];
       }
       if (pinned?.length) this.page!.content.unshift(...pinned);
+      this.page = { ...this.page!, content: [...this.page!.content] };
 
     });
   }

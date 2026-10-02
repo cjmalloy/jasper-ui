@@ -1,3 +1,4 @@
+@if (state()) {<ng-container></ng-container>}
 <app-editor #editor [control]="comment"
             [createdTags]="ref.tags || []"
             (syncTags)="editorTags = $event"

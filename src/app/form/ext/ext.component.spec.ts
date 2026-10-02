@@ -14,6 +14,11 @@ describe('ExtFormComponent', () => {
   let component: ExtFormComponent;
   let fixture: ComponentFixture<ExtFormComponent>;
 
+  function detectInputChanges() {
+    component.group = component.group;
+    detectInputChanges();
+  }
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
@@ -35,7 +40,7 @@ describe('ExtFormComponent', () => {
       name: new UntypedFormControl(),
       config: new UntypedFormGroup({}),
     });
-    fixture.detectChanges();
+    detectInputChanges();
   });
 
   it('should create', () => {
@@ -80,7 +85,7 @@ describe('ExtFormComponent', () => {
     component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'query/public',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     const row = fixture.nativeElement.querySelector('.default-filter-row');
     const select = row.querySelector('select') as HTMLSelectElement;
@@ -88,7 +93,7 @@ describe('ExtFormComponent', () => {
     expect(select.selectedOptions[0].textContent).toBe('public');
 
     button.click();
-    fixture.detectChanges();
+    detectInputChanges();
 
     expect(component.defaultFilter.value[0]).toBe('query/!(public)');
     expect(component.filterOption(component.defaultFilter.value[0])).toBe('query/!(public)');
@@ -96,7 +101,7 @@ describe('ExtFormComponent', () => {
     expect(select.selectedOptions[0].textContent).toBe(component.store.account.querySymbol('!') + 'public');
 
     button.click();
-    fixture.detectChanges();
+    detectInputChanges();
     expect(select.selectedOptions[0].textContent).toBe('public');
   });
 
@@ -108,10 +113,10 @@ describe('ExtFormComponent', () => {
     component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'user/!plugin/user/read',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     component.toggleFilter(0);
-    fixture.detectChanges();
+    detectInputChanges();
 
     expect(component.defaultFilter.value[0]).toBe('user/plugin/user/read');
     expect(component.filterOption(component.defaultFilter.value[0])).toBe('user/plugin/user/read');
@@ -128,12 +133,12 @@ describe('ExtFormComponent', () => {
     component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'query/!(public)',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     const select = fixture.nativeElement.querySelector('.default-filter-row select') as HTMLSelectElement;
     select.value = 'query/private';
     select.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+    detectInputChanges();
 
     expect(component.defaultFilter.value[0]).toBe('query/private');
     expect(select.value).toBe('query/private');
@@ -147,14 +152,14 @@ describe('ExtFormComponent', () => {
     component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'query/missing',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     const row = fixture.nativeElement.querySelector('.default-filter-row');
     const select = row.querySelector('select') as HTMLSelectElement;
     expect(select.value).toBe('query/missing');
 
     (row.querySelector('.default-filter-negate') as HTMLButtonElement).click();
-    fixture.detectChanges();
+    detectInputChanges();
 
     expect(component.defaultFilter.value[0]).toBe('query/!(missing)');
     expect(select.value).toBe('query/!(missing)');
@@ -183,7 +188,7 @@ describe('ExtFormComponent', () => {
       'published/before/PT15M',
       'created/after/2026-07-10T03:00:00.000Z',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     const sorts = fixture.nativeElement.querySelectorAll('.default-sort-row select');
     const filters = fixture.nativeElement.querySelectorAll('.default-filter-row select');
@@ -199,7 +204,7 @@ describe('ExtFormComponent', () => {
       'published/before/PT15M',
       'created/after/2026-07-10T03:00:00.000Z',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(1);
     expect(component.filterDatePreset(component.defaultFilter.value[0])).toBe(2);
@@ -208,7 +213,7 @@ describe('ExtFormComponent', () => {
     expect(fixture.nativeElement.querySelector('.default-filter-row select').value).toMatch(/^published\/before\//);
 
     component.store.hotkey = true;
-    fixture.detectChanges();
+    detectInputChanges();
     expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(2);
 
     component.setFilterDatePreset(1, component.defaultFilter.value[1], '11');
