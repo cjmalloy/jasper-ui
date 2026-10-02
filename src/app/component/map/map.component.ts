@@ -7,9 +7,10 @@ import {
   NavigationControlDirective,
   ScaleControlDirective
 } from '@maplibre/ngx-maplibre-gl';
+import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { FeatureCollection } from 'geojson';
 import type { GeoJSONSource } from 'maplibre-gl';
-import { LngLatBounds, Map, Marker, setWorkerUrl } from 'maplibre-gl';
+import { LngLatBounds, Map, Marker } from 'maplibre-gl';
 import { catchError, forkJoin, map as rxMap, of, Subject, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -38,6 +39,7 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
   styleUrls: ['./map.component.scss'],
   encapsulation: ViewEncapsulation.None,
   host: { 'class': 'map ext' },
+  providers: [provideMaplibreWorker('assets/maplibre-gl-worker.mjs')],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MglComponent,
@@ -84,7 +86,6 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     private store: Store,
     private geocoder: GeocodeService,
   ) {
-    setWorkerUrl('assets/maplibre-gl-worker.mjs');
     geocoder.configured$.pipe(takeUntilDestroyed()).subscribe(configured => {
       this.geocoding = configured;
       this.updateGeocoder();

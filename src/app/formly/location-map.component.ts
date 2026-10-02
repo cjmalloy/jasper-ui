@@ -2,9 +2,10 @@ import { ChangeDetectionStrategy, Component, Input, NgZone, OnDestroy, ViewEncap
 import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MapComponent as MglComponent } from '@maplibre/ngx-maplibre-gl';
+import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { Feature, FeatureCollection } from 'geojson';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
-import { Map as MapLibreMap, Marker, setWorkerUrl } from 'maplibre-gl';
+import { Map as MapLibreMap, Marker } from 'maplibre-gl';
 import { Subscription } from 'rxjs';
 import { addGeocoder } from '../component/map/geocoder';
 import { mapTemplate } from '../mods/map';
@@ -36,6 +37,7 @@ import { closedRings, LocationPicker } from './location-picker';
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MglComponent],
+  providers: [provideMaplibreWorker('assets/maplibre-gl-worker.mjs')],
 })
 export class LocationMapComponent implements OnDestroy {
 
@@ -58,7 +60,6 @@ export class LocationMapComponent implements OnDestroy {
     private geocoder: GeocodeService,
     private zone: NgZone,
   ) {
-    setWorkerUrl('assets/maplibre-gl-worker.mjs');
     geocoder.configured$.pipe(takeUntilDestroyed()).subscribe(configured => {
       this.geocoding = configured;
       this.updateGeocoder();
