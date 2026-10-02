@@ -182,7 +182,11 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
     if (closedRings.has(this.formControl) && values.length) {
       const prev = values[(index - 1 + values.length) % values.length];
       const next = values[index % values.length];
-      if (hasLocation(prev) && hasLocation(next)) return [(prev[0] + next[0]) / 2, (prev[1] + next[1]) / 2];
+      if (hasLocation(prev) && hasLocation(next)) {
+        const deltaLng = ((next[0] - prev[0] + 540) % 360) - 180;
+        const lng = ((prev[0] + deltaLng / 2 + 540) % 360) - 180;
+        return [lng, (prev[1] + next[1]) / 2];
+      }
     }
     const neighbour = [values[index - 1], values[index]].find(hasLocation);
     return neighbour && [neighbour[0], neighbour[1]];
