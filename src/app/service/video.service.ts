@@ -1,4 +1,4 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { computed, Injectable, isDevMode } from '@angular/core';
 import { filter, interval, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -54,9 +54,9 @@ export class VideoService {
     });
   }
 
-  get connecting() {
+  readonly connecting = computed(() => {
     return !this.store.video.peers().size || !!Array.from(this.store.video.peers().values()).find(p => p.connectionState !== 'connected');
-  }
+  });
 
   call(url: string, stream: MediaStream) {
     if (this.url === url) return;
@@ -98,6 +98,7 @@ export class VideoService {
       console.error(event.errorCode, event.errorText);
     });
     this.addListener(user, peer, 'connectionstatechange', () => {
+      this.store.video.refreshPeer(user);
       if (peer.connectionState === 'connected') {
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
           .subscribe();
@@ -112,7 +113,17 @@ export class VideoService {
     this.addListener(user, peer, 'track', (event) => {
       console.debug('Track received:', event.streams[0]?.id, event.track.readyState);
       const [remoteStream] = event.streams;
+      if (!remoteStream) return;
       this.store.video.addStream(user, remoteStream);
+      const refresh = () => this.store.video.refreshStreams(user);
+      event.track.addEventListener('ended', refresh);
+      remoteStream.addEventListener('inactive', refresh);
+      remoteStream.addEventListener('removetrack', refresh);
+      this.cleanupHandlers.get(user)!.push(() => {
+        event.track.removeEventListener('ended', refresh);
+        remoteStream.removeEventListener('inactive', refresh);
+        remoteStream.removeEventListener('removetrack', refresh);
+      });
     });
     // TODO: negotiationneeded
     // this.addListener(user, peer, 'negotiationneeded', async (event) => {
@@ -189,6 +200,7 @@ export class VideoService {
           this.store.video.setHungup(user, hungup);
           if (hungup && this.store.video.peers().has(user)) {
             console.debug('Hung Up!', user);
+            this.cleanupUserListeners(user);
             this.store.video.remove(user);
           }
         }),
@@ -294,13 +306,13 @@ export class VideoService {
       takeWhile(() => !this.peerWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => {
-      if (!this.connecting) pollPeer();
+      if (!this.connecting()) pollPeer();
     });
     timer(0, this.fastPoll).pipe(
       takeWhile(() => !this.peerWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => {
-      if (this.connecting) pollPeer();
+      if (this.connecting()) pollPeer();
     });
   }
 
@@ -338,12 +350,16 @@ export class VideoService {
     });
   }
 
-  private resetUserConnection(user: string): void {
+  private cleanupUserListeners(user: string): void {
     const handlers = this.cleanupHandlers.get(user);
     if (handlers) {
       handlers.forEach(cleanup => cleanup());
       this.cleanupHandlers.delete(user);
     }
+  }
+
+  private resetUserConnection(user: string): void {
+    this.cleanupUserListeners(user);
     this.store.video.reset(user);
     this.offers.delete(user);
   }
