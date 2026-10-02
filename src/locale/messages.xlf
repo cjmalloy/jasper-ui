@@ -33,11 +33,11 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
-          <context context-type="linenumber">27,28</context>
+          <context context-type="linenumber">30,31</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/template/template.component.html</context>
-          <context context-type="linenumber">35,36</context>
+          <context context-type="linenumber">38,39</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/user/user.component.html</context>
@@ -599,7 +599,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
-          <context context-type="linenumber">56,57</context>
+          <context context-type="linenumber">59,60</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
+          <context context-type="linenumber">87,88</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.html</context>
@@ -611,7 +615,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/template/template.component.html</context>
-          <context context-type="linenumber">61,62</context>
+          <context context-type="linenumber">64,65</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/template/template.component.html</context>
+          <context context-type="linenumber">92,93</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/user/user.component.html</context>
@@ -869,7 +877,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
-          <context context-type="linenumber">32</context>
+          <context context-type="linenumber">35</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.html</context>
@@ -877,7 +885,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/template/template.component.html</context>
-          <context context-type="linenumber">37</context>
+          <context context-type="linenumber">40</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/user/user.component.html</context>
@@ -1012,7 +1020,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
-          <context context-type="linenumber">55,56</context>
+          <context context-type="linenumber">58,59</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
+          <context context-type="linenumber">85,86</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.html</context>
@@ -1024,7 +1036,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/template/template.component.html</context>
-          <context context-type="linenumber">60,61</context>
+          <context context-type="linenumber">63,64</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/template/template.component.html</context>
+          <context context-type="linenumber">90,91</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/user/user.component.html</context>
@@ -2877,14 +2893,14 @@ Please Reload.</source>
         <source>Search address</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/map/geocoder.ts</context>
-          <context context-type="linenumber">70</context>
+          <context context-type="linenumber">89</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9186765879953866634" datatype="html">
         <source>Submit a Ref here</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/map/map.component.ts</context>
-          <context context-type="linenumber">145</context>
+          <context context-type="linenumber">149</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4217733100334209102" datatype="html">
@@ -3051,11 +3067,37 @@ Please Reload.</source>
           <context context-type="linenumber">463</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="136747920425865284" datatype="html">
+        <source>diff</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
+          <context context-type="linenumber">29,30</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/ref/ref.component.html</context>
+          <context context-type="linenumber">252</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/template/template.component.html</context>
+          <context context-type="linenumber">37,38</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="5501510435141891966" datatype="html">
         <source>export</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
-          <context context-type="linenumber">29,31</context>
+          <context context-type="linenumber">32,34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1790677591266345344" datatype="html">
+        <source>No local version found.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/plugin/plugin.component.ts</context>
+          <context context-type="linenumber">132</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/template/template.component.ts</context>
+          <context context-type="linenumber">130</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5670797229594522972" datatype="html">
@@ -3195,13 +3237,6 @@ Please Reload.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.html</context>
           <context context-type="linenumber">241,242</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="136747920425865284" datatype="html">
-        <source>diff</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/ref/ref.component.html</context>
-          <context context-type="linenumber">252</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2123171795960509943" datatype="html">
@@ -5270,28 +5305,28 @@ Please Reload.</source>
         <source>West</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/bbox.type.ts</context>
-          <context context-type="linenumber">34</context>
+          <context context-type="linenumber">35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5375267255227557614" datatype="html">
         <source>South</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/bbox.type.ts</context>
-          <context context-type="linenumber">35</context>
+          <context context-type="linenumber">36</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2507676024821952431" datatype="html">
         <source>East</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/bbox.type.ts</context>
-          <context context-type="linenumber">36</context>
+          <context context-type="linenumber">37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3999096471992552378" datatype="html">
         <source>North</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/bbox.type.ts</context>
-          <context context-type="linenumber">37</context>
+          <context context-type="linenumber">38</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1952562229620562171" datatype="html">
@@ -17913,7 +17948,7 @@ Enter the origin to confirm:</source>
         <source>Google Maps API key is not configured.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/geocode.ts</context>
-          <context context-type="linenumber">104</context>
+          <context context-type="linenumber">144</context>
         </context-group>
       </trans-unit>
     </body>

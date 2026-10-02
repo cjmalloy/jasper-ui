@@ -7354,6 +7354,10 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="8162805192658576220" datatype="html">
         <source>Photon URL: </source>
       </trans-unit>
+      <trans-unit id="1790677591266345344" datatype="html">
+        <source>No local version found.</source>
+        <target>ローカル版が見つかりません。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
