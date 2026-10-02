@@ -6,6 +6,7 @@ import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { Feature, FeatureCollection } from 'geojson';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
 import { Map as MapLibreMap, Marker } from 'maplibre-gl';
+import { defer, isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { addGeocoder } from '../component/map/geocoder';
 import { mapTemplate } from '../mods/map';
@@ -52,6 +53,7 @@ export class LocationMapComponent implements OnDestroy {
   private picking = false;
   private lastActive?: AbstractControl;
   private lastActiveValue?: any;
+  private redrawPending = false;
 
   private geocoding = false;
   private geocoderPosition?: GeocoderPosition;
@@ -239,19 +241,34 @@ export class LocationMapComponent implements OnDestroy {
   }
 
   private update() {
-    this.updateMarkers();
+    this.redraw();
     // Only pan when the location was changed outside the map (typing, geolocation)
     if (!this.picking) this.panToActive();
+    // Adding or removing a location rebuilds the form array after notifying,
+    // so redraw again once it has settled
+    if (!this.redrawPending) {
+      this.redrawPending = true;
+      defer(() => {
+        this.redrawPending = false;
+        this.redraw();
+      });
+    }
+  }
+
+  private redraw() {
+    this.updateMarkers();
     (this.map?.getSource('location-context') as GeoJSONSource | undefined)?.setData(this.contextData);
   }
 
   private panToActive() {
     const active = this.picker.active;
     const value = active?.value;
-    const changed = active !== this.lastActive || value !== this.lastActiveValue;
+    const changed = active !== this.lastActive || !isEqual(value, this.lastActiveValue);
     this.lastActive = active;
-    this.lastActiveValue = value;
+    this.lastActiveValue = Array.isArray(value) ? [...value] : value;
     if (!this.map || !changed || !hasLocation(value)) return;
+    // Keep the view steady while the location is already visible
+    if (this.map.getBounds().contains([value[0], value[1]])) return;
     this.map.easeTo({ center: [value[0], value[1]], zoom: Math.max(this.map.getZoom(), 10) });
   }
 

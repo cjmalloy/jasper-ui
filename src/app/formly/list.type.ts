@@ -9,7 +9,7 @@ import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
 import { hasLocation } from '../util/geo';
 import { LocationMapComponent } from './location-map.component';
-import { closedRings, getLocationPicker } from './location-picker';
+import { closedRings, getLocationPicker, locationPicker } from './location-picker';
 
 @Component({
   selector: 'formly-list-section',
@@ -18,6 +18,12 @@ import { closedRings, getLocationPicker } from './location-picker';
   },
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
+    @if (locationPicker?.open) {
+      @defer {
+        <app-location-map [picker]="locationPicker!"></app-location-map>
+      }
+      <span></span>
+    }
     <div #fg
          class="form-group"
          cdkDropList
@@ -49,12 +55,6 @@ import { closedRings, getLocationPicker } from './location-picker';
         }
       }
     </div>
-    @if (locationPicker?.open) {
-      <span></span>
-      @defer {
-        <app-location-map [picker]="locationPicker!"></app-location-map>
-      }
-    }
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
@@ -170,7 +170,15 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
     if (initialModel === undefined && this.field.fieldArray?.type === 'location') {
       initialModel = this.seedLocation(index ?? this.size);
     }
+    const i = index ?? this.field.fieldGroup?.length ?? 0;
     super.add(index, initialModel, options);
+    // @ts-ignore
+    if (this.field.fieldArray?.type === 'location') {
+      const added = this.field.fieldGroup?.[i];
+      const picker = added && locationPicker(added);
+      // Select the new location so clicking the map places it
+      if (picker?.open && added?.formControl) picker.select(added.formControl);
+    }
   }
 
   /**

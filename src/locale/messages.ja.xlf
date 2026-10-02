@@ -6691,6 +6691,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Location: </source>
         <target>位置: </target>
       </trans-unit>
+      <trans-unit id="2185157816166513184" datatype="html">
+        <source>Geometry: </source>
+        <target>ジオメトリ: </target>
+      </trans-unit>
       <trans-unit id="4159797487492582314" datatype="html">
         <source>Points:</source>
         <target>ポイント:</target>

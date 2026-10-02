@@ -129,6 +129,52 @@ test.describe.serial('Map Plugin', () => {
     expect(ref.plugins['plugin/geo/polygon'].properties.color).toBe('#ff0000');
   });
 
+  test('adding a point with the map open selects the new point', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/linestring', { waitUntil: 'networkidle' });
+    const list = page.locator('.plugin-content formly-list-section').first();
+    const add = list.locator('button', { hasText: '+ Add Point' });
+    await add.click();
+    const points = list.locator('.location-field');
+    await points.nth(0).locator('input').nth(0).fill('-63.5');
+    await points.nth(0).locator('input').nth(1).fill('44.6');
+    await points.nth(0).locator('.location-map-toggle').click();
+    const map = page.locator('.location-map');
+    const canvas = map.locator('.maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    await expect(map.locator('.location-marker')).toHaveCount(1, { timeout: 15_000 });
+
+    // The map is above the add button
+    expect((await map.boundingBox())!.y).toBeLessThan((await add.boundingBox())!.y);
+
+    await add.click();
+    await expect(points).toHaveCount(2);
+    await expect(points.nth(1).locator('.location-map-toggle')).toHaveClass(/toggled/);
+    await expect(points.nth(0).locator('.location-map-toggle')).not.toHaveClass(/toggled/);
+
+    // Clicking the map places the new point, not the previous one
+    const box = (await canvas.boundingBox())!;
+    await page.mouse.click(box.x + box.width * 0.75, box.y + box.height * 0.25);
+    await expect(points.nth(1).locator('input').nth(0)).not.toHaveValue('-63.5');
+    await expect(points.nth(0).locator('input').nth(0)).toHaveValue('-63.5');
+    await expect(points.nth(0).locator('input').nth(1)).toHaveValue('44.6');
+  });
+
+  test('plugin/geo selects a single geometry', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL), { waitUntil: 'networkidle' });
+    await page.locator('.add-plugins-label select').selectOption('plugin/geo');
+    const geometry = page.locator('.child-plugin-select');
+    await expect(geometry).toBeVisible();
+    await geometry.selectOption('plugin/geo/polygon');
+    await expect(page.locator('button', { hasText: '+ Add Ring' })).toBeVisible();
+    await expect(geometry).toHaveValue('plugin/geo/polygon');
+
+    await geometry.selectOption('plugin/geo/point');
+    await expect(page.locator('button', { hasText: '+ Add Ring' })).toHaveCount(0);
+    await expect(page.locator('.plugin-content .location-field')).toHaveCount(1);
+    await expect(geometry).toHaveValue('plugin/geo/point');
+  });
+
   test('nested location inputs fit on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(POLYGON_URL)

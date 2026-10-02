@@ -33,6 +33,7 @@ export class GenFormComponent implements OnInit, OnChanges {
     formState: {
       admin: this.admin,
       config: {},
+      togglePlugin: (tag: string) => this.togglePlugin.next(tag),
     },
   };
 
