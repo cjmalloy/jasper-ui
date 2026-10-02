@@ -56,6 +56,7 @@ export class GeocoderControl implements IControl {
 
     const results = this.results = document.createElement('div');
     results.className = 'geocoder-results';
+    results.setAttribute('aria-live', 'polite');
     results.hidden = true;
 
     container.append(form, results);
