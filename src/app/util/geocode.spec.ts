@@ -24,11 +24,28 @@ describe('geocode', () => {
     expect(geocodeUrl('halifax', { geocodingProvider: 'photon' })).toBe('https://photon.komoot.io/api/?q=halifax&limit=10');
   });
 
-  it('builds Google URLs', () => {
+  it('geocodes with the Google Maps JavaScript API', async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal('fetch', fetch);
+    const location = { lat: () => 44.6, lng: () => -63.5 };
+    const geocodeFn = vi.fn()
+      .mockResolvedValueOnce({ results: [{ formatted_address: 'Halifax, NS, Canada', geometry: { location } }] })
+      .mockResolvedValueOnce({ results: [{ formatted_address: 'Halifax, NS, Canada', geometry: { location } }] })
+      .mockRejectedValueOnce({ code: 'ZERO_RESULTS' })
+      .mockRejectedValueOnce({ code: 'REQUEST_DENIED', message: 'Bad key' });
+    const importLibrary = vi.fn().mockResolvedValue({ Geocoder: class { geocode = geocodeFn; } });
+    vi.stubGlobal('google', { maps: { importLibrary } });
     const config = { geocodingProvider: 'google' as const, googleMapsApiKey: 'key' };
-    expect(geocodeUrl('halifax', config)).toBe('https://maps.googleapis.com/maps/api/geocode/json?address=halifax&key=key');
-    expect(reverseGeocodeUrl([-63.5, 44.6], config)).toBe('https://maps.googleapis.com/maps/api/geocode/json?latlng=44.6,-63.5&key=key');
-    expect(() => geocodeUrl('halifax', { geocodingProvider: 'google' })).toThrow();
+    const view = { center: [-63.5, 44.6] as [number, number], bbox: [-64, 44, -63, 45] as [number, number, number, number] };
+    expect(await geocode('halifax', config, undefined, view)).toEqual([{ name: 'Halifax, NS, Canada', location: [-63.5, 44.6] }]);
+    expect(geocodeFn).toHaveBeenLastCalledWith({ address: 'halifax', bounds: { west: -64, south: 44, east: -63, north: 45 } });
+    expect(await reverseGeocode([-63.5, 44.6], config)).toEqual({ name: 'Halifax, NS, Canada', location: [-63.5, 44.6] });
+    expect(geocodeFn).toHaveBeenLastCalledWith({ location: { lng: -63.5, lat: 44.6 } });
+    expect(await geocode('nowhere', config)).toEqual([]);
+    await expect(geocode('halifax', config)).rejects.toBe('Bad key');
+    await expect(geocode('halifax', { geocodingProvider: 'google' })).rejects.toBeTruthy();
+    expect(importLibrary).toHaveBeenCalledWith('geocoding');
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it('parses Nominatim results', () => {
@@ -54,10 +71,9 @@ describe('geocode', () => {
 
   it('parses Google results', () => {
     const config = { geocodingProvider: 'google' as const, googleMapsApiKey: 'key' };
-    const response = { status: 'OK', results: [{ formatted_address: 'Halifax, NS, Canada', geometry: { location: { lat: 44.6, lng: -63.5 } } }] };
+    const response = { results: [{ formatted_address: 'Halifax, NS, Canada', geometry: { location: { lat: () => 44.6, lng: () => -63.5 } } }] };
     expect(parseGeocode(response, config)).toEqual([{ name: 'Halifax, NS, Canada', location: [-63.5, 44.6] }]);
-    expect(parseGeocode({ status: 'ZERO_RESULTS', results: [] }, config)).toEqual([]);
-    expect(() => parseGeocode({ status: 'REQUEST_DENIED', error_message: 'Bad key' }, config)).toThrow();
+    expect(parseGeocode({ results: [] }, config)).toEqual([]);
   });
 
   it('fetches without credentials', async () => {
@@ -74,11 +90,8 @@ describe('geocode', () => {
     const view = { center: [-63.5, 44.6] as [number, number], bbox: [-64, 44, -63, 45] as [number, number, number, number] };
     expect(geocodeUrl('halifax', {}, view)).toBe('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&q=halifax&viewbox=-64,44,-63,45');
     expect(geocodeUrl('halifax', { geocodingProvider: 'photon' }, view)).toBe('https://photon.komoot.io/api/?q=halifax&limit=10&lat=44.6&lon=-63.5');
-    expect(geocodeUrl('halifax', { geocodingProvider: 'google', googleMapsApiKey: 'key' }, view))
-      .toBe('https://maps.googleapis.com/maps/api/geocode/json?address=halifax&key=key&bounds=44,-64|45,-63');
     expect(geocodeUrl('halifax', {}, { center: [-63.5, 44.6] })).toBe('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&q=halifax');
     expect(geocodeUrl('halifax', { geocodingProvider: 'photon' })).toBe('https://photon.komoot.io/api/?q=halifax&limit=10');
-    expect(geocodeUrl('halifax', { geocodingProvider: 'google', googleMapsApiKey: 'key' })).toBe('https://maps.googleapis.com/maps/api/geocode/json?address=halifax&key=key');
     expect(geocodeUrl('halifax', {})).toBe('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&q=halifax');
     // Nominatim never restricts results to the view
     for (const v of [undefined, view, { center: view.center }]) {

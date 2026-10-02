@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 export type GeocodingProvider = 'google' | 'photon' | 'osm';
 export type GeocoderPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
@@ -22,18 +23,18 @@ export interface GeocodeView {
 }
 
 export const DEFAULT_PHOTON_URL = 'https://photon.komoot.io';
-export const GOOGLE_GEOCODE_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
 export const NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
 
 const LIMIT = 10;
 
+/**
+ * URL for the web service providers. Google is called through the Maps
+ * JavaScript API SDK instead, since its web service does not support CORS.
+ */
 export function geocodeUrl(query: string, config: GeocodingConfig, view?: GeocodeView): string {
   const q = encodeURIComponent(query);
   const [west, south, east, north] = view?.bbox || [];
   switch (provider(config)) {
-    case 'google':
-      return `${GOOGLE_GEOCODE_URL}?address=${q}&key=${encodeURIComponent(googleKey(config))}`
-        + (view?.bbox ? `&bounds=${south},${west}|${north},${east}` : '');
     case 'photon':
       return `${photonUrl(config)}/api/?q=${q}&limit=${LIMIT}`
         + (view ? `&lat=${view.center[1]}&lon=${view.center[0]}` : '');
@@ -45,8 +46,6 @@ export function geocodeUrl(query: string, config: GeocodingConfig, view?: Geocod
 
 export function reverseGeocodeUrl([lng, lat]: [number, number], config: GeocodingConfig): string {
   switch (provider(config)) {
-    case 'google':
-      return `${GOOGLE_GEOCODE_URL}?latlng=${lat},${lng}&key=${encodeURIComponent(googleKey(config))}`;
     case 'photon':
       return `${photonUrl(config)}/reverse?lat=${lat}&lon=${lng}`;
     default:
@@ -61,11 +60,9 @@ export function parseGeocode(response: any, config: GeocodingConfig): GeocodeRes
   const results: GeocodeResult[] = [];
   switch (provider(config)) {
     case 'google':
-      if (response?.status && response.status !== 'OK' && response.status !== 'ZERO_RESULTS') {
-        throw response.error_message || response.status;
-      }
       for (const r of Array.isArray(response?.results) ? response.results : []) {
-        add(results, r?.formatted_address, r?.geometry?.location?.lng, r?.geometry?.location?.lat);
+        const l = r?.geometry?.location;
+        add(results, r?.formatted_address, typeof l?.lng === 'function' ? l.lng() : l?.lng, typeof l?.lat === 'function' ? l.lat() : l?.lat);
       }
       break;
     case 'photon':
@@ -88,7 +85,10 @@ export function parseGeocode(response: any, config: GeocodingConfig): GeocodeRes
  */
 export async function geocode(query: string, config: GeocodingConfig, signal?: AbortSignal, view?: GeocodeView): Promise<GeocodeResult[]> {
   if (!query.trim()) return [];
-  const results = parseGeocode(await get(geocodeUrl(query.trim(), config, view), signal), config);
+  const response = provider(config) === 'google'
+    ? await googleGeocode(config, signal, { address: query.trim(), ...view?.bbox ? { bounds: bounds(view.bbox) } : {} })
+    : await get(geocodeUrl(query.trim(), config, view), signal);
+  const results = parseGeocode(response, config);
   return view ? sortByDistance(results, view.center) : results;
 }
 
@@ -107,7 +107,10 @@ export function sortByDistance(results: GeocodeResult[], center: [number, number
  * Find a readable address for a location.
  */
 export async function reverseGeocode(location: [number, number], config: GeocodingConfig, signal?: AbortSignal): Promise<GeocodeResult | undefined> {
-  return parseGeocode(await get(reverseGeocodeUrl(location, config), signal), config)[0];
+  const response = provider(config) === 'google'
+    ? await googleGeocode(config, signal, { location: { lng: location[0], lat: location[1] } })
+    : await get(reverseGeocodeUrl(location, config), signal);
+  return parseGeocode(response, config)[0];
 }
 
 /**
@@ -153,6 +156,34 @@ function photonName(p: any): string {
 function add(results: GeocodeResult[], name: any, lng: any, lat: any) {
   if (typeof lng !== 'number' || typeof lat !== 'number' || !isFinite(lng) || !isFinite(lat)) return;
   results.push({ name: typeof name === 'string' && name ? name : `${lat}, ${lng}`, location: [lng, lat] });
+}
+
+function bounds([west, south, east, north]: [number, number, number, number]) {
+  return { west, south, east, north };
+}
+
+let googleLoaded = false;
+
+/**
+ * Geocode with the Maps JavaScript API SDK. The API key is set on first use,
+ * changing it requires reloading the page.
+ */
+async function googleGeocode(config: GeocodingConfig, signal: AbortSignal | undefined, request: google.maps.GeocoderRequest): Promise<any> {
+  const key = googleKey(config);
+  signal?.throwIfAborted();
+  const { importLibrary, setOptions } = await import('@googlemaps/js-api-loader');
+  if (!googleLoaded) {
+    setOptions({ key, v: 'weekly' });
+    googleLoaded = true;
+  }
+  const { Geocoder } = await importLibrary('geocoding');
+  signal?.throwIfAborted();
+  const response = await new Geocoder().geocode(request).catch((e: any) => {
+    if (e?.code === 'ZERO_RESULTS') return { results: [] };
+    throw e?.message || e?.code || e;
+  });
+  signal?.throwIfAborted();
+  return response;
 }
 
 /**
