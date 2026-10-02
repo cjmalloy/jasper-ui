@@ -124,6 +124,7 @@ export class PluginComponent implements OnChanges, HasChanges {
       return;
     }
     this.serverError = [];
+    this.viewSource = false;
     this.loadingDiff = this.plugins.get(this.plugin.tag + this.store.account.origin).pipe(
       catchError((err: HttpErrorResponse) => {
         delete this.loadingDiff;
