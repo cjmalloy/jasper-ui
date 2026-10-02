@@ -159,10 +159,13 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> implements O
     this.cd.markForCheck();
   }
 
-  detectLocation() {
+  detectLocation(onlyIfUnset = false) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        pos => this.setLocation([pos.coords.longitude, pos.coords.latitude]),
+        pos => {
+          if (onlyIfUnset && (!this.showMap || this.hasLocation)) return;
+          this.setLocation([pos.coords.longitude, pos.coords.latitude]);
+        },
         err => console.error('Geolocation error:', err.message),
       );
     }
@@ -170,7 +173,7 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> implements O
 
   toggleMap() {
     this.picker.toggle(this.formControl);
-    if (this.showMap && !this.hasLocation) this.detectLocation();
+    if (this.showMap && !this.hasLocation) this.detectLocation(true);
   }
 
   validate(input: HTMLInputElement) {
