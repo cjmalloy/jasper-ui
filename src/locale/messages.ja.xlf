@@ -7270,6 +7270,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Neo Banana image-generation signature tag.</source>
         <target>Neo Banana画像生成シグネチャタグ。</target>
       </trans-unit>
+      <trans-unit id="1790677591266345344" datatype="html">
+        <source>No local version found.</source>
+        <target>ローカル版が見つかりません。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
