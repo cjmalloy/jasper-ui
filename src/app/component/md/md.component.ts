@@ -35,7 +35,7 @@ export class MdComponent {
     ],
   };
   mermaidOptions: MermaidConfig & MermaidAPI.MermaidConfig = {
-    theme: this.store.darkTheme ? 'dark' : 'default',
+    theme: this.store.darkTheme() ? 'dark' : 'default',
   };
 
   readonly text = input<string | undefined>('');

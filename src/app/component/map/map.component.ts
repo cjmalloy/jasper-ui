@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, OnDestroy, signal, ViewEncapsulation } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, effect, input, untracked, ViewEncapsulation, DestroyRef, inject } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
   ControlComponent,
@@ -45,7 +45,7 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
     ResizeHandleDirective
   ]
 })
-export class MapComponent implements OnDestroy, HasChanges {
+export class MapComponent implements HasChanges {
 
   readonly tag = input('');
   readonly ext = input<Ext>();
@@ -55,8 +55,10 @@ export class MapComponent implements OnDestroy, HasChanges {
 
   private map?: Map;
   private markers: Marker[] = [];
-  private mapDataUpdates$ = new Subject<Ref[]>();
-  readonly mapData = signal<MapEntry[]>([]);
+  readonly mapData = toSignal(toObservable(computed(() => this.page()?.content || [])).pipe(
+    switchMap(content => !content.some(ref => this.isBareRepost(ref))
+      ? of(content.map(ref => [ref] as MapEntry)) : forkJoin(content.map(ref => this.getBareRepost(ref)))),
+  ), { initialValue: [] as MapEntry[] });
 
   constructor(
     private router: Router,
@@ -66,19 +68,12 @@ export class MapComponent implements OnDestroy, HasChanges {
     private store: Store,
   ) {
     setWorkerUrl('assets/maplibre-gl-worker.mjs');
-    this.mapDataUpdates$.pipe(
-      switchMap(content => {
-        if (!content.some(ref => this.isBareRepost(ref))) return of(content.map(ref => [ref] as MapEntry));
-        return forkJoin(content.map(ref => this.getBareRepost(ref)));
-      }),
-      takeUntilDestroyed(),
-    ).subscribe(mapData => {
-      this.mapData.set(mapData);
-      this.updateMapData();
+    effect(() => {
+      this.mapData();
+      untracked(() => this.updateMapData());
     });
     effect(() => {
       const value = this.page();
-      this.mapDataUpdates$.next(value?.content || []);
       if (value && value.page.number !== undefined && value.page.number > 0 && value.page.number >= value.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
@@ -100,14 +95,13 @@ export class MapComponent implements OnDestroy, HasChanges {
     return true;
   }
 
-  ngOnDestroy() {
-    this.mapDataUpdates$.complete();
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.clearMarkers();
     try {
       this.map?.remove();
     } catch (ignored) { }
     this.map = undefined;
-  }
+  });
 
   readonly geoData = computed((): FeatureCollection => {
     return {

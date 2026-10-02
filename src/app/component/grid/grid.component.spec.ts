@@ -152,7 +152,7 @@ describe('GridComponent', () => {
 
   describe('columnDefs', () => {
     it('should return formatted column defs from defaultCols', () => {
-      const defs = component.columnDefs;
+      const defs = component.columnDefs();
       const published = defs.find(c => c.field === 'published');
       expect(published).toBeTruthy();
       expect(published?.filter).toBe('agDateColumnFilter');
@@ -162,7 +162,7 @@ describe('GridComponent', () => {
     it('should apply formatters to ext config columnDefs when provided', () => {
       fixture.componentRef.setInput('ext', { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published', type: 'dateTime' }] } } as any);
       fixture.detectChanges();
-      const defs = component.columnDefs;
+      const defs = component.columnDefs();
       expect(typeof defs[0].valueFormatter).toBe('function');
     });
   });

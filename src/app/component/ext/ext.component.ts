@@ -1,4 +1,3 @@
-import { AsyncPipe } from '@angular/common';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -14,11 +13,12 @@ import {
   computed,
   untracked
 } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, of, switchMap, throwError } from 'rxjs';
+import { catchError, of, startWith, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
@@ -49,8 +49,8 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
     'class': 'ext list-item',
     'tabindex': '0',
     '[class.deleted]': 'deleted()',
-    '[class.upload]': 'uploadedFile',
-    '[class.exists]': 'existsFile',
+    '[class.upload]': "uploadedFile()",
+    '[class.exists]': "existsFile()",
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -60,7 +60,6 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
     TitleDirective,
     ConfirmActionComponent,
     ReactiveFormsModule,
-    AsyncPipe,
   ],
 })
 export class ExtComponent implements HasChanges {
@@ -72,18 +71,21 @@ export class ExtComponent implements HasChanges {
   readonly useEditPage = input(false);
 
   readonly editForm = signal<UntypedFormGroup>(undefined as unknown as UntypedFormGroup);
-  readonly submitted = signal(false);
-  readonly invalid = signal(false);
-  readonly overwritten = signal(false);
-  readonly overwrite = signal(true);
-  readonly icons = signal<Template[]>([]);
-  readonly template = signal<Template | undefined>(undefined);
-  readonly plugin = signal<Plugin | undefined>(undefined);
-  readonly editing = signal(false);
-  readonly viewSource = signal(false);
-  readonly deleted = signal(false);
-  readonly writeAccess = signal(false);
-  readonly serverError = signal<string[]>([]);
+  readonly submitted = linkedSignal(() => { this.ext(); return false; });
+  readonly invalid = linkedSignal(() => { this.ext(); return false; });
+  readonly overwritten = linkedSignal(() => { this.ext(); return false; });
+  readonly overwrite = linkedSignal(() => { this.ext(); return false; });
+  readonly icons = computed(() => [
+    ...this.admin.getTemplateView(this.ext().tag),
+    ...hasPrefix(this.ext().tag, 'user') ? [{tag: 'user', config: { view: $localize`🧑️` }}] : [],
+  ]);
+  readonly template = computed(() => this.admin.getTemplate(this.ext().tag));
+  readonly plugin = computed(() => this.admin.getPlugin(this.ext().tag));
+  readonly editing = linkedSignal(() => { this.ext(); return false; });
+  readonly viewSource = linkedSignal(() => { this.ext(); return false; });
+  readonly deleted = linkedSignal(() => { this.ext(); return false; });
+  readonly writeAccess = computed(() => this.auth.tagWriteAccess(this.qualifiedTag()));
+  readonly serverError = linkedSignal<string[]>(() => { this.ext(); return []; });
 
   private overwrittenModified? = '';
 
@@ -111,38 +113,19 @@ export class ExtComponent implements HasChanges {
   }
 
   init() {
-    this.submitted.set(false);
-    this.invalid.set(false);
-    this.overwrite.set(false);
-    this.overwritten.set(false);
-    this.template.set(this.admin.getTemplate(this.ext().tag));
-    this.plugin.set(this.admin.getPlugin(this.ext().tag));
-    this.editing.set(false);
-    this.viewSource.set(false);
-    this.deleted.set(false);
-    this.writeAccess.set(false);
-    this.serverError.set([]);
     this.actionComponents()?.forEach(c => c.reset());
     if (this.ext()) {
-      this.icons.set(this.admin.getTemplateView(this.ext().tag));
-      if (hasPrefix(this.ext().tag, 'user')) {
-        this.icons.set([...this.icons(), {tag: 'user', config: { view: $localize`🧑️` }}]);
-      }
       this.editForm.set(extForm(this.fb, this.ext(), this.admin, true));
-      this.writeAccess.set(this.auth.tagWriteAccess(this.qualifiedTag()));
-    } else {
-      this.icons.set([]);
-      this.writeAccess.set(false);
     }
   }
 
-  get uploadedFile() {
+  readonly uploadedFile = computed(() => {
     return this.ext().upload;
-  }
+  });
 
-  get existsFile() {
+  readonly existsFile = computed(() => {
     return this.ext().exists;
-  }
+  });
 
   readonly qualifiedTag = computed(() => {
     return this.ext().tag + this.ext().origin;
@@ -156,12 +139,12 @@ export class ExtComponent implements HasChanges {
     return this.ext().origin === this.store.account.origin();
   });
   readonly extLink = computed(() => {
-    if (this.admin.local.find(t => hasPrefix(this.ext().tag, t.tag))) return this.ext().tag + (this.ext().origin || '@');
+    if (this.admin.local().find(t => hasPrefix(this.ext().tag, t.tag))) return this.ext().tag + (this.ext().origin || '@');
     return tagLink(this.ext().tag, this.ext().origin, this.store.account.origin());
   });
-  readonly preview = computed(() => {
-    return this.editor.getTagPreview(this.ext().tag, this.ext().origin);
-  });
+  readonly preview = toSignal(toObservable(computed(() => ({
+    tag: this.ext().tag, origin: this.ext().origin,
+  }))).pipe(switchMap(({ tag, origin }) => this.editor.getTagPreview(tag, origin).pipe(startWith(undefined)))), { initialValue: undefined });
 
   save() {
     this.submitted.set(true);

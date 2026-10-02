@@ -1,5 +1,5 @@
 import { AsyncPipe, DOCUMENT } from '@angular/common';
-import { Component, Inject, OnDestroy, OnInit, ChangeDetectionStrategy, signal } from '@angular/core';
+import { computed, Component, Inject, ChangeDetectionStrategy, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import DOMPurify from 'dompurify';
@@ -80,8 +80,8 @@ interface DragState {
     ThumbnailPipe,
   ],
 })
-export class UserClipboardComponent implements OnInit, OnDestroy {
-  remote?: Ref;
+export class UserClipboardComponent {
+  readonly remote = signal<Ref | undefined>(undefined);
   readonly items = signal<ClipboardItem[]>([]);
   private watch?: Subscription;
   private save?: Subscription;
@@ -119,7 +119,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  private readonly initialize = afterNextRender(() => {
     this.loadLocal();
     this.loadRemote();
     this.watch = this.stomp.watchResponse('tag:/plugin/user/clipboard').pipe(
@@ -127,31 +127,31 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     ).subscribe(() => {
       this.loadRemote();
     });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.watch?.unsubscribe();
     this.save?.unsubscribe();
     if (this.resizeClamp) window.clearTimeout(this.resizeClamp);
-  }
+  });
 
-  get plugin(): Plugin | undefined {
+  readonly plugin = computed((): Plugin | undefined => {
     return this.admin.getPlugin('plugin/user/clipboard');
-  }
+  });
 
-  get interceptCopy() {
-    const value = this.remote?.plugins?.['plugin/user/clipboard']?.interceptCopy;
+  readonly interceptCopy = computed(() => {
+    const value = this.remote()?.plugins?.['plugin/user/clipboard']?.interceptCopy;
     if (value !== undefined) return value;
-    return this.plugin?.defaults?.interceptCopy;
-  }
+    return this.plugin()?.defaults?.interceptCopy;
+  });
 
   hasPendingPaste() {
     return this.items().find(item => item.selected);
   }
 
-  get storageKey() {
+  readonly storageKey = computed(() => {
     return `jasper.clipboard.${this.store.account.tagWithOrigin() || 'anon'}`;
-  }
+  });
 
   preview(item: ClipboardItem) {
     const text = this.previewText(item).replace(/\s+/g, ' ').trim();
@@ -378,7 +378,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   copy(event: ClipboardEvent) {
-    if (!this.interceptCopy) return;
+    if (!this.interceptCopy()) return;
     const item = this.clipboardItem(event.target, false);
     if (!item) return;
     event.preventDefault();
@@ -386,7 +386,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   paste(event: ClipboardEvent) {
-    if (!this.interceptCopy) return;
+    if (!this.interceptCopy()) return;
     event.preventDefault();
     event.stopPropagation();
   }
@@ -825,7 +825,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private loadLocal() {
     try {
-      const items = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+      const items = JSON.parse(localStorage.getItem(this.storageKey()) || '[]');
       if (Array.isArray(items)) this.items.set(this.sanitise(items));
     } catch {
       this.items.set([]);
@@ -856,7 +856,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private applyRemote(ref: Ref | RefUpdates) {
-    this.remote = ref;
+    this.remote.set(ref);
     const remoteItems = ref.plugins?.['plugin/user/clipboard']?.items;
     if (!Array.isArray(remoteItems)) return;
     this.items.set([
@@ -978,7 +978,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private persistLocal() {
     try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.items().map(item => ({
+      localStorage.setItem(this.storageKey(), JSON.stringify(this.items().map(item => ({
         ...this.serializeLocal(item),
       }))));
     } catch {

@@ -30,14 +30,14 @@ describe('GridCellComponent', () => {
   it('does not resolve images without the image plugin', () => {
     setImage(externalUrl);
 
-    expect(component.imageUrl).toBe('');
+    expect(component.imageUrl()).toBe('');
     expect(proxy.getFetch).not.toHaveBeenCalled();
   });
 
   it('resolves inline SVG images without the image plugin', () => {
     setImage(inlineSvg);
 
-    expect(component.imageUrl).toBe(inlineSvg);
+    expect(component.imageUrl()).toBe(inlineSvg);
     expect(sanitizer.bypassSecurityTrustUrl).toHaveBeenCalledWith(inlineSvg);
     expect(proxy.getFetch).not.toHaveBeenCalled();
   });
@@ -66,6 +66,23 @@ describe('GridCellComponent', () => {
     admin.getPlugin.mockReturnValue({ config: {} });
     setImage(externalUrl);
 
-    expect(component.imageUrl).toBe(externalUrl);
+    expect(component.imageUrl()).toBe(externalUrl);
+  });
+
+  it('invalidates image and display computations when AG Grid refreshes a cell', () => {
+    admin.getPlugin.mockReturnValue({ config: { proxy: true } });
+    proxy.getFetch.mockImplementation((url: string, origin: string, title: string) => `${url}/${origin}/${title}`);
+    setImage(externalUrl);
+    expect(component.imageUrl()).toBe(`${externalUrl}//Thumbnail`);
+    component.refresh({
+      value: 'cache:updated',
+      data: { origin: '@remote', title: 'Updated' },
+      colDef: { type: 'image' },
+    } as any);
+    expect(component.imageUrl()).toBe('cache:updated/@remote/Updated');
+    expect(component.displayValue()).toBe('cache:updated');
+    component.refresh({ value: ['one', '', 3, 'two'], colDef: { type: 'tags' } } as any);
+    expect(component.listValue()).toEqual(['one', 'two']);
+    expect(component.displayValue()).toBe('one, two');
   });
 });

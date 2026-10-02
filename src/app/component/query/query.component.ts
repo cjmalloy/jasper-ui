@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, input, signal, viewChild, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, linkedSignal, signal, viewChild, untracked } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { combineLatest, of, startWith, switchMap } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -19,10 +21,28 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
 })
 export class QueryComponent {
 
-  readonly editing = signal(false);
+  readonly editing = linkedSignal(() => { this.query(); return false; });
   readonly replaceOnClipboardPaste = signal(false);
   select: boolean | Crumb[] = false;
-  readonly breadcrumbs = signal<Crumb[]>([], { equal: () => false });
+  private readonly rawCrumbs = computed(() => this.queryCrumbs(this.query()));
+  private readonly crumbExts = toSignal(toObservable(this.rawCrumbs).pipe(
+    switchMap(crumbs => crumbs.length ? combineLatest(crumbs.map(crumb => {
+      const tag = crumb.tag?.replace(/^!/, '');
+      return tag && !tag.startsWith('@')
+        ? this.exts.getCachedExt(tag).pipe(startWith(undefined))
+        : of(undefined);
+    })) : of([])),
+  ), { initialValue: [] });
+  readonly breadcrumbs = computed(() => this.rawCrumbs().map((crumb, index) => {
+    const ext = this.crumbExts()[index];
+    if (!ext) return crumb;
+    const text = ext.modifiedString && ext.name ? ext.name
+      : ext.tag === 'plugin' ? '📦'
+      : ext.tag === '+plugin' ? '+📦'
+      : ext.tag === '_plugin' ? '_📦'
+      : this.admin.getTemplate(ext.tag)?.name || this.admin.getPlugin(ext.tag)?.name || crumb.text;
+    return { ...crumb, text };
+  }));
 
   readonly query = input('');
   readonly editor = viewChild<ElementRef<HTMLInputElement>>('editor');
@@ -33,11 +53,6 @@ export class QueryComponent {
     private admin: AdminService,
     public store: Store,
   ) {
-    effect(() => {
-      const query = this.query();
-      this.editing.set(false);
-      this.breadcrumbs.set(untracked(() => this.queryCrumbs(query)));
-    });
     effect(() => {
       const value = this.editor();
       untracked(() => this.focusEditor(value));
@@ -198,32 +213,6 @@ export class QueryComponent {
         crumbs.unshift(notOp);
       } else {
         crumbs.push(notOp);
-      }
-    }
-    for (const t of crumbs) {
-      const tag = t.tag?.startsWith('!') ? t.tag.substring(1) : t.tag;
-      if (tag && !tag.startsWith('@')) {
-        this.exts.getCachedExt(tag).subscribe(ext => {
-          // TODO: possible delayed write
-          if (ext.modifiedString && ext.name) {
-            t.text = ext.name;
-          } else if (ext.tag === 'plugin') {
-            t.text = '📦';
-          } else if (ext.tag === '+plugin') {
-            t.text = '+📦';
-          } else if (ext.tag === '_plugin') {
-            t.text = '_📦';
-          } else {
-            const template = this.admin.getTemplate(ext.tag);
-            if (template?.name) {
-              t.text = template.name;
-            } else {
-              const plugin = this.admin.getPlugin(ext.tag);
-              if (plugin?.name) t.text = plugin.name;
-            }
-            this.breadcrumbs.set(this.breadcrumbs());
-          }
-        });
       }
     }
     return crumbs;

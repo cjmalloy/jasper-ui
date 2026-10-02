@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
@@ -32,8 +32,8 @@ export class SubfolderComponent {
     private query: QueryStore,
   ) { }
 
-  get thumbnail() {
+  readonly thumbnail = computed(() => {
     // TODO: Thumbnail in config
     return '';
-  }
+  });
 }

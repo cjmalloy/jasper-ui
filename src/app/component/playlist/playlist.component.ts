@@ -1,16 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  computed,
-  Component,
-  effect,
-  forwardRef,
-  input,
-  model,
-  OnDestroy,
-  untracked,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { ChangeDetectionStrategy, computed, Component, effect, forwardRef, input, linkedSignal, model, output } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, Observable, of, startWith, switchMap, throwError } from 'rxjs';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
@@ -35,10 +25,12 @@ import { ViewerComponent } from '../viewer/viewer.component';
     LoadingComponent,
   ],
 })
-export class PlaylistComponent implements OnDestroy {
+export class PlaylistComponent {
 
   ref = input<Ref | undefined>(undefined);
-  index = model(0);
+  readonly indexInput = input(0, { alias: 'index' });
+  readonly index = linkedSignal(() => { this.ref(); return this.indexInput(); });
+  readonly indexChange = output<number>();
   repeat = model(true);
   autoplay = model(false);
 
@@ -50,8 +42,15 @@ export class PlaylistComponent implements OnDestroy {
     const url = ref.sources![index];
     return sources.content.find(ref => ref.url === url) || { url }
   });
-  sources = model<Page<Ref> | undefined>(undefined);
-  private loading?: Subscription;
+  private readonly loadedSources = toSignal(toObservable(computed(() => {
+    const ref = this.ref();
+    return ref?.sources?.length ? { url: ref.url, length: ref.sources.length } : undefined;
+  })).pipe(switchMap(ref => ref ? this.loadSources(ref.url, ref.length).pipe(
+    startWith(undefined),
+  ) : of(undefined))), { initialValue: undefined });
+  readonly sourcesInput = input<Page<Ref> | undefined>(undefined, { alias: 'sources' });
+  readonly sources = linkedSignal(() => this.sourcesInput() || this.loadedSources());
+  readonly sourcesChange = output<Page<Ref> | undefined>();
 
   constructor(
     private admin: AdminService,
@@ -81,8 +80,10 @@ export class PlaylistComponent implements OnDestroy {
       }
     });
     effect(() => {
-      const value = this.ref();
-      untracked(() => this.loadRef(value));
+      this.indexChange.emit(this.index());
+    });
+    effect(() => {
+      this.sourcesChange.emit(this.sources());
     });
   }
 
@@ -96,19 +97,6 @@ export class PlaylistComponent implements OnDestroy {
     const ext = getExtension(ref.url) || '';
     const filename = ref.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
-  }
-
-  private loadRef(ref: Ref | undefined) {
-    this.loading?.unsubscribe();
-    this.sources.set(undefined);
-    if (!ref?.sources?.length) return;
-    this.index.set(0);
-    this.loading = this.loadSources(ref.url, ref.sources.length)
-      .subscribe(page => this.sources.set(page));
-  }
-
-  ngOnDestroy() {
-    this.loading?.unsubscribe();
   }
 
   title(url?: string) {

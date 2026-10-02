@@ -14,9 +14,9 @@ import {
   effect,
   untracked
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { catchError, of, throwError } from 'rxjs';
+import { catchError, of, startWith, switchMap, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import {
   Action,
@@ -66,55 +66,30 @@ export class FileComponent {
   readonly dragging = input(false);
   readonly fetchRepost = input(true);
 
-  readonly repostRef = signal<Ref | undefined>(undefined);
-  readonly expandPlugins = signal<string[]>([]);
-  readonly editing = signal(false);
-  readonly viewSource = signal(false);
-  readonly icons = signal<Icon[]>([]);
-  actions: Action[] = [];
-  writeAccess = false;
-  taggingAccess = false;
-  serverError: string[] = [];
+  readonly repostRef = toSignal(toObservable(computed(() =>
+    this.fetchRepost() && this.repost() ? this.url() : undefined,
+  )).pipe(switchMap(url => !url ? of(undefined) :
+    (this.store.view.top()?.url === url ? of(this.store.view.top()) : this.refs.getCurrent(url)).pipe(
+      catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+      startWith(undefined),
+    ))), { initialValue: undefined });
+  readonly expandPlugins = computed(() => this.bareRepost() && this.repostRef()
+    ? this.admin.getEmbeds(this.repostRef())
+    : [...this.admin.getEmbeds(this.ref()), ...(this.repostRef() ? ['plugin/repost'] : [])]);
+  readonly editing = linkedSignal(() => { this.ref(); return false; });
+  readonly viewSource = linkedSignal(() => { this.ref(); return false; });
+  readonly icons = computed(() => uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url)))));
+  readonly actions = computed(() => uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins))));
+  readonly writeAccess = computed(() => this.auth.writeAccess(this.ref()));
+  readonly taggingAccess = computed(() => this.auth.taggingAccess(this.ref()));
+  readonly serverError = linkedSignal<string[]>(() => { this.ref(); return []; });
 
   constructor(
     public admin: AdminService,
     private refs: RefService,
     public store: Store,
     private auth: AuthzService,
-  ) {
-    effect(() => {
-      this.refInput();
-      untracked(() => this.loadRef());
-    });
-  }
-
-  private loadRef() {
-    this.editing.set(false);
-    this.viewSource.set(false);
-    this.writeAccess = this.auth.writeAccess(this.ref());
-    this.taggingAccess = this.auth.taggingAccess(this.ref());
-    this.icons.set(uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url)))));
-    this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins)));
-
-    this.expandPlugins.set(this.admin.getEmbeds(this.ref()));
-    if (this.repost() && this.ref() && this.fetchRepost() && this.repostRef()?.url != repost(this.ref())) {
-      (this.store.view.top()?.url === this.ref().sources![0]
-          ? of(this.store.view.top())
-          : this.refs.getCurrent(this.url())
-      ).pipe(
-        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => {
-        this.repostRef.set(ref);
-        if (!ref) return;
-        if (this.bareRepost()) {
-          this.expandPlugins.set(this.admin.getEmbeds(ref));
-        } else {
-          this.expandPlugins.set([...this.expandPlugins(), 'plugin/repost']);
-        }
-      });
-    }
-  }
+  ) {}
 
   readonly pluginClasses = computed(() => {
     return this.css + templates(this.ref().tags, 'plugin')

@@ -1,15 +1,15 @@
-<div class="link" [class.remote]="!local" [title]="template().config?.description || ''">
+<div class="link" [class.remote]="!local()" [title]="template().config?.description || ''">
   @if (template().tag) {
     <a [routerLink]="['/tags', template().tag]">{{ template().name || template().tag }}</a>
   } @else {
     <a routerLink="/tags">{{ template().name || 'root' }}</a>
   }
-  @if (!qualifiedTag) {
+  @if (!qualifiedTag()) {
     <span class="host" i18n>(root: "")</span>
   } @else if (!template().tag && template().origin) {
     <span class="host" i18n>(root: {{ template().origin }})</span>
   } @else if (template().name && template().tag) {
-    <span class="host">({{ qualifiedTag }})</span>
+    <span class="host">({{ qualifiedTag() }})</span>
   } @else if (template().origin) {
     <span class="host">({{ template().origin }})</span>
   }
@@ -17,23 +17,23 @@
 <div class="stack">
   <div class="info">
     <span [title]="template().modified?.toISO()" i18n>modified {{ template().modified?.toRelative() }}</span>
-    @if (!local) {
+    @if (!local()) {
       &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', template().origin]">{{ template().origin }}</a>
     }
   </div>
   <div class="actions">
-    @if (!created && store.account.admin()) {
+    @if (!created() && store.account.admin()) {
       <app-confirm-action #action [action]="copy$" i18n>install</app-confirm-action>
-    } @else if (!local) {
+    } @else if (!local()) {
       <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
     }
-    @if (created && local && store.account.admin()) {
+    @if (created() && local() && store.account.admin()) {
       <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
     } @else {
-      <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+      <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
     }
     <a class="fake-link" (click)="download()" i18n>download</a>
-    @if (created && store.account.admin()) {
+    @if (created() && store.account.admin()) {
       <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
     }
   </div>
@@ -61,7 +61,7 @@
       <button type="button" (click)="editing.set(false)" i18n>cancel</button>
     </span>
   </form>
-} @else if (viewSource) {
+} @else if (viewSource()) {
   <form class="form" [formGroup]="editForm">
     <app-template-form [group]="editForm"></app-template-form>
   </form>

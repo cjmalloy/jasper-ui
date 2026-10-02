@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, untracked, viewChildren } from '@angular/core';
+import { computed, ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, untracked, viewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -30,7 +30,7 @@ import { LoadingComponent } from '../loading/loading.component';
   host: {
     '[attr.tabindex]': '0',
     '[class.deleted]': 'deleted()',
-    '[class]': 'pluginClass',
+    '[class]': "pluginClass()",
   },
 })
 export class PluginComponent implements HasChanges {
@@ -40,17 +40,18 @@ export class PluginComponent implements HasChanges {
 
   readonly pluginInput = input<Plugin>({} as Plugin, { alias: 'plugin' });
   readonly plugin = linkedSignal(() => this.pluginInput());
-  readonly deleted = signal(false);
-  readonly serverError = signal<string[]>([]);
-  readonly configErrors = signal<string[]>([]);
-  readonly defaultsErrors = signal<string[]>([]);
-  readonly schemaErrors = signal<string[]>([]);
-  readonly saving = signal<Subscription | undefined>(undefined);
+  readonly deleted = linkedSignal(() => { this.plugin(); return false; });
+  readonly serverError = linkedSignal<string[]>(() => { this.plugin(); return []; });
+  readonly configErrors = linkedSignal<string[]>(() => { this.plugin(); return []; });
+  readonly defaultsErrors = linkedSignal<string[]>(() => { this.plugin(); return []; });
+  readonly schemaErrors = linkedSignal<string[]>(() => { this.plugin(); return []; });
+  readonly saving = signal(false);
+  private savingSubscription?: Subscription;
 
   editForm: UntypedFormGroup;
-  readonly submitted = signal(false);
-  readonly editing = signal(false);
-  viewSource = false;
+  readonly submitted = linkedSignal(() => { this.plugin(); return false; });
+  readonly editing = linkedSignal(() => { this.plugin(); return false; });
+  readonly viewSource = linkedSignal(() => { this.plugin(); return false; });
 
   constructor(
     private mod: ModService,
@@ -80,28 +81,28 @@ export class PluginComponent implements HasChanges {
     });
   }
 
-  get pluginClass() {
+  readonly pluginClass = computed(() => {
     return this.css + ' ' + (this.plugin().tag || '')
       .replace(/[+_]/g, '')
       .replace(/\//g, '_')
       .replace(/\./g, '-');
-  }
+  });
 
-  get created() {
+  readonly created = computed(() => {
     return !!this.plugin().modified;
-  }
+  });
 
-  get qualifiedTag() {
-    return this.plugin().tag + this.origin;
-  }
+  readonly qualifiedTag = computed(() => {
+    return this.plugin().tag + this.origin();
+  });
 
-  get origin() {
+  readonly origin = computed(() => {
     return this.plugin().origin || '';
-  }
+  });
 
-  get local() {
-    return this.origin === this.store.account.origin();
-  }
+  readonly local = computed(() => {
+    return this.origin() === this.store.account.origin();
+  });
 
   save() {
     this.submitted.set(true);
@@ -136,20 +137,22 @@ export class PluginComponent implements HasChanges {
       this.schemaErrors.update(schemaErrors => [...schemaErrors, e.message]);
     }
     if (this.configErrors().length || this.defaultsErrors().length || this.schemaErrors().length) return;
-    this.saving.set(this.plugins.update(plugin).pipe(
-      switchMap(() => this.plugins.get(this.qualifiedTag)),
+    this.saving.set(true);
+    this.savingSubscription = this.plugins.update(plugin).pipe(
+      switchMap(() => this.plugins.get(this.qualifiedTag())),
       catchError((err: HttpErrorResponse) => {
-        this.saving.set(undefined);
+        this.saving.set(false);
         this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     ).subscribe(tag => {
-      this.saving.set(undefined);
+      this.saving.set(false);
       this.editForm.reset();
       this.serverError.set([]);
       this.editing.set(false);
       this.plugin.set(tag);
-    }));
+    });
+    this.savingSubscription?.add(() => this.saving.set(false));
   }
 
   copy$ = () => {
@@ -168,7 +171,7 @@ export class PluginComponent implements HasChanges {
     const deleteNotice = !isDeletorTag(this.plugin().tag) && this.admin.getPlugin('plugin/delete')
       ? this.plugins.create(tagDeleteNotice(this.plugin()))
       : of(null);
-    return this.plugins.delete(this.qualifiedTag).pipe(
+    return this.plugins.delete(this.qualifiedTag()).pipe(
       switchMap(() => deleteNotice),
       tap(() => {
         this.serverError.set([]);

@@ -1,6 +1,6 @@
 <div class="list-container"
-     [class.hide-numbers]="colStyle"
-     [style.grid-template-columns]="colStyle">
+     [class.hide-numbers]="colStyle()"
+     [style.grid-template-columns]="colStyle()">
   @for (ref of pinned(); track ref.origin + '@' + ref.url) {
     <div class="list-number">&bullet;</div>
     <app-ref class="pinned ref-list-item"
@@ -10,7 +10,7 @@
              [hideEdit]="ext()?.config?.hideEdit"
              [disableResize]="ext()?.config?.disableResize"
              [showToggle]="showToggle()"
-             [expanded]="expanded"
+             [expanded]="expanded()"
              [expandInline]="expandInline()"></app-ref>
   }
   @if (insertNewAtTop()) {
@@ -23,7 +23,7 @@
                [hideEdit]="ext()?.config?.hideEdit"
                [disableResize]="ext()?.config?.disableResize"
                [showToggle]="showToggle()"
-               [expanded]="expanded"
+               [expanded]="expanded()"
                [expandInline]="expandInline()"></app-ref>
     }
   }
@@ -38,7 +38,7 @@
                [disableResize]="ext()?.config?.disableResize"
                [showAlarm]="showAlarm()"
                [showToggle]="showToggle()"
-               [expanded]="expanded"
+               [expanded]="expanded()"
                [expandInline]="expandInline()"></app-ref>
     }
   }
@@ -52,7 +52,7 @@
                [hideEdit]="ext()?.config?.hideEdit"
                [disableResize]="ext()?.config?.disableResize"
                [showToggle]="showToggle()"
-               [expanded]="expanded"
+               [expanded]="expanded()"
                [expandInline]="expandInline()"></app-ref>
     }
   }
@@ -65,7 +65,7 @@
   } @else if (pageControls()) {
     <app-page-controls [showPageLast]="showPageLast()"
                        [page]="page()"
-                       [defaultCols]="cols"
+                       [defaultCols]="cols()"
                        [showPrev]="showPrev()"></app-page-controls>
   }
 } @else {

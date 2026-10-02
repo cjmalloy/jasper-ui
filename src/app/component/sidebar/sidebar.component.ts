@@ -1,22 +1,9 @@
-import { AsyncPipe } from '@angular/common';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  forwardRef,
-  OnDestroy,
-  ChangeDetectionStrategy,
-  effect,
-  input,
-  linkedSignal,
-  signal,
-  computed,
-  untracked
-} from '@angular/core';
+import { Component, ElementRef, forwardRef, ChangeDetectionStrategy, effect, input, linkedSignal, signal, computed, untracked, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
-import { catchError, filter, finalize, forkJoin, map, of, Subject } from 'rxjs';
+import { catchError, filter, finalize, forkJoin, map, of, Subject, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -71,34 +58,44 @@ import { SortComponent } from '../sort/sort.component';
     BulkComponent,
     RouterLink,
     ChatComponent,
-    AsyncPipe,
     NavComponent,
     RouterLinkActive,
     ChatVideoComponent,
   ]
 })
-export class SidebarComponent implements AfterViewInit, OnDestroy {
+export class SidebarComponent {
   private destroy$ = new Subject<void>();
 
   readonly tagInput = input('', { alias: 'tag' });
-  readonly tag = linkedSignal(() => this.tagInput());
+  readonly tag = linkedSignal(() => this.tagInput() || this.ext()?.tag || '');
   readonly activeExts = input<Ext[]>([]);
   readonly showToggle = input(true);
   readonly home = input(false);
   readonly floating = input(true);
 
-  localTag?: string;
-  readonly addTags = signal<string[]>(['public']);
-  readonly plugin = signal<Plugin | undefined>(undefined);
-  readonly mailPlugin = signal<Plugin | undefined>(undefined);
-  tagTemplate?: Template;
-  readonly template = signal<Template | undefined>(undefined);
-  readonly writeAccess = signal(false);
-  readonly ui = signal<Template[]>([]);
+  readonly localTag = computed(() => this.tag() ? localTag(this.tag()) : undefined);
+  readonly plugin = computed(() => this.tag() ? this.admin.getPlugin(this.tag()) : undefined);
+  readonly mailPlugin = computed(() => this.tag() ? this.admin.getPlugin(getMailbox(this.tag(), this.store.account.origin())) : undefined);
+  readonly tagTemplate = computed(() => this.tag() ? this.admin.getTemplate(this.tag()) : undefined);
+  readonly addTags = computed(() => {
+    let tags = this.rootConfig()?.addTags || this.plugin()?.config?.reply || ['public'];
+    if (this.tag() && !this.home()) {
+      tags = this.plugin() ? uniq([
+        ...tags, ...this.plugin()?.config?.submit ? [this.plugin()!.tag] : [],
+        ...this.plugin()?.config?.internal ? ['internal'] : [],
+      ]) : uniq([...this.rootConfig()?.addTags || ['public'], ...topAnds(this.tag()).map(localTag)]);
+    }
+    return tags.filter(tag => this.auth.canAddTag(tag));
+  });
+  readonly template = toSignal(toObservable(computed(() => {
+    const tag = this.store.view.template();
+    return tag && !isQuery(tag) ? tag + this.store.account.origin() : undefined;
+  })).pipe(switchMap(tag => tag ? this.templates.get(tag).pipe(
+    catchError(() => of(undefined)),
+  ) : of(undefined))), { initialValue: undefined });
+  readonly writeAccess = computed(() => !!this.tag() && this.auth.tagWriteAccess(this.tag()));
+  readonly ui = computed(() => this.tag() ? this.admin.getTemplateUi(this.tag()) : []);
   genUrl = 'internal:' + uuid();
-  readonly bookmarkExts = signal<Ext[]>([]);
-  readonly tagSubExts = signal<Ext[]>([]);
-  readonly userSubExts = signal<Ext[]>([]);
 
   readonly savingBookmark = signal(false);
   readonly savingSub = signal(false);
@@ -106,7 +103,10 @@ export class SidebarComponent implements AfterViewInit, OnDestroy {
 
   readonly ext = input<Ext | undefined>(undefined);
   readonly expandedInput = input(false, { alias: 'expanded' });
-  readonly expanded = linkedSignal(() => this.expandedInput());
+  readonly expanded = linkedSignal<{ input: boolean; stored: boolean }, boolean>({
+    source: () => ({ input: this.expandedInput(), stored: this.store.view.sidebarExpanded() }),
+    computation: (source, previous) => previous && previous.source.input === source.input ? source.stored : source.input,
+  });
   private lastView = this.store.view.current();
 
   constructor(
@@ -146,18 +146,6 @@ export class SidebarComponent implements AfterViewInit, OnDestroy {
       }
     });
     effect(() => {
-      this.expanded.set(this.store.view.sidebarExpanded());
-    });
-    effect(() => {
-      if (!this.store.view.template()) {
-        this.template.set(undefined);
-      } else if (!isQuery(this.store.view.template()) && untracked(() => this.template())?.tag !== this.store.view.template()) {
-        this.templates.get(this.store.view.template() + this.store.account.origin()).pipe(
-          catchError(() => of(undefined))
-        ).subscribe(t => this.template.set(t));
-      }
-    });
-    effect(() => {
       const value = this.ext();
       this.store.view.floatingSidebar.set(!value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined);
     });
@@ -168,7 +156,7 @@ export class SidebarComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     if (this.ext()?.config?.searchHelp) {
       this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext()!.config.searchHelp);
     }
@@ -178,14 +166,10 @@ export class SidebarComponent implements AfterViewInit, OnDestroy {
     if (this.ext()?.config?.sortHelp) {
       this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext()!.config.sortHelp);
     }
-  }
+  });
 
   private update() {
     if (this.ext()) {
-      this.bookmarks$().subscribe(xs => this.bookmarkExts.set(xs));
-      this.tagSubs$().subscribe(xs => this.tagSubExts.set(xs));
-      this.userSubs$().subscribe(xs => this.userSubExts.set(xs));
-      if (!this.tag()) this.tag.set(this.ext()!.tag || '');
       if (this.ext()!.config?.searchHelp) {
         this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext()!.config.searchHelp);
       }
@@ -195,58 +179,27 @@ export class SidebarComponent implements AfterViewInit, OnDestroy {
       if (this.ext()!.config?.sortHelp) {
         this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext()!.config.sortHelp);
       }
-    } else {
-      this.bookmarkExts.set([]);
-      this.tagSubExts.set([]);
-      this.userSubExts.set([]);
     }
-    if (this.tag()) {
-      this.localTag = localTag(this.tag());
-      this.plugin.set(this.admin.getPlugin(this.tag()));
-      if (this.home()) {
-        this.addTags.set(this.rootConfig()?.addTags || this.plugin()?.config?.reply || ['public']);
-      } else if (this.plugin()) {
-        this.addTags.set(uniq([
-          ...this.rootConfig()?.addTags || this.plugin()?.config?.reply || ['public'],
-          ...this.plugin()?.config?.submit ? [this.plugin()!.tag] : [],
-          ...this.plugin()?.config?.internal ? ['internal'] : []]));
-      } else {
-        this.addTags.set(uniq([...this.rootConfig()?.addTags || ['public'], ...topAnds(this.tag()).map(localTag)]));
-      }
-      this.mailPlugin.set(this.admin.getPlugin(getMailbox(this.tag(), this.store.account.origin())));
-      this.tagTemplate = this.admin.getTemplate(this.tag());
-      this.writeAccess.set(this.auth.tagWriteAccess(this.tag()));
-      this.ui.set(this.admin.getTemplateUi(this.tag()));
-    } else {
-      this.localTag = undefined;
-      this.addTags.set(this.rootConfig()?.addTags || this.plugin()?.config?.reply || ['public']);
-      this.plugin.set(undefined);
-      this.mailPlugin.set(undefined);
-      this.tagTemplate = undefined;
-      this.writeAccess.set(false);
-      this.ui.set([]);
-    }
-    this.addTags.set(this.addTags().filter(t => this.auth.canAddTag(t)));
   }
 
-  ngOnDestroy(): void {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.destroy$.next();
     this.destroy$.complete();
-  }
+  });
   readonly local = computed(() => {
-    return !this.existing || this.ext()?.origin === this.store.account.origin();
+    return !this.existing() || this.ext()?.origin === this.store.account.origin();
   });
 
-  get existing() {
+  readonly existing = computed(() => {
     return this.ext()?.modified;
-  }
+  });
 
   readonly root = computed(() => {
     return !!this.admin.getTemplate('');
   });
   readonly rootConfig = computed(() => {
     if (!this.root()) return undefined;
-    return (this.ext()?.config || this.tagTemplate?.defaults || this.admin.getTemplate('')!.defaults) as RootConfig;
+    return (this.ext()?.config || this.tagTemplate()?.defaults || this.admin.getTemplate('')!.defaults) as RootConfig;
   });
   readonly modmail = computed(() => {
     return !this.store.view.query() && this.rootConfig()?.modmail;
@@ -282,24 +235,28 @@ export class SidebarComponent implements AfterViewInit, OnDestroy {
     if (!this.user() && !this.home()) return null;
     return this.store.account.ext()?.config as UserConfig;
   });
-  readonly bookmarks$ = computed(() => {
-    return this.exts.getCachedExts(this.store.account.bookmarkQueries()).pipe(this.admin.extFallbacks);
-  });
+  readonly bookmarkExts = toSignal(toObservable(computed(() =>
+    this.ext() ? this.store.account.bookmarkQueries() : [])).pipe(
+    switchMap(tags => this.exts.getCachedExts(tags).pipe(this.admin.extFallbacks)),
+  ), { initialValue: [] });
   readonly userSubs = computed(() => {
     return this.userConfig()?.subscriptions?.filter((s: string) => hasPrefix(s, 'user'));
   });
-  readonly userSubs$ = computed(() => {
-    return this.exts.getCachedExts(this.userSubs() || []).pipe(this.admin.extFallbacks);
-  });
+  readonly userSubExts = toSignal(toObservable(computed(() =>
+    this.ext() ? this.userSubs() || [] : [])).pipe(
+    switchMap(tags => this.exts.getCachedExts(tags).pipe(this.admin.extFallbacks)),
+  ), { initialValue: [] });
   readonly tagSubs = computed(() => {
     return this.userConfig()?.subscriptions?.filter((s: string) => !hasPrefix(s, 'user'));
   });
-  readonly tagSubs$ = computed(() => {
-    return this.exts.getCachedExts(this.tagSubs() || []).pipe(this.admin.extFallbacks);
-  });
-  readonly queryExts$ = computed(() => {
-    if (!this.store.view.exts().length) return of([]);
-    return forkJoin(this.store.view.exts().map(x => this.exts.page({
+  readonly tagSubExts = toSignal(toObservable(computed(() =>
+    this.ext() ? this.tagSubs() || [] : [])).pipe(
+    switchMap(tags => this.exts.getCachedExts(tags).pipe(this.admin.extFallbacks)),
+  ), { initialValue: [] });
+  readonly queryExts = toSignal(toObservable(this.store.view.exts).pipe(
+    switchMap(exts => {
+    if (!exts.length) return of([]);
+    return forkJoin(exts.map(x => this.exts.page({
       query: x.tag,
       sort: ['origin', 'tag:len', 'tag', 'modified,DESC'],
       size: x.config?.childTags || 5,
@@ -314,7 +271,8 @@ export class SidebarComponent implements AfterViewInit, OnDestroy {
     ))).pipe(
       map(ress => ress.filter(res => !!res)),
     );
-  });
+    }),
+  ), { initialValue: [] });
   readonly messages = computed(() => {
     if (!this.admin.getPlugin('plugin/inbox')) return false;
     if (!this.admin.getTemplate('dm')) return false;
@@ -325,7 +283,7 @@ export class SidebarComponent implements AfterViewInit, OnDestroy {
     return this.admin.getTemplate('notes') && this.store.account.user();
   });
   readonly homeWriteAccess = computed(() => {
-    return this.home() && this.admin.home && this.auth.tagWriteAccess('config/home');
+    return this.home() && this.admin.home() && this.auth.tagWriteAccess('config/home');
   });
   readonly uiMarkdown = computed(() => {
     if (!this.ext()) return '';
@@ -348,14 +306,14 @@ export class SidebarComponent implements AfterViewInit, OnDestroy {
 
   addBookmark() {
     this.savingBookmark.set(true);
-    this.account.addBookmark$(this.bookmark).pipe(
+    this.account.addBookmark$(this.bookmark()).pipe(
       finalize(() => this.savingBookmark.set(false)),
     ).subscribe();
   }
 
   removeBookmark() {
     this.savingBookmark.set(true);
-    this.account.removeBookmark$(this.bookmark).pipe(
+    this.account.removeBookmark$(this.bookmark()).pipe(
       finalize(() => this.savingBookmark.set(false)),
     ).subscribe();
   }
@@ -374,29 +332,29 @@ export class SidebarComponent implements AfterViewInit, OnDestroy {
     ).subscribe();
   }
 
-  get inSubs() {
+  readonly inSubs = computed(() => {
     return this.store.account.subs().includes(this.tag()!);
-  }
+  });
 
-  get bookmark() {
+  readonly bookmark = computed(() => {
     const qs = encodeBookmarkParams(this.router.url);
     return qs ? `${this.tag()}?${qs}` : this.tag()!;
-  }
+  });
 
-  get inBookmarks() {
-    return this.store.account.bookmarks().includes(this.bookmark);
-  }
+  readonly inBookmarks = computed(() => {
+    return this.store.account.bookmarks().includes(this.bookmark());
+  });
 
-  get inAlarms() {
+  readonly inAlarms = computed(() => {
     return this.store.account.alarms().includes(this.tag()!);
-  }
+  });
 
   set showRemotes(value: boolean) {
     this.router.navigate([], { queryParams: { showRemotes: value ? true : null }, queryParamsHandling: 'merge' })
   }
 
   startChat() {
-    this.store.view.ref()?.tags?.push('plugin/chat');
+    this.store.view.ref.update(ref => ref ? { ...ref, tags: uniq([...ref.tags || [], 'plugin/chat']) } : ref);
     this.ts.create('plugin/chat', this.store.view.ref()!.url, this.store.account.origin()).subscribe();
   }
 }

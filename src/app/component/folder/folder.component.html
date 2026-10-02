@@ -2,7 +2,7 @@
   @if (parent()) {
     <app-subfolder cdkDrag
                    cdkDragBoundary=".desktop"
-                   [cdkDragDisabled]="!local"
+                   [cdkDragDisabled]="!local()"
                    [dragging]="dragging()"
                    [style.transform]="subfolders()[ext()!.tag]"
                    [style.position]="subfolders()[ext()!.tag] ? 'absolute' : 'relative'"
@@ -16,7 +16,7 @@
     @for (f of folderExts(); track f.tag + f.origin) {
       <app-subfolder cdkDrag
                      cdkDragBoundary=".desktop"
-                     [cdkDragDisabled]="!local"
+                     [cdkDragDisabled]="!local()"
                      [dragging]="dragging()"
                      [style.transform]="subfolders()[f.tag]"
                      [style.position]="subfolders()[f.tag] ? 'absolute' : 'relative'"
@@ -30,7 +30,7 @@
       @if (flatten() || !inSubfolder(ref)) {
         <app-file cdkDrag
                   cdkDragBoundary=".desktop"
-                  [cdkDragDisabled]="!local"
+                  [cdkDragDisabled]="!local()"
                   [dragging]="dragging()"
                   [style.transform]="files()[ref.url]"
                   [style.position]="files()[ref.url] ? 'absolute' : 'relative'"

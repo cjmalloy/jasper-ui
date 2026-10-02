@@ -1,8 +1,9 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
-import { Component, effect, ElementRef, ChangeDetectionStrategy, input, signal, untracked } from '@angular/core';
+import { computed, Component, effect, ElementRef, ChangeDetectionStrategy, input, linkedSignal, signal, untracked } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
-import { catchError, of, Subscription } from 'rxjs';
+import { catchError, map, of, startWith, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -37,12 +38,26 @@ export class FolderComponent implements HasChanges {
 
   error: any;
 
-  readonly parent = signal<Ext | undefined>(undefined);
-  readonly flatten = signal(false);
-  readonly files = signal<Record<string, string | undefined>>({});
-  readonly subfolders = signal<Record<string, string | undefined>>({});
-  readonly folderExts = signal<Ext[] | undefined>(undefined);
-  readonly cursor = signal('');
+  readonly parent = toSignal(toObservable(this.tag).pipe(
+    switchMap(tag => tag?.includes('/') ? this.exts.getCachedExt(tag.substring(0, tag.lastIndexOf('/')), tagOrigin(tag) || '@').pipe(
+      startWith(undefined),
+    ) : of(undefined)),
+  ), { initialValue: undefined });
+  readonly flatten = computed(() => !!this.ext()?.config?.flatten);
+  readonly files = computed(() => mapValues(this.ext()?.config?.files || {}, p => this.transform(p)));
+  readonly subfolders = computed(() => {
+    const ext = this.ext();
+    if (!ext) return {};
+    return Object.fromEntries(Object.entries<Pos>(ext.config?.subfolders || {})
+      .map(([tag, position]) => [ext.tag + (tag !== '..' ? '/' + tag : ''), this.transform(position)]));
+  });
+  readonly folderExts = toSignal(toObservable(computed(() => ({
+    tag: this.tag(), origin: this.ext()?.origin || '@',
+  }))).pipe(switchMap(({ tag, origin }) => tag ? this.exts.page({
+    query: defaultOrigin(tag, origin), level: level(tag) + 1, size: 100,
+  }).pipe(map(page => page.content), catchError(() => of(undefined)), startWith(undefined)) : of(undefined))),
+  { initialValue: undefined });
+  readonly cursor = linkedSignal(() => this.ext()?.modifiedString || '');
   readonly dragging = signal(false);
   zIndex = 1;
 
@@ -53,8 +68,6 @@ export class FolderComponent implements HasChanges {
 
 
 
-  private folderSubscription?: Subscription;
-
   // TODO: handle resize moving relatively positioned moved tiles
 
   constructor(
@@ -63,14 +76,6 @@ export class FolderComponent implements HasChanges {
     private exts: ExtService,
     private el: ElementRef<HTMLElement>,
   ) {
-    effect(() => {
-      this.tag();
-      untracked(() => this.loadTag());
-    });
-    effect(() => {
-      this.ext();
-      untracked(() => this.loadExt());
-    });
     effect(() => {
       const page = this.page();
       if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {
@@ -89,46 +94,10 @@ export class FolderComponent implements HasChanges {
     return true;
   }
 
-  private loadTag() {
-    this.folderExts.set(undefined);
-    this.parent.set(undefined);
-    const tag = this.tag();
-    if (tag?.includes('/')) {
-      this.exts.getCachedExt(tag.substring(0, tag.lastIndexOf('/')), tagOrigin(tag) || '@')
-        .subscribe(ext => this.parent.set(ext));
-    }
-    this.folderSubscription?.unsubscribe();
-    if (!tag) return;
-    this.folderSubscription = this.exts.page({
-      query: defaultOrigin(tag, (this.ext()?.origin || '@')),
-      level: level(tag) + 1,
-      size: 100
-    }).pipe(
-      catchError(() => of(undefined)),
-    ).subscribe(page => {
-      this.folderExts.set(page?.content);
-    });
-  }
 
-  private loadExt() {
-    const ext = this.ext();
-    this.files.set({});
-    this.subfolders.set({});
-    this.flatten.set(ext?.config?.flatten);
-    if (!ext) return;
-    this.cursor.set(ext.modifiedString!);
-    this.files.set(mapValues(ext.config?.files || {}, p => this.transform(p)));
-    const subfolders: Record<string, string | undefined> = {};
-    for (const e of Object.entries<Pos>(ext.config?.subfolders || {})) {
-      subfolders[ext.tag + (e[0] !== '..' ? '/' + e[0] : '')] = this.transform(e[1]);
-    }
-    this.subfolders.set(subfolders);
-  }
-
-
-  get local() {
+  readonly local = computed(() => {
     return this.ext()?.origin === this.store.account.origin();
-  }
+  });
 
 
   startMoving(target: HTMLElement) {
@@ -137,7 +106,7 @@ export class FolderComponent implements HasChanges {
 
   moveFile(url: string, target: HTMLElement) {
     if (!this.cursor()) return; // Wait for last move to complete
-    if (!this.local) return;
+    if (!this.local()) return;
     const cursor = this.cursor();
     this.cursor.set('');
     this.dragging.set(true)
@@ -155,7 +124,7 @@ export class FolderComponent implements HasChanges {
   moveFolder(tag: string, target: HTMLElement) {
     // TODO: write patches to websocket
     if (!this.cursor()) return; // Wait for last move to complete
-    if (!this.local) return;
+    if (!this.local()) return;
     const cursor = this.cursor();
     this.cursor.set('');
     this.dragging.set(true)

@@ -1,4 +1,4 @@
-import {
+import { computed,
   Component,
   ElementRef,
   effect,
@@ -7,6 +7,7 @@ import {
   input,
   output,
   signal,
+  linkedSignal,
   untracked,
 } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
@@ -43,9 +44,9 @@ export class TodoItemComponent {
     checked: boolean;
 }>();
 
-  readonly checked = signal(false);
-  readonly editing = signal(false);
-  readonly text = signal('');
+  readonly checked = linkedSignal(() => !!/^[\s-]*\[([\sxX]*)]/.exec(this.line())?.[1]?.trim());
+  readonly editing = linkedSignal(() => { this.line(); return false; });
+  readonly text = linkedSignal(() => this.line().replace(/^[\s-]*\[[\sxX]*]\s*/g, ''));
   readonly hovering = signal(false);
 
   readonly line = input('', { alias: 'line' });
@@ -54,26 +55,11 @@ export class TodoItemComponent {
     private store: Store,
     public config: ConfigService,
     private el: ElementRef,
-  ) {
-    effect(() => {
-      const value = this.line();
-      untracked(() => this.setLine(value));
-    });
-  }
+  ) {}
 
-  get local() {
+  readonly local = computed(() => {
     return this.origin() === this.store.account.origin();
-  }
-
-  private setLine(value: string) {
-    if (value) {
-      this.checked.set(!!/^[\s-]*\[([\sxX]*)]/.exec(value)?.[1]?.trim() || false);
-      this.text.set(value.replace(/^[\s-]*\[[\sxX]*]\s*/g, ''));
-    } else {
-      this.checked.set(false);
-      this.text.set('');
-    }
-  }
+  });
 
   touchend(e: TouchEvent) {
     this.unlocked.set(false);

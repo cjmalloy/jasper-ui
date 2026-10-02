@@ -1,25 +1,10 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  ElementRef,
-  effect,
-  forwardRef,
-  inject,
-  OnDestroy,
-  input,
-  linkedSignal,
-  output,
-  untracked,
-  viewChild,
-  signal,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { computed, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, effect, forwardRef, inject, input, linkedSignal, output, untracked, viewChild, signal, afterNextRender } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
-import { BehaviorSubject, catchError, of, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, of, startWith, Subject, switchMap, throwError } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
@@ -62,11 +47,12 @@ import { TodoComponent } from '../todo/todo.component';
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss'],
   host: {
-    '[class]': 'pluginClasses',
+    '[class]': "pluginClasses()",
     '[attr.tabindex]': 'tabIndex',
     '[class.fullscreen]': 'fullscreen()',
-    '[attr.title]': 'title',
+    '[attr.title]': "title()",
     '(keydown)': 'onKeydown($event)',
+    '(window:resize)': 'measureLayout()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -85,7 +71,7 @@ import { TodoComponent } from '../todo/todo.component';
     LoadingComponent,
   ],
 })
-export class ViewerComponent implements OnDestroy {
+export class ViewerComponent {
   css = 'embed print-images';
   tabIndex = 0;
   private destroyRef = inject(DestroyRef);
@@ -96,7 +82,7 @@ export class ViewerComponent implements OnDestroy {
   private currentVideo?: HTMLVideoElement;
   private currentAudio?: HTMLAudioElement;
 
-  readonly iframe = viewChild.required<ElementRef>('iframe');
+  readonly iframe = viewChild<ElementRef>('iframe');
   readonly videoEl = viewChild<ElementRef<HTMLVideoElement>>('video');
   readonly audioEl = viewChild<ElementRef<HTMLAudioElement>>('audio');
   readonly pdfIframeEl = viewChild<ElementRef<HTMLIFrameElement>>('pdfIframe');
@@ -120,28 +106,52 @@ export class ViewerComponent implements OnDestroy {
   readonly pausing = output<string>();
   readonly ended = output<string>();
 
-  readonly repost = signal<Ref | undefined>(undefined);
-  readonly lens = signal<boolean | undefined>(undefined);
-  readonly lensPage = signal<Page<Ref> | undefined>(undefined);
-  readonly ext = signal<Ext | undefined>(undefined);
-  readonly lensQuery = signal('');
-  readonly lensSize = signal(24);
-  readonly lensCols = signal(0);
-  readonly lensSort = signal<RefSort[]>([]);
-  readonly lensFilter = signal<UrlFilter[]>([]);
-  readonly lensSearch = signal('');
-  readonly image = signal<string | undefined>(undefined);
-  readonly playlist = signal(false);
-  readonly todo = signal(false);
-  readonly backgammon = signal(false);
-  readonly chess = signal(false);
-  readonly chessWhite = signal(true);
-  readonly uis = signal<ReturnType<AdminService['getPluginUi']>>([]);
-  readonly embedReady = signal(false);
+  readonly repost = toSignal(toObservable(computed(() =>
+    hasTag('plugin/repost', this.ref()) ? this.ref()?.sources?.[0] : undefined,
+  )).pipe(switchMap(url => url ? this.refs.getCurrent(url).pipe(
+    catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+    startWith(undefined),
+  ) : of(undefined))), { initialValue: undefined });
+  private readonly queryUrl = computed(() => hasTag('plugin/lens', this.ref())
+    ? this.ref()?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref()) ? this.ref()?.sources?.[0] : this.ref()?.url)
+    : undefined);
+  private readonly lensResult = toSignal(toObservable(this.queryUrl).pipe(
+    switchMap(url => url ? this.embeds.loadQuery$(url).pipe(startWith(undefined)) : of(undefined)),
+  ), { initialValue: undefined });
+  readonly lens = computed(() => !!this.queryUrl());
+  readonly lensPage = computed(() => this.lensResult()?.page);
+  readonly ext = computed(() => this.lensResult()?.ext);
+  readonly lensQuery = computed(() => this.queryUrl() ? this.editor.getQuery(this.queryUrl()!) : '');
+  readonly lensSize = computed(() => this.lensResult()?.params.size ?? 24);
+  readonly lensCols = computed(() => this.lensResult()?.params.cols ?? 0);
+  readonly lensSort = computed(() => this.lensResult()?.params.sort ?? []);
+  readonly lensFilter = computed(() => this.lensResult()?.params.filter ?? []);
+  readonly lensSearch = computed(() => this.lensResult()?.params.search ?? '');
+  readonly image = computed(() => this.oembed()?.type === 'photo' && this.oembed()?.url
+    ? embedUrl(this.oembed()!.url) : undefined);
+  readonly playlist = computed(() => !!this.admin.getPlugin('plugin/playlist') && hasTag('plugin/playlist', this.currentTags()));
+  readonly todo = computed(() => !!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags()));
+  readonly backgammon = computed(() => !!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags()));
+  readonly chess = computed(() => !!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags()));
+  readonly chessWhite = computed(() => !!this.ref()?.tags?.includes(this.store.account.localTag()));
+  readonly uis = computed(() => this.admin.getPluginUi(this.currentTags()));
+  readonly embedReady = linkedSignal(() => { this.ref(); return false; });
 
-  readonly oembed = signal<Oembed | undefined>(undefined);
-  private width = 0;
-  private height = 0;
+  private readonly layout = signal({ parentWidth: 0, height: window.innerHeight, landscape: false });
+  private readonly width = computed(() => hasTag('plugin/fullscreen', this.ref()) ? screen.width
+    : this.ref()?.plugins?.['plugin/embed']?.width || ((hasTag('plugin/thread', this.tags() || this.ref()?.tags) || !this.config.mobile) ? Math.floor(this.layout().parentWidth * 0.6) : this.layout().parentWidth - 16));
+  private readonly height = computed(() => hasTag('plugin/fullscreen', this.ref()) ? screen.height
+    : this.ref()?.plugins?.['plugin/embed']?.height || (this.config.mobile ? this.layout().height : Math.floor(this.layout().height * 0.8)));
+  private readonly oembedRequest = computed(() => {
+    const url = this.ref()?.url;
+    if (!url || !hasTag('plugin/embed', this.tags() || this.ref()?.tags)) return undefined;
+    return { url, theme: this.theme(), width: this.width(), height: this.height() };
+  });
+  readonly oembed = toSignal(toObservable(this.oembedRequest).pipe(
+    switchMap(request => request ? this.oembeds.get(request.url, request.theme, request.width, request.height).pipe(
+      startWith(undefined),
+    ) : of(undefined)),
+  ), { initialValue: undefined });
 
   constructor(
     public config: ConfigService,
@@ -174,55 +184,31 @@ export class ViewerComponent implements OnDestroy {
       const value = this.pdfIframeEl();
       untracked(() => this.setPdfIframe(value));
     });
+    effect(() => {
+      const oembed = this.oembed();
+      this.iframe();
+      if (!this.embedIframe()) return;
+      untracked(() => this.setOembed(oembed || null));
+    });
   }
 
   init() {
-    this.playlist.set(!!this.admin.getPlugin('plugin/playlist') && hasTag('plugin/playlist', this.currentTags));
-    this.todo.set(!!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags));
-    this.backgammon.set(!!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags));
-    this.chess.set(!!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags));
-    this.chessWhite.set(!!this.ref()?.tags?.includes(this.store.account.localTag()));
-    this.uis.set(this.admin.getPluginUi(this.currentTags));
-    const repostSource = this.ref()?.sources?.[0];
-    if (repostSource && hasTag('plugin/repost', this.ref())) {
-      this.refs.getCurrent(repostSource).pipe(
-        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => {
-        this.repost.set(ref);
-      });
-    }
-    const queryUrl = this.ref()?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref()) ? this.ref()?.sources?.[0] : this.ref()?.url);
-    if (queryUrl && hasTag('plugin/lens', this.ref())) {
-      this.lens.set(true);
-      this.embeds.loadQuery$(queryUrl)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(({params, page, ext}) => {
-          this.lensPage.set(page);
-          this.ext.set(ext);
-          this.lensQuery.set(this.editor.getQuery(queryUrl));
-          this.lensSize.set(params.size);
-          this.lensCols.set(params.cols);
-          this.lensSort.set(params.sort);
-          this.lensFilter.set(params.filter);
-          this.lensSearch.set(params.search);
-          });
-    }
-    if (this.ref()?.url && hasTag('plugin/embed', this.currentTags)) {
-      const parentWidth = this.el.nativeElement.parentElement.offsetWidth;
-      this.width = this.embed?.width || ((this.thread || !this.config.mobile) ? Math.floor(parentWidth * 0.6) : parentWidth - 16);
-      this.height = this.embed?.height || (this.config.mobile ? window.innerHeight : Math.floor(window.innerHeight * 0.8));
-      if (hasTag('plugin/fullscreen', this.ref())) {
-        this.width = screen.width;
-        this.height = screen.height;
-      }
-      this.oembeds.get(this.ref()!.url, this.theme, this.width, this.height).subscribe(oembed => {
-        this.setOembed(oembed);
-      });
-    }
+    this.measureLayout();
     this.reload(this.currentAudio);
     this.reload(this.currentVideo);
     this.setPdfIframe(this.pdfIframeEl());
+  }
+
+  private readonly initializeLayout = afterNextRender(() => this.measureLayout());
+
+  measureLayout() {
+    const parentWidth = this.el.nativeElement.parentElement?.offsetWidth || 0;
+    const height = window.innerHeight;
+    const landscape = window.matchMedia?.('(orientation: landscape)').matches || false;
+    const layout = this.layout();
+    if (layout.parentWidth !== parentWidth || layout.height !== height || layout.landscape !== landscape) {
+      this.layout.set({ parentWidth, height, landscape });
+    }
   }
 
   onKeydown(event: KeyboardEvent) {
@@ -244,23 +230,23 @@ export class ViewerComponent implements OnDestroy {
     if (audio) handleMediaKeydown(event, audio);
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.removeAudioListener();
     this.removeVideoListener();
-  }
+  });
 
-  get pluginClasses() {
+  readonly pluginClasses = computed(() => {
     return this.css + ' ' + templates(this.tags(), 'plugin')
       .map(t => t.replace(/\//g, '_').replace(/\./g, '-'))
       .join(' ');
-  }
+  });
 
-  get title() {
+  readonly title = computed(() => {
     if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) {
       return this.text() || this.ref()?.comment;
     }
     return undefined;
-  }
+  });
 
   private setVideo(value: ElementRef<HTMLVideoElement> | undefined) {
     this.removeVideoListener();
@@ -282,9 +268,9 @@ export class ViewerComponent implements OnDestroy {
     };
     document.addEventListener('fullscreenchange', this.fullscreenChangeHandler);
     if (video.canPlayType('application/vnd.apple.mpegurl')) return;
-    if (Hls.isSupported() && this.hls) {
+    if (Hls.isSupported() && this.hls()) {
       const hls = new Hls();
-      hls.loadSource(this.videoUrl);
+      hls.loadSource(this.videoUrl());
       hls.attachMedia(video);
     }
   }
@@ -301,30 +287,25 @@ export class ViewerComponent implements OnDestroy {
   private setPdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
     if (!value) return;
     const iframe = value.nativeElement;
-    let url = this.pdfUrl;
+    let url = this.pdfUrl();
     if (!url) return;
     if (url.startsWith('//')) url = location.protocol + url;
     this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe, false);
-    iframe.style.width ||= this.embedWidth;
-    iframe.style.height ||= this.embedHeight;
+    iframe.style.width ||= this.embedWidth();
+    iframe.style.height ||= this.embedHeight();
   }
 
   setOembed(oembed: Oembed | null) {
-    if (isEqual(this.oembed(), oembed)) return;
-    this.oembed.set(oembed || undefined);
     const iframe = this.iframe();
-    if (oembed?.url && oembed?.type === 'photo') {
-      // Image embed
-      this.tags.set(without(this.currentTags, 'plugin/embed'));
-      this.image.set(embedUrl(oembed.url));
-    } else if (iframe) {
+    if (oembed?.type === 'photo') return;
+    if (iframe) {
       const i = iframe.nativeElement;
       if (oembed) {
-        this.embeds.writeIframe(oembed, i, this.embedWidth, true)
+        this.embeds.writeIframe(oembed, i, this.embedWidth(), true)
           .then(() => {
-            if (oembed.width! > this.width) {
-              const s = this.width / oembed.width!;
-              const marginLeft = oembed.width! - this.width;
+            if (oembed.width! > this.width()) {
+              const s = this.width() / oembed.width!;
+              const marginLeft = oembed.width! - this.width();
               const marginTop = marginLeft * oembed.height! / oembed.width!;
               i.style.transform = `scale(${s}, ${s})`;
               i.style.transformOrigin = 'top left';
@@ -334,142 +315,140 @@ export class ViewerComponent implements OnDestroy {
             this.embedReady.set(true);
               });
       } else {
-        i.src = embedUrl(this.embed?.url || this.ref()?.url);
-        if (!i.style.width) i.style.width = this.embedWidth;
-        if (!i.style.height) i.style.height = this.embedHeight;
+        i.src = embedUrl(this.embed()?.url || this.ref()?.url);
+        if (!i.style.width) i.style.width = this.embedWidth();
+        if (!i.style.height) i.style.height = this.embedHeight();
         this.embedReady.set(true);
       }
-    } else {
-      this.oembed.set(undefined);
-      defer(() => this.setOembed(oembed));
     }
   }
 
-  get mod() {
+  readonly mod = computed(() => {
     if (!this.admin.getPlugin('plugin/mod')) return false;
-    if (!hasTag('plugin/mod', this.currentTags))  return false;
+    if (!hasTag('plugin/mod', this.currentTags()))  return false;
     return this.ref()?.plugins?.['plugin/mod'];
-  }
+  });
 
-  get hls() {
+  readonly hls = computed(() => {
     return getExtension(this.ref()?.plugins?.['plugin/video']?.url || this.ref()?.url) === '.m3u8' || this.tags()?.includes('plugin/hls');
-  }
+  });
 
-  get twitter() {
+  readonly twitter = computed(() => {
     return this.oembed()?.provider_name === 'Twitter';
-  }
+  });
 
-  get zoom() {
+  readonly zoom = computed(() => {
     const html = this.oembed()?.html;
     return html && !html.startsWith('<iframe');
-  }
+  });
 
-  get resizable() {
+  readonly resizable = computed(() => {
     if (this.config.mobile) return false;
     if (this.ref()?.plugins?.['plugin/embed']?.noResize) return false;
     const html = this.oembed()?.html;
     return !html || html.startsWith('<iframe');
-  }
+  });
 
-  get editingViewer() {
-    return some(this.admin.editingViewer, t => hasTag(t.tag, this.currentTags));
-  }
+  readonly editingViewer = computed(() => {
+    return some(this.admin.editingViewer(), t => hasTag(t.tag, this.currentTags()));
+  });
 
-  get editingRef(): Ref | undefined {
-    if (!hasTag('plugin/editing', this.currentTags)) return undefined;
+  readonly editingRef = computed<Ref | undefined>(() => {
+    if (!hasTag('plugin/editing', this.currentTags())) return undefined;
     const data = this.ref()?.plugins?.['plugin/editing'];
     if (!data) return undefined;
     const result = mapRef({ ...data, url: this.ref()?.url, origin: this.ref()?.origin });
     if (!result.created) result.created = this.ref()?.created;
     return result;
-  }
+  });
 
-  get hideComment() {
+  readonly hideComment = computed(() => {
     if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) return true;
-    if (this.admin.getPlugin('plugin/table') && hasTag('plugin/table', this.currentTags)) return false;
-    return this.editingViewer || (this.pdfUrl && !this.ref()?.plugins?.['plugin/pdf']?.showAbstract);
-  }
+    if (this.admin.getPlugin('plugin/table') && hasTag('plugin/table', this.currentTags())) return false;
+    return this.editingViewer() || (this.pdfUrl() && !this.ref()?.plugins?.['plugin/pdf']?.showAbstract);
+  });
 
-  get currentOrigin() {
+  readonly currentOrigin = computed(() => {
     return this.origin() || this.ref()?.origin || this.store.account.origin();
-  }
+  });
 
-  get currentText() {
-    if (this.hideComment) return '';
+  readonly currentText = computed(() => {
+    if (this.hideComment()) return '';
     const value = this.text() || this.ref()?.comment || '';
     if (!value) return '';
     if (this.ref()?.title || this.text() || hasTag('plugin/comment', this.ref()) || hasTag('plugin/thread', this.ref()) || this.store.view.current() === 'ref/thread' || hasComment(this.ref()?.comment)) {
       return value;
     }
     return '';
-  }
+  });
 
-  get currentCode() {
-    if (!this.code) return '';
+  readonly currentCode = computed(() => {
+    if (!this.code()) return '';
     const value = this.text() || this.ref()?.comment || '';
-    return '```' + this.codeLang + '\n' + value + '\n```';
-  }
+    return '```' + this.codeLang() + '\n' + value + '\n```';
+  });
 
-  get currentTags() {
-    return this.tags() || this.ref()?.tags || [];
-  }
+  readonly currentTags = computed(() => {
+    const tags = this.tags() || this.ref()?.tags || [];
+    return this.image() ? without(tags, 'plugin/embed') : tags;
+  });
 
-  get thread() {
+  readonly thread = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return false;
-    return hasTag('plugin/thread', this.currentTags) || this.ref()?.metadata?.plugins?.['plugin/thread'];
-  }
+    return hasTag('plugin/thread', this.currentTags()) || this.ref()?.metadata?.plugins?.['plugin/thread'];
+  });
 
-  get embed() {
-    if (!hasTag('plugin/embed', this.currentTags)) return undefined;
+  readonly embed = computed(() => {
+    if (!hasTag('plugin/embed', this.currentTags())) return undefined;
     return this.ref()?.plugins?.['plugin/embed'];
-  }
+  });
 
-  get embedWidth() {
-    if (this.embed?.width) return Math.min(this.embed.width, this.el.nativeElement.parentElement.offsetWidth - ((this.thread || !this.config.mobile) ? 32 : 12)) + 'px';
-    if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
-      return this.thread ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
+  readonly embedWidth = computed(() => {
+    if (this.embed()?.width) return Math.min(this.embed().width, this.layout().parentWidth - ((this.thread() || !this.config.mobile) ? 32 : 12)) + 'px';
+    if (this.config.mobile && this.layout().landscape) {
+      return this.thread() ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
     return this.config.huge ? '67%' : '80%';
-  }
+  });
 
-  get embedHeight() {
-    if (this.embed?.height) return Math.min(this.embed.height, window.innerHeight) + 'px';
-    if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
+  readonly embedHeight = computed(() => {
+    if (this.embed()?.height) return Math.min(this.embed().height, this.layout().height) + 'px';
+    if (this.config.mobile && this.layout().landscape) {
       return '100vh';
     }
-return '67vh';
-  }
+    return '67vh';
+  });
 
-  get embedIframe() {
-    return hasTag('plugin/embed', this.currentTags);
-  }
+  readonly embedIframe = computed(() => {
+    return hasTag('plugin/embed', this.currentTags());
+  });
 
-  get audioUrl() {
-    if (!hasTag('plugin/audio', this.currentTags)) return '';
+  readonly audioUrl = computed(() => {
+    if (!hasTag('plugin/audio', this.currentTags())) return '';
     const url = this.ref()?.plugins?.['plugin/audio']?.url || this.ref()?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Audio`));
+      return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename($localize`Untitled Audio`));
     }
     return url;
-  }
+  });
 
-  get videoUrl() {
-    if (!hasTag('plugin/video', this.currentTags)) return '';
+  readonly videoUrl = computed(() => {
+    if (!hasTag('plugin/video', this.currentTags())) return '';
     const url = this.ref()?.plugins?.['plugin/video']?.url || this.ref()?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Video`));
+      return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename($localize`Untitled Video`));
     }
     return url;
-  }
+  });
 
-  get imageUrl() {
-    if (!this.image() && !hasTag('plugin/image', this.currentTags)) return '';
+  readonly imageUrl = computed(() => {
+    if (!this.image() && !hasTag('plugin/image', this.currentTags())) return '';
     const url = this.image() || this.ref()?.plugins?.['plugin/image']?.url || this.ref()?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Image`));
+      return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename($localize`Untitled Image`));
     }
     return url;
-  }
+  });
 
   getFilename(d = $localize`Untitled`) {
     const url = this.ref()?.url;
@@ -478,42 +457,42 @@ return '67vh';
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
-  get code() {
-    return this.admin.getPlugin('plugin/code') && hasTag('plugin/code', this.currentTags);
-  }
+  readonly code = computed(() => {
+    return this.admin.getPlugin('plugin/code') && hasTag('plugin/code', this.currentTags());
+  });
 
-  get codeLang() {
-    if (!this.code) return '';
-    for (const t of this.currentTags) {
+  readonly codeLang = computed(() => {
+    if (!this.code()) return '';
+    for (const t of this.currentTags()) {
       if (hasPrefix(t, 'plugin/code')) {
         return t.split('/')[2];
       }
     }
     return '';
-  }
+  });
 
-  get qrUrl() {
-    if (!hasTag('plugin/qr', this.currentTags)) return '';
+  readonly qrUrl = computed(() => {
+    if (!hasTag('plugin/qr', this.currentTags())) return '';
     return this.ref()?.plugins?.['plugin/qr']?.url || this.ref()?.url;
-  }
+  });
 
-  private get theme() {
-    return this.store.darkTheme ? 'dark' : undefined;
-  }
+  private readonly theme = computed(() => {
+    return this.store.darkTheme() ? 'dark' : undefined;
+  });
 
-  get pdf(): string | undefined {
+  readonly pdf = computed<string | undefined>(() => {
     if (!this.admin.getPlugin('plugin/pdf')) return undefined;
     return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref(), this.repost())?.url;
-  }
+  });
 
-  get pdfUrl() {
-    const url = this.pdf;
+  readonly pdfUrl = computed(() => {
+    const url = this.pdf();
     if (!url) return url;
     if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin, this.getFilename());
-  }
+    return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename());
+  });
 
-  get uiActions(): PluginApi {
+  readonly uiActions = computed<PluginApi>(() => {
     const actions = this.actions.wrap(this.ref());
     const api: PluginApi = {
       comment: (comment: string) => {
@@ -583,20 +562,20 @@ return '67vh';
       };
     }
     return api;
-  }
+  });
 
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.refOrDefault, this.el.nativeElement, this.uiActions));
+    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.refOrDefault(), this.el.nativeElement, this.uiActions()));
   }
 
   uiCss(tag: string) {
     return 'ui ' + tag.replace(/\//g, '_').replace(/\./g, '-');
   }
 
-  get refOrDefault() {
+  readonly refOrDefault = computed(() => {
     return this.ref() || { url: '', comment: this.text(), tags: this.tags() };
-  }
+  });
 
   private removeAudioListener() {
     if (this.currentAudio && this.audioKeydownHandler) {

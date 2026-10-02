@@ -40,7 +40,7 @@ describe('UserComponent', () => {
     fixture.componentRef.setInput('user', { tag: '+user/test', origin: '@example' });
     fixture.detectChanges();
 
-    expect(component.connectionRef).toEqual({
+    expect(component.connectionRef()).toEqual({
       url: 'https://remote.example/api',
       title: '@example',
       tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
@@ -57,7 +57,7 @@ describe('UserComponent', () => {
     api => {
       component.config.api = api;
 
-      expect(component.connectionRef.url).toBe(new URL(api, document.baseURI).href);
+      expect(component.connectionRef().url).toBe(new URL(api, document.baseURI).href);
     },
   );
 
@@ -66,7 +66,7 @@ describe('UserComponent', () => {
     fixture.componentRef.setInput('user', { tag: '+user/test', origin: '' });
     fixture.detectChanges();
 
-    expect(component.connectionRef).toEqual(expect.objectContaining({
+    expect(component.connectionRef()).toEqual(expect.objectContaining({
       plugins: expect.objectContaining({
         '+plugin/origin': { remote: '', local: '@jasper.example' },
       }),
@@ -78,7 +78,7 @@ describe('UserComponent', () => {
     fixture.componentRef.setInput('user', { tag: '+user/test', origin: '' });
     fixture.detectChanges();
 
-    expect(component.connectionRef).toEqual(expect.objectContaining({
+    expect(component.connectionRef()).toEqual(expect.objectContaining({
       plugins: expect.objectContaining({
         '+plugin/origin': { remote: '', local: '@test' },
       }),
@@ -98,7 +98,7 @@ describe('UserComponent', () => {
       },
     }]);
 
-    expect(component.connectionRef).toEqual(expect.objectContaining({
+    expect(component.connectionRef()).toEqual(expect.objectContaining({
       url: 'https://origin.example/custom-api',
       title: 'Example origin',
       plugins: expect.objectContaining({

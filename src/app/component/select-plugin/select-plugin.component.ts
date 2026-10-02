@@ -23,19 +23,19 @@ export class SelectPluginComponent {
 
   readonly select = viewChild<ElementRef<HTMLSelectElement>>('select');
 
-  submitPlugins = this.admin.submit.filter(p => this.auth.canAddTag(p.tag));
-  addPlugins = this.admin.add.filter(p => this.auth.canAddTag(p.tag));
-  textPlugins = this.admin.submitText.filter(p => this.auth.canAddTag(p.tag));
-  settingsPlugins = this.admin.submitSettings.filter(p => this.auth.canAddTag(p.tag));
+  readonly submitPlugins = computed(() => this.admin.submit().filter(p => this.auth.canAddTag(p.tag)));
+  readonly addPlugins = computed(() => this.admin.add().filter(p => this.auth.canAddTag(p.tag)));
+  readonly textPlugins = computed(() => this.admin.submitText().filter(p => this.auth.canAddTag(p.tag)));
+  readonly settingsPlugins = computed(() => this.admin.submitSettings().filter(p => this.auth.canAddTag(p.tag)));
 
-  readonly customPlugin = signal<Plugin | undefined>(undefined);
+  readonly customPlugin = computed(() => this.admin.getPlugin(this.plugin()));
   readonly plugin = model('');
   readonly plugins = computed<Plugin[]>(() => uniqBy([
     ...(this.customPlugin() ? [this.customPlugin()!] : []),
-    ...(this.add() ? this.addPlugins : []),
-    ...(this.text() ? this.textPlugins : []),
-    ...(this.settings() ? this.settingsPlugins : []),
-    ...this.submitPlugins
+    ...(this.add() ? this.addPlugins() : []),
+    ...(this.text() ? this.textPlugins() : []),
+    ...(this.settings() ? this.settingsPlugins() : []),
+    ...this.submitPlugins()
   ], 'tag'));
 
   constructor(
@@ -44,25 +44,15 @@ export class SelectPluginComponent {
   ) {
     effect(() => {
       const plugin = this.plugin();
+      this.plugins();
+      this.select();
       untracked(() => this.selectPlugin(plugin));
     });
   }
 
   private selectPlugin(value: string) {
     const select = this.select();
-    if (!select) {
-      if (value) defer(() => this.selectPlugin(value));
-    } else {
-      if (!this.plugins().find(p => p?.tag === value)) {
-        const plugin = this.admin.getPlugin(value);
-        if (plugin) {
-          this.customPlugin.set(plugin);
-          defer(() => this.select()!.nativeElement.selectedIndex = 1);
-          return;
-        }
-      }
-      select!.nativeElement.selectedIndex = this.plugins().map(p => p.tag).indexOf(value) + 1;
-    }
+    if (select) select.nativeElement.selectedIndex = this.plugins().map(p => p.tag).indexOf(value) + 1;
   }
 
 }

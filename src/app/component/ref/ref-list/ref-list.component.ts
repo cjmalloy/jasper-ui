@@ -1,8 +1,8 @@
-import { DestroyRef, inject, Component, effect, forwardRef, OnInit, ChangeDetectionStrategy, input, untracked, viewChildren, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { computed, DestroyRef, inject, Component, effect, forwardRef, ChangeDetectionStrategy, input, untracked, viewChildren, signal, afterNextRender } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
-import { catchError, forkJoin, Observable, of } from 'rxjs';
+import { catchError, forkJoin, Observable, of, startWith, switchMap } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
@@ -27,7 +27,7 @@ import { RefComponent } from '../ref.component';
     LoadingComponent,
   ],
 })
-export class RefListComponent implements OnInit, HasChanges {
+export class RefListComponent implements HasChanges {
   private destroyRef = inject(DestroyRef);
 
   readonly hide = input<number[]>();
@@ -46,7 +46,11 @@ export class RefListComponent implements OnInit, HasChanges {
 
   readonly list = viewChildren(RefComponent);
 
-  readonly pinned = signal<Ref[]>([]);
+  readonly pinned = toSignal(toObservable(computed(() => this.ext()?.config?.pinned as string[] | undefined)).pipe(
+    switchMap(pins => pins?.length ? forkJoin(pins.map(pin => this.refs.getCurrent(pin).pipe(
+      catchError(() => of({ url: pin } as Ref)),
+    ))).pipe(startWith([] as Ref[])) : of([] as Ref[])),
+  ), { initialValue: [] as Ref[] });
   readonly newRefs = signal<Ref[]>([]);
 
   readonly page = input<Page<Ref> | undefined>(undefined);
@@ -61,10 +65,6 @@ export class RefListComponent implements OnInit, HasChanges {
     private refs: RefService,
   ) {
     effect(() => {
-      const ext = this.ext();
-      untracked(() => this.loadPinned(ext));
-    });
-    effect(() => {
       const page = this.page();
       if (!page) return;
       untracked(() => this.checkPage(page));
@@ -76,36 +76,23 @@ export class RefListComponent implements OnInit, HasChanges {
   }
 
 
-  private loadPinned(value: Ext | undefined) {
-    if (!value?.config?.pinned?.length) {
-      this.pinned.set([]);
-    } else {
-      forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({ url: pin })),
-          takeUntilDestroyed(this.destroyRef),
-        )))
-        .subscribe(pinned => this.pinned.set(pinned));
-    }
-  }
-
-  get colStyle() {
-    if (!this.cols) {
+  readonly colStyle = computed(() => {
+    if (!this.cols()) {
       return '';
     } else {
-      return ' 1fr'.repeat(this.cols);
+      return ' 1fr'.repeat(this.cols());
     }
-  }
+  });
 
-  get cols() {
+  readonly cols = computed(() => {
     if (this.colsInput()) return this.colsInput();
     return this.ext()?.config?.defaultCols;
-  }
+  });
 
-  get expanded(): boolean {
+  readonly expanded = computed<boolean>(() => {
     if (this.expandedInput() === undefined) return !!this.ext()?.config?.defaultExpanded;
     return this.expandedInput()!;
-  }
+  });
 
 
   private checkPage(page: Page<Ref>) {
@@ -122,13 +109,13 @@ export class RefListComponent implements OnInit, HasChanges {
     }
   }
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     this.newRefs$()?.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(ref => {
       if (ref) this.addNewRef(ref);
     });
-  }
+  });
 
 
   getNumber(i: number) {
@@ -155,7 +142,7 @@ export class RefListComponent implements OnInit, HasChanges {
         this.newRefs.set([ref, ...this.newRefs()]);
         return;
       } else {
-        this.newRefs.set([...this.newRefs(), ref]);
+        this.newRefs.update(refs => [...refs, ref]);
         return;
       }
     }

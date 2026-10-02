@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, ElementRef, ChangeDetectionStrategy, afterNextRender } from '@angular/core';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../service/account.service';
@@ -15,7 +15,7 @@ import { Store } from '../../store/store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, RouterLink]
 })
-export class SettingsComponent implements AfterViewInit {
+export class SettingsComponent {
 
   constructor(
     public admin: AdminService,
@@ -30,16 +30,16 @@ export class SettingsComponent implements AfterViewInit {
     }
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     this.help.pushStep(this.el?.nativeElement, $localize`Change your settings.`);
-  }
+  });
 
-  get fullUserTagAndRole() {
+  readonly fullUserTagAndRole = computed(() => {
     return this.store.account.tag() + ' (' + this.store.account.role() + ')';
-  }
+  });
 
-  get shortUserTag() {
+  readonly shortUserTag = computed(() => {
     return this.store.account.localTag().replace('+', '').replace('user/', '');
-  }
+  });
 
 }

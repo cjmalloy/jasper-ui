@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, input, linkedSignal, OnInit, signal } from '@angular/core';
+import { computed, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, input, linkedSignal, signal, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AdminService } from '../../service/admin.service';
@@ -17,7 +17,7 @@ import { hasPrefix } from '../../util/tag';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink]
 })
-export class NavComponent implements OnInit {
+export class NavComponent {
   private destroyRef = inject(DestroyRef);
 
   readonly url = input('');
@@ -40,10 +40,10 @@ export class NavComponent implements OnInit {
     private el: ElementRef,
   ) { }
 
-  ngOnInit() {
-    if (this.localUrl) {
+  private readonly initialize = afterNextRender(() => {
+    if (this.localUrl()) {
       this.nav.set(this.getNav());
-      if (this.nav()![0] === '/tag' && !this.external() && !this.hasText) {
+      if (this.nav()![0] === '/tag' && !this.external() && !this.hasText()) {
         this.editor.getTagPreview(this.nav()![1] as string)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(x => {
@@ -60,7 +60,7 @@ export class NavComponent implements OnInit {
         });
       });
     }
-  }
+  });
 
 
   getNav() {
@@ -85,24 +85,24 @@ export class NavComponent implements OnInit {
     return ['/' + route, parts.join('/')];
   }
 
-  get query() {
+  readonly query = computed(() => {
     return parseBookmarkParams(this.url());
-  }
+  });
 
-  get localUrl() {
+  readonly localUrl = computed(() => {
     const url = this.url();
     if (url.toLowerCase().startsWith('tag:/'))return true
     if (url.startsWith(this.baseHref)) return true
     if (url.startsWith(getPath(this.baseHref)!)) return true;
     if (url.startsWith('/')) return true;
     return false;
-  }
+  });
 
   private get baseHref() {
     return document.getElementsByTagName('base')[0]?.href || document.baseURI || location.origin + '/';
   }
 
-  get hasText() {
+  readonly hasText = computed(() => {
     const text = this.text();
     const url = this.url();
     if (!text || hasPrefix(text, 'user') || hasPrefix(text, 'plugin')) return false;
@@ -110,7 +110,7 @@ export class NavComponent implements OnInit {
       if (text === '#' + url.substring(5)) return false;
     }
     return text != url;
-  }
+  });
 
   markRead(event: MouseEvent) {
     if (!this.admin.getPlugin('plugin/user/read')) return;

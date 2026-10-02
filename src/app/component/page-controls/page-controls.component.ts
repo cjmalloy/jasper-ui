@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
+import { computed, ChangeDetectionStrategy, Component, input, linkedSignal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
@@ -52,7 +52,7 @@ function isDateSortField(value: string | undefined): value is DateSortField {
   styleUrls: ['./page-controls.component.scss'],
   host: {
     'class': 'page-controls',
-    '[class.print-hide]': 'fullResults',
+    '[class.print-hide]': "fullResults()",
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -71,55 +71,44 @@ export class PageControlsComponent {
 
   pageSizes = [6, 24, 48, 96, 480];
   colSizes = [1, 2, 3, 4, 5, 6];
-  readonly colsChanged = signal(false);
+  readonly colsChanged = linkedSignal(() => this.defaultCols() !== undefined || !!this.store.view.cols());
 
   constructor(
     public store: Store,
     private bookmarks: BookmarkService,
     private query: QueryStore,
     private refs: RefService,
-  ) {
-    effect(() => {
-      const value = this.defaultCols();
-      if (value !== undefined || this.store.view.cols()) this.colsChanged.set(true);
-    });
-  }
+  ) {}
 
-  get fullResults() {
+  readonly fullResults = computed(() => {
     return this.page()?.page.totalPages === 1;
-  }
+  });
 
   readonly defaultCols = input<number | undefined>();
 
-  get hasQuery() {
+  readonly hasQuery = computed(() => {
     return this.store.view.pageNumber() !== undefined;
-  }
+  });
 
-  get prev() {
+  readonly prev = computed(() => {
     return Math.max(0, this.page()!.page.number - 1);
-  }
+  });
 
-  get next() {
-    return Math.max(0, Math.min(this.last, this.page()!.page.number + 1));
-  }
+  readonly next = computed(() => {
+    return Math.max(0, Math.min(this.last(), this.page()!.page.number + 1));
+  });
 
-  get last() {
+  readonly last = computed(() => {
     return Math.max(0, this.page()!.page.totalPages - 1);
+  });
+
+  readonly pageSize = computed(() => this.store.view.pageSize());
+  setPageSize(value: number) {
+    this.bookmarks.setPageSize(value);
   }
 
-  get pageSize() {
-    return this.store.view.pageSize();
-  }
-
-  set pageSize(value: number) {
-    this.bookmarks.pageSize = value;
-  }
-
-  get cols() {
-    return this.store.view.cols();
-  }
-
-  set cols(value: number) {
+  readonly cols = computed(() => this.store.view.cols());
+  setCols(value: number) {
     this.bookmarks.cols = value;
   }
 
