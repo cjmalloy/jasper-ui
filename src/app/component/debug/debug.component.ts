@@ -28,10 +28,10 @@ import { LoadingComponent } from '../loading/loading.component';
 export class DebugComponent {
 
   readonly generating = signal(false);
-  settingUser = false;
+  readonly settingUser = signal(false);
   readonly sourcing = signal(false);
   readonly batchRunning = signal(false);
-  serverError: string[] = [];
+  readonly serverError = signal<string[]>([]);
   debug = this.admin.getPlugin('plugin/debug') || this.admin.getTemplate('debug');
 
   constructor(
@@ -56,7 +56,7 @@ export class DebugComponent {
     this.batchRunning.set(true);
     concat(...this.query.page()!.content.map(e => fn(e).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError.push(...printError(err));
+        this.serverError.update(errors => [...errors, ...printError(err)]);
         return of(null);
       }),
     ))).pipe(last()).subscribe(() => {
@@ -71,7 +71,7 @@ export class DebugComponent {
     generate(0, x => x < n, x => x + 1).pipe(
       concatMap(i => fn(i)),
       catchError((err: HttpErrorResponse) => {
-        this.serverError.push(...printError(err));
+        this.serverError.update(errors => [...errors, ...printError(err)]);
         return of(null);
       }),
     ).subscribe(() => {

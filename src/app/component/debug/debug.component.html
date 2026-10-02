@@ -1,8 +1,8 @@
 @if (debug) {
   <details class="advanced">
     <summary><span i18n>Debug</span> @if (batchRunning()) { <app-loading></app-loading> }</summary>
-    <a class="fake-link" (click)="settingUser = !settingUser">user</a>
-    @if (settingUser) {
+    <a class="fake-link" (click)="settingUser.update(v => !v)">user</a>
+    @if (settingUser()) {
       <span>
         <input #inlineUser
                i18n-placeholder placeholder="bob"
@@ -32,7 +32,7 @@
         </span>
       }
     }
-    @for (e of serverError; track e) {
+    @for (e of serverError(); track e) {
       <div class="error">{{ e }}</div>
     }
   </details>
