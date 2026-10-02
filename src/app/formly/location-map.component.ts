@@ -1,20 +1,27 @@
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, NgZone, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
 import { MapComponent as MglComponent } from '@maplibre/ngx-maplibre-gl';
 import type { Feature, FeatureCollection, Geometry, Position } from 'geojson';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
-import { Map, Marker, setWorkerUrl } from 'maplibre-gl';
+import { Map as MapLibreMap, Marker, setWorkerUrl } from 'maplibre-gl';
 import { Subscription } from 'rxjs';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
+import { LocationPicker } from './location-picker';
 
 /**
- * Map picker for a location form control. Shows any other geo plugins on the
- * Ref (or sibling locations in the same list) so shape changes can be previewed.
+ * Map picker shared by all location inputs in a plugin form. Every location
+ * is shown as a draggable marker, and clicking the map sets the active one.
+ * Any other geo plugins on the Ref are shown so shape changes can be previewed.
  */
 @Component({
   selector: 'app-location-map',
-  host: { 'class': 'location-map' },
+  host: {
+    'class': 'location-map',
+    // Prevent panning the map from starting a list drag and drop
+    '(mousedown)': '$event.stopPropagation()',
+    '(touchstart)': '$event.stopPropagation()',
+  },
   template: `
     <mgl-map [mapStyle]="mapStyle"
              (mapLoad)="mapLoaded($event)"
@@ -29,16 +36,19 @@ import { AdminService } from '../service/admin.service';
 export class LocationMapComponent implements OnDestroy {
 
   @Input({ required: true })
-  control!: AbstractControl;
+  picker!: LocationPicker;
 
   private _mapStyle: any;
-  private map?: Map;
-  private marker?: Marker;
+  private map?: MapLibreMap;
+  private markers = new Map<AbstractControl, Marker>();
   private watch?: Subscription;
   private picking = false;
+  private lastActive?: AbstractControl;
+  private lastActiveValue?: any;
 
   constructor(
     private admin: AdminService,
+    private zone: NgZone,
   ) {
     setWorkerUrl('assets/maplibre-gl-worker.mjs');
   }
@@ -49,7 +59,7 @@ export class LocationMapComponent implements OnDestroy {
       ...this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
       ...this.admin.getTemplate('map')?.config?.mapStyle || mapTemplate.config?.mapStyle || {},
     };
-    const location = this.location;
+    const location = this.center;
     if (location) {
       style.center = location;
       style.zoom = Math.max(style.zoom ?? 0, 10);
@@ -57,11 +67,28 @@ export class LocationMapComponent implements OnDestroy {
     return this._mapStyle = style;
   }
 
-  get location(): [number, number] | undefined {
-    return hasLocation(this.control.value) ? [this.control.value[0], this.control.value[1]] : undefined;
+  get control(): AbstractControl {
+    return this.picker.host.formControl!;
   }
 
-  mapLoaded(map: Map) {
+  /**
+   * The active location, or the first location set when none is active.
+   */
+  get center(): [number, number] | undefined {
+    const active = this.picker.active?.value;
+    if (hasLocation(active)) return [active[0], active[1]];
+    const first = this.locations.map(c => c.value).find(hasLocation);
+    return first && [first[0], first[1]];
+  }
+
+  /**
+   * All location controls in this picker.
+   */
+  get locations(): AbstractControl[] {
+    return leaves(this.control);
+  }
+
+  mapLoaded(map: MapLibreMap) {
     this.map = map;
     map.addSource('location-context', { type: 'geojson', data: this.contextData });
     map.addLayer({
@@ -87,12 +114,18 @@ export class LocationMapComponent implements OnDestroy {
     });
     this.watch?.unsubscribe();
     this.watch = this.contextRoot.valueChanges.subscribe(() => this.update());
-    this.updateMarker(false);
+    this.watch.add(this.picker.changes.subscribe(() => this.update()));
+    this.updateMarkers();
+    // The location may have changed while the map style was loading
+    this.panToActive();
   }
 
   mapClick(event: MapMouseEvent) {
+    if ((event.originalEvent?.target as Element | undefined)?.closest?.('.maplibregl-marker')) return;
+    const active = this.picker.active;
+    if (!active || !this.locations.includes(active)) return;
     const { lng, lat } = event.lngLat.wrap();
-    this.pick([lng, lat]);
+    this.pick(active, [lng, lat]);
   }
 
   onMapError(event: any) {
@@ -101,54 +134,89 @@ export class LocationMapComponent implements OnDestroy {
 
   ngOnDestroy() {
     this.watch?.unsubscribe();
-    this.marker?.remove();
-    this.marker = undefined;
+    for (const marker of this.markers.values()) marker.remove();
+    this.markers.clear();
     this.map = undefined;
   }
 
-  private pick(value: [number, number]) {
-    if (this.control.disabled) return;
+  private select(control: AbstractControl) {
     this.picking = true;
     try {
-      this.control.setValue(value);
-      this.control.markAsDirty();
+      this.picker.select(control);
+    } finally {
+      this.picking = false;
+    }
+  }
+
+  private pick(control: AbstractControl, value: [number, number]) {
+    if (control.disabled) return;
+    this.picking = true;
+    try {
+      this.picker.select(control);
+      control.setValue(value);
+      control.markAsDirty();
     } finally {
       this.picking = false;
     }
   }
 
   private update() {
+    this.updateMarkers();
     // Only pan when the location was changed outside the map (typing, geolocation)
-    this.updateMarker(!this.picking);
+    if (!this.picking) this.panToActive();
     (this.map?.getSource('location-context') as GeoJSONSource | undefined)?.setData(this.contextData);
   }
 
-  private updateMarker(pan: boolean) {
+  private panToActive() {
+    const active = this.picker.active;
+    const value = active?.value;
+    const changed = active !== this.lastActive || value !== this.lastActiveValue;
+    this.lastActive = active;
+    this.lastActiveValue = value;
+    if (!this.map || !changed || !hasLocation(value)) return;
+    this.map.easeTo({ center: [value[0], value[1]], zoom: Math.max(this.map.getZoom(), 10) });
+  }
+
+  private updateMarkers() {
     if (!this.map) return;
-    const location = this.location;
-    if (!location) {
-      this.marker?.remove();
-      this.marker = undefined;
-      return;
+    const seen = new Set<AbstractControl>();
+    for (const control of this.locations) {
+      const location = control.value;
+      if (!hasLocation(location)) continue;
+      seen.add(control);
+      let marker = this.markers.get(control);
+      if (!marker) {
+        marker = new Marker({ draggable: true, className: 'location-marker' })
+          .setLngLat([location[0], location[1]])
+          .addTo(this.map);
+        const m = marker;
+        m.on('dragstart', () => this.zone.run(() => this.select(control)));
+        m.on('dragend', () => this.zone.run(() => {
+          const { lng, lat } = m.getLngLat().wrap();
+          this.pick(control, [lng, lat]);
+        }));
+        m.getElement().addEventListener('click', () => this.zone.run(() => this.select(control)));
+        this.markers.set(control, m);
+      } else {
+        marker.setLngLat([location[0], location[1]]);
+      }
+      marker.setDraggable(!control.disabled);
+      if (control === this.picker.active) {
+        marker.addClassName('active');
+      } else {
+        marker.removeClassName('active');
+      }
     }
-    if (!this.marker) {
-      this.marker = new Marker({ draggable: true, className: 'location-marker' })
-        .setLngLat(location)
-        .addTo(this.map);
-      this.marker.on('dragend', () => {
-        const { lng, lat } = this.marker!.getLngLat().wrap();
-        this.pick([lng, lat]);
-      });
-    } else {
-      this.marker.setLngLat(location);
+    for (const [control, marker] of this.markers) {
+      if (seen.has(control)) continue;
+      marker.remove();
+      this.markers.delete(control);
     }
-    this.marker.setDraggable(!this.control.disabled);
-    if (pan) this.map.easeTo({ center: location, zoom: Math.max(this.map.getZoom(), 10) });
   }
 
   /**
-   * The closest ancestor holding all geo plugins on the Ref, or the parent
-   * group/array of this location when not part of a Ref plugins form.
+   * The closest ancestor holding all geo plugins on the Ref, or the picker
+   * host when not part of a Ref plugins form.
    */
   private get contextRoot(): AbstractControl {
     let c: AbstractControl | null = this.control;
@@ -156,7 +224,7 @@ export class LocationMapComponent implements OnDestroy {
       if (isGeoPlugins(c)) return c;
       c = c.parent;
     }
-    return this.control.parent || this.control;
+    return this.control;
   }
 
   private get contextData(): FeatureCollection {
@@ -168,13 +236,18 @@ export class LocationMapComponent implements OnDestroy {
         const geometry = sanitize((value as any)?.geometry);
         if (geometry && !isEmpty(geometry)) features.push({ type: 'Feature', properties: {}, geometry });
       }
-    } else if (root instanceof FormArray) {
-      const points = root.getRawValue().filter(isPosition);
-      if (points.length) features.push({ type: 'Feature', properties: {}, geometry: { type: 'MultiPoint', coordinates: points } });
-      if (points.length > 1) features.push({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: points } });
     }
     return { type: 'FeatureCollection', features };
   }
+}
+
+function leaves(c: AbstractControl, out: AbstractControl[] = []): AbstractControl[] {
+  if (c instanceof FormArray || c instanceof FormGroup) {
+    for (const child of Object.values(c.controls) as AbstractControl[]) leaves(child, out);
+  } else {
+    out.push(c);
+  }
+  return out;
 }
 
 function isGeoPlugins(c: AbstractControl) {

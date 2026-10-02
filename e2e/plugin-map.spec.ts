@@ -28,7 +28,7 @@ test.describe.serial('Map Plugin', () => {
 
     const map = point.locator('.location-map .maplibregl-canvas');
     await expect(map).toBeVisible({ timeout: 15_000 });
-    await expect(point.locator('.location-marker')).toBeVisible();
+    await expect(point.locator('.location-marker')).toBeVisible({ timeout: 15_000 });
 
     // Clicking anywhere on the map selects that location
     const box = (await map.boundingBox())!;
@@ -40,6 +40,54 @@ test.describe.serial('Map Plugin', () => {
     // Closing the map removes it
     await point.locator('.location-map-toggle').click();
     await expect(point.locator('.location-map')).toHaveCount(0);
+  });
+
+  test('one map is shared by every point in a list', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/multipoint', { waitUntil: 'networkidle' });
+    const list = page.locator('.plugin-content formly-list-section').first();
+    await list.locator('button', { hasText: '+ Add Point' }).click();
+    await list.locator('button', { hasText: '+ Add Point' }).click();
+    const points = list.locator('.location-field');
+    await expect(points).toHaveCount(2);
+    await points.nth(0).locator('input').nth(0).fill('-63.5');
+    await points.nth(0).locator('input').nth(1).fill('44.6');
+    await points.nth(1).locator('input').nth(0).fill('-63.4');
+    await points.nth(1).locator('input').nth(1).fill('44.7');
+
+    await points.nth(0).locator('.location-map-toggle').click();
+    const map = page.locator('.location-map');
+    await expect(map).toHaveCount(1);
+    await expect(map.locator('.maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
+    // The map is not inside a list item
+    await expect(list.locator('.list-drag .location-map')).toHaveCount(0);
+    await expect(map.locator('.location-marker')).toHaveCount(2, { timeout: 15_000 });
+    await expect(map.locator('.location-marker.active')).toHaveCount(1);
+
+    // Selecting another point reuses the same map
+    await points.nth(1).locator('.location-map-toggle').click();
+    await expect(map).toHaveCount(1);
+    await expect(points.nth(1).locator('.location-map-toggle')).toHaveClass(/toggled/);
+    await expect(points.nth(0).locator('.location-map-toggle')).not.toHaveClass(/toggled/);
+
+    // Dragging the map pans it instead of reordering the list
+    const box = (await map.locator('.maplibregl-canvas').boundingBox())!;
+    await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.8);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.4, box.y + box.height * 0.6, { steps: 10 });
+    await page.mouse.up();
+    await expect(page.locator('.cdk-drag-preview')).toHaveCount(0);
+    await expect(points.nth(0).locator('input').nth(0)).toHaveValue('-63.5');
+    await expect(points.nth(1).locator('input').nth(0)).toHaveValue('-63.4');
+
+    // Clicking the map moves only the active point
+    await page.mouse.click(box.x + box.width * 0.75, box.y + box.height * 0.25);
+    await expect(points.nth(1).locator('input').nth(0)).not.toHaveValue('-63.4');
+    await expect(points.nth(0).locator('input').nth(0)).toHaveValue('-63.5');
+
+    // Toggling the active point closes the map
+    await points.nth(1).locator('.location-map-toggle').click();
+    await expect(page.locator('.location-map')).toHaveCount(0);
   });
 
   test('plugin/map embeds the ref geo features', async ({ page }) => {

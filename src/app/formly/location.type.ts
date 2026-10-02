@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
+import { Subscription } from 'rxjs';
 import { getErrorMessage } from './errors';
 import { LocationMapComponent } from './location-map.component';
+import { LocationPicker, locationPicker } from './location-picker';
 
 @Component({
   selector: 'formly-field-location',
@@ -62,9 +64,9 @@ import { LocationMapComponent } from './location-map.component';
                 (click)="toggleMap()"
                 i18n>🗺️</button>
       </div>
-      @if (showMap) {
+      @if (hostsMap && picker.open) {
         @defer {
-          <app-location-map [control]="formControl"></app-location-map>
+          <app-location-map [picker]="picker"></app-location-map>
         }
       }
     </div>
@@ -76,6 +78,9 @@ import { LocationMapComponent } from './location-map.component';
       flex-grow: 1;
       min-width: 0;
     }
+    .location-input input {
+      min-width: 0;
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -84,17 +89,41 @@ import { LocationMapComponent } from './location-map.component';
     LocationMapComponent,
   ],
 })
-export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
+export class FormlyFieldLocation extends FieldType<FieldTypeConfig> implements OnInit, OnDestroy {
 
-  showMap = false;
+  picker!: LocationPicker;
 
   private showedError = false;
+  private subs = new Subscription();
 
   constructor(
     private config: FormlyConfig,
     private cd: ChangeDetectorRef,
   ) {
     super();
+  }
+
+  ngOnInit() {
+    this.picker = locationPicker(this.field);
+    this.subs.add(this.picker.changes.subscribe(() => this.cd.markForCheck()));
+    this.subs.add(this.formControl.valueChanges.subscribe(() => this.cd.markForCheck()));
+    if (this.picker.open && !this.hasLocation) {
+      // New point added while the map is open: select it so it can be placed by clicking the map
+      queueMicrotask(() => this.picker.select(this.formControl));
+    }
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+    if (this.picker.active === this.formControl) this.picker.select(undefined);
+  }
+
+  get hostsMap() {
+    return this.picker.host === this.field;
+  }
+
+  get showMap() {
+    return this.picker.open && this.picker.active === this.formControl;
   }
 
   get lng(): number {
@@ -140,9 +169,8 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
   }
 
   toggleMap() {
-    this.showMap = !this.showMap;
+    this.picker.toggle(this.formControl);
     if (this.showMap && !this.hasLocation) this.detectLocation();
-    this.cd.markForCheck();
   }
 
   validate(input: HTMLInputElement) {

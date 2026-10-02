@@ -6,6 +6,8 @@ import { defer } from 'lodash-es';
 import { Store } from '../store/store';
 import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
+import { LocationMapComponent } from './location-map.component';
+import { getLocationPicker } from './location-picker';
 
 @Component({
   selector: 'formly-list-section',
@@ -43,6 +45,12 @@ import { getPath } from '../util/http';
         </div>
       }
     </div>
+    @if (locationPicker?.open) {
+      <span></span>
+      @defer {
+        <app-location-map [picker]="locationPicker!"></app-location-map>
+      }
+    }
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
@@ -51,6 +59,7 @@ import { getPath } from '../util/http';
     CdkDrag,
     CdkDragHandle,
     FormlyField,
+    LocationMapComponent,
   ],
 })
 export class ListTypeComponent extends FieldArrayType {
@@ -66,6 +75,10 @@ export class ListTypeComponent extends FieldArrayType {
   @HostBinding('title')
   get title() {
     return this.props.title || '';
+  }
+
+  get locationPicker() {
+    return getLocationPicker(this.field);
   }
 
   get groupArray() {
