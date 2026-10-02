@@ -81,7 +81,7 @@ export class PageControlsComponent {
   ) {
     effect(() => {
       const value = this.defaultCols();
-      this.colsChanged ||= value !== undefined;
+      if (value !== undefined) this.colsChanged.set(true);
     });
   }
 

@@ -148,7 +148,7 @@ export class UserComponent implements HasChanges {
         origin: '',
       });
     }
-    const user = { ...this.user() };
+    const user = { ...this.user()! };
     user.modified = user.modifiedString as any;
     delete user.type;
     delete user.modifiedString;
@@ -267,7 +267,7 @@ export class UserComponent implements HasChanges {
       if (!updates.external) delete updates.external;
       if (updates.external) updates.external = JSON.parse(updates.external);
     } catch (e: any) {
-      this.externalErrors().push(e.message);
+      this.externalErrors.update(externalErrors => [...externalErrors, e.message]);
     }
     (this.user()
       ? this.users.update(updates)
@@ -301,8 +301,8 @@ export class UserComponent implements HasChanges {
     this.serverError.set([]);
     const os = [];
     if (this.user()) {
-      const deleteNotice = !isDeletorTag(this.user().tag) && this.admin.getPlugin('plugin/delete')
-        ? this.users.create(tagDeleteNotice(this.user()))
+      const deleteNotice = !isDeletorTag(this.user()!.tag) && this.admin.getPlugin('plugin/delete')
+        ? this.users.create(tagDeleteNotice(this.user()!))
         : of(null);
       os.push(this.users.delete(this.qualifiedTag()).pipe(
         tap(() => this.deleted.set(true)),

@@ -42,7 +42,7 @@
           <option value="ROLE_BANNED" i18n>banned</option>
         </app-inline-select>
         @if (profile()) {
-          @if (!profile().active) {
+          @if (!profile()!.active) {
             <app-inline-button #action [action]="activate$" i18n>activate</app-inline-button>
           } @else {
             <app-inline-button #action [action]="deactivate$" i18n>deactivate</app-inline-button>

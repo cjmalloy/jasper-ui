@@ -40,7 +40,7 @@ describe('KanbanColumnComponent', () => {
 
     it('should track failed items', () => {
       const failedItem = { text: 'Test item', error: 'Network error' };
-      component.failed().push(failedItem);
+      component.failed.update(failed => [...failed, failedItem]);
 
       expect(component.failed().length).toBe(1);
       expect(component.failed()[0]).toEqual(failedItem);
@@ -48,7 +48,7 @@ describe('KanbanColumnComponent', () => {
 
     it('should retry failed items', () => {
       const failedItem = { text: 'Test item', error: 'Network error' };
-      component.failed().push(failedItem);
+      component.failed.update(failed => [...failed, failedItem]);
 
       component.retry(failedItem);
 
@@ -59,7 +59,7 @@ describe('KanbanColumnComponent', () => {
 
     it('should dismiss failed items', () => {
       const failedItem = { text: 'Test item', error: 'Network error' };
-      component.failed().push(failedItem);
+      component.failed.update(failed => [...failed, failedItem]);
 
       component.dismissFailed(failedItem);
 
@@ -69,7 +69,7 @@ describe('KanbanColumnComponent', () => {
     it('should handle multiple failed items', () => {
       const failedItem1 = { text: 'Test item 1', error: 'Network error' };
       const failedItem2 = { text: 'Test item 2', error: 'Permission denied' };
-      component.failed().push(failedItem1, failedItem2);
+      component.failed.update(failed => [...failed, failedItem1, failedItem2]);
 
       expect(component.failed().length).toBe(2);
 

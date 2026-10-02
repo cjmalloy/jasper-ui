@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, effect, ElementRef, input, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { filter, find, pullAll, uniq } from 'lodash-es';
+import { filter, pullAll, uniq } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
@@ -116,10 +116,10 @@ export class FilterComponent {
         const group = $localize`Kanban 📋️`;
         const k = e.config! as KanbanConfig;
         if (k.columns?.length) {
-          this.allFilters().push({
+          this.allFilters.update(groups => [...groups, {
             label: group,
             filters: [],
-          });
+          }]);
           const kanbanTags = uniq([
             ...k.columns,
             ...k.swimLanes || [],
@@ -263,20 +263,16 @@ export class FilterComponent {
     }
     // Search all filters for the toggled (negated) version and sync it
     for (const f of setToggles) {
-      const set = this.allFilters().filter(g => g.filters.find(i => i.filter === toggle(f)));
-      if (set.length) {
-        set.forEach(g => {
-          // Toggle all negated versions of this filter
-          const target = g.filters.find(i => i.filter === toggle(f));
-          if (target) {
-            target.filter = f;
-            if (!target.label.startsWith(this.store.account.querySymbol('!'))) {
-              target.label = this.store.account.querySymbol('!') + target.label;
-            } else {
-              target.label = target.label.substring(this.store.account.querySymbol('!').length);
-            }
-          }
-        });
+      if (this.allFilters().find(g => g.filters.find(i => i.filter === toggle(f)))) {
+        // Toggle all negated versions of this filter
+        const not = this.store.account.querySymbol('!');
+        this.allFilters.update(groups => groups.map(g => {
+          const index = g.filters.findIndex(i => i.filter === toggle(f));
+          if (index < 0) return g;
+          const target = g.filters[index];
+          const label = !target.label.startsWith(not) ? not + target.label : target.label.substring(not.length);
+          return { ...g, filters: g.filters.map((i, j) => j === index ? { ...target, filter: f, label } : i) };
+        }));
       } else if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
         this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
       } else if (f.startsWith('user/')) {
@@ -289,47 +285,41 @@ export class FilterComponent {
         this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length)});
       }
     }
-    this.filters.set(pullAll(this.filters(), setToggles.map(toggle)));
-    this.allFilters.set(this.allFilters());
+    this.filters.set(pullAll([...this.filters()], setToggles.map(toggle)));
   }
 
   loadFilter(filter: FilterConfig) {
     if ((filter.query || filter.response) && !this.auth.queryReadAccess(filter.query || filter.response)) return;
-    let group = find(this.allFilters(), f => f.label === (filter.group || ''));
-    if (group) {
-      group.filters.push(convertFilter(filter));
-    } else {
-      this.allFilters().push({
-        label: filter.group || '',
-        filters: [convertFilter(filter)],
-      });
-    }
-    this.allFilters.set(this.allFilters());
+    this.pushFilter({
+      label: filter.group || '',
+      filters: [convertFilter(filter)],
+    });
   }
 
   pushFilter(...fgs: FilterGroup[]) {
-    for (const fg of fgs) {
-      let group = find(this.allFilters(), f => f.label === (fg.label || ''));
-      if (group) {
-        group.filters.push(...fg.filters);
-      } else {
-        this.allFilters().push(fg);
+    this.allFilters.update(groups => {
+      for (const fg of fgs) {
+        const index = groups.findIndex(f => f.label === (fg.label || ''));
+        if (index >= 0) {
+          groups = groups.map((g, i) => i === index ? { ...g, filters: [...g.filters, ...fg.filters] } : g);
+        } else {
+          groups = [...groups, fg];
+        }
       }
-    }
-    this.allFilters.set(this.allFilters());
+      return groups;
+    });
   }
 
   addFilter(value: UrlFilter) {
     if (value) {
-      if (!this.filters()) this.filters.set([]);
-      this.filters().push(value);
+      this.filters.update(filters => [...filters || [], value]);
       this.create()!.nativeElement.selectedIndex = 0;
       this.setFilters();
     }
   }
 
   setFilter(index: number, value: UrlFilter) {
-    this.filters()[index] = value;
+    this.filters.update(filters => filters.map((f, i) => i === index ? value : f));
     this.setFilters();
   }
 
@@ -347,7 +337,7 @@ export class FilterComponent {
   }
 
   toggleQuery(index: number) {
-    this.filters()[index] = toggle(this.filters()[index])!;
+    this.filters.update(filters => filters.map((f, i) => i === index ? toggle(f)! : f));
     this.setFilters();
   }
 
@@ -367,14 +357,14 @@ export class FilterComponent {
   set(index: number, filter: UrlFilter, isoDate: string) {
     this.clearFocus();
     if (!isoDate) return;
-    // @ts-ignore
-    this.filters()[index] = filter.substring(0, filter.lastIndexOf('/') + 1) + isoDate;
+    const value = filter.substring(0, filter.lastIndexOf('/') + 1) + isoDate as UrlFilter;
+    this.filters.update(filters => filters.map((f, i) => i === index ? value : f));
     this.sync();
     this.setFilters();
   }
 
   removeFilter(index: number) {
-    this.filters().splice(index, 1);
+    this.filters.update(filters => filters.filter((f, i) => i !== index));
     this.setFilters();
   }
 

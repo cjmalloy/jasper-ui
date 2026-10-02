@@ -102,11 +102,10 @@ export class InlineTagComponent extends ActionComponent {
       map(xs => remove ? xs.filter(x => hasTag(x.tag, this.tags())) : xs.filter(x => !hasTag(x.tag, this.tags()))),
       map(xs => remove && !xs.length ? (this.tags() || []).filter(t => hasTag(tag, [t])).map(t => ({ tag: t } as { name?: string, tag: string })) : xs),
     ).subscribe(xs => {
-      this.autocomplete.set(xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) })));
-      if (!remove && this.autocomplete().length < 3) this.autocomplete().push(...getPlugins(tag));
-      this.autocomplete.set(uniqBy(this.autocomplete(), 'value'));
-      if (!remove && this.autocomplete().length < 3) this.autocomplete().push(...getTemplates(tag));
-      this.autocomplete.set(uniqBy(this.autocomplete(), 'value'));
+      let autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
+      if (!remove && autocomplete.length < 3) autocomplete = uniqBy([...autocomplete, ...getPlugins(tag)], 'value');
+      if (!remove && autocomplete.length < 3) autocomplete = uniqBy([...autocomplete, ...getTemplates(tag)], 'value');
+      this.autocomplete.set(autocomplete);
     });
   }, 400);
 

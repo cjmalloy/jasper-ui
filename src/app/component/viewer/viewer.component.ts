@@ -109,13 +109,7 @@ export class ViewerComponent implements OnDestroy {
   readonly expand = input(true);
   readonly autoplay = input(false);
   readonly textInput = input<string | undefined>('', { alias: 'text' });
-  private readonly textSignal = linkedSignal(() => this.textInput());
-  get text() {
-    return this.textSignal() || '';
-  }
-  set text(value: string | undefined) {
-    this.textSignal.set(value || '');
-  }
+  readonly text = linkedSignal(() => this.textInput() || '');
   readonly origin = input<string | undefined>('');
   readonly disableResize = input(false);
   readonly fullscreenInput = input(false, { alias: 'fullscreen' });
@@ -163,9 +157,9 @@ export class ViewerComponent implements OnDestroy {
     public el: ElementRef,
   ) {
     effect(() => {
-      this.ref();
-      this.tags();
-      this.text;
+      this.refInput();
+      this.tagsInput();
+      this.textInput();
       untracked(() => this.init());
     });
     effect(() => this.setVideo(this.videoEl()));
@@ -180,8 +174,9 @@ export class ViewerComponent implements OnDestroy {
     this.chess.set(!!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags));
     this.chessWhite.set(!!this.ref()?.tags?.includes(this.store.account.localTag));
     this.uis.set(this.admin.getPluginUi(this.currentTags));
-    if (this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref())) {
-      this.refs.getCurrent(this.ref().sources[0]).pipe(
+    const repostSource = this.ref()?.sources?.[0];
+    if (repostSource && hasTag('plugin/repost', this.ref())) {
+      this.refs.getCurrent(repostSource).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => {
@@ -212,7 +207,7 @@ export class ViewerComponent implements OnDestroy {
         this.width = screen.width;
         this.height = screen.height;
       }
-      this.oembeds.get(this.ref().url, this.theme, this.width, this.height).subscribe(oembed => {
+      this.oembeds.get(this.ref()!.url, this.theme, this.width, this.height).subscribe(oembed => {
         this.setOembed(oembed);
       });
     }
@@ -253,7 +248,7 @@ export class ViewerComponent implements OnDestroy {
 
   get title() {
     if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) {
-      return this.text || this.ref()?.comment;
+      return this.text() || this.ref()?.comment;
     }
     return undefined;
   }
@@ -357,13 +352,15 @@ export class ViewerComponent implements OnDestroy {
   }
 
   get zoom() {
-    return this.oembed()?.html && !this.oembed().html.startsWith('<iframe');
+    const html = this.oembed()?.html;
+    return html && !html.startsWith('<iframe');
   }
 
   get resizable() {
     if (this.config.mobile) return false;
     if (this.ref()?.plugins?.['plugin/embed']?.noResize) return false;
-    return !this.oembed() || !this.oembed().html || this.oembed().html.startsWith('<iframe');
+    const html = this.oembed()?.html;
+    return !html || html.startsWith('<iframe');
   }
 
   get editingViewer() {
@@ -391,9 +388,9 @@ export class ViewerComponent implements OnDestroy {
 
   get currentText() {
     if (this.hideComment) return '';
-    const value = this.text || this.ref()?.comment || '';
+    const value = this.text() || this.ref()?.comment || '';
     if (!value) return '';
-    if (this.ref()?.title || this.text || hasTag('plugin/comment', this.ref()) || hasTag('plugin/thread', this.ref()) || this.store.view.current === 'ref/thread' || hasComment(this.ref()?.comment)) {
+    if (this.ref()?.title || this.text() || hasTag('plugin/comment', this.ref()) || hasTag('plugin/thread', this.ref()) || this.store.view.current === 'ref/thread' || hasComment(this.ref()?.comment)) {
       return value;
     }
     return '';
@@ -401,7 +398,7 @@ export class ViewerComponent implements OnDestroy {
 
   get currentCode() {
     if (!this.code) return '';
-    const value = this.text || this.ref()?.comment || '';
+    const value = this.text() || this.ref()?.comment || '';
     return '```' + this.codeLang + '\n' + value + '\n```';
   }
 
@@ -467,7 +464,8 @@ return '67vh';
   }
 
   getFilename(d = $localize`Untitled`) {
-    const ext = this.ref()?.url ? getExtension(this.ref().url) || '' : '';
+    const url = this.ref()?.url;
+    const ext = url ? getExtension(url) || '' : '';
     const filename = this.ref()?.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
@@ -512,9 +510,9 @@ return '67vh';
     const api: PluginApi = {
       comment: (comment: string) => {
         if (this.ref()) {
-          this.ref().comment = comment;
+          this.ref.update(ref => ({ ...ref!, comment }));
         } else {
-          this.text = comment;
+          this.text.set(comment);
         }
         if (this.ref()?.modified) actions.comment(comment);
         this.comment.emit(comment);
@@ -533,12 +531,12 @@ return '67vh';
       },
       watch: () => {
         if (this.ref()?.modified) return actions.watch();
-        const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text } as RefUpdates);
+        const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text() } as RefUpdates);
         return {
           ref$: subject$,
           comment$: (comment: string) => {
-            this.text = comment;
-            subject$.next({ comment: this.text } as RefUpdates)
+            this.text.set(comment);
+            subject$.next({ comment: this.text() } as RefUpdates)
                 return of();
           },
         };
@@ -549,29 +547,31 @@ return '67vh';
         return {
           updates$: subject$,
           append$: (value: string) => {
-            this.text += value;
+            this.text.update(text => text + value);
             subject$.next(value);
                 return of();
           },
         };
       },
     };
-    if (!this.ref()?.modified || this.auth.writeAccess(this.ref())) {
+    if (!this.ref()?.modified || this.auth.writeAccess(this.ref()!)) {
       api.patch = (patch: Partial<Ref>) => {
         if (this.ref()?.modified) {
           actions.patch!(patch);
-        } else if (this.ref()) {
-          const plugins = patch.plugins ? { ...this.ref().plugins, ...patch.plugins } : this.ref().plugins;
-          Object.assign(this.ref(), patch);
+        } else {
+          const ref = this.ref();
+          if (!ref) return;
+          const updated: Ref = { ...ref, ...patch };
           if (patch.plugins) {
-            this.ref().plugins = plugins;
+            updated.plugins = { ...ref.plugins, ...patch.plugins };
             for (const updateTag of Object.keys(patch.plugins)) {
-              if (!hasTag(updateTag, this.ref())) {
-                this.ref().tags = [...(this.ref().tags || []), updateTag];
+              if (!hasTag(updateTag, updated)) {
+                updated.tags = [...(updated.tags || []), updateTag];
               }
             }
           }
-          }
+          this.ref.set(updated);
+        }
       };
     }
     return api;
@@ -587,7 +587,7 @@ return '67vh';
   }
 
   get refOrDefault() {
-    return this.ref() || { url: '', comment: this.text, tags: this.tags() };
+    return this.ref() || { url: '', comment: this.text(), tags: this.tags() };
   }
 
   private removeAudioListener() {

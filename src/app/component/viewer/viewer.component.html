@@ -89,7 +89,7 @@
   @if (todo()) {
     <app-todo class="zoom"
               [ref]="ref()"
-              [text]="text"
+              [text]="text()"
               [tags]="tags()"
               (comment)="comment.emit($event)"
               (copied)="copied.emit($event)"></app-todo>
@@ -97,7 +97,7 @@
   @if (backgammon()) {
     <app-backgammon class="no-resize"
                     [ref]="ref()"
-                    [text]="text || ''"
+                    [text]="text()"
                     (comment)="comment.emit($event)"
                     (copied)="copied.emit($event)"></app-backgammon>
   }
@@ -105,7 +105,7 @@
     <app-chess class="no-resize"
                [white]="chessWhite()"
                [ref]="ref()"
-               [text]="text"
+               [text]="text()"
                (comment)="comment.emit($event)"
                (copied)="copied.emit($event)"></app-chess>
   }

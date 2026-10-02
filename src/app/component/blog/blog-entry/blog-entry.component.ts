@@ -257,8 +257,9 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   get findPdf() {
-    if (!this.ref().alternateUrls) return null;
-    for (const s of this.ref().alternateUrls) {
+    const alternateUrls = this.ref().alternateUrls;
+    if (!alternateUrls) return null;
+    for (const s of alternateUrls) {
       if (new URL(s).pathname.endsWith('.pdf')) {
         return s;
       }

@@ -72,9 +72,9 @@
             <span i18n>not found</span>
           } @else {
             @if (publishedIsSubmitted) {
-              <span [title]="ref().created.toISO()" i18n>
+              <span [title]="ref().created!.toISO()" i18n>
                 @if (!config.mobile) { submitted }
-                {{ ref().created.toRelative() }}</span>
+                {{ ref().created!.toRelative() }}</span>
             } @else {
               <span [title]="ref().published!.toISO()" i18n>
                 @if (!config.mobile) { published }
@@ -365,8 +365,8 @@
 } @else if (diffing() && diffOriginal() && diffModified()) {
   <div class="diff-view form">
     <app-diff #diffEditor
-              [original]="diffOriginal()"
-              [modified]="diffModified()"
+              [original]="diffOriginal()!"
+              [modified]="diffModified()!"
               [readOnly]="!local && !!ref().metadata?.obsolete">
     </app-diff>
 

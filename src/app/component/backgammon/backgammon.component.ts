@@ -3,15 +3,15 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  linkedSignal,
-  OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges,
   ChangeDetectionStrategy,
+  effect,
   input,
+  model,
   output,
-  signal
+  signal,
+  untracked
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { cloneDeep, defer, delay, filter, range, uniq } from 'lodash-es';
@@ -551,13 +551,12 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CdkDropList, CdkDrag]
 })
-export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
+export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
 
  // TODO: Save in local storage
-  readonly redInput = input(false, { alias: 'red' });
-  readonly red = linkedSignal(() => this.redInput());
+  readonly red = model(false);
   readonly ref = input<Ref>();
-  readonly text = input('', { alias: 'text' });
+  readonly text = input<string | undefined>('');
   readonly comment = output<string>();
   readonly copied = output<string>();
 
@@ -582,7 +581,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   readonly importantEvents = signal<number[]>([]);
   importantEventTypes: Map<number, string> = new Map();
 
-
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
   private append$!: (value: string) => Observable<string>;
@@ -601,6 +599,35 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         this.red.set(!this.red());
         defer(() => this.store.eventBus.fire('flip-done'));
       }
+    });
+    let first = true;
+    let prevRef: Ref | undefined;
+    effect(() => {
+      const ref = this.ref();
+      const text = this.text();
+      untracked(() => {
+        const refChanged = first || ref !== prevRef;
+        const newRef = first || refChanged && prevRef?.url != ref?.url;
+        if (!ref || newRef) {
+          this.watch?.unsubscribe();
+          if (ref || text != null) this.init();
+        } else if (refChanged) {
+          // Check if end game tags were added
+          const prevEnded = !!(prevRef && (
+            hasTag('plugin/backgammon/draw', prevRef) ||
+            hasTag('plugin/backgammon/winner/r', prevRef) ||
+            hasTag('plugin/backgammon/winner/b', prevRef)
+          ));
+          const nowEnded = this.isGameEnded;
+
+          if (!prevEnded && nowEnded && !this.replayMode()) {
+            // Tags were added to end the game, enter replay mode
+            defer(() => this.enterReplayMode());
+          }
+        }
+        first = false;
+        prevRef = ref;
+      });
     });
   }
 
@@ -640,30 +667,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   ngAfterViewInit() {
     defer(() => this.loaded.set(true));
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref || changes.text) {
-      const newRef = changes.ref?.firstChange || changes.ref?.previousValue?.url != changes.ref?.currentValue?.url;
-      const ref = this.ref();
-      if (!ref || newRef) {
-        this.watch?.unsubscribe();
-        if (ref || this.text() != null) this.init();
-      } else if (changes.ref && !changes.ref.firstChange) {
-        // Check if end game tags were added
-        const prevEnded = !!(changes.ref.previousValue && (
-          hasTag('plugin/backgammon/draw', changes.ref.previousValue) ||
-          hasTag('plugin/backgammon/winner/r', changes.ref.previousValue) ||
-          hasTag('plugin/backgammon/winner/b', changes.ref.previousValue)
-        ));
-        const nowEnded = this.isGameEnded;
-
-        if (!prevEnded && nowEnded && !this.replayMode()) {
-          // Tags were added to end the game, enter replay mode
-          defer(() => this.enterReplayMode());
-        }
-      }
-    }
   }
 
   ngOnDestroy() {
@@ -711,13 +714,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   reset(board = '') {
-    this.state.set(createInitialGameState());
+    const state = createInitialGameState();
     try {
-      load(this.state(), board.split('\n').map(m => m.trim()).filter(m => !!m));
+      load(state, board.split('\n').map(m => m.trim()).filter(m => !!m));
     } catch (e) {
       console.error(e);
       this.errored = true;
     }
+    this.state.set(state);
     if (this.isGameEnded) defer(() => this.enterReplayMode());
   }
 
@@ -771,13 +775,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   check() {
     if (!getRedPips(this.state())) {
-      this.state().winner = 'r';
+      this.state.update(s => ({ ...s, winner: 'r' }));
       // Enter replay mode when game ends during play
       if (!this.replayMode()) {
         defer(() => this.enterReplayMode());
       }
     } else if (!getBlackPips(this.state())) {
-      this.state().winner = 'b';
+      this.state.update(s => ({ ...s, winner: 'b' }));
       // Enter replay mode when game ends during play
       if (!this.replayMode()) {
         defer(() => this.enterReplayMode());
@@ -787,17 +791,29 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   clearMoves() {
-    for (const s of this.state().spots) s.move = false;
-    this.moveRedOff.set(this.moveBlackOff.set(false));
+    this.state.update(state => ({ ...state, spots: state.spots.map(s => s.move ? { ...s, move: false } : s) }));
+    this.moveRedOff.set(false);
+    this.moveBlackOff.set(false);
+  }
+
+  private setMoves(state: GameState, move: number[]) {
+    const spots = state.spots.map(s => ({ ...s, move: move.includes(s.index) }));
+    if (state === this.state()) {
+      this.state.set({ ...state, spots });
+    } else {
+      // Queued state that is not displayed yet
+      state.spots = spots;
+    }
   }
 
   onClick(index: number) {
     const state = this.getLastState();
     const p = state.spots[index].pieces[0];
-    if (state.turn && this.start() !== undefined && state.moves[this.start()]?.includes(index)) {
-      this.lastState = applyMove(state, state.turn, this.start(), index);
+    const start = this.start();
+    if (state.turn && start !== undefined && state.moves[start]?.includes(index)) {
+      this.lastState = applyMove(state, state.turn, start, index);
       this.clearMoves();
-      this.save(state.turn!, this.start(), index);
+      this.save(state.turn!, start, index);
       this.start.set(undefined);
       return;
     }
@@ -810,9 +826,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const move = state.moves[index];
     if (!move) return this.clearMoves();
     this.start.set(index);
-    for (const s of state.spots) {
-      s.move = move.find(m => m === s.index) !== undefined;
-    }
+    this.setMoves(state, move);
     this.moveRedOff.set(state.turn === 'r' && move.includes(-2));
     this.moveBlackOff.set(state.turn === 'b' && move.includes(-2));
   }
@@ -822,18 +836,18 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const state = this.getLastState();
     const move = state.moves[-1];
     if (!move) return this.clearMoves();
-    for (const s of state.spots) {
-      s.move = move.find(m => m === s.index) !== undefined;
-    }
-    this.moveRedOff.set(this.moveBlackOff.set(false));
+    this.setMoves(state, move);
+    this.moveRedOff.set(false);
+    this.moveBlackOff.set(false);
   }
 
   onClickOff() {
     const state = this.getLastState();
-    if (this.start() !== undefined && state.moves[this.start()]?.includes(-2)) {
-      this.lastState = applyMove(state, state.turn!, this.start(), -2);
+    const start = this.start();
+    if (start !== undefined && state.moves[start]?.includes(-2)) {
+      this.lastState = applyMove(state, state.turn!, start, -2);
       this.clearMoves();
-      this.save(state.turn!, this.start(), -2);
+      this.save(state.turn!, start, -2);
       this.start.set(undefined);
     }
   }
@@ -1094,7 +1108,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   precomputeReplayAnimations() {
-    this.replayAnimations.set([]);
+    const replayAnimations: AnimationState[] = [];
 
     // Start with initial state
     let currentState = createInitialGameState();
@@ -1103,10 +1117,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     for (const move of this.state().board) {
       const animation = getAnimation(currentState, move);
       if (animation) {
-        this.replayAnimations().push(animation);
+        replayAnimations.push(animation);
         currentState = animation.post;
       }
     }
+    this.replayAnimations.set(replayAnimations);
   }
 
   detectImportantEvents() {
@@ -1245,7 +1260,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.rolling.set(animation.rollingPiece);
       const duration = 750 / this.replaySpeed();
       delay(() => {
-        this.replayPosition++;
+        this.replayPosition.update(p => p + 1);
         this.processReplayAnimationQueue();
       }, duration);
       return;
@@ -1263,7 +1278,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
             // Don't loop
             this.pauseReplay();
           }
-          this.replayPosition++;
+          this.replayPosition.update(p => p + 1);
           this.processReplayAnimationQueue();
         }
       }, totalDuration);

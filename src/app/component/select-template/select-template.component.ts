@@ -43,8 +43,7 @@ export class SelectTemplateComponent {
       if (!hit && value && !this.templates().find(p => (p?.tag) === value)) {
         const template = this.admin.getTemplate(value);
         if (template) {
-          this.templates().unshift(template);
-          this.templates.set(this.templates());
+          this.templates.update(templates => [template, ...templates]);
           defer(() => this.select()!.nativeElement.selectedIndex = 1);
           return;
         }

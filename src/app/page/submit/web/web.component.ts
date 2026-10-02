@@ -345,7 +345,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   submit() {
     if (this.saving()) {
-      this.saving().add(() => this.submit());
+      this.saving()!.add(() => this.submit());
       return;
     }
     if (this.alreadyExists()) {

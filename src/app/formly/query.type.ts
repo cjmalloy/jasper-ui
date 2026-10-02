@@ -338,10 +338,10 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
-      this.autocomplete.set(xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag })));
-      if (this.autocomplete().length < 5) this.autocomplete().push(...getPlugins(tag, 5 - this.autocomplete().length));
-      if (this.autocomplete().length < 5) this.autocomplete().push(...getTemplates(tag, 5 - this.autocomplete().length));
-      this.autocomplete.set(uniqBy(this.autocomplete(), 'value'))
+      const autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
+      if (autocomplete.length < 5) autocomplete.push(...getPlugins(tag, 5 - autocomplete.length));
+      if (autocomplete.length < 5) autocomplete.push(...getTemplates(tag, 5 - autocomplete.length));
+      this.autocomplete.set(uniqBy(autocomplete, 'value'))
     });
   }, 400);
 }

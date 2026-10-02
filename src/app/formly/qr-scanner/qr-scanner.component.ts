@@ -69,10 +69,10 @@ export class QrScannerComponent implements OnDestroy {
       hasBackdrop: true,
     });
     this.overlayRef.attach(new TemplatePortal(this.video(), this.viewContainerRef));
-    this.scanner ||= new QrScanner(this.overlayRef.overlayElement.firstElementChild as HTMLVideoElement, data => {
+    if (!this.scanner()) this.scanner.set(new QrScanner(this.overlayRef.overlayElement.firstElementChild as HTMLVideoElement, data => {
       if (data) this.data.emit(data);
       this.stopScanQr();
-    }, this.camera);
+    }, this.camera));
 
     this.scanner()?.start()
       .then(() => listCameras().then(value => this.cameras.set(value)))
@@ -83,8 +83,8 @@ export class QrScannerComponent implements OnDestroy {
   stopScanQr() {
     document.documentElement.style.overflowY = 'scroll';
     if (!this.scanner()) return;
-    this.scanner().stop();
-    this.scanner().destroy();
+    this.scanner()!.stop();
+    this.scanner()!.destroy();
     this.scanner.set(undefined);
     this.overlayRef?.detach();
     this.overlayRef?.dispose();

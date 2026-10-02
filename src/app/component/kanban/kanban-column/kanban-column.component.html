@@ -1,5 +1,5 @@
-@if (page()) {
-  @for (ref of page().content; track ref.origin + '@' + ref.url) {
+@if (page(); as page) {
+  @for (ref of page.content; track ref.origin + '@' + ref.url) {
     <app-kanban-card cdkDrag
                      [hideSwimLanes]="hideSwimLanes()"
                      [cdkDragData]="ref"

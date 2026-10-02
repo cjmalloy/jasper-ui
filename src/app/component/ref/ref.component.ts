@@ -23,7 +23,7 @@ import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angu
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
@@ -822,8 +822,9 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   get replySources() {
     const sources = [this.ref().url];
     if (this.comment || this.thread || this.email) {
-      if (this.ref().sources?.length) {
-        sources.push(this.ref().sources[1] || this.ref().sources[0] || this.ref().url);
+      const refSources = this.ref().sources;
+      if (refSources?.length) {
+        sources.push(refSources[1] || refSources[0] || this.ref().url);
       }
     }
     return sources;
@@ -993,11 +994,13 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get publishedIsSubmitted() {
-    return !this.ref().published || Math.abs(this.ref().published.diff(this.ref().created!, 'seconds').seconds) <= 5;
+    const ref = this.ref();
+    return !ref.published || Math.abs(ref.published.diff(ref.created!, 'seconds').seconds) <= 5;
   }
 
   get modifiedIsSubmitted() {
-    return !this.ref().modified || Math.abs(this.ref().modified.diff(this.ref().created!, 'seconds').seconds) <= 5;
+    const ref = this.ref();
+    return !ref.modified || Math.abs(ref.modified.diff(ref.created!, 'seconds').seconds) <= 5;
   }
 
   get upvote() {
@@ -1073,14 +1076,15 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   tag$ = (tag: string) => {
     if (this.ref().upload) {
-      this.ref().tags ||= [];
+      let tags = this.ref().tags || [];
       for (const t of tag.split(' ').filter(t => !!t.trim())) {
         if (t.startsWith('-')) {
-          this.ref().tags = this.ref().tags.filter(r => expandedTagsInclude(r, t.substring(1)));
-        } else if (!hasTag(t, this.ref())) {
-          this.ref().tags.push(t);
+          tags = tags.filter(r => expandedTagsInclude(r, t.substring(1)));
+        } else if (!hasTag(t, { ...this.ref(), tags })) {
+          tags = [...tags, t];
         }
       }
+      this.ref.update(r => ({ ...r, tags }));
       this.init();
       return of(null);
     } else {
@@ -1135,35 +1139,41 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   voteUp() {
-    this.ref().metadata ||= {};
-    this.ref().metadata.userUrls ||= [];
+    const ref = this.ref();
+    let userUrls = ref.metadata?.userUrls || [];
+    let request: Observable<any>;
     if (this.upvote) {
-      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/up', this.ref().url), this.ref());
+      userUrls = without(userUrls, 'plugin/user/vote/up');
+      request = this.ts.deleteResponse('plugin/user/vote/up', ref.url);
     } else if (!this.downvote) {
-      this.ref().metadata.userUrls.push('plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/up', this.ref().url), this.ref());
+      userUrls = [...userUrls, 'plugin/user/vote/up'];
+      request = this.ts.createResponse('plugin/user/vote/up', ref.url);
     } else {
-      this.ref().metadata.userUrls.push('plugin/user/vote/up');
-      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref().url), this.ref());
+      userUrls = without([...userUrls, 'plugin/user/vote/up'], 'plugin/user/vote/down');
+      request = this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], ref.url);
     }
+    const updated = { ...ref, metadata: { ...ref.metadata, userUrls } };
+    this.ref.set(updated);
+    this.store.eventBus.runAndRefresh(request, updated);
   }
 
   voteDown() {
-    this.ref().metadata ||= {};
-    this.ref().metadata.userUrls ||= [];
+    const ref = this.ref();
+    let userUrls = ref.metadata?.userUrls || [];
+    let request: Observable<any>;
     if (this.downvote) {
-      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/down', this.ref().url), this.ref());
+      userUrls = without(userUrls, 'plugin/user/vote/down');
+      request = this.ts.deleteResponse('plugin/user/vote/down', ref.url);
     } else if (!this.upvote) {
-      this.ref().metadata.userUrls.push('plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/down', this.ref().url), this.ref());
+      userUrls = [...userUrls, 'plugin/user/vote/down'];
+      request = this.ts.createResponse('plugin/user/vote/down', ref.url);
     } else {
-      this.ref().metadata.userUrls.push('plugin/user/vote/down');
-      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref().url), this.ref());
+      userUrls = without([...userUrls, 'plugin/user/vote/down'], 'plugin/user/vote/up');
+      request = this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], ref.url);
     }
+    const updated = { ...ref, metadata: { ...ref.metadata, userUrls } };
+    this.ref.set(updated);
+    this.store.eventBus.runAndRefresh(request, updated);
   }
 
   save() {

@@ -190,13 +190,13 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (this.ext()?.config?.searchHelp) {
-      this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext().config.searchHelp);
+      this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext()!.config.searchHelp);
     }
     if (this.ext()?.config?.filterHelp) {
-      this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext().config.filterHelp);
+      this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext()!.config.filterHelp);
     }
     if (this.ext()?.config?.sortHelp) {
-      this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext().config.sortHelp);
+      this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext()!.config.sortHelp);
     }
   }
 
@@ -205,15 +205,15 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
       this.bookmarks$().subscribe(xs => this.bookmarkExts.set(xs));
       this.tagSubs$().subscribe(xs => this.tagSubExts.set(xs));
       this.userSubs$().subscribe(xs => this.userSubExts.set(xs));
-      this.tag ||= this.ext().tag || '';
-      if (this.ext().config?.searchHelp) {
-        this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext().config.searchHelp);
+      if (!this.tag()) this.tag.set(this.ext()!.tag || '');
+      if (this.ext()!.config?.searchHelp) {
+        this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext()!.config.searchHelp);
       }
-      if (this.ext().config?.filterHelp) {
-        this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext().config.filterHelp);
+      if (this.ext()!.config?.filterHelp) {
+        this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext()!.config.filterHelp);
       }
-      if (this.ext().config?.sortHelp) {
-        this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext().config.sortHelp);
+      if (this.ext()!.config?.sortHelp) {
+        this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext()!.config.sortHelp);
       }
     } else {
       this.bookmarkExts.set([]);
@@ -228,7 +228,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
       } else if (this.plugin()) {
         this.addTags.set(uniq([
           ...this.rootConfig()?.addTags || this.plugin()?.config?.reply || ['public'],
-          ...this.plugin()?.config?.submit ? [this.plugin().tag] : [],
+          ...this.plugin()?.config?.submit ? [this.plugin()!.tag] : [],
           ...this.plugin()?.config?.internal ? ['internal'] : []]));
       } else {
         this.addTags.set(uniq([...this.rootConfig()?.addTags || ['public'], ...topAnds(this.tag()).map(localTag)]));
@@ -279,12 +279,12 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
   });
   readonly dms = computed(() => {
     return uniq([
-      ...this.plugin()?.config?.reply ? [ this.plugin().tag ] : [],
+      ...this.plugin()?.config?.reply ? [ this.plugin()!.tag ] : [],
       ...this.rootConfig()?.dms ? [this.rootConfig()?.dms] : [],
     ]);
   });
   readonly canAddTag = computed(() => {
-    return !this.plugin()?.tag || this.auth.canAddTag(this.plugin().tag);
+    return !this.plugin()?.tag || this.auth.canAddTag(this.plugin()!.tag);
   });
   readonly videoChat = computed(() => {
     return !!this.admin.getPlugin('plugin/user/video') && (this.chat() || hasPrefix(this.ext()?.tag || this.tag(), 'chat'));

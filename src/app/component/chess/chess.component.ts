@@ -101,7 +101,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   init() {
     this.reset(this.ref()?.comment || this.text());
     if (!this.watch && this.ref()) {
-      const watch = this.actions.append(this.ref());
+      const watch = this.actions.append(this.ref()!);
       this.append$ = watch.append$;
       this.watch = watch.updates$.pipe(
         catchError(err => {
@@ -202,7 +202,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       }
     }
     this.render();
-    if (!this.ref() || (this.ref().comment || '') !== this.history) {
+    if (!this.ref() || (this.ref()!.comment || '') !== this.history) {
       this.clearErrors();
     }
   }
@@ -353,7 +353,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       this.moves.set(this.chess.moves({ square, verbose: true }).map(m => m.to));
     } else if (this.from()) {
       this.to.set(square);
-      this.move(this.from(), square);
+      this.move(this.from()!, square);
     }
   }
 

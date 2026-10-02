@@ -258,17 +258,19 @@ export class RefFormComponent {
   }
 
   get scrape$() {
-    if (this.scraped()) return of(this.scraped());
+    const scraped = this.scraped();
+    if (scraped) return of(scraped);
     return this.scrape.webScrape(hasTag('plugin/repost', this.tags.value) ? this.sources.value?.[0] : this.url.value).pipe(
       tap(s => {
         this.scraped.set(s);
-        if (s.modified && this.ref()?.modified) {
+        const current = this.ref();
+        if (s.modified && current?.modified) {
           const ref: Ref = {
-            ...this.ref(),
+            ...current,
             modifiedString: s.modifiedString,
             modified: s.modified,
-            tags: [...this.ref().tags || []],
-            plugins: { ...this.ref().plugins || {} },
+            tags: [...current.tags || []],
+            plugins: { ...current.plugins || {} },
           };
           if (hasTag('_plugin/cache', s)) {
             if (!hasTag('_plugin/cache', ref)) {

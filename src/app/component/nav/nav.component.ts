@@ -43,8 +43,8 @@ export class NavComponent implements OnInit {
   ngOnInit() {
     if (this.localUrl) {
       this.nav.set(this.getNav());
-      if (this.nav()[0] === '/tag' && !this.external() && !this.hasText) {
-        this.editor.getTagPreview(this.nav()[1] as string)
+      if (this.nav()![0] === '/tag' && !this.external() && !this.hasText) {
+        this.editor.getTagPreview(this.nav()![1] as string)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(x => {
             this.text.set(x?.name || this.text() || x?.tag || '');

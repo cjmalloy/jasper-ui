@@ -169,10 +169,10 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
         switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
         map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
       ).subscribe(xs => {
-        this.autocomplete.set(xs.map(x => ({ value: x.tag, label: x.name || x.tag })));
-        if (this.autocomplete().length < 5) this.autocomplete().push(...getPlugins(value, 5 - this.autocomplete().length));
-        if (this.autocomplete().length < 5) this.autocomplete().push(...getTemplates(value, 5 - this.autocomplete().length));
-        this.autocomplete.set(derank(uniqBy(this.autocomplete(), 'value')));
+        const autocomplete = xs.map(x => ({ value: x.tag, label: x.name || x.tag }));
+        if (autocomplete.length < 5) autocomplete.push(...getPlugins(value, 5 - autocomplete.length));
+        if (autocomplete.length < 5) autocomplete.push(...getTemplates(value, 5 - autocomplete.length));
+        this.autocomplete.set(derank(uniqBy(autocomplete, 'value')));
       });
     }
   }, 400);

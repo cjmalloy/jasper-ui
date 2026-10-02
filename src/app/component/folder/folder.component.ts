@@ -111,15 +111,18 @@ export class FolderComponent implements HasChanges {
   }
 
   private loadExt() {
+    const ext = this.ext();
     this.files.set({});
     this.subfolders.set({});
-    this.flatten.set(this.ext()?.config?.flatten);
-    if (!this.ext()) return;
-    this.cursor.set(this.ext().modifiedString!);
-    this.files.set(mapValues(this.ext().config?.files || {}, p => this.transform(p)));
-    for (const e of Object.entries<Pos>(this.ext().config?.subfolders || {})) {
-      this.subfolders()[this.ext().tag + (e[0] !== '..' ? '/' + e[0] : '')] = this.transform(e[1]);
+    this.flatten.set(ext?.config?.flatten);
+    if (!ext) return;
+    this.cursor.set(ext.modifiedString!);
+    this.files.set(mapValues(ext.config?.files || {}, p => this.transform(p)));
+    const subfolders: Record<string, string | undefined> = {};
+    for (const e of Object.entries<Pos>(ext.config?.subfolders || {})) {
+      subfolders[ext.tag + (e[0] !== '..' ? '/' + e[0] : '')] = this.transform(e[1]);
     }
+    this.subfolders.set(subfolders);
   }
 
 

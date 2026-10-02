@@ -191,7 +191,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(url => {
         this.seen.add(url);
-        this.newResponses++;
+        this.newResponses.update(n => n + 1);
       });
     }
   }

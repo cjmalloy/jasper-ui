@@ -13,7 +13,7 @@
 <div class="stack">
   <div class="info">
     @if (ext().modified) {
-      <span [title]="ext().modified.toISO()" i18n>modified {{ ext().modified.toRelative() }}</span>
+      <span [title]="ext().modified!.toISO()" i18n>modified {{ ext().modified!.toRelative() }}</span>
     } @else {
       <span i18n>not found</span>
     }

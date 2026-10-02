@@ -5,7 +5,7 @@
   }
 </div>
 @if (page()) {
-  @if (page().content.length) {
+  @if (page()!.content.length) {
     <app-page-controls [page]="page()"></app-page-controls>
   } @else {
     <p class="no-results" i18n>

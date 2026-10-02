@@ -89,7 +89,7 @@ export class TabsComponent implements AfterViewInit {
 
   updateTabs() {
     this.hidden.set(0);
-    this.options.set([]);
+    const options: string[] = [];
     this.map.clear();
     const tabs = this.anchors();
     for (const t of tabs) {
@@ -97,10 +97,10 @@ export class TabsComponent implements AfterViewInit {
       if (el.tagName !== 'A') continue;
       if (el.classList.contains('logo')) continue;
       const value = el.title || el.innerText;
-      this.options().push(value);
+      options.push(value);
       this.map.set(value, tabs.indexOf(t));
     }
-    this.options.set(this.options());
+    this.options.set(options);
     defer(() => !this.destroyed && this.onResize());
   }
 

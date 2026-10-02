@@ -8,7 +8,7 @@ import { HttpEventType } from '@angular/common/http';
 import { DestroyRef, inject, Component, OnDestroy, ChangeDetectionStrategy, effect, input, viewChild, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
-import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
+import { debounce, defer, delay, differenceWith, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import {
   catchError,
@@ -204,22 +204,20 @@ export class ChatComponent implements OnDestroy, HasChanges {
     }).pipe(
       catchError(err => {
         this.setPoll(true);
-        this.messages ||= [];
-        this.messages.set([...this.messages()]);
+        this.messages.update(messages => [...messages || []]);
         return throwError(() => err);
       }),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(page => {
       this.setPoll(!page.content.length);
-      this.messages ||= [];
+      this.messages.update(messages => messages || []);
       if (!page.content.length) return;
-      this.messages.set([...this.messages(), ...page.content.filter(r => !hasTag('+plugin/placeholder', r))]);
+      this.messages.set([...this.messages()!, ...page.content.filter(r => !hasTag('+plugin/placeholder', r))]);
       const last = page.content[page.content.length - 1];
       this.cursors.set(origin, last?.modifiedString);
       // TODO: verify read before clearing?
       this.accounts.clearNotificationsIfNone(last.modified);
-      pullAllWith(this.sending(), page.content, (a, b) => a.url === b.url);
-      this.sending.set([...this.sending()]);
+      this.sending.update(sending => differenceWith(sending, page.content, (a, b) => a.url === b.url));
       defer(() => this.viewport().checkViewportSize());
       if (!this.scrollLock()) this.scrollDown();
     });
@@ -243,16 +241,15 @@ export class ChatComponent implements OnDestroy, HasChanges {
     }).pipe(
       catchError(err => {
         this.loadingPrev.set(false);
-        this.messages ||= [];
         this.setPoll(true);
-        this.messages.set([...this.messages()]);
+        this.messages.update(messages => [...messages || []]);
         return throwError(() => err);
       }),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(page => {
       this.loadingPrev.set(false);
       this.setPoll(!page.content.length);
-      this.messages ||= [];
+      this.messages.update(messages => messages || []);
       this.scrollLock.set(undefined);
       if (!page.content.length) return;
       for (const ref of page.content) {
@@ -260,9 +257,8 @@ export class ChatComponent implements OnDestroy, HasChanges {
           this.cursors.set(ref.origin!, ref.modifiedString);
         }
       }
-      this.messages.set([...page.content.reverse().filter(r => !hasTag('+plugin/placeholder', r)), ...this.messages()]);
-      pullAllWith(this.sending(), page.content, (a, b) => a.url === b.url);
-      this.sending.set([...this.sending()]);
+      this.messages.set([...page.content.reverse().filter(r => !hasTag('+plugin/placeholder', r)), ...this.messages()!]);
+      this.sending.update(sending => differenceWith(sending, page.content, (a, b) => a.url === b.url));
       defer(() => this.viewport().checkViewportSize());
       if (scrollDown) {
         this.retries = 0;
@@ -358,22 +354,20 @@ export class ChatComponent implements OnDestroy, HasChanges {
   private send(ref: Ref) {
     const responseOf = this.responseOf();
     if (responseOf) ref.sources = [responseOf.url];
-    this.sending().push(ref);
-    this.sending.set([...this.sending()]);
+    this.sending.update(sending => [...sending, ref]);
     (ref.modified ? this.refs.update(ref).pipe(
       map(() => ref),
       catchError(err => {
         if (err.status === 403) {
           // Ref already exists, repost
-          pull(this.sending(), ref);
+          this.sending.update(sending => without(sending, ref));
           ref = {
             ...ref,
             url: 'comment:' + uuid(),
             tags: [...ref.tags!, 'plugin/repost'],
             sources: [ ref.url, ...ref.sources || [] ],
           };
-          this.sending().push(ref);
-          this.sending.set([...this.sending()]);
+          this.sending.update(sending => [...sending, ref]);
           return this.refs.create(ref);
         } else if (err.status === 409) {
           // Ref already exists, repost
@@ -385,10 +379,8 @@ export class ChatComponent implements OnDestroy, HasChanges {
             })),
           );
         } else {
-          pull(this.sending(), ref);
-          this.errored().push(ref);
-          this.sending.set([...this.sending()]);
-          this.errored.set([...this.errored()]);
+          this.sending.update(sending => without(sending, ref));
+          this.errored.update(errored => [...errored, ref]);
         }
         return throwError(err);
       }),
@@ -397,33 +389,28 @@ export class ChatComponent implements OnDestroy, HasChanges {
       catchError(err => {
         if (err.status === 409) {
           // Ref already exists, repost
-          pull(this.sending(), ref);
+          this.sending.update(sending => without(sending, ref));
           ref = {
             ...ref,
             url: 'comment:' + uuid(),
             tags: [...ref.tags!, 'plugin/repost'],
             sources: [ ref.url, ...ref.sources || [] ],
           };
-          this.sending().push(ref);
-          this.sending.set([...this.sending()]);
+          this.sending.update(sending => [...sending, ref]);
           return this.refs.create(ref);
         } else {
-          pull(this.sending(), ref);
-          this.errored().push(ref);
-          this.sending.set([...this.sending()]);
-          this.errored.set([...this.errored()]);
+          this.sending.update(sending => without(sending, ref));
+          this.errored.update(errored => [...errored, ref]);
         }
         return throwError(err);
       }),
     )).subscribe(cursor => {
       this.fetch();
-      this.sending.set([...this.sending()]);
     });
   }
 
   retry(ref: Ref) {
-    pull(this.errored(), ref);
-    this.errored.set([...this.errored()]);
+    this.errored.update(errored => without(errored, ref));
     this.send(ref);
   }
 
@@ -431,7 +418,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
     this.notAtBottom.set(this.viewport().measureScrollOffset('bottom') > this.itemSize);
     if (!this.scrollLock()) return;
     // TODO: count height in rows
-    const diff = this.scrollLock() - index;
+    const diff = this.scrollLock()! - index;
     if (diff < -5) {
       this.scrollLock.set(undefined);
     }
@@ -528,8 +515,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
         name: file.name,
         progress: 0
       };
-      this.uploads().push(upload);
-      this.uploads.set([...this.uploads()]);
+      this.uploads.update(uploads => [...uploads, upload]);
       upload.subscription = this.upload$(file, upload).subscribe(ref => {
         if (ref && !upload.error) {
           upload.completed = true;

@@ -120,19 +120,19 @@ export class TemplateComponent implements HasChanges {
       if (!template.config) delete template.config;
       if (template.config) template.config = JSON.parse(template.config);
     } catch (e: any) {
-      this.configErrors().push(e.message);
+      this.configErrors.update(configErrors => [...configErrors, e.message]);
     }
     try {
       if (!template.defaults) delete template.defaults;
       if (template.defaults) template.defaults = JSON.parse(template.defaults);
     } catch (e: any) {
-      this.defaultsErrors().push(e.message);
+      this.defaultsErrors.update(defaultsErrors => [...defaultsErrors, e.message]);
     }
     try {
       if (!template.schema) delete template.schema;
       if (template.schema) template.schema = JSON.parse(template.schema);
     } catch (e: any) {
-      this.schemaErrors().push(e.message);
+      this.schemaErrors.update(schemaErrors => [...schemaErrors, e.message]);
     }
     if (this.configErrors().length || this.defaultsErrors().length || this.schemaErrors().length) return;
     this.saving.set(this.templates.update(template).pipe(

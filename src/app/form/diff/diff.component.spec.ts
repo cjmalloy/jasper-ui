@@ -76,13 +76,13 @@ describe('DiffComponent', () => {
   });
 
   it('should return parsed JSON from getModifiedContent', () => {
-    component.modifiedModel().code = '{"url":"http://test.com","title":"Test"}';
+    component.modifiedModel.update(m => ({ ...m, code: '{"url":"http://test.com","title":"Test"}' }));
     const content = component.getModifiedContent();
     expect(content).toEqual({ url: 'http://test.com', title: 'Test' });
   });
 
   it('should return null for invalid JSON in getModifiedContent', () => {
-    component.modifiedModel().code = 'not valid json';
+    component.modifiedModel.update(m => ({ ...m, code: 'not valid json' }));
     const content = component.getModifiedContent();
     expect(content).toBeNull();
   });

@@ -14,7 +14,7 @@ import {
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
-import { debounce, defer, find, uniq, uniqBy } from 'lodash-es';
+import { debounce, defer, uniq, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
@@ -386,7 +386,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       // Query can change while kanban tag previews are loading.
       if (query !== this.queryPart) return;
       this.syncFilterOptions();
-      this.allFilters.set([...this.allFilters()]);
     });
     this.syncFilterOptions(false);
   }
@@ -483,9 +482,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
         const group = $localize`Kanban 📋️`;
         const k = e.config as KanbanConfig;
         if (k.columns?.length) {
-          if (!find(this.allFilters(), f => f.label === group)) {
-            this.allFilters().push({ label: group, filters: [] });
-          }
+          this.pushFilter({ label: group, filters: [] });
           const kanbanTags = uniq([...k.columns, ...k.swimLanes || [], ...k.badges || []]);
           kanbanFilterLoaders.push(this.editor.getTagsPreview(kanbanTags, e.origin || '').pipe(map(ps => {
             if (query !== this.queryPart) return;
@@ -509,23 +506,21 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   private loadFilter(filter: FilterConfig) {
-    let group = find(this.allFilters(), f => f.label === (filter.group || ''));
-    if (group) {
-      group.filters.push(convertFilter(filter));
-    } else {
-      this.allFilters().push({ label: filter.group || '', filters: [convertFilter(filter)] });
-    }
+    this.pushFilter({ label: filter.group || '', filters: [convertFilter(filter)] });
   }
 
   private pushFilter(...filterGroups: FilterGroup[]) {
-    for (const filterGroup of filterGroups) {
-      const group = find(this.allFilters(), f => f.label === (filterGroup.label || ''));
-      if (group) {
-        group.filters.push(...filterGroup.filters);
-      } else {
-        this.allFilters().push(filterGroup);
+    this.allFilters.update(groups => {
+      for (const filterGroup of filterGroups) {
+        const index = groups.findIndex(f => f.label === (filterGroup.label || ''));
+        if (index >= 0) {
+          groups = groups.map((g, i) => i === index ? { ...g, filters: [...g.filters, ...filterGroup.filters] } : g);
+        } else {
+          groups = [...groups, filterGroup];
+        }
       }
-    }
+      return groups;
+    });
   }
 
   /** Mirror filter.component.ts sync(): mutate allFilters options to show ! prefix for negated filters,
@@ -534,24 +529,20 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     for (const f of this.filters()) {
       const toggled = toggle(f as UrlFilter);
       if (!toggled) continue;
-      const sets = this.allFilters().filter(g => g.filters.find(i => i.filter === toggled));
-      if (sets.length) {
-        sets.forEach(g => {
-          const target = g.filters.find(i => i.filter === toggled);
-          if (target) {
-            target.filter = f as UrlFilter;
-            const sym = this.store.account.querySymbol('!');
-            if (f.startsWith('!') || f.startsWith('user/!') || f.startsWith('query/!(')) {
-              if (!(target.label || '').startsWith(sym)) {
-                target.label = sym + (target.label || '');
-              }
-            } else {
-              if ((target.label || '').startsWith(sym)) {
-                target.label = (target.label || '').substring(sym.length);
-              }
-            }
+      if (this.allFilters().find(g => g.filters.find(i => i.filter === toggled))) {
+        const sym = this.store.account.querySymbol('!');
+        this.allFilters.update(groups => groups.map(g => {
+          const index = g.filters.findIndex(i => i.filter === toggled);
+          if (index < 0) return g;
+          const target = g.filters[index];
+          let label = target.label || '';
+          if (f.startsWith('!') || f.startsWith('user/!') || f.startsWith('query/!(')) {
+            if (!label.startsWith(sym)) label = sym + label;
+          } else {
+            if (label.startsWith(sym)) label = label.substring(sym.length);
           }
-        });
+          return { ...g, filters: g.filters.map((i, j) => j === index ? { ...target, filter: f as UrlFilter, label } : i) };
+        }));
       } else if (addMissing && !this.allFilters().find(g => g.filters.find(i => i.filter === f))) {
         // Filter not found — add it as a fallback so the dropdown shows the current value
         if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
@@ -823,10 +814,10 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
-      this.autocomplete.set(xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag })));
-      if (this.autocomplete().length < 5) this.autocomplete().push(...getPlugins(tag, 5 - this.autocomplete().length));
-      if (this.autocomplete().length < 5) this.autocomplete().push(...getTemplates(tag, 5 - this.autocomplete().length));
-      this.autocomplete.set(uniqBy(this.autocomplete(), 'value'))
+      const autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
+      if (autocomplete.length < 5) autocomplete.push(...getPlugins(tag, 5 - autocomplete.length));
+      if (autocomplete.length < 5) autocomplete.push(...getTemplates(tag, 5 - autocomplete.length));
+      this.autocomplete.set(uniqBy(autocomplete, 'value'))
     });
   }, 400);
 

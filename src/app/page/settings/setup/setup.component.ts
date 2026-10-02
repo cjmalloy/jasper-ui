@@ -172,7 +172,7 @@ export class SettingsSetupPage implements OnDestroy {
         // skip
         return of(null)
       } else {
-        return this.admin.updateMod$(mod, this.mergeState().proposed, receipt, _);
+        return this.admin.updateMod$(mod, this.mergeState()!.proposed, receipt, _);
       }
     })).pipe(
       catchError((res: HttpErrorResponse) => {
@@ -208,7 +208,7 @@ export class SettingsSetupPage implements OnDestroy {
     if (this.mergeState()?.conflict) {
       this.openMergePopup();
     } else {
-      this.admin.updateMod$(mod, this.mergeState().proposed, receipt, _).subscribe(() => {
+      this.admin.updateMod$(mod, this.mergeState()!.proposed, receipt, _).subscribe(() => {
         this.reset();
         _($localize`Success.`);
       });
@@ -316,7 +316,7 @@ export class SettingsSetupPage implements OnDestroy {
     if (!this.mergeState() || !bundle) return;
     this.serverError.set([]);
     const _ = (msg?: string) => this.installMessages.set([...this.installMessages(), msg!]);
-    this.mergeSaving.set(this.admin.updateMod$(this.mergeState().mod, bundle, this.admin.getMod(this.mergeState().mod)!, _)
+    this.mergeSaving.set(this.admin.updateMod$(this.mergeState()!.mod, bundle, this.admin.getMod(this.mergeState()!.mod)!, _)
       .pipe(catchError((res: HttpErrorResponse) => {
         this.mergeSaving.set(undefined);
         return throwError(() => res);

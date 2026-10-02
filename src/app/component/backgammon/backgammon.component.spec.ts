@@ -65,9 +65,9 @@ describe('BackgammonComponent', () => {
     it('should reject moving when no dice are available', () => {
       // Setup: Create a scenario where no dice are available
       component.reset();
-      component.state().redDice = [3, 2];
-      component.state().turn = 'r';
-      component.state().diceUsed = [3, 2]; // Both dice already used
+      component.state.update(s => ({ ...s, redDice: [3, 2] }));
+      component.state.update(s => ({ ...s, turn: 'r' }));
+      component.state.update(s => ({ ...s, diceUsed: [3, 2] })); // Both dice already used
 
       // Try to make a move via drop - should throw because no moves are valid
       expect(() => {
@@ -85,10 +85,10 @@ describe('BackgammonComponent', () => {
       component.reset();
       component.state().bar.push('r');
       component.state().spots[0].pieces = ['r']; // One piece left on board
-      component.state().redDice = [3, 2];
-      component.state().turn = 'r';
-      component.state().diceUsed = [];
-      component.state().moves = [];
+      component.state.update(s => ({ ...s, redDice: [3, 2] }));
+      component.state.update(s => ({ ...s, turn: 'r' }));
+      component.state.update(s => ({ ...s, diceUsed: [] }));
+      component.state.update(s => ({ ...s, moves: [] }));
 
       // Calculate moves manually since getAllMoves is a standalone function
       // When a piece is on the bar, only bar moves should be allowed
@@ -104,10 +104,10 @@ describe('BackgammonComponent', () => {
       // Keep a piece on spot 0 (outside home)
       component.state().spots[0].pieces = ['r'];
       component.state().spots[18].pieces = ['r', 'r', 'r', 'r', 'r'];
-      component.state().redDice = [3, 2];
-      component.state().turn = 'r';
-      component.state().diceUsed = [];
-      component.state().moves = [];
+      component.state.update(s => ({ ...s, redDice: [3, 2] }));
+      component.state.update(s => ({ ...s, turn: 'r' }));
+      component.state.update(s => ({ ...s, diceUsed: [] }));
+      component.state.update(s => ({ ...s, moves: [] }));
 
       // Bearing off (moving to -2) should not be available
       // when pieces are still outside home board
@@ -158,10 +158,10 @@ describe('BackgammonComponent', () => {
       component.state().spots[5].pieces = ['b'];
 
       // Red rolls 3-2
-      component.state().redDice = [3, 2];
-      component.state().turn = 'r';
-      component.state().diceUsed = [];
-      component.state().moves = [];
+      component.state.update(s => ({ ...s, redDice: [3, 2] }));
+      component.state.update(s => ({ ...s, turn: 'r' }));
+      component.state.update(s => ({ ...s, diceUsed: [] }));
+      component.state.update(s => ({ ...s, moves: [] }));
 
       // Re-calculate moves for this custom board
       const board = component.state().board.join('\n');

@@ -123,7 +123,7 @@ export class NotebookComponent implements OnInit, HasChanges {
     if (!this.page()?.content.find(r => r.url === ref.url)) {
       const index = this.newRefs().findIndex(r => r.url === ref.url);
       if (index !== -1) {
-        this.newRefs()[index] = ref;
+        this.newRefs.update(newRefs => newRefs.map((r, i) => i === index ? ref : r));
       } else {
         this.newRefs.set([ref, ...this.newRefs()]);
         return;

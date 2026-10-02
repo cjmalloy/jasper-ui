@@ -106,11 +106,11 @@
         }
       </div>
     }
-    @if (form()) {
+    @if (form(); as form) {
       <formly-form #mainFormlyForm
                    class="nested-form"
                    [form]="config"
-                   [fields]="form()"
+                   [fields]="form"
                    [options]="options"></formly-form>
     }
     @if (modmail && inbox && !user) {

@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, computed, input, output, signal } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
+import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
@@ -44,7 +44,7 @@ export class GenFormComponent implements OnInit {
       if (this.plugin().config?.bulkForm === true) {
         return cloneDeep(this.plugin().config?.form || this.plugin().config?.advancedForm);
       }
-      return cloneDeep(this.plugin().config?.bulkForm);
+      return cloneDeep(this.plugin().config?.bulkForm) as FormlyFieldConfig[] | undefined;
     }
     return cloneDeep(this.plugin().config?.form);
   });

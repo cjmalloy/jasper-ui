@@ -360,7 +360,7 @@ export class ExtFormComponent  {
       if (value.defaults) {
         if (!this.defaults()) this.createDefaults();
       } else {
-        delete this.defaults;
+        this.defaults.set(undefined);
         this.loadingDefaults.set(false);
       }
     });
@@ -378,8 +378,8 @@ export class ExtFormComponent  {
           published: DateTime.now(),
           modified: DateTime.now(),
         });
-        this.refs.create(this.defaults()).subscribe(cursor => {
-          if (this.defaults()) this.defaults.set({ ...this.defaults(), modifiedString: cursor });
+        this.refs.create(this.defaults()!).subscribe(cursor => {
+          this.defaults.update(defaults => defaults && { ...defaults, modifiedString: cursor });
         });
         return of(this.defaults());
       })

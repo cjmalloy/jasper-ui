@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, model, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, model, signal, untracked, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer, uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
@@ -30,8 +30,8 @@ export class SelectPluginComponent {
 
   readonly customPlugin = signal<Plugin | undefined>(undefined);
   readonly plugin = model('');
-  readonly plugins = computed(() => uniqBy([
-    ...(this.customPlugin() ? [this.customPlugin()] : []),
+  readonly plugins = computed<Plugin[]>(() => uniqBy([
+    ...(this.customPlugin() ? [this.customPlugin()!] : []),
     ...(this.add() ? this.addPlugins : []),
     ...(this.text() ? this.textPlugins : []),
     ...(this.settings() ? this.settingsPlugins : []),
@@ -42,7 +42,10 @@ export class SelectPluginComponent {
     private admin: AdminService,
     private auth: AuthzService,
   ) {
-    effect(() => this.selectPlugin(this.plugin()));
+    effect(() => {
+      const plugin = this.plugin();
+      untracked(() => this.selectPlugin(plugin));
+    });
   }
 
   private selectPlugin(value: string) {

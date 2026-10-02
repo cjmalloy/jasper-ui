@@ -430,9 +430,11 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   togglePreview() {
     if (this.fullscreen()) {
-      this.store.local.showFullscreenPreview = this.preview.set(!this.preview());
+      this.preview.set(!this.preview());
+      this.store.local.showFullscreenPreview = this.preview();
     } else {
-      this.store.local.showPreview = this.preview.set(!this.preview());
+      this.preview.set(!this.preview());
+      this.store.local.showPreview = this.preview();
     }
     if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
@@ -440,13 +442,17 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   toggleStacked() {
     if (this.stacked()) {
       if (this.preview()) {
-        this.store.local.showFullscreenPreview = this.preview.set(false);
+        this.preview.set(false);
+        this.store.local.showFullscreenPreview = this.preview();
       } else {
-        this.store.local.showFullscreenPreview = this.preview.set(true);
-        this.store.local.editorStacked = this.stacked.set(false);
+        this.preview.set(true);
+        this.store.local.showFullscreenPreview = this.preview();
+        this.stacked.set(false);
+        this.store.local.editorStacked = this.stacked();
       }
     } else {
-      this.store.local.editorStacked = this.stacked.set(true);
+      this.stacked.set(true);
+      this.store.local.editorStacked = this.stacked();
     }
     if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
@@ -457,7 +463,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     if (override === this.fullscreen()) return;
     this.initialFullscreen.set(true);
     this.fullscreen.set(override !== undefined ? override : !this.fullscreen());
-    this.focused ||= this.focused() === undefined || this.fullscreen();
+    if (!this.focused()) this.focused.set(this.focused() === undefined || this.fullscreen());
     if (this.fullscreen()) {
       document.documentElement.style.overflowY = 'auto';
       this._text.set(this.currentText);

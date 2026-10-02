@@ -150,8 +150,7 @@ export class RefListComponent implements OnInit, HasChanges {
     if (ref.url !== this.store.view.url && !this.page()?.content.find(r => r.url === ref.url)) {
       const index = this.newRefs().findIndex(r => r.url === ref.url);
       if (index !== -1) {
-        this.newRefs()[index] = ref;
-        this.newRefs.set([...this.newRefs()]);
+        this.newRefs.update(newRefs => newRefs.map((r, i) => i === index ? ref : r));
       } else if (this.insertNewAtTop()) {
         this.newRefs.set([ref, ...this.newRefs()]);
         return;

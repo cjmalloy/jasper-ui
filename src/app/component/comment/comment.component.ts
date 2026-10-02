@@ -20,7 +20,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
@@ -144,12 +144,12 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
     ).subscribe(ref => {
       this.replying.set(false);
       if (ref) {
-        this.newComments++;
-        this.ref().metadata ||= {};
-        this.ref().metadata.plugins ||= {};
-        this.ref().metadata.plugins['plugin/comment'] ||= 0;
-        this.ref().metadata.plugins['plugin/comment']++;
-        this.ref.set({ ...this.ref(), metadata: { ...this.ref().metadata, plugins: { ...this.ref().metadata.plugins } } });
+        this.newComments.update(n => n + 1);
+        this.ref.update(r => {
+          const plugins = { ...r.metadata?.plugins };
+          plugins['plugin/comment'] = (plugins['plugin/comment'] || 0) + 1;
+          return { ...r, metadata: { ...r.metadata, plugins } };
+        });
         if (this.depth() === 0) this.depth.set(1);
       }
     });
@@ -204,7 +204,8 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get modifiedIsSubmitted() {
-    return !this.ref().modified || Math.abs(this.ref().modified.diff(this.ref().created!, 'seconds').seconds) <= 5;
+    const ref = this.ref();
+    return !ref.modified || Math.abs(ref.modified.diff(ref.created!, 'seconds').seconds) <= 5;
   }
 
   get canInvoice() {
@@ -347,37 +348,41 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   voteUp() {
-    this.ref().metadata ||= {};
-    this.ref().metadata.userUrls ||= [];
+    const ref = this.ref();
+    let userUrls = ref.metadata?.userUrls || [];
+    let request: Observable<any>;
     if (this.upvote) {
-      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/up', this.ref().url), this.ref());
+      userUrls = without(userUrls, 'plugin/user/vote/up');
+      request = this.ts.deleteResponse('plugin/user/vote/up', ref.url);
     } else if (!this.downvote) {
-      this.ref().metadata.userUrls.push('plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/up', this.ref().url), this.ref());
+      userUrls = [...userUrls, 'plugin/user/vote/up'];
+      request = this.ts.createResponse('plugin/user/vote/up', ref.url);
     } else {
-      this.ref().metadata.userUrls.push('plugin/user/vote/up');
-      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref().url), this.ref());
+      userUrls = without([...userUrls, 'plugin/user/vote/up'], 'plugin/user/vote/down');
+      request = this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], ref.url);
     }
-    this.ref.set({ ...this.ref(), metadata: { ...this.ref().metadata, userUrls: [...this.ref().metadata.userUrls] } });
+    const updated = { ...ref, metadata: { ...ref.metadata, userUrls } };
+    this.ref.set(updated);
+    this.store.eventBus.runAndRefresh(request, updated);
   }
 
   voteDown() {
-    this.ref().metadata ||= {};
-    this.ref().metadata.userUrls ||= [];
+    const ref = this.ref();
+    let userUrls = ref.metadata?.userUrls || [];
+    let request: Observable<any>;
     if (this.downvote) {
-      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/down', this.ref().url), this.ref());
+      userUrls = without(userUrls, 'plugin/user/vote/down');
+      request = this.ts.deleteResponse('plugin/user/vote/down', ref.url);
     } else if (!this.upvote) {
-      this.ref().metadata.userUrls.push('plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/down', this.ref().url), this.ref());
+      userUrls = [...userUrls, 'plugin/user/vote/down'];
+      request = this.ts.createResponse('plugin/user/vote/down', ref.url);
     } else {
-      this.ref().metadata.userUrls.push('plugin/user/vote/down');
-      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref().url), this.ref());
+      userUrls = without([...userUrls, 'plugin/user/vote/down'], 'plugin/user/vote/up');
+      request = this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], ref.url);
     }
-    this.ref.set({ ...this.ref(), metadata: { ...this.ref().metadata, userUrls: [...this.ref().metadata.userUrls] } });
+    const updated = { ...ref, metadata: { ...ref.metadata, userUrls } };
+    this.ref.set(updated);
+    this.store.eventBus.runAndRefresh(request, updated);
   }
 
   forceDelete$ = () => {
@@ -395,8 +400,7 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   loadMore() {
-    this.depth ||= 0;
-    this.depth++;
+    this.depth.update(d => (d || 0) + 1);
     this.thread.loadAdHoc(this.ref()?.url);
   }
 }

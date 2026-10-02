@@ -51,10 +51,9 @@ export class SortComponent {
 
   private rebuildSorts(type: Type, isSearch: boolean) {
     if (type === 'ref') {
-      this.allSorts.set([...this.allRefSorts]);
-      if (isSearch) {
-        this.allSorts().unshift({ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` });
-      }
+      this.allSorts.set(isSearch
+        ? [{ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` }, ...this.allRefSorts]
+        : [...this.allRefSorts]);
     } else {
       this.allSorts.set([...this.allTagSorts]);
     }
@@ -62,31 +61,26 @@ export class SortComponent {
 
   addSort(value: string) {
     this.replace = false;
-    if (!this.sorts()) this.sorts.set([]);
-    this.sorts().push('');
-    this.sorts.set(this.sorts());
+    this.sorts.update(sorts => [...sorts || [], '']);
     this.create()!.nativeElement.selectedIndex = 0;
     this.setSortCol(this.sorts().length - 1, value);
   }
 
   setSortCol(index: number, value: string) {
     const dir = this.sortDir(value)
-    this.sorts()[index] = value + ',' + dir;
-    this.sorts.set(this.sorts());
+    this.sorts.update(sorts => sorts.map((s, i) => i === index ? value + ',' + dir : s));
     this.setSort();
   }
 
   setSortDir(index: number, value: string) {
     const col = this.sortCol(this.sorts()[index])
-    this.sorts()[index] = col + ',' + value;
-    this.sorts.set(this.sorts());
+    this.sorts.update(sorts => sorts.map((s, i) => i === index ? col + ',' + value : s));
     if (col) this.setSort();
   }
 
   removeSort(index: number) {
     this.replace = false;
-    this.sorts().splice(index, 1);
-    this.sorts.set(this.sorts());
+    this.sorts.update(sorts => sorts.filter((s, i) => i !== index));
     this.setSort();
   }
 

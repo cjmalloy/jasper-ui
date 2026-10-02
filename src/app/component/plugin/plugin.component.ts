@@ -122,19 +122,19 @@ export class PluginComponent implements HasChanges {
       if (!plugin.config) delete plugin.config;
       if (plugin.config) plugin.config = JSON.parse(plugin.config);
     } catch (e: any) {
-      this.configErrors().push(e.message);
+      this.configErrors.update(configErrors => [...configErrors, e.message]);
     }
     try {
       if (!plugin.defaults) delete plugin.defaults;
       if (plugin.defaults) plugin.defaults = JSON.parse(plugin.defaults);
     } catch (e: any) {
-      this.defaultsErrors().push(e.message);
+      this.defaultsErrors.update(defaultsErrors => [...defaultsErrors, e.message]);
     }
     try {
       if (!plugin.schema) delete plugin.schema;
       if (plugin.schema) plugin.schema = JSON.parse(plugin.schema);
     } catch (e: any) {
-      this.schemaErrors().push(e.message);
+      this.schemaErrors.update(schemaErrors => [...schemaErrors, e.message]);
     }
     if (this.configErrors().length || this.defaultsErrors().length || this.schemaErrors().length) return;
     this.saving.set(this.plugins.update(plugin).pipe(

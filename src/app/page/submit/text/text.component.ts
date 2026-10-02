@@ -371,7 +371,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   submit() {
     if (this.saving()) {
-      this.saving().add(() => this.submit());
+      this.saving()!.add(() => this.submit());
       return;
     }
     this.serverError.set([]);

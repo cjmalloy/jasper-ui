@@ -203,7 +203,7 @@ export class SubmitInvoicePage implements HasChanges {
 
   submit() {
     if (this.saving()) {
-      this.saving().add(() => this.submit());
+      this.saving()!.add(() => this.submit());
       return;
     }
     this.serverError.set([]);

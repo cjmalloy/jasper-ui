@@ -4,6 +4,7 @@ import {
   effect,
   ChangeDetectionStrategy,
   input,
+  linkedSignal,
   output,
   signal,
   untracked,
@@ -48,11 +49,7 @@ export class TodoComponent {
   readonly pushText = signal<string[]>([]);
   readonly pressToUnlock = signal(false);
   readonly serverErrors = signal<string[]>([]);
-
-
-
-
-
+  private readonly refComment = linkedSignal(() => this.ref()?.comment);
 
   private watch?: Subscription;
   private pushing?: Subscription;
@@ -74,13 +71,13 @@ export class TodoComponent {
   }
 
   init() {
-    this.lines.set((this.ref()?.comment || this.text() || '').split('\n')?.filter(l => !!l) || []);
+    this.lines.set((this.refComment() || this.text() || '').split('\n')?.filter(l => !!l) || []);
     const ref = this.ref();
     if (!this.watch && ref) {
       const watch = this.actions.watch(ref);
       this.comment$ = watch.comment$;
       this.watch = watch.ref$.subscribe(update => {
-        this.ref()!.comment = update.comment;
+        this.refComment.set(update.comment);
         this.init();
       });
     }
@@ -99,23 +96,25 @@ export class TodoComponent {
   }
 
   drop(event: CdkDragDrop<string, string, string>) {
+    const lines = [...this.lines()];
     if (event.previousContainer.data === event.container.data) {
-        this.lines().splice(event.previousIndex, 1);
+        lines.splice(event.previousIndex, 1);
     } else {
       // TODO: Delete from prev
     }
-    this.lines().splice(event.currentIndex, 0, event.item.data);
-    this.lines.set([...this.lines()]);
+    lines.splice(event.currentIndex, 0, event.item.data);
+    this.lines.set(lines);
     this.save$(this.lines().join('\n'))?.subscribe();
   }
 
   update(line: {index: number, text: string, checked: boolean}) {
+    const lines = [...this.lines()];
     if (!line.text) {
-      this.lines().splice(line.index, 1);
+      lines.splice(line.index, 1);
     } else {
-      this.lines()[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
+      lines[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
     }
-    this.lines.set([...this.lines()]);
+    this.lines.set(lines);
     this.save$(this.lines().join('\n'))?.subscribe();
   }
 
