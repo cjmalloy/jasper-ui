@@ -11,7 +11,7 @@ const jwtBody = [
   encodeJwt(JSON.stringify({ alg: 'HS256', typ: 'JWT' })),
   encodeJwt(JSON.stringify({ verified_email: true, sub: 'debug', auth: 'ROLE_ADMIN' })),
 ].join('.');
-const adminHeaders = {
+export const adminHeaders = {
   jwt: `${jwtBody}.${createHmac('sha256', debugSecret).update(jwtBody).digest('base64url')}`,
 };
 
