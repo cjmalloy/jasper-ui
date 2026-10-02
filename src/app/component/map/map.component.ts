@@ -277,7 +277,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.mapData.forEach(entry => {
       const [ref] = entry;
       const pointFeature = ref.plugins?.['plugin/geo/point'];
-      if (pointFeature?.geometry?.type === 'Point' && pointFeature.geometry?.coordinates.length >= 2) {
+      if (pointFeature?.geometry?.type === 'Point' && hasLocation(pointFeature.geometry?.coordinates)) {
         const el = this.createMarkerElement(ref);
         const marker = el ? new Marker({ element: el }) : new Marker();
         marker.addClassName('map-thumbnail');
