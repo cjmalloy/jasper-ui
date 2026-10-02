@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
-import { makeAutoObservable, observableRef, observableStruct, runInAction } from 'mobx';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Profile, ProfilePageArgs } from '../model/profile';
@@ -12,21 +11,24 @@ import { ProfileService } from '../service/api/profile.service';
 })
 export class ProfileStore {
 
-  args?: ProfilePageArgs = {} as any;
-  page?: Page<Profile> = {} as any;
-  error?: HttpErrorResponse = {} as any;
+  private readonly _args = signal<ProfilePageArgs | undefined>(undefined, { equal: isEqual });
+  private readonly _page = signal<Page<Profile> | undefined>(undefined);
+  private readonly _error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
 
   constructor(
     private profiles: ProfileService,
-  ) {
-    makeAutoObservable(this, {
-      args: observableStruct,
-      page: observableRef,
-    });
-    this.clear(); // Initial observables may not be null for MobX
-  }
+  ) { }
+
+  get args() { return this._args(); }
+  set args(value: ProfilePageArgs | undefined) { this._args.set(value); }
+
+  get page() { return this._page(); }
+  set page(value: Page<Profile> | undefined) { this._page.set(value); }
+
+  get error() { return this._error(); }
+  set error(value: HttpErrorResponse | undefined) { this._error.set(value); }
 
   clear() {
     this.args = undefined;
@@ -45,10 +47,10 @@ export class ProfileStore {
     this.running?.unsubscribe();
     this.running = this.profiles.page(this.args).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        this.error = err;
         return EMPTY;
       }),
-    ).subscribe(p => runInAction(() => this.page = p));
+    ).subscribe(p => this.page = p);
   }
 
 }

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { action, makeAutoObservable, observableRef, observableStruct, runInAction } from 'mobx';
+import { computed, Injectable, signal, untracked } from '@angular/core';
+import { isEqual } from 'lodash-es';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs, RefSort } from '../model/ref';
@@ -13,29 +13,39 @@ import { getArgs, UrlFilter } from '../util/query';
 export class ThreadStore {
 
   defaultBatchSize = 500;
-  args?: RefPageArgs = {} as any;
-  pages: Page<Ref>[] = [];
-  error?: HttpErrorResponse = {} as any;
-  cache = new Map<string | undefined, Ref[]>();
-  latest: Ref[] = [];
+  private readonly _args = signal<RefPageArgs | undefined>({ size: this.defaultBatchSize, page: 0 }, { equal: isEqual });
+  private readonly _pages = signal<Page<Ref>[]>([]);
+  private readonly _error = signal<HttpErrorResponse | undefined>(undefined);
+  private readonly _cache = signal(new Map<string | undefined, Ref[]>(), { equal: () => false });
+  private readonly _latest = signal<Ref[]>([]);
+  private readonly _hasMore = computed(() => {
+    if (!this.pages.length) return false;
+    return this.pages.length < this.pages[0].page.totalPages;
+  });
 
   private loading?: Subscription;
 
   constructor(
     private refs: RefService,
-  ) {
-    makeAutoObservable(this, {
-      args: observableStruct,
-      cache: observableRef,
-      pages: observableRef,
-      latest: observableRef,
-      clear: action,
-      setArgs: action,
-      add: action,
-      addPage: action,
-      loadMore: action,
-    });
-    this.clear(); // Initial observables may not be null for MobX
+  ) { }
+
+  get args() { return this._args(); }
+  set args(value: RefPageArgs | undefined) { this._args.set(value); }
+
+  get pages() { return this._pages(); }
+
+  get error() { return this._error(); }
+  set error(value: HttpErrorResponse | undefined) { this._error.set(value); }
+
+  /**
+   * Read only. Map of source URL to loaded responses.
+   */
+  get cache(): ReadonlyMap<string | undefined, Ref[]> { return this._cache(); }
+
+  get latest() { return this._latest(); }
+
+  get hasMore() {
+    return this._hasMore();
   }
 
   clear() {
@@ -44,8 +54,8 @@ export class ThreadStore {
       size: this.defaultBatchSize,
       page: 0,
     };
-    this.pages = [];
-    this.cache.clear();
+    this._pages.set([]);
+    this._cache.set(new Map());
     this.loading?.unsubscribe();
   }
 
@@ -60,21 +70,25 @@ export class ThreadStore {
     this.loadMore();
   }
 
-  add(ref: Ref) {
-    if (!ref.sources?.[0]) return;
-    if (this.cache.has(ref.sources?.[0])) {
-      const arr = this.cache.get(ref.sources?.[0])!;
-      if (!arr.find(x => x.url === ref.url)) arr.push(ref);
-    } else {
-      this.cache.set(ref.sources?.[0], [ref]);
+  add(...refs: Ref[]) {
+    const cache = untracked(() => this._cache());
+    for (const ref of refs) {
+      if (!ref.sources?.[0]) continue;
+      if (cache.has(ref.sources?.[0])) {
+        const arr = cache.get(ref.sources?.[0])!;
+        if (!arr.find(x => x.url === ref.url)) arr.push(ref);
+      } else {
+        cache.set(ref.sources?.[0], [ref]);
+      }
     }
+    this._cache.set(cache);
   }
 
   addPage(page: Page<Ref>) {
     if (!page.content.length) return;
-    this.pages.push(page);
-    for (const r of page.content) this.add(r);
-    this.latest = page.content;
+    this._pages.update(pages => [...pages, page]);
+    this.add(...page.content);
+    this._latest.set(page.content);
   }
 
   loadMore() {
@@ -84,10 +98,10 @@ export class ThreadStore {
     };
     this.loading = this.refs.page(this.args).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        this.error = err;
         return EMPTY;
       }),
-    ).subscribe(page => runInAction(() => this.addPage(page)));
+    ).subscribe(page => this.addPage(page));
   }
 
   loadAdHoc(source?: string) {
@@ -102,19 +116,14 @@ export class ThreadStore {
     }
     this.loading = this.refs.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        this.error = err;
         return EMPTY;
       }),
-    ).subscribe(page => runInAction(() => {
+    ).subscribe(page => {
       if (source) {
-        for (const ref of page.content) this.add(ref);
-        runInAction(() => this.latest = page.content);
+        this.add(...page.content);
+        this._latest.set(page.content);
       }
-    }));
-  }
-
-  get hasMore() {
-    if (!this.pages.length) return false;
-    return this.pages.length < this.pages[0].page.totalPages;
+    });
   }
 }

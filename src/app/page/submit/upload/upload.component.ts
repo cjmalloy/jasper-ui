@@ -186,7 +186,7 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       runInAction(() => {
-        this.store.submit.caching.set(file, { name: file.name, progress: 0 });
+        this.store.submit.setCaching(file, { name: file.name, progress: 0 });
       });
       this.proxy.save(file, this.store.account.origin).pipe(
         map(event => {
@@ -196,7 +196,7 @@ export class UploadPage implements OnDestroy {
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
               runInAction(() => {
-                this.store.submit.caching.set(file, { name: file.name, progress: percentDone });
+                this.store.submit.setCaching(file, { name: file.name, progress: percentDone });
               });
               return null;
           }
@@ -211,12 +211,12 @@ export class UploadPage implements OnDestroy {
           return ref!;
         }),
         catchError((res: HttpErrorResponse) => {
-          this.store.submit.caching.delete(file);
+          this.store.submit.removeCaching(file);
           this.serverErrors.push(...printError(res));
           return throwError(() => res);
         }),
       ).subscribe(ref => runInAction(() => {
-        this.store.submit.caching.delete(file);
+        this.store.submit.removeCaching(file);
         this.store.submit.addRefs({ ...ref, upload: true, exists: true });
       }));
     }

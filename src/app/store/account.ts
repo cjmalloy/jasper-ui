@@ -1,5 +1,5 @@
+import { computed, signal } from '@angular/core';
 import { intersection, uniq } from 'lodash-es';
-import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
@@ -10,39 +10,82 @@ import { OriginStore } from './origin';
 
 export class AccountStore {
 
-  debug = false;
-  tag = '';
-  origin = '';
-  access?: User = {} as User;
-  ext?: Ext = {} as Ext;
-  defaultConfig: UserConfig = {};
-  ignoreNotifications: number[] = [];
+  private readonly _debug = signal<boolean>(false);
+  private readonly _tag = signal<string>('');
+  private readonly _origin = signal<string>('');
+  private readonly _access = signal<User | undefined>(undefined);
+  private readonly _ext = signal<Ext | undefined>(undefined);
+  private readonly _defaultConfig = signal<UserConfig>({});
+  private readonly _ignoreNotifications = signal<number[]>([]);
+  private readonly _admin = signal<boolean>(false);
+  private readonly _mod = signal<boolean>(false);
+  private readonly _editor = signal<boolean>(false);
+  private readonly _user = signal<boolean>(false);
+  private readonly _viewer = signal<boolean>(false);
+  private readonly _banned = signal<boolean>(false);
+  private readonly _notifications = signal<number>(0);
+  private readonly _alarmCount = signal<number>(0);
+  private readonly _authError = signal<boolean>(false);
+  private readonly _unrecoverable = signal<boolean>(false);
+
+  constructor(
+    private origins: OriginStore,
+  ) { }
+
+  get debug() { return this._debug(); }
+  set debug(value: boolean) { this._debug.set(value); }
+
+  get tag() { return this._tag(); }
+  set tag(value: string) { this._tag.set(value); }
+
+  get origin() { return this._origin(); }
+  set origin(value: string) { this._origin.set(value); }
+
+  get access() { return this._access(); }
+  set access(value: User | undefined) { this._access.set(value); }
+
+  get ext() { return this._ext(); }
+  set ext(value: Ext | undefined) { this._ext.set(value); }
+
+  get defaultConfig() { return this._defaultConfig(); }
+  set defaultConfig(value: UserConfig) { this._defaultConfig.set(value); }
+
+  get ignoreNotifications() { return this._ignoreNotifications(); }
+  set ignoreNotifications(value: number[]) { this._ignoreNotifications.set(value); }
 
   /**
    * Is admin.
    * Owns everything.
    * Limited to origin and sub origins.
    */
-  admin = false;
+  get admin() { return this._admin(); }
+  set admin(value: boolean) { this._admin.set(value); }
+
   /**
    * Is mod.
    * Owns everything except plugins and templates.
    * Limited to origin and sub origins.
    */
-  mod = false;
+  get mod() { return this._mod(); }
+  set mod(value: boolean) { this._mod.set(value); }
+
   /**
    * Is editor.
    * Allowed to toggle any public tag (except public and locked) to any Ref in view.
    * Limited to origin and sub origins.
    */
-  editor = false;
+  get editor() { return this._editor(); }
+  set editor(value: boolean) { this._editor.set(value); }
+
   /**
    * Is user.
    * Allowed to post Refs.
    * May be given access to other tags.
    * Limited to origin and sub origins.
    */
-  user = false;
+  get user() { return this._user(); }
+  set user(value: boolean) { this._user.set(value); }
+
   /**
    * Is viewer.
    * Allowed to edit user ext.
@@ -50,62 +93,78 @@ export class AccountStore {
    * May not be given write access to other tags.
    * Limited to origin and sub origins.
    */
-  viewer = false;
+  get viewer() { return this._viewer(); }
+  set viewer(value: boolean) { this._viewer.set(value); }
+
   /**
    * Is banned.
    * No access, ban message shown instead.
    * Limited to origin and sub origins.
    */
-  banned = false;
+  get banned() { return this._banned(); }
+  set banned(value: boolean) { this._banned.set(value); }
+
   /**
    * Unread inbox and alarms total count.
    */
-  notifications = 0;
+  get notifications() { return this._notifications(); }
+  set notifications(value: number) { this._notifications.set(value); }
+
   /**
    * Unread alarms count.
    */
-  alarmCount = 0;
+  get alarmCount() { return this._alarmCount(); }
+  set alarmCount(value: number) { this._alarmCount.set(value); }
+
   /**
    * Flag indicating the interceptor detected an unauthorized request.
    */
-  authError = false;
+  get authError() { return this._authError(); }
+  set authError(value: boolean) { this._authError.set(value); }
+
   /**
    * Flag indicating an unrecoverable error loading app from PWA cache.
    */
-  unrecoverable = false;
+  get unrecoverable() { return this._unrecoverable(); }
+  set unrecoverable(value: boolean) { this._unrecoverable.set(value); }
 
-  constructor(
-    private origins: OriginStore,
-  ) {
-    makeAutoObservable(this);
-    // Initial observables may not be null for MobX
-    this.access = undefined;
-    this.ext = undefined;
-    this.defaultConfig = {};
-  }
-
-  get signedIn() {
+  private readonly _signedIn = computed(() => {
     return !!this.tag;
+  });
+  get signedIn() {
+    return this._signedIn();
   }
 
-  get root() {
+  private readonly _root = computed(() => {
     return !this.origin;
+  });
+  get root() {
+    return this._root();
   }
 
-  get localTag() {
+  private readonly _localTag = computed(() => {
     return localTag(this.tag);
+  });
+  get localTag() {
+    return this._localTag();
   }
 
-  get tagWithOrigin() {
+  private readonly _tagWithOrigin = computed(() => {
     return localTag(this.tag) + (this.origin || '@');
+  });
+  get tagWithOrigin() {
+    return this._tagWithOrigin();
   }
 
-  get userTag() {
+  private readonly _userTag = computed(() => {
      if (hasPrefix(localTag(this.tag), 'user')) return this.localTag;
      return '';
+  });
+  get userTag() {
+    return this._userTag();
   }
 
-  get role() {
+  private readonly _role = computed(() => {
     if (!this.signedIn) return '';
     if (this.admin) return 'admin';
     if (this.mod) return 'mod';
@@ -113,9 +172,12 @@ export class AccountStore {
     if (this.user) return 'user';
     if (this.viewer) return 'viewer';
     return 'anon';
+  });
+  get role() {
+    return this._role();
   }
 
-  get roles(): Roles {
+  private readonly _roles = computed((): Roles => {
     return {
       debug: this.debug,
       tag: this.tag,
@@ -126,58 +188,94 @@ export class AccountStore {
       viewer: this.viewer,
       banned: this.banned,
     };
+  });
+  get roles(): Roles {
+    return this._roles();
   }
 
-  get config(): UserConfig {
+  private readonly _config = computed((): UserConfig => {
     return {
       ...(this.defaultConfig || {}),
       ...(this.ext?.config || {}),
     };
+  });
+  get config(): UserConfig {
+    return this._config();
   }
 
-  get subs(): string[] {
+  private readonly _subs = computed((): string[] => {
     return this.config.subscriptions || defaultSubs;
+  });
+  get subs(): string[] {
+    return this._subs();
   }
 
-  get userSubs(): string[] {
+  private readonly _userSubs = computed((): string[] => {
     return this.subs.filter(s => hasPrefix(s, 'user'));
+  });
+  get userSubs(): string[] {
+    return this._userSubs();
   }
 
-  get tagSubs(): string[] {
+  private readonly _tagSubs = computed((): string[] => {
     return this.subs.filter(s => !hasPrefix(s, 'user'));
+  });
+  get tagSubs(): string[] {
+    return this._tagSubs();
   }
 
-  get bookmarks() {
+  private readonly _bookmarks = computed(() => {
     return this.config.bookmarks || [];
+  });
+  get bookmarks() {
+    return this._bookmarks();
   }
 
-  get bookmarkQueries() {
+  private readonly _bookmarkQueries = computed(() => {
     return this.bookmarks.map(b => b.includes('?') ? b.substring(0, b.indexOf('?')) : b);
+  });
+  get bookmarkQueries() {
+    return this._bookmarkQueries();
   }
 
-  get bookmarkParams() {
+  private readonly _bookmarkParams = computed(() => {
     return this.bookmarks.map(b => parseBookmarkParams(b.includes('?') ? b.substring(b.indexOf('?')) : b));
+  });
+  get bookmarkParams() {
+    return this._bookmarkParams();
   }
 
-  get alarms(): string[] {
+  private readonly _alarms = computed((): string[] => {
     return this.config.alarms || [];
+  });
+  get alarms(): string[] {
+    return this._alarms();
   }
 
-  get mailbox() {
+  private readonly _mailbox = computed(() => {
     if (!this.signedIn) return undefined;
     return getMailbox(this.tag, this.origin) + (this.origin || '@');
+  });
+  get mailbox() {
+    return this._mailbox();
   }
 
-  get modmail() {
+  private readonly _modmail = computed(() => {
     return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => defaultOrigin(t, this.origin || '@'));
+  });
+  get modmail() {
+    return this._modmail();
   }
 
-  get outboxes() {
+  private readonly _outboxes = computed(() => {
     return Array.from(this.origins.reverseLookup)
       .map(([remote, localAlias]) => setPublic(prefix('plugin/outbox', localAlias, this.localTag)) + remote);
+  });
+  get outboxes() {
+    return this._outboxes();
   }
 
-  get inboxQuery() {
+  private readonly _inboxQuery = computed(() => {
     if (!this.signedIn) return '';
     let tags = [this.mailbox];
     if (this.origin) {
@@ -190,23 +288,35 @@ export class AccountStore {
       tags.push(...this.outboxes);
     }
     return uniq(tags).join('|');
+  });
+  get inboxQuery() {
+    return this._inboxQuery();
   }
 
-  get notificationsQuery() {
+  private readonly _notificationsQuery = computed(() => {
     if (!this.signedIn) return undefined;
     const alarms = this.alarmsQuery ? '|' + this.alarmsQuery : '';
     return `!${this.tag}:!plugin/delete:` + braces(this.inboxQuery) + alarms;
+  });
+  get notificationsQuery() {
+    return this._notificationsQuery();
   }
 
-  get alarmsQuery() {
+  private readonly _alarmsQuery = computed(() => {
     if (!this.signedIn) return undefined;
     if (!this.config.alarms?.length) return '';
     return this.config.alarms.join('|');
+  });
+  get alarmsQuery() {
+    return this._alarmsQuery();
   }
 
-  get subscriptionQuery() {
+  private readonly _subscriptionQuery = computed(() => {
     if (!this.tagSubs.length) return 'none';
     return '!internal:(' + this.tagSubs.join('|') + ')';
+  });
+  get subscriptionQuery() {
+    return this._subscriptionQuery();
   }
 
   querySymbol(...ops: ('/' | '{' | '}' | ',' | ':' | '|' | '(' | ')' | `!`)[]): string {

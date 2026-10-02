@@ -245,8 +245,7 @@ export class AdminService {
     this._cache.clear();
     MemoCache.clear(this);
     runInAction(() => {
-      this.store.view.modChanges.clear();
-      this.store.view.modUpdates.clear();
+      this.store.view.clearModChanges();
     });
     this.status.plugins = {};
     this.status.disabledPlugins = {};
@@ -371,7 +370,7 @@ export class AdminService {
       }
       if (this.needsUpdate(this.def.plugins[p.tag], p)) {
         console.log(p.tag + ' needs update');
-        runInAction(() => this.store.view.modUpdates.add(modId(p)));
+        this.store.view.addModUpdate(modId(p));
       }
     }
   }
@@ -386,7 +385,7 @@ export class AdminService {
       }
       if (this.needsUpdate(this.def.templates[t.tag], t)) {
         console.log((t.tag || 'Root template') + ' needs update');
-        runInAction(() => this.store.view.modUpdates.add(modId(t)));
+        this.store.view.addModUpdate(modId(t));
       }
     }
   }
@@ -398,7 +397,7 @@ export class AdminService {
       const current = this.getInstalledMod(mod);
       if (!current) continue;
       this.status.receipts[mod] = r;
-      runInAction(() => this.store.view.modChanges.set(mod, !equalBundle(current, r.plugins?.['plugin/mod'])));
+      this.store.view.setModChange(mod, !equalBundle(current, r.plugins?.['plugin/mod']));
     }
   }
 
@@ -412,7 +411,7 @@ export class AdminService {
       if (!current) continue;
       const target = this.getMod(mod);
       if (!target) continue;
-      runInAction(() => this.store.view.modChanges.set(mod, !equalBundle(current, target)));
+      this.store.view.setModChange(mod, !equalBundle(current, target));
     }
   }
 

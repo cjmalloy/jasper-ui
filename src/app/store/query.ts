@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
-import { action, makeAutoObservable, observableRef, observableStruct, runInAction } from 'mobx';
 import { catchError, EMPTY, Observable, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
@@ -19,11 +18,11 @@ interface PendingCursor {
 })
 export class QueryStore {
 
-  args?: RefPageArgs = {} as any;
-  sourcesOf?: Ref = {} as any;
-  responseOf?: Ref = {} as any;
-  page?: Page<Ref> = {} as any;
-  error?: HttpErrorResponse = {} as any;
+  private readonly _args = signal<RefPageArgs | undefined>(undefined, { equal: isEqual });
+  private readonly _sourcesOf = signal<Ref | undefined>(undefined);
+  private readonly _responseOf = signal<Ref | undefined>(undefined);
+  private readonly _page = signal<Page<Ref> | undefined>(undefined);
+  private readonly _error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
   private runningSources?: Subscription;
@@ -32,14 +31,22 @@ export class QueryStore {
 
   constructor(
     private refs: RefService,
-  ) {
-    makeAutoObservable(this, {
-      args: observableStruct,
-      page: observableRef,
-      clear: action,
-    });
-    this.clear(); // Initial observables may not be null for MobX
-  }
+  ) { }
+
+  get args() { return this._args(); }
+  set args(value: RefPageArgs | undefined) { this._args.set(value); }
+
+  get sourcesOf() { return this._sourcesOf(); }
+  set sourcesOf(value: Ref | undefined) { this._sourcesOf.set(value); }
+
+  get responseOf() { return this._responseOf(); }
+  set responseOf(value: Ref | undefined) { this._responseOf.set(value); }
+
+  get page() { return this._page(); }
+  set page(value: Page<Ref> | undefined) { this._page.set(value); }
+
+  get error() { return this._error(); }
+  set error(value: HttpErrorResponse | undefined) { this._error.set(value); }
 
   clear() {
     this.args = undefined;
@@ -81,7 +88,7 @@ export class QueryStore {
     if (args.sources) {
       this.runningSources = this.refs.getCurrent(args.sources).pipe(
         catchError(() => EMPTY),
-      ).subscribe(ref => runInAction(() => this.sourcesOf = ref));
+      ).subscribe(ref => this.sourcesOf = ref);
     } else {
       this.sourcesOf = undefined;
     }
@@ -89,7 +96,7 @@ export class QueryStore {
     if (args.responses) {
       this.runningResponses = this.refs.getCurrent(args.responses).pipe(
         catchError(() => EMPTY),
-      ).subscribe(ref => runInAction(() => this.responseOf = ref));
+      ).subscribe(ref => this.responseOf = ref);
     } else {
       this.responseOf = undefined;
     }
@@ -100,21 +107,21 @@ export class QueryStore {
       this.running?.unsubscribe();
       this.running = (pageRequest ?? this.refs.page(withStableDateSort(this.args))).pipe(
         catchError((err: HttpErrorResponse) => {
-          runInAction(() => this.error = err);
+          this.error = err;
           return EMPTY;
         }),
-      ).subscribe(p => runInAction(() => this.page = p));
+      ).subscribe(p => this.page = p);
       this.runningSources?.unsubscribe();
       if (this.args.sources) {
         this.runningSources = this.refs.getCurrent(this.args.sources).pipe(
           catchError(() => EMPTY),
-        ).subscribe(ref => runInAction(() => this.sourcesOf = ref));
+        ).subscribe(ref => this.sourcesOf = ref);
       }
       this.runningResponses?.unsubscribe();
       if (this.args.responses) {
         this.runningResponses = this.refs.getCurrent(this.args.responses).pipe(
           catchError(() => EMPTY),
-        ).subscribe(ref => runInAction(() => this.responseOf = ref));
+        ).subscribe(ref => this.responseOf = ref);
       }
     }
   }

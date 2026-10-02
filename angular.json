@@ -32,8 +32,6 @@
             },
             "index": "src/index.html",
             "polyfills": [
-              "src/zone-flags.ts",
-              "zone.js",
               "src/polyfills.ts",
               "@angular/localize/init"
             ],
