@@ -5,19 +5,23 @@ import {
 } from '@angular/cdk/scrolling';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpEventType } from '@angular/common/http';
-import { DestroyRef, inject, Component, OnDestroy, ChangeDetectionStrategy, effect, input, viewChild, signal, untracked } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef, inject, Component, OnDestroy, ChangeDetectionStrategy, computed, effect, input, linkedSignal, viewChild, signal, untracked } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, differenceWith, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import {
   catchError,
+  finalize,
+  fromEvent,
   last,
   map,
   Observable,
   of,
   Subscription,
+  Subject,
   switchMap,
+  takeUntil,
   tap,
   throwError
 } from 'rxjs';
@@ -45,13 +49,12 @@ import { LoadingComponent } from '../loading/loading.component';
 import { ChatEntryComponent } from './chat-entry/chat-entry.component';
 
 export interface ChatUpload {
-  id: string;
-  name: string;
-  progress: number;
-  subscription?: Subscription;
-  completed?: boolean;
-  error?: string;
-  ref?: Ref | null;
+  readonly id: string;
+  readonly name: string;
+  readonly progress: number;
+  readonly completed?: boolean;
+  readonly error?: string;
+  readonly ref?: Ref | null;
 }
 
 @Component({
@@ -73,7 +76,10 @@ export interface ChatUpload {
 })
 export class ChatComponent implements OnDestroy, HasChanges {
   private destroyRef = inject(DestroyRef);
-  itemSize = 18.5;
+  readonly itemSize = 18.5;
+  private readonly windowHeight = toSignal(fromEvent(window, 'resize').pipe(
+    map(() => window.innerHeight),
+  ), { initialValue: window.innerHeight });
 
   readonly query = input('chat');
   readonly responseOf = input<Ref>();
@@ -81,25 +87,31 @@ export class ChatComponent implements OnDestroy, HasChanges {
   readonly viewport = viewChild.required<CdkVirtualScrollViewport>('viewport');
 
   cursors = new Map<string, string | undefined>();
-  readonly loadingPrev = signal(false);
-  readonly plugins = signal(this.store.account.defaultEditors(['plugin/latex']));
+  readonly loadingPrev = linkedSignal(() => { this.query(); this.responseOf(); return false; });
+  readonly plugins = linkedSignal(() => this.store.account.defaultEditors(['plugin/latex']));
   readonly lastPoll = signal<DateTime>(DateTime.now());
   initialSize = 50;
-  readonly messages = signal<Ref[] | undefined>(undefined);
-  readonly addText = signal('');
-  readonly sending = signal<Ref[]>([]);
-  readonly errored = signal<Ref[]>([]);
-  readonly scrollLock = signal<number | undefined>(undefined);
-  readonly notAtBottom = signal(false);
-  readonly uploads = signal<ChatUpload[]>([]);
-  readonly dropping = signal(false);
-  readonly latex = signal(!!this.admin.getPlugin('plugin/latex'));
-  readonly tags = signal<string[]>([]);
+  readonly messages = linkedSignal<Ref[] | undefined>(() => { this.query(); this.responseOf(); return undefined; });
+  readonly addText = linkedSignal(() => { this.query(); this.responseOf(); return ''; });
+  readonly sending = linkedSignal<Ref[]>(() => { this.query(); this.responseOf(); return []; });
+  readonly errored = linkedSignal<Ref[]>(() => { this.query(); this.responseOf(); return []; });
+  readonly scrollLock = linkedSignal<number | undefined>(() => { this.query(); this.responseOf(); return undefined; });
+  readonly notAtBottom = linkedSignal(() => { this.query(); this.responseOf(); return false; });
+  readonly uploads = linkedSignal<readonly ChatUpload[]>(() => { this.query(); this.responseOf(); return []; });
+  readonly dropping = linkedSignal(() => { this.query(); this.responseOf(); return false; });
+  readonly latex = linkedSignal(() => !!this.admin.getPlugin('plugin/latex'));
+  readonly tags = linkedSignal(() => {
+    this.query();
+    this.responseOf();
+    return this.store.account.defaultEditors(this.editors());
+  });
 
   private timeoutId?: number;
   private retries = 0;
   private lastScrolled = 0;
   private watch?: Subscription;
+  private readonly uploadSubscriptions = new Map<string, Subscription>();
+  private readonly queryChanged = new Subject<void>();
 
   constructor(
     public config: ConfigService,
@@ -127,18 +139,16 @@ export class ChatComponent implements OnDestroy, HasChanges {
 
   ngOnDestroy(): void {
     this.clearPoll();
-    // Clean up any active upload subscriptions to prevent memory leaks
-    this.uploads().forEach(upload => {
-      if (upload.subscription) {
-        upload.subscription.unsubscribe();
-      }
-    });
+    this.refresh.cancel();
+    this.cancelAllUploads();
   }
 
   init() {
-    this.messages.set(undefined);
+    this.queryChanged.next();
+    this.clearPoll();
+    this.refresh.cancel();
+    this.cancelAllUploads();
     this.cursors.clear();
-    this.tags.set(this.store.account.defaultEditors(this.editors));
     this.loadPrev(true);
     if (this.config.websockets) {
       this.watch?.unsubscribe();
@@ -148,17 +158,13 @@ export class ChatComponent implements OnDestroy, HasChanges {
     }
   }
 
-  get editors() {
-    return this.editorButtons.map(p => p?.toggle as string).filter(p => !!p);
-  }
+  readonly editors = computed(() => this.editorButtons().map(p => p?.toggle as string).filter(p => !!p));
 
-  get editorButtons() {
+  readonly editorButtons = computed(() => {
     return sortOrder(this.admin.getEditorButtons()).reverse();
-  }
+  });
 
-  get editorPushButtons() {
-    return this.editorButtons.filter(b => !b.ribbon && this.visible(b));
-  }
+  readonly editorPushButtons = computed(() => this.editorButtons().filter(b => !b.ribbon && this.visible(b)));
 
   visible(button: EditorButton) {
     if (button.scheme) return false;
@@ -167,9 +173,9 @@ export class ChatComponent implements OnDestroy, HasChanges {
     return true;
   }
 
-  get containerHeight() {
-    return Math.max(300, Math.min(window.innerHeight - 400, this.itemSize * (this.messages()?.length || 1)));
-  }
+  readonly containerHeight = computed(() => {
+    return Math.max(300, Math.min(this.windowHeight() - 400, this.itemSize * (this.messages()?.length || 1)));
+  });
 
   refresh = debounce((origin?: string) => {
     if (origin === undefined) {
@@ -207,11 +213,12 @@ export class ChatComponent implements OnDestroy, HasChanges {
         return throwError(() => err);
       }),
       takeUntilDestroyed(this.destroyRef),
+      takeUntil(this.queryChanged),
     ).subscribe(page => {
       this.setPoll(!page.content.length);
       this.messages.update(messages => messages || []);
       if (!page.content.length) return;
-      this.messages.set([...this.messages()!, ...page.content.filter(r => !hasTag('+plugin/placeholder', r))]);
+      this.messages.update(messages => [...messages || [], ...page.content.filter(r => !hasTag('+plugin/placeholder', r))]);
       const last = page.content[page.content.length - 1];
       this.cursors.set(origin, last?.modifiedString);
       // TODO: verify read before clearing?
@@ -245,6 +252,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
         return throwError(() => err);
       }),
       takeUntilDestroyed(this.destroyRef),
+      takeUntil(this.queryChanged),
     ).subscribe(page => {
       this.loadingPrev.set(false);
       this.setPoll(!page.content.length);
@@ -256,7 +264,10 @@ export class ChatComponent implements OnDestroy, HasChanges {
           this.cursors.set(ref.origin!, ref.modifiedString);
         }
       }
-      this.messages.set([...page.content.reverse().filter(r => !hasTag('+plugin/placeholder', r)), ...this.messages()!]);
+      this.messages.update(messages => [
+        ...[...page.content].reverse().filter(r => !hasTag('+plugin/placeholder', r)),
+        ...messages || [],
+      ]);
       this.sending.update(sending => differenceWith(sending, page.content, (a, b) => a.url === b.url));
       defer(() => this.viewport().checkViewportSize());
       if (scrollDown) {
@@ -318,7 +329,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
 
   add(text = '') {
     if (!text) {
-      this.addText.set(this.addText().trim());
+      this.addText.update(text => text.trim());
       if (!this.addText()) return;
       text = this.addText();
       this.addText.set('');
@@ -352,7 +363,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
 
   private send(ref: Ref) {
     const responseOf = this.responseOf();
-    if (responseOf) ref.sources = [responseOf.url];
+    if (responseOf) ref = { ...ref, sources: [responseOf.url] };
     this.sending.update(sending => [...sending, ref]);
     (ref.modified ? this.refs.update(ref).pipe(
       map(() => ref),
@@ -403,7 +414,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
         }
         return throwError(err);
       }),
-    )).subscribe(cursor => {
+    )).pipe(takeUntilDestroyed(this.destroyRef), takeUntil(this.queryChanged)).subscribe(() => {
       this.fetch();
     });
   }
@@ -426,12 +437,12 @@ export class ChatComponent implements OnDestroy, HasChanges {
   toggleTag(button: EditorButton) {
     const tag = button.toggle!;
     if (this.buttonOn(tag)) {
-      if (this.tags().includes(tag)) this.tags.set(this.tags().filter(t => t !== tag));
+      this.tags.update(tags => tags.filter(t => t !== tag));
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.removeConfigArray$('editors', tag).subscribe();
       }
     } else {
-      this.tags.set([...this.tags(), tag]);
+      this.tags.update(tags => [...tags, tag]);
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.addConfigArray$('editors', tag).subscribe();
       }
@@ -515,17 +526,23 @@ export class ChatComponent implements OnDestroy, HasChanges {
         progress: 0
       };
       this.uploads.update(uploads => [...uploads, upload]);
-      upload.subscription = this.upload$(file, upload).subscribe(ref => {
-        if (ref && !upload.error) {
-          upload.completed = true;
-          upload.progress = 100;
-          upload.ref = ref;
+      const subscription = this.upload$(file, upload).pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.uploadSubscriptions.delete(upload.id)),
+      ).subscribe(ref => {
+        const currentUpload = this.uploads().find(u => u.id === upload.id);
+        if (ref && currentUpload && !currentUpload.error) {
+          this.updateUpload(upload.id, { completed: true, progress: 100, ref });
           this.add(ref.url);
-          this.uploads.set(this.uploads().filter(u => u.id !== upload.id));
+          this.uploads.update(uploads => uploads.filter(u => u.id !== upload.id));
         }
-        this.uploads.set([...this.uploads()]);
       });
+      if (!subscription.closed) this.uploadSubscriptions.set(upload.id, subscription);
     });
+  }
+
+  updateUpload(id: string, patch: Partial<Omit<ChatUpload, 'id'>>) {
+    this.uploads.update(uploads => uploads.map(upload => upload.id === id ? { ...upload, ...patch } : upload));
   }
 
   upload$(file: File, upload: ChatUpload): Observable<Ref | null> {
@@ -541,26 +558,16 @@ export class ChatComponent implements OnDestroy, HasChanges {
           ...file.type === 'text/markdown' ? [] : codeType
         ])
       };
-      upload.progress = 50; // Simulate progress for text files
-      this.uploads.set([...this.uploads()]);
+      this.updateUpload(upload.id, { progress: 50 });
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
           comment: contents,
         })),
-        map(cursor => {
-          ref.modifiedString = cursor;
-          ref.modified = DateTime.fromISO(cursor);
-          return ref;
-        }),
-        tap(() => {
-          upload.progress = 100;
-          this.uploads.set([...this.uploads()]);
-        }),
+        map(cursor => ({ ...ref, modifiedString: cursor, modified: DateTime.fromISO(cursor) })),
+        tap(() => this.updateUpload(upload.id, { progress: 100 })),
         catchError(err => {
-          upload.error = err.message || $localize`Upload failed`;
-          upload.progress = 0;
-          this.uploads.set([...this.uploads()]);
+          this.updateUpload(upload.id, { error: err.message || $localize`Upload failed`, progress: 0 });
           return readFileAsDataURL(file).pipe(map(url => ({
             ...ref,
             url,
@@ -586,8 +593,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
               return event.body;
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-              upload.progress = percentDone;
-              this.uploads.set([...this.uploads()]);
+              this.updateUpload(upload.id, { progress: percentDone });
               return null;
           }
           return null;
@@ -602,9 +608,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
           })),
         )),
         catchError(err => {
-          upload.error = err.message || $localize`Upload failed`;
-          upload.progress = 0;
-          this.uploads.set([...this.uploads()]);
+          this.updateUpload(upload.id, { error: err.message || $localize`Upload failed`, progress: 0 });
           return readFileAsDataURL(file).pipe(map(url => ({
             url,
             tags,
@@ -616,23 +620,17 @@ export class ChatComponent implements OnDestroy, HasChanges {
   }
 
   cancelUpload(upload: ChatUpload) {
-    if (upload.subscription) {
-      upload.subscription.unsubscribe();
-    }
-    this.uploads.set(this.uploads().filter(u => u.id !== upload.id));
+    this.uploadSubscriptions.get(upload.id)?.unsubscribe();
+    this.uploadSubscriptions.delete(upload.id);
+    this.uploads.update(uploads => uploads.filter(u => u.id !== upload.id));
   }
 
   cancelAllUploads() {
-    this.uploads().forEach(upload => {
-      if (upload.subscription) {
-        upload.subscription.unsubscribe();
-      }
-    });
+    this.uploadSubscriptions.forEach(subscription => subscription.unsubscribe());
+    this.uploadSubscriptions.clear();
     this.uploads.set([]);
   }
 
-  hasActiveUploads(): boolean {
-    return this.uploads().some(u => !u.completed && !u.error);
-  }
+  readonly hasActiveUploads = computed(() => this.uploads().some(u => !u.completed && !u.error));
 
 }

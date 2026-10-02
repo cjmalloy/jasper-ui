@@ -1,6 +1,3 @@
-import {
-  AsyncPipe
-} from '@angular/common';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -13,13 +10,12 @@ import {
   input,
   linkedSignal,
   viewChildren,
-  signal,
   untracked,
   computed,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { defer, uniq } from 'lodash-es';
+import { uniq } from 'lodash-es';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../../directive/title.directive';
@@ -34,7 +30,7 @@ import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 import { authors, clickableLink, formatAuthor, getNiceTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, localTag, repost, tagOrigin } from '../../../util/tag';
+import { hasTag, localTag, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
@@ -59,7 +55,6 @@ import { ViewerComponent } from '../../viewer/viewer.component';
     NavComponent,
     ConfirmActionComponent,
     InlineTagComponent,
-    AsyncPipe,
   ],
 })
 export class ChatEntryComponent {
@@ -72,14 +67,19 @@ export class ChatEntryComponent {
   readonly focused = input(false);
   readonly loading = input(true);
 
-  readonly noComment = signal<Ref>({} as any);
-  readonly repostRef = signal<Ref | undefined>(undefined);
-  readonly deleted = signal(false);
-  readonly writeAccess = signal(false);
-  readonly taggingAccess = signal(false);
-  readonly deleteAccess = signal(false);
-  readonly serverError = signal<string[]>([]);
-  private readonly hovering = signal(false);
+  readonly repostRef = toSignal(toObservable(computed(() => this.bareRepost() ? this.url() : undefined)).pipe(
+    switchMap(url => !url ? of(undefined) :
+      (this.store.view.top()?.url === url ? of(this.store.view.top()) : this.refs.getCurrent(url)).pipe(
+        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+      )),
+  ));
+  readonly noComment = computed(() => ({ ...this.bareRef(), comment: '' }) as Ref);
+  readonly deleted = linkedSignal(() => { this.refInput(); return false; });
+  readonly writeAccess = computed(() => this.auth.writeAccess(this.ref()));
+  readonly taggingAccess = computed(() => this.auth.taggingAccess(this.ref()));
+  readonly deleteAccess = computed(() => this.auth.deleteAccess(this.ref()));
+  readonly serverError = linkedSignal<string[]>(() => { this.refInput(); return []; });
+  private readonly hovering = linkedSignal(() => { this.refInput(); return false; });
 
   constructor(
     private config: ConfigService,
@@ -92,7 +92,7 @@ export class ChatEntryComponent {
   ) {
     effect(() => {
       this.refInput();
-      untracked(() => this.init());
+      untracked(() => this.actionComponents().forEach(c => c.reset()));
     });
     effect(() => {
       const actionComponents = this.actionComponents();
@@ -100,156 +100,96 @@ export class ChatEntryComponent {
     });
   }
 
-  init() {
-    this.actionComponents()?.forEach(c => c.reset());
-    this.writeAccess.set(this.auth.writeAccess(this.ref()));
-    this.taggingAccess.set(this.auth.taggingAccess(this.ref()));
-    this.deleteAccess.set(this.auth.deleteAccess(this.ref()));
-    if (this.bareRepost && this.ref() && this.repostRef()?.url != repost(this.ref())) {
-      (this.store.view.top()?.url === this.ref().sources![0]
-          ? of(this.store.view.top())
-          : this.refs.getCurrent(this.url)
-      ).pipe(
-        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => {
-        this.repostRef.set(ref);
-        if (!ref) return;
-        this.noComment.set({
-          ...ref,
-          comment: '',
-        });
-      });
-    } else {
-      this.noComment.set({
-        ...this.ref(),
-        comment: '',
-      });
-    }
-  }
-
-  get title() {
+  readonly title = computed(() => {
     const title = (this.ref()?.title || '').trim();
     if (title) return title;
     if (this.focused()) return '';
-    if (this.bareRepost) return getNiceTitle(this.repostRef()) || '';
+    if (this.bareRepost()) return getNiceTitle(this.repostRef()) || '';
     return getNiceTitle(this.ref());
-  }
+  });
 
   readonly allowActions = computed(() => this.hovering() || this.focused() || !!this.actionComponents()?.find(c => c.active()));
 
   setHovering(value: boolean) {
-    if (value === this.hovering()) return;
-    if (value) {
-      defer(() => this.hovering.set(value));
-    } else {
-      this.hovering.set(false);
-    }
+    this.hovering.set(value);
   }
 
-  get nonLocalOrigin() {
+  readonly nonLocalOrigin = computed(() => {
     if (this.ref().origin === this.store.account.origin()) return undefined;
     return this.ref().origin || '';
-  }
+  });
 
-  get localhost() {
+  readonly localhost = computed(() => {
     return this.ref().url.startsWith(this.config.base);
-  }
+  });
 
-  get authors() {
+  readonly authors = computed(() => {
     const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     return uniq([
       ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
       ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
     ]);
-  }
-
-  readonly authorExts$ = computed(() => {
-    return this.exts.getCachedExts(this.authors, this.ref().origin || '').pipe(this.admin.authorFallback);
   });
 
-  get tagLink() {
-    return this.url.toLowerCase().startsWith('tag:/');
-  }
+  readonly authorExts = toSignal(toObservable(computed(() => ({
+    authors: this.authors(), origin: this.ref().origin || '',
+  }))).pipe(switchMap(({ authors, origin }) =>
+    this.exts.getCachedExts(authors, origin).pipe(this.admin.authorFallback))));
 
-  get clickableLink() {
-    return clickableLink(this.url);
-  }
+  readonly tagLink = computed(() => this.url().toLowerCase().startsWith('tag:/'));
 
-  get url() {
-    return this.repost ? this.ref().sources![0] : this.ref().url;
-  }
+  readonly clickableLink = computed(() => clickableLink(this.url()));
 
-  get currentRef() {
-    return this.repost ? this.repostRef() : this.ref();
-  }
+  readonly url = computed(() => this.repost() ? this.ref().sources![0] : this.ref().url);
 
-  get bareRef() {
-    return this.bareRepost ? this.repostRef() : this.ref();
-  }
+  readonly currentRef = computed(() => this.repost() ? this.repostRef() : this.ref());
 
-  get repost() {
+  readonly bareRef = computed(() => this.bareRepost() ? this.repostRef() : this.ref());
+
+  readonly repost = computed(() => {
     return this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref());
-  }
+  });
 
-  get bareRepost() {
-    return this.repost && !this.ref().title && !this.ref().comment;
-  }
+  readonly bareRepost = computed(() => this.repost() && !this.ref().title && !this.ref().comment);
 
-  get approved() {
-    return hasTag('_moderated', this.currentRef);
-  }
+  readonly approved = computed(() => hasTag('_moderated', this.currentRef()));
 
-  get locked() {
-    return hasTag('locked', this.currentRef);
-  }
+  readonly locked = computed(() => hasTag('locked', this.currentRef()));
 
-  get qr() {
-    return hasTag('plugin/qr', this.currentRef);
-  }
+  readonly qr = computed(() => hasTag('plugin/qr', this.currentRef()));
 
-  get audio() {
-    return hasTag('plugin/audio', this.currentRef) ||
-      this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/audio');
-  }
+  readonly audio = computed(() => hasTag('plugin/audio', this.currentRef()) ||
+    this.admin.getPluginsForUrl(this.url()).some(p => p.tag === 'plugin/audio'));
 
-  get video() {
-    return hasTag('plugin/video', this.currentRef) ||
-      this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/image');
-  }
+  readonly video = computed(() => hasTag('plugin/video', this.currentRef()) ||
+    this.admin.getPluginsForUrl(this.url()).some(p => p.tag === 'plugin/video'));
 
-  get image() {
-    return hasTag('plugin/image', this.currentRef) ||
-      this.admin.getPluginsForUrl(this.url).find(p => p.tag === 'plugin/image');
-  }
+  readonly image = computed(() => hasTag('plugin/image', this.currentRef()) ||
+    this.admin.getPluginsForUrl(this.url()).some(p => p.tag === 'plugin/image'));
 
-  get media() {
-    return this.qr || this.audio || this.video || this.image;
-  }
+  readonly media = computed(() => this.qr() || this.audio() || this.video() || this.image());
 
-  get expand() {
-    return this.currentRef?.comment || this.media;
-  }
+  readonly expand = computed(() => this.currentRef()?.comment || this.media());
 
-  get comments() {
+  readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
-  }
+  });
 
-  get chatroom() {
+  readonly chatroom = computed(() => {
     return this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.ref());
-  }
+  });
 
-  get thread() {
+  readonly thread = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return '';
-    if (!hasTag('plugin/thread', this.ref()) && !this.threads) return '';
+    if (!hasTag('plugin/thread', this.ref()) && !this.threads()) return '';
     return this.ref().sources?.[1] || this.ref().sources?.[0] || this.ref().url;
-  }
+  });
 
-  get threads() {
+  readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return this.ref().metadata?.plugins?.['plugin/thread'] || 0;
-  }
+  });
 
   formatAuthor(user: string) {
     if (this.store.account.origin() && tagOrigin(user) === this.store.account.origin()) {
@@ -273,15 +213,15 @@ export class ChatEntryComponent {
       path: '/tags/-',
       value: '_moderated',
     }]).pipe(
-      switchMap(() => this.refs.get(this.ref().url, this.ref().origin!).pipe(takeUntilDestroyed(this.destroyRef))),
+      switchMap(() => this.refs.get(this.ref().url, this.ref().origin!)),
       catchError((err: HttpErrorResponse) => {
         this.serverError.set(printError(err));
         return throwError(() => err);
       }),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(ref => {
       this.serverError.set([]);
       this.ref.set(ref);
-      this.init();
     });
   }
 
