@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
+import { LocationMapComponent } from './location-map.component';
 
 @Component({
   selector: 'formly-field-location',
@@ -40,6 +41,7 @@ import { getErrorMessage } from './errors';
              (blur)="blur($any($event.target))"
              [class.is-invalid]="showError">
       <button type="button"
+              class="location-detect"
               title="Use current location"
               i18n-title
               aria-label="Use current location"
@@ -47,15 +49,34 @@ import { getErrorMessage } from './errors';
               [disabled]="formControl.disabled"
               (click)="detectLocation()"
               i18n>📍️</button>
+      <button type="button"
+              class="location-map-toggle"
+              title="Pick location on map"
+              i18n-title
+              aria-label="Pick location on map"
+              i18n-aria-label
+              [class.toggled]="showMap"
+              [attr.aria-pressed]="showMap"
+              [disabled]="formControl.disabled"
+              (click)="toggleMap()"
+              i18n>🗺️</button>
     </div>
+    @if (showMap) {
+      @defer {
+        <app-location-map [control]="formControl"></app-location-map>
+      }
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FormlyAttributes,
+    LocationMapComponent,
   ],
 })
 export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
+
+  showMap = false;
 
   private showedError = false;
 
@@ -74,33 +95,44 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
     return this.formControl.value?.[1] ?? 0;
   }
 
+  get hasLocation() {
+    const v = this.formControl.value;
+    return Array.isArray(v) && typeof v[0] === 'number' && typeof v[1] === 'number' && (v[0] !== 0 || v[1] !== 0);
+  }
+
   setLng(value: string) {
     const lng = parseFloat(value);
     if (!isNaN(lng)) {
-      this.formControl.setValue([lng, this.lat]);
-      this.formControl.markAsDirty();
+      this.setLocation([lng, this.lat]);
     }
   }
 
   setLat(value: string) {
     const lat = parseFloat(value);
     if (!isNaN(lat)) {
-      this.formControl.setValue([this.lng, lat]);
-      this.formControl.markAsDirty();
+      this.setLocation([this.lng, lat]);
     }
+  }
+
+  setLocation(value: [number, number]) {
+    this.formControl.setValue(value);
+    this.formControl.markAsDirty();
+    this.cd.markForCheck();
   }
 
   detectLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        pos => {
-          this.formControl.setValue([pos.coords.longitude, pos.coords.latitude]);
-          this.formControl.markAsDirty();
-          this.cd.markForCheck();
-        },
+        pos => this.setLocation([pos.coords.longitude, pos.coords.latitude]),
         err => console.error('Geolocation error:', err.message),
       );
     }
+  }
+
+  toggleMap() {
+    this.showMap = !this.showMap;
+    if (this.showMap && !this.hasLocation) this.detectLocation();
+    this.cd.markForCheck();
   }
 
   validate(input: HTMLInputElement) {

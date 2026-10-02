@@ -11,3 +11,13 @@ mgl-map {
 .map-thumbnail {
   cursor: pointer;
 }
+
+.map-embed {
+  display: block;
+  width: 100%;
+
+  mgl-map {
+    height: 400px;
+    max-height: 80vh;
+  }
+}

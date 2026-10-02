@@ -23,6 +23,7 @@ import { FormlyFieldEditor } from './editor.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { FormlyWrapperFormGroup } from './form-group.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
+import { FormlyFieldBbox } from './bbox.type';
 import { FormlyFieldLocation } from './location.type';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
@@ -73,6 +74,7 @@ const formlyFieldExpressionConfig = withFormlyFieldExpression();
     FormlyWrapperFormField,
     FormlyFieldInput,
     FormlyFieldLocation,
+    FormlyFieldBbox,
     FormlyFieldRange,
     FormlyFieldTagInput,
     FormlyFieldQueryInput,
@@ -667,6 +669,15 @@ Private tags start with an underscore.
           defaultValue: [0, 0],
           props: {
             label: $localize`Location: `,
+          },
+        },
+      }, {
+        name: 'bbox',
+        component: FormlyFieldBbox,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            label: $localize`Bounds: `,
           },
         },
       }],

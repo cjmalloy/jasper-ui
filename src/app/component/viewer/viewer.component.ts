@@ -51,6 +51,7 @@ import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
+import { MapComponent } from '../map/map.component';
 import { LensComponent } from '../lens/lens.component';
 import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
@@ -77,6 +78,7 @@ import { TodoComponent } from '../todo/todo.component';
     TodoComponent,
     BackgammonComponent,
     ChessComponent,
+    MapComponent,
     ResizeHandleDirective,
     LoadingComponent,
   ],
@@ -140,6 +142,8 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   todo = false;
   backgammon = false;
   chess = false;
+  map = false;
+  mapPage?: Page<Ref>;
   chessWhite = true;
   uis = this.admin.getPluginUi(this.currentTags);
   embedReady = false;
@@ -169,6 +173,8 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     this.todo = !!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags);
     this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags);
     this.chess = !!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags);
+    this.map = !!this.admin.getPlugin('plugin/map') && !!this.ref && hasTag('plugin/map', this.currentTags);
+    this.mapPage = this.map ? Page.of([this.ref!]) : undefined;
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);
     if (this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref)) {

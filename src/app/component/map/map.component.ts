@@ -9,7 +9,7 @@ import {
 } from '@maplibre/ngx-maplibre-gl';
 import type { FeatureCollection } from 'geojson';
 import type { GeoJSONSource } from 'maplibre-gl';
-import { Map, Marker, setWorkerUrl } from 'maplibre-gl';
+import { LngLatBounds, Map, Marker, setWorkerUrl } from 'maplibre-gl';
 import { catchError, forkJoin, map as rxMap, of, Subject, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -56,6 +56,14 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   pageControls = true;
   @Input()
   emptyMessage = 'No results found';
+  /**
+   * Fit the map to this bounding box [west, south, east, north].
+   * If empty, fits to the features on the map when fitFeatures is set.
+   */
+  @Input()
+  bbox?: number[];
+  @Input()
+  fitFeatures = false;
 
   private _page?: Page<Ref>;
   private map?: Map;
@@ -81,6 +89,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       this.mapData = mapData;
       MemoCache.clear(this);
       this.updateMapData();
+      if (this.fitFeatures) this.fit();
     });
   }
 
@@ -99,6 +108,9 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['ext']) {
       MemoCache.clear(this);
+    }
+    if (changes['bbox'] && !changes['bbox'].firstChange) {
+      this.fit();
     }
   }
 
@@ -193,6 +205,32 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       },
     });
     this.updateMapData();
+    this.fit();
+  }
+
+  private fit() {
+    if (!this.map) return;
+    const bounds = this.bounds;
+    if (!bounds) return;
+    this.map.fitBounds(bounds, { padding: 40, maxZoom: 14, animate: false });
+  }
+
+  private get bounds(): LngLatBounds | undefined {
+    const bbox = this.bbox?.filter(n => typeof n === 'number' && isFinite(n));
+    if (bbox?.length === 4) return new LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
+    if (bbox?.length === 6) return new LngLatBounds([bbox[0], bbox[1]], [bbox[3], bbox[4]]);
+    if (!this.fitFeatures) return undefined;
+    const bounds = new LngLatBounds();
+    const extend = (c: any): void => {
+      if (!Array.isArray(c)) return;
+      if (typeof c[0] === 'number' && typeof c[1] === 'number') {
+        if (isFinite(c[0]) && isFinite(c[1])) bounds.extend([c[0], c[1]]);
+      } else {
+        c.forEach(extend);
+      }
+    };
+    this.mapData.flatMap(([ref]) => features(ref)).forEach(f => extend((f?.geometry as any)?.coordinates));
+    return bounds.isEmpty() ? undefined : bounds;
   }
 
   private updateMapData() {
