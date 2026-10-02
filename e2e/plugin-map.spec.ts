@@ -116,6 +116,7 @@ test.describe.serial('Map Plugin', () => {
     await points.nth(3).locator('input').nth(1).fill('44.7');
     // Moving the first position moves the closing position
     await points.nth(0).locator('input').nth(0).fill('-63.6');
+    await page.locator('.plugin-content input[type=color]').fill('#ff0000');
 
     const submitPromise = page.waitForRequest(
       req => req.url().includes('/api/v1/ref') && req.method() === 'POST',
@@ -125,6 +126,7 @@ test.describe.serial('Map Plugin', () => {
     expect(ref.plugins['plugin/geo/polygon'].geometry.coordinates).toEqual([[
       [-63.6, 44.6], [-63.4, 44.6], [-63.4, 44.7], [-63.5, 44.7], [-63.6, 44.6],
     ]]);
+    expect(ref.plugins['plugin/geo/polygon'].properties.color).toBe('#ff0000');
   });
 
   test('location input map picker searches an address', async ({ page }) => {

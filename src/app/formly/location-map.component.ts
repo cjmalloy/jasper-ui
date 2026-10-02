@@ -11,7 +11,7 @@ import { addGeocoder } from '../component/map/geocoder';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
 import { GeocodeService } from '../service/geocode.service';
-import { geoFeatures, hasLocation } from '../util/geo';
+import { GEO_COLOR, geoFeatures, hasLocation } from '../util/geo';
 import { GeocoderPosition, isConfigured } from '../util/geocode';
 import { closedRings, LocationPicker } from './location-picker';
 
@@ -117,21 +117,21 @@ export class LocationMapComponent implements OnDestroy {
       type: 'fill',
       source: 'location-context',
       filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false] as any,
-      paint: { 'fill-color': '#4264fb', 'fill-opacity': 0.3 },
+      paint: { 'fill-color': GEO_COLOR, 'fill-opacity': 0.3 },
     });
     map.addLayer({
       id: 'location-context-lines',
       type: 'line',
       source: 'location-context',
       filter: ['match', ['geometry-type'], ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'], true, false] as any,
-      paint: { 'line-color': '#4264fb', 'line-width': 2 },
+      paint: { 'line-color': GEO_COLOR, 'line-width': 2 },
     });
     map.addLayer({
       id: 'location-context-points',
       type: 'circle',
       source: 'location-context',
       filter: ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false] as any,
-      paint: { 'circle-radius': 5, 'circle-color': '#4264fb' },
+      paint: { 'circle-radius': 5, 'circle-color': GEO_COLOR },
     });
     this.watch?.unsubscribe();
     this.watch = this.contextRoot.valueChanges.subscribe(() => this.update());

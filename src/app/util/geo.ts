@@ -5,6 +5,11 @@ export function isPosition(p: any): p is Position {
 }
 
 /**
+ * MapLibre paint color using the feature's color property, if valid.
+ */
+export const GEO_COLOR: any = ['to-color', ['get', 'color'], '#4264fb'];
+
+/**
  * A position other than the unset [0, 0] default.
  */
 export function hasLocation(v: any): v is [number, number] {

@@ -24,7 +24,7 @@ import { RefService } from '../../service/api/ref.service';
 import { GeocodeService } from '../../service/geocode.service';
 import { Store } from '../../store/store';
 import { getTitle } from '../../util/format';
-import { geoFeatures, hasLocation } from '../../util/geo';
+import { GEO_COLOR, geoFeatures, hasLocation } from '../../util/geo';
 import { GeocoderPosition, isConfigured } from '../../util/geocode';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
@@ -273,7 +273,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       source: 'geo-features',
       filter: ['match', ['geometry-type'], ['LineString', 'MultiLineString'], true, false] as any,
       paint: {
-        'line-color': '#4264fb',
+        'line-color': GEO_COLOR,
         'line-width': 2,
       },
     });
@@ -284,7 +284,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       source: 'geo-features',
       filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false] as any,
       paint: {
-        'fill-color': '#4264fb',
+        'fill-color': GEO_COLOR,
         'fill-opacity': 0.3,
       },
     });
@@ -295,7 +295,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       source: 'geo-features',
       filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false] as any,
       paint: {
-        'line-color': '#4264fb',
+        'line-color': GEO_COLOR,
         'line-width': 2,
       },
     });
@@ -307,7 +307,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       filter: ['==', ['geometry-type'], 'MultiPoint'] as any,
       paint: {
         'circle-radius': 8,
-        'circle-color': '#4264fb',
+        'circle-color': GEO_COLOR,
       },
     });
     this.updateMapData();
