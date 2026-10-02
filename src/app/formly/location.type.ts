@@ -78,8 +78,25 @@ import { LocationPicker, locationPicker } from './location-picker';
       flex-grow: 1;
       min-width: 0;
     }
+    @media (max-width: 740px) {
+      .location-input {
+        container-type: inline-size;
+      }
+    }
     .location-input input {
       min-width: 0;
+    }
+    @container (max-width: 240px) {
+      .location-input .form-array {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: auto auto;
+        grid-auto-flow: column;
+        gap: 4px;
+      }
+      .location-input .form-array > * {
+        margin-right: 0;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

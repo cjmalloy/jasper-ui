@@ -129,6 +129,25 @@ test.describe.serial('Map Plugin', () => {
     expect(ref.plugins['plugin/geo/polygon'].properties.color).toBe('#ff0000');
   });
 
+  test('nested location inputs fit on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(POLYGON_URL)
+      + '&tag=plugin/geo/multipolygon', { waitUntil: 'networkidle' });
+    await page.locator('button', { hasText: '+ Add Polygon' }).click();
+    await page.locator('button', { hasText: '+ Add Ring' }).click();
+    await page.locator('button', { hasText: '+ Add Point' }).click();
+    const point = page.locator('.plugin-content .location-field').first();
+    for (const el of await point.locator('input, button').all()) {
+      const box = (await el.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(375);
+    }
+    for (const input of await point.locator('input').all()) {
+      expect((await input.boundingBox())!.width).toBeGreaterThanOrEqual(80);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+  });
+
   test('location input map picker searches an address', async ({ page }) => {
     let query = '';
     let viewbox = '';
