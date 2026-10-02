@@ -4,6 +4,7 @@ import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
 
 /**
  * GeoJSON bounding box: [west, south, east, north]
+ * or [west, south, minZ, east, north, maxZ] (altitudes are preserved)
  */
 @Component({
   selector: 'formly-field-bbox',
@@ -37,14 +38,23 @@ export class FormlyFieldBbox extends FieldType<FieldTypeConfig> {
     { index: 3, name: 'north', label: $localize`North`, min: -90, max: 90 },
   ];
 
+  get is3d() {
+    return this.formControl.value?.length === 6;
+  }
+
+  pos(index: number) {
+    return this.is3d && index >= 2 ? index + 1 : index;
+  }
+
   value(index: number) {
-    return this.formControl.value?.[index] ?? '';
+    return this.formControl.value?.[this.pos(index)] ?? '';
   }
 
   set(index: number, value: string) {
-    const bbox: (number | null)[] = [0, 1, 2, 3].map(i => this.formControl.value?.[i] ?? null);
+    const length = this.is3d ? 6 : 4;
+    const bbox: (number | null)[] = Array.from({ length }, (_, i) => this.formControl.value?.[i] ?? null);
     const n = parseFloat(value);
-    bbox[index] = isNaN(n) ? null : n;
+    bbox[this.pos(index)] = isNaN(n) ? null : n;
     this.formControl.setValue(bbox.every(b => b === null) ? undefined : bbox.map(b => b ?? 0));
     this.formControl.markAsDirty();
   }
