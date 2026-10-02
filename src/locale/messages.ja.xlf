@@ -177,6 +177,10 @@ Please Reload.</source>
       <trans-unit id="5433675495457939071" datatype="html">
         <source>Templates</source>
       </trans-unit>
+      <trans-unit id="8057107542698632429" datatype="html">
+        <source>Tombstones</source>
+        <target>削除記録</target>
+      </trans-unit>
       <trans-unit id="2258332150307719183" datatype="html">
         <source>Newer than:</source>
       </trans-unit>

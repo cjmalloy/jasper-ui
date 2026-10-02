@@ -60,6 +60,7 @@ export class BackupComponent {
       user: [true],
       plugin: [false],
       template: [false],
+      tombstones: [false],
       newerThan: [''],
     });
   }
@@ -118,6 +119,7 @@ export class BackupComponent {
       user: this.restoreOptionsForm.value.user,
       plugin: this.restoreOptionsForm.value.plugin,
       template: this.restoreOptionsForm.value.template,
+      tombstones: this.restoreOptionsForm.value.tombstones,
       newerThan: this.restoreOptionsForm.value.newerThan || undefined,
     };
     this.closeRestoreOptions();

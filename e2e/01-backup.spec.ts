@@ -27,6 +27,8 @@ test.describe('Backup / Restore', () => {
     await page.locator('.backup.buttons button', { hasText: '+ backup' }).click();
     // Wait for overlay to appear
     await expect(page.locator('.popup button', { hasText: '+ backup' })).toBeVisible();
+    await expect(page.locator('#backupTombstones')).toBeVisible();
+    await expect(page.locator('#backupTombstones')).not.toBeChecked();
     // Click backup button to create backup with default options
     await page.locator('.popup button', { hasText: '+ backup' }).click();
     await page.waitForTimeout(1000);
@@ -48,6 +50,8 @@ test.describe('Backup / Restore', () => {
     await page.locator('.fake-link', { hasText: 'yes' }).click();
     // Wait for options overlay to appear
     await expect(page.locator('.popup button', { hasText: 'restore' })).toBeVisible();
+    await expect(page.locator('#restoreTombstones')).toBeVisible();
+    await expect(page.locator('#restoreTombstones')).not.toBeChecked();
     // Click restore to restore with default options
     await page.locator('.popup button', { hasText: 'restore' }).click();
     await page.waitForTimeout(1000);
