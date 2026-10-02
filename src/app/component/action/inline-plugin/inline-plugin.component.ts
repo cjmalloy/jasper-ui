@@ -35,7 +35,9 @@ export class InlinePluginComponent extends ActionComponent {
   get acting() { return this.actingSignal(); }
   set acting(value: boolean) { this.actingSignal.set(value); }
 
-  group: UntypedFormGroup = this.fb.group({});
+  private readonly _group = signal<UntypedFormGroup>(this.fb.group({}));
+  get group() { return this._group(); }
+  set group(value: UntypedFormGroup) { this._group.set(value); }
 
   constructor(
     public admin: AdminService,

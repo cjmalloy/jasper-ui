@@ -14,7 +14,7 @@
       <button type="button" (click)="editingConfig = true" i18n>+ Add Config</button>
     </div>
   } @else {
-    <app-json [id]="id + '-config'"
+    <app-json (focusin)="editingConfig = true" [id]="id + '-config'"
               fieldName="config"
               [group]="group"></app-json>
     @if (configErrors().length) {
@@ -33,7 +33,7 @@
       <button type="button" (click)="editingDefaults = true" i18n>+ Add Defaults</button>
     </div>
   } @else {
-    <app-json [id]="id + '-defaults'"
+    <app-json (focusin)="editingDefaults = true" [id]="id + '-defaults'"
               fieldName="defaults"
               [group]="group"></app-json>
     @if (defaultsErrors().length) {
@@ -52,7 +52,7 @@
       <button type="button" (click)="editingSchema = true" i18n>+ Add Schema</button>
     </div>
   } @else {
-    <app-json [id]="id + '-schema'"
+    <app-json (focusin)="editingSchema = true" [id]="id + '-schema'"
               fieldName="schema"
               [group]="group"></app-json>
     @if (schemaErrors().length) {

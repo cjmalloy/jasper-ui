@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -25,9 +25,16 @@ export class PluginFormComponent {
   readonly schemaErrors = input<string[]>([]);
 
   id = 'plugin-' + uuid();
-  editingConfig = false;
-  editingDefaults = false;
-  editingSchema = false;
+  private readonly _editingConfig = signal<any>(false);
+  private readonly _editingDefaults = signal<any>(false);
+  private readonly _editingSchema = signal<any>(false);
+
+  get editingConfig() { return this._editingConfig(); }
+  set editingConfig(value: any) { this._editingConfig.set(value); }
+  get editingDefaults() { return this._editingDefaults(); }
+  set editingDefaults(value: any) { this._editingDefaults.set(value); }
+  get editingSchema() { return this._editingSchema(); }
+  set editingSchema(value: any) { this._editingSchema.set(value); }
 
   get group(): UntypedFormGroup {
     return this.groupInput();
@@ -42,15 +49,15 @@ export class PluginFormComponent {
   }
 
   get config() {
-    return this.editingConfig ||= this.group.get('config')?.value;
+    return this.editingConfig || this.group.get('config')?.value;
   }
 
   get defaults() {
-    return this.editingDefaults ||= this.group.get('defaults')?.value;
+    return this.editingDefaults || this.group.get('defaults')?.value;
   }
 
   get schema() {
-    return this.editingSchema ||= this.group.get('schema')?.value;
+    return this.editingSchema || this.group.get('schema')?.value;
   }
 
   validate(input: HTMLInputElement) {

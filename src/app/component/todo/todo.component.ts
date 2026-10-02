@@ -5,7 +5,8 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
-  signal
+  signal,
+  untracked,
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
@@ -78,7 +79,7 @@ export class TodoComponent {
     effect(() => {
       this.ref();
       this.text();
-      this.init();
+      untracked(() => this.init());
     });
   }
 

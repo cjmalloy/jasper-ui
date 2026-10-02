@@ -62,7 +62,9 @@ export class SettingsSetupPage implements OnDestroy {
   readonly mergePopup = viewChild<TemplateRef<any>>('mergePopup');
 
   experiments = !!this.admin.getTemplate('config/experiments');
-  selectAllToggle = false;
+  private readonly _selectAllToggle = signal<boolean>(false);
+  get selectAllToggle() { return this._selectAllToggle(); }
+  set selectAllToggle(value: boolean) { this._selectAllToggle.set(value); }
   adminForm: UntypedFormGroup;
   mergePopupSub = new Subscription();
   modGroups = configGroups({

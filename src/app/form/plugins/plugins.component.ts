@@ -8,7 +8,8 @@ import {
   input,
   output,
   signal,
-  viewChildren
+  viewChildren,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -53,7 +54,7 @@ export class PluginsFormComponent implements AfterViewInit {
     effect(() => {
       this.groupInput();
       this.fieldName();
-      this.init();
+      untracked(() => this.init());
     });
   }
 

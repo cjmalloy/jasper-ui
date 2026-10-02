@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
@@ -71,7 +71,9 @@ export class PageControlsComponent {
 
   pageSizes = [6, 24, 48, 96, 480];
   colSizes = [1, 2, 3, 4, 5, 6];
-  colsChanged = false;
+  private readonly _colsChanged = signal(false);
+  get colsChanged() { return this._colsChanged(); }
+  set colsChanged(value: boolean) { this._colsChanged.set(value); }
 
   constructor(
     public store: Store,

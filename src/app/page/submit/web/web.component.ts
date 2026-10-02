@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -62,17 +62,33 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private readonly injector = inject(Injector);
 
-  submitted = false;
+  private readonly _submitted = signal<boolean>(false);
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
   title = '';
   webForm: UntypedFormGroup;
-  serverError: string[] = [];
+  private readonly _serverError = signal<string[]>([]);
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
 
-  limitWidth?: HTMLElement;
-  submitting?: Subscription;
-  saving?: Subscription;
-  defaults?: { url: string, ref: Partial<Ref> };
-  loadingDefaults: Ext[] = [];
-  alreadyExists = false;
+  private readonly _limitWidth = signal<HTMLElement | undefined>(undefined);
+  get limitWidth() { return this._limitWidth(); }
+  set limitWidth(value: HTMLElement | undefined) { this._limitWidth.set(value); }
+  private readonly _submitting = signal<Subscription | undefined>(undefined);
+  get submitting() { return this._submitting(); }
+  set submitting(value: Subscription | undefined) { this._submitting.set(value); }
+  private readonly _saving = signal<Subscription | undefined>(undefined);
+  get saving() { return this._saving(); }
+  set saving(value: Subscription | undefined) { this._saving.set(value); }
+  private readonly _defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
+  get defaults() { return this._defaults(); }
+  set defaults(value: { url: string, ref: Partial<Ref> } | undefined) { this._defaults.set(value); }
+  private readonly _loadingDefaults = signal<Ext[]>([]);
+  get loadingDefaults() { return this._loadingDefaults(); }
+  set loadingDefaults(value: Ext[]) { this._loadingDefaults.set(value); }
+  private readonly _alreadyExists = signal<boolean>(false);
+  get alreadyExists() { return this._alreadyExists(); }
+  set alreadyExists(value: boolean) { this._alreadyExists.set(value); }
 
   private oldSubmit: string[] = [];
   private _refForm?: RefFormComponent;
@@ -280,11 +296,11 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     const savedValue = JSON.stringify(this.webForm.value);
     this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        delete this.saving;
+        this.saving = undefined;
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        delete this.saving;
+        this.saving = undefined;
         this.cursor = cursor;
         if (JSON.stringify(this.webForm.value) === savedValue) this.webForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
@@ -365,7 +381,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     this.submitting = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status !== 409) return throwError(() => res);
-        delete this.submitting;
+        this.submitting = undefined;
         this.serverError = printError(res);
         this.alreadyExists = true;
         return EMPTY;
@@ -384,12 +400,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        delete this.submitting;
+        this.submitting = undefined;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      delete this.submitting;
+      this.submitting = undefined;
       this.webForm.markAsPristine();
       this.refForm.completedUploads = [];
 

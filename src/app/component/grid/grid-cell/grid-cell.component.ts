@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, forwardRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
@@ -22,7 +22,9 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class GridCellComponent implements ICellRendererAngularComp {
-  type = '';
+  private readonly _type = signal('');
+  get type() { return this._type(); }
+  set type(value: string) { this._type.set(value); }
   value?: unknown;
   private data?: Ref;
 

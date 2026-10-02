@@ -19,10 +19,14 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
 })
 export class QueryComponent {
 
-  editing = false;
-  replaceOnClipboardPaste = false;
+  private readonly _editing = signal(false);
+  private readonly _replaceOnClipboardPaste = signal(false);
   select: boolean | Crumb[] = false;
   private readonly _breadcrumbs = signal<Crumb[]>([], { equal: () => false });
+  get editing() { return this._editing(); }
+  set editing(value: boolean) { this._editing.set(value); }
+  get replaceOnClipboardPaste() { return this._replaceOnClipboardPaste(); }
+  set replaceOnClipboardPaste(value: boolean) { this._replaceOnClipboardPaste.set(value); }
   get breadcrumbs() { return this._breadcrumbs(); }
   set breadcrumbs(value: Crumb[]) { this._breadcrumbs.set(value); }
 

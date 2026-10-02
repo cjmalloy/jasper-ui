@@ -71,12 +71,20 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   private readonly injector = inject(Injector);
   private generatedUrl = 'comment:' + uuid();
 
-  submitted = false;
+  private readonly _submitted = signal<boolean>(false);
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
   textForm: UntypedFormGroup;
-  advanced = false;
-  serverError: string[] = [];
+  private readonly _advanced = signal<boolean>(false);
+  get advanced() { return this._advanced(); }
+  set advanced(value: boolean) { this._advanced.set(value); }
+  private readonly _serverError = signal<string[]>([]);
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
 
-  limitWidth?: HTMLElement;
+  private readonly _limitWidth = signal<HTMLElement | undefined>(undefined);
+  get limitWidth() { return this._limitWidth(); }
+  set limitWidth(value: HTMLElement | undefined) { this._limitWidth.set(value); }
 
   readonly fill = viewChild<ElementRef>('fill');
   private _advancedFill?: ElementRef;
@@ -86,12 +94,22 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
   readonly plugins = viewChild.required<PluginsFormComponent>('plugins');
 
-  submitting?: Subscription;
-  saving?: Subscription;
+  private readonly _submitting = signal<Subscription | undefined>(undefined);
+  get submitting() { return this._submitting(); }
+  set submitting(value: Subscription | undefined) { this._submitting.set(value); }
+  private readonly _saving = signal<Subscription | undefined>(undefined);
+  get saving() { return this._saving(); }
+  set saving(value: Subscription | undefined) { this._saving.set(value); }
   addAnother = false;
-  defaults?: { url: string, ref: Partial<Ref> };
-  loadingDefaults: Ext[] = [];
-  completedUploads: Ref[] = [];
+  private readonly _defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
+  get defaults() { return this._defaults(); }
+  set defaults(value: { url: string, ref: Partial<Ref> } | undefined) { this._defaults.set(value); }
+  private readonly _loadingDefaults = signal<Ext[]>([]);
+  get loadingDefaults() { return this._loadingDefaults(); }
+  set loadingDefaults(value: Ext[]) { this._loadingDefaults.set(value); }
+  private readonly _completedUploads = signal<Ref[]>([]);
+  get completedUploads() { return this._completedUploads(); }
+  set completedUploads(value: Ref[]) { this._completedUploads.set(value); }
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
   private cursor?: string;
@@ -219,11 +237,11 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     const savedValue = JSON.stringify(this.textForm.value);
     this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        delete this.saving;
+        this.saving = undefined;
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        delete this.saving;
+        this.saving = undefined;
         this.cursor = cursor;
         if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
@@ -400,12 +418,12 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        delete this.submitting;
+        this.submitting = undefined;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      delete this.submitting;
+      this.submitting = undefined;
       this.textForm.markAsPristine();
       this.completedUploads = [];
 

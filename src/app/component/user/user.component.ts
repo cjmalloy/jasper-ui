@@ -79,9 +79,13 @@ export class UserComponent implements HasChanges {
   editForm: UntypedFormGroup;
   get ext() { return this._ext(); }
   set ext(value: Ext | undefined) { this._ext.set(value); }
-  submitted = false;
-  editing = false;
+  private readonly _submitted = signal(false);
+  private readonly _editing = signal(false);
   viewSource = false;
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
+  get editing() { return this._editing(); }
+  set editing(value: boolean) { this._editing.set(value); }
   get genKey() { return this._genKey(); }
   set genKey(value: boolean) { this._genKey.set(value); }
   get deleted() { return this._deleted(); }

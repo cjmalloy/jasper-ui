@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
@@ -56,7 +56,9 @@ import { getPath } from '../util/http';
 })
 export class ListTypeComponent extends FieldArrayType {
 
-  dropping = false;
+  private readonly _dropping = signal(false);
+  get dropping() { return this._dropping(); }
+  set dropping(value: boolean) { this._dropping.set(value); }
 
   constructor(
     private store: Store,

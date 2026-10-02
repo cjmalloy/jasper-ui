@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   contentChildren,
   effect,
@@ -46,14 +47,21 @@ export class TabsComponent implements AfterViewInit {
   set measuring(value: boolean) { this._measuring.set(value); }
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
+  private destroyed = false;
 
   constructor(
     private config: ConfigService,
     private el: ElementRef<HTMLElement>,
+    destroyRef: DestroyRef,
   ) {
+    destroyRef.onDestroy(() => {
+      this.destroyed = true;
+      this.resizeObserver?.disconnect();
+    });
     effect(() => {
       this.anchors();
       defer(() => {
+        if (this.destroyed) return;
         this.measuring = true;
         this.updateTabs();
       });
@@ -62,7 +70,7 @@ export class TabsComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.updateTabs();
-    defer(() => this.resizeObserver?.observe(this.el.nativeElement!.parentElement!));
+    defer(() => !this.destroyed && this.resizeObserver?.observe(this.el.nativeElement!.parentElement!));
   }
 
   get floatingTabs() {
@@ -72,6 +80,7 @@ export class TabsComponent implements AfterViewInit {
   onResize() {
     if (!this.options.length) return;
     defer(() => {
+      if (this.destroyed) return;
       if (!document.body.classList.contains('fullscreen')) {
         this.measureVisible();
       }
@@ -98,7 +107,7 @@ export class TabsComponent implements AfterViewInit {
       this.map.set(value, tabs.indexOf(t));
     }
     this._options.set(this.options);
-    defer(() => this.onResize());
+    defer(() => !this.destroyed && this.onResize());
   }
 
   hideTabs() {

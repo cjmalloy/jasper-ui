@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ChangeDetectionStrategy, input, output, viewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ChangeDetectionStrategy, input, output, signal, viewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -48,7 +48,9 @@ export class UserFormComponent implements OnInit {
   readonly tagWriteAccess = viewChild.required<TagsFormComponent>('tagWriteAccess');
 
   id = 'user-' + uuid();
-  editingExternal = false;
+  private readonly _editingExternal = signal<any>(false);
+  get editingExternal() { return this._editingExternal(); }
+  set editingExternal(value: any) { this._editingExternal.set(value); }
 
   private showedError = false;
 
@@ -73,7 +75,7 @@ export class UserFormComponent implements OnInit {
   }
 
   get external() {
-    return this.editingExternal ||= this.group.get('external')?.value;
+    return this.editingExternal || this.group.get('external')?.value;
   }
 
   get showError() {

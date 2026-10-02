@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, Injector } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, Injector, signal } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -21,8 +21,12 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
 
   private readonly injector = inject(Injector);
 
-  plugin?: Plugin;
-  writeAccess = false;
+  private readonly _plugin = signal<Plugin | undefined>(undefined);
+  get plugin() { return this._plugin(); }
+  set plugin(value: Plugin | undefined) { this._plugin.set(value); }
+  private readonly _writeAccess = signal<boolean>(false);
+  get writeAccess() { return this._writeAccess(); }
+  set writeAccess(value: boolean) { this._writeAccess.set(value); }
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -45,11 +49,12 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     effect(() => {
-      this.plugin = this.admin.getPlugin(this.store.view.settingsTag);
+      const plugin = this.admin.getPlugin(this.store.view.settingsTag);
+      this.plugin = plugin;
       this.writeAccess = this.auth.canAddTag(this.store.view.settingsTag);
-      this.mod.setTitle($localize`Settings: ${this.plugin?.config?.settings || this.store.view.settingsTag}`);
+      this.mod.setTitle($localize`Settings: ${plugin?.config?.settings || this.store.view.settingsTag}`);
       const args = getArgs(
-        this.store.view.settingsTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
+        this.store.view.settingsTag + (this.store.view.showRemotes ? '' : (plugin?.origin || '@')),
         this.store.view.sort,
         uniq(['!obsolete', ...this.store.view.filter]),
         this.store.view.search,

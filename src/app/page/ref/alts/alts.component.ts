@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
 import { defer } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -24,7 +24,9 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
-  page: Page<Ref> = Page.of([]);
+  private readonly _page = signal<Page<Ref>>(Page.of([]));
+  get page() { return this._page(); }
+  set page(value: Page<Ref>) { this._page.set(value); }
 
   constructor(
     private mod: ModService,
@@ -59,7 +61,7 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
     }, { injector: this.injector });
     effect(() => {
       if (!this.query.page) return;
-      const refs = this.query.page.content;
+      const refs = [...this.query.page.content];
       for (let i = 0; i < (this.store.view.ref?.alternateUrls?.length || 0); i ++) {
         const url = this.store.view.ref!.alternateUrls![i];
         if (refs.find(r => r.url === url)) continue;

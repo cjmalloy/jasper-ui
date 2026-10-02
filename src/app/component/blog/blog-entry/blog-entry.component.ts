@@ -13,6 +13,7 @@ import {
   input,
   linkedSignal,
   signal,
+  untracked,
   viewChild,
   viewChildren
 } from '@angular/core';
@@ -179,7 +180,7 @@ export class BlogEntryComponent implements HasChanges {
     this.editForm = refForm(fb);
     effect(() => {
       this.refInput();
-      this.init();
+      untracked(() => this.init());
     });
     effect(() => {
       const value = this.refForm();
