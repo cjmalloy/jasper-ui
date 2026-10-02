@@ -118,8 +118,9 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
         value: t,
       });
     }
-    const removeIndices = without(this.ref.tags || [], ...finalTags)
-      .map(t => this.ref.tags!.indexOf(t))
+    const removeIndices = (this.ref.tags || [])
+      .map((t, i) => finalTags.includes(t) ? -1 : i)
+      .filter(i => i >= 0)
       .sort((a, b) => b - a);
     for (const i of removeIndices) {
       patches.push({
