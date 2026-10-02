@@ -7294,6 +7294,49 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Bounds: </source>
         <target>範囲: </target>
       </trans-unit>
+      <trans-unit id="4168319851953294418" datatype="html">
+        <source>Photon</source>
+      </trans-unit>
+      <trans-unit id="521557909863788329" datatype="html">
+        <source>Geocoding: </source>
+        <target>ジオコーディング: </target>
+      </trans-unit>
+      <trans-unit id="5914380341841503873" datatype="html">
+        <source>OpenStreetMap (Nominatim)</source>
+      </trans-unit>
+      <trans-unit id="6277392156435513308" datatype="html">
+        <source>Searching…</source>
+        <target>検索中…</target>
+      </trans-unit>
+      <trans-unit id="632822263124795513" datatype="html">
+        <source>Search address</source>
+        <target>住所を検索</target>
+      </trans-unit>
+      <trans-unit id="6574802489883645842" datatype="html">
+        <source>Google Maps API key is not configured.</source>
+        <target>Google Maps APIキーが設定されていません。</target>
+      </trans-unit>
+      <trans-unit id="6930809139270583742" datatype="html">
+        <source>Google Maps API Key: </source>
+        <target>Google Maps APIキー: </target>
+      </trans-unit>
+      <trans-unit id="7310439367454019720" datatype="html">
+        <source>Google Maps</source>
+      </trans-unit>
+      <trans-unit id="7483936811733810755" datatype="html">
+        <source>🔎️</source>
+      </trans-unit>
+      <trans-unit id="8162805192658576220" datatype="html">
+        <source>Photon URL: </source>
+      </trans-unit>
+      <trans-unit id="8421900256859774197" datatype="html">
+        <source>Address search failed.</source>
+        <target>住所の検索に失敗しました。</target>
+      </trans-unit>
+      <trans-unit id="8692634109890521682" datatype="html">
+        <source>No results found.</source>
+        <target>結果が見つかりません。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

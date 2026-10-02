@@ -5,6 +5,36 @@ export function isPosition(p: any): p is Position {
 }
 
 /**
+ * A position other than the unset [0, 0] default.
+ */
+export function hasLocation(v: any): v is [number, number] {
+  return isPosition(v) && (v[0] !== 0 || v[1] !== 0);
+}
+
+/**
+ * Centre of the bounds of every location in the Ref's geo plugins.
+ */
+export function geoCenter(plugins?: Record<string, any>): [number, number] | undefined {
+  let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+  const visit = (c: any) => {
+    if (hasLocation(c)) {
+      w = Math.min(w, c[0]);
+      s = Math.min(s, c[1]);
+      e = Math.max(e, c[0]);
+      n = Math.max(n, c[1]);
+    } else if (Array.isArray(c)) {
+      c.forEach(visit);
+    }
+  };
+  for (const [key, value] of Object.entries(plugins || {})) {
+    if (!key.startsWith('plugin/geo/')) continue;
+    for (const f of geoFeatures(value, hasLocation)) visit((f.geometry as any).coordinates);
+  }
+  if (w > e) return undefined;
+  return [(w + e) / 2, (s + n) / 2];
+}
+
+/**
  * A linear ring is closed with four or more positions, the first and last
  * being identical (RFC 7946 3.1.6).
  */

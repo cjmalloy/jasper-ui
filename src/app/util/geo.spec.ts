@@ -1,4 +1,4 @@
-import { geoFeatures, isLinearRing } from './geo';
+import { geoCenter, geoFeatures, isLinearRing } from './geo';
 
 describe('geo', () => {
   describe('isLinearRing', () => {
@@ -49,5 +49,15 @@ describe('geo', () => {
     const unset = (p: any): p is [number, number] => Array.isArray(p) && (p[0] !== 0 || p[1] !== 0);
     const features = geoFeatures({ geometry: { type: 'LineString', coordinates: [[1, 1], [2, 2], [0, 0]] } }, unset);
     expect(features.map(f => f.geometry)).toEqual([{ type: 'LineString', coordinates: [[1, 1], [2, 2]] }]);
+  });
+
+  it('centres on the bounds of all geo plugins', () => {
+    expect(geoCenter({
+      'plugin/geo/point': { geometry: { type: 'Point', coordinates: [-64, 44] } },
+      'plugin/geo/linestring': { geometry: { type: 'LineString', coordinates: [[-62, 46], [0, 0]] } },
+      'plugin/map': { bbox: [100, 100, 100, 100] },
+    })).toEqual([-63, 45]);
+    expect(geoCenter({ 'plugin/geo/point': { geometry: { type: 'Point', coordinates: [0, 0] } } })).toBeUndefined();
+    expect(geoCenter(undefined)).toBeUndefined();
   });
 });

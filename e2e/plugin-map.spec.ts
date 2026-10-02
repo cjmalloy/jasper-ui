@@ -3,6 +3,8 @@ import { deleteRef, mod } from './setup';
 
 const URL = 'https://jasperkm.info/plugin-map-test';
 const POLYGON_URL = 'https://jasperkm.info/plugin-map-polygon-test';
+const GEO_URL = 'geo:44.65,-63.57';
+const CORS = { 'Access-Control-Allow-Origin': '*' };
 
 test.describe.serial('Map Plugin', () => {
 
@@ -123,6 +125,46 @@ test.describe.serial('Map Plugin', () => {
     expect(ref.plugins['plugin/geo/polygon'].geometry.coordinates).toEqual([[
       [-63.6, 44.6], [-63.4, 44.6], [-63.4, 44.7], [-63.5, 44.7], [-63.6, 44.6],
     ]]);
+  });
+
+  test('location input map picker searches an address', async ({ page }) => {
+    let query = '';
+    await page.route('https://nominatim.openstreetmap.org/search**', route => {
+      query = new globalThis.URL(route.request().url()).searchParams.get('q') || '';
+      return route.fulfill({ headers: CORS, json: [{ display_name: 'Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' }] });
+    });
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    await point.locator('input').nth(0).fill('-63.5');
+    await point.locator('input').nth(1).fill('44.6');
+    await point.locator('.location-map-toggle').click();
+    await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
+
+    const search = point.locator('.location-search-input');
+    await search.fill('Halifax');
+    await search.press('Enter');
+    await point.locator('.location-search-result', { hasText: 'Halifax, Nova Scotia' }).click();
+    expect(query).toBe('Halifax');
+    await expect(point.locator('input').nth(0)).toHaveValue('-63.57');
+    await expect(point.locator('input').nth(1)).toHaveValue('44.65');
+    await expect(point.locator('.location-search-result')).toHaveCount(0);
+  });
+
+  test('title scraper reverse geocodes the location', async ({ page }) => {
+    await page.route('https://nominatim.openstreetmap.org/reverse**', route => route.fulfill({
+      headers: CORS,
+      json: { display_name: 'Citadel Hill, Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' },
+    }));
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(GEO_URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    // Only shown for web URLs or Refs with a location
+    await expect(page.locator('.scrape-title')).toHaveCount(0);
+    const point = page.locator('.location-field').first();
+    await point.locator('input').nth(0).fill('-63.57');
+    await point.locator('input').nth(1).fill('44.65');
+    await page.locator('.scrape-title').click();
+    await expect(page.locator('[name=title]')).toHaveValue('Citadel Hill, Halifax, Nova Scotia, Canada');
   });
 
   test('plugin/map embeds the ref geo features', async ({ page }) => {

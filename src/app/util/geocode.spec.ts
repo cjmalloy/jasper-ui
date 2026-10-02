@@ -1,0 +1,64 @@
+/// <reference types="vitest/globals" />
+import { geocode, geocodeUrl, parseGeocode, reverseGeocode, reverseGeocodeUrl } from './geocode';
+
+describe('geocode', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('defaults to Nominatim', () => {
+    expect(geocodeUrl('Halifax, NS', {})).toBe('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=Halifax%2C%20NS');
+    expect(reverseGeocodeUrl([-63.5, 44.6], {})).toBe('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=44.6&lon=-63.5');
+  });
+
+  it('builds Photon URLs', () => {
+    const config = { geocodingProvider: 'photon' as const, photonUrl: 'http://localhost:2322/' };
+    expect(geocodeUrl('halifax', config)).toBe('http://localhost:2322/api/?q=halifax&limit=5');
+    expect(reverseGeocodeUrl([-63.5, 44.6], config)).toBe('http://localhost:2322/reverse?lat=44.6&lon=-63.5');
+    expect(geocodeUrl('halifax', { geocodingProvider: 'photon' })).toBe('https://photon.komoot.io/api/?q=halifax&limit=5');
+  });
+
+  it('builds Google URLs', () => {
+    const config = { geocodingProvider: 'google' as const, googleMapsApiKey: 'key' };
+    expect(geocodeUrl('halifax', config)).toBe('https://maps.googleapis.com/maps/api/geocode/json?address=halifax&key=key');
+    expect(reverseGeocodeUrl([-63.5, 44.6], config)).toBe('https://maps.googleapis.com/maps/api/geocode/json?latlng=44.6,-63.5&key=key');
+    expect(() => geocodeUrl('halifax', { geocodingProvider: 'google' })).toThrow();
+  });
+
+  it('parses Nominatim results', () => {
+    expect(parseGeocode([{ display_name: 'Halifax', lat: '44.6', lon: '-63.5' }], {}))
+      .toEqual([{ name: 'Halifax', location: [-63.5, 44.6] }]);
+    expect(parseGeocode({ display_name: 'Halifax', lat: '44.6', lon: '-63.5' }, {}))
+      .toEqual([{ name: 'Halifax', location: [-63.5, 44.6] }]);
+    expect(parseGeocode({ error: 'Unable to geocode' }, {})).toEqual([]);
+  });
+
+  it('parses Photon GeoJSON', () => {
+    const response = {
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [-63.5, 44.6] },
+        properties: { name: 'Citadel', housenumber: '5425', street: 'Sackville St', city: 'Halifax', state: 'Nova Scotia', country: 'Canada' },
+      }],
+    };
+    expect(parseGeocode(response, { geocodingProvider: 'photon' }))
+      .toEqual([{ name: 'Citadel, 5425 Sackville St, Halifax, Nova Scotia, Canada', location: [-63.5, 44.6] }]);
+  });
+
+  it('parses Google results', () => {
+    const config = { geocodingProvider: 'google' as const, googleMapsApiKey: 'key' };
+    const response = { status: 'OK', results: [{ formatted_address: 'Halifax, NS, Canada', geometry: { location: { lat: 44.6, lng: -63.5 } } }] };
+    expect(parseGeocode(response, config)).toEqual([{ name: 'Halifax, NS, Canada', location: [-63.5, 44.6] }]);
+    expect(parseGeocode({ status: 'ZERO_RESULTS', results: [] }, config)).toEqual([]);
+    expect(() => parseGeocode({ status: 'REQUEST_DENIED', error_message: 'Bad key' }, config)).toThrow();
+  });
+
+  it('fetches without credentials', async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([{ display_name: 'Halifax', lat: '44.6', lon: '-63.5' }]) });
+    vi.stubGlobal('fetch', fetch);
+    expect(await geocode('halifax', {})).toEqual([{ name: 'Halifax', location: [-63.5, 44.6] }]);
+    expect(await reverseGeocode([-63.5, 44.6], {})).toEqual({ name: 'Halifax', location: [-63.5, 44.6] });
+    expect(fetch.mock.calls[0][1].credentials).toBe('omit');
+    expect(await geocode('  ', {})).toEqual([]);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+});
