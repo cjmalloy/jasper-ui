@@ -302,6 +302,22 @@ test.describe.serial('Map Plugin', () => {
     }).toBeCloseTo(0, 0);
   });
 
+  test('plugin/map expands in the ref list', async ({ page }) => {
+    await page.goto('/tag/@*?debug=ADMIN', { waitUntil: 'networkidle' });
+    const ref = page.locator('.ref-list .ref', { hasText: 'Map Plugin Test' });
+    await ref.locator('button.toggle').click();
+    await expect(page.locator('.ref-list .map-embed .maplibregl-map')).toBeVisible({ timeout: 15_000 });
+  });
+
+  for (const tag of ['plugin/geo', 'plugin/geo/point']) {
+    test(`plugin/map toggle is hidden in the ${tag} list`, async ({ page }) => {
+      await page.goto(`/tag/${tag}?debug=ADMIN`, { waitUntil: 'networkidle' });
+      const ref = page.locator('.ref-list .ref', { hasText: 'Map Plugin Test' });
+      await expect(ref).toBeVisible();
+      await expect(ref.locator('button.toggle')).toHaveCount(0);
+    });
+  }
+
   test('map search accounts for the floating sidebar and stays underneath it', async ({ page }) => {
     await page.goto('/tag/@*?debug=ADMIN&view=map', { waitUntil: 'networkidle' });
     await closeSidebar(page);
