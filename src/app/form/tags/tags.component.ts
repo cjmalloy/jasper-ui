@@ -60,7 +60,6 @@ export class TagsFormComponent {
     });
   }
 
-
   get tags() {
     return this.group()?.get(this.fieldName()) as UntypedFormArray;
   }

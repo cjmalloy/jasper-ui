@@ -67,7 +67,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   readonly capturedPiece = signal<{ piece: Piece; square: Square } | undefined>(undefined);
   readonly flip = signal(false);
 
-
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private fen = '';
   private watch?: Subscription;

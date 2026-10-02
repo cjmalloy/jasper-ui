@@ -6,7 +6,8 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
-  signal
+  signal,
+  untracked,
 } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
@@ -47,10 +48,6 @@ export class TodoItemComponent {
   readonly text = signal('');
   readonly hovering = signal(false);
 
-
-
-
-
   readonly line = input('', { alias: 'line' });
 
   constructor(
@@ -58,7 +55,10 @@ export class TodoItemComponent {
     public config: ConfigService,
     private el: ElementRef,
   ) {
-    effect(() => this.setLine(this.line()));
+    effect(() => {
+      const value = this.line();
+      untracked(() => this.setLine(value));
+    });
   }
 
   get local() {

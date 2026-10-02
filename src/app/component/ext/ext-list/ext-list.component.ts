@@ -43,5 +43,4 @@ export class ExtListComponent implements HasChanges {
     return !this.list()?.find(r => !r.saveChanges());
   }
 
-
 }

@@ -44,7 +44,6 @@ export class UserListComponent implements HasChanges {
     return !this.list()?.find(u => !u.saveChanges());
   }
 
-
   hasUser(tag: string) {
     return !!find(this.page()?.content, p => p.tag === tag);
   }

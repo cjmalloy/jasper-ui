@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer } from 'lodash-es';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
@@ -64,16 +64,19 @@ export class RefErrorsComponent implements HasChanges {
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref)), { injector: this.injector });
     effect(() => {
-      if (this.store.view.url && this.config.websockets) {
-        this.watch?.unsubscribe();
-        this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
-          switchMap(url => this.refs.getCurrent(url)),
-          tap(ref => updateMetadata(this.store.view.ref!, ref)),
-          filter(ref => hasTag('+plugin/log', ref)),
-          catchError(err => of(undefined)),
-          untilDestroyed,
-        ).subscribe(ref => this.newRefs$.next(ref));
-      }
+      this.store.view.url;
+      untracked(() => {
+        if (this.store.view.url && this.config.websockets) {
+          this.watch?.unsubscribe();
+          this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
+            switchMap(url => this.refs.getCurrent(url)),
+            tap(ref => updateMetadata(this.store.view.ref!, ref)),
+            filter(ref => hasTag('+plugin/log', ref)),
+            catchError(err => of(undefined)),
+            untilDestroyed,
+          ).subscribe(ref => this.newRefs$.next(ref));
+        }
+      });
     }, { injector: this.injector });
   }
 

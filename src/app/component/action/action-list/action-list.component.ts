@@ -49,7 +49,6 @@ export class ActionListComponent implements AfterViewInit {
   readonly hiddenActions = signal(0);
   overlayRef?: OverlayRef;
 
-
   private overlayEvents?: Subscription;
   private overlayResizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.overlayRef?.updatePosition()) || undefined;
   private resizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
@@ -69,6 +68,7 @@ export class ActionListComponent implements AfterViewInit {
       this.mediaAttachment();
       this.groupedActions();
       this.groupedAdvancedActions();
+      this.cachedActionWidths = undefined;
       defer(() => this.onResize());
     });
   }
@@ -108,7 +108,15 @@ export class ActionListComponent implements AfterViewInit {
   readonly actions = computed(() => {
     return Object.keys(this.groupedActions() as any).length;
   });
-  readonly actionWidths = computed(() => {
+
+  private cachedActionWidths?: number[];
+
+  /**
+   * Widths of the rendered actions, measured from the DOM. Cached until the
+   * inputs change, since hidden actions are removed from the DOM.
+   */
+  actionWidths() {
+    if (this.cachedActionWidths) return this.cachedActionWidths;
     const el = this.el.nativeElement;
     const result: number[] = [];
     for (let i = 0; i < el.children.length; i++) {
@@ -116,8 +124,8 @@ export class ActionListComponent implements AfterViewInit {
       const s = getComputedStyle(e);
       result.push(e.offsetWidth + parseInt(s.marginLeft) + parseInt(s.marginRight));
     }
-    return result;
-  });
+    return this.cachedActionWidths = result;
+  }
 
   get visible() {
     if (this.config.mobile) return this.actions();

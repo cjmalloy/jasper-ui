@@ -15,6 +15,7 @@ import {
   viewChildren,
   signal,
   untracked,
+  computed,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -78,8 +79,7 @@ export class ChatEntryComponent {
   readonly taggingAccess = signal(false);
   readonly deleteAccess = signal(false);
   readonly serverError = signal<string[]>([]);
-  private readonly allowActionsSignal = signal(false);
-
+  private readonly hovering = signal(false);
 
   constructor(
     private config: ConfigService,
@@ -95,7 +95,8 @@ export class ChatEntryComponent {
       untracked(() => this.init());
     });
     effect(() => {
-      if (!this.focused() && !this.allowActionsSignal()) this.actionComponents()?.forEach(c => c.reset());
+      const actionComponents = this.actionComponents();
+      if (!this.focused() && !this.hovering()) untracked(() => actionComponents.forEach(c => c.reset()));
     });
   }
 
@@ -135,16 +136,14 @@ export class ChatEntryComponent {
     return getNiceTitle(this.ref());
   }
 
-  get allowActions(): boolean {
-    return this.allowActionsSignal() || this.focused() || !!this.actionComponents()?.find(c => c.active());
-  }
+  readonly allowActions = computed(() => this.hovering() || this.focused() || !!this.actionComponents()?.find(c => c.active()));
 
-  set allowActions(value: boolean) {
-    if (value === this.allowActionsSignal()) return;
+  setHovering(value: boolean) {
+    if (value === this.hovering()) return;
     if (value) {
-      defer(() => this.allowActionsSignal.set(value));
+      defer(() => this.hovering.set(value));
     } else {
-      this.allowActionsSignal.set(false);
+      this.hovering.set(false);
     }
   }
 
@@ -165,9 +164,9 @@ export class ChatEntryComponent {
     ]);
   }
 
-  get authorExts$() {
+  readonly authorExts$ = computed(() => {
     return this.exts.getCachedExts(this.authors, this.ref().origin || '').pipe(this.admin.authorFallback);
-  }
+  });
 
   get tagLink() {
     return this.url.toLowerCase().startsWith('tag:/');

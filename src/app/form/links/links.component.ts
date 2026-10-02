@@ -65,7 +65,6 @@ export class LinksFormComponent {
     });
   }
 
-
   get links() {
     return this.group()?.get(this.fieldName()) as UntypedFormArray | undefined;
   }

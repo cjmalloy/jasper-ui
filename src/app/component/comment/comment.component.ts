@@ -16,6 +16,7 @@ import {
   viewChild,
   signal,
   untracked,
+  computed,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -108,7 +109,6 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   readonly taggingAccess = signal(false);
   readonly deleteAccess = signal(false);
   readonly serverError = signal<string[]>([]);
-
 
   constructor(
     public admin: AdminService,
@@ -231,9 +231,9 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
     ]);
   }
 
-  get authorExts$() {
+  readonly authorExts$ = computed(() => {
     return this.exts.getCachedExts(this.authors, this.ref().origin || '').pipe(this.admin.authorFallback);
-  }
+  });
 
   get mailboxes() {
     return mailboxes(this.ref(), this.store.account.tag, this.store.origins.originMap);
@@ -251,9 +251,9 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
     return interestingTags(this.ref().tags);
   }
 
-  get tagExts$() {
+  readonly tagExts$ = computed(() => {
     return this.editor.getTagsPreview(this.tagged, this.ref().origin || '');
-  }
+  });
 
   get deleted() {
     return hasTag('plugin/delete', this.ref());

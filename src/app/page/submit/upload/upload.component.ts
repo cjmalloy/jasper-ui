@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnDestroy, ChangeDetectionStrategy, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, effect, inject, Injector, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
@@ -70,8 +70,11 @@ export class UploadPage implements OnDestroy {
   ) {
     mod.setTitle($localize`Submit: Upload`);
     effect(() => {
-      this.readUploads(this.store.submit.files);
-      this.store.submit.clearFiles();
+      this.store.submit.files;
+      untracked(() => {
+        this.readUploads(this.store.submit.files);
+        this.store.submit.clearFiles();
+      });
     }, { injector: this.injector });
     this.store.submit.clearOverride();
   }

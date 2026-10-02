@@ -46,7 +46,6 @@ export class TemplateComponent implements HasChanges {
   readonly schemaErrors = signal<string[]>([]);
   readonly saving = signal<Subscription | undefined>(undefined);
 
-
   editForm: UntypedFormGroup;
   readonly submitted = signal(false);
   readonly editing = signal(false);

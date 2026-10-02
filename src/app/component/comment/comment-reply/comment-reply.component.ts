@@ -54,7 +54,6 @@ export class CommentReplyComponent implements HasChanges {
   readonly serverError = signal<string[]>([]);
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
 
-
   constructor(
     public admin: AdminService,
     public store: Store,

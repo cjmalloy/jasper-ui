@@ -97,7 +97,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   readonly dropActive = signal(false);
   readonly dropFilled = signal(false);
 
-
   constructor(
     @Inject(DOCUMENT) document: Document,
     private config: ConfigService,

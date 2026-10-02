@@ -17,6 +17,7 @@ import {
   viewChildren,
   viewChild,
   signal,
+  computed,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -238,7 +239,10 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
       if (!this.refInput()) return;
       untracked(() => this.init());
     });
-    effect(() => this.handleViewer(this.viewer()));
+    effect(() => {
+      const value = this.viewer();
+      untracked(() => this.handleViewer(value));
+    });
     this.editForm.valueChanges.pipe(
       takeUntilDestroyed(),
     ).subscribe(throttle(value => {
@@ -544,7 +548,6 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     }
   }
 
-
   setViewSource(value: boolean) {
     if (this.viewSource() === value) return;
     this.viewSource.set(value);
@@ -555,7 +558,6 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     }
   }
 
-
   setDiffing(value: boolean) {
     if (this.diffing() === value) return;
     this.diffing.set(value);
@@ -563,7 +565,6 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
       this.diff()
     }
   }
-
 
   setEditing(value: boolean) {
     if (this.editing() === value) return;
@@ -795,9 +796,9 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     ]);
   }
 
-  get authorExts$() {
+  readonly authorExts$ = computed(() => {
     return this.exts.getCachedExts(this.authors, this.ref().origin || '').pipe(this.admin.authorFallback);
-  }
+  });
 
   get recipients() {
     const lookup = this.store.origins.originMap.get(this.ref().origin || '');
@@ -811,9 +812,9 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     ];
   }
 
-  get recipientExts$() {
+  readonly recipientExts$ = computed(() => {
     return this.exts.getCachedExts(this.recipients, this.ref().origin || '').pipe(this.admin.recipientFallback);
-  }
+  });
 
   get mailboxes() {
     return mailboxes(this.ref(), this.store.account.tag, this.store.origins.originMap);
@@ -846,9 +847,9 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     return interestingTags(this.ref().tags);
   }
 
-  get tagExts$() {
+  readonly tagExts$ = computed(() => {
     return this.editor.getTagsPreview(this.tags, this.ref().origin || '');
-  }
+  });
 
   get url() {
     return this.repost ? this.ref().sources![0] : this.ref().url;

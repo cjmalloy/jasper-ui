@@ -30,7 +30,6 @@ export class ThemesFormComponent {
     });
   }
 
-
   get themes() {
     const group = this.group();
     const fieldName = this.fieldName();

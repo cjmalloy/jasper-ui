@@ -72,7 +72,7 @@ export interface EditorUpload {
     '[class.md-preview]': 'preview()',
     '[class.add-button]': 'addButtonClass()',
     '[class.editing]': 'editing()',
-    '[style.padding.px]': 'padding',
+    '[style.padding.px]': 'padding()',
     '(window:scroll)': 'preventScroll()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -136,7 +136,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   private readonly tagsValue = controlValue<string[]>(() => this.tags());
   private readonly _text = signal('');
   readonly editing = signal(false);
-  private _padding = 8;
+  private readonly basePadding = 8;
 
   private europa?: Europa;
   private scrollTop = 0;
@@ -173,7 +173,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       this.tagsValue();
       this.createdTagsInput();
       this.url();
-      this.init();
+      untracked(() => this.init());
     });
     effect(() => {
       const scraping = this.scraping();
@@ -188,19 +188,6 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       }
     });
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   init() {
     if (this.selectResponseType() && this.responseButtons().length) {
@@ -284,15 +271,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   readonly addButtonClass = computed(() => this.addButton() && !this.editing() && !this.currentText);
 
-  get padding(): number {
-    if (this.fullscreen()) return 0;
-    return this._padding + 8;
-  }
-
-  set padding(value: number) {
-    this._padding = value;
-  }
-
+  readonly padding = computed(() => this.fullscreen() ? 0 : this.basePadding + 8);
 
   setEditing(value: boolean) {
     if (!this.editing() && value) {

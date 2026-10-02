@@ -39,7 +39,6 @@ export class TabsComponent implements AfterViewInit {
 
   map = new Map<string, number>();
 
-
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private destroyed = false;
 

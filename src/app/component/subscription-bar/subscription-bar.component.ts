@@ -23,7 +23,6 @@ export class SubscriptionBarComponent implements AfterViewInit {
   readonly bookmarks = signal<TagPreview[]>([]);
   readonly subs = signal<TagPreview[]>([]);
 
-
   private startIndex = this.currentIndex;
 
   constructor(

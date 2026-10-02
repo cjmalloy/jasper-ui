@@ -5,7 +5,8 @@ import {
   OnDestroy,
   signal,
   ViewEncapsulation,
-  input
+  input,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -50,7 +51,6 @@ export class GridComponent implements OnDestroy, HasChanges {
   readonly themeVersion = signal(0);
   private themeVersionCount = 0;
 
-
   readonly tag = input('');
   readonly ext = input<Ext | undefined>();
   readonly pageControls = input(true);
@@ -72,7 +72,10 @@ export class GridComponent implements OnDestroy, HasChanges {
       this.store.darkTheme;
       this.themeVersion.set(++this.themeVersionCount);
     });
-    effect(() => this.updatePage(this.page()));
+    effect(() => {
+      const value = this.page();
+      untracked(() => this.updatePage(value));
+    });
     this.rowDataUpdates$.pipe(
       switchMap(content => {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content);

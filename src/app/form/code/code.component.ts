@@ -36,8 +36,6 @@ export class CodeComponent {
     });
   }
 
-
-
   readonly language = input('css');
 
 }

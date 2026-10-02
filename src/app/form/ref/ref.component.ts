@@ -109,15 +109,6 @@ export class RefFormComponent {
     private fb: UntypedFormBuilder,
   ) { }
 
-
-
-
-
-
-
-
-
-
   get web() {
     const scheme = getScheme(this.url.value);
     return scheme === 'http:' || scheme === 'https:';

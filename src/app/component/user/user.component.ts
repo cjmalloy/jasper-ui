@@ -95,7 +95,7 @@ export class UserComponent implements HasChanges {
     this.editForm = userForm(fb, true);
     effect(() => {
       const refForm = this.refForm();
-      const user = this.user();
+      const user = untracked(() => this.user());
       if (user) defer(() => refForm?.setUser(user));
     });
   }
@@ -127,13 +127,15 @@ export class UserComponent implements HasChanges {
   readonly origin = computed(() => {
     return tagOrigin(this.profile()?.tag) || this.user()?.origin || '';
   });
-  readonly recommendedAlias = computed(() => {
+
+  get recommendedAlias() {
     const api = new URL(this.config.api, location.href);
     const firstPath = api.pathname.split('/').filter(Boolean)[0];
     return firstPath?.startsWith('~') && firstPath.length > 1
       ? '@' + firstPath.substring(1)
       : '@' + api.hostname;
-  });
+  }
+
   readonly local = computed(() => {
     return this.profile()?.tag || (!this.user() || this.user()?.origin === this.store.account.origin);
   });
@@ -158,7 +160,7 @@ export class UserComponent implements HasChanges {
   get connectionRef(): Ref {
     const template = this.store.origins.origins.find(ref =>
       subOrigin(ref.origin, ref.plugins?.['+plugin/origin']?.local) === this.origin());
-    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin() || this.recommendedAlias();
+    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin() || this.recommendedAlias;
     return {
       url: template?.url || new URL(this.config.api, document.baseURI).href,
       title: template?.title || local,

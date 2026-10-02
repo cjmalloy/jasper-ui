@@ -96,7 +96,6 @@ export class ChatComponent implements OnDestroy, HasChanges {
   readonly latex = signal(!!this.admin.getPlugin('plugin/latex'));
   readonly tags = signal<string[]>([]);
 
-
   private timeoutId?: number;
   private retries = 0;
   private lastScrolled = 0;

@@ -4,7 +4,7 @@
     @if (ref().origin && !authors.length) {
       <a class="origin tag" [routerLink]="['/tag', ref().origin]">{{ ref().origin }}</a>
     }
-    @if (authorExts$ | async; as xs) {
+    @if (authorExts$() | async; as xs) {
       @for (x of xs; track x.tag + x.origin) {
         <a class="user tag"
            [title]="formatAuthor(x.tag + x.origin)"
@@ -29,8 +29,8 @@
       [class.focused]="focused()"
       [class.deleted]="deleted()"
       [class.sending]="!ref().created"
-      (pointerenter)="allowActions = true"
-      (pointerleave)="allowActions = false">
+      (pointerenter)="setHovering(true)"
+      (pointerleave)="setHovering(false)">
   <div class="content" [class.has-title]="clickableLink || title && !focused()">
     @if (tagLink) {
       <app-nav [url]="ref().url" [text]="title"></app-nav>
@@ -47,7 +47,7 @@
     <app-viewer [ref]="noComment()"></app-viewer>
   </div>
   @if (ref().created) {
-    <div class="actions" [style.pointer-events]="allowActions ? 'auto' : 'none'">
+    <div class="actions" [style.pointer-events]="allowActions() ? 'auto' : 'none'">
       @if (threads) {
         <a  [routerLink]="['/ref', ref().url, 'thread']"
             [queryParams]="{ origin: nonLocalOrigin }"

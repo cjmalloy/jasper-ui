@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -143,99 +143,113 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       effect(() => {
-        const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
-        const added = without(tags, ...this.oldSubmit);
-        const removed = without(this.oldSubmit, ...tags);
-        if (added.length || removed.length) {
-          this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
-          this.addTag(...this.oldSubmit);
-        }
-        if (this.store.submit.pluginUpload) {
-          this.addPlugin(this.store.submit.plugin, { url: this.store.submit.pluginUpload })
-          if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
-            this.addTag('plugin/thumbnail');
+        this.store.submit.tags;
+        this.store.account.localTag;
+        this.store.submit.pluginUpload;
+        this.store.submit.plugin;
+        this.store.submit.title;
+        this.store.submit.url;
+        this.store.submit.repost;
+        this.store.submit.source;
+        this.store.submit.sources;
+        untracked(() => {
+          const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+          const added = without(tags, ...this.oldSubmit);
+          const removed = without(this.oldSubmit, ...tags);
+          if (added.length || removed.length) {
+            this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
+            this.addTag(...this.oldSubmit);
           }
-        }
-        if (this.admin.getPlugin('plugin/thumbnail') && (
-          this.store.submit.tags.includes('plugin/video') ||
-          this.store.submit.tags.includes('plugin/image'))) {
-          this.addTag('plugin/thumbnail')
-        }
-        if (this.origin) {
-          this.addTag('internal');
-          this.setTitle($localize`Replicate Remote Origin`);
-        } else if (this.feed) {
-          this.addTag('internal');
-          this.setTitle($localize`Submit: Feed`);
-        }
-        if (this.store.submit.title) {
-          this.webForm.get('title')!.setValue(this.store.submit.title);
-        }
-        let url = this.store.submit.url?.trim();
-        if (this.store.submit.repost) {
-          this.url = 'internal:' + uuid();
-          this.addTag('plugin/repost');
-          this.addSource(url);
-        } else if (this.feed) {
-          if (this.store.submit.tags.includes('public')) this.addFeedTags('public');
-          this.addFeedTags(...interestingTags(this.store.submit.tags));
-          this.scrape.rss(url).pipe(
-            switchMap(value => {
-              if (!value) return of(value);
-              return this.refs.page({ url: value, size: 1, query: this.store.account.origin || '*', obsolete: null }).pipe(
-                map(page => page.content.length > 0 ? undefined : value),
-                catchError(() => of(value))
-              );
-            })
-          ).subscribe(value => {
-            if (value) {
-              this.url = value;
-              this.addTag('plugin/repost');
-              this.addSource(url);
-              this.refForm.scrapePlugins();
-              if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
-                const username = url.substring(url.indexOf('@'));
-                if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
-                const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
-                this.addFeedTags(tag);
-              } else if (!this.store.submit.title) {
-                this.refForm.scrapeTitle();
+          if (this.store.submit.pluginUpload) {
+            this.addPlugin(this.store.submit.plugin, { url: this.store.submit.pluginUpload })
+            if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
+              this.addTag('plugin/thumbnail');
+            }
+          }
+          if (this.admin.getPlugin('plugin/thumbnail') && (
+            this.store.submit.tags.includes('plugin/video') ||
+            this.store.submit.tags.includes('plugin/image'))) {
+            this.addTag('plugin/thumbnail')
+          }
+          if (this.origin) {
+            this.addTag('internal');
+            this.setTitle($localize`Replicate Remote Origin`);
+          } else if (this.feed) {
+            this.addTag('internal');
+            this.setTitle($localize`Submit: Feed`);
+          }
+          if (this.store.submit.title) {
+            this.webForm.get('title')!.setValue(this.store.submit.title);
+          }
+          let url = this.store.submit.url?.trim();
+          if (this.store.submit.repost) {
+            this.url = 'internal:' + uuid();
+            this.addTag('plugin/repost');
+            this.addSource(url);
+          } else if (this.feed) {
+            if (this.store.submit.tags.includes('public')) this.addFeedTags('public');
+            this.addFeedTags(...interestingTags(this.store.submit.tags));
+            this.scrape.rss(url).pipe(
+              switchMap(value => {
+                if (!value) return of(value);
+                return this.refs.page({ url: value, size: 1, query: this.store.account.origin || '*', obsolete: null }).pipe(
+                  map(page => page.content.length > 0 ? undefined : value),
+                  catchError(() => of(value))
+                );
+              })
+            ).subscribe(value => {
+              if (value) {
+                this.url = value;
+                this.addTag('plugin/repost');
+                this.addSource(url);
+                this.refForm.scrapePlugins();
+                if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
+                  const username = url.substring(url.indexOf('@'));
+                  if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
+                  const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
+                  this.addFeedTags(tag);
+                } else if (!this.store.submit.title) {
+                  this.refForm.scrapeTitle();
+                }
+              } else {
+                // No RSS URL found or found value already exists
+                if (!this.store.submit.title) {
+                  this.refForm.scrapeTitle();
+                }
               }
-            } else {
-              // No RSS URL found or found value already exists
-              if (!this.store.submit.title) {
-                this.refForm.scrapeTitle();
+            });
+          } else {
+            this.oembeds.get(url).subscribe(oembed => {
+              if (!this.store.submit.title) this.refForm.scrapeTitle();
+              if (!oembed) return;
+              if (oembed?.thumbnail_url) {
+                this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url });
               }
-            }
-          });
-        } else {
-          this.oembeds.get(url).subscribe(oembed => {
-            if (!this.store.submit.title) this.refForm.scrapeTitle();
-            if (!oembed) return;
-            if (oembed?.thumbnail_url) {
-              this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url });
-            }
-            if (oembed?.author_url) {
-              this.addSource(oembed?.author_url);
-            }
-            if (oembed.url && oembed.type === 'photo') {
-              this.addPlugin('plugin/image', { url: oembed.url });
-            } else {
-              this.addTag('plugin/embed');
-            }
-            if (oembed?.provider_name === 'Twitter') {
-              let comment = oembed.html!.replace(/(<([^>]+)>)/gi, "").trim().replace(/\s+/gi, ' ');
-              if (comment.length > 140) comment = comment.substring(0, 139) + '…';
-              this.webForm.get('comment')!.setValue(comment);
-            }
-          });
-        }
-        if (this.store.submit.source) {
-          this.store.submit.sources.map(s => this.addSource(s));
-        }
+              if (oembed?.author_url) {
+                this.addSource(oembed?.author_url);
+              }
+              if (oembed.url && oembed.type === 'photo') {
+                this.addPlugin('plugin/image', { url: oembed.url });
+              } else {
+                this.addTag('plugin/embed');
+              }
+              if (oembed?.provider_name === 'Twitter') {
+                let comment = oembed.html!.replace(/(<([^>]+)>)/gi, "").trim().replace(/\s+/gi, ' ');
+                if (comment.length > 140) comment = comment.substring(0, 139) + '…';
+                this.webForm.get('comment')!.setValue(comment);
+              }
+            });
+          }
+          if (this.store.submit.source) {
+            this.store.submit.sources.map(s => this.addSource(s));
+          }
+        });
       }, { injector: this.injector });
     });
-    effect(() => this.setRefForm(this.refFormView()), { injector: this.injector });
+    effect(() => {
+      const value = this.refFormView();
+      untracked(() => this.setRefForm(value));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {

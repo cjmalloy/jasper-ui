@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, input, signal, viewChild, untracked } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -36,9 +36,12 @@ export class QueryComponent {
     effect(() => {
       const query = this.query();
       this.editing.set(false);
-      this.breadcrumbs.set(this.queryCrumbs(query));
+      this.breadcrumbs.set(untracked(() => this.queryCrumbs(query)));
     });
-    effect(() => this.focusEditor(this.editor()));
+    effect(() => {
+      const value = this.editor();
+      untracked(() => this.focusEditor(value));
+    });
   }
 
   private focusEditor(ref: ElementRef<HTMLInputElement> | undefined) {

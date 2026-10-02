@@ -101,7 +101,8 @@ export class ExtComponent implements HasChanges {
       untracked(() => this.init());
     });
     effect(() => {
-      this.extFormComponent()?.setValue(this.ext());
+      const extForm = this.extFormComponent();
+      untracked(() => extForm?.setValue(this.ext()));
     });
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { LensComponent } from '../../component/lens/lens.component';
@@ -61,20 +61,23 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.extTemplates = this.admin.view;
     };
     effect(() => {
-      if (!this.store.view.urlQueryTags.length) {
-        this.store.view.exts = [];
-        this.loading.set(false);
-      } else {
-        this.loading.set(true);
-        this.exts.getCachedExts(this.store.view.urlQueryTags)
-          .pipe(this.admin.extFallbacks)
-          .subscribe(exts => {
-            if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts.map(x => x.tag + x.origin + x.modifiedString).sort())) {
-              this.store.view.exts = exts;
-            }
-            this.loading.set(false);
-          });
-      }
+      this.store.view.urlQueryTags;
+      untracked(() => {
+        if (!this.store.view.urlQueryTags.length) {
+          this.store.view.exts = [];
+          this.loading.set(false);
+        } else {
+          this.loading.set(true);
+          this.exts.getCachedExts(this.store.view.urlQueryTags)
+            .pipe(this.admin.extFallbacks)
+            .subscribe(exts => {
+              if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts.map(x => x.tag + x.origin + x.modifiedString).sort())) {
+                this.store.view.exts = exts;
+              }
+              this.loading.set(false);
+            });
+        }
+      });
     }, { injector: this.injector });
     this.query.clear();
   }
@@ -88,7 +91,8 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     effect(() => {
       const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
       if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
-        this.bookmarks.filters = this.store.view.viewExtFilter;
+        const viewExtFilter = this.store.view.viewExtFilter;
+        untracked(() => this.bookmarks.filters = viewExtFilter);
       }
       const hideInternal = !this.admin.getPlugins(this.store.view.queryTags.map(localTag)).length;
       const args = getArgs(
@@ -101,10 +105,10 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
       );
       if (hasPrefix(this.store.view.viewExt?.tag, 'kanban') ||
           hasPrefix(this.store.view.viewExt?.tag, 'chat')) {
-        this.query.setRelatedArgs(args);
+        untracked(() => this.query.setRelatedArgs(args));
         return;
       }
-      this.query.setArgs(args);
+      untracked(() => this.query.setArgs(args));
     }, { injector: this.injector });
   }
 

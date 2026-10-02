@@ -107,11 +107,6 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     super();
   }
 
-
-
-
-
-
   ngAfterViewInit() {
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();

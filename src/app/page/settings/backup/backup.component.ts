@@ -40,7 +40,6 @@ export class SettingsBackupPage {
   readonly backupOrigins = signal<string[]>(this.store.origins.list);
   backupOptionsRef?: OverlayRef;
 
-
   constructor(
     private mod: ModService,
     public store: Store,

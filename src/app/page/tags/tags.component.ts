@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
@@ -56,8 +56,9 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     effect(() => {
       this.title.set(this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || '');
-      this.exts.getCachedExt(this.store.view.template)
-        .subscribe(ext => this.title.set(ext.name || this.title()));
+      const template = this.store.view.template;
+      untracked(() => this.exts.getCachedExt(template)
+        .subscribe(ext => this.title.set(ext.name || this.title())));
       const query
         = this.store.view.home
         ? [...getPrefixes('config/home'), ...this.store.account.subs, ...this.store.account.bookmarkQueries].filter(t => this.auth.tagReadAccess(t)).join('|')

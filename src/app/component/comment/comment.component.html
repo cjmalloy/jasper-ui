@@ -2,7 +2,7 @@
   <div class="comment-container info collapsed" tabindex="0">
     <span class="comment-expand fake-link" (click)="collapsed.set(false); store.local.setRefToggled('comment:' + ref().url, true)" i18n>[+]</span>&nbsp;
     @if (authors.length) {
-      @if (authorExts$ | async; as xs) {
+      @if (authorExts$() | async; as xs) {
         @for (x of xs; track x.tag + x.origin) {
           <a class="user tag"
              [title]="formatAuthor(x.tag + x.origin)"
@@ -60,7 +60,7 @@
       <div class="info">
         <span class="comment-collapse fake-link" (click)="collapsed.set(true); store.local.setRefToggled('comment:' + ref().url, false)">[&ndash;]</span>&nbsp;
         @if (authors.length) {
-          @if (authorExts$ | async; as xs) {
+          @if (authorExts$() | async; as xs) {
             @for (x of xs; track x.tag + x.origin) {
               <a class="user tag"
                  [title]="formatAuthor(x.tag + x.origin)"
@@ -84,7 +84,7 @@
         }
         @if (tagged.length) {
           <span i18n> tagged
-            @if (tagExts$ | async; as xs) {
+            @if (tagExts$() | async; as xs) {
               @for (x of xs; track x.tag) {
                 <a class="tag"
                    [routerLink]="['/tag', x.tag]"

@@ -21,7 +21,6 @@ export class UserTagSelectorComponent implements OnDestroy {
   readonly editing = signal(false);
   readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
-
   private previewing?: Subscription;
   private searching?: Subscription;
 

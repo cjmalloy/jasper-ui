@@ -33,8 +33,6 @@ export class GenFormComponent implements OnInit {
     private admin: AdminService,
   ) { }
 
-
-
   get group() {
     return this.plugins().get(this.plugin().tag) as UntypedFormGroup | undefined;
   }

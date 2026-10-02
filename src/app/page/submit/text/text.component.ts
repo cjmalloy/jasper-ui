@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { AfterViewInit, Component, ElementRef, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -118,7 +118,10 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       const fill = this.fill();
       defer(() => this.limitWidth.set(this._advancedFill?.nativeElement || fill?.nativeElement));
     });
-    effect(() => this.setAdvancedForm(this.advancedForm()));
+    effect(() => {
+      const value = this.advancedForm();
+      untracked(() => this.setAdvancedForm(value));
+    });
   }
 
   async saveChanges() {
@@ -160,34 +163,44 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       effect(() => {
-        const url = this.ensureUrl();
-        if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-          this.mod.setTitle($localize`Submit: Wiki`);
-          this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
-          this.title.disable();
-        } else if (this.store.submit.title) {
-          this.title.setValue(this.store.submit.title);
-        }
-        const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
-        const added = without(tags, ...this.oldSubmit);
-        const removed = without(this.oldSubmit, ...tags);
-        if (added.length || removed.length) {
-          this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
-          this.tagsFormComponent()!.setTags(this.oldSubmit);
-        }
-        if (this.store.submit.pluginUpload) {
-          this.addTag(this.store.submit.plugin);
-          this.plugins().setValue({
-            ...this.textForm.value.plugins || {},
-            [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
-          });
-          if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
-            this.addTag('plugin/thumbnail');
+        this.store.submit.url;
+        this.store.submit.wiki;
+        this.store.submit.title;
+        this.store.submit.tags;
+        this.store.account.localTag;
+        this.store.submit.pluginUpload;
+        this.store.submit.plugin;
+        this.store.submit.sources;
+        untracked(() => {
+          const url = this.ensureUrl();
+          if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
+            this.mod.setTitle($localize`Submit: Wiki`);
+            this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
+            this.title.disable();
+          } else if (this.store.submit.title) {
+            this.title.setValue(this.store.submit.title);
           }
-        }
-        for (const s of this.store.submit.sources) {
-          this.addSource(s)
-        }
+          const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+          const added = without(tags, ...this.oldSubmit);
+          const removed = without(this.oldSubmit, ...tags);
+          if (added.length || removed.length) {
+            this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
+            this.tagsFormComponent()!.setTags(this.oldSubmit);
+          }
+          if (this.store.submit.pluginUpload) {
+            this.addTag(this.store.submit.plugin);
+            this.plugins().setValue({
+              ...this.textForm.value.plugins || {},
+              [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
+            });
+            if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
+              this.addTag('plugin/thumbnail');
+            }
+          }
+          for (const s of this.store.submit.sources) {
+            this.addSource(s)
+          }
+        });
       }, { injector: this.injector });
       if (this.store.submit.embedFiles.length) {
         const files = [...this.store.submit.embedFiles];

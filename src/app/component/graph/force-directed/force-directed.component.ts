@@ -12,7 +12,8 @@ import {
   TemplateRef,
   ViewContainerRef,
   input,
-  viewChild
+  viewChild,
+  untracked,
 } from '@angular/core';
 import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
@@ -107,9 +108,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
       this.store.graph.arrows;
       this.selectedStroke = this.store.darkTheme ? this.selectedStrokeDarkTheme() : this.selectedStrokeLightTheme();
       this.linkStroke = this.store.darkTheme ? this.linkStrokeDarkTheme() : this.linkStrokeLightTheme();
-      this.update();
+      untracked(() => this.update());
     });
-    effect(() => this.loadContent(this.content()));
+    effect(() => {
+      const value = this.content();
+      untracked(() => this.loadContent(value));
+    });
   }
 
   saveChanges() {

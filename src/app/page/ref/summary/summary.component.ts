@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, viewChildren, effect, inject, Injector, computed } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, viewChildren, effect, inject, Injector, computed, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
@@ -70,7 +70,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
       const sort = this.store.view.sort;
       const filter = this.store.view.filter;
       const search = this.store.view.search;
-      this.thread.setArgs(top, sort, filter, search);
+      untracked(() => this.thread.setArgs(top, sort, filter, search));
     }, { injector: this.injector });
     effect(() => {
       const args = getArgs(

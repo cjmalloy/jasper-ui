@@ -110,7 +110,6 @@ export class MapComponent implements OnDestroy, HasChanges {
     this.map = undefined;
   }
 
-
   readonly geoData = computed((): FeatureCollection => {
     return {
       type: 'FeatureCollection',

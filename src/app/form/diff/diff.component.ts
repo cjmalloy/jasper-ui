@@ -52,7 +52,6 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
     });
   }
 
-
   ngOnInit() {
     const original = this.original();
     const modified = this.modified();

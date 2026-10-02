@@ -70,15 +70,11 @@ export class FileComponent {
   readonly expandPlugins = signal<string[]>([]);
   readonly editing = signal(false);
   readonly viewSource = signal(false);
-  icons: Icon[] = [];
+  readonly icons = signal<Icon[]>([]);
   actions: Action[] = [];
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
-
-
-
-
 
   constructor(
     public admin: AdminService,
@@ -97,7 +93,7 @@ export class FileComponent {
     this.viewSource.set(false);
     this.writeAccess = this.auth.writeAccess(this.ref());
     this.taggingAccess = this.auth.taggingAccess(this.ref());
-    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url))));
+    this.icons.set(uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url)))));
     this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins)));
 
     this.expandPlugins.set(this.admin.getEmbeds(this.ref()));
@@ -158,7 +154,7 @@ export class FileComponent {
     return this.ref()?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef()?.plugins?.['plugin/thumbnail']?.emoji || '';
   });
   readonly iconEmojiDefaults = computed(() => {
-    const icon = this.icons.filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
+    const icon = this.icons().filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
     return icon?.label || icon?.thumbnail;
   });
   readonly iconRadius = computed(() => {

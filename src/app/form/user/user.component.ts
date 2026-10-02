@@ -60,7 +60,6 @@ export class UserFormComponent implements OnInit {
     this.pubKey.disable();
   }
 
-
   get tag() {
     return this.group().get('tag') as UntypedFormControl;
   }

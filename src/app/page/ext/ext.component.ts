@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -63,9 +63,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   extForm: UntypedFormGroup;
 
   templates = this.admin.tmplSubmit;
-  private readonly _editForm = signal<UntypedFormGroup | undefined>(undefined);
-  get editForm() { return this._editForm()!; }
-  set editForm(value: UntypedFormGroup) { this._editForm.set(value); }
+  readonly editForm = signal<UntypedFormGroup | undefined>(undefined);
 
 
   constructor(
@@ -83,21 +81,26 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.editForm?.dirty;
+    return !this.editForm()?.dirty;
   }
 
   ngOnInit(): void {
     effect(() => {
-      if (!this.store.view.tag) {
-        this.template.set('');
-        this.tag.setValue('');
-        this.store.view.exts = [];
-      } else {
-        const tag = this.store.view.localTag + this.store.account.origin;
-        this.exts.get(tag).pipe(
-          catchError(() => of(undefined)),
-        ).subscribe(ext => this.setExt(tag, ext));
-      }
+      this.store.view.tag;
+      this.store.view.localTag;
+      this.store.account.origin;
+      untracked(() => {
+        if (!this.store.view.tag) {
+          this.template.set('');
+          this.tag.setValue('');
+          this.store.view.exts = [];
+        } else {
+          const tag = this.store.view.localTag + this.store.account.origin;
+          this.exts.get(tag).pipe(
+            catchError(() => of(undefined)),
+          ).subscribe(ext => this.setExt(tag, ext));
+        }
+      });
     }, { injector: this.injector });
   }
 
@@ -105,8 +108,9 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     tag = localTag(tag);
     this.store.view.exts = ext ? [ext] : [];
     if (ext) {
-      this.editForm = extForm(this.fb, ext, this.admin, true);
-      this.editForm.patchValue(ext);
+      const editForm = extForm(this.fb, ext, this.admin, true);
+      editForm.patchValue(ext);
+      this.editForm.set(editForm);
       defer(() => this.form()!.setValue(ext));
     } else {
       for (const t of this.templates) {
@@ -197,13 +201,13 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   save() {
     this.serverError.set([]);
     this.submitted.set(true);
-    this.editForm.markAllAsTouched();
-    if (!this.editForm.valid) {
+    this.editForm()!.markAllAsTouched();
+    if (!this.editForm()!.valid) {
       scrollToFirstInvalid();
       return;
     }
     let ext = {
-      ...this.editForm.value,
+      ...this.editForm()!.value,
       tag: this.store.view.ext!.tag, // Need to fetch because control is disabled
       modifiedString: this.overwrite ? this.overwrittenModified() : this.store.view.ext!.modifiedString,
     };
@@ -233,7 +237,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       }),
     ).subscribe(() => {
       this.editing.set(undefined);
-      this.editForm.markAsPristine();
+      this.editForm()!.markAsPristine();
       if (ext.tag === 'config/home' && this.admin.home) {
         this.router.navigate(['/home']);
       } else {

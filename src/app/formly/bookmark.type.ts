@@ -266,13 +266,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     super();
   }
 
-
-
-
-
-
-
-
   ngAfterViewInit() {
     const v = this.model?.[this.key as any];
     if (v) {
@@ -309,7 +302,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   get preview() {
     return !this.editing() && this.query();
   }
-
 
   setQuery(value: string) {
     this.editing.set(false);

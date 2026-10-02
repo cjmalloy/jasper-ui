@@ -117,9 +117,6 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
     super();
   }
 
-
-
-
   ngAfterViewInit() {
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
@@ -142,7 +139,6 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
   get preview() {
     return !this.editing() && this.query();
   }
-
 
   setQuery(value: string) {
     this.editing.set(false);

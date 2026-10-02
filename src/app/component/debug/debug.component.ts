@@ -34,7 +34,6 @@ export class DebugComponent {
   serverError: string[] = [];
   debug = this.admin.getPlugin('plugin/debug') || this.admin.getTemplate('debug');
 
-
   constructor(
     public admin: AdminService,
     private store: Store,

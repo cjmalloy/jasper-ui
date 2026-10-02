@@ -23,9 +23,6 @@ export class ConfirmActionComponent extends ActionComponent {
   readonly acting = signal(false);
   readonly minTimeout = signal(false);
 
-
-
-
   override reset() {
     this.confirming.set(false);
     this.acting.set(false);

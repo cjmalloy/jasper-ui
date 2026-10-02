@@ -39,7 +39,6 @@ export class BackupComponent {
   restoreOptionsForm: UntypedFormGroup;
   restoreOptionsRef?: OverlayRef;
 
-
   constructor(
     public admin: AdminService,
     public backups: BackupService,

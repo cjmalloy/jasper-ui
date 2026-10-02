@@ -2,7 +2,7 @@
 @if (upload()) {
   <button type="button" (click)="imageFile.click()" i18n-title title="QR from photo or camera" i18n>📷️</button>
 }
-@if (hasCamera) {
+@if (hasCamera()) {
   <button type="button" (click)="scanQr()" i18n-title title="Scan for QR with video" i18n>🤳️</button>
 }
 <ng-template #video>

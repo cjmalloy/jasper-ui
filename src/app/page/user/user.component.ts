@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -63,28 +63,33 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     effect(() => {
-      if (!this.store.view.tag) {
-        this.store.view.selectedUser = undefined;
-      } else {
-        const tag = this.store.view.localTag + this.store.account.origin;
-        this.users.get(tag).pipe(
-          catchError(() => of(undefined)),
-        ).subscribe(user => {
-          this.store.view.selectedUser = user;
-          if (user) {
-            this.profileForm.setControl('user', userForm(this.fb, true));
-            defer(() => this.userForm().setUser(user));
-          } else {
-            this.profileForm.setControl('user', userForm(this.fb, false));
-            defer(() => this.userForm().setUser({
-              tag: this.store.view.localTag,
-              origin: this.store.view.origin,
-              readAccess: this.admin.readAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
-              writeAccess: this.admin.writeAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
-            }));
-          }
-        });
-      }
+      this.store.view.tag;
+      this.store.view.localTag;
+      this.store.account.origin;
+      untracked(() => {
+        if (!this.store.view.tag) {
+          this.store.view.selectedUser = undefined;
+        } else {
+          const tag = this.store.view.localTag + this.store.account.origin;
+          this.users.get(tag).pipe(
+            catchError(() => of(undefined)),
+          ).subscribe(user => {
+            this.store.view.selectedUser = user;
+            if (user) {
+              this.profileForm.setControl('user', userForm(this.fb, true));
+              defer(() => this.userForm().setUser(user));
+            } else {
+              this.profileForm.setControl('user', userForm(this.fb, false));
+              defer(() => this.userForm().setUser({
+                tag: this.store.view.localTag,
+                origin: this.store.view.origin,
+                readAccess: this.admin.readAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
+                writeAccess: this.admin.writeAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
+              }));
+            }
+          });
+        }
+      });
     }, { injector: this.injector });
   }
 

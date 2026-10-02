@@ -29,8 +29,6 @@ export class PluginFormComponent {
   readonly editingDefaults = signal<any>(false);
   readonly editingSchema = signal<any>(false);
 
-
-
   get tag() {
     return this.group().get('tag') as UntypedFormControl;
   }

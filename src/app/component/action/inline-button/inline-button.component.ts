@@ -20,8 +20,6 @@ export class InlineButtonComponent extends ActionComponent {
   readonly acting = signal(false);
   readonly minTimeout = signal(false);
 
-
-
   override reset() {
     this.acting.set(false);
   }

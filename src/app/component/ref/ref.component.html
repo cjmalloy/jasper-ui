@@ -86,7 +86,7 @@
           }
           @if (authors.length) {
             <span i18n> by
-              @if (authorExts$ | async; as xs) {
+              @if (authorExts$() | async; as xs) {
                 @for (x of xs; track x.tag + x.origin) {
                   <a class="user tag"
                      [title]="formatAuthor(x.tag + x.origin)"
@@ -104,7 +104,7 @@
           }
           @if (tags.length) {
             <span i18n> tagged
-              @if (tagExts$ | async; as xs) {
+              @if (tagExts$() | async; as xs) {
                 @for (x of xs; track x) {
                   <a class="tag"
                      [routerLink]="['/tag', x.tag]"
@@ -120,7 +120,7 @@
           }
           @if (recipients.length) {
             <span i18n> to
-              @if (recipientExts$ | async; as xs) {
+              @if (recipientExts$() | async; as xs) {
                 @for (x of xs; track x.tag + x.origin) {
                   <a class="user tag"
                      [title]="formatAuthor(x.tag + x.origin)"

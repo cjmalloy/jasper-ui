@@ -58,8 +58,6 @@ export class PluginsFormComponent implements AfterViewInit {
     });
   }
 
-
-
   init() {
     if (this.plugins) {
       for (const p in this.plugins.value) {

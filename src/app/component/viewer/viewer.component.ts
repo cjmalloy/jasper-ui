@@ -162,9 +162,18 @@ export class ViewerComponent implements OnDestroy {
       this.textInput();
       untracked(() => this.init());
     });
-    effect(() => this.setVideo(this.videoEl()));
-    effect(() => this.setAudio(this.audioEl()));
-    effect(() => this.setPdfIframe(this.pdfIframeEl()));
+    effect(() => {
+      const value = this.videoEl();
+      untracked(() => this.setVideo(value));
+    });
+    effect(() => {
+      const value = this.audioEl();
+      untracked(() => this.setAudio(value));
+    });
+    effect(() => {
+      const value = this.pdfIframeEl();
+      untracked(() => this.setPdfIframe(value));
+    });
   }
 
   init() {
@@ -335,7 +344,6 @@ export class ViewerComponent implements OnDestroy {
       defer(() => this.setOembed(oembed));
     }
   }
-
 
   get mod() {
     if (!this.admin.getPlugin('plugin/mod')) return false;

@@ -162,13 +162,9 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
       this.expanded.set(this.store.view.sidebarExpanded);
     });
     effect(() => {
-      if (this.store.view.ref) {
-      }
-    });
-    effect(() => {
       if (!this.store.view.template) {
         this.template.set(undefined);
-      } else if (!isQuery(this.store.view.template) && this.template()?.tag !== this.store.view.template) {
+      } else if (!isQuery(this.store.view.template) && untracked(() => this.template())?.tag !== this.store.view.template) {
         this.templates.get(this.store.view.template + this.store.account.origin).pipe(
           catchError(() => of(undefined))
         ).subscribe(t => this.template.set(t));

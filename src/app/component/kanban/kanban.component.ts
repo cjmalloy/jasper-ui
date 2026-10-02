@@ -3,6 +3,7 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
 import {
   Component,
+  computed,
   forwardRef,
   OnDestroy,
   ChangeDetectionStrategy,
@@ -76,7 +77,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   error: any;
   updates = new Subject<KanbanDrag>();
 
-  private readonly disableSwimLanesSignal = signal<boolean | undefined>(undefined);
+  protected readonly swimLanesOverride = signal<boolean | undefined>(undefined);
 
   private defaultConfig: KanbanConfig = {
     columns: []
@@ -126,14 +127,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
     this.store.view.floatingSidebar = innerWidth - sidebarSize < margin + minColSize * (this.columns.length + (this.showColumnBacklog ? 1 : 0));
   }
 
-  get disableSwimLanes(): boolean {
-    const value = this.disableSwimLanesSignal();
-    return value === undefined ? !!this.kanbanConfig.hideSwimLanes : value;
-  }
-
-  set disableSwimLanes(value: boolean) {
-    this.disableSwimLanesSignal.set(value);
-  }
+  readonly disableSwimLanes = computed(() => this.swimLanesOverride() ?? !!this.kanbanConfig.hideSwimLanes);
 
   get columns(): string[] {
     if (this.filteredColumnBacklog) return [];
@@ -143,7 +137,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   }
 
   get swimLanes(): string[] | undefined {
-    if (this.disableSwimLanes) return undefined;
+    if (this.disableSwimLanes()) return undefined;
     if (!this.kanbanConfig.swimLanes) return undefined;
     if (!this.kanbanConfig.swimLanes.length) return undefined;
     if (this.filteredSwimLaneBacklog) return [];
@@ -156,7 +150,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   }
 
   get andSlBacklog() {
-    if (this.disableSwimLanes) return '';
+    if (this.disableSwimLanes()) return '';
     if (!this.kanbanConfig.swimLanes?.length) return '';
     return ':' + this.slBacklog;
   }
@@ -167,7 +161,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   }
 
   get slBacklog() {
-    if (this.disableSwimLanes) return '';
+    if (this.disableSwimLanes()) return '';
     if (!this.kanbanConfig.swimLanes?.length) return '';
     return this.kanbanConfig.swimLanes.map(t => t.startsWith('!') ? t.substring(1) : ('!' + t)).join(':');
   }

@@ -610,7 +610,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         const newRef = first || refChanged && prevRef?.url != ref?.url;
         if (!ref || newRef) {
           this.watch?.unsubscribe();
-          if (ref || text != null) this.init();
+          // init() needs a Ref to watch the first time
+          if (ref || text != null && this.watch) this.init();
         } else if (refChanged) {
           // Check if end game tags were added
           const prevEnded = !!(prevRef && (

@@ -32,17 +32,15 @@ export class QrScannerComponent implements OnDestroy {
   readonly scanner = signal<QrScanner | undefined>(undefined);
   overlayRef?: OverlayRef;
   readonly hasFlash = signal(false);
-  private readonly _hasCamera = signal<boolean | undefined>(undefined);
+  readonly hasCamera = signal(localStorage.getItem('hasCamera') === 'true');
   readonly cameras = signal<Camera[] | undefined>(undefined);
-  private checkedCamera = false;
 
   constructor(
     private viewContainerRef: ViewContainerRef,
     private overlay: Overlay,
-  ) { }
-
-
-
+  ) {
+    if (!this.hasCamera()) hasCamera().then(value => this.setHasCamera(value));
+  }
 
   ngOnDestroy() {
     this.stopScanQr();
@@ -94,17 +92,8 @@ export class QrScannerComponent implements OnDestroy {
     return (this.cameras()?.length || 0) > 1;
   }
 
-  get hasCamera() {
-    const detected = this._hasCamera();
-    if (detected !== undefined) return detected;
-    if (localStorage.getItem('hasCamera') === 'true') return true;
-    if (!this.checkedCamera) hasCamera().then(value => this.hasCamera = value);
-    this.checkedCamera = true;
-    return false;
-  }
-
-  set hasCamera(value: boolean) {
-    this._hasCamera.set(value);
+  setHasCamera(value: boolean) {
+    this.hasCamera.set(value);
     localStorage.setItem('hasCamera', ''+value);
   }
 

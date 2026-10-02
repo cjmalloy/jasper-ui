@@ -22,7 +22,6 @@ export class ListEditorComponent {
   readonly selectedIndex = signal(-1);
   readonly error = signal('');
 
-
   add() {
     this.error.set('');
     if (!this.addingText()) return;

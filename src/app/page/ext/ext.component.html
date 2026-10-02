@@ -33,7 +33,7 @@
       <button type="submit" [disabled]="creating() || submitted() && !extForm.valid" i18n>Extend</button>
     </span>
   </form>
-} @else if (editForm) {
+} @else if (editForm(); as editForm) {
   <form class="form"
         [formGroup]="editForm"
         (ngSubmit)="save()"

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, effect, input, output, signal, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, input, output, signal, viewChild, untracked } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -29,8 +29,6 @@ export class InlinePluginComponent extends ActionComponent {
   readonly editing = signal(false);
   readonly acting = signal(false);
 
-
-
   readonly group = signal<UntypedFormGroup>(this.fb.group({}));
 
   constructor(
@@ -41,10 +39,13 @@ export class InlinePluginComponent extends ActionComponent {
     effect(() => {
       const gen = this.gen();
       if (!gen) return;
-      this.group.set(this.fb.group({
-        [this.plugin().tag]: this.fb.group({}),
-      }));
-      defer(() => gen.setValue(this.value()?.plugins || {}));
+      untracked(() => {
+        this.group.set(this.fb.group({
+          [this.plugin().tag]: this.fb.group({}),
+        }));
+        const plugins = this.value()?.plugins || {};
+        defer(() => gen.setValue(plugins));
+      });
     });
   }
 

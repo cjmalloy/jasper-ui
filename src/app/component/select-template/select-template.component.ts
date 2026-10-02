@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, input, output, signal, viewChild, untracked } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
@@ -29,7 +29,10 @@ export class SelectTemplateComponent {
     private admin: AdminService,
     private auth: AuthzService,
   ) {
-    effect(() => this.selectTemplate(this.template()));
+    effect(() => {
+      const value = this.template();
+      untracked(() => this.selectTemplate(value));
+    });
   }
 
   private selectTemplate(value: string) {

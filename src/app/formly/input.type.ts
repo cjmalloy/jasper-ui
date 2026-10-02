@@ -70,8 +70,6 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
     super();
   }
 
-
-
   /**
    * Overrides the <input> type. Not related to the formly field type.
    *

@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, effect, inject, Injector, signal, untracked } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -110,30 +110,35 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     effect(() => {
-      const validations: Validation[] = [];
-      if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-        validations.push({ name: $localize`Valid title`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
-        validations.push({ name: $localize`Not created yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
-      } else {
-        this.url.setValue(this.store.submit.url);
-        validations.push({ name: $localize`Valid link`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
-        validations.push({ name: $localize`Not submitted yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
-        validations.push({ name: $localize`No link shorteners`, passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
-      }
-      this.validations.set(validations);
-      this.url.updateValueAndValidity();
-      if (this.url.value) {
-        const tags = [
-          ...this.store.submit.tags,
-          ...this.admin.getPluginsForUrl(this.store.submit.url).map(p => p.tag),
-        ];
-        for (const t of tags) {
-          if (hasPrefix(t, 'plugin')) {
-            this.plugin.set(t);
-            break;
+      this.store.submit.wiki;
+      this.store.submit.url;
+      this.store.submit.tags;
+      untracked(() => {
+        const validations: Validation[] = [];
+        if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
+          validations.push({ name: $localize`Valid title`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
+          validations.push({ name: $localize`Not created yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
+        } else {
+          this.url.setValue(this.store.submit.url);
+          validations.push({ name: $localize`Valid link`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
+          validations.push({ name: $localize`Not submitted yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
+          validations.push({ name: $localize`No link shorteners`, passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
+        }
+        this.validations.set(validations);
+        this.url.updateValueAndValidity();
+        if (this.url.value) {
+          const tags = [
+            ...this.store.submit.tags,
+            ...this.admin.getPluginsForUrl(this.store.submit.url).map(p => p.tag),
+          ];
+          for (const t of tags) {
+            if (hasPrefix(t, 'plugin')) {
+              this.plugin.set(t);
+              break;
+            }
           }
         }
-      }
+      });
     }, { injector: this.injector });
   }
 

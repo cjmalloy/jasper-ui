@@ -25,8 +25,8 @@
                 <div class="disable-swim-lanes">
                   <input id="disable-swim-lanes"
                          type="checkbox"
-                         [checked]="disableSwimLanes"
-                         (input)="disableSwimLanes = !disableSwimLanes">
+                         [checked]="disableSwimLanes()"
+                         (input)="swimLanesOverride.set(!disableSwimLanes())">
                   <label for="disable-swim-lanes" i18n>Hide Swim Lanes</label>
                 </div>
               }
@@ -62,7 +62,7 @@
                                [sort]="sort()"
                                [filter]="filter()"
                                [search]="search()"
-                               [hideSwimLanes]="disableSwimLanes"
+                               [hideSwimLanes]="disableSwimLanes()"
                                [cdkDropListData]="{sl}"
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
@@ -77,7 +77,7 @@
                                [sort]="sort()"
                                [filter]="filter()"
                                [search]="search()"
-                               [hideSwimLanes]="disableSwimLanes"
+                               [hideSwimLanes]="disableSwimLanes()"
                                [cdkDropListData]="{col, sl}"
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
@@ -97,7 +97,7 @@
                                [sort]="sort()"
                                [filter]="filter()"
                                [search]="search()"
-                               [hideSwimLanes]="disableSwimLanes"
+                               [hideSwimLanes]="disableSwimLanes()"
                                [cdkDropListData]="{}"
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
@@ -112,7 +112,7 @@
                                [sort]="sort()"
                                [filter]="filter()"
                                [search]="search()"
-                               [hideSwimLanes]="disableSwimLanes"
+                               [hideSwimLanes]="disableSwimLanes()"
                                [cdkDropListData]="{col}"
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
@@ -129,7 +129,7 @@
                              [sort]="sort()"
                              [filter]="filter()"
                              [search]="search()"
-                             [hideSwimLanes]="disableSwimLanes"
+                             [hideSwimLanes]="disableSwimLanes()"
                              [cdkDropListData]="{}"
                              (cdkDropListDropped)="drop($any($event))"
                              [updates]="updates"
@@ -144,7 +144,7 @@
                              [sort]="sort()"
                              [filter]="filter()"
                              [search]="search()"
-                             [hideSwimLanes]="disableSwimLanes"
+                             [hideSwimLanes]="disableSwimLanes()"
                              [cdkDropListData]="{col}"
                              (cdkDropListDropped)="drop($any($event))"
                              [updates]="updates"

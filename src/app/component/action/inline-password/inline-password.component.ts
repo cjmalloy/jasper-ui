@@ -21,8 +21,6 @@ export class InlinePasswordComponent extends ActionComponent {
   readonly editing = signal(false);
   readonly acting = signal(false);
 
-
-
   override reset() {
     this.editing.set(false);
     this.acting.set(false);

@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, DestroyRef, ElementRef, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -138,15 +138,21 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   ngAfterViewInit() {
     effect(() => {
-      if (this.store.submit.dmPlugin) {
-        this.setTo(this.store.submit.dmPlugin);
-      } if (this.store.submit.to.length) {
-        this.setTo(this.store.submit.to.join(' '));
-      } else {
-        this.setTo('');
-      }
-      const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
-      if (tags.length) this.addTags(tags);
+      this.store.submit.dmPlugin;
+      this.store.submit.to;
+      this.store.submit.tags;
+      this.store.account.localTag;
+      untracked(() => {
+        if (this.store.submit.dmPlugin) {
+          this.setTo(this.store.submit.dmPlugin);
+        } if (this.store.submit.to.length) {
+          this.setTo(this.store.submit.to.join(' '));
+        } else {
+          this.setTo('');
+        }
+        const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+        if (tags.length) this.addTags(tags);
+      });
     }, { injector: this.injector });
   }
 

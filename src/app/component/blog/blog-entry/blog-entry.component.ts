@@ -15,7 +15,8 @@ import {
   signal,
   untracked,
   viewChild,
-  viewChildren
+  viewChildren,
+  computed,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -119,19 +120,6 @@ export class BlogEntryComponent implements HasChanges {
 
   readonly submitting = signal<Subscription | undefined>(undefined);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
   summaryItems = 5;
 
   constructor(
@@ -154,7 +142,7 @@ export class BlogEntryComponent implements HasChanges {
     });
     effect(() => {
       const value = this.refForm();
-      const ref = this.ref();
+      const ref = untracked(() => this.ref());
       defer(() => {
         value?.setRef(ref);
         this.editor.syncEditor(this.fb, this.editForm, ref.comment);
@@ -289,9 +277,9 @@ export class BlogEntryComponent implements HasChanges {
     ]);
   }
 
-  get authorExts$() {
+  readonly authorExts$ = computed(() => {
     return this.exts.getCachedExts(this.authors, this.ref().origin || '').pipe(this.admin.authorFallback);
-  }
+  });
 
   get tags() {
     let result = interestingTags(this.ref().tags);
@@ -300,9 +288,9 @@ export class BlogEntryComponent implements HasChanges {
     return intersection(result, blog.config.tags || []);
   }
 
-  get tagExts$() {
+  readonly tagExts$ = computed(() => {
     return this.editor.getTagsPreview(this.tags, this.ref().origin || '');
-  }
+  });
 
   get tagLink() {
     return this.url.toLowerCase().startsWith('tag:/');

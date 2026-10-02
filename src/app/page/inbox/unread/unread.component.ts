@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, effect, inject, Injector } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, effect, inject, Injector, untracked } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -37,23 +37,29 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     effect(() => {
-      if (this.store.view.pageNumber) {
-        this.router.navigate([], {
-          queryParams: { pageNumber: null },
-          queryParamsHandling: 'merge',
-          replaceUrl: true
-        });
-        if (this.lastNotified) {
-          this.account.clearNotifications(this.lastNotified);
+      this.store.view.pageNumber;
+      this.store.account.notificationsQuery;
+      this.store.account.config.lastNotified;
+      this.store.view.pageSize;
+      untracked(() => {
+        if (this.store.view.pageNumber) {
+          this.router.navigate([], {
+            queryParams: { pageNumber: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+          });
+          if (this.lastNotified) {
+            this.account.clearNotifications(this.lastNotified);
+          }
         }
-      }
-      const args: RefPageArgs = {
-        query: this.store.account.notificationsQuery,
-        modifiedAfter: this.store.account.config.lastNotified,
-        sort: ['modified,ASC'],
-        size: this.store.view.pageSize,
-      };
-      defer(() => this.query.setArgs(args));
+        const args: RefPageArgs = {
+          query: this.store.account.notificationsQuery,
+          modifiedAfter: this.store.account.config.lastNotified,
+          sort: ['modified,ASC'],
+          size: this.store.view.pageSize,
+        };
+        defer(() => this.query.setArgs(args));
+      });
     }, { injector: this.injector });
     effect(() => {
       if (this.query.page && this.query.page!.content.length) {
