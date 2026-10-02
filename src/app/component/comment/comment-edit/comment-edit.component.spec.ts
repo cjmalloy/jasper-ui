@@ -126,4 +126,22 @@ describe('CommentEditComponent', () => {
     const addPatches = patches.filter(p => p.op === 'add' && p.path === '/tags/-');
     expect(addPatches.length).toBe(0);
   });
+  it('should remove multiple tags in descending index order', () => {
+    component.ref = {
+      url: 'test-url',
+      tags: ['public', 'plugin/comment', 'internal', 'plugin/latex'],
+    };
+    component.editorTags = ['plugin/comment', 'internal'];
+
+    const patches: any[] = [];
+    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
+      patches.push(...patchList);
+      return { pipe: () => ({ subscribe: () => {} }) } as any;
+    });
+
+    component.save();
+
+    const removePatches = patches.filter(p => p.op === 'remove' && p.path.startsWith('/tags/'));
+    expect(removePatches.map(p => p.path)).toEqual(['/tags/3', '/tags/0']);
+  });
 });
