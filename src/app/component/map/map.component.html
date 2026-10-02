@@ -12,11 +12,6 @@
                    [visualizeRoll]="true"
                    [showCompass]="true"
                    [showZoom]="true"></mgl-control>
-      @if (geocoding) {
-        <mgl-control position="top-left">
-          <app-geocoder></app-geocoder>
-        </mgl-control>
-      }
       <mgl-control mglScale
                    position="bottom-left"
                    unit="imperial"></mgl-control>

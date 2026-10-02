@@ -7304,10 +7304,6 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="5914380341841503873" datatype="html">
         <source>OpenStreetMap (Nominatim)</source>
       </trans-unit>
-      <trans-unit id="6277392156435513308" datatype="html">
-        <source>Searching…</source>
-        <target>検索中…</target>
-      </trans-unit>
       <trans-unit id="632822263124795513" datatype="html">
         <source>Search address</source>
         <target>住所を検索</target>
@@ -7325,14 +7321,6 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="8162805192658576220" datatype="html">
         <source>Photon URL: </source>
-      </trans-unit>
-      <trans-unit id="8421900256859774197" datatype="html">
-        <source>Address search failed.</source>
-        <target>住所の検索に失敗しました。</target>
-      </trans-unit>
-      <trans-unit id="8692634109890521682" datatype="html">
-        <source>No results found.</source>
-        <target>結果が見つかりません。</target>
       </trans-unit>
     </body>
   </file>

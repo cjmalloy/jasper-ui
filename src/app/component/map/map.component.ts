@@ -26,7 +26,7 @@ import { geoFeatures, hasLocation } from '../../util/geo';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
-import { GeocoderComponent } from './geocoder.component';
+import { addGeocoder } from './geocoder';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
 
@@ -47,7 +47,6 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
     LoadingComponent,
     PageControlsComponent,
     ResizeHandleDirective,
-    GeocoderComponent,
   ]
 })
 export class MapComponent implements OnChanges, OnDestroy, HasChanges {
@@ -74,7 +73,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private markers: Marker[] = [];
   private mapDataUpdates$ = new Subject<Ref[]>();
   mapData: MapEntry[] = [];
-  geocoding = false;
+  private geocoding = false;
+  private removeGeocoder?: () => void;
 
   constructor(
     private router: Router,
@@ -85,7 +85,10 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     private geocoder: GeocodeService,
   ) {
     setWorkerUrl('assets/maplibre-gl-worker.mjs');
-    geocoder.configured$.pipe(takeUntilDestroyed()).subscribe(configured => this.geocoding = configured);
+    geocoder.configured$.pipe(takeUntilDestroyed()).subscribe(configured => {
+      this.geocoding = configured;
+      this.updateGeocoder();
+    });
     this.mapDataUpdates$.pipe(
       switchMap(content => {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content.map(ref => [ref] as MapEntry));
@@ -108,6 +111,15 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     };
   }
 
+  private updateGeocoder() {
+    if (this.geocoding && this.map && !this.removeGeocoder) {
+      this.removeGeocoder = addGeocoder(this.map, this.geocoder);
+    } else if (!this.geocoding && this.removeGeocoder) {
+      this.removeGeocoder();
+      this.removeGeocoder = undefined;
+    }
+  }
+
   saveChanges() {
     return true;
   }
@@ -124,6 +136,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   ngOnDestroy() {
     this.mapDataUpdates$.complete();
     this.clearMarkers();
+    this.removeGeocoder = undefined;
     try {
       this.map?.remove();
     } catch (ignored) { }
@@ -167,6 +180,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
   mapLoaded(map: Map) {
     this.map = map;
+    this.updateGeocoder();
     map.addSource('geo-features', { type: 'geojson', data: this.geoData });
     // Line layer for LineString and MultiLineString
     map.addLayer({

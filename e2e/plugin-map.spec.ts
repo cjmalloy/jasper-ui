@@ -141,12 +141,13 @@ test.describe.serial('Map Plugin', () => {
     await point.locator('.location-map-toggle').click();
     await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
 
-    const search = point.locator('.location-map .geocoder-control .geocoder-input');
+    const search = point.locator('.location-map .maplibregl-ctrl-geocoder--input');
     await search.fill('Halifax');
     await search.press('Enter');
-    await point.locator('.geocoder-result', { hasText: 'Halifax, Nova Scotia' }).click();
+    const result = point.locator('.maplibregl-ctrl-geocoder .suggestions li', { hasText: 'Nova Scotia' });
+    await result.click();
     expect(query).toBe('Halifax');
-    await expect(point.locator('.geocoder-result')).toHaveCount(0);
+    await expect(result).toBeHidden();
     // Search only moves the map, not the location
     await expect(point.locator('input').nth(0)).toHaveValue('-63.5');
     await expect(point.locator('input').nth(1)).toHaveValue('44.6');
@@ -188,7 +189,7 @@ test.describe.serial('Map Plugin', () => {
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-map')).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-marker')).toBeVisible();
     // Address search is shown when geocoding is configured
-    await expect(page.locator('.full-page.ref .map-embed .geocoder-control .geocoder-input')).toBeVisible();
+    await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-geocoder--input')).toBeVisible();
   });
 
   test('cleanup', async ({ page }) => {

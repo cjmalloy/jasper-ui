@@ -1,0 +1,38 @@
+@import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
+
+.maplibregl-ctrl-geocoder[data-theme="dark"] {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+
+  .maplibregl-ctrl-geocoder--input {
+    color: #e0e0e0;
+    &::placeholder {
+      color: #a0a0a0;
+    }
+  }
+
+  .maplibregl-ctrl-geocoder--icon {
+    fill: #a0a0a0;
+  }
+
+  .maplibregl-ctrl-geocoder--button {
+    background: #2a2a2a;
+  }
+
+  .suggestions {
+    background-color: #2a2a2a;
+    > li > a {
+      color: #e0e0e0;
+    }
+    > .active > a,
+    > li > a:hover {
+      background-color: #3a3a3a;
+      color: #ffffff;
+    }
+  }
+
+  .maplibregl-ctrl-geocoder--suggestion-address,
+  .maplibregl-ctrl-geocoder--result-address {
+    color: #b0b0b0;
+  }
+}
