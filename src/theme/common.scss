@@ -1064,6 +1064,9 @@ video.qr-preview {
     .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs, app-nav, .stream-label {
       display: none !important;
     }
+    .show-remotes {
+      display: none;
+    }
     .tag-select {
       display: block;
     }

@@ -68,6 +68,9 @@ $tablet-width: 948px;
     }
 
     &:not(.expanded) {
+      .show-remotes {
+        display: flex;
+      }
       .hide {
         transition: opacity .5s,
         font-size .4s .1s,

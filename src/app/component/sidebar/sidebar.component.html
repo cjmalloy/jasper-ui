@@ -5,7 +5,7 @@
     }
     @if (store.view.type) {
       <div class="wide">
-        @if (expanded && store.view.showRemotesCheckbox) {
+        @if (store.view.showRemotesCheckbox) {
           <app-search></app-search>
           @if (admin.getPlugin('+plugin/origin')) {
             <div class="show-remotes">
