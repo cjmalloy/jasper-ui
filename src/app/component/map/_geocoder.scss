@@ -70,6 +70,10 @@
   background-color: #2a2a2a;
   color: #e0e0e0;
 
+  &, .suggestions {
+    box-shadow: 0 0 10px 2px #ffffff1a;
+  }
+
   input.maplibregl-ctrl-geocoder--input {
     color: #e0e0e0;
     &::placeholder {
