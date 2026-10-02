@@ -1,8 +1,12 @@
 /// <reference types="vitest/globals" />
-import { geocode, geocodeUrl, isConfigured, parseGeocode, reverseGeocode, reverseGeocodeUrl, sortByDistance } from './geocode';
+import { geocode, geocodeUrl, isConfigured, parseGeocode, resetNominatim, reverseGeocode, reverseGeocodeUrl, sortByDistance } from './geocode';
 
 describe('geocode', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    resetNominatim();
+  });
 
   it('checks if geocoding is configured', () => {
     expect(isConfigured({})).toBe(false);
@@ -113,5 +117,45 @@ describe('geocode', () => {
       { display_name: 'Halifax, NS', lat: '44.65', lon: '-63.57' },
     ]) }));
     expect((await geocode('halifax', {}, undefined, { center: [-63.5, 44.6] })).map(r => r.name)).toEqual(['Halifax, NS', 'Halifax, UK']);
+  });
+
+  it('caches and rate limits Nominatim', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([{ display_name: 'Halifax', lat: '44.6', lon: '-63.5' }]) });
+    vi.stubGlobal('fetch', fetch);
+    await geocode('halifax', {});
+    expect(fetch).toHaveBeenCalledTimes(1);
+    await geocode('halifax', {});
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const second = geocode('dartmouth', {});
+    await vi.advanceTimersByTimeAsync(500);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(500);
+    await second;
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not use a Nominatim request when aborted while waiting', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) });
+    vi.stubGlobal('fetch', fetch);
+    await geocode('a', {});
+    const controller = new AbortController();
+    const aborted = geocode('b', {}, controller.signal);
+    const next = geocode('c', {});
+    controller.abort('cancel');
+    await expect(aborted).rejects.toBe('cancel');
+    await vi.advanceTimersByTimeAsync(1_000);
+    await next;
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch.mock.calls[1][0]).toContain('q=c');
+  });
+
+  it('does not rate limit Photon', async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ features: [] }) });
+    vi.stubGlobal('fetch', fetch);
+    await geocode('a', { geocodingProvider: 'photon' });
+    await geocode('a', { geocodingProvider: 'photon' });
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 });

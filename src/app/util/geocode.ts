@@ -26,6 +26,9 @@ export const DEFAULT_PHOTON_URL = 'https://photon.komoot.io';
 export const NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
 
 const LIMIT = 10;
+/** Nominatim usage policy allows at most 1 request per second. */
+const NOMINATIM_INTERVAL = 1_000;
+const NOMINATIM_CACHE_SIZE = 100;
 
 /**
  * URL for the web service providers. Google is called through the Maps
@@ -87,7 +90,7 @@ export async function geocode(query: string, config: GeocodingConfig, signal?: A
   if (!query.trim()) return [];
   const response = provider(config) === 'google'
     ? await googleGeocode(config, signal, { address: query.trim(), ...view?.bbox ? { bounds: bounds(view.bbox) } : {} })
-    : await get(geocodeUrl(query.trim(), config, view), signal);
+    : await fetchGeocode(geocodeUrl(query.trim(), config, view), signal);
   const results = parseGeocode(response, config);
   return view ? sortByDistance(results, view.center) : results;
 }
@@ -109,7 +112,7 @@ export function sortByDistance(results: GeocodeResult[], center: [number, number
 export async function reverseGeocode(location: [number, number], config: GeocodingConfig, signal?: AbortSignal): Promise<GeocodeResult | undefined> {
   const response = provider(config) === 'google'
     ? await googleGeocode(config, signal, { location: { lng: location[0], lat: location[1] } })
-    : await get(reverseGeocodeUrl(location, config), signal);
+    : await fetchGeocode(reverseGeocodeUrl(location, config), signal);
   return parseGeocode(response, config)[0];
 }
 
@@ -184,6 +187,67 @@ async function googleGeocode(config: GeocodingConfig, signal: AbortSignal | unde
   });
   signal?.throwIfAborted();
   return response;
+}
+
+const nominatimCache = new Map<string, any>();
+let nominatimQueue: Promise<void> = Promise.resolve();
+let nominatimLast = 0;
+
+/**
+ * Clear the Nominatim cache and rate limit.
+ */
+export function resetNominatim() {
+  nominatimCache.clear();
+  nominatimQueue = Promise.resolve();
+  nominatimLast = 0;
+}
+
+/**
+ * Requests to the public Nominatim service are cached and throttled to
+ * 1 request per second as required by its usage policy.
+ */
+async function fetchGeocode(url: string, signal?: AbortSignal): Promise<any> {
+  if (!url.startsWith(NOMINATIM_URL + '/')) return get(url, signal);
+  if (nominatimCache.has(url)) {
+    const cached = nominatimCache.get(url);
+    nominatimCache.delete(url);
+    nominatimCache.set(url, cached);
+    return cached;
+  }
+  await nominatimTurn(signal);
+  const response = await get(url, signal);
+  nominatimCache.set(url, response);
+  if (nominatimCache.size > NOMINATIM_CACHE_SIZE) nominatimCache.delete(nominatimCache.keys().next().value!);
+  return response;
+}
+
+/**
+ * Wait until a Nominatim request is allowed. Aborted requests give up their
+ * place in line without using up a request.
+ */
+function nominatimTurn(signal?: AbortSignal): Promise<void> {
+  const turn = nominatimQueue.then(async () => {
+    signal?.throwIfAborted();
+    const wait = nominatimLast + NOMINATIM_INTERVAL - Date.now();
+    if (wait > 0) await sleep(wait, signal);
+    nominatimLast = Date.now();
+  });
+  nominatimQueue = turn.catch(() => {});
+  return turn;
+}
+
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const abort = () => {
+      clearTimeout(timer);
+      reject(signal!.reason);
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', abort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', abort, { once: true });
+  });
 }
 
 /**
