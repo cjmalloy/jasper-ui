@@ -302,6 +302,13 @@ test.describe.serial('Map Plugin', () => {
     }).toBeCloseTo(0, 0);
   });
 
+  test('plugin/map expands in other plugin lists', async ({ page }) => {
+    await page.goto('/tag/plugin/geo/point?debug=ADMIN', { waitUntil: 'networkidle' });
+    const ref = page.locator('.ref-list .ref', { hasText: 'Map Plugin Test' });
+    await ref.locator('button.toggle').click();
+    await expect(page.locator('.ref-list .map-embed .maplibregl-map')).toBeVisible({ timeout: 15_000 });
+  });
+
   test('map search accounts for the floating sidebar and stays underneath it', async ({ page }) => {
     await page.goto('/tag/@*?debug=ADMIN&view=map', { waitUntil: 'networkidle' });
     await closeSidebar(page);

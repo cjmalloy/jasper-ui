@@ -182,7 +182,7 @@
         @if (expanded && expandInline && !editing && !viewSource) {
           <app-viewer #viewer class="viewer-inline"
                       [ref]="bareRef"
-                      [tags]="plugins || currentTags"
+                      [tags]="viewerTags"
                       [disableResize]="disableResize"
                       [fullscreen]="fullscreen"
                       (contextmenu)="unlockViewer($event)"
@@ -326,7 +326,7 @@
 @if (expanded && !expandInline && !editing && !viewSource) {
   <app-viewer #viewer class="viewer-below"
               [ref]="bareRef"
-              [tags]="plugins || currentTags"
+              [tags]="viewerTags"
               [disableResize]="disableResize"
               [fullscreen]="fullscreen"
               (contextmenu)="unlockViewer($event)"
