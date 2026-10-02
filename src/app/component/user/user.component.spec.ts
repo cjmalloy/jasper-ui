@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
@@ -105,5 +105,19 @@ describe('UserComponent', () => {
         '+plugin/origin': { remote: '@example', local: '@jasper' },
       }),
     }));
+  });
+
+  it('keeps the connection ref readable when the profile lookup fails', () => {
+    const http = TestBed.inject(HttpTestingController);
+    fixture.componentRef.setInput('user', { tag: '+user', origin: '', modified: '2024-01-01T00:00:00Z' });
+    fixture.detectChanges();
+    TestBed.tick();
+    http.match(req => req.url.endsWith('/profile')).forEach(req =>
+      req.flush('', { status: 404, statusText: 'Not Found' }));
+    fixture.detectChanges();
+
+    expect(component.profile()).toBeUndefined();
+    expect(() => component.connectionRef()).not.toThrow();
+    expect(component.connectionRef().plugins?.['+plugin/origin/tunnel']).toEqual({ remoteUser: '+user' });
   });
 });

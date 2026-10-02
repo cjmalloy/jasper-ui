@@ -70,7 +70,7 @@ export class ChatEntryComponent {
   readonly repostRef = toSignal(toObservable(computed(() => this.bareRepost() ? this.url() : undefined)).pipe(
     switchMap(url => !url ? of(undefined) :
       (this.store.view.top()?.url === url ? of(this.store.view.top()) : this.refs.getCurrent(url)).pipe(
-        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        catchError(() => of(undefined)),
       )),
   ));
   readonly noComment = computed(() => ({ ...this.bareRef(), comment: '' }) as Ref);

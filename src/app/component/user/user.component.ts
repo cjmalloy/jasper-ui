@@ -66,11 +66,17 @@ export class UserComponent implements HasChanges {
   private readonly profileTag = computed(() => !this.profileInput() && this.user()?.modified
     ? this.user()!.tag + (this.user()!.origin || '') : undefined);
   private readonly loadedProfile = toSignal(toObservable(this.profileTag).pipe(
-    switchMap(tag => tag ? this.profiles.getProfile(tag).pipe(startWith(undefined)) : of(undefined)),
+    switchMap(tag => tag ? this.profiles.getProfile(tag).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ) : of(undefined)),
   ), { initialValue: undefined });
   readonly profile = linkedSignal(() => this.profileInput() || this.loadedProfile());
   readonly ext = toSignal(toObservable(this.profileTag).pipe(
-    switchMap(tag => tag ? this.exts.getCachedExt(this.user()!.tag, this.user()!.origin).pipe(startWith(undefined)) : of(undefined)),
+    switchMap(tag => tag ? this.exts.getCachedExt(this.user()!.tag, this.user()!.origin).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ) : of(undefined)),
   ), { initialValue: undefined });
   readonly deleted = linkedSignal(() => { this.user(); this.profileInput(); return false; });
   readonly writeAccess = computed(() => this.auth.tagWriteAccess(this.qualifiedTag()) && this.auth.hasRole(this.role()));

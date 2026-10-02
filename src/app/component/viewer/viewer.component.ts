@@ -4,7 +4,7 @@ import { FormControl } from '@angular/forms';
 import * as he from 'he';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
-import { BehaviorSubject, catchError, of, startWith, Subject, switchMap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, of, startWith, Subject, switchMap } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
@@ -109,14 +109,17 @@ export class ViewerComponent {
   readonly repost = toSignal(toObservable(computed(() =>
     hasTag('plugin/repost', this.ref()) ? this.ref()?.sources?.[0] : undefined,
   )).pipe(switchMap(url => url ? this.refs.getCurrent(url).pipe(
-    catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+    catchError(() => of(undefined)),
     startWith(undefined),
   ) : of(undefined))), { initialValue: undefined });
   private readonly queryUrl = computed(() => hasTag('plugin/lens', this.ref())
     ? this.ref()?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref()) ? this.ref()?.sources?.[0] : this.ref()?.url)
     : undefined);
   private readonly lensResult = toSignal(toObservable(this.queryUrl).pipe(
-    switchMap(url => url ? this.embeds.loadQuery$(url).pipe(startWith(undefined)) : of(undefined)),
+    switchMap(url => url ? this.embeds.loadQuery$(url).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ) : of(undefined)),
   ), { initialValue: undefined });
   readonly lens = computed(() => !!this.queryUrl());
   readonly lensPage = computed(() => this.lensResult()?.page);
@@ -149,6 +152,7 @@ export class ViewerComponent {
   });
   readonly oembed = toSignal(toObservable(this.oembedRequest).pipe(
     switchMap(request => request ? this.oembeds.get(request.url, request.theme, request.width, request.height).pipe(
+      catchError(() => of(undefined)),
       startWith(undefined),
     ) : of(undefined)),
   ), { initialValue: undefined });

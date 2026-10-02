@@ -1,6 +1,6 @@
 import { computed, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, input, linkedSignal, signal, afterNextRender } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { Observable, of, startWith, switchMap } from 'rxjs';
+import { catchError, Observable, of, startWith, switchMap } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -33,7 +33,7 @@ export class NavComponent {
     this.url() && !this.localUrl() && !this.external() ? this.url() : undefined,
   )).pipe(switchMap(url => !url ? of(false) : new Observable<void>(subscriber => {
     this.vis.notifyVisible(this.el, () => subscriber.next());
-  }).pipe(switchMap(() => this.refs.exists(url)), startWith(false)))), { initialValue: false });
+  }).pipe(switchMap(() => this.refs.exists(url).pipe(catchError(() => of(false)))), startWith(false)))), { initialValue: false });
   readonly nav = computed(() => this.localUrl() ? this.getNav() : this.exists() ? ['/ref', this.url()] : undefined);
   private readonly preview = toSignal(toObservable(computed(() => {
     const nav = this.localUrl() ? this.getNav() : undefined;

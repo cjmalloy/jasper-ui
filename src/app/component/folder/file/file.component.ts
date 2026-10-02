@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { catchError, of, startWith, switchMap, throwError } from 'rxjs';
+import { catchError, of, startWith, switchMap } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import {
   Action,
@@ -64,7 +64,7 @@ export class FileComponent {
     this.fetchRepost() && this.repost() ? this.url() : undefined,
   )).pipe(switchMap(url => !url ? of(undefined) :
     (this.store.view.top()?.url === url ? of(this.store.view.top()) : this.refs.getCurrent(url)).pipe(
-      catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+      catchError(() => of(undefined)),
       startWith(undefined),
     ))), { initialValue: undefined });
   readonly expandPlugins = computed(() => this.bareRepost() && this.repostRef()

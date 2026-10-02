@@ -46,6 +46,7 @@ export class PlaylistComponent {
     const ref = this.ref();
     return ref?.sources?.length ? { url: ref.url, length: ref.sources.length } : undefined;
   })).pipe(switchMap(ref => ref ? this.loadSources(ref.url, ref.length).pipe(
+    catchError(() => of(undefined)),
     startWith(undefined),
   ) : of(undefined))), { initialValue: undefined });
   readonly sourcesInput = input<Page<Ref> | undefined>(undefined, { alias: 'sources' });
