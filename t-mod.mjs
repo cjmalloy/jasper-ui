@@ -1,0 +1,10 @@
+import { chromium } from '@playwright/test';
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1280, height: 720 } });
+await p.goto('http://localhost:4200/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
+const ids = await p.locator('input[type=checkbox][id^=mod-]').evaluateAll(es => es.map(e => e.id + ':' + e.checked));
+console.log(ids.filter(i => /origin|remote/.test(i)));
+await p.locator('#mod-origin').check();
+await p.locator('button', { hasText: 'Save' }).click();
+await p.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 30000, state: 'attached' });
+await b.close();
