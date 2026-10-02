@@ -112,7 +112,7 @@ docker compose up --build  # Everything on http://localhost:8082/
 - `src/app/page/` - Page components
 - `src/app/pipe/` - Custom pipes
 - `src/app/service/` - API and data services
-- `src/app/store/` - MobX state management
+- `src/app/store/` - Signal-based state management
 - `src/app/util/` - Utility functions
 - `docker-compose.yaml` - Development Docker setup
 - `src/assets/config.json` - **DO NOT** edit API URL, use Docker env vars
@@ -358,7 +358,7 @@ When writing a new test, use the MCP server to find the right selectors:
 
 ## Key Info
 
-- Angular 22 + TypeScript 6 + MobX + Vitest
+- Angular 22 (zoneless, signals) + TypeScript 6 + Vitest
 - API configured via Docker `JASPER_API` environment variable
 - Use `ng generate component|service|pipe|directive name` for new features
 - Network issues: Playwright browsers are bundled, no separate install needed

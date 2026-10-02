@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { forwardRef } from '@angular/core';
+import { ChangeDetectorRef, forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
@@ -15,8 +15,8 @@ describe('ExtFormComponent', () => {
   let fixture: ComponentFixture<ExtFormComponent>;
 
   function detectInputChanges() {
-    component.group = component.group;
-    detectInputChanges();
+    fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+    fixture.detectChanges();
   }
 
   beforeEach(async () => {
@@ -224,7 +224,7 @@ describe('ExtFormComponent', () => {
     component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'published/before/PT15M',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     expect(component.filterDateLabel(component.defaultFilter.value[0])).toBe('15 minutes');
     expect(fixture.nativeElement.querySelector('.default-filter-date-range output').textContent).toBe('15 minutes');

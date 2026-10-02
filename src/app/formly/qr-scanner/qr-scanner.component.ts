@@ -34,7 +34,7 @@ export class QrScannerComponent implements OnDestroy {
   private readonly _hasFlash = signal(false);
   private readonly _hasCamera = signal<boolean | undefined>(undefined);
   private readonly _cameras = signal<Camera[] | undefined>(undefined);
-  private readonly _checkedCamera = signal(false);
+  private checkedCamera = false;
 
   constructor(
     private viewContainerRef: ViewContainerRef,
@@ -49,9 +49,6 @@ export class QrScannerComponent implements OnDestroy {
 
   get cameras(): Camera[] | undefined { return this._cameras(); }
   set cameras(value: Camera[] | undefined) { this._cameras.set(value); }
-
-  get checkedCamera(): boolean { return this._checkedCamera(); }
-  set checkedCamera(value: boolean) { this._checkedCamera.set(value); }
 
   ngOnDestroy() {
     this.stopScanQr();
