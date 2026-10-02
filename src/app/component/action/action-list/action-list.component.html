@@ -37,8 +37,8 @@
       }
       @if (groupedAdvancedActions()) {
         @for (a of groupedAdvancedActions() | keyvalue; track a.key) {
-          @if (a.value[0].confirm) {
-            <app-confirm-action [message]="a.value[0].confirm!"
+          @if (a.value[0].confirm; as message) {
+            <app-confirm-action [message]="message"
                                 [action]="apply$(a.value)"
                                 [appTitle]="a.value">{{ a.key }}</app-confirm-action>
           } @else {
