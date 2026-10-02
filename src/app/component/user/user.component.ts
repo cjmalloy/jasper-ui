@@ -12,11 +12,12 @@ import {
   computed,
   untracked
 } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, of, startWith, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
@@ -61,21 +62,34 @@ export class UserComponent implements HasChanges {
 
   readonly profileInput = input<Profile | undefined>(undefined, { alias: 'profile' });
   readonly userInput = input<User | undefined>(undefined, { alias: 'user' });
-  readonly profile = linkedSignal(() => this.profileInput());
   readonly user = linkedSignal(() => this.userInput());
-  readonly ext = signal<Ext | undefined>(undefined);
-  readonly deleted = signal(false);
-  readonly writeAccess = signal(false);
-  readonly serverError = signal<string[]>([]);
-  readonly externalErrors = signal<string[]>([]);
-  readonly genKey = signal(false);
+  private readonly profileTag = computed(() => !this.profileInput() && this.user()?.modified
+    ? this.user()!.tag + (this.user()!.origin || '') : undefined);
+  private readonly loadedProfile = toSignal(toObservable(this.profileTag).pipe(
+    switchMap(tag => tag ? this.profiles.getProfile(tag).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ) : of(undefined)),
+  ), { initialValue: undefined });
+  readonly profile = linkedSignal(() => this.profileInput() || this.loadedProfile());
+  readonly ext = toSignal(toObservable(this.profileTag).pipe(
+    switchMap(tag => tag ? this.exts.getCachedExt(this.user()!.tag, this.user()!.origin).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ) : of(undefined)),
+  ), { initialValue: undefined });
+  readonly deleted = linkedSignal(() => { this.user(); this.profileInput(); return false; });
+  readonly writeAccess = computed(() => this.auth.tagWriteAccess(this.qualifiedTag()) && this.auth.hasRole(this.role()));
+  readonly serverError = linkedSignal<string[]>(() => { this.user(); this.profileInput(); return []; });
+  readonly externalErrors = linkedSignal<string[]>(() => { this.user(); this.profileInput(); return []; });
+  readonly genKey = linkedSignal(() => { this.user(); this.profileInput(); return false; });
 
   readonly refForm = viewChild<UserFormComponent>('refForm');
 
   editForm: UntypedFormGroup;
-  readonly submitted = signal(false);
-  readonly editing = signal(false);
-  viewSource = false;
+  readonly submitted = linkedSignal(() => { this.user(); this.profileInput(); return false; });
+  readonly editing = linkedSignal(() => { this.user(); this.profileInput(); return false; });
+  readonly viewSource = linkedSignal(() => { this.user(); this.profileInput(); return false; });
 
   constructor(
     public admin: AdminService,
@@ -106,13 +120,6 @@ export class UserComponent implements HasChanges {
 
   init() {
     this.actionComponents()?.forEach(c => c.reset());
-    this.writeAccess.set(this.auth.tagWriteAccess(this.qualifiedTag()) && this.auth.hasRole(this.role()));
-    if (this.created() && !this.profile()) {
-      this.exts.getCachedExt(this.user()!.tag, this.user()!.origin)
-        .subscribe(x => this.ext.set(x));
-      this.profiles.getProfile(this.qualifiedTag())
-        .subscribe(profile => this.profile.set(profile));
-    }
   }
 
   readonly created = computed(() => {
@@ -128,13 +135,13 @@ export class UserComponent implements HasChanges {
     return tagOrigin(this.profile()?.tag) || this.user()?.origin || '';
   });
 
-  get recommendedAlias() {
+  readonly recommendedAlias = computed(() => {
     const api = new URL(this.config.api, location.href);
     const firstPath = api.pathname.split('/').filter(Boolean)[0];
     return firstPath?.startsWith('~') && firstPath.length > 1
       ? '@' + firstPath.substring(1)
       : '@' + api.hostname;
-  }
+  });
 
   readonly local = computed(() => {
     return this.profile()?.tag || (!this.user() || this.user()?.origin === this.store.account.origin());
@@ -157,10 +164,10 @@ export class UserComponent implements HasChanges {
     downloadTag(user);
   }
 
-  get connectionRef(): Ref {
+  readonly connectionRef = computed((): Ref => {
     const template = this.store.origins.origins().find(ref =>
       subOrigin(ref.origin, ref.plugins?.['+plugin/origin']?.local) === this.origin());
-    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin() || this.recommendedAlias;
+    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin() || this.recommendedAlias();
     return {
       url: template?.url || new URL(this.config.api, document.baseURI).href,
       title: template?.title || local,
@@ -171,10 +178,10 @@ export class UserComponent implements HasChanges {
         '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag() },
       },
     };
-  }
+  });
 
   connect() {
-    downloadRef(this.connectionRef);
+    downloadRef(this.connectionRef());
   }
 
   setPassword$ = (password: string) => {
@@ -318,7 +325,7 @@ export class UserComponent implements HasChanges {
     if (this.profile()) {
       os.push(this.profiles.delete(this.qualifiedTag()).pipe(
         catchError((err: HttpErrorResponse) => {
-          this.serverError.set([...this.serverError(), ...printError(err)]);
+          this.serverError.update(errors => [...errors, ...printError(err)]);
           return throwError(() => err);
         }),
       ));
@@ -332,7 +339,7 @@ export class UserComponent implements HasChanges {
     this.serverError.set([]);
     return this.users.keygen(this.qualifiedTag()).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError.set([...this.serverError(), ...printError(err)]);
+        this.serverError.update(errors => [...errors, ...printError(err)]);
         return throwError(() => err);
       }),
       switchMap(() => this.users.get(this.qualifiedTag())),

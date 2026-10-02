@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, effect, input, output, signal, viewChild, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, effect, input, linkedSignal, output, signal, viewChild, untracked } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -26,10 +26,12 @@ export class InlinePluginComponent extends ActionComponent {
   readonly error = output<string>();
   readonly gen = viewChild<GenFormComponent>('gen');
 
-  readonly editing = signal(false);
+  readonly editing = linkedSignal(() => { this.plugin(); this.value(); return false; });
   readonly acting = signal(false);
 
-  readonly group = signal<UntypedFormGroup>(this.fb.group({}));
+  readonly group = computed(() => this.fb.group({
+    [this.plugin().tag]: this.fb.group({}),
+  }));
 
   constructor(
     public admin: AdminService,
@@ -38,12 +40,10 @@ export class InlinePluginComponent extends ActionComponent {
     super();
     effect(() => {
       const gen = this.gen();
+      const plugins = this.value()?.plugins || {};
+      this.group();
       if (!gen) return;
       untracked(() => {
-        this.group.set(this.fb.group({
-          [this.plugin().tag]: this.fb.group({}),
-        }));
-        const plugins = this.value()?.plugins || {};
         defer(() => gen.setValue(plugins));
       });
     });

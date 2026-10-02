@@ -20,7 +20,7 @@
         <button type="button" (click)="gen(inlineGen.value)">⏎</button>
       </span>
     }
-    @if (!empty) {
+    @if (!empty()) {
       <a class="fake-link" (click)="sourcing.set(!sourcing())">source</a>
       @if (sourcing()) {
         <span>

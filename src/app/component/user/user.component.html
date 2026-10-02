@@ -19,7 +19,7 @@
     @if (created() && local() && store.account.admin()) {
       <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
     } @else {
-      <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+      <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
     }
     <a class="fake-link" (click)="download()" i18n>download</a>
     <a class="fake-link connect-action" (click)="connect()" i18n>connect</a>
@@ -82,7 +82,7 @@
       <button type="button" (click)="editing.set(false)" i18n>cancel</button>
     </span>
   </form>
-} @else if (viewSource) {
+} @else if (viewSource()) {
   <form class="form" [formGroup]="editForm">
     <app-user-form #refForm [group]="editForm"></app-user-form>
   </form>

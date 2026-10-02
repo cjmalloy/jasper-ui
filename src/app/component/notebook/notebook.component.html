@@ -1,5 +1,5 @@
 <div class="list-container"
-     [style.grid-template-columns]="colStyle">
+     [style.grid-template-columns]="colStyle()">
   @for (ref of pinned(); track ref.origin + '@' + ref.url) {
     <app-note class="pinned ref-list-item"
               [ref]="ref"
@@ -26,7 +26,7 @@
   } @else if (pageControls()) {
     <app-page-controls [showPageLast]="showPageLast()"
                        [page]="page()"
-                       [defaultCols]="cols"
+                       [defaultCols]="cols()"
                        [showPrev]="showPrev()"></app-page-controls>
   }
 } @else {

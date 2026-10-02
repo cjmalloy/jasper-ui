@@ -6,7 +6,7 @@
                [context]="context()"></app-comment>
 }
 @if (depth() > 0) {
-  @for (comment of comments; track comment.origin + comment.url) {
+  @for (comment of comments(); track comment.origin + comment.url) {
     <app-comment #comment
                  [ref]="comment"
                  [scrollToLatest]="scrollToLatest()"

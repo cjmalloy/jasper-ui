@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
@@ -53,7 +53,7 @@ import { getErrorMessage } from './errors';
     FormlyAttributes,
   ],
 })
-export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
+export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> {
 
   listId = 'list-' + uuid();
   readonly preview = signal('');
@@ -76,7 +76,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     super();
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
@@ -86,13 +86,13 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
         this.preview.set('');
       }
     });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.previewing?.unsubscribe();
     this.searching?.unsubscribe();
     this.formChanges?.unsubscribe();
-  }
+  });
 
   validate(input: HTMLInputElement) {
     if (this.showError) {

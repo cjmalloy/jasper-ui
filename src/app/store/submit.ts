@@ -22,7 +22,7 @@ export class SubmitStore {
   /**
    * Read only. Use setCaching() and removeCaching() to modify.
    */
-  readonly caching = signal(new Map<File, Saving>());
+  readonly caching = signal<ReadonlyMap<File, Saving>>(new Map());
 
   maxPreview = 300;
 
@@ -187,8 +187,8 @@ export class SubmitStore {
   }
 
   clearUpload(refs: Ref[] = [], exts: Ext[] = []) {
-    this.exts.set(exts);
-    this.refs.set(refs);
+    this.exts.set([...exts]);
+    this.refs.set([...refs]);
   }
 
   addFiles(files?: File[]) {
@@ -202,7 +202,7 @@ export class SubmitStore {
   }
 
   setEmbedFiles(files: File[] = []) {
-    this.embedFiles.set(files);
+    this.embedFiles.set([...files]);
   }
 
   foundRef(url: string) {

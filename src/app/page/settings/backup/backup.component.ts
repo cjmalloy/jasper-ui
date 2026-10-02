@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, signal, viewChild } from '@angular/core';
+import { computed, Component, ElementRef, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -53,7 +53,7 @@ export class SettingsBackupPage {
     mod.setTitle($localize`Settings: Backup & Restore`);
     this.fetchBackups();
     this.originForm = fb.group({
-      origin: [this.origin, [Validators.pattern(ORIGIN_REGEX)]],
+      origin: [this.origin(), [Validators.pattern(ORIGIN_REGEX)]],
       olderThan: [DateTime.now().toISO()],
     });
     this.backupOptionsForm = fb.group({
@@ -72,19 +72,19 @@ export class SettingsBackupPage {
       });
   }
 
-  get origin() {
+  readonly origin = computed(() => {
     return this.store.view.origin() || this.store.account.origin();
-  }
+  });
 
   selectOrigin(origin: string) {
-    if (origin === this.origin) return;
+    if (origin === this.origin()) return;
     this.fetchBackups(origin);
-    this.bookmarks.origin = origin;
+    this.bookmarks.setOrigin(origin);
   }
 
   fetchBackups(origin?: string) {
     this.list.set(undefined);
-    this.backups.list(origin === undefined ? this.origin : origin)
+    this.backups.list(origin === undefined ? this.origin() : origin)
       .subscribe(list => this.list.set(sortBy(list, 'id').reverse()));
   }
 
@@ -136,7 +136,7 @@ export class SettingsBackupPage {
 
   backup(options: BackupOptions) {
     this.serverError.set([]);
-    this.backups.create(this.origin, options).pipe(
+    this.backups.create(this.origin(), options).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError.set(printError(res));
         return throwError(() => res);
@@ -151,7 +151,7 @@ export class SettingsBackupPage {
     if (!files || !files.length) return;
     this.uploading.set(true);
     const file = files[0]!;
-    this.backups.upload(this.origin, file).pipe(
+    this.backups.upload(this.origin(), file).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError.set(printError(res));
         this.uploading.set(false);
@@ -165,8 +165,8 @@ export class SettingsBackupPage {
 
   regen() {
     this.serverError.set([]);
-    if (!confirm($localize`Are you sure you want totally regenerate metadata${this.origin ? ' in ' + this.origin : ''}?`)) return;
-    this.backups.regen(this.origin).pipe(
+    if (!confirm($localize`Are you sure you want totally regenerate metadata${this.origin() ? ' in ' + this.origin() : ''}?`)) return;
+    this.backups.regen(this.origin()).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError.set(printError(res));
         return throwError(() => res);
@@ -181,14 +181,14 @@ export class SettingsBackupPage {
       scrollToFirstInvalid();
       return;
     }
-    const confirmation = prompt($localize`Are you sure you want totally delete everything in ${this.origin || 'default'}?\n\nEnter the origin to confirm:`);
+    const confirmation = prompt($localize`Are you sure you want totally delete everything in ${this.origin() || 'default'}?\n\nEnter the origin to confirm:`);
     if (confirmation === null) return;
-    if (confirmation !== (this.origin || 'default')) {
-      alert($localize`Origin did not match ${this.origin || 'default'}, aborting.`)
+    if (confirmation !== (this.origin() || 'default')) {
+      alert($localize`Origin did not match ${this.origin() || 'default'}, aborting.`)
       return;
     }
     const olderThan = DateTime.fromISO(this.originForm.value.olderThan);
-    this.origins.delete(this.origin, olderThan).pipe(
+    this.origins.delete(this.origin(), olderThan).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError.set(printError(res));
         return throwError(() => res);

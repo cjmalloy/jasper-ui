@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, afterNextRender } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -21,7 +21,7 @@ import { Store } from '../../store/store';
     RouterOutlet,
   ],
 })
-export class SettingsPage implements OnInit {
+export class SettingsPage {
 
   constructor(
     public admin: AdminService,
@@ -30,12 +30,12 @@ export class SettingsPage implements OnInit {
     public store: Store,
   ) { }
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     if (!this.store.view.settingsTabs().length) {
       {
-        this.store.view.settingsTabs.set(this.admin.settings.filter(p => this.auth.tagReadAccess(p.tag)));
+        this.store.view.settingsTabs.set(this.admin.settings().filter(p => this.auth.tagReadAccess(p.tag)));
       };
     }
-  }
+  });
 
 }

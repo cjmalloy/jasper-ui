@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, viewChildren, effect, computed, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, viewChildren, effect, computed, untracked, DestroyRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
@@ -28,7 +28,7 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
 })
-export class RefSummaryComponent implements OnDestroy, HasChanges {
+export class RefSummaryComponent implements HasChanges {
 
   newResp$ = new Subject<Ref | undefined>();
   newComment$ = new Subject<Ref | undefined>();
@@ -82,16 +82,16 @@ export class RefSummaryComponent implements OnDestroy, HasChanges {
       && !this.threadComponents()?.find(t => !t.saveChanges());
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
     this.newResp$.complete();
     this.newComment$.complete();
     this.newThread$.complete();
-  }
+  });
 
   readonly top = computed(() => top(this.store.view.ref()));
 
-  readonly responseSet = computed(() => this.comments() || this.threads() || this.admin.responseButton.find(p => hasTag(p.tag, this.replyTags())));
+  readonly responseSet = computed(() => this.comments() || this.threads() || this.admin.responseButton().find(p => hasTag(p.tag, this.replyTags())));
 
   readonly dm = computed(() => !!this.admin.getTemplate('dm') && hasTag('dm', this.store.view.ref()));
 
@@ -112,17 +112,17 @@ export class RefSummaryComponent implements OnDestroy, HasChanges {
   readonly replyTags = computed((): string[] => {
     const tags = [
       ...this.comments() ? ['plugin/comment'] : this.threads() ? ['plugin/thread'] : [],
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref())).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply().filter(p => hasTag(p.tag, this.store.view.ref())).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes(),
     ];
     return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
   });
 
-  get moreComments() {
+  readonly moreComments = computed(() => {
     const topComments = this.thread.cache().get(this.top());
     if (!topComments) return false;
     return topComments.length > this.summaryItems;
-  }
+  });
 
   onReply(ref?: Ref) {
     if (ref && this.store.view.ref()) {

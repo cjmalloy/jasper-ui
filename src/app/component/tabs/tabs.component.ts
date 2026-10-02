@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  ElementRef,
-  contentChildren,
-  effect,
-  signal,
-  computed
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, contentChildren, effect, signal, computed, afterNextRender } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -22,22 +12,34 @@ import { SettingsComponent } from '../settings/settings.component';
   host: {
     'class': 'tabs',
     '[class.measuring]': 'measuring()',
-    '[class.floating-tabs]': 'floatingTabs',
+    '[class.floating-tabs]': "floatingTabs()",
     '(window:resize)': 'onResize()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, SettingsComponent]
 })
-export class TabsComponent implements AfterViewInit {
+export class TabsComponent {
 
   readonly routerLinks = contentChildren(RouterLink);
   readonly anchors = contentChildren(RouterLink, { read: ElementRef });
 
-  readonly options = signal<string[]>([], { equal: () => false });
+  private readonly measurementVersion = signal(0);
+  readonly options = computed(() => {
+    this.measurementVersion();
+    return this.anchors().map(t => t.nativeElement as HTMLAnchorElement)
+      .filter(el => el.tagName === 'A' && !el.classList.contains('logo'))
+      .map(el => el.title || el.innerText);
+  });
   readonly hidden = signal(0);
   readonly measuring = signal(true);
 
-  map = new Map<string, number>();
+  readonly map = computed(() => {
+    this.measurementVersion();
+    return new Map(this.anchors().flatMap((t, index) => {
+      const el = t.nativeElement as HTMLAnchorElement;
+      return el.tagName === 'A' && !el.classList.contains('logo') ? [[el.title || el.innerText, index] as const] : [];
+    }));
+  });
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private destroyed = false;
@@ -61,14 +63,14 @@ export class TabsComponent implements AfterViewInit {
     });
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     this.updateTabs();
     defer(() => !this.destroyed && this.resizeObserver?.observe(this.el.nativeElement!.parentElement!));
-  }
+  });
 
-  get floatingTabs() {
+  readonly floatingTabs = computed(() => {
     return this.config.mini || this.hidden() > 0 && this.hidden() === this.options().length;
-  }
+  });
 
   onResize() {
     if (!this.options().length) return;
@@ -82,24 +84,18 @@ export class TabsComponent implements AfterViewInit {
 
   measureVisible() {
     if (!this.options().length) return;
-    this.hidden.set(this.options().length - this.visible);
+    for (const t of this.anchors()) {
+      const el = t.nativeElement as HTMLElement;
+      if (el.tagName === 'A' && !el.classList.contains('logo')) el.style.display = 'inline-block';
+    }
+    this.measurementVersion.update(version => version + 1);
+    this.hidden.set(this.options().length - this.visible());
     this.hideTabs();
   }
 
   updateTabs() {
     this.hidden.set(0);
-    const options: string[] = [];
-    this.map.clear();
-    const tabs = this.anchors();
-    for (const t of tabs) {
-      const el = t.nativeElement as HTMLAnchorElement;
-      if (el.tagName !== 'A') continue;
-      if (el.classList.contains('logo')) continue;
-      const value = el.title || el.innerText;
-      options.push(value);
-      this.map.set(value, tabs.indexOf(t));
-    }
-    this.options.set(options);
+    this.measurementVersion.update(version => version + 1);
     defer(() => !this.destroyed && this.onResize());
   }
 
@@ -120,6 +116,7 @@ export class TabsComponent implements AfterViewInit {
     this.measuring.set(false);
   }
   readonly tabWidths = computed(() => {
+    this.measurementVersion();
     const result: number[] = [];
     const tabs = this.anchors();
     for (const t of tabs) {
@@ -131,7 +128,8 @@ export class TabsComponent implements AfterViewInit {
     return result;
   });
 
-  get currentTabWidth() {
+  readonly currentTabWidth = computed(() => {
+    this.measurementVersion();
     const el = this.el.nativeElement;
     for (let i = 0; i < el.children.length; i++) {
       const e = el.children[i] as HTMLElement;
@@ -139,12 +137,13 @@ export class TabsComponent implements AfterViewInit {
       return e.offsetWidth + 8.5;
     }
     return 0;
-  }
+  });
 
   /**
    * Widths of permanent children including the overflow dropdown.
    */
-  get childWidths() {
+  readonly childWidths = computed(() => {
+    this.measurementVersion();
     const el = this.el.nativeElement;
     const result: number[] = [];
     let mobileSelect = false;
@@ -162,19 +161,20 @@ export class TabsComponent implements AfterViewInit {
       result.push(52);
     }
     return result;
-  }
+  });
 
   /**
    * Number of visible tabs, including the current tab.
    */
-  get visible() {
-    const current = this.currentTabWidth;
+  readonly visible = computed(() => {
+    this.measurementVersion();
+    const current = this.currentTabWidth();
     if (!current) return this.options().length;
     if (this.config.mini) return 0;
     const el = this.el.nativeElement;
     const width = el.offsetWidth - 2;
     let result = 1;
-    let childWidth = current + this.childWidths.reduce((a, b) => a + b);
+    let childWidth = current + this.childWidths().reduce((a, b) => a + b);
     if (childWidth > width) return 0;
     let skipped = false;
     for (const w of this.tabWidths()) {
@@ -190,11 +190,11 @@ export class TabsComponent implements AfterViewInit {
       }
     }
     return this.options().length;
-  }
+  });
 
   nav(select: HTMLSelectElement) {
-    if (select.value && this.map.has(select.value)) {
-      this.routerLinks().at(this.map.get(select.value)!)?.onClick(0, false, false, false, false);
+    if (select.value && this.map().has(select.value)) {
+      this.routerLinks().at(this.map().get(select.value)!)?.onClick(0, false, false, false, false);
     }
     select.selectedIndex = 0;
     this.measureVisible();

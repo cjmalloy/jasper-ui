@@ -7,7 +7,7 @@
 <cdk-virtual-scroll-viewport #viewport class="messages"
                              [class.scroll-lock]="scrollLock()"
                              [itemSize]="itemSize"
-                             [style.height.px]="containerHeight"
+                             [style.height.px]="containerHeight()"
                              (scrolledIndexChange)="onScroll($event)">
   <app-chat-entry *cdkVirtualFor="let ref of messages(); let index = index; let odd = odd"
                   [ref]="ref"
@@ -31,7 +31,7 @@
             [title]="'last polled ' + lastPoll().toRelative()"
             (click)="refresh()" i18n>🔄</button>
   }
-  @for (button of editorPushButtons; track button; let i = $index) {
+  @for (button of editorPushButtons(); track button; let i = $index) {
     @if (!button.event) {
       <button type="button"
               (click)="toggleTag(button)"

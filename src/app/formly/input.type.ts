@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
@@ -36,7 +36,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       }
       @if (props.clear) { <button type="button" (click)="field.formControl!.setValue(null)" i18n-title title="Clear" i18n>🆑️</button> }
       @if (field.type   ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner> }
-      @if (files) {
+      @if (files()) {
         @if (field.type ===   'pdf') { <app-pdf-upload   (data)="onUpload($event)"></app-pdf-upload> }
         @if (field.type === 'audio') { <app-audio-upload (data)="onUpload($event)"></app-audio-upload> }
         @if (field.type === 'video') { <app-video-upload (data)="onUpload($event)"></app-video-upload> }
@@ -59,7 +59,7 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 
   readonly progress = signal<number | undefined>(undefined);
   readonly uploading = signal(false);
-  files = !!this.admin.getPlugin('plugin/file');
+  readonly files = computed(() => !!this.admin.getPlugin('plugin/file'));
 
   private showedError = false;
 

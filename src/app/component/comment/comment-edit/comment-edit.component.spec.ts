@@ -51,8 +51,8 @@ describe('CommentEditComponent', () => {
     });
 
     // Simulate changing only the comment
-    component.comment.setValue('Updated comment');
-    component.comment.markAsDirty();
+    component.comment().setValue('Updated comment');
+    component.comment().markAsDirty();
 
     // Call save
     component.save();
@@ -143,5 +143,32 @@ describe('CommentEditComponent', () => {
 
     const removePatches = patches.filter(p => p.op === 'remove' && p.path.startsWith('/tags/'));
     expect(removePatches.map(p => p.path)).toEqual(['/tags/3', '/tags/0']);
+  });
+
+  it('adds missing source context only once across multiple additions', () => {
+    fixture.componentRef.setInput('ref', { url: 'comment:parent' });
+    component.addSource('https://example.com/first');
+    component.addSource('https://example.com/second');
+    expect(component.sources()).toEqual([
+      'comment:parent', 'comment:parent', 'https://example.com/first', 'https://example.com/second',
+    ]);
+  });
+
+  it('recomputes mailbox tags when only the comment changes', () => {
+    component.editorTags.set([]);
+    component.comment().setValue('+user/alice');
+    const first = component.allTags();
+    component.comment().setValue('+user/bob');
+    expect(component.allTags()).not.toEqual(first);
+  });
+
+  it('cancels a pending edit and clears its boolean state', () => {
+    const request = new Subject<string>();
+    vi.spyOn(component['refs'], 'patch').mockReturnValue(request);
+    component.save();
+    expect(component.editing()).toBe(true);
+    component.cancel();
+    expect(request.observed).toBe(false);
+    expect(component.editing()).toBe(false);
   });
 });

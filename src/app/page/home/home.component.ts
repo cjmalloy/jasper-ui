@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { LensComponent } from '../../component/lens/lens.component';
@@ -25,7 +25,7 @@ import { getArgs } from '../../util/query';
     SidebarComponent,
   ],
 })
-export class HomePage implements OnInit, OnDestroy, HasChanges {
+export class HomePage implements HasChanges {
 
   private readonly injector = inject(Injector);
 
@@ -42,7 +42,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Home`);
     store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
     query.clear();
-    if (admin.home) {
+    if (admin.home()) {
       exts.getCachedExt('config/home' + (store.account.origin() || '@')).subscribe(x => {
         if (x.modified) {
           store.view.exts.set([x]);
@@ -58,8 +58,8 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
     return !lens || lens.saveChanges();
   }
 
-  ngOnInit(): void {
-    this.store.view.extTemplates.set(this.admin.view);
+  private readonly initialize = afterNextRender(() => {
+    this.store.view.extTemplates.set(this.admin.view());
     effect(() => {
       if (this.store.view.forYou()) {
         this.account.forYouQuery$.subscribe(q => {
@@ -85,10 +85,10 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
         defer(() => this.query.setArgs(args));
       }
     }, { injector: this.injector });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 
 }

@@ -63,8 +63,10 @@ export class SubmitInvoicePage implements HasChanges {
   editorTags: string[] = [];
   readonly completedUploads = signal<Ref[]>([]);
 
-  readonly submitting = signal<Subscription | undefined>(undefined);
-  readonly saving = signal<Subscription | undefined>(undefined);
+  readonly submitting = signal(false);
+  private submittingSubscription?: Subscription;
+  readonly saving = signal(false);
+  private savingSubscription?: Subscription;
   private cursor?: string;
 
   constructor(
@@ -85,7 +87,7 @@ export class SubmitInvoicePage implements HasChanges {
       title: ['', [Validators.required]],
       comment: [''],
     });
-    if (this.admin.editing) {
+    if (this.admin.editing()) {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
@@ -101,8 +103,12 @@ export class SubmitInvoicePage implements HasChanges {
     });
   }
 
+  addCompletedUpload(ref: Ref) {
+    this.completedUploads.update(uploads => [...uploads, ref]);
+  }
+
   async saveChanges() {
-    if (this.admin.editing && this.invoiceForm.dirty) {
+    if (this.admin.editing() && this.invoiceForm.dirty) {
       return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
         .pipe(map(() => true), catchError(() => of(false))));
     }
@@ -111,17 +117,19 @@ export class SubmitInvoicePage implements HasChanges {
 
   saveForLater(leave = false) {
     const savedValue = JSON.stringify(this.invoiceForm.value);
-    this.saving.set(this.refs.saveEdit(this.writeRef(), this.cursor)
+    this.saving.set(true);
+    this.savingSubscription = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        this.saving.set(undefined);
+        this.saving.set(false);
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        this.saving.set(undefined);
+        this.saving.set(false);
         this.cursor = cursor;
         if (JSON.stringify(this.invoiceForm.value) === savedValue) this.invoiceForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      }));
+      });
+    this.savingSubscription?.add(() => this.saving.set(false));
   }
 
 
@@ -203,7 +211,7 @@ export class SubmitInvoicePage implements HasChanges {
 
   submit() {
     if (this.saving()) {
-      this.saving()!.add(() => this.submit());
+      this.savingSubscription?.add(() => this.submit());
       return;
     }
     this.serverError.set([]);
@@ -215,7 +223,8 @@ export class SubmitInvoicePage implements HasChanges {
       return;
     }
     const published = this.invoiceForm.value.published ? DateTime.fromISO(this.invoiceForm.value.published) : DateTime.now();
-    this.submitting.set(this.exts.getCachedExt(this.queue()!).pipe(
+    this.submitting.set(true);
+    this.submittingSubscription = this.exts.getCachedExt(this.queue()!).pipe(
       switchMap(queueExt => {
         const finalTags = this.getTags(queueExt);
         const ref = {
@@ -237,15 +246,16 @@ export class SubmitInvoicePage implements HasChanges {
         );
       }),
       catchError((res: HttpErrorResponse) => {
-        this.submitting.set(undefined);
+        this.submitting.set(false);
         this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.submitting.set(undefined);
+      this.submitting.set(false);
       this.invoiceForm.markAsPristine();
       this.completedUploads.set([]);
       this.router.navigate(['/ref', this.invoiceForm.value.url], { queryParams: { published }, replaceUrl: true});
-    }));
+    });
+    this.submittingSubscription?.add(() => this.submitting.set(false));
   }
 }

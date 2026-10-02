@@ -5,9 +5,9 @@ export class OriginStore {
 
   readonly origins = signal<Ref[]>([]);
   readonly list = signal<string[]>([]);
-  readonly lookup = signal(new Map<string, string>());
-  readonly tunnelLookup = signal(new Map<string, string>());
-  readonly reverseLookup = signal(new Map<string, string>());
-  readonly originMap = signal(new Map<string, Map<string, string>>());
+  readonly lookup = signal<ReadonlyMap<string, string>>(new Map());
+  readonly tunnelLookup = signal<ReadonlyMap<string, string>>(new Map());
+  readonly reverseLookup = signal<ReadonlyMap<string, string>>(new Map());
+  readonly originMap = signal<ReadonlyMap<string, ReadonlyMap<string, string>>>(new Map());
 
 }

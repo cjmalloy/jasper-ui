@@ -1,6 +1,8 @@
-import { computed, effect, linkedSignal, Signal } from '@angular/core';
+import { computed, Signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Duration } from 'luxon';
+import { map, of, startWith, switchMap } from 'rxjs';
 
 export function intervalValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -25,13 +27,18 @@ export function scrollToFirstInvalid() {
  */
 export function controlValue<T = any>(control: () => AbstractControl<T> | null | undefined): Signal<T | undefined> {
   const current = computed(control);
-  const value = linkedSignal(() => current()?.value);
-  effect(onCleanup => {
-    const c = current();
-    if (!c) return;
-    value.set(c.value);
-    const sub = c.valueChanges.subscribe(v => value.set(v));
-    onCleanup(() => sub.unsubscribe());
+  const value = toSignal(toObservable(current).pipe(
+    switchMap(control => control
+      ? control.valueChanges.pipe(
+        startWith(control.value),
+        map(value => ({ control, value })),
+      )
+      : of(undefined)),
+  ));
+  return computed(() => {
+    const control = current();
+    const snapshot = value();
+    // Control inputs can change before toObservable's effect switches subscriptions.
+    return snapshot?.control === control ? snapshot?.value : control?.value;
   });
-  return value.asReadonly();
 }

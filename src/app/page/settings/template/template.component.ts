@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { TemplateListComponent } from '../../../component/template/template-list/template-list.component';
@@ -20,7 +20,7 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TemplateListComponent],
 })
-export class SettingsTemplatePage implements OnDestroy, HasChanges {
+export class SettingsTemplatePage implements HasChanges {
 
   readonly serverError = signal<string[]>([]);
 
@@ -53,9 +53,9 @@ export class SettingsTemplatePage implements OnDestroy, HasChanges {
     return !list || list.saveChanges();
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 
   upload(files?: FileList) {
     this.serverError.set([]);

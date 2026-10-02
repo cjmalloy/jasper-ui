@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { computed, Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 import { ListEditorComponent } from '../../component/list-editor/list-editor.component';
@@ -13,40 +14,39 @@ import { CodeComponent } from '../code/code.component';
   imports: [ListEditorComponent, CodeComponent]
 })
 export class ThemesFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
+
 
   readonly fieldName = input('themes');
   readonly label = input($localize `theme`);
   readonly group = input.required<UntypedFormGroup>();
 
-  readonly keys = signal<string[]>([]);
+  readonly keys = computed(() => {
+    this.rootControlState();
+    return Object.keys(this.themes().value);
+  });
   readonly selectedTheme = signal<string | undefined>(undefined);
 
   constructor(
     private fb: UntypedFormBuilder,
-  ) {
-    effect(() => {
-      this.group();
-      this.keys.set(Object.keys(this.themes.value));
-    });
-  }
+  ) {}
 
-  get themes() {
+  readonly themes = computed(() => {
+    this.rootControlState();
     const group = this.group();
     const fieldName = this.fieldName();
     if (!group.contains(fieldName)) {
       group.addControl(fieldName, this.fb.group({}));
     }
     return group.get(fieldName) as UntypedFormGroup;
-  }
+  });
 
   addTheme(name: string, value = '') {
-    this.themes.addControl(name, this.fb.control(value));
-    this.keys.set(Object.keys(this.themes.value));
+    this.themes().addControl(name, this.fb.control(value));
   }
 
   removeTheme(name: string) {
-    this.themes.removeControl(name);
-    this.keys.set(Object.keys(this.themes.value));
+    this.themes().removeControl(name);
   }
 
   edit(name?: string) {

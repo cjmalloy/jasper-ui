@@ -145,7 +145,7 @@
       <div class="submit-button" [routerLink]="['/ext', tag()]" tabindex="0">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
-    } @else if (!local() && store.account.user() && existing && store.view.noQuery()) {
+    } @else if (!local() && store.account.user() && existing() && store.view.noQuery()) {
       <div class="submit-button" [routerLink]="['/tags', tag()]" [queryParams]="{ showRemotes: true }" tabindex="0">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Copy Tag</label>
       </div>
@@ -170,7 +170,7 @@
       }
       @if (store.account.signedIn() && tag() && tag() !== '@*' && tag() != '*' && admin.getTemplate('user')) {
         <div class="row center">
-          @if (inBookmarks) {
+          @if (inBookmarks()) {
             <button type="button"
                     class="bookmark"
                     i18n-title title="Remove from top bar"
@@ -183,9 +183,9 @@
                     [disabled]="savingBookmark()"
                     class="bookmark" i18n>+ bookmark</button>
           }
-          @if (admin.home) {
+          @if (admin.home()) {
             @if (user()) {
-              @if (inSubs) {
+              @if (inSubs()) {
                 <button type="button"
                         class="subscribe"
                         i18n-title title="Remove from home screen"
@@ -199,7 +199,7 @@
                         class="subscribe" i18n>+ follow</button>
               }
             } @else {
-              @if (inSubs) {
+              @if (inSubs()) {
                 <button type="button"
                         class="subscribe"
                         i18n-title title="Remove from home screen"
@@ -214,7 +214,7 @@
               }
             }
           }
-          @if (inAlarms) {
+          @if (inAlarms()) {
             <button type="button"
                     class="alarm"
                     i18n-title title="Remove alarm"
@@ -245,7 +245,7 @@
     </div>
   }
   @if (!home() && expanded()) {
-    @for (res of queryExts$() | async; track res.x.tag) {
+    @for (res of queryExts(); track res.x.tag) {
       <h5>{{ res.x.name || res.x.tag}} Tags:</h5>
       @for (x of res.children; track x.tag + x.origin) {
         <app-ext [ext]="x" [useEditPage]="true"></app-ext>

@@ -4,30 +4,13 @@ import {
 } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
-import {
-  effect,
-  AfterViewInit,
-  Component,
-  ElementRef,
-  forwardRef,
-  computed,
-  linkedSignal,
-  OnDestroy,
-  TemplateRef,
-  ViewContainerRef,
-  ChangeDetectionStrategy,
-  input,
-  output,
-  signal,
-  untracked,
-  viewChild
-} from '@angular/core';
+import { effect, Component, ElementRef, forwardRef, computed, linkedSignal, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, input, output, signal, viewChild, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
-import { catchError, filter, last, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, filter, finalize, last, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { MdComponent } from '../../component/md/md.component';
@@ -52,7 +35,6 @@ export interface EditorUpload {
   id: string;
   name: string;
   progress: number;
-  subscription?: Subscription;
   completed?: boolean;
   error?: string;
   ref?: Ref | null;
@@ -83,7 +65,9 @@ export interface EditorUpload {
     LimitWidthDirective,
   ],
 })
-export class EditorComponent implements AfterViewInit, OnDestroy {
+export class EditorComponent {
+  private readonly controlState0 = controlValue(() => this.control());
+
 
   readonly id = input('editor-' + uuid());
 
@@ -122,13 +106,22 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   readonly dropping = signal(false);
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
-  readonly toggleIndex = signal(0);
+  readonly toggleIndex = linkedSignal(() => {
+    const buttons = this.responseButtons();
+    if (!this.selectResponseType() || !buttons.length) return 0;
+    const tags = this.tags() ? this.tagsValue() || [] : this.createdTags();
+    return buttons.reduce((index, button, current) => hasTag(button.tag, tags) ? current : index, 0);
+  });
   readonly initialFullscreen = signal(false);
   readonly focused = signal<boolean | undefined>(false);
   readonly progress = signal(0);
   readonly uploads = signal<EditorUpload[]>([]);
-  files = !!this.admin.getPlugin('plugin/file');
-  readonly loadingEvents = signal<any>({});
+  private readonly uploadSubscriptions = new Map<string, Subscription>();
+  readonly files = computed(() => !!this.admin.getPlugin('plugin/file'));
+  readonly loadingEvents = linkedSignal<boolean, Record<string, boolean>>({
+    source: () => this.scraping(),
+    computation: (scraping, previous) => ({ ...previous?.value, 'scrape-done': scraping }),
+  });
 
   private readonly tagsValue = controlValue<string[]>(() => this.tags());
   private readonly _text = signal('');
@@ -163,18 +156,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
-      this.loadingEvents.set({ ...this.loadingEvents(), [event.event]: false });
-    });
-    effect(() => {
-      this.tags();
-      this.tagsValue();
-      this.createdTagsInput();
-      this.url();
-      untracked(() => this.init());
-    });
-    effect(() => {
-      const scraping = this.scraping();
-      this.loadingEvents.set({ ...untracked(() => this.loadingEvents()), 'scrape-done': scraping });
+      this.loadingEvents.update(events => ({ ...events, [event.event]: false }));
     });
     effect(() => {
       const height = this.store.viewportHeight() - 4;
@@ -186,30 +168,19 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  init() {
-    if (this.selectResponseType() && this.responseButtons().length) {
-      this.toggleIndex.set(0);
-      const tags = this.tags()?.value || this.createdTags();
-      for (const p of this.responseButtons()) {
-        if (hasTag(p.tag, tags)) {
-          this.toggleIndex.set(this.responseButtons().indexOf(p));
-        }
-      }
-    }
-  }
-
-  ngAfterViewInit(): void {
+  private readonly initializeView = afterNextRender(() => {
     if (!this.tags()) {
-      this.init();
       this.updateTags(this.editing() ? this.initTags() : this.allTags());
     }
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
+    this.uploadSubscriptions.forEach(subscription => subscription.unsubscribe());
+    this.uploadSubscriptions.clear();
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight() + 'px');
-  }
+  });
 
   readonly scraping = input(false);
 
@@ -262,11 +233,11 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     if (!sourceMap) return;
     const start = +sourceMap.getAttribute('aria-posinset')!;
     hiddenMeasure.nativeElement.style.width = editor.nativeElement.clientWidth + 'px';
-    hiddenMeasure.nativeElement.value = this.currentText.slice(0, start);
+    hiddenMeasure.nativeElement.value = this.currentText().slice(0, start);
     editor.nativeElement.scrollTop = hiddenMeasure.nativeElement.scrollHeight - editor.nativeElement.clientHeight / 2;
   }
 
-  readonly addButtonClass = computed(() => this.addButton() && !this.editing() && !this.currentText);
+  readonly addButtonClass = computed(() => this.addButton() && !this.editing() && !this.currentText());
 
   readonly padding = computed(() => this.fullscreen() ? 0 : this.basePadding + 8);
 
@@ -294,7 +265,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   readonly editorButtons = computed((): EditorButton[] => sortOrder(this.admin.getEditorButtons(this.allTags(), this.scheme())).reverse());
 
-  readonly responseButtons = computed(() => this.admin.responseButton);
+  readonly responseButtons = computed(() => this.admin.responseButton());
 
   readonly editorRibbons = computed(() => sortOrder(this.editorButtons().filter(b => b.ribbon && this.visible(b)).map(b => this.setButtonOn(b))));
 
@@ -323,9 +294,10 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     return helpConfig?.config?.editorHelpLinks || [];
   });
 
-  get currentText() {
+  readonly currentText = computed(() => {
+    this.controlState0();
     return this._text() || this.control()?.value || '';
-  }
+  });
 
   updateTags(tags: string[]) {
     if (!this.tags()) {
@@ -442,7 +414,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     if (!this.focused()) this.focused.set(this.focused() === undefined || this.fullscreen());
     if (this.fullscreen()) {
       document.documentElement.style.overflowY = 'auto';
-      this._text.set(this.currentText);
+      this._text.set(this.currentText());
       this.stacked.set(this.store.local.editorStacked);
       this.preview.set(this.store.local.showFullscreenPreview);
       this.scrollTop = editor.nativeElement.scrollTop;
@@ -524,7 +496,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   fireEvent(button: EditorButton) {
     const event = button.event!;
-    if (button.eventDone) this.loadingEvents.set({ ...this.loadingEvents(), [button.eventDone]: true });
+    if (button.eventDone) this.loadingEvents.update(events => ({ ...events, [button.eventDone!]: true }));
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
         absolute: !!this.url(),
@@ -584,25 +556,25 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       name: file.name,
       progress: 0
     }));
-    this.uploads.set([...this.uploads(), ...fileUploads]);
-    fileArray.map((file, index) => {
+    this.uploads.update(uploads => [...uploads, ...fileUploads]);
+    fileArray.forEach((file, index) => {
       const upload = fileUploads[index];
-      return upload.subscription = this.upload$(file, upload).subscribe(ref => {
+      const subscription = this.upload$(file, upload).pipe(
+        finalize(() => this.uploadSubscriptions.delete(upload.id)),
+      ).subscribe(ref => {
         if (ref && !ref.url.startsWith('data:')) {
-          upload.completed = true;
-          upload.progress = 100;
-          upload.ref = ref;
-          this.refreshUploads();
+          this.updateUpload(upload.id, { completed: true, progress: 100, ref });
           // Emit upload completion so parent can tag it
           this.uploadCompleted.emit(ref);
         }
         this.checkAllUploadsComplete();
       });
+      if (!subscription.closed) this.uploadSubscriptions.set(upload.id, subscription);
     });
   }
 
-  private refreshUploads() {
-    this.uploads.set([...this.uploads()]);
+  private updateUpload(id: string, patch: Partial<EditorUpload>) {
+    this.uploads.update(uploads => uploads.map(upload => upload.id === id ? { ...upload, ...patch } : upload));
   }
 
   upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
@@ -619,8 +591,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
           ...file.type === 'text/markdown' ? [] : codeType
         ])
       };
-      upload.progress = 50; // Simulate progress for text files
-      this.refreshUploads();
+      this.updateUpload(upload.id, { progress: 50 });
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
@@ -628,13 +599,10 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
         })),
         map(cursor => ref),
         tap(() => {
-          upload.progress = 100;
-          this.refreshUploads();
+          this.updateUpload(upload.id, { progress: 100 });
         }),
         catchError(err => {
-          upload.error = err.message || 'Upload failed';
-          upload.progress = 0;
-          this.refreshUploads();
+          this.updateUpload(upload.id, { error: err.message || 'Upload failed', progress: 0 });
           return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
         }),
       );
@@ -658,8 +626,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
               this.progress.set(percentDone);
-              upload.progress = percentDone;
-              this.refreshUploads();
+              this.updateUpload(upload.id, { progress: percentDone });
               return null;
           }
           return null;
@@ -669,9 +636,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
           map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
         )),
         catchError(err => {
-          upload.error = err.message || 'Upload failed';
-          upload.progress = 0;
-          this.refreshUploads();
+          this.updateUpload(upload.id, { error: err.message || 'Upload failed', progress: 0 });
           return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
         }),
       );
@@ -682,7 +647,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     refs = refs.filter(u => !!u);
     if (!refs.length) return;
     for (const ref of refs) this.addSource.emit(ref!.url);
-    const text = this.currentText;
+    const text = this.currentText();
     const embed = (ref: Ref) => hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
     if (refs.length === 1) {
       if (!refs[0]) return;
@@ -718,10 +683,9 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   }
 
   cancelUpload(upload: EditorUpload) {
-    if (upload.subscription) {
-      upload.subscription.unsubscribe();
-    }
-    this.uploads.set(this.uploads().filter(u => u.id !== upload.id));
+    this.uploadSubscriptions.get(upload.id)?.unsubscribe();
+    this.uploadSubscriptions.delete(upload.id);
+    this.uploads.update(uploads => uploads.filter(u => u.id !== upload.id));
     if (this.uploads().length === 0) {
       this.control().enable();
     } else {
@@ -730,11 +694,8 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   }
 
   cancelAllUploads() {
-    this.uploads().forEach(upload => {
-      if (upload.subscription) {
-        upload.subscription.unsubscribe();
-      }
-    });
+    this.uploadSubscriptions.forEach(subscription => subscription.unsubscribe());
+    this.uploadSubscriptions.clear();
     this.uploads.set([]);
     this.control().enable();
   }
@@ -745,8 +706,6 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  hasActiveUploads(): boolean {
-    return this.uploads().some(upload => !upload.completed && !upload.error);
-  }
+  readonly hasActiveUploads = computed(() => this.uploads().some(upload => !upload.completed && !upload.error));
 
 }

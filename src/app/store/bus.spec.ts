@@ -52,11 +52,30 @@ describe('EventBus', () => {
 
     bus.clearProgress(2);
     bus.msg('Starting');
+    const messages = bus.progressMessages();
     bus.progress('Done');
     bus.steps();
 
-    expect(bus.progressMessages).toEqual(['Starting', 'Done']);
-    expect(bus.progressNum).toBe(1);
-    expect(bus.progressDen).toBe(3);
+    expect(messages).toEqual(['Starting']);
+    expect(bus.progressMessages()).not.toBe(messages);
+    expect(bus.progressMessages()).toEqual(['Starting', 'Done']);
+    expect(bus.progressNum()).toBe(1);
+    expect(bus.progressDen()).toBe(3);
+  });
+
+  it('adds to ongoing progress and resets completed progress', () => {
+    const bus = new EventBus();
+    bus.clearProgress(1);
+    bus.clearProgress(2);
+    expect(bus.progressDen()).toBe(3);
+
+    bus.progress('Done', 3);
+    const messages = bus.progressMessages();
+    bus.clearProgress(2);
+
+    expect(bus.progressDen()).toBe(2);
+    expect(bus.progressNum()).toBe(0);
+    expect(bus.progressMessages()).toEqual([]);
+    expect(messages).toEqual(['Done']);
   });
 });

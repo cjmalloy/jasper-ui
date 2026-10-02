@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
 import { defer } from 'lodash-es';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -17,7 +17,7 @@ import { getTagFilter } from '../../../util/query';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [UserListComponent],
 })
-export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
+export class SettingsUserPage implements HasChanges {
 
   private readonly injector = inject(Injector);
 
@@ -42,7 +42,7 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
     return !list || list.saveChanges();
   }
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     if (this.config.scim) {
       // TODO: better way to find unattached profiles
       effect(() => {
@@ -64,9 +64,9 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
       };
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 }

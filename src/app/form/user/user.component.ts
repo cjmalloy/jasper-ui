@@ -1,4 +1,5 @@
-import { Component, ElementRef, OnInit, ChangeDetectionStrategy, input, output, signal, viewChild } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { computed, Component, ElementRef, ChangeDetectionStrategy, input, output, signal, viewChild, afterNextRender } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -29,7 +30,12 @@ import { TagsFormComponent } from '../tags/tags.component';
     JsonComponent,
   ]
 })
-export class UserFormComponent implements OnInit {
+export class UserFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
+
+  private readonly controlState0 = controlValue(() => this.group().get('external'));
+  private readonly controlState1 = controlValue(() => this.tag());
+
 
   readonly group = input.required<UntypedFormGroup>();
   readonly showPubKey = input(true);
@@ -56,33 +62,39 @@ export class UserFormComponent implements OnInit {
     public store: Store,
   ) { }
 
-  ngOnInit(): void {
-    this.pubKey.disable();
-  }
+  private readonly initialize = afterNextRender(() => {
+    this.pubKey().disable();
+  });
 
-  get tag() {
+  readonly tag = computed(() => {
+    this.rootControlState();
     return this.group().get('tag') as UntypedFormControl;
-  }
+  });
 
-  get pubKey() {
+  readonly pubKey = computed(() => {
+    this.rootControlState();
     return this.group().get('pubKey') as UntypedFormControl;
-  }
+  });
 
-  get external() {
+  readonly external = computed(() => {
+    this.rootControlState();
+    this.controlState0();
     return this.editingExternal() || this.group().get('external')?.value;
-  }
+  });
 
-  get showError() {
-    return this.tag.touched && this.tag.errors;
-  }
+  readonly showError = computed(() => {
+    this.rootControlState();
+    this.controlState1();
+    return this.tag().touched && this.tag().errors;
+  });
 
   validate(input: HTMLInputElement) {
-    if (this.showError) {
-      if (this.tag.errors?.['required']) {
+    if (this.showError()) {
+      if (this.tag().errors?.['required']) {
         input.setCustomValidity($localize`Tag must not be blank.`);
         input.reportValidity();
       }
-      if (this.tag.errors?.['pattern']) {
+      if (this.tag().errors?.['pattern']) {
         input.setCustomValidity($localize`
           User tags must start with the "+user/" or "_user/" prefix.
           Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
@@ -94,7 +106,7 @@ export class UserFormComponent implements OnInit {
   }
 
   blur(input: HTMLInputElement) {
-    if (this.showError && !this.showedError) {
+    if (this.showError() && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
     } else {

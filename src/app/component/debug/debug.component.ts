@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { computed, Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -47,9 +47,9 @@ export class DebugComponent {
     private router: Router,
   ) { }
 
-  get empty() {
+  readonly empty = computed(() => {
     return !this.query.page()?.content?.length;
-  }
+  });
 
   batch(fn: (e: any) => Observable<any>) {
     if (this.batchRunning()) return;

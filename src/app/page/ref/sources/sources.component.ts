@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal } from '@angular/core';
+import { computed, Component, ChangeDetectionStrategy, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -20,7 +20,7 @@ import { getArgs } from '../../../util/query';
     RefListComponent,
   ],
 })
-export class RefSourcesComponent implements OnDestroy, HasChanges {
+export class RefSourcesComponent implements HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -35,7 +35,7 @@ export class RefSourcesComponent implements OnDestroy, HasChanges {
     query.clear();
     store.view.defaultSort.set(['published']);
     effect(() => {
-      this.page.set(Page.of(this.sources.map(url => ({ url })) || []));
+      this.page.set(Page.of(this.sources().map(url => ({ url })) || []));
     });
     effect(() => {
       const args = getArgs(
@@ -55,7 +55,7 @@ export class RefSourcesComponent implements OnDestroy, HasChanges {
         ...page,
         content: page.content.map((ref, i) => {
           if (ref.created) return ref;
-          const url = this.sources[i];
+          const url = this.sources()[i];
           return this.query.page()!.content.find(r => r.url === url) || ref;
         }),
       }));
@@ -69,12 +69,12 @@ export class RefSourcesComponent implements OnDestroy, HasChanges {
     return !list || list.saveChanges();
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 
-  get sources() {
+  readonly sources = computed(() => {
     return uniq(this.store.view.ref()?.sources).filter(s => s != this.store.view.url());
-  }
+  });
 
 }

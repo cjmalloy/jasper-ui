@@ -9,7 +9,7 @@
   } @else {
     <h5 routerLink=".">{{ title() }}</h5>
   }
-  @if (admin.home) {
+  @if (admin.home()) {
     <a routerLink="/tags"
        [queryParams]="{ noTemplate: null, home: true }"
        [class.current-tab]="store.view.home()"
@@ -19,7 +19,7 @@
   }
   <a routerLink="/tags"
      [queryParams]="{ noTemplate: null, home: null }"
-     [class.current-tab]="!store.view.noTemplate() && !store.view.home() && !templateExists"
+     [class.current-tab]="!store.view.noTemplate() && !store.view.home() && !templateExists()"
      queryParamsHandling="merge"
      i18n-title title="🏷️ All Tags"
      i18n>all</a>

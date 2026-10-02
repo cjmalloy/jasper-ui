@@ -6,10 +6,10 @@ import { HttpEventType } from '@angular/common/http';
 import {
   DestroyRef,
   inject,
-  AfterViewInit,
   Component,
-  OnChanges,
-  SimpleChanges,
+  computed,
+  effect,
+  untracked,
   ChangeDetectionStrategy,
   input,
   signal
@@ -56,7 +56,7 @@ interface PendingUpload {
   host: {
     'class': 'kanban-column',
     '[class.dropping]': 'dropping()',
-    '[class.empty]': 'empty',
+    '[class.empty]': 'empty()',
     '(touchstart)': 'touchstart($event)',
     '(contextmenu)': 'contextmenu($event)',
     '(drop)': 'handleDrop($event)',
@@ -73,7 +73,7 @@ interface PendingUpload {
     ReactiveFormsModule,
   ],
 })
-export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChanges {
+export class KanbanColumnComponent implements HasChanges {
   private destroyRef = inject(DestroyRef);
 
   readonly query = input('');
@@ -104,8 +104,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   private currentRequest?: Subscription;
   private runningSources?: Subscription;
   private runningResponses?: Subscription;
-  private _sort: RefSort[] = [];
-  private _filter: UrlFilter[] = [];
+  private readonly requestInputs = computed(() => ({
+    query: this.query(),
+    size: this.size(),
+    sort: [...this.sort()],
+    filter: [...this.filter()],
+  }), { equal: isEqual });
 
   constructor(
     public config: ConfigService,
@@ -120,42 +124,34 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     if (config.mobile) {
       this.pressToUnlock.set(true);
     }
+    let previous: ReturnType<typeof this.requestInputs> | undefined;
+    effect(() => {
+      const inputs = this.requestInputs();
+      this.search();
+      untracked(() => this.clear(inputs !== previous));
+      previous = inputs;
+    });
+    effect(onCleanup => {
+      const subscription = this.updates()?.subscribe(event => this.update(event));
+      onCleanup(() => subscription?.unsubscribe());
+    });
   }
 
-  ngAfterViewInit(): void {
-    this.updates()?.pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(event => this.update(event));
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.query
-      || changes.size
-      // TODO: why is sort.previousValue overwritten?
-      || changes.sort && !isEqual(changes.sort.currentValue, this._sort)
-      || changes.filter && !isEqual(changes.filter.currentValue, this._filter)) {
-      this.clear()
-    } else if (changes.search) {
-      this.clear(false)
-    }
-  }
-
-
-  get empty() {
+  readonly empty = computed(() => {
     return !this.page()?.content.length;
-  }
+  });
 
-  get more() {
+  readonly more = computed(() => {
     const page = this.page();
     if (!page) return 0;
     return page.page.totalElements - page.content.length;
-  }
+  });
 
-  get hasMore() {
+  readonly hasMore = computed(() => {
     const page = this.page();
     if (!page) return false;
     return page.page.number < page.page.totalPages - 1;
-  }
+  });
 
   touchstart(e: TouchEvent) {
     this.pressToUnlock.set(true);
@@ -166,8 +162,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   }
 
   clear(removeCurrent = true) {
-    this._sort = [...this.sort()];
-    this._filter = [...this.filter()];
     if (removeCurrent) this.page.set(undefined);
     const args = getArgs(
       this.query(),
@@ -216,12 +210,13 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     if (!page) return;
     const query = this.query();
     if (event.from === query) {
-      if (page.content.includes(event.ref)) {
+      const index = page.content.findIndex(ref => ref.url === event.ref.url && ref.origin === event.ref.origin);
+      if (index >= 0) {
         if (event.from !== event.to) this.mutated.set(true);
         page = {
           ...page,
           page: { ...page.page, totalElements: page.page.totalElements - 1 },
-          content: without(page.content, event.ref),
+          content: page.content.filter((_, i) => i !== index),
         };
         this.page.set(page);
       }
@@ -264,12 +259,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
 
   add() {
     // TODO: Move to util function
-    this.addText.set(this.addText().trim());
+    this.addText.update(text => text.trim());
     if (!this.addText()) return;
     const text = this.addText();
     this.addText.set('');
     const uploadId = uuid();
-    this.adding.set([...this.adding(), { id: uploadId, name: text }]);
+    this.adding.update(adding => [...adding, { id: uploadId, name: text }]);
     const tagsWithAuthor = this.getTagsWithAuthor();
     const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
@@ -334,7 +329,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
           );
         }
         this.adding.update(adding => adding.filter(u => u.id !== uploadId));
-        this.failed.set([...this.failed(), { text, error: printError(err).join('\n') }]);
+        this.failed.update(failed => [...failed, { text, error: printError(err).join('\n') }]);
         return throwError(err);
       }),
       tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
@@ -433,18 +428,16 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     files.forEach(file => {
       const uploadId = uuid();
       const fileName = file.name;
-      this.adding.set([...this.adding(), { id: uploadId, name: fileName, progress: 0 }]);
+      this.adding.update(adding => [...adding, { id: uploadId, name: fileName, progress: 0 }]);
 
-      this.uploadFile$(file, uploadId).subscribe({
-        next: ref => {
-          if (ref) {
-            this.submitUpload(ref, uploadId);
-          }
-        },
-        error: err => {
+      this.uploadFile$(file, uploadId).pipe(
+        catchError(err => {
           this.adding.update(adding => adding.filter(u => u.id !== uploadId));
-          this.failed.set([...this.failed(), { text: fileName, error: printError(err).join('\n') }]);
-        }
+          this.failed.update(failed => [...failed, { text: fileName, error: printError(err).join('\n') }]);
+          return of(null);
+        }),
+      ).subscribe(ref => {
+        if (ref) this.submitUpload(ref, uploadId);
       });
     });
   }

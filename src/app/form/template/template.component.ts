@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { computed, Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -18,6 +19,12 @@ import { JsonComponent } from '../json/json.component';
   imports: [ReactiveFormsModule, JsonComponent]
 })
 export class TemplateFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
+
+  private readonly controlState0 = controlValue(() => this.group().get('config'));
+  private readonly controlState1 = controlValue(() => this.group().get('defaults'));
+  private readonly controlState2 = controlValue(() => this.group().get('schema'));
+
 
   readonly group = input.required<UntypedFormGroup>();
   readonly configErrors = input<string[]>([]);
@@ -29,29 +36,37 @@ export class TemplateFormComponent {
   readonly editingDefaults = signal<any>(false);
   readonly editingSchema = signal<any>(false);
 
-  get tag() {
+  readonly tag = computed(() => {
+    this.rootControlState();
     return this.group().get('tag') as UntypedFormControl;
-  }
+  });
 
-  get name() {
+  readonly name = computed(() => {
+    this.rootControlState();
     return this.group().get('name') as UntypedFormControl;
-  }
+  });
 
-  get config() {
+  readonly config = computed(() => {
+    this.rootControlState();
+    this.controlState0();
     return this.editingConfig() || this.group().get('config')?.value;
-  }
+  });
 
-  get defaults() {
+  readonly defaults = computed(() => {
+    this.rootControlState();
+    this.controlState1();
     return this.editingDefaults() || this.group().get('defaults')?.value;
-  }
+  });
 
-  get schema() {
+  readonly schema = computed(() => {
+    this.rootControlState();
+    this.controlState2();
     return this.editingSchema() || this.group().get('schema')?.value;
-  }
+  });
 
   validate(input: HTMLInputElement) {
-    if (this.name.touched) {
-      if (this.name.errors?.['required']) {
+    if (this.name().touched) {
+      if (this.name().errors?.['required']) {
         input.setCustomValidity($localize`Name must not be blank.`);
         input.reportValidity();
       }

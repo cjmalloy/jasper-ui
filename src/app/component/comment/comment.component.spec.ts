@@ -31,4 +31,17 @@ describe('CommentComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('updates comment counts and deletion state without imperative init', () => {
+    expect(component.comments()).toBe(0);
+    expect(component.deleted()).toBe(false);
+    component.ref.set({
+      url: 'comment:updated',
+      tags: ['plugin/delete'],
+      metadata: { plugins: { 'plugin/comment': 3 } },
+    });
+    expect(component.comments()).toBe(3);
+    expect(component.deleted()).toBe(true);
+    expect(component.moreComments()).toBe(true);
+  });
 });

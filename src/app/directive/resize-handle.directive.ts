@@ -1,11 +1,4 @@
-import {
-  AfterViewInit,
-  Directive,
-  ElementRef,
-  input,
-  OnDestroy,
-  signal
-} from '@angular/core';
+import { computed, Directive, ElementRef, input, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { defer } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';
@@ -15,13 +8,13 @@ import { relativeX, relativeY } from '../util/math';
   host: {
     '[style.cursor]': 'cursor()',
     '[class.resize-dragging]': 'dragging()',
-    '[class.resize-handle]': 'enabled',
+    '[class.resize-handle]': "enabled()",
     '(pointerdown)': 'onPointerDown($event)',
     '(window:pointermove)': 'onPointerMove($event)',
     '(window:pointerup)': 'onPointerUp($event)',
   },
 })
-export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
+export class ResizeHandleDirective {
   readonly cursor = signal('auto');
   readonly dragging = signal(false);
 
@@ -46,12 +39,12 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
     return this.config.mobile ? 'row-resize' : 'se-resize';
   }
 
-  get enabled() {
+  readonly enabled = computed(() => {
     return this.appResizeHandle() !== 'false' && this.appResizeHandle() !== false;
-  }
+  });
 
-  ngAfterViewInit() {
-    if (!this.enabled) return;
+  private readonly initializeView = afterNextRender(() => {
+    if (!this.enabled()) return;
     this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.shrinkContainer()) || undefined;
     const child = this.child();
     if (child) {
@@ -61,11 +54,11 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
       }
       this.resizeObserver?.observe(child);
     }
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.resizeObserver?.disconnect();
-  }
+  });
 
   shrinkContainer() {
     const child = this.child();
@@ -75,7 +68,7 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   }
 
   onPointerDown(event: PointerEvent) {
-    if (!this.enabled) return;
+    if (!this.enabled()) return;
     if (event.button) return;
     if (this.hit(event)) {
       this.dragging.set(true);
@@ -91,7 +84,7 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   }
 
   onPointerMove(event: PointerEvent) {
-    if (!this.enabled) return;
+    if (!this.enabled()) return;
     if (this.dragging()) {
       const dx = event.clientX - this.x;
       const dy = event.clientY - this.y;
@@ -109,7 +102,7 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   }
 
   onPointerUp(event: PointerEvent) {
-    if (!this.enabled) return;
+    if (!this.enabled()) return;
     if (this.dragging()) {
       this.cursor.set(this.hit(event) ? this.resizeCursor : 'auto');
       event.preventDefault();

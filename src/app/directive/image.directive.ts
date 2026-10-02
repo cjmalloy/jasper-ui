@@ -1,4 +1,4 @@
-import { Directive, effect, ElementRef, input, OnDestroy, OnInit, signal, untracked } from '@angular/core';
+import { computed, Directive, effect, ElementRef, input, signal, untracked, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Ref } from '../model/ref';
 import { ConfigService } from '../service/config.service';
@@ -11,7 +11,7 @@ import { Store } from '../store/store';
     '[class.loading]': 'loading()',
   },
 })
-export class ImageDirective implements OnInit, OnDestroy {
+export class ImageDirective {
   readonly grid = input(false);
   readonly padding = input(8);
   readonly ref = input<Ref | undefined>();
@@ -47,24 +47,24 @@ export class ImageDirective implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  private readonly initialize = afterNextRender(() => {
     if (this.grid()) {
       this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize());
       this.resizeObserver?.observe(this.el);
     } else {
       if (this.config.mobile) {
         this.el.style.width = this.defaultWidthPx || null;
-        this.el.style.height = this.defaultHeightPx || this.el.clientWidth + 'px';
+        this.el.style.height = this.defaultHeightPx() || this.el.clientWidth + 'px';
       } else {
         this.el.style.width = this.defaultWidthPx || '600px';
-        this.el.style.height = this.defaultHeightPx || '600px';
+        this.el.style.height = this.defaultHeightPx() || '600px';
       }
     }
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.resizeObserver?.disconnect();
-  }
+  });
 
   get el() {
     return this.elRef.nativeElement;
@@ -83,11 +83,11 @@ export class ImageDirective implements OnInit, OnDestroy {
     return defaultWidth + 'px'
   }
 
-  get defaultHeightPx() {
+  readonly defaultHeightPx = computed(() => {
     const defaultHeight = this.defaultHeight();
     if (!defaultHeight) return undefined;
     return defaultHeight + 'px'
-  }
+  });
 
   private loadUrl(value: string) {
     if (!value) return;
@@ -119,16 +119,16 @@ export class ImageDirective implements OnInit, OnDestroy {
     const parentWidth = this.parentWidth - (grid ? 0 : this.padding());
     if (this.config.mobile && !grid && (!defaultWidth || defaultWidth >= window.innerWidth)) {
       this.el.style.width = parentWidth + 'px';
-      this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
+      this.el.style.height = this.defaultHeightPx() || height(parentWidth, this.dim) + 'px';
     } else if (grid || this.dim.width > parentWidth && (!defaultWidth || defaultWidth >= parentWidth)) {
       this.el.style.width = parentWidth + 'px';
-      this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
+      this.el.style.height = this.defaultHeightPx() || height(parentWidth, this.dim) + 'px';
     } else if (defaultWidth) {
       this.el.style.width = this.defaultWidthPx;
-      this.el.style.height = this.defaultHeightPx || height(defaultWidth, this.dim) + 'px';
+      this.el.style.height = this.defaultHeightPx() || height(defaultWidth, this.dim) + 'px';
     } else if (defaultHeight) {
       this.el.style.width = width(defaultHeight, this.dim) + 'px';
-      this.el.style.height = this.defaultHeightPx;
+      this.el.style.height = this.defaultHeightPx();
     } else {
       this.el.style.width = this.dim.width + 'px';
       this.el.style.height = this.dim.height + 'px';

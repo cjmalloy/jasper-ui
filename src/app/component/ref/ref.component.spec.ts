@@ -5,7 +5,7 @@ import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { SafePipe } from '../../pipe/safe.pipe';
 
 import { RefComponent } from './ref.component';
@@ -38,13 +38,41 @@ describe('RefComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('derives titles from new refs and form edits', () => {
+    fixture.componentRef.setInput('ref', { url: 'https://example.com', title: 'First' });
+    fixture.detectChanges();
+    expect(component.title()).toBe('First');
+    fixture.componentRef.setInput('ref', { url: 'https://example.org', title: 'Second' });
+    fixture.detectChanges();
+    expect(component.title()).toBe('Second');
+    component.setEditing(true);
+    component.editForm.get('title')!.setValue('Edited');
+    expect(component.title()).toBe('Edited');
+  });
+
+  it('cancels stale tag preview requests when the Ref changes', () => {
+    const first = new Subject<any[]>();
+    const second = new Subject<any[]>();
+    vi.spyOn((component as any).editor, 'getTagsPreview')
+      .mockReturnValueOnce(first.asObservable())
+      .mockReturnValueOnce(second.asObservable());
+    fixture.componentRef.setInput('ref', { url: 'https://example.com', tags: ['alpha'] });
+    fixture.detectChanges();
+    expect(first.observed).toBe(true);
+    fixture.componentRef.setInput('ref', { url: 'https://example.org', tags: ['beta'] });
+    fixture.detectChanges();
+    expect(first.observed).toBe(false);
+    second.next([{ tag: 'beta', name: 'Beta' }]);
+    expect(component.tagExts()).toEqual([{ tag: 'beta', name: 'Beta' }]);
+  });
+
   it('keeps the disabled Ref URL in thumbnail data while editing', () => {
     fixture.componentRef.setInput('ref', { url: 'cache:image-id', origin: '' });
     fixture.detectChanges();
     component.editForm.get('url')!.setValue(component.ref().url);
     component.setEditing(true);
 
-    expect(component.thumbnailRefs[0]?.url).toBe('cache:image-id');
+    expect(component.thumbnailRefs()[0]?.url).toBe('cache:image-id');
   });
 
   it('preserves protected and private plugin tags when copying', () => {

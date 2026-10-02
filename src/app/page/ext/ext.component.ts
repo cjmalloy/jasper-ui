@@ -50,9 +50,12 @@ export class ExtPage implements HasChanges {
   readonly invalid = signal<boolean>(false);
   readonly overwritten = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
-  readonly creating = signal<Subscription | undefined>(undefined);
-  readonly editing = signal<Subscription | undefined>(undefined);
-  readonly deleting = signal<Subscription | undefined>(undefined);
+  readonly creating = signal(false);
+  private creatingSubscription?: Subscription;
+  readonly editing = signal(false);
+  private editingSubscription?: Subscription;
+  readonly deleting = signal(false);
+  private deletingSubscription?: Subscription;
   readonly overwrittenModified = signal<string | undefined>('');
 
   readonly form = viewChild<ExtFormComponent>('form');
@@ -60,7 +63,7 @@ export class ExtPage implements HasChanges {
   overwrite = false;
   extForm: UntypedFormGroup;
 
-  templates = this.admin.tmplSubmit;
+  templates = this.admin.tmplSubmit();
   readonly editForm = signal<UntypedFormGroup | undefined>(undefined);
 
   constructor(
@@ -164,7 +167,8 @@ export class ExtPage implements HasChanges {
     }
     const prefixed = this.prefix(this.tag.value);
     const tag = prefixed + this.store.account.origin();
-    this.creating.set(this.exts.create({
+    this.creating.set(true);
+    this.creatingSubscription = this.exts.create({
       tag: prefixed,
       origin: this.store.account.origin(),
     }).pipe(
@@ -177,16 +181,17 @@ export class ExtPage implements HasChanges {
       }),
       switchMap(() => this.exts.get(tag)),
       catchError((res: HttpErrorResponse) => {
-        this.creating.set(undefined);
+        this.creating.set(false);
         this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(ext => {
-      this.creating.set(undefined);
+      this.creating.set(false);
       this.serverError.set([]);
       this.setExt(tag, ext);
       this.router.navigate(['/ext', ext.tag]);
-    }));
+    });
+    this.creatingSubscription?.add(() => this.creating.set(false));
   }
 
   save() {
@@ -211,9 +216,10 @@ export class ExtPage implements HasChanges {
         ...ext.config,
       },
     };
-    this.editing.set(this.exts.update(ext).pipe(
+    this.editing.set(true);
+    this.editingSubscription = this.exts.update(ext).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.editing.set(undefined);
+        this.editing.set(false);
         if (res.status === 400) {
           this.invalid.set(true);
           console.log(res.message);
@@ -227,14 +233,15 @@ export class ExtPage implements HasChanges {
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.editing.set(undefined);
+      this.editing.set(false);
       this.editForm()!.markAsPristine();
-      if (ext.tag === 'config/home' && this.admin.home) {
+      if (ext.tag === 'config/home' && this.admin.home()) {
         this.router.navigate(['/home']);
       } else {
         this.router.navigate(['/tag', ext.tag]);
       }
-    }));
+    });
+    this.editingSubscription?.add(() => this.editing.set(false));
   }
 
   delete() {
@@ -244,17 +251,19 @@ export class ExtPage implements HasChanges {
       const deleteNotice = !isDeletorTag(ext.tag) && this.admin.getPlugin('plugin/delete')
         ? this.exts.create(tagDeleteNotice(ext))
         : of(null);
-      this.deleting.set(this.exts.delete(ext.tag + ext.origin).pipe(
+      this.deleting.set(true);
+    this.deletingSubscription = this.exts.delete(ext.tag + ext.origin).pipe(
         switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
-          this.deleting.set(undefined);
+          this.deleting.set(false);
           this.serverError.set(printError(err));
           return throwError(() => err);
         }),
       ).subscribe(() => {
-        this.deleting.set(undefined);
+        this.deleting.set(false);
         this.router.navigate(['/tag', ext.tag]);
-      }));
+      });
+    this.deletingSubscription?.add(() => this.deleting.set(false));
     }
   }
 

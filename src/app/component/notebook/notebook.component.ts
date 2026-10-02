@@ -1,7 +1,7 @@
-import { DestroyRef, inject, Component, OnInit, ChangeDetectionStrategy, effect, input, signal, viewChildren } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { computed, DestroyRef, inject, Component, ChangeDetectionStrategy, effect, input, signal, viewChildren, afterNextRender } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { catchError, forkJoin, Observable, of } from 'rxjs';
+import { catchError, forkJoin, Observable, of, startWith, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -26,7 +26,7 @@ import { NoteComponent } from './note/note.component';
     LoadingComponent,
   ],
 })
-export class NotebookComponent implements OnInit, HasChanges {
+export class NotebookComponent implements HasChanges {
   private destroyRef = inject(DestroyRef);
 
   readonly hide = input<number[]>();
@@ -44,7 +44,11 @@ export class NotebookComponent implements OnInit, HasChanges {
 
   readonly list = viewChildren(RefComponent);
 
-  readonly pinned = signal<Ref[]>([]);
+  readonly pinned = toSignal(toObservable(computed(() => this.ext()?.config?.pinned as string[] | undefined)).pipe(
+    switchMap(pins => pins?.length ? forkJoin(pins.map(pin => this.refs.getCurrent(pin).pipe(
+      catchError(() => of({ url: pin } as Ref)),
+    ))).pipe(startWith([] as Ref[])) : of([] as Ref[])),
+  ), { initialValue: [] as Ref[] });
   readonly newRefs = signal<Ref[]>([]);
 
 
@@ -60,19 +64,6 @@ export class NotebookComponent implements OnInit, HasChanges {
     private store: Store,
     private refs: RefService,
   ) {
-    effect(() => {
-      const value = this.ext();
-      if (!value?.config?.pinned?.length) {
-        this.pinned.set([]);
-      } else {
-        forkJoin((value.config.pinned as string[])
-          .map(pin => this.refs.getCurrent(pin).pipe(
-            catchError(err => of({ url: pin })),
-            takeUntilDestroyed(this.destroyRef),
-          )))
-          .subscribe(pinned => this.pinned.set(pinned));
-      }
-    });
     effect(() => {
       const page = this.page();
       if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {
@@ -91,30 +82,30 @@ export class NotebookComponent implements OnInit, HasChanges {
   }
 
 
-  get colStyle() {
-    if (!this.cols) {
+  readonly colStyle = computed(() => {
+    if (!this.cols()) {
       return '';
     } else {
-      return ' 1fr'.repeat(this.cols);
+      return ' 1fr'.repeat(this.cols());
     }
-  }
+  });
 
-  get cols() {
+  readonly cols = computed(() => {
     if (this.colsInput()) return this.colsInput();
     return this.ext()?.config?.defaultCols;
-  }
+  });
 
-  get expanded(): boolean {
+  readonly expanded = computed<boolean>(() => {
     if (this.expandedInput() === undefined) return this.ext()?.config?.defaultExpanded;
     return this.expandedInput()!;
-  }
+  });
 
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     this.newRefs$()?.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(ref => ref && this.addNewRef(ref));
-  }
+  });
 
 
   addNewRef(ref: Ref) {

@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { AccountStore } from './account';
 import { EventBus } from './bus';
 import { GraphStore } from './graph';
@@ -34,7 +34,5 @@ export class Store {
     private route: RouterStore,
   ) { }
 
-  get darkTheme() {
-    return this.theme() === 'dark-theme';
-  }
+  readonly darkTheme = computed(() => this.theme() === 'dark-theme');
 }

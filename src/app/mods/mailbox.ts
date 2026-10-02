@@ -125,7 +125,7 @@ export function getMailbox(tag: string, local: string): string {
   }
 }
 
-export function getLocalMailbox(mailbox: string, local: string, origin: string, lookup?: Map<string, Map<string, string>>) {
+export function getLocalMailbox(mailbox: string, local: string, origin: string, lookup?: ReadonlyMap<string, ReadonlyMap<string, string>>) {
   if (!origin || origin === local) return localTag(mailbox);
   if (hasPrefix(mailbox, 'plugin/outbox')) {
     if (!lookup?.has(origin)) {
@@ -149,7 +149,7 @@ export function getLocalMailbox(mailbox: string, local: string, origin: string, 
   throw 'not a mailbox';
 }
 
-export function mailboxes(ref: Ref, myUserTag: string, lookup?: Map<string, Map<string, string>>): string[] {
+export function mailboxes(ref: Ref, myUserTag: string, lookup?: ReadonlyMap<string, ReadonlyMap<string, string>>): string[] {
   const local = tagOrigin(myUserTag);
   return uniq([
     ...userAuthors(ref).filter(tag => tag !== myUserTag).map(tag => getMailbox(tag, local)),

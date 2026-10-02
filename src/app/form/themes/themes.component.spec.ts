@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { ThemesFormComponent } from './themes.component';
 
@@ -24,5 +24,21 @@ describe('ThemesFormComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('derives theme keys from external form updates', () => {
+    expect(component.keys()).toEqual([]);
+    component.themes().addControl('custom', new UntypedFormControl('body {}'));
+    expect(component.keys()).toEqual(['custom']);
+    component.themes().removeControl('custom');
+    expect(component.keys()).toEqual([]);
+  });
+
+  it('selects and initializes a different theme field reactively', () => {
+    fixture.componentRef.setInput('fieldName', 'alternateThemes');
+    fixture.detectChanges();
+    expect(component.themes()).toBe(component.group().get('alternateThemes'));
+    component.addTheme('alternate');
+    expect(component.keys()).toEqual(['alternate']);
   });
 });

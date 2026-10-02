@@ -1,5 +1,5 @@
 import { VideoStore } from '../store/video';
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 /// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
@@ -52,6 +52,7 @@ describe('VideoService', () => {
     // Create mock RTCPeerConnection
     mockPeerConnection = {
       addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
       createOffer: vi.fn().mockResolvedValue({ type: 'offer', sdp: 'mock-sdp' }),
       createAnswer: vi.fn().mockResolvedValue({ type: 'answer', sdp: 'mock-answer-sdp' }),
       setLocalDescription: vi.fn().mockResolvedValue(undefined),
@@ -89,6 +90,7 @@ describe('VideoService', () => {
       patchResponse: vi.fn().mockReturnValue(of('success')),
       mergeResponse: vi.fn().mockReturnValue(of('success')),
       deleteResponse: vi.fn().mockReturnValue(of(undefined)),
+      respond: vi.fn().mockReturnValue(of(undefined)),
     };
 
     // Create mock RefService
@@ -160,7 +162,7 @@ describe('VideoService', () => {
 
     it('should return existing peer connection if already created', () => {
       const user = 'user/alice';
-      mockStore.video.peers().set(user, mockPeerConnection);
+      mockStore.video.peers.set(new Map([[user, mockPeerConnection]]));
 
       const peer = service.peer(user);
 
@@ -521,6 +523,8 @@ describe('VideoService', () => {
       const user = 'user/alice';
       const mockRemoteStream = {
         getTracks: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
       };
       let trackHandler: ((event: RTCTrackEvent) => void) | undefined;
 
@@ -539,11 +543,56 @@ describe('VideoService', () => {
       // Simulate track event
       const mockEvent = { 
         streams: [mockRemoteStream],
-        track: { readyState: 'live' }
+        track: { readyState: 'live', addEventListener: vi.fn(), removeEventListener: vi.fn() }
       } as any;
       trackHandler!(mockEvent);
 
       expect(mockStore.video.addStream).toHaveBeenCalledWith(user, mockRemoteStream);
+    });
+
+    it('invalidates stream projections when remote tracks end and cleans up listeners', () => {
+      const user = 'user/alice';
+      const track = Object.assign(new EventTarget(), { readyState: 'live' });
+      const stream = Object.assign(new EventTarget(), { id: 'remote', getTracks: () => [track] });
+      const removeTrackListener = vi.spyOn(track, 'removeEventListener');
+      const removeStreamListener = vi.spyOn(stream, 'removeEventListener');
+      mockStore.video.addStream.mockRestore();
+      mockStore.video.stream.set(mockMediaStream);
+      service.peer(user);
+      const handler = mockPeerConnection.addEventListener.mock.calls.find(([event]: [string]) => event === 'track')[1];
+      handler({ streams: [stream], track });
+      const liveStreams = computed(() => [...mockStore.video.streams().values()].flat()
+        .filter(s => s.stream.getTracks().some((t: MediaStreamTrack) => t.readyState === 'live')));
+      expect(liveStreams()).toHaveLength(1);
+      const previous = mockStore.video.streams();
+
+      track.readyState = 'ended';
+      track.dispatchEvent(new Event('ended'));
+
+      expect(liveStreams()).toEqual([]);
+      expect(mockStore.video.streams()).not.toBe(previous);
+      expect(previous.get(user)).toHaveLength(1);
+      const ended = mockStore.video.streams();
+      stream.dispatchEvent(new Event('inactive'));
+      expect(mockStore.video.streams()).not.toBe(ended);
+
+      service.hangup();
+      expect(removeTrackListener).toHaveBeenCalledWith('ended', expect.any(Function));
+      expect(removeStreamListener).toHaveBeenCalledWith('inactive', expect.any(Function));
+      expect(removeStreamListener).toHaveBeenCalledWith('removetrack', expect.any(Function));
+    });
+
+    it('invalidates connecting when the browser peer connection state changes', () => {
+      mockStore.video.stream.set(mockMediaStream);
+      service.peer('user/alice');
+      expect(service.connecting()).toBe(true);
+      const handler = mockPeerConnection.addEventListener.mock.calls
+        .find(([event]: [string]) => event === 'connectionstatechange')[1];
+
+      mockPeerConnection.connectionState = 'connected';
+      handler();
+
+      expect(service.connecting()).toBe(false);
     });
   });
 });

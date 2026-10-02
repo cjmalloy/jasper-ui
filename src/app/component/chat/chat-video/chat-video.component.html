@@ -7,21 +7,21 @@
     <span i18n-title title="End a Call" i18n>👋️</span> <label i18n>hangup</label>
   </div>
 
-  <div class="call-layout" [class.two-person]="isTwoPersonCall">
+  <div class="call-layout" [class.two-person]="isTwoPersonCall()">
     <!-- Featured video (callee for 2-person, active speaker for group) -->
-    @if (featuredStream) {
+    @if (featuredStream(); as featured) {
       <div class="featured-section">
         <div class="stream-label glass">
-          @if (authorExt$(featuredStream.tag) | async; as x) {
+          @if (authorExts().get(featured.tag); as x) {
             <a class="user tag"
                [routerLink]="['/tag', x.tag + x.origin]"
                [appTitle]="x">{{ x.name }}</a>
           }
         </div>
-        @for (s of featuredStream.streams; track s.stream.id) {
+        @for (s of featured.streams; track s.stream.id) {
           <video [srcObject]="s.stream"
                  [class.loading]="!s.playing"
-                 (playing)="store.video.playing(featuredStream.tag, s.stream.id)"
+                 (playing)="store.video.playing(featured.tag, s.stream.id)"
                  class="featured-video" autoplay playsinline></video>
         } @empty {
           <div class="loading video-placeholder featured-video"></div>
@@ -29,10 +29,10 @@
       </div>
     }
     <div class="video-grid">
-      @for (u of gridStreams; track u.tag) {
+      @for (u of gridStreams(); track u.tag) {
         <div class="grid-tile">
           <div class="stream-label glass">
-            @if (authorExt$(u.tag) | async; as x) {
+            @if (authorExts().get(u.tag); as x) {
               <a class="user tag"
                  [routerLink]="['/tag', x.tag + x.origin]"
                  [appTitle]="x">{{ x.name }}</a>
@@ -46,9 +46,9 @@
               autoplay
               playsinline
               tabindex="0"
-              (click)="speaker = u.tag"
-              (keydown.enter)="speaker = u.tag"
-              (keydown.space)="speaker = u.tag"></video>
+              (click)="setSpeaker(u.tag)"
+              (keydown.enter)="setSpeaker(u.tag)"
+              (keydown.space)="setSpeaker(u.tag)"></video>
           } @empty {
             <div class="loading video-placeholder"></div>
           }
@@ -64,10 +64,10 @@
           <video [srcObject]="store.video.stream()" class="mirror-video" autoplay playsinline [muted]="true"></video>
         </div>
       }
-      @for (tag of hungup; track tag) {
+      @for (tag of hungup(); track tag) {
         <div class="grid-tile">
           <div class="stream-label glass">
-            @if (authorExt$(tag) | async; as x) {
+            @if (authorExts().get(tag); as x) {
               <a class="user tag"
                  [routerLink]="['/tag', x.tag + x.origin]"
                  [appTitle]="x">{{ x.name }}</a>

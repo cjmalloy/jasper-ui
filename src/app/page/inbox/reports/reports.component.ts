@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -19,7 +19,7 @@ import { getArgs } from '../../../util/query';
     RefListComponent,
   ],
 })
-export class InboxReportsPage  implements OnInit, OnDestroy, HasChanges {
+export class InboxReportsPage  implements HasChanges {
 
   private readonly injector = inject(Injector);
 
@@ -42,7 +42,7 @@ export class InboxReportsPage  implements OnInit, OnDestroy, HasChanges {
     return !list || list.saveChanges();
   }
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     if (!this.store.view.filter().length) {
       this.router.navigate([], { queryParams: { filter: ['plugin/user/report', '!+plugin/user/approve'] }, replaceUrl: true });
     }
@@ -57,9 +57,9 @@ export class InboxReportsPage  implements OnInit, OnDestroy, HasChanges {
       );
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 }

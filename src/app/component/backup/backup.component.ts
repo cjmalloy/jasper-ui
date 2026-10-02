@@ -1,10 +1,10 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, ElementRef, signal, TemplateRef, ViewContainerRef, input, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, linkedSignal, signal, TemplateRef, ViewContainerRef, input, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { catchError, Observable, of, throwError } from 'rxjs';
+import { catchError, of, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { BackupOptions } from '../../model/backup';
 import { AdminService } from '../../service/admin.service';
@@ -33,9 +33,13 @@ export class BackupComponent {
   readonly restoreButton = viewChild('restoreButton', { read: ElementRef });
   readonly restoreOptionsTemplate = viewChild.required<TemplateRef<any>>('restoreOptions');
 
-  readonly deleted = signal(false);
+  readonly deleted = linkedSignal(() => {
+    this.id();
+    this.origin();
+    return false;
+  });
   readonly serverError = signal<string[]>([]);
-  readonly backupKey = signal('');
+  private readonly backupKey = signal('');
   restoreOptionsForm: UntypedFormGroup;
   restoreOptionsRef?: OverlayRef;
 
@@ -61,15 +65,11 @@ export class BackupComponent {
     });
   }
 
-  get inProgress() {
-    return this.id().startsWith('_');
-  }
+  readonly inProgress = computed(() => this.id().startsWith('_'));
 
-  get fileSize() {
-    return readableBytes(this.size() || 0);
-  }
+  readonly fileSize = computed(() => readableBytes(this.size() || 0));
 
-  get downloadLink() {
+  readonly downloadLink = computed(() => {
     var link = this.backups.base + '/' + this.id();
     if (link.startsWith('//')) link = location.protocol + link;
     if (link.startsWith("_")) link = link.substring(1);
@@ -77,11 +77,10 @@ export class BackupComponent {
     const origin = this.origin();
     if (origin) link += '?origin=' + encodeURIComponent(origin)
     return link;
-  }
+  });
 
-  get downloadLinkAuth() {
-    return this.downloadLink + (this.origin() ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey());
-  }
+  readonly downloadLinkAuth = computed(() =>
+    this.downloadLink() + (this.origin() ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey()));
 
   showRestoreOptions() {
     const restoreButton = this.restoreButton();

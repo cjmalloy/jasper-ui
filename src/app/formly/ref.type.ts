@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, isString, uniqBy } from 'lodash-es';
@@ -79,7 +79,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     FormlyAttributes,
   ],
 })
-export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
+export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> {
 
   listId = 'list-' + uuid();
   previewUrl = '';
@@ -107,7 +107,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     super();
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
@@ -117,12 +117,12 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
         this.preview.set('');
       }
     });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.searching?.unsubscribe();
     this.formChanges?.unsubscribe();
-  }
+  });
 
   validate(input: HTMLInputElement) {
     if (this.showError) {

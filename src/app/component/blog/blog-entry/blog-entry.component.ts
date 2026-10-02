@@ -1,6 +1,3 @@
-import {
-  AsyncPipe
-} from '@angular/common';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -18,12 +15,12 @@ import {
   viewChildren,
   computed,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, finalize, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../../directive/title.directive';
 import { writePlugins } from '../../../form/plugins/plugins.component';
@@ -57,7 +54,7 @@ import { downloadRef } from '../../../util/download';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
-import { hasTag, isAuthorTag, localTag, removeTag, repost, tagOrigin } from '../../../util/tag';
+import { hasTag, isAuthorTag, localTag, removeTag, tagOrigin } from '../../../util/tag';
 import { ActionListComponent } from '../../action/action-list/action-list.component';
 import { ActionComponent } from '../../action/action.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
@@ -89,7 +86,6 @@ import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summ
     ActionListComponent,
     ReactiveFormsModule,
     LoadingComponent,
-    AsyncPipe,
   ],
 })
 export class BlogEntryComponent implements HasChanges {
@@ -102,23 +98,32 @@ export class BlogEntryComponent implements HasChanges {
   readonly refInput = input.required<Ref>({ alias: 'ref' });
   readonly ref = linkedSignal(() => this.refInput());
 
-  readonly repostRef = signal<Ref | undefined>(undefined);
+  private readonly repostResource = rxResource({
+    params: () => this.repost() ? { url: this.url(), top: this.store.view.top() } : undefined,
+    stream: ({ params }) => (params.top?.url === params.url
+      ? of(params.top)
+      : this.refs.getCurrent(params.url)).pipe(
+        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+      ),
+  });
+  readonly repostRef = computed(() => this.repostResource.hasValue() ? this.repostResource.value() : undefined);
 
   editForm: UntypedFormGroup;
-  readonly submitted = signal(false);
-  readonly icons = signal<Icon[]>([]);
-  readonly actions = signal<Action[]>([]);
-  readonly groupedActions = signal<{ [key: string]: Action[] }>({});
-  readonly editing = signal(false);
-  readonly viewSource = signal(false);
-  readonly deleted = signal(false);
-  readonly writeAccess = signal(false);
-  readonly taggingAccess = signal(false);
-  readonly deleteAccess = signal(false);
-  readonly replying = signal(false);
+  readonly submitted = linkedSignal({ source: this.ref, computation: () => false });
+  readonly icons = computed(() => uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url)))));
+  readonly actions = computed(() => uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins))));
+  readonly groupedActions = computed(() => groupBy(this.actions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
+  readonly editing = linkedSignal({ source: this.ref, computation: () => false });
+  readonly viewSource = linkedSignal({ source: this.ref, computation: () => false });
+  readonly deleted = linkedSignal({ source: this.ref, computation: () => false });
+  readonly writeAccess = computed(() => this.auth.writeAccess(this.ref()));
+  readonly taggingAccess = computed(() => this.auth.taggingAccess(this.ref()));
+  readonly deleteAccess = computed(() => this.auth.deleteAccess(this.ref()));
+  readonly replying = linkedSignal({ source: this.refInput, computation: () => false });
   readonly serverError = signal<string[]>([]);
 
-  readonly submitting = signal<Subscription | undefined>(undefined);
+  readonly submitting = signal(false);
+  private submittingSubscription?: Subscription;
 
   summaryItems = 5;
 
@@ -137,8 +142,12 @@ export class BlogEntryComponent implements HasChanges {
   ) {
     this.editForm = refForm(fb);
     effect(() => {
-      this.refInput();
+      this.ref();
       untracked(() => this.init());
+    });
+    effect(() => {
+      this.refInput();
+      untracked(() => this.submittingSubscription?.unsubscribe());
     });
     effect(() => {
       const value = this.refForm();
@@ -151,8 +160,7 @@ export class BlogEntryComponent implements HasChanges {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
         if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
-          this.ref.set(event.ref!);
-          this.init();
+          if (event.ref) this.ref.set(event.ref);
         }
       }
       if (event.event === 'error') {
@@ -168,83 +176,53 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   init() {
-    this.submitted.set(false);
-    this.deleted.set(false);
-    this.editing.set(false);
-    this.viewSource.set(false);
     this.actionComponents()?.forEach(c => c.reset());
-    this.writeAccess.set(this.auth.writeAccess(this.ref()));
-    this.taggingAccess.set(this.auth.taggingAccess(this.ref()));
-    this.deleteAccess.set(this.auth.deleteAccess(this.ref()));
-    this.icons.set(uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url)))));
-    this.actions.set(uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins))));
-    this.groupedActions.set(groupBy(this.actions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
-    if (this.repost && this.ref() && this.repostRef()?.url != repost(this.ref())) {
-      (this.store.view.top()?.url === this.ref().sources![0]
-          ? of(this.store.view.top())
-          : this.refs.getCurrent(this.url)
-      ).pipe(
-        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => this.repostRef.set(ref));
-    }
   }
 
-  get nonLocalOrigin() {
+  readonly nonLocalOrigin = computed(() => {
     if (this.ref().origin === this.store.account.origin()) return undefined;
     return this.ref().origin || '';
-  }
+  });
 
-  get repost() {
+  readonly repost = computed(() => {
     return this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref());
-  }
+  });
 
-  get bareRepost() {
-    return this.repost && !this.ref().title && !this.ref().comment;
-  }
+  readonly bareRepost = computed(() => this.repost() && !this.ref().title && !this.ref().comment);
+  readonly currentRef = computed(() => this.repost() ? this.repostRef() : this.ref());
+  readonly bareRef = computed(() => this.bareRepost() ? this.repostRef() : this.ref());
+  readonly url = computed(() => this.repost() ? this.ref().sources![0] : this.ref().url);
 
-  get currentRef() {
-    return this.repost ? this.repostRef() : this.ref();
-  }
-
-  get bareRef() {
-    return this.bareRepost ? this.repostRef() : this.ref();
-  }
-
-  get url() {
-    return this.repost ? this.ref().sources![0] : this.ref().url;
-  }
-
-  get title(): string {
+  readonly title = computed((): string => {
     const title = (this.ref().title || '').trim();
     const comment = (this.ref().comment || '').trim();
     if (title) return title;
     if (!comment) return this.ref().url;
     if (comment.length <= 140) return comment;
     return comment.substring(0, 140);
-  }
+  });
 
-  get canInvoice() {
-    if (!this.local) return false;
+  readonly canInvoice = computed(() => {
+    if (!this.local()) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
-    if (!this.isAuthor) return false;
+    if (!this.isAuthor()) return false;
     return hasTag('queue', this.ref());
-  }
+  });
 
-  get local() {
+  readonly local = computed(() => {
     return this.ref().origin === this.store.account.origin();
-  }
+  });
 
-  get localhost() {
+  readonly localhost = computed(() => {
     return this.ref().url.startsWith(this.config.base);
-  }
+  });
 
-  get pdf() {
+  readonly pdf = computed(() => {
     if (!this.admin.getPlugin('plugin/pdf')) return null;
-    return this.ref().plugins?.['plugin/pdf']?.url || this.findPdf;
-  }
+    return this.ref().plugins?.['plugin/pdf']?.url || this.findPdf();
+  });
 
-  get findPdf() {
+  readonly findPdf = computed(() => {
     const alternateUrls = this.ref().alternateUrls;
     if (!alternateUrls) return null;
     for (const s of alternateUrls) {
@@ -253,66 +231,68 @@ export class BlogEntryComponent implements HasChanges {
       }
     }
     return null;
-  }
+  });
 
-  get archive() {
+  readonly archive = computed(() => {
     const plugin = this.admin.getPlugin('plugin/archive');
     if (!plugin) return null;
     return this.ref().plugins?.['plugin/archive']?.url || findArchive(plugin, this.ref());
-  }
+  });
 
-  get isAuthor() {
+  readonly isAuthor = computed(() => {
     return isAuthorTag(this.store.account.tag(), this.ref());
-  }
+  });
 
-  get isRecipient() {
+  readonly isRecipient = computed(() => {
     return hasTag(this.store.account.mailbox(), this.ref());
-  }
+  });
 
-  get authors() {
+  readonly authors = computed(() => {
     const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     return uniq([
       ...this.ref().tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
       ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
     ]);
-  }
-
-  readonly authorExts$ = computed(() => {
-    return this.exts.getCachedExts(this.authors, this.ref().origin || '').pipe(this.admin.authorFallback);
   });
 
-  get tags() {
+  readonly authorExts = rxResource({
+    params: () => ({ tags: this.authors(), origin: this.ref().origin || '' }),
+    stream: ({ params }) => this.exts.getCachedExts(params.tags, params.origin).pipe(this.admin.authorFallback),
+  });
+
+  readonly tags = computed(() => {
     let result = interestingTags(this.ref().tags);
     const blog = this.blog();
     if (!blog?.config?.filterTags) return result;
     return intersection(result, blog.config.tags || []);
-  }
-
-  readonly tagExts$ = computed(() => {
-    return this.editor.getTagsPreview(this.tags, this.ref().origin || '');
   });
 
-  get tagLink() {
-    return this.url.toLowerCase().startsWith('tag:/');
-  }
+  readonly tagExts = rxResource({
+    params: () => ({ tags: this.tags(), origin: this.ref().origin || '' }),
+    stream: ({ params }) => this.editor.getTagsPreview(params.tags, params.origin),
+  });
 
-  get clickableLink() {
+  readonly tagLink = computed(() => {
+    return this.url().toLowerCase().startsWith('tag:/');
+  });
+
+  readonly clickableLink = computed(() => {
     return clickableLink(this.ref().url);
-  }
+  });
 
-  get comments() {
+  readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
-  }
+  });
 
-  get responses() {
+  readonly responses = computed(() => {
     return this.ref().metadata?.responses || 0;
-  }
+  });
 
-  get sources() {
+  readonly sources = computed(() => {
     const sources = uniq(this.ref()?.sources).filter(s => s != this.ref().url);
     return sources.length || 0;
-  }
+  });
 
   formatAuthor(user: string) {
     if (this.store.account.origin() && tagOrigin(user) === this.store.account.origin()) {
@@ -321,19 +301,19 @@ export class BlogEntryComponent implements HasChanges {
     return formatAuthor(user);
   }
 
-  get mailboxes() {
+  readonly mailboxes = computed(() => {
     return mailboxes(this.ref(), this.store.account.tag(), this.store.origins.originMap());
-  }
+  });
 
-  get replyTags(): string[] {
+  readonly replyTags = computed((): string[] => {
     const tags = [
       'plugin/comment',
       'internal',
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref())).flatMap(p => p.config!.reply as string[]),
-      ...this.mailboxes,
+      ...this.admin.reply().filter(p => hasTag(p.tag, this.ref())).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes(),
     ];
     return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
-  }
+  });
 
   saveRef() {
     this.store.view.preloadRef(this.ref(), this.repostRef());
@@ -349,7 +329,7 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   visible(v: Visibility) {
-    return visible(this.ref(), v, this.isAuthor, this.isRecipient);
+    return visible(this.ref(), v, this.isAuthor(), this.isRecipient());
   }
 
   label(a: Action) {
@@ -396,6 +376,7 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   save() {
+    if (this.submitting()) return;
     this.submitted.set(true);
     this.editForm.markAllAsTouched();
     this.editor.syncEditor(this.fb, this.editForm);
@@ -404,7 +385,8 @@ export class BlogEntryComponent implements HasChanges {
       return;
     }
     const published = DateTime.fromISO(this.editForm.value.published);
-    this.submitting.set(this.refs.update({
+    this.submitting.set(true);
+    this.submittingSubscription = this.refs.update({
       ...this.ref(),
       ...this.editForm.value,
       published,
@@ -415,18 +397,28 @@ export class BlogEntryComponent implements HasChanges {
     }).pipe(
       switchMap(() => this.refs.get(this.ref().url, this.ref().origin).pipe(takeUntilDestroyed(this.destroyRef))),
       catchError((err: HttpErrorResponse) => {
-        this.submitting.set(undefined);
         this.serverError.set(printError(err));
-        return throwError(() => err);
+        return of(undefined);
       }),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.submitting.set(false)),
     ).subscribe(ref => {
+      if (!ref) return;
       this.editForm.reset();
-      this.submitting.set(undefined);
       this.serverError.set([]);
       this.editing.set(false);
       this.ref.set(ref);
-      this.init();
-    }));
+    });
+  }
+
+  cancelEdit() {
+    this.submittingSubscription?.unsubscribe();
+    this.editing.set(false);
+  }
+
+  toggleEditing() {
+    if (this.editing()) this.cancelEdit();
+    else this.editing.set(true);
   }
 
   forceDelete$ = () => {
@@ -455,6 +447,6 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   protected goToComments() {
-    this.router.navigate(['/ref', this.ref().url, 'comments'], { queryParams: { origin: this.nonLocalOrigin } });
+    this.router.navigate(['/ref', this.ref().url, 'comments'], { queryParams: { origin: this.nonLocalOrigin() } });
   }
 }

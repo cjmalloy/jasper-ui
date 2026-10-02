@@ -74,11 +74,18 @@ import { controlValue } from '../../util/form';
   ],
 })
 export class RefFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
+
+  private readonly controlState0 = controlValue(() => this.url());
+  private readonly controlState1 = controlValue(() => this.group());
+  private readonly controlState2 = controlValue(() => this.sources());
+  private readonly controlState3 = controlValue(() => this.tags());
+
 
   readonly origin = input<string | undefined>('');
   readonly group = input.required<UntypedFormGroup>();
   readonly creating = input(false);
-  private readonly tagsValue = controlValue<string[]>(() => this.tags);
+  private readonly tagsValue = controlValue<string[]>(() => this.tags());
   readonly toggleTag = output<string>();
 
   readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
@@ -109,98 +116,123 @@ export class RefFormComponent {
     private fb: UntypedFormBuilder,
   ) { }
 
-  get web() {
-    const scheme = getScheme(this.url.value);
+  readonly web = computed(() => {
+    this.rootControlState();
+    this.controlState0();
+    const scheme = getScheme(this.url().value);
     return scheme === 'http:' || scheme === 'https:';
-  }
+  });
 
-  get url() {
+  readonly url = computed(() => {
+    this.rootControlState();
     return this.group().get('url') as UntypedFormControl;
-  }
+  });
 
-  get title() {
+  readonly title = computed(() => {
+    this.rootControlState();
     return this.group().get('title') as UntypedFormControl;
-  }
+  });
 
-  get comment() {
+  readonly comment = computed(() => {
+    this.rootControlState();
     return this.group().get('comment') as UntypedFormControl;
-  }
+  });
 
-  get published() {
+  readonly published = computed(() => {
+    this.rootControlState();
     return this.group().get('published') as UntypedFormControl;
-  }
+  });
 
-  get tags() {
+  readonly tags = computed(() => {
+    this.rootControlState();
     return this.group().get('tags') as UntypedFormArray;
-  }
+  });
 
-  get sources() {
+  readonly sources = computed(() => {
+    this.rootControlState();
     return this.group().get('sources') as UntypedFormArray;
-  }
+  });
 
-  get thumbnail() {
+  readonly thumbnail = computed(() => {
+    this.rootControlState();
+    this.controlState1();
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
     if (hasTag('plugin/thumbnail', this.group().value)) return true;
     return !!this.admin.getPlugin('plugin/image') && hasTag('plugin/image', this.group().value);
-  }
+  });
 
-  get thumbnailRefs() {
+  readonly thumbnailRefs = computed(() => {
+    this.rootControlState();
+    this.controlState1();
     return [{ ...this.group().getRawValue(), origin: this.creating() ? this.store.account.origin() : this.origin() }];
-  }
+  });
 
-  get thumbnailPlugin() {
+  readonly thumbnailPlugin = computed(() => {
+    this.rootControlState();
+    this.controlState1();
     const plugin = this.group().value.plugins?.['plugin/thumbnail'];
     return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
-  }
+  });
 
-  get thumbnailColor() {
-    return this.thumbnailPlugin?.color || '';
-  }
+  readonly thumbnailColor = computed(() => {
+    this.rootControlState();
+    return this.thumbnailPlugin()?.color || '';
+  });
 
-  get thumbnailEmoji() {
-    return this.thumbnailPlugin?.emoji || '';
-  }
+  readonly thumbnailEmoji = computed(() => {
+    this.rootControlState();
+    return this.thumbnailPlugin()?.emoji || '';
+  });
 
-  get thumbnailRadius() {
-    return this.thumbnailPlugin?.radius || 0;
-  }
+  readonly thumbnailRadius = computed(() => {
+    this.rootControlState();
+    return this.thumbnailPlugin()?.radius || 0;
+  });
 
-  get top() {
-    return this.sources.value[1] || this.sources.value[0] || this.ref()?.url || this.url.value;
-  }
+  readonly top = computed(() => {
+    this.rootControlState();
+    this.controlState2();
+    this.controlState0();
+    return this.sources().value[1] || this.sources().value[0] || this.ref()?.url || this.url().value;
+  });
 
   addSource(value = '') {
-    while (this.sources.value.length < 2) {
-      this.sources.push(this.fb.control(this.top, LinksFormComponent.validators));
+    while (this.sources().value.length < 2) {
+      this.sources().push(this.fb.control(this.top(), LinksFormComponent.validators));
     }
-    this.sources.push(this.fb.control(value, LinksFormComponent.validators));
+    this.sources().push(this.fb.control(value, LinksFormComponent.validators));
   }
 
   setTags(value: string[]) {
     const tagsFormComponent = this.tagsFormComponent();
-    if (!tagsFormComponent?.tags) {
+    if (!tagsFormComponent?.tags()) {
       defer(() => this.setTags(value));
       return;
     }
     tagsFormComponent.setTags(value);
   }
 
-  get editorLabel() {
+  readonly editorLabel = computed(() => {
+    this.rootControlState();
+    this.controlState3();
     // TODO: Move to config
-    if (hasTag('+plugin/secret', this.tags.value)) return $localize`Secret Key`;
-    if (hasTag('plugin/alt', this.tags.value)) return $localize`Alt Text`;
+    if (hasTag('+plugin/secret', this.tags().value)) return $localize`Secret Key`;
+    if (hasTag('plugin/alt', this.tags().value)) return $localize`Alt Text`;
     return $localize`Abstract`;
-  }
+  });
 
-  get addEditorLabel() {
-    return $localize`+ Add ` + this.editorLabel.toLowerCase();
-  }
+  readonly addEditorLabel = computed(() => {
+    this.rootControlState();
+    return $localize`+ Add ` + this.editorLabel().toLowerCase();
+  });
 
-  get addEditorTitle() {
-    return $localize`Add ` + this.editorLabel.toLowerCase();
-  }
+  readonly addEditorTitle = computed(() => {
+    this.rootControlState();
+    return $localize`Add ` + this.editorLabel().toLowerCase();
+  });
 
   readonly codeLang = computed(() => {
+    this.rootControlState();
     for (const t of this.tagsValue() || []) {
       if (hasPrefix(t, 'plugin/code')) {
         return t.split('/')[2];
@@ -211,14 +243,15 @@ export class RefFormComponent {
 
   readonly codeOptions = computed(() => ({
     language: this.codeLang(),
-    theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+    theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
     automaticLayout: true,
   }));
 
   readonly customEditor = computed(() => {
+    this.rootControlState();
     const tags = this.tagsValue();
     if (!tags) return false;
-    return some(this.admin.editor, t => hasTag(t.tag, tags));
+    return some(this.admin.editor(), t => hasTag(t.tag, tags));
   });
 
   onDragEnter() {
@@ -230,8 +263,8 @@ export class RefFormComponent {
   }
 
   validate(input: HTMLInputElement) {
-    if (this.title.touched) {
-      if (this.title.errors?.['required']) {
+    if (this.title().touched) {
+      if (this.title().errors?.['required']) {
         input.setCustomValidity($localize`Title must not be blank.`);
         input.reportValidity();
       }
@@ -239,7 +272,7 @@ export class RefFormComponent {
   }
 
   setComment(value: string) {
-    this.comment.setValue(value);
+    this.comment().setValue(value);
     // Ignore tags and sources from new comment
     this.editor.syncEditor(this.fb, this.group(), value);
   }
@@ -251,7 +284,7 @@ export class RefFormComponent {
   get scrape$() {
     const scraped = this.scraped();
     if (scraped) return of(scraped);
-    return this.scrape.webScrape(hasTag('plugin/repost', this.tags.value) ? this.sources.value?.[0] : this.url.value).pipe(
+    return this.scrape.webScrape(hasTag('plugin/repost', this.tags().value) ? this.sources().value?.[0] : this.url().value).pipe(
       tap(s => {
         this.scraped.set(s);
         const current = this.ref();
@@ -283,7 +316,7 @@ export class RefFormComponent {
       catchError(err => {
         this.scrapingTitle.set(false);
         return of({
-          url: this.url.value,
+          url: this.url().value,
           title: undefined,
         })
       }),
@@ -297,7 +330,7 @@ export class RefFormComponent {
       )),
     ).subscribe((s: Ref) => {
       this.scrapingTitle.set(false);
-      const title = s.title ?? getTitleFromFilename(this.url.value);
+      const title = s.title ?? getTitleFromFilename(this.url().value);
       if (title) this.group().patchValue({ title });
     });
   }
@@ -312,7 +345,7 @@ export class RefFormComponent {
       })
     ).subscribe(ref => {
       this.scrapingPublished.set(false);
-      this.published.setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
+      this.published().setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
     });
   }
 
@@ -342,7 +375,7 @@ export class RefFormComponent {
     } else {
       this.scrape$.subscribe(s => {
         for (const t of s.tags || []) {
-          if (!hasTag(t, this.tags.value)) this.togglePlugin(t);
+          if (!hasTag(t, this.tags().value)) this.togglePlugin(t);
         }
         defer(() => {
           this.pluginsFormComponent().setValue({
@@ -363,13 +396,13 @@ export class RefFormComponent {
   }
 
   addCompletedUpload(ref: Ref) {
-    this.completedUploads.set([...this.completedUploads(), ref]);
+    this.completedUploads.update(uploads => [...uploads, ref]);
   }
 
   togglePlugin(tag: string) {
     this.toggleTag.emit(tag);
     if (tag) {
-      if (hasTag(tag, this.tags.value)) {
+      if (hasTag(tag, this.tags().value)) {
         this.tagsFormComponent().removeTagAndChildren(tag);
       } else {
         this.tagsFormComponent().addTag(tag);

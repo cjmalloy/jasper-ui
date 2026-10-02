@@ -31,7 +31,7 @@ test.describe('Backup / Restore', () => {
     await expect(page.locator('#backupTombstones')).not.toBeChecked();
     // Click backup button to create backup with default options
     await page.locator('.popup button', { hasText: '+ backup' }).click();
-    await page.waitForTimeout(1000);
+    await expect(page.locator('.backup .link a').first()).toHaveAttribute('href', /\.zip\?p=/);
   });
 
   test('deletes ref', async ({ page }) => {

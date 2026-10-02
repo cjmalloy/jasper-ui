@@ -72,7 +72,7 @@
                   [tags]="tags"
                   (syncTags)="setTags($event)"
                   (addSource)="addSource($event)"
-                  (uploadCompleted)="completedUploads().push($event)"
+                  (uploadCompleted)="addCompletedUpload($event)"
                   [autoFocus]="!!store.submit.dmPlugin() || !!store.submit.to().length"></app-editor>
     </div>
   }

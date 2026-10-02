@@ -5,29 +5,11 @@ import {
 import { TemplatePortal } from '@angular/cdk/portal';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  DestroyRef,
-  inject,
-  AfterViewInit,
-  Component,
-  ElementRef,
-  forwardRef,
-  TemplateRef,
-  ViewContainerRef,
-  ChangeDetectionStrategy,
-  input,
-  output,
-  signal,
-  viewChild,
-  computed,
-  linkedSignal,
-  effect,
-  untracked
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef, inject, Component, ElementRef, forwardRef, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, input, output, signal, viewChild, computed, linkedSignal, effect, untracked, afterNextRender } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
-import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, of, startWith, Subscription, switchMap, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
 import { equalsRef, Ref } from '../../../model/ref';
 import { CssUrlPipe } from '../../../pipe/css-url.pipe';
@@ -73,7 +55,7 @@ import { TodoComponent } from '../../todo/todo.component';
     CssUrlPipe,
   ],
 })
-export class NoteComponent implements AfterViewInit {
+export class NoteComponent {
   private destroyRef = inject(DestroyRef);
 
   readonly unlocked = signal(false);
@@ -86,11 +68,17 @@ export class NoteComponent implements AfterViewInit {
 
   readonly copied = output<Ref>();
 
-  readonly repostRef = signal<Ref | undefined>(undefined);
+  readonly repostRef = toSignal(toObservable(computed(() =>
+    this.repost() ? this.url() : undefined,
+  )).pipe(switchMap(url => !url ? of(undefined) :
+    (this.store.view.top()?.url === url ? of(this.store.view.top()) : this.refs.getCurrent(url)).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ))), { initialValue: undefined });
 
-  readonly todo = signal(false);
-  readonly chess = signal(false);
-  readonly chessWhite = signal(true);
+  readonly todo = computed(() => !!this.admin.getPlugin('plugin/todo') && !!this.ref().tags?.includes('plugin/todo'));
+  readonly chess = computed(() => !!this.admin.getPlugin('plugin/chess') && !!this.ref().tags?.includes('plugin/chess'));
+  readonly chessWhite = computed(() => !!this.ref().tags?.includes(this.store.account.localTag()));
   overlayRef?: OverlayRef;
   readonly autoClose = signal(true);
 
@@ -110,35 +98,15 @@ export class NoteComponent implements AfterViewInit {
     private overlay: Overlay,
     private el: ElementRef,
     private viewContainerRef: ViewContainerRef,
-  ) {
-    effect(() => {
-      this.refInput();
-      untracked(() => this.init());
-    });
-  }
+  ) {}
 
-  init() {
-    this.todo.set(!!this.admin.getPlugin('plugin/todo') && !!this.ref().tags?.includes('plugin/todo'));
-    this.chess.set(!!this.admin.getPlugin('plugin/chess') && !!this.ref().tags?.includes('plugin/chess'));
-    this.chessWhite.set(!!this.ref().tags?.includes(this.store.account.localTag()));
-    if (this.repost() && this.ref() && this.repostRef()?.url != repost(this.ref())) {
-      (this.store.view.top()?.url === this.ref().sources![0]
-          ? of(this.store.view.top())
-          : this.refs.getCurrent(this.url())
-      ).pipe(
-        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => this.repostRef.set(ref));
-    }
-  }
-
-  ngAfterViewInit(): void {
+  private readonly initializeView = afterNextRender(() => {
     delay(() => {
       if (this.lastSelected()) {
         this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
       }
     }, 400);
-  }
+  });
 
 
   onClick() {
@@ -214,12 +182,14 @@ export class NoteComponent implements AfterViewInit {
     if (this.hideSwimLanes()) return badges;
     return difference(badges, this.ext()?.config?.swimLanes || []);
   });
-  readonly badgeExts$ = computed(() => {
-    return this.exts.getCachedExts(this.badges(), this.ref().origin || '');
-  });
-  readonly allBadgeExts$ = computed(() => {
-    return this.exts.getCachedExts(this.ext()?.config?.badges || [], this.ref().origin || '');
-  });
+  readonly badgeExts = toSignal(toObservable(computed(() =>
+    [this.badges(), this.ref().origin || ''] as const)).pipe(
+    switchMap(([tags, origin]) => this.exts.getCachedExts(tags, origin)),
+  ), { initialValue: [] });
+  readonly allBadgeExts = toSignal(toObservable(computed(() =>
+    [this.ext()?.config?.badges || [], this.ref().origin || ''] as const)).pipe(
+    switchMap(([tags, origin]) => this.exts.getCachedExts(tags, origin)),
+  ), { initialValue: [] });
   readonly lastSelected = computed(() => {
     return this.store.view.lastSelected()?.url === this.ref().url;
   });
@@ -289,12 +259,10 @@ export class NoteComponent implements AfterViewInit {
     if (hasTag(tag, this.ref().tags)) {
       this.tags.delete(tag, this.ref().url, this.ref().origin).subscribe(() => {
         this.ref.set({ ...this.ref(), tags: this.ref().tags!.filter(t => expandedTagsInclude(t, tag)) });
-        this.init();
       });
     } else {
       this.tags.create(tag, this.ref().url, this.ref().origin).subscribe(() => {
         this.ref.set({ ...this.ref(), tags: [...(this.ref().tags || []), tag] });
-        this.init();
       });
     }
     if (this.autoClose() || !event?.button) {
@@ -335,7 +303,6 @@ export class NoteComponent implements AfterViewInit {
       switchMap(() => this.refs.get(copied.url, this.store.account.origin()).pipe(takeUntilDestroyed(this.destroyRef))),
     ).subscribe(ref => {
       this.ref.set(ref);
-      this.init();
       this.copied.emit(ref);
     });
   }

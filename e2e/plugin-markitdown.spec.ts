@@ -83,6 +83,20 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.advanced-actions .fake-link', { hasText: 'markdown' }).click();
     await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' })).toHaveCount(1);
 
+    const cancel = page.locator('.full-page.ref .list-action', { hasText: 'cancel' });
+    await cancel.evaluate(action => {
+      const container = action.parentElement?.parentElement;
+      if (container) container.style.maxWidth = '1px';
+      window.dispatchEvent(new Event('resize'));
+    });
+    await expect(cancel).toBeHidden();
+    await cancel.evaluate(action => {
+      const container = action.parentElement?.parentElement;
+      if (container) container.style.maxWidth = '';
+      window.dispatchEvent(new Event('resize'));
+    });
+    await expect(cancel).toBeVisible();
+
     // Click cancel
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).click();
 

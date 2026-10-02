@@ -1,17 +1,14 @@
 import {
-  DestroyRef,
-  inject,
   Component,
   forwardRef,
-  OnInit,
   ChangeDetectionStrategy,
-  effect,
+  computed,
+  linkedSignal,
   input,
   viewChildren,
-  signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { EMPTY, Observable, switchMap } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { Store } from '../../../store/store';
@@ -28,8 +25,7 @@ import { CommentComponent } from '../comment.component';
     forwardRef(() => CommentComponent),
   ],
 })
-export class CommentThreadComponent implements OnInit, HasChanges {
-  private destroyRef = inject(DestroyRef);
+export class CommentThreadComponent implements HasChanges {
 
   readonly source = input('');
   readonly scrollToLatest = input(false);
@@ -40,20 +36,24 @@ export class CommentThreadComponent implements OnInit, HasChanges {
 
   readonly list = viewChildren<CommentComponent>('comment');
 
-  readonly newComments = signal<Ref[]>([]);
+  readonly newComments = linkedSignal({
+    source: () => [this.source(), this.pageSize()],
+    computation: () => [] as Ref[],
+  });
 
   constructor(
     public store: Store,
     public thread: ThreadStore,
   ) {
-    effect(() => {
-      this.source();
-      this.pageSize();
-      this.newComments.set([]);
+    toObservable(this.newComments$).pipe(
+      switchMap(comments => comments ?? EMPTY),
+      takeUntilDestroyed(),
+    ).subscribe(comment => {
+      if (comment) this.newComments.update(comments => [comment, ...comments]);
     });
   }
 
-  get comments(): Ref[] | undefined {
+  readonly comments = computed((): readonly Ref[] | undefined => {
     let comments = this.thread.cache().get(this.source());
     if (comments && this.newComments().length) {
       const newUrls = new Set(this.newComments().map(c => c.url));
@@ -61,21 +61,13 @@ export class CommentThreadComponent implements OnInit, HasChanges {
     }
     const pageSize = this.pageSize();
     if (comments && pageSize) {
-      comments = [...comments];
-      comments.length = pageSize;
+      comments = comments.slice(0, pageSize);
     }
     return comments;
-  }
+  });
 
   saveChanges(): boolean {
-    return !!this.list()?.filter(t => t.saveChanges()).length;
+    return this.list().every(t => t.saveChanges());
   }
 
-  ngOnInit(): void {
-    this.newComments$()?.pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(comment => {
-      if (comment) this.newComments.set([comment, ...this.newComments()]);
-    });
-  }
 }

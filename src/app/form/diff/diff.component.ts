@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input, OnInit, output, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, linkedSignal, output } from '@angular/core';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
@@ -19,7 +19,7 @@ import { Mod } from '../../model/tag';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MonacoEditorModule, ResizeHandleDirective]
 })
-export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod> implements OnInit {
+export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod> {
 
   readonly original = input.required<T>();
   readonly modified = input.required<T>();
@@ -28,43 +28,28 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   readonly fullHeight = input(false);
   readonly modifiedChange = output<T>();
 
-  readonly originalModel = signal<DiffEditorModel>({ code: '', language: 'json' });
-  readonly modifiedModel = signal<DiffEditorModel>({ code: '', language: 'json' });
+  private readonly entity = computed(() => 'url' in this.original() || 'tag' in this.original());
+  readonly originalModel = computed<DiffEditorModel>(() => ({
+    code: (this.entity() ? formatDiff : formatBundleDiff)(this.original() as any),
+    language: 'json',
+  }));
+  readonly modifiedModel = linkedSignal<DiffEditorModel>(() => ({
+    code: (this.entity() ? formatDiff : formatBundleDiff)(this.modified() as any),
+    language: 'json',
+  }));
 
-  readonly options = signal<any>({
+  readonly options = computed(() => ({
     language: 'json',
     automaticLayout: true,
     renderSideBySide: !this.config.mobile,
-  });
+    theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
+    readOnly: this.readOnly(),
+  }));
 
   constructor(
     public config: ConfigService,
     private store: Store,
-  ) {
-    effect(() => {
-      const theme = store.darkTheme ? 'vs-dark' : 'vs';
-      const readOnly = this.readOnly();
-      this.options.set({
-        ...untracked(() => this.options()),
-        theme,
-        readOnly,
-      })
-    });
-  }
-
-  ngOnInit() {
-    const original = this.original();
-    const modified = this.modified();
-    const entity = original && (original.hasOwnProperty('url') || original.hasOwnProperty('tag'));
-    this.originalModel.set({
-      code: (entity ? formatDiff : formatBundleDiff)(original as any),
-      language: 'json'
-    });
-    this.modifiedModel.set({
-      code: (entity ? formatDiff : formatBundleDiff)(modified as any),
-      language: 'json'
-    });
-  }
+  ) { }
 
   initEditor(editor: any) {
     editor.onDidUpdateDiff(() => {

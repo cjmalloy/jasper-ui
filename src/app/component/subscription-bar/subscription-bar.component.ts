@@ -1,7 +1,8 @@
 import { Location } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, effect, ElementRef, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, afterNextRender } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { filter, take } from 'rxjs';
+import { filter, switchMap, take } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -19,11 +20,16 @@ import { Store } from '../../store/store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive, TitleDirective]
 })
-export class SubscriptionBarComponent implements AfterViewInit {
-  readonly bookmarks = signal<TagPreview[]>([]);
-  readonly subs = signal<TagPreview[]>([]);
+export class SubscriptionBarComponent {
+  readonly bookmarks = toSignal(toObservable(computed(() => ({
+    bookmarks: this.store.account.bookmarks(), origin: this.store.account.origin(),
+  }))).pipe(switchMap(({ bookmarks, origin }) => this.editor.getBookmarksPreview(bookmarks, origin))),
+  { initialValue: [] as TagPreview[] });
+  readonly subs = toSignal(toObservable(this.store.account.subs).pipe(
+    switchMap(subs => this.exts.getCachedExts(subs)),
+  ), { initialValue: [] as TagPreview[] });
 
-  private startIndex = this.currentIndex;
+  private startIndex = this.currentIndex();
 
   constructor(
     public config: ConfigService,
@@ -40,29 +46,14 @@ export class SubscriptionBarComponent implements AfterViewInit {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
       take(1),
-    ).subscribe(() => this.startIndex = this.currentIndex);
-    effect((onCleanup) => {
-      const bookmarks = this.store.account.bookmarks();
-      const origin = this.store.account.origin();
-      untracked(() => {
-        const sub = this.editor.getBookmarksPreview(bookmarks, origin).subscribe(xs => this.bookmarks.set(xs));
-        onCleanup(() => sub.unsubscribe());
-      });
-    });
-    effect((onCleanup) => {
-      const subs = this.store.account.subs();
-      untracked(() => {
-        const sub = this.exts.getCachedExts(subs).subscribe(xs => this.subs.set(xs));
-        onCleanup(() => sub.unsubscribe());
-      });
-    });
+    ).subscribe(() => this.startIndex = this.currentIndex());
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     this.help.pushStep(this.el?.nativeElement, $localize`The top bar holds bookmarks and subscriptions.`);
-  }
+  });
 
-  get currentIndex() {
+  currentIndex() {
     if ('navigation' in window) {
       // @ts-ignore
       return navigation.currentEntry?.index || 0
@@ -71,6 +62,6 @@ export class SubscriptionBarComponent implements AfterViewInit {
   }
 
   back() {
-    if (this.currentIndex > this.startIndex) this.location.back();
+    if (this.currentIndex() > this.startIndex) this.location.back();
   }
 }

@@ -1,4 +1,4 @@
-import { Directive, ElementRef, input, linkedSignal } from '@angular/core';
+import { Directive, ElementRef, input, linkedSignal, afterNextRender } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
@@ -19,9 +19,9 @@ export class AutofocusDirective {
     ).subscribe(() => this.focus());
   };
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     this.focus();
-  }
+  });
 
   focus() {
     if (this.enabled() === false) return;

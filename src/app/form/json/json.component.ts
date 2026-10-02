@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, effect, input, signal, untracked } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -14,26 +15,21 @@ import { Store } from '../../store/store';
   imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
 export class JsonComponent {
+  private readonly rootControlState = controlValue(() => this.group());
+
 
   readonly group = input.required<UntypedFormGroup>();
   readonly fieldName = input('source');
 
-  readonly options = signal<any>({
+  readonly options = computed(() => ({
     language: 'json',
     automaticLayout: true,
-  });
+    theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
+  }));
 
   constructor(
     public config: ConfigService,
     private store: Store,
-  ) {
-    effect(() => {
-      const theme = store.darkTheme ? 'vs-dark' : 'vs';
-      this.options.set({
-        ...untracked(() => this.options()),
-        theme,
-      })
-    });
-  }
+  ) { }
 
 }

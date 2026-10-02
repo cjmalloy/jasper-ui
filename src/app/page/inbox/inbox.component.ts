@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, afterNextRender } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -14,7 +14,7 @@ import { Store } from '../../store/store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
 })
-export class InboxPage implements OnInit {
+export class InboxPage {
 
   constructor(
     public admin: AdminService,
@@ -22,16 +22,16 @@ export class InboxPage implements OnInit {
     private auth: AuthzService,
   ) { }
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     if (!this.store.view.inboxTabs().length) {
       {
-        this.store.view.inboxTabs.set(this.admin.inbox.filter(p => this.auth.tagReadAccess(p.tag)));
+        this.store.view.inboxTabs.set(this.admin.inbox().filter(p => this.auth.tagReadAccess(p.tag)));
       };
     }
-  }
+  });
 
 }
 
 export const getInbox = () => {
-  return inject(AdminService).inbox[0]?.tag || '';
+  return inject(AdminService).inbox()[0]?.tag || '';
 };

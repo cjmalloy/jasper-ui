@@ -16,7 +16,7 @@
               i18n-title title="Toggle flash"
               i18n>🔦️</button>
     }
-    @if (hasMultipleCameras) {
+    @if (hasMultipleCameras()) {
       <button type="button"
               (click)="nextCamera()"
               i18n-title title="Next camera"

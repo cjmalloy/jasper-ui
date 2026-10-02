@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, ElementRef, input, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, input, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { throttle } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 
@@ -10,7 +10,7 @@ import { ConfigService } from '../service/config.service';
     '(pointerup)': 'onWindowPointerUp($event)',
   },
 })
-export class FillWidthDirective implements OnDestroy, AfterViewInit {
+export class FillWidthDirective {
 
   readonly parent = input<HTMLElement | undefined>(undefined, { alias: 'appFillWidth' });
 
@@ -26,13 +26,13 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
     this.resizeObserver?.observe(el.nativeElement);
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     this.onResize();
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.resizeObserver?.disconnect();
-  }
+  });
 
   onWindowResize(event: UIEvent) {
     this.onResize();

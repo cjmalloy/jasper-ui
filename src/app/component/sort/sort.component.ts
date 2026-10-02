@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, input, signal, untracked, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, input, linkedSignal, viewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
@@ -20,13 +20,15 @@ export class SortComponent {
 
   readonly type = input<Type>('ref');
 
-  allRefSorts = this.admin.refSorts.map(convertSort);
-  allTagSorts = this.admin.tagSorts.map(convertSort);
-  readonly allSorts = signal<SortItem[]>([
-    { value: 'modified', label: $localize`🕓️ modified` },
-    { value: 'origin:len', label: $localize`🪆 nesting` },
-  ]);
-  readonly sorts = signal<string[]>([], { equal: () => false });
+  readonly allRefSorts = computed(() => this.admin.refSorts().map(convertSort));
+  readonly allTagSorts = computed(() => this.admin.tagSorts().map(convertSort));
+  readonly allSorts = computed(() => this.type() === 'ref'
+    ? [...this.store.view.isSearch() ? [{ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` }] : [], ...this.allRefSorts()]
+    : this.allTagSorts());
+  readonly sorts = linkedSignal(() => {
+    const sort = this.store.view.sort();
+    return Array.isArray(sort) ? [...sort] : [sort];
+  });
 
   replace = false;
 
@@ -35,28 +37,9 @@ export class SortComponent {
     public admin: AdminService,
     public store: Store,
   ) {
-    effect(() => {
-      const sort = this.store.view.sort();
-      untracked(() => this.sorts.set(Array.isArray(sort) ? [...sort] : [sort]));
-    });
-    effect(() => {
-      const isSearch = this.store.view.isSearch();
-      const type = this.type();
-      untracked(() => this.rebuildSorts(type, isSearch));
-    });
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);
-  }
-
-  private rebuildSorts(type: Type, isSearch: boolean) {
-    if (type === 'ref') {
-      this.allSorts.set(isSearch
-        ? [{ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` }, ...this.allRefSorts]
-        : [...this.allRefSorts]);
-    } else {
-      this.allSorts.set([...this.allTagSorts]);
-    }
   }
 
   addSort(value: string) {

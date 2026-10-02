@@ -1,10 +1,4 @@
-import { signal, untracked, WritableSignal } from '@angular/core';
-
-function mutate<T>(s: WritableSignal<T>, fn: (value: T) => void) {
-  const value = untracked(s);
-  fn(value);
-  s.set(value);
-}
+import { signal, untracked } from '@angular/core';
 
 export class VideoStore {
 
@@ -14,61 +8,77 @@ export class VideoStore {
   /**
    * Mutating the returned Map will not notify. Use store methods instead.
    */
-  readonly peers = signal(new Map<string, RTCPeerConnection>(), { equal: () => false });
+  readonly peers = signal<ReadonlyMap<string, RTCPeerConnection>>(new Map());
   /**
    * Mutating the returned Map will not notify. Use store methods instead.
    */
-  readonly streams = signal(new Map<string, { playing?: boolean, stream: MediaStream }[]>(), { equal: () => false });
+  readonly streams = signal<ReadonlyMap<string, readonly { readonly playing?: boolean, readonly stream: MediaStream }[]>>(new Map());
   /**
    * Mutating the returned Map will not notify. Use setHungup() instead.
    */
-  readonly hungup = signal(new Map<string, boolean>(), { equal: () => false });
+  readonly hungup = signal<ReadonlyMap<string, boolean>>(new Map());
 
   setHungup(user: string, value: boolean) {
-    mutate(this.hungup, m => m.set(user, value));
+    this.hungup.update(m => new Map(m).set(user, value));
   }
 
   call(user: string, peer: RTCPeerConnection) {
-    mutate(this.peers, m => m.set(user, peer));
-    mutate(this.streams, m => m.set(user, []));
+    this.peers.update(m => new Map(m).set(user, peer));
+    this.streams.update(m => new Map(m).set(user, []));
   }
 
   addStream(user: string, stream: MediaStream) {
-    mutate(this.streams, streams => {
-      if (!streams.get(user)?.length) {
-        streams.set(user, [{ stream }]);
-      } else {
-        console.warn('adding second stream');
-        streams.set(user, [{ stream }, ...streams.get(user)!.filter(s => s.stream.id !== stream.id)]);
-      }
+    this.streams.update(streams => {
+      const existing = streams.get(user) || [];
+      if (existing.length) console.warn('adding second stream');
+      return new Map(streams).set(user, [{ stream }, ...existing.filter(s => s.stream.id !== stream.id)]);
     });
   }
 
   playing(user: string, id: string) {
-    mutate(this.streams, streams => streams.get(user)!.find(s => s.stream.id === id)!.playing = true);
+    this.streams.update(streams => {
+      const existing = streams.get(user);
+      if (!existing?.some(s => s.stream.id === id)) return streams;
+      return new Map(streams).set(user, existing.map(s => s.stream.id === id ? { ...s, playing: true } : s));
+    });
+  }
+
+  refreshStreams(user: string) {
+    this.streams.update(streams => {
+      const existing = streams.get(user);
+      return existing ? new Map(streams).set(user, [...existing]) : streams;
+    });
+  }
+
+  refreshPeer(user: string) {
+    this.peers.update(peers => peers.has(user) ? new Map(peers) : peers);
   }
 
   reset(user: string) {
     this.remove(user);
-    mutate(this.streams, m => m.set(user, []));
+    this.streams.update(m => new Map(m).set(user, []));
   }
 
   remove(user: string) {
-    mutate(this.peers, peers => {
+    this.peers.update(peers => {
       const peer = peers.get(user);
       if (peer) peer.close();
-      peers.delete(user);
+      const result = new Map(peers);
+      result.delete(user);
+      return result;
     });
-    mutate(this.streams, m => m.delete(user));
+    this.streams.update(streams => {
+      const result = new Map(streams);
+      result.delete(user);
+      return result;
+    });
   }
 
   hangup() {
-    mutate(this.peers, peers => {
-      for (const peer of peers.values()) peer.close();
-      peers.clear();
-    });
-    mutate(this.streams, m => m.clear());
-    mutate(this.hungup, m => m.clear());
+    for (const peer of untracked(this.peers).values()) peer.close();
+    this.peers.set(new Map());
+    this.streams.set(new Map());
+    this.hungup.set(new Map());
     untracked(this.stream)?.getTracks().forEach(t => t.stop());
   }
 }

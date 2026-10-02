@@ -1,5 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import {
+import { computed,
   Component,
   effect,
   ChangeDetectionStrategy,
@@ -9,8 +9,9 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
-import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
+import { catchError, Observable, of, startWith, Subscription, switchMap, throwError, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
@@ -24,7 +25,7 @@ import { TodoItemComponent } from './item/item.component';
   styleUrls: ['./todo.component.scss'],
   host: {
     'class': 'todo-list',
-    '[class.empty]': 'empty',
+    '[class.empty]': "empty()",
     '(touchstart)': 'touchstart($event)',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,56 +45,45 @@ export class TodoComponent {
   readonly comment = output<string>();
   readonly copied = output<string>();
 
-  readonly lines = signal<string[]>([]);
-  readonly addText = signal('');
-  readonly pushText = signal<string[]>([]);
-  readonly pressToUnlock = signal(false);
-  readonly serverErrors = signal<string[]>([]);
-  private readonly refComment = linkedSignal(() => this.ref()?.comment);
+  private readonly watcher = computed(() => this.ref() ? this.actions.watch(this.ref()!) : undefined);
+  private readonly watchedRef = toSignal(toObservable(this.watcher).pipe(
+    switchMap(watch => watch ? watch.ref$.pipe(startWith(this.ref())) : of(undefined)),
+  ), { initialValue: undefined });
+  readonly lines = linkedSignal(() => (this.watchedRef()
+    ? this.watchedRef()?.comment || ''
+    : this.ref()?.comment || this.text() || '').split('\n').filter(l => !!l));
+  readonly addText = linkedSignal(() => { this.ref(); this.text(); return ''; });
+  readonly pushText = linkedSignal<string[]>(() => { this.ref(); return []; });
+  readonly pressToUnlock = linkedSignal(() => this.config.mobile);
+  readonly serverErrors = linkedSignal<string[]>(() => { this.ref(); return []; });
 
-  private watch?: Subscription;
   private pushing?: Subscription;
-  private comment$!: (comment: string) => Observable<string>;
 
   constructor(
     public config: ConfigService,
     private store: Store,
     private actions: ActionService,
   ) {
-    if (config.mobile) {
-      this.pressToUnlock.set(true);
-    }
-    effect(() => {
+    effect(onCleanup => {
       this.ref();
-      this.text();
-      untracked(() => this.init());
-    });
-  }
-
-  init() {
-    this.lines.set((this.refComment() || this.text() || '').split('\n')?.filter(l => !!l) || []);
-    const ref = this.ref();
-    if (!this.watch && ref) {
-      const watch = this.actions.watch(ref);
-      this.comment$ = watch.comment$;
-      this.watch = watch.ref$.subscribe(update => {
-        this.refComment.set(update.comment);
-        this.init();
+      onCleanup(() => {
+        this.pushing?.unsubscribe();
+        this.pushing = undefined;
       });
-    }
+    });
   }
 
   touchstart(e: TouchEvent) {
     this.pressToUnlock.set(true);
   }
 
-  get empty() {
+  readonly empty = computed(() => {
     return !this.lines().length;
-  }
+  });
 
-  get local() {
+  readonly local = computed(() => {
     return this.ref()?.origin === this.store.account.origin();
-  }
+  });
 
   drop(event: CdkDragDrop<string, string, string>) {
     const lines = [...this.lines()];
@@ -121,9 +111,9 @@ export class TodoComponent {
   save$(comment: string) {
     this.comment.emit(comment);
     if (!this.ref()) return of();
-    return this.comment$(comment).pipe(
+    return this.watcher()!.comment$(comment).pipe(
       tap(() => {
-        if (!this.local) {
+        if (!this.local()) {
           this.copied.emit(this.store.account.origin());
           this.store.eventBus.refresh(this.ref());
         }
@@ -135,7 +125,8 @@ export class TodoComponent {
     cancel?.preventDefault();
     this.addText.set(this.addText().trim());
     if (!this.addText()) return;
-    this.pushText.set([...this.pushText(), `- [ ] ${this.addText()}`]);
+    const text = this.addText();
+    this.pushText.update(lines => [...lines, `- [ ] ${text}`]);
     this.addText.set('');
     if (!this.pushing) this.pushing = this.push$().subscribe();
   }
@@ -150,7 +141,7 @@ export class TodoComponent {
         return throwError(() => err);
       }),
       tap(() => {
-        this.pushText.set(this.pushText().slice(lines.length));
+        this.pushText.update(queued => queued.slice(lines.length));
         delete this.pushing;
         if (this.pushText().length) this.pushing = this.push$().subscribe();
       }),

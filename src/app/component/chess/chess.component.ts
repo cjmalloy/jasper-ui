@@ -4,10 +4,11 @@ import {
   ElementRef,
   input,
   linkedSignal,
-  OnChanges,
+  computed,
+  effect,
   OnDestroy,
   OnInit,
-  SimpleChanges,
+  untracked,
   ChangeDetectionStrategy,
   output,
   signal
@@ -40,27 +41,39 @@ type AnimationState = { from: Square; to: Square; capture?: { square: Square; pi
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CdkDropList, CdkDrag]
 })
-export class ChessComponent implements OnInit, OnChanges, OnDestroy {
+export class ChessComponent implements OnInit, OnDestroy {
 
   readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
   readonly textInput = input<string | undefined>('', { alias: 'text' });
   readonly whiteInput = input(true, { alias: 'white' });
-  readonly ref = linkedSignal(() => this.refInput());
+  readonly ref = this.refInput;
   readonly text = linkedSignal(() => this.textInput());
+  // TODO: Save in local storage
   readonly white = linkedSignal(() => this.whiteInput());
- // TODO: Save in local storage
   readonly comment = output<string>();
   readonly copied = output<string>();
 
-  readonly turn = signal<PieceColor>('w');
   readonly from = signal<Square | undefined>(undefined);
   readonly to = signal<Square | undefined>(undefined);
-  readonly moves = signal<Square[]>([]);
   chess = new Chess();
-  readonly pieces = signal<(Piece | null)[]>(flatten(this.chess.board()));
+  private readonly displayState = signal<{
+    pieces: (Piece | null)[];
+    turn: PieceColor;
+    moves: Square[];
+    lastMoveTo?: Square;
+  }>({ pieces: flatten(this.chess.board()), turn: 'w', moves: [] });
+  readonly pieces = computed(() => this.displayState().pieces);
+  readonly turn = computed(() => this.displayState().turn);
+  readonly moves = linkedSignal(() => this.displayState().moves);
+  readonly lastMoveTo = computed(() => this.displayState().lastMoveTo);
+  // chess.js mutates in place, so model changes invalidate the cached history.
+  private readonly historyVersion = signal(0);
+  readonly history = computed(() => {
+    this.historyVersion();
+    return (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
+  });
   readonly writeAccess = signal(false);
   readonly translate = signal<string[]>([]);
-  readonly lastMoveTo = signal<Square | undefined>(undefined);
   readonly animating = signal(false);
   animationQueue: AnimationState[] = [];
   readonly movingPiece = signal<{ piece: Piece; from: Square; to: Square } | undefined>(undefined);
@@ -85,10 +98,27 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         this.flip.set(true);
         delay(() => {
           this.flip.set(false);
-          this.white.set(!this.white());
+          this.white.update(white => !white);
         }, 1000);
         defer(() => this.store.eventBus.fire('flip-done'));
       }
+    });
+    let first = true;
+    let previousRef: Ref | undefined;
+    effect(() => {
+      const ref = this.refInput();
+      const text = this.textInput();
+      untracked(() => {
+        const newRef = first || previousRef?.url !== ref?.url || previousRef?.origin !== ref?.origin;
+        if (!ref || newRef) {
+          this.watch?.unsubscribe();
+          this.watch = undefined;
+          if (newRef) this.board = undefined;
+          if (ref || text != null) this.init();
+        }
+        first = false;
+        previousRef = ref;
+      });
     });
   }
 
@@ -113,6 +143,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       ).subscribe(move => {
         try {
           this.chess.move(move);
+          this.historyVersion.update(version => version + 1);
           this.check();
           if (this.retry.length) {
             if (this.retry[0] === move) {
@@ -149,16 +180,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref || changes.text) {
-      const newRef = changes.ref?.firstChange || changes.ref?.previousValue?.url !== changes.ref?.currentValue?.url;
-      if (!this.ref() || newRef) {
-        this.watch?.unsubscribe();
-        if (this.ref() || this.text() != null) this.init();
-      }
-    }
-  }
-
   ngOnDestroy() {
     this.resizeObserver?.disconnect();
     this.watch?.unsubscribe();
@@ -166,9 +187,9 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
   clearErrors() {
     if (this.ref()) {
-      this.actions.comment(this.history, this.ref()!);
+      this.actions.comment(this.history(), this.ref()!);
     } else {
-      this.text.set(this.history);
+      this.text.set(this.history());
     }
   }
 
@@ -176,6 +197,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     if (this.board === board) return;
     this.board = board;
     this.chess.clear();
+    this.fen = '';
     try {
       if (board) {
         const lines = board.trim().split('\n');
@@ -201,7 +223,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       }
     }
     this.render();
-    if (!this.ref() || (this.ref()!.comment || '') !== this.history) {
+    if (!this.ref() || (this.ref()!.comment || '') !== this.history()) {
       this.clearErrors();
     }
   }
@@ -279,10 +301,13 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   render() {
-    this.pieces.set(flatten(this.chess.board()));
-    this.lastMoveTo.set(this.chess.history({ verbose: true }).pop()?.to);
-    this.turn.set(this.chess.turn());
-    this.moves.set(this.chess.moves({ verbose: true }).map(m => m.to));
+    this.historyVersion.update(version => version + 1);
+    this.displayState.set({
+      pieces: flatten(this.chess.board()),
+      lastMoveTo: this.chess.history({ verbose: true }).pop()?.to,
+      turn: this.chess.turn(),
+      moves: this.chess.moves({ verbose: true }).map(m => m.to),
+    });
   }
 
   check() {
@@ -307,12 +332,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.to.set(undefined);
   }
 
-  get history() {
-    return (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
-  }
-
   save(move: string) {
-    this.comment.emit(this.history);
+    this.comment.emit(this.history());
     this.append$(move).pipe(
       catchError(err => {
         this.retry.push(move);
@@ -385,10 +406,12 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
     this.animating.set(true);
     const animation = this.animationQueue.shift()!;
-    this.pieces.set(animation.boardState);
-    this.turn.set(animation.turnState);
-    this.moves.set(animation.movesState);
-    this.lastMoveTo.set(animation.to);
+    this.displayState.set({
+      pieces: animation.boardState,
+      turn: animation.turnState,
+      moves: animation.movesState,
+      lastMoveTo: animation.to,
+    });
     this.movingPiece.set({ piece: animation.piece, from: animation.from, to: animation.to });
     if (animation.capture) {
       this.capturedPiece.set(animation.capture);
@@ -417,7 +440,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
     // Animate the piece moving to its destination with translation
     const movingPiece = animation.to;
-    this.translate.set([...this.translate(), movingPiece]);
+    this.translate.update(translate => [...translate, movingPiece]);
 
     // Remove captured piece animation after it completes (delay + duration)
     // Capture animation: 1.0s delay + 0.8s animation = 1.8s total
@@ -430,7 +453,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     // Remove animation after completion (wait for capture to finish if present)
     const totalDuration = animation.capture ? 1900 : 1600;
     delay(() => {
-      this.translate.set(without(this.translate(), movingPiece));
+      this.translate.update(translate => without(translate, movingPiece));
       this.movingPiece.set(undefined);
       // capturedPiece already deleted above if it existed
       if (!animation.capture) {

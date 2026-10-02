@@ -2,8 +2,8 @@
   <a class="logo" routerLink="/"></a>
   <h5 routerLink="." i18n>
     Submit
-    @if (selectedPlugin) {
-      <span>{{ selectedPlugin.name || selectedPlugin.tag }}</span>
+    @if (selectedPlugin()) {
+      <span>{{ selectedPlugin()!.name || selectedPlugin()!.tag }}</span>
     }
   </h5>
   <a routerLink="/submit"
@@ -67,13 +67,13 @@
 @if (!store.submit.subpage()) {
   <div class="full-page-form">
     <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
-      @if (!store.submit.wiki() && selectedPlugin) {
+      @if (!store.submit.wiki() && selectedPlugin()) {
         <span i18n>Type:</span>
         <div>
-          <span>{{ selectedPlugin.name || selectedPlugin.tag }}</span>
-          @if (selectedPlugin.config?.description) {
+          <span>{{ selectedPlugin()!.name || selectedPlugin()!.tag }}</span>
+          @if (selectedPlugin()!.config?.description) {
             <p class="description">
-              {{ selectedPlugin.config!.description }}
+              {{ selectedPlugin()!.config!.description }}
             </p>
           }
         </div>
@@ -107,7 +107,7 @@
             }
           </datalist>
           <input id="url"
-                 [placeholder]="placeholder"
+                 [placeholder]="placeholder()"
                  class="big"
                  type="text"
                  size="1"
@@ -170,7 +170,7 @@
           }
           <button type="submit"
                   i18n-title title="Submit link"
-                  i18n>@if (repost) { Repost } @else { Next }</button>
+                  i18n>@if (repost()) { Repost } @else { Next }</button>
         </span>
 
         @if (responsesToUrl().content.length > 0) {

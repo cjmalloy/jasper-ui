@@ -1,5 +1,5 @@
-import { DestroyRef, inject, Component, ChangeDetectionStrategy, effect, input, signal, viewChildren } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, ChangeDetectionStrategy, computed, effect, input, viewChildren } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -26,15 +26,20 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   ],
 })
 export class BlogComponent implements HasChanges {
-  private destroyRef = inject(DestroyRef);
-
   readonly pageControls = input(true);
   readonly emptyMessage = input($localize `No blog entries found`);
   readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
   readonly ext = input<Ext | undefined>(undefined);
   readonly page = input<Page<Ref> | undefined>(undefined);
 
-  readonly pinned = signal<Ref[]>([]);
+  private readonly pinnedResource = rxResource({
+    params: () => this.ext()?.config?.pinned as string[] | undefined,
+    stream: ({ params }) => params?.length
+      ? forkJoin(params.map(pin => this.refs.getCurrent(pin).pipe(catchError(() => of<Ref>({ url: pin })))))
+      : of([]),
+    defaultValue: [] as Ref[],
+  });
+  readonly pinned = computed(() => this.pinnedResource.value());
   error: any;
 
 
@@ -45,19 +50,6 @@ export class BlogComponent implements HasChanges {
     private store: Store,
     private refs: RefService,
   ) {
-    effect(() => {
-      const value = this.ext();
-      if (!value?.config?.pinned?.length) {
-        this.pinned.set([]);
-      } else {
-        forkJoin((value.config.pinned as string[])
-          .map(pin => this.refs.getCurrent(pin).pipe(
-            catchError(err => of({url: pin})),
-            takeUntilDestroyed(this.destroyRef),
-          )))
-          .subscribe(pinned => this.pinned.set(pinned));
-      }
-    });
     effect(() => {
       const page = this.page();
       if (page?.page.number && page.page.number >= page.page.totalPages) {
@@ -77,19 +69,20 @@ export class BlogComponent implements HasChanges {
   }
 
 
-  get cols() {
+  readonly cols = computed(() => {
     const cols = this.colsInput();
     if (cols) return cols;
-    return this.config?.defaultCols;
-  }
+    return this.config()?.defaultCols;
+  });
 
-  get colStyle() {
-    return this.cols ? ' 1fr'.repeat(this.cols) : '';
-  }
+  readonly colStyle = computed(() => {
+    const cols = this.cols();
+    return cols ? ' 1fr'.repeat(cols) : '';
+  });
 
 
-  get config() {
+  readonly config = computed(() => {
     return this.ext()?.config as RootConfig | undefined;
-  }
+  });
 
 }

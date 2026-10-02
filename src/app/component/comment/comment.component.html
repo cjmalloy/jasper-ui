@@ -1,8 +1,8 @@
 @if (collapsed()) {
   <div class="comment-container info collapsed" tabindex="0">
     <span class="comment-expand fake-link" (click)="collapsed.set(false); store.local.setRefToggled('comment:' + ref().url, true)" i18n>[+]</span>&nbsp;
-    @if (authors.length) {
-      @if (authorExts$() | async; as xs) {
+    @if (authors().length) {
+      @if (authorExts.hasValue() ? authorExts.value() : undefined; as xs) {
         @for (x of xs; track x.tag + x.origin) {
           <a class="user tag"
              [title]="formatAuthor(x.tag + x.origin)"
@@ -10,7 +10,7 @@
              [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
         }
       } @else {
-        @for (t of authors; track t) {
+        @for (t of authors(); track t) {
           <a class="user tag"
              [title]="formatAuthor(t)"
              [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
@@ -18,11 +18,11 @@
       }
     }
     @if (store.view.isVoteSorted() && admin.getPlugin('plugin/user/vote/up')) {
-      <span class="vote-score" i18n>{{ score }} points&nbsp;</span>
+      <span class="vote-score" i18n>{{ score() }} points&nbsp;</span>
     }
     <span [title]="ref().created?.toISO()">{{ ref().created?.toRelative() }}</span>
-    @if (!modifiedIsSubmitted) {
-      <span [title]="ref().modified!.toRelative()">* </span>
+    @if (!modifiedIsSubmitted()) {
+      <span [title]="ref().modified?.toRelative()">* </span>
     }
     @for (icon of icons(); track icon) {
       @if (showIcon(icon)) {
@@ -33,34 +33,34 @@
               [ref]="ref()">{{ icon.label }}</span>
       }
     }
-    ({comments, plural, =1 {1&thinsp;child} other {{{ comments }}&thinsp;children}})
+    ({comments(), plural, =1 {1&thinsp;child} other {{{ comments() }}&thinsp;children}})
   </div>
 }
 
-@if (deleted && (comments || responses)) {
+@if (deleted() && (comments() || responses())) {
   <div class="comment-container info collapsed" tabindex="0" i18n>
     deleted comment
   </div>
 }
 <div class="row">
-  @if (store.view.isVoteSorted() && !collapsed() && !deleted && store.account.user() && admin.getPlugin('plugin/user/vote/up')) {
+  @if (store.view.isVoteSorted() && !collapsed() && !deleted() && store.account.user() && admin.getPlugin('plugin/user/vote/up')) {
     <div class="voting">
       <div class="vote-up"
-           [class.on]="upvote"
+           [class.on]="upvote()"
            (click)="voteUp()"></div>
       @if (admin.getPlugin('plugin/user/vote/down')) {
         <div class="vote-down"
-             [class.on]="downvote"
+             [class.on]="downvote()"
              (click)="voteDown()"></div>
       }
     </div>
   }
-  @if (!collapsed() && !deleted) {
+  @if (!collapsed() && !deleted()) {
     <div class="comment-container" tabindex="0">
       <div class="info">
         <span class="comment-collapse fake-link" (click)="collapsed.set(true); store.local.setRefToggled('comment:' + ref().url, false)">[&ndash;]</span>&nbsp;
-        @if (authors.length) {
-          @if (authorExts$() | async; as xs) {
+        @if (authors().length) {
+          @if (authorExts.hasValue() ? authorExts.value() : undefined; as xs) {
             @for (x of xs; track x.tag + x.origin) {
               <a class="user tag"
                  [title]="formatAuthor(x.tag + x.origin)"
@@ -68,7 +68,7 @@
                  [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
             }
           } @else {
-            @for (t of authors; track t) {
+            @for (t of authors(); track t) {
               <a class="user tag"
                  [title]="formatAuthor(t)"
                  [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
@@ -76,22 +76,22 @@
           }
         }
         @if (admin.getPlugin('plugin/user/vote/up')) {
-          <span class="vote-score" i18n>{{ score }} points&nbsp;</span>
+          <span class="vote-score" i18n>{{ score() }} points&nbsp;</span>
         }
         <span [title]="ref().created?.toISO()">{{ ref().created?.toRelative() }}</span>
-        @if (!modifiedIsSubmitted) {
-          <span [title]="'last edited ' + ref().modified!.toRelative()">* </span>
+        @if (!modifiedIsSubmitted()) {
+          <span [title]="'last edited ' + ref().modified?.toRelative()">* </span>
         }
-        @if (tagged.length) {
+        @if (tagged().length) {
           <span i18n> tagged
-            @if (tagExts$() | async; as xs) {
+            @if (tagExts.hasValue() ? tagExts.value() : undefined; as xs) {
               @for (x of xs; track x.tag) {
                 <a class="tag"
                    [routerLink]="['/tag', x.tag]"
                    [appTitle]="x.tag">{{ x.name || '#' + x.tag }}</a>
               }
             } @else {
-              @for (t of tagged; track t) {
+              @for (t of tagged(); track t) {
                 <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
               }
             }
@@ -117,23 +117,23 @@
       }
       <div class="actions">
         <a [routerLink]="['/ref', ref().url, 'comments']"
-           [queryParams]="{ origin: nonLocalOrigin }"
+           [queryParams]="{ origin: nonLocalOrigin() }"
            (click)="store.view.preloadRef(ref())"
            i18n>permalink</a>
         <a class="fake-link"
            (click)="replying.set(!replying())"
            i18n>reply</a>
-        @if (responses) {
+        @if (responses()) {
           <a [routerLink]="['/ref', ref().url, 'responses']"
-             [queryParams]="{ origin: nonLocalOrigin }"
+             [queryParams]="{ origin: nonLocalOrigin() }"
              (click)="store.view.preloadRef(ref())"
-             i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
+             i18n>{responses(), plural, =1 {1&thinsp;citation} other {{{ responses() }}&thinsp;citations}}</a>
         }
-        @if (sources > 2) {
+        @if (sources() > 2) {
           <a [routerLink]="['/ref', ref().url, 'sources']"
-             [queryParams]="{ origin: nonLocalOrigin }"
+             [queryParams]="{ origin: nonLocalOrigin() }"
              (click)="store.view.preloadRef(ref())"
-             i18n>{{ sources }}&thinsp;sources</a>
+             i18n>{{ sources() }}&thinsp;sources</a>
         }
         @if (writeAccess()) {
           <a class="fake-link"
@@ -150,7 +150,7 @@
                           [tags]="ref().tags"
                           i18n>tag</app-inline-tag>
         }
-        @if (canInvoice) {
+        @if (canInvoice()) {
           <a [routerLink]="['/submit/invoice']"
              [queryParams]="{ url: ref().url }"
              i18n>invoice</a>
@@ -167,18 +167,18 @@
                      [autofocus]="true"
                      [to]="ref()"
                      [showCancel]="true"
-                     [tags]="replyTags"
+                     [tags]="replyTags()"
                      (save)="newComments$.next($event)"></app-comment-reply>
 }
 <div class="comment-children"
      [class.hidden-without-removing]="collapsed()">
   <app-comment-thread #threadComponent [source]="ref().url"
                       [scrollToLatest]="scrollToLatest()"
-                      [depth]="depth()! - 1"
+                      [depth]="(depth() ?? 0) - 1"
                       [context]="context() + 1"
                       [newComments$]="newComments$"></app-comment-thread>
 </div>
-@if (showLoadMore() && !collapsed() && ((depth() === 1 && comments) || moreComments)) {
+@if (showLoadMore() && !collapsed() && ((depth() === 1 && comments()) || moreComments())) {
   @if (context() < maxContext) {
     <span class="fake-link load-more no-select"
           (click)="loadMore()" i18n>
@@ -187,7 +187,7 @@
   } @else {
     <a class="load-more"
        [routerLink]="['/ref', ref().url, 'comments']"
-       [queryParams]="{ origin: nonLocalOrigin }"
+       [queryParams]="{ origin: nonLocalOrigin() }"
        (click)="store.view.preloadRef(ref())" i18n>
       continue this thread
     </a>

@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { DestroyRef, inject, Injectable } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { delay } from 'lodash-es';
 import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, takeWhile, timeInterval, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -23,6 +24,8 @@ export const EXT_BATCH_SIZE = 50;
   providedIn: 'root',
 })
 export class ExtService {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly cacheTimers = new Set<number>();
 
   private _cache = new Map<string, Observable<Ext>>();
   private _batchQueue: Array<{ key: string; tag: string; origin?: string; subject: Subject<Ext> }> = [];
@@ -34,7 +37,15 @@ export class ExtService {
     private login: LoginService,
     private store: Store,
     private stomp: StompService,
-  ) { }
+  ) {
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(this._batchTimer);
+      for (const timer of this.cacheTimers) clearTimeout(timer);
+      this.cacheTimers.clear();
+      for (const item of this._batchQueue) item.subject.complete();
+      this._batchQueue = [];
+    });
+  }
 
   private get base() {
     return this.config.api + '/api/v1/ext';
@@ -122,6 +133,7 @@ keys.push(ext.tag + ':' + ext.origin);
       timeInterval(),
       takeWhile((update, index) => index === 0 || update.interval >= EXT_UPDATE_RATE_LIMIT_MS),
       map(update => update.value),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(x => {
       value = of(x);
       for (const key of keys) {
@@ -134,7 +146,11 @@ keys.push(ext.tag + ':' + ext.origin);
       }
       sub.unsubscribe();
     };
-    delay(clear, EXT_CACHE_MS);
+    const timer = delay(() => {
+      this.cacheTimers.delete(timer);
+      clear();
+    }, EXT_CACHE_MS);
+    this.cacheTimers.add(timer);
   }
 
   private processBatch() {
@@ -159,7 +175,8 @@ keys.push(ext.tag + ':' + ext.origin);
 
     // Fetch all exts in a single page request
     this.page({ query: queries.join('|'), size: EXT_BATCH_SIZE }).pipe(
-      catchError(() => of(Page.of([])))
+      catchError(() => of(Page.of([]))),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(result => {
       // Process results for each item in the batch
       for (const item of batch) {

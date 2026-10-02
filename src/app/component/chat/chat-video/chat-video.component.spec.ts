@@ -3,9 +3,10 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
+import { ExtService } from '../../../service/api/ext.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { VideoService } from '../../../service/video.service';
 import { Store } from '../../../store/store';
@@ -34,9 +35,9 @@ describe('ChatVideoComponent', () => {
       })
     };
     mockTaggingService = {
-      getResponse: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
-      respond: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
-      deleteResponse: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
+      getResponse: vi.fn().mockReturnValue(of({})),
+      respond: vi.fn().mockReturnValue(of(undefined)),
+      deleteResponse: vi.fn().mockReturnValue(of(undefined)),
     };
     mockVideoService = {
       call: vi.fn(),
@@ -63,6 +64,9 @@ describe('ChatVideoComponent', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: AdminService, useValue: mockAdminService },
+        { provide: ExtService, useValue: {
+          getCachedExt: vi.fn().mockImplementation(tag => of({ tag, origin: '' })),
+        } },
         { provide: TaggingService, useValue: mockTaggingService },
         { provide: VideoService, useValue: mockVideoService },
       ]
@@ -220,6 +224,28 @@ describe('ChatVideoComponent', () => {
 
       expect(mockVideoService.call).not.toHaveBeenCalled();
     });
+
+    it('stops captured tracks when destroyed while waiting to join the lobby', async () => {
+      const response = new Subject<void>();
+      mockTaggingService.respond.mockReturnValue(response);
+      component.call();
+      await vi.waitFor(() => expect(response.observed).toBe(true));
+
+      fixture.destroy();
+
+      expect(response.observed).toBe(false);
+      expect(mockMediaStream.getTracks()[0].stop).toHaveBeenCalled();
+      expect(mockVideoService.call).not.toHaveBeenCalled();
+    });
+
+    it('stops tracks obtained after the component is destroyed', async () => {
+      component.call();
+      fixture.destroy();
+
+      await vi.waitFor(() => expect(mockMediaStream.getTracks()[0].stop).toHaveBeenCalled());
+      expect(mockTaggingService.respond).not.toHaveBeenCalled();
+      expect(mockVideoService.call).not.toHaveBeenCalled();
+    });
   });
 
   describe('Disabling video', () => {
@@ -263,6 +289,23 @@ describe('ChatVideoComponent', () => {
   });
 
   describe('User streams', () => {
+    it('invalidates cached live streams through the production track lifecycle notification', () => {
+      const track = { readyState: 'live' };
+      const stream = { getTracks: () => [track] } as unknown as MediaStream;
+      mockStore.video.streams.set(new Map([['user1', [{ stream }]]]));
+      const snapshot = mockStore.video.streams();
+      expect(component.userStreams()[0].streams).toHaveLength(1);
+      expect(component.featuredStream()?.streams).toHaveLength(1);
+
+      track.readyState = 'ended';
+      mockStore.video.refreshStreams('user1');
+
+      expect(mockStore.video.streams()).not.toBe(snapshot);
+      expect(component.userStreams()[0].streams).toEqual([]);
+      expect(component.featuredStream()?.streams).toEqual([]);
+      expect(component.gridStreams()).toEqual([]);
+    });
+
     it('should return user streams from store', () => {
       const mockStream1 = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
@@ -270,10 +313,11 @@ describe('ChatVideoComponent', () => {
       const mockStream2 = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: mockStream1 }]);
-      mockStore.video.streams().set('user2', [{ stream: mockStream2 }]);
+      mockStore.video.streams.set(new Map([
+        ['user1', [{ stream: mockStream1 }]], ['user2', [{ stream: mockStream2 }]],
+      ]));
 
-      const userStreams = component.userStreams;
+      const userStreams = component.userStreams();
 
       expect(userStreams.length).toBe(2);
       expect(userStreams[0].tag).toBe('user1');
@@ -283,9 +327,9 @@ describe('ChatVideoComponent', () => {
     });
 
     it('should return empty array when no streams', () => {
-      mockStore.video.streams().clear();
+      mockStore.video.streams.set(new Map());
 
-      const userStreams = component.userStreams;
+      const userStreams = component.userStreams();
 
       expect(userStreams.length).toBe(0);
     });
@@ -297,9 +341,9 @@ describe('ChatVideoComponent', () => {
       const endedStream = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'ended' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: liveStream }, { stream: endedStream }]);
+      mockStore.video.streams.set(new Map([['user1', [{ stream: liveStream }, { stream: endedStream }]]]));
 
-      const userStreams = component.userStreams;
+      const userStreams = component.userStreams();
 
       // Only live streams should be returned (filtered)
       expect(userStreams[0].streams).toEqual([{ stream: liveStream }]);
@@ -311,15 +355,15 @@ describe('ChatVideoComponent', () => {
       const mockStream = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: mockStream }]);
+      mockStore.video.streams.set(new Map([['user1', [{ stream: mockStream }]]]));
 
-      expect(component.isTwoPersonCall).toBe(true);
+      expect(component.isTwoPersonCall()).toBe(true);
     });
 
     it('should return false when there are no streams', () => {
-      mockStore.video.streams().clear();
+      mockStore.video.streams.set(new Map());
 
-      expect(component.isTwoPersonCall).toBe(false);
+      expect(component.isTwoPersonCall()).toBe(false);
     });
 
     it('should return false when there are multiple streams', () => {
@@ -329,10 +373,11 @@ describe('ChatVideoComponent', () => {
       const mockStream2 = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: mockStream1 }]);
-      mockStore.video.streams().set('user2', [{ stream: mockStream2 }]);
+      mockStore.video.streams.set(new Map([
+        ['user1', [{ stream: mockStream1 }]], ['user2', [{ stream: mockStream2 }]],
+      ]));
 
-      expect(component.isTwoPersonCall).toBe(false);
+      expect(component.isTwoPersonCall()).toBe(false);
     });
   });
 
@@ -341,9 +386,9 @@ describe('ChatVideoComponent', () => {
       const mockStream = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: mockStream }]);
+      mockStore.video.streams.set(new Map([['user1', [{ stream: mockStream }]]]));
 
-      const featured = component.featuredStream;
+      const featured = component.featuredStream()!;
 
       expect(featured.tag).toBe('user1');
       expect(featured.streams).toEqual([{ stream: mockStream }]);
@@ -356,11 +401,12 @@ describe('ChatVideoComponent', () => {
       const mockStream2 = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: mockStream1 }]);
-      mockStore.video.streams().set('user2', [{ stream: mockStream2 }]);
+      mockStore.video.streams.set(new Map([
+        ['user1', [{ stream: mockStream1 }]], ['user2', [{ stream: mockStream2 }]],
+      ]));
       mockStore.video.activeSpeaker.set('');
 
-      const featured = component.featuredStream;
+      const featured = component.featuredStream()!;
 
       expect(featured.tag).toBe('user1');
     });
@@ -372,11 +418,12 @@ describe('ChatVideoComponent', () => {
       const mockStream2 = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: mockStream1 }]);
-      mockStore.video.streams().set('user2', [{ stream: mockStream2 }]);
+      mockStore.video.streams.set(new Map([
+        ['user1', [{ stream: mockStream1 }]], ['user2', [{ stream: mockStream2 }]],
+      ]));
       mockStore.video.activeSpeaker.set('user2');
 
-      const featured = component.featuredStream;
+      const featured = component.featuredStream()!;
 
       expect(featured.tag).toBe('user2');
       expect(featured.streams).toEqual([{ stream: mockStream2 }]);
@@ -386,31 +433,62 @@ describe('ChatVideoComponent', () => {
       const mockStream1 = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: mockStream1 }]);
+      mockStore.video.streams.set(new Map([['user1', [{ stream: mockStream1 }]]]));
       mockStore.video.activeSpeaker.set('nonexistent');
 
-      const featured = component.featuredStream;
+      const featured = component.featuredStream()!;
 
       expect(featured.tag).toBe('user1');
     });
 
     it('should return undefined when there are no streams', () => {
-      mockStore.video.streams().clear();
+      mockStore.video.streams.set(new Map());
 
-      const featured = component.featuredStream;
+      const featured = component.featuredStream();
 
       expect(featured).toBeUndefined();
     });
   });
 
   describe('gridStreams', () => {
+    it('excludes the fallback featured user when the active speaker has left', () => {
+      const stream = { getTracks: () => [{ readyState: 'live' }] } as any as MediaStream;
+      mockStore.video.streams.set(new Map([
+        ['user1', [{ stream }]], ['user2', [{ stream }]],
+      ]));
+      mockStore.video.activeSpeaker.set('departed');
+
+      expect(component.featuredStream()?.tag).toBe('user1');
+      expect(component.gridStreams().map(user => user.tag)).toEqual(['user2']);
+    });
+
+    it('recomputes cached layouts and hungup users after immutable store updates', () => {
+      const stream = { getTracks: () => [{ readyState: 'live' }] } as any as MediaStream;
+      mockStore.video.streams.set(new Map([['user1', [{ stream }]]]));
+      expect(component.isTwoPersonCall()).toBe(true);
+      expect(component.gridStreams()).toEqual([]);
+      expect(component.hungup()).toEqual([]);
+
+      mockStore.video.streams.update(streams => new Map([...streams, ['user2', [{ stream }]]]));
+      mockStore.video.activeSpeaker.set('user2');
+      mockStore.video.hungup.set(new Map([['departed', true]]));
+
+      expect(component.isTwoPersonCall()).toBe(false);
+      expect(component.featuredStream()?.tag).toBe('user2');
+      expect(component.gridStreams().map(user => user.tag)).toEqual(['user1']);
+      expect(component.hungup()).toEqual(['departed']);
+      mockStore.video.streams.set(new Map());
+      expect(component.featuredStream()).toBeUndefined();
+      expect(component.gridStreams()).toEqual([]);
+    });
+
     it('should return empty array when there is only one stream', () => {
       const mockStream = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: mockStream }]);
+      mockStore.video.streams.set(new Map([['user1', [{ stream: mockStream }]]]));
 
-      const grid = component.gridStreams;
+      const grid = component.gridStreams();
 
       expect(grid.length).toBe(0);
     });
@@ -425,12 +503,13 @@ describe('ChatVideoComponent', () => {
       const mockStream3 = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: mockStream1 }]);
-      mockStore.video.streams().set('user2', [{ stream: mockStream2 }]);
-      mockStore.video.streams().set('user3', [{ stream: mockStream3 }]);
+      mockStore.video.streams.set(new Map([
+        ['user1', [{ stream: mockStream1 }]], ['user2', [{ stream: mockStream2 }]],
+        ['user3', [{ stream: mockStream3 }]],
+      ]));
       mockStore.video.activeSpeaker.set('');
 
-      const grid = component.gridStreams;
+      const grid = component.gridStreams();
 
       expect(grid.length).toBe(2);
       expect(grid[0].tag).toBe('user2');
@@ -447,12 +526,13 @@ describe('ChatVideoComponent', () => {
       const mockStream3 = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams().set('user1', [{ stream: mockStream1 }]);
-      mockStore.video.streams().set('user2', [{ stream: mockStream2 }]);
-      mockStore.video.streams().set('user3', [{ stream: mockStream3 }]);
+      mockStore.video.streams.set(new Map([
+        ['user1', [{ stream: mockStream1 }]], ['user2', [{ stream: mockStream2 }]],
+        ['user3', [{ stream: mockStream3 }]],
+      ]));
       mockStore.video.activeSpeaker.set('user2');
 
-      const grid = component.gridStreams;
+      const grid = component.gridStreams();
 
       expect(grid.length).toBe(2);
       expect(grid[0].tag).toBe('user1');
@@ -460,9 +540,9 @@ describe('ChatVideoComponent', () => {
     });
 
     it('should return empty array when there are no streams', () => {
-      mockStore.video.streams().clear();
+      mockStore.video.streams.set(new Map());
 
-      const grid = component.gridStreams;
+      const grid = component.gridStreams();
 
       expect(grid.length).toBe(0);
     });
@@ -470,45 +550,43 @@ describe('ChatVideoComponent', () => {
 
   describe('hungup', () => {
     it('should return empty array when no users have hung up', () => {
-      mockStore.video.hungup().clear();
+      mockStore.video.hungup.set(new Map());
 
-      const hungup = component.hungup;
+      const hungup = component.hungup();
 
       expect(hungup.length).toBe(0);
     });
 
     it('should return users who have hung up', () => {
-      mockStore.video.hungup().set('user1', true);
-      mockStore.video.hungup().set('user2', false);
-      mockStore.video.hungup().set('user3', true);
+      mockStore.video.hungup.set(new Map([['user1', true], ['user2', false], ['user3', true]]));
 
-      const hungup = component.hungup;
+      const hungup = component.hungup();
 
       expect(hungup).toEqual(['user1', 'user3']);
     });
 
     it('should not include users with false hungup status', () => {
-      mockStore.video.hungup().set('user1', false);
+      mockStore.video.hungup.set(new Map([['user1', false]]));
 
-      const hungup = component.hungup;
+      const hungup = component.hungup();
 
       expect(hungup.length).toBe(0);
     });
   });
 
-  describe('speaker setter', () => {
+  describe('speaker selection', () => {
     beforeEach(() => {
       mockStore.account.tag.set('+user/me');
     });
 
     it('should set activeSpeaker to empty string when setting to current user', () => {
-      component.speaker = '+user/me';
+      component.setSpeaker('+user/me');
 
       expect(mockStore.video.activeSpeaker()).toBe('');
     });
 
     it('should set activeSpeaker to user tag when setting to different user', () => {
-      component.speaker = '+user/other';
+      component.setSpeaker('+user/other');
 
       expect(mockStore.video.activeSpeaker()).toBe('+user/other');
     });

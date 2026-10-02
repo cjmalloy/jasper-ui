@@ -1,19 +1,19 @@
 <form>
-  <app-editor #editor [control]="comment"
+  <app-editor #editor [control]="comment()"
               [createdTags]="tags() || []"
               [selectResponseType]="selectResponseType()"
               (syncTags)="syncTags($event)"
               (addSource)="addSource($event)"
-              (uploadCompleted)="completedUploads.set([...completedUploads(), $event])"
+              (uploadCompleted)="uploadCompleted($event)"
               [autoFocus]="autofocus()"></app-editor>
 </form>
 @for (e of serverError(); track e) {
   <div class="error">{{ e }}</div>
 }
 
-<button type="button" [disabled]="replying()" (click)="reply()" i18n>reply</button>
+<button class="comment-reply-submit" type="button" [disabled]="replying()" (click)="reply()" i18n>reply</button>
 @if (replying()) {
   <app-loading [inline]="true"></app-loading>
 } @else if (showCancel()) {
-  <button type="button" (click)="cancel()" i18n>cancel</button>
+  <button class="comment-reply-cancel" type="button" (click)="cancel()" i18n>cancel</button>
 }

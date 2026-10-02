@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal, untracked } from '@angular/core';
+import { computed, Component, ChangeDetectionStrategy, viewChild, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
@@ -26,10 +26,10 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
     SidebarComponent,
   ]
 })
-export class TagsPage implements OnDestroy, HasChanges {
+export class TagsPage implements HasChanges {
 
   readonly title = signal<string>('');
-  templates = this.admin.tmplSubmit.filter(t => t.config?.view);
+  templates = this.admin.tmplSubmit().filter(t => t.config?.view);
 
   readonly list = viewChild<ExtListComponent>('list');
 
@@ -76,16 +76,16 @@ export class TagsPage implements OnDestroy, HasChanges {
     return !list || list.saveChanges();
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 
   templateIs(tag: string): boolean {
     return hasPrefix(this.store.view.localTemplate(), tag);
   }
 
-  get templateExists(): boolean {
+  readonly templateExists = computed<boolean>(() => {
     if (this.store.view.localTemplate() === 'user') return true;
     return !!this.templates.find(t => hasPrefix(this.store.view.localTemplate(), t.tag));
-  }
+  });
 }

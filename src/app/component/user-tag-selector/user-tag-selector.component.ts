@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -15,7 +15,7 @@ import { Store } from '../../store/store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
-export class UserTagSelectorComponent implements OnDestroy {
+export class UserTagSelectorComponent {
 
   readonly preview = signal('');
   readonly editing = signal(false);
@@ -34,10 +34,10 @@ export class UserTagSelectorComponent implements OnDestroy {
     this.getPreview(this.store.local.selectedUserTag);
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.previewing?.unsubscribe();
     this.searching?.unsubscribe();
-  }
+  });
 
   blur(input: HTMLInputElement) {
     this.editing.set(false);

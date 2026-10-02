@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
+import { computed, ChangeDetectionStrategy, Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
@@ -48,11 +48,11 @@ import { getErrorMessage } from './errors';
     <div class="form-array skip-margin">
       <input class="preview grow"
              type="text"
-             [style.display]="preview ? 'block' : 'none'">
+             [style.display]="preview() ? 'block' : 'none'">
       <div #div
            class="breadcrumbs"
            [title]="input.value"
-           [style.display]="preview ? 'block' : 'none'"
+           [style.display]="preview() ? 'block' : 'none'"
            (click)="$event.target === div && edit(input, false)">
         @for (breadcrumb of breadcrumbs(); track breadcrumb) {
           <span class="crumb">
@@ -76,7 +76,7 @@ import { getErrorMessage } from './errors';
              autocorrect="off"
              autocapitalize="none"
              [attr.list]="listId"
-             [class.hidden-without-removing]="preview"
+             [class.hidden-without-removing]="preview()"
              (input)="search(input.value)"
              (blur)="blur(input)"
              (focusin)="edit(input, false)"
@@ -94,7 +94,7 @@ import { getErrorMessage } from './errors';
     FormlyAttributes,
   ],
 })
-export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
+export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> {
 
   listId = 'list-' + uuid();
   readonly breadcrumbs = signal<Crumb[]>([]);
@@ -104,6 +104,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
   private showedError = false;
   private searching?: Subscription;
   private formChanges?: Subscription;
+  private breadcrumbChanges = new Subscription();
   readonly query = signal('');
 
   constructor(
@@ -117,7 +118,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
     super();
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
@@ -129,22 +130,26 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
         }
       }
     });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.searching?.unsubscribe();
     this.formChanges?.unsubscribe();
-  }
+    this.breadcrumbChanges.unsubscribe();
+  });
 
-  get preview() {
+  readonly preview = computed(() => {
     return !this.editing() && this.query();
-  }
+  });
 
   setQuery(value: string) {
     this.editing.set(false);
     if (this.query() === value) return;
     this.query.set(value);
+    this.breadcrumbChanges.unsubscribe();
+    this.breadcrumbChanges = new Subscription();
     this.breadcrumbs.set(this.queryCrumbs(value));
+    this.loadBreadcrumbNames();
   }
 
   validate(input: HTMLInputElement) {
@@ -286,33 +291,37 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
         crumbs.push(notOp);
       }
     }
-    for (const t of crumbs) {
+    return crumbs;
+  }
+
+  private loadBreadcrumbNames() {
+    for (const t of this.breadcrumbs()) {
       const tag = t.tag?.startsWith('!') ? t.tag.substring(1) : t.tag;
       if (tag && !tag.startsWith('@')) {
-        this.exts.getCachedExt(tag).subscribe(ext => {
-          // TODO: possible delayed write
+        this.breadcrumbChanges.add(this.exts.getCachedExt(tag).subscribe(ext => {
+          let text = t.text;
           if (ext.modifiedString && ext.name) {
-            t.text = ext.name;
+            text = ext.name;
           } else if (ext.tag === 'plugin') {
-            t.text = '📦';
+            text = '📦';
           } else if (ext.tag === '+plugin') {
-            t.text = '+📦';
+            text = '+📦';
           } else if (ext.tag === '_plugin') {
-            t.text = '_📦';
+            text = '_📦';
           } else {
             const template = this.admin.getTemplate(ext.tag);
             if (template?.name) {
-              t.text = template.name;
+              text = template.name;
             } else {
               const plugin = this.admin.getPlugin(ext.tag);
-              if (plugin?.name) t.text = plugin.name;
+              if (plugin?.name) text = plugin.name;
             }
           }
-          this.breadcrumbs.set([...this.breadcrumbs()]);
-        });
+          this.breadcrumbs.update(crumbs => crumbs.map(crumb =>
+            crumb.tag === t.tag && crumb.pos === t.pos && crumb.len === t.len ? { ...crumb, text } : crumb));
+        }));
       }
     }
-    return crumbs;
   }
 
   search = debounce((text: string) => {

@@ -61,10 +61,11 @@ export class ActionListComponent implements AfterViewInit {
     private el: ElementRef<HTMLElement>,
     private viewContainerRef: ViewContainerRef,
   ) {
-    effect(() => {
+    effect(onCleanup => {
       this.layoutInputs();
       this.cachedActionWidths = undefined;
-      defer(() => this.onResize());
+      const resize = defer(() => this.onResize());
+      onCleanup(() => clearTimeout(resize));
     });
   }
 
@@ -102,13 +103,14 @@ export class ActionListComponent implements AfterViewInit {
   }
 
   onResize() {
+    this.cachedActionWidths = undefined;
     if (!this.actions()) return;
     this.measureVisible();
   }
 
   measureVisible() {
     if (!this.actions()) return;
-    this.hiddenActions.set(this.actions() - this.visible);
+    this.hiddenActions.set(this.actions() - this.visible());
   }
   readonly actions = computed(() => {
     return Object.keys(this.groupedActions() as any).length;
@@ -118,30 +120,32 @@ export class ActionListComponent implements AfterViewInit {
 
   /**
    * Widths of the rendered actions, measured from the DOM. Cached until the
-   * inputs change, since hidden actions are removed from the DOM.
+   * inputs change or the container resizes.
    */
   actionWidths() {
     if (this.cachedActionWidths) return this.cachedActionWidths;
     const el = this.el.nativeElement;
     const result: number[] = [];
-    for (let i = 0; i < el.children.length; i++) {
-      const e = el.children[i] as HTMLElement;
+    for (const e of el.querySelectorAll<HTMLElement>(':scope > .list-action')) {
       const s = getComputedStyle(e);
-      result.push(e.offsetWidth + parseInt(s.marginLeft) + parseInt(s.marginRight));
+      result.push(e.offsetWidth + (parseFloat(s.marginLeft) || 0) + (parseFloat(s.marginRight) || 0));
     }
     return this.cachedActionWidths = result;
   }
 
-  get visible() {
+  visible() {
     if (this.config.mobile) return this.actions();
     const el = this.el.nativeElement;
-    const parentWidth = el.parentElement!.offsetWidth;
+    const parent = el.parentElement;
+    if (!parent) return 0;
+    const parentWidth = parent.offsetWidth;
     let result = 0;
     let childWidth = 0;
-    for (let i = 0; i < el.parentElement!.children.length - 1; i++) {
-      const e = el.parentElement!.children[i] as HTMLElement;
+    for (const child of parent.children) {
+      if (child === el) continue;
+      const e = child as HTMLElement;
       const s = getComputedStyle(e);
-      childWidth += e.offsetWidth + parseInt(s.marginLeft) + parseInt(s.marginRight);
+      childWidth += e.offsetWidth + (parseFloat(s.marginLeft) || 0) + (parseFloat(s.marginRight) || 0);
     }
     for (const w of this.actionWidths()) {
       childWidth += w;

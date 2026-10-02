@@ -2,7 +2,7 @@
   <a [class]="css()"
      [routerLink]="nav()"
      [title]="title()"
-     [queryParams]="query"
+     [queryParams]="query()"
      (mouseup)="markRead($event)">{{ text() }}</a>
 } @else {
   <a [class]="css()"

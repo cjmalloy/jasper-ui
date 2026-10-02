@@ -1,30 +1,13 @@
+import { controlValue } from '../../util/form';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  ElementRef,
-  effect,
-  forwardRef,
-  inject,
-  OnDestroy,
-  input,
-  linkedSignal,
-  output,
-  untracked,
-  viewChildren,
-  viewChild,
-  signal,
-  computed,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, effect, forwardRef, inject, input, linkedSignal, output, untracked, viewChildren, viewChild, signal, computed, afterNextRender } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, startWith, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
@@ -106,24 +89,24 @@ import { ViewerComponent } from '../viewer/viewer.component';
     '[class.deleted]': 'deleted()',
     '[class.mobile-unlock]': 'mobileUnlock()',
     '[class.storyboard-ready]': 'storyboardLoaded()',
-    '[attr.data-ref-url]': 'refUrlAttr',
-    '[attr.data-ref-origin]': 'refOriginAttr',
-    '[attr.data-ref-title]': 'refTitleAttr',
-    '[attr.data-ref-thumbnail-url]': 'refThumbnailUrlAttr',
-    '[attr.data-ref-thumbnail-color]': 'refThumbnailColorAttr',
-    '[attr.data-ref-thumbnail-emoji]': 'refThumbnailEmojiAttr',
-    '[attr.data-ref-thumbnail-radius]': 'refThumbnailRadiusAttr',
-    '[class.last-selected]': 'lastSelected',
-    '[class.upload]': 'uploadedFile',
-    '[class.exists]': 'existsFile',
-    '[class.outdated]': 'modifiedFile',
-    '[class.sent]': 'isAuthor',
-    '[style.--storyboard-url]': 'storyboardUrl',
-    '[style.--storyboard-size]': 'storyboardSize',
-    '[style.--storyboard-margin]': 'storyboardMargin',
-    '[style.--storyboard-width]': 'storyboardWidth',
-    '[style.--storyboard-height]': 'storyboardHeight',
-    '[style.--storyboard-animation]': 'storyboardAnimation',
+    '[attr.data-ref-url]': "refUrlAttr()",
+    '[attr.data-ref-origin]': "refOriginAttr()",
+    '[attr.data-ref-title]': "refTitleAttr()",
+    '[attr.data-ref-thumbnail-url]': "refThumbnailUrlAttr()",
+    '[attr.data-ref-thumbnail-color]': "refThumbnailColorAttr()",
+    '[attr.data-ref-thumbnail-emoji]': "refThumbnailEmojiAttr()",
+    '[attr.data-ref-thumbnail-radius]': "refThumbnailRadiusAttr()",
+    '[class.last-selected]': "lastSelected()",
+    '[class.upload]': "uploadedFile()",
+    '[class.exists]': "existsFile()",
+    '[class.outdated]': "modifiedFile()",
+    '[class.sent]': "isAuthor()",
+    '[style.--storyboard-url]': "storyboardUrl()",
+    '[style.--storyboard-size]': "storyboardSize()",
+    '[style.--storyboard-margin]': "storyboardMargin()",
+    '[style.--storyboard-width]': "storyboardWidth()",
+    '[style.--storyboard-height]': "storyboardHeight()",
+    '[style.--storyboard-animation]': 'storyboardAnimation()',
     '(fullscreenchange)': 'onFullscreenChange()',
     '(click)': 'onClick()',
   },
@@ -149,10 +132,12 @@ import { ViewerComponent } from '../viewer/viewer.component';
     CssUrlPipe,
   ],
 })
-export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
+export class RefComponent implements HasChanges {
+  private readonly controlState0 = controlValue(() => this.editForm);
+
 
   css = 'ref list-item';
-  readonly allCss = signal(this.css);
+  readonly allCss = computed(() => this.getPluginClasses());
   private destroyRef = inject(DestroyRef);
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
@@ -178,38 +163,58 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   readonly fetchRepost = input(true);
   readonly copied = output<string>();
 
-  readonly repostRef = signal<Ref | undefined>(undefined);
+  readonly repostRef = toSignal(toObservable(computed(() =>
+    this.ref() && this.fetchRepost() && this.repost() ? this.url() : undefined,
+  )).pipe(switchMap(url => !url ? of(undefined) :
+    (this.store.view.top()?.url === url ? of(this.store.view.top()) : this.refs.getCurrent(url)).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ))), { initialValue: undefined });
   editForm: UntypedFormGroup;
-  readonly submitted = signal(false);
-  readonly invalid = signal(false);
-  readonly overwritten = signal(false);
-  readonly overwrite = signal(true);
-  readonly expandPlugins = signal<string[]>([]);
-  readonly icons = signal<Icon[]>([]);
-  readonly alarm = signal<string | undefined>(undefined);
-  readonly actions = signal<Action[]>([]);
-  readonly groupedActions = signal<Record<string, Action[]>>({});
-  readonly advancedActions = signal<Action[]>([]);
-  readonly groupedAdvancedActions = signal<Record<string, Action[]>>({});
-  readonly infoUis = signal<Plugin[]>([]);
-  readonly deleted = signal(false);
+  readonly submitted = linkedSignal(() => { this.ref(); return false; });
+  readonly invalid = linkedSignal(() => { this.ref(); return false; });
+  readonly overwritten = linkedSignal(() => { this.ref(); return false; });
+  readonly overwrite = linkedSignal(() => { this.ref(); return false; });
+  private readonly fieldRef = computed(() => this.editing()
+    ? { ...this.ref(), ...this.controlState0() } : this.ref());
+  readonly expandPlugins = computed(() => this.bareRepost() && this.repostRef()
+    ? this.admin.getEmbeds(this.repostRef())
+    : [...this.admin.getEmbeds(this.ref()), ...(this.repostRef() ? ['plugin/repost'] : [])]);
+  readonly icons = computed(() => {
+    const ref = this.fieldRef();
+    return uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))));
+  });
+  readonly alarm = computed(() => capturesAny(this.store.account.alarms(), this.fieldRef().tags));
+  readonly actions = computed(() => {
+    const ref = this.fieldRef();
+    return ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(ref.tags, ref.plugins))) : [];
+  });
+  readonly groupedActions = computed(() => groupBy(this.actions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
+  readonly advancedActions = computed(() => {
+    const ref = this.fieldRef();
+    return ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : [];
+  });
+  readonly groupedAdvancedActions = computed(() => groupBy(this.advancedActions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
+  readonly infoUis = computed(() => this.admin.getPluginInfoUis(this.fieldRef().tags));
+  readonly deleted = linkedSignal(() => { this.ref(); return false; });
   readonly mobileUnlock = signal(false);
-  readonly storyboardLoaded = signal(false);
+  readonly storyboardLoaded = linkedSignal(() => { this.storyboardRawUrl(); return false; });
   readonly actionsExpanded = signal<boolean | undefined>(undefined);
   readonly replying = signal(false);
-  readonly writeAccess = signal(false);
-  readonly taggingAccess = signal(false);
-  readonly deleteAccess = signal(false);
-  readonly serverError = signal<string[]>([]);
+  readonly writeAccess = computed(() => this.auth.writeAccess(this.ref()));
+  readonly taggingAccess = computed(() => this.auth.taggingAccess(this.ref()));
+  readonly deleteAccess = computed(() => this.auth.deleteAccess(this.ref()));
+  readonly serverError = linkedSignal<string[]>(() => { this.ref(); return []; });
   readonly publishChanged = signal(false);
   readonly diffOriginal = signal<Ref | undefined>(undefined);
   readonly diffModified = signal<Ref | undefined>(undefined);
-  readonly fullscreen = signal(false);
+  readonly fullscreen = linkedSignal(() => this.ref() ? this.fullscreenRequired() : false);
 
-  readonly submitting = signal<Subscription | undefined>(undefined);
+  readonly submitting = signal(false);
+  private submittingSubscription?: Subscription;
   private refreshTap?: () => void;
-  readonly editing = signal(false);
-  readonly viewSource = signal(false);
+  readonly editing = linkedSignal(() => { this.ref(); return false; });
+  readonly viewSource = linkedSignal(() => { this.ref(); return false; });
   readonly diffing = signal(false);
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
@@ -243,16 +248,19 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
       const value = this.viewer();
       untracked(() => this.handleViewer(value));
     });
-    this.editForm.valueChanges.pipe(
-      takeUntilDestroyed(),
-    ).subscribe(throttle(value => {
-      if (!this.editing()) return;
-      if (!value?.title && !value?.comment || !value?.tags?.length) return;
-      defer(() => {
-        // Let Formly finish rebuilding tag rows before derived Ref UI state reacts.
-        this.initFields({ ...this.ref(), ...value });
-      });
-    }, 400, { leading: true, trailing: true }));
+    effect(() => {
+      if (!this.ref()) return;
+      this.storyboardRawUrl();
+      untracked(() => this.preloadStoryboard());
+    });
+    effect(() => {
+      const animation = this.storyboardAnimationData();
+      if (!animation || document.getElementById(animation.styleId)) return;
+      const style = document.createElement('style');
+      style.id = animation.styleId;
+      style.textContent = animation.keyframes;
+      document.head.appendChild(style);
+    });
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
         if (this.editing() || this.viewSource()) {
@@ -303,49 +311,13 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   init() {
-    this.serverError.set([]);
-    this.submitted.set(false);
-    this.invalid.set(false);
-    this.overwritten.set(false);
-    this.overwrite.set(false);
-    this.deleted.set(false);
-    this.setEditing(false);
-    this.setViewSource(false);
-    this.storyboardLoaded.set(false);
-    this.preloadingUrl = '';
     this.actionComponents()?.forEach(c => c.reset());
     if (this.ref()?.upload) this.editForm.get('url')!.enable();
-    this.writeAccess.set(this.auth.writeAccess(this.ref()));
-    this.taggingAccess.set(this.auth.taggingAccess(this.ref()));
-    this.deleteAccess.set(this.auth.deleteAccess(this.ref()));
-    this.fullscreen.set(this.fullscreenRequired);
-    this.initFields(this.ref());
-
-    this.expandPlugins.set(this.admin.getEmbeds(this.ref()));
-    if (this.repost && this.ref() && this.fetchRepost() && this.repostRef()?.url != repost(this.ref())) {
-      (this.store.view.top()?.url === this.ref().sources![0]
-          ? of(this.store.view.top())
-          : this.refs.getCurrent(this.url)
-      ).pipe(
-        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => {
-        this.repostRef.set(ref);
-        if (!ref) return;
-        if (this.bareRepost) {
-          this.expandPlugins.set(this.admin.getEmbeds(ref));
-          this.allCss.set(this.getPluginClasses());
-        } else {
-          this.expandPlugins.set([...this.expandPlugins(), 'plugin/repost']);
-        }
-        this.preloadStoryboard();
-      });
-    }
-    this.preloadStoryboard();
   }
 
   private preloadStoryboard() {
-    const url = this.storyboardRawUrl;
+    const url = this.storyboardRawUrl();
+    this.preloadingUrl = url || '';
     if (!url) return;
     this.preloadingUrl = url;
     this.imgs.getImage(url).then(() => {
@@ -357,31 +329,20 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     });
   }
 
-  initFields(ref: Ref) {
-    this.icons.set(uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url)))));
-    this.alarm.set(capturesAny(this.store.account.alarms(), ref.tags));
-    this.actions.set(ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(ref.tags, ref.plugins))) : []);
-    this.groupedActions.set(groupBy(this.actions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
-    // TODO: detect width and move actions that don't fit into advanced actions
-    this.advancedActions.set(ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : []);
-    this.groupedAdvancedActions.set(groupBy(this.advancedActions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
-    this.infoUis.set(this.admin.getPluginInfoUis(ref.tags));
-    this.allCss.set(this.getPluginClasses())
-  }
 
-  ngAfterViewInit(): void {
+  private readonly initializeView = afterNextRender(() => {
     delay(() => {
-      if (this.lastSelected) {
+      if (this.lastSelected()) {
         scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' });
       }
     }, 400);
-  }
+  });
 
-  ngOnDestroy() {
-    if (this.lastSelected) {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
+    if (this.lastSelected()) {
       this.store.view.clearLastSelected();
     }
-  }
+  });
 
   unlockViewer(event: Event) {
     if (!this.config.mobile) return;
@@ -391,7 +352,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   getPluginClasses() {
     if (!this.ref()) return this.css;
-    const tags = this.bareRepost
+    const tags = this.bareRepost()
       ? uniq([...(this.ref().tags || []), ...(this.repostRef()?.tags || [])])
       : this.ref().tags;
     return this.css + ' ' + [
@@ -401,56 +362,57 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
   }
 
-  get refUrlAttr() {
+  readonly refUrlAttr = computed(() => {
     return this.ref()?.url;
-  }
+  });
 
-  get refOriginAttr() {
+  readonly refOriginAttr = computed(() => {
     return this.ref()?.origin || undefined;
-  }
+  });
 
-  get refTitleAttr() {
-    return this.title || undefined;
-  }
+  readonly refTitleAttr = computed(() => {
+    return this.title() || undefined;
+  });
 
-  get refThumbnailUrlAttr() {
-    if (!this.thumbnail) return undefined;
+  readonly refThumbnailUrlAttr = computed(() => {
+    if (!this.thumbnail()) return undefined;
     return this.refThumbnailUrl() || undefined;
-  }
+  });
 
-  get refThumbnailColorAttr() {
-    if (!this.thumbnail) return undefined;
+  readonly refThumbnailColorAttr = computed(() => {
+    if (!this.thumbnail()) return undefined;
     return this.refThumbnailString('color') || undefined;
-  }
+  });
 
-  get refThumbnailEmojiAttr() {
-    if (!this.thumbnail) return undefined;
-    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
-  }
+  readonly refThumbnailEmojiAttr = computed(() => {
+    if (!this.thumbnail()) return undefined;
+    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults() || undefined;
+  });
 
-  get refThumbnailRadiusAttr() {
-    if (!this.thumbnail) return undefined;
-    const radius = Number(this.refThumbnailPlugin?.['radius']);
+  readonly refThumbnailRadiusAttr = computed(() => {
+    if (!this.thumbnail()) return undefined;
+    const radius = Number(this.refThumbnailPlugin()?.['radius']);
     return Number.isFinite(radius) ? `${radius}` : undefined;
-  }
+  });
 
-  get lastSelected() {
+  readonly lastSelected = computed(() => {
     return this.scrollToLatest() && this.store.view.lastSelected()?.url === this.ref().url;
-  }
+  });
 
-  get uploadedFile() {
+  readonly uploadedFile = computed(() => {
     return this.ref().upload;
-  }
+  });
 
-  get existsFile() {
+  readonly existsFile = computed(() => {
     return this.ref().exists;
-  }
+  });
 
-  get modifiedFile() {
+  readonly modifiedFile = computed(() => {
     return this.ref().outdated;
-  }
+  });
 
-  get storyboardData() {
+  readonly storyboardData = computed(() => {
+    this.controlState0();
     if (!this.admin.getPlugin('plugin/image')) return null;
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
     if (this.editing()) {
@@ -459,10 +421,10 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     return this.ref()?.plugins?.['plugin/thumbnail/storyboard']
       || this.repostRef()?.plugins?.['plugin/thumbnail/storyboard']
       || null;
-  }
+  });
 
-  private get storyboardRawUrl(): string | null {
-    const sb = this.storyboardData;
+  private readonly storyboardRawUrl = computed<string | null>(() => {
+    const sb = this.storyboardData();
     if (!sb?.url) return null;
     const rawUrl = String(sb.url);
     const origin = this.ref()?.origin || this.repostRef()?.origin || '';
@@ -471,60 +433,51 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     } else {
       return rawUrl;
     }
-  }
+  });
 
-  get storyboardUrl(): string | null {
-    return storyboardUrl(this.storyboardRawUrl);
-  }
+  readonly storyboardUrl = computed<string | null>(() => {
+    return storyboardUrl(this.storyboardRawUrl());
+  });
 
-  get storyboardSize(): string | null {
-    return storyboardSize(this.storyboardData);
-  }
+  readonly storyboardSize = computed<string | null>(() => {
+    return storyboardSize(this.storyboardData());
+  });
 
-  get storyboardMargin(): string | null {
-    return storyboardMargin(this.storyboardData);
-  }
+  readonly storyboardMargin = computed<string | null>(() => {
+    return storyboardMargin(this.storyboardData());
+  });
 
-  get storyboardWidth(): string | null {
-    return storyboardWidth(this.storyboardData);
-  }
+  readonly storyboardWidth = computed<string | null>(() => {
+    return storyboardWidth(this.storyboardData());
+  });
 
-  get storyboardHeight(): string | null {
-    return storyboardHeight(this.storyboardData);
-  }
+  readonly storyboardHeight = computed<string | null>(() => {
+    return storyboardHeight(this.storyboardData());
+  });
 
-  get storyboardAnimation(): string | null {
-    const animation = storyboardAnimation(this.storyboardData);
-    if (!animation) return null;
-    if (!document.getElementById(animation.styleId)) {
-      const style = document.createElement('style');
-      style.id = animation.styleId;
-      style.textContent = animation.keyframes;
-      document.head.appendChild(style);
-    }
-    return animation.value;
-  }
+  private readonly storyboardAnimationData = computed(() => storyboardAnimation(this.storyboardData()));
+  readonly storyboardAnimation = computed(() => this.storyboardAnimationData()?.value || null);
 
-  get obsoleteOrigin() {
+  readonly obsoleteOrigin = computed(() => {
     if (this.ref().metadata?.obsolete) return this.ref().origin;
     return undefined;
-  }
+  });
 
-  get fullscreenRequired() {
+  readonly fullscreenRequired = computed(() => {
     if (!this.admin.getPlugin('plugin/fullscreen')) return false;
-    if (!hasTag('plugin/fullscreen', this.currentTags)) return false;
+    if (!hasTag('plugin/fullscreen', this.currentTags())) return false;
     return !this.ref().plugins?.['plugin/fullscreen']?.optional;
-  }
+  });
 
-  get pipRequired() {
-    if (!this.admin.pip) return false;
-    return hasTag('plugin/pip', this.currentTags);
-  }
+  readonly pipRequired = computed(() => {
+    if (!this.admin.pip()) return false;
+    return hasTag('plugin/pip', this.currentTags());
+  });
 
   onFullscreenChange() {
     if (!this.fullscreen()) return;
     if (document.fullscreenElement) return;
-    this.fullscreen.set(this.fullscreenRequired);
+    this.fullscreen.set(this.fullscreenRequired());
     if (this.closeOffFullscreen) this.expanded.set(false);
   }
 
@@ -590,86 +543,87 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     }
   }
 
-  get local() {
+  readonly local = computed(() => {
     return this.ref().origin === this.store.account.origin();
-  }
+  });
 
-  get localhost() {
+  readonly localhost = computed(() => {
     return this.ref().url.startsWith(this.config.base);
-  }
+  });
 
-  get repost() {
+  readonly repost = computed(() => {
     return this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref());
-  }
+  });
 
-  get bareRepost() {
-    return this.repost && !this.ref().title && !this.ref().comment;
-  }
+  readonly bareRepost = computed(() => {
+    return this.repost() && !this.ref().title && !this.ref().comment;
+  });
 
-  get currentRef() {
-    return this.repost ? this.repostRef() : this.ref();
-  }
+  readonly currentRef = computed(() => {
+    return this.repost() ? this.repostRef() : this.ref();
+  });
 
-  get currentTags() {
-    return uniq([...(this.repost ? this.repostRef()?.tags : this.ref().tags) || [], ...this.expandPlugins()]);
-  }
+  readonly currentTags = computed(() => {
+    return uniq([...(this.repost() ? this.repostRef()?.tags : this.ref().tags) || [], ...this.expandPlugins()]);
+  });
 
-  get bareRef() {
-    return this.bareRepost ? this.repostRef() : this.ref();
-  }
+  readonly bareRef = computed(() => {
+    return this.bareRepost() ? this.repostRef() : this.ref();
+  });
 
-  get commentNoTitle() {
-    if (this.altText) return false;
-    return this.bareRef?.title && this.bareRef?.comment || hasComment(this.bareRef?.comment || '');
-  }
+  readonly commentNoTitle = computed(() => {
+    if (this.altText()) return false;
+    return this.bareRef()?.title && this.bareRef()?.comment || hasComment(this.bareRef()?.comment || '');
+  });
 
-  get feed() {
+  readonly feed = computed(() => {
     return !!this.admin.getPlugin('plugin/script/feed') && hasTag('plugin/script/feed', this.ref());
-  }
+  });
 
-  get thread() {
+  readonly thread = computed(() => {
     return !!this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.ref());
-  }
+  });
 
-  get comment() {
+  readonly comment = computed(() => {
     return !!this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.ref());
-  }
+  });
 
-  get dm() {
+  readonly dm = computed(() => {
     return !!this.admin.getTemplate('dm') && hasTag('dm', this.ref());
-  }
+  });
 
-  get email() {
+  readonly email = computed(() => {
     return !!this.admin.getTemplate('email') && hasTag('email', this.ref());
-  }
+  });
 
-  get remote() {
+  readonly remote = computed(() => {
     return !!this.admin.getPlugin('+plugin/origin') && hasTag('+plugin/origin', this.ref());
-  }
+  });
 
-  get originPull() {
+  readonly originPull = computed(() => {
     return !!this.admin.getPlugin('+plugin/origin/pull') && hasTag('+plugin/origin/pull', this.ref());
-  }
+  });
 
-  get originPush() {
+  readonly originPush = computed(() => {
     return !!this.admin.getPlugin('+plugin/origin/push') && hasTag('+plugin/origin/push', this.ref());
-  }
+  });
 
-  get localOrigin() {
-    if (this.originPull || this.originPush) {
+  readonly localOrigin = computed(() => {
+    if (this.originPull() || this.originPush()) {
       return this.ref().plugins?.['+plugin/origin']?.local && subOrigin(this.ref().origin, this.ref().plugins?.['+plugin/origin']?.local);
     }
     return undefined;
-  }
+  });
 
-  get remoteOrigin() {
-    if (this.originPull || this.originPush) {
+  readonly remoteOrigin = computed(() => {
+    if (this.originPull() || this.originPush()) {
       return this.ref().plugins?.['+plugin/origin']?.remote;
     }
     return undefined;
-  }
+  });
 
-  get thumbnail() {
+  readonly thumbnail = computed(() => {
+    this.controlState0();
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
     if (this.editing()) {
       if (hasTag('plugin/thumbnail', this.editForm.value)) return true;
@@ -679,19 +633,20 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     if (hasTag('plugin/thumbnail', this.ref()) || hasTag('plugin/thumbnail', this.repostRef())) return true;
     if (!this.admin.getPlugin('plugin/image')) return false;
     return hasTag('plugin/image', this.ref()) || hasTag('plugin/image', this.repostRef());
-  }
+  });
 
-  get thumbnailRefs() {
+  readonly thumbnailRefs = computed(() => {
+    this.controlState0();
     return this.editing() ? [{ ...this.editForm.getRawValue(), origin: this.ref().origin }] : [this.repostRef(), this.ref()];
-  }
+  });
 
-  get refThumbnailPlugin() {
+  readonly refThumbnailPlugin = computed(() => {
     const plugin = this.ref()?.plugins?.['plugin/thumbnail'] || this.repostRef()?.plugins?.['plugin/thumbnail'];
     return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
-  }
+  });
 
   refThumbnailString(key: 'url' | 'color' | 'emoji') {
-    const value = this.refThumbnailPlugin?.[key];
+    const value = this.refThumbnailPlugin()?.[key];
     return typeof value === 'string' ? value : '';
   }
 
@@ -706,103 +661,107 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     return typeof value === 'string' ? value : '';
   }
 
-  get thumbnailColor() {
-    if (!this.thumbnail) return '';
+  readonly thumbnailColor = computed(() => {
+    this.controlState0();
+    if (!this.thumbnail()) return '';
     if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
     return this.ref()?.plugins?.['plugin/thumbnail']?.color || this.repostRef()?.plugins?.['plugin/thumbnail']?.color || '';
-  }
+  });
 
-  get thumbnailEmoji() {
-    if (!this.thumbnail) return '';
+  readonly thumbnailEmoji = computed(() => {
+    this.controlState0();
+    if (!this.thumbnail()) return '';
     if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
     return this.ref()?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef()?.plugins?.['plugin/thumbnail']?.emoji || '';
-  }
+  });
 
-  get thumbnailEmojiDefaults() {
+  readonly thumbnailEmojiDefaults = computed(() => {
     const icon = this.icons().filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
     return icon?.label || icon?.thumbnail;
-  }
+  });
 
-  get thumbnailRadius() {
+  readonly thumbnailRadius = computed(() => {
+    this.controlState0();
     if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
     return this.ref()?.plugins?.['plugin/thumbnail']?.radius || this.repostRef()?.plugins?.['plugin/thumbnail']?.radius || 0;
-  }
+  });
 
-  get file() {
+  readonly file = computed(() => {
     return this.admin.getPlugin('plugin/file') &&
-      hasTag('plugin/file', this.currentRef);
-  }
+      hasTag('plugin/file', this.currentRef());
+  });
 
-  get audio() {
+  readonly audio = computed(() => {
     return this.admin.getPlugin('plugin/audio') &&
-      hasTag('plugin/audio', this.currentRef) &&
-      (this.ref()?.plugins?.['plugin/audio']?.url || this.url);
-  }
+      hasTag('plugin/audio', this.currentRef()) &&
+      (this.ref()?.plugins?.['plugin/audio']?.url || this.url());
+  });
 
-  get video() {
+  readonly video = computed(() => {
     return this.admin.getPlugin('plugin/video') &&
-      hasTag('plugin/video', this.currentRef) &&
-      (this.ref()?.plugins?.['plugin/video']?.url || this.url);
-  }
+      hasTag('plugin/video', this.currentRef()) &&
+      (this.ref()?.plugins?.['plugin/video']?.url || this.url());
+  });
 
-  get image() {
+  readonly image = computed(() => {
     return this.admin.getPlugin('plugin/image') &&
-      hasTag('plugin/image', this.currentRef) &&
-      (this.ref()?.plugins?.['plugin/image']?.url || this.url);
-  }
+      hasTag('plugin/image', this.currentRef()) &&
+      (this.ref()?.plugins?.['plugin/image']?.url || this.url());
+  });
 
   getFilename(d = $localize`Untitled`) {
-    const ext = getExtension(this.url) || '';
+    const ext = getExtension(this.url()) || '';
     const filename = this.ref()?.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
-  get mediaAttachment() {
-    if (this.file) {
-      return this.proxy.getFetch(this.url, this.origin, this.getFilename());
+  readonly mediaAttachment = computed(() => {
+    if (this.file()) {
+      return this.proxy.getFetch(this.url(), this.origin(), this.getFilename());
     }
-    if (this.audio && (this.audio.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
-      return this.proxy.getFetch(this.audio, this.origin, this.getFilename($localize`Untitled Audio`));
+    if (this.audio() && (this.audio().startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
+      return this.proxy.getFetch(this.audio(), this.origin(), this.getFilename($localize`Untitled Audio`));
     }
-    if (this.video && (this.video.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
-      return this.proxy.getFetch(this.video, this.origin, this.getFilename($localize`Untitled Video`));
+    if (this.video() && (this.video().startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
+      return this.proxy.getFetch(this.video(), this.origin(), this.getFilename($localize`Untitled Video`));
     }
-    if (this.image && (this.image.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
-      return this.proxy.getFetch(this.image, this.origin, this.getFilename($localize`Untitled Image`));
+    if (this.image() && (this.image().startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
+      return this.proxy.getFetch(this.image(), this.origin(), this.getFilename($localize`Untitled Image`));
     }
     return '';
-  }
+  });
 
-  get canInvoice() {
-    if (!this.local) return false;
+  readonly canInvoice = computed(() => {
+    if (!this.local()) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
-    if (!this.isAuthor) return false;
+    if (!this.isAuthor()) return false;
     return hasTag('queue', this.ref());
-  }
+  });
 
-  get isAuthor() {
+  readonly isAuthor = computed(() => {
     return isAuthorTag(this.store.account.tag(), this.ref());
-  }
+  });
 
-  get isRecipient() {
+  readonly isRecipient = computed(() => {
     return hasTag(this.store.account.mailbox(), this.ref());
-  }
+  });
 
-  get authors() {
+  readonly authors = computed(() => {
     const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     return uniq([
       ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
       ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
     ]);
-  }
-
-  readonly authorExts$ = computed(() => {
-    return this.exts.getCachedExts(this.authors, this.ref().origin || '').pipe(this.admin.authorFallback);
   });
 
-  get recipients() {
+  readonly authorExts = toSignal(toObservable(computed(() =>
+    [this.authors(), this.ref().origin || ''] as const)).pipe(
+    switchMap(([tags, origin]) => this.exts.getCachedExts(tags, origin).pipe(this.admin.authorFallback)),
+  ), { initialValue: [] });
+
+  readonly recipients = computed(() => {
     const lookup = this.store.origins.originMap().get(this.ref().origin || '');
-    const userRecipients = without(addressedTo(this.ref()), ...this.authors).map(a => {
+    const userRecipients = without(addressedTo(this.ref()), ...this.authors()).map(a => {
       if (!tagOrigin(a)) return a;
       return localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a));
     });
@@ -810,211 +769,214 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
       ...userRecipients,
       ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
     ];
-  }
-
-  readonly recipientExts$ = computed(() => {
-    return this.exts.getCachedExts(this.recipients, this.ref().origin || '').pipe(this.admin.recipientFallback);
   });
 
-  get mailboxes() {
-    return mailboxes(this.ref(), this.store.account.tag(), this.store.origins.originMap());
-  }
+  readonly recipientExts = toSignal(toObservable(computed(() =>
+    [this.recipients(), this.ref().origin || ''] as const)).pipe(
+    switchMap(([tags, origin]) => this.exts.getCachedExts(tags, origin).pipe(this.admin.recipientFallback)),
+  ), { initialValue: [] });
 
-  get replySources() {
+  readonly mailboxes = computed(() => {
+    return mailboxes(this.ref(), this.store.account.tag(), this.store.origins.originMap());
+  });
+
+  readonly replySources = computed(() => {
     const sources = [this.ref().url];
-    if (this.comment || this.thread || this.email) {
+    if (this.comment() || this.thread() || this.email()) {
       const refSources = this.ref().sources;
       if (refSources?.length) {
         sources.push(refSources[1] || refSources[0] || this.ref().url);
       }
     }
     return sources;
-  }
-
-  get replyTags(): string[] {
-    const tags = [
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref())).flatMap(p => p.config!.reply as string[]),
-      ...this.mailboxes,
-    ];
-    return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
-  }
-
-  get replyTo() {
-    return this.authors.join(' ')
-  }
-
-  get tags() {
-    return interestingTags(this.ref().tags);
-  }
-
-  readonly tagExts$ = computed(() => {
-    return this.editor.getTagsPreview(this.tags, this.ref().origin || '');
   });
 
-  get url() {
-    return this.repost ? this.ref().sources![0] : this.ref().url;
-  }
+  readonly replyTags = computed<string[]>(() => {
+    const tags = [
+      ...this.admin.reply().filter(p => hasTag(p.tag, this.ref())).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes(),
+    ];
+    return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
+  });
 
-  get origin() {
-    return this.bareRef?.origin;
-  }
+  readonly replyTo = computed(() => {
+    return this.authors().join(' ')
+  });
 
-  get link() {
-    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin, this.getFilename());
-    return this.url;
-  }
+  readonly tags = computed(() => {
+    return interestingTags(this.ref().tags);
+  });
 
-  get title() {
+  readonly tagExts = toSignal(toObservable(computed(() =>
+    [this.tags(), this.ref().origin || ''] as const)).pipe(
+    switchMap(([tags, origin]) => this.editor.getTagsPreview(tags, origin)),
+  ), { initialValue: [] });
+
+  readonly url = computed(() => {
+    return this.repost() ? this.ref().sources![0] : this.ref().url;
+  });
+
+  readonly origin = computed(() => {
+    return this.bareRef()?.origin;
+  });
+
+  readonly link = computed(() => {
+    if (this.file() || this.url().startsWith('cache:')) return this.proxy.getFetch(this.url(), this.origin(), this.getFilename());
+    return this.url();
+  });
+
+  readonly title = computed(() => {
+    this.controlState0();
     if (this.editing()) return getTitle(this.editForm.value);
-    if (this.bareRepost) return getTitle(this.repostRef()) || $localize`Repost`;
+    if (this.bareRepost()) return getTitle(this.repostRef()) || $localize`Repost`;
     return getTitle(this.ref());
-  }
+  });
 
-  get defaultView() {
-    if (this.thread || this.threads || this.dm) return 'thread';
-    if (this.comment) return 'comments';
+  readonly defaultView = computed(() => {
+    if (this.thread() || this.threads() || this.dm()) return 'thread';
+    if (this.comment()) return 'comments';
     return undefined;
-  }
+  });
 
-  get host() {
-    return urlSummary(this.url);
-  }
+  readonly host = computed(() => {
+    return urlSummary(this.url());
+  });
 
-  get tagLink() {
-    return this.url.toLowerCase().startsWith('tag:/');
-  }
+  readonly tagLink = computed(() => {
+    return this.url().toLowerCase().startsWith('tag:/');
+  });
 
-  get editingLink() {
+  readonly editingLink = computed(() => {
     if (!hasTag('plugin/editing', this.ref())) return undefined;
-    if (this.url.startsWith('comment:')) {
-      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+    if (this.url().startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url() } };
     }
-    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
-  }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url() } };
+  });
 
-  get submitRoute() {
-    if (this.url.startsWith('comment:')) {
-      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+  readonly submitRoute = computed(() => {
+    if (this.url().startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url() } };
     }
-    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
-  }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url() } };
+  });
 
-  get clickableLink() {
-    if (this.file) return true;
-    return clickableLink(this.url);
-  }
+  readonly clickableLink = computed(() => {
+    if (this.file()) return true;
+    return clickableLink(this.url());
+  });
 
-  get redundantLink() {
-    if (this.editingLink) return true;
-    if (!this.clickableLink) return true;
+  readonly redundantLink = computed(() => {
+    if (this.editingLink()) return true;
+    if (!this.clickableLink()) return true;
     return this.expandPlugins().length;
-  }
+  });
 
-  get altText() {
-    if (this.ref()?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) {
-      return this.bareRef?.comment;
+  readonly altText = computed(() => {
+    if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) {
+      return this.bareRef()?.comment;
     }
     return undefined;
-  }
+  });
 
-  get comments() {
+  readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
     return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
-  }
+  });
 
-  get newCommentsCount() {
+  readonly newCommentsCount = computed(() => {
     const lastSeen = this.store.local.getLastSeenCount(this.ref().url, 'comments');
     if (!lastSeen) return 0;
-    return Math.max(0, this.comments - lastSeen);
-  }
+    return Math.max(0, this.comments() - lastSeen);
+  });
 
-  get errors() {
+  readonly errors = computed(() => {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
     return this.ref().metadata?.plugins?.['+plugin/log'] || 0;
-  }
+  });
 
-  get threads() {
+  readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
     return this.ref().metadata?.plugins?.['plugin/thread'] || 0;
-  }
+  });
 
-  get newThreadsCount() {
+  readonly newThreadsCount = computed(() => {
     const lastSeen = this.store.local.getLastSeenCount(this.ref().url, 'threads');
     if (!lastSeen) return 0;
-    return Math.max(0,  this.threads - lastSeen);
-  }
+    return Math.max(0,  this.threads() - lastSeen);
+  });
 
-  get responses() {
+  readonly responses = computed(() => {
     return this.ref().metadata?.responses || 0;
-  }
+  });
 
-  get newResponsesCount() {
+  readonly newResponsesCount = computed(() => {
     const lastSeen = this.store.local.getLastSeenCount(this.ref().url, 'replies');
     if (!lastSeen) return 0;
-    return Math.max(0, this.responses - lastSeen);
-  }
+    return Math.max(0, this.responses() - lastSeen);
+  });
 
-  get sources() {
+  readonly sources = computed(() => {
     const sources = uniq(this.ref()?.sources).filter(s => s != this.ref().url);
     return sources.length || 0;
-  }
+  });
 
-  get top() {
+  readonly top = computed(() => {
     return top(this.ref());
-  }
+  });
 
-  get parent() {
+  readonly parent = computed(() => {
     const sources = uniq(this.ref().sources).filter(s => s != this.ref().url);
     if (sources.length === 1) return sources[0];
     return false;
-  }
+  });
 
-  get parentComment() {
+  readonly parentComment = computed(() => {
     if (!hasTag('plugin/comment', this.ref())) return false;
     if (this.ref().sources?.[0] === this.ref().url) return false;
     if (this.ref().sources?.[1] === this.ref().url) return false;
-    if (this.sources === 1 || this.sources === 2) return this.ref().sources![0];
+    if (this.sources() === 1 || this.sources() === 2) return this.ref().sources![0];
     return false;
-  }
+  });
 
-  get parentCommentTop() {
+  readonly parentCommentTop = computed(() => {
     if (!hasTag('plugin/comment', this.ref())) return false;
     if (this.ref().sources?.[0] === this.ref().url) return false;
     if (this.ref().sources?.[1] === this.ref().url) return false;
-    if (this.sources === 2) return this.ref().sources![1];
+    if (this.sources() === 2) return this.ref().sources![1];
     return false;
-  }
+  });
 
-  get parentThreadTop() {
+  readonly parentThreadTop = computed(() => {
     if (!hasTag('plugin/thread', this.ref())) return false;
     if (this.ref().sources?.[0] === this.ref().url) return false;
     if (this.ref().sources?.[1] === this.ref().url) return false;
-    if (this.sources === 2) return this.ref().sources![1];
-    if (this.sources === 1) return this.ref().sources![0];
+    if (this.sources() === 2) return this.ref().sources![1];
+    if (this.sources() === 1) return this.ref().sources![0];
     return false;
-  }
+  });
 
-  get publishedIsSubmitted() {
+  readonly publishedIsSubmitted = computed(() => {
     const ref = this.ref();
     return !ref.published || Math.abs(ref.published.diff(ref.created!, 'seconds').seconds) <= 5;
-  }
+  });
 
-  get modifiedIsSubmitted() {
+  readonly modifiedIsSubmitted = computed(() => {
     const ref = this.ref();
     return !ref.modified || Math.abs(ref.modified.diff(ref.created!, 'seconds').seconds) <= 5;
-  }
+  });
 
-  get upvote() {
+  readonly upvote = computed(() => {
     return hasUserUrlResponse('plugin/user/vote/up', this.ref());
-  }
+  });
 
-  get downvote() {
+  readonly downvote = computed(() => {
     return hasUserUrlResponse('plugin/user/vote/down', this.ref());
-  }
+  });
 
-  get isView() {
+  readonly isView = computed(() => {
     return isRef(this.ref(), this.store.view.ref());
-  }
+  });
 
   toggle() {
     let read = false;
@@ -1034,7 +996,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
         }
         this.focusViewer = true;
         this.expanded.set(true);
-      } else if (this.pipRequired) {
+      } else if (this.pipRequired()) {
         this.store.eventBus.fire('pip', this.ref());
         read = true;
       } else {
@@ -1049,7 +1011,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   pip(event?: MouseEvent) {
-    if (!this.admin.pip) return;
+    if (!this.admin.pip()) return;
     this.store.eventBus.fire('pip', this.ref());
     this.markRead();
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
@@ -1059,7 +1021,6 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   markRead() {
     markRead(this.admin, this.ts, this.ref());
-    this.initFields(this.ref());
   }
 
   uiMarkdown(tag: string) {
@@ -1103,7 +1064,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   showIcon(i: Icon) {
-    return visible(this.ref(), i, this.isAuthor, this.isRecipient) && active(this.ref(), i);
+    return visible(this.ref(), i, this.isAuthor(), this.isRecipient()) && active(this.ref(), i);
   }
 
   clickIcon(i: Icon, ctrl: boolean) {
@@ -1119,7 +1080,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   showAction(a: Action) {
-    if (!visible(this.ref(), a, this.isAuthor, this.isRecipient)) return false;
+    if (!visible(this.ref(), a, this.isAuthor(), this.isRecipient())) return false;
     if ('scheme' in a) {
       if (a.scheme !== getScheme(this.repostRef()?.url || this.ref().url)) return false;
     }
@@ -1143,10 +1104,10 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     const ref = this.ref();
     let userUrls = ref.metadata?.userUrls || [];
     let request: Observable<any>;
-    if (this.upvote) {
+    if (this.upvote()) {
       userUrls = without(userUrls, 'plugin/user/vote/up');
       request = this.ts.deleteResponse('plugin/user/vote/up', ref.url);
-    } else if (!this.downvote) {
+    } else if (!this.downvote()) {
       userUrls = [...userUrls, 'plugin/user/vote/up'];
       request = this.ts.createResponse('plugin/user/vote/up', ref.url);
     } else {
@@ -1162,10 +1123,10 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     const ref = this.ref();
     let userUrls = ref.metadata?.userUrls || [];
     let request: Observable<any>;
-    if (this.downvote) {
+    if (this.downvote()) {
       userUrls = without(userUrls, 'plugin/user/vote/down');
       request = this.ts.deleteResponse('plugin/user/vote/down', ref.url);
-    } else if (!this.upvote) {
+    } else if (!this.upvote()) {
       userUrls = [...userUrls, 'plugin/user/vote/down'];
       request = this.ts.createResponse('plugin/user/vote/down', ref.url);
     } else {
@@ -1207,15 +1168,16 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
       this.store.submit.setRef(ref);
     } else {
       this.refreshTap = () => this.publishChanged.set(+published !== +this.ref().published!);
-      this.submitting.set(this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
+      this.submitting.set(true);
+    this.submittingSubscription = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
         tap(cursor => {
           this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
           this.editForm.reset();
-          this.submitting.set(undefined);
+          this.submitting.set(false);
           this.setEditing(false);
           }),
         catchError((res: HttpErrorResponse) => {
-          this.submitting.set(undefined);
+          this.submitting.set(false);
           if (res.status === 400) {
             this.invalid.set(true);
             console.log(res.message);
@@ -1229,7 +1191,8 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
           }
             return throwError(() => res);
         }),
-      ), ref));
+      ), ref);
+    this.submittingSubscription?.add(() => this.submitting.set(false));
     }
   }
 
@@ -1319,14 +1282,15 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     if (!ref) return;
     ref.origin = this.store.account.origin();
     ref.modifiedString = this.overwrite() ? this.overwrittenModified : this.ref().modifiedString;
-    this.submitting.set(this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
+    this.submitting.set(true);
+    this.submittingSubscription = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
       tap(cursor => {
         this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
-        this.submitting.set(undefined);
+        this.submitting.set(false);
         this.setDiffing(false);
       }),
       catchError((res: HttpErrorResponse) => {
-        this.submitting.set(undefined);
+        this.submitting.set(false);
         if (res.status === 400) {
           this.invalid.set(true);
           console.error('Invalid ref data:', res.message);
@@ -1340,7 +1304,8 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
         }
         return throwError(() => res);
       }),
-    ), ref));
+    ), ref);
+    this.submittingSubscription?.add(() => this.submitting.set(false));
   }
 
   upload$ = () => {
@@ -1391,9 +1356,9 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   delete$ = () => {
     this.serverError.set([]);
-    return (this.local && hasTag('locked', this.ref())
+    return (this.local() && hasTag('locked', this.ref())
         ? this.ts.patch(['plugin/delete', 'internal'], this.ref().url, this.ref().origin)
-        : this.local && !hasTag('plugin/delete', this.ref()) && this.admin.getPlugin('plugin/delete')
+        : this.local() && !hasTag('plugin/delete', this.ref()) && this.admin.getPlugin('plugin/delete')
           ? this.refs.update(deleteNotice(this.ref()))
           : this.refs.delete(this.ref().url, this.ref().origin).pipe(map(() => ''))
     ).pipe(

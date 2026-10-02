@@ -17,8 +17,10 @@
            [cdkDragData]="rp"
            [cdkDragDisabled]="config.mobile || turn() !== rp.color">{{ drawPiece(rp) }}</div>
     }
-    @if (capturedPiece() && getCoord(white() ? i : 63 - i) === capturedPiece()!.square) {
-      <div class="chess-piece {{ capturedPiece()!.piece.color }} captured">{{ drawPiece(capturedPiece()!.piece) }}</div>
+    @if (capturedPiece(); as captured) {
+      @if (getCoord(white() ? i : 63 - i) === captured.square) {
+        <div class="chess-piece {{ captured.piece.color }} captured">{{ drawPiece(captured.piece) }}</div>
+      }
     }
   </div>
 }

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { AfterViewInit, Component, ElementRef, forwardRef, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked } from '@angular/core';
+import { Component, ElementRef, forwardRef, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -66,7 +66,9 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
     forwardRef(() => RefFormComponent),
   ],
 })
-export class SubmitTextPage implements AfterViewInit, HasChanges {
+export class SubmitTextPage implements HasChanges {
+  private readonly controlState0 = controlValue(() => this.sources);
+
 
   private readonly injector = inject(Injector);
   private generatedUrl = 'comment:' + uuid();
@@ -86,8 +88,10 @@ export class SubmitTextPage implements AfterViewInit, HasChanges {
   readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
   readonly plugins = viewChild.required<PluginsFormComponent>('plugins');
 
-  readonly submitting = signal<Subscription | undefined>(undefined);
-  readonly saving = signal<Subscription | undefined>(undefined);
+  readonly submitting = signal(false);
+  private submittingSubscription?: Subscription;
+  readonly saving = signal(false);
+  private savingSubscription?: Subscription;
   addAnother = false;
   readonly defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
   readonly loadingDefaults = signal<Ext[]>([]);
@@ -124,16 +128,20 @@ export class SubmitTextPage implements AfterViewInit, HasChanges {
     });
   }
 
+  addCompletedUpload(ref: Ref) {
+    this.completedUploads.update(uploads => [...uploads, ref]);
+  }
+
   async saveChanges() {
-    if (this.admin.editing && this.textForm.dirty) {
+    if (this.admin.editing() && this.textForm.dirty) {
       return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
         .pipe(map(() => true), catchError(() => of(false))));
     }
     return !this.textForm?.dirty;
   }
 
-  ngAfterViewInit() {
-    if (this.admin.editing && this.store.submit.url()) {
+  private readonly initializeView = afterNextRender(() => {
+    if (this.admin.editing() && this.store.submit.url()) {
       this.refs.getEditing(this.store.submit.url()).subscribe(draft => {
         if (!draft) return;
         this.cursor = draft.modifiedString;
@@ -219,25 +227,27 @@ export class SubmitTextPage implements AfterViewInit, HasChanges {
         });
       }
     });
-  }
+  });
 
-  get randomURL() {
+  readonly randomURL = computed(() => {
     return !this.store.submit.url() && (this.admin.isWikiExternal() || !this.store.submit.wiki()) ;
-  }
+  });
 
   saveForLater(leave = false) {
     const savedValue = JSON.stringify(this.textForm.value);
-    this.saving.set(this.refs.saveEdit(this.writeRef(), this.cursor)
+    this.saving.set(true);
+    this.savingSubscription = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        this.saving.set(undefined);
+        this.saving.set(false);
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        this.saving.set(undefined);
+        this.saving.set(false);
         this.cursor = cursor;
         if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      }));
+      });
+    this.savingSubscription?.add(() => this.saving.set(false));
   }
 
   showAdvanced() {
@@ -297,19 +307,19 @@ export class SubmitTextPage implements AfterViewInit, HasChanges {
 
   readonly codeOptions = computed(() => ({
     language: this.codeLang(),
-    theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+    theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
     automaticLayout: true,
   }));
 
   readonly customEditor = computed(() => {
     const tags = this.tagsValue();
     if (!tags) return false;
-    return some(this.admin.editor, t => hasTag(t.tag, tags));
+    return some(this.admin.editor(), t => hasTag(t.tag, tags));
   });
 
   setTags(value: string[]) {
     const tagsFormComponent = this.tagsFormComponent();
-    if (!tagsFormComponent?.tags) {
+    if (!tagsFormComponent?.tags()) {
       defer(() => this.setTags(value));
       return;
     }
@@ -327,7 +337,7 @@ export class SubmitTextPage implements AfterViewInit, HasChanges {
 
   addTag(...values: string[]) {
     const tagsFormComponent = this.tagsFormComponent();
-    if (!tagsFormComponent?.tags) {
+    if (!tagsFormComponent?.tags()) {
       defer(() => this.addTag(...values));
       return;
     }
@@ -335,13 +345,14 @@ export class SubmitTextPage implements AfterViewInit, HasChanges {
     this.submitted.set(false);
   }
 
-  get top() {
+  readonly top = computed(() => {
+    this.controlState0();
     return this.sources.value[1] || this.sources.value[0] || this.ensureUrl();
-  }
+  });
 
   addSource(value = '') {
     while (this.sources.value.length < 2) {
-      this.sources.push(this.fb.control(this.top, LinksFormComponent.validators));
+      this.sources.push(this.fb.control(this.top(), LinksFormComponent.validators));
     }
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
     this.submitted.set(false);
@@ -381,7 +392,7 @@ export class SubmitTextPage implements AfterViewInit, HasChanges {
 
   submit() {
     if (this.saving()) {
-      this.saving()!.add(() => this.submit());
+      this.savingSubscription?.add(() => this.submit());
       return;
     }
     this.serverError.set([]);
@@ -395,7 +406,8 @@ export class SubmitTextPage implements AfterViewInit, HasChanges {
     const ref = this.writeRef(true);
     const tags = ref.tags;
     const published = ref.published;
-    this.submitting.set((this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
+    this.submitting.set(true);
+    this.submittingSubscription = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/user/vote/up')) {
           this.ts.createResponse('plugin/user/vote/up', this.url.value).subscribe();
@@ -410,12 +422,12 @@ export class SubmitTextPage implements AfterViewInit, HasChanges {
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        this.submitting.set(undefined);
+        this.submitting.set(false);
         this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.submitting.set(undefined);
+      this.submitting.set(false);
       this.textForm.markAsPristine();
       this.completedUploads.set([]);
 
@@ -428,6 +440,7 @@ export class SubmitTextPage implements AfterViewInit, HasChanges {
       } else {
         this.router.navigate(['/ref', this.url.value], { queryParams: { published }, replaceUrl: true});
       }
-    }));
+    });
+    this.submittingSubscription?.add(() => this.submitting.set(false));
   }
 }

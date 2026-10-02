@@ -1,16 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import {
-  Component,
-  OnDestroy,
-  TemplateRef,
-  ViewContainerRef,
-  ChangeDetectionStrategy,
-  input,
-  output,
-  signal,
-  viewChild
-} from '@angular/core';
+import { computed, Component, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, input, output, signal, viewChild, DestroyRef, inject } from '@angular/core';
 import { loadImage } from '../../util/image';
 import { QrScanner, scanImage } from '../../util/qr-scanner';
 import { Camera, hasCamera, listCameras } from '../../util/webcam';
@@ -22,7 +12,7 @@ import { Camera, hasCamera, listCameras } from '../../util/webcam';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'form-array' }
 })
-export class QrScannerComponent implements OnDestroy {
+export class QrScannerComponent {
 
   readonly video = viewChild.required<TemplateRef<HTMLVideoElement>>('video');
 
@@ -42,9 +32,9 @@ export class QrScannerComponent implements OnDestroy {
     if (!this.hasCamera()) hasCamera().then(value => this.setHasCamera(value));
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.stopScanQr();
-  }
+  });
 
   readQr(files?: FileList) {
     if (!files || !files.length) return;
@@ -88,9 +78,9 @@ export class QrScannerComponent implements OnDestroy {
     this.overlayRef?.dispose();
   }
 
-  get hasMultipleCameras() {
+  readonly hasMultipleCameras = computed(() => {
     return (this.cameras()?.length || 0) > 1;
-  }
+  });
 
   setHasCamera(value: boolean) {
     this.hasCamera.set(value);

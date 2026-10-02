@@ -6,12 +6,12 @@
              [expandInline]="true"
              [ref]="repost()"></app-ref>
   }
-  @if (editingRef) {
+  @if (editingRef()) {
     <app-ref class="expand"
              [fetchRepost]="false"
              [showToggle]="true"
              [expandInline]="true"
-             [ref]="editingRef"></app-ref>
+             [ref]="editingRef()"></app-ref>
   }
   @if (playlist()) {
     <app-playlist [ref]="ref()"></app-playlist>
@@ -32,12 +32,12 @@
       <app-loading></app-loading>
     }
   }
-  @if (embedIframe) {
+  @if (embedIframe()) {
     <div class="embed-container"
          [class.loading]="!embedReady()"
-         [class.twitter]="twitter"
-         [class.zoom]="zoom"
-         [appResizeHandle]="resizable && !disableResize() && !fullscreen()"
+         [class.twitter]="twitter()"
+         [class.zoom]="zoom()"
+         [appResizeHandle]="resizable() && !disableResize() && !fullscreen()"
          [child]="iframe">
       <iframe #iframe
               class="embed-expand"
@@ -49,41 +49,41 @@
               referrerpolicy="strict-origin-when-cross-origin"></iframe>
     </div>
   }
-  @if (imageUrl) {
+  @if (imageUrl()) {
     <div class="image-expand"
-         [appImage]="imageUrl"
+         [appImage]="imageUrl()"
          [ref]="ref()"
          [defaultWidth]="ref()?.plugins?.['plugin/image']?.width"
          [defaultHeight]="ref()?.plugins?.['plugin/image']?.height"
          [grid]="disableResize()"
          [appResize]="!disableResize()"></div>
   }
-  @if (videoUrl) {
+  @if (videoUrl()) {
     <video #video
            class="video-expand"
            [autoplay]="autoplay()"
            controls
            [appResize]="!disableResize()"
-           (playing)="playing.emit(videoUrl)"
-           (pause)="!this.ended && pausing.emit(videoUrl)"
-           (ended)="ended.emit(videoUrl)">
-      <source [src]="videoUrl">
+           (playing)="playing.emit(videoUrl())"
+           (pause)="!this.ended && pausing.emit(videoUrl())"
+           (ended)="ended.emit(videoUrl())">
+      <source [src]="videoUrl()">
     </video>
   }
-  @if (audioUrl) {
+  @if (audioUrl()) {
     <audio #audio
            class="no-resize audio-expand"
            [autoplay]="autoplay()"
            controls
-           (playing)="playing.emit(audioUrl)"
-           (pause)="!this.ended && pausing.emit(audioUrl)"
-           (ended)="ended.emit(audioUrl)">
-      <source [src]="audioUrl">
+           (playing)="playing.emit(audioUrl())"
+           (pause)="!this.ended && pausing.emit(audioUrl())"
+           (ended)="ended.emit(audioUrl())">
+      <source [src]="audioUrl()">
     </audio>
   }
-  @if (qrUrl) {
+  @if (qrUrl()) {
     <app-qr class="zoom qr-expand"
-            [url]="qrUrl"
+            [url]="qrUrl()"
             [appResize]="!disableResize()"></app-qr>
   }
   @if (todo()) {
@@ -110,20 +110,20 @@
                (copied)="copied.emit($event)"></app-chess>
   }
 }
-@if (code) {
+@if (code()) {
   <app-md class="code md-container"
-          [origin]="currentOrigin"
-          [text]="currentCode"
+          [origin]="currentOrigin()"
+          [text]="currentCode()"
           [mermaid]="false"
           [clipboard]="false"></app-md>
-} @else if (currentText) {
+} @else if (currentText()) {
   <app-md class="zoom md-container"
           [class.expand]="expand()"
-          [origin]="currentOrigin"
-          [text]="currentText"
-          [plugins]="currentTags"></app-md>
+          [origin]="currentOrigin()"
+          [text]="currentText()"
+          [plugins]="currentTags()"></app-md>
 }
-@if (pdfUrl) {
+@if (pdfUrl()) {
   <div class="embed-container"
        [appResizeHandle]="!disableResize() && !fullscreen()"
        [child]="pdfIframe"
@@ -141,11 +141,11 @@
   <app-md class="zoom md-container"
           [class]="uiCss(ui.tag)"
           [disableSanitizer]="true"
-          [origin]="currentOrigin"
+          [origin]="currentOrigin()"
           [text]="uiMarkdown(ui.tag)"></app-md>
 }
-@if (mod) {
+@if (mod()) {
   <app-mod class="zoom md-container"
-           [mod]="mod"
+           [mod]="mod()"
            [class.expand]="expand()"></app-mod>
 }

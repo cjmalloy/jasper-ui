@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, forwardRef, signal } from '@angular/core';
+import { computed, ChangeDetectionStrategy, Component, forwardRef, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
@@ -23,8 +23,8 @@ import { ViewerComponent } from '../../viewer/viewer.component';
 })
 export class GridCellComponent implements ICellRendererAngularComp {
   readonly type = signal('');
-  value?: unknown;
-  private data?: Ref;
+  readonly value = signal<unknown>(undefined);
+  private readonly data = signal<Ref | undefined>(undefined);
 
   constructor(
     private admin: AdminService,
@@ -33,8 +33,8 @@ export class GridCellComponent implements ICellRendererAngularComp {
   ) {}
 
   agInit(params: ICellRendererParams): void {
-    this.value = params.value;
-    this.data = params.data;
+    this.value.set(params.value);
+    this.data.set(params.data ? { ...params.data } : undefined);
     const type = params.colDef?.type;
     this.type.set(typeof type === 'string' ? type : '');
   }
@@ -44,31 +44,33 @@ export class GridCellComponent implements ICellRendererAngularComp {
     return true;
   }
 
-  get textValue() {
-    return typeof this.value === 'string' ? this.value : '';
-  }
+  readonly textValue = computed(() => {
+    const value = this.value();
+    return typeof value === 'string' ? value : '';
+  });
 
-  get listValue() {
-    return Array.isArray(this.value) ? this.value.filter((value): value is string => typeof value === 'string' && !!value) : [];
-  }
+  readonly listValue = computed(() => {
+    const value = this.value();
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && !!item) : [];
+  });
 
-  get displayValue() {
-    if (Array.isArray(this.value)) {
-      return this.listValue.join(', ');
+  readonly displayValue = computed(() => {
+    if (Array.isArray(this.value())) {
+      return this.listValue().join(', ');
     }
-    return this.textValue;
-  }
+    return this.textValue();
+  });
 
-  get imageUrl() {
-    const url = this.textValue;
+  readonly imageUrl = computed(() => {
+    const url = this.textValue();
     if (!url) return '';
     if (isInlineSvg(url)) return this.sanitizer.bypassSecurityTrustUrl(url);
     if (!this.admin.getPlugin('plugin/image')) return '';
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.data?.origin || '', this.data?.title || $localize`Untitled Image`);
+      return this.proxy.getFetch(url, this.data()?.origin || '', this.data()?.title || $localize`Untitled Image`);
     }
     return url;
-  }
+  });
 
   tagUrl(tag: string) {
     return `tag:/${tag}`;

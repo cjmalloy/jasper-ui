@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, effect, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, untracked, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer } from 'lodash-es';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
@@ -46,7 +46,7 @@ export class RefErrorsComponent implements HasChanges {
   ) {
     query.clear();
     store.view.defaultSort.set(['published']);
-    if (!this.store.view.filter().length) bookmarks.filters = ['query/' + (store.account.origin() || '*')];
+    if (!this.store.view.filter().length) bookmarks.setFilters(['query/' + (store.account.origin() || '*')]);
     const untilDestroyed = takeUntilDestroyed<Ref | undefined>();
     effect(() => {
       const args = getArgs(
@@ -84,8 +84,8 @@ export class RefErrorsComponent implements HasChanges {
     return !list || list.saveChanges();
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-  }
+  });
 
 }
