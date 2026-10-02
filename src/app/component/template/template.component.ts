@@ -1,11 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { computed, ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, untracked, viewChildren } from '@angular/core';
+import { computed, ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, untracked, viewChild, viewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { templateForm, TemplateFormComponent } from '../../form/template/template.component';
+import { DiffComponent } from '../../form/diff/diff.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Template, writeTemplate } from '../../model/template';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
@@ -25,7 +26,7 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent],
+  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent, DiffComponent],
   host: {
     '[attr.tabindex]': '0',
     '[class.deleted]': 'deleted()',
@@ -51,6 +52,12 @@ export class TemplateComponent implements HasChanges {
   readonly submitted = linkedSignal(() => { this.template(); return false; });
   readonly editing = linkedSignal(() => { this.template(); return false; });
   readonly viewSource = linkedSignal(() => { this.template(); return false; });
+  readonly diffing = linkedSignal(() => { this.template(); return false; });
+  readonly diffLocal = signal<Template | undefined>(undefined);
+  readonly diffRemote = signal<Template | undefined>(undefined);
+  private loadingDiff?: Subscription;
+
+  readonly diffEditor = viewChild<DiffComponent<Template>>('diffEditor');
 
   constructor(
     public admin: AdminService,
@@ -101,6 +108,60 @@ export class TemplateComponent implements HasChanges {
   readonly local = computed(() => {
     return this.origin() === this.store.account.origin();
   });
+
+  readonly canDiff = computed(() => {
+    return !this.local() && this.created() && !!this.admin.getTemplate('config/diff');
+  });
+
+  toggleDiff() {
+    if (this.diffing() || this.loadingDiff) {
+      this.loadingDiff?.unsubscribe();
+      delete this.loadingDiff;
+      this.diffing.set(false);
+      return;
+    }
+    this.serverError.set([]);
+    this.viewSource.set(false);
+    this.loadingDiff = this.templates.get(this.template().tag + this.store.account.origin()).pipe(
+      catchError((err: HttpErrorResponse) => {
+        delete this.loadingDiff;
+        this.serverError.set(err.status === 404
+          ? [$localize`No local version found.`]
+          : printError(err));
+        return throwError(() => err);
+      }),
+    ).subscribe(local => {
+      delete this.loadingDiff;
+      this.diffLocal.set(local);
+      this.diffRemote.set(this.template());
+      this.editing.set(false);
+      this.viewSource.set(false);
+      this.diffing.set(true);
+    });
+  }
+
+  saveDiff() {
+    const merged = this.diffEditor()?.getModifiedContent();
+    const local = this.diffLocal();
+    if (!merged || !local) return;
+    this.saving.set(true);
+    this.savingSubscription = this.templates.update({
+      ...merged,
+      tag: local.tag,
+      origin: this.store.account.origin(),
+      modifiedString: local.modifiedString,
+    }).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.saving.set(false);
+        this.serverError.set(printError(err));
+        return throwError(() => err);
+      }),
+    ).subscribe(() => {
+      this.saving.set(false);
+      this.serverError.set([]);
+      this.diffing.set(false);
+    });
+  }
 
   save() {
     this.submitted.set(true);
