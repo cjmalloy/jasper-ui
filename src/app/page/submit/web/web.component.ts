@@ -77,7 +77,6 @@ export class SubmitWebPage implements HasChanges {
   readonly alreadyExists = signal<boolean>(false);
 
   private oldSubmit: string[] = [];
-  private _refForm?: RefFormComponent;
   private cursor?: string;
 
   constructor(
@@ -248,21 +247,13 @@ export class SubmitWebPage implements HasChanges {
         });
       }, { injector: this.injector });
     });
-    effect(() => {
-      const value = this.refFormView();
-      untracked(() => this.setRefForm(value));
-    }, { injector: this.injector });
+    defer(() => this.limitWidth.set(this.refForm.fill()?.nativeElement));
   });
 
+  readonly refFormView = viewChild.required<RefFormComponent>('refForm');
+
   get refForm(): RefFormComponent {
-    return this._refForm!;
-  }
-
-  readonly refFormView = viewChild<RefFormComponent>('refForm');
-
-  setRefForm(value: RefFormComponent | undefined) {
-    this._refForm = value;
-    defer(() => this.limitWidth.set(value?.fill()?.nativeElement));
+    return this.refFormView();
   }
 
   get feed() {
