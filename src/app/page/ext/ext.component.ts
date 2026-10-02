@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, signal, untracked } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -43,9 +43,7 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
     ExtFormComponent,
   ],
 })
-export class ExtPage implements OnInit, OnDestroy, HasChanges {
-
-  private readonly injector = inject(Injector);
+export class ExtPage implements HasChanges {
 
   readonly template = signal<string>('');
   readonly submitted = signal<boolean>(false);
@@ -65,7 +63,6 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   templates = this.admin.tmplSubmit;
   readonly editForm = signal<UntypedFormGroup | undefined>(undefined);
 
-
   constructor(
     private mod: ModService,
     private admin: AdminService,
@@ -78,13 +75,6 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     this.extForm = fb.group({
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],
     });
-  }
-
-  saveChanges() {
-    return !this.editForm()?.dirty;
-  }
-
-  ngOnInit(): void {
     effect(() => {
       this.store.view.tag();
       this.store.view.localTag();
@@ -101,7 +91,11 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
           ).subscribe(ext => this.setExt(tag, ext));
         }
       });
-    }, { injector: this.injector });
+    });
+  }
+
+  saveChanges() {
+    return !this.editForm()?.dirty;
   }
 
   setExt(tag: string, ext?: Ext) {
@@ -132,9 +126,6 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       this.template.set('');
       this.tag.setValue(tag);
     }
-  }
-
-  ngOnDestroy() {
   }
 
   get tag() {

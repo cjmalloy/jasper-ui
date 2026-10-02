@@ -5,9 +5,7 @@ import {
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
 import {
-  DestroyRef,
   effect,
-  inject,
   AfterViewInit,
   Component,
   ElementRef,
@@ -86,7 +84,6 @@ export interface EditorUpload {
   ],
 })
 export class EditorComponent implements AfterViewInit, OnDestroy {
-  private destroyRef = inject(DestroyRef);
 
   readonly id = input('editor-' + uuid());
 

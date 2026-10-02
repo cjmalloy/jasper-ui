@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, Injector, signal } from '@angular/core';
+import { Component, inject, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -17,9 +17,7 @@ import { getArgs } from '../../../util/query';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent],
 })
-export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
-
-  private readonly injector = inject(Injector);
+export class SettingsRefPage implements OnDestroy, HasChanges {
 
   readonly plugin = signal<Plugin | undefined>(undefined);
   readonly writeAccess = signal<boolean>(false);
@@ -36,14 +34,6 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Settings: `);
     store.view.clear(['metadata->modified']);
     query.clear();
-  }
-
-  saveChanges() {
-    const list = this.list();
-    return !list || list.saveChanges();
-  }
-
-  ngOnInit(): void {
     effect(() => {
       const plugin = this.admin.getPlugin(this.store.view.settingsTag());
       this.plugin.set(plugin);
@@ -58,7 +48,12 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageSize(),
       );
       defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
+    });
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

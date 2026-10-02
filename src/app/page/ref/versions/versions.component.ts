@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect } from '@angular/core';
 import { defer } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -16,9 +16,7 @@ import { getArgs } from '../../../util/query';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent]
 })
-export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
-
-  private readonly injector = inject(Injector);
+export class RefVersionsComponent implements OnDestroy, HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -30,14 +28,6 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
   ) {
     query.clear();
     store.view.defaultSort.set(['published']);
-  }
-
-  saveChanges() {
-    const list = this.list();
-    return !list || list.saveChanges();
-  }
-
-  ngOnInit(): void {
     effect(() => {
       const args = getArgs(
         '',
@@ -50,9 +40,14 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
       args.url = this.store.view.url();
       args.obsolete = this.store.view.ref()?.metadata?.obsolete ? null : true;
       defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
+    });
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref())), { injector: this.injector });
+    effect(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref())));
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

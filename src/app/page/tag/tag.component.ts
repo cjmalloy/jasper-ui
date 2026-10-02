@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { LensComponent } from '../../component/lens/lens.component';
@@ -32,9 +32,7 @@ import { hasPrefix, localTag } from '../../util/tag';
     LoadingComponent,
   ],
 })
-export class TagPage implements OnInit, OnDestroy, HasChanges {
-
-  private readonly injector = inject(Injector);
+export class TagPage implements OnDestroy, HasChanges {
 
   readonly loading = signal<boolean>(false);
 
@@ -49,7 +47,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     private exts: ExtService,
     private bookmarks: BookmarkService,
   ) {
-    effect(() => this.mod.setTitle(this.store.view.name()), { injector: this.injector });
+    effect(() => this.mod.setTitle(this.store.view.name()));
     {
       this.store.view.clear([
         !!this.admin.getPlugin('plugin/user/vote/up')
@@ -78,16 +76,8 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
             });
         }
       });
-    }, { injector: this.injector });
+    });
     this.query.clear();
-  }
-
-  saveChanges() {
-    const lens = this.lens();
-    return !lens || lens.saveChanges();
-  }
-
-  ngOnInit() {
     effect(() => {
       const filters = this.store.view.filter().length ? this.store.view.filter() : this.store.view.viewExtFilter();
       if (!this.store.view.filter().length && this.store.view.viewExtFilter()?.length) {
@@ -109,7 +99,12 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
         return;
       }
       untracked(() => this.query.setArgs(args));
-    }, { injector: this.injector });
+    });
+  }
+
+  saveChanges() {
+    const lens = this.lens();
+    return !lens || lens.saveChanges();
   }
 
   ngOnDestroy() {

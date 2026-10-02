@@ -53,7 +53,6 @@ export class MapComponent implements OnDestroy, HasChanges {
   readonly emptyMessage = input('No results found');
   readonly page = input<Page<Ref> | undefined>(undefined);
 
-  private _page?: Page<Ref>;
   private map?: Map;
   private markers: Marker[] = [];
   private mapDataUpdates$ = new Subject<Ref[]>();

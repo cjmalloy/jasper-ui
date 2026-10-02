@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal } from '@angular/core';
 import { defer } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -18,9 +18,7 @@ import { getArgs } from '../../../util/query';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent]
 })
-export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
-
-  private readonly injector = inject(Injector);
+export class RefAltsComponent implements OnDestroy, HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -34,17 +32,9 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
   ) {
     query.clear();
     store.view.defaultSort.set(['modified']);
-  }
-
-  saveChanges() {
-    const list = this.list();
-    return !list || list.saveChanges();
-  }
-
-  ngOnInit(): void {
     effect(() => {
       this.page.set(Page.of(this.store.view.ref()?.alternateUrls?.map(url => ({ url })) || []));
-    }, { injector: this.injector });
+    });
     effect(() => {
       const args = getArgs(
         '',
@@ -56,7 +46,7 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
       );
       args.url = this.store.view.url();
       defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
+    });
     effect(() => {
       const page = this.query.page();
       if (!page) return;
@@ -70,9 +60,14 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
         ...page,
         content: refs,
       });
-    }, { injector: this.injector });
+    });
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Alternate URLs: ` + getTitle(this.store.view.ref())), { injector: this.injector });
+    effect(() => this.mod.setTitle($localize`Alternate URLs: ` + getTitle(this.store.view.ref())));
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

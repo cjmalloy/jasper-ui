@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal } from '@angular/core';
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
@@ -20,9 +20,7 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PluginListComponent],
 })
-export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
-
-  private readonly injector = inject(Injector);
+export class SettingsPluginPage implements OnDestroy, HasChanges {
 
   readonly serverError = signal<string[]>([]);
 
@@ -37,14 +35,6 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Settings: Plugins`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
-  }
-
-  saveChanges() {
-    const list = this.list();
-    return !list || list.saveChanges();
-  }
-
-  ngOnInit(): void {
     effect(() => {
       const args = {
         query: this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'),
@@ -55,7 +45,12 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter()),
       };
       defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
+    });
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

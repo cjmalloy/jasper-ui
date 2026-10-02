@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnDestroy, ChangeDetectionStrategy, effect, inject, Injector, signal, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
@@ -46,9 +46,7 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
     TagPreviewPipe,
   ]
 })
-export class UploadPage implements OnDestroy {
-
-  private readonly injector = inject(Injector);
+export class UploadPage {
 
   readonly erroredExts = signal<Ext[]>([]);
   readonly erroredRefs = signal<Ref[]>([]);
@@ -75,11 +73,8 @@ export class UploadPage implements OnDestroy {
         this.readUploads(this.store.submit.files());
         this.store.submit.clearFiles();
       });
-    }, { injector: this.injector });
+    });
     this.store.submit.clearOverride();
-  }
-
-  ngOnDestroy() {
   }
 
   readUploads(uploads?: File[], forceCache = false) {

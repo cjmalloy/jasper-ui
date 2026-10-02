@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect } from '@angular/core';
 import { defer } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -16,9 +16,7 @@ import { getArgs } from '../../../util/query';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent]
 })
-export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
-
-  private readonly injector = inject(Injector);
+export class InboxAlarmsPage implements OnDestroy, HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -31,14 +29,6 @@ export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Inbox: Alarms`);
     store.view.clear(['modified']);
     query.clear();
-  }
-
-  saveChanges() {
-    const list = this.list();
-    return !list || list.saveChanges();
-  }
-
-  ngOnInit(): void {
     effect(() => {
       const args = getArgs(
         this.store.account.alarms().length ? this.store.account.alarms().join('|') : '!@*',
@@ -49,7 +39,12 @@ export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageSize(),
       );
       defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
+    });
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

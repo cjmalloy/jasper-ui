@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect, signal } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -20,9 +20,7 @@ import { getArgs } from '../../../util/query';
     RefListComponent,
   ],
 })
-export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
-
-  private readonly injector = inject(Injector);
+export class RefSourcesComponent implements OnDestroy, HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -36,17 +34,9 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
   ) {
     query.clear();
     store.view.defaultSort.set(['published']);
-  }
-
-  saveChanges() {
-    const list = this.list();
-    return !list || list.saveChanges();
-  }
-
-  ngOnInit(): void {
     effect(() => {
       this.page.set(Page.of(this.sources.map(url => ({ url })) || []));
-    }, { injector: this.injector });
+    });
     effect(() => {
       const args = getArgs(
         '',
@@ -58,7 +48,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
       );
       args.sources = this.store.view.url();
       defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
+    });
     effect(() => {
       if (!this.query.page()) return;
       this.page.update(page => ({
@@ -69,9 +59,14 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
           return this.query.page()!.content.find(r => r.url === url) || ref;
         }),
       }));
-    }, { injector: this.injector });
+    });
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Sources: ` + getTitle(this.store.view.ref())), { injector: this.injector });
+    effect(() => this.mod.setTitle($localize`Sources: ` + getTitle(this.store.view.ref())));
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

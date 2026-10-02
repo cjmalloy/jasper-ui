@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -27,9 +27,7 @@ import { prefix, setPublic } from '../../util/tag';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
-export class UserPage implements OnInit, OnDestroy, HasChanges {
-
-  private readonly injector = inject(Injector);
+export class UserPage implements HasChanges {
 
   readonly submitted = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
@@ -55,13 +53,6 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
       role: [''],
       user: userForm(fb),
     });
-  }
-
-  saveChanges() {
-    return !this.profileForm?.dirty;
-  }
-
-  ngOnInit(): void {
     effect(() => {
       this.store.view.tag();
       this.store.view.localTag();
@@ -90,10 +81,11 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
           });
         }
       });
-    }, { injector: this.injector });
+    });
   }
 
-  ngOnDestroy() {
+  saveChanges() {
+    return !this.profileForm?.dirty;
   }
 
   get active() {

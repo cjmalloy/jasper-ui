@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -58,7 +58,7 @@ import { getVisibilityTags } from '../../../util/tag';
     forwardRef(() => RefFormComponent),
   ],
 })
-export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
+export class SubmitWebPage implements AfterViewInit, HasChanges {
 
   private readonly injector = inject(Injector);
 
@@ -250,9 +250,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       const value = this.refFormView();
       untracked(() => this.setRefForm(value));
     }, { injector: this.injector });
-  }
-
-  ngOnDestroy() {
   }
 
   get refForm(): RefFormComponent {

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, viewChildren, effect, inject, Injector, computed, untracked } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, viewChildren, effect, computed, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
@@ -28,9 +28,8 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
 })
-export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
+export class RefSummaryComponent implements OnDestroy, HasChanges {
 
-  private readonly injector = inject(Injector);
   newResp$ = new Subject<Ref | undefined>();
   newComment$ = new Subject<Ref | undefined>();
   newThread$ = new Subject<Ref | undefined>();
@@ -52,26 +51,15 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
     query.clear();
     thread.clear();
     store.view.defaultSort.set(['modified,DESC']);
-  }
-
-  saveChanges() {
-    const reply = this.reply();
-    const list = this.list();
-    return (!reply || reply.saveChanges())
-      && (!list || list.saveChanges())
-      && !this.threadComponents()?.find(t => !t.saveChanges());
-  }
-
-  ngOnInit(): void {
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle(getTitle(this.store.view.ref())), { injector: this.injector });
+    effect(() => this.mod.setTitle(getTitle(this.store.view.ref())));
     effect(() => {
       const top = this.store.view.url();
       const sort = this.store.view.sort();
       const filter = this.store.view.filter();
       const search = this.store.view.search();
       untracked(() => this.thread.setArgs(top, sort, filter, search));
-    }, { injector: this.injector });
+    });
     effect(() => {
       const args = getArgs(
         '',
@@ -83,7 +71,15 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
       );
       args.responses = this.store.view.url();
       defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
+    });
+  }
+
+  saveChanges() {
+    const reply = this.reply();
+    const list = this.list();
+    return (!reply || reply.saveChanges())
+      && (!list || list.saveChanges())
+      && !this.threadComponents()?.find(t => !t.saveChanges());
   }
 
   ngOnDestroy() {

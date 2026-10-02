@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer } from 'lodash-es';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
@@ -28,7 +28,6 @@ import { hasTag, updateMetadata } from '../../../util/tag';
 })
 export class RefErrorsComponent implements HasChanges {
 
-  private readonly injector = inject(Injector);
   readonly list = viewChild<RefListComponent>('list');
 
   newRefs$ = new Subject<Ref | undefined>();
@@ -60,9 +59,9 @@ export class RefErrorsComponent implements HasChanges {
       );
       args.responses = this.store.view.url();
       defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
+    });
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref())), { injector: this.injector });
+    effect(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref())));
     effect(() => {
       this.store.view.url();
       untracked(() => {
@@ -77,7 +76,7 @@ export class RefErrorsComponent implements HasChanges {
           ).subscribe(ref => this.newRefs$.next(ref));
         }
       });
-    }, { injector: this.injector });
+    });
   }
 
   saveChanges() {

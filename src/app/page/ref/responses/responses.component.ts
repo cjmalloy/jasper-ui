@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, viewChild, effect } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -18,9 +18,7 @@ import { getArgs, UrlFilter } from '../../../util/query';
     RefListComponent,
   ],
 })
-export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
-
-  private readonly injector = inject(Injector);
+export class RefResponsesComponent implements OnDestroy, HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -32,14 +30,6 @@ export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
   ) {
     query.clear();
     store.view.defaultSort.set(['published']);
-  }
-
-  saveChanges() {
-    const list = this.list();
-    return !list || list.saveChanges();
-  }
-
-  ngOnInit(): void {
     effect(() => {
       const hideInternal = !this.admin.getPlugins(this.store.view.queryTags()).length;
       const args = getArgs(
@@ -52,16 +42,21 @@ export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
       );
       args.responses = this.store.view.url();
       defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
+    });
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref())), { injector: this.injector });
+    effect(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref())));
     effect(() => {
       const ref = this.store.view.ref();
       if (ref) {
         const responsesCount = ref.metadata?.responses || 0;
         this.store.local.setLastSeenCount(this.store.view.url(), 'replies', responsesCount);
       }
-    }, { injector: this.injector });
+    });
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

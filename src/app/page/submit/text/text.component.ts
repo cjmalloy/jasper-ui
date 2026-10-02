@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { AfterViewInit, Component, ElementRef, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -66,7 +66,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
     forwardRef(() => RefFormComponent),
   ],
 })
-export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
+export class SubmitTextPage implements AfterViewInit, HasChanges {
 
   private readonly injector = inject(Injector);
   private generatedUrl = 'comment:' + uuid();
@@ -219,9 +219,6 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         });
       }
     });
-  }
-
-  ngOnDestroy() {
   }
 
   get randomURL() {

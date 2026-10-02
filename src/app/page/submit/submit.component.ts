@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, effect, inject, Injector, signal, untracked } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy, effect, signal, untracked } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -65,9 +65,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
     TagPreviewPipe,
   ],
 })
-export class SubmitPage implements OnInit, OnDestroy {
-
-  private readonly injector = inject(Injector);
+export class SubmitPage implements OnDestroy {
 
   readonly uploading = signal<boolean>(false);
   readonly progress = signal<number | undefined>(undefined);
@@ -106,9 +104,6 @@ export class SubmitPage implements OnInit, OnDestroy {
       store.submit.submitGenId.set(this.admin.submitGenId.filter(p => p.config?.submitDm || this.auth.canAddTag(p.tag)));
       store.submit.submitDm.set(this.admin.submitDm);
     };
-  }
-
-  ngOnInit(): void {
     effect(() => {
       this.store.submit.wiki();
       this.store.submit.url();
@@ -139,7 +134,7 @@ export class SubmitPage implements OnInit, OnDestroy {
           }
         }
       });
-    }, { injector: this.injector });
+    });
   }
 
   ngOnDestroy() {

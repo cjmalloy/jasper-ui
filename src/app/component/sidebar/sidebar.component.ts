@@ -6,7 +6,6 @@ import {
   ElementRef,
   forwardRef,
   OnDestroy,
-  OnInit,
   ChangeDetectionStrategy,
   effect,
   input,
@@ -78,7 +77,7 @@ import { SortComponent } from '../sort/sort.component';
     ChatVideoComponent,
   ]
 })
-export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
+export class SidebarComponent implements AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   readonly tagInput = input('', { alias: 'tag' });
@@ -109,18 +108,6 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly expandedInput = input(false, { alias: 'expanded' });
   readonly expanded = linkedSignal(() => this.expandedInput());
   private lastView = this.store.view.current();
-
-
-
-
-
-
-
-
-
-
-
-
 
   constructor(
     public router: Router,
@@ -179,9 +166,6 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
       localStorage.setItem('sidebar-expanded', ''+value);
       this.store.view.sidebarExpanded.set(value);
     });
-  }
-
-  ngOnInit(): void {
   }
 
   ngAfterViewInit() {
@@ -245,7 +229,6 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
     this.addTags.set(this.addTags().filter(t => this.auth.canAddTag(t)));
   }
 
-
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -254,11 +237,9 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
     return !this.existing || this.ext()?.origin === this.store.account.origin();
   });
 
-
   get existing() {
     return this.ext()?.modified;
   }
-
 
   readonly root = computed(() => {
     return !!this.admin.getTemplate('');

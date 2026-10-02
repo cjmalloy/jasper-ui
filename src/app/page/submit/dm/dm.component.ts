@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, DestroyRef, ElementRef, forwardRef, OnDestroy, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, forwardRef, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -64,7 +64,7 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
     LoadingComponent,
   ]
 })
-export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
+export class SubmitDmPage implements AfterViewInit, HasChanges {
 
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
@@ -155,9 +155,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
         if (tags.length) this.addTags(tags);
       });
     }, { injector: this.injector });
-  }
-
-  ngOnDestroy() {
   }
 
   get to() {
