@@ -39,23 +39,23 @@ import { GeocodeResult } from '../../util/geocode';
               [disabled]="searching"
               (click)="search()">🔎️</button>
     </div>
-    @if (searching || searchError || results) {
-      <div class="geocoder-results">
-        @if (searching) {
-          <div class="geocoder-status" i18n>Searching…</div>
-        } @else if (searchError) {
-          <div class="geocoder-status error">{{ searchError }}</div>
-        } @else {
-          @for (r of results; track $index) {
-            <button type="button"
-                    class="geocoder-result"
-                    (click)="select(r)">{{ r.name }}</button>
-          } @empty {
-            <div class="geocoder-status" i18n>No results found.</div>
-          }
+    <div class="geocoder-results"
+         aria-live="polite"
+         [hidden]="!searching && !searchError && !results">
+      @if (searching) {
+        <div class="geocoder-status" i18n>Searching…</div>
+      } @else if (searchError) {
+        <div class="geocoder-status error">{{ searchError }}</div>
+      } @else {
+        @for (r of results; track $index) {
+          <button type="button"
+                  class="geocoder-result"
+                  (click)="select(r)">{{ r.name }}</button>
+        } @empty {
+          <div class="geocoder-status" i18n>No results found.</div>
         }
-      </div>
-    }
+      }
+    </div>
   `,
   styleUrls: ['./geocoder.component.scss'],
   encapsulation: ViewEncapsulation.None,
