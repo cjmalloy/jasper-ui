@@ -1,4 +1,4 @@
-@for (s of spots; track s.index) {
+@for (s of spots(); track s.index) {
   <div class="backgammon-spot"
        [style.grid-column]="s.col > 6 ? s.col + 2 : s.col + 1"
        [style.grid-row]="s.top ? 1 : 2"
@@ -16,7 +16,7 @@
            [class.stacked]="pi > 4"
            [class.double-stacked]="pi > 9"
            [class.hidden]="animatedPiece()?.from === s.index && pi === s.pieces.length - 1"
-           [class.glow]="pi >= s.pieces.length - (lastMovedSpots[s.index] || 0)"
+           [class.glow]="pi >= s.pieces.length - (lastMovedSpots()[s.index] || 0)"
            cdkDrag
            cdkDragBoundary=".backgammon-board"
            (cdkDragStarted)="onDragStarted(s.index)"
@@ -33,12 +33,12 @@
      [cdkDropListData]="-2"
      (cdkDropListDropped)="drop($any($event))"
      (click)="onClickOff()">
-  @for (p of blackOff; track pi; let pi = $index) {
+  @for (p of blackOff(); track pi; let pi = $index) {
     <div class="backgammon-piece"
          [class.stacked]="pi > 4"
          [class.double-stacked]="pi > 9"
-         [class.glow]="pi >= blackOff.length - (lastMovedOff['b'] || 0)"
-         [class.translate]="turn === 'b' && translate() === -2 && pi === blackOff.length - 1">{{ drawPiece(p) }}</div>
+         [class.glow]="pi >= blackOff().length - (lastMovedOff()['b'] || 0)"
+         [class.translate]="turn() === 'b' && translate() === -2 && pi === blackOff().length - 1">{{ drawPiece(p) }}</div>
   }
 </div>
 <div class="backgammon-off red"
@@ -49,26 +49,26 @@
      [cdkDropListData]="-2"
      (cdkDropListDropped)="drop($any($event))"
      (click)="onClickOff()">
-  @for (p of redOff; track pi; let pi = $index) {
+  @for (p of redOff(); track pi; let pi = $index) {
     <div class="backgammon-piece"
          [class.stacked]="pi > 4"
          [class.double-stacked]="pi > 9"
-         [class.glow]="pi >= redOff.length - (lastMovedOff['r'] || 0)"
-         [class.translate]="turn === 'r' && translate() === -2 && pi === redOff.length - 1">{{ drawPiece(p) }}</div>
+         [class.glow]="pi >= redOff().length - (lastMovedOff()['r'] || 0)"
+         [class.translate]="turn() === 'r' && translate() === -2 && pi === redOff().length - 1">{{ drawPiece(p) }}</div>
   }
 </div>
 <div class="backgammon-bar black"
      [style.grid-column]="8"
      [style.grid-row]="1"
-     [class.move]="moves[-2]"
+     [class.move]="moves()[-2]"
      [class.drag-source]="dragSource()===-1"
      cdkDropList
      [cdkDropListData]="-1"
      (click)="onClickBar()"
      (contextmenu)="moveBarHighest($event)">
-  @for (p of blackBar; track pi; let pi = $index) {
+  @for (p of blackBar(); track pi; let pi = $index) {
     <div class="backgammon-piece"
-         [class.hidden]="animatedPiece()?.from === -1 && animatedPiece()?.piece === 'b' && pi === blackBar.length - 1"
+         [class.hidden]="animatedPiece()?.from === -1 && animatedPiece()?.piece === 'b' && pi === blackBar().length - 1"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
@@ -83,9 +83,9 @@
      [cdkDropListData]="-1"
      (click)="onClickBar()"
      (contextmenu)="moveBarHighest($event)">
-  @for (p of redBar; track p; let pi = $index) {
+  @for (p of redBar(); track pi; let pi = $index) {
     <div class="backgammon-piece"
-         [class.hidden]="animatedPiece()?.from === -1 && animatedPiece()?.piece === 'r' && pi === redBar.length - 1"
+         [class.hidden]="animatedPiece()?.from === -1 && animatedPiece()?.piece === 'r' && pi === redBar().length - 1"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
@@ -96,73 +96,73 @@
   <div class="backgammon-piece animated-piece">{{ drawPiece(anim.piece) }}</div>
 }
 <div class="red dice bubble"
-     [class.winner]="winner === 'r'"
-     [class.backgammon]="winner === 'r' && backgammon"
-     [class.gammon]="winner === 'r' && gammon"
-     [class.clickme]="!winner && (first && turn === 'r' || !moves.length && turn === 'b')"
-     [class.play]="moves.length && turn === 'r'"
+     [class.winner]="winner() === 'r'"
+     [class.backgammon]="winner() === 'r' && backgammon()"
+     [class.gammon]="winner() === 'r' && gammon()"
+     [class.clickme]="!winner() && (first() && turn() === 'r' || !moves().length && turn() === 'b')"
+     [class.play]="moves().length && turn() === 'r'"
      [class.rolling]="rolling() === 'r'"
-     [class.disabled]="winner || moves.length || redDice[0] && turn !== 'b'"
+     [class.disabled]="winner() || moves().length || redDice()[0] && turn() !== 'b'"
      (click)="roll('r')"
      i18n-title title="Red">
-  @if (winner === 'r') {
+  @if (winner() === 'r') {
     <div i18n>
       Red Wins
-      @if (backgammon) {
+      @if (backgammon()) {
         <span i18n-title title="Backgammon">🎲️🎲️🎲️</span>
       }
-      @if (gammon && !backgammon) {
+      @if (gammon() && !backgammon()) {
         <span i18n-title title="Gammon">🎲️🎲️</span>
       }
-      @if (!gammon) {
+      @if (!gammon()) {
         <span>🎲️</span>
       }
     </div>
   }
-  @if (!redDice[0]) {
+  @if (!redDice()[0]) {
     <div i18n>🎲️ Roll</div>
   } @else {
-    @if (redDice[0] && !redDice[1]) {
-      <div i18n>{{ redDice[0] }}</div>
+    @if (redDice()[0] && !redDice()[1]) {
+      <div i18n>{{ redDice()[0] }}</div>
     } @else {
-      @if (redDice[1]) {
-        <div i18n>{{ redDice[0] }} - {{ redDice[1] }}</div>
+      @if (redDice()[1]) {
+        <div i18n>{{ redDice()[0] }} - {{ redDice()[1] }}</div>
       }
     }
   }
 </div>
 <div class="black dice bubble"
-     [class.winner]="winner === 'b'"
-     [class.backgammon]="winner === 'b' && backgammon"
-     [class.gammon]="winner === 'b' && gammon"
-     [class.clickme]="!winner && (first && turn === 'b' || !moves.length && turn === 'r')"
-     [class.play]="moves.length && turn === 'b'"
+     [class.winner]="winner() === 'b'"
+     [class.backgammon]="winner() === 'b' && backgammon()"
+     [class.gammon]="winner() === 'b' && gammon()"
+     [class.clickme]="!winner() && (first() && turn() === 'b' || !moves().length && turn() === 'r')"
+     [class.play]="moves().length && turn() === 'b'"
      [class.rolling]="rolling() === 'b'"
-     [class.disabled]="winner || moves.length || blackDice[0] && turn !== 'r'"
+     [class.disabled]="winner() || moves().length || blackDice()[0] && turn() !== 'r'"
      (click)="roll('b')"
      i18n-title title="Black">
-  @if (winner === 'b') {
+  @if (winner() === 'b') {
     <div i18n>
       Black Wins
-      @if (backgammon) {
+      @if (backgammon()) {
         <span i18n-title title="Backgammon">🎲️🎲️🎲️</span>
       }
-      @if (gammon && !backgammon) {
+      @if (gammon() && !backgammon()) {
         <span i18n-title title="Gammon">🎲️🎲️</span>
       }
-      @if (!gammon) {
+      @if (!gammon()) {
         <span>🎲️</span>
       }
     </div>
   }
-  @if (!blackDice[0]) {
+  @if (!blackDice()[0]) {
     <div i18n>🎲️ Roll</div>
   } @else {
-    @if (blackDice[0] && !blackDice[1]) {
-      <div i18n>{{ blackDice[0] }}</div>
+    @if (blackDice()[0] && !blackDice()[1]) {
+      <div i18n>{{ blackDice()[0] }}</div>
     } @else {
-      @if (blackDice[1]) {
-        <div i18n>{{ blackDice[0] }} - {{ blackDice[1] }}</div>
+      @if (blackDice()[1]) {
+        <div i18n>{{ blackDice()[0] }} - {{ blackDice()[1] }}</div>
       }
     }
   }
@@ -182,7 +182,7 @@
         @for (eventPos of importantEvents(); track eventPos) {
           <div class="scrubber-tick"
                [style.left.%]="(eventPos / replayAnimations().length) * 100"
-               [title]="importantEventTypes.get(eventPos) || 'Important event'">
+               [title]="importantEventTypes().get(eventPos) || 'Important event'">
             <span class="tick-emoji" 
                   (click)="snapToEvent(eventPos)">{{ getEventEmoji(eventPos) }}</span>
           </div>
