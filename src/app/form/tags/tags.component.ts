@@ -17,7 +17,7 @@ export class TagsFormComponent {
   static validators = [Validators.pattern(TAG_REGEX)];
 
   readonly origin = input<string | undefined>('');
-  readonly groupInput = input<UntypedFormGroup | undefined>(undefined, { alias: 'group' });
+  readonly group = input<UntypedFormGroup | undefined>(undefined);
   readonly fieldName = input('tags');
 
   field = {
@@ -60,12 +60,9 @@ export class TagsFormComponent {
     });
   }
 
-  get group() {
-    return this.groupInput();
-  }
 
   get tags() {
-    return this.group?.get(this.fieldName()) as UntypedFormArray;
+    return this.group()?.get(this.fieldName()) as UntypedFormArray;
   }
 
   get model() {

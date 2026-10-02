@@ -35,7 +35,7 @@ describe('EditorComponent', () => {
   });
 
   it('should initialize with empty uploads array', () => {
-    expect(component.uploads).toEqual([]);
+    expect(component.uploads()).toEqual([]);
   });
 
   it('should show the editor after clicking the add button', async () => {
@@ -53,48 +53,48 @@ describe('EditorComponent', () => {
   });
 
   it('should have hasActiveUploads method that returns true when active uploads exist', () => {
-    component.uploads = [
+    component.uploads.set([
       { id: '1', name: 'test.pdf', progress: 50, completed: false },
       { id: '2', name: 'test2.jpg', progress: 100, completed: true }
-    ];
+    ]);
     expect(component.hasActiveUploads()).toBeTruthy();
   });
 
   it('should cancel individual upload correctly', () => {
     const mockSubscription = { unsubscribe: vi.fn() };
-    component.uploads = [
+    component.uploads.set([
       { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription as any },
       { id: '2', name: 'test2.jpg', progress: 75 }
-    ];
+    ]);
 
-    component.cancelUpload(component.uploads[0]);
+    component.cancelUpload(component.uploads()[0]);
 
     expect(mockSubscription.unsubscribe).toHaveBeenCalled();
-    expect(component.uploads.length).toBe(1);
-    expect(component.uploads[0].id).toBe('2');
+    expect(component.uploads().length).toBe(1);
+    expect(component.uploads()[0].id).toBe('2');
   });
 
   it('should cancel all uploads correctly', () => {
     const mockSubscription1 = { unsubscribe: vi.fn() };
     const mockSubscription2 = { unsubscribe: vi.fn() };
-    component.uploads = [
+    component.uploads.set([
       { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription1 as any },
       { id: '2', name: 'test2.jpg', progress: 75, subscription: mockSubscription2 as any }
-    ];
+    ]);
 
     component.cancelAllUploads();
 
     expect(mockSubscription1.unsubscribe).toHaveBeenCalled();
     expect(mockSubscription2.unsubscribe).toHaveBeenCalled();
-    expect(component.uploads.length).toBe(0);
+    expect(component.uploads().length).toBe(0);
   });
 
   it('should append new uploads when there are active uploads', () => {
     // Setup existing uploads with one active
-    component.uploads = [
+    component.uploads.set([
       { id: '1', name: 'existing.pdf', progress: 50, completed: false },
       { id: '2', name: 'completed.jpg', progress: 100, completed: true }
-    ];
+    ]);
 
     // Mock the upload$ method to avoid real HTTP requests
     vi.spyOn(component, 'upload$').mockReturnValue(of(null));
@@ -107,19 +107,19 @@ describe('EditorComponent', () => {
     component.upload(fileList);
 
     // Should have 4 uploads total (2 existing + 2 new)
-    expect(component.uploads.length).toBe(4);
-    expect(component.uploads[0].name).toBe('existing.pdf');
-    expect(component.uploads[1].name).toBe('completed.jpg');
-    expect(component.uploads[2].name).toBe('new1.txt');
-    expect(component.uploads[3].name).toBe('new2.txt');
+    expect(component.uploads().length).toBe(4);
+    expect(component.uploads()[0].name).toBe('existing.pdf');
+    expect(component.uploads()[1].name).toBe('completed.jpg');
+    expect(component.uploads()[2].name).toBe('new1.txt');
+    expect(component.uploads()[3].name).toBe('new2.txt');
   });
 
   it('should clear uploads when no active uploads exist', () => {
     // Setup existing uploads with all completed
-    component.uploads = [
+    component.uploads.set([
       { id: '1', name: 'completed1.pdf', progress: 100, completed: true },
       { id: '2', name: 'completed2.jpg', progress: 100, completed: true }
-    ];
+    ]);
 
     // Mock the upload$ method to avoid real HTTP requests
     vi.spyOn(component, 'upload$').mockReturnValue(of(null));
@@ -131,8 +131,8 @@ describe('EditorComponent', () => {
     component.upload(fileList);
 
     // Should have only 1 upload (the new one, previous completed ones cleared)
-    expect(component.uploads.length).toBe(1);
-    expect(component.uploads[0].name).toBe('new.txt');
+    expect(component.uploads().length).toBe(1);
+    expect(component.uploads()[0].name).toBe('new.txt');
   });
 
   it('should attach all URLs at once when all uploads complete', () => {
@@ -144,10 +144,10 @@ describe('EditorComponent', () => {
     const ref2 = { url: 'url2', tags: [] } as any;
 
     // Setup uploads
-    component.uploads = [
+    component.uploads.set([
       { id: '1', name: 'file1.txt', progress: 100, completed: true, ref: ref1 },
       { id: '2', name: 'file2.txt', progress: 100, completed: true, ref: ref2 }
-    ];
+    ]);
 
     // Trigger completion check
     component.checkAllUploadsComplete();
@@ -159,32 +159,32 @@ describe('EditorComponent', () => {
 
   it('should enable textarea when canceling the last upload', () => {
     // Setup with one upload
-    component.uploads = [
+    component.uploads.set([
       { id: '1', name: 'file1.txt', progress: 50, completed: false }
-    ];
-    component.control.disable();
+    ]);
+    component.control().disable();
 
     // Cancel the upload
-    component.cancelUpload(component.uploads[0]);
+    component.cancelUpload(component.uploads()[0]);
 
     // Should enable the control since no uploads remain
-    expect(component.control.enabled).toBeTruthy();
-    expect(component.uploads.length).toBe(0);
+    expect(component.control().enabled).toBeTruthy();
+    expect(component.uploads().length).toBe(0);
   });
 
   it('should not enable textarea when canceling one of multiple uploads', () => {
     // Setup with multiple uploads
-    component.uploads = [
+    component.uploads.set([
       { id: '1', name: 'file1.txt', progress: 50, completed: false },
       { id: '2', name: 'file2.txt', progress: 75, completed: false }
-    ];
-    component.control.disable();
+    ]);
+    component.control().disable();
 
     // Cancel one upload
-    component.cancelUpload(component.uploads[0]);
+    component.cancelUpload(component.uploads()[0]);
 
     // Should remain disabled since there's still an active upload
-    expect(component.control.disabled).toBeTruthy();
-    expect(component.uploads.length).toBe(1);
+    expect(component.control().disabled).toBeTruthy();
+    expect(component.uploads().length).toBe(1);
   });
 });

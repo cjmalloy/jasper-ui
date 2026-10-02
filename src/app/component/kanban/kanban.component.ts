@@ -65,8 +65,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   readonly list = viewChildren(KanbanColumnComponent);
 
   readonly query = input<string>();
-  readonly extInput = input<Ext | undefined>(undefined, { alias: 'ext' });
-  get ext() { return this.extInput(); }
+  readonly ext = input<Ext | undefined>(undefined);
   readonly pageControls = input(true);
   readonly fullPage = input(false);
   readonly size = input(8);
@@ -91,12 +90,12 @@ export class KanbanComponent implements OnDestroy, HasChanges {
     private tags: TaggingService,
   ) {
     effect(() => {
-      this.extInput();
+      this.ext();
       untracked(() => this.loadExt());
     });
     effect(() => {
       this.query();
-      this.extInput();
+      this.ext();
       this.pageControls();
       this.fullPage();
       this.size();
@@ -139,7 +138,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   get columns(): string[] {
     if (this.filteredColumnBacklog) return [];
     if (this.filteredColumn) return [this.filteredColumn];
-    if (!this.kanbanConfig.columns) return [this.ext!.tag];
+    if (!this.kanbanConfig.columns) return [this.ext()!.tag];
     return without(this.kanbanConfig.columns, ...this.negateFilters);
   }
 
@@ -174,7 +173,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   }
 
   get kanbanConfig(): KanbanConfig {
-    return this.ext?.config || this.defaultConfig;
+    return this.ext()?.config || this.defaultConfig;
   }
 
   get queryTags(): string[] {
@@ -201,7 +200,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   }
 
   get filteredColumn() {
-    const cols = this.kanbanConfig.columns || [this.ext?.tag];
+    const cols = this.kanbanConfig.columns || [this.ext()?.tag];
     for (const tag of this.queryTags) {
       if (cols.includes(tag)) return tag;
     }
@@ -262,7 +261,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
       ...this.kanbanConfig.addTags || [],
       ...this.store.view.queryTags.map(localTag),
     ];
-    result.push(this.ext!.tag);
+    result.push(this.ext()!.tag);
     if (tags.col) result.push(tags.col);
     if (tags.sl) result.push(tags.sl);
     return uniq(result);

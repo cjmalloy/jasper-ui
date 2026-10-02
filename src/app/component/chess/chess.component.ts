@@ -34,7 +34,7 @@ type AnimationState = { from: Square; to: Square; capture?: { square: Square; pi
   hostDirectives: [CdkDropListGroup],
   host: {
     'class': 'chess-board',
-    '[class.flip]': 'flip',
+    '[class.flip]': 'flip()',
     '(window:resize)': 'onResize()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,57 +45,28 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
   readonly textInput = input<string | undefined>('', { alias: 'text' });
   readonly whiteInput = input(true, { alias: 'white' });
-  private readonly refSignal = linkedSignal(() => this.refInput());
-  private readonly textSignal = linkedSignal(() => this.textInput());
-  private readonly whiteSignal = linkedSignal(() => this.whiteInput());
-  get ref() { return this.refSignal(); }
-  set ref(value: Ref | undefined) { this.refSignal.set(value); }
-  get text() { return this.textSignal(); }
-  set text(value: string | undefined) { this.textSignal.set(value); }
-  get white() { return this.whiteSignal(); } // TODO: Save in local storage
-  set white(value: boolean) { this.whiteSignal.set(value); }
+  readonly ref = linkedSignal(() => this.refInput());
+  readonly text = linkedSignal(() => this.textInput());
+  readonly white = linkedSignal(() => this.whiteInput());
+ // TODO: Save in local storage
   readonly comment = output<string>();
   readonly copied = output<string>();
 
-  private readonly turnSignal = signal<PieceColor>('w');
-  private readonly fromSignal = signal<Square | undefined>(undefined);
-  private readonly toSignal = signal<Square | undefined>(undefined);
-  private readonly movesSignal = signal<Square[]>([]);
+  readonly turn = signal<PieceColor>('w');
+  readonly from = signal<Square | undefined>(undefined);
+  readonly to = signal<Square | undefined>(undefined);
+  readonly moves = signal<Square[]>([]);
   chess = new Chess();
-  private readonly piecesSignal = signal<(Piece | null)[]>(flatten(this.chess.board()));
-  private readonly writeAccessSignal = signal(false);
-  private readonly translateSignal = signal<string[]>([]);
-  private readonly lastMoveToSignal = signal<Square | undefined>(undefined);
-  private readonly animatingSignal = signal(false);
+  readonly pieces = signal<(Piece | null)[]>(flatten(this.chess.board()));
+  readonly writeAccess = signal(false);
+  readonly translate = signal<string[]>([]);
+  readonly lastMoveTo = signal<Square | undefined>(undefined);
+  readonly animating = signal(false);
   animationQueue: AnimationState[] = [];
-  private readonly movingPieceSignal = signal<{ piece: Piece; from: Square; to: Square } | undefined>(undefined);
-  private readonly capturedPieceSignal = signal<{ piece: Piece; square: Square } | undefined>(undefined);
-  get flip() { return this.flipSignal(); }
-  private readonly flipSignal = signal(false);
+  readonly movingPiece = signal<{ piece: Piece; from: Square; to: Square } | undefined>(undefined);
+  readonly capturedPiece = signal<{ piece: Piece; square: Square } | undefined>(undefined);
+  readonly flip = signal(false);
 
-  get turn() { return this.turnSignal(); }
-  set turn(value: PieceColor) { this.turnSignal.set(value); }
-  get from() { return this.fromSignal(); }
-  set from(value: Square | undefined) { this.fromSignal.set(value); }
-  get to() { return this.toSignal(); }
-  set to(value: Square | undefined) { this.toSignal.set(value); }
-  get moves() { return this.movesSignal(); }
-  set moves(value: Square[]) { this.movesSignal.set(value); }
-  get pieces() { return this.piecesSignal(); }
-  set pieces(value: (Piece | null)[]) { this.piecesSignal.set(value); }
-  get writeAccess() { return this.writeAccessSignal(); }
-  set writeAccess(value: boolean) { this.writeAccessSignal.set(value); }
-  get translate() { return this.translateSignal(); }
-  set translate(value: string[]) { this.translateSignal.set(value); }
-  get lastMoveTo() { return this.lastMoveToSignal(); }
-  set lastMoveTo(value: Square | undefined) { this.lastMoveToSignal.set(value); }
-  get animating() { return this.animatingSignal(); }
-  set animating(value: boolean) { this.animatingSignal.set(value); }
-  get movingPiece() { return this.movingPieceSignal(); }
-  set movingPiece(value: { piece: Piece; from: Square; to: Square } | undefined) { this.movingPieceSignal.set(value); }
-  get capturedPiece() { return this.capturedPieceSignal(); }
-  set capturedPiece(value: { piece: Piece; square: Square } | undefined) { this.capturedPieceSignal.set(value); }
-  set flip(value: boolean) { this.flipSignal.set(value); }
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private fen = '';
@@ -111,11 +82,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     private el: ElementRef<HTMLDivElement>,
   ) {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
-      if (event.event === 'flip' && event.ref?.url === this.ref?.url) {
-        this.flip = true;
+      if (event.event === 'flip' && event.ref?.url === this.ref()?.url) {
+        this.flip.set(true);
         delay(() => {
-          this.flip = false;
-          this.white = !this.white;
+          this.flip.set(false);
+          this.white.set(!this.white());
         }, 1000);
         defer(() => this.store.eventBus.fire('flip-done'));
       }
@@ -128,9 +99,9 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   init() {
-    this.reset(this.ref?.comment || this.text);
-    if (!this.watch && this.ref) {
-      const watch = this.actions.append(this.ref);
+    this.reset(this.ref()?.comment || this.text());
+    if (!this.watch && this.ref()) {
+      const watch = this.actions.append(this.ref());
       this.append$ = watch.append$;
       this.watch = watch.updates$.pipe(
         catchError(err => {
@@ -182,9 +153,9 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref || changes.text) {
       const newRef = changes.ref?.firstChange || changes.ref?.previousValue?.url !== changes.ref?.currentValue?.url;
-      if (!this.ref || newRef) {
+      if (!this.ref() || newRef) {
         this.watch?.unsubscribe();
-        if (this.ref || this.text != null) this.init();
+        if (this.ref() || this.text() != null) this.init();
       }
     }
   }
@@ -195,10 +166,10 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   clearErrors() {
-    if (this.ref) {
-      this.actions.comment(this.history, this.ref!);
+    if (this.ref()) {
+      this.actions.comment(this.history, this.ref()!);
     } else {
-      this.text = this.history;
+      this.text.set(this.history);
     }
   }
 
@@ -231,7 +202,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       }
     }
     this.render();
-    if (!this.ref || (this.ref.comment || '') !== this.history) {
+    if (!this.ref() || (this.ref().comment || '') !== this.history) {
       this.clearErrors();
     }
   }
@@ -309,10 +280,10 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   render() {
-    this.pieces = flatten(this.chess.board());
-    this.lastMoveTo = this.chess.history({ verbose: true }).pop()?.to;
-    this.turn = this.chess.turn();
-    this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
+    this.pieces.set(flatten(this.chess.board()));
+    this.lastMoveTo.set(this.chess.history({ verbose: true }).pop()?.to);
+    this.turn.set(this.chess.turn());
+    this.moves.set(this.chess.moves({ verbose: true }).map(m => m.to));
   }
 
   check() {
@@ -333,8 +304,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         }
       });
     }
-    this.from = undefined;
-    this.to = undefined;
+    this.from.set(undefined);
+    this.to.set(undefined);
   }
 
   get history() {
@@ -374,15 +345,15 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   clickSquare(index: number) {
     const square = this.getCoord(index);
     const p = this.chess.get(square);
-    if (this.from === square) {
-      this.from = undefined;
-      this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
-    } else if (this.turn === p?.color) {
-      this.from = square;
-      this.moves = this.chess.moves({ square, verbose: true }).map(m => m.to);
-    } else if (this.from) {
-      this.to = square;
-      this.move(this.from, square);
+    if (this.from() === square) {
+      this.from.set(undefined);
+      this.moves.set(this.chess.moves({ verbose: true }).map(m => m.to));
+    } else if (this.turn() === p?.color) {
+      this.from.set(square);
+      this.moves.set(this.chess.moves({ square, verbose: true }).map(m => m.to));
+    } else if (this.from()) {
+      this.to.set(square);
+      this.move(this.from(), square);
     }
   }
 
@@ -398,30 +369,30 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
   queueAnimation(state: AnimationState) {
     this.animationQueue.push(state);
-    if (!this.animating) {
+    if (!this.animating()) {
       this.processAnimationQueue();
     }
   }
 
   processAnimationQueue() {
     if (this.animationQueue.length === 0) {
-      this.animating = false;
-      this.movingPiece = undefined;
-      this.capturedPiece = undefined;
+      this.animating.set(false);
+      this.movingPiece.set(undefined);
+      this.capturedPiece.set(undefined);
       this.render();
       this.check();
       return;
     }
 
-    this.animating = true;
+    this.animating.set(true);
     const animation = this.animationQueue.shift()!;
-    this.pieces = animation.boardState;
-    this.turn = animation.turnState;
-    this.moves = animation.movesState;
-    this.lastMoveTo = animation.to;
-    this.movingPiece = { piece: animation.piece, from: animation.from, to: animation.to };
+    this.pieces.set(animation.boardState);
+    this.turn.set(animation.turnState);
+    this.moves.set(animation.movesState);
+    this.lastMoveTo.set(animation.to);
+    this.movingPiece.set({ piece: animation.piece, from: animation.from, to: animation.to });
     if (animation.capture) {
-      this.capturedPiece = animation.capture;
+      this.capturedPiece.set(animation.capture);
     }
 
     // Calculate coordinates for CSS animation
@@ -434,8 +405,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
     // Calculate deltas - the piece at destination needs to animate FROM source position
     // So we need the negative offset from destination back to source
-    const xFrom = this.white ? -(toCol - fromCol) : -(fromCol - toCol);
-    const yFrom = this.white ? -(toRow - fromRow) : -(fromRow - toRow);
+    const xFrom = this.white() ? -(toCol - fromCol) : -(fromCol - toCol);
+    const yFrom = this.white() ? -(toRow - fromRow) : -(fromRow - toRow);
     const xTo = 0;
     const yTo = 0;
 
@@ -447,24 +418,24 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
     // Animate the piece moving to its destination with translation
     const movingPiece = animation.to;
-    this.translate = [...this.translate, movingPiece];
+    this.translate.set([...this.translate(), movingPiece]);
 
     // Remove captured piece animation after it completes (delay + duration)
     // Capture animation: 1.0s delay + 0.8s animation = 1.8s total
     if (animation.capture) {
       delay(() => {
-        this.capturedPiece = undefined;
+        this.capturedPiece.set(undefined);
       }, 1800);
     }
 
     // Remove animation after completion (wait for capture to finish if present)
     const totalDuration = animation.capture ? 1900 : 1600;
     delay(() => {
-      this.translate = without(this.translate, movingPiece);
-      this.movingPiece = undefined;
+      this.translate.set(without(this.translate(), movingPiece));
+      this.movingPiece.set(undefined);
       // capturedPiece already deleted above if it existed
       if (!animation.capture) {
-        this.capturedPiece = undefined;
+        this.capturedPiece.set(undefined);
       }
       // Process next animation after current one completes
       this.processAnimationQueue();

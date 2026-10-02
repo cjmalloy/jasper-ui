@@ -2,7 +2,7 @@
          class="dont-hide"
          i18n-placeholder
          placeholder="Search {{ viewName(store.view.current) }}"
-         [value]="searchValue"
+         [value]="searchValue()"
          (input)="change($any($event.target))"
          (keydown)="$event.key === 'Enter' && submit() || true"
          [incremental]="store.account.config.liveSearch"

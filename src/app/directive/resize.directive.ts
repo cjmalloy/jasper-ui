@@ -22,34 +22,30 @@ export class ResizeDirective {
   readonly enabled = input<boolean | undefined>(undefined, { alias: 'appResize' });
 
   get zIndex() {
-    return this.dirty ? 1 : 0;
+    return this.dirty() ? 1 : 0;
   }
 
   get width() {
-    const dim = this.dim;
+    const dim = this.dim();
     if (!this.enabled() || !dim) return this.el.nativeElement.style.width;
     return dim.x + 'px'
   }
 
   get height() {
-    const dim = this.dim;
+    const dim = this.dim();
     if (!this.enabled() || !dim) return this.el.nativeElement.style.height;
     return dim.y + 'px';
   }
 
   minPx = 2;
   zoom = 1;
-  private readonly dimSignal = signal<{x: number, y: number} | undefined>(undefined);
+  readonly dim = signal<{x: number, y: number} | undefined>(undefined);
   oldZoom = 1;
   dragStart?: {x: number, y: number};
   startDim?: {x: number, y: number};
   dragging = false;
   wasDragging = false;
-  private readonly dirtySignal = signal(false);
-  get dim() { return this.dimSignal(); }
-  set dim(value: {x: number, y: number} | undefined) { this.dimSignal.set(value); }
-  get dirty() { return this.dirtySignal(); }
-  set dirty(value: boolean) { this.dirtySignal.set(value); }
+  readonly dirty = signal(false);
 
   constructor(private el: ElementRef) { }
 
@@ -112,11 +108,11 @@ export class ResizeDirective {
     const dx = (e.clientX - this.dragStart.x) / this.startDim.x;
     const dy = (e.clientY - this.dragStart.y) / this.startDim.y;
     const l = (dx + dy) / 2;
-    const dim = { ...(this.dim || this.startDim) };
+    const dim = { ...(this.dim() || this.startDim) };
     dim.x = Math.floor(this.startDim.x * (1 + l));
     dim.y = dim.x * this.startDim.y / this.startDim.x;
-    this.dim = dim;
-    this.dirty = true;
+    this.dim.set(dim);
+    this.dirty.set(true);
   }
 
   onTouchmove(e: TouchEvent) {
@@ -137,11 +133,11 @@ export class ResizeDirective {
     const dx = (dims.w - this.dragStart.x) / this.startDim.x;
     const dy = (dims.h - this.dragStart.y) / this.startDim.y;
     const l = (dx + dy) / 2;
-    const dim = { ...(this.dim || this.startDim) };
+    const dim = { ...(this.dim() || this.startDim) };
     dim.x = Math.floor(this.startDim.x * (1 + l));
     dim.y = dim.x * this.startDim.y / this.startDim.x;
-    this.dim = dim;
-    this.dirty = true;
+    this.dim.set(dim);
+    this.dirty.set(true);
   }
 
   onCancel(e: Event) {

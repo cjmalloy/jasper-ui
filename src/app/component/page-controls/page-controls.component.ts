@@ -71,9 +71,7 @@ export class PageControlsComponent {
 
   pageSizes = [6, 24, 48, 96, 480];
   colSizes = [1, 2, 3, 4, 5, 6];
-  private readonly _colsChanged = signal(false);
-  get colsChanged() { return this._colsChanged(); }
-  set colsChanged(value: boolean) { this._colsChanged.set(value); }
+  readonly colsChanged = signal(false);
 
   constructor(
     public store: Store,
@@ -119,7 +117,7 @@ export class PageControlsComponent {
 
   get cols() {
     if (this.store.view.cols) {
-      this.colsChanged = true;
+      this.colsChanged.set(true);
     }
     return this.store.view.cols;
   }

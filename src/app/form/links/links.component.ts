@@ -22,12 +22,10 @@ import { URI_REGEX } from '../../util/format';
 export class LinksFormComponent {
   static validators = [Validators.pattern(URI_REGEX)];
 
-  readonly groupInput = input<UntypedFormGroup | undefined>(undefined, { alias: 'group' });
+  readonly group = input<UntypedFormGroup | undefined>(undefined);
   readonly fieldName = input('links');
 
-  private readonly _model = signal<string[]>([]);
-  get model() { return this._model(); }
-  set model(value: string[]) { this._model.set(value); }
+  readonly model = signal<string[]>([]);
   field = {
     type: 'refs',
     props: {
@@ -67,16 +65,13 @@ export class LinksFormComponent {
     });
   }
 
-  get group() {
-    return this.groupInput();
-  }
 
   get links() {
-    return this.group?.get(this.fieldName()) as UntypedFormArray | undefined;
+    return this.group()?.get(this.fieldName()) as UntypedFormArray | undefined;
   }
 
   setLinks(values: string[]) {
-    this.model = values;
+    this.model.set(values);
     if (!this.links) return;
     while (this.links.length > values.length) this.links.removeAt(this.links.length - 1, { emitEvent: false });
     while (this.links.length < values.length) this.links.push(this.fb.control(''), { emitEvent: false });
@@ -85,12 +80,12 @@ export class LinksFormComponent {
 
   addLink(...values: string[]) {
     if (!values.length) return;
-    this.model = this.links!.value;
+    this.model.set(this.links!.value);
     this.field.fieldArray.focus = true;
     for (const value of values) {
       if (value) this.field.fieldArray.focus = false;
-      if (value && value !== 'placeholder' && this.model.includes(value)) return;
-      this.model = [...this.model, value];
+      if (value && value !== 'placeholder' && this.model().includes(value)) return;
+      this.model.set([...this.model(), value]);
     }
   }
 

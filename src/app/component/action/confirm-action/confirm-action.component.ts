@@ -19,35 +19,29 @@ export class ConfirmActionComponent extends ActionComponent {
   readonly action = input<() => Observable<any | never>>(() => of(null));
   readonly minDelayMs = input(1000);
 
-  private readonly confirmingSignal = signal(false);
-  private readonly actingSignal = signal(false);
-  private readonly minTimeoutSignal = signal(false);
+  readonly confirming = signal(false);
+  readonly acting = signal(false);
+  readonly minTimeout = signal(false);
 
-  get confirming() { return this.confirmingSignal(); }
-  set confirming(value: boolean) { this.confirmingSignal.set(value); }
 
-  get acting() { return this.actingSignal(); }
-  set acting(value: boolean) { this.actingSignal.set(value); }
 
-  get minTimeout() { return this.minTimeoutSignal(); }
-  set minTimeout(value: boolean) { this.minTimeoutSignal.set(value); }
 
   override reset() {
-    this.confirming = false;
-    this.acting = false;
+    this.confirming.set(false);
+    this.acting.set(false);
   }
 
   override active() {
-    return this.confirming || this.acting;
+    return this.confirming() || this.acting();
   }
 
   confirm() {
-    this.confirming = false;
-    this.acting = true;
-    this.minTimeout = true;
-    setTimeout(() => this.minTimeout = false, this.minDelayMs());
+    this.confirming.set(false);
+    this.acting.set(true);
+    this.minTimeout.set(true);
+    setTimeout(() => this.minTimeout.set(false), this.minDelayMs());
     this.action()().pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.acting = false);
+    ).subscribe(() => this.acting.set(false));
   }
 }

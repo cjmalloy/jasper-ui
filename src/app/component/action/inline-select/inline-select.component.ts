@@ -18,30 +18,26 @@ export class InlineSelectComponent extends ActionComponent {
   readonly value = input<any>();
   readonly error = output<string>();
 
-  private readonly editingSignal = signal(false);
-  private readonly actingSignal = signal(false);
+  readonly editing = signal(false);
+  readonly acting = signal(false);
 
-  get editing() { return this.editingSignal(); }
-  set editing(value: boolean) { this.editingSignal.set(value); }
 
-  get acting() { return this.actingSignal(); }
-  set acting(value: boolean) { this.actingSignal.set(value); }
 
   override reset() {
-    this.editing = false;
-    this.acting = false;
+    this.editing.set(false);
+    this.acting.set(false);
   }
 
   override active() {
-    return this.editing || this.acting;
+    return this.editing() || this.acting();
   }
 
   save(field: HTMLSelectElement) {
-    this.editing = false;
-    this.acting = true;
+    this.editing.set(false);
+    this.acting.set(true);
     this.action()((field.value || '').trim()).pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.acting = false);
+    ).subscribe(() => this.acting.set(false));
   }
 
 }

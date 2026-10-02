@@ -44,19 +44,15 @@ export class NotebookComponent implements OnInit, HasChanges {
 
   readonly list = viewChildren(RefComponent);
 
-  private readonly pinnedSignal = signal<Ref[]>([]);
-  private readonly newRefsSignal = signal<Ref[]>([]);
+  readonly pinned = signal<Ref[]>([]);
+  readonly newRefs = signal<Ref[]>([]);
 
-  get pinned() { return this.pinnedSignal(); }
-  set pinned(value: Ref[]) { this.pinnedSignal.set(value); }
 
-  get newRefs() { return this.newRefsSignal(); }
-  set newRefs(value: Ref[]) { this.newRefsSignal.set(value); }
 
-  readonly extInput = input<Ext | undefined>(undefined, { alias: 'ext' });
+  readonly ext = input<Ext | undefined>(undefined);
   readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
   readonly expandedInput = input<boolean | undefined>(undefined, { alias: 'expanded' });
-  readonly pageInput = input<Page<Ref> | undefined>(undefined, { alias: 'page' });
+  readonly page = input<Page<Ref> | undefined>(undefined);
 
   constructor(
     private accounts: AccountService,
@@ -65,20 +61,20 @@ export class NotebookComponent implements OnInit, HasChanges {
     private refs: RefService,
   ) {
     effect(() => {
-      const value = this.extInput();
+      const value = this.ext();
       if (!value?.config?.pinned?.length) {
-        this.pinned = [];
+        this.pinned.set([]);
       } else {
         forkJoin((value.config.pinned as string[])
           .map(pin => this.refs.getCurrent(pin).pipe(
             catchError(err => of({ url: pin })),
             takeUntilDestroyed(this.destroyRef),
           )))
-          .subscribe(pinned => this.pinned = pinned);
+          .subscribe(pinned => this.pinned.set(pinned));
       }
     });
     effect(() => {
-      const page = this.pageInput();
+      const page = this.page();
       if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
@@ -94,9 +90,6 @@ export class NotebookComponent implements OnInit, HasChanges {
     return !this.list()?.find(r => !r.saveChanges());
   }
 
-  get ext() {
-    return this.extInput();
-  }
 
   get colStyle() {
     if (!this.cols) {
@@ -108,17 +101,14 @@ export class NotebookComponent implements OnInit, HasChanges {
 
   get cols() {
     if (this.colsInput()) return this.colsInput();
-    return this.ext?.config?.defaultCols;
+    return this.ext()?.config?.defaultCols;
   }
 
   get expanded(): boolean {
-    if (this.expandedInput() === undefined) return this.ext?.config?.defaultExpanded;
+    if (this.expandedInput() === undefined) return this.ext()?.config?.defaultExpanded;
     return this.expandedInput()!;
   }
 
-  get page(): Page<Ref> | undefined {
-    return this.pageInput();
-  }
 
   ngOnInit(): void {
     this.newRefs$()?.pipe(
@@ -130,12 +120,12 @@ export class NotebookComponent implements OnInit, HasChanges {
   addNewRef(ref: Ref) {
     // TODO: verify read before clearing?
     this.accounts.clearNotificationsIfNone(ref.modified);
-    if (!this.page?.content.find(r => r.url === ref.url)) {
-      const index = this.newRefs.findIndex(r => r.url === ref.url);
+    if (!this.page()?.content.find(r => r.url === ref.url)) {
+      const index = this.newRefs().findIndex(r => r.url === ref.url);
       if (index !== -1) {
-        this.newRefs[index] = ref;
+        this.newRefs()[index] = ref;
       } else {
-        this.newRefs = [ref, ...this.newRefs];
+        this.newRefs.set([ref, ...this.newRefs()]);
         return;
       }
     }

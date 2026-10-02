@@ -18,12 +18,8 @@ import { printError } from '../../../util/http';
 })
 export class SettingsPasswordPage {
 
-  private readonly _submitted = signal<boolean>(false);
-  get submitted() { return this._submitted(); }
-  set submitted(value: boolean) { this._submitted.set(value); }
-  private readonly _serverError = signal<string[]>([]);
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
+  readonly submitted = signal<boolean>(false);
+  readonly serverError = signal<string[]>([]);
   passwordForm!: UntypedFormGroup;
 
   constructor(
@@ -43,8 +39,8 @@ export class SettingsPasswordPage {
   }
 
   save() {
-    this.serverError = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.submitted.set(true);
     this.passwordForm.markAllAsTouched();
     if (!this.passwordForm.valid) {
       scrollToFirstInvalid();
@@ -55,7 +51,7 @@ export class SettingsPasswordPage {
       tag: this.store.account.tag
     }).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {

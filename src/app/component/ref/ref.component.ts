@@ -101,10 +101,10 @@ import { ViewerComponent } from '../viewer/viewer.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
   host: {
-    '[class]': 'allCss',
-    '[class.deleted]': 'deleted',
-    '[class.mobile-unlock]': 'mobileUnlock',
-    '[class.storyboard-ready]': 'storyboardLoaded',
+    '[class]': 'allCss()',
+    '[class.deleted]': 'deleted()',
+    '[class.mobile-unlock]': 'mobileUnlock()',
+    '[class.storyboard-ready]': 'storyboardLoaded()',
     '[attr.data-ref-url]': 'refUrlAttr',
     '[attr.data-ref-origin]': 'refOriginAttr',
     '[attr.data-ref-title]': 'refTitleAttr',
@@ -151,9 +151,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
 export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   css = 'ref list-item';
-  private readonly allCssSignal = signal(this.css);
-  get allCss() { return this.allCssSignal(); }
-  set allCss(value: string) { this.allCssSignal.set(value); }
+  readonly allCss = signal(this.css);
   private destroyRef = inject(DestroyRef);
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
@@ -163,38 +161,14 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   readonly viewer = viewChild<ViewerComponent>('viewer');
 
   readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
-  private readonly refSignal = linkedSignal(() => this.refInput());
-  get ref(): Ref {
-    return this.refSignal()!;
-  }
-  set ref(value: Ref) {
-    this.refSignal.set(value);
-  }
+  readonly ref = linkedSignal(() => this.refInput()!);
   readonly expandedInput = input(false, { alias: 'expanded' });
-  private readonly expandedSignal = linkedSignal(() => this.expandedInput());
-  get expanded() {
-    return this.expandedSignal();
-  }
-  set expanded(value: boolean) {
-    this.expandedSignal.set(value);
-  }
+  readonly expanded = linkedSignal(() => this.expandedInput());
   readonly plugins = input<string[]>();
   readonly expandInlineInput = input(false, { alias: 'expandInline' });
-  private readonly expandInlineSignal = linkedSignal(() => this.expandInlineInput());
-  get expandInline() {
-    return this.expandInlineSignal();
-  }
-  set expandInline(value: boolean) {
-    this.expandInlineSignal.set(value);
-  }
+  readonly expandInline = linkedSignal(() => this.expandInlineInput());
   readonly showToggleInput = input(false, { alias: 'showToggle' });
-  private readonly showToggleSignal = linkedSignal(() => this.showToggleInput());
-  get showToggle() {
-    return this.showToggleSignal();
-  }
-  set showToggle(value: boolean) {
-    this.showToggleSignal.set(value);
-  }
+  readonly showToggle = linkedSignal(() => this.showToggleInput());
   readonly scrollToLatest = input(false);
   readonly hideEdit = input(false);
   readonly disableResize = input(false);
@@ -203,97 +177,39 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   readonly fetchRepost = input(true);
   readonly copied = output<string>();
 
-  private readonly repostRefSignal = signal<Ref | undefined>(undefined);
-  get repostRef() {
-    return this.repostRefSignal();
-  }
-  set repostRef(value: Ref | undefined) {
-    this.repostRefSignal.set(value);
-  }
+  readonly repostRef = signal<Ref | undefined>(undefined);
   editForm: UntypedFormGroup;
-  private readonly submittedSignal = signal(false);
-  get submitted() { return this.submittedSignal(); }
-  set submitted(value: boolean) { this.submittedSignal.set(value); }
-  private readonly invalidSignal = signal(false);
-  get invalid() { return this.invalidSignal(); }
-  set invalid(value: boolean) { this.invalidSignal.set(value); }
-  private readonly overwrittenSignal = signal(false);
-  get overwritten() { return this.overwrittenSignal(); }
-  set overwritten(value: boolean) { this.overwrittenSignal.set(value); }
-  private readonly overwriteSignal = signal(true);
-  get overwrite() { return this.overwriteSignal(); }
-  set overwrite(value: boolean) { this.overwriteSignal.set(value); }
-  private readonly expandPluginsSignal = signal<string[]>([]);
-  get expandPlugins() { return this.expandPluginsSignal(); }
-  set expandPlugins(value: string[]) { this.expandPluginsSignal.set(value); }
-  private readonly iconsSignal = signal<Icon[]>([]);
-  get icons() { return this.iconsSignal(); }
-  set icons(value: Icon[]) { this.iconsSignal.set(value); }
-  private readonly alarmSignal = signal<string | undefined>(undefined);
-  get alarm() { return this.alarmSignal(); }
-  set alarm(value: string | undefined) { this.alarmSignal.set(value); }
-  private readonly actionsSignal = signal<Action[]>([]);
-  get actions() { return this.actionsSignal(); }
-  set actions(value: Action[]) { this.actionsSignal.set(value); }
-  private readonly groupedActionsSignal = signal<Record<string, Action[]>>({});
-  get groupedActions() { return this.groupedActionsSignal(); }
-  set groupedActions(value: Record<string, Action[]>) { this.groupedActionsSignal.set(value); }
-  private readonly advancedActionsSignal = signal<Action[]>([]);
-  get advancedActions() { return this.advancedActionsSignal(); }
-  set advancedActions(value: Action[]) { this.advancedActionsSignal.set(value); }
-  private readonly groupedAdvancedActionsSignal = signal<Record<string, Action[]>>({});
-  get groupedAdvancedActions() { return this.groupedAdvancedActionsSignal(); }
-  set groupedAdvancedActions(value: Record<string, Action[]>) { this.groupedAdvancedActionsSignal.set(value); }
-  private readonly infoUisSignal = signal<Plugin[]>([]);
-  get infoUis() { return this.infoUisSignal(); }
-  set infoUis(value: Plugin[]) { this.infoUisSignal.set(value); }
-  private readonly deletedSignal = signal(false);
-  get deleted() { return this.deletedSignal(); }
-  set deleted(value: boolean) { this.deletedSignal.set(value); }
-  private readonly mobileUnlockSignal = signal(false);
-  get mobileUnlock() { return this.mobileUnlockSignal(); }
-  set mobileUnlock(value: boolean) { this.mobileUnlockSignal.set(value); }
-  private readonly storyboardLoadedSignal = signal(false);
-  get storyboardLoaded() { return this.storyboardLoadedSignal(); }
-  set storyboardLoaded(value: boolean) { this.storyboardLoadedSignal.set(value); }
-  private readonly actionsExpandedSignal = signal<boolean | undefined>(undefined);
-  get actionsExpanded() { return this.actionsExpandedSignal(); }
-  set actionsExpanded(value: boolean | undefined) { this.actionsExpandedSignal.set(value); }
-  private readonly replyingSignal = signal(false);
-  get replying() { return this.replyingSignal(); }
-  set replying(value: boolean) { this.replyingSignal.set(value); }
-  private readonly writeAccessSignal = signal(false);
-  get writeAccess() { return this.writeAccessSignal(); }
-  set writeAccess(value: boolean) { this.writeAccessSignal.set(value); }
-  private readonly taggingAccessSignal = signal(false);
-  get taggingAccess() { return this.taggingAccessSignal(); }
-  set taggingAccess(value: boolean) { this.taggingAccessSignal.set(value); }
-  private readonly deleteAccessSignal = signal(false);
-  get deleteAccess() { return this.deleteAccessSignal(); }
-  set deleteAccess(value: boolean) { this.deleteAccessSignal.set(value); }
-  private readonly serverErrorSignal = signal<string[]>([]);
-  get serverError() { return this.serverErrorSignal(); }
-  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
-  private readonly publishChangedSignal = signal(false);
-  get publishChanged() { return this.publishChangedSignal(); }
-  set publishChanged(value: boolean) { this.publishChangedSignal.set(value); }
-  private readonly diffOriginalSignal = signal<Ref | undefined>(undefined);
-  get diffOriginal() { return this.diffOriginalSignal(); }
-  set diffOriginal(value: Ref | undefined) { this.diffOriginalSignal.set(value); }
-  private readonly diffModifiedSignal = signal<Ref | undefined>(undefined);
-  get diffModified() { return this.diffModifiedSignal(); }
-  set diffModified(value: Ref | undefined) { this.diffModifiedSignal.set(value); }
-  private readonly fullscreenSignal = signal(false);
-  get fullscreen() { return this.fullscreenSignal(); }
-  set fullscreen(value: boolean) { this.fullscreenSignal.set(value); }
+  readonly submitted = signal(false);
+  readonly invalid = signal(false);
+  readonly overwritten = signal(false);
+  readonly overwrite = signal(true);
+  readonly expandPlugins = signal<string[]>([]);
+  readonly icons = signal<Icon[]>([]);
+  readonly alarm = signal<string | undefined>(undefined);
+  readonly actions = signal<Action[]>([]);
+  readonly groupedActions = signal<Record<string, Action[]>>({});
+  readonly advancedActions = signal<Action[]>([]);
+  readonly groupedAdvancedActions = signal<Record<string, Action[]>>({});
+  readonly infoUis = signal<Plugin[]>([]);
+  readonly deleted = signal(false);
+  readonly mobileUnlock = signal(false);
+  readonly storyboardLoaded = signal(false);
+  readonly actionsExpanded = signal<boolean | undefined>(undefined);
+  readonly replying = signal(false);
+  readonly writeAccess = signal(false);
+  readonly taggingAccess = signal(false);
+  readonly deleteAccess = signal(false);
+  readonly serverError = signal<string[]>([]);
+  readonly publishChanged = signal(false);
+  readonly diffOriginal = signal<Ref | undefined>(undefined);
+  readonly diffModified = signal<Ref | undefined>(undefined);
+  readonly fullscreen = signal(false);
 
-  private readonly submittingSignal = signal<Subscription | undefined>(undefined);
-  get submitting() { return this.submittingSignal(); }
-  set submitting(value: Subscription | undefined) { this.submittingSignal.set(value); }
+  readonly submitting = signal<Subscription | undefined>(undefined);
   private refreshTap?: () => void;
-  private readonly editingSignal = signal(false);
-  private readonly viewSourceSignal = signal(false);
-  private readonly diffingSignal = signal(false);
+  readonly editing = signal(false);
+  readonly viewSource = signal(false);
+  readonly diffing = signal(false);
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
   private closeOffFullscreen = false;
@@ -326,22 +242,22 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     this.editForm.valueChanges.pipe(
       takeUntilDestroyed(),
     ).subscribe(throttle(value => {
-      if (!this.editing) return;
+      if (!this.editing()) return;
       if (!value?.title && !value?.comment || !value?.tags?.length) return;
       defer(() => {
         // Let Formly finish rebuilding tag rows before derived Ref UI state reacts.
-        this.initFields({ ...this.ref, ...value });
+        this.initFields({ ...this.ref(), ...value });
       });
     }, 400, { leading: true, trailing: true }));
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
-        if (this.editing || this.viewSource) {
+        if (this.editing() || this.viewSource()) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
           return;
         }
-        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
-          this.ref = event.ref!;
+        if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
+          this.ref.set(event.ref!);
           this.init();
           if (this.refreshTap) {
             this.refreshTap();
@@ -349,8 +265,8 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
           }
         }
       }
-      if (this.ref?.upload && event.event === 'refresh:uploads') {
-        if (this.editing || this.viewSource) {
+      if (this.ref()?.upload && event.event === 'refresh:uploads') {
+        if (this.editing() || this.viewSource()) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
           return;
@@ -358,65 +274,65 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
         this.init();
       }
       if (event.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
-          this.serverError = event.errors;
+        if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
+          this.serverError.set(event.errors);
         }
       }
       if (event.event === 'toggle') {
-        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
-          this.expanded = !this.expanded;
+        if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
+          this.expanded.set(!this.expanded());
         }
       }
       if (event.event === 'toggle-all-open') {
-        this.expanded = true;
+        this.expanded.set(true);
       }
       if (event.event === 'toggle-all-closed') {
-        this.expanded = false;
+        this.expanded.set(false);
       }
     });
   }
 
   saveChanges() {
     const reply = this.reply();
-    return (!this.editing || !this.editForm.dirty)
+    return (!this.editing() || !this.editForm.dirty)
       && (!reply || reply.saveChanges());
   }
 
   init() {
-    this.serverError = [];
-    this.submitted = false;
-    this.invalid = false;
-    this.overwritten = false;
-    this.overwrite = false;
-    this.deleted = false;
-    this.editing = false;
-    this.viewSource = false;
-    this.storyboardLoaded = false;
+    this.serverError.set([]);
+    this.submitted.set(false);
+    this.invalid.set(false);
+    this.overwritten.set(false);
+    this.overwrite.set(false);
+    this.deleted.set(false);
+    this.setEditing(false);
+    this.setViewSource(false);
+    this.storyboardLoaded.set(false);
     this.preloadingUrl = '';
     this.actionComponents()?.forEach(c => c.reset());
-    if (this.ref?.upload) this.editForm.get('url')!.enable();
-    this.writeAccess = this.auth.writeAccess(this.ref);
-    this.taggingAccess = this.auth.taggingAccess(this.ref);
-    this.deleteAccess = this.auth.deleteAccess(this.ref);
-    this.fullscreen = this.fullscreenRequired;
-    this.initFields(this.ref);
+    if (this.ref()?.upload) this.editForm.get('url')!.enable();
+    this.writeAccess.set(this.auth.writeAccess(this.ref()));
+    this.taggingAccess.set(this.auth.taggingAccess(this.ref()));
+    this.deleteAccess.set(this.auth.deleteAccess(this.ref()));
+    this.fullscreen.set(this.fullscreenRequired);
+    this.initFields(this.ref());
 
-    this.expandPlugins = this.admin.getEmbeds(this.ref);
-    if (this.repost && this.ref && this.fetchRepost() && this.repostRef?.url != repost(this.ref)) {
-      (this.store.view.top?.url === this.ref.sources![0]
+    this.expandPlugins.set(this.admin.getEmbeds(this.ref()));
+    if (this.repost && this.ref() && this.fetchRepost() && this.repostRef()?.url != repost(this.ref())) {
+      (this.store.view.top?.url === this.ref().sources![0]
           ? of(this.store.view.top)
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => {
-        this.repostRef = ref;
+        this.repostRef.set(ref);
         if (!ref) return;
         if (this.bareRepost) {
-          this.expandPlugins = this.admin.getEmbeds(ref);
-          this.allCss = this.getPluginClasses();
+          this.expandPlugins.set(this.admin.getEmbeds(ref));
+          this.allCss.set(this.getPluginClasses());
         } else {
-          this.expandPlugins = [...this.expandPlugins, 'plugin/repost'];
+          this.expandPlugins.set([...this.expandPlugins(), 'plugin/repost']);
         }
         this.preloadStoryboard();
       });
@@ -430,7 +346,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     this.preloadingUrl = url;
     this.imgs.getImage(url).then(() => {
       if (this.preloadingUrl === url) {
-        this.storyboardLoaded = true;
+        this.storyboardLoaded.set(true);
       }
     }).catch(() => {
       // If preloading fails, storyboard-ready class is never set and hover shows original thumbnail
@@ -438,15 +354,15 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   initFields(ref: Ref) {
-    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))));
-    this.alarm = capturesAny(this.store.account.alarms, ref.tags);
-    this.actions = ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(ref.tags, ref.plugins))) : [];
-    this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
+    this.icons.set(uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url)))));
+    this.alarm.set(capturesAny(this.store.account.alarms, ref.tags));
+    this.actions.set(ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(ref.tags, ref.plugins))) : []);
+    this.groupedActions.set(groupBy(this.actions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
     // TODO: detect width and move actions that don't fit into advanced actions
-    this.advancedActions = ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : [];
-    this.groupedAdvancedActions = groupBy(this.advancedActions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
-    this.infoUis = this.admin.getPluginInfoUis(ref.tags);
-    this.allCss = this.getPluginClasses()
+    this.advancedActions.set(ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : []);
+    this.groupedAdvancedActions.set(groupBy(this.advancedActions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
+    this.infoUis.set(this.admin.getPluginInfoUis(ref.tags));
+    this.allCss.set(this.getPluginClasses())
   }
 
   ngAfterViewInit(): void {
@@ -465,28 +381,28 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   unlockViewer(event: Event) {
     if (!this.config.mobile) return;
-    this.mobileUnlock = !this.mobileUnlock;
+    this.mobileUnlock.set(!this.mobileUnlock());
     event.preventDefault();
   }
 
   getPluginClasses() {
-    if (!this.ref) return this.css;
+    if (!this.ref()) return this.css;
     const tags = this.bareRepost
-      ? uniq([...(this.ref.tags || []), ...(this.repostRef?.tags || [])])
-      : this.ref.tags;
+      ? uniq([...(this.ref().tags || []), ...(this.repostRef()?.tags || [])])
+      : this.ref().tags;
     return this.css + ' ' + [
       ...templates(tags, 'plugin'),
-      ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p),
-      ...(this.ref.metadata?.userUrls || []).map(p => 'user-response-' + p)
+      ...Object.keys(this.ref().metadata?.plugins || {}).map(p => 'response-' + p),
+      ...(this.ref().metadata?.userUrls || []).map(p => 'user-response-' + p)
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
   }
 
   get refUrlAttr() {
-    return this.ref?.url;
+    return this.ref()?.url;
   }
 
   get refOriginAttr() {
-    return this.ref?.origin || undefined;
+    return this.ref()?.origin || undefined;
   }
 
   get refTitleAttr() {
@@ -515,29 +431,29 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get lastSelected() {
-    return this.scrollToLatest() && this.store.view.lastSelected?.url === this.ref.url;
+    return this.scrollToLatest() && this.store.view.lastSelected?.url === this.ref().url;
   }
 
   get uploadedFile() {
-    return this.ref.upload;
+    return this.ref().upload;
   }
 
   get existsFile() {
-    return this.ref.exists;
+    return this.ref().exists;
   }
 
   get modifiedFile() {
-    return this.ref.outdated;
+    return this.ref().outdated;
   }
 
   get storyboardData() {
     if (!this.admin.getPlugin('plugin/image')) return null;
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
-    if (this.editing) {
+    if (this.editing()) {
       return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
     }
-    return this.ref?.plugins?.['plugin/thumbnail/storyboard']
-      || this.repostRef?.plugins?.['plugin/thumbnail/storyboard']
+    return this.ref()?.plugins?.['plugin/thumbnail/storyboard']
+      || this.repostRef()?.plugins?.['plugin/thumbnail/storyboard']
       || null;
   }
 
@@ -545,7 +461,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     const sb = this.storyboardData;
     if (!sb?.url) return null;
     const rawUrl = String(sb.url);
-    const origin = this.ref?.origin || this.repostRef?.origin || '';
+    const origin = this.ref()?.origin || this.repostRef()?.origin || '';
     if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
       return this.proxy.getFetch(rawUrl, origin, 'storyboard');
     } else {
@@ -586,14 +502,14 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get obsoleteOrigin() {
-    if (this.ref.metadata?.obsolete) return this.ref.origin;
+    if (this.ref().metadata?.obsolete) return this.ref().origin;
     return undefined;
   }
 
   get fullscreenRequired() {
     if (!this.admin.getPlugin('plugin/fullscreen')) return false;
     if (!hasTag('plugin/fullscreen', this.currentTags)) return false;
-    return !this.ref.plugins?.['plugin/fullscreen']?.optional;
+    return !this.ref().plugins?.['plugin/fullscreen']?.optional;
   }
 
   get pipRequired() {
@@ -602,22 +518,22 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   onFullscreenChange() {
-    if (!this.fullscreen) return;
+    if (!this.fullscreen()) return;
     if (document.fullscreenElement) return;
-    this.fullscreen = this.fullscreenRequired;
-    if (this.closeOffFullscreen) this.expanded = false;
+    this.fullscreen.set(this.fullscreenRequired);
+    if (this.closeOffFullscreen) this.expanded.set(false);
   }
 
   onClick() {
-    this.store.view.clearLastSelected(this.ref.url);
+    this.store.view.clearLastSelected(this.ref().url);
   }
 
   private handleViewer(value: ViewerComponent | undefined) {
     if (value) {
-      if (this.fullscreen) {
+      if (this.fullscreen()) {
         value.el.nativeElement.requestFullscreen().catch((err: TypeError) => {
           console.warn('Could not make fullscreen.');
-          if (this.closeOffFullscreen) this.expanded = false;
+          if (this.closeOffFullscreen) this.expanded.set(false);
         });
       }
       if (this.focusViewer) {
@@ -628,43 +544,34 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     }
   }
 
-  get viewSource(): boolean {
-    return this.viewSourceSignal();
-  }
 
-  set viewSource(value: boolean) {
-    if (this.viewSource === value) return;
-    this.viewSourceSignal.set(value);
+  setViewSource(value: boolean) {
+    if (this.viewSource() === value) return;
+    this.viewSource.set(value);
     if (value) {
       this.syncEditor();
     } else {
-      if (this.expanded) this.focusViewer = true;
+      if (this.expanded()) this.focusViewer = true;
     }
   }
 
-  get diffing(): boolean {
-    return this.diffingSignal();
-  }
 
-  set diffing(value: boolean) {
-    if (this.diffing === value) return;
-    this.diffingSignal.set(value);
+  setDiffing(value: boolean) {
+    if (this.diffing() === value) return;
+    this.diffing.set(value);
     if (value) {
       this.diff()
     }
   }
 
-  get editing(): boolean {
-    return this.editingSignal();
-  }
 
-  set editing(value: boolean) {
-    if (this.editing === value) return;
-    this.editingSignal.set(value);
+  setEditing(value: boolean) {
+    if (this.editing() === value) return;
+    this.editing.set(value);
     if (value) {
       this.syncEditor();
     } else {
-      if (this.expanded) this.focusViewer = true;
+      if (this.expanded()) this.focusViewer = true;
       defer(() => {
         this.init();
       });
@@ -672,42 +579,42 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   syncEditor() {
-    if (!this.editing && !this.viewSource) return;
+    if (!this.editing() && !this.viewSource()) return;
     const refFormValue = this.refForm();
     if (refFormValue) {
-      refFormValue.setRef(cloneDeep(this.ref));
-      if (this.editing) this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
+      refFormValue.setRef(cloneDeep(this.ref()));
+      if (this.editing()) this.editor.syncEditor(this.fb, this.editForm, this.ref().comment);
     } else {
       defer(() => this.syncEditor());
     }
   }
 
   get local() {
-    return this.ref.origin === this.store.account.origin;
+    return this.ref().origin === this.store.account.origin;
   }
 
   get localhost() {
-    return this.ref.url.startsWith(this.config.base);
+    return this.ref().url.startsWith(this.config.base);
   }
 
   get repost() {
-    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
+    return this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref());
   }
 
   get bareRepost() {
-    return this.repost && !this.ref.title && !this.ref.comment;
+    return this.repost && !this.ref().title && !this.ref().comment;
   }
 
   get currentRef() {
-    return this.repost ? this.repostRef : this.ref;
+    return this.repost ? this.repostRef() : this.ref();
   }
 
   get currentTags() {
-    return uniq([...(this.repost ? this.repostRef?.tags : this.ref.tags) || [], ...this.expandPlugins]);
+    return uniq([...(this.repost ? this.repostRef()?.tags : this.ref().tags) || [], ...this.expandPlugins()]);
   }
 
   get bareRef() {
-    return this.bareRepost ? this.repostRef : this.ref;
+    return this.bareRepost ? this.repostRef() : this.ref();
   }
 
   get commentNoTitle() {
@@ -716,69 +623,69 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get feed() {
-    return !!this.admin.getPlugin('plugin/script/feed') && hasTag('plugin/script/feed', this.ref);
+    return !!this.admin.getPlugin('plugin/script/feed') && hasTag('plugin/script/feed', this.ref());
   }
 
   get thread() {
-    return !!this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.ref);
+    return !!this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.ref());
   }
 
   get comment() {
-    return !!this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.ref);
+    return !!this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.ref());
   }
 
   get dm() {
-    return !!this.admin.getTemplate('dm') && hasTag('dm', this.ref);
+    return !!this.admin.getTemplate('dm') && hasTag('dm', this.ref());
   }
 
   get email() {
-    return !!this.admin.getTemplate('email') && hasTag('email', this.ref);
+    return !!this.admin.getTemplate('email') && hasTag('email', this.ref());
   }
 
   get remote() {
-    return !!this.admin.getPlugin('+plugin/origin') && hasTag('+plugin/origin', this.ref);
+    return !!this.admin.getPlugin('+plugin/origin') && hasTag('+plugin/origin', this.ref());
   }
 
   get originPull() {
-    return !!this.admin.getPlugin('+plugin/origin/pull') && hasTag('+plugin/origin/pull', this.ref);
+    return !!this.admin.getPlugin('+plugin/origin/pull') && hasTag('+plugin/origin/pull', this.ref());
   }
 
   get originPush() {
-    return !!this.admin.getPlugin('+plugin/origin/push') && hasTag('+plugin/origin/push', this.ref);
+    return !!this.admin.getPlugin('+plugin/origin/push') && hasTag('+plugin/origin/push', this.ref());
   }
 
   get localOrigin() {
     if (this.originPull || this.originPush) {
-      return this.ref.plugins?.['+plugin/origin']?.local && subOrigin(this.ref.origin, this.ref.plugins?.['+plugin/origin']?.local);
+      return this.ref().plugins?.['+plugin/origin']?.local && subOrigin(this.ref().origin, this.ref().plugins?.['+plugin/origin']?.local);
     }
     return undefined;
   }
 
   get remoteOrigin() {
     if (this.originPull || this.originPush) {
-      return this.ref.plugins?.['+plugin/origin']?.remote;
+      return this.ref().plugins?.['+plugin/origin']?.remote;
     }
     return undefined;
   }
 
   get thumbnail() {
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    if (this.editing) {
+    if (this.editing()) {
       if (hasTag('plugin/thumbnail', this.editForm.value)) return true;
       if (!this.admin.getPlugin('plugin/image')) return false;
       return hasTag('plugin/image', this.editForm.value);
     }
-    if (hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef)) return true;
+    if (hasTag('plugin/thumbnail', this.ref()) || hasTag('plugin/thumbnail', this.repostRef())) return true;
     if (!this.admin.getPlugin('plugin/image')) return false;
-    return hasTag('plugin/image', this.ref) || hasTag('plugin/image', this.repostRef);
+    return hasTag('plugin/image', this.ref()) || hasTag('plugin/image', this.repostRef());
   }
 
   get thumbnailRefs() {
-    return this.editing ? [{ ...this.editForm.getRawValue(), origin: this.ref.origin }] : [this.repostRef, this.ref];
+    return this.editing() ? [{ ...this.editForm.getRawValue(), origin: this.ref().origin }] : [this.repostRef(), this.ref()];
   }
 
   get refThumbnailPlugin() {
-    const plugin = this.ref?.plugins?.['plugin/thumbnail'] || this.repostRef?.plugins?.['plugin/thumbnail'];
+    const plugin = this.ref()?.plugins?.['plugin/thumbnail'] || this.repostRef()?.plugins?.['plugin/thumbnail'];
     return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
   }
 
@@ -794,30 +701,30 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   refThumbnailPluginUrl(plugin: 'plugin/image' | 'plugin/video') {
-    const value = this.ref?.plugins?.[plugin]?.url || this.repostRef?.plugins?.[plugin]?.url;
+    const value = this.ref()?.plugins?.[plugin]?.url || this.repostRef()?.plugins?.[plugin]?.url;
     return typeof value === 'string' ? value : '';
   }
 
   get thumbnailColor() {
     if (!this.thumbnail) return '';
-    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
-    return this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color || '';
+    if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
+    return this.ref()?.plugins?.['plugin/thumbnail']?.color || this.repostRef()?.plugins?.['plugin/thumbnail']?.color || '';
   }
 
   get thumbnailEmoji() {
     if (!this.thumbnail) return '';
-    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
-    return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
+    if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
+    return this.ref()?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef()?.plugins?.['plugin/thumbnail']?.emoji || '';
   }
 
   get thumbnailEmojiDefaults() {
-    const icon = this.icons.filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
+    const icon = this.icons().filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
     return icon?.label || icon?.thumbnail;
   }
 
   get thumbnailRadius() {
-    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
-    return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
+    if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
+    return this.ref()?.plugins?.['plugin/thumbnail']?.radius || this.repostRef()?.plugins?.['plugin/thumbnail']?.radius || 0;
   }
 
   get file() {
@@ -828,24 +735,24 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   get audio() {
     return this.admin.getPlugin('plugin/audio') &&
       hasTag('plugin/audio', this.currentRef) &&
-      (this.ref?.plugins?.['plugin/audio']?.url || this.url);
+      (this.ref()?.plugins?.['plugin/audio']?.url || this.url);
   }
 
   get video() {
     return this.admin.getPlugin('plugin/video') &&
       hasTag('plugin/video', this.currentRef) &&
-      (this.ref?.plugins?.['plugin/video']?.url || this.url);
+      (this.ref()?.plugins?.['plugin/video']?.url || this.url);
   }
 
   get image() {
     return this.admin.getPlugin('plugin/image') &&
       hasTag('plugin/image', this.currentRef) &&
-      (this.ref?.plugins?.['plugin/image']?.url || this.url);
+      (this.ref()?.plugins?.['plugin/image']?.url || this.url);
   }
 
   getFilename(d = $localize`Untitled`) {
     const ext = getExtension(this.url) || '';
-    const filename = this.ref?.title || d;
+    const filename = this.ref()?.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
@@ -869,54 +776,54 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     if (!this.local) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
     if (!this.isAuthor) return false;
-    return hasTag('queue', this.ref);
+    return hasTag('queue', this.ref());
   }
 
   get isAuthor() {
-    return isAuthorTag(this.store.account.tag, this.ref);
+    return isAuthorTag(this.store.account.tag, this.ref());
   }
 
   get isRecipient() {
-    return hasTag(this.store.account.mailbox, this.ref);
+    return hasTag(this.store.account.mailbox, this.ref());
   }
 
   get authors() {
-    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
+    const lookup = this.store.origins.originMap.get(this.ref().origin || '');
     return uniq([
-      ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
-      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
+      ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
+      ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
     ]);
   }
 
   get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
+    return this.exts.getCachedExts(this.authors, this.ref().origin || '').pipe(this.admin.authorFallback);
   }
 
   get recipients() {
-    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
-    const userRecipients = without(addressedTo(this.ref), ...this.authors).map(a => {
+    const lookup = this.store.origins.originMap.get(this.ref().origin || '');
+    const userRecipients = without(addressedTo(this.ref()), ...this.authors).map(a => {
       if (!tagOrigin(a)) return a;
       return localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a));
     });
     return [
       ...userRecipients,
-      ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
+      ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
     ];
   }
 
   get recipientExts$() {
-    return this.exts.getCachedExts(this.recipients, this.ref.origin || '').pipe(this.admin.recipientFallback);
+    return this.exts.getCachedExts(this.recipients, this.ref().origin || '').pipe(this.admin.recipientFallback);
   }
 
   get mailboxes() {
-    return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
+    return mailboxes(this.ref(), this.store.account.tag, this.store.origins.originMap);
   }
 
   get replySources() {
-    const sources = [this.ref.url];
+    const sources = [this.ref().url];
     if (this.comment || this.thread || this.email) {
-      if (this.ref.sources?.length) {
-        sources.push(this.ref.sources[1] || this.ref.sources[0] || this.ref.url);
+      if (this.ref().sources?.length) {
+        sources.push(this.ref().sources[1] || this.ref().sources[0] || this.ref().url);
       }
     }
     return sources;
@@ -924,7 +831,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   get replyTags(): string[] {
     const tags = [
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref())).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
@@ -935,15 +842,15 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get tags() {
-    return interestingTags(this.ref.tags);
+    return interestingTags(this.ref().tags);
   }
 
   get tagExts$() {
-    return this.editor.getTagsPreview(this.tags, this.ref.origin || '');
+    return this.editor.getTagsPreview(this.tags, this.ref().origin || '');
   }
 
   get url() {
-    return this.repost ? this.ref.sources![0] : this.ref.url;
+    return this.repost ? this.ref().sources![0] : this.ref().url;
   }
 
   get origin() {
@@ -956,9 +863,9 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get title() {
-    if (this.editing) return getTitle(this.editForm.value);
-    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
-    return getTitle(this.ref);
+    if (this.editing()) return getTitle(this.editForm.value);
+    if (this.bareRepost) return getTitle(this.repostRef()) || $localize`Repost`;
+    return getTitle(this.ref());
   }
 
   get defaultView() {
@@ -976,7 +883,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get editingLink() {
-    if (!hasTag('plugin/editing', this.ref)) return undefined;
+    if (!hasTag('plugin/editing', this.ref())) return undefined;
     if (this.url.startsWith('comment:')) {
       return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
     }
@@ -998,11 +905,11 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   get redundantLink() {
     if (this.editingLink) return true;
     if (!this.clickableLink) return true;
-    return this.expandPlugins.length;
+    return this.expandPlugins().length;
   }
 
   get altText() {
-    if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) {
+    if (this.ref()?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) {
       return this.bareRef?.comment;
     }
     return undefined;
@@ -1010,111 +917,111 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   get newCommentsCount() {
-    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'comments');
+    const lastSeen = this.store.local.getLastSeenCount(this.ref().url, 'comments');
     if (!lastSeen) return 0;
     return Math.max(0, this.comments - lastSeen);
   }
 
   get errors() {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
-    return this.ref.metadata?.plugins?.['+plugin/log'] || 0;
+    return this.ref().metadata?.plugins?.['+plugin/log'] || 0;
   }
 
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
+    return this.ref().metadata?.plugins?.['plugin/thread'] || 0;
   }
 
   get newThreadsCount() {
-    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'threads');
+    const lastSeen = this.store.local.getLastSeenCount(this.ref().url, 'threads');
     if (!lastSeen) return 0;
     return Math.max(0,  this.threads - lastSeen);
   }
 
   get responses() {
-    return this.ref.metadata?.responses || 0;
+    return this.ref().metadata?.responses || 0;
   }
 
   get newResponsesCount() {
-    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'replies');
+    const lastSeen = this.store.local.getLastSeenCount(this.ref().url, 'replies');
     if (!lastSeen) return 0;
     return Math.max(0, this.responses - lastSeen);
   }
 
   get sources() {
-    const sources = uniq(this.ref?.sources).filter(s => s != this.ref.url);
+    const sources = uniq(this.ref()?.sources).filter(s => s != this.ref().url);
     return sources.length || 0;
   }
 
   get top() {
-    return top(this.ref);
+    return top(this.ref());
   }
 
   get parent() {
-    const sources = uniq(this.ref.sources).filter(s => s != this.ref.url);
+    const sources = uniq(this.ref().sources).filter(s => s != this.ref().url);
     if (sources.length === 1) return sources[0];
     return false;
   }
 
   get parentComment() {
-    if (!hasTag('plugin/comment', this.ref)) return false;
-    if (this.ref.sources?.[0] === this.ref.url) return false;
-    if (this.ref.sources?.[1] === this.ref.url) return false;
-    if (this.sources === 1 || this.sources === 2) return this.ref.sources![0];
+    if (!hasTag('plugin/comment', this.ref())) return false;
+    if (this.ref().sources?.[0] === this.ref().url) return false;
+    if (this.ref().sources?.[1] === this.ref().url) return false;
+    if (this.sources === 1 || this.sources === 2) return this.ref().sources![0];
     return false;
   }
 
   get parentCommentTop() {
-    if (!hasTag('plugin/comment', this.ref)) return false;
-    if (this.ref.sources?.[0] === this.ref.url) return false;
-    if (this.ref.sources?.[1] === this.ref.url) return false;
-    if (this.sources === 2) return this.ref.sources![1];
+    if (!hasTag('plugin/comment', this.ref())) return false;
+    if (this.ref().sources?.[0] === this.ref().url) return false;
+    if (this.ref().sources?.[1] === this.ref().url) return false;
+    if (this.sources === 2) return this.ref().sources![1];
     return false;
   }
 
   get parentThreadTop() {
-    if (!hasTag('plugin/thread', this.ref)) return false;
-    if (this.ref.sources?.[0] === this.ref.url) return false;
-    if (this.ref.sources?.[1] === this.ref.url) return false;
-    if (this.sources === 2) return this.ref.sources![1];
-    if (this.sources === 1) return this.ref.sources![0];
+    if (!hasTag('plugin/thread', this.ref())) return false;
+    if (this.ref().sources?.[0] === this.ref().url) return false;
+    if (this.ref().sources?.[1] === this.ref().url) return false;
+    if (this.sources === 2) return this.ref().sources![1];
+    if (this.sources === 1) return this.ref().sources![0];
     return false;
   }
 
   get publishedIsSubmitted() {
-    return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created!, 'seconds').seconds) <= 5;
+    return !this.ref().published || Math.abs(this.ref().published.diff(this.ref().created!, 'seconds').seconds) <= 5;
   }
 
   get modifiedIsSubmitted() {
-    return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created!, 'seconds').seconds) <= 5;
+    return !this.ref().modified || Math.abs(this.ref().modified.diff(this.ref().created!, 'seconds').seconds) <= 5;
   }
 
   get upvote() {
-    return hasUserUrlResponse('plugin/user/vote/up', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/up', this.ref());
   }
 
   get downvote() {
-    return hasUserUrlResponse('plugin/user/vote/down', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/down', this.ref());
   }
 
   get isView() {
-    return isRef(this.ref, this.store.view.ref);
+    return isRef(this.ref(), this.store.view.ref);
   }
 
   toggle() {
     let read = false;
-    if (this.editing) {
-      this.editing = false;
-    } else if (this.viewSource) {
-      this.viewSource = false;
-    } else if (!this.fullscreen) {
+    if (this.editing()) {
+      this.setEditing(false);
+    } else if (this.viewSource()) {
+      this.setViewSource(false);
+    } else if (!this.fullscreen()) {
       if (this.store.hotkey && this.admin.getPlugin('plugin/fullscreen')) {
-        this.fullscreen = true;
-        this.closeOffFullscreen = !this.expanded;
+        this.fullscreen.set(true);
+        this.closeOffFullscreen = !this.expanded();
         const viewer = this.viewer();
         if (viewer) {
           viewer.el.nativeElement.requestFullscreen().catch(() => {
@@ -1122,24 +1029,24 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
           });
         }
         this.focusViewer = true;
-        this.expanded = true;
+        this.expanded.set(true);
       } else if (this.pipRequired) {
-        this.store.eventBus.fire('pip', this.ref);
+        this.store.eventBus.fire('pip', this.ref());
         read = true;
       } else {
-        this.expanded = !this.expanded;
-        if (this.expanded) this.focusViewer = true;
-        this.store.local.setRefToggled(this.ref.url, this.expanded);
+        this.expanded.set(!this.expanded());
+        if (this.expanded()) this.focusViewer = true;
+        this.store.local.setRefToggled(this.ref().url, this.expanded());
       }
       // Mark as read
-      if (!read && !this.expanded) return;
+      if (!read && !this.expanded()) return;
       this.markRead();
     }
   }
 
   pip(event?: MouseEvent) {
     if (!this.admin.pip) return;
-    this.store.eventBus.fire('pip', this.ref);
+    this.store.eventBus.fire('pip', this.ref());
     this.markRead();
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
     event?.preventDefault();
@@ -1147,17 +1054,17 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   markRead() {
-    markRead(this.admin, this.ts, this.ref);
-    this.initFields(this.ref);
+    markRead(this.admin, this.ts, this.ref());
+    this.initFields(this.ref());
   }
 
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref));
+    return hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref()));
   }
 
   saveRef() {
-    this.store.view.preloadRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref(), this.repostRef());
   }
 
   formatAuthor(user: string) {
@@ -1165,33 +1072,33 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   tag$ = (tag: string) => {
-    if (this.ref.upload) {
-      this.ref.tags ||= [];
+    if (this.ref().upload) {
+      this.ref().tags ||= [];
       for (const t of tag.split(' ').filter(t => !!t.trim())) {
         if (t.startsWith('-')) {
-          this.ref.tags = this.ref.tags.filter(r => expandedTagsInclude(r, t.substring(1)));
-        } else if (!hasTag(t, this.ref)) {
-          this.ref.tags.push(t);
+          this.ref().tags = this.ref().tags.filter(r => expandedTagsInclude(r, t.substring(1)));
+        } else if (!hasTag(t, this.ref())) {
+          this.ref().tags.push(t);
         }
       }
       this.init();
       return of(null);
     } else {
-      return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
+      return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref().url, this.ref().origin!).pipe(
         tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
-      ), this.ref);
+      ), this.ref());
     }
   }
 
   label(a: Action) {
     if ('tag' in a || 'response' in a) {
-      return active(this.ref, a) ? 'labelOn' : 'labelOff';
+      return active(this.ref(), a) ? 'labelOn' : 'labelOff';
     }
     return 'label';
   }
 
   showIcon(i: Icon) {
-    return visible(this.ref, i, this.isAuthor, this.isRecipient) && active(this.ref, i);
+    return visible(this.ref(), i, this.isAuthor, this.isRecipient) && active(this.ref(), i);
   }
 
   clickIcon(i: Icon, ctrl: boolean) {
@@ -1207,20 +1114,20 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   showAction(a: Action) {
-    if (!visible(this.ref, a, this.isAuthor, this.isRecipient)) return false;
+    if (!visible(this.ref(), a, this.isAuthor, this.isRecipient)) return false;
     if ('scheme' in a) {
-      if (a.scheme !== getScheme(this.repostRef?.url || this.ref.url)) return false;
+      if (a.scheme !== getScheme(this.repostRef()?.url || this.ref().url)) return false;
     }
     if ('tag' in a) {
-      if (a.tag === 'locked' && !this.writeAccess) return false;
-      if (a.tag && !this.taggingAccess) return false;
-      if (a.tag && !hasTag(a.tag, this.ref) && !this.auth.canAddTag(a.tag)) return false;
-      if (a.tag && hasTag(a.tag, this.ref) && !this.writeAccess) return false;
+      if (a.tag === 'locked' && !this.writeAccess()) return false;
+      if (a.tag && !this.taggingAccess()) return false;
+      if (a.tag && !hasTag(a.tag, this.ref()) && !this.auth.canAddTag(a.tag)) return false;
+      if (a.tag && hasTag(a.tag, this.ref()) && !this.writeAccess()) return false;
     }
     if ('tag' in a || 'response' in a) {
       if (!this.auth.hasRole('ROLE_USER')) return false;
-      if (active(this.ref, a) && !a.labelOn) return false;
-      if (!active(this.ref, a) && !a.labelOff) return false;
+      if (active(this.ref(), a) && !a.labelOn) return false;
+      if (!active(this.ref(), a) && !a.labelOff) return false;
     } else {
       if (!a.label) return false;
     }
@@ -1228,39 +1135,39 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   voteUp() {
-    this.ref.metadata ||= {};
-    this.ref.metadata.userUrls ||= [];
+    this.ref().metadata ||= {};
+    this.ref().metadata.userUrls ||= [];
     if (this.upvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/up', this.ref.url), this.ref);
+      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/up', this.ref().url), this.ref());
     } else if (!this.downvote) {
-      this.ref.metadata.userUrls.push('plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/up', this.ref.url), this.ref);
+      this.ref().metadata.userUrls.push('plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/up', this.ref().url), this.ref());
     } else {
-      this.ref.metadata.userUrls.push('plugin/user/vote/up');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref.url), this.ref);
+      this.ref().metadata.userUrls.push('plugin/user/vote/up');
+      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref().url), this.ref());
     }
   }
 
   voteDown() {
-    this.ref.metadata ||= {};
-    this.ref.metadata.userUrls ||= [];
+    this.ref().metadata ||= {};
+    this.ref().metadata.userUrls ||= [];
     if (this.downvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/down', this.ref.url), this.ref);
+      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/down', this.ref().url), this.ref());
     } else if (!this.upvote) {
-      this.ref.metadata.userUrls.push('plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/down', this.ref.url), this.ref);
+      this.ref().metadata.userUrls.push('plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/down', this.ref().url), this.ref());
     } else {
-      this.ref.metadata.userUrls.push('plugin/user/vote/down');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref.url), this.ref);
+      this.ref().metadata.userUrls.push('plugin/user/vote/down');
+      this.ref().metadata.userUrls = without(this.ref().metadata.userUrls, 'plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref().url), this.ref());
     }
   }
 
   save() {
-    this.submitted = true;
+    this.submitted.set(true);
     this.editForm.markAllAsTouched();
     this.editor.syncEditor(this.fb, this.editForm);
     if (!this.editForm.valid) {
@@ -1272,74 +1179,74 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
       ...this.editForm.value,
       published,
       plugins: writePlugins(this.editForm.value.tags, this.editForm.value.plugins),
-      modifiedString: this.overwrite ? this.overwrittenModified : this.ref.modifiedString,
+      modifiedString: this.overwrite() ? this.overwrittenModified : this.ref().modifiedString,
     };
     ref = {
-      ...this.ref,
+      ...this.ref(),
       ...ref,
       plugins: writePlugins(this.editForm.value.tags, {
-        ...this.ref.plugins,
+        ...this.ref().plugins,
         ...ref.plugins,
       }),
     };
-    if (this.ref.upload) {
+    if (this.ref().upload) {
       ref.upload = true;
       this.editForm.reset();
       this.init();
       this.store.submit.setRef(ref);
     } else {
-      this.refreshTap = () => this.publishChanged = +published !== +this.ref.published!;
-      this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
+      this.refreshTap = () => this.publishChanged.set(+published !== +this.ref().published!);
+      this.submitting.set(this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
         tap(cursor => {
           this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
           this.editForm.reset();
-          this.submitting = undefined;
-          this.editing = false;
+          this.submitting.set(undefined);
+          this.setEditing(false);
           }),
         catchError((res: HttpErrorResponse) => {
-          this.submitting = undefined;
+          this.submitting.set(undefined);
           if (res.status === 400) {
-            this.invalid = true;
+            this.invalid.set(true);
             console.log(res.message);
             // TODO: read res.message to find which fields to delete
           }
           if (res.status === 409) {
-            this.overwritten = true;
-            this.refs.get(this.ref.url, this.ref.origin).subscribe(x => {
+            this.overwritten.set(true);
+            this.refs.get(this.ref().url, this.ref().origin).subscribe(x => {
               this.overwrittenModified = x.modifiedString;
                   });
           }
             return throwError(() => res);
         }),
-      ), ref);
+      ), ref));
     }
   }
 
   copy$ = () => {
     const tags = uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...(this.ref.tags || [])
+      ...(this.ref().tags || [])
         .filter(t => hasPrefix(t, 'plugin') || !t.startsWith('+') && !t.startsWith('_'))
         .filter(t => !hasPrefix(t, 'user'))
         .filter(t => this.auth.canAddTag(t))
     ]);
     const copied: Ref = {
-      ...this.ref,
+      ...this.ref(),
       origin: this.store.account.origin,
       tags,
     };
     copied.plugins = pick(copied.plugins, tags || []);
     if (hasTag('+plugin/origin', copied)) {
-      copied.plugins['+plugin/origin'].local = copied.plugins['+plugin/origin'].remote = subOrigin(this.ref.origin, copied.plugins['+plugin/origin'].local);
-      copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup.get(this.ref.origin || '');
+      copied.plugins['+plugin/origin'].local = copied.plugins['+plugin/origin'].remote = subOrigin(this.ref().origin, copied.plugins['+plugin/origin'].local);
+      copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup.get(this.ref().origin || '');
     }
     if (hasTag('+plugin/origin/tunnel', copied)) {
-      copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(this.ref.origin || '');
+      copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(this.ref().origin || '');
     }
     return this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          return this.refs.get(this.ref.url, this.store.account.origin).pipe(
+          return this.refs.get(this.ref().url, this.store.account.origin).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
@@ -1349,12 +1256,12 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
             })
           );
         }
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(this.ref.url, this.store.account.origin)),
+      switchMap(() => this.refs.get(this.ref().url, this.store.account.origin)),
       tap(ref => {
-        this.ref = ref;
+        this.ref.set(ref);
         this.init();
       })
     );
@@ -1364,7 +1271,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     // Fetch obsolete versions and show diff with most recent remote version
     this.diffSubscription?.unsubscribe();
     this.diffSubscription = this.refs.page({
-      url: this.ref.url,
+      url: this.ref().url,
       query: `!${this.store.account.origin || '*'}`,
       obsolete: null,
       size: 1,
@@ -1380,7 +1287,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
         return remoteVersion;
       }),
       switchMap(remoteVersion =>
-        this.refs.get(this.ref.url, this.store.account.origin).pipe(
+        this.refs.get(this.ref().url, this.store.account.origin).pipe(
           map(localVersion => ({ local: localVersion, remote: remoteVersion }))
         )
       ),
@@ -1390,9 +1297,9 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
         return throwError(() => err);
       })
     ).subscribe(({ local, remote }) => {
-      this.diffOriginal = remote;
-      this.diffModified = local;
-      this.diffing = true;
+      this.diffOriginal.set(remote);
+      this.diffModified.set(local);
+      this.setDiffing(true);
     });
   }
 
@@ -1400,36 +1307,36 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     const ref = this.diffEditor()?.getModifiedContent();
     if (!ref) return;
     ref.origin = this.store.account.origin;
-    ref.modifiedString = this.overwrite ? this.overwrittenModified : this.ref.modifiedString;
-    this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
+    ref.modifiedString = this.overwrite() ? this.overwrittenModified : this.ref().modifiedString;
+    this.submitting.set(this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
       tap(cursor => {
         this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
-        this.submitting = undefined;
-        this.diffing = false;
+        this.submitting.set(undefined);
+        this.setDiffing(false);
       }),
       catchError((res: HttpErrorResponse) => {
-        this.submitting = undefined;
+        this.submitting.set(undefined);
         if (res.status === 400) {
-          this.invalid = true;
+          this.invalid.set(true);
           console.error('Invalid ref data:', res.message);
           // TODO: read res.message to find which fields to delete
         }
         if (res.status === 409) {
-          this.overwritten = true;
-          this.refs.get(this.ref.url, this.ref.origin).subscribe(x => {
+          this.overwritten.set(true);
+          this.refs.get(this.ref().url, this.ref().origin).subscribe(x => {
             this.overwrittenModified = x.modifiedString;
               });
         }
         return throwError(() => res);
       }),
-    ), ref);
+    ), ref));
   }
 
   upload$ = () => {
     const ref: Ref = {
-      ...this.ref,
+      ...this.ref(),
       origin: this.store.account.origin,
-      tags: this.ref.tags?.filter(t => this.auth.canAddTag(t)),
+      tags: this.ref().tags?.filter(t => this.auth.canAddTag(t)),
     };
     ref.plugins = pick(ref.plugins, ref.tags || []);
     return this.store.eventBus.runAndReload$(
@@ -1438,7 +1345,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
         : this.refs.create(ref).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 409) {
-              return this.refs.get(this.ref.url, this.store.account.origin).pipe(
+              return this.refs.get(this.ref().url, this.store.account.origin).pipe(
                 switchMap(existing => {
                   if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || confirm('An old version already exists. Overwrite it?')) {
                     // TODO: Show diff and merge or split
@@ -1461,51 +1368,51 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   forceDelete$ = () => {
-    this.serverError = [];
-    return this.refs.delete(this.ref.url, this.ref.origin).pipe(
-      tap(() => this.deleted = true),
+    this.serverError.set([]);
+    return this.refs.delete(this.ref().url, this.ref().origin).pipe(
+      tap(() => this.deleted.set(true)),
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );
   }
 
   delete$ = () => {
-    this.serverError = [];
-    return (this.local && hasTag('locked', this.ref)
-        ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin)
-        : this.local && !hasTag('plugin/delete', this.ref) && this.admin.getPlugin('plugin/delete')
-          ? this.refs.update(deleteNotice(this.ref))
-          : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
+    this.serverError.set([]);
+    return (this.local && hasTag('locked', this.ref())
+        ? this.ts.patch(['plugin/delete', 'internal'], this.ref().url, this.ref().origin)
+        : this.local && !hasTag('plugin/delete', this.ref()) && this.admin.getPlugin('plugin/delete')
+          ? this.refs.update(deleteNotice(this.ref()))
+          : this.refs.delete(this.ref().url, this.ref().origin).pipe(map(() => ''))
     ).pipe(
       tap((cursor: string) => {
-        this.deleted = true;
+        this.deleted.set(true);
         if (this.store.account.mod && cursor) {
-          this.store.eventBus.reload(this.ref);
+          this.store.eventBus.reload(this.ref());
         }
       }),
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );
   }
 
   remove$ = () => {
-    this.serverError = [];
-    this.store.submit.removeRef(this.ref);
-    this.deleted = true;
+    this.serverError.set([]);
+    this.store.submit.removeRef(this.ref());
+    this.deleted.set(true);
     return of(null);
   }
 
   delayLastSelected() {
-    delay(() => this.store.view.setLastSelected(this.ref), 200);
+    delay(() => this.store.view.setLastSelected(this.ref()), 200);
   }
 
   onReply(ref?: Ref) {
-    this.replying = false;
+    this.replying.set(false);
     if (!ref) return;
-    this.store.eventBus.reload(this.ref);
+    this.store.eventBus.reload(this.ref());
   }
 }

@@ -31,14 +31,12 @@ export class BlogComponent implements HasChanges {
   readonly pageControls = input(true);
   readonly emptyMessage = input($localize `No blog entries found`);
   readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
-  readonly extInput = input<Ext | undefined>(undefined, { alias: 'ext' });
-  readonly pageInput = input<Page<Ref> | undefined>(undefined, { alias: 'page' });
+  readonly ext = input<Ext | undefined>(undefined);
+  readonly page = input<Page<Ref> | undefined>(undefined);
 
-  private readonly pinnedSignal = signal<Ref[]>([]);
+  readonly pinned = signal<Ref[]>([]);
   error: any;
 
-  get pinned() { return this.pinnedSignal(); }
-  set pinned(value: Ref[]) { this.pinnedSignal.set(value); }
 
   readonly list = viewChildren(BlogEntryComponent);
 
@@ -48,20 +46,20 @@ export class BlogComponent implements HasChanges {
     private refs: RefService,
   ) {
     effect(() => {
-      const value = this.extInput();
+      const value = this.ext();
       if (!value?.config?.pinned?.length) {
-        this.pinned = [];
+        this.pinned.set([]);
       } else {
         forkJoin((value.config.pinned as string[])
           .map(pin => this.refs.getCurrent(pin).pipe(
             catchError(err => of({url: pin})),
             takeUntilDestroyed(this.destroyRef),
           )))
-          .subscribe(pinned => this.pinned = pinned);
+          .subscribe(pinned => this.pinned.set(pinned));
       }
     });
     effect(() => {
-      const page = this.pageInput();
+      const page = this.page();
       if (page?.page.number && page.page.number >= page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
@@ -78,9 +76,6 @@ export class BlogComponent implements HasChanges {
     return !this.list()?.find(r => !r.saveChanges());
   }
 
-  get page(): Page<Ref> | undefined {
-    return this.pageInput();
-  }
 
   get cols() {
     const cols = this.colsInput();
@@ -92,12 +87,9 @@ export class BlogComponent implements HasChanges {
     return this.cols ? ' 1fr'.repeat(this.cols) : '';
   }
 
-  get ext() {
-    return this.extInput();
-  }
 
   get config() {
-    return this.ext?.config as RootConfig | undefined;
+    return this.ext()?.config as RootConfig | undefined;
   }
 
 }

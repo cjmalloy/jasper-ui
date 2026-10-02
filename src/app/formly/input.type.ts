@@ -16,8 +16,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   host: { 'class': 'field' },
   template: `
     <div class="form-array">
-      @if (uploading) {
-        <progress class="grow" max="100" [value]="progress"></progress>
+      @if (uploading()) {
+        <progress class="grow" max="100" [value]="progress()"></progress>
       } @else if (type !== 'number') {
         <input class="grow"
                (blur)="blur($any($event.target))"
@@ -57,8 +57,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 
-  private readonly _progress = signal<number | undefined>(undefined);
-  private readonly _uploading = signal(false);
+  readonly progress = signal<number | undefined>(undefined);
+  readonly uploading = signal(false);
   files = !!this.admin.getPlugin('plugin/file');
 
   private showedError = false;
@@ -70,11 +70,7 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
     super();
   }
 
-  get progress(): number | undefined { return this._progress(); }
-  set progress(value: number | undefined) { this._progress.set(value); }
 
-  get uploading(): boolean { return this._uploading(); }
-  set uploading(value: boolean) { this._uploading.set(value); }
 
   /**
    * Overrides the <input> type. Not related to the formly field type.
@@ -103,15 +99,15 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 
   onUpload(event?: Saving | string) {
     if (!event) {
-      this.uploading = false;
+      this.uploading.set(false);
     } else if (isString(event)) {
       // TODO set error
     } else if (event.url) {
-      this.uploading = false;
+      this.uploading.set(false);
       this.field.formControl!.setValue(event.url);
     } else {
-      this.uploading = true;
-      this.progress = event.progress || undefined;
+      this.uploading.set(true);
+      this.progress.set(event.progress || undefined);
     }
   }
 }

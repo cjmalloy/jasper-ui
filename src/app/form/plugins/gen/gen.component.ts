@@ -16,14 +16,12 @@ export class GenFormComponent implements OnInit {
 
   readonly bulk = input(false);
   readonly promoteAdvanced = input(false);
-  readonly pluginsInput = input.required<UntypedFormGroup>({ alias: 'plugins' });
-  readonly pluginInput = input.required<Plugin>({ alias: 'plugin' });
+  readonly plugins = input.required<UntypedFormGroup>();
+  readonly plugin = input.required<Plugin>();
   readonly children = input<Plugin[]>([]);
   readonly togglePlugin = output<string>();
 
-  private readonly _model = signal<any>(undefined);
-  get model() { return this._model(); }
-  set model(value: any) { this._model.set(value); }
+  readonly model = signal<any>(undefined);
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
@@ -35,47 +33,41 @@ export class GenFormComponent implements OnInit {
     private admin: AdminService,
   ) { }
 
-  get plugins() {
-    return this.pluginsInput();
-  }
 
-  get plugin() {
-    return this.pluginInput();
-  }
 
   get group() {
-    return this.plugins.get(this.plugin.tag) as UntypedFormGroup | undefined;
+    return this.plugins().get(this.plugin().tag) as UntypedFormGroup | undefined;
   }
 
   readonly form = computed(() => {
     if (this.bulk()) {
-      if (this.plugin.config?.bulkForm === true) {
-        return cloneDeep(this.plugin.config?.form || this.plugin.config?.advancedForm);
+      if (this.plugin().config?.bulkForm === true) {
+        return cloneDeep(this.plugin().config?.form || this.plugin().config?.advancedForm);
       }
-      return cloneDeep(this.plugin.config?.bulkForm);
+      return cloneDeep(this.plugin().config?.bulkForm);
     }
-    return cloneDeep(this.plugin.config?.form);
+    return cloneDeep(this.plugin().config?.form);
   });
 
   readonly advancedForm = computed(() => {
     if (this.bulk()) return undefined;
-    return cloneDeep(this.plugin.config?.advancedForm);
+    return cloneDeep(this.plugin().config?.advancedForm);
   });
 
   get childrenOn() {
     for (let i = this.children().length - 1; i >= 0; i--) {
-      if (this.plugins.contains(this.children()[i].tag)) return i;
+      if (this.plugins().contains(this.children()[i].tag)) return i;
     }
     return 0;
   }
 
   ngOnInit(): void {
-    this.group?.patchValue(this.plugin.defaults);
-    this.options.formState.config = this.plugin.defaults;
+    this.group?.patchValue(this.plugin().defaults);
+    this.options.formState.config = this.plugin().defaults;
   }
 
   setValue(value: any) {
-    this.model = value[this.plugin.tag];
+    this.model.set(value[this.plugin().tag]);
   }
 
   cssClass(tag: string) {

@@ -50,18 +50,10 @@ export class UploadPage implements OnDestroy {
 
   private readonly injector = inject(Injector);
 
-  private readonly _erroredExts = signal<Ext[]>([]);
-  get erroredExts() { return this._erroredExts(); }
-  set erroredExts(value: Ext[]) { this._erroredExts.set(value); }
-  private readonly _erroredRefs = signal<Ref[]>([]);
-  get erroredRefs() { return this._erroredRefs(); }
-  set erroredRefs(value: Ref[]) { this._erroredRefs.set(value); }
-  private readonly _serverErrors = signal<string[]>([]);
-  get serverErrors() { return this._serverErrors(); }
-  set serverErrors(value: string[]) { this._serverErrors.set(value); }
-  private readonly _processing = signal<boolean>(false);
-  get processing() { return this._processing(); }
-  set processing(value: boolean) { this._processing.set(value); }
+  readonly erroredExts = signal<Ext[]>([]);
+  readonly erroredRefs = signal<Ref[]>([]);
+  readonly serverErrors = signal<string[]>([]);
+  readonly processing = signal<boolean>(false);
   tagRegex = TAGS_REGEX.source;
   fileCache = this.admin.getPlugin('plugin/file');
 
@@ -212,7 +204,7 @@ export class UploadPage implements OnDestroy {
         }),
         catchError((res: HttpErrorResponse) => {
           this.store.submit.removeCaching(file);
-          this.serverErrors = [...this.serverErrors, ...printError(res)];
+          this.serverErrors.set([...this.serverErrors(), ...printError(res)]);
           return throwError(() => res);
         }),
       ).subscribe(ref => {
@@ -337,21 +329,21 @@ export class UploadPage implements OnDestroy {
   }
 
   push() {
-    if (this.processing || this.store.submit.empty) return;
-    this.processing = true;
+    if (this.processing() || this.store.submit.empty) return;
+    this.processing.set(true);
     const uploads = [
       ...this.store.submit.exts.map(ext => this.uploadExt$(ext)),
       ...this.store.submit.refs.map(ref => this.uploadRef$(ref)),
     ];
     return lastValueFrom(concat(...uploads))
       .then(() => {
-        if (!this.erroredExts.length && !this.erroredRefs.length) {
+        if (!this.erroredExts().length && !this.erroredRefs().length) {
           this.postNavigate();
         }
-        this.store.submit.clearUpload(this.erroredRefs, this.erroredExts);
-        this.erroredRefs = [];
-        this.erroredExts = [];
-        this.processing = false;
+        this.store.submit.clearUpload(this.erroredRefs(), this.erroredExts());
+        this.erroredRefs.set([]);
+        this.erroredExts.set([]);
+        this.processing.set(false);
       });
   }
 
@@ -389,8 +381,8 @@ export class UploadPage implements OnDestroy {
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
-        this.erroredRefs = [...this.erroredRefs, ref];
-        this.serverErrors = [...this.serverErrors, ...printError(res)];
+        this.erroredRefs.set([...this.erroredRefs(), ref]);
+        this.serverErrors.set([...this.serverErrors(), ...printError(res)]);
         return of(null);
       }),
     );
@@ -417,8 +409,8 @@ export class UploadPage implements OnDestroy {
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
-        this.erroredExts = [...this.erroredExts, ext];
-        this.serverErrors = [...this.serverErrors, ...printError(res)];
+        this.erroredExts.set([...this.erroredExts(), ext]);
+        this.serverErrors.set([...this.serverErrors(), ...printError(res)]);
         return of(null);
       }),
     );

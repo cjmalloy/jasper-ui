@@ -33,17 +33,14 @@ export class CommentThreadComponent implements OnInit, HasChanges {
 
   readonly source = input('');
   readonly scrollToLatest = input(false);
-  readonly depthInput = input(7, { alias: 'depth' });
-  get depth() { return this.depthInput(); }
+  readonly depth = input(7);
   readonly pageSize = input<number>();
   readonly context = input(0);
   readonly newComments$ = input<Observable<Ref | undefined>>();
 
   readonly list = viewChildren<CommentComponent>('comment');
 
-  private readonly newCommentsSignal = signal<Ref[]>([]);
-  get newComments() { return this.newCommentsSignal(); }
-  set newComments(value: Ref[]) { this.newCommentsSignal.set(value); }
+  readonly newComments = signal<Ref[]>([]);
 
   constructor(
     public store: Store,
@@ -52,14 +49,14 @@ export class CommentThreadComponent implements OnInit, HasChanges {
     effect(() => {
       this.source();
       this.pageSize();
-      this.newComments = [];
+      this.newComments.set([]);
     });
   }
 
   get comments(): Ref[] | undefined {
     let comments = this.thread.cache.get(this.source());
-    if (comments && this.newComments.length) {
-      const newUrls = new Set(this.newComments.map(c => c.url));
+    if (comments && this.newComments().length) {
+      const newUrls = new Set(this.newComments().map(c => c.url));
       comments = comments.filter(c => !newUrls.has(c.url));
     }
     const pageSize = this.pageSize();
@@ -78,7 +75,7 @@ export class CommentThreadComponent implements OnInit, HasChanges {
     this.newComments$()?.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(comment => {
-      if (comment) this.newComments = [comment, ...this.newComments];
+      if (comment) this.newComments.set([comment, ...this.newComments()]);
     });
   }
 }

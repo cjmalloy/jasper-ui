@@ -34,20 +34,12 @@ export class SettingsBackupPage {
   originForm: UntypedFormGroup;
   backupOptionsForm: UntypedFormGroup;
 
-  private readonly _list = signal<BackupRef[] | undefined>(undefined);
-  private readonly _uploading = signal(false);
-  private readonly _serverError = signal<string[]>([]);
-  private readonly _backupOrigins = signal<string[]>(this.store.origins.list);
+  readonly list = signal<BackupRef[] | undefined>(undefined);
+  readonly uploading = signal(false);
+  readonly serverError = signal<string[]>([]);
+  readonly backupOrigins = signal<string[]>(this.store.origins.list);
   backupOptionsRef?: OverlayRef;
 
-  get list() { return this._list(); }
-  set list(value: BackupRef[] | undefined) { this._list.set(value); }
-  get uploading() { return this._uploading(); }
-  set uploading(value: boolean) { this._uploading.set(value); }
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
-  get backupOrigins() { return this._backupOrigins(); }
-  set backupOrigins(value: string[]) { this._backupOrigins.set(value); }
 
   constructor(
     private mod: ModService,
@@ -77,7 +69,7 @@ export class SettingsBackupPage {
     });
     this.origins.list()
       .subscribe(origins => {
-        this.backupOrigins = uniq([...this.store.origins.list, ...origins]);
+        this.backupOrigins.set(uniq([...this.store.origins.list, ...origins]));
       });
   }
 
@@ -92,9 +84,9 @@ export class SettingsBackupPage {
   }
 
   fetchBackups(origin?: string) {
-    this.list = undefined;
+    this.list.set(undefined);
     this.backups.list(origin === undefined ? this.origin : origin)
-      .subscribe(list => this.list = sortBy(list, 'id').reverse());
+      .subscribe(list => this.list.set(sortBy(list, 'id').reverse()));
   }
 
   showBackupOptions() {
@@ -144,47 +136,47 @@ export class SettingsBackupPage {
   }
 
   backup(options: BackupOptions) {
-    this.serverError = [];
+    this.serverError.set([]);
     this.backups.create(this.origin, options).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(id => {
-      this.list = [{ id: '_' + id }, ...(this.list || [])];
+      this.list.set([{ id: '_' + id }, ...(this.list() || [])]);
     });
   }
 
   upload(files?: FileList) {
-    this.serverError = [];
+    this.serverError.set([]);
     if (!files || !files.length) return;
-    this.uploading = true;
+    this.uploading.set(true);
     const file = files[0]!;
     this.backups.upload(this.origin, file).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        this.uploading = false;
+        this.serverError.set(printError(res));
+        this.uploading.set(false);
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.uploading = false;
-      this.list = [{ id: files[0].name }, ...(this.list || [])];
+      this.uploading.set(false);
+      this.list.set([{ id: files[0].name }, ...(this.list() || [])]);
     });
   }
 
   regen() {
-    this.serverError = [];
+    this.serverError.set([]);
     if (!confirm($localize`Are you sure you want totally regenerate metadata${this.origin ? ' in ' + this.origin : ''}?`)) return;
     this.backups.regen(this.origin).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe();
   }
 
   deleteOrigin() {
-    this.serverError = [];
+    this.serverError.set([]);
     this.originForm.markAllAsTouched();
     if (!this.originForm.valid) {
       scrollToFirstInvalid();
@@ -199,7 +191,7 @@ export class SettingsBackupPage {
     const olderThan = DateTime.fromISO(this.originForm.value.olderThan);
     this.origins.delete(this.origin, olderThan).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe();

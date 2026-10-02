@@ -18,28 +18,22 @@ export class ListEditorComponent {
   readonly onRemove = output<string>();
   readonly selected = output<string | undefined>();
 
-  private readonly _addingText = signal('');
-  private readonly _selectedIndex = signal(-1);
-  private readonly _error = signal('');
+  readonly addingText = signal('');
+  readonly selectedIndex = signal(-1);
+  readonly error = signal('');
 
-  get addingText() { return this._addingText(); }
-  set addingText(value: string) { this._addingText.set(value); }
-  get selectedIndex() { return this._selectedIndex(); }
-  set selectedIndex(value: number) { this._selectedIndex.set(value); }
-  get error() { return this._error(); }
-  set error(value: string) { this._error.set(value); }
 
   add() {
-    this.error = '';
-    if (!this.addingText) return;
+    this.error.set('');
+    if (!this.addingText()) return;
     const list = this.list();
-    if (list.includes(this.addingText)) {
-      this.error = 'Duplicate name';
+    if (list.includes(this.addingText())) {
+      this.error.set('Duplicate name');
       return;
     }
-    list.push(this.addingText);
-    this.onAdd.emit(this.addingText);
-    this.addingText = '';
+    list.push(this.addingText());
+    this.onAdd.emit(this.addingText());
+    this.addingText.set('');
     this.select(list.length - 1);
   }
 
@@ -50,7 +44,7 @@ export class ListEditorComponent {
   }
 
   select(index: number) {
-    this.selectedIndex = index;
+    this.selectedIndex.set(index);
     if (index !== -1) {
       this.selected.emit(this.list()[index]);
     } else {

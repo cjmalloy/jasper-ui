@@ -46,11 +46,9 @@ export class ActionListComponent implements AfterViewInit {
 
   readonly actionsMenu = viewChild.required<TemplateRef<any>>('actionsMenu');
 
-  private readonly hiddenActionsSignal = signal(0);
+  readonly hiddenActions = signal(0);
   overlayRef?: OverlayRef;
 
-  get hiddenActions() { return this.hiddenActionsSignal(); }
-  set hiddenActions(value: number) { this.hiddenActionsSignal.set(value); }
 
   private overlayEvents?: Subscription;
   private overlayResizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.overlayRef?.updatePosition()) || undefined;
@@ -105,7 +103,7 @@ export class ActionListComponent implements AfterViewInit {
 
   measureVisible() {
     if (!this.actions()) return;
-    this.hiddenActions = this.actions() - this.visible;
+    this.hiddenActions.set(this.actions() - this.visible);
   }
   readonly actions = computed(() => {
     return Object.keys(this.groupedActions() as any).length;

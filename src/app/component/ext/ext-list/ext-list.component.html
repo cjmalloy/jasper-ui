@@ -1,12 +1,12 @@
 <div class="list-container">
-  @for (ext of page?.content; track ext; let i = $index) {
-    <div class="list-number">{{ i + page!.page.number * page!.page.size + 1 }}</div>
+  @for (ext of page()?.content; track ext; let i = $index) {
+    <div class="list-number">{{ i + page()!.page.number * page()!.page.size + 1 }}</div>
     <app-ext [ext]="ext"></app-ext>
   }
 </div>
-@if (page) {
-  @if (page.content.length) {
-    <app-page-controls [page]="page"></app-page-controls>
+@if (page()) {
+  @if (page().content.length) {
+    <app-page-controls [page]="page()"></app-page-controls>
   } @else {
     <p class="no-results" i18n>
       No results found

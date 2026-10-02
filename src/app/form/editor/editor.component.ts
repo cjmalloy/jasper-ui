@@ -66,12 +66,12 @@ export interface EditorUpload {
   styleUrls: ['./editor.component.scss'],
   host: {
     'class': 'editor',
-    '[class.stacked]': 'stacked',
-    '[class.fullscreen]': 'fullscreen',
-    '[class.help]': 'help',
-    '[class.md-preview]': 'preview',
+    '[class.stacked]': 'stacked()',
+    '[class.fullscreen]': 'fullscreen()',
+    '[class.help]': 'help()',
+    '[class.md-preview]': 'preview()',
     '[class.add-button]': 'addButtonClass()',
-    '[class.editing]': 'editing',
+    '[class.editing]': 'editing()',
     '[style.padding.px]': 'padding',
     '(window:scroll)': 'preventScroll()',
   },
@@ -90,10 +90,10 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   readonly id = input('editor-' + uuid());
 
-  private readonly _stacked = signal(true);
-  private readonly _fullscreen = signal(false);
-  private readonly _help = signal(false);
-  private readonly _preview = signal(this.store.local.showPreview);
+  readonly stacked = signal(true);
+  readonly fullscreen = signal(false);
+  readonly help = signal(false);
+  readonly preview = signal(this.store.local.showPreview);
 
   readonly helpButton = viewChild<ElementRef<HTMLButtonElement>>('helpButton');
   readonly editor = viewChild<ElementRef<HTMLTextAreaElement>>('editor');
@@ -108,8 +108,8 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   readonly selectResponseType = input(false);
   readonly tags = input<UntypedFormArray>();
   readonly createdTagsInput = input<string[]>([], { alias: 'createdTags' });
-  private readonly createdTagsSignal = linkedSignal(() => this.createdTagsInput());
-  readonly controlInput = input.required<UntypedFormControl>({ alias: 'control' });
+  readonly createdTags = linkedSignal(() => this.createdTagsInput());
+  readonly control = input.required<UntypedFormControl>();
   readonly autoFocus = input(false);
   readonly addButton = input(false);
   readonly url = input('');
@@ -122,20 +122,20 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   readonly scrape = output<void>();
   readonly uploadCompleted = output<Ref>();
 
-  private readonly _dropping = signal(false);
+  readonly dropping = signal(false);
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
-  private readonly _toggleIndex = signal(0);
-  private readonly _initialFullscreen = signal(false);
-  private readonly _focused = signal<boolean | undefined>(false);
-  private readonly _progress = signal(0);
-  private readonly _uploads = signal<EditorUpload[]>([]);
+  readonly toggleIndex = signal(0);
+  readonly initialFullscreen = signal(false);
+  readonly focused = signal<boolean | undefined>(false);
+  readonly progress = signal(0);
+  readonly uploads = signal<EditorUpload[]>([]);
   files = !!this.admin.getPlugin('plugin/file');
-  private readonly _loadingEvents = signal<any>({});
+  readonly loadingEvents = signal<any>({});
 
   private readonly tagsValue = controlValue<string[]>(() => this.tags());
   private readonly _text = signal('');
-  private readonly _editing = signal(false);
+  readonly editing = signal(false);
   private _padding = 8;
 
   private europa?: Europa;
@@ -166,7 +166,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
-      this.loadingEvents = { ...this.loadingEvents, [event.event]: false };
+      this.loadingEvents.set({ ...this.loadingEvents(), [event.event]: false });
     });
     effect(() => {
       this.tags();
@@ -177,7 +177,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     });
     effect(() => {
       const scraping = this.scraping();
-      this.loadingEvents = { ...untracked(() => this.loadingEvents), 'scrape-done': scraping };
+      this.loadingEvents.set({ ...untracked(() => this.loadingEvents()), 'scrape-done': scraping });
     });
     effect(() => {
       const height = this.store.viewportHeight - 4;
@@ -189,51 +189,26 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  get stacked(): boolean { return this._stacked(); }
-  set stacked(value: boolean) { this._stacked.set(value); }
 
-  get fullscreen(): boolean { return this._fullscreen(); }
-  set fullscreen(value: boolean) { this._fullscreen.set(value); }
 
-  get help(): boolean { return this._help(); }
-  set help(value: boolean) { this._help.set(value); }
 
-  get preview(): boolean { return this._preview(); }
-  set preview(value: boolean) { this._preview.set(value); }
 
-  get dropping(): boolean { return this._dropping(); }
-  set dropping(value: boolean) { this._dropping.set(value); }
 
-  get toggleIndex(): number { return this._toggleIndex(); }
-  set toggleIndex(value: number) { this._toggleIndex.set(value); }
 
-  get initialFullscreen(): boolean { return this._initialFullscreen(); }
-  set initialFullscreen(value: boolean) { this._initialFullscreen.set(value); }
 
-  get focused(): boolean | undefined { return this._focused(); }
-  set focused(value: boolean | undefined) { this._focused.set(value); }
 
-  get progress(): number { return this._progress(); }
-  set progress(value: number) { this._progress.set(value); }
 
-  get uploads(): EditorUpload[] { return this._uploads(); }
-  set uploads(value: EditorUpload[]) { this._uploads.set(value); }
 
-  get loadingEvents(): any { return this._loadingEvents(); }
-  set loadingEvents(value: any) { this._loadingEvents.set(value); }
 
-  get createdTags(): string[] { return this.createdTagsSignal(); }
-  set createdTags(value: string[]) { this.createdTagsSignal.set(value); }
 
-  get control(): UntypedFormControl { return this.controlInput(); }
 
   init() {
     if (this.selectResponseType() && this.responseButtons().length) {
-      this.toggleIndex = 0;
-      const tags = this.tags()?.value || this.createdTags;
+      this.toggleIndex.set(0);
+      const tags = this.tags()?.value || this.createdTags();
       for (const p of this.responseButtons()) {
         if (hasTag(p.tag, tags)) {
-          this.toggleIndex = this.responseButtons().indexOf(p);
+          this.toggleIndex.set(this.responseButtons().indexOf(p));
         }
       }
     }
@@ -242,7 +217,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     if (!this.tags()) {
       this.init();
-      this.updateTags(this.editing ? this.initTags() : this.allTags());
+      this.updateTags(this.editing() ? this.initTags() : this.allTags());
     }
   }
 
@@ -284,7 +259,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   onSelectEditor() {
     const md = this.md();
-    if (!this.preview || !this.fullscreen || !md) return;
+    if (!this.preview() || !this.fullscreen() || !md) return;
     const start = this.sourceMap[Math.max(sortedLastIndex(this.sourceMap, this.selectionStart) - 1, 0)];
     md.el.nativeElement.scrollTop = (this.scrollMap.get(start) ?? 0) - md.el.nativeElement.clientHeight / 2;
   }
@@ -292,7 +267,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   onSelectPreview() {
     const editor = this.editor();
     const hiddenMeasure = this.hiddenMeasure();
-    if (!this.preview || !this.fullscreen || !hiddenMeasure || !editor) return;
+    if (!this.preview() || !this.fullscreen() || !hiddenMeasure || !editor) return;
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed) return;
     if (!this.md()?.el.nativeElement?.contains(sel.anchorNode)) return;
@@ -307,10 +282,10 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     editor.nativeElement.scrollTop = hiddenMeasure.nativeElement.scrollHeight - editor.nativeElement.clientHeight / 2;
   }
 
-  readonly addButtonClass = computed(() => this.addButton() && !this.editing && !this.currentText);
+  readonly addButtonClass = computed(() => this.addButton() && !this.editing() && !this.currentText);
 
   get padding(): number {
-    if (this.fullscreen) return 0;
+    if (this.fullscreen()) return 0;
     return this._padding + 8;
   }
 
@@ -318,19 +293,16 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     this._padding = value;
   }
 
-  get editing(): boolean {
-    return this._editing();
-  }
 
-  set editing(value: boolean) {
-    if (!this._editing() && value) {
-      this._editing.set(true);
+  setEditing(value: boolean) {
+    if (!this.editing() && value) {
+      this.editing.set(true);
       this.updateTags(this.initTags());
     }
   }
 
   readonly allTags = computed(() => {
-    const tags = this.tags() ? this.tagsValue() || [] : this.createdTags;
+    const tags = this.tags() ? this.tagsValue() || [] : this.createdTags();
     return uniq([
       ...without(tags, ...this.allResponseTags()),
       ...this.responseTags(),
@@ -354,7 +326,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   readonly responseTags = computed(() => {
     if (!this.selectResponseType() || !this.responseButtons().length) return [];
-    const p = this.responseButtons()[this.toggleIndex];
+    const p = this.responseButtons()[this.toggleIndex()];
     return p.config?.reply || [p.tag];
   });
 
@@ -376,12 +348,12 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   });
 
   get currentText() {
-    return this._text() || this.control?.value || '';
+    return this._text() || this.control()?.value || '';
   }
 
   updateTags(tags: string[]) {
     if (!this.tags()) {
-      this.createdTags = tags;
+      this.createdTags.set(tags);
       }
     this.syncTags.emit(tags);
   }
@@ -401,22 +373,22 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       }
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
-    if (this.focused !== false) this.editor()?.nativeElement.focus();
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   setResponse(tag: string) {
-    const tags = this.tags()?.value || this.createdTags;
+    const tags = this.tags()?.value || this.createdTags();
     if (!hasTag(tag, tags)) {
       const responses = this.responseButtons().map(p => p.tag);
-      this.toggleIndex = responses.indexOf(tag);
+      this.toggleIndex.set(responses.indexOf(tag));
       this.updateTags([...without(tags, ...responses), tag]);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
-    if (this.focused !== false) this.editor()?.nativeElement.focus();
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   focusText() {
-    this.focused = true;
+    this.focused.set(true);
     if (this.blurTimeout) {
       clearTimeout(this.blurTimeout);
       this.blurTimeout = 0;
@@ -424,10 +396,10 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   }
 
   blurText(value: string) {
-    if (this.focused) {
-      this.focused = undefined;
+    if (this.focused()) {
+      this.focused.set(undefined);
       this.blurTimeout = delay(() => {
-        if (this.focused === undefined) this.focused = false;
+        if (this.focused() === undefined) this.focused.set(false);
         this.blurTimeout = 0;
       }, 400);
     }
@@ -447,7 +419,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     }
     // Clear previous throttled values
     this.syncTextThrottled(value);
-    this.control.setValue(value);
+    this.control().setValue(value);
   }
 
   syncTextThrottled = debounce((value: string) => {
@@ -457,40 +429,40 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   }, 400);
 
   togglePreview() {
-    if (this.fullscreen) {
-      this.store.local.showFullscreenPreview = this.preview = !this.preview;
+    if (this.fullscreen()) {
+      this.store.local.showFullscreenPreview = this.preview.set(!this.preview());
     } else {
-      this.store.local.showPreview = this.preview = !this.preview;
+      this.store.local.showPreview = this.preview.set(!this.preview());
     }
-    if (this.focused !== false) this.editor()?.nativeElement.focus();
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   toggleStacked() {
-    if (this.stacked) {
-      if (this.preview) {
-        this.store.local.showFullscreenPreview = this.preview = false;
+    if (this.stacked()) {
+      if (this.preview()) {
+        this.store.local.showFullscreenPreview = this.preview.set(false);
       } else {
-        this.store.local.showFullscreenPreview = this.preview = true;
-        this.store.local.editorStacked = this.stacked = false;
+        this.store.local.showFullscreenPreview = this.preview.set(true);
+        this.store.local.editorStacked = this.stacked.set(false);
       }
     } else {
-      this.store.local.editorStacked = this.stacked = true;
+      this.store.local.editorStacked = this.stacked.set(true);
     }
-    if (this.focused !== false) this.editor()?.nativeElement.focus();
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   toggleFullscreen(override?: boolean) {
     const editor = this.editor();
     if (!editor) return;
-    if (override === this.fullscreen) return;
-    this.initialFullscreen = true;
-    this.fullscreen = override !== undefined ? override : !this.fullscreen;
-    this.focused ||= this.focused === undefined || this.fullscreen;
-    if (this.fullscreen) {
+    if (override === this.fullscreen()) return;
+    this.initialFullscreen.set(true);
+    this.fullscreen.set(override !== undefined ? override : !this.fullscreen());
+    this.focused ||= this.focused() === undefined || this.fullscreen();
+    if (this.fullscreen()) {
       document.documentElement.style.overflowY = 'auto';
       this._text.set(this.currentText);
-      this.stacked = this.store.local.editorStacked;
-      this.preview = this.store.local.showFullscreenPreview;
+      this.stacked.set(this.store.local.editorStacked);
+      this.preview.set(this.store.local.showFullscreenPreview);
       this.scrollTop = editor.nativeElement.scrollTop;
       let height = 'calc(100vh - 4px)';
       if (window.visualViewport?.height) {
@@ -518,8 +490,8 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       editor.nativeElement.scrollTop = this.scrollTopFullscreen;
     } else {
       document.documentElement.style.overflowY = 'scroll';
-      this.stacked = true;
-      this.preview = this.store.local.showPreview;
+      this.stacked.set(true);
+      this.preview.set(this.store.local.showPreview);
       this.scrollTopFullscreen = editor.nativeElement.scrollTop;
       this.overlayRef?.detach();
       this.overlayRef?.dispose();
@@ -528,7 +500,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
       document.body.classList.remove('fullscreen');
       editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
-      if (this.focused) {
+      if (this.focused()) {
         editor.nativeElement.focus();
         editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
         editor.nativeElement.scrollTop = this.scrollTop;
@@ -537,8 +509,8 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   }
 
   toggleHelp(override?: boolean) {
-    this.help = override !== undefined ? override : !this.help;
-    if (this.help) {
+    this.help.set(override !== undefined ? override : !this.help());
+    if (this.help()) {
       const positionStrategy = this.overlay.position()
         .flexibleConnectedTo(this.helpButton()!)
         .withPositions([{
@@ -570,7 +542,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   fireEvent(button: EditorButton) {
     const event = button.event!;
-    if (button.eventDone) this.loadingEvents = { ...this.loadingEvents, [button.eventDone]: true };
+    if (button.eventDone) this.loadingEvents.set({ ...this.loadingEvents(), [button.eventDone]: true });
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
         absolute: !!this.url(),
@@ -586,11 +558,11 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     } else {
       this.store.eventBus.fire(event);
     }
-    if (this.focused !== false) this.editor()?.nativeElement.focus();
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   addComment() {
-    this.editing = true;
+    this.setEditing(true);
     defer(() => this.editor()?.nativeElement?.focus());
   }
 
@@ -600,7 +572,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   }
 
   drop(event: Event, items?: DataTransferItemList) {
-    this.dropping = false;
+    this.dropping.set(false);
     if (!this.admin.getPlugin('plugin/file')) return;
     if (!items) return;
     const files = [] as any;
@@ -618,19 +590,19 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   upload(files?: FileList | null) {
     if (!files) return;
-    const hasActiveUploads = this.uploads.some(upload => !upload.completed && !upload.error);
+    const hasActiveUploads = this.uploads().some(upload => !upload.completed && !upload.error);
     if (!hasActiveUploads) {
       // Only clear uploads if no active uploads exist
-      this.uploads = [];
+      this.uploads.set([]);
     }
-    this.control.disable();
+    this.control().disable();
     const fileArray = Array.from(files);
     const fileUploads: EditorUpload[] = fileArray.map(file => ({
       id: uuid(),
       name: file.name,
       progress: 0
     }));
-    this.uploads = [...this.uploads, ...fileUploads];
+    this.uploads.set([...this.uploads(), ...fileUploads]);
     fileArray.map((file, index) => {
       const upload = fileUploads[index];
       return upload.subscription = this.upload$(file, upload).subscribe(ref => {
@@ -648,7 +620,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   }
 
   private refreshUploads() {
-    this.uploads = [...this.uploads];
+    this.uploads.set([...this.uploads()]);
   }
 
   upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
@@ -703,7 +675,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
               return event.body;
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-              this.progress = percentDone;
+              this.progress.set(percentDone);
               upload.progress = percentDone;
               this.refreshUploads();
               return null;
@@ -743,23 +715,23 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     } else {
       const encodedUrls = refs.map(ref => (embed(ref!) ? '![]' : '![=]') + '(' + ref!.url.replace(')', '\\)') + ')\n').join('');
       this.syncText(text.substring(0, this.selectionStart) + encodedUrls + text.substring(this.selectionStart));
-      if (!text) this.preview = true;
+      if (!text) this.preview.set(true);
     }
-    if (!text) this.preview = true;
-    if (this.focused !== false) this.editor()?.nativeElement.focus();
+    if (!text) this.preview.set(true);
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   checkAllUploadsComplete() {
-    const allComplete = this.uploads.every(upload => upload.completed || upload.error);
-    if (allComplete && this.uploads.length > 0) {
-      this.control.enable();
-      const completedRefs = this.uploads
+    const allComplete = this.uploads().every(upload => upload.completed || upload.error);
+    if (allComplete && this.uploads().length > 0) {
+      this.control().enable();
+      const completedRefs = this.uploads()
         .filter(upload => upload.completed && upload.ref)
         .map(upload => upload.ref!);
       if (completedRefs.length > 0) {
         this.attachUrls(...completedRefs);
       }
-      this.uploads = [];
+      this.uploads.set([]);
     }
   }
 
@@ -767,32 +739,32 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     if (upload.subscription) {
       upload.subscription.unsubscribe();
     }
-    this.uploads = this.uploads.filter(u => u.id !== upload.id);
-    if (this.uploads.length === 0) {
-      this.control.enable();
+    this.uploads.set(this.uploads().filter(u => u.id !== upload.id));
+    if (this.uploads().length === 0) {
+      this.control().enable();
     } else {
       this.checkAllUploadsComplete();
     }
   }
 
   cancelAllUploads() {
-    this.uploads.forEach(upload => {
+    this.uploads().forEach(upload => {
       if (upload.subscription) {
         upload.subscription.unsubscribe();
       }
     });
-    this.uploads = [];
-    this.control.enable();
+    this.uploads.set([]);
+    this.control().enable();
   }
 
   dragLeave(parent: HTMLElement, target: HTMLElement) {
-    if (this.dropping && parent === target || !parent.contains(target)) {
-      this.dropping = false;
+    if (this.dropping() && parent === target || !parent.contains(target)) {
+      this.dropping.set(false);
     }
   }
 
   hasActiveUploads(): boolean {
-    return this.uploads.some(upload => !upload.completed && !upload.error);
+    return this.uploads().some(upload => !upload.completed && !upload.error);
   }
 
 }

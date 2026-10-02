@@ -69,8 +69,8 @@ describe('ViewerComponent', () => {
     expect(placeholder.location.nativeElement.querySelector('.load-more')).toBeNull();
 
     const viewer = init.mock.instances[0] as ViewerComponent;
-    expect(viewer.ref).toBe(ref);
-    expect(viewer.fullscreen).toBe(true);
+    expect(viewer.ref()).toBe(ref);
+    expect(viewer.fullscreen()).toBe(true);
     const view = (placeholder.instance as EmbedPlaceholderComponent).content().get(0)!;
     const destroy = vi.fn();
     view.onDestroy(destroy);

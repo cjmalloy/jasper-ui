@@ -44,23 +44,23 @@ describe('DiffComponent', () => {
   });
 
   it('should initialize original model', () => {
-    expect(component.originalModel).toBeDefined();
-    expect(component.originalModel.language).toBe('json');
-    expect(component.originalModel.code).toContain('Original');
+    expect(component.originalModel()).toBeDefined();
+    expect(component.originalModel().language).toBe('json');
+    expect(component.originalModel().code).toContain('Original');
   });
 
   it('should initialize modified model', () => {
-    expect(component.modifiedModel).toBeDefined();
-    expect(component.modifiedModel.language).toBe('json');
-    expect(component.modifiedModel.code).toContain('Modified');
+    expect(component.modifiedModel()).toBeDefined();
+    expect(component.modifiedModel().language).toBe('json');
+    expect(component.modifiedModel().code).toContain('Modified');
   });
 
   it('should have json language in options', () => {
-    expect(component.options.language).toBe('json');
+    expect(component.options().language).toBe('json');
   });
 
   it('should have automaticLayout enabled', () => {
-    expect(component.options.automaticLayout).toBe(true);
+    expect(component.options().automaticLayout).toBe(true);
   });
 
   it('should disable the resize handle when resizable is false', () => {
@@ -76,13 +76,13 @@ describe('DiffComponent', () => {
   });
 
   it('should return parsed JSON from getModifiedContent', () => {
-    component.modifiedModel.code = '{"url":"http://test.com","title":"Test"}';
+    component.modifiedModel().code = '{"url":"http://test.com","title":"Test"}';
     const content = component.getModifiedContent();
     expect(content).toEqual({ url: 'http://test.com', title: 'Test' });
   });
 
   it('should return null for invalid JSON in getModifiedContent', () => {
-    component.modifiedModel.code = 'not valid json';
+    component.modifiedModel().code = 'not valid json';
     const content = component.getModifiedContent();
     expect(content).toBeNull();
   });

@@ -28,12 +28,10 @@ export class SelectPluginComponent {
   textPlugins = this.admin.submitText.filter(p => this.auth.canAddTag(p.tag));
   settingsPlugins = this.admin.submitSettings.filter(p => this.auth.canAddTag(p.tag));
 
-  private readonly _customPlugin = signal<Plugin | undefined>(undefined);
+  readonly customPlugin = signal<Plugin | undefined>(undefined);
   readonly plugin = model('');
-  get customPlugin() { return this._customPlugin(); }
-  set customPlugin(value: Plugin | undefined) { this._customPlugin.set(value); }
   readonly plugins = computed(() => uniqBy([
-    ...(this.customPlugin ? [this.customPlugin] : []),
+    ...(this.customPlugin() ? [this.customPlugin()] : []),
     ...(this.add() ? this.addPlugins : []),
     ...(this.text() ? this.textPlugins : []),
     ...(this.settings() ? this.settingsPlugins : []),
@@ -55,7 +53,7 @@ export class SelectPluginComponent {
       if (!this.plugins().find(p => p?.tag === value)) {
         const plugin = this.admin.getPlugin(value);
         if (plugin) {
-          this.customPlugin = plugin;
+          this.customPlugin.set(plugin);
           defer(() => this.select()!.nativeElement.selectedIndex = 1);
           return;
         }

@@ -1,11 +1,11 @@
-<app-list-editor [list]="keys"
+<app-list-editor [list]="keys()"
                  i18n-placeholder
                  placeholder="New theme name..."
                  (onAdd)="addTheme($event)"
                  (onRemove)="removeTheme($event)"
                  (selected)="edit($event)"></app-list-editor>
-@for (theme of keys; track theme) {
-  @if (theme === selectedTheme) {
+@for (theme of keys(); track theme) {
+  @if (theme === selectedTheme()) {
     <app-code [group]="themes"
               language="css"
               [fieldName]="theme"></app-code>

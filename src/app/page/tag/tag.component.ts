@@ -36,9 +36,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   private readonly injector = inject(Injector);
 
-  private readonly _loading = signal<boolean>(false);
-  get loading() { return this._loading(); }
-  set loading(value: boolean) { this._loading.set(value); }
+  readonly loading = signal<boolean>(false);
 
   readonly lens = viewChild<LensComponent>('lens');
 
@@ -65,16 +63,16 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     effect(() => {
       if (!this.store.view.urlQueryTags.length) {
         this.store.view.exts = [];
-        this.loading = false;
+        this.loading.set(false);
       } else {
-        this.loading = true;
+        this.loading.set(true);
         this.exts.getCachedExts(this.store.view.urlQueryTags)
           .pipe(this.admin.extFallbacks)
           .subscribe(exts => {
             if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts.map(x => x.tag + x.origin + x.modifiedString).sort())) {
               this.store.view.exts = exts;
             }
-            this.loading = false;
+            this.loading.set(false);
           });
       }
     }, { injector: this.injector });

@@ -119,7 +119,7 @@ import { getErrorMessage } from './errors';
            [style.display]="preview ? 'flex' : 'none'"
            (click)="$event.target === div && edit(input, false)">
         <span class="crumbs-left" (click)="edit(input, false)">
-          @for (breadcrumb of breadcrumbs; track breadcrumb) {
+          @for (breadcrumb of breadcrumbs(); track breadcrumb) {
             <span class="crumb">
               @if (breadcrumb.tag) {
                 <a class="tag" [routerLink]="['/tag', breadcrumb.tag]" queryParamsHandling="merge"><span (click)="clickPreview(input, $event, breadcrumb)">{{ breadcrumb.text }}</span></a>
@@ -134,7 +134,7 @@ import { getErrorMessage } from './errors';
               (click)="toggleParams(); $event.stopPropagation()">{{ hasParams ? paramSummary : '🪄️' }}</span>
       </div>
       <datalist [id]="listId">
-        @for (o of autocomplete; track o.value) {
+        @for (o of autocomplete(); track o.value) {
           <option [value]="o.value">{{ o.label }}</option>
         }
       </datalist>
@@ -158,7 +158,7 @@ import { getErrorMessage } from './errors';
     <ng-template #paramsPanel>
       <div class="params-panel form-group" (click)="$event.stopPropagation()">
         <input type="search"
-               [ngModel]="searchText"
+               [ngModel]="searchText()"
                (ngModelChange)="setSearch($event)"
                i18n-placeholder
                placeholder="Search text…">
@@ -170,7 +170,7 @@ import { getErrorMessage } from './errors';
             <option [value]="s.value" [title]="s.title || ''">{{ s.label }}</option>
           }
         </select>
-        @for (sort of sorts; track sort; let i = $index) {
+        @for (sort of sorts(); track sort; let i = $index) {
           <span class="controls">
             <select [ngModel]="sortCol(sort)" (ngModelChange)="setSortCol(i, $event)">
               @for (s of allSorts; track s.value) {
@@ -189,7 +189,7 @@ import { getErrorMessage } from './errors';
                 (input)="addFilter($any($event.target).value); $any($event.target).selectedIndex = 0"
                 i18n-title title="Filter">
           <option class="unselected" i18n>🪄️ filter</option>
-          @for (g of allFilters; track g.label) {
+          @for (g of allFilters(); track g.label) {
             @if (g.filters.length) {
               <optgroup [label]="g.label">
                 @for (f of g.filters; track f.filter) {
@@ -199,10 +199,10 @@ import { getErrorMessage } from './errors';
             }
           }
         </select>
-        @for (filter of filters; track filter; let i = $index) {
+        @for (filter of filters(); track filter; let i = $index) {
           <div class="controls" [title]="filter">
             <select [ngModel]="filter" (ngModelChange)="setFilter(i, $event)">
-              @for (g of allFilters; track g.label) {
+              @for (g of allFilters(); track g.label) {
                 @if (g.filters.length) {
                   <optgroup [label]="g.label">
                     @for (f of g.filters; track f.filter) {
@@ -236,14 +236,14 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   readonly paramsPanel = viewChild.required<TemplateRef<any>>('paramsPanel');
 
   listId = 'list-' + uuid();
-  private readonly _breadcrumbs = signal<Crumb[]>([]);
-  private readonly _editing = signal(false);
-  private readonly _autocomplete = signal<{ value: string, label: string }[]>([]);
+  readonly breadcrumbs = signal<Crumb[]>([]);
+  readonly editing = signal(false);
+  readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
-  private readonly _sorts = signal<string[]>([]);
-  private readonly _filters = signal<string[]>([]);
-  private readonly _searchText = signal('');
-  private readonly _allFilters = signal<FilterGroup[]>([]);
+  readonly sorts = signal<string[]>([]);
+  readonly filters = signal<string[]>([]);
+  readonly searchText = signal('');
+  readonly allFilters = signal<FilterGroup[]>([]);
 
   private overlayRef?: OverlayRef;
   private overlayEvents?: Subscription;
@@ -251,7 +251,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   private searching?: Subscription;
   private formChanges?: Subscription;
   private filterOptions?: Subscription;
-  private readonly _query = signal('');
+  readonly query = signal('');
 
   constructor(
     private router: Router,
@@ -266,26 +266,12 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     super();
   }
 
-  get breadcrumbs(): Crumb[] { return this._breadcrumbs(); }
-  set breadcrumbs(value: Crumb[]) { this._breadcrumbs.set(value); }
 
-  get editing(): boolean { return this._editing(); }
-  set editing(value: boolean) { this._editing.set(value); }
 
-  get autocomplete(): { value: string, label: string }[] { return this._autocomplete(); }
-  set autocomplete(value: { value: string, label: string }[]) { this._autocomplete.set(value); }
 
-  get sorts(): string[] { return this._sorts(); }
-  set sorts(value: string[]) { this._sorts.set(value); }
 
-  get filters(): string[] { return this._filters(); }
-  set filters(value: string[]) { this._filters.set(value); }
 
-  get searchText(): string { return this._searchText(); }
-  set searchText(value: string) { this._searchText.set(value); }
 
-  get allFilters(): FilterGroup[] { return this._allFilters(); }
-  set allFilters(value: FilterGroup[]) { this._allFilters.set(value); }
 
   ngAfterViewInit() {
     const v = this.model?.[this.key as any];
@@ -297,16 +283,16 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     }
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
-      if (!this.editing) {
+      if (!this.editing()) {
         if (value) {
           const q = this.extractQuery(value);
           this.syncParams(value);
           this.getPreview(q);
         } else {
-          this.query = '';
-          this.sorts = [];
-          this.filters = [];
-          this.searchText = '';
+          this.setQuery('');
+          this.sorts.set([]);
+          this.filters.set([]);
+          this.searchText.set('');
           this.buildAllFilters();
         }
       }
@@ -321,18 +307,15 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   get preview() {
-    return !this.editing && this.query;
+    return !this.editing() && this.query();
   }
 
-  get query(): string {
-    return this._query();
-  }
 
-  set query(value: string) {
-    this.editing = false;
-    if (this._query() === value) return;
-    this._query.set(value);
-    this.breadcrumbs = this.queryCrumbs(value);
+  setQuery(value: string) {
+    this.editing.set(false);
+    if (this.query() === value) return;
+    this.query.set(value);
+    this.breadcrumbs.set(this.queryCrumbs(value));
   }
 
   get queryPart(): string {
@@ -346,26 +329,26 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   get hasParams(): boolean {
-    return this.sorts.filter(s => !!s && !s.startsWith(',')).length > 0
-      || this.filters.filter(f => !!f).length > 0
-      || !!this.searchText;
+    return this.sorts().filter(s => !!s && !s.startsWith(',')).length > 0
+      || this.filters().filter(f => !!f).length > 0
+      || !!this.searchText();
   }
 
   get paramSummary(): string {
     const parts: string[] = [];
-    if (this.sorts.length) {
-      const col = this.sortCol(this.sorts[0]);
-      const dir = this.sortDir(this.sorts[0]);
+    if (this.sorts().length) {
+      const col = this.sortCol(this.sorts()[0]);
+      const dir = this.sortDir(this.sorts()[0]);
       const dirEmoji = dir === 'DESC' ? '🔽️' : '🔼️';
       const label = this.allSorts.find(s => s.value === col)?.label || col;
       parts.push(dirEmoji + ' ' + label);
-      if (this.sorts.length > 1) parts.push(`+${this.sorts.length - 1}`);
+      if (this.sorts().length > 1) parts.push(`+${this.sorts().length - 1}`);
     }
-    if (this.searchText) {
-      parts.push('🔍️ ' + this.searchText);
+    if (this.searchText()) {
+      parts.push('🔍️ ' + this.searchText());
     }
-    if (this.filters.filter(f => !!f).length) {
-      parts.push('🪄️' + this.filters.filter(f => !!f).length);
+    if (this.filters().filter(f => !!f).length) {
+      parts.push('🪄️' + this.filters().filter(f => !!f).length);
     }
     return parts.join(' ');
   }
@@ -392,7 +375,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   private buildAllFilters(): void {
     const query = this.queryPart;
     this.filterOptions?.unsubscribe();
-    this.allFilters = [];
+    this.allFilters.set([]);
     this.filterOptions = this.getQueryActiveExts(query).pipe(
       switchMap(exts => {
         if (query !== this.queryPart) return of(undefined);
@@ -403,13 +386,13 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       // Query can change while kanban tag previews are loading.
       if (query !== this.queryPart) return;
       this.syncFilterOptions();
-      this.allFilters = [...this.allFilters];
+      this.allFilters.set([...this.allFilters()]);
     });
     this.syncFilterOptions(false);
   }
 
   private buildFilterGroups(activeExts: Ext[] = []): void {
-    this.allFilters = [];
+    this.allFilters.set([]);
     this.loadActiveExtQueryFilters(activeExts);
     // Match filter.component.ts group order. Empty placeholders are merged by pushFilter()
     // so later admin/core/query-scoped filters appear in the same order.
@@ -500,8 +483,8 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
         const group = $localize`Kanban 📋️`;
         const k = e.config as KanbanConfig;
         if (k.columns?.length) {
-          if (!find(this.allFilters, f => f.label === group)) {
-            this.allFilters.push({ label: group, filters: [] });
+          if (!find(this.allFilters(), f => f.label === group)) {
+            this.allFilters().push({ label: group, filters: [] });
           }
           const kanbanTags = uniq([...k.columns, ...k.swimLanes || [], ...k.badges || []]);
           kanbanFilterLoaders.push(this.editor.getTagsPreview(kanbanTags, e.origin || '').pipe(map(ps => {
@@ -526,21 +509,21 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   private loadFilter(filter: FilterConfig) {
-    let group = find(this.allFilters, f => f.label === (filter.group || ''));
+    let group = find(this.allFilters(), f => f.label === (filter.group || ''));
     if (group) {
       group.filters.push(convertFilter(filter));
     } else {
-      this.allFilters.push({ label: filter.group || '', filters: [convertFilter(filter)] });
+      this.allFilters().push({ label: filter.group || '', filters: [convertFilter(filter)] });
     }
   }
 
   private pushFilter(...filterGroups: FilterGroup[]) {
     for (const filterGroup of filterGroups) {
-      const group = find(this.allFilters, f => f.label === (filterGroup.label || ''));
+      const group = find(this.allFilters(), f => f.label === (filterGroup.label || ''));
       if (group) {
         group.filters.push(...filterGroup.filters);
       } else {
-        this.allFilters.push(filterGroup);
+        this.allFilters().push(filterGroup);
       }
     }
   }
@@ -548,10 +531,10 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   /** Mirror filter.component.ts sync(): mutate allFilters options to show ! prefix for negated filters,
    *  and add missing filters so they appear in the dropdown. */
   private syncFilterOptions(addMissing = true): void {
-    for (const f of this.filters) {
+    for (const f of this.filters()) {
       const toggled = toggle(f as UrlFilter);
       if (!toggled) continue;
-      const sets = this.allFilters.filter(g => g.filters.find(i => i.filter === toggled));
+      const sets = this.allFilters().filter(g => g.filters.find(i => i.filter === toggled));
       if (sets.length) {
         sets.forEach(g => {
           const target = g.filters.find(i => i.filter === toggled);
@@ -569,7 +552,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
             }
           }
         });
-      } else if (addMissing && !this.allFilters.find(g => g.filters.find(i => i.filter === f))) {
+      } else if (addMissing && !this.allFilters().find(g => g.filters.find(i => i.filter === f))) {
         // Filter not found — add it as a fallback so the dropdown shows the current value
         if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
           this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
@@ -591,26 +574,26 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   private syncParams(value: string) {
     const idx = value.indexOf('?');
     if (idx === -1) {
-      this.sorts = [];
-      this.filters = [];
-      this.searchText = '';
+      this.sorts.set([]);
+      this.filters.set([]);
+      this.searchText.set('');
       this.buildAllFilters();
       return;
     }
     const params = parseBookmarkParams(value.substring(idx + 1));
-    this.sorts = [params['sort']].flat().filter(Boolean);
-    this.filters = [params['filter']].flat().filter(Boolean);
-    this.searchText = params['search'] || '';
+    this.sorts.set([params['sort']].flat().filter(Boolean));
+    this.filters.set([params['filter']].flat().filter(Boolean));
+    this.searchText.set(params['search'] || '');
     this.buildAllFilters();
   }
 
   private buildParamsString(): string {
     const p: Record<string, string | string[]> = {};
-    const sorts = this.sorts.filter(s => !!s && !s.startsWith(','));
-    const filters = this.filters.filter(f => !!f);
+    const sorts = this.sorts().filter(s => !!s && !s.startsWith(','));
+    const filters = this.filters().filter(f => !!f);
     if (sorts.length) p['sort'] = sorts;
     if (filters.length) p['filter'] = filters;
-    if (this.searchText) p['search'] = this.searchText;
+    if (this.searchText()) p['search'] = this.searchText();
     return encodeBookmarkParams(p);
   }
 
@@ -622,7 +605,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   onQueryInput(value: string) {
-    this.editing = true;
+    this.editing.set(true);
     // If user typed a ? directly, sync params from it and store as-is
     if (value.includes('?')) {
       this.syncParams(value);
@@ -656,8 +639,8 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   getPreview(value: string) {
     if (!value) return;
     if (this.showError) return;
-    const queryChanged = this._query() !== value;
-    this.query = value;
+    const queryChanged = this.query() !== value;
+    this.setQuery(value);
     if (queryChanged) {
       this.buildAllFilters();
     }
@@ -684,7 +667,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   edit(input: HTMLInputElement, select: boolean | Crumb) {
-    this.editing = true;
+    this.editing.set(true);
     input.focus();
     if (select === true) {
       input.select();
@@ -707,61 +690,61 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   addSort(value: string) {
     if (!value) return;
     const dir = defaultDesc(value) ? 'DESC' : 'ASC';
-    this.sorts = [...this.sorts, value + ',' + dir];
+    this.sorts.set([...this.sorts(), value + ',' + dir]);
     this.updateFormValue();
   }
 
   setSortCol(index: number, col: string) {
-    const sorts = [...this.sorts];
+    const sorts = [...this.sorts()];
     const dir = this.sortDir(sorts[index]);
     sorts[index] = col + ',' + dir;
-    this.sorts = sorts;
+    this.sorts.set(sorts);
     this.updateFormValue();
   }
 
   setSortDir(index: number, dir: string) {
-    const sorts = [...this.sorts];
+    const sorts = [...this.sorts()];
     const col = this.sortCol(sorts[index]);
     sorts[index] = col + ',' + dir;
-    this.sorts = sorts;
+    this.sorts.set(sorts);
     this.updateFormValue();
   }
 
   removeSort(index: number) {
-    const sorts = [...this.sorts];
+    const sorts = [...this.sorts()];
     sorts.splice(index, 1);
-    this.sorts = sorts;
+    this.sorts.set(sorts);
     this.updateFormValue();
   }
 
   // Filter management
   addFilter(value: string) {
     if (!value) return;
-    this.filters = [...this.filters, value];
+    this.filters.set([...this.filters(), value]);
     this.buildAllFilters();
     this.updateFormValue();
   }
 
   setFilter(index: number, value: string) {
-    const filters = [...this.filters];
+    const filters = [...this.filters()];
     filters[index] = value;
-    this.filters = filters;
+    this.filters.set(filters);
     this.buildAllFilters();
     this.updateFormValue();
   }
 
   removeFilter(index: number) {
-    const filters = [...this.filters];
+    const filters = [...this.filters()];
     filters.splice(index, 1);
-    this.filters = filters;
+    this.filters.set(filters);
     this.buildAllFilters();
     this.updateFormValue();
   }
 
   toggleFilter(index: number) {
-    const filters = [...this.filters];
+    const filters = [...this.filters()];
     filters[index] = toggle(filters[index] as UrlFilter)!;
-    this.filters = filters;
+    this.filters.set(filters);
     this.buildAllFilters();
     this.updateFormValue();
   }
@@ -772,7 +755,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
 
   // Search management
   setSearch(value: string) {
-    this.searchText = value;
+    this.searchText.set(value);
     this.updateFormValue();
   }
 
@@ -840,10 +823,10 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
-      this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
-      if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(tag, 5 - this.autocomplete.length));
-      if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(tag, 5 - this.autocomplete.length));
-      this.autocomplete = uniqBy(this.autocomplete, 'value')
+      this.autocomplete.set(xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag })));
+      if (this.autocomplete().length < 5) this.autocomplete().push(...getPlugins(tag, 5 - this.autocomplete().length));
+      if (this.autocomplete().length < 5) this.autocomplete().push(...getTemplates(tag, 5 - this.autocomplete().length));
+      this.autocomplete.set(uniqBy(this.autocomplete(), 'value'))
     });
   }, 400);
 
@@ -954,7 +937,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
               if (plugin?.name) t.text = plugin.name;
             }
           }
-          this.breadcrumbs = [...this.breadcrumbs];
+          this.breadcrumbs.set([...this.breadcrumbs()]);
         });
       }
     }

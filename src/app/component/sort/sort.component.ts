@@ -22,16 +22,12 @@ export class SortComponent {
 
   allRefSorts = this.admin.refSorts.map(convertSort);
   allTagSorts = this.admin.tagSorts.map(convertSort);
-  private readonly _allSorts = signal<SortItem[]>([
+  readonly allSorts = signal<SortItem[]>([
     { value: 'modified', label: $localize`🕓️ modified` },
     { value: 'origin:len', label: $localize`🪆 nesting` },
   ]);
-  private readonly _sorts = signal<string[]>([], { equal: () => false });
+  readonly sorts = signal<string[]>([], { equal: () => false });
 
-  get allSorts() { return this._allSorts(); }
-  set allSorts(value: SortItem[]) { this._allSorts.set(value); }
-  get sorts() { return this._sorts(); }
-  set sorts(value: string[]) { this._sorts.set(value); }
   replace = false;
 
   constructor(
@@ -41,7 +37,7 @@ export class SortComponent {
   ) {
     effect(() => {
       const sort = this.store.view.sort;
-      untracked(() => this.sorts = Array.isArray(sort) ? [...sort] : [sort]);
+      untracked(() => this.sorts.set(Array.isArray(sort) ? [...sort] : [sort]));
     });
     effect(() => {
       const isSearch = this.store.view.isSearch;
@@ -55,47 +51,47 @@ export class SortComponent {
 
   private rebuildSorts(type: Type, isSearch: boolean) {
     if (type === 'ref') {
-      this.allSorts = [...this.allRefSorts];
+      this.allSorts.set([...this.allRefSorts]);
       if (isSearch) {
-        this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` });
+        this.allSorts().unshift({ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` });
       }
     } else {
-      this.allSorts = [...this.allTagSorts];
+      this.allSorts.set([...this.allTagSorts]);
     }
   }
 
   addSort(value: string) {
     this.replace = false;
-    if (!this.sorts) this.sorts = [];
-    this.sorts.push('');
-    this._sorts.set(this.sorts);
+    if (!this.sorts()) this.sorts.set([]);
+    this.sorts().push('');
+    this.sorts.set(this.sorts());
     this.create()!.nativeElement.selectedIndex = 0;
-    this.setSortCol(this.sorts.length - 1, value);
+    this.setSortCol(this.sorts().length - 1, value);
   }
 
   setSortCol(index: number, value: string) {
     const dir = this.sortDir(value)
-    this.sorts[index] = value + ',' + dir;
-    this._sorts.set(this.sorts);
+    this.sorts()[index] = value + ',' + dir;
+    this.sorts.set(this.sorts());
     this.setSort();
   }
 
   setSortDir(index: number, value: string) {
-    const col = this.sortCol(this.sorts[index])
-    this.sorts[index] = col + ',' + value;
-    this._sorts.set(this.sorts);
+    const col = this.sortCol(this.sorts()[index])
+    this.sorts()[index] = col + ',' + value;
+    this.sorts.set(this.sorts());
     if (col) this.setSort();
   }
 
   removeSort(index: number) {
     this.replace = false;
-    this.sorts.splice(index, 1);
-    this._sorts.set(this.sorts);
+    this.sorts().splice(index, 1);
+    this.sorts.set(this.sorts());
     this.setSort();
   }
 
   setSort() {
-    const sort = this.sorts.filter(f => !!f && !f.startsWith(','));
+    const sort = this.sorts().filter(f => !!f && !f.startsWith(','));
     this.router.navigate([], {
       queryParams: { sort: sort.length ? sort : null, pageNumber: null },
       queryParamsHandling: 'merge',
@@ -105,7 +101,7 @@ export class SortComponent {
   }
 
   title(value: string) {
-    for (const s of this.allSorts) {
+    for (const s of this.allSorts()) {
       if (s.value === value) return s.title || '';
     }
     return '';

@@ -24,8 +24,7 @@ import { hasTag } from '../../../util/tag';
 })
 export class ChatVideoComponent implements AfterViewInit {
 
-  readonly urlInput = input('tag:/chat', { alias: 'url' });
-  get url() { return this.urlInput(); }
+  readonly url = input('tag:/chat');
 
   constructor(
     public store: Store,
@@ -37,10 +36,10 @@ export class ChatVideoComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     if (this.store.local.inCall() && !this.store.video.enabled) {
-      this.ts.getResponse(this.url)
+      this.ts.getResponse(this.url())
         .subscribe(ref => {
           if (hasTag('plugin/user/lobby', ref)) {
-            this.ts.deleteResponse('plugin/user/lobby', this.url).subscribe();
+            this.ts.deleteResponse('plugin/user/lobby', this.url()).subscribe();
             if (confirm($localize`Rejoin the call?`)) this.call();
           }
         });
@@ -92,8 +91,8 @@ export class ChatVideoComponent implements AfterViewInit {
           stream.getTracks().forEach(t => t.stop());
           return;
         }
-        this.ts.respond(['public', 'plugin/user/lobby'], this.url)
-          .subscribe(() => this.vs.call(this.url, stream));
+        this.ts.respond(['public', 'plugin/user/lobby'], this.url())
+          .subscribe(() => this.vs.call(this.url(), stream));
       })
       .catch(err => {
         console.log('Raised error when capturing:', err);
@@ -105,7 +104,7 @@ export class ChatVideoComponent implements AfterViewInit {
   hangup() {
     this.store.video.enabled = false;
     this.store.local.setInCall(false);
-    this.ts.deleteResponse('plugin/user/lobby', this.url).subscribe();
+    this.ts.deleteResponse('plugin/user/lobby', this.url()).subscribe();
     this.vs.hangup();
   }
 

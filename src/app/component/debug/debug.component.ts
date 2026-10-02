@@ -27,19 +27,13 @@ import { LoadingComponent } from '../loading/loading.component';
 })
 export class DebugComponent {
 
-  private readonly _generating = signal(false);
+  readonly generating = signal(false);
   settingUser = false;
-  private readonly _sourcing = signal(false);
-  private readonly _batchRunning = signal(false);
+  readonly sourcing = signal(false);
+  readonly batchRunning = signal(false);
   serverError: string[] = [];
   debug = this.admin.getPlugin('plugin/debug') || this.admin.getTemplate('debug');
 
-  get generating() { return this._generating(); }
-  set generating(value: boolean) { this._generating.set(value); }
-  get sourcing() { return this._sourcing(); }
-  set sourcing(value: boolean) { this._sourcing.set(value); }
-  get batchRunning() { return this._batchRunning(); }
-  set batchRunning(value: boolean) { this._batchRunning.set(value); }
 
   constructor(
     public admin: AdminService,
@@ -59,8 +53,8 @@ export class DebugComponent {
   }
 
   batch(fn: (e: any) => Observable<any>) {
-    if (this.batchRunning) return;
-    this.batchRunning = true;
+    if (this.batchRunning()) return;
+    this.batchRunning.set(true);
     concat(...this.query.page!.content.map(e => fn(e).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.push(...printError(err));
@@ -68,13 +62,13 @@ export class DebugComponent {
       }),
     ))).pipe(last()).subscribe(() => {
       this.query.refresh();
-      this.batchRunning = false;
+      this.batchRunning.set(false);
     });
   }
 
   repeat(fn: (i: number) => Observable<any>, n = 100) {
-    if (this.batchRunning) return;
-    this.batchRunning = true;
+    if (this.batchRunning()) return;
+    this.batchRunning.set(true);
     generate(0, x => x < n, x => x + 1).pipe(
       concatMap(i => fn(i)),
       catchError((err: HttpErrorResponse) => {
@@ -82,7 +76,7 @@ export class DebugComponent {
         return of(null);
       }),
     ).subscribe(() => {
-      this.batchRunning = false;
+      this.batchRunning.set(false);
     });
   }
 
@@ -92,7 +86,7 @@ export class DebugComponent {
   }
 
   gen(n: any = 100) {
-    this.generating = false;
+    this.generating.set(false);
     this.repeat(i => {
       const url = 'comment:' + uuid();
       return this.refs.create({
@@ -112,7 +106,7 @@ export class DebugComponent {
   }
 
   source(url: string) {
-    this.sourcing = false;
+    this.sourcing.set(false);
     this.batch(ref => {
       if (!ref.sources?.includes(url)) {
         if (ref.sources) {

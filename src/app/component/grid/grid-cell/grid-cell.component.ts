@@ -22,9 +22,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class GridCellComponent implements ICellRendererAngularComp {
-  private readonly _type = signal('');
-  get type() { return this._type(); }
-  set type(value: string) { this._type.set(value); }
+  readonly type = signal('');
   value?: unknown;
   private data?: Ref;
 
@@ -38,7 +36,7 @@ export class GridCellComponent implements ICellRendererAngularComp {
     this.value = params.value;
     this.data = params.data;
     const type = params.colDef?.type;
-    this.type = typeof type === 'string' ? type : '';
+    this.type.set(typeof type === 'string' ? type : '');
   }
 
   refresh(params: ICellRendererParams): boolean {

@@ -1,19 +1,19 @@
 <form class="form"
       [formGroup]="textForm"
       (ngSubmit)="submit()"
-      [appLimitWidth]="limitWidth"
+      [appLimitWidth]="limitWidth()"
       [limitSibling]="true">
 
-  @if (defaults?.url || loadingDefaults.length) {
+  @if (defaults()?.url || loadingDefaults().length) {
     <span></span>
     <div>
-      <span i18n>Loading defaults for <app-nav [url]="defaults?.url || ('tag:/' + loadingDefaults[0].tag)"></app-nav></span>
-      @if (!defaults) {
+      <span i18n>Loading defaults for <app-nav [url]="defaults()?.url || ('tag:/' + loadingDefaults()[0].tag)"></app-nav></span>
+      @if (!defaults()) {
         <app-loading [inline]="true"></app-loading>
       }
     </div>
   }
-  @if (!advanced) {
+  @if (!advanced()) {
     @if (store.submit.wiki) {
       <label for="title" i18n>Wiki:</label>
     } @else {
@@ -58,7 +58,7 @@
                     [tags]="tags"
                     (syncTags)="setTags($event)"
                     (addSource)="addSource($event)"
-                    (uploadCompleted)="completedUploads.push($event)"
+                    (uploadCompleted)="completedUploads().push($event)"
                     [fillWidth]="fill"
                     [autoFocus]="true"></app-editor>
       </div>
@@ -75,7 +75,7 @@
                   (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
   }
 
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
   }
@@ -88,12 +88,12 @@
         <label for="addAnother" i18n>Add another</label>
       </div>
     }
-    @if (submitting || saving) {
+    @if (submitting() || saving()) {
       <app-loading [inline]="true"></app-loading>
     }
     @if (admin.getPlugin('plugin/editing')) {
-      <button type="button" [disabled]="submitting || saving || submitted || textForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
+      <button type="button" [disabled]="submitting() || saving() || submitted() || textForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
     }
-    <button type="submit" [disabled]="submitting || submitted && !textForm.valid" i18n>Submit</button>
+    <button type="submit" [disabled]="submitting() || submitted() && !textForm.valid" i18n>Submit</button>
   </span>
 </form>

@@ -41,8 +41,8 @@ describe('RefComponent', () => {
   it('keeps the disabled Ref URL in thumbnail data while editing', () => {
     fixture.componentRef.setInput('ref', { url: 'cache:image-id', origin: '' });
     fixture.detectChanges();
-    component.editForm.get('url')!.setValue(component.ref.url);
-    component.editing = true;
+    component.editForm.get('url')!.setValue(component.ref().url);
+    component.setEditing(true);
 
     expect(component.thumbnailRefs[0]?.url).toBe('cache:image-id');
   });
@@ -61,7 +61,7 @@ describe('RefComponent', () => {
     const refs = (component as any).refs;
     const auth = (component as any).auth;
     vi.spyOn(auth, 'canAddTag').mockReturnValue(true);
-    const create = vi.spyOn(refs, 'create').mockReturnValue(of(component.ref));
+    const create = vi.spyOn(refs, 'create').mockReturnValue(of(component.ref()));
 
     component.copy$();
 

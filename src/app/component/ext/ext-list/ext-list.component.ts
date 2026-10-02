@@ -23,11 +23,11 @@ export class ExtListComponent implements HasChanges {
 
   readonly list = viewChildren(ExtComponent);
 
-  readonly pageInput = input<Page<Ext> | undefined>(undefined, { alias: 'page' });
+  readonly page = input<Page<Ext> | undefined>(undefined);
 
   constructor(private router: Router) {
     effect(() => {
-      const page = this.pageInput();
+      const page = this.page();
       if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
@@ -43,8 +43,5 @@ export class ExtListComponent implements HasChanges {
     return !this.list()?.find(r => !r.saveChanges());
   }
 
-  get page() {
-    return this.pageInput();
-  }
 
 }

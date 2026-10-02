@@ -21,9 +21,9 @@ import { getPath } from '../util/http';
          cdkScrollable
          [cdkDropListData]="this"
          (cdkDropListDropped)="drop($any($event))"
-         [class.dropping]="dropping"
+         [class.dropping]="dropping()"
          (drop)="dnd($event)"
-         (dragenter)="dropping = true"
+         (dragenter)="dropping.set(true)"
          (dragleave)="dragLeave(fg, $any($event.target))">
       @if (props.showAdd !== false) {
         <button type="button" (click)="add()">{{ props.addText }}</button>
@@ -56,9 +56,7 @@ import { getPath } from '../util/http';
 })
 export class ListTypeComponent extends FieldArrayType {
 
-  private readonly _dropping = signal(false);
-  get dropping() { return this._dropping(); }
-  set dropping(value: boolean) { this._dropping.set(value); }
+  readonly dropping = signal(false);
 
   constructor(
     private store: Store,
@@ -233,7 +231,7 @@ export class ListTypeComponent extends FieldArrayType {
   }
 
   dnd(event: DragEvent) {
-    this.dropping = false;
+    this.dropping.set(false);
     event.preventDefault();
     event.stopPropagation();
     const items = event.dataTransfer?.items;
@@ -277,8 +275,8 @@ export class ListTypeComponent extends FieldArrayType {
   }
 
   dragLeave(parent: HTMLElement, target: HTMLElement) {
-    if (this.dropping && parent === target || !parent.contains(target)) {
-      this.dropping = false;
+    if (this.dropping() && parent === target || !parent.contains(target)) {
+      this.dropping.set(false);
     }
   }
 }

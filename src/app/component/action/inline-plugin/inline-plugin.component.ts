@@ -26,18 +26,12 @@ export class InlinePluginComponent extends ActionComponent {
   readonly error = output<string>();
   readonly gen = viewChild<GenFormComponent>('gen');
 
-  private readonly editingSignal = signal(false);
-  private readonly actingSignal = signal(false);
+  readonly editing = signal(false);
+  readonly acting = signal(false);
 
-  get editing() { return this.editingSignal(); }
-  set editing(value: boolean) { this.editingSignal.set(value); }
 
-  get acting() { return this.actingSignal(); }
-  set acting(value: boolean) { this.actingSignal.set(value); }
 
-  private readonly _group = signal<UntypedFormGroup>(this.fb.group({}));
-  get group() { return this._group(); }
-  set group(value: UntypedFormGroup) { this._group.set(value); }
+  readonly group = signal<UntypedFormGroup>(this.fb.group({}));
 
   constructor(
     public admin: AdminService,
@@ -47,28 +41,28 @@ export class InlinePluginComponent extends ActionComponent {
     effect(() => {
       const gen = this.gen();
       if (!gen) return;
-      this.group = this.fb.group({
+      this.group.set(this.fb.group({
         [this.plugin().tag]: this.fb.group({}),
-      });
+      }));
       defer(() => gen.setValue(this.value()?.plugins || {}));
     });
   }
 
   override reset() {
-    this.editing = false;
-    this.acting = false;
+    this.editing.set(false);
+    this.acting.set(false);
   }
 
   override active() {
-    return this.editing || this.acting;
+    return this.editing() || this.acting();
   }
 
   save() {
-    this.editing = false;
-    this.acting = true;
-    this.action()(this.group.value).pipe(
+    this.editing.set(false);
+    this.acting.set(true);
+    this.action()(this.group().value).pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.acting = false);
+    ).subscribe(() => this.acting.set(false));
   }
 
 }

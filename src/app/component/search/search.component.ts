@@ -16,10 +16,8 @@ import { View } from '../../store/view';
   imports: [ReactiveFormsModule]
 })
 export class SearchComponent {
-  private readonly _searchValue = signal('');
+  readonly searchValue = signal('');
 
-  get searchValue() { return this._searchValue(); }
-  set searchValue(value: string) { this._searchValue.set(value); }
   replace = false;
 
   private searchEvent = false;
@@ -31,7 +29,7 @@ export class SearchComponent {
   ) {
     effect(() => {
       const search = this.store.view.search;
-      untracked(() => this.searchValue = search || '');
+      untracked(() => this.searchValue.set(search || ''));
     });
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
@@ -39,7 +37,7 @@ export class SearchComponent {
   }
 
   change(target: HTMLInputElement) {
-    this.searchValue = target.value || '';
+    this.searchValue.set(target.value || '');
     if (this.searchEvent) return;
     if (!this.store.account.config.liveSearch) return;
     this.debounceSearch();
@@ -58,8 +56,8 @@ export class SearchComponent {
   }
 
   doSearch() {
-    this.router.navigate([], { queryParams: { search: this.searchValue }, queryParamsHandling: 'merge', replaceUrl: this.replace });
-    this.replace ||= !!this.searchValue;
+    this.router.navigate([], { queryParams: { search: this.searchValue() }, queryParamsHandling: 'merge', replaceUrl: this.replace });
+    this.replace ||= !!this.searchValue();
   }
 
   viewName(view?: View) {

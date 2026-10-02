@@ -42,13 +42,9 @@ export class FilterComponent {
   createdBeforeFilter: FilterItem = { filter: `created/before/${DateTime.now().toISO()}`, label: $localize`✨️ created before` };
   createdAfterFilter: FilterItem = { filter: `created/after/${DateTime.now().toISO()}`, label: $localize`✨️ created after` };
 
-  private readonly _allFilters = signal<FilterGroup[]>([], { equal: () => false });
-  private readonly _filters = signal<UrlFilter[]>([], { equal: () => false });
+  readonly allFilters = signal<FilterGroup[]>([], { equal: () => false });
+  readonly filters = signal<UrlFilter[]>([], { equal: () => false });
 
-  get allFilters() { return this._allFilters(); }
-  set allFilters(value: FilterGroup[]) { this._allFilters.set(value); }
-  get filters() { return this._filters(); }
-  set filters(value: UrlFilter[]) { this._filters.set(value); }
 
   emoji = emoji($localize`🪄️`) || $localize`🔍️`;
 
@@ -68,7 +64,7 @@ export class FilterComponent {
     effect(() => {
       const filter = this.store.view.filter;
       untracked(() => {
-        this.filters = Array.isArray(filter) ? [...filter] : [filter];
+        this.filters.set(Array.isArray(filter) ? [...filter] : [filter]);
         this.sync();
       });
     });
@@ -76,7 +72,7 @@ export class FilterComponent {
 
   private loadFilters() {
     if (this.type() === 'ref') {
-      this.allFilters = [];
+      this.allFilters.set([]);
       for (const ext of this.activeExts()) {
         for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
           this.loadFilter({
@@ -120,7 +116,7 @@ export class FilterComponent {
         const group = $localize`Kanban 📋️`;
         const k = e.config! as KanbanConfig;
         if (k.columns?.length) {
-          this.allFilters.push({
+          this.allFilters().push({
             label: group,
             filters: [],
           });
@@ -177,7 +173,7 @@ export class FilterComponent {
         ],
       });
     } else {
-      this.allFilters = [];
+      this.allFilters.set([]);
       this.pushFilter({
         label: $localize`Time ⏱️`,
         filters : [
@@ -238,7 +234,7 @@ export class FilterComponent {
    */
   sync() {
     const setToggles: UrlFilter[] = [];
-    for (const f of this.filters) {
+    for (const f of this.filters()) {
       if (f.startsWith('modified/before')) {
         this.modifiedBeforeFilter.filter = f;
       } else if (f.startsWith('modified/after')) {
@@ -255,7 +251,7 @@ export class FilterComponent {
         this.createdBeforeFilter.filter = f;
       } else if (f.startsWith('created/after')) {
         this.createdAfterFilter.filter = f;
-      } else if (!this.allFilters.find(g => g.filters.find(i => i.filter === f))) {
+      } else if (!this.allFilters().find(g => g.filters.find(i => i.filter === f))) {
         // Current filter is missing
         if (f.startsWith('query/')) setToggles.push(f);
         if (f.startsWith('user/')) setToggles.push(f);
@@ -267,7 +263,7 @@ export class FilterComponent {
     }
     // Search all filters for the toggled (negated) version and sync it
     for (const f of setToggles) {
-      const set = this.allFilters.filter(g => g.filters.find(i => i.filter === toggle(f)));
+      const set = this.allFilters().filter(g => g.filters.find(i => i.filter === toggle(f)));
       if (set.length) {
         set.forEach(g => {
           // Toggle all negated versions of this filter
@@ -293,52 +289,52 @@ export class FilterComponent {
         this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length)});
       }
     }
-    this.filters = pullAll(this.filters, setToggles.map(toggle));
-    this._allFilters.set(this.allFilters);
+    this.filters.set(pullAll(this.filters(), setToggles.map(toggle)));
+    this.allFilters.set(this.allFilters());
   }
 
   loadFilter(filter: FilterConfig) {
     if ((filter.query || filter.response) && !this.auth.queryReadAccess(filter.query || filter.response)) return;
-    let group = find(this.allFilters, f => f.label === (filter.group || ''));
+    let group = find(this.allFilters(), f => f.label === (filter.group || ''));
     if (group) {
       group.filters.push(convertFilter(filter));
     } else {
-      this.allFilters.push({
+      this.allFilters().push({
         label: filter.group || '',
         filters: [convertFilter(filter)],
       });
     }
-    this._allFilters.set(this.allFilters);
+    this.allFilters.set(this.allFilters());
   }
 
   pushFilter(...fgs: FilterGroup[]) {
     for (const fg of fgs) {
-      let group = find(this.allFilters, f => f.label === (fg.label || ''));
+      let group = find(this.allFilters(), f => f.label === (fg.label || ''));
       if (group) {
         group.filters.push(...fg.filters);
       } else {
-        this.allFilters.push(fg);
+        this.allFilters().push(fg);
       }
     }
-    this._allFilters.set(this.allFilters);
+    this.allFilters.set(this.allFilters());
   }
 
   addFilter(value: UrlFilter) {
     if (value) {
-      if (!this.filters) this.filters = [];
-      this.filters.push(value);
+      if (!this.filters()) this.filters.set([]);
+      this.filters().push(value);
       this.create()!.nativeElement.selectedIndex = 0;
       this.setFilters();
     }
   }
 
   setFilter(index: number, value: UrlFilter) {
-    this.filters[index] = value;
+    this.filters()[index] = value;
     this.setFilters();
   }
 
   title(value: UrlFilter) {
-    for (const g of this.allFilters) {
+    for (const g of this.allFilters()) {
       for (const f of g.filters) {
         if (f.filter === value) return f.title || '';
       }
@@ -351,7 +347,7 @@ export class FilterComponent {
   }
 
   toggleQuery(index: number) {
-    this.filters[index] = toggle(this.filters[index])!;
+    this.filters()[index] = toggle(this.filters()[index])!;
     this.setFilters();
   }
 
@@ -372,18 +368,18 @@ export class FilterComponent {
     this.clearFocus();
     if (!isoDate) return;
     // @ts-ignore
-    this.filters[index] = filter.substring(0, filter.lastIndexOf('/') + 1) + isoDate;
+    this.filters()[index] = filter.substring(0, filter.lastIndexOf('/') + 1) + isoDate;
     this.sync();
     this.setFilters();
   }
 
   removeFilter(index: number) {
-    this.filters.splice(index, 1);
+    this.filters().splice(index, 1);
     this.setFilters();
   }
 
   setFilters() {
-    this.bookmarks.filters = filter(this.filters, f => !!f);
+    this.bookmarks.filters = filter(this.filters(), f => !!f);
   }
 
   toIso(date: string) {

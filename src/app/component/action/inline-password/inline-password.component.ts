@@ -18,35 +18,31 @@ export class InlinePasswordComponent extends ActionComponent {
   readonly action = input<(password: string) => Observable<any | never>>(() => of(null));
   readonly error = output<string>();
 
-  private readonly editingSignal = signal(false);
-  private readonly actingSignal = signal(false);
+  readonly editing = signal(false);
+  readonly acting = signal(false);
 
-  get editing() { return this.editingSignal(); }
-  set editing(value: boolean) { this.editingSignal.set(value); }
 
-  get acting() { return this.actingSignal(); }
-  set acting(value: boolean) { this.actingSignal.set(value); }
 
   override reset() {
-    this.editing = false;
-    this.acting = false;
+    this.editing.set(false);
+    this.acting.set(false);
   }
 
   override active() {
-    return this.editing || this.acting;
+    return this.editing() || this.acting();
   }
 
   save(field: HTMLInputElement) {
     const password = (field.value || '').trim();
     if (!password) {
-      this.editing = false;
+      this.editing.set(false);
       return;
     }
-    this.editing = false;
-    this.acting = true;
+    this.editing.set(false);
+    this.acting.set(true);
     this.action()(password).pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.acting = false);
+    ).subscribe(() => this.acting.set(false));
   }
 
 }

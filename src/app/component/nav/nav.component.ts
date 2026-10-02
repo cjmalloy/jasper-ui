@@ -28,9 +28,7 @@ export class NavComponent implements OnInit {
   readonly css = input('');
   readonly external = input(false);
 
-  private readonly _nav = signal<(string|number)[] | undefined>(undefined);
-  get nav() { return this._nav(); }
-  set nav(value: (string|number)[] | undefined) { this._nav.set(value); }
+  readonly nav = signal<(string|number)[] | undefined>(undefined);
 
   constructor(
     private config: ConfigService,
@@ -44,9 +42,9 @@ export class NavComponent implements OnInit {
 
   ngOnInit() {
     if (this.localUrl) {
-      this.nav = this.getNav();
-      if (this.nav[0] === '/tag' && !this.external() && !this.hasText) {
-        this.editor.getTagPreview(this.nav[1] as string)
+      this.nav.set(this.getNav());
+      if (this.nav()[0] === '/tag' && !this.external() && !this.hasText) {
+        this.editor.getTagPreview(this.nav()[1] as string)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(x => {
             this.text.set(x?.name || this.text() || x?.tag || '');
@@ -57,7 +55,7 @@ export class NavComponent implements OnInit {
       this.vis.notifyVisible(this.el, () => {
         this.refs.exists(this.url()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(exists => {
           if (exists) {
-            this.nav = ['/ref', this.url()];
+            this.nav.set(['/ref', this.url()]);
           }
         });
       });

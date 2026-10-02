@@ -25,19 +25,14 @@ export class ThreadSummaryComponent implements OnInit {
   readonly source = input('');
   readonly commentView = input(false);
   readonly query = input('');
-  readonly depthInput = input(1, { alias: 'depth' });
-  get depth() { return this.depthInput(); }
+  readonly depth = input(1);
   readonly pageSize = input(5);
   readonly context = input(0);
   readonly showLoadMore = input(true);
   readonly newRefs$ = input<Observable<Ref | undefined>>();
 
-  private readonly newRefsSignal = signal<Ref[]>([]);
-  private readonly listSignal = signal<Ref[]>([]);
-  get newRefs() { return this.newRefsSignal(); }
-  set newRefs(value: Ref[]) { this.newRefsSignal.set(value); }
-  get list() { return this.listSignal(); }
-  set list(value: Ref[]) { this.listSignal.set(value); }
+  readonly newRefs = signal<Ref[]>([]);
+  readonly list = signal<Ref[]>([]);
 
   constructor(
     private refs: RefService,
@@ -45,7 +40,7 @@ export class ThreadSummaryComponent implements OnInit {
   ) {
     effect(() => {
       const source = this.source();
-      this.newRefs = [];
+      this.newRefs.set([]);
       this.refs.page({
         ...getArgs(this.query(), this.store.view.sort, this.store.view.filter),
         responses: source,
@@ -53,7 +48,7 @@ export class ThreadSummaryComponent implements OnInit {
       }).pipe(
         takeUntilDestroyed(this.destroyRef)
       ).subscribe(page => {
-        this.list = page.content;
+        this.list.set(page.content);
       });
     });
   }
@@ -62,7 +57,7 @@ export class ThreadSummaryComponent implements OnInit {
     this.newRefs$()?.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(comment => {
-      if (comment) this.newRefs = [comment, ...this.newRefs];
+      if (comment) this.newRefs.set([comment, ...this.newRefs()]);
     });
   }
 

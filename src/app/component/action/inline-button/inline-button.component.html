@@ -1,4 +1,4 @@
-@if (!acting && !minTimeout) {
+@if (!acting() && !minTimeout()) {
   <span class="fake-link" (click)="act()">
   <ng-content></ng-content>
 </span>

@@ -19,12 +19,12 @@ import { getErrorMessage } from './errors';
     <div class="form-array skip-margin">
       <input class="preview grow"
              type="text"
-             [value]="preview"
+             [value]="preview()"
              [title]="input.value"
-             [style.display]="preview ? 'block' : 'none'"
+             [style.display]="preview() ? 'block' : 'none'"
              (focus)="clickPreview(input)">
       <datalist [id]="listId">
-        @for (o of autocomplete; track o.value) {
+        @for (o of autocomplete(); track o.value) {
           <option [value]="o.value">{{ o.label }}</option>
         }
       </datalist>
@@ -36,7 +36,7 @@ import { getErrorMessage } from './errors';
              autocorrect="off"
              autocapitalize="none"
              [attr.list]="listId"
-             [class.hidden-without-removing]="preview"
+             [class.hidden-without-removing]="preview()"
              (input)="search(input.value)"
              (blur)="blur(input)"
              (focusin)="edit(input)"
@@ -56,9 +56,9 @@ import { getErrorMessage } from './errors';
 export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
   listId = 'list-' + uuid();
-  private readonly _preview = signal('');
-  private readonly _editing = signal(false);
-  private readonly _autocomplete = signal<{ value: string, label: string }[]>([]);
+  readonly preview = signal('');
+  readonly editing = signal(false);
+  readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
   private showedError = false;
   private previewing?: Subscription;
@@ -76,23 +76,17 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     super();
   }
 
-  get preview(): string { return this._preview(); }
-  set preview(value: string) { this._preview.set(value); }
 
-  get editing(): boolean { return this._editing(); }
-  set editing(value: boolean) { this._editing.set(value); }
 
-  get autocomplete(): { value: string, label: string }[] { return this._autocomplete(); }
-  set autocomplete(value: { value: string, label: string }[]) { this._autocomplete.set(value); }
 
   ngAfterViewInit() {
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
-      if (!this.editing && value) {
+      if (!this.editing() && value) {
         this.getPreview(value);
       } else {
-        this.preview = '';
+        this.preview.set('');
       }
     });
   }
@@ -111,7 +105,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   blur(input: HTMLInputElement) {
-    this.editing = false;
+    this.editing.set(false);
     if (this.showError && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
@@ -126,7 +120,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     if (this.showError) return;
     this.previewing?.unsubscribe();
     this.previewing = this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
-      this.preview = x?.name || x?.tag || '';
+      this.preview.set(x?.name || x?.tag || '');
     });
   }
 
@@ -140,8 +134,8 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   edit(input: HTMLInputElement) {
-    this.editing = true;
-    this.preview = '';
+    this.editing.set(true);
+    this.preview.set('');
     input.focus();
   }
 
@@ -161,9 +155,9 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     const getPlugins = (text: string, size = 5) => this.admin.searchPlugins(text).slice(0, size).map(toEntry);
     const getTemplates = (text: string, size = 5) => this.admin.searchTemplates(text).slice(0, size).map(toEntry);
     if (this.field.type === 'plugin') {
-      this.autocomplete = derank(getPlugins(value));
+      this.autocomplete.set(derank(getPlugins(value)));
     } else if (this.field.type === 'template') {
-      this.autocomplete = derank(getTemplates(value));
+      this.autocomplete.set(derank(getTemplates(value)));
     } else {
       this.searching?.unsubscribe();
       this.searching = this.exts.page({
@@ -175,10 +169,10 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
         switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
         map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
       ).subscribe(xs => {
-        this.autocomplete = xs.map(x => ({ value: x.tag, label: x.name || x.tag }));
-        if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(value, 5 - this.autocomplete.length));
-        if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(value, 5 - this.autocomplete.length));
-        this.autocomplete = derank(uniqBy(this.autocomplete, 'value'));
+        this.autocomplete.set(xs.map(x => ({ value: x.tag, label: x.name || x.tag })));
+        if (this.autocomplete().length < 5) this.autocomplete().push(...getPlugins(value, 5 - this.autocomplete().length));
+        if (this.autocomplete().length < 5) this.autocomplete().push(...getTemplates(value, 5 - this.autocomplete().length));
+        this.autocomplete.set(derank(uniqBy(this.autocomplete(), 'value')));
       });
     }
   }, 400);

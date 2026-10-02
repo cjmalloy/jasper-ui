@@ -78,10 +78,10 @@ describe('ExtFormComponent', () => {
   });
 
   it('shows a negated default filter on its base option', () => {
-    component.allFilters = [
+    component.allFilters.set([
       { filter: 'query/private', label: 'private' },
       { filter: 'query/public', label: 'public' },
-    ];
+    ]);
     component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'query/public',
     ], { nonNullable: true }));
@@ -106,10 +106,10 @@ describe('ExtFormComponent', () => {
   });
 
   it('shows a toggled default filter when its base option is negated', () => {
-    component.allFilters = [
+    component.allFilters.set([
       { filter: 'query/public', label: 'public' },
       { filter: 'user/!plugin/user/read', label: 'unread' },
-    ];
+    ]);
     component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'user/!plugin/user/read',
     ], { nonNullable: true }));
@@ -126,10 +126,10 @@ describe('ExtFormComponent', () => {
   });
 
   it('updates a negated default filter from its dropdown', () => {
-    component.allFilters = [
+    component.allFilters.set([
       { filter: 'query/private', label: 'private' },
       { filter: 'query/public', label: 'public' },
-    ];
+    ]);
     component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'query/!(public)',
     ], { nonNullable: true }));
@@ -146,9 +146,9 @@ describe('ExtFormComponent', () => {
   });
 
   it('shows an unmatched default filter when it is toggled', () => {
-    component.allFilters = [
+    component.allFilters.set([
       { filter: 'query/public', label: 'public' },
-    ];
+    ]);
     component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'query/missing',
     ], { nonNullable: true }));
@@ -167,7 +167,7 @@ describe('ExtFormComponent', () => {
   });
 
   it('includes date filters in the available default filters', () => {
-    expect(component.allFilters.map(filter => filter.filter)).toEqual(expect.arrayContaining([
+    expect(component.allFilters().map(filter => filter.filter)).toEqual(expect.arrayContaining([
       expect.stringMatching(/^modified\/before\//),
       expect.stringMatching(/^response\/after\//),
       expect.stringMatching(/^published\/before\//),
@@ -176,10 +176,10 @@ describe('ExtFormComponent', () => {
   });
 
   it('loads default sort and filter selections from the model', () => {
-    component.allSorts = [
+    component.allSorts.set([
       { value: 'modified', label: 'modified' },
       { value: 'published', label: 'published' },
-    ];
+    ]);
     component.config.addControl('defaultSort', new FormControl<string[]>([
       'published,DESC',
       'modified,DESC',

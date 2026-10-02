@@ -41,7 +41,7 @@ describe('CommentEditComponent', () => {
       comment: 'Original comment'
     });
     // When editing only comment, editor doesn't change tags so editorTags should remain the same
-    component.editorTags = ['tag1', 'tag2', 'existing-tag']; // Editor preserves existing tags
+    component.editorTags.set(['tag1', 'tag2', 'existing-tag']); // Editor preserves existing tags
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
@@ -75,7 +75,7 @@ describe('CommentEditComponent', () => {
       comment: 'Original comment'
     });
     // Editor adds a new tag while keeping existing ones
-    component.editorTags = ['existing-tag', 'new-tag']; // Editor now includes both existing and new
+    component.editorTags.set(['existing-tag', 'new-tag']); // Editor now includes both existing and new
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
@@ -105,7 +105,7 @@ describe('CommentEditComponent', () => {
       comment: 'Original comment'
     });
     // Editor removes 'public' tag (like public/private toggle)
-    component.editorTags = ['important', 'project']; // 'public' removed by editor
+    component.editorTags.set(['important', 'project']); // 'public' removed by editor
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
@@ -131,7 +131,7 @@ describe('CommentEditComponent', () => {
       url: 'test-url',
       tags: ['public', 'plugin/comment', 'internal', 'plugin/latex'],
     });
-    component.editorTags = ['plugin/comment', 'internal'];
+    component.editorTags.set(['plugin/comment', 'internal']);
 
     const patches: any[] = [];
     vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {

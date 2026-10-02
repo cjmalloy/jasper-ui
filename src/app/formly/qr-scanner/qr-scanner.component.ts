@@ -29,11 +29,11 @@ export class QrScannerComponent implements OnDestroy {
   readonly upload = input(true);
   readonly data = output<string>();
 
-  private readonly _scanner = signal<QrScanner | undefined>(undefined);
+  readonly scanner = signal<QrScanner | undefined>(undefined);
   overlayRef?: OverlayRef;
-  private readonly _hasFlash = signal(false);
+  readonly hasFlash = signal(false);
   private readonly _hasCamera = signal<boolean | undefined>(undefined);
-  private readonly _cameras = signal<Camera[] | undefined>(undefined);
+  readonly cameras = signal<Camera[] | undefined>(undefined);
   private checkedCamera = false;
 
   constructor(
@@ -41,14 +41,8 @@ export class QrScannerComponent implements OnDestroy {
     private overlay: Overlay,
   ) { }
 
-  get scanner(): QrScanner | undefined { return this._scanner(); }
-  set scanner(value: QrScanner | undefined) { this._scanner.set(value); }
 
-  get hasFlash(): boolean { return this._hasFlash(); }
-  set hasFlash(value: boolean) { this._hasFlash.set(value); }
 
-  get cameras(): Camera[] | undefined { return this._cameras(); }
-  set cameras(value: Camera[] | undefined) { this._cameras.set(value); }
 
   ngOnDestroy() {
     this.stopScanQr();
@@ -63,7 +57,7 @@ export class QrScannerComponent implements OnDestroy {
   }
 
   scanQr() {
-    if (this.scanner) {
+    if (this.scanner()) {
       this.stopScanQr();
       return;
     }
@@ -80,24 +74,24 @@ export class QrScannerComponent implements OnDestroy {
       this.stopScanQr();
     }, this.camera);
 
-    this.scanner?.start()
-      .then(() => listCameras().then(value => this.cameras = value))
-      .then(() => this.scanner?.hasFlash())
-      .then(value => this.hasFlash = !!value);
+    this.scanner()?.start()
+      .then(() => listCameras().then(value => this.cameras.set(value)))
+      .then(() => this.scanner()?.hasFlash())
+      .then(value => this.hasFlash.set(!!value));
   }
 
   stopScanQr() {
     document.documentElement.style.overflowY = 'scroll';
-    if (!this.scanner) return;
-    this.scanner.stop();
-    this.scanner.destroy();
-    this.scanner = undefined;
+    if (!this.scanner()) return;
+    this.scanner().stop();
+    this.scanner().destroy();
+    this.scanner.set(undefined);
     this.overlayRef?.detach();
     this.overlayRef?.dispose();
   }
 
   get hasMultipleCameras() {
-    return (this.cameras?.length || 0) > 1;
+    return (this.cameras()?.length || 0) > 1;
   }
 
   get hasCamera() {
@@ -121,9 +115,9 @@ export class QrScannerComponent implements OnDestroy {
   set camera(id: string | undefined) {
     localStorage.setItem('cameraId', id!);
     if (id) {
-      this.scanner?.setCamera(id)
-        .then(() => this.scanner?.hasFlash())
-        .then(value => this.hasFlash = !!value);
+      this.scanner()?.setCamera(id)
+        .then(() => this.scanner()?.hasFlash())
+        .then(value => this.hasFlash.set(!!value));
     }
   }
 

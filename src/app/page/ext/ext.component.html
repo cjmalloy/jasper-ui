@@ -20,17 +20,17 @@
              (blur)="validate($any($event.target))">
     </div>
 
-    @for (e of serverError; track e) {
+    @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
     }
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      @if (creating) {
+      @if (creating()) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="creating || submitted && !extForm.valid" i18n>Extend</button>
+      <button type="submit" [disabled]="creating() || submitted() && !extForm.valid" i18n>Extend</button>
     </span>
   </form>
 } @else if (editForm) {
@@ -44,24 +44,24 @@
                   [showClear]="true"
                   (clear)="clear()"></app-ext-form>
 
-    @for (e of serverError; track e) {
+    @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
     }
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      @if (overwritten) {
+      @if (overwritten()) {
         <div class="overwrite warning" i18n-title title="Will drop all unknown configs.">
           <input id="overwrite" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
           <label for="overwrite" i18n>Overwrite</label>
         </div>
       }
-      @if (editing || deleting) {
+      @if (editing() || deleting()) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="editing || deleting || submitted && !editForm.valid" i18n>Save</button>
-        <button type="button" [disabled]="editing || deleting" (click)="delete()" i18n>Delete</button>
+      <button type="submit" [disabled]="editing() || deleting() || submitted() && !editForm.valid" i18n>Save</button>
+        <button type="button" [disabled]="editing() || deleting()" (click)="delete()" i18n>Delete</button>
     </span>
   </form>
 }

@@ -1,6 +1,6 @@
 @if (debug) {
   <details class="advanced">
-    <summary><span i18n>Debug</span> @if (batchRunning) { <app-loading></app-loading> }</summary>
+    <summary><span i18n>Debug</span> @if (batchRunning()) { <app-loading></app-loading> }</summary>
     <a class="fake-link" (click)="settingUser = !settingUser">user</a>
     @if (settingUser) {
       <span>
@@ -10,8 +10,8 @@
         <button type="button" (click)="setUser(inlineUser.value || 'bob')">⏎</button>
       </span>
     }
-    <a class="fake-link" (click)="generating = !generating">gen</a>
-    @if (generating) {
+    <a class="fake-link" (click)="generating.set(!generating())">gen</a>
+    @if (generating()) {
       <span>
         <input #inlineGen
                value="100"
@@ -21,8 +21,8 @@
       </span>
     }
     @if (!empty) {
-      <a class="fake-link" (click)="sourcing = !sourcing">source</a>
-      @if (sourcing) {
+      <a class="fake-link" (click)="sourcing.set(!sourcing())">source</a>
+      @if (sourcing()) {
         <span>
           <input #inlineUrl
                  placeholder="url"

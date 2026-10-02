@@ -1,12 +1,12 @@
 <div class="form-array skip-margin">
   <input class="preview grow"
          type="text"
-         [value]="preview"
+         [value]="preview()"
          [title]="userTagInput.value"
-         [style.display]="preview ? 'block' : 'none'"
+         [style.display]="preview() ? 'block' : 'none'"
          (focus)="clickPreview(userTagInput)">
   <datalist id="user-tag">
-    @for (o of autocomplete; track o.value) {
+    @for (o of autocomplete(); track o.value) {
       <option [value]="o.value">{{ o.label }}</option>
     }
   </datalist>
@@ -22,7 +22,7 @@
          i18n-placeholder
          placeholder="Override Tag..."
          [value]="store.local.selectedUserTag"
-         [class.hidden-without-removing]="preview"
+         [class.hidden-without-removing]="preview()"
          (input)="search(userTagInput.value)"
          (keydown)="$event.key === 'Enter' && blur(userTagInput) || true"
          (blur)="blur(userTagInput)"

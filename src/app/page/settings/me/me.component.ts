@@ -28,15 +28,9 @@ import { printError } from '../../../util/http';
 })
 export class SettingsMePage implements HasChanges {
 
-  private readonly _submitted = signal<boolean>(false);
-  get submitted() { return this._submitted(); }
-  set submitted(value: boolean) { this._submitted.set(value); }
-  private readonly _serverError = signal<string[]>([]);
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
-  private readonly _editing = signal<Subscription | undefined>(undefined);
-  get editing() { return this._editing(); }
-  set editing(value: Subscription | undefined) { this._editing.set(value); }
+  readonly submitted = signal<boolean>(false);
+  readonly serverError = signal<string[]>([]);
+  readonly editing = signal<Subscription | undefined>(undefined);
 
   readonly form = viewChild<ExtFormComponent>('form');
   editForm!: UntypedFormGroup;
@@ -61,15 +55,15 @@ export class SettingsMePage implements HasChanges {
   }
 
   save() {
-    this.serverError = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.submitted.set(true);
     this.editForm.markAllAsTouched();
     if (!this.editForm.valid) {
       scrollToFirstInvalid();
       return;
     }
     const ext = this.store.account.ext!;
-    this.editing = this.exts.update({
+    this.editing.set(this.exts.update({
       ...ext,
       ...this.editForm.value,
       tag: ext.tag, // Need to fetch because control is disabled
@@ -81,15 +75,15 @@ export class SettingsMePage implements HasChanges {
       tap(() => this.accounts.clearCache()),
       switchMap(() => this.accounts.initExt$),
       catchError((res: HttpErrorResponse) => {
-        this.editing = undefined;
-        this.serverError = printError(res);
+        this.editing.set(undefined);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.editing = undefined;
+      this.editing.set(undefined);
       this.editForm.markAsPristine();
       this.location.back();
-    });
+    }));
   }
 
   protected readonly isDevMode = isDevMode;

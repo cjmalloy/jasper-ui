@@ -44,7 +44,7 @@ describe('BackgammonComponent', () => {
       const to = 5; // This spot has 5 black pieces, so it's blocked
 
       // Moves should either not exist for this position or not include the blocked spot
-      const movesForSpot = component.state.moves[from];
+      const movesForSpot = component.state().moves[from];
       if (movesForSpot) {
         expect(movesForSpot.includes(to)).toBe(false);
       } else {
@@ -59,15 +59,15 @@ describe('BackgammonComponent', () => {
 
       // Spot 6 has black pieces (component.state.spots[5].pieces = 'bbbbb')
       // Red shouldn't have any valid moves from spot 5 (0-indexed)
-      expect(component.state.moves[5]).toBeUndefined();
+      expect(component.state().moves[5]).toBeUndefined();
     });
 
     it('should reject moving when no dice are available', () => {
       // Setup: Create a scenario where no dice are available
       component.reset();
-      component.state.redDice = [3, 2];
-      component.state.turn = 'r';
-      component.state.diceUsed = [3, 2]; // Both dice already used
+      component.state().redDice = [3, 2];
+      component.state().turn = 'r';
+      component.state().diceUsed = [3, 2]; // Both dice already used
 
       // Try to make a move via drop - should throw because no moves are valid
       expect(() => {
@@ -83,17 +83,17 @@ describe('BackgammonComponent', () => {
     it('should reject moving from board when piece is on bar', () => {
       // Setup: Red has a piece on the bar
       component.reset();
-      component.state.bar.push('r');
-      component.state.spots[0].pieces = ['r']; // One piece left on board
-      component.state.redDice = [3, 2];
-      component.state.turn = 'r';
-      component.state.diceUsed = [];
-      component.state.moves = [];
+      component.state().bar.push('r');
+      component.state().spots[0].pieces = ['r']; // One piece left on board
+      component.state().redDice = [3, 2];
+      component.state().turn = 'r';
+      component.state().diceUsed = [];
+      component.state().moves = [];
 
       // Calculate moves manually since getAllMoves is a standalone function
       // When a piece is on the bar, only bar moves should be allowed
       // Regular board spots should have no valid moves
-      const hasBarPiece = component.state.bar.find(p => p === 'r');
+      const hasBarPiece = component.state().bar.find(p => p === 'r');
       expect(hasBarPiece).toBe('r');
     });
 
@@ -102,16 +102,16 @@ describe('BackgammonComponent', () => {
       component.reset();
       // Red's home board is spots 18-23
       // Keep a piece on spot 0 (outside home)
-      component.state.spots[0].pieces = ['r'];
-      component.state.spots[18].pieces = ['r', 'r', 'r', 'r', 'r'];
-      component.state.redDice = [3, 2];
-      component.state.turn = 'r';
-      component.state.diceUsed = [];
-      component.state.moves = [];
+      component.state().spots[0].pieces = ['r'];
+      component.state().spots[18].pieces = ['r', 'r', 'r', 'r', 'r'];
+      component.state().redDice = [3, 2];
+      component.state().turn = 'r';
+      component.state().diceUsed = [];
+      component.state().moves = [];
 
       // Bearing off (moving to -2) should not be available
       // when pieces are still outside home board
-      const hasOffMove = component.state.moves.some(moves => moves?.includes(-2));
+      const hasOffMove = component.state().moves.some(moves => moves?.includes(-2));
       expect(hasOffMove).toBe(false);
     });
 
@@ -145,35 +145,35 @@ describe('BackgammonComponent', () => {
 
       // Clear default setup and create custom scenario
       for (let i = 0; i < 24; i++) {
-        component.state.spots[i].pieces = [];
+        component.state().spots[i].pieces = [];
       }
 
       // Put a red piece at spot 0
-      component.state.spots[0].pieces = ['r'];
+      component.state().spots[0].pieces = ['r'];
 
       // Put a single black piece at spot 3 (can be hit)
-      component.state.spots[3].pieces = ['b'];
+      component.state().spots[3].pieces = ['b'];
 
       // Put another black piece at spot 5 to verify the move completes
-      component.state.spots[5].pieces = ['b'];
+      component.state().spots[5].pieces = ['b'];
 
       // Red rolls 3-2
-      component.state.redDice = [3, 2];
-      component.state.turn = 'r';
-      component.state.diceUsed = [];
-      component.state.moves = [];
+      component.state().redDice = [3, 2];
+      component.state().turn = 'r';
+      component.state().diceUsed = [];
+      component.state().moves = [];
 
       // Re-calculate moves for this custom board
-      const board = component.state.board.join('\n');
+      const board = component.state().board.join('\n');
       component.reset(board + '\nr 3-2');
 
       // Red should be able to move from 0 to 5 (using 3 then 2)
       // This would hit the black piece at spot 3
-      const canMove = component.state.moves[0]?.includes(5);
+      const canMove = component.state().moves[0]?.includes(5);
 
       if (canMove) {
         // Perform the move
-        const initialBarLength = component.state.bar.length;
+        const initialBarLength = component.state().bar.length;
 
         const event = {
           item: { data: 'r' },
@@ -184,8 +184,8 @@ describe('BackgammonComponent', () => {
         component.drop(event);
 
         // Check that a piece was sent to the bar
-        expect(component.state.bar.length).toBeGreaterThan(initialBarLength);
-        expect(component.state.bar).toContain('b');
+        expect(component.state().bar.length).toBeGreaterThan(initialBarLength);
+        expect(component.state().bar).toContain('b');
       }
     });
 
@@ -195,24 +195,24 @@ describe('BackgammonComponent', () => {
 
       // Clear default setup
       for (let i = 0; i < 24; i++) {
-        component.state.spots[i].pieces = [];
+        component.state().spots[i].pieces = [];
       }
 
       // Put a red piece at spot 0
-      component.state.spots[0].pieces = ['r'];
+      component.state().spots[0].pieces = ['r'];
 
       // Put a single black piece at the destination (spot 5)
-      component.state.spots[5].pieces = ['b'];
+      component.state().spots[5].pieces = ['b'];
 
       // Red rolls 3-2 (can move to spot 5 using both dice)
-      const board = component.state.board.join('\n');
+      const board = component.state().board.join('\n');
       component.reset(board + '\nr 3-2');
 
       // Check if the move is valid
-      const canMove = component.state.moves[0]?.includes(5);
+      const canMove = component.state().moves[0]?.includes(5);
 
       if (canMove) {
-        const initialBarLength = component.state.bar.length;
+        const initialBarLength = component.state().bar.length;
 
         const event = {
           item: { data: 'r' },
@@ -223,11 +223,11 @@ describe('BackgammonComponent', () => {
         component.drop(event);
 
         // The black piece should be on the bar
-        expect(component.state.bar.length).toBeGreaterThan(initialBarLength);
-        expect(component.state.bar).toContain('b');
+        expect(component.state().bar.length).toBeGreaterThan(initialBarLength);
+        expect(component.state().bar).toContain('b');
 
         // Red piece should be at spot 5
-        expect(component.state.spots[5].pieces).toContain('r');
+        expect(component.state().spots[5].pieces).toContain('r');
       }
     });
 
@@ -237,24 +237,24 @@ describe('BackgammonComponent', () => {
 
       // Clear default setup
       for (let i = 0; i < 24; i++) {
-        component.state.spots[i].pieces = [];
+        component.state().spots[i].pieces = [];
       }
 
       // Red piece at spot 0
-      component.state.spots[0].pieces = ['r'];
+      component.state().spots[0].pieces = ['r'];
 
       // Single black pieces at spots 2 and 4 (vulnerable to hits)
-      component.state.spots[2].pieces = ['b'];
-      component.state.spots[4].pieces = ['b'];
+      component.state().spots[2].pieces = ['b'];
+      component.state().spots[4].pieces = ['b'];
 
       // This tests whether the game properly handles the logic
       // Red rolls 2-2 (doubles, can use four 2's)
-      const board = component.state.board.join('\n');
+      const board = component.state().board.join('\n');
       component.reset(board + '\nr 2-2');
 
       // With doubles, red can make multiple moves
       // Verify the piece can move and hit appropriately
-      const canMoveFrom0 = component.state.moves[0]?.length > 0;
+      const canMoveFrom0 = component.state().moves[0]?.length > 0;
       expect(canMoveFrom0).toBeDefined();
     });
   });

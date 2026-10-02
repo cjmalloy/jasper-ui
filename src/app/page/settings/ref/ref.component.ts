@@ -21,12 +21,8 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
 
   private readonly injector = inject(Injector);
 
-  private readonly _plugin = signal<Plugin | undefined>(undefined);
-  get plugin() { return this._plugin(); }
-  set plugin(value: Plugin | undefined) { this._plugin.set(value); }
-  private readonly _writeAccess = signal<boolean>(false);
-  get writeAccess() { return this._writeAccess(); }
-  set writeAccess(value: boolean) { this._writeAccess.set(value); }
+  readonly plugin = signal<Plugin | undefined>(undefined);
+  readonly writeAccess = signal<boolean>(false);
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -50,8 +46,8 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     effect(() => {
       const plugin = this.admin.getPlugin(this.store.view.settingsTag);
-      this.plugin = plugin;
-      this.writeAccess = this.auth.canAddTag(this.store.view.settingsTag);
+      this.plugin.set(plugin);
+      this.writeAccess.set(this.auth.canAddTag(this.store.view.settingsTag));
       this.mod.setTitle($localize`Settings: ${plugin?.config?.settings || this.store.view.settingsTag}`);
       const args = getArgs(
         this.store.view.settingsTag + (this.store.view.showRemotes ? '' : (plugin?.origin || '@')),
@@ -70,13 +66,13 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   loadDefaults() {
-    if (!this.plugin?.config?.defaultsConfirm || confirm(this.plugin?.config?.defaultsConfirm)) {
+    if (!this.plugin()?.config?.defaultsConfirm || confirm(this.plugin()?.config?.defaultsConfirm)) {
       this.store.eventBus.fire(this.store.view.settingsTag + ':defaults');
     }
   }
 
   clearCache() {
-    if (!this.plugin?.config?.clearCacheConfirm || confirm(this.plugin?.config?.clearCacheConfirm)) {
+    if (!this.plugin()?.config?.clearCacheConfirm || confirm(this.plugin()?.config?.clearCacheConfirm)) {
       this.store.eventBus.fire(this.store.view.settingsTag + ':clear-cache');
     }
   }

@@ -11,8 +11,8 @@
       &bullet; <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a>
     }
     &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
-    @if (bookmarks.length) {
-      @for (b of bookmarks; track i; let i = $index) {
+    @if (bookmarks().length) {
+      @for (b of bookmarks(); track i; let i = $index) {
         &bullet; <a [routerLink]="['/tag', store.account.bookmarkQueries[i]]" [queryParams]="store.account.bookmarkParams[i]" [appTitle]="b" routerLinkActive="current-page">{{ b.name || store.account.bookmarkQueries[i] }}</a>
       }
     } @else {
@@ -21,8 +21,8 @@
       }
     }
     @if (admin.home) {
-      @if (subs.length) {
-        @for (sub of subs; track i; let i = $index) {
+      @if (subs().length) {
+        @for (sub of subs(); track i; let i = $index) {
           &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" [appTitle]="sub" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>
         }
       } @else {

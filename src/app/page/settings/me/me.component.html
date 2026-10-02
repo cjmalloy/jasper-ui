@@ -11,16 +11,16 @@
   }
   <app-ext-form #form [group]="editForm"></app-ext-form>
 
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
   }
 
   <span><!-- Buttons --></span>
   <span class="buttons right">
-    @if (editing) {
+    @if (editing()) {
       <app-loading [inline]="true"></app-loading>
     }
-    <button type="submit" [disabled]="editing || submitted && !editForm.valid" i18n>Save</button>
+    <button type="submit" [disabled]="editing() || submitted() && !editForm.valid" i18n>Save</button>
   </span>
 </form>

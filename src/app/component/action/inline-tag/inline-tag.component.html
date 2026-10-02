@@ -1,10 +1,10 @@
-<a class="fake-link" (click)="editing = !editing">
+<a class="fake-link" (click)="editing.set(!editing())">
   <ng-content></ng-content>
 </a>
-@if (editing) {
+@if (editing()) {
   <span class="inline-tagging">
     <datalist [id]="id">
-      @for (o of autocomplete; track o.value) {
+      @for (o of autocomplete(); track o.value) {
         <option [value]="o.value">{{ o.label }}</option>
       }
     </datalist>
@@ -21,6 +21,6 @@
            appAutofocus>
     <button type="button" (click)="save(inlineTag)" i18n>+</button>
   </span>
-} @else if (acting) {
+} @else if (acting()) {
   <app-loading [inline]="true"></app-loading>
 }

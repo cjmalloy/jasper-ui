@@ -62,33 +62,17 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private readonly injector = inject(Injector);
 
-  private readonly _submitted = signal<boolean>(false);
-  get submitted() { return this._submitted(); }
-  set submitted(value: boolean) { this._submitted.set(value); }
+  readonly submitted = signal<boolean>(false);
   title = '';
   webForm: UntypedFormGroup;
-  private readonly _serverError = signal<string[]>([]);
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
+  readonly serverError = signal<string[]>([]);
 
-  private readonly _limitWidth = signal<HTMLElement | undefined>(undefined);
-  get limitWidth() { return this._limitWidth(); }
-  set limitWidth(value: HTMLElement | undefined) { this._limitWidth.set(value); }
-  private readonly _submitting = signal<Subscription | undefined>(undefined);
-  get submitting() { return this._submitting(); }
-  set submitting(value: Subscription | undefined) { this._submitting.set(value); }
-  private readonly _saving = signal<Subscription | undefined>(undefined);
-  get saving() { return this._saving(); }
-  set saving(value: Subscription | undefined) { this._saving.set(value); }
-  private readonly _defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
-  get defaults() { return this._defaults(); }
-  set defaults(value: { url: string, ref: Partial<Ref> } | undefined) { this._defaults.set(value); }
-  private readonly _loadingDefaults = signal<Ext[]>([]);
-  get loadingDefaults() { return this._loadingDefaults(); }
-  set loadingDefaults(value: Ext[]) { this._loadingDefaults.set(value); }
-  private readonly _alreadyExists = signal<boolean>(false);
-  get alreadyExists() { return this._alreadyExists(); }
-  set alreadyExists(value: boolean) { this._alreadyExists.set(value); }
+  readonly limitWidth = signal<HTMLElement | undefined>(undefined);
+  readonly submitting = signal<Subscription | undefined>(undefined);
+  readonly saving = signal<Subscription | undefined>(undefined);
+  readonly defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
+  readonly loadingDefaults = signal<Ext[]>([]);
+  readonly alreadyExists = signal<boolean>(false);
 
   private oldSubmit: string[] = [];
   private _refForm?: RefFormComponent;
@@ -140,12 +124,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     this.exts.getCachedExts(allTags).pipe(
       map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
       switchMap(xs => {
-        this.loadingDefaults = xs;
+        this.loadingDefaults.set(xs);
         return this.refs.getDefaults(...xs.map(x => x.tag))
       }),
     ).subscribe(d => {
-      this.defaults = d;
-      this.loadingDefaults = [];
+      this.defaults.set(d);
+      this.loadingDefaults.set([]);
       if (d) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         for (const k in d.ref.plugins) {
@@ -265,7 +249,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   setRefForm(value: RefFormComponent | undefined) {
     this._refForm = value;
-    defer(() => this.limitWidth = value?.fill()?.nativeElement);
+    defer(() => this.limitWidth.set(value?.fill()?.nativeElement));
   }
 
   get feed() {
@@ -294,17 +278,17 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   saveForLater(leave = false) {
     const savedValue = JSON.stringify(this.webForm.value);
-    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+    this.saving.set(this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        this.saving = undefined;
+        this.saving.set(undefined);
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        this.saving = undefined;
+        this.saving.set(undefined);
         this.cursor = cursor;
         if (JSON.stringify(this.webForm.value) === savedValue) this.webForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      });
+      }));
   }
 
   setTitle(title: string) {
@@ -316,14 +300,14 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     for (const value of values) {
       this.refForm.tagsFormComponent().addTag(value);
     }
-    this.submitted = false;
+    this.submitted.set(false);
   }
 
   removeTag(...values: string[]) {
     for (const value of values) {
       this.refForm.tagsFormComponent().removeTag(value);
     }
-    this.submitted = false;
+    this.submitted.set(false);
   }
 
   addPlugin(tag: string, plugin: any) {
@@ -332,17 +316,17 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       ...this.webForm.value.plugins || {},
       [tag]: plugin,
     });
-    this.submitted = false;
+    this.submitted.set(false);
   }
 
   addSource(value = '') {
     this.refForm.sourcesFormComponent().addLink(value);
-    this.submitted = false;
+    this.submitted.set(false);
   }
 
   addAlt(value = '') {
     this.refForm.altsFormComponent().addLink(value);
-    this.submitted = false;
+    this.submitted.set(false);
   }
 
   syncEditor() {
@@ -360,15 +344,15 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   submit() {
-    if (this.saving) {
-      this.saving.add(() => this.submit());
+    if (this.saving()) {
+      this.saving().add(() => this.submit());
       return;
     }
-    if (this.alreadyExists) {
+    if (this.alreadyExists()) {
       return;
     }
-    this.serverError = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.submitted.set(true);
     this.webForm.markAllAsTouched();
     this.syncEditor();
     if (!this.webForm.valid) {
@@ -378,12 +362,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     const published = this.webForm.value.published ? DateTime.fromISO(this.webForm.value.published) : DateTime.now();
     const ref = this.writeRef(true);
     const finalTags = ref.tags;
-    this.submitting = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
+    this.submitting.set((this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status !== 409) return throwError(() => res);
-        this.submitting = undefined;
-        this.serverError = printError(res);
-        this.alreadyExists = true;
+        this.submitting.set(undefined);
+        this.serverError.set(printError(res));
+        this.alreadyExists.set(true);
         return EMPTY;
       }),
       tap(() => {
@@ -394,23 +378,23 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       switchMap(res => {
         const finalVisibilityTags = getVisibilityTags(finalTags);
         if (!finalVisibilityTags.length) return of(res);
-        const taggingOps = this.refForm.completedUploads
+        const taggingOps = this.refForm.completedUploads()
           .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
         if (!taggingOps.length) return of(res);
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        this.submitting = undefined;
-        this.serverError = printError(res);
+        this.submitting.set(undefined);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.submitting = undefined;
+      this.submitting.set(undefined);
       this.webForm.markAsPristine();
-      this.refForm.completedUploads = [];
+      this.refForm.completedUploads.set([]);
 
       this.router.navigate(['/ref', this.url], { queryParams: { published }, replaceUrl: true});
-    });
+    }));
   }
 
   prepareRepost() {
@@ -420,9 +404,9 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     const sources = (this.webForm.value.sources || []).filter((source: string) => source !== url);
     this.refForm.sourcesFormComponent().setLinks([url, ...sources]);
     this.webForm.markAsDirty();
-    this.alreadyExists = false;
-    this.serverError = [];
-    this.submitted = false;
+    this.alreadyExists.set(false);
+    this.serverError.set([]);
+    this.submitted.set(false);
   }
 
   private addFeedTags(...tags: string[]) {

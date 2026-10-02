@@ -30,18 +30,12 @@ export class InlineTagComponent extends ActionComponent {
 
   readonly tags = input<string[]>();
 
-  private readonly editingSignal = signal(false);
-  private readonly actingSignal = signal(false);
-  private readonly autocompleteSignal = signal<{ value: string; label: string }[]>([]);
+  readonly editing = signal(false);
+  readonly acting = signal(false);
+  readonly autocomplete = signal<{ value: string; label: string }[]>([]);
 
-  get editing() { return this.editingSignal(); }
-  set editing(value: boolean) { this.editingSignal.set(value); }
 
-  get acting() { return this.actingSignal(); }
-  set acting(value: boolean) { this.actingSignal.set(value); }
 
-  get autocomplete() { return this.autocompleteSignal(); }
-  set autocomplete(value: { value: string; label: string }[]) { this.autocompleteSignal.set(value); }
   id = 'tag-' + uuid();
 
   private searching?: Subscription;
@@ -57,12 +51,12 @@ export class InlineTagComponent extends ActionComponent {
 
 
   override reset() {
-    this.editing = false;
-    this.acting = false;
+    this.editing.set(false);
+    this.acting.set(false);
   }
 
   override active() {
-    return this.editing || this.acting;
+    return this.editing() || this.acting();
   }
 
   save(field: HTMLInputElement) {
@@ -76,11 +70,11 @@ export class InlineTagComponent extends ActionComponent {
       field.reportValidity();
       return;
     }
-    this.editing = false;
-    this.acting = true;
+    this.editing.set(false);
+    this.acting.set(true);
     this.action()((field.value || '').toLowerCase().trim()).pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.acting = false);
+    ).subscribe(() => this.acting.set(false));
   }
 
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
@@ -108,11 +102,11 @@ export class InlineTagComponent extends ActionComponent {
       map(xs => remove ? xs.filter(x => hasTag(x.tag, this.tags())) : xs.filter(x => !hasTag(x.tag, this.tags()))),
       map(xs => remove && !xs.length ? (this.tags() || []).filter(t => hasTag(tag, [t])).map(t => ({ tag: t } as { name?: string, tag: string })) : xs),
     ).subscribe(xs => {
-      this.autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
-      if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
-      this.autocomplete = uniqBy(this.autocomplete, 'value');
-      if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getTemplates(tag));
-      this.autocomplete = uniqBy(this.autocomplete, 'value');
+      this.autocomplete.set(xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) })));
+      if (!remove && this.autocomplete().length < 3) this.autocomplete().push(...getPlugins(tag));
+      this.autocomplete.set(uniqBy(this.autocomplete(), 'value'));
+      if (!remove && this.autocomplete().length < 3) this.autocomplete().push(...getTemplates(tag));
+      this.autocomplete.set(uniqBy(this.autocomplete(), 'value'));
     });
   }, 400);
 
@@ -120,8 +114,8 @@ export class InlineTagComponent extends ActionComponent {
     if (event.key === 'Enter') {
       this.save(input)
     }
-    if (event.key === 'Tab' && this.autocomplete.length) {
-      input.value = this.autocomplete[0].value;
+    if (event.key === 'Tab' && this.autocomplete().length) {
+      input.value = this.autocomplete()[0].value;
       event.preventDefault();
     }
   }

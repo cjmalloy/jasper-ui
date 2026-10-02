@@ -10,7 +10,7 @@
          class="upload"
          (change)="upload(uploadFile.files!)">
 
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
   }
