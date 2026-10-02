@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { deleteRef, mod } from './setup';
+import { closeSidebar, deleteRef, mod, openSidebar } from './setup';
 
 const URL = 'https://jasperkm.info/plugin-map-test';
 const POLYGON_URL = 'https://jasperkm.info/plugin-map-polygon-test';
@@ -254,12 +254,58 @@ test.describe.serial('Map Plugin', () => {
     // Zoom controls sit above the scale bar
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-bottom-left > .maplibregl-ctrl-scale:last-child')).toBeVisible();
     // Map renders at full size and the address search expands while in use
+    await closeSidebar(page);
     const embedMap = (await page.locator('.full-page.ref .map-embed mgl-map').boundingBox())!;
     expect(embedMap.height).toBeGreaterThan(300);
     const geocoder = page.locator('.full-page.ref .map-embed .maplibregl-ctrl-geocoder');
     expect((await geocoder.boundingBox())!.width).toBeLessThan(embedMap.width * 0.6);
     await geocoder.locator('.maplibregl-ctrl-geocoder--input').focus();
     await expect.poll(async () => (await geocoder.boundingBox())!.width).toBeGreaterThan(embedMap.width * 0.75);
+    await openSidebar(page);
+    await geocoder.locator('.maplibregl-ctrl-geocoder--input').focus();
+    await expect.poll(async () => {
+      const map = (await page.locator('.full-page.ref .map-embed mgl-map').boundingBox())!;
+      const sidebarWidth = await page.locator('.sidebar').evaluate(el => parseFloat(getComputedStyle(el).width));
+      return (await geocoder.boundingBox())!.width - Math.max(0, map.width * 0.9 - sidebarWidth);
+    }).toBeCloseTo(0, 0);
+  });
+
+  test('map search accounts for the floating sidebar and stays underneath it', async ({ page }) => {
+    await page.goto('/tag/@*?debug=ADMIN&view=map', { waitUntil: 'networkidle' });
+    await closeSidebar(page);
+    const map = page.locator('.map.ext .maplibregl-map');
+    await expect(map).toBeVisible();
+    const mapWidth = (await map.boundingBox())!.width;
+    const geocoder = map.locator('.maplibregl-ctrl-geocoder');
+    const search = geocoder.locator('.maplibregl-ctrl-geocoder--input');
+    const width = async () => (await geocoder.boundingBox())!.width;
+    await search.focus();
+    await expect.poll(width).toBeCloseTo(mapWidth * 0.8, 0);
+
+    await openSidebar(page);
+    const sidebar = page.locator('.sidebar');
+    await expect(sidebar).toHaveClass(/floating/);
+    await expect.poll(() => sidebar.evaluate(el => parseFloat(getComputedStyle(el).width))).toBeCloseTo(416, 0);
+    await search.fill('Halifax');
+    await search.blur();
+    await expect.poll(width).toBeCloseTo(mapWidth * 0.9 - 416, 0);
+    expect((await geocoder.boundingBox())!.x + await width()).toBeLessThan((await sidebar.boundingBox())!.x);
+
+    // Even an oversized control must paint underneath the sidebar.
+    await geocoder.evaluate(el => { el.style.width = '100cqw'; el.style.maxWidth = 'none'; });
+    const sidebarBox = (await sidebar.boundingBox())!;
+    const controlBox = (await geocoder.boundingBox())!;
+    expect(await page.evaluate(({ x, y }) => !!document.elementFromPoint(x, y)?.closest('.sidebar'), {
+      x: sidebarBox.x + 10,
+      y: controlBox.y + controlBox.height / 2,
+    })).toBe(true);
+    await geocoder.evaluate(el => { el.style.removeProperty('width'); el.style.removeProperty('max-width'); });
+
+    await closeSidebar(page);
+    await expect.poll(width).toBeCloseTo(mapWidth * 0.8, 0);
+    await page.setViewportSize({ width: 900, height: 720 });
+    await openSidebar(page);
+    await expect.poll(async () => await width() - (await map.boundingBox())!.width * 0.8).toBeCloseTo(0, 0);
   });
 
   test('map search result submits a ref at that location', async ({ page }) => {

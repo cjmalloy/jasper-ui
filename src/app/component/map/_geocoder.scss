@@ -1,5 +1,19 @@
 @import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
 
+.maplibregl-map {
+  isolation: isolate;
+}
+
+@media (min-width: 949px) {
+  .sidebar.expanded ~ * {
+    --map-geocoder-width: calc(90cqw - var(--sidebar-width));
+  }
+}
+
+.location-map {
+  --map-geocoder-width: 80cqw;
+}
+
 // Undo the global input and button styles so the control keeps its own layout
 .maplibregl-map .maplibregl-ctrl-geocoder.maplibregl-ctrl {
   transition: width 150ms ease, max-width 150ms ease;
@@ -8,7 +22,8 @@
   // (cqw resolves against the mgl-map, which sets container-type: inline-size)
   &:focus-within,
   &:has(.maplibregl-ctrl-geocoder--input:not(:placeholder-shown)) {
-    width: 80cqw;
+    width: max(0px, var(--map-geocoder-width, 80cqw));
+    min-width: 0;
     max-width: calc(100cqw - 20px);
   }
 
