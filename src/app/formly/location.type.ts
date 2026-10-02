@@ -115,7 +115,7 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> implements O
 
   ngOnDestroy() {
     this.subs.unsubscribe();
-    if (this.picker.active === this.formControl) this.picker.select(undefined);
+    if (this.picker?.active === this.formControl) this.picker.select(undefined);
   }
 
   get hostsMap() {
