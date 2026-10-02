@@ -72,6 +72,95 @@ describe('ExtFormComponent', () => {
     expect(component.defaultFilter.value).toHaveLength(1);
   });
 
+  it('shows a negated default filter on its base option', () => {
+    component.allFilters = [
+      { filter: 'query/private', label: 'private' },
+      { filter: 'query/public', label: 'public' },
+    ];
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'query/public',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    const row = fixture.nativeElement.querySelector('.default-filter-row');
+    const select = row.querySelector('select') as HTMLSelectElement;
+    const button = row.querySelector('.default-filter-negate') as HTMLButtonElement;
+    expect(select.selectedOptions[0].textContent).toBe('public');
+
+    button.click();
+    fixture.detectChanges();
+
+    expect(component.defaultFilter.value[0]).toBe('query/!(public)');
+    expect(component.filterOption(component.defaultFilter.value[0])).toBe('query/!(public)');
+    expect(select.value).toBe('query/!(public)');
+    expect(select.selectedOptions[0].textContent).toBe(component.store.account.querySymbol('!') + 'public');
+
+    button.click();
+    fixture.detectChanges();
+    expect(select.selectedOptions[0].textContent).toBe('public');
+  });
+
+  it('shows a toggled default filter when its base option is negated', () => {
+    component.allFilters = [
+      { filter: 'query/public', label: 'public' },
+      { filter: 'user/!plugin/user/read', label: 'unread' },
+    ];
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'user/!plugin/user/read',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    component.toggleFilter(0);
+    fixture.detectChanges();
+
+    expect(component.defaultFilter.value[0]).toBe('user/plugin/user/read');
+    expect(component.filterOption(component.defaultFilter.value[0])).toBe('user/plugin/user/read');
+    const select = fixture.nativeElement.querySelector('.default-filter-row select') as HTMLSelectElement;
+    expect(select.value).toBe('user/plugin/user/read');
+    expect(select.selectedOptions[0].textContent).toBe(component.store.account.querySymbol('!') + 'unread');
+  });
+
+  it('updates a negated default filter from its dropdown', () => {
+    component.allFilters = [
+      { filter: 'query/private', label: 'private' },
+      { filter: 'query/public', label: 'public' },
+    ];
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'query/!(public)',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('.default-filter-row select') as HTMLSelectElement;
+    select.value = 'query/private';
+    select.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(component.defaultFilter.value[0]).toBe('query/private');
+    expect(select.value).toBe('query/private');
+    expect(select.selectedOptions[0].textContent).toBe('private');
+  });
+
+  it('shows an unmatched default filter when it is toggled', () => {
+    component.allFilters = [
+      { filter: 'query/public', label: 'public' },
+    ];
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'query/missing',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    const row = fixture.nativeElement.querySelector('.default-filter-row');
+    const select = row.querySelector('select') as HTMLSelectElement;
+    expect(select.value).toBe('query/missing');
+
+    (row.querySelector('.default-filter-negate') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(component.defaultFilter.value[0]).toBe('query/!(missing)');
+    expect(select.value).toBe('query/!(missing)');
+    expect(select.selectedOptions[0].textContent).toBe('query/!(missing)');
+  });
+
   it('includes date filters in the available default filters', () => {
     expect(component.allFilters.map(filter => filter.filter)).toEqual(expect.arrayContaining([
       expect.stringMatching(/^modified\/before\//),

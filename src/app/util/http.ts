@@ -116,9 +116,9 @@ export function fixUrl(url: string, banlist: typeof banlistConfig) {
     }
   }
   if (isTracking(url, banlist)) {
-    if (url.startsWith('https://www.youtube.com/')) {
+    if (url.startsWith('https://www.youtube.com/') || url.startsWith('https://music.youtube.com/')) {
       if (url.includes('&si=')) {
-        url = url.substring(0, url.indexOf('&si='));
+        url = url.replace(/&si=[^&#]*/, '');
       }
     } else if (url.includes('?')) {
       url = url.substring(0, url.indexOf('?'));
@@ -297,7 +297,8 @@ export function getTitleFromFilename(url: string): string | null {
 }
 
 export function sanitizePath(value: string) {
-  return encodeURIComponent(value
+  if (!value) return '';
+  return encodeURIComponent(value.trim().split('\n', 1)[0].trim()
     .replace(/[/]/g, ' ')
     .replace(/[?%;]/g, '')
   );

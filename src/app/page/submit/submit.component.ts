@@ -17,6 +17,7 @@ import { MobxAngularModule } from 'mobx-angular';
 import { catchError, forkJoin, map, mergeMap, Observable, of, Subscription, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
 import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -62,6 +63,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
     AudioUploadComponent,
     VideoUploadComponent,
     ImageUploadComponent,
+    LoadingComponent,
     AsyncPipe,
     TagPreviewPipe,
   ],
@@ -308,6 +310,24 @@ export class SubmitPage implements OnInit, OnDestroy {
       },
       queryParamsHandling: 'merge'
     });
+  }
+
+  uploadFiles(event: Event, items?: DataTransferItemList) {
+    if (!items) return false;
+    if (!this.admin.getPlugin('plugin/file')) return false;
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      if (d?.kind === 'file') {
+        const file = d.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    if (!files.length) return false;
+    event.preventDefault();
+    runInAction(() => this.store.submit.setEmbedFiles(files));
+    this.router.navigate(['/submit/text'], { queryParams: { tag: this.store.submit.tags } });
+    return true;
   }
 
   getUrlPlugin() {

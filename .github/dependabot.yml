@@ -18,6 +18,10 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    semver-major-days: 5
+    semver-minor-days: 1
+    semver-patch-days: 0
   groups:
     angular:
       patterns:
@@ -27,11 +31,15 @@ updates:
         - "zone.js"
         - "typescript"
         - "tslib"
-        - "ngx-markdown"
         - "ngx-monaco-editor"
     formly:
       patterns:
         - "@ngx-formly/*"
+    marked:
+      patterns:
+        - "ngx-markdown"
+        - "marked"
+        - "marked-*"
     ag-grid:
       patterns:
         - "ag-grid-angular"
@@ -48,6 +56,9 @@ updates:
     playwright:
       patterns:
         - "@playwright/*"
+  ignore:
+    - dependency-name: "@playwright/*"
+      versions: ["1.62.x"]
 - package-ecosystem: github-actions
   directory: /
   schedule:

@@ -1,7 +1,11 @@
-import { CdkDrag } from '@angular/cdk/drag-drop';
+import {
+  CdkDrag
+} from '@angular/cdk/drag-drop';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpEventType } from '@angular/common/http';
 import {
+  DestroyRef,
+  inject,
   AfterViewInit,
   Component,
   HostBinding,
@@ -9,14 +13,14 @@ import {
   Input,
   NgZone,
   OnChanges,
-  OnDestroy,
   SimpleChanges,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { isEqual, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, last, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -61,8 +65,8 @@ interface PendingUpload {
     ReactiveFormsModule,
   ],
 })
-export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
-  private destroy$ = new Subject<void>();
+export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChanges {
+  private destroyRef = inject(DestroyRef);
 
   @Input()
   query = '';
@@ -116,7 +120,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   ngAfterViewInit(): void {
     this.updates?.pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(event => this.update(event));
   }
 
@@ -132,10 +136,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     }
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   @HostBinding('class.empty')
   get empty() {
@@ -176,13 +176,13 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     );
     this.currentRequest?.unsubscribe();
     this.currentRequest = this.refs.page(args).pipe(
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(page => {
       this.page = page;
       this.runningSources?.unsubscribe();
       if (args.sources) {
         this.runningSources = this.refs.page({ ...args, url: args.sources, size: 1, sources: undefined, responses: undefined }).pipe(
-          takeUntil(this.destroy$)
+          takeUntilDestroyed(this.destroyRef)
         ).subscribe(res => {
           if (res.content[0]) {
             this.mutated = true;
@@ -195,7 +195,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       this.runningResponses?.unsubscribe();
       if (args.responses) {
         this.runningResponses = this.refs.page({ ...args, url: args.responses, size: 1, sources: undefined, responses: undefined }).pipe(
-          takeUntil(this.destroy$)
+          takeUntilDestroyed(this.destroyRef)
         ).subscribe(res => {
           if (res.content[0]) {
             this.mutated = true;
@@ -534,7 +534,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       i,
       this.size
     )).pipe(
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(page => {
       const pageOffset = i * this.size;
       this.page!.page.number = page.page.number;

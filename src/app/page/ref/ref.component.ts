@@ -1,10 +1,11 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, filter, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, filter, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
@@ -47,7 +48,7 @@ import { RefThreadComponent } from './thread/thread.component';
 })
 export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('ref')
   ref?: RefComponent;
@@ -86,8 +87,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.store.view.clearRef();
@@ -181,17 +180,18 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
         )),
       tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => MemoCache.clear(this));
     if (this.config.websockets && this.watchUrl !== url) {
       this.watchUrl = url;
       this.watchSelf?.unsubscribe();
       this.watchSelf = this.stomp.watchRef(url).pipe(
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(ud => {
+        if (!this.store.view.ref) return;
         MemoCache.clear(this);
         // Merge updates with existing Ref because updates do not contain any private tags
-        const tags = uniq([...this.store.view.ref!.tags || [], ...ud.tags || []])
+        const tags = uniq([...this.store.view.ref.tags || [], ...ud.tags || []])
           .filter(t => privateTag(t) || ud.tags?.includes(t));
         const merged: Ref = {
           ...ud,
@@ -199,29 +199,29 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           metadata: {
             ...ud.metadata,
             plugins: {
-              ...pickBy(this.store.view.ref?.metadata?.plugins, (v, k) => tags.includes(k)),
+              ...pickBy(this.store.view.ref.metadata?.plugins, (v, k) => tags.includes(k)),
               ...ud.metadata?.plugins || {},
             }
           },
           plugins: {
-            ...pickBy(this.store.view.ref!.plugins, (v, k) => tags.includes(k)),
+            ...pickBy(this.store.view.ref.plugins, (v, k) => tags.includes(k)),
             ...ud.plugins || {},
           },
           // Don't allow editing an update Ref, as we cannot tell when a private
           // tag was deleted
           // TODO: mark Ref as modified remotely to warn user before editing
-          modified: this.store.view.ref?.modified,
-          modifiedString: this.store.view.ref?.modifiedString,
+          modified: this.store.view.ref.modified,
+          modifiedString: this.store.view.ref.modifiedString,
         };
         runInAction(() => Object.assign(this.store.view.ref!, merged));
-        this.store.eventBus.refresh(merged);
+        this.store.eventBus.refresh(this.store.view.ref);
       });
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
         filter(url => url != this.store.view.url),
         filter(url => !url.startsWith('tag:')),
         filter(url => !this.seen.has(url)),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(url => {
         this.seen.add(url);
         this.newResponses++;
@@ -236,6 +236,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
 
   markRead(ref: Ref) {
     if (!ref.created) return;
-    markRead(this.admin, this.ts, ref);
+    runInAction(() => markRead(this.admin, this.ts, ref));
   }
 }

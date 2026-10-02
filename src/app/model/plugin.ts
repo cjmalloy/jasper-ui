@@ -147,6 +147,7 @@ export interface PluginApi {
   comment: (comment: string) => void;
   event: (event: string) => void;
   emit: (a: EmitAction) => void;
+  patch?: (patch: Partial<Ref>) => void;
   tag: (tag: string) => void;
   respond: (response: string, clear?: string[]) => void;
   watch: (delimiter?: string) => { ref$: Observable<RefUpdates>, comment$: (comment: string) => Observable<string> },

@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
-import { makeAutoObservable, observable, runInAction } from 'mobx';
+import { makeAutoObservable, observableStruct, runInAction } from 'mobx';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { TagPageArgs } from '../model/tag';
@@ -23,7 +23,7 @@ export class UserStore {
     private users: UserService,
   ) {
     makeAutoObservable(this, {
-      args: observable.struct,
+      args: observableStruct,
     });
     this.clear(); // Initial observables may not be null for MobX
   }

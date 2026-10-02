@@ -4,6 +4,7 @@ export interface BackupOptions {
   user?: boolean;
   plugin?: boolean;
   template?: boolean;
+  tombstones?: boolean;
   cache?: boolean;
   newerThan?: string;
 }

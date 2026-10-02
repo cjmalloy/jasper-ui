@@ -1,24 +1,28 @@
-import { AsyncPipe } from '@angular/common';
+import {
+  AsyncPipe
+} from '@angular/common';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  DestroyRef,
+  inject,
   Component,
   forwardRef,
   HostBinding,
   Input,
   OnChanges,
-  OnDestroy,
   QueryList,
   SimpleChanges,
   ViewChild,
   ViewChildren,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../../directive/title.directive';
 import { writePlugins } from '../../../form/plugins/plugins.component';
@@ -86,9 +90,9 @@ import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summ
     LoadingComponent,
   ],
 })
-export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
+export class BlogEntryComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
@@ -131,7 +135,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
-    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
           this.ref = event.ref!;
@@ -169,7 +173,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => this.repostRef = ref);
     }
   }
@@ -180,10 +184,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     }
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   @memo
   get origin() {
@@ -436,7 +436,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
         ...this.editForm.value.plugins
       }),
     }).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin).pipe(takeUntil(this.destroy$))),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin).pipe(takeUntilDestroyed(this.destroyRef))),
       catchError((err: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(err);

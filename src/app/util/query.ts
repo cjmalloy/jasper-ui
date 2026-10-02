@@ -1,5 +1,5 @@
 import { isArray, uniq, without } from 'lodash-es';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { braces, fixClientQuery, hasPrefix } from './tag';
@@ -7,6 +7,7 @@ import { braces, fixClientQuery, hasPrefix } from './tag';
 const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
 const DEFAULT_DESC_PREFIXES = ['metadata->'];
 const DEFAULT_DESC_EXACT = ['created', 'published', 'modified', 'rank'];
+const DATE_SORT_FIELDS = ['created', 'modified', 'published'];
 export const defaultDesc = (sort: string) =>
   DEFAULT_DESC_EXACT.includes(sort) ||
   DEFAULT_DESC_PREFIXES.some(prefix => sort.startsWith(prefix)) ||
@@ -130,6 +131,22 @@ export function getArgs(
   };
 }
 
+export function withStableDateSort(args: RefPageArgs): RefPageArgs {
+  const sort = args.sort ?? [];
+  const [primaryField] = sort[0]?.split(',') ?? [];
+  if (!DATE_SORT_FIELDS.includes(primaryField)) return args;
+
+  const sortFields = sort.map(value => value.split(',')[0]);
+  return {
+    ...args,
+    sort: [
+      ...sort,
+      ...(!sortFields.includes('modified') ? ['modified,ASC' as const] : []),
+      ...(!sortFields.includes('origin') ? ['origin,ASC' as const] : []),
+    ],
+  };
+}
+
 export function getFilters(filters: UrlFilter[] | UrlFilter) {
   if (!filters) return [];
   return (isArray(filters) ? filters : [filters])
@@ -240,6 +257,12 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
 }
 
 export function fixDateTime(t: string) {
+  const relative = t.toUpperCase();
+  if (relative === 'NOW') return DateTime.now().toUTC().toISO()!;
+  if (relative.startsWith('P') && /\d/.test(relative)) {
+    const duration = Duration.fromISO(relative);
+    if (duration.isValid) return DateTime.now().minus(duration).toUTC().toISO()!;
+  }
   return DateTime.fromISO(t).toUTC().toISO()!;
 }
 

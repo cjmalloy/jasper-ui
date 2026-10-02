@@ -679,7 +679,6 @@ video.qr-preview {
   margin: 8px;
 }
 
-
 .submit-button {
   white-space: nowrap;
   text-transform: capitalize;
@@ -1882,6 +1881,12 @@ formly-field-radio, formly-field-multicheckbox {
   &.inline, &.embed {
     display: inline-block;
     margin: 4px;
+  }
+}
+
+.playlist-container {
+  audio, video {
+    margin: auto;
   }
 }
 

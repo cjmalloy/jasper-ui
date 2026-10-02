@@ -41,6 +41,7 @@ import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
+import { readFileAsString } from '../../../util/async';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
@@ -194,6 +195,21 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
           this.addSource(s)
         }
       }));
+      if (this.store.submit.embedFiles.length) {
+        const files = [...this.store.submit.embedFiles];
+        defer(() => {
+          if (this.customEditor) {
+            runInAction(() => this.store.submit.setEmbedFiles());
+            forkJoin(files.map(f => readFileAsString(f))).subscribe(texts => {
+              this.comment.setValue(texts.join('\n'));
+              this.comment.markAsDirty();
+            });
+          } else if (this.editorComponent instanceof EditorComponent) {
+            runInAction(() => this.store.submit.setEmbedFiles());
+            this.editorComponent.upload(files as any);
+          }
+        });
+      }
     });
   }
 
@@ -322,7 +338,14 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     MemoCache.clear(this);
   }
 
+  get top() {
+    return this.sources.value[1] || this.sources.value[0] || this.ensureUrl();
+  }
+
   addSource(value = '') {
+    while (this.sources.value.length < 2) {
+      this.sources.push(this.fb.control(this.top, LinksFormComponent.validators));
+    }
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
     this.submitted = false;
   }

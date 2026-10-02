@@ -1,5 +1,5 @@
 import { flatten, isArray, without } from 'lodash-es';
-import { action, autorun, makeAutoObservable, observable } from 'mobx';
+import { action, autorun, makeAutoObservable, observableShallow } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -15,6 +15,7 @@ export class SubmitStore {
   submitGenId: Plugin[] = [];
   submitDm: Plugin[] = [];
   files: File[] = [] as any;
+  embedFiles: File[] = [] as any;
   caching: Map<File, Saving> = new Map<File, Saving>();
   exts: Ext[] = [];
   refs: Ref[] = [];
@@ -26,10 +27,11 @@ export class SubmitStore {
     private eventBus: EventBus,
   ) {
     makeAutoObservable(this, {
-      submitGenId: observable.shallow,
-      submitDm: observable.shallow,
-      files: observable.shallow,
-      caching: observable.shallow,
+      submitGenId: observableShallow,
+      submitDm: observableShallow,
+      files: observableShallow,
+      embedFiles: observableShallow,
+      caching: observableShallow,
       setRef: action,
       setExt: action,
     });
@@ -192,6 +194,10 @@ export class SubmitStore {
   clearFiles() {
     if (this.filesEmpty) return;
     this.files = [] as any;
+  }
+
+  setEmbedFiles(files: File[] = []) {
+    this.embedFiles = files;
   }
 
   foundRef(url: string) {

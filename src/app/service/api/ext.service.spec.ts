@@ -3,9 +3,10 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
+import { Ext } from '../../model/ext';
 
-import { ExtService, EXT_BATCH_THROTTLE_MS, EXT_BATCH_SIZE } from './ext.service';
+import { ExtService, EXT_BATCH_THROTTLE_MS, EXT_BATCH_SIZE, EXT_UPDATE_RATE_LIMIT_MS } from './ext.service';
 
 describe('ExtService', () => {
   let service: ExtService;
@@ -26,6 +27,7 @@ describe('ExtService', () => {
 
   afterEach(() => {
     httpMock.verify();
+    vi.useRealTimers();
   });
 
   it('should be created', () => {
@@ -42,6 +44,34 @@ describe('ExtService', () => {
     
     expect(ext).toEqual(testExt);
     expect(elapsed).toBeLessThan(10); // Should be immediate
+  });
+
+  it('should stop caching Ext updates after two updates within one minute', async () => {
+    vi.useFakeTimers();
+    const updates = new Subject<Ext>();
+    vi.spyOn(service['stomp'], 'watchExt').mockReturnValue(updates);
+    service.prefillCache({ tag: 'test', origin: '', name: 'Initial' });
+
+    updates.next({ tag: 'test', origin: '', name: 'First' });
+    vi.advanceTimersByTime(EXT_UPDATE_RATE_LIMIT_MS - 1);
+    updates.next({ tag: 'test', origin: '', name: 'Second' });
+
+    expect(await firstValueFrom(service.getCachedExt('test', ''))).toEqual({ tag: 'test', origin: '', name: 'First' });
+    expect(updates.observed).toBe(false);
+  });
+
+  it('should keep caching Ext updates at least one minute apart', async () => {
+    vi.useFakeTimers();
+    const updates = new Subject<Ext>();
+    vi.spyOn(service['stomp'], 'watchExt').mockReturnValue(updates);
+    service.prefillCache({ tag: 'test', origin: '', name: 'Initial' });
+
+    updates.next({ tag: 'test', origin: '', name: 'First' });
+    vi.advanceTimersByTime(EXT_UPDATE_RATE_LIMIT_MS);
+    updates.next({ tag: 'test', origin: '', name: 'Second' });
+
+    expect(await firstValueFrom(service.getCachedExt('test', ''))).toEqual({ tag: 'test', origin: '', name: 'Second' });
+    expect(updates.observed).toBe(true);
   });
 
   it('should batch uncached ext requests', async () => {

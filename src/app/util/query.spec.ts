@@ -1,5 +1,16 @@
 /// <reference types="vitest/globals" />
-import { defaultDesc, getArgs, getFilter, getFilters, getFiltersQuery, negate, negatable, toggle, UrlFilter } from './query';
+import {
+  defaultDesc,
+  getArgs,
+  getFilter,
+  getFilters,
+  getFiltersQuery,
+  negate,
+  negatable,
+  withStableDateSort,
+  toggle,
+  UrlFilter,
+} from './query';
 
 describe('Query Utils', () => {
   describe('defaultDesc', () => {
@@ -190,6 +201,35 @@ describe('Query Utils', () => {
       expect(args.modifiedAfter).toContain('2023-01-0');
     });
 
+    describe('relative date filters', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-07-09T23:36:00Z'));
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('should resolve ISO durations in published-before Ext defaults', () => {
+        const args = getArgs('science', undefined, ['published/before/p1d']);
+
+        expect(args.publishedBefore).toBe('2026-07-08T23:36:00.000Z');
+      });
+
+      it('should resolve now in published-before Ext defaults', () => {
+        const args = getArgs('science', undefined, ['published/before/NoW']);
+
+        expect(args.publishedBefore).toBe('2026-07-09T23:36:00.000Z');
+      });
+
+      it('should reject incomplete ISO durations', () => {
+        const args = getArgs('science', undefined, ['published/before/P']);
+
+        expect(args.publishedBefore).toBeNull();
+      });
+    });
+
     it('should extract source filters', () => {
       const filters: UrlFilter[] = ['sources/http://example.com' as UrlFilter];
       const args = getArgs('science', undefined, filters);
@@ -242,6 +282,28 @@ describe('Query Utils', () => {
       const filters: UrlFilter[] = ['!plugin/vote' as UrlFilter];
       const args = getArgs('science', undefined, filters);
       expect(args.noPluginResponse).toContain('plugin/vote');
+    });
+  });
+
+  describe('withStableDateSort', () => {
+    it('adds modified and origin tie-breakers to date sorts', () => {
+      expect(withStableDateSort({ sort: ['published,DESC'] }).sort).toEqual([
+        'published,DESC',
+        'modified,ASC',
+        'origin,ASC',
+      ]);
+    });
+
+    it('does not duplicate an existing modified tie-breaker', () => {
+      expect(withStableDateSort({ sort: ['modified,DESC'] }).sort).toEqual([
+        'modified,DESC',
+        'origin,ASC',
+      ]);
+    });
+
+    it('leaves non-date sorts unchanged', () => {
+      const args = { sort: ['title,ASC' as const] };
+      expect(withStableDateSort(args)).toBe(args);
     });
   });
 });

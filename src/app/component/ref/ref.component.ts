@@ -1,15 +1,17 @@
 import { AsyncPipe } from '@angular/common';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -17,16 +19,17 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren,
-  ChangeDetectionStrategy
+  ViewChildren
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
 import { DiffComponent } from '../../form/diff/diff.component';
 import { writePlugins } from '../../form/plugins/plugins.component';
@@ -37,7 +40,6 @@ import { equalsRef, isRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
-import { generateStoryboardKeyframes } from '../../mods/thumbnail';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { isInlineSvg, ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
@@ -65,6 +67,14 @@ import {
 import { getExtension, getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { markRead } from '../../util/response';
+import {
+  storyboardAnimation,
+  storyboardHeight,
+  storyboardMargin,
+  storyboardSize,
+  storyboardUrl,
+  storyboardWidth
+} from '../../util/storyboard';
 import {
   capturesAny,
   expandedTagsInclude,
@@ -120,40 +130,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   css = 'ref list-item';
   @HostBinding('class')
   allCss = this.getPluginClasses();
-  @HostBinding('attr.data-ref-url')
-  get refUrlAttr() {
-    return this.ref?.url;
-  }
-  @HostBinding('attr.data-ref-origin')
-  get refOriginAttr() {
-    return this.ref?.origin || undefined;
-  }
-  @HostBinding('attr.data-ref-title')
-  get refTitleAttr() {
-    return this.title || undefined;
-  }
-  @HostBinding('attr.data-ref-thumbnail-url')
-  get refThumbnailUrlAttr() {
-    if (!this.thumbnail) return undefined;
-    return this.refThumbnailUrl() || undefined;
-  }
-  @HostBinding('attr.data-ref-thumbnail-color')
-  get refThumbnailColorAttr() {
-    if (!this.thumbnail) return undefined;
-    return this.refThumbnailString('color') || undefined;
-  }
-  @HostBinding('attr.data-ref-thumbnail-emoji')
-  get refThumbnailEmojiAttr() {
-    if (!this.thumbnail) return undefined;
-    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
-  }
-  @HostBinding('attr.data-ref-thumbnail-radius')
-  get refThumbnailRadiusAttr() {
-    if (!this.thumbnail) return undefined;
-    const radius = Number(this.refThumbnailPlugin?.['radius']);
-    return Number.isFinite(radius) ? `${radius}` : undefined;
-  }
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
@@ -251,7 +228,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(),
     ).subscribe(throttle(value => {
       if (!this.editing) return;
       if (!value?.title && !value?.comment || !value?.tags?.length) return;
@@ -273,7 +250,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         cd.detectChanges();
       });
     }, 400, { leading: true, trailing: true }));
-    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere
@@ -349,7 +326,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => {
         this.repostRef = ref;
         if (!ref) return;
@@ -406,8 +383,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     if (this.lastSelected) {
       this.store.view.clearLastSelected();
     }
@@ -429,6 +404,46 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p),
       ...(this.ref.metadata?.userUrls || []).map(p => 'user-response-' + p)
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
+  }
+
+  @HostBinding('attr.data-ref-url')
+  get refUrlAttr() {
+    return this.ref?.url;
+  }
+
+  @HostBinding('attr.data-ref-origin')
+  get refOriginAttr() {
+    return this.ref?.origin || undefined;
+  }
+
+  @HostBinding('attr.data-ref-title')
+  get refTitleAttr() {
+    return this.title || undefined;
+  }
+
+  @HostBinding('attr.data-ref-thumbnail-url')
+  get refThumbnailUrlAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailUrl() || undefined;
+  }
+
+  @HostBinding('attr.data-ref-thumbnail-color')
+  get refThumbnailColorAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailString('color') || undefined;
+  }
+
+  @HostBinding('attr.data-ref-thumbnail-emoji')
+  get refThumbnailEmojiAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
+  }
+
+  @HostBinding('attr.data-ref-thumbnail-radius')
+  get refThumbnailRadiusAttr() {
+    if (!this.thumbnail) return undefined;
+    const radius = Number(this.refThumbnailPlugin?.['radius']);
+    return Number.isFinite(radius) ? `${radius}` : undefined;
   }
 
   @HostBinding('class.last-selected')
@@ -477,83 +492,45 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   @HostBinding('style.--storyboard-url')
   get storyboardUrl(): string | null {
-    const resolvedUrl = this.storyboardRawUrl;
-    if (!resolvedUrl) return null;
-    const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    return `url("${escapedUrl}")`;
+    return storyboardUrl(this.storyboardRawUrl);
   }
 
   @memo
   @HostBinding('style.--storyboard-size')
   get storyboardSize(): string | null {
-    const sb = this.storyboardData;
-    if (!sb?.cols || !sb?.rows) return null;
-    const cols = Math.trunc(Number(sb.cols));
-    const rows = Math.trunc(Number(sb.rows));
-    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
-    return `${cols * 100}% ${rows * 100}%`;
+    return storyboardSize(this.storyboardData);
   }
 
   @memo
   @HostBinding('style.--storyboard-margin')
   get storyboardMargin(): string | null {
-    const sb = this.storyboardData;
-    if (!sb?.cols || !sb?.rows) return null;
-    const cols = Math.trunc(Number(sb.cols));
-    const rows = Math.trunc(Number(sb.rows));
-    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
-    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
-    if (sb.width > sb.height) return ((48 - (48 * sb.height / sb.width)) / 2) + 'px 10px 0 0';
-    const margin = ((48 - (48 * sb.width / sb.height)) / 2);
-    return '0 ' + (margin + 10) + 'px 0 ' + margin + 'px';
+    return storyboardMargin(this.storyboardData);
   }
 
   @memo
   @HostBinding('style.--storyboard-width')
   get storyboardWidth(): string | null {
-    const sb = this.storyboardData;
-    if (!sb?.cols || !sb?.rows) return null;
-    const cols = Math.trunc(Number(sb.cols));
-    const rows = Math.trunc(Number(sb.rows));
-    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
-    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
-    if (sb.width > sb.height) return '48px';
-    return (48 * sb.width / sb.height) + 'px';
-
+    return storyboardWidth(this.storyboardData);
   }
 
   @memo
   @HostBinding('style.--storyboard-height')
   get storyboardHeight(): string | null {
-    const sb = this.storyboardData;
-    if (!sb?.cols || !sb?.rows) return null;
-    const cols = Math.trunc(Number(sb.cols));
-    const rows = Math.trunc(Number(sb.rows));
-    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
-    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
-    if (sb.width > sb.height) return (48 * sb.height / sb.width) + 'px';
-    return '48px';
+    return storyboardHeight(this.storyboardData);
   }
 
   @memo
   @HostBinding('style.--storyboard-animation')
   get storyboardAnimation(): string | null {
-    const sb = this.storyboardData;
-    if (!sb?.cols || !sb?.rows) return null;
-    const cols = Math.trunc(Number(sb.cols));
-    const rows = Math.trunc(Number(sb.rows));
-    const totalFrames = cols * rows;
-    if (cols <= 0 || rows <= 0 || totalFrames > 10_000 || totalFrames < 2) return null;
-    const duration = 0.4;
-    const name = `storyboard-slide-${cols}x${rows}`;
-    const styleId = `style-${name}`;
-    if (!document.getElementById(styleId)) {
+    const animation = storyboardAnimation(this.storyboardData);
+    if (!animation) return null;
+    if (!document.getElementById(animation.styleId)) {
       const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = generateStoryboardKeyframes(name, cols, rows);
+      style.id = animation.styleId;
+      style.textContent = animation.keyframes;
       document.head.appendChild(style);
     }
-    return `${name} ${(totalFrames * duration).toFixed(2)}s linear infinite`;
+    return animation.value;
   }
 
   get obsoleteOrigin() {
@@ -1414,7 +1391,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       size: 1,
       sort: ['modified,DESC']
     }).pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
       map(page => {
         // Find the most recent remote version (not from local origin)
         const remoteVersion = page.content.find(r => r.origin !== this.store.account.origin);

@@ -88,6 +88,10 @@ body.dark-theme {
     color: var(--link);
   }
 
+  .parent-link {
+    color: var(--info);
+  }
+
   :not(.actions) :visited {
     color: var(--visited);
   }

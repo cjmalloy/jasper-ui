@@ -27,6 +27,7 @@ import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
+import { jezzballMod } from '../mods/games/jezzball';
 import { helpMod } from '../mods/help';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
@@ -103,6 +104,7 @@ import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 import { equalBundle } from '../util/diff';
 import { neoMod } from '../mods/ai/neo-banana';
+import { mp3Mod } from '../mods/media/mp3';
 
 @Injectable({
   providedIn: 'root',
@@ -192,6 +194,7 @@ export class AdminService {
     audioMod,
     videoMod,
     ytdlpMod,
+    mp3Mod,
     markitdownMod,
     voteMod,
     imageMod,
@@ -199,6 +202,7 @@ export class AdminService {
     pipMod,
     chessMod,
     backgammonMod,
+    jezzballMod,
     pollMod,
     todoMod,
     ninjaTriangleMod,
@@ -1003,7 +1007,7 @@ export class AdminService {
       })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Ref ${def.title || def.url} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`⚠️ Ref ${def.title || def.url} already exists...`);
           return of(null);
         }
         return throwError(() => err);
@@ -1018,7 +1022,7 @@ export class AdminService {
       switchMap(() => this.exts.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Ext ${def.name || def.tag} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`⚠️ Ext ${def.name || def.tag} already exists...`);
           return of(null);
         }
         return throwError(() => err);
@@ -1033,7 +1037,7 @@ export class AdminService {
       switchMap(() => this.users.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`User ${def.name || def.tag} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`⚠️ User ${def.name || def.tag} already exists...`);
           return of(null);
         }
         return throwError(() => err);
@@ -1049,7 +1053,7 @@ export class AdminService {
       switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Plugin ${def.name || def.tag} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`⚠️ Plugin ${def.name || def.tag} already exists...`);
           return of(null);
         }
         return throwError(() => err);
@@ -1074,7 +1078,7 @@ export class AdminService {
       switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Template ${def.name || def.tag} already exists...`);
+          _('\u00A0'.repeat(4) + $localize`⚠️ Template ${def.name || def.tag} already exists...`);
           return of(null);
         }
         return throwError(() => err);

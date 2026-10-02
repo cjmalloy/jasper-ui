@@ -1,6 +1,6 @@
 import { assign, difference, max, min, pull, pullAll, remove } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observableShallow } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Page } from '../model/page';
 import { RefNode } from '../model/ref';
@@ -20,9 +20,9 @@ export class GraphStore {
     public route: RouterStore,
   ) {
     makeAutoObservable(this, {
-      selected: observable.shallow,
-      nodes: observable.shallow,
-      links: observable.shallow,
+      selected: observableShallow,
+      nodes: observableShallow,
+      links: observableShallow,
     });
   }
 

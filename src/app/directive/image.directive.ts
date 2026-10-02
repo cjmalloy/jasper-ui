@@ -10,7 +10,7 @@ export class ImageDirective implements OnInit, OnDestroy {
   @Input()
   grid = false;
   @Input()
-  padding = 12;
+  padding = 8;
   @Input()
   ref?: Ref;
   @Input('defaultWidth')

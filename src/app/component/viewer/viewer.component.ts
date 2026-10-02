@@ -1,24 +1,27 @@
 import {
+  ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
   Output,
   SimpleChanges,
-  ViewChild,
-  ChangeDetectionStrategy
+  ViewChild
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { BehaviorSubject, catchError, of, Subject, takeUntil, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, of, Subject, throwError } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
@@ -33,6 +36,7 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
+import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
@@ -41,7 +45,7 @@ import { Store } from '../../store/store';
 import { embedUrl } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
-import { handleMediaKeydown, handleVideoKeydown } from '../../util/keyboard';
+import { handleMediaKeydown } from '../../util/keyboard';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
@@ -80,7 +84,7 @@ import { TodoComponent } from '../todo/todo.component';
 export class ViewerComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
   private videoKeydownHandler?: (event: KeyboardEvent) => void;
   private audioKeydownHandler?: (event: KeyboardEvent) => void;
   private fullscreenKeydownHandler?: (event: KeyboardEvent) => void;
@@ -114,6 +118,12 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   comment = new EventEmitter<string>();
   @Output()
   copied = new EventEmitter<string>();
+  @Output()
+  playing = new EventEmitter<string>();
+  @Output()
+  pausing = new EventEmitter<string>();
+  @Output()
+  ended = new EventEmitter<string>();
 
   repost?: Ref;
   lens?: boolean;
@@ -137,6 +147,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   private _oembed?: Oembed;
   private width = 0;
   private height = 0;
+  private pdfIframeEl?: ElementRef<HTMLIFrameElement>;
 
   constructor(
     public config: ConfigService,
@@ -148,6 +159,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     private editor: EditorService,
     private refs: RefService,
     private store: Store,
+    private auth: AuthzService,
     public el: ElementRef,
   ) { }
 
@@ -162,7 +174,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref)) {
       this.refs.getCurrent(this.ref.sources[0]).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => this.repost = ref);
     }
     const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref) ? this.ref?.sources?.[0] : this.ref?.url);
@@ -172,7 +184,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (queryUrl && hasTag('plugin/lens', this.currentTags)) {
       this.lens = true;
       this.embeds.loadQuery$(queryUrl)
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(({params, page, ext}) => {
           this.lensPage = page;
           this.ext = ext;
@@ -185,20 +197,26 @@ export class ViewerComponent implements OnChanges, OnDestroy {
         });
     }
     if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
-      this.width = this.embed?.width || (this.el.nativeElement.parentElement.offsetWidth - ((this.thread || !this.config.mobile) ? 32 : 12));
-      this.height = this.embed?.height || window.innerHeight;
+      const parentWidth = this.el.nativeElement.parentElement.offsetWidth;
+      this.width = this.embed?.width || ((this.thread || !this.config.mobile) ? Math.floor(parentWidth * 0.6) : parentWidth - 16);
+      this.height = this.embed?.height || (this.config.mobile ? window.innerHeight : Math.floor(window.innerHeight * 0.8));
       if (hasTag('plugin/fullscreen', this.ref)) {
         this.width = screen.width;
         this.height = screen.height;
       }
       this.oembeds.get(this.ref.url, this.theme, this.width, this.height).subscribe(oembed => this.oembed = oembed);
     }
+    this.reload(this.currentAudio);
+    this.reload(this.currentVideo);
+    this.pdfIframe = this.pdfIframeEl;
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    const changesRef = changes.ref && (!changes.ref.previousValue || changes.ref.currentValue?.modifiedString !== changes.ref.previousValue?.modifiedString);
+    const newRef = changes.ref && (changes.ref.currentValue?.url !== changes.ref.previousValue?.url || changes.ref.currentValue?.origin !== changes.ref.previousValue?.origin);
+    const changesRef = changes.ref && (!changes.ref.previousValue || newRef || changes.ref.currentValue?.modifiedString !== changes.ref.previousValue?.modifiedString);
     const changesTags = changes.tags && (!changes.tags.previousValue || !isEqual(changes.tags.previousValue, changes.tags.currentValue));
     if (changesRef || changesTags || changes.text) {
+      if (this.editingViewer && !newRef) return;
       this.init();
     }
   }
@@ -207,7 +225,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   onKeydown(event: KeyboardEvent) {
     if (event.defaultPrevented) return;
     if (this.currentVideo) {
-      handleVideoKeydown(event, this.currentVideo);
+      handleMediaKeydown(event, this.currentVideo);
       return;
     }
     if (this.currentAudio) {
@@ -216,7 +234,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     }
     const video = this.el.nativeElement.querySelector('video') as HTMLVideoElement;
     if (video) {
-      handleVideoKeydown(event, video);
+      handleMediaKeydown(event, video);
       return;
     }
     const audio = this.el.nativeElement.querySelector('audio') as HTMLAudioElement;
@@ -224,9 +242,8 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.removeMediaListeners();
-    this.destroy$.next();
-    this.destroy$.complete();
+    this.removeAudioListener();
+    this.removeVideoListener();
   }
 
   @HostBinding('class')
@@ -248,26 +265,18 @@ export class ViewerComponent implements OnChanges, OnDestroy {
 
   @ViewChild('video')
   set video(value: ElementRef<HTMLVideoElement>) {
+    this.removeVideoListener();
     if (!value) return;
     const video = value.nativeElement;
-    // Add capture-phase listener directly on the video element so it fires
-    // even when focus is inside the native controls' shadow DOM
-    this.removeVideoListener();
     this.currentVideo = video;
-    this.videoKeydownHandler = (e: KeyboardEvent) => handleVideoKeydown(e, video);
+    this.videoKeydownHandler = (e: KeyboardEvent) => handleMediaKeydown(e, video);
     video.addEventListener('keydown', this.videoKeydownHandler, { capture: true });
-    // Document-level capture listener for native fullscreen mode where events
-    // may not propagate through the video element's regular event path
-    this.removeFullscreenKeydownListener();
     this.fullscreenKeydownHandler = (e: KeyboardEvent) => {
       if (document.fullscreenElement === video && !e.defaultPrevented) {
-        handleVideoKeydown(e, video);
+        handleMediaKeydown(e, video);
       }
     };
     document.addEventListener('keydown', this.fullscreenKeydownHandler, { capture: true });
-    // Refocus the viewer when exiting native fullscreen so keyboard shortcuts
-    // continue to work via the @HostListener and video capture-phase listener
-    this.removeFullscreenChangeListener();
     this.fullscreenChangeHandler = () => {
       if (!document.fullscreenElement && this.currentVideo) {
         this.el.nativeElement.focus();
@@ -284,24 +293,25 @@ export class ViewerComponent implements OnChanges, OnDestroy {
 
   @ViewChild('audio')
   set audio(value: ElementRef<HTMLAudioElement>) {
+    this.removeAudioListener();
     if (!value) return;
     const audio = value.nativeElement;
-    this.removeAudioListener();
     this.currentAudio = audio;
     this.audioKeydownHandler = (e: KeyboardEvent) => handleMediaKeydown(e, audio);
     audio.addEventListener('keydown', this.audioKeydownHandler, { capture: true });
   }
 
   @ViewChild('pdfIframe')
-  set pdfIframe(value: ElementRef<HTMLIFrameElement>) {
+  set pdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
+    this.pdfIframeEl = value;
     if (!value) return;
     const iframe = value.nativeElement;
     let url = this.pdfUrl;
     if (!url) return;
     if (url.startsWith('//')) url = location.protocol + url;
     this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe, false);
-    iframe.style.width = this.embedWidth;
-    iframe.style.height = this.embedHeight;
+    iframe.style.width ||= this.embedWidth;
+    iframe.style.height ||= this.embedHeight;
   }
 
   set oembed(oembed: Oembed | null) {
@@ -331,8 +341,8 @@ export class ViewerComponent implements OnChanges, OnDestroy {
           });
       } else {
         i.src = embedUrl(this.embed?.url || this.ref?.url);
-        i.style.width = this.embedWidth;
-        i.style.height = this.embedHeight;
+        if (!i.style.width) i.style.width = this.embedWidth;
+        if (!i.style.height) i.style.height = this.embedHeight;
         this.embedReady = true;
       }
     } else {
@@ -442,7 +452,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return this.thread ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
-    return `calc(min(100%, ${this.config.huge ? '67vw' : '80vw'}))`;
+    return this.config.huge ? '67%' : '80%';
   }
 
   get embedHeight() {
@@ -450,7 +460,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return '100vh';
     }
-    return '67vh';
+return '67vh';
   }
 
   @memo
@@ -538,7 +548,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   @memo
   get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
-    return {
+    const api: PluginApi = {
       comment: (comment: string) => {
         if (this.ref) {
           runInAction(() => this.ref!.comment = comment);
@@ -585,6 +595,27 @@ export class ViewerComponent implements OnChanges, OnDestroy {
         };
       },
     };
+    if (!this.ref?.modified || this.auth.writeAccess(this.ref)) {
+      api.patch = (patch: Partial<Ref>) => {
+        if (this.ref?.modified) {
+          actions.patch!(patch);
+        } else if (this.ref) {
+          runInAction(() => {
+            const plugins = patch.plugins ? { ...this.ref!.plugins, ...patch.plugins } : this.ref!.plugins;
+            Object.assign(this.ref!, patch);
+            if (patch.plugins) {
+              this.ref!.plugins = plugins;
+              for (const updateTag of Object.keys(patch.plugins)) {
+                if (!hasTag(updateTag, this.ref!)) {
+                  this.ref!.tags = [...(this.ref!.tags || []), updateTag];
+                }
+              }
+            }
+          });
+        }
+      };
+    }
+    return api;
   }
 
   @memo
@@ -603,30 +634,6 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     return this.ref || { url: '', comment: this.text, tags: this.tags };
   }
 
-  private removeVideoListener() {
-    if (this.currentVideo && this.videoKeydownHandler) {
-      this.currentVideo.removeEventListener('keydown', this.videoKeydownHandler, { capture: true });
-    }
-    this.currentVideo = undefined;
-    this.videoKeydownHandler = undefined;
-    this.removeFullscreenKeydownListener();
-    this.removeFullscreenChangeListener();
-  }
-
-  private removeFullscreenKeydownListener() {
-    if (this.fullscreenKeydownHandler) {
-      document.removeEventListener('keydown', this.fullscreenKeydownHandler, { capture: true });
-    }
-    this.fullscreenKeydownHandler = undefined;
-  }
-
-  private removeFullscreenChangeListener() {
-    if (this.fullscreenChangeHandler) {
-      document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler);
-    }
-    this.fullscreenChangeHandler = undefined;
-  }
-
   private removeAudioListener() {
     if (this.currentAudio && this.audioKeydownHandler) {
       this.currentAudio.removeEventListener('keydown', this.audioKeydownHandler, { capture: true });
@@ -635,8 +642,30 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     this.audioKeydownHandler = undefined;
   }
 
-  private removeMediaListeners() {
-    this.removeVideoListener();
-    this.removeAudioListener();
+  private removeVideoListener() {
+    if (this.currentVideo && this.videoKeydownHandler) {
+      this.currentVideo.removeEventListener('keydown', this.videoKeydownHandler, { capture: true });
+    }
+    this.currentVideo = undefined;
+    this.videoKeydownHandler = undefined;
+    if (this.fullscreenKeydownHandler) {
+      document.removeEventListener('keydown', this.fullscreenKeydownHandler, { capture: true });
+    }
+    this.fullscreenKeydownHandler = undefined;
+    if (this.fullscreenChangeHandler) {
+      document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler);
+    }
+    this.fullscreenChangeHandler = undefined;
+  }
+
+  private reload(m?: HTMLMediaElement) {
+    if (!m) return;
+    const autoplay = !m.paused;
+    m.load();
+    if (autoplay) {
+      m.play().catch((error) => {
+        console.warn('Playback deferred by browser autoplay restrictions:', error);
+      });
+    }
   }
 }

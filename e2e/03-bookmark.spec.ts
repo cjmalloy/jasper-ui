@@ -45,6 +45,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.locator('[name=showColumnBacklog]').check();
     await page.locator('[name=columnBacklogTitle]').fill('todo');
     await page.locator('button', { hasText: 'Save' }).click();
+    await page.waitForURL(/\/tag\/kanban\/bookmark\/filter/, { timeout: 10_000 });
     await expect(page.locator('h2')).toHaveText('Bookmark Filter Kanban');
   }
 

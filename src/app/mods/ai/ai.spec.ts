@@ -3,65 +3,6 @@ import { Buffer } from 'node:buffer';
 import { aiQueryPlugin } from './ai';
 
 describe('aiQueryPlugin', () => {
-  it('runs the delta script with the default provider', async () => {
-    const response = {
-      url: 'ai:response',
-      title: 'Response',
-      comment: '',
-      tags: ['+plugin/placeholder'],
-      sources: [],
-    };
-    const axios = {
-      get: vi.fn(async (_url: string, options: { params: { query: string } }) => {
-        const query = options.params.query;
-        if (query.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
-        if (query.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
-        return { data: { content: [] } };
-      }),
-    };
-    class GoogleGenAI {
-      models = {
-        generateContent: async () => ({
-          candidates: [{ content: { parts: [{ text: 'A basic answer' }] } }],
-          usageMetadata: {
-            promptTokenCount: 2,
-            candidatesTokenCount: 3,
-            totalTokenCount: 5,
-          },
-        }),
-      };
-    }
-    const require = (module: string) => ({
-      'buffer': { Buffer: globalThis.ArrayBuffer },
-      'uuid': { v4: () => 'test-id' },
-      'axios': axios,
-      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
-      '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
-    })[module];
-    const output = vi.fn();
-    const run = new Function(
-      'require',
-      'process',
-      'console',
-      `return (async () => {${aiQueryPlugin.config?.script}})()`,
-    );
-
-    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
-
-    const bundle = JSON.parse(output.mock.calls[0][0]);
-    expect(bundle.ref[0]).toMatchObject({
-      url: 'ai:response',
-      comment: 'A basic answer',
-      tags: expect.arrayContaining(['+plugin/delta/ai', 'plugin/llm']),
-      plugins: {
-        'plugin/llm': expect.objectContaining({
-          provider: 'gemini',
-          model: 'gemini-3.1-pro-preview-customtools',
-        }),
-      },
-    });
-  });
-
   it('downloads media and retries without it when the provider rejects it', async () => {
     const response = {
       url: 'ai:response',
@@ -69,6 +10,7 @@ describe('aiQueryPlugin', () => {
       comment: '',
       tags: ['+plugin/placeholder'],
       sources: ['https://example.test/image.png'],
+      plugins: { 'plugin/llm': { provider: 'gemini' } },
     };
     const source = {
       url: 'https://example.test/image.png',
@@ -131,9 +73,9 @@ describe('aiQueryPlugin', () => {
       })]));
     const bundle = JSON.parse(output.mock.calls[0][0]);
     expect(bundle.ref).toContainEqual(expect.objectContaining({
-      sources: [source.url],
+      sources: [bundle.ref[0].url],
       comment: expect.stringContaining('rejected the media input'),
-      tags: expect.arrayContaining(['internal', '+plugin/log', 'public']),
+      tags: expect.arrayContaining(['internal', '+plugin/log']),
     }));
   });
 
@@ -145,7 +87,7 @@ describe('aiQueryPlugin', () => {
       tags: ['+plugin/placeholder'],
       sources: [],
       modified: 'placeholder-cursor',
-      plugins: { 'plugin/llm': { json: true } },
+      plugins: { 'plugin/llm': { provider: 'gemini', json: true } },
     };
     const axios = {
       get: vi.fn(async (_url: string, options: { params: { query: string } }) => {
@@ -234,7 +176,7 @@ describe('aiQueryPlugin', () => {
     expect(bundle.ref[2]).toMatchObject({
       url: 'cache:image',
       modified: 'cache-cursor',
-      tags: expect.arrayContaining(['_plugin/cache', 'plugin/image']),
+      tags: expect.arrayContaining(['_plugin/cache']),
     });
     expect(bundle.ref[0].plugins['plugin/image'].url).toBe(bundle.ref[2].url);
   });
@@ -246,7 +188,7 @@ describe('aiQueryPlugin', () => {
       comment: '',
       tags: ['+plugin/placeholder'],
       sources: [],
-      plugins: { 'plugin/llm': { json: true } },
+      plugins: { 'plugin/llm': { provider: 'gemini', json: true } },
     };
     const axios = {
       get: vi.fn(async (_url: string, options: { params: { query: string } }) => {

@@ -13,6 +13,7 @@
            routerLink="./"
            routerLinkActive="disabled"
            [queryParams]="{ pageNumber: prev }"
+           (click)="cursorPage(prev, $event)"
            queryParamsHandling="merge" i18n>prev</a>
         <span> | </span>
       }
@@ -21,7 +22,7 @@
        routerLink="./"
        [class.disabled]="page.page.number === page.page.totalPages - 1"
        [queryParams]="{ pageNumber: next }"
-       (click)="scrollUp()"
+       (click)="cursorPage(next, $event); scrollUp()"
        queryParamsHandling="merge" i18n>next</a>
     <span> | </span>
     @if (showPageLast) {

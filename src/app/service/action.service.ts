@@ -36,6 +36,10 @@ export class ActionService {
         o?.unsubscribe();
         o = this.comment$(comment, ref).subscribe();
       }, 500),
+      patch: (patch: Partial<Ref>) => {
+        if (!ref) throw 'Error: No ref to save';
+        this.patch(patch, ref);
+      },
       event: (event: string) => {
         this.event(event, ref);
       },
@@ -128,6 +132,37 @@ export class ActionService {
       }),
       tap(cursor => runInAction(() => {
         ref.comment = comment;
+        ref.modifiedString = cursor;
+        ref.modified = DateTime.fromISO(cursor);
+      })),
+    );
+  }
+
+  patch(patch: Partial<Ref>, ref: Ref) {
+    this.store.eventBus.runAndRefresh(this.patch$(patch, ref), ref);
+  }
+
+  patch$(patch: Partial<Ref>, ref: Ref): Observable<string> {
+    const pluginTags = Object.keys(patch.plugins || {});
+    const save = (target: Ref) => {
+      const tags = patch.tags || target.tags;
+      const missingTags = pluginTags.filter(t => !hasTag(t, tags));
+      const update = missingTags.length ? { ...patch, tags: [...(tags || []), ...missingTags] } : patch;
+      return this.refs.merge(target.url, this.store.account.origin, target.modifiedString!, update);
+    };
+    return save(ref).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          return this.refs.get(ref.url, this.store.account.origin).pipe(switchMap(save));
+        }
+        return throwError(() => err);
+      }),
+      tap(cursor => runInAction(() => {
+        const plugins = patch.plugins ? { ...ref.plugins, ...patch.plugins } : ref.plugins;
+        Object.assign(ref, patch);
+        if (patch.plugins) ref.plugins = plugins;
+        const newTags = pluginTags.filter(t => !hasTag(t, ref));
+        if (newTags.length) ref.tags = [...(ref.tags || []), ...newTags];
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
       })),

@@ -66,6 +66,7 @@ export class SettingsBackupPage {
       user: [true],
       plugin: [false],
       template: [false],
+      tombstones: [false],
       newerThan: [''],
     });
     this.origins.list()
@@ -120,6 +121,7 @@ export class SettingsBackupPage {
       user: this.backupOptionsForm.value.user,
       plugin: this.backupOptionsForm.value.plugin,
       template: this.backupOptionsForm.value.template,
+      tombstones: this.backupOptionsForm.value.tombstones,
       newerThan: this.backupOptionsForm.value.newerThan || undefined,
     };
     this.closeBackupOptions();

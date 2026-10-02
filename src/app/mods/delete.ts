@@ -3,7 +3,7 @@ import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Mod, Tag } from '../model/tag';
-import { hasTag, localTag, publicTag, tagOrigin } from '../util/tag';
+import { addTags, hasPrefix, hasTag, localTag, tagOrigin } from '../util/tag';
 
 export const deletePlugin: Plugin = {
   tag: 'plugin/delete',
@@ -28,30 +28,21 @@ export const deletePlugin: Plugin = {
 
 export function deleteNotice(ref: Ref): Ref {
   if (hasTag('locked', ref)) {
-    ref.tags!.push('plugin/delete', 'internal');
-    return ref;
+    return addTags(ref, 'plugin/delete', 'internal');
   }
-  const tags = ['plugin/delete', 'internal'];
-  tags.push(...filter(ref.tags, t => {
-    if (ref.plugins?.[t]) return false;
-    if (t.startsWith('+plugin/')) return false;
-    if (!publicTag(t)) return true;
-    if (t === 'locked') return true;
-    if (t === 'public') return true;
-    return false;
-  }));
-  if (hasTag('locked', ref)) {
-    ref.tags = tags;
-    return ref;
-  }
-  return {
+  return addTags({
     url: ref.url,
     origin: ref.origin,
-    tags,
+    tags: ['plugin/delete', 'internal'],
     created: ref.created,
     published: ref.published,
     modifiedString: ref.modifiedString,
-  };
+  }, ...filter(ref.tags, t => {
+    if (hasPrefix(t, 'user')) return true;
+    if (hasPrefix(t, 'locked')) return true;
+    if (hasPrefix(t, 'public')) return true;
+    return false;
+  }));
 }
 
 export function isDeletorTag(tag: string) {

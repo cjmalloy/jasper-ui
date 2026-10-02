@@ -1,6 +1,6 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, ElementRef, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -18,8 +18,8 @@ import { hasPrefix } from '../../util/tag';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink]
 })
-export class NavComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class NavComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
 
   @Input()
   origin: string = '';
@@ -57,7 +57,7 @@ export class NavComponent implements OnInit, OnDestroy {
         this.text = this.text || (tag && !tag.startsWith('@') ? '#' + tag : tag) || '';
         this.title ||= tag ? '#' + tag : '';
         this.editor.getTagPreview(tag, this.origin, true, !this.shortUser || !hasPrefix(tag, 'user'))
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(x => {
             this.text = x?.name || this.text;
             if (this.store.view.browser) {
@@ -67,7 +67,7 @@ export class NavComponent implements OnInit, OnDestroy {
       }
     } else if (!this.external) {
       this.vis.notifyVisible(this.el, () => {
-        this.refs.exists(this.url).pipe(takeUntil(this.destroy$)).subscribe(exists => {
+        this.refs.exists(this.url).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(exists => {
           if (exists) {
             this.nav = [this.store.view.refPath, this.url];
           }
@@ -76,10 +76,6 @@ export class NavComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   getNav() {
     if (this.url.toLowerCase().startsWith('tag:/')) {

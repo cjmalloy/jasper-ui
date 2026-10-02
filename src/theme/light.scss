@@ -46,9 +46,14 @@ body.light-theme {
     color: blue;
   }
 
+  .parent-link {
+    color: var(--info);
+  }
+
   a:active {
     color: var(--text);
   }
+
   .debug footer p {
     filter: brightness(3);
   }

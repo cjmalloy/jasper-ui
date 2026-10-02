@@ -1,7 +1,7 @@
 <app-editor #editor [control]="comment"
             [createdTags]="ref.tags || []"
             (syncTags)="editorTags = $event"
-            (addSource)="sources.push($event)"
+            (addSource)="addSource($event)"
             (uploadCompleted)="completedUploads.push($event)"
             [autoFocus]="true"></app-editor>
 @for (e of serverError; track e) {

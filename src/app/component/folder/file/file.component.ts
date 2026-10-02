@@ -1,7 +1,10 @@
-import { AsyncPipe } from '@angular/common';
-import { Component, forwardRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import {
+  AsyncPipe
+} from '@angular/common';
+import { DestroyRef, inject, Component, forwardRef, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
+import { catchError, of, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import {
   Action,
@@ -39,10 +42,10 @@ import { ViewerComponent } from '../../viewer/viewer.component';
     CssUrlPipe,
   ],
 })
-export class FileComponent implements OnChanges, OnDestroy {
+export class FileComponent implements OnChanges {
   css = 'file ';
   @HostBinding('attr.tabindex') tabIndex = 0;
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   @Input()
   ref!: Ref;
@@ -91,7 +94,7 @@ export class FileComponent implements OnChanges, OnDestroy {
             : this.refs.getCurrent(this.url)
         ).pipe(
           catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-          takeUntil(this.destroy$),
+          takeUntilDestroyed(this.destroyRef),
         ).subscribe(ref => {
           this.repostRef = ref;
           if (!ref) return;
@@ -106,10 +109,6 @@ export class FileComponent implements OnChanges, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   @memo
   @HostBinding('class')

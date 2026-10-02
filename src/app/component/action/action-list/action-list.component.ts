@@ -4,6 +4,7 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
@@ -13,8 +14,7 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
-  ViewContainerRef,
-  ChangeDetectionStrategy
+  ViewContainerRef
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subscription } from 'rxjs';
@@ -23,10 +23,11 @@ import { Ref, writeRef } from '../../../model/ref';
 import { Action } from '../../../model/tag';
 import { ActionService } from '../../../service/action.service';
 import { ConfigService } from '../../../service/config.service';
-import { downloadRef } from '../../../util/download';
+import { downloadRef, downloadUrl } from '../../../util/download';
 import { memo, MemoCache } from '../../../util/memo';
 import { ConfirmActionComponent } from '../confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../inline-button/inline-button.component';
+import { ProxyService } from '../../../service/api/proxy.service';
 
 @Component({
   selector: 'app-action-list',
@@ -62,6 +63,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   constructor(
     private config: ConfigService,
+    private proxy: ProxyService,
     private acts: ActionService,
     private overlay: Overlay,
     private el: ElementRef<HTMLElement>,
@@ -94,7 +96,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   downloadMedia() {
     if (!this.mediaAttachment) return;
-    window.open(this.mediaAttachment, "_blank");
+    downloadUrl(this.proxy, this.mediaAttachment);
   }
 
   @HostListener('window:resize')

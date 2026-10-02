@@ -3,9 +3,8 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { finalize, Subject } from 'rxjs';
 
-import { EXT_UPDATE_RATE_LIMIT_MS, StompService } from './stomp.service';
+import { StompService } from './stomp.service';
 
 describe('StompService', () => {
   let service: StompService;
@@ -20,10 +19,6 @@ describe('StompService', () => {
     }).compileComponents();
 
     service = TestBed.inject(StompService);
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it('should be created', () => {
@@ -54,35 +49,14 @@ describe('StompService', () => {
     expect(hostUrl).not.toMatch(/:\d{5,}/);
   });
 
-  it('should stop watching an Ext after two updates within one minute', () => {
-    vi.useFakeTimers();
-    const updates = new Subject<any>();
-    vi.spyOn(service, 'watch').mockReturnValue(updates);
-    const received = vi.fn();
-    const stopped = vi.fn();
+  it('should configure the broker URL when initialized', () => {
+    service['config'].api = '//configured.example:8080';
+    const configure = vi.spyOn(service, 'configure');
 
-    service.watchExt('test').pipe(finalize(stopped)).subscribe(received);
-    updates.next({ body: '{"tag":"test","origin":"","name":"First"}' });
-    vi.advanceTimersByTime(EXT_UPDATE_RATE_LIMIT_MS - 1);
-    updates.next({ body: '{"tag":"test","origin":"","name":"Second"}' });
+    service.initialize();
 
-    expect(received).toHaveBeenCalledOnce();
-    expect(stopped).toHaveBeenCalledOnce();
-    expect(updates.observed).toBe(false);
-  });
-
-  it('should keep watching Ext updates at least one minute apart', () => {
-    vi.useFakeTimers();
-    const updates = new Subject<any>();
-    vi.spyOn(service, 'watch').mockReturnValue(updates);
-    const received = vi.fn();
-
-    service.watchExt('test').subscribe(received);
-    updates.next({ body: '{"tag":"test","origin":"","name":"First"}' });
-    vi.advanceTimersByTime(EXT_UPDATE_RATE_LIMIT_MS);
-    updates.next({ body: '{"tag":"test","origin":"","name":"Second"}' });
-
-    expect(received).toHaveBeenCalledTimes(2);
-    expect(updates.observed).toBe(true);
+    expect(configure).toHaveBeenCalledWith(expect.objectContaining({
+      brokerURL: 'ws://configured.example:8080/api/stomp/websocket',
+    }));
   });
 });

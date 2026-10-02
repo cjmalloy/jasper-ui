@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { clearMods, openSidebar } from './setup';
+import { mod, openSidebar } from './setup';
 
 test.describe.serial('Ref Actions', () => {
   let page: Page;
@@ -13,7 +13,7 @@ test.describe.serial('Ref Actions', () => {
   });
 
   test('clear mods', async () => {
-    await clearMods(page);
+    await mod(page, '#mod-error');
   });
 
   test('creates a ref', async () => {
@@ -86,6 +86,47 @@ test.describe.serial('Ref Actions', () => {
     await page.locator('.ref-list .ref .actions .fake-link', { hasText: 'yes' }).first().click();
     await page.locator('.ref-list .ref .actions a', { hasText: 'parent' }).first().click();
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
+  });
+
+  test('shows retry after a websocket error update in a thread', async ({ browser }) => {
+    const refUrl = await page.locator('.full-page.ref').getAttribute('data-ref-url');
+    expect(refUrl).toBeTruthy();
+    const origin = new URL(page.url()).origin;
+    await page.goto(`${origin}/ref/thread/e/${encodeURIComponent(refUrl!)}?debug=MOD`, { waitUntil: 'networkidle' });
+
+    const updaterContext = await browser.newContext();
+    const updater = await updaterContext.newPage();
+    try {
+      await updater.goto(`${origin}/ref/e/${encodeURIComponent(refUrl!)}?debug=ADMIN`, { waitUntil: 'networkidle' });
+      await updater.locator('.full-page.ref .actions .fake-link', { hasText: 'edit' }).first().click();
+      const tagList = updater.locator('.full-page.ref .form-group').filter({
+        has: updater.getByRole('button', { name: '+ Add another tag' }),
+      }).first();
+      await tagList.getByRole('button', { name: '+ Add another tag' }).click();
+      await tagList.locator('input').last().fill('+plugin/error');
+      const refUpdate = updater.waitForResponse(response =>
+        response.url().includes('/api/v1/ref')
+        && response.request().method() === 'PUT'
+        && response.ok());
+      await updater.locator('.full-page.ref form.form button', { hasText: 'save' }).click();
+      await refUpdate;
+
+      await expect(page.locator('.full-page.ref .info .icon', { hasText: '⚠️' })).toBeVisible();
+      const retry = page.locator('.full-page.ref .actions').getByText('retry', { exact: true });
+      await expect(retry).toBeVisible();
+      const retryUpdate = page.waitForResponse(response => {
+        const url = new URL(response.url());
+        return url.pathname.endsWith('/api/v1/tags')
+          && response.request().method() === 'DELETE'
+          && url.searchParams.get('tag') === '+plugin/error'
+          && response.ok();
+      });
+      await retry.click();
+      await retryUpdate;
+      await expect(page.locator('.full-page.ref .info .icon', { hasText: '⚠️' })).toHaveCount(0);
+    } finally {
+      await updaterContext.close();
+    }
   });
 
   test.describe('New Comments/Threads/Replies Indicators', () => {

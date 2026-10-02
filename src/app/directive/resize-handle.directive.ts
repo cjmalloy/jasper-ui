@@ -21,12 +21,12 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
 
   @Input()
   hitArea = 24;
-
   @Input()
   appResizeHandle?: boolean | string = true;
-
   @Input()
   child?: HTMLElement;
+  @Input()
+  initChild = false;
 
   @HostBinding('class.resize-dragging')
   dragging = false;
@@ -56,7 +56,13 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     if (!this.enabled) return;
     this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.shrinkContainer()) || undefined;
-    if (this.child) this.resizeObserver?.observe(this.child);
+    if (this.child) {
+      if (this.initChild) {
+        this.child.style.width = this.el.nativeElement.style.width || (this.config.mobile ? 'min(100%, 100vw - 16px)' : 'min(100%, 80vw)');
+        this.child.style.height = this.el.nativeElement.style.height || '80vh';
+      }
+      this.resizeObserver?.observe(this.child);
+    }
   }
 
   ngOnDestroy() {

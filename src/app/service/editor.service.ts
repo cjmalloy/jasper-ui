@@ -67,6 +67,23 @@ export class EditorService {
         SECTION: paragraphConverter,
       },
     });
+    const preformattedProvider = (api: PluginApi): Plugin => ({
+      converters: {
+        PRE: {
+          startTag(conversion): boolean {
+            const code = conversion.element.text();
+            const fence = '`'.repeat((code.match(/`+/g) || [])
+              .reduce((length, run) => Math.max(length, run.length + 1), 3));
+            conversion.appendParagraph().append(fence).append(conversion.left);
+            conversion.output(code, { preserveLeadingWhitespace: true });
+            if (!conversion.atLeft) conversion.append(conversion.left);
+            conversion.atLeft = conversion.atParagraph = false;
+            conversion.append(fence).appendParagraph();
+            return false;
+          },
+        },
+      },
+    });
     const linkProvider = (api: PluginApi): Plugin => ({
       converters: {
         A: {
@@ -114,11 +131,14 @@ export class EditorService {
       }
     });
     const audioProvider = (api: PluginApi): Plugin => ({
+      startConversion(conversion) {
+        conversion.skipTagNames.delete('AUDIO');
+      },
       converters: {
         AUDIO: {
           startTag(conversion): boolean {
             const { element } = conversion;
-            const source = element.find('source')?.attr('src');
+            const source = element.find('source')?.attr('src') || element.attr('src');
             if (!source) {
               return false; // No source found, skip
             }
@@ -135,11 +155,14 @@ export class EditorService {
       }
     });
     const videoProvider = (api: PluginApi): Plugin => ({
+      startConversion(conversion) {
+        conversion.skipTagNames.delete('VIDEO');
+      },
       converters: {
         VIDEO: {
           startTag(conversion): boolean {
             const { element } = conversion;
-            const source = element.find('source')?.attr('src');
+            const source = element.find('source')?.attr('src') || element.attr('src');
             if (!source) {
               return false; // No source found, skip
             }
@@ -157,6 +180,7 @@ export class EditorService {
     });
     Europa.registerPlugin(superscriptProvider);
     Europa.registerPlugin(paragraphProvider);
+    Europa.registerPlugin(preformattedProvider);
     Europa.registerPlugin(linkProvider);
     Europa.registerPlugin(audioProvider);
     Europa.registerPlugin(videoProvider);
