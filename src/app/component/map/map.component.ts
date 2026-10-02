@@ -26,6 +26,7 @@ import { geoFeatures, hasLocation } from '../../util/geo';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
+import { GeocoderComponent } from './geocoder.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
 
@@ -45,7 +46,8 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
     ScaleControlDirective,
     LoadingComponent,
     PageControlsComponent,
-    ResizeHandleDirective
+    ResizeHandleDirective,
+    GeocoderComponent,
   ]
 })
 export class MapComponent implements OnChanges, OnDestroy, HasChanges {
@@ -72,6 +74,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private markers: Marker[] = [];
   private mapDataUpdates$ = new Subject<Ref[]>();
   mapData: MapEntry[] = [];
+  geocoding = false;
 
   constructor(
     private router: Router,
@@ -82,6 +85,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     private geocoder: GeocodeService,
   ) {
     setWorkerUrl('assets/maplibre-gl-worker.mjs');
+    geocoder.configured$.pipe(takeUntilDestroyed()).subscribe(configured => this.geocoding = configured);
     this.mapDataUpdates$.pipe(
       switchMap(content => {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content.map(ref => [ref] as MapEntry));
@@ -210,9 +214,6 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     });
     this.updateMapData();
     this.fit();
-    this.geocoder.control().then(control => {
-      if (control && this.map === map) map.addControl(control, 'top-left');
-    });
   }
 
   private fit() {

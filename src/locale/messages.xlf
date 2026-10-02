@@ -2862,6 +2862,46 @@ Please Reload.</source>
           <context context-type="linenumber">79,80</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="632822263124795513" datatype="html">
+        <source>Search address</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/map/geocoder.component.ts</context>
+          <context context-type="linenumber">25,26</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/map/geocoder.component.ts</context>
+          <context context-type="linenumber">27,28</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/map/geocoder.component.ts</context>
+          <context context-type="linenumber">35,36</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/map/geocoder.component.ts</context>
+          <context context-type="linenumber">37,38</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6277392156435513308" datatype="html">
+        <source>Searching…</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/map/geocoder.component.ts</context>
+          <context context-type="linenumber">45,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8692634109890521682" datatype="html">
+        <source>No results found.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/map/geocoder.component.ts</context>
+          <context context-type="linenumber">54,55</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8421900256859774197" datatype="html">
+        <source>Address search failed.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/map/geocoder.component.ts</context>
+          <context context-type="linenumber">101</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="4217733100334209102" datatype="html">
         <source>pages: <x id="INTERPOLATION" equiv-text="{{ page.page.totalPages }}"/>, results: <x id="INTERPOLATION_1" equiv-text="{{ page.page.totalElements }}"/></source>
         <context-group purpose="location">
@@ -17847,46 +17887,6 @@ Enter the origin to confirm:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/geocode.ts</context>
           <context context-type="linenumber">102</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="632822263124795513" datatype="html">
-        <source>Search address</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
-          <context context-type="linenumber">35</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
-          <context context-type="linenumber">36</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
-          <context context-type="linenumber">52</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
-          <context context-type="linenumber">53</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="6277392156435513308" datatype="html">
-        <source>Searching…</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
-          <context context-type="linenumber">80</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="8421900256859774197" datatype="html">
-        <source>Address search failed.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
-          <context context-type="linenumber">89</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="8692634109890521682" datatype="html">
-        <source>No results found.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
-          <context context-type="linenumber">98</context>
         </context-group>
       </trans-unit>
     </body>

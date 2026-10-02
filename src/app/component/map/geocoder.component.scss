@@ -1,4 +1,5 @@
-.maplibregl-ctrl.geocoder-control {
+.geocoder-control {
+  display: block;
   position: relative;
   width: 260px;
   max-width: calc(100vw - 60px);

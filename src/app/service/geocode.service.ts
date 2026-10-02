@@ -3,7 +3,6 @@ import { catchError, firstValueFrom, map, Observable, of, timeout } from 'rxjs';
 import { mapTemplate } from '../mods/map';
 import { Store } from '../store/store';
 import { geocode, GeocodeResult, GeocodingConfig, isConfigured, reverseGeocode } from '../util/geocode';
-import { GeocoderControl } from '../util/geocoder-control';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 
@@ -40,12 +39,10 @@ export class GeocodeService {
   }
 
   /**
-   * Map control for searching addresses, if geocoding is configured.
+   * Is a geocoding provider set up for searching addresses on maps.
    */
-  async control(): Promise<GeocoderControl | undefined> {
-    const config = await firstValueFrom(this.config$);
-    if (!isConfigured(config)) return undefined;
-    return new GeocoderControl((query, signal) => geocode(query, config, signal));
+  get configured$(): Observable<boolean> {
+    return this.config$.pipe(map(isConfigured));
   }
 
   async reverse(location: [number, number], signal?: AbortSignal): Promise<GeocodeResult | undefined> {

@@ -187,6 +187,8 @@ test.describe.serial('Map Plugin', () => {
 
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-map')).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-marker')).toBeVisible();
+    // Address search is shown when geocoding is configured
+    await expect(page.locator('.full-page.ref .map-embed .geocoder-control .geocoder-input')).toBeVisible();
   });
 
   test('cleanup', async ({ page }) => {

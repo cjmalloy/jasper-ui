@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, Input, NgZone, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
-import { MapComponent as MglComponent } from '@maplibre/ngx-maplibre-gl';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ControlComponent, MapComponent as MglComponent } from '@maplibre/ngx-maplibre-gl';
 import type { Feature, FeatureCollection } from 'geojson';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
 import { Map as MapLibreMap, Marker, setWorkerUrl } from 'maplibre-gl';
 import { Subscription } from 'rxjs';
+import { GeocoderComponent } from '../component/map/geocoder.component';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
 import { GeocodeService } from '../service/geocode.service';
@@ -28,12 +30,18 @@ import { closedRings, LocationPicker } from './location-picker';
     <mgl-map [mapStyle]="mapStyle"
              (mapLoad)="mapLoaded($event)"
              (mapClick)="mapClick($event)"
-             (mapError)="onMapError($event)"></mgl-map>
+             (mapError)="onMapError($event)">
+      @if (geocoding) {
+        <mgl-control position="top-left">
+          <app-geocoder></app-geocoder>
+        </mgl-control>
+      }
+    </mgl-map>
   `,
   styleUrls: ['./location-map.component.scss'],
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MglComponent],
+  imports: [MglComponent, ControlComponent, GeocoderComponent],
 })
 export class LocationMapComponent implements OnDestroy {
 
@@ -48,12 +56,19 @@ export class LocationMapComponent implements OnDestroy {
   private lastActive?: AbstractControl;
   private lastActiveValue?: any;
 
+  geocoding = false;
+
   constructor(
     private admin: AdminService,
     private geocoder: GeocodeService,
     private zone: NgZone,
+    private cd: ChangeDetectorRef,
   ) {
     setWorkerUrl('assets/maplibre-gl-worker.mjs');
+    geocoder.configured$.pipe(takeUntilDestroyed()).subscribe(configured => {
+      this.geocoding = configured;
+      this.cd.markForCheck();
+    });
   }
 
   get mapStyle() {
@@ -121,9 +136,6 @@ export class LocationMapComponent implements OnDestroy {
     this.updateMarkers();
     // The location may have changed while the map style was loading
     this.panToActive();
-    this.geocoder.control().then(control => {
-      if (control && this.map === map) map.addControl(control, 'top-left');
-    });
   }
 
   mapClick(event: MapMouseEvent) {
