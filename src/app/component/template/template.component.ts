@@ -122,6 +122,7 @@ export class TemplateComponent implements OnChanges, HasChanges {
       return;
     }
     this.serverError = [];
+    this.viewSource = false;
     this.loadingDiff = this.templates.get(this.template.tag + this.store.account.origin).pipe(
       catchError((err: HttpErrorResponse) => {
         delete this.loadingDiff;
