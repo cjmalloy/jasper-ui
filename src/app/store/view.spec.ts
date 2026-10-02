@@ -56,4 +56,28 @@ describe('ViewStore defaults', () => {
     expect(store.urlQueryTags()).toEqual(['science']);
     expect(store.queryTags()).toEqual(['science', 'public']);
   });
+
+  it('copies sort defaults and publishes new mod collections without mutating snapshots', () => {
+    const store = createStore();
+    const sorts = ['published' as const];
+    const searchSorts = ['rank' as const];
+    store.clear(sorts, searchSorts);
+    expect(store.defaultSort()).not.toBe(sorts);
+    expect(store.defaultSearchSort()).not.toBe(searchSorts);
+
+    const changes = store.modChanges();
+    const updates = store.modUpdates();
+    store.setModChange('plugin/test', true);
+    store.addModUpdate('plugin/test');
+    expect(changes.size).toBe(0);
+    expect(updates.size).toBe(0);
+    const changed = store.modChanges();
+    const updated = store.modUpdates();
+
+    store.clearModChanges();
+    expect(store.modChanges().size).toBe(0);
+    expect(store.modUpdates().size).toBe(0);
+    expect(changed.get('plugin/test')).toBe(true);
+    expect(updated.has('plugin/test')).toBe(true);
+  });
 });

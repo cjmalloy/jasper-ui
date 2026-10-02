@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, Injectable, signal, untracked } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { isEqual } from 'lodash-es';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
@@ -19,7 +19,7 @@ export class ThreadStore {
   /**
    * Read only. Map of source URL to loaded responses.
    */
-  readonly cache = signal(new Map<string | undefined, Ref[]>(), { equal: () => false });
+  readonly cache = signal<ReadonlyMap<string | undefined, readonly Ref[]>>(new Map());
   readonly latest = signal<Ref[]>([]);
   readonly hasMore = computed(() => {
     if (!this.pages().length) return false;
@@ -55,24 +55,23 @@ export class ThreadStore {
   }
 
   add(...refs: Ref[]) {
-    const cache = untracked(() => this.cache());
-    for (const ref of refs) {
-      if (!ref.sources?.[0]) continue;
-      if (cache.has(ref.sources?.[0])) {
-        const arr = cache.get(ref.sources?.[0])!;
-        if (!arr.find(x => x.url === ref.url)) arr.push(ref);
-      } else {
-        cache.set(ref.sources?.[0], [ref]);
+    this.cache.update(previous => {
+      const cache = new Map(previous);
+      for (const ref of refs) {
+        const source = ref.sources?.[0];
+        if (!source) continue;
+        const existing = cache.get(source) || [];
+        if (!existing.some(x => x.url === ref.url)) cache.set(source, [...existing, ref]);
       }
-    }
-    this.cache.set(cache);
+      return cache;
+    });
   }
 
   addPage(page: Page<Ref>) {
     if (!page.content.length) return;
     this.pages.update(pages => [...pages, page]);
     this.add(...page.content);
-    this.latest.set(page.content);
+    this.latest.set([...page.content]);
   }
 
   loadMore() {
@@ -106,7 +105,7 @@ export class ThreadStore {
     ).subscribe(page => {
       if (source) {
         this.add(...page.content);
-        this.latest.set(page.content);
+        this.latest.set([...page.content]);
       }
     });
   }

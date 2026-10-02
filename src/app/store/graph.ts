@@ -1,5 +1,5 @@
 import { computed, signal, untracked } from '@angular/core';
-import { assign, difference, max, min, without } from 'lodash-es';
+import { difference, max, min, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { Page } from '../model/page';
 import { RefNode } from '../model/ref';
@@ -47,8 +47,7 @@ export class GraphStore {
       for (const ref of refs) {
         const found = findNode(nodes, ref.url);
         if (found) {
-          assign(found, ref);
-          found.unloaded = false;
+          nodes[nodes.indexOf(found)] = { ...found, ...ref, unloaded: false };
         } else {
           nodes.push(ref);
         }
@@ -58,17 +57,23 @@ export class GraphStore {
         nodes.push(...difference(unloadedReferences(nodes, ...refs), unloaded).map(url => ({ url, unloaded: true })));
       }
       this.nodes.set(nodes);
-      this.selected.set([...this.selected()]);
-      this.links.set([...this.links(), ...links(nodes, ...refs)]);
-      this.loading.set(without(this.loading(), ...refs.map(r => r.url)));
+      this.selected.update(selected => selected.map(n => findNode(nodes, n.url) || n));
+      this.links.update(previous => [
+        ...this.remapLinks(previous, nodes),
+        ...links(nodes, ...refs),
+      ]);
+      this.loading.update(loading => without(loading, ...refs.map(r => r.url)));
     });
   }
 
   remove(refs: RefNode[]) {
     untracked(() => {
-      this.nodes.set(without(this.nodes(), ...refs));
-      this.selected.set(without(this.selected(), ...refs));
-      this.links.set(this.links().filter(l => !refs.find(ref => l.target === ref || l.source === ref)));
+      const removed = new Set(refs.map(ref => ref.url));
+      this.nodes.update(nodes => nodes.filter(n => !removed.has(n.url)));
+      this.selected.update(selected => selected.filter(n => !removed.has(n.url)));
+      this.links.update(links => links.filter(l =>
+        !removed.has(typeof l.target === 'string' ? l.target : l.target.url)
+        && !removed.has(typeof l.source === 'string' ? l.source : l.source.url)));
     });
   }
 
@@ -87,7 +92,8 @@ export class GraphStore {
   }
 
   select(...refs: GraphNode[]) {
-    this.selected.set([...refs]);
+    const nodes = untracked(this.nodes);
+    this.selected.set(refs.map(ref => findNode(nodes, ref.url) || { ...ref }));
   }
 
   selectAll() {
@@ -102,39 +108,67 @@ export class GraphStore {
     return untracked(() => {
       if (this.unloadedNotLoading().length === 0) return [];
       const more = this.unloadedNotLoading().slice(0, number);
-      this.loading.set([...this.loading(), ...more]);
+      this.loading.update(loading => [...loading, ...more]);
       return more;
     });
   }
 
   startLoading(...url: string[]) {
-    this.loading.set([...untracked(() => this.loading()), ...url]);
+    this.loading.update(loading => [...loading, ...url]);
   }
 
   notFound(url: string) {
     return untracked(() => {
       const nodes = [...this.nodes()];
       let ref = findNode(nodes, url);
-      if (!ref) {
-        ref = { url, notFound: true };
+      if (ref) {
+        const index = nodes.indexOf(ref);
+        ref = { ...ref, notFound: true, unloaded: false };
+        nodes[index] = ref;
+      } else {
+        ref = { url, notFound: true, unloaded: false };
         nodes.push(ref);
       }
-      ref.notFound = true;
-      ref.unloaded = false;
       this.nodes.set(nodes);
-      this.loading.set(without(this.loading(), url));
-      if (!this.showUnloaded()) {
-        this.links.set([...this.links(), ...linkSources(nodes, url)]);
-      }
-      this.selected.set([...this.selected()]);
+      this.loading.update(loading => without(loading, url));
+      this.links.update(previous => [
+        ...this.remapLinks(previous, nodes),
+        ...!this.showUnloaded() ? linkSources(nodes, url) : [],
+      ]);
+      this.selected.update(selected => selected.map(n => findNode(nodes, n.url) || n));
       return ref;
     });
   }
 
+  private remapLinks(previous: GraphLink[], nodes: GraphNode[]): GraphLink[] {
+    return previous.map(link => ({
+      ...link,
+      source: typeof link.source === 'string' ? link.source : findNode(nodes, link.source.url) || link.source,
+      target: typeof link.target === 'string' ? link.target : findNode(nodes, link.target.url) || link.target,
+    }));
+  }
+
+  setPinned(pinned: boolean, ...refs: GraphNode[]) {
+    const positions = new Map(refs.map(ref => [ref.url, ref]));
+    this.nodes.update(nodes => nodes.map(node => {
+      const position = positions.get(node.url);
+      if (!position) return node;
+      return {
+        ...node,
+        pinned,
+        fx: pinned ? position.x ?? 0 : undefined,
+        fy: pinned ? position.y ?? 0 : undefined,
+      };
+    }));
+    const nodes = untracked(this.nodes);
+    this.selected.update(selected => selected.map(node => findNode(nodes, node.url) || node));
+    this.links.update(previous => this.remapLinks(previous, nodes));
+  }
+
   grabNodeOrSelection(ref: RefNode) {
     return untracked(() => {
-      if (!this.selected().includes(ref)) {
-        this.selected.set([ref]);
+      if (!this.selected().some(node => node.url === ref.url)) {
+        this.select(ref);
       }
       return [...this.selected()];
     });

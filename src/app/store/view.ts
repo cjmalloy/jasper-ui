@@ -54,11 +54,11 @@ export class ViewStore {
   /**
    * Read only. Use setModChange() and clearModChanges() to modify.
    */
-  readonly modChanges = signal(new Map<string, boolean>());
+  readonly modChanges = signal<ReadonlyMap<string, boolean>>(new Map());
   /**
    * Read only. Use addModUpdate() and clearModChanges() to modify.
    */
-  readonly modUpdates = signal(new Set<string>());
+  readonly modUpdates = signal<ReadonlySet<string>>(new Set());
   readonly inboxTabs = signal<Plugin[]>([]);
   readonly settingsTabs = signal<Plugin[]>([]);
 
@@ -101,8 +101,8 @@ export class ViewStore {
     this.exts.set([]);
     this.extTemplates.set([]);
     this.selectedUser.set(undefined);
-    this.defaultSort.set(defaultSort);
-    this.defaultSearchSort.set(defaultSearchSort);
+    this.defaultSort.set(defaultSort.slice());
+    this.defaultSearchSort.set(defaultSearchSort.slice());
     this.defaultPageNumber.set(defaultPageNumber);
   }
 
