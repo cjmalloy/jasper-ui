@@ -38,6 +38,12 @@ export class LocationPicker {
   }
 }
 
+/**
+ * Lists of locations kept closed as a linear ring (RFC 7946 3.1.6). The last
+ * position is a hidden copy of the first.
+ */
+export const closedRings = new WeakSet<AbstractControl>();
+
 const pickers = new WeakMap<FormlyFieldConfig, LocationPicker>();
 
 /**

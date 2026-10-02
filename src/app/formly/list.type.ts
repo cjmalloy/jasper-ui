@@ -1,13 +1,14 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { Component, HostBinding, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
-import { defer } from 'lodash-es';
+import { cloneDeep, defer, isEqual } from 'lodash-es';
+import { Subscription } from 'rxjs';
 import { Store } from '../store/store';
 import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
 import { LocationMapComponent } from './location-map.component';
-import { getLocationPicker } from './location-picker';
+import { closedRings, getLocationPicker } from './location-picker';
 
 @Component({
   selector: 'formly-list-section',
@@ -30,6 +31,7 @@ import { getLocationPicker } from './location-picker';
         <button type="button" (click)="add()">{{ props.addText }}</button>
       }
       @for (field of field.fieldGroup; track field.id; let i = $index) {
+        @if (i < size) {
         <div class="form-array list-drag"
              cdkDrag
              [cdkDragData]="model[i]"
@@ -43,6 +45,7 @@ import { getLocationPicker } from './location-picker';
                         (keydown)="keydown($event, i)"></formly-field>
           <button type="button" (click)="remove(i)" i18n>&ndash;</button>
         </div>
+        }
       }
     </div>
     @if (locationPicker?.open) {
@@ -62,9 +65,11 @@ import { getLocationPicker } from './location-picker';
     LocationMapComponent,
   ],
 })
-export class ListTypeComponent extends FieldArrayType {
+export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestroy {
 
   dropping = false;
+
+  private ringWatch?: Subscription;
 
   constructor(
     private store: Store,
@@ -75,6 +80,50 @@ export class ListTypeComponent extends FieldArrayType {
   @HostBinding('title')
   get title() {
     return this.props.title || '';
+  }
+
+  ngOnInit() {
+    if (!this.props.ring) return;
+    const value = this.formControl.value;
+    if (value?.length >= 4 && isEqual(value[0], value[value.length - 1])) closedRings.add(this.formControl);
+    defer(() => this.closeRing());
+    this.ringWatch = this.formControl.valueChanges.subscribe(() => defer(() => this.closeRing()));
+  }
+
+  ngOnDestroy() {
+    this.ringWatch?.unsubscribe();
+  }
+
+  /**
+   * Number of visible items. A closed ring hides its closing position.
+   */
+  get size() {
+    const length = this.field.fieldGroup?.length || 0;
+    return closedRings.has(this.formControl) ? length - 1 : length;
+  }
+
+  /**
+   * Keep rings closed (RFC 7946 3.1.6) by mirroring the first position
+   * into a hidden closing position once there are three or more positions.
+   */
+  private closeRing() {
+    if (this.ringWatch?.closed) return;
+    const arr = this.formControl;
+    const closed = closedRings.has(arr);
+    const points = arr.length - (closed ? 1 : 0);
+    const first = arr.length ? arr.at(0).value : undefined;
+    if (points >= 3) {
+      if (!closed) {
+        closedRings.add(arr);
+        super.add(arr.length, first, { markAsDirty: false });
+      } else if (!isEqual(arr.at(arr.length - 1).value, first)) {
+        this.model[arr.length - 1] = cloneDeep(first);
+        arr.at(arr.length - 1).setValue(cloneDeep(first));
+      }
+    } else if (closed) {
+      closedRings.delete(arr);
+      super.remove(arr.length - 1, { markAsDirty: false });
+    }
   }
 
   get locationPicker() {
@@ -112,10 +161,11 @@ export class ListTypeComponent extends FieldArrayType {
     return this.field.fieldArray?.type;
   }
 
-  override add(index?: number, initialModel?: any) {
+  override add(index?: number, initialModel?: any, options?: { markAsDirty: boolean }) {
     // @ts-ignore
     this.field.fieldArray.focus = index === undefined && !initialModel;
-    super.add(...arguments);
+    if (index === undefined && closedRings.has(this.formControl)) index = this.size;
+    super.add(index, initialModel, options);
   }
 
   keydown(event: KeyboardEvent, index: number) {
@@ -190,7 +240,7 @@ export class ListTypeComponent extends FieldArrayType {
   focus(index?: number, select = false) {
     if (this.groupArray) return;
     if (this.field.fieldGroup?.length === 0) return;
-    if (index === undefined || index >= this.field.fieldGroup!.length) index = this.field.fieldGroup!.length - 1;
+    if (index === undefined || index >= this.size) index = this.size - 1;
     if (index < 0) index = 0;
     defer(() => {
       const selector = '#' + this.field.fieldGroup![index].id;

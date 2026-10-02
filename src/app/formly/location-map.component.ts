@@ -8,7 +8,7 @@ import { Subscription } from 'rxjs';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
 import { geoFeatures, isPosition } from '../util/geo';
-import { LocationPicker } from './location-picker';
+import { closedRings, LocationPicker } from './location-picker';
 
 /**
  * Map picker shared by all location inputs in a plugin form. Every location
@@ -243,7 +243,10 @@ export class LocationMapComponent implements OnDestroy {
 
 function leaves(c: AbstractControl, out: AbstractControl[] = []): AbstractControl[] {
   if (c instanceof FormArray || c instanceof FormGroup) {
-    for (const child of Object.values(c.controls) as AbstractControl[]) leaves(child, out);
+    const children = Object.values(c.controls) as AbstractControl[];
+    // The closing position of a ring mirrors the first and is not editable
+    if (closedRings.has(c)) children.pop();
+    for (const child of children) leaves(child, out);
   } else {
     out.push(c);
   }

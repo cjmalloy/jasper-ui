@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { deleteRef, mod } from './setup';
 
 const URL = 'https://jasperkm.info/plugin-map-test';
+const POLYGON_URL = 'https://jasperkm.info/plugin-map-polygon-test';
 
 test.describe.serial('Map Plugin', () => {
 
@@ -11,6 +12,7 @@ test.describe.serial('Map Plugin', () => {
 
   test('delete test ref', async ({ page }) => {
     await deleteRef(page, URL);
+    await deleteRef(page, POLYGON_URL);
   });
 
   test('location input map picker selects a location', async ({ page }) => {
@@ -90,6 +92,39 @@ test.describe.serial('Map Plugin', () => {
     await expect(page.locator('.location-map')).toHaveCount(0);
   });
 
+  test('polygon rings are closed automatically', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(POLYGON_URL)
+      + '&tag=plugin/geo/polygon', { waitUntil: 'networkidle' });
+    await page.locator('[name=title]').fill('Map Polygon Test');
+    await page.locator('button', { hasText: '+ Add Ring' }).click();
+    const ring = page.locator('.plugin-content formly-list-section formly-list-section').first();
+    const points = ring.locator('.location-field');
+    const coords = [[-63.5, 44.6], [-63.4, 44.6], [-63.4, 44.7]];
+    for (let i = 0; i < coords.length; i++) {
+      await ring.locator('button', { hasText: '+ Add Point' }).click();
+      await points.nth(i).locator('input').nth(0).fill('' + coords[i][0]);
+      await points.nth(i).locator('input').nth(1).fill('' + coords[i][1]);
+    }
+    // The closing position is hidden
+    await expect(points).toHaveCount(3);
+    // New points are added before the closing position
+    await ring.locator('button', { hasText: '+ Add Point' }).click();
+    await expect(points).toHaveCount(4);
+    await points.nth(3).locator('input').nth(0).fill('-63.5');
+    await points.nth(3).locator('input').nth(1).fill('44.7');
+    // Moving the first position moves the closing position
+    await points.nth(0).locator('input').nth(0).fill('-63.6');
+
+    const submitPromise = page.waitForRequest(
+      req => req.url().includes('/api/v1/ref') && req.method() === 'POST',
+    );
+    await page.locator('button', { hasText: 'Submit' }).click();
+    const ref = (await submitPromise).postDataJSON();
+    expect(ref.plugins['plugin/geo/polygon'].geometry.coordinates).toEqual([[
+      [-63.6, 44.6], [-63.4, 44.6], [-63.4, 44.7], [-63.5, 44.7], [-63.6, 44.6],
+    ]]);
+  });
+
   test('plugin/map embeds the ref geo features', async ({ page }) => {
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/map&tag=plugin/geo/point', { waitUntil: 'networkidle' });
@@ -113,5 +148,6 @@ test.describe.serial('Map Plugin', () => {
 
   test('cleanup', async ({ page }) => {
     await deleteRef(page, URL);
+    await deleteRef(page, POLYGON_URL);
   });
 });

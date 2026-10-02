@@ -74,14 +74,10 @@ function line(ps: Position[]): Geometry {
 function polygon(rings: any[]): Geometry | undefined {
   const rs = rings.map(positions).filter(r => r.length);
   if (!rs.length) return undefined;
-  const close = (ring: Position[]): Position[] => isLinearRing(ring) ? ring : [...ring, ring[0]];
-  const outer = rs[0];
-  if (outer.length < 3) return { type: 'GeometryCollection', geometries: rs.map(line) };
-  const holes = rs.slice(1);
-  const complete = [outer, ...holes.filter(r => r.length >= 3)].map(close);
+  if (!isLinearRing(rs[0])) return { type: 'GeometryCollection', geometries: rs.map(line) };
   const geometries: Geometry[] = [
-    { type: 'Polygon', coordinates: complete },
-    ...holes.filter(r => r.length < 3).map(line),
+    { type: 'Polygon', coordinates: rs.filter(isLinearRing) },
+    ...rs.filter(r => !isLinearRing(r)).map(line),
   ];
   return geometries.length === 1 ? geometries[0] : { type: 'GeometryCollection', geometries };
 }

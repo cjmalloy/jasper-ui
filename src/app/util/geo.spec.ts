@@ -23,6 +23,14 @@ describe('geo', () => {
       expect(geoFeatures(polygon([ring])).map(f => f.geometry)).toEqual([{ type: 'LineString', coordinates: ring }]);
     });
 
+    it('keeps closed rings when a hole is incomplete', () => {
+      const ring = [[0, 0], [4, 0], [4, 4], [0, 0]];
+      expect(geoFeatures(polygon([ring, [[1, 1]]])).map(f => f.geometry)).toEqual([
+        { type: 'Polygon', coordinates: [ring] },
+        { type: 'MultiPoint', coordinates: [[1, 1]] },
+      ]);
+    });
+
     it('renders incomplete parts as points', () => {
       expect(geoFeatures(polygon([[[0, 0]]])).map(f => f.geometry)).toEqual([{ type: 'MultiPoint', coordinates: [[0, 0]] }]);
     });
