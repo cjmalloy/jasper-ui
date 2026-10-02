@@ -13,10 +13,10 @@
          (click)="copy()"
          i18n-title title="Copy remote ref">📥️</a>
     }
-    @if (badgeExts$() | async; as xs) {
+    @if (badgeExts.hasValue() && badgeExts.value(); as xs) {
       @for (x of xs; track x.tag) {
         <a class="badge filter-toggle"
-           [class.filtering]="bookmarks.filters.includes($any('query/' + x.tag))"
+           [class.filtering]="bookmarks.filters().includes($any('query/' + x.tag))"
            (click)="bookmarks.toggleQuery(store.hotkey() ? '!(' + x.tag + ')' : x.tag)"
            [title]="x.name && x.tag">{{ firstWord(x.name) || '#' + x.tag }}</a>
       }
@@ -72,7 +72,7 @@
   <ng-template #cardMenu>
     <div class="context-menu" (click)="$event.stopPropagation()">
       <span i18n>Toggle Badges</span>
-      @if (allBadges$() | async; as xs) {
+      @if (allBadges.hasValue() && allBadges.value(); as xs) {
         @for (x of xs; track x.tag) {
           <div (contextmenu)="$event.preventDefault()"
                (pointerdown)="autoClose.set(false)"

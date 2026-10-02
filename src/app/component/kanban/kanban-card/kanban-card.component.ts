@@ -24,7 +24,7 @@ import {
   effect,
   untracked
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -92,9 +92,9 @@ export class KanbanCardComponent implements AfterViewInit {
 
   readonly repostRef = signal<Ref | undefined>(undefined);
 
-  readonly todo = signal(false);
-  readonly chess = signal(false);
-  readonly chessWhite = signal(true);
+  readonly todo = computed(() => !!this.admin.getPlugin('plugin/todo') && !!this.ref().tags?.includes('plugin/todo'));
+  readonly chess = computed(() => !!this.admin.getPlugin('plugin/chess') && !!this.ref().tags?.includes('plugin/chess'));
+  readonly chessWhite = computed(() => !!this.ref().tags?.includes(this.store.account.localTag()));
   overlayRef?: OverlayRef;
   readonly autoClose = signal(true);
 
@@ -123,9 +123,6 @@ export class KanbanCardComponent implements AfterViewInit {
   }
 
   init() {
-    this.todo.set(!!this.admin.getPlugin('plugin/todo') && !!this.ref().tags?.includes('plugin/todo'));
-    this.chess.set(!!this.admin.getPlugin('plugin/chess') && !!this.ref().tags?.includes('plugin/chess'));
-    this.chessWhite.set(!!this.ref().tags?.includes(this.store.account.localTag()));
     if (this.repost() && this.ref() && this.repostRef()?.url != repost(this.ref())) {
       (this.store.view.top()?.url === this.ref().sources![0]
           ? of(this.store.view.top())
@@ -219,11 +216,15 @@ export class KanbanCardComponent implements AfterViewInit {
     if (this.hideSwimLanes()) return badges;
     return difference(badges, this.ext()?.config?.swimLanes || []);
   });
-  readonly badgeExts$ = computed(() => {
-    return this.editor.getTagsPreview(this.badges(), this.ref().origin || '');
+  readonly badgeExts = rxResource({
+    params: () => ({ tags: this.badges(), origin: this.ref().origin || '' }),
+    stream: ({ params }) => params.tags.length ? this.editor.getTagsPreview(params.tags, params.origin) : of([]),
+    defaultValue: [],
   });
-  readonly allBadges$ = computed(() => {
-    return this.editor.getTagsPreview(this.ext()?.config?.badges || [], this.ref().origin || '');
+  readonly allBadges = rxResource({
+    params: () => ({ tags: this.ext()?.config?.badges as string[] || [], origin: this.ref().origin || '' }),
+    stream: ({ params }) => params.tags.length ? this.editor.getTagsPreview(params.tags, params.origin) : of([]),
+    defaultValue: [],
   });
   readonly lastSelected = computed(() => {
     return this.store.view.lastSelected()?.url === this.ref().url;
@@ -295,14 +296,14 @@ export class KanbanCardComponent implements AfterViewInit {
       this.tags.delete(tag, this.ref().url, this.ref().origin).pipe(
         tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
       ).subscribe(() => {
-        this.ref.set({ ...this.ref(), tags: this.ref().tags!.filter(t => expandedTagsInclude(t, tag)) });
+        this.ref.update(ref => ({ ...ref, tags: ref.tags!.filter(t => expandedTagsInclude(t, tag)) }));
         this.init();
       });
     } else {
       this.tags.create(tag, this.ref().url, this.ref().origin).pipe(
         tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
       ).subscribe(() => {
-        this.ref.set({ ...this.ref(), tags: [...(this.ref().tags || []), tag] });
+        this.ref.update(ref => ({ ...ref, tags: [...(ref.tags || []), tag] }));
         this.init();
       });
     }

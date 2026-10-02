@@ -4,6 +4,8 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { Subject } from 'rxjs';
+import { KanbanDrag } from '../kanban.component';
 
 import { KanbanColumnComponent } from './kanban-column.component';
 
@@ -28,6 +30,72 @@ describe('KanbanColumnComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('reloads on request changes, preserves cards for search and ignores equal sort arrays', () => {
+    const clear = vi.spyOn(component, 'clear').mockImplementation(() => {});
+    fixture.componentRef.setInput('query', 'kanban:doing');
+    fixture.detectChanges();
+    expect(clear).toHaveBeenLastCalledWith(true);
+    clear.mockClear();
+    fixture.componentRef.setInput('search', 'card');
+    fixture.detectChanges();
+    expect(clear).toHaveBeenLastCalledWith(false);
+    clear.mockClear();
+    fixture.componentRef.setInput('sort', []);
+    fixture.detectChanges();
+    expect(clear).not.toHaveBeenCalled();
+    fixture.componentRef.setInput('filter', ['query/done']);
+    fixture.detectChanges();
+    expect(clear).toHaveBeenLastCalledWith(true);
+  });
+
+  it('replaces update subscriptions when the input changes and cleans up on destroy', () => {
+    const first = new Subject<KanbanDrag>();
+    const second = new Subject<KanbanDrag>();
+    const update = vi.spyOn(component, 'update');
+    const event = { from: '', to: '', ref: { url: 'comment:card' }, index: 0 };
+    fixture.componentRef.setInput('updates', first);
+    fixture.detectChanges();
+    first.next(event);
+    expect(update).toHaveBeenCalledTimes(1);
+    fixture.componentRef.setInput('updates', second);
+    fixture.detectChanges();
+    first.next(event);
+    second.next(event);
+    expect(update).toHaveBeenCalledTimes(2);
+    fixture.destroy();
+    expect(second.observed).toBe(false);
+  });
+
+  it('updates pagination computations from immutable page writes', () => {
+    expect(component.empty()).toBe(true);
+    component.page.set({
+      content: [{ url: 'comment:card' }],
+      page: { number: 0, totalPages: 2, totalElements: 3, size: 1 },
+    });
+    expect(component.empty()).toBe(false);
+    expect(component.more()).toBe(2);
+    expect(component.hasMore()).toBe(true);
+    component.page.update(page => ({ ...page!, page: { ...page!.page, number: 1 } }));
+    expect(component.hasMore()).toBe(false);
+  });
+
+  it('matches immutable drag snapshots by composite identity rather than object reference', () => {
+    fixture.componentRef.setInput('query', 'kanban:doing');
+    const original = { url: 'comment:card', origin: '', tags: ['doing'] };
+    component.page.set({
+      content: [original],
+      page: { number: 0, totalPages: 1, totalElements: 1, size: 8 },
+    });
+    const previous = component.page();
+    component.update({
+      from: 'kanban:doing', to: 'kanban:done',
+      ref: { ...original, tags: ['done'] }, index: 0,
+    });
+    expect(component.page()?.content).toEqual([]);
+    expect(previous?.content).toEqual([original]);
+    expect(original.tags).toEqual(['doing']);
   });
 
   describe('Recovery Features', () => {

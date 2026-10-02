@@ -60,6 +60,14 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await page.locator('[name=showSwimLaneBacklog]').check();
     await page.locator('button', { hasText: 'Save' }).click();
     await expect(page.locator('h2')).toHaveText('Kanban Swim Lane Test');
+    await expect(page.locator('.kanban-column')).toHaveCount(9);
+    const hideSwimLanes = page.locator('.disable-swim-lanes input');
+    await hideSwimLanes.check();
+    await expect(page.locator('.kanban-column')).toHaveCount(3);
+    await expect(page.locator('.swim-lane-title')).toHaveCount(0);
+    await hideSwimLanes.uncheck();
+    await expect(page.locator('.kanban-column')).toHaveCount(9);
+    await expect(page.locator('.swim-lane-title')).toHaveCount(3);
   });
 
   test('add to board', async ({ page }) => {

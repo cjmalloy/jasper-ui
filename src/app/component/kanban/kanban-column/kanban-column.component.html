@@ -38,9 +38,9 @@
   <app-loading></app-loading>
 }
 <div class="spacer"></div>
-@if (hasMore) {
+@if (hasMore()) {
   <a class="fake-link no-select load-more"
-     (click)="loadMore()" i18n>load more @if (more) {<span class="more">({{ more }})</span>}</a>
+     (click)="loadMore()" i18n>load more @if (more()) {<span class="more">({{ more() }})</span>}</a>
 }
 <input type="text"
        enterkeyhint="send"
