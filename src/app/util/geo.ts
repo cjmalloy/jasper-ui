@@ -8,7 +8,10 @@ export function isPosition(p: any): p is Position {
  * A position other than the unset [0, 0] default.
  */
 export function hasLocation(v: any): v is [number, number] {
-  return isPosition(v) && (v[0] !== 0 || v[1] !== 0);
+  return isPosition(v)
+    && v[0] >= -180 && v[0] <= 180
+    && v[1] >= -90 && v[1] <= 90
+    && (v[0] !== 0 || v[1] !== 0);
 }
 
 /**
