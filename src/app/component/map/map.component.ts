@@ -326,11 +326,17 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     if (bbox?.length === 4) return new LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
     if (bbox?.length === 6) return new LngLatBounds([bbox[0], bbox[1]], [bbox[3], bbox[4]]);
     if (!this.fitFeatures) return undefined;
-    const bounds = new LngLatBounds();
+    const lngs: number[] = [];
+    let south = Infinity;
+    let north = -Infinity;
     const extend = (c: any): void => {
       if (!Array.isArray(c)) return;
       if (typeof c[0] === 'number' && typeof c[1] === 'number') {
-        if (isFinite(c[0]) && isFinite(c[1])) bounds.extend([c[0], c[1]]);
+        if (isFinite(c[0]) && isFinite(c[1])) {
+          lngs.push(((c[0] + 180) % 360 + 360) % 360 - 180);
+          south = Math.min(south, c[1]);
+          north = Math.max(north, c[1]);
+        }
       } else {
         c.forEach(extend);
       }
@@ -339,7 +345,9 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       .flatMap(([ref]) => features(ref))
       .flatMap(f => geoFeatures(f, hasLocation))
       .forEach(f => extend((f.geometry as any).coordinates));
-    return bounds.isEmpty() ? undefined : bounds;
+    if (!lngs.length) return undefined;
+    const [west, east] = minimalLngInterval(lngs);
+    return new LngLatBounds([west, south], [east, north]);
   }
 
   private updateMapData() {
@@ -436,4 +444,25 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
 function round(n: number) {
   return Math.round(n * 1e6) / 1e6;
+}
+
+/**
+ * Smallest longitude interval containing all normalized longitudes, possibly
+ * crossing the antimeridian. Returns [west, east] with east >= west, where east
+ * may exceed 180 when the interval crosses the antimeridian.
+ */
+export function minimalLngInterval(lngs: number[]): [number, number] {
+  const sorted = [...lngs].sort((a, b) => a - b);
+  let gap = sorted[0] + 360 - sorted[sorted.length - 1];
+  let start = 0;
+  for (let i = 1; i < sorted.length; i++) {
+    const g = sorted[i] - sorted[i - 1];
+    if (g > gap) {
+      gap = g;
+      start = i;
+    }
+  }
+  const west = sorted[start];
+  const east = sorted[(start + sorted.length - 1) % sorted.length];
+  return [west, east < west ? east + 360 : east];
 }

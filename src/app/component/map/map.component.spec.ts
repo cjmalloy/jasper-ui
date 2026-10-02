@@ -7,7 +7,7 @@ import { provideRouter } from '@angular/router';
 
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
-import { MapComponent } from './map.component';
+import { MapComponent, minimalLngInterval } from './map.component';
 
 describe('MapComponent', () => {
   let component: MapComponent;
@@ -235,5 +235,19 @@ describe('MapComponent', () => {
       ]]);
       expect(component.mapData.some(([ref]) => ref.url === firstRepost.sources![0])).toBe(false);
     });
+  });
+});
+
+describe('minimalLngInterval', () => {
+  it('should return plain interval when not crossing antimeridian', () => {
+    expect(minimalLngInterval([10, -20, 5])).toEqual([-20, 10]);
+  });
+
+  it('should cross the antimeridian when shorter', () => {
+    expect(minimalLngInterval([179, -179])).toEqual([179, 181]);
+  });
+
+  it('should handle a single longitude', () => {
+    expect(minimalLngInterval([42])).toEqual([42, 42]);
   });
 });
