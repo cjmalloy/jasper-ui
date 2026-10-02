@@ -66,7 +66,7 @@ export function addGeocoder(map: Map, geocoder: GeocodeService): () => void {
     popup: false,
     clearAndBlurOnEsc: true,
     trackProximity: false,
-  });
+    showResultsWhileTyping: false,
   map.addControl(control, 'top-left');
   const el = map.getContainer().querySelector<HTMLElement>('.maplibregl-ctrl-geocoder');
   // Keep events from reaching the map or any form the map is in
