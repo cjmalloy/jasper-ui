@@ -1,42 +1,10 @@
 @import 'maplibre-gl/dist/maplibre-gl.css';
+@import '../util/geocoder-control';
 
 .location-map {
   display: block;
   width: 100%;
   margin-top: 4px;
-
-  .location-search {
-    position: relative;
-    margin-bottom: 4px;
-
-    input {
-      min-width: 0;
-    }
-  }
-
-  .location-search-results {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    max-height: 200px;
-    overflow-y: auto;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-  }
-
-  .location-search-result {
-    text-align: left;
-    white-space: normal;
-  }
-
-  .location-search-status {
-    padding: 4px 8px;
-  }
 
   mgl-map {
     display: block;

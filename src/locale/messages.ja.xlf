@@ -7323,9 +7323,6 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="7310439367454019720" datatype="html">
         <source>Google Maps</source>
       </trans-unit>
-      <trans-unit id="7483936811733810755" datatype="html">
-        <source>🔎️</source>
-      </trans-unit>
       <trans-unit id="8162805192658576220" datatype="html">
         <source>Photon URL: </source>
       </trans-unit>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, NgZone, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
 import { MapComponent as MglComponent } from '@maplibre/ngx-maplibre-gl';
 import type { Feature, FeatureCollection } from 'geojson';
@@ -9,7 +9,6 @@ import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
 import { GeocodeService } from '../service/geocode.service';
 import { geoFeatures, hasLocation } from '../util/geo';
-import { GeocodeResult } from '../util/geocode';
 import { closedRings, LocationPicker } from './location-picker';
 
 /**
@@ -26,46 +25,6 @@ import { closedRings, LocationPicker } from './location-picker';
     '(touchstart)': '$event.stopPropagation()',
   },
   template: `
-    <div class="location-search">
-      <div class="form-array">
-        <input type="search"
-               class="location-search-input grow"
-               placeholder="Search address"
-               i18n-placeholder
-               aria-label="Search address"
-               i18n-aria-label
-               [value]="query"
-               (input)="query = $any($event.target).value"
-               (keydown)="$event.stopPropagation()"
-               (keydown.enter)="$event.preventDefault(); search()">
-        <button type="button"
-                class="location-search-button"
-                title="Search address"
-                i18n-title
-                aria-label="Search address"
-                i18n-aria-label
-                [disabled]="searching"
-                (click)="search()"
-                i18n>🔎️</button>
-      </div>
-      @if (searching || searchError || results) {
-        <div class="location-search-results">
-          @if (searching) {
-            <div class="location-search-status" i18n>Searching…</div>
-          } @else if (searchError) {
-            <div class="location-search-status error">{{ searchError }}</div>
-          } @else {
-            @for (r of results; track $index) {
-              <button type="button"
-                      class="location-search-result"
-                      (click)="selectResult(r)">{{ r.name }}</button>
-            } @empty {
-              <div class="location-search-status" i18n>No results found.</div>
-            }
-          }
-        </div>
-      }
-    </div>
     <mgl-map [mapStyle]="mapStyle"
              (mapLoad)="mapLoaded($event)"
              (mapClick)="mapClick($event)"
@@ -88,18 +47,11 @@ export class LocationMapComponent implements OnDestroy {
   private picking = false;
   private lastActive?: AbstractControl;
   private lastActiveValue?: any;
-  private searchAbort?: AbortController;
-
-  query = '';
-  searching = false;
-  searchError = '';
-  results?: GeocodeResult[];
 
   constructor(
     private admin: AdminService,
     private geocoder: GeocodeService,
     private zone: NgZone,
-    private cd: ChangeDetectorRef,
   ) {
     setWorkerUrl('assets/maplibre-gl-worker.mjs');
   }
@@ -169,6 +121,9 @@ export class LocationMapComponent implements OnDestroy {
     this.updateMarkers();
     // The location may have changed while the map style was loading
     this.panToActive();
+    this.geocoder.control().then(control => {
+      if (control && this.map === map) map.addControl(control, 'top-left');
+    });
   }
 
   mapClick(event: MapMouseEvent) {
@@ -183,40 +138,7 @@ export class LocationMapComponent implements OnDestroy {
     console.error('MapLibre Engine Error:', event.error);
   }
 
-  async search() {
-    this.searchAbort?.abort();
-    this.results = undefined;
-    this.searchError = '';
-    if (!this.query.trim()) {
-      this.searching = false;
-      return;
-    }
-    const abort = this.searchAbort = new AbortController();
-    this.searching = true;
-    this.cd.markForCheck();
-    try {
-      const results = await this.geocoder.geocode(this.query, abort.signal);
-      if (abort.signal.aborted) return;
-      this.results = results;
-    } catch (e: any) {
-      if (abort.signal.aborted) return;
-      console.error('Geocoding error:', e);
-      this.searchError = typeof e === 'string' ? e : $localize`Address search failed.`;
-    }
-    this.searching = false;
-    this.cd.markForCheck();
-  }
-
-  selectResult(result: GeocodeResult) {
-    this.results = undefined;
-    const active = this.picker.active;
-    if (active && this.locations.includes(active)) this.pick(active, result.location);
-    this.map?.flyTo({ center: result.location, zoom: Math.max(this.map.getZoom(), 14) });
-    this.cd.markForCheck();
-  }
-
   ngOnDestroy() {
-    this.searchAbort?.abort();
     this.watch?.unsubscribe();
     for (const marker of this.markers.values()) marker.remove();
     this.markers.clear();

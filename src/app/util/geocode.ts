@@ -85,6 +85,14 @@ export async function reverseGeocode(location: [number, number], config: Geocodi
   return parseGeocode(await get(reverseGeocodeUrl(location, config), signal), config)[0];
 }
 
+/**
+ * Has a geocoding provider been set up.
+ */
+export function isConfigured(config: GeocodingConfig) {
+  if (!config.geocodingProvider) return false;
+  return provider(config) !== 'google' || !!config.googleMapsApiKey;
+}
+
 function provider(config: GeocodingConfig): GeocodingProvider {
   if (config.geocodingProvider === 'google' || config.geocodingProvider === 'photon') return config.geocodingProvider;
   return 'osm';

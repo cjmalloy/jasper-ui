@@ -1,8 +1,16 @@
 /// <reference types="vitest/globals" />
-import { geocode, geocodeUrl, parseGeocode, reverseGeocode, reverseGeocodeUrl } from './geocode';
+import { geocode, geocodeUrl, isConfigured, parseGeocode, reverseGeocode, reverseGeocodeUrl } from './geocode';
 
 describe('geocode', () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it('checks if geocoding is configured', () => {
+    expect(isConfigured({})).toBe(false);
+    expect(isConfigured({ geocodingProvider: 'osm' })).toBe(true);
+    expect(isConfigured({ geocodingProvider: 'photon' })).toBe(true);
+    expect(isConfigured({ geocodingProvider: 'google' })).toBe(false);
+    expect(isConfigured({ geocodingProvider: 'google', googleMapsApiKey: 'key' })).toBe(true);
+  });
 
   it('defaults to Nominatim', () => {
     expect(geocodeUrl('Halifax, NS', {})).toBe('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q=Halifax%2C%20NS');

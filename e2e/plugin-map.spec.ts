@@ -141,14 +141,15 @@ test.describe.serial('Map Plugin', () => {
     await point.locator('.location-map-toggle').click();
     await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
 
-    const search = point.locator('.location-search-input');
+    const search = point.locator('.location-map .geocoder-control .geocoder-input');
     await search.fill('Halifax');
     await search.press('Enter');
-    await point.locator('.location-search-result', { hasText: 'Halifax, Nova Scotia' }).click();
+    await point.locator('.geocoder-result', { hasText: 'Halifax, Nova Scotia' }).click();
     expect(query).toBe('Halifax');
-    await expect(point.locator('input').nth(0)).toHaveValue('-63.57');
-    await expect(point.locator('input').nth(1)).toHaveValue('44.65');
-    await expect(point.locator('.location-search-result')).toHaveCount(0);
+    await expect(point.locator('.geocoder-result')).toHaveCount(0);
+    // Search only moves the map, not the location
+    await expect(point.locator('input').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input').nth(1)).toHaveValue('44.6');
   });
 
   test('title scraper reverse geocodes the location', async ({ page }) => {

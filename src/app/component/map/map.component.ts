@@ -20,8 +20,9 @@ import { isInlineSvg } from '../../pipe/thumbnail.pipe';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
+import { GeocodeService } from '../../service/geocode.service';
 import { Store } from '../../store/store';
-import { geoFeatures } from '../../util/geo';
+import { geoFeatures, hasLocation } from '../../util/geo';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
@@ -78,6 +79,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     private proxy: ProxyService,
     private refs: RefService,
     private store: Store,
+    private geocoder: GeocodeService,
   ) {
     setWorkerUrl('assets/maplibre-gl-worker.mjs');
     this.mapDataUpdates$.pipe(
@@ -208,6 +210,9 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     });
     this.updateMapData();
     this.fit();
+    this.geocoder.control().then(control => {
+      if (control && this.map === map) map.addControl(control, 'top-left');
+    });
   }
 
   private fit() {
@@ -233,7 +238,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     };
     this.mapData
       .flatMap(([ref]) => features(ref))
-      .flatMap(geoFeatures)
+      .flatMap(f => geoFeatures(f, hasLocation))
       .forEach(f => extend((f.geometry as any).coordinates));
     return bounds.isEmpty() ? undefined : bounds;
   }

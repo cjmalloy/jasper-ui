@@ -6026,53 +6026,6 @@ Private tags start with an underscore.
           <context context-type="linenumber">3,4</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="632822263124795513" datatype="html">
-        <source>Search address</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/formly/location-map.component.ts</context>
-          <context context-type="linenumber">33,34</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/formly/location-map.component.ts</context>
-          <context context-type="linenumber">35,36</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/formly/location-map.component.ts</context>
-          <context context-type="linenumber">43,44</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/formly/location-map.component.ts</context>
-          <context context-type="linenumber">45,46</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="7483936811733810755" datatype="html">
-        <source>🔎️</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/formly/location-map.component.ts</context>
-          <context context-type="linenumber">49,50</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="6277392156435513308" datatype="html">
-        <source>Searching…</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/formly/location-map.component.ts</context>
-          <context context-type="linenumber">54,55</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="8692634109890521682" datatype="html">
-        <source>No results found.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/formly/location-map.component.ts</context>
-          <context context-type="linenumber">63,64</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="8421900256859774197" datatype="html">
-        <source>Address search failed.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/formly/location-map.component.ts</context>
-          <context context-type="linenumber">204</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="5174359152122758396" datatype="html">
         <source>Longitude</source>
         <context-group purpose="location">
@@ -17893,7 +17846,47 @@ Enter the origin to confirm:</source>
         <source>Google Maps API key is not configured.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/geocode.ts</context>
-          <context context-type="linenumber">94</context>
+          <context context-type="linenumber">102</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="632822263124795513" datatype="html">
+        <source>Search address</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
+          <context context-type="linenumber">35</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
+          <context context-type="linenumber">36</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
+          <context context-type="linenumber">52</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
+          <context context-type="linenumber">53</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6277392156435513308" datatype="html">
+        <source>Searching…</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
+          <context context-type="linenumber">80</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8421900256859774197" datatype="html">
+        <source>Address search failed.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
+          <context context-type="linenumber">89</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8692634109890521682" datatype="html">
+        <source>No results found.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/util/geocoder-control.ts</context>
+          <context context-type="linenumber">98</context>
         </context-group>
       </trans-unit>
     </body>
