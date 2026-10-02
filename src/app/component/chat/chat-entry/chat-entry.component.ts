@@ -14,6 +14,7 @@ import {
   linkedSignal,
   viewChildren,
   signal,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -107,7 +108,7 @@ export class ChatEntryComponent {
   ) {
     effect(() => {
       this.refInput();
-      this.init();
+      untracked(() => this.init());
     });
     effect(() => {
       if (!this.focused() && !this.allowActionsSignal()) this.actionComponents()?.forEach(c => c.reset());

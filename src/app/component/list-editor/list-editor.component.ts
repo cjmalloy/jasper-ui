@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
@@ -18,10 +18,16 @@ export class ListEditorComponent {
   readonly onRemove = output<string>();
   readonly selected = output<string | undefined>();
 
-  addingText = '';
-  selectedIndex = -1;
+  private readonly _addingText = signal('');
+  private readonly _selectedIndex = signal(-1);
+  private readonly _error = signal('');
 
-  error = '';
+  get addingText() { return this._addingText(); }
+  set addingText(value: string) { this._addingText.set(value); }
+  get selectedIndex() { return this._selectedIndex(); }
+  set selectedIndex(value: number) { this._selectedIndex.set(value); }
+  get error() { return this._error(); }
+  set error(value: string) { this._error.set(value); }
 
   add() {
     this.error = '';

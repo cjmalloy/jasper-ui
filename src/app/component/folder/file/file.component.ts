@@ -70,10 +70,10 @@ export class FileComponent {
 
   private readonly repostRefSignal = signal<Ref | undefined>(undefined);
   private readonly expandPluginsSignal = signal<string[]>([]);
+  private readonly _editing = signal(false);
+  private readonly _viewSource = signal(false);
   icons: Icon[] = [];
   actions: Action[] = [];
-  editing = false;
-  viewSource = false;
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
@@ -83,6 +83,12 @@ export class FileComponent {
 
   get expandPlugins() { return this.expandPluginsSignal(); }
   set expandPlugins(value: string[]) { this.expandPluginsSignal.set(value); }
+
+  get editing() { return this._editing(); }
+  set editing(value: boolean) { this._editing.set(value); }
+
+  get viewSource() { return this._viewSource(); }
+  set viewSource(value: boolean) { this._viewSource.set(value); }
 
   constructor(
     public admin: AdminService,

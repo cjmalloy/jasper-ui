@@ -5,7 +5,7 @@ import {
 } from '@angular/cdk/scrolling';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpEventType } from '@angular/common/http';
-import { DestroyRef, inject, Component, OnDestroy, ChangeDetectionStrategy, effect, input, viewChild, signal } from '@angular/core';
+import { DestroyRef, inject, Component, OnDestroy, ChangeDetectionStrategy, effect, input, viewChild, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
@@ -143,7 +143,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
     effect(() => {
       this.query();
       this.responseOf();
-      this.init();
+      untracked(() => this.init());
     });
   }
 

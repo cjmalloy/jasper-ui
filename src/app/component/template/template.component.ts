@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, viewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, untracked, viewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -50,9 +50,13 @@ export class TemplateComponent implements HasChanges {
   set template(value: Template) { this.templateSignal.set(value); }
 
   editForm: UntypedFormGroup;
-  submitted = false;
-  editing = false;
+  private readonly _submitted = signal(false);
+  private readonly _editing = signal(false);
   viewSource = false;
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
+  get editing() { return this._editing(); }
+  set editing(value: boolean) { this._editing.set(value); }
   get deleted() { return this._deleted(); }
   set deleted(value: boolean) { this._deleted.set(value); }
   get serverError() { return this._serverError(); }
@@ -75,7 +79,7 @@ export class TemplateComponent implements HasChanges {
     this.editForm = templateForm(fb);
     effect(() => {
       this.templateInput();
-      this.init();
+      untracked(() => this.init());
     });
   }
 

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, effect, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -25,7 +25,9 @@ export class LinksFormComponent {
   readonly groupInput = input<UntypedFormGroup | undefined>(undefined, { alias: 'group' });
   readonly fieldName = input('links');
 
-  model: string[] = [];
+  private readonly _model = signal<string[]>([]);
+  get model() { return this._model(); }
+  set model(value: string[]) { this._model.set(value); }
   field = {
     type: 'refs',
     props: {
@@ -88,7 +90,7 @@ export class LinksFormComponent {
     for (const value of values) {
       if (value) this.field.fieldArray.focus = false;
       if (value && value !== 'placeholder' && this.model.includes(value)) return;
-      this.model.push(value);
+      this.model = [...this.model, value];
     }
   }
 

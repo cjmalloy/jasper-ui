@@ -97,7 +97,9 @@ export class SubmitPage implements OnInit, OnDestroy {
   submitForm: UntypedFormGroup;
 
   genUrl = 'internal:' + uuid();
-  plugin = '';
+  private readonly _plugin = signal<string>('');
+  get plugin() { return this._plugin(); }
+  set plugin(value: string) { this._plugin.set(value); }
   private _selectedPlugin?: Plugin;
 
   listId = 'list-' + uuid();

@@ -79,9 +79,11 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   created = false;
   overwrite = false;
   extForm: UntypedFormGroup;
-  editForm!: UntypedFormGroup;
 
   templates = this.admin.tmplSubmit;
+  private readonly _editForm = signal<UntypedFormGroup | undefined>(undefined);
+  get editForm() { return this._editForm()!; }
+  set editForm(value: UntypedFormGroup) { this._editForm.set(value); }
 
 
   constructor(

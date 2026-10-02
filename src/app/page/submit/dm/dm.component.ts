@@ -70,11 +70,17 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   private readonly destroyRef = inject(DestroyRef);
   private _url = 'comment:' + uuid();
 
-  submitted = false;
+  private readonly _submitted = signal<boolean>(false);
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
   dmForm: UntypedFormGroup;
-  serverError: string[] = [];
+  private readonly _serverError = signal<string[]>([]);
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
 
-  limitWidth?: HTMLElement;
+  private readonly _limitWidth = signal<HTMLElement | undefined>(undefined);
+  get limitWidth() { return this._limitWidth(); }
+  set limitWidth(value: HTMLElement | undefined) { this._limitWidth.set(value); }
 
   readonly fill = viewChild<ElementRef>('fill');
 
@@ -82,12 +88,24 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   readonly tagsFormComponent = viewChild<TagsFormComponent>('tagsFormComponent');
 
-  preview = '';
-  editing = false;
-  autocomplete: { value: string, label: string }[] = [];
-  submitting?: Subscription;
-  saving?: Subscription;
-  completedUploads: Ref[] = [];
+  private readonly _preview = signal<string>('');
+  get preview() { return this._preview(); }
+  set preview(value: string) { this._preview.set(value); }
+  private readonly _editing = signal<boolean>(false);
+  get editing() { return this._editing(); }
+  set editing(value: boolean) { this._editing.set(value); }
+  private readonly _autocomplete = signal<{ value: string, label: string }[]>([]);
+  get autocomplete() { return this._autocomplete(); }
+  set autocomplete(value: { value: string, label: string }[]) { this._autocomplete.set(value); }
+  private readonly _submitting = signal<Subscription | undefined>(undefined);
+  get submitting() { return this._submitting(); }
+  set submitting(value: Subscription | undefined) { this._submitting.set(value); }
+  private readonly _saving = signal<Subscription | undefined>(undefined);
+  get saving() { return this._saving(); }
+  set saving(value: Subscription | undefined) { this._saving.set(value); }
+  private readonly _completedUploads = signal<Ref[]>([]);
+  get completedUploads() { return this._completedUploads(); }
+  set completedUploads(value: Ref[]) { this._completedUploads.set(value); }
   private cursor?: string;
   private showedError = false;
   private addedMailboxes: string[] = [];
@@ -181,11 +199,11 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     const savedValue = JSON.stringify(this.dmForm.value);
     this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        delete this.saving;
+        this.saving = undefined;
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        delete this.saving;
+        this.saving = undefined;
         this.cursor = cursor;
         if (JSON.stringify(this.dmForm.value) === savedValue) this.dmForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
@@ -401,12 +419,12 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        delete this.submitting;
+        this.submitting = undefined;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      delete this.submitting;
+      this.submitting = undefined;
       this.dmForm.markAsPristine();
       this.completedUploads = [];
 

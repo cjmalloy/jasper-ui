@@ -91,13 +91,13 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly floating = input(true);
 
   localTag?: string;
-  addTags: string[] = ['public'];
-  plugin?: Plugin;
-  mailPlugin?: Plugin;
+  private readonly _addTags = signal<string[]>(['public']);
+  private readonly _plugin = signal<Plugin | undefined>(undefined);
+  private readonly _mailPlugin = signal<Plugin | undefined>(undefined);
   tagTemplate?: Template;
   private readonly templateSignal = signal<Template | undefined>(undefined);
-  writeAccess = false;
-  ui: Template[] = [];
+  private readonly _writeAccess = signal(false);
+  private readonly _ui = signal<Template[]>([]);
   genUrl = 'internal:' + uuid();
   private readonly bookmarkExtsSignal = signal<Ext[]>([]);
   private readonly tagSubExtsSignal = signal<Ext[]>([]);
@@ -114,6 +114,21 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get template() { return this.templateSignal(); }
   set template(value: Template | undefined) { this.templateSignal.set(value); }
+
+  get addTags() { return this._addTags(); }
+  set addTags(value: string[]) { this._addTags.set(value); }
+
+  get plugin() { return this._plugin(); }
+  set plugin(value: Plugin | undefined) { this._plugin.set(value); }
+
+  get mailPlugin() { return this._mailPlugin(); }
+  set mailPlugin(value: Plugin | undefined) { this._mailPlugin.set(value); }
+
+  get writeAccess() { return this._writeAccess(); }
+  set writeAccess(value: boolean) { this._writeAccess.set(value); }
+
+  get ui() { return this._ui(); }
+  set ui(value: Template[]) { this._ui.set(value); }
 
   get bookmarkExts() { return this.bookmarkExtsSignal(); }
   set bookmarkExts(value: Ext[]) { this.bookmarkExtsSignal.set(value); }

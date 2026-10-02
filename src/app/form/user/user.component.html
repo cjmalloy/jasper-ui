@@ -78,7 +78,7 @@
         <button type="button" (click)="editingExternal = true" i18n>+ Add Config</button>
       </div>
     } @else {
-      <app-json [id]="id + '-external'"
+      <app-json (focusin)="editingExternal = true" [id]="id + '-external'"
                 fieldName="external"
                 [style.pointer-events]="store.account.mod ? 'auto' : 'none'"
                 [group]="group"></app-json>

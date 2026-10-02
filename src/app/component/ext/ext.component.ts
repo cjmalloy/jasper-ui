@@ -73,19 +73,35 @@ export class ExtComponent implements HasChanges {
   readonly extFormComponent = viewChild<ExtFormComponent>('extForm');
   readonly useEditPage = input(false);
 
-  editForm!: UntypedFormGroup;
-  submitted = false;
+  private readonly _editForm = signal<UntypedFormGroup>(undefined as unknown as UntypedFormGroup);
+  private readonly _submitted = signal(false);
   private readonly _invalid = signal(false);
   private readonly _overwritten = signal(false);
-  overwrite = true;
-  icons: Template[] = [];
-  template?: Template;
-  plugin?: Plugin;
-  editing = false;
-  viewSource = false;
+  private readonly _overwrite = signal(true);
+  private readonly _icons = signal<Template[]>([]);
+  private readonly _template = signal<Template | undefined>(undefined);
+  private readonly _plugin = signal<Plugin | undefined>(undefined);
+  private readonly _editing = signal(false);
+  private readonly _viewSource = signal(false);
   private readonly _deleted = signal(false);
   private readonly _writeAccess = signal(false);
   private readonly _serverError = signal<string[]>([]);
+  get editForm() { return this._editForm(); }
+  set editForm(value: UntypedFormGroup) { this._editForm.set(value); }
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
+  get overwrite() { return this._overwrite(); }
+  set overwrite(value: boolean) { this._overwrite.set(value); }
+  get icons() { return this._icons(); }
+  set icons(value: Template[]) { this._icons.set(value); }
+  get template() { return this._template(); }
+  set template(value: Template | undefined) { this._template.set(value); }
+  get plugin() { return this._plugin(); }
+  set plugin(value: Plugin | undefined) { this._plugin.set(value); }
+  get editing() { return this._editing(); }
+  set editing(value: boolean) { this._editing.set(value); }
+  get viewSource() { return this._viewSource(); }
+  set viewSource(value: boolean) { this._viewSource.set(value); }
   get deleted() { return this._deleted(); }
   set deleted(value: boolean) { this._deleted.set(value); }
   get invalid() { return this._invalid(); }
@@ -137,7 +153,7 @@ export class ExtComponent implements HasChanges {
     if (this.ext) {
       this.icons = this.admin.getTemplateView(this.ext.tag);
       if (hasPrefix(this.ext.tag, 'user')) {
-        this.icons.push({tag: 'user', config: { view: $localize`🧑️` }});
+        this.icons = [...this.icons, {tag: 'user', config: { view: $localize`🧑️` }}];
       }
       this.editForm = extForm(this.fb, this.ext, this.admin, true);
       this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag());

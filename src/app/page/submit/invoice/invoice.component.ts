@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -52,19 +52,31 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
 export class SubmitInvoicePage implements HasChanges {
 
 
-  submitted = false;
+  private readonly _submitted = signal<boolean>(false);
+  get submitted() { return this._submitted(); }
+  set submitted(value: boolean) { this._submitted.set(value); }
   invoiceForm: UntypedFormGroup;
-  serverError: string[] = [];
+  private readonly _serverError = signal<string[]>([]);
+  get serverError() { return this._serverError(); }
+  set serverError(value: string[]) { this._serverError.set(value); }
 
   readonly editorComponent = viewChild<EditorComponent>('editor');
 
   refUrl?: string;
-  queue?: string;
+  private readonly _queue = signal<string | undefined>(undefined);
+  get queue() { return this._queue(); }
+  set queue(value: string | undefined) { this._queue.set(value); }
   editorTags: string[] = [];
-  completedUploads: Ref[] = [];
+  private readonly _completedUploads = signal<Ref[]>([]);
+  get completedUploads() { return this._completedUploads(); }
+  set completedUploads(value: Ref[]) { this._completedUploads.set(value); }
 
-  submitting?: Subscription;
-  saving?: Subscription;
+  private readonly _submitting = signal<Subscription | undefined>(undefined);
+  get submitting() { return this._submitting(); }
+  set submitting(value: Subscription | undefined) { this._submitting.set(value); }
+  private readonly _saving = signal<Subscription | undefined>(undefined);
+  get saving() { return this._saving(); }
+  set saving(value: Subscription | undefined) { this._saving.set(value); }
   private cursor?: string;
 
   constructor(
@@ -113,11 +125,11 @@ export class SubmitInvoicePage implements HasChanges {
     const savedValue = JSON.stringify(this.invoiceForm.value);
     this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        delete this.saving;
+        this.saving = undefined;
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        delete this.saving;
+        this.saving = undefined;
         this.cursor = cursor;
         if (JSON.stringify(this.invoiceForm.value) === savedValue) this.invoiceForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
@@ -237,12 +249,12 @@ export class SubmitInvoicePage implements HasChanges {
         );
       }),
       catchError((res: HttpErrorResponse) => {
-        delete this.submitting;
+        this.submitting = undefined;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      delete this.submitting;
+      this.submitting = undefined;
       this.invoiceForm.markAsPristine();
       this.completedUploads = [];
       this.router.navigate(['/ref', this.invoiceForm.value.url], { queryParams: { published }, replaceUrl: true});

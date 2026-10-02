@@ -28,8 +28,8 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   readonly fullHeight = input(false);
   readonly modifiedChange = output<T>();
 
-  originalModel: DiffEditorModel = { code: '', language: 'json' };
-  modifiedModel: DiffEditorModel = { code: '', language: 'json' };
+  private readonly _originalModel = signal<DiffEditorModel>({ code: '', language: 'json' });
+  private readonly _modifiedModel = signal<DiffEditorModel>({ code: '', language: 'json' });
 
   private readonly _options = signal<any>({
     language: 'json',
@@ -54,6 +54,10 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
 
   get options(): any { return this._options(); }
   set options(value: any) { this._options.set(value); }
+  get originalModel() { return this._originalModel(); }
+  set originalModel(value: DiffEditorModel) { this._originalModel.set(value); }
+  get modifiedModel() { return this._modifiedModel(); }
+  set modifiedModel(value: DiffEditorModel) { this._modifiedModel.set(value); }
 
   ngOnInit() {
     const original = this.original();
@@ -71,7 +75,10 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
 
   initEditor(editor: any) {
     editor.onDidUpdateDiff(() => {
-      this.modifiedModel.code = editor.getModel().modified.getValue();
+      this.modifiedModel = {
+        ...this.modifiedModel,
+        code: editor.getModel().modified.getValue(),
+      };
     });
   }
 

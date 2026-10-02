@@ -19,7 +19,9 @@ export class ThemesFormComponent {
   readonly group = input.required<UntypedFormGroup>();
 
   private readonly _keys = signal<string[]>([]);
-  selectedTheme?: string;
+  private readonly _selectedTheme = signal<string | undefined>(undefined);
+  get selectedTheme() { return this._selectedTheme(); }
+  set selectedTheme(value: string | undefined) { this._selectedTheme.set(value); }
 
   constructor(
     private fb: UntypedFormBuilder,

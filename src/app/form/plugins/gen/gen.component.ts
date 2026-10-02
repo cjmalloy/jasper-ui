@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, computed, input, output } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, computed, input, output, signal } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
@@ -21,7 +21,9 @@ export class GenFormComponent implements OnInit {
   readonly children = input<Plugin[]>([]);
   readonly togglePlugin = output<string>();
 
-  model: any;
+  private readonly _model = signal<any>(undefined);
+  get model() { return this._model(); }
+  set model(value: any) { this._model.set(value); }
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,

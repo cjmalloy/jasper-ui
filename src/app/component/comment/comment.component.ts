@@ -15,6 +15,7 @@ import {
   viewChildren,
   viewChild,
   signal,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -149,7 +150,7 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   ) {
     effect(() => {
       this.refInput();
-      this.init();
+      untracked(() => this.init());
     });
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {

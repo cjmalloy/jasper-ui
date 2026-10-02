@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -27,12 +27,19 @@ import { LoadingComponent } from '../loading/loading.component';
 })
 export class DebugComponent {
 
-  generating = false;
+  private readonly _generating = signal(false);
   settingUser = false;
-  sourcing = false;
-  batchRunning = false;
+  private readonly _sourcing = signal(false);
+  private readonly _batchRunning = signal(false);
   serverError: string[] = [];
   debug = this.admin.getPlugin('plugin/debug') || this.admin.getTemplate('debug');
+
+  get generating() { return this._generating(); }
+  set generating(value: boolean) { this._generating.set(value); }
+  get sourcing() { return this._sourcing(); }
+  set sourcing(value: boolean) { this._sourcing.set(value); }
+  get batchRunning() { return this._batchRunning(); }
+  set batchRunning(value: boolean) { this._batchRunning.set(value); }
 
   constructor(
     public admin: AdminService,
