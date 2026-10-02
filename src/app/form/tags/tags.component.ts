@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, effect, input } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { computed, Component, ChangeDetectionStrategy, effect, input } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
@@ -14,6 +15,10 @@ import { hasPrefix, hasTag } from '../../util/tag';
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class TagsFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
+
+  private readonly controlState0 = controlValue(() => this.tags());
+
   static validators = [Validators.pattern(TAG_REGEX)];
 
   readonly origin = input<string | undefined>('');
@@ -60,23 +65,26 @@ export class TagsFormComponent {
     });
   }
 
-  get tags() {
+  readonly tags = computed(() => {
+    this.rootControlState();
     return this.group()?.get(this.fieldName()) as UntypedFormArray;
-  }
+  });
 
-  get model() {
-    return this.tags?.value;
-  }
+  readonly model = computed(() => {
+    this.rootControlState();
+    this.controlState0();
+    return this.tags()?.value;
+  });
 
   setTags(values: string[]) {
-    if (!this.tags) throw 'Not ready yet!';
-    while (this.tags.length > values.length) this.tags.removeAt(this.tags.length - 1, { emitEvent: false });
-    while (this.tags.length < values.length) this.tags.push(this.fb.control(''), { emitEvent: false });
-    this.tags.setValue(values);
+    if (!this.tags()) throw 'Not ready yet!';
+    while (this.tags().length > values.length) this.tags().removeAt(this.tags().length - 1, { emitEvent: false });
+    while (this.tags().length < values.length) this.tags().push(this.fb.control(''), { emitEvent: false });
+    this.tags().setValue(values);
   }
 
   addTag(...values: string[]) {
-    if (!this.tags) throw 'Not ready yet!';
+    if (!this.tags()) throw 'Not ready yet!';
     if (!values.length) return;
     this.field.fieldArray.focus = true;
     for (const value of values) {
@@ -85,38 +93,38 @@ export class TagsFormComponent {
         break;
       }
     }
-    values = values.filter(t => t === 'placeholder' || !hasTag(t, this.tags.value));
+    values = values.filter(t => t === 'placeholder' || !hasTag(t, this.tags().value));
     if (values.length) {
-      this.setTags([...this.tags.value, ...values]);
+      this.setTags([...this.tags().value, ...values]);
     }
   }
 
   update() {
-    defer(() => this.tags.controls.forEach(control => control.updateValueAndValidity()));
+    defer(() => this.tags().controls.forEach(control => control.updateValueAndValidity()));
   }
 
   removeTag(tag: string) {
-    if (!this.tags) throw 'Not ready yet!';
-    for (let i = this.tags.value.length - 1; i >= 0; i--) {
-      if (hasPrefix(this.tags.value[i], tag)) {
-        this.tags.removeAt(i);
+    if (!this.tags()) throw 'Not ready yet!';
+    for (let i = this.tags().value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags().value[i], tag)) {
+        this.tags().removeAt(i);
       }
     }
     this.update();
   }
 
   removeTagAndChildren(tag: string) {
-    if (!this.tags) throw 'Not ready yet!';
+    if (!this.tags()) throw 'Not ready yet!';
     let removed = false;
-    for (let i = this.tags.value.length - 1; i >= 0; i--) {
-      if (hasPrefix(this.tags.value[i], tag)) {
-        this.tags.removeAt(i);
+    for (let i = this.tags().value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags().value[i], tag)) {
+        this.tags().removeAt(i);
         removed = true;
       }
     }
     if (removed && tag.includes('/')) {
       const parent = tag.substring(0, tag.lastIndexOf('/'));
-      if (!hasTag(parent, this.tags.value)) this.addTag(parent);
+      if (!hasTag(parent, this.tags().value)) this.addTag(parent);
     }
     if (removed) this.update();
   }

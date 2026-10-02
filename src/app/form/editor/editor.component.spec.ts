@@ -1,11 +1,12 @@
 /// <reference types="vitest/globals" />
-import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { HttpEventType, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { UntypedFormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
+import { ProxyService } from '../../service/api/proxy.service';
 
 import { EditorComponent } from './editor.component';
 
@@ -61,31 +62,26 @@ describe('EditorComponent', () => {
   });
 
   it('should cancel individual upload correctly', () => {
-    const mockSubscription = { unsubscribe: vi.fn() };
-    component.uploads.set([
-      { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription as any },
-      { id: '2', name: 'test2.jpg', progress: 75 }
-    ]);
+    const unsubscribe = vi.fn();
+    vi.spyOn(component, 'upload$').mockReturnValue(new Observable(() => unsubscribe));
+    component.upload([new File([], 'test.pdf'), new File([], 'test2.jpg')] as any);
+    const remaining = component.uploads()[1];
 
     component.cancelUpload(component.uploads()[0]);
 
-    expect(mockSubscription.unsubscribe).toHaveBeenCalled();
+    expect(unsubscribe).toHaveBeenCalledOnce();
     expect(component.uploads().length).toBe(1);
-    expect(component.uploads()[0].id).toBe('2');
+    expect(component.uploads()[0]).toBe(remaining);
   });
 
   it('should cancel all uploads correctly', () => {
-    const mockSubscription1 = { unsubscribe: vi.fn() };
-    const mockSubscription2 = { unsubscribe: vi.fn() };
-    component.uploads.set([
-      { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription1 as any },
-      { id: '2', name: 'test2.jpg', progress: 75, subscription: mockSubscription2 as any }
-    ]);
+    const unsubscribe = vi.fn();
+    vi.spyOn(component, 'upload$').mockReturnValue(new Observable(() => unsubscribe));
+    component.upload([new File([], 'test.pdf'), new File([], 'test2.jpg')] as any);
 
     component.cancelAllUploads();
 
-    expect(mockSubscription1.unsubscribe).toHaveBeenCalled();
-    expect(mockSubscription2.unsubscribe).toHaveBeenCalled();
+    expect(unsubscribe).toHaveBeenCalledTimes(2);
     expect(component.uploads().length).toBe(0);
   });
 
@@ -186,5 +182,92 @@ describe('EditorComponent', () => {
     // Should remain disabled since there's still an active upload
     expect(component.control().disabled).toBeTruthy();
     expect(component.uploads().length).toBe(1);
+  });
+
+  it('updates upload progress without mutating previous snapshots', () => {
+    const events = new Subject<any>();
+    vi.spyOn(TestBed.inject(ProxyService), 'save').mockReturnValue(events);
+    component.upload([new File([], 'test.bin', { type: 'application/octet-stream' })] as any);
+    const previous = component.uploads();
+    Object.freeze(previous[0]);
+
+    events.next({ type: HttpEventType.UploadProgress, loaded: 3, total: 4 });
+
+    expect(previous[0].progress).toBe(0);
+    expect(component.uploads()[0].progress).toBe(75);
+    expect(component.uploads()[0]).not.toBe(previous[0]);
+    component.cancelAllUploads();
+  });
+
+  it('records upload failures without mutating previous snapshots', () => {
+    const events = new Subject<any>();
+    vi.spyOn(TestBed.inject(ProxyService), 'save').mockReturnValue(events);
+    component.upload([new File([], 'test.bin', { type: 'application/octet-stream' })] as any);
+    const previous = component.uploads()[0];
+    Object.freeze(previous);
+
+    events.error(new Error('Upload rejected'));
+
+    expect(previous.error).toBeUndefined();
+    expect(component.uploads()[0].error).toBe('Upload rejected');
+    expect(component.uploads()[0].progress).toBe(0);
+    component.cancelAllUploads();
+  });
+
+  it('updates completion immutably and does not retain synchronous subscriptions', () => {
+    const ref = { url: 'internal:test', tags: [] } as any;
+    const result = new Subject<any>();
+    vi.spyOn(component, 'upload$').mockReturnValue(result);
+    vi.spyOn(component, 'attachUrls').mockImplementation(() => undefined);
+    component.upload([new File([], 'test.txt')] as any);
+    const previous = component.uploads()[0];
+    Object.freeze(previous);
+
+    result.next(ref);
+
+    expect(previous.completed).toBeUndefined();
+    expect(component.attachUrls).toHaveBeenCalledWith(ref);
+    expect(component.uploads()).toEqual([]);
+    result.complete();
+
+    const synchronous = of(ref);
+    const unsubscribe = vi.spyOn(synchronous, 'subscribe');
+    vi.mocked(component.upload$).mockReturnValue(synchronous);
+    component.upload([new File([], 'next.txt')] as any);
+    expect(unsubscribe.mock.results[0].value.closed).toBe(true);
+    expect((component as any).uploadSubscriptions.size).toBe(0);
+  });
+
+  it('cancels outstanding uploads on destruction', () => {
+    const unsubscribe = vi.fn();
+    vi.spyOn(component, 'upload$').mockReturnValue(new Observable(() => unsubscribe));
+    component.upload([new File([], 'test.pdf')] as any);
+    fixture.destroy();
+    expect(unsubscribe).toHaveBeenCalledOnce();
+  });
+
+  it('derives response selection from tags and allows manual selection', () => {
+    vi.spyOn(component.admin, 'responseButton').mockReturnValue([
+      { tag: 'response/one' }, { tag: 'response/two' },
+    ] as any);
+    const tags = new UntypedFormArray([new UntypedFormControl('response/two')]);
+    fixture.componentRef.setInput('selectResponseType', true);
+    fixture.componentRef.setInput('tags', tags);
+    fixture.detectChanges();
+    expect(component.toggleIndex()).toBe(1);
+    component.toggleIndex.set(0);
+    expect(component.responseTags()).toEqual(['response/one']);
+    tags.setValue(['response/one']);
+    expect(component.toggleIndex()).toBe(0);
+    tags.setValue(['response/two']);
+    expect(component.toggleIndex()).toBe(1);
+  });
+
+  it('preserves independent loading events when scraping changes', () => {
+    component.loadingEvents.update(events => ({ ...events, independent: true }));
+    fixture.componentRef.setInput('scraping', true);
+    expect(component.loadingEvents()).toEqual({ independent: true, 'scrape-done': true });
+    fixture.componentRef.setInput('scraping', false);
+    expect(component.loadingEvents()).toEqual({ independent: true, 'scrape-done': false });
   });
 });

@@ -71,9 +71,9 @@
               [appFillWidth]="fill"></textarea>
   </div>
 
-  @if (store.account.mod() || external) {
+  @if (store.account.mod() || external()) {
     <label [for]="id + '-external'" i18n>External Config:</label>
-    @if (!editingExternal() && !external) {
+    @if (!editingExternal() && !external()) {
       <div>
         <button type="button" (click)="editingExternal.set(true)" i18n>+ Add Config</button>
       </div>

@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { computed, Component, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -20,6 +21,8 @@ import { URI_REGEX } from '../../util/format';
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class LinksFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
+
   static validators = [Validators.pattern(URI_REGEX)];
 
   readonly group = input<UntypedFormGroup | undefined>(undefined);
@@ -65,32 +68,33 @@ export class LinksFormComponent {
     });
   }
 
-  get links() {
+  readonly links = computed(() => {
+    this.rootControlState();
     return this.group()?.get(this.fieldName()) as UntypedFormArray | undefined;
-  }
+  });
 
   setLinks(values: string[]) {
     this.model.set(values);
-    if (!this.links) return;
-    while (this.links.length > values.length) this.links.removeAt(this.links.length - 1, { emitEvent: false });
-    while (this.links.length < values.length) this.links.push(this.fb.control(''), { emitEvent: false });
-    this.links.setValue(values);
+    const links = this.links();
+    if (!links) return;
+    while (links.length > values.length) links.removeAt(links.length - 1, { emitEvent: false });
+    while (links.length < values.length) links.push(this.fb.control(''), { emitEvent: false });
+    links.setValue(values);
   }
 
   addLink(...values: string[]) {
     if (!values.length) return;
-    this.model.set(this.links!.value);
+    this.model.set(this.links()!.value);
     this.field.fieldArray.focus = true;
     for (const value of values) {
       if (value) this.field.fieldArray.focus = false;
       if (value && value !== 'placeholder' && this.model().includes(value)) return;
-      this.model.set([...this.model(), value]);
+      this.model.update(model => [...model, value]);
     }
   }
 
   removeLink(index: number) {
-    if (!this.links) return;
-    this.links.removeAt(index);
+    this.links()?.removeAt(index);
   }
 }
 

@@ -5,11 +5,11 @@
   <label [for]="id + '-title'" i18n>Name:</label>
   <input [id]="id + '-title'"
          type="text"
-         [formControl]="name"
+         [formControl]="name()"
          (blur)="validate($any($event.target))">
 
   <label [for]="id + '-config'" i18n>Config:</label>
-  @if (!editingConfig() && !config) {
+  @if (!editingConfig() && !config()) {
     <div>
       <button type="button" (click)="editingConfig.set(true)" i18n>+ Add Config</button>
     </div>
@@ -28,7 +28,7 @@
   }
 
   <label [for]="id + '-defaults'" i18n>Defaults:</label>
-  @if (!editingDefaults() && !defaults) {
+  @if (!editingDefaults() && !defaults()) {
     <div>
       <button type="button" (click)="editingDefaults.set(true)" i18n>+ Add Defaults</button>
     </div>
@@ -47,7 +47,7 @@
   }
 
   <label [for]="id + '-schema'" i18n>Schema:</label>
-  @if (!editingSchema() && !schema) {
+  @if (!editingSchema() && !schema()) {
     <div>
       <button type="button" (click)="editingSchema.set(true)" i18n>+ Add Schema</button>
     </div>

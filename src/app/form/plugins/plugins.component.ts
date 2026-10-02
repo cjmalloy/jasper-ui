@@ -1,16 +1,5 @@
-import {
-  DestroyRef,
-  inject,
-  AfterViewInit,
-  Component,
-  effect,
-  ChangeDetectionStrategy,
-  input,
-  output,
-  signal,
-  viewChildren,
-  untracked,
-} from '@angular/core';
+import { controlValue } from '../../util/form';
+import { computed, DestroyRef, inject, Component, effect, ChangeDetectionStrategy, input, output, viewChildren, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -30,7 +19,11 @@ import { GenFormComponent } from './gen/gen.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
-export class PluginsFormComponent implements AfterViewInit {
+export class PluginsFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
+
+  private readonly controlState0 = controlValue(() => this.tags());
+
   private destroyRef = inject(DestroyRef);
 
   readonly gens = viewChildren<GenFormComponent>('gen');
@@ -40,8 +33,13 @@ export class PluginsFormComponent implements AfterViewInit {
   private readonly defaultGroup: UntypedFormGroup;
   readonly togglePlugin = output<string>();
 
-  readonly icons = signal<Icon[]>([]);
-  readonly forms = signal<Plugin[]>([]);
+  readonly forms = computed(() => this.admin.getPluginForms(this.allTags()));
+  readonly icons = computed(() => {
+    this.rootControlState();
+    return sortOrder(this.admin.getIcons(this.allTags(), this.plugins()?.value || {}, getScheme(this.group().value.url))
+      .filter(icon => !this.forms().find(plugin => plugin.tag === icon.tag)))
+      .filter(icon => this.showIcon(icon));
+  });
 
   constructor(
     public admin: AdminService,
@@ -59,71 +57,71 @@ export class PluginsFormComponent implements AfterViewInit {
   }
 
   init() {
-    if (this.plugins) {
-      for (const p in this.plugins.value) {
-        if (!this.allTags.includes(p)) {
-          this.plugins.removeControl(p);
+    if (this.plugins()) {
+      for (const p in this.plugins().value) {
+        if (!this.allTags().includes(p)) {
+          this.plugins().removeControl(p);
         }
       }
     }
-    if (!this.plugins) {
-      this.group.addControl(this.fieldName(), pluginsForm(this.fb, this.admin, this.allTags));
-    } else if (this.allTags) {
-      for (const t of this.allTags) {
-        if (!this.plugins.contains(t)) {
+    if (!this.plugins()) {
+      this.group().addControl(this.fieldName(), pluginsForm(this.fb, this.admin, this.allTags()));
+    } else if (this.allTags()) {
+      for (const t of this.allTags()) {
+        if (!this.plugins().contains(t)) {
           const form = pluginForm(this.fb, this.admin, t);
           if (form) {
-            this.plugins.addControl(t, form);
+            this.plugins().addControl(t, form);
           }
         }
       }
     }
-    const forms = this.admin.getPluginForms(this.allTags);
-    this.forms.set(forms);
-    this.icons.set(sortOrder(this.admin.getIcons(this.allTags, this.plugins.value, getScheme(this.group.value.url))
-      .filter(i => !forms.find(p => p.tag === i.tag)))
-      .filter(i => this.showIcon(i)));
   }
 
-  ngAfterViewInit() {
-    this.tags.valueChanges.pipe(
+  private readonly initializeView = afterNextRender(() => {
+    this.tags().valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => this.init());
-  }
+  });
 
-  get group(): UntypedFormGroup {
+  readonly group = computed<UntypedFormGroup>(() => {
     return this.groupInput() || this.defaultGroup;
-  }
+  });
 
-  get tags() {
-    return this.group.get('tags') as UntypedFormArray;
-  }
+  readonly tags = computed(() => {
+    this.rootControlState();
+    return this.group().get('tags') as UntypedFormArray;
+  });
 
-  get allTags() {
-    return addAllHierarchicalTags(this.tags.value);
-  }
+  readonly allTags = computed(() => {
+    this.rootControlState();
+    this.controlState0();
+    return addAllHierarchicalTags(this.tags().value);
+  });
 
-  get plugins() {
-    return this.group.get(this.fieldName()) as UntypedFormGroup;
-  }
+  readonly plugins = computed(() => {
+    this.rootControlState();
+    return this.group().get(this.fieldName()) as UntypedFormGroup;
+  });
 
-  get empty() {
-    return !this.icons().length && !Object.keys(this.plugins.controls).length;
-  }
+  readonly empty = computed(() => {
+    this.rootControlState();
+    return !this.icons().length && !Object.keys(this.plugins().controls).length;
+  });
 
   setValue(value: any) {
     defer(() => {
-      this.plugins.patchValue(value);
+      this.plugins().patchValue(value);
       this.gens()!.forEach(g => g.setValue(value))
     });
   }
 
   visible(v: Visibility) {
-    return visible(this.group.value, v, true, false);
+    return visible(this.group().value, v, true, false);
   }
 
   active(a: TagAction | ResponseAction | Icon) {
-    return active(this.group.value, a);
+    return active(this.group().value, a);
   }
 
   showIcon(i: Icon) {

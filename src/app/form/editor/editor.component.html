@@ -1,4 +1,4 @@
-@if (addButton() && !editing() && !currentText) {
+@if (addButton() && !editing() && !currentText()) {
   <button type="button"
           (click)="addComment()"
           [title]="addCommentTitle()">{{ addCommentLabel() }}</button>
@@ -22,7 +22,7 @@
                 i18n-title title="Stacked or side by side layout toggle"
                 i18n>/</button>
       }
-      @if (fullscreen() || currentText) {
+      @if (fullscreen() || currentText()) {
         <button type="button"
                 (click)="togglePreview()"
                 i18n-title title="Show preview"
@@ -129,11 +129,11 @@
     <div class="floating-toggles">
     </div>
   </div>
-  @if (preview() && (fullscreen() || currentText)) {
+  @if (preview() && (fullscreen() || currentText())) {
     <app-md #md
             class="expand"
             [origin]="store.account.origin()"
-            [text]="currentText"
+            [text]="currentText()"
             [plugins]="allTags()"
             [appLimitWidth]="editor"
             (postProcessMarkdown)="postProcessMarkdown()"

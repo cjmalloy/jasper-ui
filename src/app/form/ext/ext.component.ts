@@ -1,7 +1,8 @@
+import { controlValue } from '../../util/form';
 import {
   CdkDropListGroup
 } from '@angular/cdk/drag-drop';
-import {
+import { computed,
   DestroyRef,
   inject,
   Component,
@@ -59,8 +60,13 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   ],
 })
 export class ExtFormComponent  {
+  private readonly rootControlState = controlValue(() => this.group());
+
+  private readonly controlState0 = controlValue(() => this.group().get('tag')!);
+  private readonly controlState1 = controlValue(() => this.themes());
+
   private destroyRef = inject(DestroyRef);
-  readonly allSorts = signal(this.admin.refSorts.map(convertSort));
+  readonly allSorts = signal(this.admin.refSorts().map(convertSort));
   readonly allFilters = signal<FilterItem[]>([
     { filter: `modified/before/${DateTime.now().toISO()}`, label: $localize`🕓️ modified before` },
     { filter: `modified/after/${DateTime.now().toISO()}`, label: $localize`🕓️ modified after` },
@@ -70,7 +76,7 @@ export class ExtFormComponent  {
     { filter: `published/after/${DateTime.now().toISO()}`, label: $localize`📅️ published after` },
     { filter: `created/before/${DateTime.now().toISO()}`, label: $localize`✨️ created before` },
     { filter: `created/after/${DateTime.now().toISO()}`, label: $localize`✨️ created after` },
-    ...this.admin.filters.map(convertFilter),
+    ...this.admin.filters().map(convertFilter),
   ]);
   datePresets = [
     'now',
@@ -128,49 +134,57 @@ export class ExtFormComponent  {
 
 
 
-  get user() {
+  readonly user = computed(() => {
+    this.rootControlState();
+    this.controlState0();
     if (!this.admin.getTemplate('user')) return false;
     return hasPrefix(this.group().get('tag')!.value, 'user');
-  }
+  });
 
-  get config() {
+  readonly config = computed(() => {
+    this.rootControlState();
     return this.group().get('config') as UntypedFormGroup;
-  }
+  });
 
-  get fillPopover(): ElementRef<HTMLElement> | undefined {
+  readonly fillPopover = computed<ElementRef<HTMLElement> | undefined>(() => {
     return this.fillEditor('.popover-editor');
-  }
+  });
 
-  get fillSidebar(): ElementRef<HTMLElement> | undefined {
+  readonly fillSidebar = computed<ElementRef<HTMLElement> | undefined>(() => {
     return this.fillEditor('.sidebar-editor');
-  }
+  });
 
   private fillEditor(selector: string) {
     const element = this.el.nativeElement.querySelector<HTMLElement>(selector + ' .fill-editor');
     return element ? new ElementRef(element) : undefined;
   }
 
-  get inbox() {
+  readonly inbox = computed(() => {
+    this.rootControlState();
+    this.controlState0();
     if (!this.admin.getPlugin('plugin/inbox')) return null;
     return getMailbox(this.group().get('tag')!.value, this.store.account.origin());
-  }
+  });
 
-  get modmail() {
-    return this.config.get('modmail') as FormControl<boolean>;
-  }
+  readonly modmail = computed(() => {
+    this.rootControlState();
+    return this.config().get('modmail') as FormControl<boolean>;
+  });
 
-  get defaultSort() {
-    return this.config.get('defaultSort') as FormControl<string[]>;
-  }
+  readonly defaultSort = computed(() => {
+    this.rootControlState();
+    return this.config().get('defaultSort') as FormControl<string[]>;
+  });
 
-  get defaultFilter() {
-    return this.config.get('defaultFilter') as FormControl<UrlFilter[]>;
-  }
+  readonly defaultFilter = computed(() => {
+    this.rootControlState();
+    return this.config().get('defaultFilter') as FormControl<UrlFilter[]>;
+  });
 
   addSort(value: string, select: HTMLSelectElement) {
     if (!value) return;
-    this.defaultSort.setValue([
-      ...this.defaultSort.value || [],
+    this.defaultSort().setValue([
+      ...this.defaultSort().value || [],
       value + ',' + (defaultDesc(value) ? 'DESC' : 'ASC'),
     ]);
     select.selectedIndex = 0;
@@ -187,45 +201,45 @@ export class ExtFormComponent  {
   }
 
   setSortCol(index: number, value: string) {
-    const sorts = [...this.defaultSort.value];
+    const sorts = [...this.defaultSort().value];
     sorts[index] = value + ',' + this.sortDir(value);
-    this.defaultSort.setValue(sorts);
+    this.defaultSort().setValue(sorts);
   }
 
   setSortDir(index: number, value: string) {
-    const sorts = [...this.defaultSort.value];
+    const sorts = [...this.defaultSort().value];
     sorts[index] = this.sortCol(sorts[index]) + ',' + value;
-    this.defaultSort.setValue(sorts);
+    this.defaultSort().setValue(sorts);
   }
 
   removeSort(index: number) {
-    const sorts = [...this.defaultSort.value];
+    const sorts = [...this.defaultSort().value];
     sorts.splice(index, 1);
-    this.defaultSort.setValue(sorts);
+    this.defaultSort().setValue(sorts);
   }
 
   addFilter(value: UrlFilter, select: HTMLSelectElement) {
     if (!value) return;
-    this.defaultFilter.setValue([...this.defaultFilter.value || [], value]);
+    this.defaultFilter().setValue([...this.defaultFilter().value || [], value]);
     select.selectedIndex = 0;
   }
 
   setFilter(index: number, value: UrlFilter) {
-    const filters = [...this.defaultFilter.value];
+    const filters = [...this.defaultFilter().value];
     filters[index] = value;
-    this.defaultFilter.setValue(filters);
+    this.defaultFilter().setValue(filters);
   }
 
   removeFilter(index: number) {
-    const filters = [...this.defaultFilter.value];
+    const filters = [...this.defaultFilter().value];
     filters.splice(index, 1);
-    this.defaultFilter.setValue(filters);
+    this.defaultFilter().setValue(filters);
   }
 
   toggleFilter(index: number) {
-    const filters = [...this.defaultFilter.value];
+    const filters = [...this.defaultFilter().value];
     filters[index] = toggle(filters[index])!;
-    this.defaultFilter.setValue(filters);
+    this.defaultFilter().setValue(filters);
   }
 
   setFilterDate(index: number, filter: UrlFilter, date: string) {
@@ -292,25 +306,32 @@ export class ExtFormComponent  {
     return date.isValid ? date.toFormat("yyyy-MM-dd'T'T") : '';
   }
 
-  get themes() {
-    return this.config.get('themes') as UntypedFormGroup;
-  }
+  readonly themes = computed(() => {
+    this.rootControlState();
+    return this.config().get('themes') as UntypedFormGroup;
+  });
 
-  get userTheme() {
-    return this.config.get('userTheme') as UntypedFormGroup;
-  }
+  readonly userTheme = computed(() => {
+    this.rootControlState();
+    return this.config().get('userTheme') as UntypedFormGroup;
+  });
 
-  get themeValues() {
-    return uniq([...Object.keys(this.themes?.value || {}), ...this.admin.themes.flatMap(p => Object.keys(p.config?.themes || {}))]);
-  }
+  readonly themeValues = computed(() => {
+    this.rootControlState();
+    this.controlState1();
+    return uniq([...Object.keys(this.themes()?.value || {}), ...this.admin.themes().flatMap(p => Object.keys(p.config?.themes || {}))]);
+  });
 
-  get userThemeValues() {
-    return uniq([...Object.keys(this.themes?.value || {}), ...this.admin.themes.flatMap(p => Object.keys(p.config?.themes || {}))]);
-  }
+  readonly userThemeValues = computed(() => {
+    this.rootControlState();
+    this.controlState1();
+    return uniq([...Object.keys(this.themes()?.value || {}), ...this.admin.themes().flatMap(p => Object.keys(p.config?.themes || {}))]);
+  });
 
-  get pinned() {
-    return this.config.get('pinned') as UntypedFormControl;
-  }
+  readonly pinned = computed(() => {
+    this.rootControlState();
+    return this.config().get('pinned') as UntypedFormControl;
+  });
 
   negatable(filter: string) {
     return negatable(filter);
@@ -354,7 +375,7 @@ export class ExtFormComponent  {
       // @ts-ignore
       advancedFormlyForm.builder.build(advancedFormlyForm.field);
     }
-    this.config.valueChanges.pipe(
+    this.config().valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(value => {
       if (value.defaults) {
@@ -407,7 +428,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
       theme: [''],
     };
   }
-  if (admin.home && hasPrefix(ext?.tag, 'config/home')) {
+  if (admin.home() && hasPrefix(ext?.tag, 'config/home')) {
     configControls = {
       ...configControls,
       header: [''],

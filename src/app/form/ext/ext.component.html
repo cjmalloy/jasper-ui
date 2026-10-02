@@ -12,20 +12,20 @@
   <label [for]="id + '-name'" i18n>Name:</label>
   <input [id]="id + '-name'" name="name" type="text" formControlName="name">
 
-  <ng-container [formGroup]="config">
-    @if (userTheme && userThemeValues.length) {
+  <ng-container [formGroup]="config()">
+    @if (userTheme() && userThemeValues().length) {
       <!-- TODO: replace empty themes with instructions -->
       <label [for]="id + '-userTheme'" i18n>User Theme:</label>
       <div i18n-title title="This theme will be used on every page. Tag page themes will be ignored.">
         <select [id]="id + '-userTheme'" formControlName="userTheme">
           <option [ngValue]="undefined" i18n>default</option>
-          @for (t of userThemeValues; track t) {
+          @for (t of userThemeValues(); track t) {
             <option [ngValue]="t">{{ t }}</option>
           }
         </select>
       </div>
     }
-    @if (defaultSort && !user) {
+    @if (defaultSort() && !user()) {
       <label [for]="id + '-defaultSort'" i18n>Default Sort:</label>
       <div class="default-sort bubble">
         <select #defaultSortCreate
@@ -37,7 +37,7 @@
             <option [value]="opt.value">{{ opt.label || opt.value }}</option>
           }
         </select>
-        @for (sort of defaultSort.value; track $index; let i = $index) {
+        @for (sort of defaultSort().value; track $index; let i = $index) {
           <span class="controls default-sort-row">
             <select [id]="id + '-defaultSort-' + i"
                     (input)="setSortCol(i, $any($event.target).value)">
@@ -55,7 +55,7 @@
         }
       </div>
     }
-    @if (defaultFilter && !user) {
+    @if (defaultFilter() && !user()) {
       <label [for]="id + '-defaultFilter'" i18n>Default Filter:</label>
       <div class="default-filter bubble">
         <select #defaultFilterCreate
@@ -67,7 +67,7 @@
             <option [value]="opt.filter">{{ opt.label || opt.filter }}</option>
           }
         </select>
-        @for (filter of defaultFilter.value; track $index; let i = $index) {
+        @for (filter of defaultFilter().value; track $index; let i = $index) {
           <div class="default-filter-row">
             <span class="controls">
               <select [id]="id + '-defaultFilter-' + i"
@@ -109,30 +109,30 @@
     @if (form(); as form) {
       <formly-form #mainFormlyForm
                    class="nested-form"
-                   [form]="config"
+                   [form]="config()"
                    [fields]="form"
                    [options]="options"></formly-form>
     }
-    @if (modmail && inbox && !user) {
+    @if (modmail() && inbox() && !user()) {
       <label [for]="id + '-modmail'" i18n>Enable Modmail:</label>
       <div>
-        <input [id]="id + '-modmail'" type="checkbox" [formControl]="modmail">
-        <a class="tag" [routerLink]="['/tag', inbox]">{{ inbox }}</a>
+        <input [id]="id + '-modmail'" type="checkbox" [formControl]="modmail()">
+        <a class="tag" [routerLink]="['/tag', inbox()]">{{ inbox() }}</a>
       </div>
     }
-    @if (themes) {
+    @if (themes()) {
       <label [for]="id + '-theme'" i18n>Tag Page Theme:</label>
       <div>
         <select [id]="id + '-theme'" formControlName="theme">
           <option [ngValue]="undefined" i18n>default</option>
-          @for (t of themeValues; track t) {
+          @for (t of themeValues(); track t) {
             <option [ngValue]="t">{{ t }}</option>
           }
         </select>
         <details class="advanced mini">
           <summary i18n-title title="Custom Themes"><span><span class="summary-open" i18n>Custom Themes</span></span></summary>
           <app-themes id="themes"
-                      [group]="config"
+                      [group]="config()"
                       fieldName="themes"></app-themes>
         </details>
       </div>
@@ -143,7 +143,7 @@
     <details class="advanced">
       <summary><span i18n>Advanced</span></summary>
       <div class="form">
-        @if (defaultSort && user) {
+        @if (defaultSort() && user()) {
           <label [for]="id + '-defaultSortAdvanced'" i18n>Default Sort:</label>
           <div class="default-sort bubble">
             <select #defaultSortAdvancedCreate
@@ -155,7 +155,7 @@
                 <option [value]="opt.value">{{ opt.label || opt.value }}</option>
               }
             </select>
-            @for (sort of defaultSort.value; track $index; let i = $index) {
+            @for (sort of defaultSort().value; track $index; let i = $index) {
               <span class="controls default-sort-row">
                 <select (input)="setSortCol(i, $any($event.target).value)">
                   @for (opt of allSorts(); track opt) {
@@ -174,7 +174,7 @@
         }
         <formly-form #advancedFormlyForm
                      class="nested-form"
-                     [form]="config"
+                     [form]="config()"
                      [fields]="advancedForm()!"
                      [options]="options"></formly-form>
       </div>

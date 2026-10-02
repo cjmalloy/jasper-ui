@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy, computed, input, output, signal } from '@angular/core';
+import { controlValue } from '../../../util/form';
+import { Component, ChangeDetectionStrategy, computed, input, output, signal, afterNextRender } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
@@ -12,7 +13,9 @@ import { AdminService } from '../../../service/admin.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
-export class GenFormComponent implements OnInit {
+export class GenFormComponent {
+  private readonly rootControlState = controlValue(() => this.plugins());
+
 
   readonly bulk = input(false);
   readonly promoteAdvanced = input(false);
@@ -33,9 +36,10 @@ export class GenFormComponent implements OnInit {
     private admin: AdminService,
   ) { }
 
-  get group() {
+  readonly group = computed(() => {
+    this.rootControlState();
     return this.plugins().get(this.plugin().tag) as UntypedFormGroup | undefined;
-  }
+  });
 
   readonly form = computed(() => {
     if (this.bulk()) {
@@ -52,17 +56,18 @@ export class GenFormComponent implements OnInit {
     return cloneDeep(this.plugin().config?.advancedForm);
   });
 
-  get childrenOn() {
+  readonly childrenOn = computed(() => {
+    this.rootControlState();
     for (let i = this.children().length - 1; i >= 0; i--) {
       if (this.plugins().contains(this.children()[i].tag)) return i;
     }
     return 0;
-  }
+  });
 
-  ngOnInit(): void {
-    this.group?.patchValue(this.plugin().defaults);
+  private readonly initialize = afterNextRender(() => {
+    this.group()?.patchValue(this.plugin().defaults);
     this.options.formState.config = this.plugin().defaults;
-  }
+  });
 
   setValue(value: any) {
     this.model.set(value[this.plugin().tag]);
