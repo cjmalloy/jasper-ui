@@ -60,4 +60,13 @@ describe('geo', () => {
     expect(geoCenter({ 'plugin/geo/point': { geometry: { type: 'Point', coordinates: [0, 0] } } })).toBeUndefined();
     expect(geoCenter(undefined)).toBeUndefined();
   });
+
+  it('centres across the antimeridian', () => {
+    expect(geoCenter({
+      'plugin/geo/linestring': { geometry: { type: 'LineString', coordinates: [[179, 10], [-179, 20]] } },
+    })).toEqual([180, 15]);
+    expect(geoCenter({
+      'plugin/geo/linestring': { geometry: { type: 'LineString', coordinates: [[170, 10], [-160, 20]] } },
+    })).toEqual([-175, 15]);
+  });
 });

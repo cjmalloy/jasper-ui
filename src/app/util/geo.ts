@@ -18,12 +18,12 @@ export function hasLocation(v: any): v is [number, number] {
  * Centre of the bounds of every location in the Ref's geo plugins.
  */
 export function geoCenter(plugins?: Record<string, any>): [number, number] | undefined {
-  let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+  const lons: number[] = [];
+  let s = Infinity, n = -Infinity;
   const visit = (c: any) => {
     if (hasLocation(c)) {
-      w = Math.min(w, c[0]);
+      lons.push(c[0]);
       s = Math.min(s, c[1]);
-      e = Math.max(e, c[0]);
       n = Math.max(n, c[1]);
     } else if (Array.isArray(c)) {
       c.forEach(visit);
@@ -33,8 +33,29 @@ export function geoCenter(plugins?: Record<string, any>): [number, number] | und
     if (!key.startsWith('plugin/geo/')) continue;
     for (const f of geoFeatures(value, hasLocation)) visit((f.geometry as any).coordinates);
   }
-  if (w > e) return undefined;
-  return [(w + e) / 2, (s + n) / 2];
+  if (!lons.length) return undefined;
+  return [lonCenter(lons), (s + n) / 2];
+}
+
+/**
+ * Centre of the smallest longitude interval containing every longitude,
+ * allowing the interval to wrap across the antimeridian.
+ */
+function lonCenter(lons: number[]): number {
+  const sorted = [...lons].sort((a, b) => a - b);
+  const last = sorted.length - 1;
+  // The interval is the complement of the largest gap between neighbours
+  let gap = sorted[0] + 360 - sorted[last];
+  let west = sorted[0], east = sorted[last];
+  for (let i = 0; i < last; i++) {
+    if (sorted[i + 1] - sorted[i] > gap) {
+      gap = sorted[i + 1] - sorted[i];
+      west = sorted[i + 1];
+      east = sorted[i] + 360;
+    }
+  }
+  const c = (west + east) / 2;
+  return c > 180 ? c - 360 : c;
 }
 
 /**
