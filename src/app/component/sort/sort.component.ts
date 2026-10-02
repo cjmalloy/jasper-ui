@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
@@ -19,8 +19,7 @@ import { convertSort, defaultDesc, SortItem } from '../../util/query';
 export class SortComponent implements OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('create')
-  create?: ElementRef<HTMLSelectElement>;
+  readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
   @Input()
   type?: Type;
@@ -78,7 +77,7 @@ export class SortComponent implements OnChanges, OnDestroy {
     this.replace = false;
     if (!this.sorts) this.sorts = [];
     this.sorts.push('');
-    this.create!.nativeElement.selectedIndex = 0;
+    this.create()!.nativeElement.selectedIndex = 0;
     this.setSortCol(this.sorts.length - 1, value);
   }
 

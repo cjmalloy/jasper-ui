@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -49,8 +49,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   @HostBinding('class') css = 'full-page-form';
 
-  @ViewChild('form')
-  form?: ExtFormComponent;
+  readonly form = viewChild<ExtFormComponent>('form');
 
   template = '';
   created = false;
@@ -109,7 +108,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);
-      defer(() => this.form!.setValue(ext));
+      defer(() => this.form()!.setValue(ext));
     } else {
       for (const t of this.templates) {
         if (hasPrefix(tag, t.tag)) {

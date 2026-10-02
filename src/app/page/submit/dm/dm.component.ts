@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -83,11 +83,9 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     defer(() => this.limitWidth = value?.nativeElement);
   }
 
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
+  readonly editorComponent = viewChild<EditorComponent>('ed');
 
-  @ViewChild('tagsFormComponent')
-  tagsFormComponent?: TagsFormComponent;
+  readonly tagsFormComponent = viewChild<TagsFormComponent>('tagsFormComponent');
 
   preview = '';
   editing = false;
@@ -214,20 +212,22 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   addTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.addTags(value));
       return;
     }
-    this.tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
+    tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
     MemoCache.clear(this);
   }
 
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.setTags(value));
       return;
     }
-    this.tagsFormComponent.setTags(value);
+    tagsFormComponent.setTags(value);
     MemoCache.clear(this);
   }
 

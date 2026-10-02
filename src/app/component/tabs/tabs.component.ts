@@ -7,7 +7,8 @@ import {
   HostBinding,
   HostListener,
   QueryList,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  contentChildren
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -26,8 +27,7 @@ import { SettingsComponent } from '../settings/settings.component';
 })
 export class TabsComponent implements AfterViewInit {
 
-  @ContentChildren(RouterLink)
-  routerLinks!: QueryList<RouterLink>;
+  readonly routerLinks = contentChildren(RouterLink);
   @ContentChildren(RouterLink, { read: ElementRef })
   anchors!: QueryList<ElementRef>;
 
@@ -187,7 +187,7 @@ export class TabsComponent implements AfterViewInit {
 
   nav(select: HTMLSelectElement) {
     if (select.value && this.map.has(select.value)) {
-      this.routerLinks.get(this.map.get(select.value)!)?.onClick(0, false, false, false, false);
+      this.routerLinks().at(this.map.get(select.value)!)?.onClick(0, false, false, false, false);
     }
     select.selectedIndex = 0;
     this.measureVisible();

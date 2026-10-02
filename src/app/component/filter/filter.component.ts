@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy, input, viewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
@@ -31,8 +31,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('create')
-  create?: ElementRef<HTMLSelectElement>;
+  readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
   readonly activeExts = input<Ext[]>([]);
   readonly type = input<Type>();
@@ -322,7 +321,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
     if (value) {
       if (!this.filters) this.filters = [];
       this.filters.push(value);
-      this.create!.nativeElement.selectedIndex = 0;
+      this.create()!.nativeElement.selectedIndex = 0;
       this.setFilters();
     }
   }

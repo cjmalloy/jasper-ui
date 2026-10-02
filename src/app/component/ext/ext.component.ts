@@ -7,12 +7,11 @@ import {
   HostBinding,
   Input,
   OnChanges,
-  QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren,
   ChangeDetectionStrategy,
-  input
+  input,
+  viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -62,8 +61,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
 export class ExtComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   @Input()
   ext!: Ext;
@@ -113,7 +111,7 @@ export class ExtComponent implements OnChanges, HasChanges {
     this.deleted = false;
     this.writeAccess = false;
     this.serverError = [];
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     if (this.ext) {
       this.icons = this.admin.getTemplateView(this.ext.tag);
       if (hasPrefix(this.ext.tag, 'user')) {

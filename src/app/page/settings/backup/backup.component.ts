@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -28,10 +28,8 @@ import { printError } from '../../../util/http';
 })
 export class SettingsBackupPage {
 
-  @ViewChild('backupButton')
-  backupButton!: ElementRef<HTMLButtonElement>;
-  @ViewChild('backupOptions')
-  backupOptionsTemplate!: TemplateRef<any>;
+  readonly backupButton = viewChild.required<ElementRef<HTMLButtonElement>>('backupButton');
+  readonly backupOptionsTemplate = viewChild.required<TemplateRef<any>>('backupOptions');
 
   originForm: UntypedFormGroup;
   backupOptionsForm: UntypedFormGroup;
@@ -95,7 +93,7 @@ export class SettingsBackupPage {
   showBackupOptions() {
     if (this.backupOptionsRef) return;
     const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(this.backupButton!)
+      .flexibleConnectedTo(this.backupButton()!)
       .withPositions([{
         originX: 'start',
         originY: 'bottom',
@@ -109,7 +107,7 @@ export class SettingsBackupPage {
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.reposition()
     });
-    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate, this.viewContainerRef));
+    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate(), this.viewContainerRef));
     this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
   }
 

@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, isDevMode, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, isDevMode, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 import { runInAction } from 'mobx';
@@ -30,8 +30,7 @@ import { printError } from '../../../util/http';
 })
 export class SettingsMePage implements HasChanges {
 
-  @ViewChild('form')
-  form?: ExtFormComponent;
+  readonly form = viewChild<ExtFormComponent>('form');
 
   submitted = false;
   editForm!: UntypedFormGroup;
@@ -51,7 +50,7 @@ export class SettingsMePage implements HasChanges {
     const ext = cloneDeep(store.account.ext!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
-    if (ext) defer(() => this.form!.setValue(ext));
+    if (ext) defer(() => this.form()!.setValue(ext));
   }
 
   saveChanges() {

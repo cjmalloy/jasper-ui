@@ -4,11 +4,11 @@ import {
   Component,
   OnDestroy,
   TemplateRef,
-  ViewChild,
   ViewContainerRef,
   ChangeDetectionStrategy,
   input,
-  output
+  output,
+  viewChild
 } from '@angular/core';
 import { loadImage } from '../../util/image';
 import { QrScanner, scanImage } from '../../util/qr-scanner';
@@ -23,8 +23,7 @@ import { Camera, hasCamera, listCameras } from '../../util/webcam';
 })
 export class QrScannerComponent implements OnDestroy {
 
-  @ViewChild('video')
-  video!: TemplateRef<HTMLVideoElement>;
+  readonly video = viewChild.required<TemplateRef<HTMLVideoElement>>('video');
 
   readonly upload = input(true);
   readonly data = output<string>();
@@ -64,7 +63,7 @@ export class QrScannerComponent implements OnDestroy {
       positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
       hasBackdrop: true,
     });
-    this.overlayRef.attach(new TemplatePortal(this.video, this.viewContainerRef));
+    this.overlayRef.attach(new TemplatePortal(this.video(), this.viewContainerRef));
     this.scanner ||= new QrScanner(this.overlayRef.overlayElement.firstElementChild as HTMLVideoElement, data => {
       if (data) this.data.emit(data);
       this.stopScanQr();

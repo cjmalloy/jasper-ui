@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -17,15 +17,14 @@ import { TemplateComponent } from '../template.component';
 })
 export class TemplateListComponent implements HasChanges {
 
-  @ViewChildren(TemplateComponent)
-  list?: QueryList<TemplateComponent>;
+  readonly list = viewChildren(TemplateComponent);
 
   private _page?: Page<Template>;
 
   constructor(private router: Router) { }
 
   saveChanges() {
-    return !this.list?.find(p => !p.saveChanges());
+    return !this.list()?.find(p => !p.saveChanges());
   }
 
   get page() {

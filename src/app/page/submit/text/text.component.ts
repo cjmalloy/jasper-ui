@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -89,13 +89,10 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   private _fill?: ElementRef;
   private _advancedFill?: ElementRef;
 
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
+  readonly editorComponent = viewChild<EditorComponent>('ed');
 
-  @ViewChild('tagsFormComponent')
-  tagsFormComponent!: TagsFormComponent;
-  @ViewChild('plugins')
-  plugins!: PluginsFormComponent;
+  readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
+  readonly plugins = viewChild.required<PluginsFormComponent>('plugins');
 
   submitting?: Subscription;
   saving?: Subscription;
@@ -157,7 +154,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       if (d) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         this.addTag(...this.oldSubmit);
-        this.plugins.setValue(d.ref.plugins);
+        this.plugins().setValue(d.ref.plugins);
         this.textForm.patchValue({
           ...d.ref,
           tags: this.oldSubmit,
@@ -179,11 +176,11 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         const removed = without(this.oldSubmit, ...tags);
         if (added.length || removed.length) {
           this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
-          this.tagsFormComponent!.setTags(this.oldSubmit);
+          this.tagsFormComponent()!.setTags(this.oldSubmit);
         }
         if (this.store.submit.pluginUpload) {
           this.addTag(this.store.submit.plugin);
-          this.plugins.setValue({
+          this.plugins().setValue({
             ...this.textForm.value.plugins || {},
             [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
           });
@@ -198,15 +195,16 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       if (this.store.submit.embedFiles.length) {
         const files = [...this.store.submit.embedFiles];
         defer(() => {
+          const editorComponent = this.editorComponent();
           if (this.customEditor) {
             runInAction(() => this.store.submit.setEmbedFiles());
             forkJoin(files.map(f => readFileAsString(f))).subscribe(texts => {
               this.comment.setValue(texts.join('\n'));
               this.comment.markAsDirty();
             });
-          } else if (this.editorComponent instanceof EditorComponent) {
+          } else if (editorComponent instanceof EditorComponent) {
             runInAction(() => this.store.submit.setEmbedFiles());
-            this.editorComponent.upload(files as any);
+            editorComponent.upload(files as any);
           }
         });
       }
@@ -262,8 +260,8 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       value.setRef(this.savedRef);
       delete this.savedRef;
     }
-    this._advancedFill = value?.fill;
-    defer(() => this.limitWidth = value?.fill?.nativeElement || this._fill?.nativeElement);
+    this._advancedFill = value?.fill();
+    defer(() => this.limitWidth = value?.fill()?.nativeElement || this._fill?.nativeElement);
   }
 
   get url() {
@@ -312,11 +310,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.setTags(value));
       return;
     }
-    this.tagsFormComponent.setTags(value);
+    tagsFormComponent.setTags(value);
   }
 
   validate(input: HTMLInputElement) {
@@ -329,11 +328,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   addTag(...values: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.addTag(...values));
       return;
     }
-    this.tagsFormComponent.addTag(...values);
+    tagsFormComponent.addTag(...values);
     this.submitted = false;
     MemoCache.clear(this);
   }

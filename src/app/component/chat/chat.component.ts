@@ -5,7 +5,7 @@ import {
 } from '@angular/cdk/scrolling';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpEventType } from '@angular/common/http';
-import { DestroyRef, inject, Component, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy, input } from '@angular/core';
+import { DestroyRef, inject, Component, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy, input, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
@@ -78,8 +78,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   readonly query = input('chat');
   readonly responseOf = input<Ref>();
 
-  @ViewChild('viewport')
-  viewport!: CdkVirtualScrollViewport;
+  readonly viewport = viewChild.required<CdkVirtualScrollViewport>('viewport');
 
   cursors = new Map<string, string | undefined>();
   loadingPrev = false;
@@ -219,7 +218,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       // TODO: verify read before clearing?
       this.accounts.clearNotificationsIfNone(last.modified);
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
-      defer(() => this.viewport.checkViewportSize());
+      defer(() => this.viewport().checkViewportSize());
       if (!this.scrollLock) this.scrollDown();
     });
   }
@@ -260,12 +259,12 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       }
       this.messages = [...page.content.reverse().filter(r => !hasTag('+plugin/placeholder', r)), ...this.messages];
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
-      defer(() => this.viewport.checkViewportSize());
+      defer(() => this.viewport().checkViewportSize());
       if (scrollDown) {
         this.retries = 0;
         this.scrollDown();
       } else {
-        this.viewport.scrollToIndex(0, 'smooth');
+        this.viewport().scrollToIndex(0, 'smooth');
       }
     });
   }
@@ -275,21 +274,21 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       let wait = 0;
       if (this.lastScrolled < this.messages!.length / 2) {
         this.lastScrolled = Math.floor((this.lastScrolled + this.messages!.length) / 2);
-        this.viewport.scrollToIndex(this.lastScrolled, 'smooth');
+        this.viewport().scrollToIndex(this.lastScrolled, 'smooth');
         wait += 400;
       }
       if (this.lastScrolled < this.messages!.length - 1) {
         this.lastScrolled = this.messages!.length - 1;
-        delay(() => this.viewport.scrollToIndex(this.lastScrolled, 'smooth'), wait);
+        delay(() => this.viewport().scrollToIndex(this.lastScrolled, 'smooth'), wait);
       }
     });
   }
 
   scrollToBottom() {
     this.scrollLock = undefined;
-    this.viewport.scrollTo({ bottom: 0, behavior: 'smooth' })
-    this.viewport.checkViewportSize();
-    delay(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'), 400);
+    this.viewport().scrollTo({ bottom: 0, behavior: 'smooth' })
+    this.viewport().checkViewportSize();
+    delay(() => this.viewport().scrollToIndex(this.messages!.length - 1, 'smooth'), 400);
   }
 
   fetch() {
@@ -416,7 +415,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   onScroll(index: number) {
-    this.notAtBottom = this.viewport.measureScrollOffset('bottom') > this.itemSize;
+    this.notAtBottom = this.viewport().measureScrollOffset('bottom') > this.itemSize;
     if (!this.scrollLock) return;
     // TODO: count height in rows
     const diff = this.scrollLock - index;

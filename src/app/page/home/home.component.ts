@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -31,8 +31,7 @@ import { getArgs } from '../../util/query';
 export class HomePage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('lens')
-  lens?: LensComponent;
+  readonly lens = viewChild<LensComponent>('lens');
 
   constructor(
     private mod: ModService,
@@ -57,7 +56,8 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.lens || this.lens.saveChanges();
+    const lens = this.lens();
+    return !lens || lens.saveChanges();
   }
 
   ngOnInit(): void {

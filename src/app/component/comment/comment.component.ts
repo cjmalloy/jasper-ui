@@ -11,12 +11,11 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  QueryList,
   SimpleChanges,
-  ViewChild,
-  ViewChildren,
   ChangeDetectionStrategy,
-  input
+  input,
+  viewChildren,
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -89,14 +88,10 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
 
   maxContext = 20;
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
-  @ViewChild('replyComponent')
-  replyComponent?: CommentReplyComponent;
-  @ViewChild('editComponent')
-  editComponent?: CommentEditComponent;
-  @ViewChild('threadComponent')
-  threadComponent?: CommentThreadComponent;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
+  readonly replyComponent = viewChild<CommentReplyComponent>('replyComponent');
+  readonly editComponent = viewChild<CommentEditComponent>('editComponent');
+  readonly threadComponent = viewChild<CommentThreadComponent>('threadComponent');
 
   @Input()
   ref!: Ref;
@@ -168,9 +163,12 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
   }
 
   saveChanges() {
-    return (!this.editComponent || this.editComponent.saveChanges())
-      && (!this.replyComponent || this.replyComponent.saveChanges())
-      && (!this.threadComponent || this.threadComponent.saveChanges());
+    const editComponent = this.editComponent();
+    const replyComponent = this.replyComponent();
+    const threadComponent = this.threadComponent();
+    return (!editComponent || editComponent.saveChanges())
+      && (!replyComponent || replyComponent.saveChanges())
+      && (!threadComponent || threadComponent.saveChanges());
   }
 
   ngAfterViewInit(): void {
@@ -182,7 +180,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
   init() {
     MemoCache.clear(this);
     this.editing = false;
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.collapsed = !this.store.local.isRefToggled('comment:' + this.ref.url, true);
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);

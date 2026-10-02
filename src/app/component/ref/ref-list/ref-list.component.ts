@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, forwardRef, Input, OnInit, QueryList, ViewChildren, ChangeDetectionStrategy, input } from '@angular/core';
+import { DestroyRef, inject, Component, forwardRef, Input, OnInit, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
@@ -45,8 +45,7 @@ export class RefListComponent implements OnInit, HasChanges {
   readonly insertNewAtTop = input(false);
   readonly showPrev = input(true);
 
-  @ViewChildren(RefComponent)
-  list?: QueryList<RefComponent>;
+  readonly list = viewChildren(RefComponent);
 
   pinned: Ref[] = [];
   newRefs: Ref[] = [];
@@ -64,7 +63,7 @@ export class RefListComponent implements OnInit, HasChanges {
   ) { }
 
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
   get ext() {

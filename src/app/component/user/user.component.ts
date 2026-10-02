@@ -5,11 +5,10 @@ import {
   HostBinding,
   Input,
   OnChanges,
-  QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  viewChildren
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -55,8 +54,7 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
 export class UserComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   @Input()
   profile?: Profile;
@@ -94,7 +92,7 @@ export class UserComponent implements OnChanges, HasChanges {
 
   init() {
     MemoCache.clear(this);
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
     if (this.created && !this.profile) {
       this.exts.getCachedExt(this.user!.tag, this.user!.origin)

@@ -11,11 +11,10 @@ import {
   HostBinding,
   Input,
   OnChanges,
-  QueryList,
   SimpleChanges,
-  ViewChildren,
   ChangeDetectionStrategy,
-  input
+  input,
+  viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -67,8 +66,7 @@ export class ChatEntryComponent implements OnChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroyRef = inject(DestroyRef);
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   @Input()
   ref!: Ref;
@@ -97,7 +95,7 @@ export class ChatEntryComponent implements OnChanges {
 
   init() {
     MemoCache.clear(this);
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
@@ -129,7 +127,7 @@ export class ChatEntryComponent implements OnChanges {
       this.init();
     } else if (changes.focused) {
       MemoCache.clear(this);
-      if (!this.focused() && !this._allowActions) this.actionComponents?.forEach(c => c.reset());
+      if (!this.focused() && !this._allowActions) this.actionComponents()?.forEach(c => c.reset());
     }
   }
 
@@ -144,7 +142,7 @@ export class ChatEntryComponent implements OnChanges {
   }
 
   get allowActions(): boolean {
-    return this._allowActions || this.focused() || !!this.actionComponents?.find(c => c.active());
+    return this._allowActions || this.focused() || !!this.actionComponents()?.find(c => c.active());
   }
 
   set allowActions(value: boolean) {

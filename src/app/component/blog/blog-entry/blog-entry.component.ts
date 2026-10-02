@@ -11,12 +11,11 @@ import {
   HostBinding,
   Input,
   OnChanges,
-  QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren,
   ChangeDetectionStrategy,
-  input
+  input,
+  viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -97,8 +96,7 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroyRef = inject(DestroyRef);
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly blog = input<Ext>();
   @Input()
@@ -163,7 +161,7 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);

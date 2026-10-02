@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
@@ -44,8 +44,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   private destroyRef = inject(DestroyRef);
 
-  @ViewChild('ref')
-  ref?: RefComponent;
+  readonly ref = viewChild<RefComponent>('ref');
 
   newResponses = 0;
   private url = '';
@@ -65,7 +64,8 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   ) { }
 
   saveChanges() {
-    return !this.ref || this.ref.saveChanges();
+    const ref = this.ref();
+    return !ref || ref.saveChanges();
   }
 
   ngOnInit(): void {

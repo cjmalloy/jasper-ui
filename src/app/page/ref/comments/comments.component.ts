@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -35,8 +35,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   newComments$ = new Subject<Ref | undefined>();
 
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
+  readonly reply = viewChild<CommentReplyComponent>('reply');
 
   constructor(
     private mod: ModService,
@@ -49,7 +48,8 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.reply || this.reply.saveChanges();
+    const reply = this.reply();
+    return !reply || reply.saveChanges();
   }
 
   ngOnInit(): void {

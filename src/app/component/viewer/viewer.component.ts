@@ -13,7 +13,8 @@ import {
   SimpleChanges,
   ViewChild,
   input,
-  output
+  output,
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
@@ -92,8 +93,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   private currentVideo?: HTMLVideoElement;
   private currentAudio?: HTMLAudioElement;
 
-  @ViewChild('iframe')
-  iframe!: ElementRef;
+  readonly iframe = viewChild.required<ElementRef>('iframe');
 
   @Input()
   ref?: Ref;
@@ -304,13 +304,14 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   set oembed(oembed: Oembed | null) {
     if (isEqual(this._oembed, oembed)) return;
     this._oembed = oembed || undefined;
+    const iframe = this.iframe();
     if (oembed?.url && oembed?.type === 'photo') {
       // Image embed
       this.tags = without(this.currentTags, 'plugin/embed');
       this.image = embedUrl(oembed.url);
       MemoCache.clear(this);
-    } else if (this.iframe) {
-      const i = this.iframe.nativeElement;
+    } else if (iframe) {
+      const i = iframe.nativeElement;
       if (oembed) {
         this.embeds.writeIframe(oembed, i, this.embedWidth, true)
           .then(() => {

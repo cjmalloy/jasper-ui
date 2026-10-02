@@ -12,9 +12,9 @@ import {
   Input,
   OnDestroy,
   TemplateRef,
-  ViewChild,
   ViewContainerRef,
-  input
+  input,
+  viewChild
 } from '@angular/core';
 import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
@@ -78,12 +78,9 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   readonly linkStrokeLinecap = input('round');
   readonly linkStrength = input<number>();
 
-  @ViewChild('figure')
-  figure!: ElementRef;
-  @ViewChild('nodeMenu')
-  nodeMenu!: TemplateRef<any>;
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly figure = viewChild.required<ElementRef>('figure');
+  readonly nodeMenu = viewChild.required<TemplateRef<any>>('nodeMenu');
+  readonly list = viewChild<RefListComponent>('list');
 
   overlayRef?: OverlayRef;
   sub?: Subscription;
@@ -108,7 +105,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {
@@ -128,12 +126,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
             init = init.pipe(switchMap(() => this.loadMore$));
           }
           init.subscribe(() => {
-            if (this.figure) {
+            if (this.figure()) {
               this.update()
             }
             this.cd.markForCheck();
           });
-        } else if (this.figure) {
+        } else if (this.figure()) {
           this.update();
         }
         this.cd.markForCheck();
@@ -251,7 +249,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.close()
     });
-    this.overlayRef.attach(new TemplatePortal(this.nodeMenu, this.viewContainerRef, {
+    this.overlayRef.attach(new TemplatePortal(this.nodeMenu(), this.viewContainerRef, {
       $implicit: ref
     }));
   }
@@ -351,7 +349,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
-      this.figure.nativeElement.requestFullscreen();
+      this.figure().nativeElement.requestFullscreen();
     }
     this.close();
   }
@@ -372,11 +370,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   get figWidth() {
-    return this.figure.nativeElement.offsetWidth;
+    return this.figure().nativeElement.offsetWidth;
   }
 
   get figHeight() {
-    return this.figure.nativeElement.offsetHeight;
+    return this.figure().nativeElement.offsetHeight;
   }
 
   get viewBox() {

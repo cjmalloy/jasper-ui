@@ -71,7 +71,7 @@ describe('ViewerComponent', () => {
     const viewer = init.mock.instances[0] as ViewerComponent;
     expect(viewer.ref).toBe(ref);
     expect(viewer.fullscreen).toBe(true);
-    const view = (placeholder.instance as EmbedPlaceholderComponent).content.get(0)!;
+    const view = (placeholder.instance as EmbedPlaceholderComponent).content().get(0)!;
     const destroy = vi.fn();
     view.onDestroy(destroy);
     placeholder.destroy();

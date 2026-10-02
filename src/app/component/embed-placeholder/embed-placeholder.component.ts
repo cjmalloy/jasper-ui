@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewContainerRef, viewChild } from '@angular/core';
 
 @Component({
   selector: 'app-embed-placeholder',
@@ -8,8 +8,7 @@ import { ChangeDetectionStrategy, Component, ViewChild, ViewContainerRef } from 
 })
 export class EmbedPlaceholderComponent {
 
-  @ViewChild('content', { read: ViewContainerRef, static: true })
-  content!: ViewContainerRef;
+  readonly content = viewChild.required('content', { read: ViewContainerRef });
 
   create?: (vc: ViewContainerRef) => void;
   expanded = false;
@@ -17,7 +16,7 @@ export class EmbedPlaceholderComponent {
   expand() {
     if (this.expanded || !this.create) return;
     this.expanded = true;
-    this.create(this.content);
+    this.create(this.content());
     this.create = undefined;
   }
 }

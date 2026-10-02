@@ -5,12 +5,11 @@ import {
   Component,
   Input,
   OnChanges,
-  QueryList,
   SimpleChanges,
-  ViewChildren,
   ChangeDetectionStrategy,
   input,
-  output
+  output,
+  viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -35,8 +34,7 @@ import { GenFormComponent } from './gen/gen.component';
 export class PluginsFormComponent implements OnChanges, AfterViewInit {
   private destroyRef = inject(DestroyRef);
 
-  @ViewChildren('gen')
-  gens?: QueryList<GenFormComponent>;
+  readonly gens = viewChildren<GenFormComponent>('gen');
 
   readonly fieldName = input('plugins');
   @Input()
@@ -115,7 +113,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
     value = toJS(value);
     defer(() => {
       this.plugins.patchValue(value);
-      this.gens!.forEach(g => g.setValue(value))
+      this.gens()!.forEach(g => g.setValue(value))
     });
   }
 

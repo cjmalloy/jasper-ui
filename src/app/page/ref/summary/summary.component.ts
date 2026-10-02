@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, viewChildren } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -39,12 +39,9 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
 
   summaryItems = 5;
 
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
-  @ViewChildren(CommentThreadComponent)
-  threadComponents?: QueryList<CommentThreadComponent>;
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly reply = viewChild<CommentReplyComponent>('reply');
+  readonly threadComponents = viewChildren(CommentThreadComponent);
+  readonly list = viewChild<RefListComponent>('list');
 
   constructor(
     private mod: ModService,
@@ -60,9 +57,11 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return (!this.reply || this.reply.saveChanges())
-      && (!this.list || this.list.saveChanges())
-      && !this.threadComponents?.find(t => !t.saveChanges());
+    const reply = this.reply();
+    const list = this.list();
+    return (!reply || reply.saveChanges())
+      && (!list || list.saveChanges())
+      && !this.threadComponents()?.find(t => !t.saveChanges());
   }
 
   ngOnInit(): void {

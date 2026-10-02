@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy, input } from '@angular/core';
+import { DestroyRef, inject, Component, Input, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -35,8 +35,7 @@ export class BlogComponent implements HasChanges {
   colStyle = '';
   error: any;
 
-  @ViewChildren(BlogEntryComponent)
-  list?: QueryList<BlogEntryComponent>;
+  readonly list = viewChildren(BlogEntryComponent);
 
   private _page?: Page<Ref>;
   private _ext?: Ext;
@@ -50,7 +49,7 @@ export class BlogComponent implements HasChanges {
 
 
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
   get page(): Page<Ref> | undefined {

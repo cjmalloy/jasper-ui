@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, Input, OnInit, QueryList, ViewChildren, ChangeDetectionStrategy, input } from '@angular/core';
+import { DestroyRef, inject, Component, Input, OnInit, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of } from 'rxjs';
@@ -43,8 +43,7 @@ export class NotebookComponent implements OnInit, HasChanges {
   readonly newRefs$ = input<Observable<Ref | undefined>>();
   readonly showPrev = input(true);
 
-  @ViewChildren(RefComponent)
-  list?: QueryList<RefComponent>;
+  readonly list = viewChildren(RefComponent);
 
   pinned: Ref[] = [];
   newRefs: Ref[] = [];
@@ -62,7 +61,7 @@ export class NotebookComponent implements OnInit, HasChanges {
   ) { }
 
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
   get ext() {

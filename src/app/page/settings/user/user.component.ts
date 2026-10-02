@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
@@ -22,8 +22,7 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('list')
-  list?: UserListComponent;
+  readonly list = viewChild<UserListComponent>('list');
 
   constructor(
     private mod: ModService,
@@ -40,7 +39,8 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnInit(): void {

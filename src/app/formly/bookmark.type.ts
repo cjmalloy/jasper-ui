@@ -8,8 +8,8 @@ import {
   ElementRef,
   OnDestroy,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  viewChild
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -231,11 +231,9 @@ import { getErrorMessage } from './errors';
 })
 export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
-  @ViewChild('paramAnchor')
-  paramAnchor!: ElementRef<HTMLSpanElement>;
+  readonly paramAnchor = viewChild.required<ElementRef<HTMLSpanElement>>('paramAnchor');
 
-  @ViewChild('paramsPanel')
-  paramsPanel!: TemplateRef<any>;
+  readonly paramsPanel = viewChild.required<TemplateRef<any>>('paramsPanel');
 
   listId = 'list-' + uuid();
   breadcrumbs: Crumb[] = [];
@@ -763,7 +761,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     this.closeParams();
     defer(() => {
       const positionStrategy = this.overlay.position()
-        .flexibleConnectedTo(this.paramAnchor)
+        .flexibleConnectedTo(this.paramAnchor())
         .withPositions([{
           originX: 'end',
           originY: 'bottom',
@@ -780,7 +778,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
         scrollStrategy: this.overlay.scrollStrategies.reposition(),
         hasBackdrop: false,
       });
-      this.overlayRef.attach(new TemplatePortal(this.paramsPanel, this.vcr));
+      this.overlayRef.attach(new TemplatePortal(this.paramsPanel(), this.vcr));
       this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe(() => {
         this.closeParams();
       });

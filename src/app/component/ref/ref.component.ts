@@ -14,12 +14,12 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren,
   input,
-  output
+  output,
+  viewChildren,
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -133,14 +133,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   allCss = this.getPluginClasses();
   private destroyRef = inject(DestroyRef);
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
-  @ViewChild('refForm')
-  refForm?: RefFormComponent;
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
-  @ViewChild('diffEditor')
-  diffEditor?: any;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
+  readonly refForm = viewChild<RefFormComponent>('refForm');
+  readonly reply = viewChild<CommentReplyComponent>('reply');
+  readonly diffEditor = viewChild<any>('diffEditor');
 
   @Input()
   ref!: Ref;
@@ -288,8 +284,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   saveChanges() {
+    const reply = this.reply();
     return (!this.editing || !this.editForm.dirty)
-      && (!this.reply || this.reply.saveChanges());
+      && (!reply || reply.saveChanges());
   }
 
   init() {
@@ -304,7 +301,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.viewSource = false;
     this.storyboardLoaded = false;
     this.preloadingUrl = '';
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     if (this.ref?.upload) this.editForm.get('url')!.enable();
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
@@ -630,8 +627,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   syncEditor() {
     if (!this.editing && !this.viewSource) return;
-    if (this.refForm) {
-      this.refForm.setRef(cloneDeep(this.ref));
+    const refFormValue = this.refForm();
+    if (refFormValue) {
+      refFormValue.setRef(cloneDeep(this.ref));
       if (this.editing) this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
     } else {
       defer(() => this.syncEditor());
@@ -1428,7 +1426,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   saveDiff() {
-    const ref = this.diffEditor?.getModifiedContent();
+    const ref = this.diffEditor()?.getModifiedContent();
     if (!ref) return;
     ref.origin = this.store.account.origin;
     ref.modifiedString = this.overwrite ? this.overwrittenModified : this.ref.modifiedString;

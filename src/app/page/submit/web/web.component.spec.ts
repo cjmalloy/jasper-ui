@@ -59,7 +59,7 @@ describe('SubmitWebPage', () => {
     expect(component.serverError).toEqual(['Already exists']);
 
     const addTag = vi.spyOn(component, 'addTag');
-    const setLinks = vi.spyOn(component.refForm.sourcesFormComponent, 'setLinks');
+    const setLinks = vi.spyOn(component.refForm.sourcesFormComponent(), 'setLinks');
     component.prepareRepost();
     await new Promise(resolve => setTimeout(resolve, 10));
 

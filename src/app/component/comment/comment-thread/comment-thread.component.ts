@@ -7,11 +7,10 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
-  QueryList,
   SimpleChanges,
-  ViewChildren,
   ChangeDetectionStrategy,
-  input
+  input,
+  viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -47,8 +46,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   @Input()
   newComments$!: Observable<Ref | undefined>;
 
-  @ViewChildren('comment')
-  list?: QueryList<CommentComponent>;
+  readonly list = viewChildren<CommentComponent>('comment');
 
   comments?: Ref[] = [];
   newComments: Ref[] = [];
@@ -74,7 +72,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   }
 
   saveChanges(): boolean {
-    return !!this.list?.filter(t => t.saveChanges()).length;
+    return !!this.list()?.filter(t => t.saveChanges()).length;
   }
 
   ngOnInit(): void {

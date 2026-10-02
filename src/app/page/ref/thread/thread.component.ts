@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -36,10 +36,8 @@ export class RefThreadComponent implements HasChanges {
   private disposers: IReactionDisposer[] = [];
   private destroyRef = inject(DestroyRef);
 
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly reply = viewChild<CommentReplyComponent>('reply');
+  readonly list = viewChild<RefListComponent>('list');
 
   newRefs$ = new Subject<Ref | undefined>();
 
@@ -62,8 +60,10 @@ export class RefThreadComponent implements HasChanges {
   }
 
   saveChanges() {
-    return (!this.reply || this.reply.saveChanges())
-      && (!this.list || this.list.saveChanges());
+    const reply = this.reply();
+    const list = this.list();
+    return (!reply || reply.saveChanges())
+      && (!list || list.saveChanges());
   }
 
   ngOnInit(): void {

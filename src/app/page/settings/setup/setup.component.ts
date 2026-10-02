@@ -2,7 +2,7 @@ import { KeyValuePipe } from '@angular/common';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, uniq } from 'lodash-es';
@@ -43,8 +43,7 @@ interface ModUpdatePreview {
 })
 export class SettingsSetupPage implements OnDestroy {
 
-  @ViewChild('mergePopup')
-  mergePopup?: TemplateRef<any>;
+  readonly mergePopup = viewChild<TemplateRef<any>>('mergePopup');
 
   experiments = !!this.admin.getTemplate('config/experiments');
   selectAllToggle = false;
@@ -277,7 +276,8 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   private openMergePopup() {
-    if (!this.mergePopup || this.mergePopupRef?.hasAttached()) return;
+    const mergePopup = this.mergePopup();
+    if (!mergePopup || this.mergePopupRef?.hasAttached()) return;
     this.mergePopupRef = this.overlay.create({
       height: window.visualViewport?.height ? window.visualViewport.height + 'px' : '100vh',
       width: '100vw',
@@ -288,7 +288,7 @@ export class SettingsSetupPage implements OnDestroy {
         .top('0'),
       scrollStrategy: this.overlay.scrollStrategies.block(),
     });
-    this.mergePopupRef.attach(new TemplatePortal(this.mergePopup, this.vc));
+    this.mergePopupRef.attach(new TemplatePortal(mergePopup, this.vc));
     this.mergePopupSub.add(this.mergePopupRef.backdropClick().subscribe(() => this.cancelMerge()));
     this.mergePopupSub.add(this.mergePopupRef.keydownEvents().subscribe(event => {
       if (event.key === 'Escape') this.cancelMerge();

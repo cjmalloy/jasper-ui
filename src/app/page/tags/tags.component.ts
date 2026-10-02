@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -36,8 +36,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   title = '';
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
 
-  @ViewChild('list')
-  list?: ExtListComponent;
+  readonly list = viewChild<ExtListComponent>('list');
 
   constructor(
     private mod: ModService,
@@ -53,7 +52,8 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnInit(): void {

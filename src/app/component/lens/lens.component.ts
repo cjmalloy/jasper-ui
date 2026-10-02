@@ -1,4 +1,4 @@
-import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
 import { MobxAngularModule } from 'mobx-angular';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -70,8 +70,7 @@ export class LensComponent implements OnChanges, HasChanges {
   plugins?: string[];
   header?: string;
 
-  @ViewChildren('lens')
-  list?: QueryList<HasChanges>;
+  readonly list = viewChildren<HasChanges>('lens');
 
   constructor(
     public admin: AdminService,
@@ -80,7 +79,7 @@ export class LensComponent implements OnChanges, HasChanges {
   ) { }
 
   saveChanges() {
-    return !this.list?.find(t => !t.saveChanges());
+    return !this.list()?.find(t => !t.saveChanges());
   }
 
   init() {

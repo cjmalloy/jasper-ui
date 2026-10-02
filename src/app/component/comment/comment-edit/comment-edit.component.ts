@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { DestroyRef, inject, AfterViewInit, Component, forwardRef, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, AfterViewInit, Component, forwardRef, Input, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
@@ -40,8 +40,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
   @Input()
   commentEdited$!: Subject<Ref>;
 
-  @ViewChild('editor')
-  editor?: EditorComponent;
+  readonly editor = viewChild<EditorComponent>('editor');
 
   editing?: Subscription;
   commentForm: UntypedFormGroup;

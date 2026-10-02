@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -37,8 +37,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   loading = true;
 
-  @ViewChild('lens')
-  lens?: LensComponent;
+  readonly lens = viewChild<LensComponent>('lens');
 
   constructor(
     public admin: AdminService,
@@ -80,7 +79,8 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.lens || this.lens.saveChanges();
+    const lens = this.lens();
+    return !lens || lens.saveChanges();
   }
 
   ngOnInit() {

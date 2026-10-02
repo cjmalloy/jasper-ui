@@ -19,11 +19,11 @@ import {
   OnChanges,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
   ViewContainerRef,
   ChangeDetectionStrategy,
   input,
-  output
+  output,
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -89,8 +89,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
   overlayRef?: OverlayRef;
   autoClose = true;
 
-  @ViewChild('cardMenu')
-  cardMenu!: TemplateRef<any>;
+  readonly cardMenu = viewChild.required<TemplateRef<any>>('cardMenu');
 
   private overlayEvents?: Subscription;
 
@@ -307,7 +306,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
         positionStrategy,
         scrollStrategy: this.overlay.scrollStrategies.close(),
       });
-      this.overlayRef.attach(new TemplatePortal(this.cardMenu, this.viewContainerRef));
+      this.overlayRef.attach(new TemplatePortal(this.cardMenu(), this.viewContainerRef));
       this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
         switch (event.type) {
           case 'click':
