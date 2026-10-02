@@ -36,7 +36,9 @@ test.describe.serial('Sidebar Show Remotes', () => {
     await expect(page.locator('.sidebar.expanded')).toBeVisible();
     await expect(page.locator('.sidebar .show-remotes')).toBeVisible();
     // Changing views on tablet collapses the sidebar
-    await page.goto('/settings/template?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.locator('.tabs a', { hasText: 'template' }).first().click();
+    await expect(page).toHaveURL(/\/settings\/template/);
+    await expect(page.locator('.sidebar')).not.toHaveClass(/expanded/);
     await expect(page.locator('.sidebar .show-remotes')).toBeVisible();
     await page.locator('.sidebar .show-remotes input').check();
     await expect(page).toHaveURL(/showRemotes=true/);
