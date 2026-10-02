@@ -373,8 +373,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref) {
       this.init();
-    } else if (changes.plugins) {
-      MemoCache.clear(this);
     }
   }
 
@@ -676,13 +674,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get currentTags() {
     return uniq([...(this.repost ? this.repostRef?.tags : this.ref.tags) || [], ...this.expandPlugins]);
-  }
-
-  @memo
-  get viewerTags() {
-    if (!this.plugins) return this.currentTags;
-    if (this.expandPlugins.some(p => hasTag(p, this.plugins))) return this.plugins;
-    return this.currentTags;
   }
 
   @memo
