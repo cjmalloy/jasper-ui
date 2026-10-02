@@ -187,8 +187,12 @@ export class LocationMapComponent implements OnDestroy {
       .setLngLat(location)
       .addTo(this.map);
     const el = marker.getElement();
-    el.title = $localize`Move the location here`;
-    el.addEventListener('click', e => {
+    const label = $localize`Move the location here`;
+    el.title = label;
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', label);
+    el.tabIndex = 0;
+    const activate = (e: Event) => {
       e.stopPropagation();
       this.zone.run(() => {
         this.clearSearchResult();
@@ -197,6 +201,13 @@ export class LocationMapComponent implements OnDestroy {
           : this.locations[0];
         if (active) this.pick(active, location);
       });
+    };
+    el.addEventListener('click', activate);
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        activate(e);
+      }
     });
     this.searchMarker = marker;
   }
