@@ -373,11 +373,21 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         const el = this.createMarkerElement(ref);
         const marker = el ? new Marker({ element: el }) : new Marker();
         marker.addClassName('map-thumbnail');
-        const title = getTitle(ref);
-        marker.getElement().title = title;
-        marker.getElement().setAttribute('aria-label', title);
+const title = getTitle(ref);
+        const markerElement = marker.getElement();
+        markerElement.title = title;
+        markerElement.setAttribute('aria-label', title);
+        markerElement.setAttribute('role', 'link');
+        markerElement.tabIndex = 0;
         marker.setLngLat(pointFeature.geometry.coordinates).addTo(map);
-        marker.on('click', () => this.router.navigate(['/ref', ref.url]));
+        const openRef = () => this.router.navigate(['/ref', ref.url]);
+        marker.on('click', openRef);
+        markerElement.addEventListener('keydown', event => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            openRef();
+          }
+        });
         this.markers.push(marker);
       }
     });
