@@ -4,7 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, ElementRef, linkedSignal, signal, TemplateRef, ViewContainerRef, input, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { catchError, Observable, of, throwError } from 'rxjs';
+import { catchError, of, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { BackupOptions } from '../../model/backup';
 import { AdminService } from '../../service/admin.service';
