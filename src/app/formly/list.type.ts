@@ -191,7 +191,7 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
   keydown(event: KeyboardEvent, index: number) {
     if (this.groupArray) return;
     if (event.repeat) return;
-    const len = this.formControl.length;
+    const len = this.size;
     if (!event.shiftKey) {
       if (event.key === 'Enter' || event.key === 'Tab' && len - 1 === index) {
         if (!this.model[index]) {
@@ -237,7 +237,7 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
     }
     if (!this.model[index] && event.key === 'Delete') {
       event.preventDefault();
-      if (index === this.field.fieldGroup!.length - 1) {
+      if (index === len - 1) {
         this.remove(index);
         this.focus(index - 1);
       } else {
