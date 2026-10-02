@@ -1,5 +1,6 @@
 import { computed, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, input, linkedSignal, signal, afterNextRender } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { Observable, of, startWith, switchMap } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -22,13 +23,25 @@ export class NavComponent {
 
   readonly url = input('');
   readonly titleInput = input('', { alias: 'title' });
-  readonly title = linkedSignal(() => this.titleInput());
+  readonly title = computed(() => this.titleInput() || this.preview()?.tag || '');
   readonly textInput = input('', { alias: 'text' });
-  readonly text = linkedSignal(() => this.textInput());
+  readonly text = computed(() => this.preview()?.name || this.textInput() || this.preview()?.tag || '');
   readonly css = input('');
   readonly external = input(false);
 
-  readonly nav = signal<(string|number)[] | undefined>(undefined);
+  private readonly exists = toSignal(toObservable(computed(() =>
+    this.url() && !this.localUrl() && !this.external() ? this.url() : undefined,
+  )).pipe(switchMap(url => !url ? of(false) : new Observable<void>(subscriber => {
+    this.vis.notifyVisible(this.el, () => subscriber.next());
+  }).pipe(switchMap(() => this.refs.exists(url)), startWith(false)))), { initialValue: false });
+  readonly nav = computed(() => this.localUrl() ? this.getNav() : this.exists() ? ['/ref', this.url()] : undefined);
+  private readonly preview = toSignal(toObservable(computed(() => {
+    const nav = this.localUrl() ? this.getNav() : undefined;
+    return nav?.[0] === '/tag' && !this.external() && !this.meaningfulText(this.textInput())
+      ? nav[1] as string : undefined;
+  })).pipe(switchMap(tag => tag ? this.editor.getTagPreview(tag).pipe(startWith(undefined)) : of(undefined))),
+  { initialValue: undefined });
+  private readonly baseHref = document.getElementsByTagName('base')[0]?.href || document.baseURI || location.origin + '/';
 
   constructor(
     private config: ConfigService,
@@ -39,28 +52,6 @@ export class NavComponent {
     private vis: VisibilityService,
     private el: ElementRef,
   ) { }
-
-  private readonly initialize = afterNextRender(() => {
-    if (this.localUrl()) {
-      this.nav.set(this.getNav());
-      if (this.nav()![0] === '/tag' && !this.external() && !this.hasText()) {
-        this.editor.getTagPreview(this.nav()![1] as string)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(x => {
-            this.text.set(x?.name || this.text() || x?.tag || '');
-            this.title.set(this.title() || x?.tag || '');
-          });
-      }
-    } else if (!this.external()) {
-      this.vis.notifyVisible(this.el, () => {
-        this.refs.exists(this.url()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(exists => {
-          if (exists) {
-            this.nav.set(['/ref', this.url()]);
-          }
-        });
-      });
-    }
-  });
 
 
   getNav() {
@@ -98,19 +89,16 @@ export class NavComponent {
     return false;
   });
 
-  private get baseHref() {
-    return document.getElementsByTagName('base')[0]?.href || document.baseURI || location.origin + '/';
-  }
+  readonly hasText = computed(() => this.meaningfulText(this.text()));
 
-  readonly hasText = computed(() => {
-    const text = this.text();
+  private meaningfulText(text: string) {
     const url = this.url();
     if (!text || hasPrefix(text, 'user') || hasPrefix(text, 'plugin')) return false;
     if (url.startsWith('/tag/') || url.toLowerCase().startsWith('tag:/')) {
       if (text === '#' + url.substring(5)) return false;
     }
     return text != url;
-  });
+  }
 
   markRead(event: MouseEvent) {
     if (!this.admin.getPlugin('plugin/user/read')) return;

@@ -85,4 +85,15 @@ describe('GridCellComponent', () => {
     expect(component.listValue()).toEqual(['one', 'two']);
     expect(component.displayValue()).toBe('one, two');
   });
+
+  it('invalidates proxied images when AG Grid reuses and mutates the same row object', () => {
+    admin.getPlugin.mockReturnValue({ config: { proxy: true } });
+    proxy.getFetch.mockImplementation((url: string, origin: string) => `${url}/${origin}`);
+    const row = { origin: '@first', title: 'Thumbnail' };
+    component.agInit({ value: externalUrl, data: row, colDef: { type: 'image' } } as any);
+    expect(component.imageUrl()).toBe(`${externalUrl}/@first`);
+    row.origin = '@second';
+    component.refresh({ value: externalUrl, data: row, colDef: { type: 'image' } } as any);
+    expect(component.imageUrl()).toBe(`${externalUrl}/@second`);
+  });
 });

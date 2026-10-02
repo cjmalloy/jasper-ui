@@ -600,10 +600,11 @@ export class ForceDirectedComponent implements HasChanges {
     const previous = new Map(this.simulationNodes.map(node => [node.url, node]));
     this.simulationNodes = this.store.graph.nodes().map(node => {
       const layout = previous.get(node.url);
-      return {
-        ...node,
-        ...(layout ? { x: layout.x, y: layout.y, vx: layout.vx, vy: layout.vy } : {}),
-      };
+      if (!layout) return { ...node };
+      const position = { x: layout.x, y: layout.y, vx: layout.vx, vy: layout.vy };
+      const fixed = !layout.pinned && !node.pinned
+        ? { fx: layout.fx, fy: layout.fy } : { fx: node.fx, fy: node.fy };
+      return Object.assign(layout, node, position, fixed);
     });
     const nodes = new Map(this.simulationNodes.map(node => [node.url, node]));
     this.simulationLinks = this.store.graph.links().map(link => ({

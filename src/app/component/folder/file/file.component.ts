@@ -5,14 +5,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   forwardRef,
-  inject,
   input,
   linkedSignal,
-  signal,
-  effect,
-  untracked
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -56,7 +51,6 @@ import { ViewerComponent } from '../../viewer/viewer.component';
 })
 export class FileComponent {
   css = 'file ';
-  private destroyRef = inject(DestroyRef);
 
   readonly refInput = input.required<Ref>({ alias: 'ref' });
   readonly ref = linkedSignal(() => this.refInput());

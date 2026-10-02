@@ -303,6 +303,7 @@ export class ViewerComponent {
       if (oembed) {
         this.embeds.writeIframe(oembed, i, this.embedWidth(), true)
           .then(() => {
+            if (this.oembed() !== oembed || this.iframe()?.nativeElement !== i) return;
             if (oembed.width! > this.width()) {
               const s = this.width() / oembed.width!;
               const marginLeft = oembed.width! - this.width();

@@ -1,7 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, output, viewChild, untracked } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { defer } from 'lodash-es';
-import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { access } from '../../util/tag';

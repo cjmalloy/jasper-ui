@@ -3,11 +3,8 @@ import { clearAll, closeSidebar, mod, openSidebar } from './setup';
 import { addToBoard, dragCol } from './template-kanban';
 
 async function loadBoard(page: Page) {
-  const pagePromises = Array.from({ length: 9 }, () =>
-    page.waitForResponse(resp => resp.url().includes('/api/v1/ref/page'))
-  );
-  await page.goto('/tag/kanban/sl?debug=USER');
-  await Promise.all(pagePromises);
+  await page.goto('/tag/kanban/sl?debug=USER', { waitUntil: 'networkidle' });
+  await expect(page.locator('.kanban-column')).toHaveCount(9);
 }
 
 test.describe.serial('Kanban Template with Swim Lanes', () => {

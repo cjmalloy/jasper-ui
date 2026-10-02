@@ -3,7 +3,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { filter, pullAll, uniq } from 'lodash-es';
+import { filter, uniq } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
@@ -130,34 +130,27 @@ export class FilterComponent {
         if (k.columns?.length) {
           push({ label: group, filters: [] });
           const ps = this.kanbanPreviews().find(result => result.key === e.tag + (e.origin || ''))?.previews || [];
-            for (const p of ps) {
-              load({
-                group,
-                label: p.name || '#' + p.tag,
-                query: p.tag,
-              });
-            }
-            if (k.columns?.length && k.showColumnBacklog) {
-              load({
-                group,
-                label: k.columnBacklogTitle || $localize`🚫️ no column`,
-                query: (k.columns || []).map(t => '!' + t).join(':'),
-              });
-            }
-            if (k.swimLanes?.length && k.showSwimLaneBacklog) {
-              load({
-                group,
-                label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`,
-                query: k.swimLanes!.map(t => '!' + t).join(':'),
-              });
-            }
-            if (k.badges?.length) {
-              load({
-                group: group,
-                label: $localize`🚫️ no badges`,
-                query: k.badges.map(t => '!' + t).join(':'),
-              });
-            }
+          for (const p of ps) {
+            load({ group, label: p.name || '#' + p.tag, query: p.tag });
+          }
+          if (k.showColumnBacklog) {
+            load({
+              group, label: k.columnBacklogTitle || $localize`🚫️ no column`,
+              query: k.columns.map(t => '!' + t).join(':'),
+            });
+          }
+          if (k.swimLanes?.length && k.showSwimLaneBacklog) {
+            load({
+              group, label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`,
+              query: k.swimLanes.map(t => '!' + t).join(':'),
+            });
+          }
+          if (k.badges?.length) {
+            load({
+              group, label: $localize`🚫️ no badges`,
+              query: k.badges.map(t => '!' + t).join(':'),
+            });
+          }
         }
       }
       push({
@@ -254,16 +247,6 @@ export class FilterComponent {
       .filter(x => x.config);
   });
 
-  /**
-   * Update list of available filters to match current filter set so that the
-   * select dropdown values match and it remains selected.
-   *
-   * For date-time filters, update the date-time to match the current query.
-   *
-   * For query filters, update the current toggled (negation) status.
-   *
-   * If a filter can't be matched, just add it to the allFilters list.
-   */
   addFilter(value: UrlFilter) {
     if (value) {
       this.filters.update(filters => [...filters || [], value]);

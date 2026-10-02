@@ -47,6 +47,24 @@ describe('ExtFormComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('renders the generated sidebar editor and keeps it bound through form updates', () => {
+    component.form.set([{
+      key: 'sidebar',
+      type: 'editor',
+      className: 'sidebar-editor',
+    }]);
+    detectInputChanges();
+    const textarea = fixture.nativeElement.querySelector('.sidebar-editor .editor-field textarea') as HTMLTextAreaElement;
+    expect(textarea).toBeTruthy();
+    const sidebar = component.config().get('sidebar');
+    expect(sidebar).toBeTruthy();
+
+    sidebar!.setValue('Sidebar content');
+    detectInputChanges();
+    expect(fixture.nativeElement.querySelector('.sidebar-editor .editor-field textarea')).toBe(textarea);
+    expect(textarea.value).toBe('Sidebar content');
+  });
+
   it('adds, updates, and removes multiple default sorts', () => {
     component.config().addControl('defaultSort', new FormControl<string[]>([], { nonNullable: true }));
     const select = document.createElement('select');

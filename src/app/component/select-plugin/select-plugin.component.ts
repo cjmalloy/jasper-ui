@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, model, signal, untracked, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { defer, uniqBy } from 'lodash-es';
+import { uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
