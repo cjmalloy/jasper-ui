@@ -16,15 +16,18 @@
 
 // Undo the global input and button styles so the control keeps its own layout
 .maplibregl-map .maplibregl-ctrl-geocoder.maplibregl-ctrl {
-  transition: width 150ms ease, max-width 150ms ease;
+  // Rest at an explicit length so the width transition starts from the rendered size
+  // (upstream rests at a small percentage clamped by min-width: 240px, which flickers)
+  width: min(240px, calc(100cqw - 20px));
+  min-width: 0;
+  max-width: calc(100cqw - 20px);
+  transition: width 150ms ease;
 
   // Expand when focused or when there is a query typed
   // (cqw resolves against the mgl-map, which sets container-type: inline-size)
   &:focus-within,
   &:has(.maplibregl-ctrl-geocoder--input:not(:placeholder-shown)) {
     width: max(0px, var(--map-geocoder-width, 80cqw));
-    min-width: 0;
-    max-width: calc(100cqw - 20px);
   }
 
   input.maplibregl-ctrl-geocoder--input {

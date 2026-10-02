@@ -186,8 +186,18 @@ test.describe.serial('Map Plugin', () => {
     const initial = await width();
     expect(initial).toBeLessThan(mapWidth * 0.6);
 
-    // Expands while focused
+    // Expands while focused, animating up from the default size without shrinking first
+    const smallest = geocoder.evaluate(el => new Promise<number>(resolve => {
+      let min = Infinity;
+      const end = performance.now() + 400;
+      const sample = () => {
+        min = Math.min(min, el.getBoundingClientRect().width);
+        if (performance.now() < end) requestAnimationFrame(sample); else resolve(min);
+      };
+      sample();
+    }));
     await search.focus();
+    expect(await smallest).toBeGreaterThanOrEqual(initial - 1);
     await expect.poll(width).toBeGreaterThan(mapWidth * 0.75);
     expect(await width()).toBeLessThanOrEqual(mapWidth - 20);
 
@@ -202,9 +212,14 @@ test.describe.serial('Map Plugin', () => {
     await expect.poll(width).toBeGreaterThan(mapWidth * 0.75);
 
     // Shrinks back when empty and unfocused
+    // (retry: the geocoder's debounced keydown handler refocuses the input after the query is cleared)
     await search.fill('');
-    await search.blur();
-    await expect.poll(width).toBeCloseTo(initial, 0);
+    await expect(async () => {
+      await search.blur();
+      await expect.poll(width, { timeout: 1_000 }).toBeCloseTo(initial, 0);
+      await page.waitForTimeout(300);
+      expect(await width()).toBeCloseTo(initial, 0);
+    }).toPass();
 
     // The map still renders at full size
     expect((await map.boundingBox())!.width).toBeCloseTo(mapWidth, 0);
