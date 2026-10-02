@@ -20,11 +20,22 @@
       } @else {
         <label for="title" i18n>Title:</label>
       }
-      <input id="title"
-             name="title"
-             type="text"
-             [formControl]="title"
-             (blur)="validate($any($event.target))">
+      <div class="form-array">
+        <input id="title"
+               name="title"
+               type="text"
+               [formControl]="title"
+               (blur)="validate($any($event.target))">
+        @if (geoLocation && title.enabled) {
+          @if (scrapingTitle) {
+            <app-loading class="event-loading"
+                         [inline]="true"
+                         i18n-title title="Scrape Title"></app-loading>
+          } @else {
+            <button type="button" class="scrape-title" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
+          }
+        }
+      </div>
 
       <app-select-plugin #pluginSelect
                          class="shrink"

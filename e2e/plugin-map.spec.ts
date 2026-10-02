@@ -242,6 +242,21 @@ test.describe.serial('Map Plugin', () => {
     await expect(page.locator('[name=title]')).toHaveValue('Citadel Hill, Halifax, Nova Scotia, Canada');
   });
 
+  test('text post title scraper reverse geocodes the location', async ({ page }) => {
+    await page.route('https://nominatim.openstreetmap.org/reverse**', route => route.fulfill({
+      headers: CORS,
+      json: { display_name: 'Citadel Hill, Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' },
+    }));
+    await page.goto('/submit/text?debug=ADMIN&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    // Only shown once there is a location to reverse geocode
+    await expect(page.locator('.scrape-title')).toHaveCount(0);
+    const point = page.locator('.location-field').first();
+    await point.locator('input').nth(0).fill('-63.57');
+    await point.locator('input').nth(1).fill('44.65');
+    await page.locator('.scrape-title').click();
+    await expect(page.locator('[name=title]')).toHaveValue('Citadel Hill, Halifax, Nova Scotia, Canada');
+  });
+
   test('plugin/map embeds the ref geo features', async ({ page }) => {
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/map&tag=plugin/geo/point', { waitUntil: 'networkidle' });
