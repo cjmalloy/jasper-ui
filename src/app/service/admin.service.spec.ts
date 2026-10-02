@@ -3,8 +3,10 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { autorun } from 'mobx';
 import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
+import { remoteOriginMod } from '../mods/sync/origin';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { AdminService } from './admin.service';
@@ -26,6 +28,16 @@ describe('AdminService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('updates origin plugin availability when plugin status loads', () => {
+    const availability: boolean[] = [];
+    const dispose = autorun(() => availability.push(!!service.remoteOriginPlugin));
+
+    (service as any).pluginToStatus([remoteOriginMod.plugin![0]]);
+
+    expect(availability).toEqual([false, true]);
+    dispose();
   });
 
   it('should keep formly expressions serializable for built-in mods', () => {

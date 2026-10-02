@@ -7,7 +7,7 @@
       <div class="wide">
         @if (store.view.showRemotesCheckbox) {
           <app-search></app-search>
-          @if (admin.getPlugin('+plugin/origin')) {
+          @if (admin.remoteOriginPlugin) {
             <div class="show-remotes">
               <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
               <label for="show-remotes" i18n>show remotes</label>

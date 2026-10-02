@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
-import { runInAction } from 'mobx';
+import { observable, runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -118,6 +118,8 @@ export class AdminService {
     disabledTemplates: <Record<string, Template>> {},
     receipts: <Record<string, Ref>> {},
   };
+
+  private pluginStatusRevision = observable.box(0);
 
   mods: Mod[] = [
     debugMod,
@@ -253,6 +255,7 @@ export class AdminService {
     this.status.templates = {};
     this.status.disabledTemplates = {};
     this.status.receipts = {};
+    this.bumpPluginStatusRevision();
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
       switchMap(() => this.loadReceipts$()),
@@ -374,6 +377,7 @@ export class AdminService {
         runInAction(() => this.store.view.modUpdates.add(modId(p)));
       }
     }
+    this.bumpPluginStatusRevision();
   }
 
   private templateToStatus(list: Template[]) {
@@ -803,6 +807,15 @@ export class AdminService {
   @memo
   getPlugin(tag: string) {
     return Object.values(this.status.plugins).find(p => p?.tag === tag);
+  }
+
+  get remoteOriginPlugin() {
+    this.pluginStatusRevision.get();
+    return Object.values(this.status.plugins).find(p => p?.tag === '+plugin/origin');
+  }
+
+  private bumpPluginStatusRevision() {
+    runInAction(() => this.pluginStatusRevision.set(this.pluginStatusRevision.get() + 1));
   }
 
   @memo
