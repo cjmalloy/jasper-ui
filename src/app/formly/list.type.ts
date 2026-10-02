@@ -7,7 +7,8 @@ import { Subscription } from 'rxjs';
 import { Store } from '../store/store';
 import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
-import { hasLocation, LocationMapComponent } from './location-map.component';
+import { hasLocation } from '../util/geo';
+import { LocationMapComponent } from './location-map.component';
 import { closedRings, getLocationPicker } from './location-picker';
 
 @Component({
