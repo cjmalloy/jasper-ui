@@ -45,7 +45,7 @@ export class AppComponent implements AfterViewInit {
 
   electron = this.config.electron;
 
-  debug = !isDevMode() && this.store.account.debug;
+  debug = !isDevMode() && this.store.account.debug();
   website = 'https://github.com/cjmalloy/jasper-ui';
 
   pdfPlugin = this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin || undefined;
@@ -64,32 +64,32 @@ export class AppComponent implements AfterViewInit {
     private vc: ViewContainerRef,
   ) {
     document.body.style.height = '';
-    if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
+    if (!this.store.account.debug() && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
     window.addEventListener('keyup', event => {
       const hotkey = !this.hotkeyActive(event) || this.hotkey(event.key);
-      if (this.store.hotkey && hotkey) {
-        this.store.hotkey = false;
+      if (this.store.hotkey() && hotkey) {
+        this.store.hotkey.set(false);
         document.body.classList.remove('hotkey');
       }
     }, { capture: true });
     window.addEventListener('keydown', event => {
       const hotkey = this.hotkeyActive(event) || this.hotkey(event.key);
-      if (this.store.hotkey !== hotkey) {
-        this.store.hotkey = hotkey;
+      if (this.store.hotkey() !== hotkey) {
+        this.store.hotkey.set(hotkey);
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
     window.addEventListener('pointerenter', event => {
       const hotkey = this.hotkeyActive(event);
-      if (this.store.hotkey !== hotkey) {
-        this.store.hotkey = hotkey;
+      if (this.store.hotkey() !== hotkey) {
+        this.store.hotkey.set(hotkey);
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
     window.addEventListener('pointerout', event => {
       const hotkey = this.hotkeyActive(event);
-      if (this.store.hotkey !== hotkey) {
-        this.store.hotkey = hotkey;
+      if (this.store.hotkey() !== hotkey) {
+        this.store.hotkey.set(hotkey);
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
@@ -114,7 +114,7 @@ export class AppComponent implements AfterViewInit {
     });
     window.visualViewport?.addEventListener('resize', event => {
       const vv = event?.target as VisualViewport;
-      this.store.viewportHeight = vv.height;
+      this.store.viewportHeight.set(vv.height);
     });
     let currentNavigationId = 0;
     this.router.events.pipe(
@@ -124,7 +124,7 @@ export class AppComponent implements AfterViewInit {
       const isForwardButton = event.navigationTrigger === 'popstate' &&
         event.restoredState &&
         event.restoredState.navigationId > currentNavigationId;
-      this.store.view.back = !isLinkClick && !isForwardButton;
+      this.store.view.back.set(!isLinkClick && !isForwardButton);
       currentNavigationId = event.restoredState?.navigationId ?? event.id;
     });
   }
@@ -140,21 +140,21 @@ export class AppComponent implements AfterViewInit {
   }
 
   removeHotkey() {
-    if (this.store.hotkey) {
-      this.store.hotkey = false;
+    if (this.store.hotkey()) {
+      this.store.hotkey.set(false);
       document.body.classList.remove('hotkey');
     }
   }
 
   offline() {
-    if (!this.store.offline) {
-      this.store.offline = true;
+    if (!this.store.offline()) {
+      this.store.offline.set(true);
     }
   }
 
   online() {
-    if (this.store.offline) {
-      this.store.offline = false;
+    if (this.store.offline()) {
+      this.store.offline.set(false);
     }
   }
 
@@ -189,8 +189,8 @@ export class AppComponent implements AfterViewInit {
     }
     if (!files.length) return;
     this.store.submit.addFiles(files);
-    if (!this.store.submit.upload) {
-      this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.view.queryTags }});
+    if (!this.store.submit.upload()) {
+      this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.view.queryTags() }});
     }
   }
 

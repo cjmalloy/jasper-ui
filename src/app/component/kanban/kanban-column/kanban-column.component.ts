@@ -275,11 +275,11 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     // TODO: support local urls
     const ref: Ref = isUrl ? {
       url: fixUrl(text, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']),
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       tags: [...tagsWithAuthor],
     } : {
       url: 'comment:' + uuid(),
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       title: text,
       tags: [...tagsWithAuthor],
     };
@@ -363,8 +363,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
 
   private getTagsWithAuthor(): string[] {
     const addTags = this.addTags();
-    return uniq(!hasTag(this.store.account.localTag, addTags)
-      ? [...addTags, this.store.account.localTag]
+    return uniq(!hasTag(this.store.account.localTag(), addTags)
+      ? [...addTags, this.store.account.localTag()]
       : addTags).filter(t => !!t);
   }
 
@@ -455,7 +455,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref: Ref = {
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         url: 'internal:' + uuid(),
         title: file.name,
         tags: [...tagsWithAuthor, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
@@ -487,7 +487,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         tags.push('plugin/pdf');
       }
 
-      return this.proxy.save(file, this.store.account.origin).pipe(
+      return this.proxy.save(file, this.store.account.origin()).pipe(
         map(event => {
           switch (event.type) {
             case HttpEventType.Response:
@@ -521,7 +521,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
       this.page.set({ content: [], page: { totalElements: 0, number: 0, totalPages: 0, size: 0 } } as Page<Ref>);
     }
 
-    ref.origin = this.store.account.origin;
+    ref.origin = this.store.account.origin();
 
     this.mutated.set(true);
     this.adding.update(adding => adding.filter(u => u.id !== uploadId));
@@ -554,7 +554,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     const rp = 'internal:' + uuid();
     return this.refs.create({
       url: rp,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       tags: ['plugin/repost', ...tags],
       sources: [url],
     }).pipe(

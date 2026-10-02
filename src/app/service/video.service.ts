@@ -47,7 +47,7 @@ export class VideoService {
     private refs: RefService,
   ) {
     if (isDevMode()) timer(3_000, 30_000).pipe(
-      mergeMap(() => this.store.video.peers.entries()),
+      mergeMap(() => this.store.video.peers().entries()),
       map(([user, peer]) => ({ user, stats: peer.getStats?.() })),
     ).subscribe(({ user, stats }) => {
       stats?.then(s => s.forEach((v, k) => console.log(user, k, v)));
@@ -55,7 +55,7 @@ export class VideoService {
   }
 
   get connecting() {
-    return !this.store.video.peers.size || !!Array.from(this.store.video.peers.values()).find(p => p.connectionState !== 'connected');
+    return !this.store.video.peers().size || !!Array.from(this.store.video.peers().values()).find(p => p.connectionState !== 'connected');
   }
 
   call(url: string, stream: MediaStream) {
@@ -63,7 +63,7 @@ export class VideoService {
     console.debug('Joining Lobby!');
     this.url = url;
     this.destroy$.next();
-    this.store.video.stream = stream;
+    this.store.video.stream.set(stream);
     this.invite();
     this.answer();
   }
@@ -71,7 +71,7 @@ export class VideoService {
   hangup() {
     console.debug('Hung Up!');
     this.url = '';
-    for (const user of this.store.video.peers.keys()) {
+    for (const user of this.store.video.peers().keys()) {
       this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
         .subscribe();
     }
@@ -82,7 +82,7 @@ export class VideoService {
   }
 
   peer(user: string) {
-    if (this.store.video.peers.has(user)) return this.store.video.peers.get(user)!;
+    if (this.store.video.peers().has(user)) return this.store.video.peers().get(user)!;
     const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtcConfig);
     this.store.video.call(user, peer);
     this.seen.delete(user);
@@ -133,14 +133,14 @@ export class VideoService {
     //     peer.restartIce();
     //   }
     // });
-    this.store.video.stream!.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream!));
+    this.store.video.stream()!.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream()!));
     return peer;
   }
 
   offers = new Map<string, number>();
   doInvite = async (user: string) => {
     this.store.video.setHungup(user, false);
-    if (this.store.video.peers.has(user)) return;
+    if (this.store.video.peers().has(user)) return;
     const peer = this.peer(user);
     const offer = await peer.createOffer();
     if (peer.signalingState !== 'stable') {
@@ -158,7 +158,7 @@ export class VideoService {
     timer(this.stuck).pipe(
       takeUntil(this.destroy$),
     ).subscribe(() => {
-      const peer = this.store.video.peers.get(user);
+      const peer = this.store.video.peers().get(user);
       if (peer?.localDescription && !peer.remoteDescription) {
         console.error('Stuck!');
         this.resetUserConnection(user);
@@ -175,7 +175,7 @@ export class VideoService {
       mergeMap(page => page.content),
       map(ref => getUserUrl(ref)),
       filter(user => !!user),
-      filter(user => user !== setPublic(this.store.account.tag)),
+      filter(user => user !== setPublic(this.store.account.tag())),
       takeUntil(this.destroy$),
     ).subscribe(user => this.doInvite(user));
     if (this.config.websockets) {
@@ -187,7 +187,7 @@ export class VideoService {
           const user = getUserUrl(res);
           const hungup = !hasTag('plugin/user/lobby', res);
           this.store.video.setHungup(user, hungup);
-          if (hungup && this.store.video.peers.has(user)) {
+          if (hungup && this.store.video.peers().has(user)) {
             console.debug('Hung Up!', user);
             this.store.video.remove(user);
           }
@@ -195,7 +195,7 @@ export class VideoService {
         filter(res => hasTag('plugin/user/lobby', res)),
         map(res => getUserUrl(res)),
         filter(user => !!user),
-        filter(user => user !== setPublic(this.store.account.tag)),
+        filter(user => user !== setPublic(this.store.account.tag())),
         tap(user => this.peer(user)),
         takeUntil(this.destroy$)
       ).subscribe((user: any) => this.doInvite(user));
@@ -211,11 +211,11 @@ export class VideoService {
   answer() {
     const doAnswer = async (res: Ref, allowUnknown: boolean) => {
       const user = getUserUrl(res);
-      if (!user || user === setPublic(this.store.account.tag)) return;
+      if (!user || user === setPublic(this.store.account.tag())) return;
       const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
       if (!video) return;
-      if (this.store.video.hungup.get(user)) return;
-      let peer = this.store.video.peers.get(user);
+      if (this.store.video.hungup().get(user)) return;
+      let peer = this.store.video.peers().get(user);
       if (peer?.connectionState === 'connected' && video.offer && video.dial && !video.answer) {
         if (this.offers.get(user) !== video.dial) {
           console.warn('Peer reloaded - resetting connection', user);
@@ -234,7 +234,7 @@ export class VideoService {
           }
         } else if (video.offer) {
           console.debug('Double Offer!', user);
-          if (setPublic(this.store.account.tag) < user) {
+          if (setPublic(this.store.account.tag()) < user) {
             console.debug('Cancelled Offer! (will accept offer)', user);
             await peer.setLocalDescription({ type: 'rollback' });
           } else {
@@ -277,13 +277,13 @@ export class VideoService {
     };
     const pollPeer = () => this.refs.page({
       query: 'plugin/user/video',
-      responses: userResponse(this.store.account.localTag),
+      responses: userResponse(this.store.account.localTag()),
     }).pipe(
       mergeMap(page => page.content),
       takeUntil(this.destroy$),
     ).subscribe(res => doAnswer(res, false));
     if (this.config.websockets) {
-      this.stomp.watchResponse(userResponse(this.store.account.localTag)).pipe(
+      this.stomp.watchResponse(userResponse(this.store.account.localTag())).pipe(
         tap(() => this.peerWebsocket = true),
         switchMap(url => this.refs.getCurrent(url)),
         filter(res => hasTag('plugin/user/video', res)),

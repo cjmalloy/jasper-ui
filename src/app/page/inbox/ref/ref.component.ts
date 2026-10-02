@@ -43,15 +43,15 @@ export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     effect(() => {
-      this.plugin = this.admin.getPlugin(this.store.view.inboxTag);
-      this.mod.setTitle($localize`Inbox: ${this.plugin?.config?.inbox || this.store.view.inboxTag}`);
+      this.plugin = this.admin.getPlugin(this.store.view.inboxTag());
+      this.mod.setTitle($localize`Inbox: ${this.plugin?.config?.inbox || this.store.view.inboxTag()}`);
       const args = getArgs(
-        this.store.view.inboxTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
-        this.store.view.sort,
-        uniq(['!obsolete', ...this.store.view.filter]),
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.view.inboxTag() + (this.store.view.showRemotes() ? '' : (this.plugin?.origin || '@')),
+        this.store.view.sort(),
+        uniq(['!obsolete', ...this.store.view.filter()]),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });

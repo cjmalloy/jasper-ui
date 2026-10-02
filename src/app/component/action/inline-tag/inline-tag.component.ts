@@ -76,7 +76,7 @@ export class InlineTagComponent extends ActionComponent {
   }
 
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
-    return this.editor.getTagPreview(value, this.store.account.origin, false,);
+    return this.editor.getTagPreview(value, this.store.account.origin(), false,);
   }
 
   search = debounce((input: HTMLInputElement) => {

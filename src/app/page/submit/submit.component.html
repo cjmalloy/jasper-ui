@@ -7,54 +7,54 @@
     }
   </h5>
   <a routerLink="/submit"
-     [class.current-tab]="store.submit.web && !store.submit.genId"
-     [queryParams]="{ url: url.value, tag: store.submit.withoutGenId }"
+     [class.current-tab]="store.submit.web() && !store.submit.genId()"
+     [queryParams]="{ url: url.value, tag: store.submit.withoutGenId() }"
      [replaceUrl]="true"
      i18n-title title="🔗️ Link Post"
      queryParamsHandling="merge" i18n>link</a>
   <a routerLink="/submit/text"
-     [class.current-tab]="store.submit.text"
-     [queryParams]="{ url: null, tag: store.submit.withoutGenId }"
+     [class.current-tab]="store.submit.text()"
+     [queryParams]="{ url: null, tag: store.submit.withoutGenId() }"
      i18n-title title="📝️ Text Post"
      queryParamsHandling="merge" i18n>text</a>
   <a routerLink="/submit/upload"
-     [class.current-tab]="store.submit.upload"
+     [class.current-tab]="store.submit.upload()"
      [queryParams]="{ to: null, url: null }"
      i18n-title title="💾️ Upload"
      queryParamsHandling="merge" i18n>upload</a>
   @if (!admin.isWikiExternal()) {
     <a routerLink="/submit"
-       [class.current-tab]="store.submit.wiki"
-       [queryParams]="{ url: wikify, tag: store.submit.withoutGenId }"
+       [class.current-tab]="store.submit.wiki()"
+       [queryParams]="{ url: wikify, tag: store.submit.withoutGenId() }"
        [replaceUrl]="true"
        i18n-title title="📔️ Wiki Page"
        queryParamsHandling="merge" i18n>wiki</a>
   }
   @if (admin.getTemplate('dm')) {
     <a routerLink="/submit/dm"
-       [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dmPlugin"
+       [class.current-tab]="store.submit.subpage() === 'dm' && !store.submit.dmPlugin()"
        [queryParams]="{ to: null, tag: null, url: null }"
        i18n-title title="📨️ Direct Message"
        queryParamsHandling="merge" i18n>dm</a>
   }
-  @for (p of store.submit.submitGenId; track p.tag) {
+  @for (p of store.submit.submitGenId(); track p.tag) {
     @if (p.config?.submitDm) {
       <a routerLink="/submit/dm"
-         [class.current-tab]="store.submit.subpage === 'dm' && store.submit.to[0] === p.tag"
+         [class.current-tab]="store.submit.subpage() === 'dm' && store.submit.to()[0] === p.tag"
          [queryParams]="{ to: p.tag, tag: null, url: null }"
          [replaceUrl]="true"
          [title]="p.name"
          queryParamsHandling="merge">{{ p.config!.submit }}</a>
     } @else if (p.config?.submitText) {
       <a routerLink="/submit/text"
-         [class.current-tab]="store.submit.tags.includes(p.tag) && store.submit.url"
+         [class.current-tab]="store.submit.tags().includes(p.tag) && store.submit.url()"
          [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
          [replaceUrl]="true"
          [title]="p.name"
          queryParamsHandling="merge">{{ p.config!.submit }}</a>
     } @else {
       <a routerLink="/submit/web"
-         [class.current-tab]="store.submit.tags.includes(p.tag) && store.submit.url"
+         [class.current-tab]="store.submit.tags().includes(p.tag) && store.submit.url()"
          [queryParams]="{ tag: submitInternal(p.tag), url: genUrl }"
          [replaceUrl]="true"
          [title]="p.name"
@@ -64,10 +64,10 @@
 </app-tabs>
 <router-outlet></router-outlet>
 
-@if (!store.submit.subpage) {
+@if (!store.submit.subpage()) {
   <div class="full-page-form">
     <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
-      @if (!store.submit.wiki && selectedPlugin) {
+      @if (!store.submit.wiki() && selectedPlugin) {
         <span i18n>Type:</span>
         <div>
           <span>{{ selectedPlugin.name || selectedPlugin.tag }}</span>
@@ -78,7 +78,7 @@
           }
         </div>
       }
-      @if (store.submit.wiki) {
+      @if (store.submit.wiki()) {
         <span i18n>Type:</span>
         <div>
           <span i18n>Wiki</span>
@@ -88,15 +88,15 @@
         </div>
       }
 
-      @if (store.submit.wiki) {
+      @if (store.submit.wiki()) {
         <label for="url" class="big">Title:</label>
       } @else {
         <label for="url" class="big"></label>
       }
       <div class="form-array">
-        @if (store.submit.web) {
+        @if (store.submit.web()) {
           <app-select-plugin [(plugin)]="plugin"
-                             [settings]="!!admin.getPluginSettings(store.submit.tags).length"></app-select-plugin>
+                             [settings]="!!admin.getPluginSettings(store.submit.tags()).length"></app-select-plugin>
         }
         @if (uploading()) {
           <progress class="grow" max="100" [value]="progress()"></progress>
@@ -119,7 +119,7 @@
                  (drop)="uploadFiles($event, $event.dataTransfer?.items)"
                  (paste)="uploadFiles($event, $event.clipboardData?.items) || getUrlPlugin()">
         }
-        @if (!store.submit.wiki) {
+        @if (!store.submit.wiki()) {
           @if ((!plugin() || plugin() === 'plugin/qr') && admin.getPlugin('plugin/qr')) {
             <app-qr-scanner [upload]="plugin() === 'plugin/qr'" (data)="scanQr($event)"></app-qr-scanner>
           }
@@ -141,7 +141,7 @@
 
       <span><!-- Tags --></span>
       <div class="tag-list form-array right">
-        @for (p of store.submit.tags | tagPreview | async; track p.tag) {
+        @for (p of store.submit.tags() | tagPreview | async; track p.tag) {
           <a class="tag" [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
         }
       </div>
@@ -196,15 +196,15 @@
     </form>
 
     <span></span>
-    <div class="summary-box" [class.hidden-without-removing]="!store.submit.refs.length">
+    <div class="summary-box" [class.hidden-without-removing]="!store.submit.refs().length">
       <h5 routerLink="./responses" i18n>Unsaved:</h5>
       <div class="list-container">
-        @for (ref of store.submit.topRefs; track ref.url; let i = $index) {
+        @for (ref of store.submit.topRefs(); track ref.url; let i = $index) {
           <div class="list-number">{{ i + 1 }}</div>
           <app-ref [ref]="ref" [showToggle]="true"></app-ref>
         }
       </div>
-      @if (store.submit.refs.length > store.submit.topRefs.length) {
+      @if (store.submit.refs().length > store.submit.topRefs().length) {
         <a routerLink="./submit/upload"
            queryParamsHandling="merge"
            class="load-more no-select" i18n>

@@ -63,28 +63,28 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     effect(() => {
-      this.store.view.tag;
-      this.store.view.localTag;
-      this.store.account.origin;
+      this.store.view.tag();
+      this.store.view.localTag();
+      this.store.account.origin();
       untracked(() => {
-        if (!this.store.view.tag) {
-          this.store.view.selectedUser = undefined;
+        if (!this.store.view.tag()) {
+          this.store.view.selectedUser.set(undefined);
         } else {
-          const tag = this.store.view.localTag + this.store.account.origin;
+          const tag = this.store.view.localTag() + this.store.account.origin();
           this.users.get(tag).pipe(
             catchError(() => of(undefined)),
           ).subscribe(user => {
-            this.store.view.selectedUser = user;
+            this.store.view.selectedUser.set(user);
             if (user) {
               this.profileForm.setControl('user', userForm(this.fb, true));
               defer(() => this.userForm().setUser(user));
             } else {
               this.profileForm.setControl('user', userForm(this.fb, false));
               defer(() => this.userForm().setUser({
-                tag: this.store.view.localTag,
-                origin: this.store.view.origin,
-                readAccess: this.admin.readAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
-                writeAccess: this.admin.writeAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
+                tag: this.store.view.localTag(),
+                origin: this.store.view.origin(),
+                readAccess: this.admin.readAccess.map(t => setPublic(prefix(t, this.store.view.localTag()))),
+                writeAccess: this.admin.writeAccess.map(t => setPublic(prefix(t, this.store.view.localTag()))),
               }));
             }
           });
@@ -125,10 +125,10 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
       return;
     }
     const updates = {
-      ...(this.store.view.selectedUser || {}),
+      ...(this.store.view.selectedUser() || {}),
       ...this.user.value,
-      tag: this.store.view.localTag,
-      origin: this.store.account.origin,
+      tag: this.store.view.localTag(),
+      origin: this.store.account.origin(),
       readAccess: uniq([...this.user.value.readAccess, ...this.user.value.notifications]),
     };
     delete updates.notifications;
@@ -140,7 +140,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
       this.externalErrors.set([...this.externalErrors(), e.message]);
     }
     const entities: Observable<any>[] = [
-      (this.store.view.selectedUser
+      (this.store.view.selectedUser()
         ? this.users.update(updates)
         : this.users.create(updates)).pipe(
         catchError((res: HttpErrorResponse) => {
@@ -151,11 +151,11 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
     ];
     if (this.config.scim) {
       const profile = {
-        tag: this.store.view.localTag + this.store.account.origin,
+        tag: this.store.view.localTag() + this.store.account.origin(),
         password: this.profileForm.value.password,
         role: this.profileForm.value.role,
       };
-      if (this.store.view.selectedUser) {
+      if (this.store.view.selectedUser()) {
         if (this.password.touched) {
           entities.push(this.profiles.changePassword(profile));
         }
@@ -178,24 +178,24 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
     }
     forkJoin(entities).subscribe(() => {
       this.profileForm.markAsPristine();
-      this.router.navigate(['/tag', this.tag.value + this.store.account.origin])
+      this.router.navigate(['/tag', this.tag.value + this.store.account.origin()])
     });
   }
 
   delete() {
     // TODO: Better dialogs
     if (confirm($localize`Are you sure you want to delete this user?`)) {
-      const deleteNotice = !isDeletorTag(this.store.view.selectedUser!.tag) && this.admin.getPlugin('plugin/delete')
-        ? this.users.create(tagDeleteNotice(this.store.view.selectedUser!))
+      const deleteNotice = !isDeletorTag(this.store.view.selectedUser()!.tag) && this.admin.getPlugin('plugin/delete')
+        ? this.users.create(tagDeleteNotice(this.store.view.selectedUser()!))
         : of(null);
-      this.users.delete(this.store.view.localTag + this.store.account.origin).pipe(
+      this.users.delete(this.store.view.localTag() + this.store.account.origin()).pipe(
         switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
           this.serverError.set(printError(err));
           return throwError(() => err);
         }),
       ).subscribe(() => {
-        this.router.navigate(['/tag', this.store.view.localTag + this.store.account.origin]);
+        this.router.navigate(['/tag', this.store.view.localTag() + this.store.account.origin()]);
       });
     }
   }

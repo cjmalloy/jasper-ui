@@ -62,7 +62,7 @@ export class FilterComponent {
       untracked(() => this.loadFilters());
     });
     effect(() => {
-      const filter = this.store.view.filter;
+      const filter = this.store.view.filter();
       untracked(() => {
         this.filters.set(Array.isArray(filter) ? [...filter] : [filter]);
         this.sync();
@@ -192,11 +192,11 @@ export class FilterComponent {
     }
     this.pushFilter({
       label: $localize`Origins 🏛️`,
-      filters: this.store.origins.list.map(o => ({ filter: 'query/' + (o || '*') as UrlFilter,
+      filters: this.store.origins.list().map(o => ({ filter: 'query/' + (o || '*') as UrlFilter,
         label:
           !o ? $localize`✴️ local`
-            : o === this.store.account.origin ? $localize`🏛️ ${o}`
-              : !this.store.account.origin ? $localize`🏛️ ${o}`
+            : o === this.store.account.origin() ? $localize`🏛️ ${o}`
+              : !this.store.account.origin() ? $localize`🏛️ ${o}`
                 : $localize`🪆 ${o}` })),
     });
     this.sync();

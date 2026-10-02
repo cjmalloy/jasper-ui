@@ -57,10 +57,10 @@ export class ExtService {
     const setOrigin = (t: string) => {
       const [tag, origin] = t.split(':');
       if (tag.includes('@')) return tag;
-      if ((origin || '') !== this.store.account.origin) {
-        return tag + (origin || '') + '|' + tag + this.store.account.origin;
+      if ((origin || '') !== this.store.account.origin()) {
+        return tag + (origin || '') + '|' + tag + this.store.account.origin();
       }
-      return tag + this.store.account.origin;
+      return tag + this.store.account.origin();
     };
     return this.page({ query: prefetch.map(setOrigin).join('|'), size: 1000 }).pipe(
       tap(batch => {
@@ -73,13 +73,13 @@ export class ExtService {
                 || this.defaultExt(tag)));
             } else if (defaultOrigin) {
               this._cache.set(key, of(
-                batch.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
+                batch.content.find(x => x.tag === tag && x.origin === this.store.account.origin())
                 || batch.content.find(x => x.tag === tag && x.origin === defaultOrigin)
                 || latest(batch.content).find(x => x.tag === tag)
                 || this.defaultExt(tag)));
             } else {
               this._cache.set(key, of(
-                batch.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
+                batch.content.find(x => x.tag === tag && x.origin === this.store.account.origin())
                 || latest(batch.content).find(x => x.tag === tag)
                 || this.defaultExt(tag)));
             }
@@ -151,9 +151,9 @@ keys.push(ext.tag + ':' + ext.origin);
       if (origin) {
         queries.push(tag + origin);
       } else if (item.origin !== undefined) {
-        queries.push(tag + this.store.account.origin + '|' + tag + item.origin);
+        queries.push(tag + this.store.account.origin() + '|' + tag + item.origin);
       } else {
-        queries.push(tag + this.store.account.origin);
+        queries.push(tag + this.store.account.origin());
       }
     }
 
@@ -170,11 +170,11 @@ keys.push(ext.tag + ':' + ext.origin);
         if (tagOrigin(item.tag)) {
           ext = result.content.find(x => x.tag === tag && x.origin === tagOrigin(item.tag));
         } else if (item.origin !== undefined) {
-          ext = result.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
+          ext = result.content.find(x => x.tag === tag && x.origin === this.store.account.origin())
             || result.content.find(x => x.tag === tag && x.origin === item.origin)
             || latest(result.content).find(x => x.tag === tag);
         } else {
-          ext = result.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
+          ext = result.content.find(x => x.tag === tag && x.origin === this.store.account.origin())
             || latest(result.content).find(x => x.tag === tag);
         }
 

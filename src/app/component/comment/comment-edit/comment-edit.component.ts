@@ -75,14 +75,14 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
   get newTags() {
     return getIfNew(uniq([
       ...this.editorTags(),
-      ...getMailboxes(this.comment.value, this.store.account.origin),
+      ...getMailboxes(this.comment.value, this.store.account.origin()),
     ]), this.ref().tags);
   }
 
   get allTags() {
     return uniq([
       ...this.editorTags(),
-      ...getMailboxes(this.comment.value, this.store.account.origin),
+      ...getMailboxes(this.comment.value, this.store.account.origin()),
     ]);
   }
 

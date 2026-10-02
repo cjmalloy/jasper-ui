@@ -1,3 +1,5 @@
+import { VideoStore } from '../store/video';
+import { signal } from '@angular/core';
 /// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
@@ -17,6 +19,18 @@ import { Page } from '../model/page';
 // Constants for test timing
 const ASYNC_OPERATION_WAIT_MS = 150;
 const QUICK_OPERATION_WAIT_MS = 50;
+
+function mockVideoStore(callThrough: boolean) {
+  const videoStore = new VideoStore();
+  const call = vi.spyOn(videoStore, 'call');
+  if (!callThrough) call.mockImplementation(() => {});
+  vi.spyOn(videoStore, 'addStream').mockImplementation(() => {});
+  vi.spyOn(videoStore, 'remove').mockImplementation(() => {});
+  vi.spyOn(videoStore, 'setHungup');
+  vi.spyOn(videoStore, 'reset').mockImplementation(() => {});
+  vi.spyOn(videoStore, 'hangup').mockImplementation(() => {});
+  return videoStore;
+}
 
 describe('VideoService', () => {
   let service: VideoService;
@@ -55,26 +69,10 @@ describe('VideoService', () => {
     };
 
     // Create mock Store with video store
-    const videoStore = {
-      peers: new Map<string, RTCPeerConnection>(),
-      streams: new Map<string, MediaStream[]>(),
-      stream: undefined,
-      hungup: new Map<string, boolean>(),
-      call: vi.fn((user: string, peer: RTCPeerConnection) => {
-        videoStore.peers.set(user, peer);
-        videoStore.streams.set(user, []);
-      }),
-      addStream: vi.fn(),
-      remove: vi.fn(),
-      setHungup: vi.fn((user: string, value: boolean) => {
-        videoStore.hungup = new Map([...videoStore.hungup, [user, value]]);
-      }),
-      reset: vi.fn(),
-      hangup: vi.fn(),
-    };
+    const videoStore = mockVideoStore(true);
     mockStore = {
       video: videoStore,
-      account: { tag: 'user/test', localTag: 'user/test' },
+      account: { tag: signal('user/test'), localTag: signal('user/test') },
     };
 
     // Create mock StompService
@@ -153,7 +151,7 @@ describe('VideoService', () => {
     it('should create a new peer connection for a user', () => {
       const user = 'user/alice';
       // Set up the stream so peer() can access it
-      mockStore.video.stream = mockMediaStream;
+      mockStore.video.stream.set(mockMediaStream);
       const peer = service.peer(user);
 
       expect(peer).toBe(mockPeerConnection);
@@ -162,7 +160,7 @@ describe('VideoService', () => {
 
     it('should return existing peer connection if already created', () => {
       const user = 'user/alice';
-      mockStore.video.peers.set(user, mockPeerConnection);
+      mockStore.video.peers().set(user, mockPeerConnection);
 
       const peer = service.peer(user);
 
@@ -184,7 +182,7 @@ describe('VideoService', () => {
     it('should set up ice candidate event listener', () => {
       const user = 'user/alice';
       // Set up the stream so peer() can access it
-      mockStore.video.stream = mockMediaStream;
+      mockStore.video.stream.set(mockMediaStream);
       service.peer(user);
 
       expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('icecandidate', expect.any(Function));
@@ -193,7 +191,7 @@ describe('VideoService', () => {
     it('should set up connection state change event listener', () => {
       const user = 'user/alice';
       // Set up the stream so peer() can access it
-      mockStore.video.stream = mockMediaStream;
+      mockStore.video.stream.set(mockMediaStream);
       service.peer(user);
 
       expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('connectionstatechange', expect.any(Function));
@@ -202,7 +200,7 @@ describe('VideoService', () => {
     it('should set up track event listener', () => {
       const user = 'user/alice';
       // Set up the stream so peer() can access it
-      mockStore.video.stream = mockMediaStream;
+      mockStore.video.stream.set(mockMediaStream);
       service.peer(user);
 
       expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('track', expect.any(Function));
@@ -323,7 +321,7 @@ describe('VideoService', () => {
       });
 
       // Set up the stream so peer() can access it
-      mockStore.video.stream = mockMediaStream;
+      mockStore.video.stream.set(mockMediaStream);
       service.peer(user);
 
       expect(iceCandidateHandler).toBeDefined();
@@ -447,23 +445,10 @@ describe('VideoService', () => {
 
     beforeEach(() => {
       // Create a completely fresh mock store for these tests
-      const videoStore = {
-        peers: new Map<string, RTCPeerConnection>(),
-        streams: new Map<string, MediaStream[]>(),
-        stream: undefined,
-        hungup: new Map<string, boolean>(),
-        call: vi.fn(),
-        addStream: vi.fn(),
-        remove: vi.fn(),
-        setHungup: vi.fn((user: string, value: boolean) => {
-          videoStore.hungup = new Map([...videoStore.hungup, [user, value]]);
-        }),
-        reset: vi.fn(),
-        hangup: vi.fn(),
-      };
+      const videoStore = mockVideoStore(false);
       freshMockStore = {
         video: videoStore,
-        account: { tag: 'user/test', localTag: 'user/test' },
+        account: { tag: signal('user/test'), localTag: signal('user/test') },
       };
 
       // Replace the service's store reference
@@ -546,7 +531,7 @@ describe('VideoService', () => {
       });
 
       // Set up the stream so peer() can access it
-      mockStore.video.stream = mockMediaStream;
+      mockStore.video.stream.set(mockMediaStream);
       service.peer(user);
 
       expect(trackHandler).toBeDefined();

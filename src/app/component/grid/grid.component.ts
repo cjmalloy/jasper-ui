@@ -153,8 +153,9 @@ export class GridComponent implements OnDestroy, HasChanges {
   private getBareRepost(ref: Ref) {
     if (!this.isBareRepost(ref)) return of(ref);
     const source = repost(ref);
-    return (this.store.view.top?.url === source
-        ? of(this.store.view.top)
+    const top = this.store.view.top();
+    return (top?.url === source
+        ? of(top)
         : this.refs.getCurrent(source)
     ).pipe(
       catchError(() => of(ref)),

@@ -37,7 +37,7 @@ export class SettingsBackupPage {
   readonly list = signal<BackupRef[] | undefined>(undefined);
   readonly uploading = signal(false);
   readonly serverError = signal<string[]>([]);
-  readonly backupOrigins = signal<string[]>(this.store.origins.list);
+  readonly backupOrigins = signal<string[]>(this.store.origins.list());
   backupOptionsRef?: OverlayRef;
 
   constructor(
@@ -68,12 +68,12 @@ export class SettingsBackupPage {
     });
     this.origins.list()
       .subscribe(origins => {
-        this.backupOrigins.set(uniq([...this.store.origins.list, ...origins]));
+        this.backupOrigins.set(uniq([...this.store.origins.list(), ...origins]));
       });
   }
 
   get origin() {
-    return this.store.view.origin || this.store.account.origin;
+    return this.store.view.origin() || this.store.account.origin();
   }
 
   selectOrigin(origin: string) {

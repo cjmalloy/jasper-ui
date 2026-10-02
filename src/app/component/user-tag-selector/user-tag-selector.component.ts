@@ -57,7 +57,7 @@ export class UserTagSelectorComponent implements OnDestroy {
   }
 
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
-    return this.editor.getTagPreview(value, this.store.account.origin, false, true, false);
+    return this.editor.getTagPreview(value, this.store.account.origin(), false, true, false);
   }
 
   edit(input: HTMLInputElement) {
@@ -67,7 +67,7 @@ export class UserTagSelectorComponent implements OnDestroy {
   }
 
   clickPreview(input: HTMLInputElement) {
-    if (this.store.hotkey) {
+    if (this.store.hotkey()) {
       this.configs.tag(input.value);
     } else {
       this.edit(input);
@@ -77,7 +77,7 @@ export class UserTagSelectorComponent implements OnDestroy {
   search = debounce((value: string) => {
     this.searching?.unsubscribe();
     this.searching = this.exts.page({
-      query: '(+user|_user):' + (this.store.account.origin || '*'),
+      query: '(+user|_user):' + (this.store.account.origin() || '*'),
       search: value,
       sort: ['origin:len', 'tag:len'],
       size: 5,

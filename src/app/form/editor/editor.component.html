@@ -132,7 +132,7 @@
   @if (preview() && (fullscreen() || currentText)) {
     <app-md #md
             class="expand"
-            [origin]="store.account.origin"
+            [origin]="store.account.origin()"
             [text]="currentText"
             [plugins]="allTags()"
             [appLimitWidth]="editor"

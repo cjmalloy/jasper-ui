@@ -195,11 +195,11 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get lastSelected() {
-    return this.store.view.lastSelected?.url === this.ref().url;
+    return this.store.view.lastSelected()?.url === this.ref().url;
   }
 
   get nonLocalOrigin() {
-    if (this.ref().origin === this.store.account.origin) return undefined;
+    if (this.ref().origin === this.store.account.origin()) return undefined;
     return this.ref().origin || '';
   }
 
@@ -216,15 +216,15 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get isAuthor() {
-    return this.authors.includes(this.store.account.tag);
+    return this.authors.includes(this.store.account.tag());
   }
 
   get isRecipient() {
-    return hasTag(this.store.account.mailbox, this.ref());
+    return hasTag(this.store.account.mailbox(), this.ref());
   }
 
   get authors() {
-    const lookup = this.store.origins.originMap.get(this.ref().origin || '');
+    const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     return uniq([
       ...this.ref().tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
       ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
@@ -236,7 +236,7 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   });
 
   get mailboxes() {
-    return mailboxes(this.ref(), this.store.account.tag, this.store.origins.originMap);
+    return mailboxes(this.ref(), this.store.account.tag(), this.store.origins.originMap());
   }
 
   get replyTags(): string[] {
@@ -244,7 +244,7 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
       ...this.admin.reply.filter(p => hasTag(p.tag, this.ref())).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
+    return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
   }
 
   get tagged() {
@@ -264,7 +264,7 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get moreComments() {
-    return this.comments > (this.thread.cache.get(this.ref().url)?.length || 0) + this.newComments();
+    return this.comments > (this.thread.cache().get(this.ref().url)?.length || 0) + this.newComments();
   }
 
   get responses() {
@@ -289,8 +289,8 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   formatAuthor(user: string) {
-    if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
-      user = user.replace(this.store.account.origin, '');
+    if (this.store.account.origin() && tagOrigin(user) === this.store.account.origin()) {
+      user = user.replace(this.store.account.origin(), '');
     }
     return formatAuthor(user);
   }

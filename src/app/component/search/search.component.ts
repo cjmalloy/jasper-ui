@@ -28,7 +28,7 @@ export class SearchComponent {
     public admin: AdminService,
   ) {
     effect(() => {
-      const search = this.store.view.search;
+      const search = this.store.view.search();
       untracked(() => this.searchValue.set(search || ''));
     });
     router.events.pipe(
@@ -39,7 +39,7 @@ export class SearchComponent {
   change(target: HTMLInputElement) {
     this.searchValue.set(target.value || '');
     if (this.searchEvent) return;
-    if (!this.store.account.config.liveSearch) return;
+    if (!this.store.account.config().liveSearch) return;
     this.debounceSearch();
   }
 
@@ -62,9 +62,9 @@ export class SearchComponent {
 
   viewName(view?: View) {
     switch (view) {
-      case 'tag': return this.store.view.ext?.name || this.admin.getPlugin(this.store.view.tag)?.name || this.store.view.tag;
+      case 'tag': return this.store.view.ext()?.name || this.admin.getPlugin(this.store.view.tag())?.name || this.store.view.tag();
       case 'query': return $localize`query results`;
-      case 'home': return this.store.account.signedIn ? $localize`subscriptions` : $localize`home page`;
+      case 'home': return this.store.account.signedIn() ? $localize`subscriptions` : $localize`home page`;
       case 'all': return $localize`all`;
       case 'local': return $localize`local`;
       case 'inbox/all': return $localize`my inbox`;
@@ -73,7 +73,7 @@ export class SearchComponent {
       case 'inbox/dms': return $localize`direct messages`;
       case 'inbox/modlist': return $localize`unmoderated`;
       case 'inbox/reports': return $localize`flagged`;
-      case 'inbox/ref': return this.admin.getPlugin(this.store.view.inboxTag)?.name || this.store.view.inboxTag;
+      case 'inbox/ref': return this.admin.getPlugin(this.store.view.inboxTag())?.name || this.store.view.inboxTag();
       case 'ref/thread': return $localize`thread`;
       case 'ref/comments': return $localize`comments`;
       case 'ref/responses': return $localize`responses`;
@@ -83,7 +83,7 @@ export class SearchComponent {
       case 'settings/user': return $localize`permissions`;
       case 'settings/plugin': return $localize`plugins`;
       case 'settings/template': return $localize`templates`;
-      case 'settings/ref': return this.admin.getPlugin(this.store.view.settingsTag)?.name || this.store.view.settingsTag;
+      case 'settings/ref': return this.admin.getPlugin(this.store.view.settingsTag())?.name || this.store.view.settingsTag();
     }
     return view || '';
   }

@@ -44,7 +44,7 @@ export class SettingsMePage implements HasChanges {
     private fb: FormBuilder,
     private location: Location,
   ) {
-    const ext = cloneDeep(store.account.ext!);
+    const ext = cloneDeep(store.account.ext()!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
     if (ext) defer(() => this.form()!.setValue(ext));
@@ -62,7 +62,7 @@ export class SettingsMePage implements HasChanges {
       scrollToFirstInvalid();
       return;
     }
-    const ext = this.store.account.ext!;
+    const ext = this.store.account.ext()!;
     this.editing.set(this.exts.update({
       ...ext,
       ...this.editForm.value,

@@ -62,7 +62,7 @@ export class TodoItemComponent {
   }
 
   get local() {
-    return this.origin() === this.store.account.origin;
+    return this.origin() === this.store.account.origin();
   }
 
   private setLine(value: string) {

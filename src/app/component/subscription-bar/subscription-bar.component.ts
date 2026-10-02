@@ -42,15 +42,15 @@ export class SubscriptionBarComponent implements AfterViewInit {
       take(1),
     ).subscribe(() => this.startIndex = this.currentIndex);
     effect((onCleanup) => {
-      const bookmarks = this.store.account.bookmarks;
-      const origin = this.store.account.origin;
+      const bookmarks = this.store.account.bookmarks();
+      const origin = this.store.account.origin();
       untracked(() => {
         const sub = this.editor.getBookmarksPreview(bookmarks, origin).subscribe(xs => this.bookmarks.set(xs));
         onCleanup(() => sub.unsubscribe());
       });
     });
     effect((onCleanup) => {
-      const subs = this.store.account.subs;
+      const subs = this.store.account.subs();
       untracked(() => {
         const sub = this.exts.getCachedExts(subs).subscribe(xs => this.subs.set(xs));
         onCleanup(() => sub.unsubscribe());

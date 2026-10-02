@@ -169,7 +169,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   }
 
   clickPreview(input: HTMLInputElement) {
-    if (this.store.hotkey) {
+    if (this.store.hotkey()) {
       this.configs.ref(input.value);
     } else {
       this.edit(input);
@@ -218,7 +218,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     event.stopPropagation();
     const file = files[0]!;
     this.onUpload({ name: file.name });
-    this.proxy.save(file, this.store.account.origin).pipe(
+    this.proxy.save(file, this.store.account.origin()).pipe(
       map(event => {
         switch (event.type) {
           case HttpEventType.Response:

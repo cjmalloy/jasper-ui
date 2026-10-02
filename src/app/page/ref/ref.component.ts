@@ -67,10 +67,10 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.url = this.store.view.url;
+    this.url = this.store.view.url();
     if (this.url) this.reload(this.url);
     effect(() => {
-      const url = this.store.view.url;
+      const url = this.store.view.url();
       if (!url) return;
       if (url === this.url) return;
       this.url = url;
@@ -83,46 +83,46 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   readonly refWarning = computed(() => {
-    const warn = this.sources() > 0 && this.store.view.published && +this.store.view.ref!.published! !== +DateTime.fromISO(this.store.view.published);
-    if (this.store.view.published) this.router.navigate([], { queryParams: { published: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    const warn = this.sources() > 0 && this.store.view.published() && +this.store.view.ref()!.published! !== +DateTime.fromISO(this.store.view.published());
+    if (this.store.view.published()) this.router.navigate([], { queryParams: { published: null }, queryParamsHandling: 'merge', replaceUrl: true });
     return warn;
   });
 
-  readonly expandedOnLoad = computed(() => this.store.view.current === 'ref/thread' ||
-    this.store.local.isRefToggled(this.store.view.url, this.store.view.current === 'ref/summary' || this.fullscreen()?.onload));
+  readonly expandedOnLoad = computed(() => this.store.view.current() === 'ref/thread' ||
+    this.store.local.isRefToggled(this.store.view.url(), this.store.view.current() === 'ref/summary' || this.fullscreen()?.onload));
 
   readonly fullscreen = computed(() => {
     if (!this.admin.getPlugin('plugin/fullscreen')) return undefined;
-    return this.store.view.ref?.plugins?.['plugin/fullscreen'];
+    return this.store.view.ref()?.plugins?.['plugin/fullscreen'];
   });
 
-  readonly comment = computed(() => this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref));
+  readonly comment = computed(() => this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref()));
 
   readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
+    return this.store.view.ref()?.metadata?.plugins?.['plugin/comment'] || 0;
   });
 
-  readonly thread = computed(() => this.admin.getPlugin('plugin/thread') && (hasTag('plugin/thread', this.store.view.ref) || this.store.view.current === 'ref/thread'));
+  readonly thread = computed(() => this.admin.getPlugin('plugin/thread') && (hasTag('plugin/thread', this.store.view.ref()) || this.store.view.current() === 'ref/thread'));
 
   readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return hasTag('plugin/thread', this.store.view.ref) || this.store.view.ref?.metadata?.plugins?.['plugin/thread'];
+    return hasTag('plugin/thread', this.store.view.ref()) || this.store.view.ref()?.metadata?.plugins?.['plugin/thread'];
   });
 
   readonly logs = computed(() => {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
-    return this.store.view.ref?.metadata?.plugins?.['+plugin/log'];
+    return this.store.view.ref()?.metadata?.plugins?.['+plugin/log'];
   });
 
-  readonly responses = computed(() => this.store.view.ref?.metadata?.responses || 0);
+  readonly responses = computed(() => this.store.view.ref()?.metadata?.responses || 0);
 
   readonly sources = computed(() => {
-    const sources = (this.store.view.ref?.sources || []).filter( s => s != this.store.view.url);
+    const sources = (this.store.view.ref()?.sources || []).filter( s => s != this.store.view.url());
     return sources.length || 0;
   });
 
-  readonly alts = computed(() => this.store.view.ref?.alternateUrls?.length || 0);
+  readonly alts = computed(() => this.store.view.ref()?.alternateUrls?.length || 0);
 
   reload(url?: string) {
     url ||= this.url || '';
@@ -131,10 +131,10 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       return;
     }
     this.newResponses.set(0);
-    this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions = count);
+    this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions.set(count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
-    (url === this.store.view.ref?.url
-        ? of(this.store.view.ref)
+    (url === this.store.view.ref()?.url
+        ? of(this.store.view.ref())
         : this.refs.getCurrent(url)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
@@ -142,7 +142,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       tap(ref => this.markRead(ref)),
       switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
-        : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
+        : top(ref) === this.store.view.top()?.url ? of([ref, this.store.view.top()])
         : this.refs.getCurrent(top(ref)).pipe(
           map(top => [ref, top]),
           catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
@@ -156,9 +156,10 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.watchSelf = this.stomp.watchRef(url).pipe(
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ud => {
-        if (!this.store.view.ref) return;
+        const current = this.store.view.ref();
+        if (!current) return;
         // Merge updates with existing Ref because updates do not contain any private tags
-        const tags = uniq([...this.store.view.ref.tags || [], ...ud.tags || []])
+        const tags = uniq([...current.tags || [], ...ud.tags || []])
           .filter(t => privateTag(t) || ud.tags?.includes(t));
         const merged: Ref = {
           ...ud,
@@ -166,26 +167,26 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           metadata: {
             ...ud.metadata,
             plugins: {
-              ...pickBy(this.store.view.ref.metadata?.plugins, (v, k) => tags.includes(k)),
+              ...pickBy(current.metadata?.plugins, (v, k) => tags.includes(k)),
               ...ud.metadata?.plugins || {},
             }
           },
           plugins: {
-            ...pickBy(this.store.view.ref.plugins, (v, k) => tags.includes(k)),
+            ...pickBy(current.plugins, (v, k) => tags.includes(k)),
             ...ud.plugins || {},
           },
           // Don't allow editing an update Ref, as we cannot tell when a private
           // tag was deleted
           // TODO: mark Ref as modified remotely to warn user before editing
-          modified: this.store.view.ref.modified,
-          modifiedString: this.store.view.ref.modifiedString,
+          modified: current.modified,
+          modifiedString: current.modifiedString,
         };
-        this.store.view.setRef({ ...this.store.view.ref!, ...merged }, this.store.view.top);
-        this.store.eventBus.refresh(this.store.view.ref);
+        this.store.view.setRef({ ...this.store.view.ref()!, ...merged }, this.store.view.top());
+        this.store.eventBus.refresh(this.store.view.ref());
       });
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
-        filter(url => url != this.store.view.url),
+        filter(url => url != this.store.view.url()),
         filter(url => !url.startsWith('tag:')),
         filter(url => !this.seen.has(url)),
         takeUntilDestroyed(this.destroyRef),

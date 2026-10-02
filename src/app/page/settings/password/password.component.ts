@@ -48,14 +48,14 @@ export class SettingsPasswordPage {
     }
     this.profiles.changePassword({
       ...this.passwordForm.value,
-      tag: this.store.account.tag
+      tag: this.store.account.tag()
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/tag', this.store.account.tag]);
+      this.router.navigate(['/tag', this.store.account.tag()]);
     });
   }
 }

@@ -10,8 +10,8 @@
   <app-user-form #form
                  [group]="user"
                  (tagChanges)="setTag($event)"
-                 [showClear]="!!store.view.selectedUser"
-                 [showPubKey]="!!store.view.selectedUser"
+                 [showClear]="!!store.view.selectedUser()"
+                 [showPubKey]="!!store.view.selectedUser()"
                  [externalErrors]="externalErrors()"
                  (clear)="clear()"></app-user-form>
 
@@ -49,8 +49,8 @@
 
   <span><!-- Buttons --></span>
   <span class="buttons right">
-    <button type="submit" [disabled]="submitted() && !profileForm.valid" i18n>{{ store.view.selectedUser ? 'Save' : 'Create' }}</button>
-    @if (!!store.view.selectedUser) {
+    <button type="submit" [disabled]="submitted() && !profileForm.valid" i18n>{{ store.view.selectedUser() ? 'Save' : 'Create' }}</button>
+    @if (!!store.view.selectedUser()) {
       <button type="button" (click)="delete()" i18n>Delete</button>
     }
   </span>

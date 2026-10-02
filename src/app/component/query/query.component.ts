@@ -60,7 +60,7 @@ export class QueryComponent {
   }
 
   click(event: MouseEvent, breadcrumb: Crumb): boolean {
-    if (!this.store.hotkey) return true;
+    if (!this.store.hotkey()) return true;
     event.preventDefault();
     event.stopImmediatePropagation();
     this.edit([breadcrumb, breadcrumb]);
@@ -107,7 +107,7 @@ export class QueryComponent {
       .replace(/[\s|]*:[\s|]*/g, ':')
       .replace(/\s+/g, '+')
       .replace(/[^_+/a-z-0-9.:|!@*()]+/g, '');
-    if (this.store.view.current === 'tags') {
+    if (this.store.view.current() === 'tags') {
       this.router.navigate(['/tags', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
     } else {
       this.router.navigate(['/tag', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });

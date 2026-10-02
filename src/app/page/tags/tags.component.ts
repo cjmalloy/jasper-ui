@@ -55,27 +55,27 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     effect(() => {
-      this.title.set(this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || '');
-      const template = this.store.view.template;
+      this.title.set(this.store.view.template() && this.admin.getTemplate(this.store.view.template())?.name || this.store.view.ext()?.name || this.store.view.template() || '');
+      const template = this.store.view.template();
       untracked(() => this.exts.getCachedExt(template)
         .subscribe(ext => this.title.set(ext.name || this.title())));
       const query
-        = this.store.view.home
-        ? [...getPrefixes('config/home'), ...this.store.account.subs, ...this.store.account.bookmarkQueries].filter(t => this.auth.tagReadAccess(t)).join('|')
-        : this.store.view.noTemplate
-          ? [braces(this.store.view.template), '!+user', '!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].filter(t => this.auth.tagReadAccess(t)).join(':')
-          : this.store.view.template
-            ? (publicTag(this.store.view.template)
-              ? getPrefixes(this.store.view.template).filter(t => this.auth.tagReadAccess(t)).join('|')
-              : this.store.view.template)
+        = this.store.view.home()
+        ? [...getPrefixes('config/home'), ...this.store.account.subs(), ...this.store.account.bookmarkQueries()].filter(t => this.auth.tagReadAccess(t)).join('|')
+        : this.store.view.noTemplate()
+          ? [braces(this.store.view.template()), '!+user', '!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].filter(t => this.auth.tagReadAccess(t)).join(':')
+          : this.store.view.template()
+            ? (publicTag(this.store.view.template())
+              ? getPrefixes(this.store.view.template()).filter(t => this.auth.tagReadAccess(t)).join('|')
+              : this.store.view.template())
             : '@*';
       const args = {
-        query: getTagQueryFilter(braces(query), this.store.view.filter) + (!this.store.view.showRemotes ? ':' + (this.store.account.origin || '*') : ''),
-        search: this.store.view.search,
-        sort: [...this.store.view.sort],
-        page: this.store.view.pageNumber,
-        size: this.store.view.pageSize,
-        ...getTagFilter(this.store.view.filter),
+        query: getTagQueryFilter(braces(query), this.store.view.filter()) + (!this.store.view.showRemotes() ? ':' + (this.store.account.origin() || '*') : ''),
+        search: this.store.view.search(),
+        sort: [...this.store.view.sort()],
+        page: this.store.view.pageNumber(),
+        size: this.store.view.pageSize(),
+        ...getTagFilter(this.store.view.filter()),
       };
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
@@ -86,11 +86,11 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   }
 
   templateIs(tag: string): boolean {
-    return hasPrefix(this.store.view.localTemplate, tag);
+    return hasPrefix(this.store.view.localTemplate(), tag);
   }
 
   get templateExists(): boolean {
-    if (this.store.view.localTemplate === 'user') return true;
-    return !!this.templates.find(t => hasPrefix(this.store.view.localTemplate, t.tag));
+    if (this.store.view.localTemplate() === 'user') return true;
+    return !!this.templates.find(t => hasPrefix(this.store.view.localTemplate(), t.tag));
   }
 }

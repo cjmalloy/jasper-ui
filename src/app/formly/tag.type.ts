@@ -124,7 +124,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
     return this.editor.getTagPreview(
       value,
-      this.field.props.origin || this.store.account.origin,
+      this.field.props.origin || this.store.account.origin(),
       false,
       this.field.type !== 'plugin',
       this.field.type !== 'template');
@@ -137,7 +137,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   clickPreview(input: HTMLInputElement) {
-    if (this.store.hotkey) {
+    if (this.store.hotkey()) {
       this.configs.tag(input.value);
     } else {
       this.edit(input);

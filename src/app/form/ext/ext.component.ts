@@ -152,7 +152,7 @@ export class ExtFormComponent  {
 
   get inbox() {
     if (!this.admin.getPlugin('plugin/inbox')) return null;
-    return getMailbox(this.group().get('tag')!.value, this.store.account.origin);
+    return getMailbox(this.group().get('tag')!.value, this.store.account.origin());
   }
 
   get modmail() {
@@ -371,9 +371,9 @@ export class ExtFormComponent  {
     this.refs.getCurrent('tag:/' + this.tag).pipe(
       catchError(err => {
         this.defaults.set({
-          origin: this.store.account.origin,
+          origin: this.store.account.origin(),
           url: 'tag:/' + this.tag,
-          tags: ['internal', this.store.account.localTag],
+          tags: ['internal', this.store.account.localTag()],
           created: DateTime.now(),
           published: DateTime.now(),
           modified: DateTime.now(),

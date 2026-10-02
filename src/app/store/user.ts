@@ -12,9 +12,9 @@ import { UserService } from '../service/api/user.service';
 })
 export class UserStore {
 
-  private readonly _args = signal<TagPageArgs | undefined>(undefined, { equal: isEqual });
-  private readonly _page = signal<Page<User> | undefined>(undefined);
-  private readonly _error = signal<HttpErrorResponse | undefined>(undefined);
+  readonly args = signal<TagPageArgs | undefined>(undefined, { equal: isEqual });
+  readonly page = signal<Page<User> | undefined>(undefined);
+  readonly error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
 
@@ -22,19 +22,10 @@ export class UserStore {
     private users: UserService,
   ) { }
 
-  get args() { return this._args(); }
-  set args(value: TagPageArgs | undefined) { this._args.set(value); }
-
-  get page() { return this._page(); }
-  set page(value: Page<User> | undefined) { this._page.set(value); }
-
-  get error() { return this._error(); }
-  set error(value: HttpErrorResponse | undefined) { this._error.set(value); }
-
   clear() {
-    this.args = undefined;
-    this.page = undefined;
-    this.error = undefined;
+    this.args.set(undefined);
+    this.page.set(undefined);
+    this.error.set(undefined);
     this.running?.unsubscribe();
   }
 
@@ -43,20 +34,21 @@ export class UserStore {
   }
 
   setArgs(args: TagPageArgs) {
-    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
-    this.args = args;
+    if (!isEqual(omit(this.args(), 'search'), omit(args, 'search'))) this.clear();
+    this.args.set(args);
     this.refresh();
   }
 
   refresh() {
-    if (!this.args) return;
+    const args = this.args();
+    if (!args) return;
     this.running?.unsubscribe();
-    this.running = this.users.page(this.args).pipe(
+    this.running = this.users.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.error = err;
+        this.error.set(err);
         return EMPTY;
       }),
-    ).subscribe(p => this.page = p);
+    ).subscribe(p => this.page.set(p));
   }
 
 }

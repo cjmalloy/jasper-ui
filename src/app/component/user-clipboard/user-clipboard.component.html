@@ -1,4 +1,4 @@
-@if (store.account.signedIn) {
+@if (store.account.signedIn()) {
   @if (dropVisible() || dropActive() || dropFilled()) {
     <div class="clipboard-drop-zone"
          [class.active]="dropActive()"
@@ -49,7 +49,7 @@
                 }
               </span>
             }
-            @if (store.hotkey && previewLink(item); as link) {
+            @if (store.hotkey() && previewLink(item); as link) {
               <a class="clipboard-preview"
                  [href]="link"
                  [title]="previewText(item)"

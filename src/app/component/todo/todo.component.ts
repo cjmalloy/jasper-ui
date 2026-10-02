@@ -92,7 +92,7 @@ export class TodoComponent {
   }
 
   get local() {
-    return this.ref()?.origin === this.store.account.origin;
+    return this.ref()?.origin === this.store.account.origin();
   }
 
   drop(event: CdkDragDrop<string, string, string>) {
@@ -124,7 +124,7 @@ export class TodoComponent {
     return this.comment$(comment).pipe(
       tap(() => {
         if (!this.local) {
-          this.copied.emit(this.store.account.origin);
+          this.copied.emit(this.store.account.origin());
           this.store.eventBus.refresh(this.ref());
         }
       }),

@@ -36,11 +36,11 @@ export class SortComponent {
     public store: Store,
   ) {
     effect(() => {
-      const sort = this.store.view.sort;
+      const sort = this.store.view.sort();
       untracked(() => this.sorts.set(Array.isArray(sort) ? [...sort] : [sort]));
     });
     effect(() => {
-      const isSearch = this.store.view.isSearch;
+      const isSearch = this.store.view.isSearch();
       const type = this.type();
       untracked(() => this.rebuildSorts(type, isSearch));
     });

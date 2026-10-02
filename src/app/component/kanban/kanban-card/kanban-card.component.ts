@@ -125,10 +125,10 @@ export class KanbanCardComponent implements AfterViewInit {
   init() {
     this.todo.set(!!this.admin.getPlugin('plugin/todo') && !!this.ref().tags?.includes('plugin/todo'));
     this.chess.set(!!this.admin.getPlugin('plugin/chess') && !!this.ref().tags?.includes('plugin/chess'));
-    this.chessWhite.set(!!this.ref().tags?.includes(this.store.account.localTag));
+    this.chessWhite.set(!!this.ref().tags?.includes(this.store.account.localTag()));
     if (this.repost() && this.ref() && this.repostRef()?.url != repost(this.ref())) {
-      (this.store.view.top?.url === this.ref().sources![0]
-          ? of(this.store.view.top)
+      (this.store.view.top()?.url === this.ref().sources![0]
+          ? of(this.store.view.top())
           : this.refs.getCurrent(this.url())
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
@@ -147,12 +147,12 @@ export class KanbanCardComponent implements AfterViewInit {
   }
 
   onClick() {
-    if (!this.lastSelected() && this.store.view.lastSelected) {
+    if (!this.lastSelected() && this.store.view.lastSelected()) {
       this.store.view.clearLastSelected();
     }
   }
   readonly remote = computed(() => {
-    return this.ref().modified && this.origin() !== this.store.account.origin;
+    return this.ref().modified && this.origin() !== this.store.account.origin();
   });
   readonly origin = computed(() => {
     return this.repost() ? this.repostRef()?.origin : this.ref().origin;
@@ -226,7 +226,7 @@ export class KanbanCardComponent implements AfterViewInit {
     return this.editor.getTagsPreview(this.ext()?.config?.badges || [], this.ref().origin || '');
   });
   readonly lastSelected = computed(() => {
-    return this.store.view.lastSelected?.url === this.ref().url;
+    return this.store.view.lastSelected()?.url === this.ref().url;
   });
 
   touchend(e: TouchEvent) {
@@ -315,18 +315,18 @@ export class KanbanCardComponent implements AfterViewInit {
 
   copy() {
     const tags = uniq([
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
       ...(this.ref().tags || []).filter(t => this.auth.canAddTag(t))
     ]);
     const copied = {
       ...this.ref(),
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       tags,
     };
     this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          return this.refs.get(this.ref().url, this.store.account.origin).pipe(
+          return this.refs.get(this.ref().url, this.store.account.origin()).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
@@ -342,7 +342,7 @@ export class KanbanCardComponent implements AfterViewInit {
         return throwError(() => err);
       }),
       tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
-      switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntilDestroyed(this.destroyRef))),
+      switchMap(() => this.refs.get(copied.url, this.store.account.origin()).pipe(takeUntilDestroyed(this.destroyRef))),
     ).subscribe(ref => {
       this.ref.set(ref);
       this.init();

@@ -124,7 +124,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
     const margin = 20;
     const minColSize = 320;
     const sidebarSize = 354;
-    this.store.view.floatingSidebar = innerWidth - sidebarSize < margin + minColSize * (this.columns.length + (this.showColumnBacklog ? 1 : 0));
+    this.store.view.floatingSidebar.set(innerWidth - sidebarSize < margin + minColSize * (this.columns.length + (this.showColumnBacklog ? 1 : 0)));
   }
 
   readonly disableSwimLanes = computed(() => this.swimLanesOverride() ?? !!this.kanbanConfig.hideSwimLanes);
@@ -253,7 +253,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   addingTags(tags: { col?: string, sl?: string }) {
     const result = [
       ...this.kanbanConfig.addTags || [],
-      ...this.store.view.queryTags.map(localTag),
+      ...this.store.view.queryTags().map(localTag),
     ];
     result.push(this.ext()!.tag);
     if (tags.col) result.push(tags.col);
@@ -286,7 +286,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
       ref,
       index: event.currentIndex,
     });
-    if (this.store.view.lastSelected?.url === ref.url) {
+    if (this.store.view.lastSelected()?.url === ref.url) {
       this.store.view.clearLastSelected();
     }
 

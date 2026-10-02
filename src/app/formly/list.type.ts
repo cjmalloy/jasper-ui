@@ -206,7 +206,7 @@ export class ListTypeComponent extends FieldArrayType {
   }
 
   drop(event: CdkDragDrop<ListTypeComponent>) {
-    if (!this.store.hotkey || event.previousContainer === event.container) {
+    if (!this.store.hotkey() || event.previousContainer === event.container) {
       event.previousContainer.data.remove(event.previousIndex);
     }
     let value = event.item.data;

@@ -24,7 +24,7 @@
 </form>
 
 <div class="backup buttons">
-  @if (store.account.admin) {
+  @if (store.account.admin()) {
     <button #backupButton
             type="button"
             [disabled]="!originForm.valid"
@@ -50,7 +50,7 @@
          class="upload"
          (change)="upload(uploadFile?.files || undefined)">
 
-  @if (store.account.mod) {
+  @if (store.account.mod()) {
     <button type="button"
             [disabled]="!originForm.valid"
             (click)="regen()"

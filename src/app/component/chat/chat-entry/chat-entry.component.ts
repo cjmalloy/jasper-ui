@@ -106,8 +106,8 @@ export class ChatEntryComponent {
     this.taggingAccess.set(this.auth.taggingAccess(this.ref()));
     this.deleteAccess.set(this.auth.deleteAccess(this.ref()));
     if (this.bareRepost && this.ref() && this.repostRef()?.url != repost(this.ref())) {
-      (this.store.view.top?.url === this.ref().sources![0]
-          ? of(this.store.view.top)
+      (this.store.view.top()?.url === this.ref().sources![0]
+          ? of(this.store.view.top())
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
@@ -148,7 +148,7 @@ export class ChatEntryComponent {
   }
 
   get nonLocalOrigin() {
-    if (this.ref().origin === this.store.account.origin) return undefined;
+    if (this.ref().origin === this.store.account.origin()) return undefined;
     return this.ref().origin || '';
   }
 
@@ -157,7 +157,7 @@ export class ChatEntryComponent {
   }
 
   get authors() {
-    const lookup = this.store.origins.originMap.get(this.ref().origin || '');
+    const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     return uniq([
       ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
       ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
@@ -252,8 +252,8 @@ export class ChatEntryComponent {
   }
 
   formatAuthor(user: string) {
-    if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
-      user = user.replace(this.store.account.origin, '');
+    if (this.store.account.origin() && tagOrigin(user) === this.store.account.origin()) {
+      user = user.replace(this.store.account.origin(), '');
     }
     return formatAuthor(user);
   }

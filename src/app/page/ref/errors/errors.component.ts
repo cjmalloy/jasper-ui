@@ -46,31 +46,31 @@ export class RefErrorsComponent implements HasChanges {
     private bookmarks: BookmarkService,
   ) {
     query.clear();
-    store.view.defaultSort = ['published'];
-    if (!this.store.view.filter.length) bookmarks.filters = ['query/' + (store.account.origin || '*')];
+    store.view.defaultSort.set(['published']);
+    if (!this.store.view.filter().length) bookmarks.filters = ['query/' + (store.account.origin() || '*')];
     const untilDestroyed = takeUntilDestroyed<Ref | undefined>();
     effect(() => {
       const args = getArgs(
         '+plugin/log:!plugin/delete',
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.view.sort(),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
-      args.responses = this.store.view.url;
+      args.responses = this.store.view.url();
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref())), { injector: this.injector });
     effect(() => {
-      this.store.view.url;
+      this.store.view.url();
       untracked(() => {
-        if (this.store.view.url && this.config.websockets) {
+        if (this.store.view.url() && this.config.websockets) {
           this.watch?.unsubscribe();
-          this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
+          this.watch = this.stomp.watchResponse(this.store.view.url()).pipe(
             switchMap(url => this.refs.getCurrent(url)),
-            tap(ref => updateMetadata(this.store.view.ref!, ref)),
+            tap(ref => updateMetadata(this.store.view.ref()!, ref)),
             filter(ref => hasTag('+plugin/log', ref)),
             catchError(err => of(undefined)),
             untilDestroyed,

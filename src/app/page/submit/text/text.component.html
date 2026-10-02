@@ -14,7 +14,7 @@
     </div>
   }
   @if (!advanced()) {
-    @if (store.submit.wiki) {
+    @if (store.submit.wiki()) {
       <label for="title" i18n>Wiki:</label>
     } @else {
       <label for="title" i18n>Title:</label>
@@ -45,7 +45,7 @@
                            [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
       </div>
     } @else {
-      @if (store.submit.wiki) {
+      @if (store.submit.wiki()) {
         <label [for]="ed.id()" class="editor-label" i18n>Entry:</label>
       } @else {
         <label [for]="ed.id()" class="editor-label" i18n>Comment:</label>
@@ -82,7 +82,7 @@
 
   <span><!-- Buttons --></span>
   <span class="buttons right">
-    @if (randomURL && (addAnother || store.hotkey)) {
+    @if (randomURL && (addAnother || store.hotkey())) {
       <div class="add-more" i18n-title title="Will not clear form to all another Ref.">
         <input id="addAnother" type="checkbox" [checked]="addAnother" (input)="addAnother = !addAnother">
         <label for="addAnother" i18n>Add another</label>

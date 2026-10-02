@@ -1,5 +1,5 @@
-@if (query.page) {
-  <app-ref-list #list [page]="query.page"
+@if (query.page()) {
+  <app-ref-list #list [page]="query.page()"
                 [newRefs$]="newRefs$"
                 emptyMessage=""
                 [showToggle]="false"
@@ -8,7 +8,7 @@
 } @else {
   <app-loading></app-loading>
 }
-@if (store.view.ref) {
+@if (store.view.ref()) {
   <app-comment-reply #reply
                      [to]="to()"
                      [tags]="replyTags()"

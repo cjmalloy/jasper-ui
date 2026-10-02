@@ -23,9 +23,9 @@ export class InboxPage implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    if (!this.store.view.inboxTabs.length) {
+    if (!this.store.view.inboxTabs().length) {
       {
-        this.store.view.inboxTabs = this.admin.inbox.filter(p => this.auth.tagReadAccess(p.tag));
+        this.store.view.inboxTabs.set(this.admin.inbox.filter(p => this.auth.tagReadAccess(p.tag)));
       };
     }
   }

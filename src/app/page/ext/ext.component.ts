@@ -86,16 +86,16 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     effect(() => {
-      this.store.view.tag;
-      this.store.view.localTag;
-      this.store.account.origin;
+      this.store.view.tag();
+      this.store.view.localTag();
+      this.store.account.origin();
       untracked(() => {
-        if (!this.store.view.tag) {
+        if (!this.store.view.tag()) {
           this.template.set('');
           this.tag.setValue('');
-          this.store.view.exts = [];
+          this.store.view.exts.set([]);
         } else {
-          const tag = this.store.view.localTag + this.store.account.origin;
+          const tag = this.store.view.localTag() + this.store.account.origin();
           this.exts.get(tag).pipe(
             catchError(() => of(undefined)),
           ).subscribe(ext => this.setExt(tag, ext));
@@ -106,7 +106,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
 
   setExt(tag: string, ext?: Ext) {
     tag = localTag(tag);
-    this.store.view.exts = ext ? [ext] : [];
+    this.store.view.exts.set(ext ? [ext] : []);
     if (ext) {
       const editForm = extForm(this.fb, ext, this.admin, true);
       editForm.patchValue(ext);
@@ -172,10 +172,10 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       return;
     }
     const prefixed = this.prefix(this.tag.value);
-    const tag = prefixed + this.store.account.origin;
+    const tag = prefixed + this.store.account.origin();
     this.creating.set(this.exts.create({
       tag: prefixed,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status === 409) {
@@ -208,12 +208,12 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     }
     let ext = {
       ...this.editForm()!.value,
-      tag: this.store.view.ext!.tag, // Need to fetch because control is disabled
-      modifiedString: this.overwrite ? this.overwrittenModified() : this.store.view.ext!.modifiedString,
+      tag: this.store.view.ext()!.tag, // Need to fetch because control is disabled
+      modifiedString: this.overwrite ? this.overwrittenModified() : this.store.view.ext()!.modifiedString,
     };
-    const config = this.store.view.ext!.config;
+    const config = this.store.view.ext()!.config;
     ext = {
-      ...this.store.view.ext,
+      ...this.store.view.ext(),
       ...ext,
       config: {
         ...isObject(config) ? config : {},
@@ -247,7 +247,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   }
 
   delete() {
-    const ext = this.store.view.ext!;
+    const ext = this.store.view.ext()!;
     // TODO: Better dialogs
     if (confirm($localize`Are you sure you want to delete this tag extension?`)) {
       const deleteNotice = !isDeletorTag(ext.tag) && this.admin.getPlugin('plugin/delete')

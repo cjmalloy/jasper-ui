@@ -180,8 +180,8 @@ export class BlogEntryComponent implements HasChanges {
     this.actions.set(uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins))));
     this.groupedActions.set(groupBy(this.actions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
     if (this.repost && this.ref() && this.repostRef()?.url != repost(this.ref())) {
-      (this.store.view.top?.url === this.ref().sources![0]
-          ? of(this.store.view.top)
+      (this.store.view.top()?.url === this.ref().sources![0]
+          ? of(this.store.view.top())
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
@@ -191,7 +191,7 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   get nonLocalOrigin() {
-    if (this.ref().origin === this.store.account.origin) return undefined;
+    if (this.ref().origin === this.store.account.origin()) return undefined;
     return this.ref().origin || '';
   }
 
@@ -232,7 +232,7 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   get local() {
-    return this.ref().origin === this.store.account.origin;
+    return this.ref().origin === this.store.account.origin();
   }
 
   get localhost() {
@@ -262,15 +262,15 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   get isAuthor() {
-    return isAuthorTag(this.store.account.tag, this.ref());
+    return isAuthorTag(this.store.account.tag(), this.ref());
   }
 
   get isRecipient() {
-    return hasTag(this.store.account.mailbox, this.ref());
+    return hasTag(this.store.account.mailbox(), this.ref());
   }
 
   get authors() {
-    const lookup = this.store.origins.originMap.get(this.ref().origin || '');
+    const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     return uniq([
       ...this.ref().tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
       ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
@@ -315,14 +315,14 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   formatAuthor(user: string) {
-    if (this.store.account.origin && tagOrigin(user) === this.store.account.origin) {
-      user = user.replace(this.store.account.origin, '');
+    if (this.store.account.origin() && tagOrigin(user) === this.store.account.origin()) {
+      user = user.replace(this.store.account.origin(), '');
     }
     return formatAuthor(user);
   }
 
   get mailboxes() {
-    return mailboxes(this.ref(), this.store.account.tag, this.store.origins.originMap);
+    return mailboxes(this.ref(), this.store.account.tag(), this.store.origins.originMap());
   }
 
   get replyTags(): string[] {
@@ -332,7 +332,7 @@ export class BlogEntryComponent implements HasChanges {
       ...this.admin.reply.filter(p => hasTag(p.tag, this.ref())).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
+    return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
   }
 
   saveRef() {

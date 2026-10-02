@@ -128,7 +128,7 @@ export class SubmitInvoicePage implements HasChanges {
   writeRef() {
     return <Ref> {
       ...this.invoiceForm.value,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     };
   }
 
@@ -152,7 +152,7 @@ export class SubmitInvoicePage implements HasChanges {
 
   get ref$() {
     return this.refUrl$.pipe(
-      switchMap(url => this.refs.get(url, this.store.account.origin)),
+      switchMap(url => this.refs.get(url, this.store.account.origin())),
     );
   }
 
@@ -188,11 +188,11 @@ export class SubmitInvoicePage implements HasChanges {
       'locked',
       prefix('plugin/invoice', queueExt.tag),
       'plugin/qr',
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
       ...addTags,
     ], ...removeTags);
     for (const approver of queueExt.config?.approvers || []) {
-      result.push(getMailbox(approver, this.store.account.origin));
+      result.push(getMailbox(approver, this.store.account.origin()));
     }
     return uniq(result);
   }
@@ -220,7 +220,7 @@ export class SubmitInvoicePage implements HasChanges {
         const finalTags = this.getTags(queueExt);
         const ref = {
           ...this.invoiceForm.value,
-          origin: this.store.account.origin,
+          origin: this.store.account.origin(),
           published,
           tags: finalTags,
           sources: flatten([this.refUrl]),

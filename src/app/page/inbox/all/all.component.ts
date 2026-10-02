@@ -41,17 +41,17 @@ export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    if (!this.store.view.filter.length) {
+    if (!this.store.view.filter().length) {
       this.router.navigate([], { queryParams: { filter: ['query/!(dm)'] }, replaceUrl: true });
     }
     effect(() => {
       const args = getArgs(
-        this.store.account.inboxQuery,
-        this.store.view.sort,
-        ['query/!plugin/delete', 'user/!plugin/user/hide', ...this.store.view.filter],
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.account.inboxQuery(),
+        this.store.view.sort(),
+        ['query/!plugin/delete', 'user/!plugin/user/hide', ...this.store.view.filter()],
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });

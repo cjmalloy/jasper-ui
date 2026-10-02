@@ -94,10 +94,10 @@ export class CommentReplyComponent implements HasChanges {
     const url = 'comment:' + uuid();
     const value = this.comment.value || '';
     const inheritedPlugins = this.inheritedPlugins;
-    const tags = removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+    const tags = removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq([
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
       ...this.editorTags(),
-      ...getMailboxes(value, this.store.account.origin),
+      ...getMailboxes(value, this.store.account.origin()),
       ...Object.keys(inheritedPlugins),
     ]));
     const sources = [this.to().url];
@@ -112,7 +112,7 @@ export class CommentReplyComponent implements HasChanges {
     }
     const ref: Ref = {
       url,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       title: (hasTag('plugin/email', this.to()) || hasTag('plugin/thread', this.to())) ? getRe(this.to().title) : '',
       comment: value,
       sources: [...sources, ...this.editorSources()],

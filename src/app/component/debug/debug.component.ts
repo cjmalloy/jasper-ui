@@ -48,13 +48,13 @@ export class DebugComponent {
   ) { }
 
   get empty() {
-    return !this.query.page?.content?.length;
+    return !this.query.page()?.content?.length;
   }
 
   batch(fn: (e: any) => Observable<any>) {
     if (this.batchRunning()) return;
     this.batchRunning.set(true);
-    concat(...this.query.page!.content.map(e => fn(e).pipe(
+    concat(...this.query.page()!.content.map(e => fn(e).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.push(...printError(err));
         return of(null);
@@ -90,7 +90,7 @@ export class DebugComponent {
       const url = 'comment:' + uuid();
       return this.refs.create({
         url,
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         title: 'Generated: ' + i,
         comment: uuid(),
         tags: ['public', 'gen'],

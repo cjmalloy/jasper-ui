@@ -47,12 +47,12 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     effect(() => {
       const args = {
-        query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
-        search: this.store.view.search,
-        sort: [...this.store.view.sort],
-        page: this.store.view.pageNumber,
-        size: this.store.view.pageSize,
-        ...getTagFilter(this.store.view.filter),
+        query: this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'),
+        search: this.store.view.search(),
+        sort: [...this.store.view.sort()],
+        page: this.store.view.pageNumber(),
+        size: this.store.view.pageSize(),
+        ...getTagFilter(this.store.view.filter()),
       };
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
@@ -73,8 +73,8 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
   }
 
   uploadTemplate(template: Template) {
-    return this.templates.delete(template.tag + this.store.account.origin).pipe(
-      switchMap(() => this.templates.create({ ...template, origin: this.store.account.origin })),
+    return this.templates.delete(template.tag + this.store.account.origin()).pipe(
+      switchMap(() => this.templates.create({ ...template, origin: this.store.account.origin() })),
       catchError((res: HttpErrorResponse) => {
         this.serverError.set(printError(res));
         return throwError(() => res);

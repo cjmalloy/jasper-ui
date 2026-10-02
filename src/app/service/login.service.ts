@@ -15,9 +15,9 @@ export class LoginService {
   ) { }
 
   handleHttpError(res: HttpErrorResponse) {
-    if (!this.config.electron && navigator.onLine && this.store.account.signedIn) {
+    if (!this.config.electron && navigator.onLine && this.store.account.signedIn()) {
       if (res.status === 401) {
-        this.store.account.authError = true;
+        this.store.account.authError.set(true);
         return throwError(() => ({ message: 'Please log in again.' }));
       }
     }

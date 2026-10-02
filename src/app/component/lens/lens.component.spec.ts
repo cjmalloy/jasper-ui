@@ -37,10 +37,10 @@ describe('LensComponent', () => {
   ] as const)('reacts when query.%s loads', async (property, selector) => {
     expect(fixture.nativeElement.querySelector(selector)).toBeNull();
 
-    component.query[property] = {
+    component.query[property].set({
       url: 'https://example.com/ref',
       title: 'Filtered ref',
-    };
+    });
 
     await vi.waitFor(() => {
       expect(fixture.nativeElement.querySelector(selector)).not.toBeNull();

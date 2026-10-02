@@ -45,17 +45,17 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     effect(() => {
-      const plugin = this.admin.getPlugin(this.store.view.settingsTag);
+      const plugin = this.admin.getPlugin(this.store.view.settingsTag());
       this.plugin.set(plugin);
-      this.writeAccess.set(this.auth.canAddTag(this.store.view.settingsTag));
-      this.mod.setTitle($localize`Settings: ${plugin?.config?.settings || this.store.view.settingsTag}`);
+      this.writeAccess.set(this.auth.canAddTag(this.store.view.settingsTag()));
+      this.mod.setTitle($localize`Settings: ${plugin?.config?.settings || this.store.view.settingsTag()}`);
       const args = getArgs(
-        this.store.view.settingsTag + (this.store.view.showRemotes ? '' : (plugin?.origin || '@')),
-        this.store.view.sort,
-        uniq(['!obsolete', ...this.store.view.filter]),
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.view.settingsTag() + (this.store.view.showRemotes() ? '' : (plugin?.origin || '@')),
+        this.store.view.sort(),
+        uniq(['!obsolete', ...this.store.view.filter()]),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
@@ -67,13 +67,13 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
 
   loadDefaults() {
     if (!this.plugin()?.config?.defaultsConfirm || confirm(this.plugin()?.config?.defaultsConfirm)) {
-      this.store.eventBus.fire(this.store.view.settingsTag + ':defaults');
+      this.store.eventBus.fire(this.store.view.settingsTag() + ':defaults');
     }
   }
 
   clearCache() {
     if (!this.plugin()?.config?.clearCacheConfirm || confirm(this.plugin()?.config?.clearCacheConfirm)) {
-      this.store.eventBus.fire(this.store.view.settingsTag + ':clear-cache');
+      this.store.eventBus.fire(this.store.view.settingsTag() + ':clear-cache');
     }
   }
 }

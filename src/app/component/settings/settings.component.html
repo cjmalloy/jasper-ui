@@ -1,4 +1,4 @@
-  @if (!store.account.signedIn) {
+  @if (!store.account.signedIn()) {
     @if (config.login) {
       <a [href]="config.loginLink" i18n>login</a>
       @if (config.signup) {
@@ -13,25 +13,25 @@
     }
     <a routerLink="/settings" i18n>settings</a>
   } @else {
-    @if (store.account.localTag) {
+    @if (store.account.localTag()) {
       <a class="author"
          [title]="fullUserTagAndRole"
-         [routerLink]="['/tag', store.account.tag]">{{ store.account.ext?.name || shortUserTag }}</a>
-      @if (admin.getTemplate('dm') || admin.inbox.length || (admin.getTemplate('user') && store.account.userTag)) {
-        @if (admin.getTemplate('user') && store.account.userTag && store.account.notifications) {
-          | {{ (store.account.notifications - store.account.alarmCount) || '' }}
-          @if (store.hotkey) {
+         [routerLink]="['/tag', store.account.tag()]">{{ store.account.ext()?.name || shortUserTag }}</a>
+      @if (admin.getTemplate('dm') || admin.inbox.length || (admin.getTemplate('user') && store.account.userTag())) {
+        @if (admin.getTemplate('user') && store.account.userTag() && store.account.notifications()) {
+          | {{ (store.account.notifications() - store.account.alarmCount()) || '' }}
+          @if (store.hotkey()) {
             <a class="fake-link inbox notification filter-toggle"
                (click)="account.clearNotifications()"
                i18n-title title="Clear Notifications">✉️</a>
           } @else {
             <a class="inbox notification"
-               [class.filter-toggle]="store.hotkey"
+               [class.filter-toggle]="store.hotkey()"
                i18n-title title="Unread"
                routerLink="/inbox/unread">✉️</a>
           }
-          @if (store.account.alarmCount) {
-            <span i18n-title title="{{ store.account.alarmCount }} Alarms">🔔️</span>
+          @if (store.account.alarmCount()) {
+            <span i18n-title title="{{ store.account.alarmCount() }} Alarms">🔔️</span>
           }
         } @else {
           | <a class="inbox"
@@ -42,7 +42,7 @@
       |
     }
     <a routerLink="/settings" i18n>settings</a>
-    @if (store.view.modUpdates.size) {
+    @if (store.view.modUpdates().size) {
       <a routerLink="/settings/setup"
          i18n-title title="Updates available in setup" i18n>🌟️</a>
     }

@@ -98,7 +98,7 @@ export class TemplateComponent implements HasChanges {
   }
 
   get local() {
-    return this.origin === this.store.account.origin;
+    return this.origin === this.store.account.origin();
   }
 
   save() {
@@ -153,7 +153,7 @@ export class TemplateComponent implements HasChanges {
   copy$ = () => {
     return this.templates.create({
       ...this.template(),
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     }).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.set(printError(err));

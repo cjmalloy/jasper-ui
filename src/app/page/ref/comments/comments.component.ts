@@ -41,7 +41,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
     private admin: AdminService,
   ) {
     thread.clear();
-    store.view.defaultSort = ['published'];
+    store.view.defaultSort.set(['published']);
   }
 
   saveChanges() {
@@ -51,22 +51,23 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref())), { injector: this.injector });
     effect(() => {
-      const top = this.store.view.url;
-      const sort = this.store.view.sort;
-      const filter = this.store.view.filter;
-      const search = this.store.view.search;
+      const top = this.store.view.url();
+      const sort = this.store.view.sort();
+      const filter = this.store.view.filter();
+      const search = this.store.view.search();
       untracked(() => this.thread.setArgs(top, sort, filter, search));
-      if (this.store.view.ref) {
-        const commentCount = this.store.view.ref.metadata?.plugins?.['plugin/comment'] || 0;
-        this.store.local.setLastSeenCount(this.store.view.url, 'comments', commentCount);
+      const ref = this.store.view.ref();
+      if (ref) {
+        const commentCount = ref.metadata?.plugins?.['plugin/comment'] || 0;
+        this.store.local.setLastSeenCount(this.store.view.url(), 'comments', commentCount);
       }
     }, { injector: this.injector });
     this.newComments$.subscribe(c => {
-      if (c && this.store.view.ref) {
-        updateMetadata(this.store.view.ref!, c);
-        this.store.eventBus.refresh(this.store.view.ref!);
+      if (c && this.store.view.ref()) {
+        updateMetadata(this.store.view.ref()!, c);
+        this.store.eventBus.refresh(this.store.view.ref()!);
       }
     });
   }
@@ -75,19 +76,19 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
     this.newComments$.complete();
   }
 
-  readonly depth = computed(() => this.store.view.depth || 7);
+  readonly depth = computed(() => this.store.view.depth() || 7);
 
-  readonly comment = computed(() => this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref));
+  readonly comment = computed(() => this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref()));
 
-  readonly mailboxes = computed(() => mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap));
+  readonly mailboxes = computed(() => mailboxes(this.store.view.ref()!, this.store.account.tag(), this.store.origins.originMap()));
 
   readonly replyTags = computed((): string[] => {
     const tags = [
       'plugin/comment',
       'internal',
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref())).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes(),
     ];
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
+    return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
   });
 }

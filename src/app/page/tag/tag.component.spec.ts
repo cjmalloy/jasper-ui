@@ -32,18 +32,18 @@ describe('TagPage', () => {
   });
 
   it('should include internal refs for an origin-qualified plugin query', () => {
-    component.store.view.route.routeSnapshot = {
+    component.store.view.route.routeSnapshot.set({
       queryParams: {},
       firstChild: {
         params: { tag: 'plugin/test@remote' },
         url: [{ path: 'tag' }],
       },
-    } as any;
+    } as any);
     const getPlugins = vi.spyOn(component.admin, 'getPlugins').mockReturnValue([{} as any]);
 
     fixture.detectChanges();
 
     expect(getPlugins).toHaveBeenCalledWith(['plugin/test']);
-    expect(component.query.args?.query).not.toContain('!internal');
+    expect(component.query.args()?.query).not.toContain('!internal');
   });
 });

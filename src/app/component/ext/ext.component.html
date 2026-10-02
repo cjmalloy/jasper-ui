@@ -45,11 +45,11 @@
         <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
       }
       <a class="fake-link" (click)="download()" i18n>download</a>
-      @if (store.account.mod || writeAccess()) {
+      @if (store.account.mod() || writeAccess()) {
         <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
       }
     }
-    @if (store.account.user && ext().upload) {
+    @if (store.account.user() && ext().upload) {
       <a class="fake-link" (click)="upload()" i18n>upload</a>
       @if (parent()) {
         <a [routerLink]="['/tags', parent()]" i18n>parent</a>

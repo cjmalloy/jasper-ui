@@ -156,11 +156,11 @@ export class SettingsSetupPage implements OnDestroy {
     const mods: string[] = [];
     for (const plugin in this.admin.status.plugins) {
       const m = modId(this.admin.status.plugins[plugin]);
-      if (this.store.view.modUpdates.has(m)) mods.push(m);
+      if (this.store.view.modUpdates().has(m)) mods.push(m);
     }
     for (const template in this.admin.status.templates) {
       const m = modId(this.admin.status.templates[template]);
-      if (this.store.view.modUpdates.has(m)) mods.push(m);
+      if (this.store.view.modUpdates().has(m)) mods.push(m);
     }
     concat(...uniq(mods).map(mod => {
       const receipt = this.admin.getMod(mod)!;
@@ -260,15 +260,15 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   needsModUpdate(config: Config) {
-    return this.store.view.modUpdates.has(modId(config));
+    return this.store.view.modUpdates().has(modId(config));
   }
 
   hasCustomChanges(config: Config) {
-    return this.store.view.modChanges.get(modId(config));
+    return this.store.view.modChanges().get(modId(config));
   }
 
   hasCustomChangesMod(mod: string) {
-    return this.store.view.modChanges.get(mod);
+    return this.store.view.modChanges().get(mod);
   }
 
   canDiffMod(config: Config) {

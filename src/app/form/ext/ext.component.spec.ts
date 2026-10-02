@@ -212,7 +212,7 @@ describe('ExtFormComponent', () => {
     expect(component.filterSpecialDate('modified/after/P2D')).toBe(true);
     expect(fixture.nativeElement.querySelector('.default-filter-row select').value).toMatch(/^published\/before\//);
 
-    component.store.hotkey = true;
+    component.store.hotkey.set(true);
     detectInputChanges();
     expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(2);
 

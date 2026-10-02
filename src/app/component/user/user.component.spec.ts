@@ -89,14 +89,14 @@ describe('UserComponent', () => {
     component.config.api = 'https://jasper.example/api';
     fixture.componentRef.setInput('user', { tag: '+user/test', origin: '@example' });
     fixture.detectChanges();
-    component.store.origins.origins = [{
+    component.store.origins.origins.set([{
       url: 'https://origin.example/custom-api',
       origin: '',
       title: 'Example origin',
       plugins: {
         '+plugin/origin': { local: '@example', remote: '@jasper' },
       },
-    }];
+    }]);
 
     expect(component.connectionRef).toEqual(expect.objectContaining({
       url: 'https://origin.example/custom-api',

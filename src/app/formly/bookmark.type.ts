@@ -421,7 +421,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       coreFilters.push({ filter: 'plugin/delete' as UrlFilter, label: $localize`🗑️ deleted` });
     }
     this.pushFilter({ label: $localize`Filters 🕵️️`, filters: coreFilters });
-    const originFilters = this.store.origins.list.map(o => ({
+    const originFilters = this.store.origins.list().map(o => ({
       filter: ('query/' + (o || '*')) as UrlFilter,
       label: !o ? $localize`✴️ local` : $localize`🏛️ ${o}`,
     }));
@@ -632,14 +632,14 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
     return this.editor.getTagPreview(
       value,
-      this.field.props.origin || this.store.account.origin,
+      this.field.props.origin || this.store.account.origin(),
       false,
       this.field.type !== 'plugin',
       this.field.type !== 'template');
   }
 
   clickPreview(input: HTMLInputElement, event: MouseEvent, breadcrumb: Crumb): boolean {
-    if (this.store.hotkey) {
+    if (this.store.hotkey()) {
       this.router.navigate(['/tag', breadcrumb.tag]);
     } else {
       this.edit(input, breadcrumb);

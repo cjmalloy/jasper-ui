@@ -150,7 +150,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   get storageKey() {
-    return `jasper.clipboard.${this.store.account.tagWithOrigin || 'anon'}`;
+    return `jasper.clipboard.${this.store.account.tagWithOrigin() || 'anon'}`;
   }
 
   preview(item: ClipboardItem) {
@@ -508,7 +508,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private isInteractive(target: EventTarget | null) {
     if (!(target instanceof Element)) return false;
-    if (this.store.hotkey && target.closest('a.clipboard-preview')) return true;
+    if (this.store.hotkey() && target.closest('a.clipboard-preview')) return true;
     if (target.closest('.clipboard-preview')) return false;
     return !!target.closest('.clipboard-actions, .clipboard-hold, button, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
   }
@@ -834,7 +834,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private loadRemote() {
     if (this.loading) return;
-    if (!this.store.account.signedIn) {
+    if (!this.store.account.signedIn()) {
       this.loading = false;
       return;
     }
@@ -987,7 +987,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private persistRemote() {
-    if (!this.store.account.signedIn) {
+    if (!this.store.account.signedIn()) {
       this.pendingRemotePersist = false;
       return;
     }

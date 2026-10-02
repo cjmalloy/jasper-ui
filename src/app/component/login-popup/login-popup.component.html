@@ -1,4 +1,4 @@
-  @if (store.account.authError) {
+  @if (store.account.authError()) {
     @if (config.login) {
       <div class="fake-link no-select" (click)="doLogin()" i18n>Click here to login.</div>
     } @else {

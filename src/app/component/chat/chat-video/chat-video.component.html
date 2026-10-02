@@ -1,4 +1,4 @@
-@if (!store.video.enabled) {
+@if (!store.video.enabled()) {
   <div class="submit-button" (click)="call()" tabindex="0">
     <span i18n-title title="Start a Call" i18n>📞️</span> <label i18n>call</label>
   </div>
@@ -54,14 +54,14 @@
           }
         </div>
       }
-      @if (store.video.stream) {
+      @if (store.video.stream()) {
         <div class="grid-tile">
           <div class="stream-label glass">
             <a class="user tag"
-               [routerLink]="['/tag', store.account.tag]"
-               [appTitle]="store.account.ext" i18n>⭕️ Me</a>
+               [routerLink]="['/tag', store.account.tag()]"
+               [appTitle]="store.account.ext()" i18n>⭕️ Me</a>
           </div>
-          <video [srcObject]="store.video.stream" class="mirror-video" autoplay playsinline [muted]="true"></video>
+          <video [srcObject]="store.video.stream()" class="mirror-video" autoplay playsinline [muted]="true"></video>
         </div>
       }
       @for (tag of hungup; track tag) {

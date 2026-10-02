@@ -41,12 +41,12 @@ export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     effect(() => {
       const args = getArgs(
-        this.store.account.tag + ':(plugin/inbox|plugin/outbox)',
-        this.store.view.sort,
-        ['query/!plugin/delete', 'user/!plugin/user/hide', ...this.store.view.filter],
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.account.tag() + ':(plugin/inbox|plugin/outbox)',
+        this.store.view.sort(),
+        ['query/!plugin/delete', 'user/!plugin/user/hide', ...this.store.view.filter()],
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });

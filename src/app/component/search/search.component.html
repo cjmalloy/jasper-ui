@@ -1,9 +1,9 @@
   <input type="search"
          class="dont-hide"
          i18n-placeholder
-         placeholder="Search {{ viewName(store.view.current) }}"
+         placeholder="Search {{ viewName(store.view.current()) }}"
          [value]="searchValue()"
          (input)="change($any($event.target))"
          (keydown)="$event.key === 'Enter' && submit() || true"
-         [incremental]="store.account.config.liveSearch"
+         [incremental]="store.account.config().liveSearch"
          (search)="search()">

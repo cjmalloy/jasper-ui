@@ -10,8 +10,8 @@ import { filter } from 'rxjs/operators';
 })
 export class RouterStore {
 
-  private readonly _url = signal('');
-  private readonly _routeSnapshot = signal<ActivatedRouteSnapshot | null>(null, { equal: () => false });
+  readonly url = signal('');
+  readonly routeSnapshot = signal<ActivatedRouteSnapshot | null>(null, { equal: () => false });
 
   constructor(
     private router: Router,
@@ -20,24 +20,9 @@ export class RouterStore {
     router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {
-        this.routeSnapshot = this.activatedRoute.snapshot;
-        this.url = e.urlAfterRedirects;
+        this.routeSnapshot.set(this.activatedRoute.snapshot);
+        this.url.set(e.urlAfterRedirects);
       });
   }
 
-  get url() {
-    return this._url();
-  }
-
-  set url(value: string) {
-    this._url.set(value);
-  }
-
-  get routeSnapshot() {
-    return this._routeSnapshot();
-  }
-
-  set routeSnapshot(value: ActivatedRouteSnapshot | null) {
-    this._routeSnapshot.set(value);
-  }
 }

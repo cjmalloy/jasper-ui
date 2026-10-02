@@ -3,13 +3,13 @@
     @if (showToggle()) {
       <div class="toggle" (click)="expanded.set(!expanded())">☰</div>
     }
-    @if (store.view.type) {
+    @if (store.view.type()) {
       <div class="wide">
-        @if (expanded() && store.view.showRemotesCheckbox) {
+        @if (expanded() && store.view.showRemotesCheckbox()) {
           <app-search></app-search>
           @if (admin.getPlugin('+plugin/origin')) {
             <div class="show-remotes">
-              <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
+              <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes()" (input)="showRemotes = sr.checked">
               <label for="show-remotes" i18n>show remotes</label>
             </div>
           }
@@ -19,8 +19,8 @@
       </div>
     }
   </div>
-  @if (store.view.type) {
-    @if (tag() && (store.view.tag || store.view.template)) {
+  @if (store.view.type()) {
+    @if (tag() && (store.view.tag() || store.view.template())) {
       @if (!user()) {
         <app-query [query]="tag()" class="breadcrumbs"></app-query>
       } @else {
@@ -43,24 +43,24 @@
     }
   }
   @if (expanded()) {
-    @if (store.view.type) {
+    @if (store.view.type()) {
       <div class="row mini-col reverse">
-        <app-filter [type]="store.view.type!" [activeExts]="activeExts()"></app-filter>
-        <app-sort [type]="store.view.type!"></app-sort>
+        <app-filter [type]="store.view.type()!" [activeExts]="activeExts()"></app-filter>
+        <app-sort [type]="store.view.type()!"></app-sort>
       </div>
     }
     <app-debug></app-debug>
-    @if (store.view.type) {
-      <app-bulk [type]="store.view.type!"
+    @if (store.view.type()) {
+      <app-bulk [type]="store.view.type()!"
                 [viewExt]="ext()"
                 [activeExts]="activeExts()"></app-bulk>
     }
   }
   <span class="button-bar">
     @if (videoChat()) {
-      <app-chat-video [url]="store.view.ref?.url || 'tag:/chat'"></app-chat-video>
+      <app-chat-video [url]="store.view.ref()?.url || 'tag:/chat'"></app-chat-video>
     }
-    @if (!dm() && !user() && canAddTag() && !plugin()?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
+    @if (!dm() && !user() && canAddTag() && !plugin()?.config?.reply && store.account.user() && (store.view.type() === 'ref' || store.view.current() === 'ref/summary')) {
       @if (plugin()?.config?.submitText || rootConfig()?.submitText) {
         <div class="submit-button" routerLink="/submit/text" tabindex="0"
              [queryParams]="{ tag: addTags() }">
@@ -87,13 +87,13 @@
         </div>
       }
     }
-    @if (notes() && (home() || store.account.tag === tag() || addTags().includes('notes'))) {
+    @if (notes() && (home() || store.account.tag() === tag() || addTags().includes('notes'))) {
       <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
            [queryParams]="{ to: null }">
         <span i18n-title title="Notes" i18n>✍️</span> <label i18n>Notes</label>
       </div>
     }
-    @if (store.account.tag !== tag() && messages()) {
+    @if (store.account.tag() !== tag() && messages()) {
       @if (dms().length) {
         <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
              [queryParams]="{ to: dms(), tag: null }">
@@ -114,12 +114,12 @@
         </div>
       }
     }
-    @if (store.account.mod && store.view.current === 'settings/user') {
+    @if (store.account.mod() && store.view.current() === 'settings/user') {
       <div class="submit-button" routerLink="/user" tabindex="0">
         <span i18n-title title="Create User" i18n>🧑️</span> <label i18n>Create Permissions</label>
       </div>
     }
-    @if (writeAccess() && user() && store.view.current === 'tag') {
+    @if (writeAccess() && user() && store.view.current() === 'tag') {
       <div class="submit-button" [routerLink]="['/user', tag()]" tabindex="0">
         <span i18n-title title="Edit User" i18n>🧑️</span> <label i18n>Edit Permissions</label>
       </div>
@@ -128,24 +128,24 @@
       <div class="submit-button" [routerLink]="['/ext', 'config/home']" tabindex="0">
         <span i18n-title title="Edit Home Page" i18n>🏡️</span> <label i18n>Home Page</label>
       </div>
-    } @else if (store.view.type === 'ext') {
+    } @else if (store.view.type() === 'ext') {
       @if (writeAccess()) {
-        <div class="submit-button" [routerLink]="['/ext', store.view.template]" tabindex="0">
+        <div class="submit-button" [routerLink]="['/ext', store.view.template()]" tabindex="0">
           <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag
           &nbsp;
           &nbsp;
           {{ template()?.name || '' }}</label>
         </div>
-      } @else if (!store.view.template) {
+      } @else if (!store.view.template()) {
         <div class="submit-button" [routerLink]="['/ext']" tabindex="0">
           <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag</label>
         </div>
       }
-    } @else if (local() && writeAccess() && store.view.noQuery) {
+    } @else if (local() && writeAccess() && store.view.noQuery()) {
       <div class="submit-button" [routerLink]="['/ext', tag()]" tabindex="0">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
-    } @else if (!local() && store.account.user && existing && store.view.noQuery) {
+    } @else if (!local() && store.account.user() && existing && store.view.noQuery()) {
       <div class="submit-button" [routerLink]="['/tags', tag()]" [queryParams]="{ showRemotes: true }" tabindex="0">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Copy Tag</label>
       </div>
@@ -153,9 +153,9 @@
   </span>
   @if (home()) {
     <div class="hide tag-header">
-      @if (store.view.forYou) {
+      @if (store.view.forYou()) {
         <h3><a [routerLink]="['/home']" [queryParams]="{ forYou: true }" i18n>For You</a></h3>
-        @if (!store.account.userSubs.length) {
+        @if (!store.account.userSubs().length) {
           <p i18n>Follow other users to see their subscriptions alongside yours here.</p>
         }
       } @else {
@@ -163,12 +163,12 @@
       }
     </div>
   }
-  @if (!home() && store.view.tag) {
+  @if (!home() && store.view.tag()) {
     <div class="hide tag-header">
-      @if (store.view.current === 'tag') {
+      @if (store.view.current() === 'tag') {
         <h3>{{ ext()?.name || tag() }}</h3>
       }
-      @if (store.account.signedIn && tag() && tag() !== '@*' && tag() != '*' && admin.getTemplate('user')) {
+      @if (store.account.signedIn() && tag() && tag() !== '@*' && tag() != '*' && admin.getTemplate('user')) {
         <div class="row center">
           @if (inBookmarks) {
             <button type="button"
@@ -259,8 +259,8 @@
       }
     }
     @if (chat()) {
-      <app-chat query="chat" [responseOf]="store.view.ref"></app-chat>
-    } @else if (store.view.ref && admin.getPlugin('plugin/chat')) {
+      <app-chat query="chat" [responseOf]="store.view.ref()"></app-chat>
+    } @else if (store.view.ref() && admin.getPlugin('plugin/chat')) {
       <a class="fake-link load-more" (click)="startChat()" i18n>chat</a>
     }
   }

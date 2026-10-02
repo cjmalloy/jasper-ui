@@ -27,7 +27,7 @@ export class PwaService {
     });
     updates.unrecoverable.subscribe(event => {
       console.error(`Unrecoverable PWA error: ${event.reason}`);
-      store.account.unrecoverable = true;
+      store.account.unrecoverable.set(true);
     });
   }
 }

@@ -682,7 +682,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get local() {
     const ref = this.ref();
-    return !ref?.created || ref.upload || ref?.origin === this.store.account.origin;
+    return !ref?.created || ref.upload || ref?.origin === this.store.account.origin();
   }
 
   onResize() {

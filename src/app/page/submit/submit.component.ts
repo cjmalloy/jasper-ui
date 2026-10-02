@@ -102,24 +102,24 @@ export class SubmitPage implements OnInit, OnDestroy {
       scrape: [true],
     });
     {
-      store.submit.wikiPrefix = admin.getWikiPrefix();
-      store.submit.submitGenId = this.admin.submitGenId.filter(p => p.config?.submitDm || this.auth.canAddTag(p.tag));
-      store.submit.submitDm = this.admin.submitDm;
+      store.submit.wikiPrefix.set(admin.getWikiPrefix());
+      store.submit.submitGenId.set(this.admin.submitGenId.filter(p => p.config?.submitDm || this.auth.canAddTag(p.tag)));
+      store.submit.submitDm.set(this.admin.submitDm);
     };
   }
 
   ngOnInit(): void {
     effect(() => {
-      this.store.submit.wiki;
-      this.store.submit.url;
-      this.store.submit.tags;
+      this.store.submit.wiki();
+      this.store.submit.url();
+      this.store.submit.tags();
       untracked(() => {
         const validations: Validation[] = [];
-        if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
+        if (!this.admin.isWikiExternal() && this.store.submit.wiki()) {
           validations.push({ name: $localize`Valid title`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
           validations.push({ name: $localize`Not created yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
         } else {
-          this.url.setValue(this.store.submit.url);
+          this.url.setValue(this.store.submit.url());
           validations.push({ name: $localize`Valid link`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
           validations.push({ name: $localize`Not submitted yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
           validations.push({ name: $localize`No link shorteners`, passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
@@ -128,8 +128,8 @@ export class SubmitPage implements OnInit, OnDestroy {
         this.url.updateValueAndValidity();
         if (this.url.value) {
           const tags = [
-            ...this.store.submit.tags,
-            ...this.admin.getPluginsForUrl(this.store.submit.url).map(p => p.tag),
+            ...this.store.submit.tags(),
+            ...this.admin.getPluginsForUrl(this.store.submit.url()).map(p => p.tag),
           ];
           for (const t of tags) {
             if (hasPrefix(t, 'plugin')) {
@@ -160,7 +160,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   get placeholder() {
-    return this.store.submit.wiki ? '' : $localize`URL...`;
+    return this.store.submit.wiki() ? '' : $localize`URL...`;
   }
 
   get wikify() {
@@ -176,11 +176,11 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   submitInternal(tag: string) {
-    return uniq([...without(this.store.submit.tags, ...this.store.submit.submitGenId.map(p => p.tag)), tag]);
+    return uniq([...without(this.store.submit.tags(), ...this.store.submit.submitGenId().map(p => p.tag)), tag]);
   }
 
   fixed(url: string) {
-    if (this.store.submit.wiki) {
+    if (this.store.submit.wiki()) {
       return wikiUriFormat(url, this.admin.getWikiPrefix());
     }
     return fixUrl(url, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']);
@@ -188,10 +188,10 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   exists(url: string) {
     if (!this.linkType(url)) return of(false);
-    if (this.existingRef()?.url === url && this.existingRef()!.origin === this.store.account.origin) return of(true);
+    if (this.existingRef()?.url === url && this.existingRef()!.origin === this.store.account.origin()) return of(true);
     if (this.responsesToUrlFor() === url) return of(false);
     return timer(400).pipe(
-      switchMap(() => this.refs.page({ url, size: 1, query: this.store.account.origin || '*', obsolete: null })),
+      switchMap(() => this.refs.page({ url, size: 1, query: this.store.account.origin() || '*', obsolete: null })),
       map(page => {
         this.existingRef.set(page.content[0]);
         return !!this.existingRef();
@@ -221,14 +221,14 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   submit() {
-    let tags = this.store.submit.tags;
+    let tags = this.store.submit.tags();
     if (this.repost) {
       tags.push('plugin/repost')
     }
     if (this.url.value.trim().toLowerCase().startsWith('<iframe')) {
       tags.push('plugin/embed');
     }
-    if (this.store.submit.web && this.plugin()) {
+    if (this.store.submit.web() && this.plugin()) {
       tags.push(this.plugin());
     }
     const url = this.fixed(this.url.value);
@@ -249,8 +249,8 @@ export class SubmitPage implements OnInit, OnDestroy {
       // TODO set error
     } else if (event.url) {
       this.uploading.set(false);
-      const tags = this.store.submit.tags;
-      if (this.store.submit.web && this.plugin()) {
+      const tags = this.store.submit.tags();
+      if (this.store.submit.web() && this.plugin()) {
         tags.push(this.plugin());
       }
       this.router.navigate(['./submit', 'text'], {
@@ -283,7 +283,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   linkType(value: string) {
-    if (this.store.submit.linkTypeOverride) return this.store.submit.linkTypeOverride;
+    if (this.store.submit.linkTypeOverride()) return this.store.submit.linkTypeOverride();
     try {
       const url = new URL(value);
       if (url.protocol === 'http:' || url.protocol === 'https:') {
@@ -308,7 +308,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     this.router.navigate([], {
       queryParams: {
         url: data,
-        tag: uniq([...this.store.submit.tags]),
+        tag: uniq([...this.store.submit.tags()]),
       },
       queryParamsHandling: 'merge'
     });
@@ -328,7 +328,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (!files.length) return false;
     event.preventDefault();
     this.store.submit.setEmbedFiles(files);
-    this.router.navigate(['/submit/text'], { queryParams: { tag: this.store.submit.tags } });
+    this.router.navigate(['/submit/text'], { queryParams: { tag: this.store.submit.tags() } });
     return true;
   }
 

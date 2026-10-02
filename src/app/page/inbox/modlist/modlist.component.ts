@@ -41,17 +41,17 @@ export class InboxModlistPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    if (!this.store.view.filter.length) {
+    if (!this.store.view.filter().length) {
       this.router.navigate([], { queryParams: { filter: ['query/!_moderated', 'query/public', 'query/!(_plugin:!+user)'] }, replaceUrl: true });
     }
     effect(() => {
       const args = getArgs(
-        this.store.account.origin || '*',
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.account.origin() || '*',
+        this.store.view.sort(),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });

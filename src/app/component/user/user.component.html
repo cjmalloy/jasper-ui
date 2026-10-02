@@ -11,26 +11,26 @@
     <span>{{ role().toLowerCase().replace('role_', '') }}</span>
   </div>
   <div class="actions">
-    @if (!created() && store.account.admin) {
+    @if (!created() && store.account.admin()) {
       <app-confirm-action #action [action]="copy$" i18n>install</app-confirm-action>
     } @else if (!local()) {
       <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
     }
-    @if (created() && local() && store.account.admin) {
+    @if (created() && local() && store.account.admin()) {
       <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
     } @else {
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }
     <a class="fake-link" (click)="download()" i18n>download</a>
     <a class="fake-link connect-action" (click)="connect()" i18n>connect</a>
-    @if (store.account.root && store.account.mod && config.scim && !profile()) {
+    @if (store.account.root() && store.account.mod() && config.scim && !profile()) {
       <app-inline-button #action [action]="activate$" i18n>sync</app-inline-button>
     }
     @if (profile() && writeAccess()) {
       <app-inline-password #action [action]="setPassword$" i18n>password</app-inline-password>
     }
     @if (created() || profile()) {
-      @if (store.account.mod && writeAccess()) {
+      @if (store.account.mod() && writeAccess()) {
         <app-confirm-action #action [action]="ban$" i18n>ban</app-confirm-action>
         <app-inline-select #action [action]="setRole$" [value]="role()">
           <span i18n>role</span>
@@ -49,11 +49,11 @@
           }
         }
       }
-      @if ((!profile() || store.account.root) && store.account.mod || writeAccess()) {
+      @if ((!profile() || store.account.root()) && store.account.mod() || writeAccess()) {
         <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
       }
     }
-    @if (created() && (store.account.mod || writeAccess())) {
+    @if (created() && (store.account.mod() || writeAccess())) {
       @if (user()?.pubKey) {
         <app-confirm-action #action [action]="keygen$"
                             i18n-warning warning="This will overwrite existing key!"

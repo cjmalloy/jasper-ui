@@ -5,7 +5,7 @@
       <a class="first-page"
          routerLink="./"
          [class.disabled]="page()!.page.number === 0"
-         [queryParams]="{ pageNumber: store.view.defaultPageNumber ? 0 : null }"
+         [queryParams]="{ pageNumber: store.view.defaultPageNumber() ? 0 : null }"
          queryParamsHandling="merge" i18n>first</a>
       <span> | </span>
       @if (showPrev()) {
@@ -36,8 +36,8 @@
 
   <label for="pageSize" i18n> size: </label>
   <select id="pageSize" [(ngModel)]="pageSize">
-    @if (outOfPageSizeRange(store.view.pageSize)) {
-      <option [value]="store.view.pageSize">{{ store.view.pageSize }}</option>
+    @if (outOfPageSizeRange(store.view.pageSize())) {
+      <option [value]="store.view.pageSize()">{{ store.view.pageSize() }}</option>
     }
     @for (size of pageSizes; track size) {
       <option [value]="size">{{ size }}</option>
@@ -48,8 +48,8 @@
     <label for="cols" i18n> cols: </label>
     <select id="cols" [(ngModel)]="cols">
       <option [value]="0" i18n>default</option>
-      @if (outOfColSizeRange(store.view.cols || 1)) {
-        <option [value]="store.view.cols">{{ store.view.cols }}</option>
+      @if (outOfColSizeRange(store.view.cols() || 1)) {
+        <option [value]="store.view.cols()">{{ store.view.cols() }}</option>
       }
       @for (size of colSizes; track size) {
         <option [value]="size">{{ size }}</option>

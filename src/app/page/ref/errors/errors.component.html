@@ -1,5 +1,5 @@
-@if (query.page) {
-  <app-ref-list #list [page]="query.page"
+@if (query.page()) {
+  <app-ref-list #list [page]="query.page()"
                 [newRefs$]="newRefs$"
                 [insertNewAtTop]="true"
                 [expanded]="true"

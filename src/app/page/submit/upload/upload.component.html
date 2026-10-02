@@ -4,8 +4,8 @@
   <span><!-- Description --></span>
   <p i18n>
     Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs.
-    <span>View your <a [routerLink]="['/tag', store.account.tag]" [queryParams]="{ filter: 'query/plugin/file' }">files here</a>.</span>
-    @if (store.account.admin) {
+    <span>View your <a [routerLink]="['/tag', store.account.tag()]" [queryParams]="{ filter: 'query/plugin/file' }">files here</a>.</span>
+    @if (store.account.admin()) {
       <span>Visit the <a routerLink="/settings/setup">setup</a> settings page to manage mods.</span>
     }
   </p>
@@ -25,11 +25,11 @@
     <button type="button" (click)="tagAll(tagInput)" i18n>+</button>
   </div>
 
-  @if (store.submit.tags.length) {
+  @if (store.submit.tags().length) {
     <span><!-- Tags --></span>
     <div class="tag-list form-array right">
       <span i18n>Tagging:</span>
-      @for (p of store.submit.tags | tagPreview | async; track p.tag) {
+      @for (p of store.submit.tags() | tagPreview | async; track p.tag) {
         <a class="tag" [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
       }
     </div>
@@ -60,18 +60,18 @@
     }
   </div>
 
-  @for (c of store.submit.uploads; track c) {
+  @for (c of store.submit.uploads(); track c) {
     <span><!-- Uploading --></span>
     <div>Uploading {{ c.name }} <progress max="100" [value]="c.progress"></progress></div>
   }
 
-  @if (!store.submit.empty) {
+  @if (!store.submit.empty()) {
     <span></span>
     <div>
       <hr>
       <div class="padded form-array">
         <button type="button" (click)="push()" i18n>upload all</button>
-        <div><input id="overwrite" type="checkbox" [checked]="store.submit.overwrite" (input)="overwrite = !store.submit.overwrite"></div>
+        <div><input id="overwrite" type="checkbox" [checked]="store.submit.overwrite()" (input)="overwrite = !store.submit.overwrite()"></div>
         <label for="overwrite" i18n>Overwrite existing</label>
         <div class="buttons right">
           <button type="button" (click)="download()" i18n>download all</button>
@@ -90,33 +90,33 @@
 </div>
 
 <div class="padded list-container">
-  @if (store.submit.huge) {
+  @if (store.submit.huge()) {
     <span></span>
     <span class="warning">
       * Preview disabled for huge archives
       <button type="button" (click)="store.submit.overrideHuge()" i18n>show anyway</button>
     </span>
-    @if (store.submit.exts.length) {
+    @if (store.submit.exts().length) {
       <span>Exts: </span>
-      <span>{{ store.submit.exts.length }}</span>
+      <span>{{ store.submit.exts().length }}</span>
     }
-    @if (store.submit.refs.length) {
+    @if (store.submit.refs().length) {
       <span>Refs: </span>
-      <span>{{ store.submit.refs.length }}</span>
+      <span>{{ store.submit.refs().length }}</span>
     }
   } @else {
-    @if (store.submit.exts.length) {
+    @if (store.submit.exts().length) {
       <span class="upload-label">Exts: </span>
       <span></span>
-      @for (ext of store.submit.exts; track ext; let i = $index) {
+      @for (ext of store.submit.exts(); track ext; let i = $index) {
         <div class="list-number">{{ i + 1 }}</div>
         <app-ext [ext]="ext"></app-ext>
       }
     }
-    @if (store.submit.refs.length) {
+    @if (store.submit.refs().length) {
       <span class="upload-label">Refs: </span>
       <span></span>
-      @for (ref of store.submit.refs; track ref; let i = $index) {
+      @for (ref of store.submit.refs(); track ref; let i = $index) {
         <div class="list-number">{{ i + 1 }}</div>
         <app-ref [ref]="ref" [showToggle]="true" [scrollToLatest]="true"></app-ref>
       }

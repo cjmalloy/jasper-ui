@@ -35,7 +35,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
   ) {
     query.clear();
-    store.view.defaultSort = ['published'];
+    store.view.defaultSort.set(['published']);
   }
 
   saveChanges() {
@@ -50,28 +50,28 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
     effect(() => {
       const args = getArgs(
         '',
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.view.sort(),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
-      args.sources = this.store.view.url;
+      args.sources = this.store.view.url();
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
     effect(() => {
-      if (!this.query.page) return;
+      if (!this.query.page()) return;
       this.page.update(page => ({
         ...page,
         content: page.content.map((ref, i) => {
           if (ref.created) return ref;
           const url = this.sources[i];
-          return this.query.page!.content.find(r => r.url === url) || ref;
+          return this.query.page()!.content.find(r => r.url === url) || ref;
         }),
       }));
     }, { injector: this.injector });
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Sources: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => this.mod.setTitle($localize`Sources: ` + getTitle(this.store.view.ref())), { injector: this.injector });
   }
 
   ngOnDestroy() {
@@ -79,7 +79,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   get sources() {
-    return uniq(this.store.view.ref?.sources).filter(s => s != this.store.view.url);
+    return uniq(this.store.view.ref()?.sources).filter(s => s != this.store.view.url());
   }
 
 }

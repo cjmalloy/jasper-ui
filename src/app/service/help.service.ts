@@ -42,8 +42,8 @@ export class HelpService {
     if (this.shown.includes(id) || this.store.local.shownHelpPopup(id)) return;
     this.shown.push(id);
     this.steps.push({ id, el, text });
-    this.store.helpSteps = this.steps.length;
-    if (this.store.helpStepIndex === -1) {
+    this.store.helpSteps.set(this.steps.length);
+    if (this.store.helpStepIndex() === -1) {
       // If no tour is active, start immediately with this step
       this.startTour();
     }
@@ -59,9 +59,9 @@ export class HelpService {
       return;
     }
 
-    if (this.store.helpStepIndex === -1) {
+    if (this.store.helpStepIndex() === -1) {
       this.maxIndexReached = -1;
-      this.store.helpStepIndex = 0;
+      this.store.helpStepIndex.set(0);
     }
 
     delay(() => this.showCurrentStep(), 1000);
@@ -71,9 +71,9 @@ export class HelpService {
    * Advances to the next help step.
    */
   nextStep(): void {
-    this.store.local.dismissHelpPopup(this.steps[this.store.helpStepIndex].id);
-    this.store.helpStepIndex++;
-    if (this.store.helpStepIndex < this.steps.length) {
+    this.store.local.dismissHelpPopup(this.steps[this.store.helpStepIndex()].id);
+    this.store.helpStepIndex.update(v => v + 1);
+    if (this.store.helpStepIndex() < this.steps.length) {
       this.showCurrentStep();
     } else {
       this.endTour();
@@ -84,22 +84,22 @@ export class HelpService {
    * Goes back to the previous help step.
    */
   previousStep(): void {
-    if (this.store.helpStepIndex > 0) {
-      this.store.helpStepIndex--;
+    if (this.store.helpStepIndex() > 0) {
+      this.store.helpStepIndex.update(v => v - 1);
       this.showCurrentStep();
     }
   }
 
   private showCurrentStep(): void {
-    if (this.store.helpStepIndex < 0 || this.store.helpStepIndex >= this.steps.length) {
+    if (this.store.helpStepIndex() < 0 || this.store.helpStepIndex() >= this.steps.length) {
       this.endTour();
       return;
     }
-    if (this.store.helpStepIndex > this.maxIndexReached) {
-      this.maxIndexReached = this.store.helpStepIndex;
+    if (this.store.helpStepIndex() > this.maxIndexReached) {
+      this.maxIndexReached = this.store.helpStepIndex();
     }
     this.dismissOverlay();
-    const currentStep = this.steps[this.store.helpStepIndex];
+    const currentStep = this.steps[this.store.helpStepIndex()];
     const element = currentStep.el;
     element.classList.add('help-element');
     this.overlayRef = this.overlay.create({
@@ -162,8 +162,8 @@ export class HelpService {
       : this.steps;
     this.steps = undisplayedSteps;
     this.maxIndexReached = -1;
-    this.store.helpStepIndex = -1;
-    this.store.helpSteps = this.steps.length;
+    this.store.helpStepIndex.set(-1);
+    this.store.helpSteps.set(this.steps.length);
   }
 
   private dismissOverlay(): void {

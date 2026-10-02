@@ -101,11 +101,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     private viewContainerRef: ViewContainerRef,
   ) {
     effect(() => {
-      this.store.graph.nodes;
-      this.store.graph.links;
-      this.store.graph.selected;
-      this.store.graph.timeline;
-      this.store.graph.arrows;
+      this.store.graph.nodes();
+      this.store.graph.links();
+      this.store.graph.selected();
+      this.store.graph.timeline();
+      this.store.graph.arrows();
       this.selectedStroke = this.store.darkTheme ? this.selectedStrokeDarkTheme() : this.selectedStrokeLightTheme();
       this.linkStroke = this.store.darkTheme ? this.linkStrokeDarkTheme() : this.linkStrokeLightTheme();
       untracked(() => this.update());
@@ -186,7 +186,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   find(url: string) {
-    return findNode(this.store.graph.nodes, url);
+    return findNode(this.store.graph.nodes(), url);
   }
 
   max(loadCount: number) {
@@ -224,7 +224,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   select(rect?: Rect) {
-    this.store.graph.select(...filter(this.store.graph.nodes, n => Rect.contains(rect, n as Point)));
+    this.store.graph.select(...filter(this.store.graph.nodes(), n => Rect.contains(rect, n as Point)));
     this.update();
   }
 
@@ -232,7 +232,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     event.stopPropagation();
     event.preventDefault();
     this.close();
-    if (ref && !this.store.graph.selected.includes(ref)) {
+    if (ref && !this.store.graph.selected().includes(ref)) {
       this.store.graph.select(ref);
     }
     const positionStrategy = this.overlay.position()
@@ -331,12 +331,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
 
   toggleTimeline() {
     this.simulation?.alpha(0.5);
-    this.store.graph.timeline = !this.store.graph.timeline;
+    this.store.graph.timeline.set(!this.store.graph.timeline());
     this.close();
   }
 
   toggleArrows() {
-    this.store.graph.arrows = !this.store.graph.arrows;
+    this.store.graph.arrows.set(!this.store.graph.arrows());
     this.close();
   }
 
@@ -415,11 +415,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
       .force('link', this.forceLink)
       .force('charge', d3.forceManyBody().distanceMax(300))
       .force('x', d3.forceX(d => {
-        if (!this.store.graph.timeline) return 0;
+        if (!this.store.graph.timeline()) return 0;
         if (!isGraphable(d as GraphNode)) return 0;
         return this.timelineScale!((d as RefNode).published!.valueOf());
       }).strength(d => {
-        if (!this.store.graph.timeline) return 0.1;
+        if (!this.store.graph.timeline()) return 0.1;
         if (!isGraphable(d as GraphNode)) return 0;
         return 0.5;
       }))
@@ -497,15 +497,15 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
 
     this.link
       .selectAll('line')
-      .data(this.store.graph.links)
+      .data(this.store.graph.links())
       .join('line')
       .attr('stroke', () => this.linkStroke)
-      .attr('marker-end', this.store.graph.arrows ? 'url(#arrow)' : null);
+      .attr('marker-end', this.store.graph.arrows() ? 'url(#arrow)' : null);
 
     const self = this;
     this.node
       .selectAll('g')
-      .data(this.store.graph.nodes, (d: any) => d.url)
+      .data(this.store.graph.nodes(), (d: any) => d.url)
       .join(
         enter => {
           const node = enter.append('g');
@@ -532,10 +532,10 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         },
         update => {
           update.select('circle')
-            .attr('stroke', ref => this.store.graph.selected.includes(ref) ? this.selectedStroke : this.nodeStroke())
-            .attr('stroke-dasharray', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeDashedArray() : this.nodeStrokeDashedArray())
-            .attr('stroke-opacity', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeOpacity() : this.nodeStrokeOpacity())
-            .attr('stroke-width', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeWidth() : this.nodeStrokeOpacity())
+            .attr('stroke', ref => this.store.graph.selected().includes(ref) ? this.selectedStroke : this.nodeStroke())
+            .attr('stroke-dasharray', ref => this.store.graph.selected().includes(ref) ? this.selectedStrokeDashedArray() : this.nodeStrokeDashedArray())
+            .attr('stroke-opacity', ref => this.store.graph.selected().includes(ref) ? this.selectedStrokeOpacity() : this.nodeStrokeOpacity())
+            .attr('stroke-width', ref => this.store.graph.selected().includes(ref) ? this.selectedStrokeWidth() : this.nodeStrokeOpacity())
             .attr('fill', ref => this.color(ref))
             .select('title')
             .text(ref => getTitle(ref));
@@ -564,11 +564,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         });
     }
 
-    if (this.store.graph.timeline) {
-      let minPublished = this.store.graph.minPublished;
-      let maxPublished = this.store.graph.maxPublished;
+    if (this.store.graph.timeline()) {
+      let minPublished = this.store.graph.minPublished();
+      let maxPublished = this.store.graph.maxPublished();
       const minDiff = Duration.fromObject({ day: 1 }).milliseconds;
-      if (this.store.graph.publishedDiff < minDiff) {
+      if (this.store.graph.publishedDiff() < minDiff) {
         const half = DateTime.fromMillis((minPublished || maxPublished || DateTime.now()).valueOf() / 2 + (maxPublished || minPublished || DateTime.now()).valueOf() / 2);
         minPublished = half.minus(minDiff / 2);
         maxPublished = half.plus(minDiff / 2);
@@ -590,8 +590,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     }
 
     this.simulation
-      .nodes(this.store.graph.nodes as any)
-      .force('link', this.forceLink!.links(this.store.graph.links))
+      .nodes(this.store.graph.nodes() as any)
+      .force('link', this.forceLink!.links(this.store.graph.links()))
       .restart();
   }
 

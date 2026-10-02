@@ -193,10 +193,10 @@ export class ChatComponent implements OnDestroy, HasChanges {
       ...getArgs(
         query,
         'modified,ASC',
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       ),
       responses: this.responseOf()?.url,
       modifiedAfter: this.cursors.get(origin!)
@@ -230,10 +230,10 @@ export class ChatComponent implements OnDestroy, HasChanges {
       ...getArgs(
         this.query(),
         'modified,DESC',
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        Math.max(this.store.view.pageSize, !this.cursors.size ? this.initialSize : 0),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        Math.max(this.store.view.pageSize(), !this.cursors.size ? this.initialSize : 0),
       ),
       responses: this.responseOf()?.url,
       modifiedBefore: this.messages()?.[0]?.modifiedString,
@@ -327,23 +327,23 @@ export class ChatComponent implements OnDestroy, HasChanges {
     const newTags = uniq([
       'internal',
       ...this.tags(),
-      ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
+      ...([this.store.view.localTag() || 'chat', ...this.store.view.ext()?.config?.addTags || []]),
       ...this.plugins(),
       ...(this.latex() ? ['plugin/latex'] : []),
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
     ]).filter(t => !!t);
     if (URI_REGEX.test(text)) {
       const url = this.editor.getRefUrl(text);
       newTags.push(...this.admin.getPluginsForExtension(url).filter(p => !newTags.includes(p.tag)));
       this.send({
         url,
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         tags: newTags,
       });
     } else {
       this.send({
         url: 'comment:' + uuid(),
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         comment: text,
         tags: newTags,
       });
@@ -532,11 +532,11 @@ export class ChatComponent implements OnDestroy, HasChanges {
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref: Ref = {
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         url: 'internal:' + uuid(),
         // Upload as private - only localTag and internal, no visibility tags
         tags: uniq([
-          this.store.account.localTag,
+          this.store.account.localTag(),
           'internal',
           ...file.type === 'text/markdown' ? [] : codeType
         ])
@@ -579,7 +579,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
       } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
         tags.push('plugin/pdf');
       }
-      return this.proxy.save(file, this.store.account.origin).pipe(
+      return this.proxy.save(file, this.store.account.origin()).pipe(
         map(event => {
           switch (event.type) {
             case HttpEventType.Response:
@@ -608,7 +608,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
           return readFileAsDataURL(file).pipe(map(url => ({
             url,
             tags,
-            origin: this.store.account.origin
+            origin: this.store.account.origin()
           } as Ref)));
         }),
       );

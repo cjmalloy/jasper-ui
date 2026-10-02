@@ -1,6 +1,6 @@
-@if (store.view.ref) {
+@if (store.view.ref()) {
   <app-comment-reply #reply
-                     [to]="store.view.ref"
+                     [to]="store.view.ref()!"
                      [tags]="replyTags()"
                      [selectResponseType]="!responseSet()"
                      (save)="onReply($event)"></app-comment-reply>
@@ -8,7 +8,7 @@
     <h5 routerLink="./comments" queryParamsHandling="merge" i18n>Comments:</h5>
     <app-thread-summary query="plugin/comment:!plugin/delete"
                         [commentView]="true"
-                        [source]="store.view.url"
+                        [source]="store.view.url()"
                         [newRefs$]="newComment$"
                         [depth]="1"
                         [pageSize]="summaryItems"></app-thread-summary>
@@ -16,7 +16,7 @@
   <div class="summary-box thread" [class.hidden-without-removing]="!threads()">
     <h5 routerLink="./thread" queryParamsHandling="merge" i18n>Threads:</h5>
     <app-thread-summary query="plugin/thread:!plugin/comment:!plugin/delete"
-                        [source]="store.view.url"
+                        [source]="store.view.url()"
                         [newRefs$]="newThread$"
                         [depth]="1"
                         [pageSize]="summaryItems"></app-thread-summary>
@@ -30,7 +30,7 @@
   </div>
   <div class="summary-box" [class.hidden-without-removing]="!responses()">
     <h5 routerLink="./responses" queryParamsHandling="merge" i18n>Responses:</h5>
-    <app-ref-list #list [page]="query.page"
+    <app-ref-list #list [page]="query.page()"
                   [pageControls]="false"
                   [insertNewAtTop]="true"
                   [newRefs$]="newResp$"></app-ref-list>

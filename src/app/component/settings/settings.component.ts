@@ -25,7 +25,7 @@ export class SettingsComponent implements AfterViewInit {
     private el: ElementRef,
     private help: HelpService,
   ) {
-    if (admin.getTemplate('user') && admin.getPlugin('plugin/inbox') && store.account.signedIn) {
+    if (admin.getTemplate('user') && admin.getPlugin('plugin/inbox') && store.account.signedIn()) {
       account.checkNotifications();
     }
   }
@@ -35,11 +35,11 @@ export class SettingsComponent implements AfterViewInit {
   }
 
   get fullUserTagAndRole() {
-    return this.store.account.tag + ' (' + this.store.account.role + ')';
+    return this.store.account.tag() + ' (' + this.store.account.role() + ')';
   }
 
   get shortUserTag() {
-    return this.store.account.localTag.replace('+', '').replace('user/', '');
+    return this.store.account.localTag().replace('+', '').replace('user/', '');
   }
 
 }

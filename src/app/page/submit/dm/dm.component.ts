@@ -138,19 +138,20 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   ngAfterViewInit() {
     effect(() => {
-      this.store.submit.dmPlugin;
-      this.store.submit.to;
-      this.store.submit.tags;
-      this.store.account.localTag;
+      this.store.submit.dmPlugin();
+      this.store.submit.to();
+      this.store.submit.tags();
+      this.store.account.localTag();
       untracked(() => {
-        if (this.store.submit.dmPlugin) {
-          this.setTo(this.store.submit.dmPlugin);
-        } if (this.store.submit.to.length) {
-          this.setTo(this.store.submit.to.join(' '));
+        const dmPlugin = this.store.submit.dmPlugin();
+        if (dmPlugin) {
+          this.setTo(dmPlugin);
+        } if (this.store.submit.to().length) {
+          this.setTo(this.store.submit.to().join(' '));
         } else {
           this.setTo('');
         }
-        const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+        const tags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
         if (tags.length) this.addTags(tags);
       });
     }, { injector: this.injector });
@@ -180,7 +181,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get notes() {
-    return !this.to.value || this.to.value === this.store.account.tag;
+    return !this.to.value || this.to.value === this.store.account.tag();
   }
 
   saveForLater(leave = false) {
@@ -201,7 +202,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   writeRef() {
     return <Ref> {
       url: this._url,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
       sources: this.dmForm.value.sources,
@@ -255,7 +256,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   changedTo(value: string) {
-    const notes = !value || value === this.store.account.tag;
+    const notes = !value || value === this.store.account.tag();
     if (notes && !hasTag('notes', this.tags.value)) {
       const newTags = uniq([...without(this.tags.value, ...['dm', 'plugin/thread', ...this.addedMailboxes]), 'notes']);
       this.setTags(newTags);
@@ -271,7 +272,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
-    return this.editor.getTagPreview(value, this.store.account.origin);
+    return this.editor.getTagPreview(value, this.store.account.origin());
   }
 
   edit(input: HTMLInputElement) {
@@ -281,7 +282,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   clickPreview(input: HTMLInputElement) {
-    if (this.store.hotkey) {
+    if (this.store.hotkey()) {
       this.config.tag(input.value);
     } else {
       this.edit(input);
@@ -330,7 +331,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   getMailboxes(tag: string): string[] {
-    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin), ...hasPrefix(tag, '+user') ? [localTag(tag).substring(1)] : [] ];
+    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin()), ...hasPrefix(tag, '+user') ? [localTag(tag).substring(1)] : [] ];
   }
 
   readonly codeLang = computed(() => {
@@ -384,12 +385,12 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     }
     const url = this._url;
     const published = this.dmForm.value.published ? DateTime.fromISO(this.dmForm.value.published) : DateTime.now();
-    let sources = [url, ...uniq([url, ...this.store.submit.sources, ...this.dmForm.value.sources])];
+    let sources = [url, ...uniq([url, ...this.store.submit.sources(), ...this.dmForm.value.sources])];
     if (sources.length === 2) sources = [];
     const finalTags = this.dmForm.value.tags;
     const ref = {
       url,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
       sources,

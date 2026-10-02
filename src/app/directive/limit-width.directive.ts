@@ -33,6 +33,7 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.resizeObserver?.disconnect();
+    this.fill.cancel();
   }
 
   onWindowResize(event: UIEvent) {

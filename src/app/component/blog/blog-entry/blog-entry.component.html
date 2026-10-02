@@ -50,7 +50,7 @@
             @if (showIcon(icon)) {
               <span class="icon"
                     [class.filter-toggle]="icon.tag"
-                    (click)="clickIcon(icon, store.hotkey)"
+                    (click)="clickIcon(icon, store.hotkey())"
                     [appTitle]="icon"
                     [ref]="ref()">{{ icon.label }}</span>
             }
@@ -64,7 +64,7 @@
         </div>
         <div class="actions">
           <a [routerLink]="['/ref', ref().url]" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>permalink</a>
-          @if (store.account.user) {
+          @if (store.account.user()) {
             <a class="fake-link" (click)="replying.set(!replying())" i18n>reply</a>
           }
           @if (comments) {
@@ -78,10 +78,10 @@
           } @else if (sources > 1) {
             <a [routerLink]="['/ref', ref().url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
           }
-          @if (store.account.mod || taggingAccess()) {
+          @if (store.account.mod() || taggingAccess()) {
             <app-confirm-action #action
                                 [class.force-delete]="deleteAccess()"
-                                [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
+                                [action]="store.hotkey() ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
           }
           @if (taggingAccess()) {
             <app-inline-tag #action [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>

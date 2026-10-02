@@ -37,12 +37,12 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     effect(() => {
-      this.store.view.pageNumber;
-      this.store.account.notificationsQuery;
-      this.store.account.config.lastNotified;
-      this.store.view.pageSize;
+      this.store.view.pageNumber();
+      this.store.account.notificationsQuery();
+      this.store.account.config().lastNotified;
+      this.store.view.pageSize();
       untracked(() => {
-        if (this.store.view.pageNumber) {
+        if (this.store.view.pageNumber()) {
           this.router.navigate([], {
             queryParams: { pageNumber: null },
             queryParamsHandling: 'merge',
@@ -53,17 +53,17 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
           }
         }
         const args: RefPageArgs = {
-          query: this.store.account.notificationsQuery,
-          modifiedAfter: this.store.account.config.lastNotified,
+          query: this.store.account.notificationsQuery(),
+          modifiedAfter: this.store.account.config().lastNotified,
           sort: ['modified,ASC'],
-          size: this.store.view.pageSize,
+          size: this.store.view.pageSize(),
         };
         defer(() => this.query.setArgs(args));
       });
     }, { injector: this.injector });
     effect(() => {
-      if (this.query.page && this.query.page!.content.length) {
-        this.lastNotified = newest(this.query.page!.content)!.modified!;
+      if (this.query.page() && this.query.page()!.content.length) {
+        this.lastNotified = newest(this.query.page()!.content)!.modified!;
       }
     }, { injector: this.injector });
   }

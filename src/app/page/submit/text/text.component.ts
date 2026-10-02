@@ -113,7 +113,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
     this.ensureUrl();
-    store.submit.wikiPrefix = admin.getWikiPrefix();
+    store.submit.wikiPrefix.set(admin.getWikiPrefix());
     effect(() => {
       const fill = this.fill();
       defer(() => this.limitWidth.set(this._advancedFill?.nativeElement || fill?.nativeElement));
@@ -133,8 +133,8 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   ngAfterViewInit() {
-    if (this.admin.editing && this.store.submit.url) {
-      this.refs.getEditing(this.store.submit.url).subscribe(draft => {
+    if (this.admin.editing && this.store.submit.url()) {
+      this.refs.getEditing(this.store.submit.url()).subscribe(draft => {
         if (!draft) return;
         this.cursor = draft.modifiedString;
         const edit = draft.plugins?.['plugin/editing'] || {};
@@ -142,7 +142,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         if (edit.title) this.title.setValue(edit.title);
       });
     }
-    const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+    const allTags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
     this.exts.getCachedExts(allTags).pipe(
       map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
       switchMap(xs => {
@@ -161,49 +161,49 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
           tags: this.oldSubmit,
         });
       }
-      if (this.store.account.localTag) this.addTag(this.store.account.localTag);
+      if (this.store.account.localTag()) this.addTag(this.store.account.localTag());
       effect(() => {
-        this.store.submit.url;
-        this.store.submit.wiki;
-        this.store.submit.title;
-        this.store.submit.tags;
-        this.store.account.localTag;
-        this.store.submit.pluginUpload;
-        this.store.submit.plugin;
-        this.store.submit.sources;
+        this.store.submit.url();
+        this.store.submit.wiki();
+        this.store.submit.title();
+        this.store.submit.tags();
+        this.store.account.localTag();
+        this.store.submit.pluginUpload();
+        this.store.submit.plugin();
+        this.store.submit.sources();
         untracked(() => {
           const url = this.ensureUrl();
-          if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
+          if (!this.admin.isWikiExternal() && this.store.submit.wiki()) {
             this.mod.setTitle($localize`Submit: Wiki`);
             this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
             this.title.disable();
-          } else if (this.store.submit.title) {
-            this.title.setValue(this.store.submit.title);
+          } else if (this.store.submit.title()) {
+            this.title.setValue(this.store.submit.title());
           }
-          const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+          const tags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
           const added = without(tags, ...this.oldSubmit);
           const removed = without(this.oldSubmit, ...tags);
           if (added.length || removed.length) {
             this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
             this.tagsFormComponent()!.setTags(this.oldSubmit);
           }
-          if (this.store.submit.pluginUpload) {
-            this.addTag(this.store.submit.plugin);
+          if (this.store.submit.pluginUpload()) {
+            this.addTag(this.store.submit.plugin());
             this.plugins().setValue({
               ...this.textForm.value.plugins || {},
-              [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
+              [this.store.submit.plugin()]: { url: this.store.submit.pluginUpload() },
             });
-            if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
+            if (this.store.submit.plugin() === 'plugin/image' || this.store.submit.plugin() === 'plugin/video') {
               this.addTag('plugin/thumbnail');
             }
           }
-          for (const s of this.store.submit.sources) {
+          for (const s of this.store.submit.sources()) {
             this.addSource(s)
           }
         });
       }, { injector: this.injector });
-      if (this.store.submit.embedFiles.length) {
-        const files = [...this.store.submit.embedFiles];
+      if (this.store.submit.embedFiles().length) {
+        const files = [...this.store.submit.embedFiles()];
         defer(() => {
           const editorComponent = this.editorComponent();
           if (this.customEditor()) {
@@ -225,7 +225,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get randomURL() {
-    return !this.store.submit.url && (this.admin.isWikiExternal() || !this.store.submit.wiki) ;
+    return !this.store.submit.url() && (this.admin.isWikiExternal() || !this.store.submit.wiki()) ;
   }
 
   saveForLater(leave = false) {
@@ -250,7 +250,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       ...this.textForm.value,
       url: this.url.value, // Need to pull separately since control is locked
       title: this.title.value, // Need to pull separately if disabled by wiki mode
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       published,
       tags,
       plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
@@ -351,9 +351,9 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   private ensureUrl() {
-    const routeUrl = this.store.submit.url;
+    const routeUrl = this.store.submit.url();
     const currentUrl = this.url.value;
-    const wiki = this.store.submit.wiki;
+    const wiki = this.store.submit.wiki();
     const wikiPrefix = this.admin.getWikiPrefix();
     const useRouteUrl = !!routeUrl && (!wiki || routeUrl !== wikiPrefix);
     let url = useRouteUrl ? routeUrl : currentUrl || this.generatedUrl;
@@ -375,7 +375,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       ...this.textForm.value,
       url, // Need to pull separately since control is locked
       title: this.title.value, // Need to pull separately if disabled by wiki mode
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       published: this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : publish ? DateTime.now() : undefined,
       tags: uniq(this.textForm.value.tags),
       plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),

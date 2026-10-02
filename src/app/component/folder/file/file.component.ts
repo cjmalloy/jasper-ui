@@ -98,8 +98,8 @@ export class FileComponent {
 
     this.expandPlugins.set(this.admin.getEmbeds(this.ref()));
     if (this.repost() && this.ref() && this.fetchRepost() && this.repostRef()?.url != repost(this.ref())) {
-      (this.store.view.top?.url === this.ref().sources![0]
-          ? of(this.store.view.top)
+      (this.store.view.top()?.url === this.ref().sources![0]
+          ? of(this.store.view.top())
           : this.refs.getCurrent(this.url())
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
@@ -122,11 +122,11 @@ export class FileComponent {
       .join(' ');
   });
   readonly nonLocalOrigin = computed(() => {
-    if (this.ref().origin === this.store.account.origin) return undefined;
+    if (this.ref().origin === this.store.account.origin()) return undefined;
     return this.ref().origin || '';
   });
   readonly local = computed(() => {
-    return this.ref().origin === this.store.account.origin;
+    return this.ref().origin === this.store.account.origin();
   });
   readonly repost = computed(() => {
     return this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref());
@@ -161,10 +161,10 @@ export class FileComponent {
     return this.ref()?.plugins?.['plugin/thumbnail']?.radius || this.repostRef()?.plugins?.['plugin/thumbnail']?.radius || undefined;
   });
   readonly isAuthor = computed(() => {
-    return isAuthorTag(this.store.account.tag, this.ref());
+    return isAuthorTag(this.store.account.tag(), this.ref());
   });
   readonly isRecipient = computed(() => {
-    return hasTag(this.store.account.mailbox, this.ref());
+    return hasTag(this.store.account.mailbox(), this.ref());
   });
 
   saveRef() {

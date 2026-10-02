@@ -180,7 +180,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       this.loadingEvents.set({ ...untracked(() => this.loadingEvents()), 'scrape-done': scraping });
     });
     effect(() => {
-      const height = this.store.viewportHeight - 4;
+      const height = this.store.viewportHeight() - 4;
       if (this.overlayRef) {
         this.overlayRef.updateSize({ height });
         document.body.style.height = height + 'px';
@@ -211,7 +211,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
-    this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
+    this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight() + 'px');
   }
 
   readonly scraping = input(false);
@@ -482,7 +482,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       this.overlayRef?.dispose();
       delete this.overlayRef;
       document.body.style.height = '';
-      this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
+      this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight() + 'px');
       document.body.classList.remove('fullscreen');
       editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
       if (this.focused()) {
@@ -612,12 +612,12 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref = {
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         url: 'internal:' + uuid(),
         title: file.name,
         // Upload as private - only localTag and internal, no visibility tags
         tags: uniq([
-          this.store.account.localTag,
+          this.store.account.localTag(),
           'internal',
           ...file.type === 'text/markdown' ? [] : codeType
         ])
@@ -653,7 +653,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
         tags.push('plugin/pdf');
       }
-      return this.proxy.save(file, this.store.account.origin).pipe(
+      return this.proxy.save(file, this.store.account.origin()).pipe(
         map(event => {
           switch (event.type) {
             case HttpEventType.Response:

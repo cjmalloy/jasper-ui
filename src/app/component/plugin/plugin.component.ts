@@ -100,7 +100,7 @@ export class PluginComponent implements HasChanges {
   }
 
   get local() {
-    return this.origin === this.store.account.origin;
+    return this.origin === this.store.account.origin();
   }
 
   save() {
@@ -155,7 +155,7 @@ export class PluginComponent implements HasChanges {
   copy$ = () => {
     return this.plugins.create({
       ...this.plugin(),
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     }).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.set(printError(err));

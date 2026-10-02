@@ -15,7 +15,7 @@ export class BookmarkService {
   ) { }
 
   toggleFilter(f: UrlFilter, ...clear: string[]) {
-    const filters = filter(this.store.view.filter, f => !clear.find(p => f.startsWith(p)));
+    const filters = filter(this.store.view.filter(), f => !clear.find(p => f.startsWith(p)));
     if (filters.includes(f)) {
       this.filters = without(filters, f);
     } else {
@@ -24,7 +24,7 @@ export class BookmarkService {
   }
 
   clearFilters(...prefix: string[]) {
-    this.filters = filter(this.store.view.filter, f => !prefix.find(p => f.startsWith(p)));
+    this.filters = filter(this.store.view.filter(), f => !prefix.find(p => f.startsWith(p)));
   }
 
   toggleQuery(query: string) {
@@ -40,7 +40,7 @@ export class BookmarkService {
   }
 
   get filters() {
-    return this.store.view.filter;
+    return this.store.view.filter();
   }
 
   set filters(filters: string[]) {
@@ -52,7 +52,7 @@ export class BookmarkService {
   }
 
   get origin() {
-    return this.store.view.origin;
+    return this.store.view.origin();
   }
 
   set origin(origin: string) {
@@ -81,7 +81,7 @@ export class BookmarkService {
   }
 
   get tags() {
-    return this.store.submit.tags;
+    return this.store.submit.tags();
   }
 
   set tags(tags: string[]) {
@@ -93,11 +93,11 @@ export class BookmarkService {
   }
 
   get to() {
-    return this.store.submit.to;
+    return this.store.submit.to();
   }
 
   set to(tos: string[]) {
-    if (tos.join(' ') === this.store.submit.to.join(' ')) return;
+    if (tos.join(' ') === this.store.submit.to().join(' ')) return;
     this.router.navigate([], {
       queryParams: { to: tos.length ? tos : null, pageNumber: null },
       queryParamsHandling: 'merge',
@@ -106,7 +106,7 @@ export class BookmarkService {
   }
 
   get pageSize() {
-    return this.store.view.pageSize;
+    return this.store.view.pageSize();
   }
 
   set pageSize(value: number) {

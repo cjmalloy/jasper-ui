@@ -70,9 +70,9 @@ export class UploadPage implements OnDestroy {
   ) {
     mod.setTitle($localize`Submit: Upload`);
     effect(() => {
-      this.store.submit.files;
+      this.store.submit.files();
       untracked(() => {
-        this.readUploads(this.store.submit.files);
+        this.readUploads(this.store.submit.files());
         this.store.submit.clearFiles();
       });
     }, { injector: this.injector });
@@ -132,17 +132,17 @@ export class UploadPage implements OnDestroy {
     }
     // Refs and Exts
     this.read(files);
-    this.readData(texts, this.store.account.localTag, ...this.store.submit.tags);
-    this.readSheet(tables, 'plugin/table', this.store.account.localTag, ...this.store.submit.tags);
-    this.readBookmarks(bookmarks, this.store.account.localTag, ...this.store.submit.tags);
-    this.readSitemap(sitemap, this.store.account.localTag, ...this.store.submit.tags);
+    this.readData(texts, this.store.account.localTag(), ...this.store.submit.tags());
+    this.readSheet(tables, 'plugin/table', this.store.account.localTag(), ...this.store.submit.tags());
+    this.readBookmarks(bookmarks, this.store.account.localTag(), ...this.store.submit.tags());
+    this.readSitemap(sitemap, this.store.account.localTag(), ...this.store.submit.tags());
 
     if (cacheWarning) alert('File Cache has not been enabled by the admin (plugin/file) so file uploads will likely fail.')
-    this.readCache(audio, 'plugin/audio', this.store.account.localTag, ...this.store.submit.tags);
-    this.readCache(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
-    this.readCache(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
-    this.readCache(pdfs, 'plugin/pdf', this.store.account.localTag, ...this.store.submit.tags);
-    this.readCache(cache, 'plugin/file', this.store.account.localTag, ...this.store.submit.tags);
+    this.readCache(audio, 'plugin/audio', this.store.account.localTag(), ...this.store.submit.tags());
+    this.readCache(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag(), ...this.store.submit.tags());
+    this.readCache(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag(), ...this.store.submit.tags());
+    this.readCache(pdfs, 'plugin/pdf', this.store.account.localTag(), ...this.store.submit.tags());
+    this.readCache(cache, 'plugin/file', this.store.account.localTag(), ...this.store.submit.tags());
   }
 
   read(files?: File[], ...extraTags: string[]) {
@@ -185,7 +185,7 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       this.store.submit.setCaching(file, { name: file.name, progress: 0 });
-      this.proxy.save(file, this.store.account.origin).pipe(
+      this.proxy.save(file, this.store.account.origin()).pipe(
         map(event => {
           switch (event.type) {
             case HttpEventType.Response:
@@ -327,16 +327,16 @@ export class UploadPage implements OnDestroy {
   }
 
   download() {
-    if (this.store.submit.empty) return;
-    return downloadSet(this.store.submit.refs, this.store.submit.exts, 'uploads');
+    if (this.store.submit.empty()) return;
+    return downloadSet(this.store.submit.refs(), this.store.submit.exts(), 'uploads');
   }
 
   push() {
-    if (this.processing() || this.store.submit.empty) return;
+    if (this.processing() || this.store.submit.empty()) return;
     this.processing.set(true);
     const uploads = [
-      ...this.store.submit.exts.map(ext => this.uploadExt$(ext)),
-      ...this.store.submit.refs.map(ref => this.uploadRef$(ref)),
+      ...this.store.submit.exts().map(ext => this.uploadExt$(ext)),
+      ...this.store.submit.refs().map(ref => this.uploadRef$(ref)),
     ];
     return lastValueFrom(concat(...uploads))
       .then(() => {
@@ -352,7 +352,7 @@ export class UploadPage implements OnDestroy {
 
   uploadRef$(ref: Ref) {
     ref = ref;
-    ref.origin = this.store.account.origin;
+    ref.origin = this.store.account.origin();
     ref.published ||= DateTime.now();
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = Object.fromEntries(
@@ -371,8 +371,8 @@ export class UploadPage implements OnDestroy {
     ).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          if (this.store.submit.overwrite) {
-            return this.refs.get(ref.url, this.store.account.origin).pipe(
+          if (this.store.submit.overwrite()) {
+            return this.refs.get(ref.url, this.store.account.origin()).pipe(
               switchMap(existing => {
                 return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
               }),
@@ -393,14 +393,14 @@ export class UploadPage implements OnDestroy {
 
   uploadExt$(ext: Ext) {
     ext = ext;
-    ext.origin = this.store.account.origin;
+    ext.origin = this.store.account.origin();
     return (ext.exists
       ? this.exts.update(ext)
       : this.exts.create(ext)).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          if (this.store.submit.overwrite) {
-            return this.exts.get(ext.tag + this.store.account.origin).pipe(
+          if (this.store.submit.overwrite()) {
+            return this.exts.get(ext.tag + this.store.account.origin()).pipe(
               switchMap(existing => {
                 return this.exts.update({ ...ext, modifiedString: existing.modifiedString });
               })
@@ -441,7 +441,7 @@ export class UploadPage implements OnDestroy {
   }
 
   set overwrite(value: boolean) {
-    this.store.submit.overwrite = value;
+    this.store.submit.overwrite.set(value);
   }
 
   private getModels(file: File): Promise<FilteredModels> {
@@ -463,14 +463,14 @@ export class UploadPage implements OnDestroy {
   }
 
   private postNavigate() {
-    if (this.store.submit.exts.length) {
-      return this.router.navigate(['/tag', this.store.submit.exts[0].tag]);
+    if (this.store.submit.exts().length) {
+      return this.router.navigate(['/tag', this.store.submit.exts()[0].tag]);
     }
-    if (this.store.submit.refs.length === 1) {
-      return this.router.navigate(['/ref', this.store.submit.refs[0].url]);
+    if (this.store.submit.refs().length === 1) {
+      return this.router.navigate(['/ref', this.store.submit.refs()[0].url]);
     }
-    if (this.store.submit.refs.length) {
-      return this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/file' } });
+    if (this.store.submit.refs().length) {
+      return this.router.navigate(['/tag', this.store.account.tag()], { queryParams: { filter: 'query/plugin/file' } });
     }
     return null;
   }

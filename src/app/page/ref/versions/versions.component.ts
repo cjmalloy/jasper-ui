@@ -29,7 +29,7 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
   ) {
     query.clear();
-    store.view.defaultSort = ['published'];
+    store.view.defaultSort.set(['published']);
   }
 
   saveChanges() {
@@ -41,18 +41,18 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
     effect(() => {
       const args = getArgs(
         '',
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.view.sort(),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
-      args.url = this.store.view.url;
-      args.obsolete = this.store.view.ref?.metadata?.obsolete ? null : true;
+      args.url = this.store.view.url();
+      args.obsolete = this.store.view.ref()?.metadata?.obsolete ? null : true;
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref())), { injector: this.injector });
   }
 
   ngOnDestroy() {

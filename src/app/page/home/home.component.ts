@@ -43,11 +43,11 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
     store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
     query.clear();
     if (admin.home) {
-      exts.getCachedExt('config/home' + (store.account.origin || '@')).subscribe(x => {
+      exts.getCachedExt('config/home' + (store.account.origin() || '@')).subscribe(x => {
         if (x.modified) {
-          store.view.exts = [x];
+          store.view.exts.set([x]);
         } else {
-          store.view.exts = [ { ...this.exts.defaultExt('config/home'), config: admin.getDefaults('config/home') }];
+          store.view.exts.set([ { ...this.exts.defaultExt('config/home'), config: admin.getDefaults('config/home') }]);
         }
       });
     }
@@ -59,28 +59,28 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.store.view.extTemplates = this.admin.view;
+    this.store.view.extTemplates.set(this.admin.view);
     effect(() => {
-      if (this.store.view.forYou) {
+      if (this.store.view.forYou()) {
         this.account.forYouQuery$.subscribe(q => {
           const args = getArgs(
             q,
-            this.store.view.sort,
-            ['user/!plugin/user/hide', ...this.store.view.filter],
-            this.store.view.search,
-            this.store.view.pageNumber,
-            this.store.view.pageSize,
+            this.store.view.sort(),
+            ['user/!plugin/user/hide', ...this.store.view.filter()],
+            this.store.view.search(),
+            this.store.view.pageNumber(),
+            this.store.view.pageSize(),
           );
           defer(() => this.query.setArgs(args));
         })
       } else {
         const args = getArgs(
-          this.store.account.subscriptionQuery,
-          this.store.view.sort,
-          ['user/!plugin/user/hide', ...this.store.view.filter],
-          this.store.view.search,
-          this.store.view.pageNumber,
-          this.store.view.pageSize,
+          this.store.account.subscriptionQuery(),
+          this.store.view.sort(),
+          ['user/!plugin/user/hide', ...this.store.view.filter()],
+          this.store.view.search(),
+          this.store.view.pageNumber(),
+          this.store.view.pageSize(),
         );
         defer(() => this.query.setArgs(args));
       }

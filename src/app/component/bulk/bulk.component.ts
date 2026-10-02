@@ -88,7 +88,7 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
     private help: HelpService,
   ) {
     effect(() => {
-      const page = this.query.page;
+      const page = this.query.page();
       const viewExt = this.viewExt();
       const activeExts = this.activeExts();
       untracked(() => {
@@ -114,15 +114,15 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
     this.defaultsSub?.unsubscribe();
   }
   readonly urls = computed(() => {
-    if (!this.query.page?.content.length) return [];
-    return uniq(this.query.page!.content.map(ref => ref.url));
+    if (!this.query.page()?.content.length) return [];
+    return uniq(this.query.page()!.content.map(ref => ref.url));
   });
 
   batch$<T>(fn: (e: T) => Observable<any> | void) {
     if (this.batchRunning()) return of(null);
     this.serverError.set([]);
     this.batchRunning.set(true);
-    return concat(...this.queryStore.page!.content.map(c => (fn(c as T) || of(null)).pipe(
+    return concat(...this.queryStore.page()!.content.map(c => (fn(c as T) || of(null)).pipe(
       catchError(err => {
         if (err instanceof HttpErrorResponse) {
           this.serverError.set([...this.serverError(), ...printError(err)]);
@@ -175,20 +175,20 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
   }
 
   get empty() {
-    return !this.queryStore.page?.content?.length;
+    return !this.queryStore.page()?.content?.length;
   }
 
   get name() {
     let name = '';
-    name = this.store.view.name || this.type();
-    if (this.store.view.search) {
-      name += ' search(' + this.store.view.search + ')';
+    name = this.store.view.name() || this.type();
+    if (this.store.view.search()) {
+      name += ' search(' + this.store.view.search() + ')';
     }
-    if (this.store.view.filter.length) {
-      name += ' filter(' + this.store.view.filter.join(',') + ')';
+    if (this.store.view.filter().length) {
+      name += ' filter(' + this.store.view.filter().join(',') + ')';
     }
-    if (this.store.view.isSorted) {
-      name += ' sort(' + this.store.view.sort.join(',') + ')';
+    if (this.store.view.isSorted()) {
+      name += ' sort(' + this.store.view.sort().join(',') + ')';
     }
     return name;
   }
@@ -199,15 +199,15 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
   }
 
   download() {
-    downloadPage(this.type(), this.items, this.type() !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
+    downloadPage(this.type(), this.items, this.type() !== 'ext' ? this.store.view.activeExts().filter(x => x.modifiedString) : [], this.name);
   }
 
   get items() {
-    let result = this.queryStore.page!;
-    if (this.type() === 'ref' && this.store.view.ref) {
+    let result = this.queryStore.page()!;
+    if (this.type() === 'ref' && this.store.view.ref()) {
       result = {...result};
       result.content = [...result.content] as any;
-      result.content.unshift(this.store.view.ref as any);
+      result.content.unshift(this.store.view.ref() as any);
     }
     return result;
   }
@@ -231,7 +231,7 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
   }
 
   showAction(ref: Ref, a: Action) {
-    if (!visible(ref, a, isAuthorTag(this.store.account.tag, ref), hasTag(this.store.account.mailbox, ref))) return false;
+    if (!visible(ref, a, isAuthorTag(this.store.account.tag(), ref), hasTag(this.store.account.mailbox(), ref))) return false;
     const writeAccess = this.auth.writeAccess(ref);
     const taggingAccess = this.auth.taggingAccess(ref);
     if ('scheme' in a) {
@@ -262,7 +262,7 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
   delete$ = () => {
     const type = this.type();
     if (type === 'ref') {
-      return this.batch$<Ref>(ref => ref.origin === this.store.account.origin && !hasTag('plugin/delete', ref) && this.admin.getPlugin('plugin/delete')
+      return this.batch$<Ref>(ref => ref.origin === this.store.account.origin() && !hasTag('plugin/delete', ref) && this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(ref))
         : this.refs.delete(ref.url, ref.origin)
       );
@@ -291,9 +291,9 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
 
   copy$ = () => {
     return this.batch$<Ref>(ref => {
-      if (ref.origin === this.store.account.origin) return of(null);
+      if (ref.origin === this.store.account.origin()) return of(null);
       const tags = uniq([
-        ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+        ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
         ...(ref.tags || []).filter(t => this.auth.canAddTag(t))
       ].filter(t => !expandedTagsInclude(t, '+plugin/origin/push')
         && !expandedTagsInclude(t, 'plugin/delta')
@@ -301,16 +301,16 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
         && !expandedTagsInclude(t, '+plugin/cron')));
       const copied: Ref = {
         ...ref,
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         tags,
       };
       copied.plugins = pick(copied.plugins, tags || []);
       if (hasTag('+plugin/origin', copied)) {
         copied.plugins['+plugin/origin'].local = copied.plugins['+plugin/origin'].remote = subOrigin(ref.origin, copied.plugins['+plugin/origin'].local);
-        copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup.get(ref.origin || '');
+        copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup().get(ref.origin || '');
       }
       if (hasTag('+plugin/origin/tunnel', copied)) {
-        copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(ref.origin || '');
+        copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup().get(ref.origin || '');
       }
       copied.plugins = pick(copied.plugins, tags || []);
       return this.refs.create(copied);

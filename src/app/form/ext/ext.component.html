@@ -85,7 +85,7 @@
               <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
             </span>
             @if (filterIsDate(filter)) {
-              @if (store.hotkey || filterSpecialDate(filter)) {
+              @if (store.hotkey() || filterSpecialDate(filter)) {
                 <span class="default-filter-date-range">
                   <input type="range"
                          min="0"

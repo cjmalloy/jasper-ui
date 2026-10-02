@@ -73,15 +73,15 @@ describe('HelpService', () => {
       await vi.advanceTimersByTimeAsync(1000);
 
       // Verify we're on the first step
-      expect(store.helpStepIndex).toBe(0);
-      expect(store.helpSteps).toBe(3);
+      expect(store.helpStepIndex()).toBe(0);
+      expect(store.helpSteps()).toBe(3);
 
       // End tour while on first step (simulating backdrop click)
       service.endTour();
 
       // Verify: step 0 dismissed, steps 1 and 2 remain
-      expect(store.helpStepIndex).toBe(-1);
-      expect(store.helpSteps).toBe(2); // Two steps remain
+      expect(store.helpStepIndex()).toBe(-1);
+      expect(store.helpSteps()).toBe(2); // Two steps remain
     });
 
     it('should dismiss shown steps and preserve undisplayed steps after navigating forward', async () => {
@@ -97,14 +97,14 @@ describe('HelpService', () => {
       service.nextStep();
 
       // Verify we're on the second step
-      expect(store.helpStepIndex).toBe(1);
+      expect(store.helpStepIndex()).toBe(1);
 
       // End tour while on second step
       service.endTour();
 
       // Verify: steps 0 and 1 dismissed, step 2 remains
-      expect(store.helpStepIndex).toBe(-1);
-      expect(store.helpSteps).toBe(1); // One step remains
+      expect(store.helpStepIndex()).toBe(-1);
+      expect(store.helpSteps()).toBe(1); // One step remains
     });
 
     it('should track maxIndexReached correctly when using Previous button', async () => {
@@ -121,18 +121,18 @@ describe('HelpService', () => {
       service.nextStep();
 
       // Now on step 2 (index 2)
-      expect(store.helpStepIndex).toBe(2);
+      expect(store.helpStepIndex()).toBe(2);
 
       // Navigate back to step 1
       service.previousStep();
-      expect(store.helpStepIndex).toBe(1);
+      expect(store.helpStepIndex()).toBe(1);
 
       // End tour while on step 1 (but we've seen step 2)
       service.endTour();
 
       // Verify: all steps were shown (maxIndexReached was 2), so no steps remain
-      expect(store.helpStepIndex).toBe(-1);
-      expect(store.helpSteps).toBe(0); // No steps remain
+      expect(store.helpStepIndex()).toBe(-1);
+      expect(store.helpSteps()).toBe(0); // No steps remain
     });
 
     it('should reset maxIndexReached when starting a new tour', async () => {
@@ -150,13 +150,13 @@ describe('HelpService', () => {
       await vi.advanceTimersByTimeAsync(1000);
 
       // Should be on first step of new tour
-      expect(store.helpStepIndex).toBe(0);
+      expect(store.helpStepIndex()).toBe(0);
 
       // End tour immediately
       service.endTour();
 
       // Verify only the first step is dismissed, second remains
-      expect(store.helpSteps).toBe(1);
+      expect(store.helpSteps()).toBe(1);
     });
 
     it('should not dismiss any steps if endTour called before first step is shown', async () => {
@@ -169,8 +169,8 @@ describe('HelpService', () => {
       service.endTour();
 
       // Verify no steps were dismissed - both remain in queue
-      expect(store.helpStepIndex).toBe(-1);
-      expect(store.helpSteps).toBe(2); // Both steps remain
+      expect(store.helpStepIndex()).toBe(-1);
+      expect(store.helpSteps()).toBe(2); // Both steps remain
     });
 
     it('should dismiss all steps when completing tour with Next button', async () => {
@@ -186,8 +186,8 @@ describe('HelpService', () => {
       service.nextStep(); // Dismiss step 1, call endTour
 
       // Verify all steps dismissed
-      expect(store.helpStepIndex).toBe(-1);
-      expect(store.helpSteps).toBe(0); // No steps remain
+      expect(store.helpStepIndex()).toBe(-1);
+      expect(store.helpSteps()).toBe(0); // No steps remain
     });
   });
 });

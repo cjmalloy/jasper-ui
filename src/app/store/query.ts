@@ -18,11 +18,11 @@ interface PendingCursor {
 })
 export class QueryStore {
 
-  private readonly _args = signal<RefPageArgs | undefined>(undefined, { equal: isEqual });
-  private readonly _sourcesOf = signal<Ref | undefined>(undefined);
-  private readonly _responseOf = signal<Ref | undefined>(undefined);
-  private readonly _page = signal<Page<Ref> | undefined>(undefined);
-  private readonly _error = signal<HttpErrorResponse | undefined>(undefined);
+  readonly args = signal<RefPageArgs | undefined>(undefined, { equal: isEqual });
+  readonly sourcesOf = signal<Ref | undefined>(undefined);
+  readonly responseOf = signal<Ref | undefined>(undefined);
+  readonly page = signal<Page<Ref> | undefined>(undefined);
+  readonly error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
   private runningSources?: Subscription;
@@ -33,27 +33,12 @@ export class QueryStore {
     private refs: RefService,
   ) { }
 
-  get args() { return this._args(); }
-  set args(value: RefPageArgs | undefined) { this._args.set(value); }
-
-  get sourcesOf() { return this._sourcesOf(); }
-  set sourcesOf(value: Ref | undefined) { this._sourcesOf.set(value); }
-
-  get responseOf() { return this._responseOf(); }
-  set responseOf(value: Ref | undefined) { this._responseOf.set(value); }
-
-  get page() { return this._page(); }
-  set page(value: Page<Ref> | undefined) { this._page.set(value); }
-
-  get error() { return this._error(); }
-  set error(value: HttpErrorResponse | undefined) { this._error.set(value); }
-
   clear() {
-    this.args = undefined;
-    this.page = undefined;
-    this.error = undefined;
-    this.sourcesOf = undefined;
-    this.responseOf = undefined;
+    this.args.set(undefined);
+    this.page.set(undefined);
+    this.error.set(undefined);
+    this.sourcesOf.set(undefined);
+    this.responseOf.set(undefined);
     this.running?.unsubscribe();
     this.runningSources?.unsubscribe();
     this.runningResponses?.unsubscribe();
@@ -67,15 +52,15 @@ export class QueryStore {
 
   setArgs(args: RefPageArgs) {
     const cursorRequest = this.takeCursor(args);
-    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
-    this.args = args;
+    if (!isEqual(omit(this.args(), 'search'), omit(args, 'search'))) this.clear();
+    this.args.set(args);
     this.refresh(cursorRequest);
   }
 
   queueCursorPage(target: number, request: Observable<Page<Ref>>) {
-    if (!this.args) return;
+    if (!this.args()) return;
     this.pendingCursor = {
-      args: { ...this.args },
+      args: { ...this.args() },
       target,
       request,
     };
@@ -83,45 +68,46 @@ export class QueryStore {
 
   setRelatedArgs(args: RefPageArgs) {
     this.pendingCursor = undefined;
-    this.args = args;
+    this.args.set(args);
     this.runningSources?.unsubscribe();
     if (args.sources) {
       this.runningSources = this.refs.getCurrent(args.sources).pipe(
         catchError(() => EMPTY),
-      ).subscribe(ref => this.sourcesOf = ref);
+      ).subscribe(ref => this.sourcesOf.set(ref));
     } else {
-      this.sourcesOf = undefined;
+      this.sourcesOf.set(undefined);
     }
     this.runningResponses?.unsubscribe();
     if (args.responses) {
       this.runningResponses = this.refs.getCurrent(args.responses).pipe(
         catchError(() => EMPTY),
-      ).subscribe(ref => this.responseOf = ref);
+      ).subscribe(ref => this.responseOf.set(ref));
     } else {
-      this.responseOf = undefined;
+      this.responseOf.set(undefined);
     }
   }
 
   refresh(pageRequest?: Observable<Page<Ref>>) {
-    if (this.args) {
+    const args = this.args();
+    if (args) {
       this.running?.unsubscribe();
-      this.running = (pageRequest ?? this.refs.page(withStableDateSort(this.args))).pipe(
+      this.running = (pageRequest ?? this.refs.page(withStableDateSort(args))).pipe(
         catchError((err: HttpErrorResponse) => {
-          this.error = err;
+          this.error.set(err);
           return EMPTY;
         }),
-      ).subscribe(p => this.page = p);
+      ).subscribe(p => this.page.set(p));
       this.runningSources?.unsubscribe();
-      if (this.args.sources) {
-        this.runningSources = this.refs.getCurrent(this.args.sources).pipe(
+      if (args.sources) {
+        this.runningSources = this.refs.getCurrent(args.sources).pipe(
           catchError(() => EMPTY),
-        ).subscribe(ref => this.sourcesOf = ref);
+        ).subscribe(ref => this.sourcesOf.set(ref));
       }
       this.runningResponses?.unsubscribe();
-      if (this.args.responses) {
-        this.runningResponses = this.refs.getCurrent(this.args.responses).pipe(
+      if (args.responses) {
+        this.runningResponses = this.refs.getCurrent(args.responses).pipe(
           catchError(() => EMPTY),
-        ).subscribe(ref => this.responseOf = ref);
+        ).subscribe(ref => this.responseOf.set(ref));
       }
     }
   }

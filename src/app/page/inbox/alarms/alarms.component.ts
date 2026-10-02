@@ -41,12 +41,12 @@ export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     effect(() => {
       const args = getArgs(
-        this.store.account.alarms.length ? this.store.account.alarms.join('|') : '!@*',
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.account.alarms().length ? this.store.account.alarms().join('|') : '!@*',
+        this.store.view.sort(),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });

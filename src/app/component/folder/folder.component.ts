@@ -127,7 +127,7 @@ export class FolderComponent implements HasChanges {
 
 
   get local() {
-    return this.ext()?.origin === this.store.account.origin;
+    return this.ext()?.origin === this.store.account.origin();
   }
 
 
@@ -145,7 +145,7 @@ export class FolderComponent implements HasChanges {
       x: Math.floor(target.getBoundingClientRect().x + window.scrollX - this.el.nativeElement.offsetLeft),
       y: Math.floor(target.getBoundingClientRect().y + window.scrollY - this.el.nativeElement.offsetTop),
     };
-    this.exts.patch(this.ext()!.tag + this.store.account.origin, cursor, [{
+    this.exts.patch(this.ext()!.tag + this.store.account.origin(), cursor, [{
       op: 'add',
       path: '/config/files/' + escapePath(url),
       value: pos,
@@ -159,7 +159,7 @@ export class FolderComponent implements HasChanges {
     const cursor = this.cursor();
     this.cursor.set('');
     this.dragging.set(true)
-    this.exts.patch(this.ext()!.tag + this.store.account.origin, cursor, [{
+    this.exts.patch(this.ext()!.tag + this.store.account.origin(), cursor, [{
       op: 'add',
       path: '/config/subfolders/' + (tag === this.tag() ? '..' : escapePath(tag.substring(this.ext()!.tag.length + 1))),
       value: {

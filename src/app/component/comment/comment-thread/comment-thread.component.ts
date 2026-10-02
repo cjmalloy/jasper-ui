@@ -54,7 +54,7 @@ export class CommentThreadComponent implements OnInit, HasChanges {
   }
 
   get comments(): Ref[] | undefined {
-    let comments = this.thread.cache.get(this.source());
+    let comments = this.thread.cache().get(this.source());
     if (comments && this.newComments().length) {
       const newUrls = new Set(this.newComments().map(c => c.url));
       comments = comments.filter(c => !newUrls.has(c.url));

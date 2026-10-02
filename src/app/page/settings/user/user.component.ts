@@ -47,20 +47,20 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
       // TODO: better way to find unattached profiles
       effect(() => {
         const args = {
-          page: this.store.view.pageNumber,
-          size: this.store.view.pageSize,
+          page: this.store.view.pageNumber(),
+          size: this.store.view.pageSize(),
         };
         defer(() => this.scim.setArgs(args));
       }, { injector: this.injector });
     }
     effect(() => {
       const args = {
-        query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
-        search: this.store.view.search,
-        sort: [...this.store.view.sort],
-        page: this.store.view.pageNumber,
-        size: this.store.view.pageSize,
-        ...getTagFilter(this.store.view.filter),
+        query: this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'),
+        search: this.store.view.search(),
+        sort: [...this.store.view.sort()],
+        page: this.store.view.pageNumber(),
+        size: this.store.view.pageSize(),
+        ...getTagFilter(this.store.view.filter()),
       };
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });

@@ -51,7 +51,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   ) {
     query.clear();
     thread.clear();
-    store.view.defaultSort = ['modified,DESC'];
+    store.view.defaultSort.set(['modified,DESC']);
   }
 
   saveChanges() {
@@ -64,24 +64,24 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle(getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => this.mod.setTitle(getTitle(this.store.view.ref())), { injector: this.injector });
     effect(() => {
-      const top = this.store.view.url;
-      const sort = this.store.view.sort;
-      const filter = this.store.view.filter;
-      const search = this.store.view.search;
+      const top = this.store.view.url();
+      const sort = this.store.view.sort();
+      const filter = this.store.view.filter();
+      const search = this.store.view.search();
       untracked(() => this.thread.setArgs(top, sort, filter, search));
     }, { injector: this.injector });
     effect(() => {
       const args = getArgs(
         '',
-        this.store.view.sort,
-        uniq(['query/!internal', 'query/!plugin/comment', 'query/!plugin/thread', ...this.store.view.filter]),
-        this.store.view.search,
-        this.store.view.pageNumber,
+        this.store.view.sort(),
+        uniq(['query/!internal', 'query/!plugin/comment', 'query/!plugin/thread', ...this.store.view.filter()]),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
         this.summaryItems,
       );
-      args.responses = this.store.view.url;
+      args.responses = this.store.view.url();
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
   }
@@ -93,44 +93,44 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
     this.newThread$.complete();
   }
 
-  readonly top = computed(() => top(this.store.view.ref));
+  readonly top = computed(() => top(this.store.view.ref()));
 
   readonly responseSet = computed(() => this.comments() || this.threads() || this.admin.responseButton.find(p => hasTag(p.tag, this.replyTags())));
 
-  readonly dm = computed(() => !!this.admin.getTemplate('dm') && hasTag('dm', this.store.view.ref));
+  readonly dm = computed(() => !!this.admin.getTemplate('dm') && hasTag('dm', this.store.view.ref()));
 
   readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
+    return this.store.view.ref()?.metadata?.plugins?.['plugin/comment'] || 0;
   });
 
   readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.store.view.ref?.metadata?.plugins?.['plugin/thread'] || 0;
+    return this.store.view.ref()?.metadata?.plugins?.['plugin/thread'] || 0;
   });
 
-  readonly responses = computed(() => this.store.view.ref?.metadata?.responses || 0);
+  readonly responses = computed(() => this.store.view.ref()?.metadata?.responses || 0);
 
-  readonly mailboxes = computed(() => mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap));
+  readonly mailboxes = computed(() => mailboxes(this.store.view.ref()!, this.store.account.tag(), this.store.origins.originMap()));
 
   readonly replyTags = computed((): string[] => {
     const tags = [
       ...this.comments() ? ['plugin/comment'] : this.threads() ? ['plugin/thread'] : [],
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref())).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes(),
     ];
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
+    return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
   });
 
   get moreComments() {
-    const topComments = this.thread.cache.get(this.top());
+    const topComments = this.thread.cache().get(this.top());
     if (!topComments) return false;
     return topComments.length > this.summaryItems;
   }
 
   onReply(ref?: Ref) {
-    if (ref && this.store.view.ref) {
-      updateMetadata(this.store.view.ref!, ref);
+    if (ref && this.store.view.ref()) {
+      updateMetadata(this.store.view.ref()!, ref);
     }
     this.store.eventBus.reload(ref);
     if (hasTag('plugin/comment', ref)) {

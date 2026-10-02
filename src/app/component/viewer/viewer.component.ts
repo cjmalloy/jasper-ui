@@ -181,7 +181,7 @@ export class ViewerComponent implements OnDestroy {
     this.todo.set(!!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags));
     this.backgammon.set(!!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags));
     this.chess.set(!!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags));
-    this.chessWhite.set(!!this.ref()?.tags?.includes(this.store.account.localTag));
+    this.chessWhite.set(!!this.ref()?.tags?.includes(this.store.account.localTag()));
     this.uis.set(this.admin.getPluginUi(this.currentTags));
     const repostSource = this.ref()?.sources?.[0];
     if (repostSource && hasTag('plugin/repost', this.ref())) {
@@ -391,14 +391,14 @@ export class ViewerComponent implements OnDestroy {
   }
 
   get currentOrigin() {
-    return this.origin() || this.ref()?.origin || this.store.account.origin;
+    return this.origin() || this.ref()?.origin || this.store.account.origin();
   }
 
   get currentText() {
     if (this.hideComment) return '';
     const value = this.text() || this.ref()?.comment || '';
     if (!value) return '';
-    if (this.ref()?.title || this.text() || hasTag('plugin/comment', this.ref()) || hasTag('plugin/thread', this.ref()) || this.store.view.current === 'ref/thread' || hasComment(this.ref()?.comment)) {
+    if (this.ref()?.title || this.text() || hasTag('plugin/comment', this.ref()) || hasTag('plugin/thread', this.ref()) || this.store.view.current() === 'ref/thread' || hasComment(this.ref()?.comment)) {
       return value;
     }
     return '';

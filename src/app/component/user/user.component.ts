@@ -137,7 +137,7 @@ export class UserComponent implements HasChanges {
   }
 
   readonly local = computed(() => {
-    return this.profile()?.tag || (!this.user() || this.user()?.origin === this.store.account.origin);
+    return this.profile()?.tag || (!this.user() || this.user()?.origin === this.store.account.origin());
   });
   readonly role = computed(() => {
     return getRole(this.profile()?.role, this.user()?.role);
@@ -158,7 +158,7 @@ export class UserComponent implements HasChanges {
   }
 
   get connectionRef(): Ref {
-    const template = this.store.origins.origins.find(ref =>
+    const template = this.store.origins.origins().find(ref =>
       subOrigin(ref.origin, ref.plugins?.['+plugin/origin']?.local) === this.origin());
     const local = template?.plugins?.['+plugin/origin']?.remote || this.origin() || this.recommendedAlias;
     return {
@@ -290,7 +290,7 @@ export class UserComponent implements HasChanges {
   copy$ = () => {
     return this.users.create({
       ...this.user()!,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     }).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.set(printError(err));

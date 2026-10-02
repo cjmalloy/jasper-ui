@@ -35,7 +35,7 @@ export class ChatVideoComponent implements AfterViewInit {
   ) { }
 
   ngAfterViewInit() {
-    if (this.store.local.inCall() && !this.store.video.enabled) {
+    if (this.store.local.inCall() && !this.store.video.enabled()) {
       this.ts.getResponse(this.url())
         .subscribe(ref => {
           if (hasTag('plugin/user/lobby', ref)) {
@@ -51,11 +51,11 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   set speaker(user: string) {
-    this.store.video.activeSpeaker = (user === this.store.account.tag) ? '' : user;
+    this.store.video.activeSpeaker.set((user === this.store.account.tag()) ? '' : user);
   }
 
   get userStreams() {
-    return [...this.store.video.streams.entries()].map(e =>({
+    return [...this.store.video.streams().entries()].map(e =>({
       tag: e[0],
       streams: e[1].filter(s => s.stream.getTracks().some(t => t.readyState === 'live')),
     }));
@@ -66,28 +66,28 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   get featuredStream() {
-    if (this.userStreams.length === 1 || !this.store.video.activeSpeaker) {
+    if (this.userStreams.length === 1 || !this.store.video.activeSpeaker()) {
       return this.userStreams[0];
     }
-    return this.userStreams.find(u => u.tag === this.store.video.activeSpeaker) || this.userStreams[0];
+    return this.userStreams.find(u => u.tag === this.store.video.activeSpeaker()) || this.userStreams[0];
   }
 
   get gridStreams() {
     if (this.userStreams.length === 1) return [];
-    if (!this.store.video.activeSpeaker) return this.userStreams.slice(1);
-    return this.userStreams.filter(u => u.tag !== this.store.video.activeSpeaker);
+    if (!this.store.video.activeSpeaker()) return this.userStreams.slice(1);
+    return this.userStreams.filter(u => u.tag !== this.store.video.activeSpeaker());
   }
 
   get hungup() {
-    return [...this.store.video.hungup.entries()].filter(e => e[1]).map(e => e[0]);
+    return [...this.store.video.hungup().entries()].filter(e => e[1]).map(e => e[0]);
   }
 
   call() {
-    this.store.video.enabled = true;
+    this.store.video.enabled.set(true);
     this.store.local.setInCall(true);
     navigator.mediaDevices.getUserMedia(this.admin.getPlugin('plugin/user/video')!.config!.gumConfig)
       .then(stream => {
-        if (!this.store.video.enabled) {
+        if (!this.store.video.enabled()) {
           stream.getTracks().forEach(t => t.stop());
           return;
         }
@@ -102,7 +102,7 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   hangup() {
-    this.store.video.enabled = false;
+    this.store.video.enabled.set(false);
     this.store.local.setInCall(false);
     this.ts.deleteResponse('plugin/user/lobby', this.url()).subscribe();
     this.vs.hangup();

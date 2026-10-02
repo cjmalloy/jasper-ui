@@ -285,13 +285,13 @@ export class AdminService {
   get firstRun$(): Observable<any> {
     if (this.firstRun) return of(null);
     this.firstRun = true;
-    if (!this.store.account.admin || this.store.account.ext) return of(null);
+    if (!this.store.account.admin() || this.store.account.ext()) return of(null);
     if (Object.values(this.status.plugins).filter(p => !!p).length > 0) return of(null);
     if (Object.values(this.status.templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return of(null);
 
     const installs = this.defaultPlugins.map(p => this.plugins.create({
       ...p,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     }).pipe(
       catchError(err => {
         if (err.status === 409) {
@@ -304,7 +304,7 @@ export class AdminService {
     ));
     installs.push(...this.defaultTemplates.map(t => this.templates.create({
       ...t,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     }).pipe(
       catchError(err => {
         if (err.status === 409) {
@@ -339,7 +339,7 @@ export class AdminService {
   }
 
   get localOriginQuery() {
-    return this.store.account.origin || '*';
+    return this.store.account.origin() || '*';
   }
 
   private loadPlugins$(page = 0): Observable<null> {
@@ -369,7 +369,7 @@ export class AdminService {
   }
 
   private loadReceipts$(page = 0): Observable<null> {
-    if (!this.store.account.admin) return of(null);
+    if (!this.store.account.admin()) return of(null);
     const alreadyLoaded = page * this.config.fetchBatch;
     if (alreadyLoaded >= this.config.maxTemplates + this.config.maxPlugins) {
       console.error(`Too many templates to load, only loaded ${alreadyLoaded}. Increase maxTemplates or maxPlugins to load more.`)
@@ -423,7 +423,7 @@ export class AdminService {
   private receiptToStatus(list: Ref[]) {
     for (const r of list) {
       const mod = r.title!
-      if (this.store.view.modChanges.has(mod)) continue;
+      if (this.store.view.modChanges().has(mod)) continue;
       const current = this.getInstalledMod(mod);
       if (!current) continue;
       this.updateStatus(status => status.receipts[mod] = r);
@@ -436,7 +436,7 @@ export class AdminService {
       ...Object.values(this.status.plugins).map(p => modId(p)),
       ...Object.values(this.status.templates).map(t => modId(t)),
     ])) {
-      if (this.store.view.modChanges.has(mod)) continue;
+      if (this.store.view.modChanges().has(mod)) continue;
       const current = this.getInstalledMod(mod);
       if (!current) continue;
       const target = this.getMod(mod);
@@ -1024,7 +1024,7 @@ export class AdminService {
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.title || def.url} ref...`)),
       switchMap(() => this.refs.create({
         ...def,
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         url: def.url || ('comment:' + uuid()),
       })),
       catchError(err => {
@@ -1041,7 +1041,7 @@ export class AdminService {
   installExt$(def: Ext, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} ext...`)),
-      switchMap(() => this.exts.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.exts.create({ ...def, origin: this.store.account.origin() })),
       catchError(err => {
         if (err.status === 409) {
           _('\u00A0'.repeat(4) + $localize`⚠️ Ext ${def.name || def.tag} already exists...`);
@@ -1056,7 +1056,7 @@ export class AdminService {
   installUser$(def: User, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} user...`)),
-      switchMap(() => this.users.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.users.create({ ...def, origin: this.store.account.origin() })),
       catchError(err => {
         if (err.status === 409) {
           _('\u00A0'.repeat(4) + $localize`⚠️ User ${def.name || def.tag} already exists...`);
@@ -1071,8 +1071,8 @@ export class AdminService {
   installPlugin$(def: Plugin, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} plugin...`)),
-      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin)),
-      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin())),
+      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin() })),
       catchError(err => {
         if (err.status === 409) {
           _('\u00A0'.repeat(4) + $localize`⚠️ Plugin ${def.name || def.tag} already exists...`);
@@ -1087,7 +1087,7 @@ export class AdminService {
   deletePlugin$(p: Plugin, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${p.name || p.tag} plugin...`)),
-      switchMap(() => this.plugins.delete(p.tag + this.store.account.origin)),
+      switchMap(() => this.plugins.delete(p.tag + this.store.account.origin())),
       switchMap(() => this.getPlugin('plugin/delete') ? this.plugins.create(tagDeleteNotice(p)) : of(null)),
       tap(() => _('', 1)),
     );
@@ -1096,8 +1096,8 @@ export class AdminService {
   installTemplate$(def: Template, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} template...`)),
-      switchMap(() => this.templates.delete(def.tag + this.store.account.origin)),
-      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.templates.delete(def.tag + this.store.account.origin())),
+      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin() })),
       catchError(err => {
         if (err.status === 409) {
           _('\u00A0'.repeat(4) + $localize`⚠️ Template ${def.name || def.tag} already exists...`);
@@ -1112,7 +1112,7 @@ export class AdminService {
   deleteTemplate$(t: Template, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${t.name || t.tag} template...`)),
-      switchMap(() => this.templates.delete(t.tag + this.store.account.origin)),
+      switchMap(() => this.templates.delete(t.tag + this.store.account.origin())),
       switchMap(() => this.getPlugin('plugin/delete') ? this.templates.create(tagDeleteNotice(t)) : of(null)),
       tap(() => _('', 1)),
     );
@@ -1170,8 +1170,8 @@ export class AdminService {
   updatePlugin$(def: Plugin, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`)),
-      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin)),
-      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin())),
+      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin() })),
       tap(() => _('', 1)),
     );
   }
@@ -1179,14 +1179,14 @@ export class AdminService {
   updateTemplate$(def: Template, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`)),
-      switchMap(() => this.templates.delete(def.tag + this.store.account.origin)),
-      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.templates.delete(def.tag + this.store.account.origin())),
+      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin() })),
       tap(() => _('', 1)),
     );
   }
 
   needsUpdate(def: Config, status: Config) {
-    if (!this.store.account.admin) return false;
+    if (!this.store.account.admin()) return false;
     if (def.config?.noUpdate || status.config?.noUpdate) return false;
     if (def.config?.version !== undefined) {
       if (status.config?.version === undefined) return true;
@@ -1201,7 +1201,7 @@ export class AdminService {
   logModReceipt$(mod: string, bundle: Mod, _: progress) {
     const ref = {
       url: `mod-receipt:${mod}`,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       title: mod,
       tags: ['internal', 'plugin/mod/receipt'],
       plugins: { 'plugin/mod': bundle },

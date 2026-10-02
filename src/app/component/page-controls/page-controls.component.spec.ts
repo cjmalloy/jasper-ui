@@ -1,4 +1,5 @@
 /// <reference types="vitest/globals" />
+import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
@@ -18,14 +19,14 @@ describe('PageControlsComponent', () => {
   let component: PageControlsComponent;
   let fixture: ComponentFixture<PageControlsComponent>;
   let queryStore: {
-    args?: RefPageArgs;
-    page?: Page<Ref>;
+    args: WritableSignal<RefPageArgs | undefined>;
+    page: WritableSignal<Page<Ref> | undefined>;
     queueCursorPage: ReturnType<typeof vi.fn>;
   };
   let refService: { page: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
-    queryStore = { queueCursorPage: vi.fn() };
+    queryStore = { args: signal(undefined), page: signal(undefined), queueCursorPage: vi.fn() };
     refService = { page: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [PageControlsComponent],
@@ -67,8 +68,8 @@ describe('PageControlsComponent', () => {
     });
     const older = ref('older', { published: OLD_DATE });
     const current = refPage([first, anchor], 0, 2, 4);
-    queryStore.args = { query: 'public', page: 0, size: 2, sort: ['published,DESC'] };
-    queryStore.page = current;
+    queryStore.args.set({ query: 'public', page: 0, size: 2, sort: ['published,DESC'] });
+    queryStore.page.set(current);
     fixture.componentRef.setInput('page', current);
     fixture.detectChanges();
     refService.page.mockImplementation((args: RefPageArgs) => {
@@ -115,8 +116,8 @@ describe('PageControlsComponent', () => {
     });
     const older = ref('older', { published: OLD_DATE });
     const current = refPage([anchor, older], 1, 2, 4);
-    queryStore.args = { query: 'public', page: 1, size: 2, sort: ['published'] };
-    queryStore.page = current;
+    queryStore.args.set({ query: 'public', page: 1, size: 2, sort: ['published'] });
+    queryStore.page.set(current);
     fixture.componentRef.setInput('page', current);
     fixture.detectChanges();
     refService.page.mockReturnValue(of(refPage([anchor, previousLast, first], 0, 3, 3)));
@@ -142,8 +143,8 @@ describe('PageControlsComponent', () => {
     const next = ref('next', { published: '2024-01-03T00:00:00.000Z' });
     const last = ref('last', { published: '2024-01-04T00:00:00.000Z' });
     const current = refPage([first, anchor], 0, 2, 4);
-    queryStore.args = { query: 'public', page: 0, size: 2, sort: ['published,ASC'] };
-    queryStore.page = current;
+    queryStore.args.set({ query: 'public', page: 0, size: 2, sort: ['published,ASC'] });
+    queryStore.page.set(current);
     fixture.componentRef.setInput('page', current);
     fixture.detectChanges();
     refService.page.mockReturnValue(of(refPage([anchor, next, last], 0, 3, 3)));
@@ -163,8 +164,8 @@ describe('PageControlsComponent', () => {
     const anchor = ref('anchor', { published: DATE });
     const offset = refPage([ref('next', { published: OLD_DATE })], 1, 2, 3);
     const current = refPage([first, anchor], 0, 2, 3);
-    queryStore.args = { query: 'public', page: 0, size: 2, sort: ['published,DESC'] };
-    queryStore.page = current;
+    queryStore.args.set({ query: 'public', page: 0, size: 2, sort: ['published,DESC'] });
+    queryStore.page.set(current);
     fixture.componentRef.setInput('page', current);
     fixture.detectChanges();
     refService.page.mockImplementation((args: RefPageArgs) => {
@@ -182,7 +183,7 @@ describe('PageControlsComponent', () => {
 
     expect(refService.page).toHaveBeenCalledTimes(2);
     expect(refService.page.mock.calls[1][0]).toEqual({
-      ...queryStore.args,
+      ...queryStore.args(),
       page: 1,
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
     });
@@ -191,8 +192,8 @@ describe('PageControlsComponent', () => {
 
   it('does not prepare cursor navigation for non-date sorts', () => {
     const current = refPage([ref('first', { published: DATE })], 0, 1, 2);
-    queryStore.args = { query: 'public', page: 0, size: 1, sort: ['title,ASC'] };
-    queryStore.page = current;
+    queryStore.args.set({ query: 'public', page: 0, size: 1, sort: ['title,ASC'] });
+    queryStore.page.set(current);
     fixture.componentRef.setInput('page', current);
     fixture.detectChanges();
 
@@ -203,8 +204,8 @@ describe('PageControlsComponent', () => {
 
   it('does not prepare cursor navigation for modified clicks', () => {
     const current = refPage([ref('first', { published: DATE })], 0, 1, 2);
-    queryStore.args = { query: 'public', page: 0, size: 1, sort: ['published,DESC'] };
-    queryStore.page = current;
+    queryStore.args.set({ query: 'public', page: 0, size: 1, sort: ['published,DESC'] });
+    queryStore.page.set(current);
     fixture.componentRef.setInput('page', current);
     fixture.detectChanges();
 
@@ -215,8 +216,8 @@ describe('PageControlsComponent', () => {
 
   it('does not prepare cursor navigation for a page outside the query store', () => {
     const current = refPage([ref('first', { published: DATE })], 0, 1, 2);
-    queryStore.args = { query: 'public', page: 0, size: 1, sort: ['published,DESC'] };
-    queryStore.page = current;
+    queryStore.args.set({ query: 'public', page: 0, size: 1, sort: ['published,DESC'] });
+    queryStore.page.set(current);
     fixture.componentRef.setInput('page', refPage([...current.content], 0, 1, 2));
     fixture.detectChanges();
 

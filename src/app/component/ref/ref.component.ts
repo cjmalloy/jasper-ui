@@ -323,8 +323,8 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
     this.expandPlugins.set(this.admin.getEmbeds(this.ref()));
     if (this.repost && this.ref() && this.fetchRepost() && this.repostRef()?.url != repost(this.ref())) {
-      (this.store.view.top?.url === this.ref().sources![0]
-          ? of(this.store.view.top)
+      (this.store.view.top()?.url === this.ref().sources![0]
+          ? of(this.store.view.top())
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
@@ -359,7 +359,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   initFields(ref: Ref) {
     this.icons.set(uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url)))));
-    this.alarm.set(capturesAny(this.store.account.alarms, ref.tags));
+    this.alarm.set(capturesAny(this.store.account.alarms(), ref.tags));
     this.actions.set(ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(ref.tags, ref.plugins))) : []);
     this.groupedActions.set(groupBy(this.actions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
     // TODO: detect width and move actions that don't fit into advanced actions
@@ -435,7 +435,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get lastSelected() {
-    return this.scrollToLatest() && this.store.view.lastSelected?.url === this.ref().url;
+    return this.scrollToLatest() && this.store.view.lastSelected()?.url === this.ref().url;
   }
 
   get uploadedFile() {
@@ -591,7 +591,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get local() {
-    return this.ref().origin === this.store.account.origin;
+    return this.ref().origin === this.store.account.origin();
   }
 
   get localhost() {
@@ -781,15 +781,15 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get isAuthor() {
-    return isAuthorTag(this.store.account.tag, this.ref());
+    return isAuthorTag(this.store.account.tag(), this.ref());
   }
 
   get isRecipient() {
-    return hasTag(this.store.account.mailbox, this.ref());
+    return hasTag(this.store.account.mailbox(), this.ref());
   }
 
   get authors() {
-    const lookup = this.store.origins.originMap.get(this.ref().origin || '');
+    const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     return uniq([
       ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
       ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
@@ -801,7 +801,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   });
 
   get recipients() {
-    const lookup = this.store.origins.originMap.get(this.ref().origin || '');
+    const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     const userRecipients = without(addressedTo(this.ref()), ...this.authors).map(a => {
       if (!tagOrigin(a)) return a;
       return localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a));
@@ -817,7 +817,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   });
 
   get mailboxes() {
-    return mailboxes(this.ref(), this.store.account.tag, this.store.origins.originMap);
+    return mailboxes(this.ref(), this.store.account.tag(), this.store.origins.originMap());
   }
 
   get replySources() {
@@ -836,7 +836,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
       ...this.admin.reply.filter(p => hasTag(p.tag, this.ref())).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
+    return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
   }
 
   get replyTo() {
@@ -1013,7 +1013,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get isView() {
-    return isRef(this.ref(), this.store.view.ref);
+    return isRef(this.ref(), this.store.view.ref());
   }
 
   toggle() {
@@ -1023,7 +1023,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     } else if (this.viewSource()) {
       this.setViewSource(false);
     } else if (!this.fullscreen()) {
-      if (this.store.hotkey && this.admin.getPlugin('plugin/fullscreen')) {
+      if (this.store.hotkey() && this.admin.getPlugin('plugin/fullscreen')) {
         this.fullscreen.set(true);
         this.closeOffFullscreen = !this.expanded();
         const viewer = this.viewer();
@@ -1235,7 +1235,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
 
   copy$ = () => {
     const tags = uniq([
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
       ...(this.ref().tags || [])
         .filter(t => hasPrefix(t, 'plugin') || !t.startsWith('+') && !t.startsWith('_'))
         .filter(t => !hasPrefix(t, 'user'))
@@ -1243,21 +1243,21 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     ]);
     const copied: Ref = {
       ...this.ref(),
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       tags,
     };
     copied.plugins = pick(copied.plugins, tags || []);
     if (hasTag('+plugin/origin', copied)) {
       copied.plugins['+plugin/origin'].local = copied.plugins['+plugin/origin'].remote = subOrigin(this.ref().origin, copied.plugins['+plugin/origin'].local);
-      copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup.get(this.ref().origin || '');
+      copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup().get(this.ref().origin || '');
     }
     if (hasTag('+plugin/origin/tunnel', copied)) {
-      copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(this.ref().origin || '');
+      copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup().get(this.ref().origin || '');
     }
     return this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          return this.refs.get(this.ref().url, this.store.account.origin).pipe(
+          return this.refs.get(this.ref().url, this.store.account.origin()).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
@@ -1270,7 +1270,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
         this.serverError.set(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(this.ref().url, this.store.account.origin)),
+      switchMap(() => this.refs.get(this.ref().url, this.store.account.origin())),
       tap(ref => {
         this.ref.set(ref);
         this.init();
@@ -1283,7 +1283,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     this.diffSubscription?.unsubscribe();
     this.diffSubscription = this.refs.page({
       url: this.ref().url,
-      query: `!${this.store.account.origin || '*'}`,
+      query: `!${this.store.account.origin() || '*'}`,
       obsolete: null,
       size: 1,
       sort: ['modified,DESC']
@@ -1291,14 +1291,14 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
       takeUntilDestroyed(this.destroyRef),
       map(page => {
         // Find the most recent remote version (not from local origin)
-        const remoteVersion = page.content.find(r => r.origin !== this.store.account.origin);
+        const remoteVersion = page.content.find(r => r.origin !== this.store.account.origin());
         if (!remoteVersion) {
           throw new Error('No remote version found');
         }
         return remoteVersion;
       }),
       switchMap(remoteVersion =>
-        this.refs.get(this.ref().url, this.store.account.origin).pipe(
+        this.refs.get(this.ref().url, this.store.account.origin()).pipe(
           map(localVersion => ({ local: localVersion, remote: remoteVersion }))
         )
       ),
@@ -1317,7 +1317,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   saveDiff() {
     const ref = this.diffEditor()?.getModifiedContent();
     if (!ref) return;
-    ref.origin = this.store.account.origin;
+    ref.origin = this.store.account.origin();
     ref.modifiedString = this.overwrite() ? this.overwrittenModified : this.ref().modifiedString;
     this.submitting.set(this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
       tap(cursor => {
@@ -1346,17 +1346,17 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
   upload$ = () => {
     const ref: Ref = {
       ...this.ref(),
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       tags: this.ref().tags?.filter(t => this.auth.canAddTag(t)),
     };
     ref.plugins = pick(ref.plugins, ref.tags || []);
     return this.store.eventBus.runAndReload$(
-      (this.store.submit.overwrite
+      (this.store.submit.overwrite()
         ? this.refs.update(ref)
         : this.refs.create(ref).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 409) {
-              return this.refs.get(this.ref().url, this.store.account.origin).pipe(
+              return this.refs.get(this.ref().url, this.store.account.origin()).pipe(
                 switchMap(existing => {
                   if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || confirm('An old version already exists. Overwrite it?')) {
                     // TODO: Show diff and merge or split
@@ -1371,7 +1371,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
           }),
           tap(() => {
             this.store.submit.removeRef(ref);
-            if (!this.store.submit.refs.length && !this.store.submit.exts.length) {
+            if (!this.store.submit.refs().length && !this.store.submit.exts().length) {
               this.router.navigate(['/ref', ref.url]);
             }
           }),
@@ -1399,7 +1399,7 @@ export class RefComponent implements AfterViewInit, OnDestroy, HasChanges {
     ).pipe(
       tap((cursor: string) => {
         this.deleted.set(true);
-        if (this.store.account.mod && cursor) {
+        if (this.store.account.mod() && cursor) {
           this.store.eventBus.reload(this.ref());
         }
       }),

@@ -329,7 +329,7 @@ export class EmbedService {
   postProcess(vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
     const el = vc.element.nativeElement as HTMLDivElement;
     const subscriptions: Subscription[] = [];
-    const lookup = this.store.origins.originMap.get(origin || '');
+    const lookup = this.store.origins.originMap().get(origin || '');
     const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
     userTags.forEach(t => {
       const userOrigin = tagOrigin(t.innerText);

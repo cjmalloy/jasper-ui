@@ -81,7 +81,7 @@ export class PageControlsComponent {
   ) {
     effect(() => {
       const value = this.defaultCols();
-      if (value !== undefined || this.store.view.cols) this.colsChanged.set(true);
+      if (value !== undefined || this.store.view.cols()) this.colsChanged.set(true);
     });
   }
 
@@ -92,7 +92,7 @@ export class PageControlsComponent {
   readonly defaultCols = input<number | undefined>();
 
   get hasQuery() {
-    return this.store.view.pageNumber !== undefined;
+    return this.store.view.pageNumber() !== undefined;
   }
 
   get prev() {
@@ -108,7 +108,7 @@ export class PageControlsComponent {
   }
 
   get pageSize() {
-    return this.store.view.pageSize;
+    return this.store.view.pageSize();
   }
 
   set pageSize(value: number) {
@@ -116,7 +116,7 @@ export class PageControlsComponent {
   }
 
   get cols() {
-    return this.store.view.cols;
+    return this.store.view.cols();
   }
 
   set cols(value: number) {
@@ -131,7 +131,7 @@ export class PageControlsComponent {
     if (!this.plainClick(event)) return;
 
     const page = this.currentPage();
-    const args = this.query.args;
+    const args = this.query.args();
     if (!page || !args) return;
 
     const sort = this.dateSort(args);
@@ -156,7 +156,7 @@ export class PageControlsComponent {
 
   private currentPage(): Page<Ref> | undefined {
     const page = this.page() as Page<Ref> | undefined;
-    if (!page || page !== this.query.page || page.content.length === 0) return undefined;
+    if (!page || page !== this.query.page() || page.content.length === 0) return undefined;
     return page;
   }
 

@@ -147,7 +147,7 @@ export class RefListComponent implements OnInit, HasChanges {
   addNewRef(ref: Ref) {
     // TODO: verify read before clearing?
     this.accounts.clearNotificationsIfNone(ref.modified);
-    if (ref.url !== this.store.view.url && !this.page()?.content.find(r => r.url === ref.url)) {
+    if (ref.url !== this.store.view.url() && !this.page()?.content.find(r => r.url === ref.url)) {
       const index = this.newRefs().findIndex(r => r.url === ref.url);
       if (index !== -1) {
         this.newRefs.update(newRefs => newRefs.map((r, i) => i === index ? ref : r));

@@ -19,7 +19,7 @@ export class LoginPopupComponent {
   ) { }
 
   clear() {
-    this.store.account.authError = false;
+    this.store.account.authError.set(false);
   }
 
   doLogin() {

@@ -35,7 +35,7 @@ describe('ForceDirectedComponent', () => {
   });
 
   it('should draw nodes when the graph store changes', () => {
-    component.store.graph.nodes = [{ url: 'https://example.com' }];
+    component.store.graph.nodes.set([{ url: 'https://example.com' }]);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelectorAll('.force-directed-graph circle')).toHaveLength(1);

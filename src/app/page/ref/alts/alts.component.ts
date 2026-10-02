@@ -33,7 +33,7 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
   ) {
     query.clear();
-    store.view.defaultSort = ['modified'];
+    store.view.defaultSort.set(['modified']);
   }
 
   saveChanges() {
@@ -43,35 +43,36 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     effect(() => {
-      this.page.set(Page.of(this.store.view.ref?.alternateUrls?.map(url => ({ url })) || []));
+      this.page.set(Page.of(this.store.view.ref()?.alternateUrls?.map(url => ({ url })) || []));
     }, { injector: this.injector });
     effect(() => {
       const args = getArgs(
         '',
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.view.sort(),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
-      args.url = this.store.view.url;
+      args.url = this.store.view.url();
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
     effect(() => {
-      if (!this.query.page) return;
-      const refs = [...this.query.page.content];
-      for (let i = 0; i < (this.store.view.ref?.alternateUrls?.length || 0); i ++) {
-        const url = this.store.view.ref!.alternateUrls![i];
+      const page = this.query.page();
+      if (!page) return;
+      const refs = [...page.content];
+      for (let i = 0; i < (this.store.view.ref()?.alternateUrls?.length || 0); i ++) {
+        const url = this.store.view.ref()!.alternateUrls![i];
         if (refs.find(r => r.url === url)) continue;
         refs.push({ url });
       }
       this.page.set({
-        ...this.query.page,
+        ...page,
         content: refs,
       });
     }, { injector: this.injector });
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Alternate URLs: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => this.mod.setTitle($localize`Alternate URLs: ` + getTitle(this.store.view.ref())), { injector: this.injector });
   }
 
   ngOnDestroy() {

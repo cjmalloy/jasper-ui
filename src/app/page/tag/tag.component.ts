@@ -49,30 +49,30 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     private exts: ExtService,
     private bookmarks: BookmarkService,
   ) {
-    effect(() => this.mod.setTitle(this.store.view.name), { injector: this.injector });
+    effect(() => this.mod.setTitle(this.store.view.name()), { injector: this.injector });
     {
       this.store.view.clear([
         !!this.admin.getPlugin('plugin/user/vote/up')
           ? 'plugins->plugin/user/vote:decay'
-          : this.store.view.tag.includes('*')
+          : this.store.view.tag().includes('*')
             ? 'published'
             : 'created'
       ]);
-      this.store.view.extTemplates = this.admin.view;
+      this.store.view.extTemplates.set(this.admin.view);
     };
     effect(() => {
-      this.store.view.urlQueryTags;
+      this.store.view.urlQueryTags();
       untracked(() => {
-        if (!this.store.view.urlQueryTags.length) {
-          this.store.view.exts = [];
+        if (!this.store.view.urlQueryTags().length) {
+          this.store.view.exts.set([]);
           this.loading.set(false);
         } else {
           this.loading.set(true);
-          this.exts.getCachedExts(this.store.view.urlQueryTags)
+          this.exts.getCachedExts(this.store.view.urlQueryTags())
             .pipe(this.admin.extFallbacks)
             .subscribe(exts => {
-              if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts.map(x => x.tag + x.origin + x.modifiedString).sort())) {
-                this.store.view.exts = exts;
+              if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts().map(x => x.tag + x.origin + x.modifiedString).sort())) {
+                this.store.view.exts.set(exts);
               }
               this.loading.set(false);
             });
@@ -89,22 +89,22 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit() {
     effect(() => {
-      const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
-      if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
-        const viewExtFilter = this.store.view.viewExtFilter;
+      const filters = this.store.view.filter().length ? this.store.view.filter() : this.store.view.viewExtFilter();
+      if (!this.store.view.filter().length && this.store.view.viewExtFilter()?.length) {
+        const viewExtFilter = this.store.view.viewExtFilter();
         untracked(() => this.bookmarks.filters = viewExtFilter);
       }
-      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags.map(localTag)).length;
+      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags().map(localTag)).length;
       const args = getArgs(
-        this.store.view.tag,
-        this.store.view.sort,
+        this.store.view.tag(),
+        this.store.view.sort(),
         uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'] : ['query/!plugin/delete', 'user/!plugin/user/hide'], ...filters || []]) as UrlFilter[],
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
-      if (hasPrefix(this.store.view.viewExt?.tag, 'kanban') ||
-          hasPrefix(this.store.view.viewExt?.tag, 'chat')) {
+      if (hasPrefix(this.store.view.viewExt()?.tag, 'kanban') ||
+          hasPrefix(this.store.view.viewExt()?.tag, 'chat')) {
         untracked(() => this.query.setRelatedArgs(args));
         return;
       }

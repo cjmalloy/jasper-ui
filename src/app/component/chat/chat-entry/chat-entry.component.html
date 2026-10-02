@@ -69,18 +69,18 @@
            (click)="saveRef()"
            i18n>permalink</a>
       }
-      @if (store.account.mod || taggingAccess()) {
+      @if (store.account.mod() || taggingAccess()) {
         <app-confirm-action #action
                             [class.force-delete]="deleteAccess()"
-                            [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
+                            [action]="store.hotkey() ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
       }
       @if (taggingAccess()) {
         <app-inline-tag #action [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>
       }
-      @if (!ref().origin && store.account.mod && !approved && !locked) {
+      @if (!ref().origin && store.account.mod() && !approved && !locked) {
         <a class="fake-link" (click)="approve()" i18n>approve</a>
       }
-      @if (store.account.mod && approved) {
+      @if (store.account.mod() && approved) {
         <span class="approved icon" i18n-title title="Moderated" i18n>✔️</span>
       }
     </div>

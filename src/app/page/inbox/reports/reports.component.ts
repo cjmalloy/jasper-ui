@@ -43,17 +43,17 @@ export class InboxReportsPage  implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    if (!this.store.view.filter.length) {
+    if (!this.store.view.filter().length) {
       this.router.navigate([], { queryParams: { filter: ['plugin/user/report', '!+plugin/user/approve'] }, replaceUrl: true });
     }
     effect(() => {
       const args = getArgs(
         '@*',
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.view.sort(),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
       defer(() => this.query.setArgs(args));
     }, { injector: this.injector });

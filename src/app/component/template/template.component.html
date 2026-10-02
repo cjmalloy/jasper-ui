@@ -22,18 +22,18 @@
     }
   </div>
   <div class="actions">
-    @if (!created && store.account.admin) {
+    @if (!created && store.account.admin()) {
       <app-confirm-action #action [action]="copy$" i18n>install</app-confirm-action>
     } @else if (!local) {
       <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
     }
-    @if (created && local && store.account.admin) {
+    @if (created && local && store.account.admin()) {
       <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
     } @else {
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }
     <a class="fake-link" (click)="download()" i18n>download</a>
-    @if (created && store.account.admin) {
+    @if (created && store.account.admin()) {
       <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
     }
   </div>

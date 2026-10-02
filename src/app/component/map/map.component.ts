@@ -225,8 +225,9 @@ export class MapComponent implements OnDestroy, HasChanges {
   private getBareRepost(ref: Ref) {
     if (!this.isBareRepost(ref)) return of([ref] as MapEntry);
     const source = repost(ref);
-    return (this.store.view.top?.url === source
-        ? of(this.store.view.top)
+    const top = this.store.view.top();
+    return (top?.url === source
+        ? of(top)
         : this.refs.getCurrent(source)
     ).pipe(
       rxMap(sourceRef => [this.withRepostGeo(ref, sourceRef), ref] as MapEntry),

@@ -112,7 +112,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   ngAfterViewInit(): void {
-    this.url = this.store.submit.url?.trim();
+    this.url = this.store.submit.url()?.trim();
     if (this.admin.editing && this.url) {
       this.refs.getEditing(this.url).subscribe(draft => {
         if (!draft) return;
@@ -120,7 +120,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         this.refForm.setRef(draft.plugins?.['plugin/editing'] || {});
       });
     }
-    const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+    const allTags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
     this.exts.getCachedExts(allTags).pipe(
       map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
       switchMap(xs => {
@@ -133,7 +133,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       if (d) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         for (const k in d.ref.plugins) {
-          if (k === this.store.submit.plugin) continue;
+          if (k === this.store.submit.plugin()) continue;
           this.addPlugin(k, d.ref.plugins[k]);
         }
         this.refForm.setRef({
@@ -141,34 +141,34 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           tags: this.oldSubmit,
         });
       }
-      if (this.store.account.localTag) this.addTag(this.store.account.localTag);
+      if (this.store.account.localTag()) this.addTag(this.store.account.localTag());
       effect(() => {
-        this.store.submit.tags;
-        this.store.account.localTag;
-        this.store.submit.pluginUpload;
-        this.store.submit.plugin;
-        this.store.submit.title;
-        this.store.submit.url;
-        this.store.submit.repost;
-        this.store.submit.source;
-        this.store.submit.sources;
+        this.store.submit.tags();
+        this.store.account.localTag();
+        this.store.submit.pluginUpload();
+        this.store.submit.plugin();
+        this.store.submit.title();
+        this.store.submit.url();
+        this.store.submit.repost();
+        this.store.submit.source();
+        this.store.submit.sources();
         untracked(() => {
-          const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+          const tags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
           const added = without(tags, ...this.oldSubmit);
           const removed = without(this.oldSubmit, ...tags);
           if (added.length || removed.length) {
             this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
             this.addTag(...this.oldSubmit);
           }
-          if (this.store.submit.pluginUpload) {
-            this.addPlugin(this.store.submit.plugin, { url: this.store.submit.pluginUpload })
-            if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
+          if (this.store.submit.pluginUpload()) {
+            this.addPlugin(this.store.submit.plugin(), { url: this.store.submit.pluginUpload() })
+            if (this.store.submit.plugin() === 'plugin/image' || this.store.submit.plugin() === 'plugin/video') {
               this.addTag('plugin/thumbnail');
             }
           }
           if (this.admin.getPlugin('plugin/thumbnail') && (
-            this.store.submit.tags.includes('plugin/video') ||
-            this.store.submit.tags.includes('plugin/image'))) {
+            this.store.submit.tags().includes('plugin/video') ||
+            this.store.submit.tags().includes('plugin/image'))) {
             this.addTag('plugin/thumbnail')
           }
           if (this.origin) {
@@ -178,21 +178,21 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
             this.addTag('internal');
             this.setTitle($localize`Submit: Feed`);
           }
-          if (this.store.submit.title) {
-            this.webForm.get('title')!.setValue(this.store.submit.title);
+          if (this.store.submit.title()) {
+            this.webForm.get('title')!.setValue(this.store.submit.title());
           }
-          let url = this.store.submit.url?.trim();
-          if (this.store.submit.repost) {
+          let url = this.store.submit.url()?.trim();
+          if (this.store.submit.repost()) {
             this.url = 'internal:' + uuid();
             this.addTag('plugin/repost');
             this.addSource(url);
           } else if (this.feed) {
-            if (this.store.submit.tags.includes('public')) this.addFeedTags('public');
-            this.addFeedTags(...interestingTags(this.store.submit.tags));
+            if (this.store.submit.tags().includes('public')) this.addFeedTags('public');
+            this.addFeedTags(...interestingTags(this.store.submit.tags()));
             this.scrape.rss(url).pipe(
               switchMap(value => {
                 if (!value) return of(value);
-                return this.refs.page({ url: value, size: 1, query: this.store.account.origin || '*', obsolete: null }).pipe(
+                return this.refs.page({ url: value, size: 1, query: this.store.account.origin() || '*', obsolete: null }).pipe(
                   map(page => page.content.length > 0 ? undefined : value),
                   catchError(() => of(value))
                 );
@@ -205,22 +205,22 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
                 this.refForm.scrapePlugins();
                 if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
                   const username = url.substring(url.indexOf('@'));
-                  if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
+                  if (!this.store.submit.title()) this.webForm.get('title')!.setValue(username);
                   const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
                   this.addFeedTags(tag);
-                } else if (!this.store.submit.title) {
+                } else if (!this.store.submit.title()) {
                   this.refForm.scrapeTitle();
                 }
               } else {
                 // No RSS URL found or found value already exists
-                if (!this.store.submit.title) {
+                if (!this.store.submit.title()) {
                   this.refForm.scrapeTitle();
                 }
               }
             });
           } else {
             this.oembeds.get(url).subscribe(oembed => {
-              if (!this.store.submit.title) this.refForm.scrapeTitle();
+              if (!this.store.submit.title()) this.refForm.scrapeTitle();
               if (!oembed) return;
               if (oembed?.thumbnail_url) {
                 this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url });
@@ -240,8 +240,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
               }
             });
           }
-          if (this.store.submit.source) {
-            this.store.submit.sources.map(s => this.addSource(s));
+          if (this.store.submit.source()) {
+            this.store.submit.sources().map(s => this.addSource(s));
           }
         });
       }, { injector: this.injector });
@@ -351,7 +351,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     return {
       ...this.webForm.value,
       url: this.url, // Need to pull separately since control is locked
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       published: this.webForm.value.published ? DateTime.fromISO(this.webForm.value.published) : publish ? DateTime.now() : undefined,
       plugins: writePlugins(this.webForm.value.tags, this.webForm.value.plugins),
     };

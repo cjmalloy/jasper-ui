@@ -150,14 +150,14 @@ export class ExtComponent implements HasChanges {
   readonly parent = computed(() => {
     const p = parentTag(this.ext().tag);
     if (!p) return p;
-    return tagLink(p, this.ext().origin, this.store.account.origin);
+    return tagLink(p, this.ext().origin, this.store.account.origin());
   });
   readonly local = computed(() => {
-    return this.ext().origin === this.store.account.origin;
+    return this.ext().origin === this.store.account.origin();
   });
   readonly extLink = computed(() => {
     if (this.admin.local.find(t => hasPrefix(this.ext().tag, t.tag))) return this.ext().tag + (this.ext().origin || '@');
-    return tagLink(this.ext().tag, this.ext().origin, this.store.account.origin);
+    return tagLink(this.ext().tag, this.ext().origin, this.store.account.origin());
   });
   readonly preview = computed(() => {
     return this.editor.getTagPreview(this.ext().tag, this.ext().origin);
@@ -213,9 +213,9 @@ export class ExtComponent implements HasChanges {
   }
 
   upload() {
-    (this.store.submit.overwrite
-      ? this.exts.update({ ...this.ext(), origin: this.store.account.origin })
-      : this.exts.create({ ...this.ext(), origin: this.store.account.origin })).pipe(
+    (this.store.submit.overwrite()
+      ? this.exts.update({ ...this.ext(), origin: this.store.account.origin() })
+      : this.exts.create({ ...this.ext(), origin: this.store.account.origin() })).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.set(printError(err));
         return throwError(() => err);
@@ -225,7 +225,7 @@ export class ExtComponent implements HasChanges {
         ...this.ext(),
         modifiedString: cursor,
         modified: DateTime.fromISO(cursor),
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
       });
       this.store.submit.removeExt(this.ext());
       this.init();
@@ -235,7 +235,7 @@ export class ExtComponent implements HasChanges {
   copy() {
     const copied: Ext = {
       ...this.ext(),
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     };
     this.exts.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
@@ -254,7 +254,7 @@ export class ExtComponent implements HasChanges {
         this.serverError.set(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.exts.get(this.ext().tag + this.store.account.origin)),
+      switchMap(() => this.exts.get(this.ext().tag + this.store.account.origin())),
     ).subscribe(ext => {
       this.ext.set(ext);
       this.init();

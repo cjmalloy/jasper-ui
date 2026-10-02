@@ -42,7 +42,7 @@ export class ThreadSummaryComponent implements OnInit {
       const source = this.source();
       this.newRefs.set([]);
       this.refs.page({
-        ...getArgs(this.query(), this.store.view.sort, this.store.view.filter),
+        ...getArgs(this.query(), this.store.view.sort(), this.store.view.filter()),
         responses: source,
         size: this.pageSize(),
       }).pipe(

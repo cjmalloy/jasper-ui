@@ -30,7 +30,7 @@ export class TitleDirective {
       if (isString(n)) {
         title.push(n);
       } else if ('type' in n && n.type === 'ext') {
-        const ctx = getTemplateScope(this.store.account, null!, n);
+        const ctx = getTemplateScope(this.store.account.roles(), null!, n);
         title.push(
           n.config?.popover
           ? hydrate(n.config, 'popover', ctx)

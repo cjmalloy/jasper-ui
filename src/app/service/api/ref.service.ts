@@ -128,10 +128,10 @@ export class RefService {
   }
 
   getEditing(url: string): Observable<Ref | undefined> {
-    if (!this.store.account.localTag) return of(undefined);
+    if (!this.store.account.localTag()) return of(undefined);
     return this.page({
       url,
-      query: this.store.account.localTag + ':plugin/editing',
+      query: this.store.account.localTag() + ':plugin/editing',
       size: 1,
       obsolete: null,
     }).pipe(
@@ -143,15 +143,15 @@ export class RefService {
   startEditing(ref: Ref) {
     return this.create({
       url: ref.url,
-      origin: this.store.account.origin,
-      tags: [this.store.account.localTag, 'plugin/editing'],
+      origin: this.store.account.origin(),
+      tags: [this.store.account.localTag(), 'plugin/editing'],
       plugins: { 'plugin/editing': writeEdit(ref) }
     });
   }
 
   saveEdit(ref: Ref, cursor?: string): Observable<string> {
     if (!cursor) return this.startEditing(ref);
-    return this.patch(ref.url, this.store.account.origin, cursor, [{
+    return this.patch(ref.url, this.store.account.origin(), cursor, [{
       op: 'add',
       path: '/plugins/' + escapePath('plugin/editing'),
       value: writeEdit(ref),

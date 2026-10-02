@@ -17,7 +17,7 @@
       @for (x of xs; track x.tag) {
         <a class="badge filter-toggle"
            [class.filtering]="bookmarks.filters.includes($any('query/' + x.tag))"
-           (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + x.tag + ')' : x.tag)"
+           (click)="bookmarks.toggleQuery(store.hotkey() ? '!(' + x.tag + ')' : x.tag)"
            [title]="x.name && x.tag">{{ firstWord(x.name) || '#' + x.tag }}</a>
       }
     }
