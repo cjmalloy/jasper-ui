@@ -230,11 +230,18 @@ export class LocationMapComponent implements OnDestroy {
   private get contextData(): FeatureCollection {
     const root = this.contextRoot;
     const features: Feature[] = [];
+    const addGeometry = (geometry: Geometry) => {
+      if (geometry.type === 'GeometryCollection') {
+        geometry.geometries.forEach(addGeometry);
+      } else if (!isEmpty(geometry)) {
+        features.push({ type: 'Feature', properties: {}, geometry });
+      }
+    };
     if (isGeoPlugins(root)) {
       for (const [key, value] of Object.entries((root as FormGroup).getRawValue())) {
         if (!key.startsWith('plugin/geo/')) continue;
         const geometry = sanitize((value as any)?.geometry);
-        if (geometry && !isEmpty(geometry)) features.push({ type: 'Feature', properties: {}, geometry });
+        if (geometry) addGeometry(geometry);
       }
     }
     return { type: 'FeatureCollection', features };
