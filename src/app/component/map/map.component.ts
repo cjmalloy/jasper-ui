@@ -142,8 +142,12 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       .setLngLat(location)
       .addTo(this.map);
     const el = marker.getElement();
-    el.title = $localize`Submit a Ref here`;
-    el.addEventListener('click', e => {
+    const label = $localize`Submit a Ref here`;
+    el.title = label;
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', label);
+    el.tabIndex = 0;
+    const activate = (e: Event) => {
       e.stopPropagation();
       this.clearSearchResult();
       this.router.navigate(['/submit/text'], {
@@ -153,6 +157,13 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
           ...name ? { title: name } : {},
         },
       });
+    };
+    el.addEventListener('click', activate);
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        activate(e);
+      }
     });
     this.searchMarker = marker;
   }
