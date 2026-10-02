@@ -62,12 +62,7 @@ export class ActionListComponent implements AfterViewInit {
     private viewContainerRef: ViewContainerRef,
   ) {
     effect(() => {
-      this.ref();
-      this.repostRef();
-      this.showDownload();
-      this.mediaAttachment();
-      this.groupedActions();
-      this.groupedAdvancedActions();
+      this.layoutInputs();
       this.cachedActionWidths = undefined;
       defer(() => this.onResize());
     });
@@ -76,6 +71,16 @@ export class ActionListComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.resizeObserver?.observe(this.el.nativeElement!.parentElement!);
   }
+
+  /** Inputs that change the rendered actions, so widths must be re-measured. */
+  private readonly layoutInputs = computed(() => [
+    this.ref(),
+    this.repostRef(),
+    this.showDownload(),
+    this.mediaAttachment(),
+    this.groupedActions(),
+    this.groupedAdvancedActions(),
+  ]);
 
   readonly advanced = computed(() => {
     const actions = this.groupedAdvancedActions();

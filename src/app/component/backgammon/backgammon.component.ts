@@ -553,7 +553,7 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
 })
 export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
 
- // TODO: Save in local storage
+  // TODO: Save in local storage
   readonly red = model(false);
   readonly ref = input<Ref>();
   readonly text = input<string | undefined>('');
@@ -610,8 +610,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
         const newRef = first || refChanged && prevRef?.url != ref?.url;
         if (!ref || newRef) {
           this.watch?.unsubscribe();
-          // init() needs a Ref to watch the first time
-          if (ref || text != null && this.watch) this.init();
+          if (ref || text != null) this.init();
         } else if (refChanged) {
           // Check if end game tags were added
           const prevEnded = !!(prevRef && (
@@ -640,8 +639,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   init() {
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
-    if (!this.watch) {
-      const watch = this.actions.append(this.ref()!);
+    const ref = this.ref();
+    if (!this.watch && ref) {
+      const watch = this.actions.append(ref);
       this.append$ = watch.append$;
       this.reset$ = watch.reset$;
       this.watch = watch.updates$.pipe(
@@ -798,12 +798,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private setMoves(state: GameState, move: number[]) {
-    const spots = state.spots.map(s => ({ ...s, move: move.includes(s.index) }));
+    const next = { ...state, spots: state.spots.map(s => ({ ...s, move: move.includes(s.index) })) };
     if (state === this.state()) {
-      this.state.set({ ...state, spots });
+      this.state.set(next);
     } else {
       // Queued state that is not displayed yet
-      state.spots = spots;
+      const i = this.animationQueue.findIndex(a => a.post === state);
+      if (i >= 0) this.animationQueue[i] = { ...this.animationQueue[i], post: next };
     }
   }
 

@@ -220,6 +220,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       return;
     }
     item.selected = !item.selected;
+    this.touch();
     this.persistLocal();
   }
 
@@ -233,6 +234,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     event?.stopPropagation();
     item.hold = checked;
     item.selected = checked;
+    this.touch();
     this.persistLocal();
   }
 
@@ -309,7 +311,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       item.y = position.y;
       changed = true;
     }
-    if (changed) this.persistLocal();
+    if (changed) {
+      this.touch();
+      this.persistLocal();
+    }
   }
 
   dragEnd() {
@@ -354,6 +359,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.drag = undefined;
     if (moved) {
       this.suppressedSelect = item;
+      this.touch();
       this.persistLocal();
     }
   }
@@ -411,6 +417,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     for (const item of items) {
       if (!item.hold) item.selected = false;
     }
+    this.touch();
     this.persistLocal();
   }
 
@@ -855,6 +862,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.items.set([
       ...this.sanitise(remoteItems, this.items(), false),
     ]);
+    this.touch();
     this.persistLocal();
   }
 
@@ -956,14 +964,19 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private persist(remote = true) {
+    this.touch();
     this.persistLocal();
     if (!remote) return;
     this.pendingRemotePersist = true;
     this.persistRemote();
   }
 
+  /** Notify signal consumers after items were changed in place. */
+  private touch() {
+    this.items.update(items => [...items]);
+  }
+
   private persistLocal() {
-    this.items.set([...this.items()]);
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.items().map(item => ({
         ...this.serializeLocal(item),

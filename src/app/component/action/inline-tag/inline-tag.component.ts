@@ -34,8 +34,6 @@ export class InlineTagComponent extends ActionComponent {
   readonly acting = signal(false);
   readonly autocomplete = signal<{ value: string; label: string }[]>([]);
 
-
-
   id = 'tag-' + uuid();
 
   private searching?: Subscription;
