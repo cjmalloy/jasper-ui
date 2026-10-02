@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, Input, NgZone, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
 import { MapComponent as MglComponent } from '@maplibre/ngx-maplibre-gl';
-import type { Feature, FeatureCollection, Geometry, Position } from 'geojson';
+import type { Feature, FeatureCollection } from 'geojson';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
 import { Map as MapLibreMap, Marker, setWorkerUrl } from 'maplibre-gl';
 import { Subscription } from 'rxjs';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
+import { geoFeatures, isPosition } from '../util/geo';
 import { LocationPicker } from './location-picker';
 
 /**
@@ -230,18 +231,10 @@ export class LocationMapComponent implements OnDestroy {
   private get contextData(): FeatureCollection {
     const root = this.contextRoot;
     const features: Feature[] = [];
-    const addGeometry = (geometry: Geometry) => {
-      if (geometry.type === 'GeometryCollection') {
-        geometry.geometries.forEach(addGeometry);
-      } else if (!isEmpty(geometry)) {
-        features.push({ type: 'Feature', properties: {}, geometry });
-      }
-    };
     if (isGeoPlugins(root)) {
       for (const [key, value] of Object.entries((root as FormGroup).getRawValue())) {
         if (!key.startsWith('plugin/geo/')) continue;
-        const geometry = sanitize((value as any)?.geometry);
-        if (geometry) addGeometry(geometry);
+        features.push(...geoFeatures(value));
       }
     }
     return { type: 'FeatureCollection', features };
@@ -263,71 +256,4 @@ function isGeoPlugins(c: AbstractControl) {
 
 export function hasLocation(v: any): v is [number, number] {
   return isPosition(v) && (v[0] !== 0 || v[1] !== 0);
-}
-
-function isPosition(p: any): p is Position {
-  return Array.isArray(p) && p.length >= 2 && typeof p[0] === 'number' && typeof p[1] === 'number' && isFinite(p[0]) && isFinite(p[1]);
-}
-
-function isEmpty(geometry: Geometry): boolean {
-  if (geometry.type === 'GeometryCollection') return !geometry.geometries.length;
-  return Array.isArray(geometry.coordinates) && !geometry.coordinates.length;
-}
-
-function positions(ps: any): Position[] {
-  return Array.isArray(ps) ? ps.filter(isPosition) : [];
-}
-
-/**
- * Convert partially edited geometry into something renderable, so incomplete
- * shapes can still be previewed while editing.
- */
-function sanitize(geometry: any): Geometry | undefined {
-  const c = geometry?.coordinates;
-  switch (geometry?.type) {
-    case 'Point':
-      return isPosition(c) ? { type: 'Point', coordinates: c } : undefined;
-    case 'MultiPoint':
-      return { type: 'MultiPoint', coordinates: positions(c) };
-    case 'LineString': {
-      const ps = positions(c);
-      return ps.length > 1 ? { type: 'LineString', coordinates: ps } : { type: 'MultiPoint', coordinates: ps };
-    }
-    case 'MultiLineString': {
-      const lines = (Array.isArray(c) ? c : []).map(positions).filter(l => l.length);
-      return {
-        type: 'GeometryCollection',
-        geometries: lines.map(l => l.length > 1
-          ? { type: 'LineString', coordinates: l }
-          : { type: 'Point', coordinates: l[0] }),
-      };
-    }
-    case 'Polygon':
-      return polygon(Array.isArray(c) ? c : []);
-    case 'MultiPolygon': {
-      const polys = (Array.isArray(c) ? c : []).map(p => polygon(Array.isArray(p) ? p : []));
-      return { type: 'GeometryCollection', geometries: polys.filter(p => !!p) as Geometry[] };
-    }
-  }
-  return undefined;
-}
-
-function polygon(rings: any[]): Geometry | undefined {
-  const rs = rings.map(positions).filter(r => r.length);
-  if (!rs.length) return undefined;
-  if (rs.every(r => r.length >= 3)) {
-    return { type: 'Polygon', coordinates: rs.map(close) };
-  }
-  return {
-    type: 'GeometryCollection',
-    geometries: rs.map(r => r.length > 1
-      ? { type: 'LineString', coordinates: r }
-      : { type: 'Point', coordinates: r[0] }),
-  };
-}
-
-function close(ring: Position[]): Position[] {
-  const [first] = ring;
-  const last = ring[ring.length - 1];
-  return first[0] === last[0] && first[1] === last[1] ? ring : [...ring, first];
 }

@@ -21,6 +21,7 @@ import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
+import { geoFeatures } from '../../util/geo';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
@@ -148,9 +149,10 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   get geoData(): FeatureCollection {
     return {
       type: 'FeatureCollection',
-      features: this.mapData.flatMap(([ref]) => features(ref)).filter(f =>
-        f.type === 'Feature' && f.geometry != null && f.geometry.type !== 'Point'
-      ) || [],
+      features: this.mapData.flatMap(([ref]) => features(ref))
+        .filter(f => f?.type === 'Feature')
+        .flatMap(geoFeatures)
+        .filter(f => f.geometry.type !== 'Point'),
     };
   }
   onMapError(event: any) {
