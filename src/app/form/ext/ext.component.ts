@@ -60,8 +60,8 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
 })
 export class ExtFormComponent  {
   private destroyRef = inject(DestroyRef);
-  private readonly _allSorts = signal(this.admin.refSorts.map(convertSort));
-  private readonly _allFilters = signal<FilterItem[]>([
+  readonly allSorts = signal(this.admin.refSorts.map(convertSort));
+  readonly allFilters = signal<FilterItem[]>([
     { filter: `modified/before/${DateTime.now().toISO()}`, label: $localize`🕓️ modified before` },
     { filter: `modified/after/${DateTime.now().toISO()}`, label: $localize`🕓️ modified after` },
     { filter: `response/before/${DateTime.now().toISO()}`, label: $localize`🧵️ response before` },
@@ -91,7 +91,7 @@ export class ExtFormComponent  {
     'P100Y',
   ];
 
-  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
+  readonly group = input.required<UntypedFormGroup>();
   readonly showClear = input(false);
   readonly clear = output<void>();
 
@@ -99,10 +99,10 @@ export class ExtFormComponent  {
   readonly advancedFormlyForm = viewChild<FormlyForm>('advancedFormlyForm');
 
   id = 'ext-' + uuid();
-  private readonly _form = signal<FormlyFieldConfig[] | undefined>(undefined);
-  private readonly _advancedForm = signal<FormlyFieldConfig[] | undefined>(undefined);
-  private readonly _loadingDefaults = signal(false);
-  private readonly _defaults = signal<Ref | undefined>(undefined);
+  readonly form = signal<FormlyFieldConfig[] | undefined>(undefined);
+  readonly advancedForm = signal<FormlyFieldConfig[] | undefined>(undefined);
+  readonly loadingDefaults = signal(false);
+  readonly defaults = signal<Ref | undefined>(undefined);
 
   options: FormlyFormOptions = {
     formState: {
@@ -120,36 +120,21 @@ export class ExtFormComponent  {
     private el: ElementRef<HTMLElement>,
   ) { }
 
-  get group(): UntypedFormGroup {
-    return this.groupInput();
-  }
 
-  get form(): FormlyFieldConfig[] | undefined { return this._form(); }
-  set form(value: FormlyFieldConfig[] | undefined) { this._form.set(value); }
 
-  get advancedForm(): FormlyFieldConfig[] | undefined { return this._advancedForm(); }
-  set advancedForm(value: FormlyFieldConfig[] | undefined) { this._advancedForm.set(value); }
 
-  get loadingDefaults(): boolean { return this._loadingDefaults(); }
-  set loadingDefaults(value: boolean) { this._loadingDefaults.set(value); }
 
-  get defaults(): Ref | undefined { return this._defaults(); }
-  set defaults(value: Ref | undefined) { this._defaults.set(value); }
 
-  get allSorts() { return this._allSorts(); }
-  set allSorts(value) { this._allSorts.set(value); }
 
-  get allFilters(): FilterItem[] { return this._allFilters(); }
-  set allFilters(value: FilterItem[]) { this._allFilters.set(value); }
 
 
   get user() {
     if (!this.admin.getTemplate('user')) return false;
-    return hasPrefix(this.group.get('tag')!.value, 'user');
+    return hasPrefix(this.group().get('tag')!.value, 'user');
   }
 
   get config() {
-    return this.group.get('config') as UntypedFormGroup;
+    return this.group().get('config') as UntypedFormGroup;
   }
 
   get fillPopover(): ElementRef<HTMLElement> | undefined {
@@ -167,7 +152,7 @@ export class ExtFormComponent  {
 
   get inbox() {
     if (!this.admin.getPlugin('plugin/inbox')) return null;
-    return getMailbox(this.group.get('tag')!.value, this.store.account.origin);
+    return getMailbox(this.group().get('tag')!.value, this.store.account.origin);
   }
 
   get modmail() {
@@ -251,17 +236,17 @@ export class ExtFormComponent  {
   filterOption(filter: UrlFilter) {
     if (!this.filterIsDate(filter)) return filter;
     const prefix = filter.substring(0, filter.lastIndexOf('/') + 1);
-    return this.allFilters.find(option => option.filter.startsWith(prefix))?.filter || filter;
+    return this.allFilters().find(option => option.filter.startsWith(prefix))?.filter || filter;
   }
 
   filterOptionLabel(filter: UrlFilter) {
-    const option = negatable(filter) && this.allFilters.find(item => item.filter === toggle(filter));
+    const option = negatable(filter) && this.allFilters().find(item => item.filter === toggle(filter));
     return option ? this.store.account.querySymbol('!') + (option.label || option.filter) : filter;
   }
 
   hasFilterOption(filter: UrlFilter) {
     const selected = this.filterOption(filter);
-    return this.allFilters.some(option => option.filter === selected);
+    return this.allFilters().some(option => option.filter === selected);
   }
 
   filterIsDate(filter: UrlFilter) {
@@ -334,18 +319,18 @@ export class ExtFormComponent  {
   setValue(ext: Ext) {
     this.tag = ext.tag;
     if (ext.config?.defaults) {
-      this.loadingDefaults = true;
+      this.loadingDefaults.set(true);
       this.refs.getCurrent('tag:/' + ext.tag)
         .subscribe(ref => {
-          this.defaults = ref;
-          this.loadingDefaults = false;
+          this.defaults.set(ref);
+          this.loadingDefaults.set(false);
         });
     }
-    if (!this.form) {
-      this.form = cloneDeep(this.admin.getTemplateForm(ext.tag));
+    if (!this.form()) {
+      this.form.set(cloneDeep(this.admin.getTemplateForm(ext.tag)));
     }
-    if (!this.advancedForm) {
-      this.advancedForm = cloneDeep(this.admin.getTemplateAdvancedForm(ext.tag));
+    if (!this.advancedForm()) {
+      this.advancedForm.set(cloneDeep(this.admin.getTemplateAdvancedForm(ext.tag)));
     }
     this.setModel(ext);
   }
@@ -357,7 +342,7 @@ export class ExtFormComponent  {
       defer(() => this.setModel(ext));
       return;
     }
-    this.group!.patchValue(ext);
+    this.group()!.patchValue(ext);
     this.options.formState.config = ext.config;
     mainFormlyForm!.model = ext.config;
     // TODO: Why aren't changed being detected?
@@ -373,35 +358,35 @@ export class ExtFormComponent  {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(value => {
       if (value.defaults) {
-        if (!this.defaults) this.createDefaults();
+        if (!this.defaults()) this.createDefaults();
       } else {
-        delete this.defaults;
-        this.loadingDefaults = false;
+        this.defaults.set(undefined);
+        this.loadingDefaults.set(false);
       }
     });
   }
 
   createDefaults() {
-    this.loadingDefaults = true;
+    this.loadingDefaults.set(true);
     this.refs.getCurrent('tag:/' + this.tag).pipe(
       catchError(err => {
-        this.defaults = {
+        this.defaults.set({
           origin: this.store.account.origin,
           url: 'tag:/' + this.tag,
           tags: ['internal', this.store.account.localTag],
           created: DateTime.now(),
           published: DateTime.now(),
           modified: DateTime.now(),
-        };
-        this.refs.create(this.defaults).subscribe(cursor => {
-          if (this.defaults) this.defaults = { ...this.defaults, modifiedString: cursor };
         });
-        return of(this.defaults);
+        this.refs.create(this.defaults()!).subscribe(cursor => {
+          this.defaults.update(defaults => defaults && { ...defaults, modifiedString: cursor });
+        });
+        return of(this.defaults());
       })
     ).subscribe(ref => {
-      if (!this.loadingDefaults) return;
-      this.defaults = ref;
-      this.loadingDefaults = false;
+      if (!this.loadingDefaults()) return;
+      this.defaults.set(ref);
+      this.loadingDefaults.set(false);
     });
   }
 }

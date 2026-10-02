@@ -1,4 +1,4 @@
-<ng-container [formGroup]="group"
+<ng-container [formGroup]="group()"
               cdkDropListGroup>
 
   <label [for]="id + '-tag'" i18n>Tag:</label>
@@ -33,7 +33,7 @@
                 [id]="id + '-defaultSort'"
                 (input)="addSort($any($event.target).value, defaultSortCreate)">
           <option i18n>+ Add sort</option>
-          @for (opt of allSorts; track opt) {
+          @for (opt of allSorts(); track opt) {
             <option [value]="opt.value">{{ opt.label || opt.value }}</option>
           }
         </select>
@@ -41,7 +41,7 @@
           <span class="controls default-sort-row">
             <select [id]="id + '-defaultSort-' + i"
                     (input)="setSortCol(i, $any($event.target).value)">
-              @for (opt of allSorts; track opt) {
+              @for (opt of allSorts(); track opt) {
                 <option [value]="opt.value" [selected]="opt.value === sortCol(sort)">{{ opt.label || opt.value }}</option>
               }
             </select>
@@ -63,7 +63,7 @@
                 [id]="id + '-defaultFilter'"
                 (input)="addFilter($any($event.target).value, defaultFilterCreate)">
           <option i18n>+ Add filter</option>
-          @for (opt of allFilters; track opt) {
+          @for (opt of allFilters(); track opt) {
             <option [value]="opt.filter">{{ opt.label || opt.filter }}</option>
           }
         </select>
@@ -75,7 +75,7 @@
                 @if (!hasFilterOption(filter)) {
                   <option [value]="filter" selected>{{ filterOptionLabel(filter) }}</option>
                 }
-                @for (opt of allFilters; track opt) {
+                @for (opt of allFilters(); track opt) {
                   <option [value]="opt.filter" [selected]="opt.filter === filterOption(filter)">{{ opt.label || opt.filter }}</option>
                 }
               </select>
@@ -106,7 +106,7 @@
         }
       </div>
     }
-    @if (form) {
+    @if (form(); as form) {
       <formly-form #mainFormlyForm
                    class="nested-form"
                    [form]="config"
@@ -139,7 +139,7 @@
     }
   </ng-container>
 
-  @if (advancedForm?.length) {
+  @if (advancedForm()?.length) {
     <details class="advanced">
       <summary><span i18n>Advanced</span></summary>
       <div class="form">
@@ -151,14 +151,14 @@
                     [id]="id + '-defaultSortAdvanced'"
                     (input)="addSort($any($event.target).value, defaultSortAdvancedCreate)">
               <option i18n>+ Add sort</option>
-              @for (opt of allSorts; track opt) {
+              @for (opt of allSorts(); track opt) {
                 <option [value]="opt.value">{{ opt.label || opt.value }}</option>
               }
             </select>
             @for (sort of defaultSort.value; track $index; let i = $index) {
               <span class="controls default-sort-row">
                 <select (input)="setSortCol(i, $any($event.target).value)">
-                  @for (opt of allSorts; track opt) {
+                  @for (opt of allSorts(); track opt) {
                     <option [value]="opt.value" [selected]="opt.value === sortCol(sort)">{{ opt.label || opt.value }}</option>
                   }
                 </select>
@@ -175,12 +175,12 @@
         <formly-form #advancedFormlyForm
                      class="nested-form"
                      [form]="config"
-                     [fields]="advancedForm!"
+                     [fields]="advancedForm()!"
                      [options]="options"></formly-form>
       </div>
-      @if (defaults) {
-        <app-ref class="bubble" [ref]="defaults"></app-ref>
-      } @else if (loadingDefaults) {
+      @if (defaults()) {
+        <app-ref class="bubble" [ref]="defaults()"></app-ref>
+      } @else if (loadingDefaults()) {
         <app-loading></app-loading>
       }
     </details>

@@ -1,20 +1,20 @@
-@if (page) {
+@if (page(); as page) {
   @for (ref of page.content; track ref.origin + '@' + ref.url) {
     <app-kanban-card cdkDrag
                      [hideSwimLanes]="hideSwimLanes()"
                      [cdkDragData]="ref"
-                     [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
-                     [pressToUnlock]="pressToUnlock"
+                     [cdkDragStartDelay]="pressToUnlock() ? 251 : 0"
+                     [pressToUnlock]="pressToUnlock()"
                      [ref]="ref"
                      [ext]="ext()"
                      (copied)="copy($event)"></app-kanban-card>
   }
-  @for (upload of adding; track upload.id) {
+  @for (upload of adding(); track upload.id) {
     <app-kanban-card [ref]="{ url: '', title: upload.name }"
                      [ext]="ext()"
                      [progress]="upload.progress"></app-kanban-card>
   }
-  @for (failedItem of failed; track failedItem.text) {
+  @for (failedItem of failed(); track failedItem.text) {
     <div class="failed-item">
       <div class="failed-content">
         <div class="failed-text">{{ failedItem.text }}</div>
@@ -46,9 +46,9 @@
        enterkeyhint="send"
        i18n-placeholder
        placeholder="Add..."
-       [value]="addText"
-       (input)="addText = $any($event.target).value"
+       [value]="addText()"
+       (input)="addText.set($any($event.target).value)"
        (paste)="handlePaste($event)"
-       [style.display]="addText ? 'block' : 'none'"
+       [style.display]="addText() ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add() || true"
        (blur)="add()">

@@ -98,11 +98,11 @@
           <app-select-plugin [(plugin)]="plugin"
                              [settings]="!!admin.getPluginSettings(store.submit.tags).length"></app-select-plugin>
         }
-        @if (uploading) {
-          <progress class="grow" max="100" [value]="progress"></progress>
+        @if (uploading()) {
+          <progress class="grow" max="100" [value]="progress()"></progress>
         } @else {
           <datalist [id]="listId">
-            @for (o of autocomplete; track o.value) {
+            @for (o of autocomplete(); track o.value) {
               <option [value]="o.value">{{ o.label }}</option>
             }
           </datalist>
@@ -120,11 +120,11 @@
                  (paste)="uploadFiles($event, $event.clipboardData?.items) || getUrlPlugin()">
         }
         @if (!store.submit.wiki) {
-          @if ((!plugin || plugin === 'plugin/qr') && admin.getPlugin('plugin/qr')) {
-            <app-qr-scanner [upload]="plugin === 'plugin/qr'" (data)="scanQr($event)"></app-qr-scanner>
+          @if ((!plugin() || plugin() === 'plugin/qr') && admin.getPlugin('plugin/qr')) {
+            <app-qr-scanner [upload]="plugin() === 'plugin/qr'" (data)="scanQr($event)"></app-qr-scanner>
           }
           @if (admin.getPlugin('plugin/file')) {
-            @switch (plugin) {
+            @switch (plugin()) {
               @case (  'plugin/pdf') { <app-pdf-upload   (data)="onUpload($event)"></app-pdf-upload> }
               @case ('plugin/audio') { <app-audio-upload (data)="onUpload($event)"></app-audio-upload> }
               @case ('plugin/video') { <app-video-upload (data)="onUpload($event)"></app-video-upload> }
@@ -134,7 +134,7 @@
         }
       </div>
 
-      @for (e of serverErrors; track e) {
+      @for (e of serverErrors(); track e) {
         <span><!-- Unexpected Error --></span>
         <div class="error">{{ e }}</div>
       }
@@ -146,15 +146,15 @@
         }
       </div>
 
-      @if (!uploading) {
-        @if (existingRef) {
+      @if (!uploading()) {
+        @if (existingRef()) {
           <br>
-          <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+          <app-ref [ref]="existingRef()" [showToggle]="true"></app-ref>
         }
 
         <br>
         <div class="validations">
-          @for (v of validations; track v.name) {
+          @for (v of validations(); track v.name) {
             @if (v.passed) {
               <div>✅️ &nbsp;{{ v.name }}</div>
             } @else {
@@ -173,18 +173,18 @@
                   i18n>@if (repost) { Repost } @else { Next }</button>
         </span>
 
-        @if (responsesToUrl.content.length > 0) {
+        @if (responsesToUrl().content.length > 0) {
           <span><!-- Title --></span>
           <span i18n>Existing Responses:</span>
 
           <span><!-- Existing responses --></span>
           <div class="list-container">
-            @for (ref of responsesToUrl.content; track ref.url; let i = $index) {
+            @for (ref of responsesToUrl().content; track ref.url; let i = $index) {
               <div class="list-number">{{ i + 1 }}</div>
               <app-ref [ref]="ref" [showToggle]="true"></app-ref>
             }
           </div>
-          @if (responsesToUrl.page.totalPages > 1) {
+          @if (responsesToUrl().page.totalPages > 1) {
             <span><!-- show more --></span>
             <a [routerLink]="['/ref', url.value, 'responses']"
                class="load-more no-select" i18n>

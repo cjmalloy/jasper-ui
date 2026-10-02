@@ -54,8 +54,8 @@ import { TodoComponent } from '../../todo/todo.component';
   styleUrls: ['./note.component.scss'],
   host: {
     'class': 'note',
-    '[class.unlocked]': 'unlocked',
-    '[class.full-size]': 'todo',
+    '[class.unlocked]': 'unlocked()',
+    '[class.full-size]': 'todo()',
     '(click)': 'onClick()',
     '(touchend)': 'touchend($event)',
     '(press)': 'unlock($event)',
@@ -76,35 +76,23 @@ import { TodoComponent } from '../../todo/todo.component';
 export class NoteComponent implements AfterViewInit {
   private destroyRef = inject(DestroyRef);
 
-  get unlocked() { return this.unlockedSignal(); }
-  private readonly unlockedSignal = signal(false);
+  readonly unlocked = signal(false);
 
   readonly refInput = input.required<Ref>({ alias: 'ref' });
-  readonly refSignal = linkedSignal(() => this.refInput());
-  get ref() { return this.refSignal(); }
-  set ref(value: Ref) { this.refSignal.set(value); }
+  readonly ref = linkedSignal(() => this.refInput());
   readonly pressToUnlock = input(false);
   readonly hideSwimLanes = input(true);
   readonly ext = input<Ext>();
 
   readonly copied = output<Ref>();
 
-  private readonly repostRefSignal = signal<Ref | undefined>(undefined);
-  get repostRef() { return this.repostRefSignal(); }
-  set repostRef(value: Ref | undefined) { this.repostRefSignal.set(value); }
+  readonly repostRef = signal<Ref | undefined>(undefined);
 
-  get todo() { return this.todoSignal(); }
-  private readonly todoSignal = signal(false);
-  private readonly chessSignal = signal(false);
-  private readonly chessWhiteSignal = signal(true);
-  get chess() { return this.chessSignal(); }
-  set chess(value: boolean) { this.chessSignal.set(value); }
-  get chessWhite() { return this.chessWhiteSignal(); }
-  set chessWhite(value: boolean) { this.chessWhiteSignal.set(value); }
+  readonly todo = signal(false);
+  readonly chess = signal(false);
+  readonly chessWhite = signal(true);
   overlayRef?: OverlayRef;
-  private readonly autoCloseSignal = signal(true);
-  get autoClose() { return this.autoCloseSignal(); }
-  set autoClose(value: boolean) { this.autoCloseSignal.set(value); }
+  readonly autoClose = signal(true);
 
   readonly cardMenu = viewChild.required<TemplateRef<any>>('cardMenu');
 
@@ -130,17 +118,17 @@ export class NoteComponent implements AfterViewInit {
   }
 
   init() {
-    this.todoSignal.set(!!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo'));
-    this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
-    this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
-    if (this.repost() && this.ref && this.repostRef?.url != repost(this.ref)) {
-      (this.store.view.top?.url === this.ref.sources![0]
+    this.todo.set(!!this.admin.getPlugin('plugin/todo') && !!this.ref().tags?.includes('plugin/todo'));
+    this.chess.set(!!this.admin.getPlugin('plugin/chess') && !!this.ref().tags?.includes('plugin/chess'));
+    this.chessWhite.set(!!this.ref().tags?.includes(this.store.account.localTag));
+    if (this.repost() && this.ref() && this.repostRef()?.url != repost(this.ref())) {
+      (this.store.view.top?.url === this.ref().sources![0]
           ? of(this.store.view.top)
           : this.refs.getCurrent(this.url())
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
         takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => this.repostRef = ref);
+      ).subscribe(ref => this.repostRef.set(ref));
     }
   }
 
@@ -159,96 +147,96 @@ export class NoteComponent implements AfterViewInit {
     }
   }
   readonly remote = computed(() => {
-    return this.ref.modified && this.origin() !== this.store.account.origin;
+    return this.ref().modified && this.origin() !== this.store.account.origin;
   });
   readonly origin = computed(() => {
-    return this.repost() ? this.repostRef?.origin : this.ref.origin;
+    return this.repost() ? this.repostRef()?.origin : this.ref().origin;
   });
   readonly noWrite = computed(() => {
-    return !this.auth.writeAccess(this.ref);
+    return !this.auth.writeAccess(this.ref());
   });
   readonly repost = computed(() => {
-    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
+    return this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref());
   });
   readonly bareRepost = computed(() => {
-    return this.repost() && !this.ref.title && !this.ref.comment;
+    return this.repost() && !this.ref().title && !this.ref().comment;
   });
   readonly url = computed(() => {
-    return this.repost() ? this.ref.sources![0] : this.ref.url;
+    return this.repost() ? this.ref().sources![0] : this.ref().url;
   });
   readonly currentText = computed(() => {
-    if (this.chess || this.todo) return '';
-    const value = this.ref?.comment || this.repostRef?.comment || '';
-    if (this.ref?.title || hasComment(value)) return value;
+    if (this.chess() || this.todo()) return '';
+    const value = this.ref()?.comment || this.repostRef()?.comment || '';
+    if (this.ref()?.title || hasComment(value)) return value;
     return '';
   });
   readonly thumbnail = computed(() => {
     return this.admin.getPlugin('plugin/thumbnail') &&
-      hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
+      hasTag('plugin/thumbnail', this.ref()) || hasTag('plugin/thumbnail', this.repostRef());
   });
   readonly thumbnailColor = computed(() => {
     return this.thumbnail() &&
-      (this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color);
+      (this.ref()?.plugins?.['plugin/thumbnail']?.color || this.repostRef()?.plugins?.['plugin/thumbnail']?.color);
   });
   readonly thumbnailEmoji = computed(() => {
     return this.thumbnail() &&
-      (this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji) || '';
+      (this.ref()?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef()?.plugins?.['plugin/thumbnail']?.emoji) || '';
   });
   readonly thumbnailRadius = computed(() => {
     return this.thumbnail() &&
-      (this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius) || 0;
+      (this.ref()?.plugins?.['plugin/thumbnail']?.radius || this.repostRef()?.plugins?.['plugin/thumbnail']?.radius) || 0;
   });
   readonly dependents = computed(() => {
-    return !hasTag('plugin/comment', this.ref) && !hasTag('plugin/thread', this.ref) && this.ref.sources?.length || 0;
+    return !hasTag('plugin/comment', this.ref()) && !hasTag('plugin/thread', this.ref()) && this.ref().sources?.length || 0;
   });
   readonly dependencies = computed(() => {
-    return this.ref.metadata?.responses || 0;
+    return this.ref().metadata?.responses || 0;
   });
   readonly thread = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return '';
-    if (!hasTag('plugin/thread', this.ref) && !this.threads()) return '';
-    return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
+    if (!hasTag('plugin/thread', this.ref()) && !this.threads()) return '';
+    return this.ref().sources?.[1] || this.ref().sources?.[0] || this.ref().url;
   });
   readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
+    return this.ref().metadata?.plugins?.['plugin/thread'] || 0;
   });
   readonly comment = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return hasTag('plugin/comment', this.ref) || this.comments();
+    return hasTag('plugin/comment', this.ref()) || this.comments();
   });
   readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
   });
   readonly badges = computed(() => {
-    const badges = intersection(this.ref.tags, this.ext()?.config?.badges || []);
+    const badges = intersection(this.ref().tags, this.ext()?.config?.badges || []);
     if (this.hideSwimLanes()) return badges;
     return difference(badges, this.ext()?.config?.swimLanes || []);
   });
   readonly badgeExts$ = computed(() => {
-    return this.exts.getCachedExts(this.badges(), this.ref.origin || '');
+    return this.exts.getCachedExts(this.badges(), this.ref().origin || '');
   });
   readonly allBadgeExts$ = computed(() => {
-    return this.exts.getCachedExts(this.ext()?.config?.badges || [], this.ref.origin || '');
+    return this.exts.getCachedExts(this.ext()?.config?.badges || [], this.ref().origin || '');
   });
   readonly lastSelected = computed(() => {
-    return this.store.view.lastSelected?.url === this.ref.url;
+    return this.store.view.lastSelected?.url === this.ref().url;
   });
 
   touchend(e: TouchEvent) {
-    this.unlockedSignal.set(false);
+    this.unlocked.set(false);
   }
 
   unlock(event: any) {
     if (!this.config.mobile) return;
-    this.unlockedSignal.set(true);
+    this.unlocked.set(true);
     this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
   }
   readonly title = computed(() => {
-    if (this.bareRepost()) return getTitle(this.repostRef) || $localize`Repost`;
-    return getTitle(this.ref);
+    if (this.bareRepost()) return getTitle(this.repostRef()) || $localize`Repost`;
+    return getTitle(this.ref());
   });
 
   contextMenu(event: MouseEvent) {
@@ -286,11 +274,11 @@ export class NoteComponent implements AfterViewInit {
   }
 
   saveRef() {
-    this.store.view.preloadRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref(), this.repostRef());
   }
 
   close() {
-    this.autoClose = true;
+    this.autoClose.set(true);
     this.overlayRef?.dispose();
     this.overlayEvents?.unsubscribe();
     this.overlayRef = undefined;
@@ -298,18 +286,18 @@ export class NoteComponent implements AfterViewInit {
   }
 
   toggleBadge(tag: string, event?: MouseEvent) {
-    if (hasTag(tag, this.ref.tags)) {
-      this.tags.delete(tag, this.ref.url, this.ref.origin).subscribe(() => {
-        this.ref = { ...this.ref, tags: this.ref.tags!.filter(t => expandedTagsInclude(t, tag)) };
+    if (hasTag(tag, this.ref().tags)) {
+      this.tags.delete(tag, this.ref().url, this.ref().origin).subscribe(() => {
+        this.ref.set({ ...this.ref(), tags: this.ref().tags!.filter(t => expandedTagsInclude(t, tag)) });
         this.init();
       });
     } else {
-      this.tags.create(tag, this.ref.url, this.ref.origin).subscribe(() => {
-        this.ref = { ...this.ref, tags: [...(this.ref.tags || []), tag] };
+      this.tags.create(tag, this.ref().url, this.ref().origin).subscribe(() => {
+        this.ref.set({ ...this.ref(), tags: [...(this.ref().tags || []), tag] });
         this.init();
       });
     }
-    if (this.autoClose || !event?.button) {
+    if (this.autoClose() || !event?.button) {
       this.close();
     } else {
       event.preventDefault();
@@ -319,17 +307,17 @@ export class NoteComponent implements AfterViewInit {
   copy() {
     const tags = uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...(this.ref.tags || []).filter(t => this.auth.canAddTag(t))
+      ...(this.ref().tags || []).filter(t => this.auth.canAddTag(t))
     ]);
     const copied = {
-      ...this.ref,
+      ...this.ref(),
       origin: this.store.account.origin,
       tags,
     };
     this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          return this.refs.get(this.ref.url, this.store.account.origin).pipe(
+          return this.refs.get(this.ref().url, this.store.account.origin).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
@@ -346,7 +334,7 @@ export class NoteComponent implements AfterViewInit {
       }),
       switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntilDestroyed(this.destroyRef))),
     ).subscribe(ref => {
-      this.ref = ref;
+      this.ref.set(ref);
       this.init();
       this.copied.emit(ref);
     });

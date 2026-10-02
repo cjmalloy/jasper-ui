@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, computed } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, viewChild, effect, inject, Injector, computed, untracked } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
@@ -57,7 +57,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
       const sort = this.store.view.sort;
       const filter = this.store.view.filter;
       const search = this.store.view.search;
-      this.thread.setArgs(top, sort, filter, search);
+      untracked(() => this.thread.setArgs(top, sort, filter, search));
       if (this.store.view.ref) {
         const commentCount = this.store.view.ref.metadata?.plugins?.['plugin/comment'] || 0;
         this.store.local.setLastSeenCount(this.store.view.url, 'comments', commentCount);

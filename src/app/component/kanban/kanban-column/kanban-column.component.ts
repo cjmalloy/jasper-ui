@@ -16,7 +16,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
-import { isEqual, uniq } from 'lodash-es';
+import { isEqual, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, last, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -55,7 +55,7 @@ interface PendingUpload {
   styleUrls: ['./kanban-column.component.scss'],
   host: {
     'class': 'kanban-column',
-    '[class.dropping]': 'dropping',
+    '[class.dropping]': 'dropping()',
     '[class.empty]': 'empty',
     '(touchstart)': 'touchstart($event)',
     '(contextmenu)': 'contextmenu($event)',
@@ -86,34 +86,20 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   readonly filter = input<UrlFilter[]>([]);
   readonly search = input('');
 
-  private readonly pageSignal = signal<Page<Ref> | undefined>(undefined);
-  private readonly mutatedSignal = signal(false);
-  private readonly addTextSignal = signal('');
-  private readonly pressToUnlockSignal = signal(false);
-  private readonly addingSignal = signal<PendingUpload[]>([]);
-  private readonly failedSignal = signal<{ text: string; error: string }[]>([]);
-  get dropping() { return this.droppingSignal(); }
-  private readonly droppingSignal = signal(false);
+  readonly page = signal<Page<Ref> | undefined>(undefined);
+  readonly mutated = signal(false);
+  readonly addText = signal('');
+  readonly pressToUnlock = signal(false);
+  readonly adding = signal<PendingUpload[]>([]);
+  readonly failed = signal<{ text: string; error: string }[]>([]);
+  readonly dropping = signal(false);
 
-  get page() { return this.pageSignal(); }
-  set page(value: Page<Ref> | undefined) { this.pageSignal.set(value); }
 
-  get mutated() { return this.mutatedSignal(); }
-  set mutated(value: boolean) { this.mutatedSignal.set(value); }
 
-  get addText() { return this.addTextSignal(); }
-  set addText(value: string) { this.addTextSignal.set(value); }
 
-  get pressToUnlock() { return this.pressToUnlockSignal(); }
-  set pressToUnlock(value: boolean) { this.pressToUnlockSignal.set(value); }
 
-  get adding() { return this.addingSignal(); }
-  set adding(value: PendingUpload[]) { this.addingSignal.set(value); }
 
-  get failed() { return this.failedSignal(); }
-  set failed(value: { text: string; error: string }[]) { this.failedSignal.set(value); }
 
-  set dropping(value: boolean) { this.droppingSignal.set(value); }
 
   private currentRequest?: Subscription;
   private runningSources?: Subscription;
@@ -132,7 +118,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     private proxy: ProxyService,
   ) {
     if (config.mobile) {
-      this.pressToUnlock = true;
+      this.pressToUnlock.set(true);
     }
   }
 
@@ -156,31 +142,33 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
 
 
   get empty() {
-    return !this.page?.content.length;
+    return !this.page()?.content.length;
   }
 
   get more() {
-    if (!this.page) return 0;
-    return this.page.page.totalElements - this.page.content.length;
+    const page = this.page();
+    if (!page) return 0;
+    return page.page.totalElements - page.content.length;
   }
 
   get hasMore() {
-    if (!this.page) return false;
-    return this.page.page.number < this.page.page.totalPages - 1;
+    const page = this.page();
+    if (!page) return false;
+    return page.page.number < page.page.totalPages - 1;
   }
 
   touchstart(e: TouchEvent) {
-    this.pressToUnlock = true;
+    this.pressToUnlock.set(true);
   }
 
   contextmenu(event: MouseEvent) {
-    if (this.pressToUnlock) event.preventDefault();
+    if (this.pressToUnlock()) event.preventDefault();
   }
 
   clear(removeCurrent = true) {
     this._sort = [...this.sort()];
     this._filter = [...this.filter()];
-    if (removeCurrent) this.page = undefined;
+    if (removeCurrent) this.page.set(undefined);
     const args = getArgs(
       this.query(),
       this.sort(),
@@ -193,18 +181,17 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     this.currentRequest = this.refs.page(args).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(page => {
-      this.page = page;
+      this.page.set(page);
       this.runningSources?.unsubscribe();
       if (args.sources) {
         this.runningSources = this.refs.page({ ...args, url: args.sources, size: 1, sources: undefined, responses: undefined }).pipe(
           takeUntilDestroyed(this.destroyRef)
         ).subscribe(res => {
           if (res.content[0]) {
-            this.mutated = true;
+            this.mutated.set(true);
             // @ts-ignore
             res.content[0]['pinned'] = true
-            page.content.unshift(res.content[0]);
-            this.page = { ...page, content: [...page.content] };
+            this.page.update(p => p && { ...p, content: [res.content[0], ...p.content] });
           }
         });
       }
@@ -214,11 +201,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
           takeUntilDestroyed(this.destroyRef)
         ).subscribe(res => {
           if (res.content[0]) {
-            this.mutated = true;
+            this.mutated.set(true);
             // @ts-ignore
             res.content[0]['pinned'] = true
-            page.content.unshift(res.content[0]);
-            this.page = { ...page, content: [...page.content] };
+            this.page.update(p => p && { ...p, content: [res.content[0], ...p.content] });
           }
         });
       }
@@ -226,54 +212,64 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   }
 
   update(event: KanbanDrag) {
-    if (!this.page) return;
+    let page = this.page();
+    if (!page) return;
     const query = this.query();
     if (event.from === query) {
-      if (this.page.content.includes(event.ref)) {
-        this.mutated ||= event.from !== event.to;
-        this.page.page.totalElements--;
-        this.page.content.splice(this.page.content.indexOf(event.ref), 1);
-        this.page = { ...this.page, content: [...this.page.content] };
+      if (page.content.includes(event.ref)) {
+        if (event.from !== event.to) this.mutated.set(true);
+        page = {
+          ...page,
+          page: { ...page.page, totalElements: page.page.totalElements - 1 },
+          content: without(page.content, event.ref),
+        };
+        this.page.set(page);
       }
     }
     if (event.to === query) {
-      this.mutated ||= event.from !== event.to;
-      this.page.page.totalElements++;
-      this.page.content.splice(Math.min(event.index, this.page.content.length - 1), 0, event.ref);
-      this.page = { ...this.page, content: [...this.page.content] };
+      if (event.from !== event.to) this.mutated.set(true);
+      const content = [...page.content];
+      content.splice(Math.min(event.index, content.length - 1), 0, event.ref);
+      this.page.set({
+        ...page,
+        page: { ...page.page, totalElements: page.page.totalElements + 1 },
+        content,
+      });
     }
   }
 
   copy(ref: Ref) {
-    if (!this.page) return;
-    const index = this.page.content.findIndex(r => r.url === ref.url);
+    const page = this.page();
+    if (!page) return;
+    const index = page.content.findIndex(r => r.url === ref.url);
     if (index < 0) return;
-    this.page.content.splice(index, 1, ref);
-    this.page = { ...this.page, content: [...this.page.content] };
+    const content = [...page.content];
+    content.splice(index, 1, ref);
+    this.page.set({ ...page, content });
   }
 
   loadMore() {
     const pinned: Ref[] = [];
-    const pageNumber = this.page?.page.number || 0;
-    if (this.page && this.mutated) {
+    const pageNumber = this.page()?.page.number || 0;
+    if (this.page() && this.mutated()) {
       // @ts-ignore
-      pinned.push(...this.page.content.filter(r => r['pinned']));
+      pinned.push(...this.page().content.filter(r => r['pinned']));
       for (let i = 0; i <= pageNumber; i++) {
         this.refreshPage(i);
       }
     }
-    this.mutated = false;
+    this.mutated.set(false);
     this.refreshPage(pageNumber + 1, pinned);
   }
 
   add() {
     // TODO: Move to util function
-    this.addText = this.addText.trim();
-    if (!this.addText) return;
-    const text = this.addText;
-    this.addText = '';
+    this.addText.set(this.addText().trim());
+    if (!this.addText()) return;
+    const text = this.addText();
+    this.addText.set('');
     const uploadId = uuid();
-    this.adding = [...this.adding, { id: uploadId, name: text }];
+    this.adding.set([...this.adding(), { id: uploadId, name: text }]);
     const tagsWithAuthor = this.getTagsWithAuthor();
     const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
@@ -337,43 +333,32 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
             }),
           );
         }
-        const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
-        if (uploadIndex !== -1) {
-          this.adding.splice(uploadIndex, 1);
-          this.adding = [...this.adding];
-        }
-        this.failed = [...this.failed, { text, error: printError(err).join('\n') }];
+        this.adding.update(adding => adding.filter(u => u.id !== uploadId));
+        this.failed.set([...this.failed(), { text, error: printError(err).join('\n') }]);
         return throwError(err);
       }),
       tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
     ).subscribe(cursor => {
-      this.mutated = true;
-      const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
-      if (uploadIndex !== -1) {
-        this.adding.splice(uploadIndex, 1);
-        this.adding = [...this.adding];
-      }
-      if (!this.page) {
+      this.mutated.set(true);
+      this.adding.update(adding => adding.filter(u => u.id !== uploadId));
+      if (!this.page()) {
         console.error('Should not happen, will probably get cleared.');
-        this.page = {content: []} as any;
+        this.page.set({content: []} as any);
       }
       ref.modified = DateTime.fromISO(cursor);
       ref.modifiedString = cursor;
-      this.page!.content.push(ref);
-      this.page = { ...this.page!, content: [...this.page!.content] };
+      this.page.update(page => ({ ...page!, content: [...page!.content, ref] }));
     });
   }
 
   retry(failedItem: { text: string; error: string }) {
-    this.failed.splice(this.failed.indexOf(failedItem), 1);
-    this.failed = [...this.failed];
-    this.addText = failedItem.text;
+    this.failed.update(failed => without(failed, failedItem));
+    this.addText.set(failedItem.text);
     this.add();
   }
 
   dismissFailed(failedItem: { text: string; error: string }) {
-    this.failed.splice(this.failed.indexOf(failedItem), 1);
-    this.failed = [...this.failed];
+    this.failed.update(failed => without(failed, failedItem));
   }
 
   private getTagsWithAuthor(): string[] {
@@ -406,7 +391,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   handleDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    this.dropping = false;
+    this.dropping.set(false);
     const items = event.dataTransfer?.items;
     if (!items) return;
 
@@ -427,7 +412,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   handleDragEnter(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    this.dropping = true;
+    this.dropping.set(true);
   }
 
   handleDragOver(event: DragEvent) {
@@ -436,8 +421,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   }
 
   dragLeave(event: DragEvent) {
-    if (this.dropping && event.target === event.currentTarget) {
-      this.dropping = false;
+    if (this.dropping() && event.target === event.currentTarget) {
+      this.dropping.set(false);
     }
   }
 
@@ -448,7 +433,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     files.forEach(file => {
       const uploadId = uuid();
       const fileName = file.name;
-      this.adding = [...this.adding, { id: uploadId, name: fileName, progress: 0 }];
+      this.adding.set([...this.adding(), { id: uploadId, name: fileName, progress: 0 }]);
 
       this.uploadFile$(file, uploadId).subscribe({
         next: ref => {
@@ -457,12 +442,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
           }
         },
         error: err => {
-          const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
-          if (uploadIndex !== -1) {
-            this.adding.splice(uploadIndex, 1);
-            this.adding = [...this.adding];
-          }
-          this.failed = [...this.failed, { text: fileName, error: printError(err).join('\n') }];
+          this.adding.update(adding => adding.filter(u => u.id !== uploadId));
+          this.failed.set([...this.failed(), { text: fileName, error: printError(err).join('\n') }]);
         }
       });
     });
@@ -479,11 +460,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         title: file.name,
         tags: [...tagsWithAuthor, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
       };
-      const upload = this.adding.find(u => u.id === uploadId);
-      if (upload) {
-        upload.progress = 50;
-        this.adding = [...this.adding];
-      }
+      this.setProgress(uploadId, 50);
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
@@ -491,11 +468,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         })),
         map(() => ref),
         tap(() => {
-          const upload = this.adding.find(u => u.id === uploadId);
-          if (upload) {
-            upload.progress = 100;
-            this.adding = [...this.adding];
-          }
+          this.setProgress(uploadId, 100);
         }),
         catchError(err => {
           console.warn('File upload failed, falling back to base64 encoding:', err);
@@ -521,11 +494,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
               return event.body;
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-              const upload = this.adding.find(u => u.id === uploadId);
-              if (upload) {
-                upload.progress = percentDone;
-                this.adding = [...this.adding];
-              }
+              this.setProgress(uploadId, percentDone);
               return null;
           }
           return null;
@@ -542,22 +511,21 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     }
   }
 
+  private setProgress(uploadId: string, progress: number) {
+    this.adding.update(adding => adding.map(u => u.id === uploadId ? { ...u, progress } : u));
+  }
+
   submitUpload(ref: Ref, uploadId: string) {
-    if (!this.page) {
+    if (!this.page()) {
       // Initialize page if it doesn't exist yet
-      this.page = { content: [], page: { totalElements: 0, number: 0, totalPages: 0, size: 0 } } as Page<Ref>;
+      this.page.set({ content: [], page: { totalElements: 0, number: 0, totalPages: 0, size: 0 } } as Page<Ref>);
     }
 
     ref.origin = this.store.account.origin;
 
-    this.mutated = true;
-    const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
-    if (uploadIndex !== -1) {
-      this.adding.splice(uploadIndex, 1);
-      this.adding = [...this.adding];
-    }
-    this.page!.content.push(ref);
-    this.page = { ...this.page!, content: [...this.page!.content] };
+    this.mutated.set(true);
+    this.adding.update(adding => adding.filter(u => u.id !== uploadId));
+    this.page.update(page => ({ ...page!, content: [...page!.content, ref] }));
   }
 
   private refreshPage(i: number, pinned?: Ref[]) {
@@ -572,13 +540,13 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(page => {
       const pageOffset = i * this.size();
-      this.page!.page.number = page.page.number;
+      const current = this.page()!;
+      const content = [...current.content];
       for (let offset = 0; offset < page.content.length; offset++) {
-        this.page!.content[pageOffset + offset] = page.content[offset];
+        content[pageOffset + offset] = page.content[offset];
       }
-      if (pinned?.length) this.page!.content.unshift(...pinned);
-      this.page = { ...this.page!, content: [...this.page!.content] };
-
+      if (pinned?.length) content.unshift(...pinned);
+      this.page.set({ ...current, page: { ...current.page, number: page.page.number }, content });
     });
   }
 
@@ -601,6 +569,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   }
 
   saveChanges(): boolean {
-    return this.adding.length === 0 && this.failed.length === 0;
+    return this.adding().length === 0 && this.failed().length === 0;
   }
 }

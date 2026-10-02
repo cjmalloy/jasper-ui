@@ -43,28 +43,16 @@ interface ModUpdatePreview {
 })
 export class SettingsSetupPage implements OnDestroy {
 
-  private readonly _submitted = signal<boolean>(false);
-  get submitted() { return this._submitted(); }
-  set submitted(value: boolean) { this._submitted.set(value); }
-  private readonly _serverError = signal<string[]>([]);
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
-  private readonly _installMessages = signal<string[]>([]);
-  get installMessages() { return this._installMessages(); }
-  set installMessages(value: string[]) { this._installMessages.set(value); }
-  private readonly _mergeState = signal<ModUpdatePreview | undefined>(undefined);
-  get mergeState() { return this._mergeState(); }
-  set mergeState(value: ModUpdatePreview | undefined) { this._mergeState.set(value); }
-  private readonly _mergeSaving = signal<Subscription | undefined>(undefined);
-  get mergeSaving() { return this._mergeSaving(); }
-  set mergeSaving(value: Subscription | undefined) { this._mergeSaving.set(value); }
+  readonly submitted = signal<boolean>(false);
+  readonly serverError = signal<string[]>([]);
+  readonly installMessages = signal<string[]>([]);
+  readonly mergeState = signal<ModUpdatePreview | undefined>(undefined);
+  readonly mergeSaving = signal<Subscription | undefined>(undefined);
 
   readonly mergePopup = viewChild<TemplateRef<any>>('mergePopup');
 
   experiments = !!this.admin.getTemplate('config/experiments');
-  private readonly _selectAllToggle = signal<boolean>(false);
-  get selectAllToggle() { return this._selectAllToggle(); }
-  set selectAllToggle(value: boolean) { this._selectAllToggle.set(value); }
+  readonly selectAllToggle = signal<boolean>(false);
   adminForm: UntypedFormGroup;
   mergePopupSub = new Subscription();
   modGroups = configGroups({
@@ -94,9 +82,9 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   install() {
-    this.serverError = [];
-    this.installMessages = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.installMessages.set([]);
+    this.submitted.set(true);
     this.adminForm.markAllAsTouched();
     if (!this.adminForm.valid) {
       scrollToFirstInvalid();
@@ -126,9 +114,9 @@ export class SettingsSetupPage implements OnDestroy {
         deletes.push(modId(status));
       }
     }
-    const _ = (msg?: string) => this.installMessages = [...this.installMessages, msg!];
+    const _ = (msg?: string) => this.installMessages.set([...this.installMessages(), msg!]);
     if (!deletes.length && !installs.length) {
-      this.submitted = true;
+      this.submitted.set(true);
       _($localize`Success.`);
       return;
     }
@@ -137,12 +125,12 @@ export class SettingsSetupPage implements OnDestroy {
       ...uniq(installs).map(m => this.admin.installMod$(m, _))
     ).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
       last(),
     ).subscribe(() => {
-      this.submitted = true;
+      this.submitted.set(true);
       this.reset();
       _($localize`Success.`);
     });
@@ -164,7 +152,7 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   updateAll() {
-    const _ = (msg?: string) => this.installMessages = [...this.installMessages, msg!];
+    const _ = (msg?: string) => this.installMessages.set([...this.installMessages(), msg!]);
     const mods: string[] = [];
     for (const plugin in this.admin.status.plugins) {
       const m = modId(this.admin.status.plugins[plugin]);
@@ -179,36 +167,36 @@ export class SettingsSetupPage implements OnDestroy {
       if (!this.admin.getTemplate('config/diff') || !this.hasCustomChangesMod(mod)) {
         return this.admin.updateMod$(mod, receipt, receipt, _);
       }
-      this.mergeState = this.getModDiff(mod);
-      if (this.mergeState?.conflict) {
+      this.mergeState.set(this.getModDiff(mod));
+      if (this.mergeState()?.conflict) {
         // skip
         return of(null)
       } else {
-        return this.admin.updateMod$(mod, this.mergeState.proposed, receipt, _);
+        return this.admin.updateMod$(mod, this.mergeState()!.proposed, receipt, _);
       }
     })).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).pipe(last()).subscribe(() => {
-      this.submitted = true;
+      this.submitted.set(true);
       this.reset();
       _($localize`Success.`);
     });
   }
 
   selectAll() {
-    this.selectAllToggle = !this.selectAllToggle;
+    this.selectAllToggle.set(!this.selectAllToggle());
     forOwn((this.adminForm.get('mods') as UntypedFormGroup).controls, c => {
-      c.setValue(this.selectAllToggle);
+      c.setValue(this.selectAllToggle());
     });
   }
 
   updateMod(config: Config) {
     const mod = modId(config);
     const receipt = this.admin.getMod(mod)!;
-    const _ = (msg?: string) => this.installMessages = [...this.installMessages, msg!];
+    const _ = (msg?: string) => this.installMessages.set([...this.installMessages(), msg!]);
     if (!this.admin.getTemplate('config/diff') || !this.hasCustomChanges(config)) {
       this.admin.updateMod$(mod, receipt, receipt, _).subscribe(() => {
         this.reset();
@@ -216,11 +204,11 @@ export class SettingsSetupPage implements OnDestroy {
       });
       return;
     }
-    this.mergeState = this.getModDiff(modId(config));
-    if (this.mergeState?.conflict) {
+    this.mergeState.set(this.getModDiff(modId(config)));
+    if (this.mergeState()?.conflict) {
       this.openMergePopup();
     } else {
-      this.admin.updateMod$(mod, this.mergeState.proposed, receipt, _).subscribe(() => {
+      this.admin.updateMod$(mod, this.mergeState()!.proposed, receipt, _).subscribe(() => {
         this.reset();
         _($localize`Success.`);
       });
@@ -228,8 +216,8 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   diffMod(config: Config) {
-    this.serverError = [];
-    this.mergeState = this.getModDiff(modId(config));
+    this.serverError.set([]);
+    this.mergeState.set(this.getModDiff(modId(config)));
     this.openMergePopup();
   }
 
@@ -325,25 +313,25 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   applyMerge(bundle: Mod | null) {
-    if (!this.mergeState || !bundle) return;
-    this.serverError = [];
-    const _ = (msg?: string) => this.installMessages = [...this.installMessages, msg!];
-    this.mergeSaving = this.admin.updateMod$(this.mergeState.mod, bundle, this.admin.getMod(this.mergeState.mod)!, _)
+    if (!this.mergeState() || !bundle) return;
+    this.serverError.set([]);
+    const _ = (msg?: string) => this.installMessages.set([...this.installMessages(), msg!]);
+    this.mergeSaving.set(this.admin.updateMod$(this.mergeState()!.mod, bundle, this.admin.getMod(this.mergeState()!.mod)!, _)
       .pipe(catchError((res: HttpErrorResponse) => {
-        this.mergeSaving = undefined;
+        this.mergeSaving.set(undefined);
         return throwError(() => res);
       }))
       .subscribe(() => {
         this.cancelMerge();
         this.reset();
         _($localize`Success.`);
-      });
+      }));
   }
 
   cancelMerge() {
-    this.mergeState = undefined;
-    this.mergeSaving?.unsubscribe();
-    this.mergeSaving = undefined;
+    this.mergeState.set(undefined);
+    this.mergeSaving()?.unsubscribe();
+    this.mergeSaving.set(undefined);
     this.mergePopupSub.unsubscribe();
     this.mergePopupSub = new Subscription();
     this.mergePopupRef?.dispose();

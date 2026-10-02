@@ -6,7 +6,8 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
-  signal
+  signal,
+  untracked,
 } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
@@ -42,22 +43,10 @@ export class TodoItemComponent {
     checked: boolean;
 }>();
 
-  private readonly checkedSignal = signal(false);
-  private readonly editingSignal = signal(false);
-  private readonly textSignal = signal('');
-  private readonly hoveringSignal = signal(false);
-
-  get checked() { return this.checkedSignal(); }
-  set checked(value: boolean) { this.checkedSignal.set(value); }
-
-  get editing() { return this.editingSignal(); }
-  set editing(value: boolean) { this.editingSignal.set(value); }
-
-  get text() { return this.textSignal(); }
-  set text(value: string) { this.textSignal.set(value); }
-
-  get hovering() { return this.hoveringSignal(); }
-  set hovering(value: boolean) { this.hoveringSignal.set(value); }
+  readonly checked = signal(false);
+  readonly editing = signal(false);
+  readonly text = signal('');
+  readonly hovering = signal(false);
 
   readonly line = input('', { alias: 'line' });
 
@@ -66,7 +55,10 @@ export class TodoItemComponent {
     public config: ConfigService,
     private el: ElementRef,
   ) {
-    effect(() => this.setLine(this.line()));
+    effect(() => {
+      const value = this.line();
+      untracked(() => this.setLine(value));
+    });
   }
 
   get local() {
@@ -75,11 +67,11 @@ export class TodoItemComponent {
 
   private setLine(value: string) {
     if (value) {
-      this.checked = !!/^[\s-]*\[([\sxX]*)]/.exec(value)?.[1]?.trim() || false;
-      this.text = value.replace(/^[\s-]*\[[\sxX]*]\s*/g, '');
+      this.checked.set(!!/^[\s-]*\[([\sxX]*)]/.exec(value)?.[1]?.trim() || false);
+      this.text.set(value.replace(/^[\s-]*\[[\sxX]*]\s*/g, ''));
     } else {
-      this.checked = false;
-      this.text = '';
+      this.checked.set(false);
+      this.text.set('');
     }
   }
 
@@ -95,12 +87,12 @@ export class TodoItemComponent {
   }
 
   toggle() {
-    this.checked = !this.checked;
-    this.update.emit({ text: this.text, checked: this.checked });
+    this.checked.set(!this.checked());
+    this.update.emit({ text: this.text(), checked: this.checked() });
   }
 
   edit() {
-    this.update.emit({ text: this.text, checked: this.checked });
-    this.editing = false;
+    this.update.emit({ text: this.text(), checked: this.checked() });
+    this.editing.set(false);
   }
 }

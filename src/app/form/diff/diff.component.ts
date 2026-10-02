@@ -28,10 +28,10 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   readonly fullHeight = input(false);
   readonly modifiedChange = output<T>();
 
-  private readonly _originalModel = signal<DiffEditorModel>({ code: '', language: 'json' });
-  private readonly _modifiedModel = signal<DiffEditorModel>({ code: '', language: 'json' });
+  readonly originalModel = signal<DiffEditorModel>({ code: '', language: 'json' });
+  readonly modifiedModel = signal<DiffEditorModel>({ code: '', language: 'json' });
 
-  private readonly _options = signal<any>({
+  readonly options = signal<any>({
     language: 'json',
     automaticLayout: true,
     renderSideBySide: !this.config.mobile,
@@ -44,47 +44,40 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
     effect(() => {
       const theme = store.darkTheme ? 'vs-dark' : 'vs';
       const readOnly = this.readOnly();
-      this.options = {
-        ...untracked(() => this.options),
+      this.options.set({
+        ...untracked(() => this.options()),
         theme,
         readOnly,
-      }
+      })
     });
   }
-
-  get options(): any { return this._options(); }
-  set options(value: any) { this._options.set(value); }
-  get originalModel() { return this._originalModel(); }
-  set originalModel(value: DiffEditorModel) { this._originalModel.set(value); }
-  get modifiedModel() { return this._modifiedModel(); }
-  set modifiedModel(value: DiffEditorModel) { this._modifiedModel.set(value); }
 
   ngOnInit() {
     const original = this.original();
     const modified = this.modified();
     const entity = original && (original.hasOwnProperty('url') || original.hasOwnProperty('tag'));
-    this.originalModel = {
+    this.originalModel.set({
       code: (entity ? formatDiff : formatBundleDiff)(original as any),
       language: 'json'
-    };
-    this.modifiedModel = {
+    });
+    this.modifiedModel.set({
       code: (entity ? formatDiff : formatBundleDiff)(modified as any),
       language: 'json'
-    };
+    });
   }
 
   initEditor(editor: any) {
     editor.onDidUpdateDiff(() => {
-      this.modifiedModel = {
-        ...this.modifiedModel,
+      this.modifiedModel.set({
+        ...this.modifiedModel(),
         code: editor.getModel().modified.getValue(),
-      };
+      });
     });
   }
 
   getModifiedContent(): T | null {
     try {
-      return JSON.parse(this.modifiedModel.code);
+      return JSON.parse(this.modifiedModel().code);
     } catch (e) {
       // TODO: Show error in editor
       return null;

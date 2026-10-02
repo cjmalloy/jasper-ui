@@ -59,25 +59,13 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
   readonly viewExt = input<Ext>();
   readonly activeExts = input<Ext[]>([]);
 
-  private readonly _defaults = signal<Partial<Ref> | undefined>(undefined);
-  private readonly _forms = signal<Plugin[]>([]);
-  private readonly _actions = signal<Action[]>([]);
-  private readonly _groupedActions = signal<{ [key: string]: Action[] }>({});
-  private readonly _batchRunning = signal(false);
-  private readonly _serverError = signal<string[]>([]);
+  readonly defaults = signal<Partial<Ref> | undefined>(undefined);
+  readonly forms = signal<Plugin[]>([]);
+  readonly actions = signal<Action[]>([]);
+  readonly groupedActions = signal<{ [key: string]: Action[] }>({});
+  readonly batchRunning = signal(false);
+  readonly serverError = signal<string[]>([]);
 
-  get defaults() { return this._defaults(); }
-  set defaults(value: Partial<Ref> | undefined) { this._defaults.set(value); }
-  get forms() { return this._forms(); }
-  set forms(value: Plugin[]) { this._forms.set(value); }
-  get actions() { return this._actions(); }
-  set actions(value: Action[]) { this._actions.set(value); }
-  get groupedActions() { return this._groupedActions(); }
-  set groupedActions(value: { [key: string]: Action[] }) { this._groupedActions.set(value); }
-  get batchRunning() { return this._batchRunning(); }
-  set batchRunning(value: boolean) { this._batchRunning.set(value); }
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
   toggled = false;
 
   constructor(
@@ -105,15 +93,15 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
       const activeExts = this.activeExts();
       untracked(() => {
         const commonTags = intersection(...map(page?.content, ref => ref.tags || []));
-        this.forms = this.admin.bulkForm;
-        this.actions = uniqueConfigs([
+        this.forms.set(this.admin.bulkForm);
+        this.actions.set(uniqueConfigs([
           ...sortOrder(this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag))),
-          ...sortOrder(this.admin.getAdvancedActions(commonTags))]);
-        this.groupedActions = groupBy(this.actions, a => this.label(a));
-        this.defaults = undefined;
+          ...sortOrder(this.admin.getAdvancedActions(commonTags))]));
+        this.groupedActions.set(groupBy(this.actions(), a => this.label(a)));
+        this.defaults.set(undefined);
         this.defaultsSub?.unsubscribe();
         const xs = [...(viewExt ? [viewExt] : []), ...activeExts, this.admin.getTemplate('')] as Tag[];
-        this.defaultsSub = this.refs.getDefaults(...xs.filter(x => x).map(x => x.tag)).subscribe(d => this.defaults = d?.ref);
+        this.defaultsSub = this.refs.getDefaults(...xs.filter(x => x).map(x => x.tag)).subscribe(d => this.defaults.set(d?.ref));
       });
     });
   }
@@ -131,15 +119,15 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
   });
 
   batch$<T>(fn: (e: T) => Observable<any> | void) {
-    if (this.batchRunning) return of(null);
-    this.serverError = [];
-    this.batchRunning = true;
+    if (this.batchRunning()) return of(null);
+    this.serverError.set([]);
+    this.batchRunning.set(true);
     return concat(...this.queryStore.page!.content.map(c => (fn(c as T) || of(null)).pipe(
       catchError(err => {
         if (err instanceof HttpErrorResponse) {
-          this.serverError = [...this.serverError, ...printError(err)];
+          this.serverError.set([...this.serverError(), ...printError(err)]);
         } else {
-          this.serverError = [...this.serverError, err+''];
+          this.serverError.set([...this.serverError(), err+'']);
         }
         return of(null);
       }),
@@ -147,7 +135,7 @@ export class BulkComponent implements AfterViewInit, OnDestroy {
       last(),
       tap(() => {
         this.queryStore.refresh();
-        this.batchRunning = false;
+        this.batchRunning.set(false);
       })
     );
   }

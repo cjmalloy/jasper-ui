@@ -51,15 +51,13 @@ export class MapComponent implements OnDestroy, HasChanges {
   readonly ext = input<Ext>();
   readonly pageControls = input(true);
   readonly emptyMessage = input('No results found');
-  readonly pageInput = input<Page<Ref> | undefined>(undefined, { alias: 'page' });
+  readonly page = input<Page<Ref> | undefined>(undefined);
 
   private _page?: Page<Ref>;
   private map?: Map;
   private markers: Marker[] = [];
   private mapDataUpdates$ = new Subject<Ref[]>();
-  private readonly _mapData = signal<MapEntry[]>([]);
-  get mapData() { return this._mapData(); }
-  set mapData(value: MapEntry[]) { this._mapData.set(value); }
+  readonly mapData = signal<MapEntry[]>([]);
 
   constructor(
     private router: Router,
@@ -76,11 +74,11 @@ export class MapComponent implements OnDestroy, HasChanges {
       }),
       takeUntilDestroyed(),
     ).subscribe(mapData => {
-      this.mapData = mapData;
+      this.mapData.set(mapData);
       this.updateMapData();
     });
     effect(() => {
-      const value = this.pageInput();
+      const value = this.page();
       this.mapDataUpdates$.next(value?.content || []);
       if (value && value.page.number !== undefined && value.page.number > 0 && value.page.number >= value.page.totalPages) {
         this.router.navigate([], {
@@ -112,14 +110,10 @@ export class MapComponent implements OnDestroy, HasChanges {
     this.map = undefined;
   }
 
-  get page(): Page<Ref> | undefined {
-    return this.pageInput();
-  }
-
   readonly geoData = computed((): FeatureCollection => {
     return {
       type: 'FeatureCollection',
-      features: this.mapData.flatMap(([ref]) => features(ref)).filter(f =>
+      features: this.mapData().flatMap(([ref]) => features(ref)).filter(f =>
         f.type === 'Feature' && f.geometry != null && f.geometry.type !== 'Point'
       ) || [],
     };
@@ -194,7 +188,7 @@ export class MapComponent implements OnDestroy, HasChanges {
   }
 
   private addMarkers(map: Map) {
-    this.mapData.forEach(entry => {
+    this.mapData().forEach(entry => {
       const [ref] = entry;
       const pointFeature = ref.plugins?.['plugin/geo/point'];
       if (pointFeature?.geometry?.type === 'Point' && pointFeature.geometry?.coordinates.length >= 2) {

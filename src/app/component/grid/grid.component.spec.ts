@@ -192,7 +192,7 @@ describe('GridComponent', () => {
       );
       req.flush(Page.of([sourceRef]));
 
-      expect(component.rowData).toEqual([expect.objectContaining({
+      expect(component.rowData()).toEqual([expect.objectContaining({
         url: sourceRef.url,
         title: sourceRef.title,
       })]);
@@ -211,7 +211,7 @@ describe('GridComponent', () => {
       fixture.detectChanges();
 
       http.expectNone(request => request.url.endsWith('/api/v1/ref/page'));
-      expect(component.rowData).toEqual([repostRef]);
+      expect(component.rowData()).toEqual([repostRef]);
     });
 
     it('should keep bare repost rows when source refs fail to load', () => {
@@ -231,7 +231,7 @@ describe('GridComponent', () => {
       );
       req.flush('server error', { status: 500, statusText: 'Server Error' });
 
-      expect(component.rowData).toEqual([repostRef]);
+      expect(component.rowData()).toEqual([repostRef]);
     });
 
     it('should cancel previous bare repost source fetches when page changes', () => {
@@ -271,11 +271,11 @@ describe('GridComponent', () => {
       );
       secondReq.flush(Page.of([secondSource]));
 
-      expect(component.rowData).toEqual([expect.objectContaining({
+      expect(component.rowData()).toEqual([expect.objectContaining({
         url: secondSource.url,
         title: secondSource.title,
       })]);
-      expect(component.rowData.some(ref => ref.url === firstRepost.sources![0])).toBe(false);
+      expect(component.rowData().some(ref => ref.url === firstRepost.sources![0])).toBe(false);
     });
   });
 });

@@ -26,9 +26,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
-  private readonly _page = signal<Page<Ref>>(Page.of([]));
-  get page() { return this._page(); }
-  set page(value: Page<Ref>) { this._page.set(value); }
+  readonly page = signal<Page<Ref>>(Page.of([]));
 
   constructor(
     private mod: ModService,
@@ -47,7 +45,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     effect(() => {
-      this.page = Page.of(this.sources.map(url => ({ url })) || []);
+      this.page.set(Page.of(this.sources.map(url => ({ url })) || []));
     }, { injector: this.injector });
     effect(() => {
       const args = getArgs(
@@ -63,7 +61,7 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
     }, { injector: this.injector });
     effect(() => {
       if (!this.query.page) return;
-      this._page.update(page => ({
+      this.page.update(page => ({
         ...page,
         content: page.content.map((ref, i) => {
           if (ref.created) return ref;

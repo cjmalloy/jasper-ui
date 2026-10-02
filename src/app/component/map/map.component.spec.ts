@@ -103,7 +103,7 @@ describe('MapComponent', () => {
       );
       req.flush(Page.of([sourceRef]));
 
-      expect(component.mapData).toEqual([[
+      expect(component.mapData()).toEqual([[
         expect.objectContaining({
           url: repostRef.url,
           title: sourceRef.title,
@@ -153,7 +153,7 @@ describe('MapComponent', () => {
       );
       req.flush(Page.of([sourceRef]));
 
-      const [ref, bareRepost] = component.mapData[0];
+      const [ref, bareRepost] = component.mapData()[0];
       expect(ref).toEqual(expect.objectContaining({
         url: repostRef.url,
         title: sourceRef.title,
@@ -184,7 +184,7 @@ describe('MapComponent', () => {
       fixture.componentRef.setInput('page', Page.of([repostRef]));
       fixture.detectChanges();
 
-      expect(component.mapData).toEqual([[repostRef]]);
+      expect(component.mapData()).toEqual([[repostRef]]);
     });
 
     it('should cancel previous bare repost source fetches when page changes', () => {
@@ -231,14 +231,14 @@ describe('MapComponent', () => {
       );
       secondReq.flush(Page.of([secondSource]));
 
-      expect(component.mapData).toEqual([[
+      expect(component.mapData()).toEqual([[
         expect.objectContaining({
           url: secondRepost.url,
           title: secondSource.title,
         }),
         secondRepost,
       ]]);
-      expect(component.mapData.some(([ref]) => ref.url === firstRepost.sources![0])).toBe(false);
+      expect(component.mapData().some(([ref]) => ref.url === firstRepost.sources![0])).toBe(false);
     });
   });
 });

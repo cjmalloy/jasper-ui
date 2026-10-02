@@ -82,7 +82,7 @@
 
     <span></span>
     <div>
-      @if (processing) {
+      @if (processing()) {
         <app-loading></app-loading>
       }
     </div>
@@ -124,7 +124,7 @@
   }
 </div>
 
-@for (e of serverErrors; track e) {
+@for (e of serverErrors(); track e) {
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
 }

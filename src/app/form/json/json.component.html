@@ -1,6 +1,6 @@
-<ng-container [formGroup]="group">
+<ng-container [formGroup]="group()">
   <ngx-monaco-editor [formControlName]="fieldName()"
-                     [options]="options"
+                     [options]="options()"
                      [style.width]="'min(900px, 50vw)'"
                      [style.height]="'min(200px, 90vh)'"
                      appResizeHandle

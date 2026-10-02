@@ -59,36 +59,22 @@ export class FileComponent {
   private destroyRef = inject(DestroyRef);
 
   readonly refInput = input.required<Ref>({ alias: 'ref' });
-  readonly refSignal = linkedSignal(() => this.refInput());
-  get ref() { return this.refSignal(); }
-  set ref(value: Ref) { this.refSignal.set(value); }
+  readonly ref = linkedSignal(() => this.refInput());
   readonly expanded = input(false);
   readonly expandInline = input(false);
   readonly showToggle = input(false);
   readonly dragging = input(false);
   readonly fetchRepost = input(true);
 
-  private readonly repostRefSignal = signal<Ref | undefined>(undefined);
-  private readonly expandPluginsSignal = signal<string[]>([]);
-  private readonly _editing = signal(false);
-  private readonly _viewSource = signal(false);
-  icons: Icon[] = [];
+  readonly repostRef = signal<Ref | undefined>(undefined);
+  readonly expandPlugins = signal<string[]>([]);
+  readonly editing = signal(false);
+  readonly viewSource = signal(false);
+  readonly icons = signal<Icon[]>([]);
   actions: Action[] = [];
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
-
-  get repostRef() { return this.repostRefSignal(); }
-  set repostRef(value: Ref | undefined) { this.repostRefSignal.set(value); }
-
-  get expandPlugins() { return this.expandPluginsSignal(); }
-  set expandPlugins(value: string[]) { this.expandPluginsSignal.set(value); }
-
-  get editing() { return this._editing(); }
-  set editing(value: boolean) { this._editing.set(value); }
-
-  get viewSource() { return this._viewSource(); }
-  set viewSource(value: boolean) { this._viewSource.set(value); }
 
   constructor(
     public admin: AdminService,
@@ -103,86 +89,86 @@ export class FileComponent {
   }
 
   private loadRef() {
-    this.editing = false;
-    this.viewSource = false;
-    this.writeAccess = this.auth.writeAccess(this.ref);
-    this.taggingAccess = this.auth.taggingAccess(this.ref);
-    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
-    this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
+    this.editing.set(false);
+    this.viewSource.set(false);
+    this.writeAccess = this.auth.writeAccess(this.ref());
+    this.taggingAccess = this.auth.taggingAccess(this.ref());
+    this.icons.set(uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url)))));
+    this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins)));
 
-    this.expandPlugins = this.admin.getEmbeds(this.ref);
-    if (this.repost() && this.ref && this.fetchRepost() && this.repostRef?.url != repost(this.ref)) {
-      (this.store.view.top?.url === this.ref.sources![0]
+    this.expandPlugins.set(this.admin.getEmbeds(this.ref()));
+    if (this.repost() && this.ref() && this.fetchRepost() && this.repostRef()?.url != repost(this.ref())) {
+      (this.store.view.top?.url === this.ref().sources![0]
           ? of(this.store.view.top)
           : this.refs.getCurrent(this.url())
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => {
-        this.repostRef = ref;
+        this.repostRef.set(ref);
         if (!ref) return;
         if (this.bareRepost()) {
-          this.expandPlugins = this.admin.getEmbeds(ref);
+          this.expandPlugins.set(this.admin.getEmbeds(ref));
         } else {
-          this.expandPlugins = [...this.expandPlugins, 'plugin/repost'];
+          this.expandPlugins.set([...this.expandPlugins(), 'plugin/repost']);
         }
       });
     }
   }
 
   readonly pluginClasses = computed(() => {
-    return this.css + templates(this.ref.tags, 'plugin')
+    return this.css + templates(this.ref().tags, 'plugin')
       .map(t => t.replace(/\//g, '_').replace(/\./g, '-'))
       .join(' ');
   });
   readonly nonLocalOrigin = computed(() => {
-    if (this.ref.origin === this.store.account.origin) return undefined;
-    return this.ref.origin || '';
+    if (this.ref().origin === this.store.account.origin) return undefined;
+    return this.ref().origin || '';
   });
   readonly local = computed(() => {
-    return this.ref.origin === this.store.account.origin;
+    return this.ref().origin === this.store.account.origin;
   });
   readonly repost = computed(() => {
-    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
+    return this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref());
   });
   readonly bareRepost = computed(() => {
-    return this.repost() && !this.ref.title && !this.ref.comment;
+    return this.repost() && !this.ref().title && !this.ref().comment;
   });
   readonly url = computed(() => {
-    return this.repost() ? this.ref.sources![0] : this.ref.url;
+    return this.repost() ? this.ref().sources![0] : this.ref().url;
   });
   readonly title = computed(() => {
-    if (this.bareRepost()) return getTitle(this.repostRef) || $localize`Repost`;
-    return getTitle(this.ref);
+    if (this.bareRepost()) return getTitle(this.repostRef()) || $localize`Repost`;
+    return getTitle(this.ref());
   });
   readonly thumbnail = computed(() => {
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    return hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
+    return hasTag('plugin/thumbnail', this.ref()) || hasTag('plugin/thumbnail', this.repostRef());
   });
   readonly iconColor = computed(() => {
     if (!this.thumbnail()) return '';
-    return this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color || '';
+    return this.ref()?.plugins?.['plugin/thumbnail']?.color || this.repostRef()?.plugins?.['plugin/thumbnail']?.color || '';
   });
   readonly iconEmoji = computed(() => {
     if (!this.thumbnail()) return '';
-    return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
+    return this.ref()?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef()?.plugins?.['plugin/thumbnail']?.emoji || '';
   });
   readonly iconEmojiDefaults = computed(() => {
-    const icon = this.icons.filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
+    const icon = this.icons().filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
     return icon?.label || icon?.thumbnail;
   });
   readonly iconRadius = computed(() => {
-    return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || undefined;
+    return this.ref()?.plugins?.['plugin/thumbnail']?.radius || this.repostRef()?.plugins?.['plugin/thumbnail']?.radius || undefined;
   });
   readonly isAuthor = computed(() => {
-    return isAuthorTag(this.store.account.tag, this.ref);
+    return isAuthorTag(this.store.account.tag, this.ref());
   });
   readonly isRecipient = computed(() => {
-    return hasTag(this.store.account.mailbox, this.ref);
+    return hasTag(this.store.account.mailbox, this.ref());
   });
 
   saveRef() {
-    this.store.view.preloadRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref(), this.repostRef());
   }
 
   showIcon(i: Icon) {
@@ -190,10 +176,10 @@ export class FileComponent {
   }
 
   visible(v: Visibility) {
-    return visible(this.ref, v, this.isAuthor(), this.isRecipient());
+    return visible(this.ref(), v, this.isAuthor(), this.isRecipient());
   }
 
   active(a: TagAction | ResponseAction | Icon) {
-    return active(this.ref, a);
+    return active(this.ref(), a);
   }
 }

@@ -29,7 +29,7 @@ import { LoadingComponent } from '../loading/loading.component';
   imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent],
   host: {
     '[attr.tabindex]': '0',
-    '[class.deleted]': 'deleted',
+    '[class.deleted]': 'deleted()',
     '[class]': 'pluginClass',
   },
 })
@@ -39,37 +39,18 @@ export class PluginComponent implements HasChanges {
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly pluginInput = input<Plugin>({} as Plugin, { alias: 'plugin' });
-  readonly pluginSignal = linkedSignal(() => this.pluginInput());
-  private readonly _deleted = signal(false);
-  private readonly _serverError = signal<string[]>([]);
-  private readonly _configErrors = signal<string[]>([]);
-  private readonly _defaultsErrors = signal<string[]>([]);
-  private readonly _schemaErrors = signal<string[]>([]);
-  private readonly _saving = signal<Subscription | undefined>(undefined);
-
-  get plugin() { return this.pluginSignal(); }
-  set plugin(value: Plugin) { this.pluginSignal.set(value); }
+  readonly plugin = linkedSignal(() => this.pluginInput());
+  readonly deleted = signal(false);
+  readonly serverError = signal<string[]>([]);
+  readonly configErrors = signal<string[]>([]);
+  readonly defaultsErrors = signal<string[]>([]);
+  readonly schemaErrors = signal<string[]>([]);
+  readonly saving = signal<Subscription | undefined>(undefined);
 
   editForm: UntypedFormGroup;
-  private readonly _submitted = signal(false);
-  private readonly _editing = signal(false);
+  readonly submitted = signal(false);
+  readonly editing = signal(false);
   viewSource = false;
-  get deleted() { return this._deleted(); }
-  set deleted(value: boolean) { this._deleted.set(value); }
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
-  get configErrors() { return this._configErrors(); }
-  set configErrors(value: string[]) { this._configErrors.set(value); }
-  get defaultsErrors() { return this._defaultsErrors(); }
-  set defaultsErrors(value: string[]) { this._defaultsErrors.set(value); }
-  get schemaErrors() { return this._schemaErrors(); }
-  set schemaErrors(value: string[]) { this._schemaErrors.set(value); }
-  get saving() { return this._saving(); }
-  set saving(value: Subscription | undefined) { this._saving.set(value); }
-  get submitted() { return this._submitted(); }
-  set submitted(value: boolean) { this._submitted.set(value); }
-  get editing() { return this._editing(); }
-  set editing(value: boolean) { this._editing.set(value); }
 
   constructor(
     private mod: ModService,
@@ -86,36 +67,36 @@ export class PluginComponent implements HasChanges {
   }
 
   saveChanges() {
-    return !this.editing || !this.editForm.dirty;
+    return !this.editing() || !this.editForm.dirty;
   }
 
   init(): void {
     this.actionComponents()?.forEach(c => c.reset());
     this.editForm.patchValue({
-      ...this.plugin,
-      config: this.plugin.config ? JSON.stringify(this.plugin.config, null, 2) : undefined,
-      defaults: this.plugin.defaults ? JSON.stringify(this.plugin.defaults, null, 2) : undefined,
-      schema: this.plugin.schema ? JSON.stringify(this.plugin.schema, null, 2) : undefined,
+      ...this.plugin(),
+      config: this.plugin().config ? JSON.stringify(this.plugin().config, null, 2) : undefined,
+      defaults: this.plugin().defaults ? JSON.stringify(this.plugin().defaults, null, 2) : undefined,
+      schema: this.plugin().schema ? JSON.stringify(this.plugin().schema, null, 2) : undefined,
     });
   }
 
   get pluginClass() {
-    return this.css + ' ' + (this.plugin.tag || '')
+    return this.css + ' ' + (this.plugin().tag || '')
       .replace(/[+_]/g, '')
       .replace(/\//g, '_')
       .replace(/\./g, '-');
   }
 
   get created() {
-    return !!this.plugin.modified;
+    return !!this.plugin().modified;
   }
 
   get qualifiedTag() {
-    return this.plugin.tag + this.origin;
+    return this.plugin().tag + this.origin;
   }
 
   get origin() {
-    return this.plugin.origin || '';
+    return this.plugin().origin || '';
   }
 
   get local() {
@@ -123,88 +104,88 @@ export class PluginComponent implements HasChanges {
   }
 
   save() {
-    this.submitted = true;
+    this.submitted.set(true);
     this.editForm.markAllAsTouched();
     if (!this.editForm.valid) {
       scrollToFirstInvalid();
       return;
     }
     const plugin = {
-      ...this.plugin,
+      ...this.plugin(),
       ...this.editForm.value,
     };
-    this.configErrors = [];
-    this.defaultsErrors = [];
-    this.schemaErrors = [];
+    this.configErrors.set([]);
+    this.defaultsErrors.set([]);
+    this.schemaErrors.set([]);
     try {
       if (!plugin.config) delete plugin.config;
       if (plugin.config) plugin.config = JSON.parse(plugin.config);
     } catch (e: any) {
-      this.configErrors.push(e.message);
+      this.configErrors.update(configErrors => [...configErrors, e.message]);
     }
     try {
       if (!plugin.defaults) delete plugin.defaults;
       if (plugin.defaults) plugin.defaults = JSON.parse(plugin.defaults);
     } catch (e: any) {
-      this.defaultsErrors.push(e.message);
+      this.defaultsErrors.update(defaultsErrors => [...defaultsErrors, e.message]);
     }
     try {
       if (!plugin.schema) delete plugin.schema;
       if (plugin.schema) plugin.schema = JSON.parse(plugin.schema);
     } catch (e: any) {
-      this.schemaErrors.push(e.message);
+      this.schemaErrors.update(schemaErrors => [...schemaErrors, e.message]);
     }
-    if (this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length) return;
-    this.saving = this.plugins.update(plugin).pipe(
+    if (this.configErrors().length || this.defaultsErrors().length || this.schemaErrors().length) return;
+    this.saving.set(this.plugins.update(plugin).pipe(
       switchMap(() => this.plugins.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {
-        this.saving = undefined;
-        this.serverError = printError(err);
+        this.saving.set(undefined);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     ).subscribe(tag => {
-      this.saving = undefined;
+      this.saving.set(undefined);
       this.editForm.reset();
-      this.serverError = [];
-      this.editing = false;
-      this.plugin = tag;
-    });
+      this.serverError.set([]);
+      this.editing.set(false);
+      this.plugin.set(tag);
+    }));
   }
 
   copy$ = () => {
     return this.plugins.create({
-      ...this.plugin,
+      ...this.plugin(),
       origin: this.store.account.origin,
     }).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );
   }
 
   delete$ = () => {
-    const deleteNotice = !isDeletorTag(this.plugin.tag) && this.admin.getPlugin('plugin/delete')
-      ? this.plugins.create(tagDeleteNotice(this.plugin))
+    const deleteNotice = !isDeletorTag(this.plugin().tag) && this.admin.getPlugin('plugin/delete')
+      ? this.plugins.create(tagDeleteNotice(this.plugin()))
       : of(null);
     return this.plugins.delete(this.qualifiedTag).pipe(
       switchMap(() => deleteNotice),
       tap(() => {
-        this.serverError = [];
-        this.deleted = true;
+        this.serverError.set([]);
+        this.deleted.set(true);
       }),
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );
   }
 
   download = () => {
-    downloadTag(writePlugin(this.plugin));
+    downloadTag(writePlugin(this.plugin()));
   }
 
   export() {
-    downloadPluginExport(this.plugin, this.mod.exportHtml(this.plugin));
+    downloadPluginExport(this.plugin(), this.mod.exportHtml(this.plugin()));
   }
 }

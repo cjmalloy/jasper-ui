@@ -24,9 +24,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
 
   private readonly injector = inject(Injector);
 
-  private readonly _serverError = signal<string[]>([]);
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
+  readonly serverError = signal<string[]>([]);
 
   readonly list = viewChild<TemplateListComponent>('list');
 
@@ -65,20 +63,20 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
   }
 
   upload(files?: FileList) {
-    this.serverError = [];
+    this.serverError.set([]);
     if (!files || !files.length) return;
     getZipOrTextFile(files[0]!, 'template.json')
       .then(json => getModels<Template>(json))
       .then(plugins => plugins.map(mapTemplate))
       .then(plugins => plugins.map(p => this.uploadTemplate(p)))
-      .catch(err => this.serverError = [err]);
+      .catch(err => this.serverError.set([err]));
   }
 
   uploadTemplate(template: Template) {
     return this.templates.delete(template.tag + this.store.account.origin).pipe(
       switchMap(() => this.templates.create({ ...template, origin: this.store.account.origin })),
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => this.query.refresh());

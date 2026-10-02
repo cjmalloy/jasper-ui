@@ -40,8 +40,8 @@ export class PluginsFormComponent implements AfterViewInit {
   private readonly defaultGroup: UntypedFormGroup;
   readonly togglePlugin = output<string>();
 
-  private readonly _icons = signal<Icon[]>([]);
-  private readonly _forms = signal<Plugin[]>([]);
+  readonly icons = signal<Icon[]>([]);
+  readonly forms = signal<Plugin[]>([]);
 
   constructor(
     public admin: AdminService,
@@ -57,12 +57,6 @@ export class PluginsFormComponent implements AfterViewInit {
       untracked(() => this.init());
     });
   }
-
-  get icons(): Icon[] { return this._icons(); }
-  set icons(value: Icon[]) { this._icons.set(value); }
-
-  get forms(): Plugin[] { return this._forms(); }
-  set forms(value: Plugin[]) { this._forms.set(value); }
 
   init() {
     if (this.plugins) {
@@ -85,10 +79,10 @@ export class PluginsFormComponent implements AfterViewInit {
       }
     }
     const forms = this.admin.getPluginForms(this.allTags);
-    this.forms = forms;
-    this.icons = sortOrder(this.admin.getIcons(this.allTags, this.plugins.value, getScheme(this.group.value.url))
+    this.forms.set(forms);
+    this.icons.set(sortOrder(this.admin.getIcons(this.allTags, this.plugins.value, getScheme(this.group.value.url))
       .filter(i => !forms.find(p => p.tag === i.tag)))
-      .filter(i => this.showIcon(i));
+      .filter(i => this.showIcon(i)));
   }
 
   ngAfterViewInit() {
@@ -114,7 +108,7 @@ export class PluginsFormComponent implements AfterViewInit {
   }
 
   get empty() {
-    return !this.icons.length && !Object.keys(this.plugins.controls).length;
+    return !this.icons().length && !Object.keys(this.plugins.controls).length;
   }
 
   setValue(value: any) {

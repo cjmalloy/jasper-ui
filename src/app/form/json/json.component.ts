@@ -15,10 +15,10 @@ import { Store } from '../../store/store';
 })
 export class JsonComponent {
 
-  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
+  readonly group = input.required<UntypedFormGroup>();
   readonly fieldName = input('source');
 
-  private readonly _options = signal<any>({
+  readonly options = signal<any>({
     language: 'json',
     automaticLayout: true,
   });
@@ -29,16 +29,11 @@ export class JsonComponent {
   ) {
     effect(() => {
       const theme = store.darkTheme ? 'vs-dark' : 'vs';
-      this.options = {
-        ...untracked(() => this.options),
+      this.options.set({
+        ...untracked(() => this.options()),
         theme,
-      }
+      })
     });
   }
-
-  get group(): UntypedFormGroup { return this.groupInput(); }
-
-  get options(): any { return this._options(); }
-  set options(value: any) { this._options.set(value); }
 
 }

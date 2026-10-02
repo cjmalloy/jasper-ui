@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, input, output, signal, viewChild, untracked } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
@@ -23,30 +23,30 @@ export class SelectTemplateComponent {
 
   submitTemplates = this.admin.tmplSubmit.filter(p => this.auth.canAddTag(p.tag));
 
-  private readonly _templates = signal<Template[]>([...this.submitTemplates], { equal: () => false });
-  get templates() { return this._templates(); }
-  set templates(value: Template[]) { this._templates.set(value); }
+  readonly templates = signal<Template[]>([...this.submitTemplates], { equal: () => false });
 
   constructor(
     private admin: AdminService,
     private auth: AuthzService,
   ) {
-    effect(() => this.selectTemplate(this.template()));
+    effect(() => {
+      const value = this.template();
+      untracked(() => this.selectTemplate(value));
+    });
   }
 
   private selectTemplate(value: string) {
     if (!this.select()) {
       if (value) defer(() => this.selectTemplate(value));
     } else {
-      let hit = this.templates.map(t => t.tag).indexOf(value) + 1;
+      let hit = this.templates().map(t => t.tag).indexOf(value) + 1;
       if (!hit) {
-        hit = this.templates.map(t => t.tag).indexOf(value.substring(access(value).length)) + 1;
+        hit = this.templates().map(t => t.tag).indexOf(value.substring(access(value).length)) + 1;
       }
-      if (!hit && value && !this.templates.find(p => (p?.tag) === value)) {
+      if (!hit && value && !this.templates().find(p => (p?.tag) === value)) {
         const template = this.admin.getTemplate(value);
         if (template) {
-          this.templates.unshift(template);
-          this._templates.set(this.templates);
+          this.templates.update(templates => [template, ...templates]);
           defer(() => this.select()!.nativeElement.selectedIndex = 1);
           return;
         }

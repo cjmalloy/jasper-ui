@@ -38,34 +38,21 @@ export class CommentReplyComponent implements HasChanges {
   readonly to = input.required<Ref>();
   readonly selectResponseType = input(false);
   readonly tagsInput = input<string[]>([], { alias: 'tags' });
-  private readonly tagsSignal = linkedSignal(() => this.tagsInput());
-  get tags() { return this.tagsSignal(); }
-  set tags(value: string[]) { this.tagsSignal.set(value); }
+  readonly tags = linkedSignal(() => this.tagsInput());
   readonly showCancel = input(false);
   readonly autofocus = input(false);
   readonly save = output<Ref | undefined>();
 
   readonly editor = viewChild<EditorComponent>('editor');
 
-  private readonly editorTagsSignal = signal<string[]>([]);
-  private readonly editorSourcesSignal = signal<string[]>([]);
-  private readonly completedUploadsSignal = signal<Ref[]>([]);
+  readonly editorTags = signal<string[]>([]);
+  readonly editorSources = signal<string[]>([]);
+  readonly completedUploads = signal<Ref[]>([]);
 
-  private readonly replyingSignal = signal<Subscription | undefined>(undefined);
+  readonly replying = signal<Subscription | undefined>(undefined);
   commentForm: UntypedFormGroup;
-  private readonly serverErrorSignal = signal<string[]>([]);
+  readonly serverError = signal<string[]>([]);
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
-
-  get editorTags() { return this.editorTagsSignal(); }
-  set editorTags(value: string[]) { this.editorTagsSignal.set(value); }
-  get editorSources() { return this.editorSourcesSignal(); }
-  set editorSources(value: string[]) { this.editorSourcesSignal.set(value); }
-  get completedUploads() { return this.completedUploadsSignal(); }
-  set completedUploads(value: Ref[]) { this.completedUploadsSignal.set(value); }
-  get replying() { return this.replyingSignal(); }
-  set replying(value: Subscription | undefined) { this.replyingSignal.set(value); }
-  get serverError() { return this.serverErrorSignal(); }
-  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
 
   constructor(
     public admin: AdminService,
@@ -95,11 +82,11 @@ export class CommentReplyComponent implements HasChanges {
   }
 
   addSource(add: any) {
-    this.editorSources = [...this.editorSources, add];
+    this.editorSources.set([...this.editorSources(), add]);
   }
 
   syncTags(tags: string[]) {
-    this.editorTags = tags;
+    this.editorTags.set(tags);
   }
 
   reply() {
@@ -109,7 +96,7 @@ export class CommentReplyComponent implements HasChanges {
     const inheritedPlugins = this.inheritedPlugins;
     const tags = removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...this.editorTags,
+      ...this.editorTags(),
       ...getMailboxes(value, this.store.account.origin),
       ...Object.keys(inheritedPlugins),
     ]));
@@ -128,13 +115,13 @@ export class CommentReplyComponent implements HasChanges {
       origin: this.store.account.origin,
       title: (hasTag('plugin/email', this.to()) || hasTag('plugin/thread', this.to())) ? getRe(this.to().title) : '',
       comment: value,
-      sources: [...sources, ...this.editorSources],
+      sources: [...sources, ...this.editorSources()],
       tags,
       plugins: inheritedPlugins,
       published: DateTime.now(),
     };
     this.comment.disable();
-    this.replying = this.refs.create(ref).pipe(
+    this.replying.set(this.refs.create(ref).pipe(
       tap(cursor => {
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
@@ -145,25 +132,25 @@ export class CommentReplyComponent implements HasChanges {
       switchMap(res => {
         const finalVisibilityTags = getVisibilityTags(tags);
         if (!finalVisibilityTags.length) return of(res);
-        const taggingOps = this.completedUploads
+        const taggingOps = this.completedUploads()
           .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
         if (!taggingOps.length) return of(res);
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((err: HttpErrorResponse) => {
-        this.replying = undefined;
-        this.serverError = printError(err);
+        this.replying.set(undefined);
+        this.serverError.set(printError(err));
         this.comment.enable();
         return throwError(() => err);
       }),
     ).subscribe(() => {
-      this.replying = undefined;
-      this.serverError = [];
+      this.replying.set(undefined);
+      this.serverError.set([]);
       this.comment.enable();
       this.commentForm.reset();
-      this.editorTags = [...this.tags];
-      this.tags = [...this.tags];
-      this.completedUploads = [];
+      this.editorTags.set([...this.tags()]);
+      this.tags.set([...this.tags()]);
+      this.completedUploads.set([]);
 
       this.editor()?.syncText('');
       const update = {
@@ -176,11 +163,11 @@ export class CommentReplyComponent implements HasChanges {
         }
       };
       this.save.emit(update);
-    });
+    }));
   }
 
   cancel() {
-    this.replying?.unsubscribe();
+    this.replying()?.unsubscribe();
     this.commentForm.reset();
     this.save.emit(undefined);
   }

@@ -1,31 +1,31 @@
 <div class="link" [class.remote]="!local()">
   @if (preview() | async; as p) {
-    <a [routerLink]="['/tag', extLink()]" [appTitle]="ext">{{ p.name || '#' + p.tag }}</a>
+    <a [routerLink]="['/tag', extLink()]" [appTitle]="ext()">{{ p.name || '#' + p.tag }}</a>
   } @else {
-    <a [routerLink]="['/tag', extLink()]" [appTitle]="ext">{{ ext.name || template?.name || plugin?.name || '#' + ext.tag }}</a>
+    <a [routerLink]="['/tag', extLink()]" [appTitle]="ext()">{{ ext().name || template()?.name || plugin()?.name || '#' + ext().tag }}</a>
   }
-  @if (ext.name) {
+  @if (ext().name) {
     <span class="host">({{ qualifiedTag() }})</span>
-  } @else if (ext.origin) {
-    <span class="host">({{ ext.origin }})</span>
+  } @else if (ext().origin) {
+    <span class="host">({{ ext().origin }})</span>
   }
 </div>
 <div class="stack">
   <div class="info">
-    @if (ext.modified) {
-      <span [title]="ext.modified.toISO()" i18n>modified {{ ext.modified.toRelative() }}</span>
+    @if (ext().modified) {
+      <span [title]="ext().modified!.toISO()" i18n>modified {{ ext().modified!.toRelative() }}</span>
     } @else {
       <span i18n>not found</span>
     }
-    @for (icon of icons; track icon) {
+    @for (icon of icons(); track icon) {
       <span class="icon" (click)="bookmarks.toggleTag(icon.tag)" [title]="icon.tag">{{ icon.config!.view! }}</span>
     }
     @if (!local()) {
-      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', ext.origin]">{{ ext.origin || 'default' }}</a>
+      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', ext().origin]">{{ ext().origin || 'default' }}</a>
     }
   </div>
   <div class="actions">
-    @if (!ext.upload) {
+    @if (!ext().upload) {
       @if (parent()) {
         <a [routerLink]="['/tags', parent()]" i18n>parent</a>
       }
@@ -33,63 +33,63 @@
       @if (!local()) {
         <a class="fake-link" (click)="copy()" i18n>copy</a>
       }
-      @if (local() && writeAccess) {
+      @if (local() && writeAccess()) {
         @if (useEditPage()) {
-          <a [routerLink]="['/ext/', ext.tag]" i18n>edit</a>
+          <a [routerLink]="['/ext/', ext().tag]" i18n>edit</a>
         } @else {
-          <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+          <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editForm().dirty) {*edit*} @else {edit}</a>
         }
       } @else if (useEditPage()) {
-        <a [routerLink]="['/ext/', ext.tag]" i18n>source</a>
+        <a [routerLink]="['/ext/', ext().tag]" i18n>source</a>
       } @else {
-        <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+        <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
       }
       <a class="fake-link" (click)="download()" i18n>download</a>
-      @if (store.account.mod || writeAccess) {
+      @if (store.account.mod || writeAccess()) {
         <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
       }
     }
-    @if (store.account.user && ext.upload) {
+    @if (store.account.user && ext().upload) {
       <a class="fake-link" (click)="upload()" i18n>upload</a>
       @if (parent()) {
         <a [routerLink]="['/tags', parent()]" i18n>parent</a>
       }
-      <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
-      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+      <a [routerLink]="['/tags', ext().tag]" i18n>tags</a>
+      <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editForm().dirty) {*edit*} @else {edit}</a>
       <a class="fake-link" (click)="download()" i18n>download</a>
       <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
     }
   </div>
 </div>
 
-@if (editing) {
-  <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
+@if (editing()) {
+  <form class="form" [formGroup]="editForm()" (ngSubmit)="save()">
 
-    <app-ext-form #extForm [group]="editForm"></app-ext-form>
+    <app-ext-form #extForm [group]="editForm()"></app-ext-form>
 
-    @for (e of serverError; track e) {
+    @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
     }
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-    @if (overwritten) {
+    @if (overwritten()) {
       <div class="overwrite warning" i18n-title title="Will drop all unknown configs.">
-        <input id="overwrite" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
+        <input id="overwrite" type="checkbox" [checked]="overwrite()" (input)="overwrite.set(!overwrite())">
         <label for="overwrite" i18n>Overwrite</label>
       </div>
     }
-    <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
-    <button type="button" (click)="editing = false" i18n>cancel</button>
+    <button type="submit" [disabled]="submitted() && !editForm().valid" i18n>save</button>
+    <button type="button" (click)="editing.set(false)" i18n>cancel</button>
   </span>
   </form>
-} @else if (viewSource) {
-  <form class="form" [formGroup]="editForm">
-    <app-ext-form #extForm [group]="editForm"></app-ext-form>
+} @else if (viewSource()) {
+  <form class="form" [formGroup]="editForm()">
+    <app-ext-form #extForm [group]="editForm()"></app-ext-form>
   </form>
 } @else {
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <div class="error">{{ e }}</div>
   }
 }

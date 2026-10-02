@@ -5,7 +5,8 @@ import {
   OnDestroy,
   signal,
   ViewEncapsulation,
-  input
+  input,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -34,7 +35,7 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'class': 'grid ext',
-    '[attr.data-theme-version]': 'themeVersion',
+    '[attr.data-theme-version]': 'themeVersion()',
   },
   imports: [
     AgGridModule,
@@ -46,11 +47,9 @@ export class GridComponent implements OnDestroy, HasChanges {
   private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private rowDataUpdates$ = new Subject<Ref[]>();
-  private readonly _rowData = signal<Ref[]>([]);
-  private readonly _themeVersion = signal(0);
+  readonly rowData = signal<Ref[]>([]);
+  readonly themeVersion = signal(0);
   private themeVersionCount = 0;
-
-  get themeVersion() { return this._themeVersion(); }
 
   readonly tag = input('');
   readonly ext = input<Ext | undefined>();
@@ -58,8 +57,6 @@ export class GridComponent implements OnDestroy, HasChanges {
   readonly emptyMessage = input('No results found');
 
   defaultCols: ColDef[] = this.admin.getTemplate('grid')?.defaults?.columnDefs || gridTemplate.defaults.columnDefs;
-  get rowData() { return this._rowData(); }
-  set rowData(value: Ref[]) { this._rowData.set(value); }
 
   readonly page = input<Page<Ref> | undefined>();
   readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
@@ -73,9 +70,12 @@ export class GridComponent implements OnDestroy, HasChanges {
     ModuleRegistry.registerModules([ AllCommunityModule ]);
     effect(() => {
       this.store.darkTheme;
-      this._themeVersion.set(++this.themeVersionCount);
+      this.themeVersion.set(++this.themeVersionCount);
     });
-    effect(() => this.updatePage(this.page()));
+    effect(() => {
+      const value = this.page();
+      untracked(() => this.updatePage(value));
+    });
     this.rowDataUpdates$.pipe(
       switchMap(content => {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content);
@@ -83,7 +83,7 @@ export class GridComponent implements OnDestroy, HasChanges {
       }),
       takeUntilDestroyed(),
     ).subscribe(rowData => {
-      this.rowData = rowData;
+      this.rowData.set(rowData);
     });
   }
 

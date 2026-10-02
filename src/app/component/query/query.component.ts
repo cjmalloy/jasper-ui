@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, input, signal, viewChild, untracked } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -19,16 +19,10 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
 })
 export class QueryComponent {
 
-  private readonly _editing = signal(false);
-  private readonly _replaceOnClipboardPaste = signal(false);
+  readonly editing = signal(false);
+  readonly replaceOnClipboardPaste = signal(false);
   select: boolean | Crumb[] = false;
-  private readonly _breadcrumbs = signal<Crumb[]>([], { equal: () => false });
-  get editing() { return this._editing(); }
-  set editing(value: boolean) { this._editing.set(value); }
-  get replaceOnClipboardPaste() { return this._replaceOnClipboardPaste(); }
-  set replaceOnClipboardPaste(value: boolean) { this._replaceOnClipboardPaste.set(value); }
-  get breadcrumbs() { return this._breadcrumbs(); }
-  set breadcrumbs(value: Crumb[]) { this._breadcrumbs.set(value); }
+  readonly breadcrumbs = signal<Crumb[]>([], { equal: () => false });
 
   readonly query = input('');
   readonly editor = viewChild<ElementRef<HTMLInputElement>>('editor');
@@ -41,10 +35,13 @@ export class QueryComponent {
   ) {
     effect(() => {
       const query = this.query();
-      this.editing = false;
-      this.breadcrumbs = this.queryCrumbs(query);
+      this.editing.set(false);
+      this.breadcrumbs.set(untracked(() => this.queryCrumbs(query)));
     });
-    effect(() => this.focusEditor(this.editor()));
+    effect(() => {
+      const value = this.editor();
+      untracked(() => this.focusEditor(value));
+    });
   }
 
   private focusEditor(ref: ElementRef<HTMLInputElement> | undefined) {
@@ -71,8 +68,8 @@ export class QueryComponent {
   }
 
   edit(select: boolean | Crumb[]) {
-    if (!this.editing) this.replaceOnClipboardPaste = true;
-    this.editing = true;
+    if (!this.editing()) this.replaceOnClipboardPaste.set(true);
+    this.editing.set(true);
     if (select) {
       this.select = select;
     } else {
@@ -93,8 +90,8 @@ export class QueryComponent {
     while (el) {
       if (el.classList.contains('crumb')) {
         const index = Array.from(el.parentElement?.children || []).indexOf(el);
-        if (index >= 0 && index < this.breadcrumbs.length) {
-          return this.breadcrumbs[index];
+        if (index >= 0 && index < this.breadcrumbs().length) {
+          return this.breadcrumbs()[index];
         }
       }
       el = el.parentElement;
@@ -103,7 +100,7 @@ export class QueryComponent {
   }
 
   search(query: string) {
-    this.editing = false;
+    this.editing.set(false);
     query = query.toLowerCase()
       .replace(/\s+/g, ' ')
       .replace(/\|+/g, '|')
@@ -224,7 +221,7 @@ export class QueryComponent {
               const plugin = this.admin.getPlugin(ext.tag);
               if (plugin?.name) t.text = plugin.name;
             }
-            this._breadcrumbs.set(this.breadcrumbs);
+            this.breadcrumbs.set(this.breadcrumbs());
           }
         });
       }
@@ -233,9 +230,9 @@ export class QueryComponent {
   }
 
   blur(value: string) {
-    this.replaceOnClipboardPaste = false;
+    this.replaceOnClipboardPaste.set(false);
     if (value === this.query()) {
-      this.editing = false;
+      this.editing.set(false);
     }
   }
 }

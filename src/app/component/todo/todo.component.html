@@ -2,17 +2,17 @@
      cdkDropList
      [cdkDropListData]="ref()?.url"
      (cdkDropListDropped)="drop($any($event))">
-  @for (line of lines; let i = $index; track line) {
+  @for (line of lines(); let i = $index; track line) {
     <app-todo-item cdkDrag
                    [cdkDragData]="line"
-                   [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
-                   [pressToUnlock]="pressToUnlock"
+                   [cdkDragStartDelay]="pressToUnlock() ? 251 : 0"
+                   [pressToUnlock]="pressToUnlock()"
                    [line]="line"
                    [origin]="origin()"
                    [plugins]="tags() || ref()?.tags || []"
                    (update)="update({ index: i, text: $event.text, checked: $event.checked })"></app-todo-item>
   }
-  @for (line of pushText; let i = $index; track line) {
+  @for (line of pushText(); let i = $index; track line) {
     <app-todo-item [line]="line"
                    [origin]="origin()"
                    [plugins]="tags() || ref()?.tags || []"></app-todo-item>
@@ -23,11 +23,11 @@
        enterkeyhint="send"
        i18n-placeholder
        placeholder="Add..."
-       [value]="addText"
-       (input)="addText = $any($event.target).value"
-       [style.display]="addText ? 'block' : 'none'"
+       [value]="addText()"
+       (input)="addText.set($any($event.target).value)"
+       [style.display]="addText() ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add($event) || true"
        (blur)="add()">
-@for (e of serverErrors; track e) {
+@for (e of serverErrors(); track e) {
   <div class="error">{{ e }}</div>
 }

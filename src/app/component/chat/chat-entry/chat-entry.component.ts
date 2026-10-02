@@ -15,6 +15,7 @@ import {
   viewChildren,
   signal,
   untracked,
+  computed,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -67,35 +68,18 @@ export class ChatEntryComponent {
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly refInput = input.required<Ref>({ alias: 'ref' });
-  private readonly refSignal = linkedSignal(() => this.refInput());
-  get ref() { return this.refSignal(); }
-  set ref(value: Ref) { this.refSignal.set(value); }
+  readonly ref = linkedSignal(() => this.refInput());
   readonly focused = input(false);
   readonly loading = input(true);
 
-  private readonly noCommentSignal = signal<Ref>({} as any);
-  private readonly repostRefSignal = signal<Ref | undefined>(undefined);
-  private readonly deletedSignal = signal(false);
-  private readonly writeAccessSignal = signal(false);
-  private readonly taggingAccessSignal = signal(false);
-  private readonly deleteAccessSignal = signal(false);
-  private readonly serverErrorSignal = signal<string[]>([]);
-  private readonly allowActionsSignal = signal(false);
-
-  get noComment() { return this.noCommentSignal(); }
-  set noComment(value: Ref) { this.noCommentSignal.set(value); }
-  get repostRef() { return this.repostRefSignal(); }
-  set repostRef(value: Ref | undefined) { this.repostRefSignal.set(value); }
-  get deleted() { return this.deletedSignal(); }
-  set deleted(value: boolean) { this.deletedSignal.set(value); }
-  get writeAccess() { return this.writeAccessSignal(); }
-  set writeAccess(value: boolean) { this.writeAccessSignal.set(value); }
-  get taggingAccess() { return this.taggingAccessSignal(); }
-  set taggingAccess(value: boolean) { this.taggingAccessSignal.set(value); }
-  get deleteAccess() { return this.deleteAccessSignal(); }
-  set deleteAccess(value: boolean) { this.deleteAccessSignal.set(value); }
-  get serverError() { return this.serverErrorSignal(); }
-  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
+  readonly noComment = signal<Ref>({} as any);
+  readonly repostRef = signal<Ref | undefined>(undefined);
+  readonly deleted = signal(false);
+  readonly writeAccess = signal(false);
+  readonly taggingAccess = signal(false);
+  readonly deleteAccess = signal(false);
+  readonly serverError = signal<string[]>([]);
+  private readonly hovering = signal(false);
 
   constructor(
     private config: ConfigService,
@@ -111,79 +95,78 @@ export class ChatEntryComponent {
       untracked(() => this.init());
     });
     effect(() => {
-      if (!this.focused() && !this.allowActionsSignal()) this.actionComponents()?.forEach(c => c.reset());
+      const actionComponents = this.actionComponents();
+      if (!this.focused() && !this.hovering()) untracked(() => actionComponents.forEach(c => c.reset()));
     });
   }
 
   init() {
     this.actionComponents()?.forEach(c => c.reset());
-    this.writeAccess = this.auth.writeAccess(this.ref);
-    this.taggingAccess = this.auth.taggingAccess(this.ref);
-    this.deleteAccess = this.auth.deleteAccess(this.ref);
-    if (this.bareRepost && this.ref && this.repostRef?.url != repost(this.ref)) {
-      (this.store.view.top?.url === this.ref.sources![0]
+    this.writeAccess.set(this.auth.writeAccess(this.ref()));
+    this.taggingAccess.set(this.auth.taggingAccess(this.ref()));
+    this.deleteAccess.set(this.auth.deleteAccess(this.ref()));
+    if (this.bareRepost && this.ref() && this.repostRef()?.url != repost(this.ref())) {
+      (this.store.view.top?.url === this.ref().sources![0]
           ? of(this.store.view.top)
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => {
-        this.repostRef = ref;
+        this.repostRef.set(ref);
         if (!ref) return;
-        this.noComment = {
+        this.noComment.set({
           ...ref,
           comment: '',
-        };
+        });
       });
     } else {
-      this.noComment = {
-        ...this.ref,
+      this.noComment.set({
+        ...this.ref(),
         comment: '',
-      };
+      });
     }
   }
 
   get title() {
-    const title = (this.ref?.title || '').trim();
+    const title = (this.ref()?.title || '').trim();
     if (title) return title;
     if (this.focused()) return '';
-    if (this.bareRepost) return getNiceTitle(this.repostRef) || '';
-    return getNiceTitle(this.ref);
+    if (this.bareRepost) return getNiceTitle(this.repostRef()) || '';
+    return getNiceTitle(this.ref());
   }
 
-  get allowActions(): boolean {
-    return this.allowActionsSignal() || this.focused() || !!this.actionComponents()?.find(c => c.active());
-  }
+  readonly allowActions = computed(() => this.hovering() || this.focused() || !!this.actionComponents()?.find(c => c.active()));
 
-  set allowActions(value: boolean) {
-    if (value === this.allowActionsSignal()) return;
+  setHovering(value: boolean) {
+    if (value === this.hovering()) return;
     if (value) {
-      defer(() => this.allowActionsSignal.set(value));
+      defer(() => this.hovering.set(value));
     } else {
-      this.allowActionsSignal.set(false);
+      this.hovering.set(false);
     }
   }
 
   get nonLocalOrigin() {
-    if (this.ref.origin === this.store.account.origin) return undefined;
-    return this.ref.origin || '';
+    if (this.ref().origin === this.store.account.origin) return undefined;
+    return this.ref().origin || '';
   }
 
   get localhost() {
-    return this.ref.url.startsWith(this.config.base);
+    return this.ref().url.startsWith(this.config.base);
   }
 
   get authors() {
-    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
+    const lookup = this.store.origins.originMap.get(this.ref().origin || '');
     return uniq([
-      ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
-      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
+      ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
+      ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
     ]);
   }
 
-  get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
-  }
+  readonly authorExts$ = computed(() => {
+    return this.exts.getCachedExts(this.authors, this.ref().origin || '').pipe(this.admin.authorFallback);
+  });
 
   get tagLink() {
     return this.url.toLowerCase().startsWith('tag:/');
@@ -194,23 +177,23 @@ export class ChatEntryComponent {
   }
 
   get url() {
-    return this.repost ? this.ref.sources![0] : this.ref.url;
+    return this.repost ? this.ref().sources![0] : this.ref().url;
   }
 
   get currentRef() {
-    return this.repost ? this.repostRef : this.ref;
+    return this.repost ? this.repostRef() : this.ref();
   }
 
   get bareRef() {
-    return this.bareRepost ? this.repostRef : this.ref;
+    return this.bareRepost ? this.repostRef() : this.ref();
   }
 
   get repost() {
-    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
+    return this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref());
   }
 
   get bareRepost() {
-    return this.repost && !this.ref.title && !this.ref.comment;
+    return this.repost && !this.ref().title && !this.ref().comment;
   }
 
   get approved() {
@@ -250,22 +233,22 @@ export class ChatEntryComponent {
 
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   get chatroom() {
-    return this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.ref);
+    return this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.ref());
   }
 
   get thread() {
     if (!this.admin.getPlugin('plugin/thread')) return '';
-    if (!hasTag('plugin/thread', this.ref) && !this.threads) return '';
-    return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
+    if (!hasTag('plugin/thread', this.ref()) && !this.threads) return '';
+    return this.ref().sources?.[1] || this.ref().sources?.[0] || this.ref().url;
   }
 
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
+    return this.ref().metadata?.plugins?.['plugin/thread'] || 0;
   }
 
   formatAuthor(user: string) {
@@ -276,52 +259,52 @@ export class ChatEntryComponent {
   }
 
   saveRef() {
-    this.store.view.preloadRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref(), this.repostRef());
   }
 
   tag$ = (tag: string) => {
-    this.serverError = [];
-    return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!), this.ref);
+    this.serverError.set([]);
+    return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref().url, this.ref().origin!), this.ref());
   }
 
   approve() {
-    this.refs.patch(this.ref.url, this.ref.origin!, this.ref.modifiedString!, [{
+    this.refs.patch(this.ref().url, this.ref().origin!, this.ref().modifiedString!, [{
       op: 'add',
       path: '/tags/-',
       value: '_moderated',
     }]).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntilDestroyed(this.destroyRef))),
+      switchMap(() => this.refs.get(this.ref().url, this.ref().origin!).pipe(takeUntilDestroyed(this.destroyRef))),
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     ).subscribe(ref => {
-      this.serverError = [];
-      this.ref = ref;
+      this.serverError.set([]);
+      this.ref.set(ref);
       this.init();
     });
   }
 
   forceDelete$ = () => {
-    this.serverError = [];
-    return this.refs.delete(this.ref.url, this.ref.origin).pipe(
-      tap(() => this.deleted = true),
+    this.serverError.set([]);
+    return this.refs.delete(this.ref().url, this.ref().origin).pipe(
+      tap(() => this.deleted.set(true)),
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );
   }
 
   delete$ = () => {
-    this.serverError = [];
+    this.serverError.set([]);
     return (this.admin.getPlugin('plugin/delete')
-        ? this.refs.update(deleteNotice(this.ref))
-        : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
+        ? this.refs.update(deleteNotice(this.ref()))
+        : this.refs.delete(this.ref().url, this.ref().origin).pipe(map(() => ''))
     ).pipe(
-      tap(() => this.deleted = true),
+      tap(() => this.deleted.set(true)),
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );

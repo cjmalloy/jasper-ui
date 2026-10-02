@@ -41,9 +41,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
 
   private readonly injector = inject(Injector);
 
-  private readonly _newResponses = signal<number>(0);
-  get newResponses() { return this._newResponses(); }
-  set newResponses(value: number) { this._newResponses.set(value); }
+  readonly newResponses = signal<number>(0);
   private destroyRef = inject(DestroyRef);
 
   readonly ref = viewChild<RefComponent>('ref');
@@ -132,7 +130,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.clear();
       return;
     }
-    this.newResponses = 0;
+    this.newResponses.set(0);
     this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions = count);
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     (url === this.store.view.ref?.url
@@ -193,7 +191,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(url => {
         this.seen.add(url);
-        this.newResponses++;
+        this.newResponses.update(n => n + 1);
       });
     }
   }

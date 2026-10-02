@@ -24,9 +24,7 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
-  private readonly _page = signal<Page<Ref>>(Page.of([]));
-  get page() { return this._page(); }
-  set page(value: Page<Ref>) { this._page.set(value); }
+  readonly page = signal<Page<Ref>>(Page.of([]));
 
   constructor(
     private mod: ModService,
@@ -45,7 +43,7 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     effect(() => {
-      this.page = Page.of(this.store.view.ref?.alternateUrls?.map(url => ({ url })) || []);
+      this.page.set(Page.of(this.store.view.ref?.alternateUrls?.map(url => ({ url })) || []));
     }, { injector: this.injector });
     effect(() => {
       const args = getArgs(
@@ -67,10 +65,10 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
         if (refs.find(r => r.url === url)) continue;
         refs.push({ url });
       }
-      this.page = {
+      this.page.set({
         ...this.query.page,
         content: refs,
-      };
+      });
     }, { injector: this.injector });
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Alternate URLs: ` + getTitle(this.store.view.ref)), { injector: this.injector });

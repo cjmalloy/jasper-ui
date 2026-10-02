@@ -35,10 +35,7 @@ export class RefListComponent implements OnInit, HasChanges {
   readonly showPageLast = input(true);
   readonly showAlarm = input(true);
   readonly pageControls = input(true);
-  readonly emptyMessageInput = input($localize`No results found`, { alias: 'emptyMessage' });
-  get emptyMessage() {
-    return this.emptyMessageInput();
-  }
+  readonly emptyMessage = input($localize`No results found`);
   readonly showToggle = input(true);
   readonly expandInline = input(false);
   readonly showVotes = input(false);
@@ -49,15 +46,11 @@ export class RefListComponent implements OnInit, HasChanges {
 
   readonly list = viewChildren(RefComponent);
 
-  private readonly pinnedSignal = signal<Ref[]>([]);
-  get pinned() { return this.pinnedSignal(); }
-  set pinned(value: Ref[]) { this.pinnedSignal.set(value); }
-  private readonly newRefsSignal = signal<Ref[]>([]);
-  get newRefs() { return this.newRefsSignal(); }
-  set newRefs(value: Ref[]) { this.newRefsSignal.set(value); }
+  readonly pinned = signal<Ref[]>([]);
+  readonly newRefs = signal<Ref[]>([]);
 
-  readonly pageInput = input<Page<Ref> | undefined>(undefined, { alias: 'page' });
-  readonly extInput = input<Ext | undefined>(undefined, { alias: 'ext' });
+  readonly page = input<Page<Ref> | undefined>(undefined);
+  readonly ext = input<Ext | undefined>(undefined);
   readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
   readonly expandedInput = input<boolean | undefined>(undefined, { alias: 'expanded' });
 
@@ -68,11 +61,11 @@ export class RefListComponent implements OnInit, HasChanges {
     private refs: RefService,
   ) {
     effect(() => {
-      const ext = this.ext;
+      const ext = this.ext();
       untracked(() => this.loadPinned(ext));
     });
     effect(() => {
-      const page = this.page;
+      const page = this.page();
       if (!page) return;
       untracked(() => this.checkPage(page));
     });
@@ -82,20 +75,17 @@ export class RefListComponent implements OnInit, HasChanges {
     return !this.list()?.find(r => !r.saveChanges());
   }
 
-  get ext() {
-    return this.extInput();
-  }
 
   private loadPinned(value: Ext | undefined) {
     if (!value?.config?.pinned?.length) {
-      this.pinned = [];
+      this.pinned.set([]);
     } else {
       forkJoin((value.config.pinned as string[])
         .map(pin => this.refs.getCurrent(pin).pipe(
           catchError(err => of({ url: pin })),
           takeUntilDestroyed(this.destroyRef),
         )))
-        .subscribe(pinned => this.pinned = pinned);
+        .subscribe(pinned => this.pinned.set(pinned));
     }
   }
 
@@ -109,17 +99,14 @@ export class RefListComponent implements OnInit, HasChanges {
 
   get cols() {
     if (this.colsInput()) return this.colsInput();
-    return this.ext?.config?.defaultCols;
+    return this.ext()?.config?.defaultCols;
   }
 
   get expanded(): boolean {
-    if (this.expandedInput() === undefined) return !!this.ext?.config?.defaultExpanded;
+    if (this.expandedInput() === undefined) return !!this.ext()?.config?.defaultExpanded;
     return this.expandedInput()!;
   }
 
-  get page(): Page<Ref> | undefined {
-    return this.pageInput();
-  }
 
   private checkPage(page: Page<Ref>) {
     if (page) {
@@ -146,30 +133,29 @@ export class RefListComponent implements OnInit, HasChanges {
 
   getNumber(i: number) {
     if (this.showVotes()) {
-      const votes = score(this.page!.content[i]);
+      const votes = score(this.page()!.content[i]);
       if (votes < 100 &&
         this.hideNewZeroVoteScores() &&
-        DateTime.now().diff(this.page!.content[i].created!, 'minutes').minutes < 5) {
+        DateTime.now().diff(this.page()!.content[i].created!, 'minutes').minutes < 5) {
         return '•';
       }
       return votes;
     }
-    return i + this.page!.page.number * this.page!.page.size + 1;
+    return i + this.page()!.page.number * this.page()!.page.size + 1;
   }
 
   addNewRef(ref: Ref) {
     // TODO: verify read before clearing?
     this.accounts.clearNotificationsIfNone(ref.modified);
-    if (ref.url !== this.store.view.url && !this.page?.content.find(r => r.url === ref.url)) {
-      const index = this.newRefs.findIndex(r => r.url === ref.url);
+    if (ref.url !== this.store.view.url && !this.page()?.content.find(r => r.url === ref.url)) {
+      const index = this.newRefs().findIndex(r => r.url === ref.url);
       if (index !== -1) {
-        this.newRefs[index] = ref;
-        this.newRefs = [...this.newRefs];
+        this.newRefs.update(newRefs => newRefs.map((r, i) => i === index ? ref : r));
       } else if (this.insertNewAtTop()) {
-        this.newRefs = [ref, ...this.newRefs];
+        this.newRefs.set([ref, ...this.newRefs()]);
         return;
       } else {
-        this.newRefs = [...this.newRefs, ref];
+        this.newRefs.set([...this.newRefs(), ref]);
         return;
       }
     }

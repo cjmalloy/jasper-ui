@@ -25,7 +25,7 @@ export class UserListComponent implements HasChanges {
 
   readonly list = viewChildren(UserComponent);
 
-  readonly pageInput = input<Page<User> | undefined>(undefined, { alias: 'page' });
+  readonly page = input<Page<User> | undefined>(undefined);
   private readonly fetched = signal<Record<string, Profile | undefined>>({});
   private requested = new Set<string>();
 
@@ -34,7 +34,7 @@ export class UserListComponent implements HasChanges {
     private profiles: ProfileService,
   ) {
     effect(() => {
-      this.pageInput();
+      this.page();
       this.requested.clear();
       this.fetched.set({});
     });
@@ -44,12 +44,8 @@ export class UserListComponent implements HasChanges {
     return !this.list()?.find(u => !u.saveChanges());
   }
 
-  get page() {
-    return this.pageInput();
-  }
-
   hasUser(tag: string) {
-    return !!find(this.page?.content, p => p.tag === tag);
+    return !!find(this.page()?.content, p => p.tag === tag);
   }
 
   getProfile(user: User) {

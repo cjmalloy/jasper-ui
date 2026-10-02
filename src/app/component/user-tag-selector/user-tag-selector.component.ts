@@ -17,16 +17,9 @@ import { Store } from '../../store/store';
 })
 export class UserTagSelectorComponent implements OnDestroy {
 
-  private readonly _preview = signal('');
-  private readonly _editing = signal(false);
-  private readonly _autocomplete = signal<{ value: string, label: string }[]>([]);
-
-  get preview() { return this._preview(); }
-  set preview(value: string) { this._preview.set(value); }
-  get editing() { return this._editing(); }
-  set editing(value: boolean) { this._editing.set(value); }
-  get autocomplete() { return this._autocomplete(); }
-  set autocomplete(value: { value: string, label: string }[]) { this._autocomplete.set(value); }
+  readonly preview = signal('');
+  readonly editing = signal(false);
+  readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
   private previewing?: Subscription;
   private searching?: Subscription;
@@ -47,7 +40,7 @@ export class UserTagSelectorComponent implements OnDestroy {
   }
 
   blur(input: HTMLInputElement) {
-    this.editing = false;
+    this.editing.set(false);
     this.getPreview(input.value);
     if (this.store.local.selectedUserTag !== input.value) {
       this.store.local.selectedUserTag = input.value;
@@ -59,7 +52,7 @@ export class UserTagSelectorComponent implements OnDestroy {
     if (!value) return;
     this.previewing?.unsubscribe();
     this.previewing = this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
-      this.preview = x?.name || x?.tag || '';
+      this.preview.set(x?.name || x?.tag || '');
     });
   }
 
@@ -68,8 +61,8 @@ export class UserTagSelectorComponent implements OnDestroy {
   }
 
   edit(input: HTMLInputElement) {
-    this.editing = true;
-    this.preview = '';
+    this.editing.set(true);
+    this.preview.set('');
     input.focus();
   }
 
@@ -92,8 +85,8 @@ export class UserTagSelectorComponent implements OnDestroy {
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
-      this.autocomplete = xs.map(x => ({ value: x.tag, label: x.name || x.tag }));
-      this.autocomplete = uniqBy(this.autocomplete, 'value');
+      this.autocomplete.set(xs.map(x => ({ value: x.tag, label: x.name || x.tag })));
+      this.autocomplete.set(uniqBy(this.autocomplete(), 'value'));
     });
   }, 400);
 }

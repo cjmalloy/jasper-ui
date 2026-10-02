@@ -14,10 +14,10 @@ import { Store } from '../../store/store';
 })
 export class CodeComponent {
 
-  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
+  readonly group = input.required<UntypedFormGroup>();
   readonly fieldName = input('source');
 
-  private readonly _options = signal<any>({
+  readonly options = signal<any>({
     language: 'css',
     automaticLayout: true,
   });
@@ -28,18 +28,13 @@ export class CodeComponent {
   ) {
     effect(() => {
       const theme = store.darkTheme ? 'vs-dark' : 'vs';
-      this.options = {
-        ...untracked(() => this.options),
+      this.options.set({
+        ...untracked(() => this.options()),
         theme,
         language: this.language(),
-      }
+      })
     });
   }
-
-  get group(): UntypedFormGroup { return this.groupInput(); }
-
-  get options(): any { return this._options(); }
-  set options(value: any) { this._options.set(value); }
 
   readonly language = input('css');
 

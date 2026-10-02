@@ -12,7 +12,7 @@
                  (tagChanges)="setTag($event)"
                  [showClear]="!!store.view.selectedUser"
                  [showPubKey]="!!store.view.selectedUser"
-                 [externalErrors]="externalErrors"
+                 [externalErrors]="externalErrors()"
                  (clear)="clear()"></app-user-form>
 
   @if (config.scim) {
@@ -42,14 +42,14 @@
     </div>
   }
 
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
   }
 
   <span><!-- Buttons --></span>
   <span class="buttons right">
-    <button type="submit" [disabled]="submitted && !profileForm.valid" i18n>{{ store.view.selectedUser ? 'Save' : 'Create' }}</button>
+    <button type="submit" [disabled]="submitted() && !profileForm.valid" i18n>{{ store.view.selectedUser ? 'Save' : 'Create' }}</button>
     @if (!!store.view.selectedUser) {
       <button type="button" (click)="delete()" i18n>Delete</button>
     }

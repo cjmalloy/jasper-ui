@@ -19,45 +19,34 @@ import { JsonComponent } from '../json/json.component';
 })
 export class TemplateFormComponent {
 
-  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
+  readonly group = input.required<UntypedFormGroup>();
   readonly configErrors = input<string[]>([]);
   readonly defaultsErrors = input<string[]>([]);
   readonly schemaErrors = input<string[]>([]);
 
   id = 'template-' + uuid();
-  private readonly _editingConfig = signal<any>(false);
-  private readonly _editingDefaults = signal<any>(false);
-  private readonly _editingSchema = signal<any>(false);
-
-  get editingConfig() { return this._editingConfig(); }
-  set editingConfig(value: any) { this._editingConfig.set(value); }
-  get editingDefaults() { return this._editingDefaults(); }
-  set editingDefaults(value: any) { this._editingDefaults.set(value); }
-  get editingSchema() { return this._editingSchema(); }
-  set editingSchema(value: any) { this._editingSchema.set(value); }
-
-  get group(): UntypedFormGroup {
-    return this.groupInput();
-  }
+  readonly editingConfig = signal<any>(false);
+  readonly editingDefaults = signal<any>(false);
+  readonly editingSchema = signal<any>(false);
 
   get tag() {
-    return this.group.get('tag') as UntypedFormControl;
+    return this.group().get('tag') as UntypedFormControl;
   }
 
   get name() {
-    return this.group.get('name') as UntypedFormControl;
+    return this.group().get('name') as UntypedFormControl;
   }
 
   get config() {
-    return this.editingConfig || this.group.get('config')?.value;
+    return this.editingConfig() || this.group().get('config')?.value;
   }
 
   get defaults() {
-    return this.editingDefaults || this.group.get('defaults')?.value;
+    return this.editingDefaults() || this.group().get('defaults')?.value;
   }
 
   get schema() {
-    return this.editingSchema || this.group.get('schema')?.value;
+    return this.editingSchema() || this.group().get('schema')?.value;
   }
 
   validate(input: HTMLInputElement) {

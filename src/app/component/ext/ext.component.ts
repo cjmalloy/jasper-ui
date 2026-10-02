@@ -48,7 +48,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   host: {
     'class': 'ext list-item',
     'tabindex': '0',
-    '[class.deleted]': 'deleted',
+    '[class.deleted]': 'deleted()',
     '[class.upload]': 'uploadedFile',
     '[class.exists]': 'existsFile',
   },
@@ -67,51 +67,23 @@ export class ExtComponent implements HasChanges {
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly extInput = input.required<Ext>({ alias: 'ext' });
-  private readonly _ext = linkedSignal(() => this.extInput());
-  get ext() { return this._ext(); }
-  set ext(value: Ext) { this._ext.set(value); }
+  readonly ext = linkedSignal(() => this.extInput());
   readonly extFormComponent = viewChild<ExtFormComponent>('extForm');
   readonly useEditPage = input(false);
 
-  private readonly _editForm = signal<UntypedFormGroup>(undefined as unknown as UntypedFormGroup);
-  private readonly _submitted = signal(false);
-  private readonly _invalid = signal(false);
-  private readonly _overwritten = signal(false);
-  private readonly _overwrite = signal(true);
-  private readonly _icons = signal<Template[]>([]);
-  private readonly _template = signal<Template | undefined>(undefined);
-  private readonly _plugin = signal<Plugin | undefined>(undefined);
-  private readonly _editing = signal(false);
-  private readonly _viewSource = signal(false);
-  private readonly _deleted = signal(false);
-  private readonly _writeAccess = signal(false);
-  private readonly _serverError = signal<string[]>([]);
-  get editForm() { return this._editForm(); }
-  set editForm(value: UntypedFormGroup) { this._editForm.set(value); }
-  get submitted() { return this._submitted(); }
-  set submitted(value: boolean) { this._submitted.set(value); }
-  get overwrite() { return this._overwrite(); }
-  set overwrite(value: boolean) { this._overwrite.set(value); }
-  get icons() { return this._icons(); }
-  set icons(value: Template[]) { this._icons.set(value); }
-  get template() { return this._template(); }
-  set template(value: Template | undefined) { this._template.set(value); }
-  get plugin() { return this._plugin(); }
-  set plugin(value: Plugin | undefined) { this._plugin.set(value); }
-  get editing() { return this._editing(); }
-  set editing(value: boolean) { this._editing.set(value); }
-  get viewSource() { return this._viewSource(); }
-  set viewSource(value: boolean) { this._viewSource.set(value); }
-  get deleted() { return this._deleted(); }
-  set deleted(value: boolean) { this._deleted.set(value); }
-  get invalid() { return this._invalid(); }
-  set invalid(value: boolean) { this._invalid.set(value); }
-  get overwritten() { return this._overwritten(); }
-  set overwritten(value: boolean) { this._overwritten.set(value); }
-  get writeAccess() { return this._writeAccess(); }
-  set writeAccess(value: boolean) { this._writeAccess.set(value); }
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
+  readonly editForm = signal<UntypedFormGroup>(undefined as unknown as UntypedFormGroup);
+  readonly submitted = signal(false);
+  readonly invalid = signal(false);
+  readonly overwritten = signal(false);
+  readonly overwrite = signal(true);
+  readonly icons = signal<Template[]>([]);
+  readonly template = signal<Template | undefined>(undefined);
+  readonly plugin = signal<Plugin | undefined>(undefined);
+  readonly editing = signal(false);
+  readonly viewSource = signal(false);
+  readonly deleted = signal(false);
+  readonly writeAccess = signal(false);
+  readonly serverError = signal<string[]>([]);
 
   private overwrittenModified? = '';
 
@@ -129,111 +101,112 @@ export class ExtComponent implements HasChanges {
       untracked(() => this.init());
     });
     effect(() => {
-      this.extFormComponent()?.setValue(this.ext);
+      const extForm = this.extFormComponent();
+      untracked(() => extForm?.setValue(this.ext()));
     });
   }
 
   saveChanges() {
-    return !this.editForm?.dirty;
+    return !this.editForm()?.dirty;
   }
 
   init() {
-    this.submitted = false;
-    this.invalid = false;
-    this.overwrite = false;
-    this.overwritten = false;
-    this.template = this.admin.getTemplate(this.ext.tag);
-    this.plugin = this.admin.getPlugin(this.ext.tag);
-    this.editing = false;
-    this.viewSource = false;
-    this.deleted = false;
-    this.writeAccess = false;
-    this.serverError = [];
+    this.submitted.set(false);
+    this.invalid.set(false);
+    this.overwrite.set(false);
+    this.overwritten.set(false);
+    this.template.set(this.admin.getTemplate(this.ext().tag));
+    this.plugin.set(this.admin.getPlugin(this.ext().tag));
+    this.editing.set(false);
+    this.viewSource.set(false);
+    this.deleted.set(false);
+    this.writeAccess.set(false);
+    this.serverError.set([]);
     this.actionComponents()?.forEach(c => c.reset());
-    if (this.ext) {
-      this.icons = this.admin.getTemplateView(this.ext.tag);
-      if (hasPrefix(this.ext.tag, 'user')) {
-        this.icons = [...this.icons, {tag: 'user', config: { view: $localize`🧑️` }}];
+    if (this.ext()) {
+      this.icons.set(this.admin.getTemplateView(this.ext().tag));
+      if (hasPrefix(this.ext().tag, 'user')) {
+        this.icons.set([...this.icons(), {tag: 'user', config: { view: $localize`🧑️` }}]);
       }
-      this.editForm = extForm(this.fb, this.ext, this.admin, true);
-      this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag());
+      this.editForm.set(extForm(this.fb, this.ext(), this.admin, true));
+      this.writeAccess.set(this.auth.tagWriteAccess(this.qualifiedTag()));
     } else {
-      this.icons = [];
-      this.writeAccess = false;
+      this.icons.set([]);
+      this.writeAccess.set(false);
     }
   }
 
   get uploadedFile() {
-    return this.ext.upload;
+    return this.ext().upload;
   }
 
   get existsFile() {
-    return this.ext.exists;
+    return this.ext().exists;
   }
 
   readonly qualifiedTag = computed(() => {
-    return this.ext.tag + this.ext.origin;
+    return this.ext().tag + this.ext().origin;
   });
   readonly parent = computed(() => {
-    const p = parentTag(this.ext.tag);
+    const p = parentTag(this.ext().tag);
     if (!p) return p;
-    return tagLink(p, this.ext.origin, this.store.account.origin);
+    return tagLink(p, this.ext().origin, this.store.account.origin);
   });
   readonly local = computed(() => {
-    return this.ext.origin === this.store.account.origin;
+    return this.ext().origin === this.store.account.origin;
   });
   readonly extLink = computed(() => {
-    if (this.admin.local.find(t => hasPrefix(this.ext.tag, t.tag))) return this.ext.tag + (this.ext.origin || '@');
-    return tagLink(this.ext.tag, this.ext.origin, this.store.account.origin);
+    if (this.admin.local.find(t => hasPrefix(this.ext().tag, t.tag))) return this.ext().tag + (this.ext().origin || '@');
+    return tagLink(this.ext().tag, this.ext().origin, this.store.account.origin);
   });
   readonly preview = computed(() => {
-    return this.editor.getTagPreview(this.ext.tag, this.ext.origin);
+    return this.editor.getTagPreview(this.ext().tag, this.ext().origin);
   });
 
   save() {
-    this.submitted = true;
-    this.editForm.markAllAsTouched();
-    if (!this.editForm.valid) {
+    this.submitted.set(true);
+    this.editForm().markAllAsTouched();
+    if (!this.editForm().valid) {
       scrollToFirstInvalid();
       return;
     }
     let ext = {
-      ...this.editForm.value,
-      tag: this.ext.tag, // Need to fetch because control is disabled
-      modifiedString: this.overwrite ? this.overwrittenModified : this.ext.modifiedString,
+      ...this.editForm().value,
+      tag: this.ext().tag, // Need to fetch because control is disabled
+      modifiedString: this.overwrite() ? this.overwrittenModified : this.ext().modifiedString,
     };
-    const config = this.ext.config;
+    const config = this.ext().config;
     ext = {
-      ...this.ext,
+      ...this.ext(),
       ...ext,
       config: {
         ...isObject(config) ? config : {},
         ...ext.config,
       },
     };
-    if (this.ext.upload) {
+    if (this.ext().upload) {
       ext.upload = true;
-      this.ext = ext;
-      this.store.submit.setExt(this.ext);
+      this.ext.set(ext);
+      this.store.submit.setExt(this.ext());
     } else {
       this.exts.update(ext).pipe(
         switchMap(() => this.exts.get(this.qualifiedTag())),
         catchError((res: HttpErrorResponse) => {
           if (res.status === 400) {
-            this.invalid = true;
+            this.invalid.set(true);
             console.log(res.message);
             // TODO: read res.message to find which fields to delete
           }
           if (res.status === 409) {
-            this.overwritten = true;
+            this.overwritten.set(true);
             this.exts.get(this.qualifiedTag()).subscribe(x => this.overwrittenModified = x.modifiedString);
           }
-          this.serverError = printError(res);
+          this.serverError.set(printError(res));
           return throwError(() => res);
         }),
       ).subscribe(ext => {
-        this.editForm.reset();
-        this.ext = ext;
+        this.editForm().reset();
+        this.ext.set(ext);
         this.init();
       });
     }
@@ -241,27 +214,27 @@ export class ExtComponent implements HasChanges {
 
   upload() {
     (this.store.submit.overwrite
-      ? this.exts.update({ ...this.ext, origin: this.store.account.origin })
-      : this.exts.create({ ...this.ext, origin: this.store.account.origin })).pipe(
+      ? this.exts.update({ ...this.ext(), origin: this.store.account.origin })
+      : this.exts.create({ ...this.ext(), origin: this.store.account.origin })).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     ).subscribe(cursor => {
-      this.ext = {
-        ...this.ext,
+      this.ext.set({
+        ...this.ext(),
         modifiedString: cursor,
         modified: DateTime.fromISO(cursor),
         origin: this.store.account.origin,
-      };
-      this.store.submit.removeExt(this.ext);
+      });
+      this.store.submit.removeExt(this.ext());
       this.init();
     });
   }
 
   copy() {
     const copied: Ext = {
-      ...this.ext,
+      ...this.ext(),
       origin: this.store.account.origin,
     };
     this.exts.create(copied).pipe(
@@ -278,31 +251,31 @@ export class ExtComponent implements HasChanges {
             })
           );
         }
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.exts.get(this.ext.tag + this.store.account.origin)),
+      switchMap(() => this.exts.get(this.ext().tag + this.store.account.origin)),
     ).subscribe(ext => {
-      this.ext = ext;
+      this.ext.set(ext);
       this.init();
     });
   }
 
   delete$ = () => {
-    this.serverError = [];
-    if (this.ext.upload) {
-      this.store.submit.removeExt(this.ext);
-      this.deleted = true;
+    this.serverError.set([]);
+    if (this.ext().upload) {
+      this.store.submit.removeExt(this.ext());
+      this.deleted.set(true);
       return of(null);
     } else {
-      const deleteNotice = !isDeletorTag(this.ext.tag) && this.admin.getPlugin('plugin/delete')
-        ? this.exts.create(tagDeleteNotice(this.ext))
+      const deleteNotice = !isDeletorTag(this.ext().tag) && this.admin.getPlugin('plugin/delete')
+        ? this.exts.create(tagDeleteNotice(this.ext()))
         : of(null);
       return this.exts.delete(this.qualifiedTag()).pipe(
-        tap(() => this.deleted = true),
+        tap(() => this.deleted.set(true)),
         switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
-          this.serverError = printError(err);
+          this.serverError.set(printError(err));
           return throwError(() => err);
         }),
       );
@@ -310,6 +283,6 @@ export class ExtComponent implements HasChanges {
   }
 
   download() {
-    downloadTag(writeExt(this.ext));
+    downloadTag(writeExt(this.ext()));
   }
 }

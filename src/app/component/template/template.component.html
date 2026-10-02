@@ -1,24 +1,24 @@
-<div class="link" [class.remote]="!local" [title]="template.config?.description || ''">
-  @if (template.tag) {
-    <a [routerLink]="['/tags', template.tag]">{{ template.name || template.tag }}</a>
+<div class="link" [class.remote]="!local" [title]="template().config?.description || ''">
+  @if (template().tag) {
+    <a [routerLink]="['/tags', template().tag]">{{ template().name || template().tag }}</a>
   } @else {
-    <a routerLink="/tags">{{ template.name || 'root' }}</a>
+    <a routerLink="/tags">{{ template().name || 'root' }}</a>
   }
   @if (!qualifiedTag) {
     <span class="host" i18n>(root: "")</span>
-  } @else if (!template.tag && template.origin) {
-    <span class="host" i18n>(root: {{ template.origin }})</span>
-  } @else if (template.name && template.tag) {
+  } @else if (!template().tag && template().origin) {
+    <span class="host" i18n>(root: {{ template().origin }})</span>
+  } @else if (template().name && template().tag) {
     <span class="host">({{ qualifiedTag }})</span>
-  } @else if (template.origin) {
-    <span class="host">({{ template.origin }})</span>
+  } @else if (template().origin) {
+    <span class="host">({{ template().origin }})</span>
   }
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="template.modified?.toISO()" i18n>modified {{ template.modified?.toRelative() }}</span>
+    <span [title]="template().modified?.toISO()" i18n>modified {{ template().modified?.toRelative() }}</span>
     @if (!local) {
-      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', template.origin]">{{ template.origin }}</a>
+      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', template().origin]">{{ template().origin }}</a>
     }
   </div>
   <div class="actions">
@@ -28,7 +28,7 @@
       <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
     }
     @if (created && local && store.account.admin) {
-      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+      <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
     } @else {
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }
@@ -39,26 +39,26 @@
   </div>
 </div>
 
-@if (editing) {
+@if (editing()) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
     <app-template-form [group]="editForm"
-                       [configErrors]="configErrors"
-                       [defaultsErrors]="defaultsErrors"
-                       [schemaErrors]="schemaErrors"></app-template-form>
+                       [configErrors]="configErrors()"
+                       [defaultsErrors]="defaultsErrors()"
+                       [schemaErrors]="schemaErrors()"></app-template-form>
 
-    @for (e of serverError; track e) {
+    @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
     }
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      @if (saving) {
+      @if (saving()) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="saving || submitted && !editForm.valid" i18n>save</button>
-      <button type="button" (click)="editing = false" i18n>cancel</button>
+      <button type="submit" [disabled]="saving() || submitted() && !editForm.valid" i18n>save</button>
+      <button type="button" (click)="editing.set(false)" i18n>cancel</button>
     </span>
   </form>
 } @else if (viewSource) {
@@ -66,7 +66,7 @@
     <app-template-form [group]="editForm"></app-template-form>
   </form>
 } @else {
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <div class="error">{{ e }}</div>
   }
 }

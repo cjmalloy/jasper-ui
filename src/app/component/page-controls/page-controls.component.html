@@ -44,7 +44,7 @@
     }
   </select>
 
-  @if (!hideCols() && (cols || colsChanged)) {
+  @if (!hideCols() && (cols || colsChanged())) {
     <label for="cols" i18n> cols: </label>
     <select id="cols" [(ngModel)]="cols">
       <option [value]="0" i18n>default</option>

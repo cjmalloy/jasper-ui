@@ -64,7 +64,7 @@ import { TodoComponent } from '../todo/todo.component';
   host: {
     '[class]': 'pluginClasses',
     '[attr.tabindex]': 'tabIndex',
-    '[class.fullscreen]': 'fullscreen',
+    '[class.fullscreen]': 'fullscreen()',
     '[attr.title]': 'title',
     '(keydown)': 'onKeydown($event)',
   },
@@ -102,104 +102,44 @@ export class ViewerComponent implements OnDestroy {
   readonly pdfIframeEl = viewChild<ElementRef<HTMLIFrameElement>>('pdfIframe');
 
   readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
-  private readonly refSignal = linkedSignal(() => this.refInput());
-  get ref() {
-    return this.refSignal();
-  }
-  set ref(value: Ref | undefined) {
-    this.refSignal.set(value);
-  }
+  readonly ref = linkedSignal(() => this.refInput());
   readonly commentControl = input<FormControl<string>>();
   readonly tagsInput = input<string[] | undefined>(undefined, { alias: 'tags' });
-  private readonly tagsSignal = linkedSignal(() => this.tagsInput());
-  get tags() {
-    return this.tagsSignal();
-  }
-  set tags(value: string[] | undefined) {
-    this.tagsSignal.set(value);
-  }
+  readonly tags = linkedSignal(() => this.tagsInput());
   readonly expand = input(true);
   readonly autoplay = input(false);
   readonly textInput = input<string | undefined>('', { alias: 'text' });
-  private readonly textSignal = linkedSignal(() => this.textInput());
-  get text() {
-    return this.textSignal() || '';
-  }
-  set text(value: string | undefined) {
-    this.textSignal.set(value || '');
-  }
+  readonly text = linkedSignal(() => this.textInput() || '');
   readonly origin = input<string | undefined>('');
   readonly disableResize = input(false);
   readonly fullscreenInput = input(false, { alias: 'fullscreen' });
-  private readonly fullscreenSignal = linkedSignal(() => this.fullscreenInput());
-  get fullscreen() {
-    return this.fullscreenSignal();
-  }
-  set fullscreen(value: boolean) {
-    this.fullscreenSignal.set(value);
-  }
+  readonly fullscreen = linkedSignal(() => this.fullscreenInput());
   readonly comment = output<string>();
   readonly copied = output<string>();
   readonly playing = output<string>();
   readonly pausing = output<string>();
   readonly ended = output<string>();
 
-  private readonly repostSignal = signal<Ref | undefined>(undefined);
-  get repost() { return this.repostSignal(); }
-  set repost(value: Ref | undefined) { this.repostSignal.set(value); }
-  private readonly lensSignal = signal<boolean | undefined>(undefined);
-  get lens() { return this.lensSignal(); }
-  set lens(value: boolean | undefined) { this.lensSignal.set(value); }
-  private readonly lensPageSignal = signal<Page<Ref> | undefined>(undefined);
-  get lensPage() { return this.lensPageSignal(); }
-  set lensPage(value: Page<Ref> | undefined) { this.lensPageSignal.set(value); }
-  private readonly extSignal = signal<Ext | undefined>(undefined);
-  get ext() { return this.extSignal(); }
-  set ext(value: Ext | undefined) { this.extSignal.set(value); }
-  private readonly lensQuerySignal = signal('');
-  get lensQuery() { return this.lensQuerySignal(); }
-  set lensQuery(value: string) { this.lensQuerySignal.set(value); }
-  private readonly lensSizeSignal = signal(24);
-  get lensSize() { return this.lensSizeSignal(); }
-  set lensSize(value: number) { this.lensSizeSignal.set(value); }
-  private readonly lensColsSignal = signal(0);
-  get lensCols() { return this.lensColsSignal(); }
-  set lensCols(value: number) { this.lensColsSignal.set(value); }
-  private readonly lensSortSignal = signal<RefSort[]>([]);
-  get lensSort() { return this.lensSortSignal(); }
-  set lensSort(value: RefSort[]) { this.lensSortSignal.set(value); }
-  private readonly lensFilterSignal = signal<UrlFilter[]>([]);
-  get lensFilter() { return this.lensFilterSignal(); }
-  set lensFilter(value: UrlFilter[]) { this.lensFilterSignal.set(value); }
-  private readonly lensSearchSignal = signal('');
-  get lensSearch() { return this.lensSearchSignal(); }
-  set lensSearch(value: string) { this.lensSearchSignal.set(value); }
-  private readonly imageSignal = signal<string | undefined>(undefined);
-  get image() { return this.imageSignal(); }
-  set image(value: string | undefined) { this.imageSignal.set(value); }
-  private readonly playlistSignal = signal(false);
-  get playlist() { return this.playlistSignal(); }
-  set playlist(value: boolean) { this.playlistSignal.set(value); }
-  private readonly todoSignal = signal(false);
-  get todo() { return this.todoSignal(); }
-  set todo(value: boolean) { this.todoSignal.set(value); }
-  private readonly backgammonSignal = signal(false);
-  get backgammon() { return this.backgammonSignal(); }
-  set backgammon(value: boolean) { this.backgammonSignal.set(value); }
-  private readonly chessSignal = signal(false);
-  get chess() { return this.chessSignal(); }
-  set chess(value: boolean) { this.chessSignal.set(value); }
-  private readonly chessWhiteSignal = signal(true);
-  get chessWhite() { return this.chessWhiteSignal(); }
-  set chessWhite(value: boolean) { this.chessWhiteSignal.set(value); }
-  private readonly uisSignal = signal<ReturnType<AdminService['getPluginUi']>>([]);
-  get uis() { return this.uisSignal(); }
-  set uis(value: ReturnType<AdminService['getPluginUi']>) { this.uisSignal.set(value); }
-  private readonly embedReadySignal = signal(false);
-  get embedReady() { return this.embedReadySignal(); }
-  set embedReady(value: boolean) { this.embedReadySignal.set(value); }
+  readonly repost = signal<Ref | undefined>(undefined);
+  readonly lens = signal<boolean | undefined>(undefined);
+  readonly lensPage = signal<Page<Ref> | undefined>(undefined);
+  readonly ext = signal<Ext | undefined>(undefined);
+  readonly lensQuery = signal('');
+  readonly lensSize = signal(24);
+  readonly lensCols = signal(0);
+  readonly lensSort = signal<RefSort[]>([]);
+  readonly lensFilter = signal<UrlFilter[]>([]);
+  readonly lensSearch = signal('');
+  readonly image = signal<string | undefined>(undefined);
+  readonly playlist = signal(false);
+  readonly todo = signal(false);
+  readonly backgammon = signal(false);
+  readonly chess = signal(false);
+  readonly chessWhite = signal(true);
+  readonly uis = signal<ReturnType<AdminService['getPluginUi']>>([]);
+  readonly embedReady = signal(false);
 
-  private readonly oembedSignal = signal<Oembed | undefined>(undefined);
+  readonly oembed = signal<Oembed | undefined>(undefined);
   private width = 0;
   private height = 0;
 
@@ -217,57 +157,67 @@ export class ViewerComponent implements OnDestroy {
     public el: ElementRef,
   ) {
     effect(() => {
-      this.ref;
-      this.tags;
-      this.text;
+      this.refInput();
+      this.tagsInput();
+      this.textInput();
       untracked(() => this.init());
     });
-    effect(() => this.setVideo(this.videoEl()));
-    effect(() => this.setAudio(this.audioEl()));
-    effect(() => this.setPdfIframe(this.pdfIframeEl()));
+    effect(() => {
+      const value = this.videoEl();
+      untracked(() => this.setVideo(value));
+    });
+    effect(() => {
+      const value = this.audioEl();
+      untracked(() => this.setAudio(value));
+    });
+    effect(() => {
+      const value = this.pdfIframeEl();
+      untracked(() => this.setPdfIframe(value));
+    });
   }
 
   init() {
-    this.playlist = !!this.admin.getPlugin('plugin/playlist') && hasTag('plugin/playlist', this.currentTags);
-    this.todo = !!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags);
-    this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags);
-    this.chess = !!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags);
-    this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
-    this.uis = this.admin.getPluginUi(this.currentTags);
-    if (this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref)) {
-      this.refs.getCurrent(this.ref.sources[0]).pipe(
+    this.playlist.set(!!this.admin.getPlugin('plugin/playlist') && hasTag('plugin/playlist', this.currentTags));
+    this.todo.set(!!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags));
+    this.backgammon.set(!!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags));
+    this.chess.set(!!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags));
+    this.chessWhite.set(!!this.ref()?.tags?.includes(this.store.account.localTag));
+    this.uis.set(this.admin.getPluginUi(this.currentTags));
+    const repostSource = this.ref()?.sources?.[0];
+    if (repostSource && hasTag('plugin/repost', this.ref())) {
+      this.refs.getCurrent(repostSource).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => {
-        this.repost = ref;
+        this.repost.set(ref);
       });
     }
-    const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref) ? this.ref?.sources?.[0] : this.ref?.url);
-    if (queryUrl && hasTag('plugin/lens', this.ref)) {
-      this.lens = true;
+    const queryUrl = this.ref()?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref()) ? this.ref()?.sources?.[0] : this.ref()?.url);
+    if (queryUrl && hasTag('plugin/lens', this.ref())) {
+      this.lens.set(true);
       this.embeds.loadQuery$(queryUrl)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(({params, page, ext}) => {
-          this.lensPage = page;
-          this.ext = ext;
-          this.lensQuery = this.editor.getQuery(queryUrl);
-          this.lensSize = params.size;
-          this.lensCols = params.cols;
-          this.lensSort = params.sort;
-          this.lensFilter = params.filter;
-          this.lensSearch = params.search;
+          this.lensPage.set(page);
+          this.ext.set(ext);
+          this.lensQuery.set(this.editor.getQuery(queryUrl));
+          this.lensSize.set(params.size);
+          this.lensCols.set(params.cols);
+          this.lensSort.set(params.sort);
+          this.lensFilter.set(params.filter);
+          this.lensSearch.set(params.search);
           });
     }
-    if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
+    if (this.ref()?.url && hasTag('plugin/embed', this.currentTags)) {
       const parentWidth = this.el.nativeElement.parentElement.offsetWidth;
       this.width = this.embed?.width || ((this.thread || !this.config.mobile) ? Math.floor(parentWidth * 0.6) : parentWidth - 16);
       this.height = this.embed?.height || (this.config.mobile ? window.innerHeight : Math.floor(window.innerHeight * 0.8));
-      if (hasTag('plugin/fullscreen', this.ref)) {
+      if (hasTag('plugin/fullscreen', this.ref())) {
         this.width = screen.width;
         this.height = screen.height;
       }
-      this.oembeds.get(this.ref.url, this.theme, this.width, this.height).subscribe(oembed => {
-        this.oembed = oembed;
+      this.oembeds.get(this.ref()!.url, this.theme, this.width, this.height).subscribe(oembed => {
+        this.setOembed(oembed);
       });
     }
     this.reload(this.currentAudio);
@@ -300,14 +250,14 @@ export class ViewerComponent implements OnDestroy {
   }
 
   get pluginClasses() {
-    return this.css + ' ' + templates(this.tags, 'plugin')
+    return this.css + ' ' + templates(this.tags(), 'plugin')
       .map(t => t.replace(/\//g, '_').replace(/\./g, '-'))
       .join(' ');
   }
 
   get title() {
-    if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) {
-      return this.text || this.ref?.comment;
+    if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) {
+      return this.text() || this.ref()?.comment;
     }
     return undefined;
   }
@@ -359,14 +309,14 @@ export class ViewerComponent implements OnDestroy {
     iframe.style.height ||= this.embedHeight;
   }
 
-  set oembed(oembed: Oembed | null) {
-    if (isEqual(this.oembed, oembed)) return;
-    this.oembedSignal.set(oembed || undefined);
+  setOembed(oembed: Oembed | null) {
+    if (isEqual(this.oembed(), oembed)) return;
+    this.oembed.set(oembed || undefined);
     const iframe = this.iframe();
     if (oembed?.url && oembed?.type === 'photo') {
       // Image embed
-      this.tags = without(this.currentTags, 'plugin/embed');
-      this.image = embedUrl(oembed.url);
+      this.tags.set(without(this.currentTags, 'plugin/embed'));
+      this.image.set(embedUrl(oembed.url));
     } else if (iframe) {
       const i = iframe.nativeElement;
       if (oembed) {
@@ -381,46 +331,44 @@ export class ViewerComponent implements OnDestroy {
               i.style.marginRight = -1 * marginLeft + 'px';
               i.style.marginBottom = -1 * marginTop + 'px';
             }
-            this.embedReady = true;
+            this.embedReady.set(true);
               });
       } else {
-        i.src = embedUrl(this.embed?.url || this.ref?.url);
+        i.src = embedUrl(this.embed?.url || this.ref()?.url);
         if (!i.style.width) i.style.width = this.embedWidth;
         if (!i.style.height) i.style.height = this.embedHeight;
-        this.embedReady = true;
+        this.embedReady.set(true);
       }
     } else {
-      this.oembedSignal.set(undefined);
-      defer(() => this.oembed = oembed);
+      this.oembed.set(undefined);
+      defer(() => this.setOembed(oembed));
     }
-  }
-
-  get oembed(): Oembed | undefined {
-    return this.oembedSignal();
   }
 
   get mod() {
     if (!this.admin.getPlugin('plugin/mod')) return false;
     if (!hasTag('plugin/mod', this.currentTags))  return false;
-    return this.ref?.plugins?.['plugin/mod'];
+    return this.ref()?.plugins?.['plugin/mod'];
   }
 
   get hls() {
-    return getExtension(this.ref?.plugins?.['plugin/video']?.url || this.ref?.url) === '.m3u8' || this.tags?.includes('plugin/hls');
+    return getExtension(this.ref()?.plugins?.['plugin/video']?.url || this.ref()?.url) === '.m3u8' || this.tags()?.includes('plugin/hls');
   }
 
   get twitter() {
-    return this.oembed?.provider_name === 'Twitter';
+    return this.oembed()?.provider_name === 'Twitter';
   }
 
   get zoom() {
-    return this.oembed?.html && !this.oembed.html.startsWith('<iframe');
+    const html = this.oembed()?.html;
+    return html && !html.startsWith('<iframe');
   }
 
   get resizable() {
     if (this.config.mobile) return false;
-    if (this.ref?.plugins?.['plugin/embed']?.noResize) return false;
-    return !this.oembed || !this.oembed.html || this.oembed.html.startsWith('<iframe');
+    if (this.ref()?.plugins?.['plugin/embed']?.noResize) return false;
+    const html = this.oembed()?.html;
+    return !html || html.startsWith('<iframe');
   }
 
   get editingViewer() {
@@ -429,28 +377,28 @@ export class ViewerComponent implements OnDestroy {
 
   get editingRef(): Ref | undefined {
     if (!hasTag('plugin/editing', this.currentTags)) return undefined;
-    const data = this.ref?.plugins?.['plugin/editing'];
+    const data = this.ref()?.plugins?.['plugin/editing'];
     if (!data) return undefined;
-    const result = mapRef({ ...data, url: this.ref?.url, origin: this.ref?.origin });
-    if (!result.created) result.created = this.ref?.created;
+    const result = mapRef({ ...data, url: this.ref()?.url, origin: this.ref()?.origin });
+    if (!result.created) result.created = this.ref()?.created;
     return result;
   }
 
   get hideComment() {
-    if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) return true;
+    if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) return true;
     if (this.admin.getPlugin('plugin/table') && hasTag('plugin/table', this.currentTags)) return false;
-    return this.editingViewer || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
+    return this.editingViewer || (this.pdfUrl && !this.ref()?.plugins?.['plugin/pdf']?.showAbstract);
   }
 
   get currentOrigin() {
-    return this.origin() || this.ref?.origin || this.store.account.origin;
+    return this.origin() || this.ref()?.origin || this.store.account.origin;
   }
 
   get currentText() {
     if (this.hideComment) return '';
-    const value = this.text || this.ref?.comment || '';
+    const value = this.text() || this.ref()?.comment || '';
     if (!value) return '';
-    if (this.ref?.title || this.text || hasTag('plugin/comment', this.ref) || hasTag('plugin/thread', this.ref) || this.store.view.current === 'ref/thread' || hasComment(this.ref?.comment)) {
+    if (this.ref()?.title || this.text() || hasTag('plugin/comment', this.ref()) || hasTag('plugin/thread', this.ref()) || this.store.view.current === 'ref/thread' || hasComment(this.ref()?.comment)) {
       return value;
     }
     return '';
@@ -458,22 +406,22 @@ export class ViewerComponent implements OnDestroy {
 
   get currentCode() {
     if (!this.code) return '';
-    const value = this.text || this.ref?.comment || '';
+    const value = this.text() || this.ref()?.comment || '';
     return '```' + this.codeLang + '\n' + value + '\n```';
   }
 
   get currentTags() {
-    return this.tags || this.ref?.tags || [];
+    return this.tags() || this.ref()?.tags || [];
   }
 
   get thread() {
     if (!this.admin.getPlugin('plugin/thread')) return false;
-    return hasTag('plugin/thread', this.currentTags) || this.ref?.metadata?.plugins?.['plugin/thread'];
+    return hasTag('plugin/thread', this.currentTags) || this.ref()?.metadata?.plugins?.['plugin/thread'];
   }
 
   get embed() {
     if (!hasTag('plugin/embed', this.currentTags)) return undefined;
-    return this.ref?.plugins?.['plugin/embed'];
+    return this.ref()?.plugins?.['plugin/embed'];
   }
 
   get embedWidth() {
@@ -498,7 +446,7 @@ return '67vh';
 
   get audioUrl() {
     if (!hasTag('plugin/audio', this.currentTags)) return '';
-    const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
+    const url = this.ref()?.plugins?.['plugin/audio']?.url || this.ref()?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy) {
       return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Audio`));
     }
@@ -507,7 +455,7 @@ return '67vh';
 
   get videoUrl() {
     if (!hasTag('plugin/video', this.currentTags)) return '';
-    const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
+    const url = this.ref()?.plugins?.['plugin/video']?.url || this.ref()?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy) {
       return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Video`));
     }
@@ -515,8 +463,8 @@ return '67vh';
   }
 
   get imageUrl() {
-    if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
-    const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
+    if (!this.image() && !hasTag('plugin/image', this.currentTags)) return '';
+    const url = this.image() || this.ref()?.plugins?.['plugin/image']?.url || this.ref()?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
       return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Image`));
     }
@@ -524,8 +472,9 @@ return '67vh';
   }
 
   getFilename(d = $localize`Untitled`) {
-    const ext = this.ref?.url ? getExtension(this.ref.url) || '' : '';
-    const filename = this.ref?.title || d;
+    const url = this.ref()?.url;
+    const ext = url ? getExtension(url) || '' : '';
+    const filename = this.ref()?.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
@@ -545,7 +494,7 @@ return '67vh';
 
   get qrUrl() {
     if (!hasTag('plugin/qr', this.currentTags)) return '';
-    return this.ref?.plugins?.['plugin/qr']?.url || this.ref?.url;
+    return this.ref()?.plugins?.['plugin/qr']?.url || this.ref()?.url;
   }
 
   private get theme() {
@@ -554,7 +503,7 @@ return '67vh';
 
   get pdf(): string | undefined {
     if (!this.admin.getPlugin('plugin/pdf')) return undefined;
-    return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref, this.repost)?.url;
+    return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref(), this.repost())?.url;
   }
 
   get pdfUrl() {
@@ -565,15 +514,15 @@ return '67vh';
   }
 
   get uiActions(): PluginApi {
-    const actions = this.actions.wrap(this.ref);
+    const actions = this.actions.wrap(this.ref());
     const api: PluginApi = {
       comment: (comment: string) => {
-        if (this.ref) {
-          this.ref.comment = comment;
+        if (this.ref()) {
+          this.ref.update(ref => ({ ...ref!, comment }));
         } else {
-          this.text = comment;
+          this.text.set(comment);
         }
-        if (this.ref?.modified) actions.comment(comment);
+        if (this.ref()?.modified) actions.comment(comment);
         this.comment.emit(comment);
       },
       event: (event: string) => {
@@ -583,52 +532,54 @@ return '67vh';
         actions.emit(a);
       },
       tag: (tag: string) => {
-        if (this.ref?.modified) actions.tag(tag);
+        if (this.ref()?.modified) actions.tag(tag);
       },
       respond: (response: string, clear?: string[]) => {
-        if (this.ref?.modified) actions.respond(response, clear);
+        if (this.ref()?.modified) actions.respond(response, clear);
       },
       watch: () => {
-        if (this.ref?.modified) return actions.watch();
-        const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text } as RefUpdates);
+        if (this.ref()?.modified) return actions.watch();
+        const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text() } as RefUpdates);
         return {
           ref$: subject$,
           comment$: (comment: string) => {
-            this.text = comment;
-            subject$.next({ comment: this.text } as RefUpdates)
+            this.text.set(comment);
+            subject$.next({ comment: this.text() } as RefUpdates)
                 return of();
           },
         };
       },
       append: () => {
-        if (this.ref?.modified) return actions.append();
+        if (this.ref()?.modified) return actions.append();
         const subject$ = new Subject<string>();
         return {
           updates$: subject$,
           append$: (value: string) => {
-            this.text += value;
+            this.text.update(text => text + value);
             subject$.next(value);
                 return of();
           },
         };
       },
     };
-    if (!this.ref?.modified || this.auth.writeAccess(this.ref)) {
+    if (!this.ref()?.modified || this.auth.writeAccess(this.ref()!)) {
       api.patch = (patch: Partial<Ref>) => {
-        if (this.ref?.modified) {
+        if (this.ref()?.modified) {
           actions.patch!(patch);
-        } else if (this.ref) {
-          const plugins = patch.plugins ? { ...this.ref.plugins, ...patch.plugins } : this.ref.plugins;
-          Object.assign(this.ref, patch);
+        } else {
+          const ref = this.ref();
+          if (!ref) return;
+          const updated: Ref = { ...ref, ...patch };
           if (patch.plugins) {
-            this.ref.plugins = plugins;
+            updated.plugins = { ...ref.plugins, ...patch.plugins };
             for (const updateTag of Object.keys(patch.plugins)) {
-              if (!hasTag(updateTag, this.ref)) {
-                this.ref.tags = [...(this.ref.tags || []), updateTag];
+              if (!hasTag(updateTag, updated)) {
+                updated.tags = [...(updated.tags || []), updateTag];
               }
             }
           }
-          }
+          this.ref.set(updated);
+        }
       };
     }
     return api;
@@ -644,7 +595,7 @@ return '67vh';
   }
 
   get refOrDefault() {
-    return this.ref || { url: '', comment: this.text, tags: this.tags };
+    return this.ref() || { url: '', comment: this.text(), tags: this.tags() };
   }
 
   private removeAudioListener() {

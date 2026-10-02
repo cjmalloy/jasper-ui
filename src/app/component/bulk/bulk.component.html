@@ -1,7 +1,7 @@
 <details class="advanced">
   <summary>
     <span i18n>Bulk tools</span>
-    @if (batchRunning) {
+    @if (batchRunning()) {
       <app-loading [batch]="true"></app-loading>
     }
   </summary>
@@ -22,13 +22,13 @@
       @if (admin.getPlugin('plugin/invoice')) {
         <a routerLink="/submit/invoice" [queryParams]="{url: urls()}" i18n>invoice</a>
       }
-      @for (f of forms; track f.tag) {
+      @for (f of forms(); track f.tag) {
         <app-inline-plugin [action]="plugin$"
                            [plugin]="f"
-                           [value]="defaults"
+                           [value]="defaults()"
                            [appTitle]="f">{{ f.tag.substring('plugin/'.length) }}</app-inline-plugin>
       }
-      @for (a of groupedActions | keyvalue; track a.key) {
+      @for (a of groupedActions() | keyvalue; track a.key) {
         @if (a.value[0].confirm) {
           <app-confirm-action [message]="a.value[0].confirm!"
                               [action]="doAction$(a.value)"
@@ -41,7 +41,7 @@
     }
   }
 
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <div class="error">{{ e }}</div>
   }
 </details>

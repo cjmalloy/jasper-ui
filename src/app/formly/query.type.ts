@@ -54,7 +54,7 @@ import { getErrorMessage } from './errors';
            [title]="input.value"
            [style.display]="preview ? 'block' : 'none'"
            (click)="$event.target === div && edit(input, false)">
-        @for (breadcrumb of breadcrumbs; track breadcrumb) {
+        @for (breadcrumb of breadcrumbs(); track breadcrumb) {
           <span class="crumb">
               @if (breadcrumb.tag) {
                 <a class="tag" [routerLink]="['/tag', breadcrumb.tag]" queryParamsHandling="merge"><span (click)="clickPreview(input, $event, breadcrumb)">{{ breadcrumb.text }}</span></a>
@@ -65,7 +65,7 @@ import { getErrorMessage } from './errors';
         }
       </div>
       <datalist [id]="listId">
-        @for (o of autocomplete; track o.value) {
+        @for (o of autocomplete(); track o.value) {
           <option [value]="o.value">{{ o.label }}</option>
         }
       </datalist>
@@ -97,14 +97,14 @@ import { getErrorMessage } from './errors';
 export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
   listId = 'list-' + uuid();
-  private readonly _breadcrumbs = signal<Crumb[]>([]);
-  private readonly _editing = signal(false);
-  private readonly _autocomplete = signal<{ value: string, label: string }[]>([]);
+  readonly breadcrumbs = signal<Crumb[]>([]);
+  readonly editing = signal(false);
+  readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
   private showedError = false;
   private searching?: Subscription;
   private formChanges?: Subscription;
-  private readonly _query = signal('');
+  readonly query = signal('');
 
   constructor(
     private router: Router,
@@ -117,24 +117,15 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
     super();
   }
 
-  get breadcrumbs(): Crumb[] { return this._breadcrumbs(); }
-  set breadcrumbs(value: Crumb[]) { this._breadcrumbs.set(value); }
-
-  get editing(): boolean { return this._editing(); }
-  set editing(value: boolean) { this._editing.set(value); }
-
-  get autocomplete(): { value: string, label: string }[] { return this._autocomplete(); }
-  set autocomplete(value: { value: string, label: string }[]) { this._autocomplete.set(value); }
-
   ngAfterViewInit() {
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
-      if (!this.editing) {
+      if (!this.editing()) {
         if (value) {
           this.getPreview(value);
         } else {
-          this.query = '';
+          this.setQuery('');
         }
       }
     });
@@ -146,18 +137,14 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
   }
 
   get preview() {
-    return !this.editing && this.query;
+    return !this.editing() && this.query();
   }
 
-  get query(): string {
-    return this._query();
-  }
-
-  set query(value: string) {
-    this.editing = false;
-    if (this._query() === value) return;
-    this._query.set(value);
-    this.breadcrumbs = this.queryCrumbs(value);
+  setQuery(value: string) {
+    this.editing.set(false);
+    if (this.query() === value) return;
+    this.query.set(value);
+    this.breadcrumbs.set(this.queryCrumbs(value));
   }
 
   validate(input: HTMLInputElement) {
@@ -180,7 +167,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
   getPreview(value: string) {
     if (!value) return;
     if (this.showError) return;
-    this.query = value;
+    this.setQuery(value);
   }
 
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
@@ -204,7 +191,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
   }
 
   edit(input: HTMLInputElement, select: boolean | Crumb) {
-    this.editing = true;
+    this.editing.set(true);
     input.focus();
     if (select === true) {
       input.select();
@@ -321,7 +308,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
               if (plugin?.name) t.text = plugin.name;
             }
           }
-          this.breadcrumbs = [...this.breadcrumbs];
+          this.breadcrumbs.set([...this.breadcrumbs()]);
         });
       }
     }
@@ -347,10 +334,10 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
-      this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
-      if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(tag, 5 - this.autocomplete.length));
-      if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(tag, 5 - this.autocomplete.length));
-      this.autocomplete = uniqBy(this.autocomplete, 'value')
+      const autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
+      if (autocomplete.length < 5) autocomplete.push(...getPlugins(tag, 5 - autocomplete.length));
+      if (autocomplete.length < 5) autocomplete.push(...getTemplates(tag, 5 - autocomplete.length));
+      this.autocomplete.set(uniqBy(autocomplete, 'value'))
     });
   }, 400);
 }

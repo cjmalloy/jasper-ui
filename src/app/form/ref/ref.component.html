@@ -1,4 +1,4 @@
-<ng-container [formGroup]="group"
+<ng-container [formGroup]="group()"
               cdkDropListGroup>
   <label [for]="id + '-url'" i18n>URL:</label>
   <div class="form-array">
@@ -9,11 +9,11 @@
              [id]="id + '-alts'"
              fieldName="alternateUrls"
              i18n-label label="Alts:"
-             [showLabel]="dropping || !!alts.links?.length"
+             [showLabel]="dropping() || !!alts.links?.length"
              i18n-emoji emoji="📎️"
              [showAdd]="false"
-             [group]="group"
-             [class.no-margin]="!dropping && !alts.links?.length"></app-links>
+             [group]="group()"
+             [class.no-margin]="!dropping() && !alts.links?.length"></app-links>
 
   <label [for]="id + '-title'" i18n>Title:</label>
   <div class="form-array">
@@ -23,7 +23,7 @@
            [formControl]="title"
            (blur)="validate($any($event.target))">
     @if (web) {
-      @if (scrapingTitle) {
+      @if (scrapingTitle()) {
         <app-loading class="event-loading"
                      [inline]="true"
                      i18n-title title="Scrape Title"></app-loading>
@@ -42,7 +42,7 @@
            [formControl]="published"
            (blur)="validate($any($event.target))">
     @if (web) {
-      @if (scrapingPublished) {
+      @if (scrapingPublished()) {
         <app-loading class="event-loading"
                      [inline]="true"
                      i18n-title title="Scrape Published"></app-loading>
@@ -64,11 +64,11 @@
              [id]="id + '-sources'"
              fieldName="sources"
              i18n-label label="Sources:"
-             [showLabel]="dropping || !!sources.links?.length"
+             [showLabel]="dropping() || !!sources.links?.length"
              i18n-emoji emoji="🔗️"
              [showAdd]="false"
-             [group]="group"
-             [class.no-margin]="!dropping && !sources.links?.length"></app-links>
+             [group]="group()"
+             [class.no-margin]="!dropping() && !sources.links?.length"></app-links>
 
   <div class="add-plugins-label">
     <label [for]="id + '-plugins'" class="mobile-inline" i18n>Add Plugin:</label>
@@ -90,7 +90,7 @@
   </div>
   <app-form-plugins #pluginsFormComponent id="plugins"
                     (togglePlugin)="togglePlugin($event)"
-                    [group]="group"></app-form-plugins>
+                    [group]="group()"></app-form-plugins>
 
   @if (customEditor()) {
     <span><!-- Editor --></span>
@@ -117,7 +117,7 @@
                   [fillWidth]="fill"
                   [url]="web && url.value"
                   (scrape)="scrapeAll()"
-                  [scraping]="scrapingAll"
+                  [scraping]="scrapingAll()"
                   (syncEditor)="syncEditor()"
                   (syncTags)="setTags($event)"
                   (addSource)="addSource($event)"
@@ -125,6 +125,6 @@
     </div>
   }
 
-  <app-tags #tagsFormComponent [group]="group" [origin]="origin()"></app-tags>
+  <app-tags #tagsFormComponent [group]="group()" [origin]="origin()"></app-tags>
 
 </ng-container>

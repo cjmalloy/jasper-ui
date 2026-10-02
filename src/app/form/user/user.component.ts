@@ -31,7 +31,7 @@ import { TagsFormComponent } from '../tags/tags.component';
 })
 export class UserFormComponent implements OnInit {
 
-  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
+  readonly group = input.required<UntypedFormGroup>();
   readonly showPubKey = input(true);
   readonly fillWidth = input<HTMLElement>();
   readonly tagChanges = output<string>();
@@ -48,9 +48,7 @@ export class UserFormComponent implements OnInit {
   readonly tagWriteAccess = viewChild.required<TagsFormComponent>('tagWriteAccess');
 
   id = 'user-' + uuid();
-  private readonly _editingExternal = signal<any>(false);
-  get editingExternal() { return this._editingExternal(); }
-  set editingExternal(value: any) { this._editingExternal.set(value); }
+  readonly editingExternal = signal<any>(false);
 
   private showedError = false;
 
@@ -62,20 +60,16 @@ export class UserFormComponent implements OnInit {
     this.pubKey.disable();
   }
 
-  get group(): UntypedFormGroup {
-    return this.groupInput();
-  }
-
   get tag() {
-    return this.group.get('tag') as UntypedFormControl;
+    return this.group().get('tag') as UntypedFormControl;
   }
 
   get pubKey() {
-    return this.group.get('pubKey') as UntypedFormControl;
+    return this.group().get('pubKey') as UntypedFormControl;
   }
 
   get external() {
-    return this.editingExternal || this.group.get('external')?.value;
+    return this.editingExternal() || this.group().get('external')?.value;
   }
 
   get showError() {
@@ -115,7 +109,7 @@ export class UserFormComponent implements OnInit {
     this.writeAccess().setTags([...user.writeAccess || []]);
     this.tagReadAccess().setTags([...user.tagReadAccess || []]);
     this.tagWriteAccess().setTags([...user.tagWriteAccess || []]);
-    this.group.patchValue({
+    this.group().patchValue({
       ...user,
       external: user.external ? JSON.stringify(user.external, null, 2) : undefined,
     });

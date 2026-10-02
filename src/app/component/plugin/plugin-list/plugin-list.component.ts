@@ -1,4 +1,4 @@
-import { Component, effect, input, ChangeDetectionStrategy, viewChildren } from '@angular/core';
+import { Component, effect, input, ChangeDetectionStrategy, viewChildren, untracked } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -22,7 +22,10 @@ export class PluginListComponent implements HasChanges {
   readonly page = input<Page<Plugin> | undefined>();
 
   constructor(private router: Router) {
-    effect(() => this.checkPage(this.page()));
+    effect(() => {
+      const value = this.page();
+      untracked(() => this.checkPage(value));
+    });
   }
 
   saveChanges() {

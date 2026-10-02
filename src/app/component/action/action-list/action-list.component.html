@@ -1,5 +1,5 @@
 @for (a of groupedActions() | keyvalue; track a.key; let i = $index) {
-  @if (i < actions() - hiddenActions) {
+  @if (i < actions() - hiddenActions()) {
     @if (a.value[0].confirm) {
       <app-confirm-action [action]="apply$(a.value)"
                           [appTitle]="a.value">{{ a.key }}</app-confirm-action>
@@ -9,14 +9,14 @@
     }
   }
 }
-@if (advanced() || hiddenActions || mediaAttachment()) {
+@if (advanced() || hiddenActions() || mediaAttachment()) {
   <span class="fake-link show-more"
         (click)="showAdvanced($event)">…</span>
   <ng-template #actionsMenu>
     <div class="context-menu advanced-actions" (click)="$event.stopPropagation()">
-      @if (hiddenActions) {
+      @if (hiddenActions()) {
         @for (a of groupedActions() | keyvalue; track a.key; let i = $index) {
-          @if (i >= actions() - hiddenActions) {
+          @if (i >= actions() - hiddenActions()) {
             @if (a.value[0].confirm) {
               <app-confirm-action [action]="apply$(a.value)"
                                   [appTitle]="a.value">{{ a.key }}</app-confirm-action>

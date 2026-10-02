@@ -21,7 +21,7 @@ import { SettingsComponent } from '../settings/settings.component';
   styleUrl: './tabs.component.scss',
   host: {
     'class': 'tabs',
-    '[class.measuring]': 'measuring',
+    '[class.measuring]': 'measuring()',
     '[class.floating-tabs]': 'floatingTabs',
     '(window:resize)': 'onResize()',
   },
@@ -33,18 +33,11 @@ export class TabsComponent implements AfterViewInit {
   readonly routerLinks = contentChildren(RouterLink);
   readonly anchors = contentChildren(RouterLink, { read: ElementRef });
 
-  private readonly _options = signal<string[]>([], { equal: () => false });
-  private readonly _hidden = signal(0);
-  private readonly _measuring = signal(true);
+  readonly options = signal<string[]>([], { equal: () => false });
+  readonly hidden = signal(0);
+  readonly measuring = signal(true);
 
-  get options() { return this._options(); }
-  set options(value: string[]) { this._options.set(value); }
   map = new Map<string, number>();
-  get hidden() { return this._hidden(); }
-  set hidden(value: number) { this._hidden.set(value); }
-
-  get measuring() { return this._measuring(); }
-  set measuring(value: boolean) { this._measuring.set(value); }
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private destroyed = false;
@@ -62,7 +55,7 @@ export class TabsComponent implements AfterViewInit {
       this.anchors();
       defer(() => {
         if (this.destroyed) return;
-        this.measuring = true;
+        this.measuring.set(true);
         this.updateTabs();
       });
     });
@@ -74,11 +67,11 @@ export class TabsComponent implements AfterViewInit {
   }
 
   get floatingTabs() {
-    return this.config.mini || this.hidden > 0 && this.hidden === this.options.length;
+    return this.config.mini || this.hidden() > 0 && this.hidden() === this.options().length;
   }
 
   onResize() {
-    if (!this.options.length) return;
+    if (!this.options().length) return;
     defer(() => {
       if (this.destroyed) return;
       if (!document.body.classList.contains('fullscreen')) {
@@ -88,14 +81,14 @@ export class TabsComponent implements AfterViewInit {
   }
 
   measureVisible() {
-    if (!this.options.length) return;
-    this.hidden = this.options.length - this.visible;
+    if (!this.options().length) return;
+    this.hidden.set(this.options().length - this.visible);
     this.hideTabs();
   }
 
   updateTabs() {
-    this.hidden = 0;
-    this.options = [];
+    this.hidden.set(0);
+    const options: string[] = [];
     this.map.clear();
     const tabs = this.anchors();
     for (const t of tabs) {
@@ -103,16 +96,16 @@ export class TabsComponent implements AfterViewInit {
       if (el.tagName !== 'A') continue;
       if (el.classList.contains('logo')) continue;
       const value = el.title || el.innerText;
-      this.options.push(value);
+      options.push(value);
       this.map.set(value, tabs.indexOf(t));
     }
-    this._options.set(this.options);
+    this.options.set(options);
     defer(() => !this.destroyed && this.onResize());
   }
 
   hideTabs() {
     const tabs = this.anchors();
-    let i = this.options.length - 1;
+    let i = this.options().length - 1;
     for (const t of tabs) {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
@@ -120,11 +113,11 @@ export class TabsComponent implements AfterViewInit {
       if (el.classList.contains('current-tab')) {
         el.style.display = 'inline-block';
       } else {
-        el.style.display = i > this.hidden ? 'inline-block' : 'none';
+        el.style.display = i > this.hidden() ? 'inline-block' : 'none';
         i--;
       }
     }
-    this.measuring = false;
+    this.measuring.set(false);
   }
   readonly tabWidths = computed(() => {
     const result: number[] = [];
@@ -176,7 +169,7 @@ export class TabsComponent implements AfterViewInit {
    */
   get visible() {
     const current = this.currentTabWidth;
-    if (!current) return this.options.length;
+    if (!current) return this.options().length;
     if (this.config.mini) return 0;
     const el = this.el.nativeElement;
     const width = el.offsetWidth - 2;
@@ -196,7 +189,7 @@ export class TabsComponent implements AfterViewInit {
         return result;
       }
     }
-    return this.options.length;
+    return this.options().length;
   }
 
   nav(select: HTMLSelectElement) {

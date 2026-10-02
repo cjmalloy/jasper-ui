@@ -18,22 +18,16 @@ export class ThemesFormComponent {
   readonly label = input($localize `theme`);
   readonly group = input.required<UntypedFormGroup>();
 
-  private readonly _keys = signal<string[]>([]);
-  private readonly _selectedTheme = signal<string | undefined>(undefined);
-  get selectedTheme() { return this._selectedTheme(); }
-  set selectedTheme(value: string | undefined) { this._selectedTheme.set(value); }
+  readonly keys = signal<string[]>([]);
+  readonly selectedTheme = signal<string | undefined>(undefined);
 
   constructor(
     private fb: UntypedFormBuilder,
   ) {
     effect(() => {
       this.group();
-      this._keys.set(Object.keys(this.themes.value));
+      this.keys.set(Object.keys(this.themes.value));
     });
-  }
-
-  get keys() {
-    return this._keys();
   }
 
   get themes() {
@@ -47,16 +41,16 @@ export class ThemesFormComponent {
 
   addTheme(name: string, value = '') {
     this.themes.addControl(name, this.fb.control(value));
-    this._keys.set(Object.keys(this.themes.value));
+    this.keys.set(Object.keys(this.themes.value));
   }
 
   removeTheme(name: string) {
     this.themes.removeControl(name);
-    this._keys.set(Object.keys(this.themes.value));
+    this.keys.set(Object.keys(this.themes.value));
   }
 
   edit(name?: string) {
-    this.selectedTheme = name;
+    this.selectedTheme.set(name);
   }
 }
 

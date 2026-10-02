@@ -3,6 +3,7 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
 import {
   Component,
+  computed,
   forwardRef,
   OnDestroy,
   ChangeDetectionStrategy,
@@ -65,8 +66,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   readonly list = viewChildren(KanbanColumnComponent);
 
   readonly query = input<string>();
-  readonly extInput = input<Ext | undefined>(undefined, { alias: 'ext' });
-  get ext() { return this.extInput(); }
+  readonly ext = input<Ext | undefined>(undefined);
   readonly pageControls = input(true);
   readonly fullPage = input(false);
   readonly size = input(8);
@@ -77,7 +77,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   error: any;
   updates = new Subject<KanbanDrag>();
 
-  private readonly disableSwimLanesSignal = signal<boolean | undefined>(undefined);
+  protected readonly swimLanesOverride = signal<boolean | undefined>(undefined);
 
   private defaultConfig: KanbanConfig = {
     columns: []
@@ -91,12 +91,12 @@ export class KanbanComponent implements OnDestroy, HasChanges {
     private tags: TaggingService,
   ) {
     effect(() => {
-      this.extInput();
+      this.ext();
       untracked(() => this.loadExt());
     });
     effect(() => {
       this.query();
-      this.extInput();
+      this.ext();
       this.pageControls();
       this.fullPage();
       this.size();
@@ -127,24 +127,17 @@ export class KanbanComponent implements OnDestroy, HasChanges {
     this.store.view.floatingSidebar = innerWidth - sidebarSize < margin + minColSize * (this.columns.length + (this.showColumnBacklog ? 1 : 0));
   }
 
-  get disableSwimLanes(): boolean {
-    const value = this.disableSwimLanesSignal();
-    return value === undefined ? !!this.kanbanConfig.hideSwimLanes : value;
-  }
-
-  set disableSwimLanes(value: boolean) {
-    this.disableSwimLanesSignal.set(value);
-  }
+  readonly disableSwimLanes = computed(() => this.swimLanesOverride() ?? !!this.kanbanConfig.hideSwimLanes);
 
   get columns(): string[] {
     if (this.filteredColumnBacklog) return [];
     if (this.filteredColumn) return [this.filteredColumn];
-    if (!this.kanbanConfig.columns) return [this.ext!.tag];
+    if (!this.kanbanConfig.columns) return [this.ext()!.tag];
     return without(this.kanbanConfig.columns, ...this.negateFilters);
   }
 
   get swimLanes(): string[] | undefined {
-    if (this.disableSwimLanes) return undefined;
+    if (this.disableSwimLanes()) return undefined;
     if (!this.kanbanConfig.swimLanes) return undefined;
     if (!this.kanbanConfig.swimLanes.length) return undefined;
     if (this.filteredSwimLaneBacklog) return [];
@@ -157,7 +150,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   }
 
   get andSlBacklog() {
-    if (this.disableSwimLanes) return '';
+    if (this.disableSwimLanes()) return '';
     if (!this.kanbanConfig.swimLanes?.length) return '';
     return ':' + this.slBacklog;
   }
@@ -168,13 +161,13 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   }
 
   get slBacklog() {
-    if (this.disableSwimLanes) return '';
+    if (this.disableSwimLanes()) return '';
     if (!this.kanbanConfig.swimLanes?.length) return '';
     return this.kanbanConfig.swimLanes.map(t => t.startsWith('!') ? t.substring(1) : ('!' + t)).join(':');
   }
 
   get kanbanConfig(): KanbanConfig {
-    return this.ext?.config || this.defaultConfig;
+    return this.ext()?.config || this.defaultConfig;
   }
 
   get queryTags(): string[] {
@@ -201,7 +194,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   }
 
   get filteredColumn() {
-    const cols = this.kanbanConfig.columns || [this.ext?.tag];
+    const cols = this.kanbanConfig.columns || [this.ext()?.tag];
     for (const tag of this.queryTags) {
       if (cols.includes(tag)) return tag;
     }
@@ -262,7 +255,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
       ...this.kanbanConfig.addTags || [],
       ...this.store.view.queryTags.map(localTag),
     ];
-    result.push(this.ext!.tag);
+    result.push(this.ext()!.tag);
     if (tags.col) result.push(tags.col);
     if (tags.sl) result.push(tags.sl);
     return uniq(result);

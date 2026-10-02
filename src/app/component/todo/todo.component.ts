@@ -4,6 +4,7 @@ import {
   effect,
   ChangeDetectionStrategy,
   input,
+  linkedSignal,
   output,
   signal,
   untracked,
@@ -43,26 +44,12 @@ export class TodoComponent {
   readonly comment = output<string>();
   readonly copied = output<string>();
 
-  private readonly linesSignal = signal<string[]>([]);
-  private readonly addTextSignal = signal('');
-  private readonly pushTextSignal = signal<string[]>([]);
-  private readonly pressToUnlockSignal = signal(false);
-  private readonly serverErrorsSignal = signal<string[]>([]);
-
-  get lines() { return this.linesSignal(); }
-  set lines(value: string[]) { this.linesSignal.set(value); }
-
-  get addText() { return this.addTextSignal(); }
-  set addText(value: string) { this.addTextSignal.set(value); }
-
-  get pushText() { return this.pushTextSignal(); }
-  set pushText(value: string[]) { this.pushTextSignal.set(value); }
-
-  get pressToUnlock() { return this.pressToUnlockSignal(); }
-  set pressToUnlock(value: boolean) { this.pressToUnlockSignal.set(value); }
-
-  get serverErrors() { return this.serverErrorsSignal(); }
-  set serverErrors(value: string[]) { this.serverErrorsSignal.set(value); }
+  readonly lines = signal<string[]>([]);
+  readonly addText = signal('');
+  readonly pushText = signal<string[]>([]);
+  readonly pressToUnlock = signal(false);
+  readonly serverErrors = signal<string[]>([]);
+  private readonly refComment = linkedSignal(() => this.ref()?.comment);
 
   private watch?: Subscription;
   private pushing?: Subscription;
@@ -74,7 +61,7 @@ export class TodoComponent {
     private actions: ActionService,
   ) {
     if (config.mobile) {
-      this.pressToUnlock = true;
+      this.pressToUnlock.set(true);
     }
     effect(() => {
       this.ref();
@@ -84,24 +71,24 @@ export class TodoComponent {
   }
 
   init() {
-    this.lines = (this.ref()?.comment || this.text() || '').split('\n')?.filter(l => !!l) || [];
+    this.lines.set((this.refComment() || this.text() || '').split('\n')?.filter(l => !!l) || []);
     const ref = this.ref();
     if (!this.watch && ref) {
       const watch = this.actions.watch(ref);
       this.comment$ = watch.comment$;
       this.watch = watch.ref$.subscribe(update => {
-        this.ref()!.comment = update.comment;
+        this.refComment.set(update.comment);
         this.init();
       });
     }
   }
 
   touchstart(e: TouchEvent) {
-    this.pressToUnlock = true;
+    this.pressToUnlock.set(true);
   }
 
   get empty() {
-    return !this.lines.length;
+    return !this.lines().length;
   }
 
   get local() {
@@ -109,24 +96,26 @@ export class TodoComponent {
   }
 
   drop(event: CdkDragDrop<string, string, string>) {
+    const lines = [...this.lines()];
     if (event.previousContainer.data === event.container.data) {
-        this.lines.splice(event.previousIndex, 1);
+        lines.splice(event.previousIndex, 1);
     } else {
       // TODO: Delete from prev
     }
-    this.lines.splice(event.currentIndex, 0, event.item.data);
-    this.lines = [...this.lines];
-    this.save$(this.lines.join('\n'))?.subscribe();
+    lines.splice(event.currentIndex, 0, event.item.data);
+    this.lines.set(lines);
+    this.save$(this.lines().join('\n'))?.subscribe();
   }
 
   update(line: {index: number, text: string, checked: boolean}) {
+    const lines = [...this.lines()];
     if (!line.text) {
-      this.lines.splice(line.index, 1);
+      lines.splice(line.index, 1);
     } else {
-      this.lines[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
+      lines[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
     }
-    this.lines = [...this.lines];
-    this.save$(this.lines.join('\n'))?.subscribe();
+    this.lines.set(lines);
+    this.save$(this.lines().join('\n'))?.subscribe();
   }
 
   save$(comment: string) {
@@ -144,16 +133,16 @@ export class TodoComponent {
 
   add(cancel?: Event) {
     cancel?.preventDefault();
-    this.addText = this.addText.trim();
-    if (!this.addText) return;
-    this.pushText = [...this.pushText, `- [ ] ${this.addText}`];
-    this.addText = '';
+    this.addText.set(this.addText().trim());
+    if (!this.addText()) return;
+    this.pushText.set([...this.pushText(), `- [ ] ${this.addText()}`]);
+    this.addText.set('');
     if (!this.pushing) this.pushing = this.push$().subscribe();
   }
 
   push$(): Observable<string> {
-    const lines = [...this.pushText];
-    return this.save$([...this.lines, ...lines].join('\n')).pipe(
+    const lines = [...this.pushText()];
+    return this.save$([...this.lines(), ...lines].join('\n')).pipe(
       catchError((err: any) => {
         if (err.conflict) {
           return timer(100).pipe(switchMap(() => this.push$()));
@@ -161,9 +150,9 @@ export class TodoComponent {
         return throwError(() => err);
       }),
       tap(() => {
-        this.pushText = this.pushText.slice(lines.length);
+        this.pushText.set(this.pushText().slice(lines.length));
         delete this.pushing;
-        if (this.pushText.length) this.pushing = this.push$().subscribe();
+        if (this.pushText().length) this.pushing = this.push$().subscribe();
       }),
     );
   }

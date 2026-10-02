@@ -1,8 +1,8 @@
-@for (ref of newRefs; track ref) {
+@for (ref of newRefs(); track ref) {
   @if (commentView()) {
     <app-comment [ref]="ref"
                  [showLoadMore]="showLoadMore()"
-                 [depth]="depth"
+                 [depth]="depth()"
                  [context]="context()"></app-comment>
   } @else {
     <app-ref [ref]="ref"
@@ -12,12 +12,12 @@
              [expandInline]="true"></app-ref>
   }
 }
-@if (depth > 0) {
-  @for (ref of list; track ref) {
+@if (depth() > 0) {
+  @for (ref of list(); track ref) {
     @if (commentView()) {
       <app-comment [ref]="ref"
                    [showLoadMore]="showLoadMore()"
-                   [depth]="depth"
+                   [depth]="depth()"
                    [context]="context()"></app-comment>
     } @else {
       <app-ref [ref]="ref"

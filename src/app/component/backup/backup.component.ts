@@ -19,7 +19,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
   host: {
-    '[class.deleted]': 'deleted',
+    '[class.deleted]': 'deleted()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
@@ -33,18 +33,11 @@ export class BackupComponent {
   readonly restoreButton = viewChild('restoreButton', { read: ElementRef });
   readonly restoreOptionsTemplate = viewChild.required<TemplateRef<any>>('restoreOptions');
 
-  get deleted() { return this._deleted(); }
-  set deleted(value: boolean) { this._deleted.set(value); }
-  private readonly _deleted = signal(false);
-  private readonly _serverError = signal<string[]>([]);
-  private readonly _backupKey = signal('');
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
+  readonly deleted = signal(false);
+  readonly serverError = signal<string[]>([]);
+  readonly backupKey = signal('');
   restoreOptionsForm: UntypedFormGroup;
   restoreOptionsRef?: OverlayRef;
-
-  get backupKey() { return this._backupKey(); }
-  set backupKey(value: string) { this._backupKey.set(value); }
 
   constructor(
     public admin: AdminService,
@@ -55,7 +48,7 @@ export class BackupComponent {
     private viewContainerRef: ViewContainerRef,
   ) {
     backups.getDownloadKey()
-      .subscribe(key => this.backupKey = key);
+      .subscribe(key => this.backupKey.set(key));
     this.restoreOptionsForm = fb.group({
       cache: [false],
       ref: [true],
@@ -87,7 +80,7 @@ export class BackupComponent {
   }
 
   get downloadLinkAuth() {
-    return this.downloadLink + (this.origin() ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
+    return this.downloadLink + (this.origin() ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey());
   }
 
   showRestoreOptions() {
@@ -130,11 +123,11 @@ export class BackupComponent {
     this.closeRestoreOptions();
     this.backups.restore(this.origin(), this.id(), options).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
       tap(() => {
-        this.serverError = [];
+        this.serverError.set([]);
       }),
     ).subscribe();
   }
@@ -152,12 +145,12 @@ export class BackupComponent {
   delete$ = () => {
     return this.backups.delete(this.origin(), this.id()).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
       tap(() => {
-        this.serverError = [];
-        this.deleted = true;
+        this.serverError.set([]);
+        this.deleted.set(true);
       }),
     );
   }

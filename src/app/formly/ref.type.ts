@@ -27,19 +27,19 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   host: { 'class': 'field' },
   template: `
     <div class="form-array">
-      @if (uploading) {
-        <progress class="grow" max="100" [value]="progress"></progress>
+      @if (uploading()) {
+        <progress class="grow" max="100" [value]="progress()"></progress>
       } @else {
         <input class="preview grow"
                type="text"
-               [value]="preview"
+               [value]="preview()"
                [title]="input.value"
-               [style.display]="preview ? 'block' : 'none'"
+               [style.display]="preview() ? 'block' : 'none'"
                (focus)="clickPreview(input)"
                (drop)="upload($event, $event.dataTransfer?.items)"
                (paste)="upload($event, $event.clipboardData?.items)">
         <datalist [id]="listId">
-          @for (o of autocomplete; track o.value) {
+          @for (o of autocomplete(); track o.value) {
             <option [value]="o.value">{{ o.label }}</option>
           }
         </datalist>
@@ -47,7 +47,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
                class="grow"
                type="url"
                [attr.list]="listId"
-               [class.hidden-without-removing]="preview"
+               [class.hidden-without-removing]="preview()"
                (input)="search(input.value)"
                (blur)="blur(input)"
                (focusin)="edit(input)"
@@ -83,12 +83,12 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
 
   listId = 'list-' + uuid();
   previewUrl = '';
-  private readonly _preview = signal('');
-  private readonly _editing = signal(false);
-  private readonly _progress = signal(0);
-  private readonly _uploading = signal(false);
+  readonly preview = signal('');
+  readonly editing = signal(false);
+  readonly progress = signal(0);
+  readonly uploading = signal(false);
   files = !!this.admin.getPlugin('plugin/file');
-  private readonly _autocomplete = signal<{ value: string, label: string }[]>([]);
+  readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
   private showedError = false;
   private previewing?: Subscription;
@@ -107,29 +107,14 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     super();
   }
 
-  get preview(): string { return this._preview(); }
-  set preview(value: string) { this._preview.set(value); }
-
-  get editing(): boolean { return this._editing(); }
-  set editing(value: boolean) { this._editing.set(value); }
-
-  get progress(): number { return this._progress(); }
-  set progress(value: number) { this._progress.set(value); }
-
-  get uploading(): boolean { return this._uploading(); }
-  set uploading(value: boolean) { this._uploading.set(value); }
-
-  get autocomplete(): { value: string, label: string }[] { return this._autocomplete(); }
-  set autocomplete(value: { value: string, label: string }[]) { this._autocomplete.set(value); }
-
   ngAfterViewInit() {
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
-      if (!this.editing && value) {
+      if (!this.editing() && value) {
         this.getPreview(value);
       } else {
-        this.preview = '';
+        this.preview.set('');
       }
     });
   }
@@ -147,7 +132,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   }
 
   blur(input: HTMLInputElement) {
-    this.editing = false;
+    this.editing.set(false);
     if (this.showError && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
@@ -167,18 +152,18 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
     ).subscribe(ref => {
       if (ref) {
-        this.preview = getPageTitle(ref);
+        this.preview.set(getPageTitle(ref));
       } else if (value.toLowerCase().startsWith('tag:/')) {
         this.editor.getTagPreview(value.substring('tag:/'.length)).subscribe(x => {
-          this.preview = x?.name || x?.tag || '';
+          this.preview.set(x?.name || x?.tag || '');
         });
       }
     });
   }
 
   edit(input: HTMLInputElement) {
-    this.editing = true;
-    this.preview = '';
+    this.editing.set(true);
+    this.preview.set('');
     this.previewUrl = '';
     input.focus();
   }
@@ -198,22 +183,22 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
       search: value,
       size: 3,
     }).subscribe(page => {
-      this.autocomplete = uniqBy(page.content, ref => ref.url).map(ref => ({ value: ref.url, label: getPageTitle(ref) }));
+      this.autocomplete.set(uniqBy(page.content, ref => ref.url).map(ref => ({ value: ref.url, label: getPageTitle(ref) })));
     })
   }, 400);
 
   onUpload(event?: Saving | string) {
     if (!event) {
-      this.uploading = false;
+      this.uploading.set(false);
     } else if (isString(event)) {
       // TODO set error
     } else if (event.url) {
-      this.uploading = false;
-      this.preview = event.name;
+      this.uploading.set(false);
+      this.preview.set(event.name);
       this.field.formControl!.setValue(event.url);
     } else {
-      this.uploading = true;
-      this.progress = event.progress || 0;
+      this.uploading.set(true);
+      this.progress.set(event.progress || 0);
     }
   }
 

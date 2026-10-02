@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, model, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, model, signal, untracked, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer, uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
@@ -28,12 +28,10 @@ export class SelectPluginComponent {
   textPlugins = this.admin.submitText.filter(p => this.auth.canAddTag(p.tag));
   settingsPlugins = this.admin.submitSettings.filter(p => this.auth.canAddTag(p.tag));
 
-  private readonly _customPlugin = signal<Plugin | undefined>(undefined);
+  readonly customPlugin = signal<Plugin | undefined>(undefined);
   readonly plugin = model('');
-  get customPlugin() { return this._customPlugin(); }
-  set customPlugin(value: Plugin | undefined) { this._customPlugin.set(value); }
-  readonly plugins = computed(() => uniqBy([
-    ...(this.customPlugin ? [this.customPlugin] : []),
+  readonly plugins = computed<Plugin[]>(() => uniqBy([
+    ...(this.customPlugin() ? [this.customPlugin()!] : []),
     ...(this.add() ? this.addPlugins : []),
     ...(this.text() ? this.textPlugins : []),
     ...(this.settings() ? this.settingsPlugins : []),
@@ -44,7 +42,10 @@ export class SelectPluginComponent {
     private admin: AdminService,
     private auth: AuthzService,
   ) {
-    effect(() => this.selectPlugin(this.plugin()));
+    effect(() => {
+      const plugin = this.plugin();
+      untracked(() => this.selectPlugin(plugin));
+    });
   }
 
   private selectPlugin(value: string) {
@@ -55,7 +56,7 @@ export class SelectPluginComponent {
       if (!this.plugins().find(p => p?.tag === value)) {
         const plugin = this.admin.getPlugin(value);
         if (plugin) {
-          this.customPlugin = plugin;
+          this.customPlugin.set(plugin);
           defer(() => this.select()!.nativeElement.selectedIndex = 1);
           return;
         }

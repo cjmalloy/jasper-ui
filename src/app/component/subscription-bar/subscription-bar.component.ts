@@ -20,13 +20,8 @@ import { Store } from '../../store/store';
   imports: [RouterLink, RouterLinkActive, TitleDirective]
 })
 export class SubscriptionBarComponent implements AfterViewInit {
-  private readonly _bookmarks = signal<TagPreview[]>([]);
-  private readonly _subs = signal<TagPreview[]>([]);
-
-  get bookmarks() { return this._bookmarks(); }
-  set bookmarks(value: TagPreview[]) { this._bookmarks.set(value); }
-  get subs() { return this._subs(); }
-  set subs(value: TagPreview[]) { this._subs.set(value); }
+  readonly bookmarks = signal<TagPreview[]>([]);
+  readonly subs = signal<TagPreview[]>([]);
 
   private startIndex = this.currentIndex;
 
@@ -50,14 +45,14 @@ export class SubscriptionBarComponent implements AfterViewInit {
       const bookmarks = this.store.account.bookmarks;
       const origin = this.store.account.origin;
       untracked(() => {
-        const sub = this.editor.getBookmarksPreview(bookmarks, origin).subscribe(xs => this.bookmarks = xs);
+        const sub = this.editor.getBookmarksPreview(bookmarks, origin).subscribe(xs => this.bookmarks.set(xs));
         onCleanup(() => sub.unsubscribe());
       });
     });
     effect((onCleanup) => {
       const subs = this.store.account.subs;
       untracked(() => {
-        const sub = this.exts.getCachedExts(subs).subscribe(xs => this.subs = xs);
+        const sub = this.exts.getCachedExts(subs).subscribe(xs => this.subs.set(xs));
         onCleanup(() => sub.unsubscribe());
       });
     });

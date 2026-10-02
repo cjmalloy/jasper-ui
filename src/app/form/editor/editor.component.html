@@ -1,4 +1,4 @@
-@if (addButton() && !editing && !currentText) {
+@if (addButton() && !editing() && !currentText) {
   <button type="button"
           (click)="addComment()"
           [title]="addCommentTitle()">{{ addCommentLabel() }}</button>
@@ -16,13 +16,13 @@
                 i18n-title title="Help"
                 i18n>❓️</button>
       }
-      @if (fullscreen) {
+      @if (fullscreen()) {
         <button type="button"
                 (click)="toggleStacked()"
                 i18n-title title="Stacked or side by side layout toggle"
                 i18n>/</button>
       }
-      @if (fullscreen || currentText) {
+      @if (fullscreen() || currentText) {
         <button type="button"
                 (click)="togglePreview()"
                 i18n-title title="Show preview"
@@ -30,7 +30,7 @@
       }
       @for (button of editorPushButtons(); track button) {
         @if (button.event) {
-          @if (button.eventDone && loadingEvents[button.eventDone]) {
+          @if (button.eventDone && loadingEvents()[button.eventDone]) {
             <app-loading class="event-loading"
                          [inline]="true"
                          [title]="button.title || button.label || ''"></app-loading>
@@ -59,22 +59,22 @@
           </div>
         }
         @if (selectResponseType() && responseButtons().length > 1) {
-          <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
+          <div class="toolbar-toggle toolbar-toggle-{{toggleIndex()}}">
             @for (plugin of responseButtons(); track plugin.tag; let i=$index) {
               <button type="button"
                       class="response-button"
                       (click)="setResponse(plugin.tag)"
-                      [class.selected]="toggleIndex === i"
+                      [class.selected]="toggleIndex() === i"
                       [title]="plugin.name || ''" i18n>{{ plugin.config?.responseButton }}</button>
             }
           </div>
         }
       }
     </div>
-    @if (uploads.length) {
+    @if (uploads().length) {
       <div class="upload-progress">
         <div class="upload-list">
-          @for (upload of uploads; track upload.id) {
+          @for (upload of uploads(); track upload.id) {
             <div class="upload-item">
               <div class="upload-filename">{{ upload.name }}</div>
               <div class="upload-controls">
@@ -96,7 +96,7 @@
             </div>
           }
         </div>
-        @if (uploads.length > 1) {
+        @if (uploads().length > 1) {
           <div class="upload-actions">
             <button type="button"
                     class="upload-cancel-all"
@@ -108,28 +108,28 @@
       <app-loading class="upload-loading" [batch]="true"></app-loading>
     }
     <textarea #editor
-              [disabled]="!!uploads.length"
+              [disabled]="!!uploads().length"
               [id]="id()"
-              [formControl]="control"
-              (focusin)="editing = true"
+              [formControl]="control()"
+              (focusin)="setEditing(true)"
               (pointerup)="onSelect($event)"
               (select)="onSelect()"
               (selectionchange)="onSelect()"
               (input)="setText($any($event).target.value)"
               (blur)="blurText($any($event).target.value)"
               (focus)="focusText()"
-              [class.dropping]="dropping"
-              (dragenter)="dropping = true"
+              [class.dropping]="dropping()"
+              (dragenter)="dropping.set(true)"
               (dragleave)="dragLeave(editor, $any($event.target))"
               (drop)="drop($event, $event.dataTransfer?.items)"
               (paste)="drop($event, $event.clipboardData?.items)"
               [appFillWidth]="fillWidth()"
-              [padding]="padding"
+              [padding]="padding()"
               [appAutofocus]="autoFocus()"></textarea>
     <div class="floating-toggles">
     </div>
   </div>
-  @if (preview && (fullscreen || currentText)) {
+  @if (preview() && (fullscreen() || currentText)) {
     <app-md #md
             class="expand"
             [origin]="store.account.origin"

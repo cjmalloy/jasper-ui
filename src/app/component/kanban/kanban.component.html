@@ -1,9 +1,9 @@
 <ng-container>
-  @if (!error && !ext) {
+  @if (!error && !ext()) {
     <app-loading></app-loading>
   } @else if (error) {
     <div class="error-404" i18n>Not Found</div>
-  } @else if (ext) {
+  } @else if (ext()) {
     <div class="kanban"
          cdkDropListGroup
          cdkScrollable
@@ -14,19 +14,19 @@
       <div class="kanban-header"
            style="max-width: 90vw"
            cdkDropList
-           [cdkDropListData]="{col: '-'+ext.tag}"
+           [cdkDropListData]="{col: '-'+ext()!.tag}"
            (cdkDropListDropped)="drop($any($event))"
            [style.grid-column]="'1 / ' + (1 + (swimLanes ? 1 : 0) + (showColumnBacklog ? 1 : 0) + columns.length)">
         <div class="kanban-options">
-          <h2><a [routerLink]="['/tag', ext.tag + ext.origin]" [appTitle]="ext">{{ ext.name || '#' + ext.tag }}</a></h2>
+          <h2><a [routerLink]="['/tag', ext()!.tag + ext()!.origin]" [appTitle]="ext()">{{ ext()!.name || '#' + ext()!.tag }}</a></h2>
           @if (pageControls()) {
             <div>
               @if (kanbanConfig.swimLanes?.length) {
                 <div class="disable-swim-lanes">
                   <input id="disable-swim-lanes"
                          type="checkbox"
-                         [checked]="disableSwimLanes"
-                         (input)="disableSwimLanes = !disableSwimLanes">
+                         [checked]="disableSwimLanes()"
+                         (input)="swimLanesOverride.set(!disableSwimLanes())">
                   <label for="disable-swim-lanes" i18n>Hide Swim Lanes</label>
                 </div>
               }
@@ -47,22 +47,22 @@
       @for (col of columns; track col) {
         <a class="column-title tag"
            (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + col + ')' : col)"
-           [title]="col"><span class="filter-toggle">{{ (exts.getCachedExt(col, ext.origin || '') | async)?.name || '#' + col }}</span></a>
+           [title]="col"><span class="filter-toggle">{{ (exts.getCachedExt(col, ext()!.origin || '') | async)?.name || '#' + col }}</span></a>
       }
       @if (swimLanes) {
         @for (sl of swimLanes; track sl) {
           <a class="swim-lane-title tag"
              (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + sl + ')' : sl)"
-             [title]="sl"><span class="filter-toggle">{{ (exts.getCachedExt(sl, ext.origin || '') | async)?.name || '#' + sl }}</span></a>
+             [title]="sl"><span class="filter-toggle">{{ (exts.getCachedExt(sl, ext()!.origin || '') | async)?.name || '#' + sl }}</span></a>
           @if (showColumnBacklog) {
             <app-kanban-column cdkDropList
                                cdkScrollable
-                               [ext]="ext"
+                               [ext]="ext()"
                                [size]="size()"
                                [sort]="sort()"
                                [filter]="filter()"
                                [search]="search()"
-                               [hideSwimLanes]="disableSwimLanes"
+                               [hideSwimLanes]="disableSwimLanes()"
                                [cdkDropListData]="{sl}"
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
@@ -72,12 +72,12 @@
           @for (col of columns; track col) {
             <app-kanban-column cdkDropList
                                cdkScrollable
-                               [ext]="ext"
+                               [ext]="ext()"
                                [size]="size()"
                                [sort]="sort()"
                                [filter]="filter()"
                                [search]="search()"
-                               [hideSwimLanes]="disableSwimLanes"
+                               [hideSwimLanes]="disableSwimLanes()"
                                [cdkDropListData]="{col, sl}"
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
@@ -92,12 +92,12 @@
           @if (showColumnBacklog) {
             <app-kanban-column cdkDropList
                                cdkScrollable
-                               [ext]="ext"
+                               [ext]="ext()"
                                [size]="size()"
                                [sort]="sort()"
                                [filter]="filter()"
                                [search]="search()"
-                               [hideSwimLanes]="disableSwimLanes"
+                               [hideSwimLanes]="disableSwimLanes()"
                                [cdkDropListData]="{}"
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
@@ -107,12 +107,12 @@
           @for (col of columns; track col) {
             <app-kanban-column cdkDropList
                                cdkScrollable
-                               [ext]="ext"
+                               [ext]="ext()"
                                [size]="size()"
                                [sort]="sort()"
                                [filter]="filter()"
                                [search]="search()"
-                               [hideSwimLanes]="disableSwimLanes"
+                               [hideSwimLanes]="disableSwimLanes()"
                                [cdkDropListData]="{col}"
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
@@ -124,12 +124,12 @@
         @if (showColumnBacklog) {
           <app-kanban-column cdkDropList
                              cdkScrollable
-                             [ext]="ext"
+                             [ext]="ext()"
                              [size]="size()"
                              [sort]="sort()"
                              [filter]="filter()"
                              [search]="search()"
-                             [hideSwimLanes]="disableSwimLanes"
+                             [hideSwimLanes]="disableSwimLanes()"
                              [cdkDropListData]="{}"
                              (cdkDropListDropped)="drop($any($event))"
                              [updates]="updates"
@@ -139,12 +139,12 @@
         @for (col of columns; track col) {
           <app-kanban-column cdkDropList
                              cdkScrollable
-                             [ext]="ext"
+                             [ext]="ext()"
                              [size]="size()"
                              [sort]="sort()"
                              [filter]="filter()"
                              [search]="search()"
-                             [hideSwimLanes]="disableSwimLanes"
+                             [hideSwimLanes]="disableSwimLanes()"
                              [cdkDropListData]="{col}"
                              (cdkDropListDropped)="drop($any($event))"
                              [updates]="updates"

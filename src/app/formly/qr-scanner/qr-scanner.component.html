@@ -2,7 +2,7 @@
 @if (upload()) {
   <button type="button" (click)="imageFile.click()" i18n-title title="QR from photo or camera" i18n>📷️</button>
 }
-@if (hasCamera) {
+@if (hasCamera()) {
   <button type="button" (click)="scanQr()" i18n-title title="Scan for QR with video" i18n>🤳️</button>
 }
 <ng-template #video>
@@ -10,9 +10,9 @@
          i18n-title title="Click anywhere to stop scanning"
          (click)="stopScanQr()"></video>
   <div class="floating-toggles big">
-    @if (hasFlash) {
+    @if (hasFlash()) {
       <button type="button"
-              (click)="scanner?.toggleFlash()"
+              (click)="scanner()?.toggleFlash()"
               i18n-title title="Toggle flash"
               i18n>🔦️</button>
     }

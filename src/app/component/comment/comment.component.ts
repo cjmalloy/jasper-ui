@@ -16,11 +16,12 @@ import {
   viewChild,
   signal,
   untracked,
+  computed,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
@@ -88,53 +89,26 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   readonly threadComponent = viewChild<CommentThreadComponent>('threadComponent');
 
   readonly refInput = input.required<Ref>({ alias: 'ref' });
-  private readonly refSignal = linkedSignal(() => this.refInput());
-  get ref() { return this.refSignal(); }
-  set ref(value: Ref) { this.refSignal.set(value); }
+  readonly ref = linkedSignal(() => this.refInput());
   readonly scrollToLatest = input(false);
   readonly depthInput = input<number | null | undefined>(7, { alias: 'depth' });
-  private readonly depthSignal = linkedSignal(() => this.depthInput());
-  get depth() { return this.depthSignal(); }
-  set depth(value: number | null | undefined) { this.depthSignal.set(value); }
+  readonly depth = linkedSignal(() => this.depthInput());
   readonly context = input(0);
   readonly showLoadMore = input(true);
 
   commentEdited$ = new Subject<Ref>();
-  private readonly newCommentsSignal = signal(0);
+  readonly newComments = signal(0);
   newComments$ = new Subject<Ref | undefined>();
-  private readonly iconsSignal = signal<Icon[]>([]);
-  private readonly actionsSignal = signal<Action[]>([]);
-  private readonly groupedActionsSignal = signal<Record<string, Action[]>>({});
-  private readonly collapsedSignal = signal(false);
-  private readonly replyingSignal = signal(false);
-  private readonly editingSignal = signal(false);
-  private readonly writeAccessSignal = signal(false);
-  private readonly taggingAccessSignal = signal(false);
-  private readonly deleteAccessSignal = signal(false);
-  private readonly serverErrorSignal = signal<string[]>([]);
-
-  get newComments() { return this.newCommentsSignal(); }
-  set newComments(value: number) { this.newCommentsSignal.set(value); }
-  get icons() { return this.iconsSignal(); }
-  set icons(value: Icon[]) { this.iconsSignal.set(value); }
-  get actions() { return this.actionsSignal(); }
-  set actions(value: Action[]) { this.actionsSignal.set(value); }
-  get groupedActions() { return this.groupedActionsSignal(); }
-  set groupedActions(value: Record<string, Action[]>) { this.groupedActionsSignal.set(value); }
-  get collapsed() { return this.collapsedSignal(); }
-  set collapsed(value: boolean) { this.collapsedSignal.set(value); }
-  get replying() { return this.replyingSignal(); }
-  set replying(value: boolean) { this.replyingSignal.set(value); }
-  get editing() { return this.editingSignal(); }
-  set editing(value: boolean) { this.editingSignal.set(value); }
-  get writeAccess() { return this.writeAccessSignal(); }
-  set writeAccess(value: boolean) { this.writeAccessSignal.set(value); }
-  get taggingAccess() { return this.taggingAccessSignal(); }
-  set taggingAccess(value: boolean) { this.taggingAccessSignal.set(value); }
-  get deleteAccess() { return this.deleteAccessSignal(); }
-  set deleteAccess(value: boolean) { this.deleteAccessSignal.set(value); }
-  get serverError() { return this.serverErrorSignal(); }
-  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
+  readonly icons = signal<Icon[]>([]);
+  readonly actions = signal<Action[]>([]);
+  readonly groupedActions = signal<Record<string, Action[]>>({});
+  readonly collapsed = signal(false);
+  readonly replying = signal(false);
+  readonly editing = signal(false);
+  readonly writeAccess = signal(false);
+  readonly taggingAccess = signal(false);
+  readonly deleteAccess = signal(false);
+  readonly serverError = signal<string[]>([]);
 
   constructor(
     public admin: AdminService,
@@ -154,36 +128,36 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
     });
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
-        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
-          this.ref = event.ref!;
+        if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
+          this.ref.set(event.ref!);
           this.init();
         }
       }
       if (event.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
-          this.serverError = event.errors;
+        if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
+          this.serverError.set(event.errors);
         }
       }
     });
     this.newComments$.pipe(
       takeUntilDestroyed(),
     ).subscribe(ref => {
-      this.replying = false;
+      this.replying.set(false);
       if (ref) {
-        this.newComments++;
-        this.ref.metadata ||= {};
-        this.ref.metadata.plugins ||= {};
-        this.ref.metadata.plugins['plugin/comment'] ||= 0;
-        this.ref.metadata.plugins['plugin/comment']++;
-        this.ref = { ...this.ref, metadata: { ...this.ref.metadata, plugins: { ...this.ref.metadata.plugins } } };
-        if (this.depth === 0) this.depth = 1;
+        this.newComments.update(n => n + 1);
+        this.ref.update(r => {
+          const plugins = { ...r.metadata?.plugins };
+          plugins['plugin/comment'] = (plugins['plugin/comment'] || 0) + 1;
+          return { ...r, metadata: { ...r.metadata, plugins } };
+        });
+        if (this.depth() === 0) this.depth.set(1);
       }
     });
     this.commentEdited$.pipe(
       takeUntilDestroyed(),
     ).subscribe(ref => {
-      this.editing = false;
-      this.ref = ref;
+      this.editing.set(false);
+      this.ref.set(ref);
       this.init();
     });
   }
@@ -204,15 +178,15 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   init() {
-    this.editing = false;
+    this.editing.set(false);
     this.actionComponents()?.forEach(c => c.reset());
-    this.collapsed = !this.store.local.isRefToggled('comment:' + this.ref.url, true);
-    this.writeAccess = this.auth.writeAccess(this.ref);
-    this.taggingAccess = this.auth.taggingAccess(this.ref);
-    this.deleteAccess = this.auth.deleteAccess(this.ref);
-    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
-    this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
-    this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
+    this.collapsed.set(!this.store.local.isRefToggled('comment:' + this.ref().url, true));
+    this.writeAccess.set(this.auth.writeAccess(this.ref()));
+    this.taggingAccess.set(this.auth.taggingAccess(this.ref()));
+    this.deleteAccess.set(this.auth.deleteAccess(this.ref()));
+    this.icons.set(uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url)))));
+    this.actions.set(uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins))));
+    this.groupedActions.set(groupBy(this.actions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
   }
 
   ngOnDestroy(): void {
@@ -221,23 +195,24 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get lastSelected() {
-    return this.store.view.lastSelected?.url === this.ref.url;
+    return this.store.view.lastSelected?.url === this.ref().url;
   }
 
   get nonLocalOrigin() {
-    if (this.ref.origin === this.store.account.origin) return undefined;
-    return this.ref.origin || '';
+    if (this.ref().origin === this.store.account.origin) return undefined;
+    return this.ref().origin || '';
   }
 
   get modifiedIsSubmitted() {
-    return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created!, 'seconds').seconds) <= 5;
+    const ref = this.ref();
+    return !ref.modified || Math.abs(ref.modified.diff(ref.created!, 'seconds').seconds) <= 5;
   }
 
   get canInvoice() {
-    if (this.ref.origin) return false;
+    if (this.ref().origin) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
     if (!this.isAuthor) return false;
-    return hasTag('queue', this.ref);
+    return hasTag('queue', this.ref());
   }
 
   get isAuthor() {
@@ -245,72 +220,72 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get isRecipient() {
-    return hasTag(this.store.account.mailbox, this.ref);
+    return hasTag(this.store.account.mailbox, this.ref());
   }
 
   get authors() {
-    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
+    const lookup = this.store.origins.originMap.get(this.ref().origin || '');
     return uniq([
-      ...this.ref.tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
-      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
+      ...this.ref().tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
+      ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
     ]);
   }
 
-  get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
-  }
+  readonly authorExts$ = computed(() => {
+    return this.exts.getCachedExts(this.authors, this.ref().origin || '').pipe(this.admin.authorFallback);
+  });
 
   get mailboxes() {
-    return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
+    return mailboxes(this.ref(), this.store.account.tag, this.store.origins.originMap);
   }
 
   get replyTags(): string[] {
     const tags = [
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref())).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
   get tagged() {
-    return interestingTags(this.ref.tags);
+    return interestingTags(this.ref().tags);
   }
 
-  get tagExts$() {
-    return this.editor.getTagsPreview(this.tagged, this.ref.origin || '');
-  }
+  readonly tagExts$ = computed(() => {
+    return this.editor.getTagsPreview(this.tagged, this.ref().origin || '');
+  });
 
   get deleted() {
-    return hasTag('plugin/delete', this.ref);
+    return hasTag('plugin/delete', this.ref());
   }
 
   get comments() {
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
   }
 
   get moreComments() {
-    return this.comments > (this.thread.cache.get(this.ref.url)?.length || 0) + this.newComments;
+    return this.comments > (this.thread.cache.get(this.ref().url)?.length || 0) + this.newComments();
   }
 
   get responses() {
-    return this.ref.metadata?.responses || 0;
+    return this.ref().metadata?.responses || 0;
   }
 
   get sources() {
-    const sources = uniq(this.ref?.sources).filter(s => s != this.ref.url);
+    const sources = uniq(this.ref()?.sources).filter(s => s != this.ref().url);
     return sources.length || 0;
   }
 
   get upvote() {
-    return hasUserUrlResponse('plugin/user/vote/up', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/up', this.ref());
   }
 
   get downvote() {
-    return hasUserUrlResponse('plugin/user/vote/down', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/down', this.ref());
   }
 
   get score() {
-    return score(this.ref);
+    return score(this.ref());
   }
 
   formatAuthor(user: string) {
@@ -321,23 +296,23 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   tag$ = (tag: string) => {
-    this.serverError = [];
-    return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!), this.ref);
+    this.serverError.set([]);
+    return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref().url, this.ref().origin!), this.ref());
   }
 
   visible(v: Visibility) {
-    return visible(this.ref, v, this.isAuthor, this.isRecipient);
+    return visible(this.ref(), v, this.isAuthor, this.isRecipient);
   }
 
   label(a: Action) {
     if ('tag' in a || 'response' in a) {
-      return active(this.ref, a) ? 'labelOn' : 'labelOff';
+      return active(this.ref(), a) ? 'labelOn' : 'labelOff';
     }
     return 'label';
   }
 
   active(a: TagAction | ResponseAction | Icon) {
-    return active(this.ref, a);
+    return active(this.ref(), a);
   }
 
   showIcon(i: Icon) {
@@ -356,11 +331,11 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   showAction(a: Action) {
     if (!this.visible(a)) return false;
     if ('scheme' in a) {
-      if (a.scheme !== getScheme(this.ref.url)) return false;
+      if (a.scheme !== getScheme(this.ref().url)) return false;
     }
     if ('tag' in a) {
-      if (a.tag === 'locked' && !this.writeAccess) return false;
-      if (a.tag && !this.taggingAccess) return false;
+      if (a.tag === 'locked' && !this.writeAccess()) return false;
+      if (a.tag && !this.taggingAccess()) return false;
       if (a.tag && !this.auth.canAddTag(a.tag)) return false;
     }
     if ('tag' in a || 'response' in a) {
@@ -373,56 +348,59 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   voteUp() {
-    this.ref.metadata ||= {};
-    this.ref.metadata.userUrls ||= [];
+    const ref = this.ref();
+    let userUrls = ref.metadata?.userUrls || [];
+    let request: Observable<any>;
     if (this.upvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/up', this.ref.url), this.ref);
+      userUrls = without(userUrls, 'plugin/user/vote/up');
+      request = this.ts.deleteResponse('plugin/user/vote/up', ref.url);
     } else if (!this.downvote) {
-      this.ref.metadata.userUrls.push('plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/up', this.ref.url), this.ref);
+      userUrls = [...userUrls, 'plugin/user/vote/up'];
+      request = this.ts.createResponse('plugin/user/vote/up', ref.url);
     } else {
-      this.ref.metadata.userUrls.push('plugin/user/vote/up');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref.url), this.ref);
+      userUrls = without([...userUrls, 'plugin/user/vote/up'], 'plugin/user/vote/down');
+      request = this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], ref.url);
     }
-    this.ref = { ...this.ref, metadata: { ...this.ref.metadata, userUrls: [...this.ref.metadata.userUrls] } };
+    const updated = { ...ref, metadata: { ...ref.metadata, userUrls } };
+    this.ref.set(updated);
+    this.store.eventBus.runAndRefresh(request, updated);
   }
 
   voteDown() {
-    this.ref.metadata ||= {};
-    this.ref.metadata.userUrls ||= [];
+    const ref = this.ref();
+    let userUrls = ref.metadata?.userUrls || [];
+    let request: Observable<any>;
     if (this.downvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/down', this.ref.url), this.ref);
+      userUrls = without(userUrls, 'plugin/user/vote/down');
+      request = this.ts.deleteResponse('plugin/user/vote/down', ref.url);
     } else if (!this.upvote) {
-      this.ref.metadata.userUrls.push('plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/down', this.ref.url), this.ref);
+      userUrls = [...userUrls, 'plugin/user/vote/down'];
+      request = this.ts.createResponse('plugin/user/vote/down', ref.url);
     } else {
-      this.ref.metadata.userUrls.push('plugin/user/vote/down');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref.url), this.ref);
+      userUrls = without([...userUrls, 'plugin/user/vote/down'], 'plugin/user/vote/up');
+      request = this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], ref.url);
     }
-    this.ref = { ...this.ref, metadata: { ...this.ref.metadata, userUrls: [...this.ref.metadata.userUrls] } };
+    const updated = { ...ref, metadata: { ...ref.metadata, userUrls } };
+    this.ref.set(updated);
+    this.store.eventBus.runAndRefresh(request, updated);
   }
 
   forceDelete$ = () => {
-    const deleted = deleteNotice(this.ref);
-    deleted.sources = this.ref.sources;
+    const deleted = deleteNotice(this.ref());
+    deleted.sources = this.ref().sources;
     deleted.tags = ['plugin/comment', 'plugin/delete', 'internal'];
-    return this.store.eventBus.runAndReload$(this.refs.delete(this.ref.url, this.ref.origin), deleted);
+    return this.store.eventBus.runAndReload$(this.refs.delete(this.ref().url, this.ref().origin), deleted);
   }
 
   delete$ = () => {
-    const deleted = deleteNotice(this.ref);
-    deleted.sources = this.ref.sources;
+    const deleted = deleteNotice(this.ref());
+    deleted.sources = this.ref().sources;
     deleted.tags = ['plugin/comment', 'plugin/delete', 'internal'];
     return this.store.eventBus.runAndReload$(this.refs.update(deleted), deleted);
   }
 
   loadMore() {
-    this.depth ||= 0;
-    this.depth++;
-    this.thread.loadAdHoc(this.ref?.url);
+    this.depth.update(d => (d || 0) + 1);
+    this.thread.loadAdHoc(this.ref()?.url);
   }
 }

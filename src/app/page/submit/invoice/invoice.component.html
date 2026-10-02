@@ -6,8 +6,8 @@
          type="email"
          autocorrect="off"
          autocapitalize="none"
-         [value]="queue || ''"
-         (change)="queue = $any($event.target).value">
+         [value]="queue() || ''"
+         (change)="queue.set($any($event.target).value)">
 
   <label for="qr" i18n>QR Code:</label>
   <div class="form-array">
@@ -44,19 +44,19 @@
                 (syncEditor)="syncEditor()"
                 [tags]="$any(invoiceForm.value).tags"
                 (syncTags)="editorTags = $event"
-                (uploadCompleted)="completedUploads.push($event)"></app-editor>
+                (uploadCompleted)="completedUploads().push($event)"></app-editor>
   </div>
 
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
   }
 
   <span><!-- Buttons --></span>
   <span class="buttons right">
-      @if (submitting) {
+      @if (submitting()) {
         <app-loading [inline]="true"></app-loading>
       }
-    <button type="submit" [disabled]="submitting || submitted && !invoiceForm.valid" i18n>Send</button>
+    <button type="submit" [disabled]="submitting() || submitted() && !invoiceForm.valid" i18n>Send</button>
   </span>
 </form>

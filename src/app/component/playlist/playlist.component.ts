@@ -7,6 +7,7 @@ import {
   input,
   model,
   OnDestroy,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -79,7 +80,10 @@ export class PlaylistComponent implements OnDestroy {
         downloadPlaylist(this.proxy, mediaList, this.ref()!.title || 'playlist');
       }
     });
-    effect(() => this.loadRef(this.ref()));
+    effect(() => {
+      const value = this.ref();
+      untracked(() => this.loadRef(value));
+    });
   }
 
   getTag(tag: string, ref: Ref) {

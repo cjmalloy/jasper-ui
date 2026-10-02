@@ -1,4 +1,4 @@
-import { Directive, effect, ElementRef, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { Directive, effect, ElementRef, input, OnDestroy, OnInit, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Ref } from '../model/ref';
 import { ConfigService } from '../service/config.service';
@@ -41,7 +41,10 @@ export class ImageDirective implements OnInit, OnDestroy {
         }
       }
     });
-    effect(() => this.loadUrl(this.url()));
+    effect(() => {
+      const value = this.url();
+      untracked(() => this.loadUrl(value));
+    });
   }
 
   ngOnInit() {

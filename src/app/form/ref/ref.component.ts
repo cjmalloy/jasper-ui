@@ -51,7 +51,7 @@ import { controlValue } from '../../util/form';
   styleUrls: ['./ref.component.scss'],
   host: {
     'class': 'nested-form',
-    '[class.show-drops]': 'dropping',
+    '[class.show-drops]': 'dropping()',
     '(dragenter)': 'onDragEnter()',
     '(window:dragend)': 'onDragEnd()',
   },
@@ -76,7 +76,7 @@ import { controlValue } from '../../util/form';
 export class RefFormComponent {
 
   readonly origin = input<string | undefined>('');
-  readonly groupInput = input.required<UntypedFormGroup>({ alias: 'group' });
+  readonly group = input.required<UntypedFormGroup>();
   readonly creating = input(false);
   private readonly tagsValue = controlValue<string[]>(() => this.tags);
   readonly toggleTag = output<string>();
@@ -88,16 +88,16 @@ export class RefFormComponent {
   readonly fill = viewChild<ElementRef>('fill');
   readonly editorComponent = viewChild<EditorComponent>('ed');
 
-  private readonly _dropping = signal(false);
+  readonly dropping = signal(false);
 
   id = 'ref-' + uuid();
-  private readonly _oembed = signal<Oembed | undefined>(undefined);
-  private readonly _scraped = signal<Ref | undefined>(undefined);
-  private readonly _ref = signal<Ref | undefined>(undefined);
-  private readonly _scrapingTitle = signal(false);
-  private readonly _scrapingPublished = signal(false);
-  private readonly _scrapingAll = signal(false);
-  private readonly _completedUploads = signal<Ref[]>([]);
+  readonly oembed = signal<Oembed | undefined>(undefined);
+  readonly scraped = signal<Ref | undefined>(undefined);
+  readonly ref = signal<Ref | undefined>(undefined);
+  readonly scrapingTitle = signal(false);
+  readonly scrapingPublished = signal(false);
+  readonly scrapingAll = signal(false);
+  readonly completedUploads = signal<Ref[]>([]);
 
   constructor(
     public config: ConfigService,
@@ -109,75 +109,47 @@ export class RefFormComponent {
     private fb: UntypedFormBuilder,
   ) { }
 
-  get dropping(): boolean { return this._dropping(); }
-  set dropping(value: boolean) { this._dropping.set(value); }
-
-  get oembed(): Oembed | undefined { return this._oembed(); }
-  set oembed(value: Oembed | undefined) { this._oembed.set(value); }
-
-  get scraped(): Ref | undefined { return this._scraped(); }
-  set scraped(value: Ref | undefined) { this._scraped.set(value); }
-
-  get ref(): Ref | undefined { return this._ref(); }
-  set ref(value: Ref | undefined) { this._ref.set(value); }
-
-  get scrapingTitle(): boolean { return this._scrapingTitle(); }
-  set scrapingTitle(value: boolean) { this._scrapingTitle.set(value); }
-
-  get scrapingPublished(): boolean { return this._scrapingPublished(); }
-  set scrapingPublished(value: boolean) { this._scrapingPublished.set(value); }
-
-  get scrapingAll(): boolean { return this._scrapingAll(); }
-  set scrapingAll(value: boolean) { this._scrapingAll.set(value); }
-
-  get completedUploads(): Ref[] { return this._completedUploads(); }
-  set completedUploads(value: Ref[]) { this._completedUploads.set(value); }
-
-  get group(): UntypedFormGroup {
-    return this.groupInput();
-  }
-
   get web() {
     const scheme = getScheme(this.url.value);
     return scheme === 'http:' || scheme === 'https:';
   }
 
   get url() {
-    return this.group.get('url') as UntypedFormControl;
+    return this.group().get('url') as UntypedFormControl;
   }
 
   get title() {
-    return this.group.get('title') as UntypedFormControl;
+    return this.group().get('title') as UntypedFormControl;
   }
 
   get comment() {
-    return this.group.get('comment') as UntypedFormControl;
+    return this.group().get('comment') as UntypedFormControl;
   }
 
   get published() {
-    return this.group.get('published') as UntypedFormControl;
+    return this.group().get('published') as UntypedFormControl;
   }
 
   get tags() {
-    return this.group.get('tags') as UntypedFormArray;
+    return this.group().get('tags') as UntypedFormArray;
   }
 
   get sources() {
-    return this.group.get('sources') as UntypedFormArray;
+    return this.group().get('sources') as UntypedFormArray;
   }
 
   get thumbnail() {
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    if (hasTag('plugin/thumbnail', this.group.value)) return true;
-    return !!this.admin.getPlugin('plugin/image') && hasTag('plugin/image', this.group.value);
+    if (hasTag('plugin/thumbnail', this.group().value)) return true;
+    return !!this.admin.getPlugin('plugin/image') && hasTag('plugin/image', this.group().value);
   }
 
   get thumbnailRefs() {
-    return [{ ...this.group.getRawValue(), origin: this.creating() ? this.store.account.origin : this.origin() }];
+    return [{ ...this.group().getRawValue(), origin: this.creating() ? this.store.account.origin : this.origin() }];
   }
 
   get thumbnailPlugin() {
-    const plugin = this.group.value.plugins?.['plugin/thumbnail'];
+    const plugin = this.group().value.plugins?.['plugin/thumbnail'];
     return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
   }
 
@@ -194,7 +166,7 @@ export class RefFormComponent {
   }
 
   get top() {
-    return this.sources.value[1] || this.sources.value[0] || this.ref?.url || this.url.value;
+    return this.sources.value[1] || this.sources.value[0] || this.ref()?.url || this.url.value;
   }
 
   addSource(value = '') {
@@ -250,11 +222,11 @@ export class RefFormComponent {
   });
 
   onDragEnter() {
-    this.dropping = true;
+    this.dropping.set(true);
   }
 
   onDragEnd() {
-    this.dropping = false;
+    this.dropping.set(false);
   }
 
   validate(input: HTMLInputElement) {
@@ -269,25 +241,27 @@ export class RefFormComponent {
   setComment(value: string) {
     this.comment.setValue(value);
     // Ignore tags and sources from new comment
-    this.editor.syncEditor(this.fb, this.group, value);
+    this.editor.syncEditor(this.fb, this.group(), value);
   }
 
   syncEditor() {
-    this.editor.syncEditor(this.fb, this.group);
+    this.editor.syncEditor(this.fb, this.group());
   }
 
   get scrape$() {
-    if (this.scraped) return of(this.scraped);
+    const scraped = this.scraped();
+    if (scraped) return of(scraped);
     return this.scrape.webScrape(hasTag('plugin/repost', this.tags.value) ? this.sources.value?.[0] : this.url.value).pipe(
       tap(s => {
-        this.scraped = s;
-        if (s.modified && this.ref?.modified) {
+        this.scraped.set(s);
+        const current = this.ref();
+        if (s.modified && current?.modified) {
           const ref: Ref = {
-            ...this.ref,
+            ...current,
             modifiedString: s.modifiedString,
             modified: s.modified,
-            tags: [...this.ref.tags || []],
-            plugins: { ...this.ref.plugins || {} },
+            tags: [...current.tags || []],
+            plugins: { ...current.plugins || {} },
           };
           if (hasTag('_plugin/cache', s)) {
             if (!hasTag('_plugin/cache', ref)) {
@@ -304,10 +278,10 @@ export class RefFormComponent {
   }
 
   scrapeTitle() {
-    this.scrapingTitle = true;
+    this.scrapingTitle.set(true);
     this.scrape$.pipe(
       catchError(err => {
-        this.scrapingTitle = false;
+        this.scrapingTitle.set(false);
         return of({
           url: this.url.value,
           title: undefined,
@@ -315,55 +289,55 @@ export class RefFormComponent {
       }),
       switchMap(s => this.oembeds.get(s.url).pipe(
         map(oembed => {
-          this.oembed = oembed!;
+          this.oembed.set(oembed!);
           if (oembed) s.title ||= oembed.title || '';
           return s;
         }),
         catchError(err => of(s)),
       )),
     ).subscribe((s: Ref) => {
-      this.scrapingTitle = false;
+      this.scrapingTitle.set(false);
       const title = s.title ?? getTitleFromFilename(this.url.value);
-      if (title) this.group.patchValue({ title });
+      if (title) this.group().patchValue({ title });
     });
   }
 
   scrapePublished() {
-    this.scrapingPublished = true;
+    this.scrapingPublished.set(true);
     this.scrape$.pipe(
       catchError(err => {
-        this.scrapingPublished = false;
+        this.scrapingPublished.set(false);
         // TODO: Write error
         return throwError(() => err);
       })
     ).subscribe(ref => {
-      this.scrapingPublished = false;
+      this.scrapingPublished.set(false);
       this.published.setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
     });
   }
 
   scrapeAll() {
-    if (this.oembed) {
+    if (this.oembed()) {
       // TODO: oEmbed
     } else {
-      this.scrapingAll = true;
+      this.scrapingAll.set(true);
       this.scrape$.pipe(
         catchError(err => {
-          this.scrapingAll = false;
+          this.scrapingAll.set(false);
           return throwError(() => err);
         })
       ).subscribe(s => {
-        if (!hasMedia(s) || hasMedia(this.group.value)) {
+        if (!hasMedia(s) || hasMedia(this.group().value)) {
           this.scrapeComment();
         }
         this.scrapePlugins();
-        this.scrapingAll = false;
+        this.scrapingAll.set(false);
       });
     }
   }
 
   scrapePlugins() {
-    if (this.oembed) {
+    if (this.oembed()) {
       // TODO: oEmbed
     } else {
       this.scrape$.subscribe(s => {
@@ -372,7 +346,7 @@ export class RefFormComponent {
         }
         defer(() => {
           this.pluginsFormComponent().setValue({
-            ...this.group.value.plugins || {},
+            ...this.group().value.plugins || {},
             ...s.plugins || {},
           });
         });
@@ -381,7 +355,7 @@ export class RefFormComponent {
   }
 
   scrapeComment() {
-    if (this.oembed) {
+    if (this.oembed()) {
       // TODO: oEmbed
     } else {
       this.scrape$.subscribe(s => this.setComment(s.comment || ''));
@@ -389,7 +363,7 @@ export class RefFormComponent {
   }
 
   addCompletedUpload(ref: Ref) {
-    this.completedUploads = [...this.completedUploads, ref];
+    this.completedUploads.set([...this.completedUploads(), ref]);
   }
 
   togglePlugin(tag: string) {
@@ -404,8 +378,8 @@ export class RefFormComponent {
   }
 
   setRef(ref: Partial<Ref>) {
-    this.ref = ref as Ref;
-    this.group.patchValue({
+    this.ref.set(ref as Ref);
+    this.group().patchValue({
       ...ref,
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });

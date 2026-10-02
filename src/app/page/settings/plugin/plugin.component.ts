@@ -24,9 +24,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
 
   private readonly injector = inject(Injector);
 
-  private readonly _serverError = signal<string[]>([]);
-  get serverError() { return this._serverError(); }
-  set serverError(value: string[]) { this._serverError.set(value); }
+  readonly serverError = signal<string[]>([]);
 
   readonly list = viewChild<PluginListComponent>('list');
 
@@ -65,20 +63,20 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
   }
 
   upload(files?: FileList) {
-    this.serverError = [];
+    this.serverError.set([]);
     if (!files || !files.length) return;
     getZipOrTextFile(files[0]!, 'plugin.json')
       .then(json => getModels<Plugin>(json))
       .then(plugins => plugins.map(mapPlugin))
       .then(plugins => plugins.map(p => this.uploadPlugin(p)))
-      .catch(err => this.serverError = [err]);
+      .catch(err => this.serverError.set([err]));
   }
 
   uploadPlugin(plugin: Plugin) {
     return this.plugins.delete(plugin.tag + this.store.account.origin).pipe(
       switchMap(() => this.plugins.create({ ...plugin, origin: this.store.account.origin })),
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => this.query.refresh());

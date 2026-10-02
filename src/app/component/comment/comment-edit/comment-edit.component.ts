@@ -33,32 +33,20 @@ import { LoadingComponent } from '../../loading/loading.component';
 export class CommentEditComponent implements AfterViewInit, HasChanges {
   private destroyRef = inject(DestroyRef);
 
-  private readonly serverErrorSignal = signal<string[]>([]);
+  readonly serverError = signal<string[]>([]);
 
   readonly refInput = input.required<Ref>({ alias: 'ref' });
-  private readonly refSignal = linkedSignal(() => this.refInput());
-  get ref() { return this.refSignal(); }
-  set ref(value: Ref) { this.refSignal.set(value); }
+  readonly ref = linkedSignal(() => this.refInput());
   readonly commentEdited$ = input.required<Subject<Ref>>();
 
   readonly editor = viewChild<EditorComponent>('editor');
 
-  private readonly editingSignal = signal<Subscription | undefined>(undefined);
+  readonly editing = signal<Subscription | undefined>(undefined);
   commentForm: UntypedFormGroup;
-  private readonly editorTagsSignal = signal<string[]>([]);
-  private readonly sourcesSignal = signal<string[]>([]);
-  private readonly completedUploadsSignal = signal<Ref[]>([]);
+  readonly editorTags = signal<string[]>([]);
+  readonly sources = signal<string[]>([]);
+  readonly completedUploads = signal<Ref[]>([]);
 
-  get serverError() { return this.serverErrorSignal(); }
-  set serverError(value: string[]) { this.serverErrorSignal.set(value); }
-  get editing() { return this.editingSignal(); }
-  set editing(value: Subscription | undefined) { this.editingSignal.set(value); }
-  get editorTags() { return this.editorTagsSignal(); }
-  set editorTags(value: string[]) { this.editorTagsSignal.set(value); }
-  get sources() { return this.sourcesSignal(); }
-  set sources(value: string[]) { this.sourcesSignal.set(value); }
-  get completedUploads() { return this.completedUploadsSignal(); }
-  set completedUploads(value: Ref[]) { this.completedUploadsSignal.set(value); }
 
   constructor(
     private store: Store,
@@ -76,7 +64,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
   }
 
   ngAfterViewInit() {
-    this.comment.setValue(this.ref.comment);
+    this.comment.setValue(this.ref().comment);
   }
 
 
@@ -86,30 +74,30 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
 
   get newTags() {
     return getIfNew(uniq([
-      ...this.editorTags,
+      ...this.editorTags(),
       ...getMailboxes(this.comment.value, this.store.account.origin),
-    ]), this.ref.tags);
+    ]), this.ref().tags);
   }
 
   get allTags() {
     return uniq([
-      ...this.editorTags,
+      ...this.editorTags(),
       ...getMailboxes(this.comment.value, this.store.account.origin),
     ]);
   }
 
   get top() {
-    return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
+    return this.ref().sources?.[1] || this.ref().sources?.[0] || this.ref().url;
   }
 
   addSource(value = '') {
-    if ((this.ref.sources?.length || 0) < 1) {
-      this.sources = [...this.sources, this.top];
+    if ((this.ref().sources?.length || 0) < 1) {
+      this.sources.set([...this.sources(), this.top]);
     }
-    if ((this.ref.sources?.length || 0) < 2) {
-      this.sources = [...this.sources, this.top];
+    if ((this.ref().sources?.length || 0) < 2) {
+      this.sources.set([...this.sources(), this.top]);
     }
-    this.sources = [...this.sources, value];
+    this.sources.set([...this.sources(), value]);
   }
 
   save() {
@@ -122,14 +110,14 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
       });
     }
     const finalTags = this.allTags;
-    for (const t of without(finalTags, ...this.ref.tags || [])) {
+    for (const t of without(finalTags, ...this.ref().tags || [])) {
       patches.push({
         op: 'add',
         path: '/tags/-',
         value: t,
       });
     }
-    const removeIndices = (this.ref.tags || [])
+    const removeIndices = (this.ref().tags || [])
       .map((t, i) => finalTags.includes(t) ? -1 : i)
       .filter(i => i >= 0)
       .sort((a, b) => b - a);
@@ -139,39 +127,39 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
         path: '/tags/' + i,
       });
     }
-    for (const s of this.sources) {
+    for (const s of this.sources()) {
       patches.push({
         op: 'add',
         path: '/sources/-',
         value: s,
       });
     }
-    this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntilDestroyed(this.destroyRef))),
+    this.editing.set(this.refs.patch(this.ref().url, this.ref().origin!, this.ref()!.modifiedString!, patches).pipe(
+      switchMap(() => this.refs.get(this.ref().url, this.ref().origin!).pipe(takeUntilDestroyed(this.destroyRef))),
       switchMap(res => {
         const finalVisibilityTags = getVisibilityTags(finalTags);
         if (!finalVisibilityTags.length) return of(res);
-        const taggingOps = this.completedUploads
+        const taggingOps = this.completedUploads()
           .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
         if (!taggingOps.length) return of(res);
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        this.editing = undefined;
-        this.serverError = printError(res);
+        this.editing.set(undefined);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(res => {
-      this.editing = undefined;
-      this.ref = res;
-      this.completedUploads = [];
+      this.editing.set(undefined);
+      this.ref.set(res);
+      this.completedUploads.set([]);
 
       this.commentEdited$().next(res);
-    });
+    }));
   }
 
   cancel() {
-    this.editing?.unsubscribe();
-    this.commentEdited$().next(this.ref);
+    this.editing()?.unsubscribe();
+    this.commentEdited$().next(this.ref());
   }
 }
