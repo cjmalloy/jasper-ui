@@ -1,7 +1,5 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { filter } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, Observable, of, throwError } from 'rxjs';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Mod, Tag } from '../model/tag';
@@ -69,15 +67,6 @@ export function tagDeleteNotice(tag: Tag) {
     origin: tag.origin,
     config: {},
   };
-}
-
-/**
- * Creating a delete notice that already exists is not an error.
- */
-export function ignoreExistingNotice(create$: Observable<unknown>) {
-  return create$.pipe(
-    catchError((err: HttpErrorResponse) => err.status === 409 ? of(null) : throwError(() => err)),
-  );
 }
 
 export const deleteMod: Mod = {

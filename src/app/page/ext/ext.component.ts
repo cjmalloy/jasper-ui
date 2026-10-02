@@ -19,7 +19,7 @@ import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
-import { ignoreExistingNotice, isDeletorTag, tagDeleteNotice } from '../../mods/delete';
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ModService } from '../../service/mod.service';
@@ -251,7 +251,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     // TODO: Better dialogs
     if (confirm($localize`Are you sure you want to delete this tag extension?`)) {
       const deleteNotice = !isDeletorTag(ext.tag) && this.admin.getPlugin('plugin/delete')
-        ? ignoreExistingNotice(this.exts.create(tagDeleteNotice(ext)))
+        ? this.exts.create(tagDeleteNotice(ext))
         : of(null);
       this.deleting = this.exts.delete(ext.tag + ext.origin).pipe(
         switchMap(() => deleteNotice),

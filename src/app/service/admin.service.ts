@@ -21,7 +21,7 @@ import { blogMod } from '../mods/blog';
 import { chatMod } from '../mods/chat';
 import { clipboardMod } from '../mods/clipboard';
 import { commentMod } from '../mods/comment';
-import { deleteMod, ignoreExistingNotice, tagDeleteNotice } from '../mods/delete';
+import { deleteMod, tagDeleteNotice } from '../mods/delete';
 import { draftMod } from '../mods/draft';
 import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
@@ -1057,7 +1057,7 @@ export class AdminService {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${p.name || p.tag} plugin...`)),
       switchMap(() => this.plugins.delete(p.tag + this.store.account.origin)),
-      switchMap(() => this.getPlugin('plugin/delete') ? ignoreExistingNotice(this.plugins.create(tagDeleteNotice(p))) : of(null)),
+      switchMap(() => this.getPlugin('plugin/delete') ? this.plugins.create(tagDeleteNotice(p)) : of(null)),
       tap(() => _('', 1)),
     );
   }
@@ -1082,7 +1082,7 @@ export class AdminService {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${t.name || t.tag} template...`)),
       switchMap(() => this.templates.delete(t.tag + this.store.account.origin)),
-      switchMap(() => this.getPlugin('plugin/delete') ? ignoreExistingNotice(this.templates.create(tagDeleteNotice(t))) : of(null)),
+      switchMap(() => this.getPlugin('plugin/delete') ? this.templates.create(tagDeleteNotice(t)) : of(null)),
       tap(() => _('', 1)),
     );
   }

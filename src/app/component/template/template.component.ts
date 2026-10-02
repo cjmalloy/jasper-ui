@@ -8,7 +8,7 @@ import { tap } from 'rxjs/operators';
 import { templateForm, TemplateFormComponent } from '../../form/template/template.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Template, writeTemplate } from '../../model/template';
-import { ignoreExistingNotice, isDeletorTag, tagDeleteNotice } from '../../mods/delete';
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
@@ -165,7 +165,7 @@ export class TemplateComponent implements OnChanges, HasChanges {
 
   delete$ = () => {
     const deleteNotice = !isDeletorTag(this.template.tag) && this.admin.getPlugin('plugin/delete')
-      ? ignoreExistingNotice(this.templates.create(tagDeleteNotice(this.template)))
+      ? this.templates.create(tagDeleteNotice(this.template))
       : of(null);
     return this.templates.delete(this.qualifiedTag).pipe(
       switchMap(() => deleteNotice),
