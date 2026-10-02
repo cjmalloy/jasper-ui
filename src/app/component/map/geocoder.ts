@@ -54,7 +54,7 @@ export function currentView(map: Map): GeocodeView | undefined {
     const east = clamp(b.getEast(), -180, 180);
     const south = clamp(b.getSouth(), -90, 90);
     const north = clamp(b.getNorth(), -90, 90);
-    if (west < east && south < north) view.bbox = [west, south, east, north];
+    if (west < east) view.bbox = [west, south, east, north];
     return view;
   } catch {
     return undefined;

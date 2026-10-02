@@ -77,6 +77,13 @@ describe('geocode', () => {
     expect(geocodeUrl('halifax', { geocodingProvider: 'google', googleMapsApiKey: 'key' }, view))
       .toBe('https://maps.googleapis.com/maps/api/geocode/json?address=halifax&key=key&bounds=44,-64|45,-63');
     expect(geocodeUrl('halifax', {}, { center: [-63.5, 44.6] })).toBe('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&q=halifax');
+    expect(geocodeUrl('halifax', { geocodingProvider: 'photon' })).toBe('https://photon.komoot.io/api/?q=halifax&limit=10');
+    expect(geocodeUrl('halifax', { geocodingProvider: 'google', googleMapsApiKey: 'key' })).toBe('https://maps.googleapis.com/maps/api/geocode/json?address=halifax&key=key');
+    expect(geocodeUrl('halifax', {})).toBe('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&q=halifax');
+    // Nominatim never restricts results to the view
+    for (const v of [undefined, view, { center: view.center }]) {
+      expect(geocodeUrl('halifax', {}, v)).not.toContain('bounded=1');
+    }
   });
 
   it('sorts results nearest first', () => {
