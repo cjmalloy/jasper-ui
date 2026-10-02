@@ -31,7 +31,7 @@ export function geoCenter(plugins?: Record<string, any>): [number, number] | und
   };
   for (const [key, value] of Object.entries(plugins || {})) {
     if (!key.startsWith('plugin/geo/')) continue;
-    for (const f of geoFeatures(value, hasLocation)) visit((f.geometry as any).coordinates);
+    for (const f of geoFeatures(value, value?.geometry?.type === 'Point' ? hasLocation : isPosition)) visit((f.geometry as any).coordinates);
   }
   if (!lons.length) return undefined;
   return [lonCenter(lons), (s + n) / 2];
