@@ -44,4 +44,10 @@ describe('geo', () => {
       ]);
     });
   });
+
+  it('skips positions rejected by the filter', () => {
+    const unset = (p: any): p is [number, number] => Array.isArray(p) && (p[0] !== 0 || p[1] !== 0);
+    const features = geoFeatures({ geometry: { type: 'LineString', coordinates: [[1, 1], [2, 2], [0, 0]] } }, unset);
+    expect(features.map(f => f.geometry)).toEqual([{ type: 'LineString', coordinates: [[1, 1], [2, 2]] }]);
+  });
 });

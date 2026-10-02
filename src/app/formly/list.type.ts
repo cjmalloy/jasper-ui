@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs';
 import { Store } from '../store/store';
 import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
-import { LocationMapComponent } from './location-map.component';
+import { hasLocation, LocationMapComponent } from './location-map.component';
 import { closedRings, getLocationPicker } from './location-picker';
 
 @Component({
@@ -165,7 +165,27 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
     // @ts-ignore
     this.field.fieldArray.focus = index === undefined && !initialModel;
     if (index === undefined && closedRings.has(this.formControl)) index = this.size;
+    // @ts-ignore
+    if (initialModel === undefined && this.field.fieldArray?.type === 'location') {
+      initialModel = this.seedLocation(index ?? this.size);
+    }
     super.add(index, initialModel, options);
+  }
+
+  /**
+   * Start a new location next to its neighbours instead of at [0, 0].
+   * In a closed ring use the midpoint of the edge being split, otherwise
+   * copy the previous (or next) location.
+   */
+  private seedLocation(index: number): [number, number] | undefined {
+    const values: any[] = (this.formControl.value || []).slice(0, this.size);
+    if (closedRings.has(this.formControl) && values.length) {
+      const prev = values[(index - 1 + values.length) % values.length];
+      const next = values[index % values.length];
+      if (hasLocation(prev) && hasLocation(next)) return [(prev[0] + next[0]) / 2, (prev[1] + next[1]) / 2];
+    }
+    const neighbour = [values[index - 1], values[index]].find(hasLocation);
+    return neighbour && [neighbour[0], neighbour[1]];
   }
 
   keydown(event: KeyboardEvent, index: number) {

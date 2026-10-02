@@ -20,7 +20,7 @@ export function isLinearRing(ring: Position[]): boolean {
  * automatically: invalid polygons are drawn as open lines and points so the
  * map always shows exactly what is stored.
  */
-export function geoFeatures(feature: any): Feature[] {
+export function geoFeatures(feature: any, valid: (p: any) => p is Position = isPosition): Feature[] {
   const result: Feature[] = [];
   const add = (geometry?: Geometry) => {
     if (!geometry) return;
@@ -30,19 +30,17 @@ export function geoFeatures(feature: any): Feature[] {
       result.push({ type: 'Feature', properties: feature?.properties || {}, geometry });
     }
   };
-  add(sanitize(feature?.geometry));
+  add(sanitize(feature?.geometry, valid));
   return result;
 }
 
-function positions(ps: any): Position[] {
-  return Array.isArray(ps) ? ps.filter(isPosition) : [];
-}
-
-function sanitize(geometry: any): Geometry | undefined {
+function sanitize(geometry: any, valid: (p: any) => p is Position): Geometry | undefined {
   const c = geometry?.coordinates;
+  const positions = (ps: any): Position[] => Array.isArray(ps) ? ps.filter(valid) : [];
+  const polygon = (rings: any[]) => toPolygon(rings.map(positions));
   switch (geometry?.type) {
     case 'Point':
-      return isPosition(c) ? { type: 'Point', coordinates: c } : undefined;
+      return valid(c) ? { type: 'Point', coordinates: c } : undefined;
     case 'MultiPoint':
       return { type: 'MultiPoint', coordinates: positions(c) };
     case 'LineString':
@@ -61,7 +59,7 @@ function sanitize(geometry: any): Geometry | undefined {
     case 'GeometryCollection':
       return {
         type: 'GeometryCollection',
-        geometries: (Array.isArray(geometry.geometries) ? geometry.geometries : []).map(sanitize).filter((g: any) => !!g),
+        geometries: (Array.isArray(geometry.geometries) ? geometry.geometries : []).map((g: any) => sanitize(g, valid)).filter((g: any) => !!g),
       };
   }
   return undefined;
@@ -71,8 +69,8 @@ function line(ps: Position[]): Geometry {
   return ps.length > 1 ? { type: 'LineString', coordinates: ps } : { type: 'MultiPoint', coordinates: ps };
 }
 
-function polygon(rings: any[]): Geometry | undefined {
-  const rs = rings.map(positions).filter(r => r.length);
+function toPolygon(rings: Position[][]): Geometry | undefined {
+  const rs = rings.filter(r => r.length);
   if (!rs.length) return undefined;
   if (!isLinearRing(rs[0])) return { type: 'GeometryCollection', geometries: rs.map(line) };
   const geometries: Geometry[] = [

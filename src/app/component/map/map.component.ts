@@ -151,7 +151,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       type: 'FeatureCollection',
       features: this.mapData.flatMap(([ref]) => features(ref))
         .filter(f => f?.type === 'Feature')
-        .flatMap(geoFeatures)
+        .flatMap(f => geoFeatures(f))
         .filter(f => f.geometry.type !== 'Point'),
     };
   }

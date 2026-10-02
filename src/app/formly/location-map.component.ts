@@ -234,7 +234,8 @@ export class LocationMapComponent implements OnDestroy {
     if (isGeoPlugins(root)) {
       for (const [key, value] of Object.entries((root as FormGroup).getRawValue())) {
         if (!key.startsWith('plugin/geo/')) continue;
-        features.push(...geoFeatures(value));
+        // Unset [0, 0] locations are not drawn
+        features.push(...geoFeatures(value, hasLocation));
       }
     }
     return { type: 'FeatureCollection', features };

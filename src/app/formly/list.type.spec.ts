@@ -2,6 +2,7 @@
 import { FieldArrayType } from '@ngx-formly/core';
 import { vi } from 'vitest';
 import { ListTypeComponent } from './list.type';
+import { closedRings } from './location-picker';
 
 describe('ListTypeComponent', () => {
   function createComponent() {
@@ -50,5 +51,47 @@ describe('ListTypeComponent', () => {
     component.maybeRemove(event, 1);
 
     expect(removeSpy).toHaveBeenCalledWith(1);
+  });
+
+  describe('location seeding', () => {
+    function createLocationList(values: any[], ring = false) {
+      const component = new ListTypeComponent({ hotkey: false } as any);
+      const formControl = { length: values.length, value: values } as any;
+      component.field = {
+        fieldArray: { type: 'location' },
+        fieldGroup: values.map((_, i) => ({ id: `field-${i}` })),
+        model: values,
+        formControl,
+      } as any;
+      if (ring) closedRings.add(formControl);
+      const addSpy = vi.spyOn(FieldArrayType.prototype, 'add').mockImplementation(() => undefined);
+      return { component, addSpy };
+    }
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('splits the closing edge of a closed ring', () => {
+      const { component, addSpy } = createLocationList([[0, 10], [10, 10], [10, 0], [0, 10]], true);
+      component.add();
+      expect(addSpy).toHaveBeenCalledWith(3, [5, 5], undefined);
+    });
+
+    it('copies the previous point in an open list', () => {
+      const { component, addSpy } = createLocationList([[1, 2], [3, 4]]);
+      component.add();
+      expect(addSpy).toHaveBeenCalledWith(undefined, [3, 4], undefined);
+    });
+
+    it('copies the next point when inserting first', () => {
+      const { component, addSpy } = createLocationList([[1, 2], [3, 4]]);
+      component.add(0);
+      expect(addSpy).toHaveBeenCalledWith(0, [1, 2], undefined);
+    });
+
+    it('leaves the point unset without valid neighbours', () => {
+      const { component, addSpy } = createLocationList([[0, 0]]);
+      component.add();
+      expect(addSpy).toHaveBeenCalledWith(undefined, undefined, undefined);
+    });
   });
 });
