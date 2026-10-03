@@ -26,6 +26,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { UserService } from '../../service/api/user.service';
 import { AuthzService } from '../../service/authz.service';
+import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { HelpService } from '../../service/help.service';
 import { ExtStore } from '../../store/ext';
@@ -93,6 +94,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
     private el: ElementRef,
     private help: HelpService,
     private editor: EditorService,
+    private config: ConfigService,
   ) {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
@@ -224,6 +226,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
       fetchRef: url => firstValueFrom(this.refs.getCurrent(this.editor.getRefUrl(url))),
       wikiPrefix: this.admin.getWikiPrefix(),
       wikiExternal: this.admin.isWikiExternal(),
+      base: this.config.base,
     });
   }
 

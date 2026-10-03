@@ -20,6 +20,13 @@ describe('download util', () => {
     expect(getEmbeds('![](data:image/png;base64,AAAA) ![](blob:abc) ![](/tag/science) ![](tag/science) ![](./a.png) ![](img/a.png) ![](tag:/a)')).toEqual(['tag:/a']);
   });
 
+  it('should include images linking to Ref pages', () => {
+    const base = 'https://jasper.example.com/app/';
+    expect(getEmbeds('![](/ref/comment:1) ![](https://jasper.example.com/app/ref/comment:2) ![](/app/ref/comment:3) ![](https://other.com/ref/comment:4) ![](https://jasper.example.com/app/tag/science)', undefined, false, base))
+      .toEqual(['/ref/comment:1', 'https://jasper.example.com/app/ref/comment:2', '/app/ref/comment:3']);
+    expect(getEmbeds('![](/ref/comment:1) ![](https://jasper.example.com/app/ref/comment:2)')).toEqual(['/ref/comment:1']);
+  });
+
   it('should include one level of embedded Refs with cache files', async () => {
     const refs: Record<string, Ref> = {
       'comment:2': { url: 'comment:2', origin: '', tags: ['plugin/image'], plugins: { 'plugin/image': { url: 'cache:a' } }, comment: '![](comment:4)' },

@@ -4,6 +4,7 @@ import { marked } from 'marked';
 import { getMailbox } from '../mods/mailbox';
 import { wikiUriFormat } from '../mods/org/wiki';
 import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';
+import { getPath } from './http';
 
 export function getMailboxes(markdown: string, origin = '') {
   return extractPattern(markdown, /[_+]user\/[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?/g, undefined, QUALIFIED_USER_REGEX)
@@ -38,14 +39,17 @@ export function getIfNew<T>(list: T[], old?: T[]): T[] {
  * Get the URLs embedded in markdown. These are rendered by looking up the Ref.
  * External wiki embeds are rendered as links, and images that are not Refs
  * (web, data and blob URLs, relative paths and tag queries) are rendered
- * directly, so they are skipped.
+ * directly, so they are skipped. Images linking to a Ref page, either relative
+ * or under the given base URL, are rendered by looking up the Ref.
  */
-export function getEmbeds(markdown: string, wikiPrefix?: string, wikiExternal = false) {
+export function getEmbeds(markdown: string, wikiPrefix?: string, wikiExternal = false, base = '') {
   const result: string[] = [];
   if (!markdown) return result;
   marked.walkTokens(marked.lexer(markdown), t => {
     const customType = t as any;
     if (customType.type === 'bang-embed' && customType.href) {
+      result.push(customType.href);
+    } else if (customType.type === 'image' && customType.href && isRefPath(customType.href, base)) {
       result.push(customType.href);
     } else if (customType.type === 'image' && customType.href && /^[a-z][a-z0-9+.-]*:/i.test(customType.href) && !/^(https?|data|blob):/i.test(customType.href)) {
       result.push(customType.href);
@@ -54,6 +58,13 @@ export function getEmbeds(markdown: string, wikiPrefix?: string, wikiExternal = 
     }
   });
   return uniq(result);
+}
+
+function isRefPath(url: string, base: string) {
+  if (url.startsWith('/ref/')) return true;
+  if (!base) return false;
+  const refPrefix = base + 'ref/';
+  return url.startsWith(refPrefix) || url.startsWith(getPath(refPrefix)!);
 }
 
 export function getLinks(markdown: string, withText?: RegExp) {

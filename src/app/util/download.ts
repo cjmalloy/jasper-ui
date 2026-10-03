@@ -98,6 +98,7 @@ export interface EmbedOptions {
   fetchRef: (url: string) => Promise<Ref | undefined>;
   wikiPrefix?: string;
   wikiExternal?: boolean;
+  base?: string;
 }
 
 /**
@@ -105,10 +106,10 @@ export interface EmbedOptions {
  * cache files. Only one level of embeds is followed, embeds of the embedded
  * Refs are not.
  */
-export async function embeddedCacheRefs(refs: Ref[], { fetchRef, wikiPrefix, wikiExternal }: EmbedOptions) {
+export async function embeddedCacheRefs(refs: Ref[], { fetchRef, wikiPrefix, wikiExternal, base }: EmbedOptions) {
   const key = (ref: Ref) => ref.url + ' ' + (ref.origin || '');
   const seen = new Set(refs.map(key));
-  const urls = new Set(refs.flatMap(ref => getEmbeds(ref.comment || '', wikiPrefix, wikiExternal)).filter(url => !cacheUrlId(url)));
+  const urls = new Set(refs.flatMap(ref => getEmbeds(ref.comment || '', wikiPrefix, wikiExternal, base)).filter(url => !cacheUrlId(url)));
   const fetched = await mapLimit([...urls], FETCH_LIMIT, url => fetchRef(url).catch(error => {
     console.error(`Skipping embed in zip due to error fetching: ${url}`, error);
     return undefined;
