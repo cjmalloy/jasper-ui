@@ -330,9 +330,14 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
    */
   @memo
   get bounds(): LngLatBounds | undefined {
-    const bbox = this.bbox?.filter(n => typeof n === 'number' && isFinite(n));
-    if (bbox?.length === 4) return new LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
-    if (bbox?.length === 6) return new LngLatBounds([bbox[0], bbox[1]], [bbox[3], bbox[4]]);
+    const bbox = this.bbox;
+    if (bbox && (bbox.length === 4 || bbox.length === 6) && bbox.every(n => typeof n === 'number' && isFinite(n))) {
+      const east = bbox.length === 6 ? bbox[3] : bbox[2];
+      const north = bbox.length === 6 ? bbox[4] : bbox[3];
+      if (Math.abs(bbox[1]) <= 90 && Math.abs(north) <= 90) {
+        return new LngLatBounds([bbox[0], bbox[1]], [east, north]);
+      }
+    }
     if (!this.fitFeatures) return undefined;
     const lngs: number[] = [];
     let south = Infinity;
