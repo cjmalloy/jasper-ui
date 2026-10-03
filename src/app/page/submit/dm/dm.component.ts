@@ -39,7 +39,7 @@ import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid, controlValue } from '../../../util/form';
+import { scrollToFirstInvalid, controlValue, controlState } from '../../../util/form';
 import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/tag';
@@ -66,6 +66,7 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
 })
 export class SubmitDmPage implements HasChanges {
   private readonly controlState0 = controlValue(() => this.to);
+  protected readonly toMissing = controlState(() => this.to, c => c.touched && !c.value);
 
 
   private readonly injector = inject(Injector);
@@ -74,6 +75,7 @@ export class SubmitDmPage implements HasChanges {
 
   readonly submitted = signal<boolean>(false);
   dmForm: UntypedFormGroup;
+  protected readonly dmFormValid = controlState(() => this.dmForm, c => c.valid);
   readonly serverError = signal<string[]>([]);
 
   readonly limitWidth = signal<HTMLElement | undefined>(undefined);

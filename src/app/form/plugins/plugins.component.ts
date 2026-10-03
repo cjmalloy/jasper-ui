@@ -20,7 +20,7 @@ import { GenFormComponent } from './gen/gen.component';
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent {
-  private readonly rootControlState = controlValue(() => this.group());
+  protected readonly rootControlState = controlValue(() => this.group());
 
   private readonly controlState0 = controlValue(() => this.tags());
 

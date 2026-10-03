@@ -44,7 +44,7 @@ import { EditorComponent } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
-import { controlValue } from '../../util/form';
+import { controlState, controlValue } from '../../util/form';
 
 @Component({
   selector: 'app-ref-form',
@@ -79,7 +79,7 @@ import { controlValue } from '../../util/form';
 export class RefFormComponent {
   private readonly rootControlState = controlValue(() => this.group());
 
-  private readonly controlState0 = controlValue(() => this.url());
+  protected readonly controlState0 = controlValue(() => this.url());
   private readonly controlState1 = controlValue(() => this.group());
   private readonly controlState2 = controlValue(() => this.sources());
   private readonly controlState3 = controlValue(() => this.tags());
@@ -147,6 +147,7 @@ export class RefFormComponent {
     this.rootControlState();
     return this.group().get('published') as UntypedFormControl;
   });
+  protected readonly publishedRequired = controlState(this.published, c => c.touched && !!c.errors?.['required']);
 
   readonly tags = computed(() => {
     this.rootControlState();

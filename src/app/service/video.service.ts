@@ -1,4 +1,4 @@
-import { computed, Injectable, isDevMode } from '@angular/core';
+import { computed, Injectable } from '@angular/core';
 import { filter, interval, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -10,6 +10,7 @@ import { RefService } from './api/ref.service';
 import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
 import { ConfigService } from './config.service';
+import { environment } from '../../environments/environment';
 
 /**
  * Interface for video signaling data structure used in WebRTC communication
@@ -46,7 +47,7 @@ export class VideoService {
     private ts: TaggingService,
     private refs: RefService,
   ) {
-    if (isDevMode()) timer(3_000, 30_000).pipe(
+    if (environment.dev) timer(3_000, 30_000).pipe(
       mergeMap(() => this.store.video.peers().entries()),
       map(([user, peer]) => ({ user, stats: peer.getStats?.() })),
     ).subscribe(({ user, stats }) => {

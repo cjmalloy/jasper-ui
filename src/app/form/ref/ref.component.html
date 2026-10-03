@@ -54,7 +54,7 @@
   </div>
   <span><!-- Published Errors --></span>
   <div>
-    @if (published().touched && published().errors?.['required']) {
+    @if (publishedRequired()) {
       <div class="error" i18n>
         Published date is required.
       </div>
@@ -81,7 +81,7 @@
   @if (creating() && thumbnail()) {
     <div class="thumbnail-preview">
       <div class="thumbnail"
-           [style.background-image]="thumbnailRefs() | thumbnail: !thumbnailEmoji() && !thumbnailColor() : false | async | cssUrl: url().value"
+           [style.background-image]="thumbnailRefs() | thumbnail: !thumbnailEmoji() && !thumbnailColor() : false | async | cssUrl: controlState0()"
            [style.background-color]="thumbnailColor()"
            [style.background-size]="thumbnailRadius() ? 'cover' : 'contain'"
            [style.border-radius.px]="thumbnailRadius()">{{ thumbnailEmoji() }}</div>
@@ -115,7 +115,7 @@
                   [control]="comment()"
                   [tags]="tags()"
                   [fillWidth]="fill"
-                  [url]="web() && url().value"
+                  [url]="web() && controlState0()"
                   (scrape)="scrapeAll()"
                   [scraping]="scrapingAll()"
                   (syncEditor)="syncEditor()"

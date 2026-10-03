@@ -33,6 +33,6 @@
     @if (alreadyExists()) {
       <button type="button" [disabled]="submitting() || saving()" (click)="prepareRepost()" i18n>Repost</button>
     }
-    <button type="submit" [disabled]="submitting() || alreadyExists() || (submitted() && !webForm.valid)" i18n>Submit</button>
+    <button type="submit" [disabled]="submitting() || alreadyExists() || (submitted() && !webFormValid())" i18n>Submit</button>
   </span>
 </form>

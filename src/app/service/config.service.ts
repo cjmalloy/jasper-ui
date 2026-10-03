@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export function config(): ConfigService {
   // @ts-ignore
@@ -41,7 +42,7 @@ export class ConfigService {
   /**
    * Workaround for non-cookie based auth to scrape images before fetching.
    */
-  prefetch = isDevMode();
+  prefetch = environment.dev;
 
   miniWidth = 380;
   mobileWidth = 740;

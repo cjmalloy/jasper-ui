@@ -37,7 +37,7 @@
             <option [value]="opt.value">{{ opt.label || opt.value }}</option>
           }
         </select>
-        @for (sort of defaultSort().value; track $index; let i = $index) {
+        @for (sort of defaultSortValue(); track $index; let i = $index) {
           <span class="controls default-sort-row">
             <select [id]="id + '-defaultSort-' + i"
                     (input)="setSortCol(i, $any($event.target).value)">
@@ -67,7 +67,7 @@
             <option [value]="opt.filter">{{ opt.label || opt.filter }}</option>
           }
         </select>
-        @for (filter of defaultFilter().value; track $index; let i = $index) {
+        @for (filter of defaultFilterValue(); track $index; let i = $index) {
           <div class="default-filter-row">
             <span class="controls">
               <select [id]="id + '-defaultFilter-' + i"
@@ -155,7 +155,7 @@
                 <option [value]="opt.value">{{ opt.label || opt.value }}</option>
               }
             </select>
-            @for (sort of defaultSort().value; track $index; let i = $index) {
+            @for (sort of defaultSortValue(); track $index; let i = $index) {
               <span class="controls default-sort-row">
                 <select (input)="setSortCol(i, $any($event.target).value)">
                   @for (opt of allSorts(); track opt) {

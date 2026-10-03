@@ -32,7 +32,7 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { tagLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasPrefix, parentTag } from '../../util/tag';
@@ -69,6 +69,7 @@ export class ExtComponent implements HasChanges {
   readonly useEditPage = input(false);
 
   readonly editForm = signal<UntypedFormGroup>(undefined as unknown as UntypedFormGroup);
+  protected readonly editFormValid = controlState(() => this.editForm(), c => c.valid);
   readonly submitted = linkedSignal(() => { this.ext(); return false; });
   readonly invalid = linkedSignal(() => { this.ext(); return false; });
   readonly overwritten = linkedSignal(() => { this.ext(); return false; });

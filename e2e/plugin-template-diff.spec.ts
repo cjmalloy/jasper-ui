@@ -1,6 +1,6 @@
-import { type APIRequestContext, expect, test } from '@playwright/test';
+import { type APIRequestContext, expect } from '@playwright/test';
 import JSZip from 'jszip';
-import { adminHeaders, mod } from './setup';
+import { adminHeaders, mod, test } from './setup';
 
 test.describe.serial('Remote Plugin/Template Diff', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';

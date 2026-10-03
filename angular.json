@@ -142,6 +142,18 @@
               "sourceMap": true,
               "namedChunks": true
             },
+            "e2e": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.e2e.ts"
+                }
+              ]
+            },
             "ja": {
               "aot": true,
               "outputPath": {

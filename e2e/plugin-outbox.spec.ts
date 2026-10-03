@@ -1,5 +1,5 @@
-import { expect, type Page, type Response, test } from '@playwright/test';
-import { clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit } from './setup';
+import { expect, type Page, type Response } from '@playwright/test';
+import { clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, test } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test.setTimeout(90_000);

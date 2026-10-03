@@ -39,7 +39,7 @@ import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { OembedStore } from '../../../store/oembed';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../../util/form';
 import { interestingTags } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { getVisibilityTags } from '../../../util/tag';
@@ -65,6 +65,7 @@ export class SubmitWebPage implements HasChanges {
   readonly submitted = signal<boolean>(false);
   title = '';
   webForm: UntypedFormGroup;
+  protected readonly webFormValid = controlState(() => this.webForm, c => c.valid);
   readonly serverError = signal<string[]>([]);
 
   readonly limitWidth = signal<HTMLElement | undefined>(undefined);

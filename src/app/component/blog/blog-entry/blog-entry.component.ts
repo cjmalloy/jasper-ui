@@ -51,7 +51,7 @@ import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { downloadRef } from '../../../util/download';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
 import { hasTag, isAuthorTag, localTag, removeTag, tagOrigin } from '../../../util/tag';
@@ -109,6 +109,7 @@ export class BlogEntryComponent implements HasChanges {
   readonly repostRef = computed(() => this.repostResource.hasValue() ? this.repostResource.value() : undefined);
 
   editForm: UntypedFormGroup;
+  protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
   readonly submitted = linkedSignal({ source: this.ref, computation: () => false });
   readonly icons = computed(() => uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url)))));
   readonly actions = computed(() => uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins))));

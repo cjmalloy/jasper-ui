@@ -14,7 +14,7 @@ import { OriginService } from '../../../service/api/origin.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../../util/form';
 import { ORIGIN_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
@@ -32,6 +32,7 @@ export class SettingsBackupPage {
   readonly backupOptionsTemplate = viewChild.required<TemplateRef<any>>('backupOptions');
 
   originForm: UntypedFormGroup;
+  protected readonly originFormValid = controlState(() => this.originForm, c => c.valid);
   backupOptionsForm: UntypedFormGroup;
 
   readonly list = signal<BackupRef[] | undefined>(undefined);

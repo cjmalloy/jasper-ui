@@ -8,7 +8,7 @@
   </h5>
   <a routerLink="/submit"
      [class.current-tab]="store.submit.web() && !store.submit.genId()"
-     [queryParams]="{ url: url.value, tag: store.submit.withoutGenId() }"
+     [queryParams]="{ url: urlValue(), tag: store.submit.withoutGenId() }"
      [replaceUrl]="true"
      i18n-title title="🔗️ Link Post"
      queryParamsHandling="merge" i18n>link</a>
@@ -186,7 +186,7 @@
           </div>
           @if (responsesToUrl().page.totalPages > 1) {
             <span><!-- show more --></span>
-            <a [routerLink]="['/ref', url.value, 'responses']"
+            <a [routerLink]="['/ref', urlValue(), 'responses']"
                class="load-more no-select" i18n>
               see all
             </a>

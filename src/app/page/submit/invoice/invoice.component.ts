@@ -30,7 +30,7 @@ import { TaggingService } from '../../../service/api/tagging.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlState, controlValue } from '../../../util/form';
 import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { getVisibilityTags, prefix } from '../../../util/tag';
@@ -54,6 +54,9 @@ export class SubmitInvoicePage implements HasChanges {
 
   readonly submitted = signal<boolean>(false);
   invoiceForm: UntypedFormGroup;
+  protected readonly invoiceFormValid = controlState(() => this.invoiceForm, c => c.valid);
+  protected readonly invoiceFormValue = controlValue(() => this.invoiceForm);
+  protected readonly titleRequired = controlState(() => this.title, c => c.touched && !!c.errors?.['required']);
   readonly serverError = signal<string[]>([]);
 
   readonly editorComponent = viewChild<EditorComponent>('editor');

@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, isDevMode, ChangeDetectionStrategy, viewChild, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
@@ -15,8 +15,9 @@ import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../../util/form';
 import { printError } from '../../../util/http';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-settings-me-page',
@@ -35,6 +36,7 @@ export class SettingsMePage implements HasChanges {
 
   readonly form = viewChild<ExtFormComponent>('form');
   editForm!: UntypedFormGroup;
+  protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
 
   constructor(
     public config: ConfigService,
@@ -89,5 +91,5 @@ export class SettingsMePage implements HasChanges {
     this.editingSubscription?.add(() => this.editing.set(false));
   }
 
-  protected readonly isDevMode = isDevMode;
+  protected readonly isDevMode = () => environment.dev;
 }

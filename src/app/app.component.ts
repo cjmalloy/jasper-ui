@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  isDevMode,
   ViewContainerRef
 } from '@angular/core';
 import { NavigationStart, Router, RouterOutlet } from '@angular/router';
@@ -22,6 +21,7 @@ import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -46,7 +46,7 @@ export class AppComponent implements AfterViewInit {
 
   electron = this.config.electron;
 
-  readonly debug = computed(() => !isDevMode() && this.store.account.debug());
+  readonly debug = computed(() => !environment.dev && this.store.account.debug());
   readonly website = computed(() => {
     const base = 'https://github.com/cjmalloy/jasper-ui';
     return !this.store.account.debug() && this.config.version

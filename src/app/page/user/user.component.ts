@@ -15,7 +15,7 @@ import { UserService } from '../../service/api/user.service';
 import { ConfigService } from '../../service/config.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { printError } from '../../util/http';
 import { prefix, setPublic } from '../../util/tag';
 
@@ -35,6 +35,7 @@ export class UserPage implements HasChanges {
 
   readonly userForm = viewChild.required<UserFormComponent>('form');
   profileForm: UntypedFormGroup;
+  protected readonly profileFormValid = controlState(() => this.profileForm, c => c.valid);
 
   constructor(
     private mod: ModService,

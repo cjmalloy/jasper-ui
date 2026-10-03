@@ -12,7 +12,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { equalBundle, formatBundleDiff, merge3 } from '../../../util/diff';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../../util/form';
 import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { DiffComponent } from '../../../form/diff/diff.component';
@@ -55,6 +55,7 @@ export class SettingsSetupPage {
   experiments = !!this.admin.getTemplate('config/experiments');
   readonly selectAllToggle = signal<boolean>(false);
   adminForm: UntypedFormGroup;
+  protected readonly adminFormValid = controlState(() => this.adminForm, c => c.valid);
   mergePopupSub = new Subscription();
   modGroups = configGroups({
     ...this.admin.status().disabledPlugins, ...this.admin.status().disabledTemplates,

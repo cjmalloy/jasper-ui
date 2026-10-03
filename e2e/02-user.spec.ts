@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { mod } from './setup';
+import { expect } from '@playwright/test';
+import { mod, test } from './setup';
 
 test.describe.serial('User Page', () => {
 

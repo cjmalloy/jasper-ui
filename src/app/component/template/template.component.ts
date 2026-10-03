@@ -14,7 +14,7 @@ import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { printError } from '../../util/http';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
@@ -49,6 +49,7 @@ export class TemplateComponent implements HasChanges {
   private savingSubscription?: Subscription;
 
   editForm: UntypedFormGroup;
+  protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
   readonly submitted = linkedSignal(() => { this.template(); return false; });
   readonly editing = linkedSignal(() => { this.template(); return false; });
   readonly viewSource = linkedSignal(() => { this.template(); return false; });

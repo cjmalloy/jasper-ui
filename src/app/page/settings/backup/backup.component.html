@@ -27,18 +27,18 @@
   @if (store.account.admin()) {
     <button #backupButton
             type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="showBackupOptions()"
             i18n-title title="Create Backup" i18n>+ backup</button>
     <button type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="deleteOrigin()"
             i18n-title title="Delete all from origin" i18n>&ndash; delete</button>
   }
 
   @if (!uploading()) {
     <button type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="uploadFile.click()"
             i18n-title
             title="Upload Backup" i18n>+ upload</button>
@@ -52,7 +52,7 @@
 
   @if (store.account.mod()) {
     <button type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="regen()"
             i18n-title
             title="Regenerate Metadata" i18n>♻️ regen</button>

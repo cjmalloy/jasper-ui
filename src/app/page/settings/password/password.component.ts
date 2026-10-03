@@ -6,7 +6,7 @@ import { catchError, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 import { ProfileService } from '../../../service/api/profile.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -21,6 +21,7 @@ export class SettingsPasswordPage {
   readonly submitted = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
   passwordForm!: UntypedFormGroup;
+  protected readonly passwordFormValid = controlState(() => this.passwordForm, c => c.valid);
 
   constructor(
     public admin: AdminService,

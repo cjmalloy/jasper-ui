@@ -36,7 +36,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { downloadRef, downloadTag } from '../../util/download';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { printError } from '../../util/http';
 import { localTag, subOrigin, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
@@ -87,6 +87,7 @@ export class UserComponent implements HasChanges {
   readonly refForm = viewChild<UserFormComponent>('refForm');
 
   editForm: UntypedFormGroup;
+  protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
   readonly submitted = linkedSignal(() => { this.user(); this.profileInput(); return false; });
   readonly editing = linkedSignal(() => { this.user(); this.profileInput(); return false; });
   readonly viewSource = linkedSignal(() => { this.user(); this.profileInput(); return false; });

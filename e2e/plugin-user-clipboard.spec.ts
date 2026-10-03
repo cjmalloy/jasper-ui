@@ -1,5 +1,5 @@
-import { expect, type Locator, test } from '@playwright/test';
-import { mod } from './setup';
+import { expect, type Locator } from '@playwright/test';
+import { mod, test } from './setup';
 
 async function dispatchFileDragEvent(target: Locator, type: 'dragenter' | 'drop') {
   await target.evaluate((element, eventType) => {

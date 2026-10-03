@@ -40,7 +40,7 @@ import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { readFileAsString } from '../../../util/async';
-import { scrollToFirstInvalid, controlValue } from '../../../util/form';
+import { scrollToFirstInvalid, controlValue, controlState } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 
@@ -75,6 +75,7 @@ export class SubmitTextPage implements HasChanges {
 
   readonly submitted = signal<boolean>(false);
   textForm: UntypedFormGroup;
+  protected readonly textFormValid = controlState(() => this.textForm, c => c.valid);
   readonly advanced = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
 

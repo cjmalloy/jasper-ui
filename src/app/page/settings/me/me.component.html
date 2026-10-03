@@ -21,6 +21,6 @@
     @if (editing()) {
       <app-loading [inline]="true"></app-loading>
     }
-    <button type="submit" [disabled]="editing() || submitted() && !editForm.valid" i18n>Save</button>
+    <button type="submit" [disabled]="editing() || submitted() && !editFormValid()" i18n>Save</button>
   </span>
 </form>

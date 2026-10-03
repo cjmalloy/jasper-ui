@@ -20,7 +20,7 @@
       } @else {
         <button type="button" (click)="selectAll()" i18n>Select All</button>
       }
-      <button type="button" (click)="install()" [disabled]="submitted() && !adminForm.valid" i18n>Save</button>
+      <button type="button" (click)="install()" [disabled]="submitted() && !adminFormValid()" i18n>Save</button>
     </span>
 
     @if (serverError().length || installMessages().length) {

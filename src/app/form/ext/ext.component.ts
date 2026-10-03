@@ -180,6 +180,8 @@ export class ExtFormComponent  {
     this.rootControlState();
     return this.config().get('defaultFilter') as FormControl<UrlFilter[]>;
   });
+  protected readonly defaultSortValue = controlValue(this.defaultSort);
+  protected readonly defaultFilterValue = controlValue(this.defaultFilter);
 
   addSort(value: string, select: HTMLSelectElement) {
     if (!value) return;

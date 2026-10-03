@@ -60,7 +60,7 @@
       @if (saving()) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="saving() || submitted() && !editForm.valid" i18n>save</button>
+      <button type="submit" [disabled]="saving() || submitted() && !editFormValid()" i18n>save</button>
       <button type="button" (click)="editing.set(false)" i18n>cancel</button>
     </span>
   </form>

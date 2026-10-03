@@ -1,4 +1,4 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { RxStomp, RxStompConfig } from '@stomp/rx-stomp';
 import { map, Observable } from 'rxjs';
 import { Ext, mapExt } from '../../model/ext';
@@ -6,6 +6,7 @@ import { mapRef, RefUpdates } from '../../model/ref';
 import { Store } from '../../store/store';
 import { isSubOrigin, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
+import { environment } from '../../../environments/environment';
 
 
 function isTestEnvironment(): boolean {
@@ -32,7 +33,7 @@ export class StompService extends RxStomp {
       heartbeatOutgoing: 0,
       reconnectDelay: 2000,
     };
-    if (isDevMode()) {
+    if (environment.dev) {
       this.stompConfig.debug = (msg: string) => console.debug('📶️  '+ msg);
     }
     this.configure(this.stompConfig);

@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { clearAll, mod } from './setup';
+import { expect } from '@playwright/test';
+import { clearAll, mod, test } from './setup';
 
 test.describe.serial('Chat Template', () => {
 

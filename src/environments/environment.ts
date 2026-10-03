@@ -4,4 +4,8 @@
 
 export const environment = {
   production: false,
+  /** Local development conveniences (auto login, prefetch, ...). */
+  dev: true,
+  /** Exhaustive checkNoChanges to catch state changes that OnPush templates miss. */
+  checkNoChanges: true,
 };

@@ -80,7 +80,7 @@
         <label for="overwrite" i18n>Overwrite</label>
       </div>
     }
-    <button type="submit" [disabled]="submitted() && !editForm().valid" i18n>save</button>
+    <button type="submit" [disabled]="submitted() && !editFormValid()" i18n>save</button>
     <button type="button" (click)="editing.set(false)" i18n>cancel</button>
   </span>
   </form>

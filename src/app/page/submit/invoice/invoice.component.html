@@ -25,7 +25,7 @@
          (blur)="validate($any($event.target))">
   <span><!-- Title Errors --></span>
   <div>
-    @if (title.touched && title.errors?.['required']) {
+    @if (titleRequired()) {
       <div class="error" i18n>
         Title must not be blank.
       </div>
@@ -42,7 +42,7 @@
                 i18n-addCommentLabel addCommentLabel="+ Add message"
                 [fillWidth]="fill"
                 (syncEditor)="syncEditor()"
-                [tags]="$any(invoiceForm.value).tags"
+                [tags]="invoiceFormValue()?.tags"
                 (syncTags)="editorTags = $event"
                 (uploadCompleted)="addCompletedUpload($event)"></app-editor>
   </div>
@@ -57,6 +57,6 @@
       @if (submitting()) {
         <app-loading [inline]="true"></app-loading>
       }
-    <button type="submit" [disabled]="submitting() || submitted() && !invoiceForm.valid" i18n>Send</button>
+    <button type="submit" [disabled]="submitting() || submitted() && !invoiceFormValid()" i18n>Send</button>
   </span>
 </form>

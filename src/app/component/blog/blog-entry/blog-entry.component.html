@@ -125,7 +125,7 @@
       @if (submitting()) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="submitting() || submitted() && !editForm.valid" i18n>save</button>
+      <button type="submit" [disabled]="submitting() || submitted() && !editFormValid()" i18n>save</button>
       <button class="blog-edit-cancel" type="button" [disabled]="submitting()" (click)="cancelEdit()" i18n>cancel</button>
     </span>
   </form>

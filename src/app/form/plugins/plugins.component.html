@@ -3,7 +3,7 @@
     @for (icon of icons(); track icon) {
       <span class="icon"
             [appTitle]="icon"
-            [ref]="group().value">{{ icon.label || icon.thumbnail }}</span>
+            [ref]="rootControlState()">{{ icon.label || icon.thumbnail }}</span>
     }
   </div>
 }

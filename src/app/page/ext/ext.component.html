@@ -30,7 +30,7 @@
       @if (creating()) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="creating() || submitted() && !extForm.valid" i18n>Extend</button>
+      <button type="submit" [disabled]="creating() || submitted() && !extFormValid()" i18n>Extend</button>
     </span>
   </form>
 } @else if (editForm(); as editForm) {
@@ -60,7 +60,7 @@
       @if (editing() || deleting()) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="editing() || deleting() || submitted() && !editForm.valid" i18n>Save</button>
+      <button type="submit" [disabled]="editing() || deleting() || submitted() && !editFormValid()" i18n>Save</button>
         <button type="button" [disabled]="editing() || deleting()" (click)="delete()" i18n>Delete</button>
     </span>
   </form>

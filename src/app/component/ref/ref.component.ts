@@ -35,7 +35,7 @@ import { EditorService } from '../../service/editor.service';
 import { ImageService } from '../../service/image.service';
 import { UploadCacheService } from '../../service/upload-cache.service';
 import { Store } from '../../store/store';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import {
   authors,
   clickableLink,
@@ -172,6 +172,7 @@ export class RefComponent implements HasChanges {
       startWith(undefined),
     ))), { initialValue: undefined });
   editForm: UntypedFormGroup;
+  protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
   readonly submitted = linkedSignal(() => { this.ref(); return false; });
   readonly invalid = linkedSignal(() => { this.ref(); return false; });
   readonly overwritten = linkedSignal(() => { this.ref(); return false; });

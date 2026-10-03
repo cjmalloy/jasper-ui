@@ -8,7 +8,7 @@ import {
   APP_INITIALIZER,
   enableProdMode,
   importProvidersFrom,
-  isDevMode,
+  provideCheckNoChangesConfig,
   provideZonelessChangeDetection
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -87,6 +87,7 @@ if (environment.production) {
 bootstrapApplication(AppComponent, {
   providers: [
     provideZonelessChangeDetection(),
+    ...(environment.checkNoChanges ? [provideCheckNoChangesConfig({ exhaustive: true })] : []),
     importProvidersFrom(
       BrowserModule,
       AppRoutingModule,
@@ -100,7 +101,7 @@ bootstrapApplication(AppComponent, {
       ServiceWorkerModule.register('ngsw-worker.js', {
         scope: '.',
         get enabled() {
-          return !isDevMode() && location.hostname != 'localhost' && config().pwa;
+          return environment.production && location.hostname != 'localhost' && config().pwa;
         },
         // Register the ServiceWorker as soon as the application is stable
         // or after 30 seconds (whichever comes first).

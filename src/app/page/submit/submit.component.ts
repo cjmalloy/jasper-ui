@@ -68,6 +68,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
 })
 export class SubmitPage {
   private readonly controlState0 = controlValue(() => this.submitForm);
+  protected readonly urlValue = controlValue(() => this.url);
 
 
   readonly uploading = signal<boolean>(false);

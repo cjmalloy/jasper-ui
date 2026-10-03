@@ -22,7 +22,7 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { TAG_SUFFIX_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 import { access, hasPrefix, localTag, prefix } from '../../util/tag';
@@ -62,9 +62,11 @@ export class ExtPage implements HasChanges {
   created = false;
   overwrite = false;
   extForm: UntypedFormGroup;
+  protected readonly extFormValid = controlState(() => this.extForm, c => c.valid);
 
   templates = this.admin.tmplSubmit();
   readonly editForm = signal<UntypedFormGroup | undefined>(undefined);
+  protected readonly editFormValid = controlState(() => this.editForm(), c => c.valid);
 
   constructor(
     private mod: ModService,

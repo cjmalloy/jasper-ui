@@ -42,3 +42,24 @@ export function controlValue<T = any>(control: () => AbstractControl<T> | null |
     return snapshot?.control === control ? snapshot?.value : control?.value;
   });
 }
+
+/**
+ * Signal tracking state read from a reactive forms control, such as `valid` or `errors`.
+ * Re-reads the state on every control event. Must be called in an injection context.
+ */
+export function controlState<R>(control: () => AbstractControl | null | undefined, read: (control: AbstractControl) => R): Signal<R | undefined> {
+  const current = computed(control);
+  const state = toSignal(toObservable(current).pipe(
+    switchMap(control => control
+      ? control.events.pipe(
+        startWith(undefined),
+        map(() => ({ control, value: read(control) })),
+      )
+      : of(undefined)),
+  ));
+  return computed(() => {
+    const control = current();
+    const snapshot = state();
+    return snapshot?.control === control ? snapshot?.value : control ? read(control) : undefined;
+  });
+}

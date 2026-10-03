@@ -354,7 +354,7 @@
       @if (submitting()) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="submitting() || submitted() && !editForm.valid" i18n>save</button>
+      <button type="submit" [disabled]="submitting() || submitted() && !editFormValid()" i18n>save</button>
       <button type="button" [disabled]="submitting()" (click)="setEditing(false)" i18n>cancel</button>
     </span>
   </form>
