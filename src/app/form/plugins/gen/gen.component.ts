@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
+import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
@@ -45,6 +45,10 @@ export class GenFormComponent implements OnInit, OnChanges {
       setPlugin: (tag: string, value: any) => this.setPlugin.next({ tag, value }),
     },
   };
+  headerModel = {};
+  headerOptions: FormlyFormOptions = {
+    formState: this.options.formState,
+  };
 
   constructor(
     private admin: AdminService,
@@ -66,7 +70,18 @@ export class GenFormComponent implements OnInit, OnChanges {
       }
       return cloneDeep(this.plugin.config?.bulkForm);
     }
-    return cloneDeep(this.plugin.config?.form);
+    const form = this.plugin.config?.form?.filter(f => !isHeader(f));
+    return form?.length ? cloneDeep(form) : undefined;
+  }
+
+  /**
+   * Fields shown in place of the plugin name, such as the child plugin select.
+   */
+  @memo
+  get headerForm() {
+    if (this.bulk) return undefined;
+    const form = this.plugin.config?.form?.filter(isHeader);
+    return form?.length ? cloneDeep(form) : undefined;
   }
 
   @memo
@@ -107,4 +122,8 @@ export class GenFormComponent implements OnInit, OnChanges {
     this.togglePlugin.next(tag);
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
   }
+}
+
+function isHeader(field: FormlyFieldConfig) {
+  return field.type === 'child-plugin';
 }

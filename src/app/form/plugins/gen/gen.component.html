@@ -1,5 +1,14 @@
 @if (plugins && plugin) {
-  <label [title]="plugin.config?.description">{{ plugin.config?.submitChild || plugin.name || plugin.tag }}</label>
+  @if (headerForm && group) {
+    <formly-form class="plugin-header"
+                 [title]="plugin.config?.description"
+                 [model]="headerModel"
+                 [form]="group"
+                 [fields]="headerForm"
+                 [options]="headerOptions"></formly-form>
+  } @else {
+    <label [title]="plugin.config?.description">{{ plugin.config?.submitChild || plugin.name || plugin.tag }}</label>
+  }
   @if (group) {
     @if (children.length) {
       <div class="ribbon-margin" [style.margin-bottom.px]="childrenOn * 20"></div>

@@ -162,10 +162,6 @@ const DEPTH: Record<string, number> = {
  * otherwise only the first.
  */
 export function convertGeometry(geometry: any, type: string): Geometry {
-  if (type === 'GeometryCollection') {
-    if (geometry?.type === 'GeometryCollection') return cloneDeep(geometry);
-    return { type, geometries: geometry?.type in DEPTH ? [cloneDeep(geometry)] : [] };
-  }
   if (!(type in DEPTH)) throw new Error('Unknown geometry type: ' + type);
   if (geometry?.type === 'GeometryCollection') {
     const geometries: any[] = Array.isArray(geometry.geometries) ? geometry.geometries : [];
@@ -221,8 +217,8 @@ function closeRings(rings: Position[][]): Position[][] {
 /**
  * Convert GeoJSON plugin data (a Feature or FeatureCollection) to the type of
  * the plugin defaults, keeping as much as possible. A FeatureCollection keeps
- * the properties of each feature and splits geometry collections into one
- * feature per geometry, otherwise the first feature's properties are kept.
+ * the properties of each feature, otherwise the first feature's properties
+ * are kept.
  * Properties are dropped if not allowed.
  */
 export function convertFeature(value: any, defaults: any, properties = true): any {
@@ -235,11 +231,7 @@ export function convertFeature(value: any, defaults: any, properties = true): an
   if (value.bbox) result.bbox = cloneDeep(value.bbox);
   if (defaults.type === 'FeatureCollection') {
     const template = defaults.features?.[0];
-    // Each geometry in a collection becomes its own feature
-    const split = sourceFeatures.flatMap(f => f.geometry?.type === 'GeometryCollection'
-      ? (Array.isArray(f.geometry.geometries) ? f.geometry.geometries : []).map((geometry: any) => ({ ...f, geometry }))
-      : [f]);
-    result.features = split.map(f => ({
+    result.features = sourceFeatures.map(f => ({
       type: 'Feature',
       ...f.properties ? { properties: cloneDeep(f.properties) } : {},
       geometry: template?.geometry?.type ? convertGeometry(f.geometry, template.geometry.type) : cloneDeep(f.geometry),

@@ -20,7 +20,7 @@ import { directChild, hasPrefix } from '../util/tag';
             [id]="id"
             [disabled]="!togglePlugin"
             (input)="select($any($event.target).value)">
-      <option value="" [selected]="!current" i18n>🧰️</option>
+      <option value="" [selected]="!current">{{ parentName }}</option>
       @for (p of children; track p.tag) {
         <option [value]="p.tag" [selected]="p.tag === current">{{ p.name || '#' + p.tag }}</option>
       }
@@ -32,6 +32,10 @@ export class FormlyFieldChildPlugin extends FieldType {
 
   get parent(): string {
     return this.props.parent;
+  }
+
+  get parentName(): string {
+    return this.formState?.admin?.getPlugin(this.parent)?.name || this.parent;
   }
 
   get children(): Plugin[] {

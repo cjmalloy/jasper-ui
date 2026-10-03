@@ -107,11 +107,9 @@ describe('geo', () => {
         .toEqual({ type: 'MultiPoint', coordinates: [...open, [5, 5]] });
     });
 
-    it('converts to and from geometry collections', () => {
+    it('converts from geometry collections', () => {
       const point = { type: 'Point', coordinates: [1, 2] };
       const line = { type: 'LineString', coordinates: open };
-      expect(convertGeometry(point, 'GeometryCollection'))
-        .toEqual({ type: 'GeometryCollection', geometries: [point] });
       const collection = { type: 'GeometryCollection', geometries: [point, line] };
       expect(convertGeometry(collection, 'Point')).toEqual(point);
       expect(convertGeometry(collection, 'MultiPoint'))
@@ -126,27 +124,24 @@ describe('geo', () => {
     const line = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
     const featureCollection = { type: 'FeatureCollection', features: [] };
 
-    it('splits a geometry collection into features', () => {
-      const value = { type: 'Feature', properties: { color: 'red' }, geometry: { type: 'GeometryCollection', geometries: [point, line] } };
+    it('wraps a feature in a feature collection', () => {
+      const value = { type: 'Feature', properties: { color: 'red' }, geometry: line };
       expect(convertFeature(value, featureCollection)).toEqual({
         type: 'FeatureCollection',
-        features: [
-          { type: 'Feature', properties: { color: 'red' }, geometry: point },
-          { type: 'Feature', properties: { color: 'red' }, geometry: line },
-        ],
+        features: [{ type: 'Feature', properties: { color: 'red' }, geometry: line }],
       });
     });
 
-    it('collects features into a geometry collection', () => {
+    it('collects features into a multi geometry', () => {
       const value = { type: 'FeatureCollection', features: [
         { type: 'Feature', properties: { color: 'red' }, geometry: point },
         { type: 'Feature', properties: { color: 'blue' }, geometry: line },
       ] };
-      const defaults = { type: 'Feature', geometry: { type: 'GeometryCollection', geometries: [] } };
+      const defaults = { type: 'Feature', geometry: { type: 'MultiPoint', coordinates: [] } };
       expect(convertFeature(value, defaults)).toEqual({
         type: 'Feature',
         properties: { color: 'red' },
-        geometry: { type: 'GeometryCollection', geometries: [point, line] },
+        geometry: { type: 'MultiPoint', coordinates: [[1, 2], [0, 0], [1, 1]] },
       });
     });
 

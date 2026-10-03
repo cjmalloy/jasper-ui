@@ -5,11 +5,10 @@ import { Plugin } from '../model/plugin';
 import { directChild } from '../util/tag';
 
 /**
- * List of GeoJSON geometries in a GeometryCollection, or features in a
- * FeatureCollection when props.features is set. Each child plugin of
+ * List of features in a GeoJSON FeatureCollection. Each child plugin of
  * props.parent with a single geometry type can be added to the list, and is
- * edited with the coordinates form of that plugin. Features also have their
- * own color.
+ * edited with the coordinates form of that plugin. Each feature has its own
+ * color.
  */
 @Component({
   selector: 'formly-field-geometries',
@@ -57,9 +56,8 @@ export class FormlyFieldGeometries extends FieldArrayType {
     field.fieldArray = (f: FormlyFieldConfig) => {
       // Called once for each new item, in order
       const index = f.fieldGroup?.length || 0;
-      const type = geometryType((Array.isArray(f.model) ? f.model : [])[index], f.props?.features);
+      const type = geometryType((Array.isArray(f.model) ? f.model : [])[index]);
       const field = geometryField(geometryPlugins(f).find(p => p.defaults?.geometry?.type === type));
-      if (!f.props?.features) return field;
       return {
         fieldGroup: [
           { key: 'type', defaultValue: 'Feature' },
@@ -75,7 +73,7 @@ export class FormlyFieldGeometries extends FieldArrayType {
   }
 
   geometryType(item: any) {
-    return geometryType(item, this.props.features);
+    return geometryType(item);
   }
 
   name(type?: string) {
@@ -88,26 +86,23 @@ export class FormlyFieldGeometries extends FieldArrayType {
     select.value = '';
     if (!plugin) return;
     const geometry = cloneDeep(plugin.defaults!.geometry);
-    this.add(undefined, this.props.features ? { type: 'Feature', geometry } : geometry);
+    this.add(undefined, { type: 'Feature', geometry });
   }
 }
 
-function geometryType(item: any, features = false): string | undefined {
-  return features ? item?.geometry?.type : item?.type;
+function geometryType(item: any): string | undefined {
+  return item?.geometry?.type;
 }
 
 /**
- * Child plugins of props.parent storing a single (non collection) geometry.
+ * Child plugins of props.parent storing a single geometry.
  */
 function geometryPlugins(field: FormlyFieldConfig): Plugin[] {
   const parent = field.props?.parent;
   const plugins: Record<string, Plugin | undefined> = field.options?.formState?.admin?.status?.plugins || {};
   return (Object.values(plugins) as Plugin[])
     .filter(p => !!p && directChild(p.tag, parent))
-    .filter(p => {
-      const type = p.defaults?.geometry?.type;
-      return type && type !== 'GeometryCollection' && geometryCoordinates(p);
-    });
+    .filter(p => p.defaults?.geometry?.type && geometryCoordinates(p));
 }
 
 function geometryCoordinates(plugin?: Plugin): FormlyFieldConfig | undefined {

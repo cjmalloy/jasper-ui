@@ -677,7 +677,6 @@ Private tags start with an underscore.
       }, {
         name: 'child-plugin',
         component: FormlyFieldChildPlugin,
-        wrappers: ['form-field'],
       }, {
         name: 'geometries',
         component: FormlyFieldGeometries,

@@ -194,6 +194,9 @@ test.describe.serial('Map Plugin', () => {
     await page.locator('.add-plugins-label select').selectOption('plugin/geo');
     const geometry = page.locator('.child-plugin-select');
     await expect(geometry).toBeVisible();
+    // The select is the header of the plugin/geo form
+    await expect(page.locator('.plugin-header .child-plugin-select')).toHaveCount(1);
+    await expect(page.locator('.plugin-content .child-plugin-select')).toHaveCount(0);
     await geometry.selectOption('plugin/geo/polygon');
     await expect(page.locator('button', { hasText: '+ Add Ring' })).toBeVisible();
     await expect(geometry).toHaveValue('plugin/geo/polygon');
@@ -260,19 +263,16 @@ test.describe.serial('Map Plugin', () => {
     await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
 
     // Features add geometries to a list instead of replacing them
-    await geometry.selectOption('plugin/geo/feature');
-    await expect(geometry).toHaveValue('plugin/geo/feature');
+    await geometry.selectOption('plugin/geo/features');
+    await expect(geometry).toHaveValue('plugin/geo/features');
+    await expect(geometry.locator('option[value="plugin/geo/feature"]')).toHaveCount(0);
     const items = page.locator('.geometries-field .geometry-item');
     await expect(items).toHaveCount(1);
     await expect(items.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
     await page.locator('.geometries-field .geometry-add').selectOption('plugin/geo/linestring');
     await expect(items).toHaveCount(2);
     await expect(items.nth(1).locator('button', { hasText: '+ Add Point' })).toBeVisible();
-
-    // Feature collections split the geometries into features with their own color
-    await geometry.selectOption('plugin/geo/features');
-    await expect(geometry).toHaveValue('plugin/geo/features');
-    await expect(items).toHaveCount(2);
+    // Each feature has its own color
     await expect(items.nth(0).locator('input[type=color]')).toHaveCount(1);
     await expect(items.nth(1).locator('input[type=color]')).toHaveCount(1);
     await expect(items.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
