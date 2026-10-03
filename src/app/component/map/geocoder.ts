@@ -57,8 +57,10 @@ export function currentView(map: Map): GeocodeView | undefined {
     const north = clamp(b.getNorth(), -90, 90);
     if (east - west >= 360) {
       view.bbox = [-180, south, 180, north];
-    } else if (west >= -180 && east <= 180 && west < east) {
-      view.bbox = [west, south, east, north];
+    } else if (west < east) {
+      const clippedWest = Math.max(-180, west);
+      const clippedEast = Math.min(180, east);
+      if (clippedWest < clippedEast) view.bbox = [clippedWest, south, clippedEast, north];
     }
     return view;
   } catch {
