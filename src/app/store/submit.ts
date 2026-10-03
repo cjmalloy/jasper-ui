@@ -213,8 +213,8 @@ export class SubmitStore {
     this.exts.update(exts => exts.map(e => e.tag === tag ? { ...e, exists: true } : e));
   }
 
-  setRef(ref: Ref) {
-    this.refs.update(refs => refs.map(r => r.url === ref.url ? ref : r));
+  setRef(ref: Ref, url = ref.url) {
+    this.refs.update(refs => refs.map(r => r.url === url ? ref : r));
   }
 
   setExt(ext: Ext) {

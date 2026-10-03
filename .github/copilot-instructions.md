@@ -1,462 +1,310 @@
 # Jasper-UI Development Guide
 
-Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
+Always reference these instructions first. Fall back to searching the repo only when something here does not match what you observe. Every command and timing below was verified on a 4-core / 16 GB Linux agent runner.
 
 ## What is Jasper?
 
-Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper stores links to content rather than content itself, creating a fast overlay database that indexes content sources. The system uses composite keys with five core entities:
+Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper stores links to content rather than the content itself, creating a fast overlay database that indexes content sources. This Angular client (jasper-ui) is the reference client for the Jasper server.
 
-1. **Ref** - References to external resources (composite key: url + origin, URLs must be valid RFC 3986 URIs)
-2. **Ext** - Tag extensions that customize tag pages (composite key: tag + origin)
-3. **User** - User entities with Tag-Based Access Control (composite key: tag + origin)
-4. **Plugin** - Extends Ref functionality with JTD schemas (composite key: tag + origin)
-5. **Template** - Extends Ext functionality with JTD schemas (composite key: tag + origin)
+### Entities
 
-**Key Concepts:**
-- **Tags**: Hierarchical strings (`public`, `+protected`, `_private`) for categorization and access control
-  - Regex: `[_+]?[a-z0-9]+([./][a-z0-9]+)*`
-- **Origins**: Enable replication and multi-tenant operation (`@origin`). Allow read-only pull-based collaboration without write access to remote servers
-  - Regex: `@[a-z0-9]+([.][a-z0-9])*`
-- **URLs**: Must be valid URIs per RFC 3986 for Ref composite keys
-- **Modding**: Extensive customization via plugins/templates without server restarts. Client-only changes using Plugin/Template entities with JTD schema validation
-- **Access Control**: Hierarchical roles (Anonymous, Viewer, User, Editor, Mod, Admin) plus Tag-Based Access Control (TBAC)
-- **Layers**: Identity layer (URL/Tag + Origin + Modified), Business layer, Application layer
-- **Special URLs**: `cache:` scheme for file cache, `tag:` scheme for tag references
-- **Querying**: Set-like operators (`:` and, `|` or, `!` not, `()` groups) to find content
-  - `science`: All Refs with `science` tag
-  - `science|funny`: Refs with either tag
-  - `science:funny`: Refs with both tags
-  - `science:!funny`: Refs with `science` but not `funny`
-  - `(science|math):funny`: Refs with (`science` OR `math`) AND `funny`
-  - `music:people/murray`: Matches hierarchical tags like `people/murray/anne`
+All entities use composite keys:
 
-**Common Jasper gotchas from the server README:**
-- Jasper is a generic knowledge-management platform, not just a bookmark app. The same model can support research, BI, journalism, forums, wikis, task management, libraries, support, collaborative writing, PKM, and e-mail.
-- Refs point to external resources. The URL scheme defines the resource type, so Jasper may use `https:`, `isbn:`, `comment:`, `wiki:`, `cache:`, or other valid URI schemes. Do not assume content always lives directly in Jasper.
-- Tags are plain hierarchical strings, not standalone entities. `Ext`, `User`, `Plugin`, and `Template` are tag-like entities keyed by `(tag, origin)`, but a tag itself does not need a pre-existing entity to be used on a Ref.
-- There are effectively two entity families: Refs and tag-like entities. A Ref is keyed by `(url, origin)` and tag-like entities are keyed by `(tag, origin)`. The local origin is the empty string, while `(origin, modified)` also acts as the replication cursor.
-- Querying is origin-aware. Queries may contain tags, origins, or fully qualified tags like `tag@origin`. The special origin `@` matches the default empty origin, unqualified tags match wildcard origins, and query groups are currently not nested.
-- Jasper's four model layers matter when reasoning about validation: identity (storage/replication), indexing (tags/query/sort), validation (full entity plus schema validation), and modding (client-only customization).
-- Plugins and templates inherit differently: plugins stack on Refs, while templates merge down the tag hierarchy on Exts/config.
-- Modding is intentionally client-side. New plugins, templates, and custom clients should usually not require server restarts or server code changes.
-- Replication is pull-based and eventually consistent. Remote origins are typically ingested by polling for entities after the last stored modified cursor, so unique modified timestamps matter.
-- Access control combines hierarchical roles with TBAC. Protected tags can be queried but not freely added; private tags cannot be used without permission and are stripped from server responses if access is missing.
-- Special URL behavior matters: `tag:/...` Refs follow tag access rules rather than ordinary tagging rules, and user-setting Refs commonly use tag URLs like `tag:/+user/<name>`.
+1. **Ref** - Reference to an external resource. Key: `(url, origin)`. URLs must be valid RFC 3986 URIs.
+2. **Ext** - Tag extension that customizes a tag page. Key: `(tag, origin)`.
+3. **User** - User with Tag-Based Access Control. Key: `(tag, origin)`.
+4. **Plugin** - Extends Refs with a JTD schema. Key: `(tag, origin)`.
+5. **Template** - Extends Exts with a JTD schema. Key: `(tag, origin)`.
 
-This Angular client (jasper-ui) provides the reference implementation for interacting with the Jasper knowledge management server.
+### Key concepts
 
-## Quick Start
+- **Tags**: hierarchical strings: `public`, `+protected`, `_private`. Regex: `[_+]?[a-z0-9]+([./][a-z0-9]+)*`
+- **Origins**: `@origin`, used for replication and multi-tenant setups. The local origin is the empty string. Regex: `@[a-z0-9]+([.][a-z0-9])*`
+- **Querying**: set-like operators: `:` (and), `|` (or), `!` (not), `()` (groups, which cannot be nested)
+  - `science:funny`: has both tags. `science|funny`: has either tag. `science:!funny`: has `science` but not `funny`.
+  - `(science|math):funny`. `music:people/murray` also matches child tags such as `people/murray/anne`.
+  - Queries are origin-aware. `tag@origin` is fully qualified, the special origin `@` matches the default empty origin, and unqualified tags match any origin.
+- **Special URLs**: `cache:` points to the file cache. `tag:/...` Refs follow tag access rules; user settings Refs look like `tag:/+user/<name>`.
+- **Access control**: hierarchical roles (Anonymous, Viewer, User, Editor, Mod, Admin) plus TBAC. Users can query protected tags but cannot freely add them. Private tags are stripped from responses unless the user has access.
 
-- **CRITICAL**: Debugging requires the Jasper server backend running
-- Add screenshots to your comments using Playwright for UI changes in both light and dark mode
+### Gotchas
 
-## Development Commands
+- Jasper is a generic KM platform, not just a bookmark app. Refs can use any URI scheme (`https:`, `isbn:`, `comment:`, `wiki:`, `cache:`, ...). Don't assume the content lives in Jasper.
+- Tags are plain strings, not entities. A tag can be used on a Ref without a matching Ext, User, Plugin, or Template.
+- The model has four layers: identity (storage/replication), indexing (tags/query/sort), validation (full entity + schema), and modding (client only).
+- Plugins *stack* on Refs. Templates *merge down* the tag hierarchy onto Exts and config.
+- Modding is client-side on purpose. New plugins and templates should not need server changes or restarts.
+- Replication is pull-based and eventually consistent. It polls for entities modified after the last stored cursor `(origin, modified)`, so modified timestamps must be unique.
 
-### Frontend Only (Limited)
+## Environment Setup
+
+### Toolchain
+
+| Tool | Required | Notes |
+|---|---|---|
+| Node | `^22.22.3 \|\| ^24.15.0 \|\| >=26` (Angular 22 engines) | CI Playwright job uses Node 24. The Docker image uses Node 26. |
+| npm | **11.x**: `packageManager` pins `npm@11.6.2` | Node 22 ships npm 10, which **cannot** use the lockfile. See below. |
+| Docker + Compose v2 | Needed for the backend and E2E | |
+
+### Install dependencies (lockfile gotcha)
+
+`package-lock.json` is generated by **npm 11**. npm 10 (bundled with Node 22) fails and corrupts it:
+
+- `npm ci` with npm 10 fails immediately: `npm ci can only install packages when your package.json and package-lock.json ... are in sync ... Missing: chokidar@3.6.0 from lock file`.
+- `npm install` with npm 10 "fixes" it by rewriting ~140 lines (drops every `"peer": true` flag, re-resolves chokidar, ...). If you commit that rewrite, the lockfile changes for no reason.
+
+Always install with the pinned npm:
+
 ```bash
-npm start  # Serves on http://localhost:4200/, expect API errors without backend
+npm -v                       # if this is not 11.x, use the npx form below
+npx -y npm@11.6.2 ci         # ~25s; runs patch-package postinstall (patches/europa+6.0.0.patch)
 ```
 
-### Full Stack (Recommended)
+Other options: `corepack enable` (respects `packageManager`) or `npm i -g npm@11.6.2`.
+
+Rules:
+- **Never** run a bare `npm install` to "fix" `npm ci`. The cause is almost always an npm version mismatch, not a real lockfile problem.
+- To add a dependency, use npm 11: `npx -y npm@11.6.2 install <pkg>`.
+- Before committing, run `git diff --stat package-lock.json`. If you didn't intend to change it, run `git checkout -- package-lock.json`.
+- `npm audit` reports a few existing vulnerabilities. They are not part of your task unless you are asked to fix them.
+
+### Playwright browsers are NOT preinstalled
+
+The first `npx playwright test` fails with `Executable doesn't exist at ~/.cache/ms-playwright/chromium_headless_shell-...`. Install the browser once (~40s):
+
 ```bash
-# Terminal 1: Start backend
-docker compose --profile server up --build
-
-# Terminal 2: Start frontend (wait for backend health check)
-npm start
+npx playwright install --with-deps chromium
 ```
-- Backend: http://localhost:8081/
-- Frontend: http://localhost:4200/
 
-### Complete Docker Stack
+## Build & Unit Test
+
+| Task | Command | Verified time |
+|---|---|---|
+| Production build (all locales) | `npm run build` | ~45s (up to ~100s on cold cache) |
+| Unit tests (Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
+| Single spec | `npm test -- --watch=false --include src/app/util/format.spec.ts` | ~6s |
+| Unit tests exactly like CI | `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test` | ~4.5 min (cached builder) |
+
+Expected noise that is **not** an error:
+- The build prints about 11 `▲ [WARNING]`s: CSS budget overruns (grid, maplibre, backgammon), `equals-negative-zero`, `@stomp/stompjs is not ESM`, and **6 existing `No translation found` warnings**.
+- Unit tests print `Not implemented: HTMLCanvasElement's getContext()`, `Window's alert()`, a chess.js sourcemap warning, and a Vite `configLoader` warning. Baseline: **207 files / 762 tests pass**.
+- Vitest is configured with `retry: 2` (`vitest-base.config.ts`), so a flaky unit test can still pass.
+
+Builds write `dist/`, `.angular/`, and `.vitest/`, which are all gitignored.
+
+## Running the App
+
+### Ports at a glance
+
+| Stack | Command | UI | API |
+|---|---|---|---|
+| Dev server | `npm start` | 4200 | expects `//localhost:8081` (hard-coded default in `ConfigService`) |
+| Root compose (`docker-compose.yaml`) | `docker compose --profile server up --build -d` | 8082 | 8081 (Spring `dev` profile, Postgres) |
+| E2E compose (`e2e/docker-compose.yaml`) | `cd e2e && docker compose up --build -d` | 8080 (main), 8082 (replica) | 8081 (main), 8083 (replica) |
+
+⚠️ The root and E2E stacks **both bind 8081 and 8082**, so only one can run at a time. Run `docker compose down -v` on one before starting the other.
+
+### Recommended debug session (dev server + backend)
+
 ```bash
-docker compose up --build  # Everything on http://localhost:8082/
+# 1. Backend: either stack provides an API on :8081 that allows CORS from :4200
+cd e2e && docker compose pull && docker compose up --build -d && cd ..   # ~2 min first time
+#   or: docker compose --profile server up --build -d
+
+# 2. Wait until the API is ready (the root stack has no compose healthcheck)
+until curl -sf http://localhost:8081/management/health/readiness; do sleep 5; done
+
+# 3. Dev server (first bundle takes ~20s, HMR after that)
+npm start      # async/detached; it never exits
 ```
 
-## Build & Test
+Then open `http://localhost:4200/?debug=ADMIN`.
 
-- Build: `npm run build` (~100s, NEVER CANCEL, timeout 180+s)
-- Unit tests: `npm test -- --watch=false` (~55s, NEVER CANCEL, timeout 120+s) - runs Vitest via Angular CLI
-- Docker tests: `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test`
-- E2E tests: `npm run pw:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
-- Stop services: `docker compose down`
+- `docker compose up` **without** `--profile server` starts only the UI on 8082, and that UI stays on the splash screen because there is no API.
+- In dev mode, no `?debug=` param means you are automatically logged in as `+user/chris` (ADMIN). Add `?anon=1` to stay anonymous.
+- `src/assets/config.json` must **not** be edited to point at an API. In Docker, set `JASPER_API` instead (`docker/40-create-jasper-config.sh`). Docker also needs `CSP_DEFAULT_SRC` **and** `CSP_CONNECT_SRC` to include the API's `http://` and `ws://` origins, and the server's `JASPER_CORS_ALLOWED_ORIGINS` must include the UI origin. If any of these is missing, the app hangs on the "Jasper" splash with CSP or CORS errors in the console.
 
-### RxJS Subscribe Style
+### Debug users
 
-- **Never** pass an observer object to `subscribe()`.
-- **Never** pass multiple callback parameters to `subscribe()`.
-- Always prefer a single callback form such as `observable.subscribe(value => { ... })`.
+`?debug=<ROLE>` makes the client sign a debug JWT with the shared dev secret, which only the dev/E2E servers accept (`src/app/service/debug.service.ts`):
+- Roles: `ADMIN`, `MOD`, `EDITOR`, `USER`, `VIEWER`, `ANON`. Use `debug=false` to disable it.
+- `&tag=alice` logs in as `+user/alice` (the default is `+user/debug`). A `_private` tag automatically adds `ROLE_PRIVATE`.
 
-### Dependency Management
+### Knowing when the app is ready
 
-**CRITICAL**: **Never run `npm install` without arguments** — this regenerates `package-lock.json` and breaks CI. CI uses `npm ci`, which requires the lockfile to exactly match `package.json`. A modified lockfile will cause the build to fail.
+The `<body>` keeps the class `init-theme` (with the "Jasper" splash) until startup finishes, and then it switches to `light-theme` or `dark-theme`. The console logs startup steps `-{1}- Loading Jasper` … `-{9}- Ready`.
+- With the dev server, `waitUntil: 'networkidle'` can resolve **before** init finishes (Vite/HMR traffic), and you get a screenshot of the blank splash. Wait for `body:not(.init-theme)` instead.
+- The theme follows the OS/browser color scheme. In Playwright, `browser.newPage({ colorScheme: 'dark' })` gives you `body.dark-theme`.
+- A `404 /api/v1/user?tag=+user/debug` on startup is normal when the user has no User entity yet.
 
-- To install dependencies before building/testing, always use: `npm ci`
-- To add a new package: `npm install <package>` (intentionally updates the lockfile — only do this when explicitly adding a dependency)
-- **Never commit an unintentionally modified `package-lock.json`**. If you ran `npm install` by accident, restore the lockfile with `git checkout -- package-lock.json` before committing.
+### Screenshots for UI changes
 
-**IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Playwright E2E tests in `e2e/`. This is a critical step that should not be forgotten.
+Attach light **and** dark mode screenshots for UI changes. If the Playwright MCP tools fail (`Transport closed` / OAuth errors happen in some agent environments), write a short Node script in `/tmp` that uses `require('<repo>/node_modules/playwright')`, opens pages with `colorScheme: 'light' | 'dark'`, waits for `body:not(.init-theme)`, and calls `page.screenshot()`. Never commit such scripts.
 
-**IMPORTANT**: When adding new E2E tests that are not designed to expose an existing bug, you **MUST** run the tests to confirm they pass before submitting. Use `npx playwright test <spec-file>` against the running e2e services. Do not submit E2E tests that have not been verified to pass.
+## E2E Tests (Playwright)
 
-## Project Structure
+E2E tests live in `e2e/`. They need the E2E compose stack (main 8080/8081 + replica 8082/8083, Postgres, `ghcr.io/cjmalloy/jasper:master`). The `client` images are built from this repo's `Dockerfile`, so **rebuild the stack (`up --build`) after changing app code**. Otherwise the tests run against the old UI.
 
-- `src/app/component/` - Reusable UI components
-- `src/app/directive/` - Custom directives
-- `src/app/form/` - Form components
-- `src/app/formly/` - Formly form integration
-- `src/app/guard/` - Route guards
-- `src/app/http/` - HTTP interceptors
-- `src/app/model/` - Data models (Ref, Ext, User, Plugin, Template)
-- `src/app/mods/` - Plugin features (70+ files)
-- `src/app/page/` - Page components
-- `src/app/pipe/` - Custom pipes
-- `src/app/service/` - API and data services
-- `src/app/store/` - Signal-based state management
-- `src/app/util/` - Utility functions
-- `docker-compose.yaml` - Development Docker setup
-- `src/assets/config.json` - **DO NOT** edit API URL, use Docker env vars
+### From the host (best for iterating)
 
-## Localization & Translation
-
-### Overview
-Jasper-UI uses Angular's i18n system with XLIFF format for translations. The base file is `src/locale/messages.xlf` and language-specific files are named `messages.<locale>.xlf` (e.g., `messages.ja.xlf` for Japanese).
-
-### Updating Translations
-
-#### Step 1: Extract Latest Strings
-Always start by extracting the latest translatable strings from the codebase:
 ```bash
-npm run ng extract-i18n -- --output-path src/locale
+cd e2e && docker compose pull && docker compose up --build -d && cd ..
+docker compose -f e2e/docker-compose.yaml ps        # web/repl-web should report "healthy"
+npx playwright test e2e/00-smoke.spec.ts --reporter=list   # ~25s
+npx playwright test --reporter=list                         # full suite ~10.5 min
+cd e2e && docker compose down -v                            # -v resets the databases
 ```
-This updates `src/locale/messages.xlf` with any new `$localize` strings from the code.
 
-#### Step 2: Remove Obsolete Translations
-**IMPORTANT**: Remove translations that no longer exist in the base file to keep the translation file in sync:
+- **Always pass `--reporter=list`** (or `line`) when `CI` is unset. The local default reporter is `html`, which opens a report server after a failure and **blocks the shell**.
+- Agent runners set `CI=true`. That turns on retries (1), video, `forbidOnly`, and the html+json reports in `e2e/reports/`.
+- `global-setup.ts` waits up to 5 min for both UIs to reach network idle, so the first run after `up` may look stuck while the backend warms up.
+- Verified baseline: **184 passed, 2 flaky** (passed on retry): `plugin-markitdown › should convert PDF to markdown` (the script cold-start can exceed the 30s timeout) and `ref-actions › should create a ref with comments enabled`. Only treat a failure as a regression if it is in a test you touched or if it also fails on retry.
+
+### Exactly like CI
+
 ```bash
-# Example for Japanese - identify obsolete translations
-comm -13 \
-  <(grep -oP 'id="\K[^"]+' src/locale/messages.xlf | sort) \
-  <(grep -oP 'id="\K[^"]+' src/locale/messages.ja.xlf | sort)
-```
-Remove any `<trans-unit>` entries whose IDs appear in this list - they are no longer used in the codebase.
-
-#### Step 3: Identify Missing Translations
-Compare the base file with the target language file to find missing translations:
-```bash
-# Example for Japanese
-comm -23 \
-  <(grep -oP 'id="\K[^"]+' src/locale/messages.xlf | sort) \
-  <(grep -oP 'id="\K[^"]+' src/locale/messages.ja.xlf | sort)
+npx -y npm@11.6.2 ci    # pw:ci mounts the repo into the Playwright container, so host node_modules must exist
+npm run pw:ci           # Postgres variant: 10-20 min, timeout 30+ min, don't cancel
+npm run pw:ci:sqlite    # SQLite variant (CI runs both in a matrix)
+docker compose -f e2e/docker-compose.yaml down -v
 ```
 
-#### Step 4: Add Translations
-For each missing translation ID:
-1. Find the `<trans-unit>` entry in `messages.xlf`
-2. Copy **only** the `<source>` element to the appropriate location in `messages.<locale>.xlf`
-3. Add a `<target>` element with the translated text
-4. **DO NOT** include `<context-group>` elements - they are not needed in translation files
+Files that the container writes to `e2e/reports` and `test-results` may be owned by root.
 
-**Example:**
-```xml
-<trans-unit id="1234567890" datatype="html">
-  <source>Configure AI</source>
-  <target>AIを設定</target>
-</trans-unit>
-```
+### Writing E2E tests
 
-#### Step 5: Format Guidelines
+- **Update the E2E tests whenever you change user interactions** (buttons, overlays, dialogs, forms).
+- New tests that are not meant to expose a known bug **must be run and pass** before you submit them.
+- File naming: numbered core suites (`00-smoke.spec.ts`, `01-backup.spec.ts`, ...), `plugin-<name>.spec.ts`, `template-<name>.spec.ts`.
+- Tests run serially in one worker (`workers: 1`), so state carries over between tests. Reset it with the helpers.
+- Viewport is 1280x720 to avoid the mobile layout.
 
-**No Context Groups:** Translation files should NOT include `<context-group>` elements. Only include `<source>` and `<target>` (if translated) in each `<trans-unit>`.
-
-**Newlines:** Use the same format as the source. If the source has actual newlines (blank lines), use them in the target too - do NOT use `\n` escape sequences.
-```xml
-<!-- CORRECT -->
-<source>Line 1
-
-Line 2</source>
-<target>行1
-
-行2</target>
-
-<!-- WRONG -->
-<target>行1\n\n行2</target>
-```
-
-**Untranslated Entries:** For entries where the translation would be identical to the source (emojis, symbols, technical terms), include a source-only `<trans-unit>` (no `<target>`) to prevent build warnings.
-```xml
-<!-- Include these with source only in translation files -->
-<trans-unit id="xxx" datatype="html">
-  <source>🔎️🌐️</source>  <!-- Emoji - no translation needed -->
-</trans-unit>
-<trans-unit id="yyy" datatype="html">
-  <source>LaTeX</source>  <!-- Technical term - no translation needed -->
-</trans-unit>
-```
-
-#### Step 6: Verify
-Build the project to verify translations work correctly:
-```bash
-npm run build
-```
-- There should be NO "No translation found" warnings if all source-only entries are included
-- Verify there are no errors for entries that should have translations
-
-#### Step 7: Bump versions
-If a versioned plugin or template was affected, bump the version number.
-
-### Configuration
-Translation locales are configured in `angular.json` under `projects.jasper-ui.i18n.locales`. The format is:
-```json
-"locales": {
-  "ja": "src/locale/messages.ja.xlf"
-}
-```
-
-## E2E Testing with Playwright
-
-### Overview
-
-E2E tests live in `e2e/` and use Playwright. The test environment requires Docker services running (main app on `http://localhost:8080`, replica on `http://localhost:8082`).
-
-### Environment Setup
-
-Start the e2e Docker services before running or debugging tests:
-```bash
-cd e2e && docker compose pull && docker compose up --build -d
-```
-Wait for services to be healthy, then run tests:
-```bash
-npx playwright test                  # Run all tests headless
-npx playwright test 00-smoke.spec.ts # Run a single test file
-npx playwright test --ui             # Interactive UI mode
-```
-Stop services when done:
-```bash
-cd e2e && docker compose down
-```
-
-### Debug Users
-
-The app supports debug query parameters to simulate different user roles without authentication:
-- `?debug=ADMIN` - Full admin access
-- `?debug=MOD` - Moderator access
-- `?debug=EDITOR` - Editor access
-- `?debug=USER` - Standard user access
-- `?debug=VIEWER` - Read-only access
-- `?debug=ANON` - Anonymous/unauthenticated access
-
-Always append the appropriate debug parameter when navigating in tests:
-```typescript
-await page.goto('/?debug=ADMIN');
-await page.goto('/settings/setup?debug=ADMIN');
-```
-
-### Using the Playwright MCP Server for Debugging
-
-The Playwright MCP server allows interactive browser automation to debug and write e2e tests. Use these tools in the following workflow:
-
-#### Step 1: Start Services and Navigate
-```
-navigate to http://localhost:8080/?debug=ADMIN
-```
-Use `browser_navigate` to load the page under test with the appropriate debug user.
-
-#### Step 2: Inspect the Page
-Use `browser_snapshot` to capture an accessibility snapshot of the current page. This returns a structured tree of all visible elements with their roles, names, and unique `ref` attributes. The snapshot is more reliable than screenshots for identifying interactive elements and building selectors.
-
-Use `browser_take_screenshot` to capture a visual screenshot when you need to verify layout, styling, or visual state.
-
-#### Step 3: Interact with Elements
-Use the element `ref` from the snapshot to interact with the page:
-- `browser_click` - Click buttons, links, checkboxes
-- `browser_type` - Type into text fields
-- `browser_fill_form` - Fill multiple form fields at once
-- `browser_select_option` - Select dropdown options
-- `browser_hover` - Hover over elements to reveal tooltips or menus
-
-#### Step 4: Translate to Test Code
-Map MCP interactions to Playwright test assertions and actions:
-
-| MCP Tool | Playwright Equivalent |
-|---|---|
-| `browser_navigate` | `page.goto(url)` |
-| `browser_snapshot` | Use to discover selectors for `page.locator()` |
-| `browser_click` (by selector) | `page.locator('button', { hasText: 'Submit' }).click()` |
-| `browser_click` (by text) | `page.getByText('Submit').click()` |
-| `browser_type` | `page.locator('#url').fill('value')` |
-| `browser_take_screenshot` | `expect(page.locator('.element')).toBeVisible()` |
-
-### CSS Selector Guidelines
-
-A project goal is to have a **very simple and easy to navigate CSS tree**. Follow these rules when adding or changing components:
-
-- **Always add descriptive `class` attributes** to interactive and structurally significant elements so E2E tests can target them without relying on tag names or brittle nth-child selectors.
-- **Never use custom component tag names** (e.g., `app-ref`, `formly-field-bookmark-input`) as selectors in E2E tests — standard HTML tags like `select`, `div`, `span` are acceptable, but prefer CSS classes for clarity.
-- **Use clear, semantic class names** that describe the element's role in the UI, not its appearance or implementation. Examples:
-  - `.filter-toggle` — the button/element that opens the filter/params panel
-  - `.filter-preview` — the inline summary shown when params are set
-  - `.bookmark-field` — the host element for a bookmark formly field
-  - `.params-panel` — the overlay popup panel
-- **Add host classes** to formly field components (`host: { 'class': 'field my-field-type' }`) so tests can scope to that component type without using its tag name.
-- When creating new interactive UI elements (buttons, overlays, toggles), always give them a descriptive class before writing E2E tests for them.
-
-### Writing New E2E Tests
-
-#### File Naming Convention
-Test files are numbered for execution order: `00-smoke.spec.ts`, `01-backup.spec.ts`, etc. Plugin tests use `plugin-<name>.spec.ts`, template tests use `template-<name>.spec.ts`.
-
-#### Test Structure
 ```typescript
 import { expect, test } from '@playwright/test';
-import { clearMods, mod, openSidebar, deleteRef } from './setup';
+import { mod } from './setup';
 
 test.describe.serial('Feature Name', () => {
-  // Always clear/set mods first if the test requires specific plugins
-  test('clear mods', async ({ page }) => {
+  test('enable mods', async ({ page }) => {
     await mod(page, '#mod-feature');
   });
 
   test('does something', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
-    // ... test actions and assertions
+    // ...
   });
 });
 ```
 
-#### Setup Helpers (`e2e/setup.ts`)
-- `clearMods(page, base?)` - Remove all plugins and templates
-- `clearAll(page, base?, origin?)` - Delete all data for an origin and clear mods
-- `deleteRef(page, url, base?)` - Delete a specific ref by URL
-- `mod(page, ...mods)` - Clear mods then enable specified mods (e.g., `'#mod-wiki'`, `'#mod-graph'`)
-- `modRemote(page, base, ...mods)` - Same as `mod` but for a remote instance
-- `openSidebar(page)` / `closeSidebar(page)` - Toggle the sidebar
+`e2e/setup.ts` helpers:
+- `clearMods(page, base?)`, `mod(page, ...mods)`, `modRemote(page, base, ...mods)`: reset plugins/templates and enable mods such as `'#mod-wiki'`
+- `clearOrigin(page, base?, origin?)`, `clearAll(page, base?, origin?)`, `deleteRef(page, url, base?)`
+- `openSidebar(page)` / `closeSidebar(page)`, `upload(page, file)`
+- `pollNotifications(page, user?)` / `pollRemoteNotifications(page, base?, user?)`
+- `waitForUserActionResponse(page)`, `waitForCronToggleResponse(page)`
+- `subscribeMain(destination)` / `subscribeRepl(destination)`: STOMP websocket subscriptions authenticated with `adminHeaders`
 
-#### Using MCP to Discover Selectors
-When writing a new test, use the MCP server to find the right selectors:
-1. Navigate to the page: `browser_navigate` to `http://localhost:8080/?debug=ADMIN`
-2. Take a snapshot: `browser_snapshot` to see all interactive elements
-3. Try clicking elements: `browser_click` to verify the correct element is targeted
-4. Check results: `browser_snapshot` again to verify state changes
+### CSS selector guidelines
 
-### Debugging Failing Tests
+The goal is a **simple, easy-to-navigate CSS tree**:
+- Give interactive and structurally significant elements descriptive, semantic `class` names (`.filter-toggle`, `.filter-preview`, `.bookmark-field`, `.params-panel`). Name them after their role, not their look.
+- **Never** select custom component tags (`app-ref`, `formly-field-*`) in E2E tests. Standard HTML tags are acceptable, but classes are preferred.
+- Add host classes to formly field components: `host: { 'class': 'field my-field-type' }`.
 
-#### Using MCP Server to Reproduce Failures
-1. Start the Docker services and navigate to the same URL the failing test uses
-2. Use `browser_snapshot` to inspect the current page state
-3. Replay the test steps one at a time using MCP tools (`browser_click`, `browser_type`, etc.)
-4. After each step, use `browser_snapshot` to compare actual vs expected state
-5. Use `browser_take_screenshot` if the visual layout is relevant to the failure
-6. Use `browser_console_messages` to check for JavaScript errors
-7. Use `browser_network_requests` to inspect API call failures
+### Debugging failing tests
 
-#### Common Issues
-- **Element not found**: Use `browser_snapshot` to find the actual element structure; selectors may have changed
-- **Timing issues**: Add `waitForLoadState('networkidle')` or `waitForResponse()` before assertions
-- **State pollution**: Tests run serially in one worker; a prior test may have left unexpected state. Use `clearMods` or `clearAll` in setup
-- **Mobile layout triggered**: Viewport is set to 1280x720 in `playwright.config.ts` to prevent mobile layout; verify `browser_resize` matches if testing interactively
+1. Read the error and the `error-context.md` under `test-results/<test>/`. In CI mode, `e2e/reports/html` also has a trace (`trace: 'on-first-retry'`).
+2. Reproduce with the Playwright MCP tools (`browser_navigate` to `http://localhost:8080/...?debug=ADMIN`, then `browser_snapshot`, `browser_click`, `browser_console_messages`, `browser_network_requests`), or use a `/tmp` script if MCP is unavailable.
+3. Common causes:
+   - **Stale UI**: you forgot `--build` after a code change.
+   - **State pollution** from an earlier test: use `clearMods` / `clearAll`, or `down -v`.
+   - **Timing**: wait for a specific locator or `waitForResponse`, not fixed sleeps.
+   - **Ports in use**: the root compose stack is still running.
 
-## Key Info
+## Code Conventions
 
-- Angular 22 (zoneless, signals) + TypeScript 6 + Vitest
-- API configured via Docker `JASPER_API` environment variable
-- Use `ng generate component|service|pipe|directive name` for new features
-- Network issues: Playwright browsers are bundled, no separate install needed
-- Backend connection issues: Ensure `docker compose --profile server up --build` is healthy
+- Stack: Angular 22 (zoneless, signals), TypeScript 6, Formly, RxJS, Vitest, Playwright.
+- Generate new pieces with `npx ng generate component|service|pipe|directive <name>`.
+- **RxJS subscribe style**: always pass a single callback (`obs.subscribe(value => { ... })`). Never pass an observer object, and never pass multiple callbacks.
+- Don't add comments unless they match the surrounding style.
+
+### Project structure
+
+- `src/app/component/`: reusable UI components
+- `src/app/directive/`, `pipe/`, `guard/`, `http/` (interceptors), `util/`
+- `src/app/form/`: entity forms. `src/app/formly/`: Formly types and wrappers.
+- `src/app/model/`: Ref, Ext, User, Plugin, Template models
+- `src/app/mods/`: built-in plugins/templates (the "mods")
+- `src/app/page/`: routed pages
+- `src/app/service/`: API (`service/api/`) and app services (`config`, `debug`, `authz`, ...)
+- `src/app/store/`: Signal-based stores
+- `src/locale/`: i18n XLIFF files
+- `src/theme/`: global SCSS themes
+- `docker/`: nginx entrypoint scripts (`JASPER_API`, CSP, base href, locale, ...)
+- `e2e/`: Playwright specs, `setup.ts`, compose files. `quickstart/`: sample deployment.
+- `patches/`: patch-package patches, applied on `postinstall`
 
 ## Theming
 
-Jasper-UI supports both light and dark themes. The `body` element has either `light-theme` or `dark-theme` class applied based on user preference.
+`<body>` has `light-theme` or `dark-theme` (or `init-theme` during startup).
 
-### Theme Variables
+- Theme files: `src/theme/common.scss` (base variables), `light.scss`, `dark.scss`, `*-highlight.scss`, plus `mobile`, `print`, `android`, `electron`, `mac`.
+- Use CSS variables in component SCSS: `--bg`, `--text`, `--border`, `--active`, `--error`, `--card` (see `common.scss` for the full list).
+- **Theme-specific selectors (`body.dark-theme ...`) do not work in component SCSS** because of view encapsulation. Put them in the mod's `config.css` string, as `src/app/mods/org/kanban.ts` does:
 
-Theme-specific CSS variables are defined in:
-- `src/theme/common.scss` - Default/base theme variables
-- `src/theme/light.scss` - Light theme overrides (body.light-theme)
-- `src/theme/dark.scss` - Dark theme overrides (body.dark-theme)
-- `src/theme/light-highlight.scss` - Light theme syntax highlighting
-- `src/theme/dark-highlight.scss` - Dark theme syntax highlighting
-- `src/theme/mobile.scss` - Mobile-specific styles
-- `src/theme/print.scss` - Print styles
-- `src/theme/android.scss` - Android platform styles
-- `src/theme/electron.scss` - Electron platform styles
-- `src/theme/mac.scss` - macOS platform styles
-
-### Using Themes in Components
-
-When styling components that need to adapt to themes:
-
-1. **Use CSS variables** defined in theme files when possible:
-   ```scss
-   .my-element {
-     background: var(--bg);
-     color: var(--text);
-     border: 1px solid var(--border);
-   }
-   ```
-
-2. **Add theme-specific overrides in mod files** (NOT in component SCSS):
-   
-   Due to how Angular's view encapsulation works, theme-related CSS using `body.dark-theme` or `body.light-theme` selectors must be placed in the mod file's `css` property, not in component SCSS files.
-   
-   **Example (in `src/app/mods/mymod.ts`):**
-   ```typescript
-   export const myPlugin: Plugin = {
-     tag: 'plugin/myplugin',
-     name: $localize`My Plugin`,
-     config: {
-       // language=CSS
-       css: `
-         body.dark-theme {
-           .my-component {
-             background: rgba(20, 20, 20, 0.95);
-             color: #c9c9c9;
-           }
-         }
-         
-         body.light-theme {
-           .my-component {
-             background: rgba(240, 240, 240, 0.95);
-             color: #333;
-           }
-         }
-       `,
-       // ... other config
-     }
-   };
-   ```
-   
-   **Component SCSS should only contain:**
-   - Base styles (without theme selectors)
-   - CSS variable usage
-   - Component-scoped styles
-
-3. **Test both themes** when adding new UI components to ensure good contrast and visibility in both modes.
-
-### Common Theme Variables
-
-- `--bg` - Main background color
-- `--text` - Primary text color
-- `--border` - Border colors
-- `--active` - Active/selected states
-- `--error` - Error states
-- `--card` - Card backgrounds
-
-See `src/theme/common.scss`, `src/theme/light.scss`, and `src/theme/dark.scss` for complete variable lists.
-
-# Alpine `TLS: unspecified error`
-
-If the Jasper-UI Docker build reports `TLS: unspecified error` while fetching
-an APK index, you must use the Debian-based Nginx image for the deploy stage and install
-`jq` and `moreutils` with APT instead. Then run the normal Compose command:
-
-```sh
-docker compose --profile server up --build
+```typescript
+export const myPlugin: Plugin = {
+  tag: 'plugin/myplugin',
+  name: $localize`My Plugin`,
+  config: {
+    // language=CSS
+    css: `
+      body.dark-theme .my-component { background: rgba(20, 20, 20, 0.95); color: #c9c9c9; }
+      body.light-theme .my-component { background: rgba(240, 240, 240, 0.95); color: #333; }
+    `,
+  },
+};
 ```
 
-For the Playwright suite, run the normal E2E command:
+- Check new UI in **both** themes.
 
-```sh
-npm run pw:ci
-docker compose -f e2e/docker-compose.yaml down -v
-```
+## Localization & Translation
+
+Angular i18n with XLIFF. The base file is `src/locale/messages.xlf`. Translations live in `src/locale/messages.<locale>.xlf` (currently `ja`) and are configured under `projects.jasper-ui.i18n.locales` in `angular.json`.
+
+1. **Extract** (~30s): `npm run ng extract-i18n -- --output-path src/locale`
+   - Extraction also rewrites `<context>` line numbers in `messages.xlf`. If your change added or removed no strings, run `git checkout src/locale/messages.xlf` to avoid noisy diffs.
+2. **Compare IDs.** Anchor on `<trans-unit id=`. A bare `id="` also matches `<x id="PH"/>` placeholders and produces ~190 false positives.
+   ```bash
+   # Missing from ja (need translating)
+   comm -23 <(grep -oP '<trans-unit id="\K[^"]+' src/locale/messages.xlf | sort) \
+            <(grep -oP '<trans-unit id="\K[^"]+' src/locale/messages.ja.xlf | sort)
+   # Obsolete in ja (delete these trans-units)
+   comm -13 <(grep -oP '<trans-unit id="\K[^"]+' src/locale/messages.xlf | sort) \
+            <(grep -oP '<trans-unit id="\K[^"]+' src/locale/messages.ja.xlf | sort)
+   ```
+3. **Add translations.** Copy only `<source>` and add `<target>`. **No `<context-group>`** in locale files.
+   ```xml
+   <trans-unit id="1234567890" datatype="html">
+     <source>Configure AI</source>
+     <target>AIを設定</target>
+   </trans-unit>
+   ```
+   - Keep real newlines when the source has them. Never write `\n` escapes.
+   - If the text is identical in every language (emoji, symbols, `LaTeX`), add a source-only `<trans-unit>` with no `<target>` so the build doesn't warn.
+4. **Verify** with `npm run build`. Your change must not add `No translation found` warnings. The baseline already has 6 (the `⚠️ Ref/Ext/User/Plugin/Template {$PH} already exists...` messages and `Playlist`).
+5. **Bump the version** of any versioned plugin or template whose strings changed.
+
+## Troubleshooting Quick Reference
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `npm ci` → `Missing: chokidar@3.6.0 from lock file` | npm 10 is reading an npm 11 lockfile | `npx -y npm@11.6.2 ci`. Do **not** run `npm install`. |
+| ~140-line `package-lock.json` diff (`"peer": true` removed) | `npm install` ran under npm 10 | `git checkout -- package-lock.json`, then reinstall with npm 11 |
+| `Executable doesn't exist at ~/.cache/ms-playwright/...` | Browsers aren't installed | `npx playwright install --with-deps chromium` |
+| `npx playwright test` never returns after a failure | The local html reporter is serving the report | Add `--reporter=list`, or set `CI=true` |
+| UI stuck on the "Jasper" splash, `body.init-theme` | No API, a CSP `connect-src` violation, or CORS 403 | Start the backend (`--profile server`). Check the console for CSP/CORS errors and fix `CSP_*` / `JASPER_CORS_ALLOWED_ORIGINS`. |
+| Screenshot shows only the splash | Captured before init finished (Vite + `networkidle`) | Wait for `body:not(.init-theme)` |
+| `port is already allocated` (8081/8082) | Root and E2E stacks are both up | `docker compose down -v` the other stack |
+| E2E test passes locally but behaves like old code | The client image wasn't rebuilt | `docker compose up --build -d` |
+| Unit tests "hang" | They take ~3.5 min | Use a timeout of at least 300s |
+| Docker build: Alpine `TLS: unspecified error` fetching APK index | Alpine mirror/TLS issue | The deploy stage already uses Debian `nginx` + APT (`jq`, `moreutils`). Don't switch it back to Alpine. |

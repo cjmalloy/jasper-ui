@@ -184,8 +184,19 @@ export class AccountStore {
   readonly notificationsQuery = computed(() => {
     if (!this.signedIn()) return undefined;
     const alarms = this.alarmsQuery() ? '|' + this.alarmsQuery() : '';
-    return `!${this.tag()}:!plugin/delete:` + braces(this.inboxQuery()) + alarms;
+    return `!${this.tag()}:!plugin/delete:` + braces(this.inboxQuery() + alarms);
   });
+
+  readonly alarmNotificationsQuery = computed(() => {
+    if (!this.signedIn()) return undefined;
+    if (!this.alarmsQuery()) return '';
+    return `!${this.tag()}:!plugin/delete:` + braces(this.alarmsQuery()!);
+  });
+
+  /**
+   * Unread inbox count, not including alarms.
+   */
+  readonly unreadCount = computed(() => Math.max(0, this.notifications() - this.alarmCount()));
 
   readonly alarmsQuery = computed(() => {
     if (!this.signedIn()) return undefined;

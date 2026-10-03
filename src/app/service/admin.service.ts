@@ -270,15 +270,21 @@ export class AdminService {
     });
   }
 
-  get init$() {
+  private clearCache() {
     this._cache.clear();
+  }
+
+  get init$() {
+    this.clearCache();
     this.store.view.clearModChanges();
     this._status.set(emptyStatus());
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
+      tap(() => this.clearCache()),
       switchMap(() => this.firstRun$),
       switchMap(() => this.loadReceipts$()),
       tap(() => this.checkMissingReceipts()),
       catchError(() => of(null)),
+      tap(() => this.clearCache()),
     );
   }
 
@@ -1217,8 +1223,5 @@ export class AdminService {
 }
 
 function addParent(c: Config) {
-  return (a: any) => {
-    a._parent = c;
-    return a;
-  };
+  return <T>(a: T): T & { _parent: Config } => ({ ...a, _parent: c });
 }

@@ -199,7 +199,10 @@ export class AccountService {
     if (!this.store.account.signedIn()) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.addConfigArray$('alarms', tag).pipe(
-      tap(() => this.clearCache()),
+      tap(() => {
+        this.clearCache();
+        this.checkNotifications();
+      }),
       switchMap(() => this.alarms$),
     );
   }
@@ -209,7 +212,10 @@ export class AccountService {
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.alarms$.pipe(
       switchMap(() => this.removeConfigArray$('alarms', tag)),
-      tap(() => this.clearCache()),
+      tap(() => {
+        this.clearCache();
+        this.checkNotifications();
+      }),
       switchMap(() => this.alarms$),
     );
   }
@@ -218,12 +224,26 @@ export class AccountService {
     if (!this.store.account.signedIn()) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.userExt$.pipe(
-      switchMap(() => this.refs.count({
-        query: this.store.account.notificationsQuery(),
-        modifiedAfter: this.store.account.config().lastNotified || DateTime.now().minus({ year: 1 }),
-      })),
-    ).subscribe(count => this.store.account.notifications.set(count));
-    this.checkAlarms();
+      switchMap(() => {
+        const modifiedAfter = this.store.account.config().lastNotified || DateTime.now().minus({ year: 1 });
+        const alarmNotificationsQuery = this.store.account.alarmNotificationsQuery();
+        return forkJoin([
+          this.refs.count({
+            query: this.store.account.notificationsQuery(),
+            modifiedAfter,
+          }),
+          alarmNotificationsQuery
+            ? this.refs.count({
+              query: alarmNotificationsQuery,
+              modifiedAfter,
+            })
+            : of(0),
+        ]);
+      }),
+    ).subscribe(([notifications, alarmCount]) => {
+      this.store.account.notifications.set(notifications);
+      this.store.account.alarmCount.set(alarmCount);
+    });
   }
 
   clearNotificationsIfNone(readDate?: DateTime) {
@@ -260,18 +280,6 @@ export class AccountService {
       this.clearCache();
       this.checkNotifications();
     });
-  }
-
-  checkAlarms() {
-    if (!this.store.account.signedIn()) throw 'Not signed in';
-    if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    if (!this.store.account.alarms().length) return;
-    this.userExt$.pipe(
-      switchMap(() => this.refs.count({
-        query: this.store.account.alarmsQuery(),
-        modifiedAfter: this.store.account.config().lastNotified || DateTime.now().minus({ year: 1 }),
-      })),
-    ).subscribe(count => this.store.account.alarmCount.set(count));
   }
 
   checkConsent(consent?: [string, string][]) {

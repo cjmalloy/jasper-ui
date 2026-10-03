@@ -1,6 +1,7 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { AsyncPipe } from '@angular/common';
 import {
+  ChangeDetectorRef,
   Component,
   ElementRef,
   forwardRef,
@@ -54,6 +55,8 @@ import { controlValue } from '../../util/form';
     '[class.show-drops]': 'dropping()',
     '(dragenter)': 'onDragEnter()',
     '(window:dragend)': 'onDragEnd()',
+    '(jasper-drag-end)': 'onDragEnd()',
+    '(jasper-drag-start)': 'onCdkDragStart()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -114,6 +117,8 @@ export class RefFormComponent {
     private oembeds: OembedStore,
     private store: Store,
     private fb: UntypedFormBuilder,
+    private cd: ChangeDetectorRef,
+    private el: ElementRef<HTMLElement>,
   ) { }
 
   readonly web = computed(() => {
@@ -260,6 +265,14 @@ export class RefFormComponent {
 
   onDragEnd() {
     this.dropping.set(false);
+  }
+
+  onCdkDragStart() {
+    this.dropping.set(true);
+    // Render empty drop lists synchronously so CDK caches their positions,
+    // host bindings are not updated by detectChanges
+    this.el.nativeElement.classList.add('show-drops');
+    this.cd.detectChanges();
   }
 
   validate(input: HTMLInputElement) {

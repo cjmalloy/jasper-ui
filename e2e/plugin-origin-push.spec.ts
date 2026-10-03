@@ -5,6 +5,7 @@ import {
   deleteRef,
   mod,
   openSidebar,
+  openTextSubmit,
   subscribeMain,
   waitForCronToggleResponse,
   waitForUserActionResponse,
@@ -47,9 +48,7 @@ test.describe.serial('Origin Push Plugin', () => {
 
   async function createTextRef(page: Page, title: string) {
     await page.goto('/?debug=USER&tag=bob');
-    await openSidebar(page);
-    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    await page.locator('.tabs a', { hasText: 'text' }).first().click();
+    await openTextSubmit(page, '+user/bob');
     await page.locator('[name=title]').fill(title);
     const submitPromise = page.waitForResponse(isRefPost);
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
