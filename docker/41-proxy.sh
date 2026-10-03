@@ -36,6 +36,15 @@ if [ -n "$JASPER_API_PROXY" ]; then
       # https://www.nginx.com/blog/mitigating-the-httpoxy-vulnerability-with-nginx/
       proxy_set_header Proxy                  \"\";
 
+      # Never trust client supplied auth headers. Empty values are not passed upstream.
+      # Authorization is intentionally passed through for bearer tokens.
+      proxy_set_header User-Tag               \"${JASPER_PROXY_USER_TAG}\";
+      proxy_set_header User-Role              \"${JASPER_PROXY_USER_ROLE}\";
+      proxy_set_header Read-Access            \"${JASPER_PROXY_READ_ACCESS}\";
+      proxy_set_header Write-Access           \"${JASPER_PROXY_WRITE_ACCESS}\";
+      proxy_set_header Tag-Read-Access        \"${JASPER_PROXY_TAG_READ_ACCESS}\";
+      proxy_set_header Tag-Write-Access       \"${JASPER_PROXY_TAG_WRITE_ACCESS}\";
+
       proxy_connect_timeout                   5s;
       #proxy_send_timeout                      60s;
       #proxy_read_timeout                      60s;

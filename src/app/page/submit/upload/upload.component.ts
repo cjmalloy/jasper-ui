@@ -5,7 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, lastValueFrom, map, of, switchMap, tap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { ExtComponent } from '../../../component/ext/ext.component';
@@ -22,12 +22,13 @@ import { RefService } from '../../../service/api/ref.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ModService } from '../../../service/mod.service';
+import { UploadCacheService } from '../../../service/upload-cache.service';
 import { Store } from '../../../store/store';
 import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag } from '../../../util/tag';
-import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
+import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedCacheFiles, zippedFile } from '../../../util/zip';
 
 @Component({
   selector: 'app-upload',
@@ -50,6 +51,7 @@ export class UploadPage {
 
   readonly erroredExts = signal<Ext[]>([]);
   readonly erroredRefs = signal<Ref[]>([]);
+  private uploadedUrls: string[] = [];
   readonly serverErrors = signal<string[]>([]);
   readonly processing = signal<boolean>(false);
   tagRegex = TAGS_REGEX.source;
@@ -63,6 +65,7 @@ export class UploadPage {
     private refs: RefService,
     private exts: ExtService,
     private proxy: ProxyService,
+    private uploadCache: UploadCacheService,
     private auth: AuthzService,
     private router: Router,
   ) {
@@ -323,12 +326,13 @@ export class UploadPage {
 
   download() {
     if (this.store.submit.empty()) return;
-    return downloadSet(this.store.submit.refs(), this.store.submit.exts(), 'uploads');
+    return downloadSet(this.store.submit.refs(), this.store.submit.exts(), 'uploads', this.store.submit.cacheFiles);
   }
 
   push() {
     if (this.processing() || this.store.submit.empty()) return;
     this.processing.set(true);
+    this.uploadedUrls = [];
     const uploads = [
       ...this.store.submit.exts().map(ext => this.uploadExt$(ext)),
       ...this.store.submit.refs().map(ref => this.uploadRef$(ref)),
@@ -349,10 +353,28 @@ export class UploadPage {
     ref = ref;
     ref.origin = this.store.account.origin();
     ref.published ||= DateTime.now();
-    ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
-    ref.plugins = Object.fromEntries(
-      Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
+    const original = ref;
+    return this.uploadCache.restore$(ref, this.store.account.origin()).pipe(
+      switchMap(restored => {
+        ref = restored;
+        ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
+        ref.plugins = Object.fromEntries(
+          Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
+        );
+        return this.saveRef$(ref).pipe(
+          tap(() => this.uploadedUrls.push(ref.url)),
+        );
+      }),
+      catchError((res: HttpErrorResponse) => {
+        original.outdated ||= ref.outdated;
+        this.erroredRefs.update(refs => [...refs, original]);
+        this.serverErrors.update(errors => [...errors, ...printError(res)]);
+        return of(null);
+      }),
     );
+  }
+
+  private saveRef$(ref: Ref) {
     return (ref.exists
         ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {
@@ -377,11 +399,6 @@ export class UploadPage {
           }
         }
         return throwError(() => err);
-      }),
-      catchError((res: HttpErrorResponse) => {
-        this.erroredRefs.update(refs => [...refs, ref]);
-        this.serverErrors.update(errors => [...errors, ...printError(res)]);
-        return of(null);
       }),
     );
   }
@@ -441,7 +458,10 @@ export class UploadPage {
 
   private getModels(file: File): Promise<FilteredModels> {
     if (file.name.toLowerCase().endsWith('.zip')) {
-      return unzip(file).then(zip => Promise.all([
+      return unzip(file).then(zip => {
+        this.store.submit.addCacheFiles(zippedCacheFiles(zip));
+        return zip;
+      }).then(zip => Promise.all([
         zippedFile(zip, 'ext.json')
           .then(json => getModels<Ext>(json))
           .then(exts => exts.map(mapExt)),
@@ -462,7 +482,7 @@ export class UploadPage {
       return this.router.navigate(['/tag', this.store.submit.exts()[0].tag]);
     }
     if (this.store.submit.refs().length === 1) {
-      return this.router.navigate(['/ref', this.store.submit.refs()[0].url]);
+      return this.router.navigate(['/ref', this.uploadedUrls.length === 1 ? this.uploadedUrls[0] : this.store.submit.refs()[0].url]);
     }
     if (this.store.submit.refs().length) {
       return this.router.navigate(['/tag', this.store.account.tag()], { queryParams: { filter: 'query/plugin/file' } });

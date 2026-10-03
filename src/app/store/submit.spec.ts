@@ -1,7 +1,9 @@
 /// <reference types="vitest/globals" />
 import { computed } from '@angular/core';
+import JSZip from 'jszip';
 import { Ext } from '../model/ext';
 import { Ref } from '../model/ref';
+import { zippedCacheFiles } from '../util/zip';
 import { EventBus } from './bus';
 import { SubmitStore } from './submit';
 
@@ -49,5 +51,23 @@ describe('SubmitStore immutable state', () => {
     store.removeCaching(file);
     expect(uploads()).toBe(0);
     expect(progress.size).toBe(1);
+  });
+});
+
+describe('SubmitStore cache files', () => {
+  it('keeps the first cache file when two zips share an ID', async () => {
+    const store = new SubmitStore({} as any, new EventBus());
+    const first = new JSZip();
+    first.file('cache/a', 'first');
+    const second = new JSZip();
+    second.file('cache/a', 'second');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    store.addCacheFiles(zippedCacheFiles(first));
+    store.addCacheFiles(zippedCacheFiles(second));
+
+    expect(await store.cacheFiles.get('a')!.async('string')).toBe('first');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('a'));
+    warn.mockRestore();
   });
 });

@@ -1,9 +1,11 @@
 import { computed, signal, untracked } from '@angular/core';
+import JSZip from 'jszip';
 import { flatten, isArray, without } from 'lodash-es';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { DEFAULT_WIKI_PREFIX } from '../mods/org/wiki';
+import { refCacheIds } from '../util/cache';
 import { EventBus } from './bus';
 import { RouterStore } from './router';
 
@@ -25,6 +27,10 @@ export class SubmitStore {
   readonly caching = signal<ReadonlyMap<File, Saving>>(new Map());
 
   maxPreview = 300;
+  /**
+   * Cache files from uploaded zips, keyed by their original cache ID.
+   */
+  cacheFiles = new Map<string, JSZip.JSZipObject>();
 
   constructor(
     public route: RouterStore,
@@ -189,6 +195,20 @@ export class SubmitStore {
   clearUpload(refs: Ref[] = [], exts: Ext[] = []) {
     this.exts.set([...exts]);
     this.refs.set([...refs]);
+    const keep = new Set(refs.flatMap(refCacheIds));
+    for (const id of [...this.cacheFiles.keys()]) {
+      if (!keep.has(id)) this.cacheFiles.delete(id);
+    }
+  }
+
+  addCacheFiles(files: Map<string, JSZip.JSZipObject>) {
+    for (const [id, file] of files) {
+      if (this.cacheFiles.has(id)) {
+        console.warn(`Skipping duplicate cache file in upload: ${id}`);
+        continue;
+      }
+      this.cacheFiles.set(id, file);
+    }
   }
 
   addFiles(files?: File[]) {

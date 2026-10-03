@@ -33,6 +33,7 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { ImageService } from '../../service/image.service';
+import { UploadCacheService } from '../../service/upload-cache.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import {
@@ -233,6 +234,7 @@ export class RefComponent implements HasChanges {
     private exts: ExtService,
     private bookmarks: BookmarkService,
     private proxy: ProxyService,
+    private uploadCache: UploadCacheService,
     private ts: TaggingService,
     private router: Router,
     private fb: UntypedFormBuilder,
@@ -1310,38 +1312,44 @@ export class RefComponent implements HasChanges {
   }
 
   upload$ = () => {
-    const ref: Ref = {
-      ...this.ref(),
-      origin: this.store.account.origin(),
-      tags: this.ref().tags?.filter(t => this.auth.canAddTag(t)),
-    };
-    ref.plugins = pick(ref.plugins, ref.tags || []);
-    return this.store.eventBus.runAndReload$(
-      (this.store.submit.overwrite()
-        ? this.refs.update(ref)
-        : this.refs.create(ref).pipe(
-          catchError((err: HttpErrorResponse) => {
-            if (err.status === 409) {
-              return this.refs.get(this.ref().url, this.store.account.origin()).pipe(
-                switchMap(existing => {
-                  if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || confirm('An old version already exists. Overwrite it?')) {
-                    // TODO: Show diff and merge or split
-                    return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
-                  } else {
-                    return throwError(() => 'Cancelled');
-                  }
-                })
-              );
-            }
-            return throwError(() => err);
-          }),
-          tap(() => {
-            this.store.submit.removeRef(ref);
-            if (!this.store.submit.refs().length && !this.store.submit.exts().length) {
-              this.router.navigate(['/ref', ref.url]);
-            }
-          }),
-        )), ref);
+    const original = this.ref();
+    return this.store.eventBus.catchError$(this.uploadCache.restore$(original, this.store.account.origin()), original).pipe(
+      switchMap((restored: Ref) => {
+        const ref: Ref = {
+          ...restored,
+          origin: this.store.account.origin(),
+          tags: restored.tags?.filter(t => this.auth.canAddTag(t)),
+        };
+        ref.plugins = pick(ref.plugins, ref.tags || []);
+        return this.store.eventBus.runAndReload$(
+          (this.store.submit.overwrite() || ref.url !== original.url
+            ? this.refs.update(ref)
+            : this.refs.create(ref).pipe(
+              catchError((err: HttpErrorResponse) => {
+                if (err.status === 409) {
+                  return this.refs.get(ref.url, this.store.account.origin()).pipe(
+                    switchMap(existing => {
+                      if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || confirm('An old version already exists. Overwrite it?')) {
+                        // TODO: Show diff and merge or split
+                        return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
+                      } else {
+                        return throwError(() => 'Cancelled');
+                      }
+                    })
+                  );
+                }
+                return throwError(() => err);
+              }),
+            )).pipe(
+            tap(() => {
+              this.store.submit.removeRef(original);
+              if (!this.store.submit.refs().length && !this.store.submit.exts().length) {
+                this.router.navigate(['/ref', ref.url]);
+              }
+            }),
+          ), ref);
+      }),
+    );
   }
 
   forceDelete$ = () => {

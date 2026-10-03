@@ -10,6 +10,10 @@
         <source>download</source>
         <target>ダウンロード</target>
       </trans-unit>
+      <trans-unit id="6213042512958559029" datatype="html">
+        <source>Download attached files?</source>
+        <target>添付ファイルもダウンロードしますか？</target>
+      </trans-unit>
       <trans-unit id="2452584011865748061" datatype="html">
         <source>connect</source>
         <target>接続</target>
@@ -781,6 +785,10 @@ Please Reload.</source>
       <trans-unit id="5501510435141891966" datatype="html">
         <source>export</source>
         <target>エクスポート</target>
+      </trans-unit>
+      <trans-unit id="5812277912266071076" datatype="html">
+        <source>Download with attached files and embedded Refs that have files</source>
+        <target>添付ファイルと、ファイルを持つ埋め込みRefも含めてダウンロード</target>
       </trans-unit>
       <trans-unit id="5670797229594522972" datatype="html">
         <source>Tag Query</source>

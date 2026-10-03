@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { Ext, mapExt } from '../model/ext';
 import { mapRef, Ref } from '../model/ref';
 import { Cursor } from '../model/tag';
+import { CACHE_FOLDER, isCacheId } from './cache';
 
 export function unzip(file: File) {
   return JSZip.loadAsync(file).catch(() => {
@@ -17,6 +18,16 @@ export function zippedFile(zip: JSZip, fileName: string) {
       return '';
     }) ||
     Promise.resolve(undefined);
+}
+
+export function zippedCacheFiles(zip: JSZip) {
+  const result = new Map<string, JSZip.JSZipObject>();
+  zip.forEach((path, file) => {
+    if (file.dir || !path.startsWith(CACHE_FOLDER)) return;
+    const id = path.substring(CACHE_FOLDER.length);
+    if (isCacheId(id)) result.set(id, file);
+  });
+  return result;
 }
 
 export function getTextFile(file: File): Promise<string | undefined> {
