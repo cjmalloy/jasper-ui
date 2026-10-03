@@ -9,7 +9,8 @@ const DEFAULTS: GeoStyle = {
 };
 
 /**
- * Style of a GeoJSON feature, edited on one line. The value is the feature
+ * Style of a GeoJSON feature, with the stroke and fill each on their own line.
+ * The value is the feature
  * properties object: other properties are kept, and defaults are removed.
  * Set props.fill to false to hide the fill style for geometries without an area.
  */
@@ -17,7 +18,7 @@ const DEFAULTS: GeoStyle = {
   selector: 'formly-field-geo-style',
   host: { 'class': 'field geo-style-field' },
   template: `
-    <div class="form-array">
+    <div class="form-array geo-style-stroke">
       <input type="color"
              class="geo-style-color"
              [id]="field.id"
@@ -27,7 +28,6 @@ const DEFAULTS: GeoStyle = {
              [value]="style.color || ''"
              [disabled]="formControl.disabled"
              (input)="set('color', $any($event.target).value)">
-      <button type="button" class="geo-style-color-clear" (click)="set('color', '')" i18n-title title="Clear" i18n>🆑️</button>
       <select class="geo-style-stroke-width"
               i18n-title title="Stroke Width"
               i18n-aria-label aria-label="Stroke Width"
@@ -46,7 +46,10 @@ const DEFAULTS: GeoStyle = {
           <option [value]="o.value" [selected]="o.value === (style.strokeStyle || defaults.strokeStyle)">{{ o.label }}</option>
         }
       </select>
-      @if (fill) {
+      <button type="button" class="geo-style-stroke-clear" (click)="clear('color', 'strokeWidth', 'strokeStyle')" i18n-title title="Clear Stroke" i18n>🆑️</button>
+    </div>
+    @if (fill) {
+      <div class="form-array geo-style-fill">
         <input type="color"
                class="geo-style-fill-color"
                i18n-title title="Fill Color (defaults to the stroke color)"
@@ -55,7 +58,6 @@ const DEFAULTS: GeoStyle = {
                [value]="style.fillColor || ''"
                [disabled]="formControl.disabled"
                (input)="set('fillColor', $any($event.target).value)">
-        <button type="button" class="geo-style-fill-color-clear" (click)="set('fillColor', '')" i18n-title title="Clear" i18n>🆑️</button>
         <select class="geo-style-fill-style"
                 i18n-title title="Fill Style"
                 i18n-aria-label aria-label="Fill Style"
@@ -65,10 +67,17 @@ const DEFAULTS: GeoStyle = {
             <option [value]="o.value" [selected]="o.value === (style.fillStyle || defaults.fillStyle)">{{ o.label }}</option>
           }
         </select>
-      }
-    </div>
+        <button type="button" class="geo-style-fill-clear" (click)="clear('fillColor', 'fillStyle')" i18n-title title="Clear Fill" i18n>🆑️</button>
+      </div>
+    }
   `,
   styles: `
+    :host {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
     .form-array {
       min-width: 0;
     }
@@ -130,6 +139,16 @@ export class FormlyFieldGeoStyle extends FieldType<FieldTypeConfig> {
     } else {
       style[key] = value;
     }
+    this.update(style);
+  }
+
+  clear(...keys: (keyof GeoStyle)[]) {
+    const style: any = { ...this.style };
+    for (const key of keys) delete style[key];
+    this.update(style);
+  }
+
+  private update(style: any) {
     this.formControl.setValue(Object.keys(style).length ? style : undefined);
     this.formControl.markAsDirty();
   }

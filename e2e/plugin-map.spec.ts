@@ -156,6 +156,10 @@ test.describe.serial('Map Plugin', () => {
     // Defaults are not stored
     await style.locator('.geo-style-stroke-style').selectOption('solid');
     await style.locator('.geo-style-stroke-style').selectOption('dashed');
+    // Fill is on its own line below the stroke
+    const strokeTop = (await style.locator('.geo-style-stroke').boundingBox())!.y;
+    const fillTop = (await style.locator('.geo-style-fill').boundingBox())!.y;
+    expect(fillTop).toBeGreaterThan(strokeTop + 10);
 
     const submitPromise = page.waitForRequest(
       req => req.url().includes('/api/v1/ref') && req.method() === 'POST',
@@ -174,6 +178,26 @@ test.describe.serial('Map Plugin', () => {
     });
   });
 
+  test('stroke and fill clear separately', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/polygon', { waitUntil: 'networkidle' });
+    const style = page.locator('.plugin-content .geo-style-field');
+    await style.locator('.geo-style-color').fill('#ff0000');
+    await style.locator('.geo-style-stroke-width').selectOption('large');
+    await style.locator('.geo-style-stroke-style').selectOption('dotted');
+    await style.locator('.geo-style-fill-color').fill('#00ff00');
+    await style.locator('.geo-style-fill-style').selectOption('nw');
+    await style.locator('.geo-style-stroke-clear').click();
+    await expect(style.locator('.geo-style-stroke-width')).toHaveValue('medium');
+    await expect(style.locator('.geo-style-stroke-style')).toHaveValue('solid');
+    await expect(style.locator('.geo-style-color')).toHaveClass(/cleared/);
+    await expect(style.locator('.geo-style-fill-style')).toHaveValue('nw');
+    await expect(style.locator('.geo-style-fill-color')).not.toHaveClass(/cleared/);
+    await style.locator('.geo-style-fill-clear').click();
+    await expect(style.locator('.geo-style-fill-style')).toHaveValue('default');
+    await expect(style.locator('.geo-style-fill-color')).toHaveClass(/cleared/);
+  });
+
   test('line style hides the fill', async ({ page }) => {
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/geo/linestring', { waitUntil: 'networkidle' });
@@ -182,6 +206,7 @@ test.describe.serial('Map Plugin', () => {
     await expect(style.locator('.geo-style-stroke-style')).toBeVisible();
     await expect(style.locator('.geo-style-fill-style')).toHaveCount(0);
     await expect(style.locator('.geo-style-fill-color')).toHaveCount(0);
+    await expect(style.locator('.geo-style-fill-clear')).toHaveCount(0);
     // Style fits on one line
     const boxes = await style.locator('input, select, button').evaluateAll(els => els.map(e => e.getBoundingClientRect().top));
     expect(Math.max(...boxes) - Math.min(...boxes)).toBeLessThan(10);

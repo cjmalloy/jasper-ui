@@ -7397,6 +7397,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Fill Style</source>
         <target>塗りつぶしのスタイル</target>
       </trans-unit>
+      <trans-unit id="271520503237124146" datatype="html">
+        <source>Clear Stroke</source>
+        <target>線をクリア</target>
+      </trans-unit>
+      <trans-unit id="4977469068067927566" datatype="html">
+        <source>Clear Fill</source>
+        <target>塗りつぶしをクリア</target>
+      </trans-unit>
       <trans-unit id="7131377065256068978" datatype="html">
         <source>Small</source>
         <target>細</target>

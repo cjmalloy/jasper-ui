@@ -1,4 +1,4 @@
-import type { Map as MapLibreMap } from 'maplibre-gl';
+import type { Map as MapLibreMap, StyleImageInterface } from 'maplibre-gl';
 import type { Schema } from 'jtd';
 
 /**
@@ -58,8 +58,10 @@ const POINT_SCALE: any = ['match', ['get', 'strokeWidth'], 'small', 0.6, 'large'
 const DASHES: any = ['match', ['get', 'strokeStyle'], 'dotted', ['literal', [0, 2]], ['literal', [4, 2]]];
 const PATTERN_STYLES = ['ne', 'nw', 'crosshatch'];
 const PATTERN_PREFIX = 'geo-pattern-';
-const PATTERN: any = ['concat', PATTERN_PREFIX, ['get', 'fillStyle'], '|', ['to-string', GEO_FILL_COLOR]];
+const pattern = (style: any, color: any): any => ['concat', PATTERN_PREFIX, style, '|', ['to-string', color]];
 const BLINK_MS = 500;
+/** Radius of the blinking point image, in CSS pixels. */
+const BLINK_POINT_RADIUS = 16;
 
 const POLYGONS: any = ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false];
 const LINES: any = ['match', ['geometry-type'], ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'], true, false];
@@ -70,15 +72,19 @@ const strokeStyle = (...styles: string[]): any => ['match', ['get', 'strokeStyle
 /**
  * Add layers drawing the features of a GeoJSON source with their style
  * properties. Layer ids start with the prefix.
- * Blinking runs on a timer, so call this outside the Angular zone.
- * Returns a function removing the timer and pattern image resolver.
+ * Hatched and blinking styles use pattern images generated for each color
+ * when first needed. Blinking images are animated, and only repaint the map
+ * while they are drawn, so call this outside the Angular zone.
+ * Returns a function removing the pattern image resolver and blink repaints.
  */
 export function addGeoLayers(map: MapLibreMap, source: string, prefix: string, pointRadius: number): () => void {
-  // Hatch patterns are generated for each color when first needed
+  const blink = new BlinkClock(map);
   map.setMissingStyleImageResolver(id => {
     if (!id.startsWith(PATTERN_PREFIX) || map.hasImage(id)) return;
     const [style, color] = id.substring(PATTERN_PREFIX.length).split('|');
-    const image = geoPattern(style, color);
+    const image = style.startsWith('blink-')
+      ? blinkImage(style, color, blink)
+      : geoPattern(style, color);
     if (image) map.addImage(id, image, { pixelRatio: PATTERN_PIXEL_RATIO });
   });
   map.addLayer({
@@ -95,15 +101,10 @@ export function addGeoLayers(map: MapLibreMap, source: string, prefix: string, p
     id: prefix + '-fill-pattern',
     type: 'fill',
     source,
-    filter: ['all', POLYGONS, fillStyle(...PATTERN_STYLES)],
-    paint: { 'fill-pattern': PATTERN },
-  });
-  map.addLayer({
-    id: prefix + '-fill-blink',
-    type: 'fill',
-    source,
-    filter: ['all', POLYGONS, fillStyle('blinking')],
-    paint: { 'fill-color': GEO_FILL_COLOR, 'fill-opacity': GEO_FILL_OPACITY },
+    filter: ['all', POLYGONS, fillStyle(...PATTERN_STYLES, 'blinking')],
+    paint: {
+      'fill-pattern': pattern(['match', ['get', 'fillStyle'], 'blinking', 'blink-fill', ['get', 'fillStyle']], GEO_FILL_COLOR),
+    },
   });
   map.addLayer({
     id: prefix + '-lines',
@@ -125,7 +126,7 @@ export function addGeoLayers(map: MapLibreMap, source: string, prefix: string, p
     type: 'line',
     source,
     filter: ['all', LINES, strokeStyle('blinking')],
-    paint: { 'line-color': GEO_COLOR, 'line-width': STROKE_WIDTH },
+    paint: { 'line-pattern': pattern('blink-line', GEO_COLOR), 'line-width': STROKE_WIDTH },
   });
   map.addLayer({
     id: prefix + '-points',
@@ -136,31 +137,111 @@ export function addGeoLayers(map: MapLibreMap, source: string, prefix: string, p
   });
   map.addLayer({
     id: prefix + '-points-blink',
-    type: 'circle',
+    type: 'symbol',
     source,
     filter: ['all', POINTS, strokeStyle('blinking')],
-    paint: { 'circle-radius': ['*', pointRadius, POINT_SCALE], 'circle-color': GEO_COLOR },
+    layout: {
+      'icon-image': pattern('blink-point', GEO_COLOR),
+      'icon-size': ['*', pointRadius / BLINK_POINT_RADIUS, POINT_SCALE],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+    },
   });
-  let on = true;
-  const blink = setInterval(() => {
-    on = !on;
-    try {
-      map.setPaintProperty(prefix + '-fill-blink', 'fill-opacity', on ? GEO_FILL_OPACITY * 2 : 0);
-      map.setPaintProperty(prefix + '-lines-blink', 'line-opacity', on ? 1 : 0.2);
-      map.setPaintProperty(prefix + '-points-blink', 'circle-opacity', on ? 1 : 0.2);
-    } catch {
-      // Map removed
-      clearInterval(blink);
-    }
-  }, BLINK_MS);
   return () => {
-    clearInterval(blink);
+    blink.dispose();
     try {
       map.setMissingStyleImageResolver(null);
     } catch {
       // Map removed
     }
   };
+}
+
+/**
+ * Shared blink phase, so every blinking feature blinks together. Repaints the
+ * map once at the next phase change, only when a blinking image was drawn.
+ */
+export class BlinkClock {
+  private timeout?: ReturnType<typeof setTimeout>;
+  private disposed = false;
+
+  constructor(private map: Pick<MapLibreMap, 'triggerRepaint'>) { }
+
+  get on() {
+    return Math.floor(performance.now() / BLINK_MS) % 2 === 0;
+  }
+
+  /**
+   * Called each frame a blinking image is drawn.
+   */
+  drawn() {
+    if (this.disposed || this.timeout) return;
+    const wait = BLINK_MS - performance.now() % BLINK_MS + 1;
+    this.timeout = setTimeout(() => {
+      this.timeout = undefined;
+      if (!this.disposed) this.map.triggerRepaint();
+    }, wait);
+  }
+
+  dispose() {
+    this.disposed = true;
+    clearTimeout(this.timeout);
+    this.timeout = undefined;
+  }
+}
+
+/**
+ * Animated pattern image for a blinking fill, line or point. Swaps between an
+ * on and off frame, only uploading a frame when the blink phase changes.
+ */
+export function blinkImage(style: string, color: string, clock: BlinkClock): StyleImageInterface | undefined {
+  const on = blinkFrame(style, color, true);
+  const off = blinkFrame(style, color, false);
+  if (!on || !off) return undefined;
+  let shown = true;
+  const data = new Uint8Array(on.data.buffer.slice(0));
+  return {
+    width: on.width,
+    height: on.height,
+    data,
+    render() {
+      clock.drawn();
+      const next = clock.on;
+      if (next === shown) return false;
+      shown = next;
+      data.set((next ? on : off).data);
+      return true;
+    },
+  };
+}
+
+function blinkFrame(style: string, color: string, on: boolean): ImageData | undefined {
+  const point = style === 'blink-point';
+  const s = (point ? BLINK_POINT_RADIUS * 2 : 4) * PATTERN_PIXEL_RATIO;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = s;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return undefined;
+  ctx.fillStyle = color;
+  switch (style) {
+    case 'blink-fill':
+      ctx.globalAlpha = on ? GEO_FILL_OPACITY * 2 : 0;
+      ctx.fillRect(0, 0, s, s);
+      break;
+    case 'blink-line':
+      ctx.globalAlpha = on ? 1 : 0.2;
+      ctx.fillRect(0, 0, s, s);
+      break;
+    case 'blink-point':
+      ctx.globalAlpha = on ? 1 : 0.2;
+      ctx.beginPath();
+      ctx.arc(s / 2, s / 2, s / 2 - 1, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    default:
+      return undefined;
+  }
+  return ctx.getImageData(0, 0, s, s);
 }
 
 const PATTERN_SIZE = 12;
