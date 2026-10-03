@@ -24,7 +24,7 @@ import { directChild, hasPrefix } from '../util/tag';
             [disabled]="!togglePlugin"
             (input)="select($any($event.target).value)">
       <option value="" [selected]="!current">{{ parentName }}</option>
-      @for (p of children; track p.tag) {
+      @for (p of visibleChildren; track p.tag) {
         <option [value]="p.tag" [selected]="p.tag === current">{{ p.name || '#' + p.tag }}</option>
       }
     </select>
@@ -45,6 +45,14 @@ export class FormlyFieldChildPlugin extends FieldType {
     const plugins: Record<string, Plugin | undefined> = this.formState?.admin?.status?.plugins || {};
     return Object.values(plugins)
       .filter(p => !!p && directChild(p.tag, this.parent)) as Plugin[];
+  }
+
+  /**
+   * Children shown in the dropdown. Hidden children are only shown when selected.
+   */
+  get visibleChildren(): Plugin[] {
+    const current = this.current;
+    return this.children.filter(p => !p.config?.hideChild || p.tag === current);
   }
 
   get togglePlugin(): ((tag: string) => void) | undefined {

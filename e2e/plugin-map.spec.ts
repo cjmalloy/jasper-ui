@@ -266,6 +266,11 @@ test.describe.serial('Map Plugin', () => {
     // The select is the header of the plugin/geo form
     await expect(page.locator('.plugin-header .child-plugin-select')).toHaveCount(1);
     await expect(page.locator('.plugin-content .child-plugin-select')).toHaveCount(0);
+    // Multi geometries are hidden from the dropdown
+    await expect(geometry.locator('option[value="plugin/geo/polygon"]')).toHaveCount(1);
+    await expect(geometry.locator('option[value="plugin/geo/multipolygon"]')).toHaveCount(0);
+    await expect(geometry.locator('option[value="plugin/geo/multilinestring"]')).toHaveCount(0);
+    await expect(geometry.locator('option[value="plugin/geo/multipoint"]')).toHaveCount(0);
     await geometry.selectOption('plugin/geo/polygon');
     await expect(page.locator('button', { hasText: '+ Add Ring' })).toBeVisible();
     await expect(geometry).toHaveValue('plugin/geo/polygon');
@@ -293,6 +298,14 @@ test.describe.serial('Map Plugin', () => {
     // Removing the geometry removes the point too
     await geometry.selectOption('');
     await expect(page.locator('.plugin-content .location-field')).toHaveCount(0);
+  });
+
+  test('a hidden geometry is shown in the dropdown when selected', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo&tag=plugin/geo/multipolygon', { waitUntil: 'networkidle' });
+    const geometry = page.locator('.child-plugin-select');
+    await expect(geometry).toHaveValue('plugin/geo/multipolygon');
+    await expect(geometry.locator('option[value="plugin/geo/multilinestring"]')).toHaveCount(0);
   });
 
   test('nested location inputs fit on mobile', async ({ page }) => {
@@ -357,6 +370,8 @@ test.describe.serial('Map Plugin', () => {
     await geometry.selectOption('plugin/geo/features');
     await expect(geometry).toHaveValue('plugin/geo/features');
     await expect(geometry.locator('option[value="plugin/geo/feature"]')).toHaveCount(0);
+    // Hidden geometries can still be added as features
+    await expect(page.locator('.geometries-field .geometry-add option[value="plugin/geo/multipolygon"]')).toHaveCount(1);
     const items = page.locator('.geometries-field .geometry-item');
     await expect(items).toHaveCount(1);
     await expect(items.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');

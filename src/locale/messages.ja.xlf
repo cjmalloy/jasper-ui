@@ -6613,8 +6613,8 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Activates built-in map mode for viewing Refs on a map.</source>
         <target>マップ上でRefを閲覧するための組み込みマップモードを有効にします。</target>
       </trans-unit>
-      <trans-unit id="1148070139385865383" datatype="html">
-        <source>📌️📌️</source>
+      <trans-unit id="602020783060255341" datatype="html">
+        <source>〰️</source>
       </trans-unit>
       <trans-unit id="1273958037222279236" datatype="html">
         <source>Lines:</source>
@@ -6639,8 +6639,8 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>The top bar holds bookmarks and subscriptions.</source>
         <target>トップバーにはブックマークとサブスクリプションが含まれます。</target>
       </trans-unit>
-      <trans-unit id="2218320403848242937" datatype="html">
-        <source>🌐️📌️📌️📌️ Geo Multi Line String</source>
+      <trans-unit id="3085459102071609875" datatype="html">
+        <source>🌐️〰️〰️ Geo Multi Line String</source>
       </trans-unit>
       <trans-unit id="2275170855711102720" datatype="html">
         <source>A GeoJSON LineString.</source>
@@ -6673,8 +6673,8 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Center: </source>
         <target>中心: </target>
       </trans-unit>
-      <trans-unit id="3756736517696790696" datatype="html">
-        <source>🌐️📌️📌️ Geo Line String</source>
+      <trans-unit id="5849892264785751485" datatype="html">
+        <source>🌐️〰️ Geo Line String</source>
       </trans-unit>
       <trans-unit id="3854602051337754678" datatype="html">
         <source>📍️</source>
@@ -6695,8 +6695,8 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Points:</source>
         <target>ポイント:</target>
       </trans-unit>
-      <trans-unit id="4322442265667757327" datatype="html">
-        <source>📌️📌️📌️</source>
+      <trans-unit id="1111379210144514904" datatype="html">
+        <source>〰️〰️</source>
       </trans-unit>
       <trans-unit id="4322913822633731185" datatype="html">
         <source>+ Add Line</source>
