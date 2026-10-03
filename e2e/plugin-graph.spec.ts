@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { mod, openSidebar } from './setup';
+import { mod, openTextSubmit } from './setup';
 
 test.describe.serial('Graph Plugin', () => {
   let page: Page;
@@ -28,9 +28,7 @@ test.describe.serial('Graph Plugin', () => {
       await page.reload();
     }
     await page.goto('/?debug=USER');
-    await openSidebar(page);
-    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    await page.locator('.tabs a', { hasText: 'text' }).first().click();
+    await openTextSubmit(page, '+user/debug');
     await page.locator('[name=title]').fill('Title');
     await page.getByText('show advanced').click();
     await page.locator('[name=published]').fill('2020-01-01T00:00');
@@ -67,7 +65,7 @@ test.describe.serial('Graph Plugin', () => {
     const url = await page.locator('[name=url]').inputValue();
     await page.goto('/tag/@*?search=' + url + '&debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.tabs a', { hasText: 'graph' }).first().click();
-    await expect(page.locator('.ref-list .link a')).toContainText('Reply');
+    await expect(page.locator('.ref-list .link a', { hasText: 'Reply' }).first()).toBeVisible();
     const loadMore = page.locator('.load-more');
     if (await loadMore.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await loadMore.click();
