@@ -262,10 +262,12 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     const tag = this.tag || undefined;
     const plugin = tag ? this.admin.getPlugin(tag) : undefined;
     const root = this.admin.getTemplate('');
+    const home = tag === 'config/home' || (!tag && this.store.view.current === 'home');
+    const submitExt = home ? this.store.view.homeExt : this.ext;
     const rootConfig = root
-      ? (this.ext?.config || (tag && this.admin.getTemplate(tag)?.defaults) || root.defaults) as RootConfig
+      ? (submitExt?.config || (tag && this.admin.getTemplate(tag)?.defaults) || root.defaults) as RootConfig
       : undefined;
-    return getAddTags(tag, plugin, rootConfig, tag === 'config/home').filter(t => this.auth.canAddTag(t));
+    return getAddTags(tag, plugin, rootConfig, home).filter(t => this.auth.canAddTag(t));
   }
 
   private clearSearchResult() {
