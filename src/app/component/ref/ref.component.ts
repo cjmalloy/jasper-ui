@@ -1325,9 +1325,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     };
     if (this.ref.upload) {
       ref.upload = true;
+      this.store.submit.setRef(ref, this.ref.url);
       this.editForm.reset();
       this.init();
-      this.store.submit.setRef(ref);
     } else {
       this.refreshTap = () => this.publishChanged = +published !== +this.ref.published!;
       this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
