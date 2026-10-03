@@ -51,11 +51,15 @@ export function currentView(map: Map): GeocodeView | undefined {
     const c = map.getCenter().wrap();
     const view: GeocodeView = { center: [c.lng, c.lat] };
     const b = map.getBounds();
-    const west = clamp(b.getWest(), -180, 180);
-    const east = clamp(b.getEast(), -180, 180);
+    const west = b.getWest();
+    const east = b.getEast();
     const south = clamp(b.getSouth(), -90, 90);
     const north = clamp(b.getNorth(), -90, 90);
-    if (west < east) view.bbox = [west, south, east, north];
+    if (east - west >= 360) {
+      view.bbox = [-180, south, 180, north];
+    } else if (west >= -180 && east <= 180 && west < east) {
+      view.bbox = [west, south, east, north];
+    }
     return view;
   } catch {
     return undefined;
