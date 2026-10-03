@@ -83,7 +83,6 @@ npx playwright install --with-deps chromium
 | Production build (all locales) | `npm run build` | ~45s (up to ~100s on cold cache) |
 | Unit tests (Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
 | Single spec | `npm test -- --watch=false --include src/app/util/format.spec.ts` | ~6s |
-| Template check only | `npm run check:templates` (also runs first in `npm test` and in the Docker build) | ~5s |
 | App type check (incl. template diagnostics) | `npx ngc -p tsconfig.app.json --noEmit` | ~15s |
 | Unit tests exactly like CI | `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test` | ~4.5 min (cached builder) |
 
@@ -235,7 +234,7 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 
 ### Signals and change detection
 
-The app is zoneless and every component is `ChangeDetectionStrategy.OnPush`. A template only re-renders when a signal it reads changes, an input changes, or an event fires inside it. These rules are enforced by the build:
+The app is zoneless and every component is `ChangeDetectionStrategy.OnPush`. A template only re-renders when a signal it reads changes, an input changes, or an event fires inside it. Follow these rules; the checks below catch the most common mistakes, but not all of them:
 
 - **All state is signals.** Use `signal()` for state, `computed()` for derived values, `input()`/`input.required()` for inputs, `linkedSignal(() => this.xInput())` for inputs that the component also overwrites, and `model()` when the parent must see the change. Don't use getters that compute from non-signal state in templates.
 - **Always call signals in templates**: `@if (editing())`, `[class.busy]="busy()"`. An uncalled signal is a function and is always truthy.
@@ -247,7 +246,6 @@ The app is zoneless and every component is `ChangeDetectionStrategy.OnPush`. A t
 
 Checks:
 - **Compiler** (`tsconfig.json`): `strictTemplates` plus the extended diagnostics `interpolatedSignalNotInvoked` (NG8109), `uninvokedFunctionInEventBinding` (NG8111), `uninvokedFunctionInTextInterpolation` (NG8117) and `uninvokedTrackFunction` (NG8115) are errors. `strictTemplates` also reports TS2774 for an uncalled function in `@if`.
-- **`npm run check:templates`** (`scripts/check-templates.mjs`): parses every component template and `host` binding with `@angular/compiler`, resolves each expression with the TypeScript type checker, and fails on uncalled `Signal`/`InputSignal`/`ModelSignal` reads (except `.set(...)`-style member access and two-way bindings) on form control state reads in bindings, and on DOM state (`.value`, `.checked`, ...) read from element template references. It runs before `ng test` in `npm test` and in the Docker build. Exceptions go in `scripts/check-templates.allowlist.json` and need a `reason`; unused entries fail the check.
 - **Runtime**: dev (`npm start`, `environment.ts`) and E2E (`environment.e2e.ts`) builds add `provideCheckNoChangesConfig({ exhaustive: true })`, so state that changes without notifying an OnPush view logs NG0100. The Playwright fixture turns that into a test failure.
 
 ### Project structure

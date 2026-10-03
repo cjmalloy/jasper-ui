@@ -11,7 +11,7 @@ import { ExtService } from '../../service/api/ext.service';
 import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
-import { getArgs } from '../../util/query';
+import { getArgs, UrlFilter } from '../../util/query';
 
 @Component({
   selector: 'app-home-page',
@@ -60,28 +60,20 @@ export class HomePage implements HasChanges {
 
   private readonly initialize = afterNextRender(() => {
     this.store.view.extTemplates.set(this.admin.view());
-    effect(() => {
+    effect(onCleanup => {
+      const sort = this.store.view.sort();
+      const filter: UrlFilter[] = ['user/!plugin/user/hide', ...this.store.view.filter()];
+      const search = this.store.view.search();
+      const pageNumber = this.store.view.pageNumber();
+      const pageSize = this.store.view.pageSize();
       if (this.store.view.forYou()) {
-        this.account.forYouQuery$.subscribe(q => {
-          const args = getArgs(
-            q,
-            this.store.view.sort(),
-            ['user/!plugin/user/hide', ...this.store.view.filter()],
-            this.store.view.search(),
-            this.store.view.pageNumber(),
-            this.store.view.pageSize(),
-          );
+        const sub = this.account.forYouQuery$.subscribe(q => {
+          const args = getArgs(q, sort, filter, search, pageNumber, pageSize);
           defer(() => this.query.setArgs(args));
-        })
+        });
+        onCleanup(() => sub.unsubscribe());
       } else {
-        const args = getArgs(
-          this.store.account.subscriptionQuery(),
-          this.store.view.sort(),
-          ['user/!plugin/user/hide', ...this.store.view.filter()],
-          this.store.view.search(),
-          this.store.view.pageNumber(),
-          this.store.view.pageSize(),
-        );
+        const args = getArgs(this.store.account.subscriptionQuery(), sort, filter, search, pageNumber, pageSize);
         defer(() => this.query.setArgs(args));
       }
     }, { injector: this.injector });

@@ -163,9 +163,7 @@ export class SubmitPage {
     return this.store.submit.wiki() ? '' : $localize`URL...`;
   });
 
-  get wikify() {
-    return wikiUriFormat(this.url.value);
-  }
+  readonly wikify = computed(() => wikiUriFormat(this.urlValue()));
 
   readonly validator = computed<AsyncValidatorFn>(() => {
     return (control: AbstractControl) => this.validLink(control);
