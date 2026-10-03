@@ -11,7 +11,8 @@ import { writeUser } from '../model/user';
 import { ProxyService } from '../service/api/proxy.service';
 import { config } from '../service/config.service';
 import { Type } from '../store/view';
-import { CACHE_FOLDER, refCacheIds } from './cache';
+import { CACHE_FOLDER, cacheUrlId, refCacheIds } from './cache';
+import { getEmbeds } from './editor';
 import { getSearchParams } from './http';
 
 export async function saveAs(file: Blob, defaultFilename: string) {
@@ -66,12 +67,38 @@ export async function zipCache(zip: JSZip, refs: Ref[], fetchCache: (id: string,
   }));
 }
 
-export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], query: string, proxy?: ProxyService) {
+/**
+ * Fetch the Refs embedded in the comments of the given Refs that reference
+ * cache files. Only one level of embeds is followed, embeds of the embedded
+ * Refs are not.
+ */
+export async function embeddedCacheRefs(refs: Ref[], fetchRef: (url: string) => Promise<Ref | undefined>) {
+  const key = (ref: Ref) => ref.url + ' ' + (ref.origin || '');
+  const seen = new Set(refs.map(key));
+  const urls = new Set(refs.flatMap(ref => getEmbeds(ref.comment || '')).filter(url => !cacheUrlId(url)));
+  const fetched = await Promise.all([...urls].map(url => fetchRef(url).catch(error => {
+    console.error(`Skipping embed in zip due to error fetching: ${url}`, error);
+    return undefined;
+  })));
+  const result: Ref[] = [];
+  for (const ref of fetched) {
+    if (!ref || seen.has(key(ref)) || !refCacheIds(ref).length) continue;
+    seen.add(key(ref));
+    result.push(ref);
+  }
+  return result;
+}
+
+export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], query: string, proxy?: ProxyService, fetchRef?: (url: string) => Promise<Ref | undefined>) {
   const zip = new JSZip();
-  zip.file(type + '.json', file(page.content!.map(write(type))));
+  let content = page.content!;
+  if (type === 'ref' && proxy && fetchRef) {
+    content = [...content, ...await embeddedCacheRefs(content, fetchRef)];
+  }
+  zip.file(type + '.json', file(content.map(write(type))));
   if (exts.length) zip.file('ext.json', file(exts.map(writeExt)));
   if (type === 'ref' && proxy) {
-    await zipCache(zip, page.content!, async (id, origin) => (await firstValueFrom(proxy.download('cache:' + id, origin, id))).blob);
+    await zipCache(zip, content, async (id, origin) => (await firstValueFrom(proxy.download('cache:' + id, origin, id))).blob);
   }
   return zip.generateAsync({ type: 'blob' })
     .then(content => saveAs(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));

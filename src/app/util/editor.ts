@@ -34,6 +34,25 @@ export function getIfNew<T>(list: T[], old?: T[]): T[] {
   return list;
 }
 
+/**
+ * Get the URLs embedded in markdown. These are rendered by looking up the Ref.
+ */
+export function getEmbeds(markdown: string) {
+  const result: string[] = [];
+  if (!markdown) return result;
+  marked.walkTokens(marked.lexer(markdown), t => {
+    const customType = t as any;
+    if (customType.type === 'bang-embed' && customType.href) {
+      result.push(customType.href);
+    } else if (customType.type === 'image' && customType.href && !/^https?:/.test(customType.href)) {
+      result.push(customType.href);
+    } else if (customType.type === 'wiki-embed' && customType.text) {
+      result.push(wikiUriFormat(customType.text));
+    }
+  });
+  return uniq(result);
+}
+
 export function getLinks(markdown: string, withText?: RegExp) {
   const result: string[] = [];
   marked.walkTokens(marked.lexer(markdown), t => {

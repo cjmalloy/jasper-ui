@@ -5,7 +5,7 @@ import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, Simp
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
+import { catchError, concat, firstValueFrom, last, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
 import { patchPlugins } from '../../form/plugins/plugins.component';
@@ -26,6 +26,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { UserService } from '../../service/api/user.service';
 import { AuthzService } from '../../service/authz.service';
+import { EditorService } from '../../service/editor.service';
 import { HelpService } from '../../service/help.service';
 import { ExtStore } from '../../store/ext';
 import { PluginStore } from '../../store/plugin';
@@ -90,6 +91,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
     private ts: TaggingService,
     private el: ElementRef,
     private help: HelpService,
+    private editor: EditorService,
   ) {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
@@ -207,7 +209,8 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   download() {
-    downloadPage(this.type, this.items, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name, this.proxy);
+    downloadPage(this.type, this.items, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name, this.proxy,
+      url => firstValueFrom(this.refs.getCurrent(this.editor.getRefUrl(url))));
   }
 
   get items() {
