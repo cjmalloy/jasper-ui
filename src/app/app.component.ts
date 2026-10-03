@@ -150,9 +150,11 @@ export class AppComponent implements AfterViewInit {
       clearInterval(poll);
       this.zone.run(() => this.store.view.removePip(url));
     };
-    // Popup windows lose listeners when they navigate, so also poll for close
+    // Popup windows lose listeners when they navigate, so poll them for close.
     const poll = setInterval(() => win!.closed && restore(), 500);
-    win.addEventListener('pagehide', restore);
+    if (!this.config.electron && 'documentPictureInPicture' in window) {
+      win.addEventListener('pagehide', restore);
+    }
   }
 
   @memo
