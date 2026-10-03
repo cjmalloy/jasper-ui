@@ -74,6 +74,6 @@ if [ -n "$JASPER_API_PROXY" ]; then
     }
     "
 fi
-printf '%s\n' "$config"
-printf '%s\n' "$config" > /etc/nginx/proxy.conf
+echo "$config"
+echo "$config" > /etc/nginx/proxy.conf
 echo "Wrote to /etc/nginx/proxy.conf"
