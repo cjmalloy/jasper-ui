@@ -267,19 +267,6 @@ file will be generated from environment variables:
 |                  | `CSP_FONT_SRC`           | Additional URLS to add to the font-src content security policy.                                   |                                                                                                         |
 |                  | `CSP_IMG_SRC`            | Additional URLS to add to the img-src content security policy.                                    |                                                                                                         |
 
-When `JASPER_API_PROXY` is set, the `/api/` proxy (including websockets) never forwards client supplied
-`User-Tag`, `User-Role`, `Read-Access`, `Write-Access`, `Tag-Read-Access` or `Tag-Write-Access` headers.
-By default (blank `JASPER_PROXY_*` variables) these headers are stripped, so they cannot be forged when the
-image is exposed through Cloudflare or a LAN port. Setting a `JASPER_PROXY_*` variable sends that fixed value
-upstream instead, regardless of what the client sent. The `Authorization` header is passed through unchanged
-so bearer tokens (`JASPER_TOKEN`) keep working.
-
-Manual check (with an upstream that echoes request headers as `JASPER_API_PROXY`):
-1. With no `JASPER_PROXY_*` variables set, run
-   `curl -H 'User-Role: ROLE_ADMIN' -H 'User-Tag: +user/evil' http://<ui>/api/...` and confirm the upstream
-   receives neither header.
-2. With `JASPER_PROXY_USER_ROLE=ROLE_VIEWER`, repeat the request and confirm the upstream receives
-   `User-Role: ROLE_VIEWER` and no `User-Tag`.
 
 ## Developing
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.0.
