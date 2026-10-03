@@ -35,7 +35,7 @@ import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { addGeocoder } from './geocoder';
-import { isRepeatClick, onSingleClick } from './single-click';
+import { DOUBLE_CLICK_DELAY, isRepeatClick, onSingleClick } from './single-click';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
 
@@ -108,6 +108,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private removeGeocoder?: () => void;
   private removeGeoLayers?: () => void;
   private searchMarker?: Marker;
+  private searchActivation?: ReturnType<typeof setTimeout>;
   private reverseGeocode?: AbortController;
   private removeClick?: () => void;
   private _saveView = false;
@@ -231,10 +232,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     setName(name);
     el.setAttribute('role', 'button');
     el.tabIndex = 0;
-    const activate = (e: Event) => {
-      e.stopPropagation();
-      // Double clicking zooms in
-      if (isRepeatClick(e)) return;
+    const activate = () => {
       // Marker events run outside Angular
       this.zone.run(() => {
         this.clearSearchResult();
@@ -247,11 +245,23 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         });
       });
     };
-    el.addEventListener('click', activate);
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      this.cancelSearchActivation();
+      // Double clicking zooms in
+      if (isRepeatClick(e)) return;
+      this.searchActivation = setTimeout(() => {
+        this.searchActivation = undefined;
+        activate();
+      }, DOUBLE_CLICK_DELAY);
+    });
+    el.addEventListener('dblclick', () => this.cancelSearchActivation());
     el.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        activate(e);
+        e.stopPropagation();
+        this.cancelSearchActivation();
+        activate();
       }
     });
     marker.addTo(this.map);
@@ -275,7 +285,13 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     return getAddTags(tag, plugin, rootConfig, home).filter(t => this.auth.canAddTag(t));
   }
 
+  private cancelSearchActivation() {
+    clearTimeout(this.searchActivation);
+    this.searchActivation = undefined;
+  }
+
   private clearSearchResult() {
+    this.cancelSearchActivation();
     this.reverseGeocode?.abort();
     this.reverseGeocode = undefined;
     this.searchMarker?.remove();
