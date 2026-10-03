@@ -35,6 +35,7 @@ import { Store } from '../../store/store';
 import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { Type } from '../../store/view';
+import { refCacheIds } from '../../util/cache';
 import { downloadPage } from '../../util/download';
 import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
@@ -208,8 +209,18 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.store.eventBus.fire(this.toggled ? 'toggle-all-open' : 'toggle-all-closed');
   }
 
+  get downloadExts() {
+    return this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [];
+  }
+
   download() {
-    downloadPage(this.type, this.items, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name, this.proxy,
+    const attachments = this.type === 'ref' && this.items.content.some(ref => refCacheIds(ref as Ref).length);
+    const proxy = attachments && confirm($localize`Download attached files?`) ? this.proxy : undefined;
+    downloadPage(this.type, this.items, this.downloadExts, this.name, proxy);
+  }
+
+  export() {
+    downloadPage(this.type, this.items, this.downloadExts, this.name, this.proxy,
       url => firstValueFrom(this.refs.getCurrent(this.editor.getRefUrl(url))));
   }
 

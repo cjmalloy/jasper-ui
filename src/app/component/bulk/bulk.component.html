@@ -10,6 +10,7 @@
   } @else {
     <span class="fake-link bulk-download" (click)="download()" i18n>download</span>
     @if (type === 'ref') {
+      <span class="fake-link bulk-export" (click)="export()" i18n>export</span>
       <a class="fake-link" (click)="toggle()" i18n>toggle</a>
       @if (store.account.user) {
         <a routerLink="/submit" [queryParams]="{source: urls}" i18n>reply</a>

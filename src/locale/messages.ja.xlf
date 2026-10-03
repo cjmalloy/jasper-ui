@@ -10,6 +10,10 @@
         <source>download</source>
         <target>ダウンロード</target>
       </trans-unit>
+      <trans-unit id="6213042512958559029" datatype="html">
+        <source>Download attached files?</source>
+        <target>添付ファイルもダウンロードしますか？</target>
+      </trans-unit>
       <trans-unit id="2452584011865748061" datatype="html">
         <source>connect</source>
         <target>接続</target>
