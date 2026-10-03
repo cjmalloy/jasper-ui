@@ -21,3 +21,19 @@ describe('SubmitStore cache files', () => {
     warn.mockRestore();
   });
 });
+
+describe('SubmitStore location', () => {
+  const store = (queryParams: any) => new SubmitStore({ routeSnapshot: { queryParams } } as any, { events: new Subject() } as any);
+
+  it('reads the location param', () => {
+    expect(store({ location: '1,2', map: '3,4,5' }).location).toEqual([1, 2]);
+  });
+
+  it('defaults to the map view center for plugin/geo/point', () => {
+    expect(store({ tag: 'plugin/geo/point', map: '3,4,5' }).location).toEqual([3, 4]);
+  });
+
+  it('ignores the map view without plugin/geo/point', () => {
+    expect(store({ tag: 'public', map: '3,4,5' }).location).toBeUndefined();
+  });
+});
