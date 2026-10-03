@@ -20,7 +20,7 @@ export class RelativePipe implements PipeTransform {
     if (!value?.isValid) return '';
     const now = this.clock.now();
     // Times slightly ahead of the last tick are just new, not in the future
-    const base = value > now && value.diff(now).as('milliseconds') < ClockService.TICK_MS * 2 ? value : now;
+    const base = value >= now && value.diff(now).as('milliseconds') < ClockService.TICK_MS * 2 ? value.plus(1) : now;
     return value.toRelative({ base }) ?? '';
   }
 
