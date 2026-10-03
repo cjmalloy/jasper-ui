@@ -1,5 +1,6 @@
 import { Injectable, isDevMode } from '@angular/core';
 import { from, of } from 'rxjs';
+import { signJwt } from '../util/jwt';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -32,28 +33,15 @@ export class DebugService {
     if (tag.startsWith('_') && !roles.includes('ROLE_PRIVATE')) {
       roles.push('ROLE_PRIVATE');
     }
-    const header = {
-      alg: 'HS256',
-      typ: 'JWT'
-    };
     const payload = {
       verified_email: true,
       sub: '+user'.length === tag.length ? tag : tag.substring('+user/'.length),
       auth: roles.join(','),
     };
-    const body = btoa(JSON.stringify(header)) + '.' + btoa(JSON.stringify(payload));
-
     const secret = atob('MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM=');
-    const enc = new TextEncoder();
-    const algorithm = { name: 'HMAC', hash: 'SHA-256' };
-
-    const key = await crypto.subtle.importKey('raw', enc.encode(secret), algorithm, false, ['sign', 'verify']);
-    const signature = await crypto.subtle.sign(algorithm.name, key, enc.encode(body));
-    const digest = btoa(String.fromCharCode(...new Uint8Array(signature)));
-
+    const jwt = await signJwt(payload, new TextEncoder().encode(secret));
     console.log('GENERATING DEBUG JWT (DO NOT USE IN PRODUCTION)');
-    console.log(header);
     console.log(payload);
-    return (body + '.' + digest).replace(/\+/g, '-').replace(/\//g, '_');
+    return jwt;
   }
 }
