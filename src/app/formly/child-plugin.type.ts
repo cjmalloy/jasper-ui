@@ -20,6 +20,7 @@ import { directChild, hasPrefix } from '../util/tag';
   template: `
     <select class="child-plugin-select"
             [id]="id"
+            [attr.aria-label]="parentName"
             [disabled]="!togglePlugin"
             (input)="select($any($event.target).value)">
       <option value="" [selected]="!current">{{ parentName }}</option>
