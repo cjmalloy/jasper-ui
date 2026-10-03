@@ -3,7 +3,9 @@
     <p class="no-results">{{ emptyMessage }}</p>
   } @else{
     <mgl-map [mapStyle]="mapStyle"
-             [bounds]="bounds"
+             [bounds]="view ? undefined : bounds"
+             [center]="view?.center"
+             [zoom]="view?.zoom"
              [fitBoundsOptions]="fitBoundsOptions"
              (mapError)="onMapError($event)"
              (mapLoad)="mapLoaded($event)"

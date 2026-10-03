@@ -736,6 +736,42 @@ test.describe.serial('Map Plugin', () => {
     await expect(markers).toHaveCount(5);
   });
 
+  test('map view is saved in the url and restored on back', async ({ page }) => {
+    await page.goto('/tag/@*?debug=ADMIN&view=map&map=-63.5,44.6,9', { waitUntil: 'networkidle' });
+    await closeSidebar(page);
+    const canvas = page.locator('.map.ext .maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    await expect(page).toHaveURL(/[?&]map=-63\.5,44\.6,9(&|$)/);
+    const history = await page.evaluate(() => history.length);
+
+    const box = (await canvas.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 - 200, box.y + box.height / 2, { steps: 10 });
+    await page.mouse.up();
+    await expect(page).not.toHaveURL(/[?&]map=-63\.5,44\.6,9(&|$)/);
+    await expect(page).toHaveURL(/[?&]map=-63\.\d+,44\.6,9(&|$)/);
+    const moved = page.url();
+    // Overwrites the history entry instead of adding one
+    expect(await page.evaluate(() => history.length)).toBe(history);
+    // The ref list is not fetched again
+    let fetched = false;
+    page.on('request', req => { if (req.url().includes('/api/v1/ref/page')) fetched = true; });
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2 - 100, { steps: 10 });
+    await page.mouse.up();
+    await expect(page).not.toHaveURL(moved);
+    await page.waitForTimeout(500);
+    expect(fetched).toBe(false);
+    const saved = page.url();
+
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.goBack({ waitUntil: 'networkidle' });
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(1000);
+    expect(page.url()).toBe(saved);
+  });
+
   test('cleanup', async ({ page }) => {
     await deleteRef(page, URL);
     await deleteRef(page, POLYGON_URL);

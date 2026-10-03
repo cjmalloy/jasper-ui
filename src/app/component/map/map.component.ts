@@ -1,6 +1,7 @@
+import { Location } from '@angular/common';
 import { Component, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import {
   ControlComponent,
   MapComponent as MglComponent,
@@ -11,7 +12,7 @@ import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { FeatureCollection } from 'geojson';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
 import { LngLatBounds, Map, Marker } from 'maplibre-gl';
-import { catchError, forkJoin, map as rxMap, of, Subject, switchMap } from 'rxjs';
+import { catchError, filter, forkJoin, map as rxMap, of, Subject, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -41,6 +42,11 @@ import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
 export { minimalLngInterval };
 
 type MapEntry = [ref: Ref, bareRepost?: Ref];
+
+export interface MapView {
+  center: [number, number];
+  zoom: number;
+}
 
 @Component({
   selector: 'app-map',
@@ -78,6 +84,18 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   bbox?: number[];
   @Input()
   fitFeatures = false;
+  /**
+   * Save the map center and zoom in the URL, replacing the current history
+   * entry so pressing back returns to the same spot on the map.
+   */
+  @Input()
+  set saveView(value: boolean) {
+    this._saveView = value;
+    this.view = value ? this.urlView : undefined;
+  }
+  get saveView() {
+    return this._saveView;
+  }
 
   private _page?: Page<Ref>;
   private map?: Map;
@@ -91,9 +109,15 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private searchMarker?: Marker;
   private reverseGeocode?: AbortController;
   private removeClick?: () => void;
+  private _saveView = false;
+  /**
+   * View the map is created with, restored from the URL.
+   */
+  view?: MapView;
 
   constructor(
     private router: Router,
+    private location: Location,
     private admin: AdminService,
     private proxy: ProxyService,
     private refs: RefService,
@@ -123,7 +147,45 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       this.updateMapData();
       if (this.fitFeatures) this.fit();
     });
+    router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      takeUntilDestroyed(),
+    ).subscribe(() => this.restoreView());
   }
+
+  private get urlView(): MapView | undefined {
+    return parseMapView(this.router.parseUrl(this.location.path()).queryParams['map']);
+  }
+
+  /**
+   * Back and forward within the same page move the map to the saved view.
+   */
+  private restoreView() {
+    if (!this.saveView || !this.map) return;
+    const view = this.urlView;
+    if (!view) {
+      this.writeView();
+    } else if (formatMapView(view) !== formatMapView(this.currentView)) {
+      this.map.jumpTo(view);
+    }
+  }
+
+  private get currentView(): MapView | undefined {
+    if (!this.map) return undefined;
+    const { lng, lat } = this.map.getCenter().wrap();
+    return { center: [lng, lat], zoom: this.map.getZoom() };
+  }
+
+  private writeView = () => {
+    if (!this.saveView) return;
+    const view = this.currentView;
+    if (!view) return;
+    const url = this.router.parseUrl(this.location.path());
+    const value = formatMapView(view);
+    if (url.queryParams['map'] === value) return;
+    url.queryParams = { ...url.queryParams, map: value };
+    this.location.replaceState(this.router.serializeUrl(url), '', this.location.getState());
+  };
 
   @memo
   get mapStyle() {
@@ -252,6 +314,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.clearSearchResult();
     this.removeClick?.();
     this.removeClick = undefined;
+    this.map?.off('moveend', this.writeView);
     this.removeGeocoder = undefined;
     this.removeGeoLayers?.();
     this.removeGeoLayers = undefined;
@@ -269,6 +332,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   set page(value: Page<Ref> | undefined) {
     MemoCache.clear(this);
     this._page = value;
+    // The map is created again when results return, so restore the latest view
+    if (this.saveView && this.emptyMessage && value && !value.content.length) this.view = this.urlView;
     this.mapDataUpdates$.next(value?.content || []);
     if (this._page) {
       if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
@@ -303,13 +368,16 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.removeGeoLayers = undefined;
     this.clearSearchResult();
     this.removeClick?.();
+    this.map?.off('moveend', this.writeView);
     this.map = map;
     this.updateGeocoder();
     this.removeClick = onSingleClick(map, this.mapClick);
     map.addSource('geo-features', { type: 'geojson', data: this.geoData });
     this.removeGeoLayers = this.zone.runOutsideAngular(() => addGeoLayers(map, 'geo-features', 'geo', 8));
     this.updateMapData();
-    this.fit();
+    if (!this.view) this.fit();
+    map.on('moveend', this.writeView);
+    this.writeView();
   }
 
   private fit() {
@@ -466,4 +534,26 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
 function round(n: number) {
   return Math.round(n * 1e6) / 1e6;
+}
+
+/**
+ * Format a map view for the URL as lng,lat,zoom.
+ */
+export function formatMapView(view?: MapView) {
+  if (!view) return '';
+  const fixed = (n: number, digits: number) => '' + (Math.round(n * 10 ** digits) / 10 ** digits);
+  return [fixed(view.center[0], 5), fixed(view.center[1], 5), fixed(view.zoom, 2)].join(',');
+}
+
+/**
+ * Parse a map view from the URL formatted as lng,lat,zoom.
+ */
+export function parseMapView(value?: string | null): MapView | undefined {
+  if (!value || typeof value !== 'string') return undefined;
+  const parts = value.split(',');
+  if (parts.length !== 3 || parts.some(p => !p.trim())) return undefined;
+  const [lng, lat, zoom] = parts.map(Number);
+  if (![lng, lat, zoom].every(isFinite)) return undefined;
+  if (Math.abs(lng) > 180 || Math.abs(lat) > 90 || zoom < 0 || zoom > 24) return undefined;
+  return { center: [lng, lat], zoom };
 }
