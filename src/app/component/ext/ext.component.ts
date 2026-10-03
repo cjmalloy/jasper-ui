@@ -46,7 +46,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   selector: 'app-ext',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
-  host: { 'class': 'ext list-item' },
+  host: { 'class': 'tag ext list-item' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FakeLinkDirective,
@@ -77,6 +77,7 @@ export class ExtComponent implements OnChanges, HasChanges {
   icons: Template[] = [];
   template?: Template;
   plugin?: Plugin;
+  @HostBinding('class.editing')
   editing = false;
   viewSource = false;
   @HostBinding('class.deleted')

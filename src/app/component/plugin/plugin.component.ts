@@ -30,7 +30,7 @@ import { LoadingComponent } from '../loading/loading.component';
   imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent, DiffComponent]
 })
 export class PluginComponent implements OnChanges, HasChanges {
-  css = 'plugin list-item';
+  css = 'tag plugin list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @ViewChildren('action')
@@ -44,6 +44,7 @@ export class PluginComponent implements OnChanges, HasChanges {
 
   editForm: UntypedFormGroup;
   submitted = false;
+  @HostBinding('class.editing')
   editing = false;
   viewSource = false;
   diffing = false;

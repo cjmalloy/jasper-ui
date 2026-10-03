@@ -33,6 +33,7 @@ import { ProxyService } from '../../../service/api/proxy.service';
   selector: 'app-action-list',
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss',
+  host: { 'class': 'action-list' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FakeLinkDirective, ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })

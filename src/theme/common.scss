@@ -140,7 +140,7 @@ textarea {
   opacity: 0;
 }
 
-.tag {
+a.tag {
   color: var(--tag) !important;
 }
 
@@ -742,13 +742,13 @@ video.qr-preview {
   }
 }
 
-.tag,
+a.tag,
 .icon:not(:empty) {
   margin: 0 4px;
   line-height: 10px;
   cursor: pointer;
   font-style: normal;
-  & + .tag,
+  & + a.tag,
   & + .icon {
     margin-left: 0;
   }
@@ -1739,7 +1739,7 @@ formly-field-radio, formly-field-multicheckbox {
   border: none !important;
 }
 
-.ref.upload, .ext.upload {
+.ref.upload, .tag.upload {
   --upload-border: 30px;
   --upload-border-margin: -6px;
   position: relative;

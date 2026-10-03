@@ -209,6 +209,8 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 - Give interactive and structurally significant elements descriptive, semantic `class` names (`.filter-toggle`, `.filter-preview`, `.bookmark-field`, `.params-panel`). Name them after their role, not their look.
 - **Never** select custom component tags (`app-ref`, `formly-field-*`) in E2E tests. Standard HTML tags are acceptable, but classes are preferred.
 - Add host classes to formly field components: `host: { 'class': 'field my-field-type' }`.
+- **New entity UIs must use the ref/tag slots** documented in [`docs/STRUCTURE.md`](../docs/STRUCTURE.md): a `.ref` or `.tag` root (plus `.list-item` and variant/state modifiers), then `.thumbnail?` → `.link` (line 1) → `.info` (line 2) → `.actions` (only `a`, `.fake-link`, `.action`, `.action-list`). Use the shared selectors in `e2e/selectors.ts`. `e2e/structure.spec.ts` fails if a page drifts from this structure.
+- A bare `.tag` also names the inline tag chip (`a.tag`). Select tag rows with `.tag.list-item` or a kind class (`.tag.ext`, `.tag.plugin`, `.tag.template`, `.tag.profile`).
 
 ### Debugging failing tests
 
@@ -240,7 +242,8 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 - `src/locale/`: i18n XLIFF files
 - `src/theme/`: global SCSS themes
 - `docker/`: nginx entrypoint scripts (`JASPER_API`, CSP, base href, locale, ...)
-- `e2e/`: Playwright specs, `setup.ts`, compose files. `quickstart/`: sample deployment.
+- `e2e/`: Playwright specs, `setup.ts`, `selectors.ts` (shared ref/tag selectors), compose files. `quickstart/`: sample deployment.
+- `docs/STRUCTURE.md`: ref/tag CSS class structure, glossary and page map
 - `patches/`: patch-package patches, applied on `postinstall`
 
 ## Theming

@@ -48,7 +48,7 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  host: { 'class': 'profile list-item' },
+  host: { 'class': 'tag profile list-item' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FakeLinkDirective, RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
@@ -66,6 +66,7 @@ export class UserComponent implements OnChanges, HasChanges {
   editForm: UntypedFormGroup;
   ext?: Ext;
   submitted = false;
+  @HostBinding('class.editing')
   editing = false;
   viewSource = false;
   genKey = false;
