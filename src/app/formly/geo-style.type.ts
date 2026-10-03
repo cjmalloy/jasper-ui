@@ -9,15 +9,16 @@ const DEFAULTS: GeoStyle = {
 };
 
 /**
- * Style of a GeoJSON feature, with the stroke and fill each on their own line.
- * The value is the feature
- * properties object: other properties are kept, and defaults are removed.
+ * Style of a GeoJSON feature, with the stroke and fill each on their own
+ * labeled form grid row. The value is the feature properties object: other
+ * properties are kept, and defaults are removed.
  * Set props.fill to false to hide the fill style for geometries without an area.
  */
 @Component({
   selector: 'formly-field-geo-style',
   host: { 'class': 'field geo-style-field' },
   template: `
+    <label class="form-label geo-style-stroke-label" [attr.for]="field.id" i18n>Stroke: </label>
     <div class="form-array geo-style-stroke">
       <input type="color"
              class="geo-style-color"
@@ -49,9 +50,11 @@ const DEFAULTS: GeoStyle = {
       <button type="button" class="geo-style-stroke-clear" (click)="clear('color', 'strokeWidth', 'strokeStyle')" i18n-title title="Clear Stroke" i18n>🆑️</button>
     </div>
     @if (fill) {
+      <label class="form-label geo-style-fill-label" [attr.for]="field.id + '-fill'" i18n>Fill: </label>
       <div class="form-array geo-style-fill">
         <input type="color"
                class="geo-style-fill-color"
+               [id]="field.id + '-fill'"
                i18n-title title="Fill Color (defaults to the stroke color)"
                i18n-aria-label aria-label="Fill Color"
                [class.cleared]="!style.fillColor"
@@ -72,12 +75,6 @@ const DEFAULTS: GeoStyle = {
     }
   `,
   styles: `
-    :host {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 0;
-    }
     .form-array {
       min-width: 0;
     }

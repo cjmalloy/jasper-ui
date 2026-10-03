@@ -685,12 +685,6 @@ Private tags start with an underscore.
       }, {
         name: 'geo-style',
         component: FormlyFieldGeoStyle,
-        wrappers: ['form-field'],
-        defaultOptions: {
-          props: {
-            label: $localize`Style: `,
-          },
-        },
       }, {
         name: 'bbox',
         component: FormlyFieldBbox,

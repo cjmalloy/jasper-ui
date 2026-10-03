@@ -160,6 +160,15 @@ test.describe.serial('Map Plugin', () => {
     const strokeTop = (await style.locator('.geo-style-stroke').boundingBox())!.y;
     const fillTop = (await style.locator('.geo-style-fill').boundingBox())!.y;
     expect(fillTop).toBeGreaterThan(strokeTop + 10);
+    // Each row has its own label in the form grid
+    const strokeLabel = (await style.locator('.geo-style-stroke-label').boundingBox())!;
+    const fillLabel = (await style.locator('.geo-style-fill-label').boundingBox())!;
+    const strokeRow = (await style.locator('.geo-style-stroke').boundingBox())!;
+    const fillRow = (await style.locator('.geo-style-fill').boundingBox())!;
+    expect(strokeLabel.x + strokeLabel.width).toBeLessThanOrEqual(strokeRow.x + 1);
+    expect(fillLabel.x).toBeCloseTo(strokeLabel.x, 0);
+    expect(fillRow.x).toBeCloseTo(strokeRow.x, 0);
+    expect(Math.abs(fillLabel.y - fillRow.y)).toBeLessThan(fillRow.height);
 
     const submitPromise = page.waitForRequest(
       req => req.url().includes('/api/v1/ref') && req.method() === 'POST',
@@ -207,6 +216,8 @@ test.describe.serial('Map Plugin', () => {
     await expect(style.locator('.geo-style-fill-style')).toHaveCount(0);
     await expect(style.locator('.geo-style-fill-color')).toHaveCount(0);
     await expect(style.locator('.geo-style-fill-clear')).toHaveCount(0);
+    await expect(style.locator('.geo-style-fill-label')).toHaveCount(0);
+    await expect(style.locator('.geo-style-stroke-label')).toHaveText('Stroke:');
     // Style fits on one line
     const boxes = await style.locator('input, select, button').evaluateAll(els => els.map(e => e.getBoundingClientRect().top));
     expect(Math.max(...boxes) - Math.min(...boxes)).toBeLessThan(10);

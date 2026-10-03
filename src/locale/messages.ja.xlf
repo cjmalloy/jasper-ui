@@ -7369,9 +7369,13 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>A GeoJSON FeatureCollection. Each feature has its own style.</source>
         <target>GeoJSON の FeatureCollection。各フィーチャーに独自のスタイルがあります。</target>
       </trans-unit>
-      <trans-unit id="2023664520936022671" datatype="html">
-        <source>Style: </source>
-        <target>スタイル: </target>
+      <trans-unit id="4222367315079343305" datatype="html">
+        <source>Stroke: </source>
+        <target>線: </target>
+      </trans-unit>
+      <trans-unit id="6123752432455528305" datatype="html">
+        <source>Fill: </source>
+        <target>塗りつぶし: </target>
       </trans-unit>
       <trans-unit id="332254895678879391" datatype="html">
         <source>Stroke Color</source>
