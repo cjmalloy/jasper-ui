@@ -79,7 +79,7 @@ export class AuthInterceptor implements HttpInterceptor {
     return minting;
   }
 
-  private getToken(secret: string, userTag: string) {
+  private async getToken(secret: string, userTag: string) {
     const tag = userTag || '+user';
     const roles = tag === '+user' || tag === '_user' ? ['ROLE_ADMIN'] : ['ROLE_ANONYMOUS'];
     if (tag.startsWith('_')) roles.push('ROLE_PRIVATE');
