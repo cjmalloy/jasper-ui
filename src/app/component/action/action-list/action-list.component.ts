@@ -6,6 +6,7 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   effect,
   TemplateRef,
@@ -50,6 +51,7 @@ export class ActionListComponent implements AfterViewInit {
   overlayRef?: OverlayRef;
 
   private overlayEvents?: Subscription;
+  private showAdvancedTimer?: number;
   private overlayResizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.overlayRef?.updatePosition()) || undefined;
   private resizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
 
@@ -60,7 +62,14 @@ export class ActionListComponent implements AfterViewInit {
     private overlay: Overlay,
     private el: ElementRef<HTMLElement>,
     private viewContainerRef: ViewContainerRef,
+    destroyRef: DestroyRef,
   ) {
+    destroyRef.onDestroy(() => {
+      clearTimeout(this.showAdvancedTimer);
+      this.closeAdvanced();
+      this.resizeObserver?.disconnect();
+      this.overlayResizeObserver?.disconnect();
+    });
     effect(onCleanup => {
       this.layoutInputs();
       this.cachedActionWidths = undefined;
@@ -159,7 +168,7 @@ export class ActionListComponent implements AfterViewInit {
     const origin = event.detail === 0
       ? event.currentTarget as HTMLElement
       : {x: event.x, y: event.y};
-    defer(() => {
+    this.showAdvancedTimer = defer(() => {
       const positionStrategy = this.overlay.position()
         .flexibleConnectedTo(origin)
         .withPositions([{
