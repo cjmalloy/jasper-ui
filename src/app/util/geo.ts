@@ -60,6 +60,49 @@ function lonCenter(lons: number[]): number {
 }
 
 /**
+ * Smallest longitude interval containing all normalized longitudes, possibly
+ * crossing the antimeridian. Returns [west, east] with east >= west, where east
+ * may exceed 180 when the interval crosses the antimeridian.
+ */
+export function minimalLngInterval(lngs: number[]): [number, number] {
+  const sorted = [...lngs].sort((a, b) => a - b);
+  let gap = sorted[0] + 360 - sorted[sorted.length - 1];
+  let start = 0;
+  for (let i = 1; i < sorted.length; i++) {
+    const g = sorted[i] - sorted[i - 1];
+    if (g > gap) {
+      gap = g;
+      start = i;
+    }
+  }
+  const west = sorted[start];
+  const east = sorted[(start + sorted.length - 1) % sorted.length];
+  return [west, east < west ? east + 360 : east];
+}
+
+/**
+ * Bounds [west, south, east, north] of every location, possibly crossing
+ * the antimeridian, in which case east exceeds 180.
+ */
+export function locationBounds(coordinates: any): [number, number, number, number] | undefined {
+  const lngs: number[] = [];
+  let south = Infinity, north = -Infinity;
+  const visit = (c: any) => {
+    if (hasLocation(c)) {
+      lngs.push(c[0]);
+      south = Math.min(south, c[1]);
+      north = Math.max(north, c[1]);
+    } else if (Array.isArray(c)) {
+      c.forEach(visit);
+    }
+  };
+  visit(coordinates);
+  if (!lngs.length) return undefined;
+  const [west, east] = minimalLngInterval(lngs);
+  return [west, south, east, north];
+}
+
+/**
  * A linear ring is closed with four or more positions, the first and last
  * being identical (RFC 7946 3.1.6).
  */

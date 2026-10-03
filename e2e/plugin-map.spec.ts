@@ -368,6 +368,19 @@ test.describe.serial('Map Plugin', () => {
     await expect(items.nth(0).locator('.geo-style-fill-style')).toHaveCount(1);
     await expect(items.nth(1).locator('.geo-style-color')).toHaveCount(1);
     await expect(items.nth(1).locator('.geo-style-fill-style')).toHaveCount(0);
+    // Each feature is laid out as a form grid below its name and remove button
+    const name = (await items.nth(1).locator('.geometry-name').boundingBox())!;
+    const remove = (await items.nth(1).locator('.geometry-remove').boundingBox())!;
+    expect(Math.abs(remove.y + remove.height / 2 - (name.y + name.height / 2))).toBeLessThan(4);
+    const strokeLabel = (await items.nth(1).locator('.geo-style-stroke-label').boundingBox())!;
+    const stroke = (await items.nth(1).locator('.geo-style-stroke').boundingBox())!;
+    const pointsLabel = (await items.nth(1).locator('label', { hasText: 'Points' }).boundingBox())!;
+    const addPoint = (await items.nth(1).locator('button', { hasText: '+ Add Point' }).boundingBox())!;
+    expect(strokeLabel.y).toBeGreaterThanOrEqual(name.y + name.height);
+    expect(strokeLabel.x + strokeLabel.width).toBeLessThanOrEqual(stroke.x + 1);
+    expect(pointsLabel.y).toBeGreaterThanOrEqual(stroke.y + stroke.height);
+    expect(pointsLabel.x + pointsLabel.width).toBeLessThanOrEqual(addPoint.x + 1);
+    expect(addPoint.x).toBeCloseTo(stroke.x, 0);
     // The point is still kept
     await expect(page.locator('.plugin-content .location-field:not(.geometries-field .location-field)')).toHaveCount(1);
     await expect(items.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
@@ -653,6 +666,74 @@ test.describe.serial('Map Plugin', () => {
     const point = page.locator('.location-field').first();
     await expect(point.locator('input[type=number]').nth(0)).not.toHaveValue('');
     await expect(point.locator('input[type=number]').nth(1)).not.toHaveValue('');
+  });
+
+  test('double clicking the map zooms in', async ({ page }) => {
+    await page.goto('/ref/e/' + encodeURIComponent(URL) + '?debug=ADMIN', { waitUntil: 'networkidle' });
+    const embed = page.locator('.full-page.ref .map-embed');
+    const canvas = embed.locator('.maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    const scale = embed.locator('.maplibregl-ctrl-scale');
+    const before = await scale.textContent();
+    const box = (await canvas.boundingBox())!;
+    await canvas.dblclick({ position: { x: box.width * 0.75, y: box.height / 2 } });
+    await expect(scale).not.toHaveText(before!);
+    // No marker is dropped and clicked
+    await page.waitForTimeout(1000);
+    await expect(embed.locator('.geocode-marker')).toHaveCount(0);
+    await expect(page).toHaveURL(/\/ref\//);
+
+    // The location picker zooms in without moving the location
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(POLYGON_URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
+    await point.locator('.location-map-toggle').click();
+    const map = point.locator('.location-map .maplibregl-canvas');
+    await expect(map).toBeVisible({ timeout: 15_000 });
+    await expect(point.locator('.location-marker')).toBeVisible({ timeout: 15_000 });
+    const mapBox = (await map.boundingBox())!;
+    const markerBefore = (await point.locator('.location-marker').boundingBox())!;
+    await page.mouse.dblclick(mapBox.x + mapBox.width * 0.25, mapBox.y + mapBox.height * 0.25);
+    await page.waitForTimeout(1000);
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
+    // Zooming in around the click moves the marker away from it
+    const markerAfter = (await point.locator('.location-marker').boundingBox())!;
+    expect(Math.hypot(markerAfter.x - markerBefore.x, markerAfter.y - markerBefore.y)).toBeGreaterThan(20);
+  });
+
+  test('right click adds points to a newly added ring', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(POLYGON_URL)
+      + '&tag=plugin/geo/polygon', { waitUntil: 'networkidle' });
+    await page.locator('button', { hasText: '+ Add Ring' }).click();
+    const rings = page.locator('.plugin-content formly-list-section formly-list-section');
+    const first = rings.nth(0).locator('.location-field');
+    const coords = [[-63.5, 44.6], [-63.49, 44.6], [-63.49, 44.61]];
+    for (let i = 0; i < coords.length; i++) {
+      await rings.nth(0).locator('button', { hasText: '+ Add Point' }).click();
+      await first.nth(i).locator('input[type=number]').nth(0).fill('' + coords[i][0]);
+      await first.nth(i).locator('input[type=number]').nth(1).fill('' + coords[i][1]);
+    }
+    await first.nth(0).locator('.location-map-toggle').click();
+    const canvas = page.locator('.location-map .maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    const markers = page.locator('.location-map .location-marker');
+    await expect(markers).toHaveCount(3);
+    // The map is fitted to the ring instead of zoomed out around one point
+    const a = (await markers.nth(0).boundingBox())!;
+    const b = (await markers.nth(1).boundingBox())!;
+    expect(Math.abs(b.x - a.x)).toBeGreaterThan(100);
+
+    await page.locator('button', { hasText: '+ Add Ring' }).click();
+    await expect(rings).toHaveCount(2);
+    const box = (await canvas.boundingBox())!;
+    await page.mouse.click(box.x + box.width * 0.15, box.y + box.height * 0.5, { button: 'right' });
+    await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5, { button: 'right' });
+    await expect(rings.nth(1).locator('.location-field')).toHaveCount(2);
+    await expect(first).toHaveCount(3);
+    await expect(markers).toHaveCount(5);
   });
 
   test('cleanup', async ({ page }) => {

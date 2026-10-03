@@ -78,8 +78,7 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
   }
 
   ngOnInit() {
-    // @ts-ignore
-    if (this.field.fieldArray?.type === 'location') locationLists.set(this.formControl, this);
+    if (this.depth) locationLists.set(this.formControl, this);
     if (!this.props.ring) return;
     const value = this.formControl.value;
     if (value?.length >= 4 && isEqual(value[0], value[value.length - 1])) closedRings.add(this.formControl);
@@ -90,6 +89,19 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
   ngOnDestroy() {
     if (locationLists.get(this.formControl) === this) locationLists.delete(this.formControl);
     this.ringWatch?.unsubscribe();
+  }
+
+  /**
+   * Number of nested lists down to locations, or 0 if this is not a list
+   * of locations.
+   */
+  get depth() {
+    let depth = 1;
+    for (let f: any = this.field.fieldArray; f; f = f.fieldArray, depth++) {
+      if (f.type === 'location') return depth;
+      if (f.type !== 'list') return 0;
+    }
+    return 0;
   }
 
   /**
@@ -165,12 +177,17 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
     }
     const i = index ?? this.field.fieldGroup?.length ?? 0;
     super.add(index, initialModel, options);
-    // @ts-ignore
-    if (this.field.fieldArray?.type === 'location') {
-      const added = this.field.fieldGroup?.[i];
-      const picker = added && locationPicker(added);
+    const depth = this.depth;
+    if (!depth) return;
+    const added = this.field.fieldGroup?.[i];
+    const picker = added && locationPicker(added);
+    if (!picker?.open || !added?.formControl) return;
+    if (depth === 1) {
       // Select the new location so clicking the map places it
-      if (picker?.open && added?.formControl) picker.select(added.formControl);
+      picker.select(added.formControl);
+    } else {
+      // Right clicking the map adds points to the new list
+      picker.target = added.formControl;
     }
   }
 

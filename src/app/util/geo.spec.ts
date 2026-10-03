@@ -1,6 +1,20 @@
-import { convertFeature, convertGeometry, geoCenter, geoFeatures, isLinearRing } from './geo';
+import { convertFeature, convertGeometry, geoCenter, geoFeatures, isLinearRing, locationBounds } from './geo';
 
 describe('geo', () => {
+  describe('locationBounds', () => {
+    it('bounds every nested location, ignoring unset locations', () => {
+      expect(locationBounds([[[-63.5, 44.6], [0, 0], [-63.4, 44.7]], [-63.45, 44.65]])).toEqual([-63.5, 44.6, -63.4, 44.7]);
+    });
+
+    it('crosses the antimeridian', () => {
+      expect(locationBounds([[179, 1], [-179, 2]])).toEqual([179, 1, 181, 2]);
+    });
+
+    it('is undefined without a location', () => {
+      expect(locationBounds([[0, 0]])).toBeUndefined();
+    });
+  });
+
   describe('isLinearRing', () => {
     it('requires a closed ring with four or more positions', () => {
       expect(isLinearRing([[0, 0], [1, 0], [1, 1], [0, 0]])).toBe(true);

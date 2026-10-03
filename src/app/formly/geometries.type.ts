@@ -27,20 +27,32 @@ import { directChild } from '../util/tag';
         }
       </select>
       @for (f of field.fieldGroup; track f.id; let i = $index) {
-        <div class="form-array geometry-item">
-          <span class="geometry-name">{{ name(geometryType(model?.[i])) }}</span>
-          <formly-field class="grow" [field]="f"></formly-field>
-          <button type="button" (click)="remove(i)" i18n>&ndash;</button>
+        <div class="geometry-item">
+          <div class="form-array geometry-header">
+            <span class="geometry-name">{{ name(geometryType(model?.[i])) }}</span>
+            <button type="button" class="geometry-remove" (click)="remove(i)" i18n>&ndash;</button>
+          </div>
+          <formly-field [field]="f"></formly-field>
         </div>
       }
     </div>
   `,
   styles: `
     .geometry-item {
-      flex-wrap: wrap;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .geometry-item + .geometry-item {
+      border-top: 0.5px dashed var(--border);
+      padding-top: 4px;
     }
     .geometry-name {
-      flex-basis: 100%;
+      flex: 1;
+      align-self: center;
+    }
+    .geometry-remove {
+      flex: 0 0 auto;
     }
   `,
   changeDetection: ChangeDetectionStrategy.Eager,

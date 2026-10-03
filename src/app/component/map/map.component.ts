@@ -27,15 +27,18 @@ import { GeocodeService } from '../../service/geocode.service';
 import { Store } from '../../store/store';
 import { getAddTags } from '../../util/add-tags';
 import { getTitle } from '../../util/format';
-import { geoFeatures, hasLocation } from '../../util/geo';
+import { geoFeatures, hasLocation, minimalLngInterval } from '../../util/geo';
 import { addGeoLayers } from '../../util/geo-style';
 import { GeocoderPosition, isConfigured } from '../../util/geocode';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { addGeocoder } from './geocoder';
+import { isRepeatClick, onSingleClick } from './single-click';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
+
+export { minimalLngInterval };
 
 type MapEntry = [ref: Ref, bareRepost?: Ref];
 
@@ -87,6 +90,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private removeGeoLayers?: () => void;
   private searchMarker?: Marker;
   private reverseGeocode?: AbortController;
+  private removeClick?: () => void;
 
   constructor(
     private router: Router,
@@ -162,6 +166,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     el.tabIndex = 0;
     const activate = (e: Event) => {
       e.stopPropagation();
+      // Double clicking zooms in
+      if (isRepeatClick(e)) return;
       // Marker events run outside Angular
       this.zone.run(() => {
         this.clearSearchResult();
@@ -244,6 +250,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.mapDataUpdates$.complete();
     this.clearMarkers();
     this.clearSearchResult();
+    this.removeClick?.();
+    this.removeClick = undefined;
     this.removeGeocoder = undefined;
     this.removeGeoLayers?.();
     this.removeGeoLayers = undefined;
@@ -294,9 +302,10 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.removeGeoLayers?.();
     this.removeGeoLayers = undefined;
     this.clearSearchResult();
+    this.removeClick?.();
     this.map = map;
     this.updateGeocoder();
-    map.on('click', this.mapClick);
+    this.removeClick = onSingleClick(map, this.mapClick);
     map.addSource('geo-features', { type: 'geojson', data: this.geoData });
     this.removeGeoLayers = this.zone.runOutsideAngular(() => addGeoLayers(map, 'geo-features', 'geo', 8));
     this.updateMapData();
@@ -457,25 +466,4 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
 function round(n: number) {
   return Math.round(n * 1e6) / 1e6;
-}
-
-/**
- * Smallest longitude interval containing all normalized longitudes, possibly
- * crossing the antimeridian. Returns [west, east] with east >= west, where east
- * may exceed 180 when the interval crosses the antimeridian.
- */
-export function minimalLngInterval(lngs: number[]): [number, number] {
-  const sorted = [...lngs].sort((a, b) => a - b);
-  let gap = sorted[0] + 360 - sorted[sorted.length - 1];
-  let start = 0;
-  for (let i = 1; i < sorted.length; i++) {
-    const g = sorted[i] - sorted[i - 1];
-    if (g > gap) {
-      gap = g;
-      start = i;
-    }
-  }
-  const west = sorted[start];
-  const east = sorted[(start + sorted.length - 1) % sorted.length];
-  return [west, east < west ? east + 360 : east];
 }

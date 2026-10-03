@@ -5,17 +5,18 @@ import { MapComponent as MglComponent } from '@maplibre/ngx-maplibre-gl';
 import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { Feature, FeatureCollection } from 'geojson';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
-import { Map as MapLibreMap, Marker } from 'maplibre-gl';
+import { LngLatBounds, Map as MapLibreMap, Marker } from 'maplibre-gl';
 import { defer, isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { addGeocoder } from '../component/map/geocoder';
+import { onSingleClick } from '../component/map/single-click';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
 import { GeocodeService } from '../service/geocode.service';
-import { geoFeatures, hasLocation } from '../util/geo';
+import { geoFeatures, hasLocation, locationBounds } from '../util/geo';
 import { addGeoLayers } from '../util/geo-style';
 import { GeocoderPosition, isConfigured } from '../util/geocode';
-import { closedRings, locationLists, LocationPicker } from './location-picker';
+import { closedRings, LocationList, locationLists, LocationPicker } from './location-picker';
 
 /**
  * Map picker shared by all location inputs in a plugin form. Every location
@@ -32,8 +33,9 @@ import { closedRings, locationLists, LocationPicker } from './location-picker';
   },
   template: `
     <mgl-map [mapStyle]="mapStyle"
+             [bounds]="bounds"
+             [fitBoundsOptions]="fitBoundsOptions"
              (mapLoad)="mapLoaded($event)"
-             (mapClick)="mapClick($event)"
              (mapContextMenu)="mapContextMenu($event)"
              (mapError)="onMapError($event)"></mgl-map>
   `,
@@ -48,7 +50,10 @@ export class LocationMapComponent implements OnDestroy {
   @Input({ required: true })
   picker!: LocationPicker;
 
+  readonly fitBoundsOptions = { padding: 40, maxZoom: 15 };
+
   private _mapStyle: any;
+  private _bounds?: LngLatBounds | null;
   private map?: MapLibreMap;
   private markers = new Map<AbstractControl, Marker>();
   private watch?: Subscription;
@@ -62,6 +67,7 @@ export class LocationMapComponent implements OnDestroy {
   private removeGeocoder?: () => void;
   private removeGeoLayers?: () => void;
   private searchMarker?: Marker;
+  private removeClick?: () => void;
 
   constructor(
     private admin: AdminService,
@@ -93,6 +99,18 @@ export class LocationMapComponent implements OnDestroy {
     return this._mapStyle = style;
   }
 
+  /**
+   * Fit the map to the locations being edited, or to the Ref's other geo
+   * plugins when no location is set.
+   */
+  get bounds(): LngLatBounds | undefined {
+    if (this._bounds !== undefined) return this._bounds || undefined;
+    const bbox = locationBounds(this.locations.map(c => c.value))
+      || locationBounds(this.contextData.features.map(f => (f.geometry as any).coordinates));
+    this._bounds = bbox ? new LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]) : null;
+    return this._bounds || undefined;
+  }
+
   get control(): AbstractControl {
     return this.picker.host.formControl!;
   }
@@ -116,6 +134,8 @@ export class LocationMapComponent implements OnDestroy {
 
   mapLoaded(map: MapLibreMap) {
     this.map = map;
+    this.removeClick?.();
+    this.removeClick = onSingleClick(map, e => this.zone.run(() => this.mapClick(e)));
     map.addSource('location-context', { type: 'geojson', data: this.contextData });
     this.removeGeoLayers = this.zone.runOutsideAngular(() => addGeoLayers(map, 'location-context', 'location-context', 5));
     this.watch?.unsubscribe();
@@ -145,19 +165,30 @@ export class LocationMapComponent implements OnDestroy {
     const list = this.addTarget;
     if (!list) return;
     const { lng, lat } = event.lngLat.wrap();
+    let model: any = [lng, lat];
+    for (let d = 1; d < list.depth; d++) model = [model];
     this.picking = true;
     try {
-      list.add(undefined, [lng, lat]);
+      list.add(undefined, model);
+      if (list.depth > 1) {
+        // Select the first point of the new list so further points are added to it
+        const added = this.picker.target && leaves(this.picker.target);
+        if (added?.length) this.picker.select(added[added.length - 1]);
+      }
     } finally {
       this.picking = false;
     }
   }
 
   /**
-   * The list of the active location, otherwise the last list in this
-   * picker or in the Ref's geo plugins.
+   * The list added while the map is open, otherwise the list of the active
+   * location, otherwise the last list in this picker or in the Ref's geo
+   * plugins.
    */
-  private get addTarget() {
+  private get addTarget(): LocationList | undefined {
+    const target = this.picker.target;
+    const added = target && attached(target, this.control) && locationLists.get(target);
+    if (added) return added;
     const parent = this.picker.active?.parent;
     const active = parent && locationLists.get(parent);
     if (active) return active;
@@ -168,9 +199,9 @@ export class LocationMapComponent implements OnDestroy {
     return undefined;
   }
 
-  private locationLists(c: AbstractControl, out: { add(index?: number, initialModel?: any): void }[] = []) {
+  private locationLists(c: AbstractControl, out: LocationList[] = []) {
     const list = locationLists.get(c);
-    if (list) {
+    if (list?.depth === 1) {
       out.push(list);
     } else if (c instanceof FormArray || c instanceof FormGroup) {
       for (const child of Object.values(c.controls) as AbstractControl[]) this.locationLists(child, out);
@@ -184,6 +215,8 @@ export class LocationMapComponent implements OnDestroy {
 
   ngOnDestroy() {
     this.watch?.unsubscribe();
+    this.removeClick?.();
+    this.removeClick = undefined;
     this.removeGeoLayers?.();
     this.removeGeoLayers = undefined;
     this.removeGeocoder?.();
@@ -374,6 +407,16 @@ function leaves(c: AbstractControl, out: AbstractControl[] = []): AbstractContro
     out.push(c);
   }
   return out;
+}
+
+/**
+ * The control is still part of the root form.
+ */
+function attached(c: AbstractControl, root: AbstractControl) {
+  for (let p = c.parent; c !== root; c = p, p = p.parent) {
+    if (!p || !(Object.values(p.controls) as AbstractControl[]).includes(c)) return false;
+  }
+  return true;
 }
 
 function isGeoPlugins(c: AbstractControl) {

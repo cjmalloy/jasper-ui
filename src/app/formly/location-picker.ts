@@ -16,6 +16,11 @@ export class LocationPicker {
    * The location set by clicking the map.
    */
   active?: AbstractControl;
+  /**
+   * A list added while the map is open. Right clicking the map adds points
+   * to it until another location is selected.
+   */
+  target?: AbstractControl;
   readonly changes = new Subject<void>();
 
   constructor(
@@ -38,11 +43,13 @@ export class LocationPicker {
     if (openPicker && openPicker !== this) openPicker.close();
     openPicker = this;
     this.owner = this.active = control;
+    this.target = undefined;
     this.changes.next();
   }
 
   close() {
     if (openPicker === this) openPicker = undefined;
+    this.target = undefined;
     if (!this.owner && !this.active) return;
     this.owner = this.active = undefined;
     this.changes.next();
@@ -51,6 +58,7 @@ export class LocationPicker {
   select(control?: AbstractControl) {
     if (!this.owner) return;
     control ||= this.owner;
+    this.target = undefined;
     if (this.active === control) return;
     this.active = control;
     this.changes.next();
@@ -77,11 +85,20 @@ let openPicker: LocationPicker | undefined;
  */
 export const closedRings = new WeakSet<AbstractControl>();
 
+export interface LocationList {
+  /**
+   * Number of nested lists down to the locations: 1 for a line, ring or
+   * multi point, 2 for a polygon, and so on.
+   */
+  depth: number;
+  add(index?: number, initialModel?: any): void;
+}
+
 /**
- * Lists of locations (lines, rings and multi points) by form control, so
- * points can be added from the map.
+ * Lists of locations (lines, rings and multi points) and lists of those
+ * lists by form control, so points can be added from the map.
  */
-export const locationLists = new WeakMap<AbstractControl, { add(index?: number, initialModel?: any): void }>();
+export const locationLists = new WeakMap<AbstractControl, LocationList>();
 
 const pickers = new WeakMap<FormlyFieldConfig, LocationPicker>();
 
