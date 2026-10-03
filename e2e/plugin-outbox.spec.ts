@@ -1,5 +1,5 @@
 import { expect, type Page, type Response, test } from '@playwright/test';
-import { clearAll, deleteRef, mod, modRemote, openSidebar } from './setup';
+import { clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test.setTimeout(90_000);
@@ -113,9 +113,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test('@\u{ff20}repl : creates ref', async ({ page }) => {
     await page.goto(replUrl + '/?debug=USER&tag=bob');
     await expect(page.locator('.settings .author')).toHaveText('bob');
-    await openSidebar(page);
-    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    await page.locator('.tabs a', { hasText: 'text' }).first().click();
+    await openTextSubmit(page, '+user/bob');
     await page.locator('[name=title]').fill(refFromOtherTitle);
     await page.locator('.editor textarea').fill('Hi +user/alice@repl.main! How\'s it going? You should also see this +user/charlie.');
     await page.locator('.editor textarea').blur();
