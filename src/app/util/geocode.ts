@@ -18,7 +18,10 @@ export interface GeocodeResult {
 export interface GeocodeView {
   /** [longitude, latitude] */
   center: [number, number];
-  /** [west, south, east, north] */
+  /**
+   * [west, south, east, north] with longitudes in [-180, 180].
+   * When the view crosses the antimeridian west > east.
+   */
   bbox?: [number, number, number, number];
 }
 
@@ -36,14 +39,15 @@ const NOMINATIM_CACHE_SIZE = 100;
  */
 export function geocodeUrl(query: string, config: GeocodingConfig, view?: GeocodeView): string {
   const q = encodeURIComponent(query);
-  const [west, south, east, north] = view?.bbox || [];
+  const bbox = view?.bbox;
   switch (provider(config)) {
     case 'photon':
       return `${photonUrl(config)}/api/?q=${q}&limit=${LIMIT}`
         + (view ? `&lat=${view.center[1]}&lon=${view.center[0]}` : '');
     default:
       return `${NOMINATIM_URL}/search?format=jsonv2&limit=${LIMIT}&q=${q}`
-        + (view?.bbox ? `&viewbox=${west},${south},${east},${north}` : '');
+        // Nominatim viewboxes cannot cross the antimeridian
+        + (bbox && bbox[0] <= bbox[2] ? `&viewbox=${bbox.join(',')}` : '');
   }
 }
 
@@ -161,6 +165,9 @@ function add(results: GeocodeResult[], name: any, lng: any, lat: any) {
   results.push({ name: typeof name === 'string' && name ? name : `${lat}, ${lng}`, location: [lng, lat] });
 }
 
+/**
+ * Google bounds cross the antimeridian when west > east.
+ */
 function bounds([west, south, east, north]: [number, number, number, number]) {
   return { west, south, east, north };
 }

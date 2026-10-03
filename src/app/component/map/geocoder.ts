@@ -51,21 +51,30 @@ export function currentView(map: Map): GeocodeView | undefined {
     const c = map.getCenter().wrap();
     const view: GeocodeView = { center: [c.lng, c.lat] };
     const b = map.getBounds();
-    const west = b.getWest();
-    const east = b.getEast();
-    const south = clamp(b.getSouth(), -90, 90);
-    const north = clamp(b.getNorth(), -90, 90);
-    if (east - west >= 360) {
-      view.bbox = [-180, south, 180, north];
-    } else if (west < east) {
-      const clippedWest = Math.max(-180, west);
-      const clippedEast = Math.min(180, east);
-      if (clippedWest < clippedEast) view.bbox = [clippedWest, south, clippedEast, north];
-    }
+    const bbox = viewBbox([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+    if (bbox) view.bbox = bbox;
     return view;
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Normalize map bounds, which may extend into world copies, to longitudes
+ * in [-180, 180]. A view crossing the antimeridian has west > east.
+ */
+export function viewBbox([west, south, east, north]: number[]): GeocodeView['bbox'] {
+  if (![west, south, east, north].every(n => isFinite(n))) return undefined;
+  if (east < west) east += 360;
+  south = clamp(south, -90, 90);
+  north = clamp(north, -90, 90);
+  if (south >= north || west === east) return undefined;
+  if (east - west >= 360) return [-180, south, 180, north];
+  const shift = Math.floor((west + 180) / 360) * 360;
+  west -= shift;
+  east -= shift;
+  if (east > 180) east -= 360;
+  return [west, south, east, north];
 }
 
 /**

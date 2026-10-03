@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import type { Map } from 'maplibre-gl';
 import { GeocodeService } from '../../service/geocode.service';
-import { addGeocoder, currentView, isDarkBasemap, renderResult, toFeatureCollection } from './geocoder';
+import { addGeocoder, currentView, isDarkBasemap, renderResult, toFeatureCollection, viewBbox } from './geocoder';
 
 describe('geocoder', () => {
 
@@ -93,11 +93,28 @@ describe('geocoder', () => {
     }) as unknown as Map;
     expect(currentView(map([-63.5, 44.6], [-64, 44, -63, 45]))).toEqual({ center: [-63.5, 44.6], bbox: [-64, 44, -63, 45] });
     expect(currentView(map([0, 0], [-200, -95, 200, 95]))).toEqual({ center: [0, 0], bbox: [-180, -90, 180, 90] });
-    expect(currentView(map([0, 0], [170, -10, 190, 10]))).toEqual({ center: [0, 0] });
-    expect(currentView(map([0, 0], [190, -10, 200, 10]))).toEqual({ center: [0, 0] });
-    // Inverted bbox across the antimeridian is left out
-    expect(currentView(map([180, 0], [170, -10, -170, 10]))).toEqual({ center: [180, 0] });
+    // Crossing the antimeridian keeps both sides, with west > east
+    expect(currentView(map([180, 0], [170, -10, 190, 10]))).toEqual({ center: [180, 0], bbox: [170, -10, -170, 10] });
+    expect(currentView(map([-175, 0], [190, -10, 200, 10]))).toEqual({ center: [-175, 0], bbox: [-170, -10, -160, 10] });
     expect(currentView({ getCenter: () => { throw new Error('not loaded'); } } as unknown as Map)).toBeUndefined();
+  });
+
+  it('normalizes view bounds', () => {
+    expect(viewBbox([-64, 44, -63, 45])).toEqual([-64, 44, -63, 45]);
+    expect(viewBbox([-200, -95, 200, 95])).toEqual([-180, -90, 180, 90]);
+    expect(viewBbox([0, 0, 360, 10])).toEqual([-180, 0, 180, 10]);
+    // World copies
+    expect(viewBbox([190, -10, 200, 10])).toEqual([-170, -10, -160, 10]);
+    expect(viewBbox([-550, -10, -540, 10])).toEqual([170, -10, 180, 10]);
+    expect(viewBbox([-180, -10, 180, 10])).toEqual([-180, -10, 180, 10]);
+    // Crossing the antimeridian
+    expect(viewBbox([170, -10, 190, 10])).toEqual([170, -10, -170, 10]);
+    expect(viewBbox([-190, -10, -170, 10])).toEqual([170, -10, -170, 10]);
+    expect(viewBbox([170, -10, -170, 10])).toEqual([170, -10, -170, 10]);
+    // Empty or invalid
+    expect(viewBbox([0, 10, 0, 20])).toBeUndefined();
+    expect(viewBbox([0, 95, 10, 100])).toBeUndefined();
+    expect(viewBbox([NaN, 0, 10, 10])).toBeUndefined();
   });
 
   it('reads the view at search time', async () => {
