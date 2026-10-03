@@ -125,7 +125,9 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
     if (points >= 3) {
       if (!closed) {
         closedRings.add(arr);
-        super.add(arr.length, first, { markAsDirty: false });
+        if (arr.length < 4 || !isEqual(arr.at(arr.length - 1).value, first)) {
+          super.add(arr.length, first, { markAsDirty: false });
+        }
       } else if (!isEqual(arr.at(arr.length - 1).value, first)) {
         this.model[arr.length - 1] = cloneDeep(first);
         arr.at(arr.length - 1).setValue(cloneDeep(first));
