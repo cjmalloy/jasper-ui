@@ -31,7 +31,9 @@ import { getPath } from '../util/http';
         <div class="form-array list-drag"
              cdkDrag
              [cdkDragData]="model[i]"
-             cdkDragRootElement="formly-wrapper-form-field label">
+             cdkDragRootElement="formly-wrapper-form-field label"
+             (cdkDragStarted)="dragEvent(fg, 'jasper-drag-start')"
+             (cdkDragEnded)="dragEvent(fg, 'jasper-drag-end')">
           @if (groupArray) {
             <div cdkDragHandle class="drag-handle"></div>
           }
@@ -203,6 +205,14 @@ export class ListTypeComponent extends FieldArrayType {
     for (const value of clipboardPasteValues(event)) {
       this.add(undefined, value);
     }
+  }
+
+  /**
+   * Notify parent forms when a list item drag starts or ends so they can
+   * show empty drop lists before the drop list positions are cached.
+   */
+  dragEvent(list: HTMLElement, type: 'jasper-drag-start' | 'jasper-drag-end') {
+    list.dispatchEvent(new CustomEvent(type, { bubbles: true }));
   }
 
   drop(event: CdkDragDrop<ListTypeComponent>) {

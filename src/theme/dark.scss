@@ -192,6 +192,11 @@ body.dark-theme {
     select:hover {
       background-color: #a7a7a7;
     }
+
+    .mobile-tab-select option {
+      color: black;
+      background-color: var(--unselected-tab);
+    }
   }
 
   .sidebar {

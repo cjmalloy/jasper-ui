@@ -241,9 +241,13 @@ export class AdminService {
     });
   }
 
-  get init$() {
+  private clearCache() {
     this._cache.clear();
     MemoCache.clear(this);
+  }
+
+  get init$() {
+    this.clearCache();
     runInAction(() => {
       this.store.view.modChanges.clear();
       this.store.view.modUpdates.clear();
@@ -254,10 +258,12 @@ export class AdminService {
     this.status.disabledTemplates = {};
     this.status.receipts = {};
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
+      tap(() => this.clearCache()),
       switchMap(() => this.firstRun$),
       switchMap(() => this.loadReceipts$()),
       tap(() => this.checkMissingReceipts()),
       catchError(() => of(null)),
+      tap(() => this.clearCache()),
     );
   }
 
@@ -1195,8 +1201,5 @@ export class AdminService {
 }
 
 function addParent(c: Config) {
-  return (a: any) => {
-    a._parent = c;
-    return a;
-  };
+  return <T>(a: T): T & { _parent: Config } => ({ ...a, _parent: c });
 }
