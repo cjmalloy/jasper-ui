@@ -381,35 +381,25 @@ test.describe.serial('Map Plugin', () => {
     expect((await map.boundingBox())!.height).toBeGreaterThan(250);
   });
 
-  test('title scraper reverse geocodes the location', async ({ page }) => {
-    await page.route('https://nominatim.openstreetmap.org/reverse**', route => route.fulfill({
-      headers: CORS,
-      json: { display_name: 'Citadel Hill, Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' },
-    }));
-    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(GEO_URL)
-      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
-    // Only shown for web URLs or Refs with a location
-    await expect(page.locator('.scrape-title')).toHaveCount(0);
-    const point = page.locator('.location-field').first();
-    await point.locator('input[type=number]').nth(0).fill('-63.57');
-    await point.locator('input[type=number]').nth(1).fill('44.65');
-    await page.locator('.scrape-title').click();
-    await expect(page.locator('[name=title]')).toHaveValue('Citadel Hill, Halifax, Nova Scotia, Canada');
-  });
-
-  test('text post title scraper reverse geocodes the location', async ({ page }) => {
-    await page.route('https://nominatim.openstreetmap.org/reverse**', route => route.fulfill({
-      headers: CORS,
-      json: { display_name: 'Citadel Hill, Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' },
-    }));
-    await page.goto('/submit/text?debug=ADMIN&tag=plugin/geo/point', { waitUntil: 'networkidle' });
-    // Only shown once there is a location to reverse geocode
-    await expect(page.locator('.scrape-title')).toHaveCount(0);
-    const point = page.locator('.location-field').first();
-    await point.locator('input[type=number]').nth(0).fill('-63.57');
-    await point.locator('input[type=number]').nth(1).fill('44.65');
-    await page.locator('.scrape-title').click();
-    await expect(page.locator('[name=title]')).toHaveValue('Citadel Hill, Halifax, Nova Scotia, Canada');
+  test('editors never reverse geocode', async ({ page }) => {
+    let reverse = 0;
+    await page.route('https://nominatim.openstreetmap.org/reverse**', route => {
+      reverse++;
+      return route.fulfill({ status: 426, headers: CORS, body: '' });
+    });
+    for (const url of [
+      '/submit/web?debug=ADMIN&url=' + encodeURIComponent(GEO_URL) + '&tag=plugin/geo/point',
+      '/submit/text?debug=ADMIN&tag=plugin/geo/point',
+    ]) {
+      await page.goto(url, { waitUntil: 'networkidle' });
+      const point = page.locator('.location-field').first();
+      await point.locator('input[type=number]').nth(0).fill('-63.57');
+      await point.locator('input[type=number]').nth(1).fill('44.65');
+      await point.locator('.location-map-toggle').click();
+      await expect(page.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
+      await expect(page.locator('.scrape-title')).toHaveCount(0);
+    }
+    expect(reverse).toBe(0);
   });
 
   test('plugin/geo embeds the ref geo features', async ({ page }) => {

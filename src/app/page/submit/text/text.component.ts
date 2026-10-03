@@ -39,12 +39,10 @@ import { TaggingService } from '../../../service/api/tagging.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
-import { GeocodeService } from '../../../service/geocode.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { readFileAsString } from '../../../util/async';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { geoCenter } from '../../../util/geo';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
@@ -108,7 +106,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
   private cursor?: string;
-  scrapingTitle = false;
 
   constructor(
     public config: ConfigService,
@@ -121,7 +118,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     private refs: RefService,
     private exts: ExtService,
     private ts: TaggingService,
-    private geocoder: GeocodeService,
     private fb: UntypedFormBuilder,
   ) {
     mod.setTitle($localize`Submit: Text Post`);
@@ -287,28 +283,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
 
   get title() {
     return this.textForm.get('title') as UntypedFormControl;
-  }
-
-  /**
-   * Location of the geo plugins on this Ref, used to reverse geocode a title.
-   */
-  get geoLocation() {
-    return geoCenter(this.textForm.value.plugins);
-  }
-
-  scrapeTitle() {
-    const location = this.geoLocation;
-    if (!location) return;
-    this.scrapingTitle = true;
-    this.geocoder.reverse(location)
-      .catch(err => {
-        console.error('Reverse geocoding error:', err);
-        return undefined;
-      })
-      .then(r => {
-        this.scrapingTitle = false;
-        if (r?.name) this.title.setValue(r.name);
-      });
   }
 
   get comment() {

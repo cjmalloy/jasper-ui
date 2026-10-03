@@ -22,7 +22,7 @@
            type="text"
            [formControl]="title"
            (blur)="validate($any($event.target))">
-    @if (web || geoLocation) {
+    @if (web) {
       @if (scrapingTitle) {
         <app-loading class="event-loading"
                      [inline]="true"

@@ -23,7 +23,7 @@ import {
 } from '@angular/forms';
 import { defer, some } from 'lodash-es';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, from, map, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
@@ -38,10 +38,8 @@ import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
-import { GeocodeService } from '../../service/geocode.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
-import { geoCenter } from '../../util/geo';
 import { getScheme, getTitleFromFilename } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
@@ -114,7 +112,6 @@ export class RefFormComponent implements OnChanges {
     public admin: AdminService,
     private editor: EditorService,
     private scrape: ScrapeService,
-    private geocoder: GeocodeService,
     private oembeds: OembedStore,
     private store: Store,
     private fb: UntypedFormBuilder,
@@ -127,13 +124,6 @@ export class RefFormComponent implements OnChanges {
   get web() {
     const scheme = getScheme(this.url.value);
     return scheme === 'http:' || scheme === 'https:';
-  }
-
-  /**
-   * Location of the geo plugins on this Ref, used to reverse geocode a title.
-   */
-  get geoLocation() {
-    return geoCenter(this.group.get('plugins')?.value);
   }
 
   get url() {
@@ -298,15 +288,9 @@ export class RefFormComponent implements OnChanges {
     );
   }
 
-  /**
-   * Scrape the title from the web resource, falling back to reverse geocoding
-   * the location of the geo plugins.
-   */
   scrapeTitle() {
     this.scrapingTitle = true;
-    (this.web ? this.webTitle$ : of(undefined)).pipe(
-      switchMap(title => title ? of(title) : this.geoTitle$),
-    ).subscribe(title => {
+    (this.web ? this.webTitle$ : of(undefined)).subscribe(title => {
       this.scrapingTitle = false;
       title ||= getTitleFromFilename(this.url.value) || undefined;
       if (title) this.group.patchValue({ title });
@@ -325,18 +309,6 @@ export class RefFormComponent implements OnChanges {
         catchError(() => of(s)),
       )),
       map(s => s.title),
-    );
-  }
-
-  private get geoTitle$(): Observable<string | undefined> {
-    const location = this.geoLocation;
-    if (!location) return of(undefined);
-    return from(this.geocoder.reverse(location)).pipe(
-      map(r => r?.name),
-      catchError(err => {
-        console.error('Reverse geocoding error:', err);
-        return of(undefined);
-      }),
     );
   }
 
