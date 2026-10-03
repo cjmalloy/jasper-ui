@@ -162,7 +162,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     private embeds: EmbedService,
     private editor: EditorService,
     private refs: RefService,
-    private store: Store,
+    public store: Store,
     private auth: AuthzService,
     public el: ElementRef,
   ) { }

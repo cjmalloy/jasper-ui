@@ -90,6 +90,8 @@
     @defer {
       <app-map class="map-embed"
                [page]="mapPage"
+               [tag]="store.view.tag"
+               [ext]="store.view.viewExt"
                [pageControls]="false"
                [emptyMessage]="''"
                [bbox]="ref?.plugins?.['plugin/geo']?.bbox"
