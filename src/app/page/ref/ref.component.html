@@ -108,7 +108,7 @@
     <div class="stack">
       <div class="error-404" i18n>Not Found</div>
       @if (store.account.signedIn()) {
-        @if (isWiki(store.view.url())) {
+        @if (isWiki()) {
           <div class="error-404 submit-button" routerLink="/submit/text" [queryParams]="{ url: store.view.url() }" i18n>
             📔 &nbsp; Submit Wiki
           </div>

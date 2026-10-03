@@ -92,7 +92,6 @@ import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
-import { computedBy } from '../util/computed-by';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
@@ -839,18 +838,18 @@ export class AdminService {
       .filter(t => hasPrefix(tag, t.tag));
   }
 
-  readonly getPlugin = computedBy((tag: string) => {
+  getPlugin(tag: string) {
     return Object.values(this.status().plugins).find(p => p?.tag === tag);
-  });
+  }
 
-  readonly searchPlugins = computedBy((text: string) => {
+  searchPlugins(text: string) {
     text = text.toLowerCase();
     return Object.values(this.status().plugins).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
-  });
+  }
 
-  readonly getParentPlugins = computedBy((tag: string) => {
+  getParentPlugins(tag: string) {
     return this.getPlugins([tag]);
-  });
+  }
 
   getPlugins(tags: string[] | undefined) {
     if (!tags) return [];
@@ -872,9 +871,9 @@ export class AdminService {
     return this.forms().filter(p => hasTag(p.tag, match));
   }
 
-  readonly getPluginSubForms = computedBy((parent: string) => {
+  getPluginSubForms(parent: string) {
     return this.forms().filter(p => p.config?.submitChild && directChild(p.tag, parent));
-  });
+  }
 
   getTemplate(tag: string) {
     if (this.status().templates[tag]) return this.status().templates[tag];
@@ -884,10 +883,10 @@ export class AdminService {
     });
   }
 
-  readonly searchTemplates = computedBy((text: string) => {
+  searchTemplates(text: string) {
     text = text.toLowerCase();
     return Object.values(this.status().templates).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
-  });
+  }
 
   defaultConfig(tag: string) {
     return reduce(this.getTemplates(tag).map(t => t.defaults || {}), (prev, curr) => {
@@ -901,10 +900,6 @@ export class AdminService {
   }
 
   getTemplates(tag = ''): Template[] {
-    return this._getTemplates(tag);
-  }
-
-  private readonly _getTemplates: (tag: string) => Template[] = computedBy((tag: string): Template[] => {
     const template = this.getTemplate(tag);
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
     if (template) {
@@ -914,7 +909,7 @@ export class AdminService {
       return this.getTemplates(parent!);
     }
     return [];
-  });
+  }
 
   getTemplateUi(tag = ''): Template[] {
     const template = this.getTemplate(tag);

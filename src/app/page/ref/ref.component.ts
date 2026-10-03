@@ -18,7 +18,6 @@ import { StompService } from '../../service/api/stomp.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { computedBy } from '../../util/computed-by';
 import { markRead } from '../../util/response';
 import { hasTag, privateTag, top } from '../../util/tag';
 
@@ -197,7 +196,7 @@ export class RefPage implements HasChanges {
     }
   }
 
-  readonly isWiki = computedBy((url: string) => !this.admin.isWikiExternal() && isWiki(url, this.admin.getWikiPrefix()));
+  readonly isWiki = computed(() => !this.admin.isWikiExternal() && isWiki(this.store.view.url(), this.admin.getWikiPrefix()));
 
   markRead(ref: Ref) {
     markRead(this.admin, this.ts, ref);
