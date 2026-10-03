@@ -418,6 +418,13 @@ test.describe.serial('Map Plugin', () => {
     const point = page.locator('.location-field').first();
     await point.locator('input[type=number]').nth(0).fill('-63.5');
     await point.locator('input[type=number]').nth(1).fill('44.6');
+    // Bounds are in the advanced form, toggled from the plugin/geo header row
+    const advanced = page.locator('details.advanced.plugin_geo summary');
+    const header = (await page.locator('.plugin-header .child-plugin-select').boundingBox())!;
+    const toggle = (await advanced.boundingBox())!;
+    expect(toggle.y).toBeLessThan(header.y + header.height);
+    await expect(page.locator('.bbox-field .bbox-west')).toBeHidden();
+    await advanced.click();
     await page.locator('.bbox-field .bbox-west').fill('-65');
     await page.locator('.bbox-field .bbox-south').fill('44');
     await page.locator('.bbox-field .bbox-east').fill('-62');
