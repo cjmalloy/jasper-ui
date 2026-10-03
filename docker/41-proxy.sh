@@ -1,14 +1,5 @@
 
-nginx_escape() {
-  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
-}
 if [ -n "$JASPER_API_PROXY" ]; then
-  JASPER_PROXY_USER_TAG=$(nginx_escape "${JASPER_PROXY_USER_TAG:-}")
-  JASPER_PROXY_USER_ROLE=$(nginx_escape "${JASPER_PROXY_USER_ROLE:-}")
-  JASPER_PROXY_READ_ACCESS=$(nginx_escape "${JASPER_PROXY_READ_ACCESS:-}")
-  JASPER_PROXY_WRITE_ACCESS=$(nginx_escape "${JASPER_PROXY_WRITE_ACCESS:-}")
-  JASPER_PROXY_TAG_READ_ACCESS=$(nginx_escape "${JASPER_PROXY_TAG_READ_ACCESS:-}")
-  JASPER_PROXY_TAG_WRITE_ACCESS=$(nginx_escape "${JASPER_PROXY_TAG_WRITE_ACCESS:-}")
   config="
     location ^~ /api/ {
       port_in_redirect off;
