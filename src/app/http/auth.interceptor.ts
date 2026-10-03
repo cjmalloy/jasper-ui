@@ -61,6 +61,7 @@ export class AuthInterceptor implements HttpInterceptor {
     if (secret === this.tokenSecret && userTag === this.tokenUserTag) return this.minting;
     this.tokenSecret = secret;
     this.tokenUserTag = userTag;
+    this.config.token = '';
     const minting = this.minting = this.getToken(secret, userTag).then(jwt => {
       if (this.minting === minting) {
         this.config.token = jwt;
