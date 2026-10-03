@@ -59,9 +59,9 @@ export class ViewStore {
   inboxTabs: Plugin[] = [];
   settingsTabs: Plugin[] = [];
   /**
-   * URLs of Refs currently open in a Picture-in-Picture window.
+   * URL of the Ref currently open in the Picture-in-Picture window.
    */
-  pip: string[] = [];
+  pip = '';
 
   constructor(
     public route: RouterStore,
@@ -240,16 +240,15 @@ export class ViewStore {
   }
 
   addPip(url: string) {
-    this.pip = [...this.pip, url];
+    this.pip = url;
   }
 
   removePip(url: string) {
-    const i = this.pip.indexOf(url);
-    if (i >= 0) this.pip = this.pip.filter((_, j) => j !== i);
+    if (this.pip === url) this.pip = '';
   }
 
   inPip(url?: string) {
-    return !!url && this.pip.includes(url);
+    return !!url && this.pip === url;
   }
 
   get current(): View | undefined {

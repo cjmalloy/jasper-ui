@@ -52,6 +52,7 @@ export class AppComponent implements AfterViewInit {
   pdfPlugin = this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin || undefined;
   archivePlugin = this.admin.getPlugin('plugin/archive') as typeof archivePlugin || undefined;
   pipPlugin = this.admin.getPlugin('plugin/pip') as typeof pipPlugin || undefined;
+  pipWindow?: Window;
   userClipboardPlugin = this.admin.getPlugin('plugin/user/clipboard') as typeof userClipboardPlugin || undefined;
 
   constructor(
@@ -135,6 +136,7 @@ export class AppComponent implements AfterViewInit {
 
   async pip(ref: Ref) {
     const url = ref.url;
+    this.pipWindow?.close();
     let win: Window | null = null;
     try {
       win = await createPip(ref, this.pipPlugin?.config?.windowConfig, this.config.electron);
@@ -142,12 +144,15 @@ export class AppComponent implements AfterViewInit {
       console.error('Failed to open Picture-in-Picture', e);
     }
     if (!win) return;
+    this.pipWindow = win;
     this.store.view.addPip(url);
     let restored = false;
     const restore = () => {
       if (restored) return;
       restored = true;
       clearInterval(poll);
+      if (this.pipWindow !== win) return;
+      this.pipWindow = undefined;
       this.zone.run(() => this.store.view.removePip(url));
     };
     // Popup windows lose listeners when they navigate, so poll them for close.
