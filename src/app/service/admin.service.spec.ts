@@ -34,4 +34,23 @@ describe('AdminService', () => {
     expect(llmPlugin.config?.advancedForm?.find(f => f.key === 'bundle')?.expressions?.hide).toBe('!model.json');
     expect(scrapePlugin.config?.form?.find(f => f.key === 'textSelectors')?.expressions?.hide).toBe('!field.parent.model.text');
   });
+
+  it('should not mutate installed plugin icons or buttons', () => {
+    const icon = { label: '🧪️' };
+    const button = { label: '🧪️', ribbon: true };
+    service.status.plugins['plugin/test'] = {
+      tag: 'plugin/test',
+      name: 'Test',
+      config: { icons: [icon], editorButtons: [button] },
+    } as any;
+    const icons = service.getIcons(['plugin/test']);
+    expect(icons.length).toBe(1);
+    expect(icons[0].tag).toBe('plugin/test');
+    expect(icons[0].title).toBe('Test');
+    expect(icons[0]._parent?.tag).toBe('plugin/test');
+    expect(icon).toEqual({ label: '🧪️' });
+    const buttons = service.getEditorButtons(['plugin/test']);
+    expect(buttons[0].toggle).toBe('plugin/test');
+    expect(button).toEqual({ label: '🧪️', ribbon: true });
+  });
 });

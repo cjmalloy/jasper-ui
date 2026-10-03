@@ -1315,7 +1315,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       scrollToFirstInvalid();
       return;
     }
-    const published = DateTime.fromISO(this.editForm.value.published);
+    const published = this.editForm.value.published ? DateTime.fromISO(this.editForm.value.published) : this.ref.published;
     let ref = {
       ...this.editForm.value,
       published,
@@ -1332,11 +1332,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     };
     if (this.ref.upload) {
       ref.upload = true;
+      if (ref.url !== this.ref.url) delete ref.exists;
+      this.store.submit.setRef(ref, this.ref.url);
       this.editForm.reset();
       this.init();
-      this.store.submit.setRef(ref);
     } else {
-      this.refreshTap = () => this.publishChanged = +published !== +this.ref.published!;
+      this.refreshTap = () => this.publishChanged = +published! !== +this.ref.published!;
       this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
         tap(cursor => {
           this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
