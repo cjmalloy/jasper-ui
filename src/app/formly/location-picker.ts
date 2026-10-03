@@ -4,11 +4,17 @@ import { Subject } from 'rxjs';
 
 /**
  * Shared map picker state for all location inputs in a plugin form.
- * Only one map is shown per host, and any location in the host can be
- * edited from it.
+ * The map is shown above the location input that opened it, and any
+ * location in the host can be edited from it. Only one map is open at a time.
  */
 export class LocationPicker {
-  open = false;
+  /**
+   * The location input the map is shown above.
+   */
+  owner?: AbstractControl;
+  /**
+   * The location set by clicking the map.
+   */
   active?: AbstractControl;
   readonly changes = new Subject<void>();
 
@@ -16,27 +22,54 @@ export class LocationPicker {
     readonly host: FormlyFieldConfig,
   ) { }
 
+  get open() {
+    return !!this.owner;
+  }
+
   /**
    * Toggle the map for this control. If the map is already open for another
-   * control, switch to this one instead.
+   * control, close it and open it here instead.
    */
   toggle(control: AbstractControl) {
-    if (this.open && this.active === control) {
-      this.open = false;
-      this.active = undefined;
-    } else {
-      this.open = true;
-      this.active = control;
+    if (this.owner === control) {
+      this.close();
+      return;
     }
+    if (openPicker && openPicker !== this) openPicker.close();
+    openPicker = this;
+    this.owner = this.active = control;
+    this.changes.next();
+  }
+
+  close() {
+    if (openPicker === this) openPicker = undefined;
+    if (!this.owner && !this.active) return;
+    this.owner = this.active = undefined;
     this.changes.next();
   }
 
   select(control?: AbstractControl) {
+    if (!this.owner) return;
+    control ||= this.owner;
     if (this.active === control) return;
     this.active = control;
     this.changes.next();
   }
+
+  /**
+   * A location input was removed. Removing the location the map is shown
+   * above closes the map.
+   */
+  removed(control: AbstractControl) {
+    if (this.owner === control) {
+      this.close();
+    } else if (this.active === control) {
+      this.select(this.owner);
+    }
+  }
 }
+
+let openPicker: LocationPicker | undefined;
 
 /**
  * Lists of locations kept closed as a linear ring (RFC 7946 3.1.6). The last
@@ -47,8 +80,8 @@ export const closedRings = new WeakSet<AbstractControl>();
 const pickers = new WeakMap<FormlyFieldConfig, LocationPicker>();
 
 /**
- * The outermost list containing this location, so the map is never rendered
- * inside a draggable list item.
+ * The outermost list containing this location. All locations in the host
+ * are shown on the map.
  */
 export function locationMapHost(field: FormlyFieldConfig): FormlyFieldConfig {
   let host = field;
@@ -63,8 +96,4 @@ export function locationPicker(field: FormlyFieldConfig) {
   let picker = pickers.get(host);
   if (!picker) pickers.set(host, picker = new LocationPicker(host));
   return picker;
-}
-
-export function getLocationPicker(host: FormlyFieldConfig) {
-  return pickers.get(host);
 }

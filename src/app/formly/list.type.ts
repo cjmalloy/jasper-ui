@@ -8,8 +8,7 @@ import { Store } from '../store/store';
 import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
 import { hasLocation } from '../util/geo';
-import { LocationMapComponent } from './location-map.component';
-import { closedRings, getLocationPicker, locationPicker } from './location-picker';
+import { closedRings, locationPicker } from './location-picker';
 
 @Component({
   selector: 'formly-list-section',
@@ -18,12 +17,6 @@ import { closedRings, getLocationPicker, locationPicker } from './location-picke
   },
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
-    @if (locationPicker?.open) {
-      @defer {
-        <app-location-map [picker]="locationPicker!"></app-location-map>
-      }
-      <span></span>
-    }
     <div #fg
          class="form-group"
          cdkDropList
@@ -63,7 +56,6 @@ import { closedRings, getLocationPicker, locationPicker } from './location-picke
     CdkDrag,
     CdkDragHandle,
     FormlyField,
-    LocationMapComponent,
   ],
 })
 export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestroy {
@@ -125,10 +117,6 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
       closedRings.delete(arr);
       super.remove(arr.length - 1, { markAsDirty: false });
     }
-  }
-
-  get locationPicker() {
-    return getLocationPicker(this.field);
   }
 
   get groupArray() {

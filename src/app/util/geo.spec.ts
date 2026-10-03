@@ -55,7 +55,7 @@ describe('geo', () => {
     expect(geoCenter({
       'plugin/geo/point': { geometry: { type: 'Point', coordinates: [-64, 44] } },
       'plugin/geo/linestring': { geometry: { type: 'LineString', coordinates: [[-62, 46], [0, 0]] } },
-      'plugin/map': { bbox: [100, 100, 100, 100] },
+      'plugin/geo': { bbox: [100, 100, 100, 100] },
     })).toEqual([-63, 45]);
     expect(geoCenter({ 'plugin/geo/point': { geometry: { type: 'Point', coordinates: [0, 0] } } })).toBeUndefined();
     expect(geoCenter(undefined)).toBeUndefined();

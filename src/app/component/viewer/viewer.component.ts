@@ -173,7 +173,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     this.todo = !!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags);
     this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags);
     this.chess = !!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags);
-    this.map = !!this.admin.getPlugin('plugin/map') && !!this.ref && hasTag('plugin/map', this.currentTags);
+    this.map = !!this.admin.getPlugin('plugin/geo') && !!this.ref && hasTag('plugin/geo', this.currentTags);
     this.mapPage = this.map ? Page.of([this.ref!]) : undefined;
     this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
     this.uis = this.admin.getPluginUi(this.currentTags);

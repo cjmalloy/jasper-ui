@@ -26,6 +26,15 @@ import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
       }
     </div>
   `,
+  styles: `
+    .form-array {
+      min-width: 0;
+    }
+    input {
+      min-width: 0;
+      width: 80px;
+    }
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule],
 })

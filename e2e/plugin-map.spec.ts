@@ -21,14 +21,14 @@ test.describe.serial('Map Plugin', () => {
     await page.context().grantPermissions(['geolocation']);
     await page.context().setGeolocation({ longitude: -63.5, latitude: 44.6 });
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
-      + '&tag=plugin/map&tag=plugin/geo/polygon&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+      + '&tag=plugin/geo/polygon&tag=plugin/geo/point', { waitUntil: 'networkidle' });
     await page.locator('[name=title]').fill('Map Plugin Test');
 
     const point = page.locator('.location-field').first();
     await point.locator('.location-map-toggle').click();
     // Defaults to the current position when no location is set
-    await expect(point.locator('input').nth(0)).toHaveValue('-63.5');
-    await expect(point.locator('input').nth(1)).toHaveValue('44.6');
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
 
     const map = point.locator('.location-map .maplibregl-canvas');
     await expect(map).toBeVisible({ timeout: 15_000 });
@@ -38,8 +38,8 @@ test.describe.serial('Map Plugin', () => {
     const box = (await map.boundingBox())!;
     expect(box.width).toBeGreaterThan(300);
     await page.mouse.click(box.x + box.width * 0.75, box.y + box.height * 0.25);
-    await expect(point.locator('input').nth(0)).not.toHaveValue('-63.5');
-    await expect(point.locator('input').nth(1)).not.toHaveValue('44.6');
+    await expect(point.locator('input[type=number]').nth(0)).not.toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).not.toHaveValue('44.6');
 
     // Closing the map removes it
     await point.locator('.location-map-toggle').click();
@@ -52,25 +52,28 @@ test.describe.serial('Map Plugin', () => {
     const list = page.locator('.plugin-content formly-list-section').first();
     await list.locator('button', { hasText: '+ Add Point' }).click();
     await list.locator('button', { hasText: '+ Add Point' }).click();
+    await list.locator('button', { hasText: '+ Add Point' }).click();
     const points = list.locator('.location-field');
-    await expect(points).toHaveCount(2);
-    await points.nth(0).locator('input').nth(0).fill('-63.5');
-    await points.nth(0).locator('input').nth(1).fill('44.6');
-    await points.nth(1).locator('input').nth(0).fill('-63.4');
-    await points.nth(1).locator('input').nth(1).fill('44.7');
+    await expect(points).toHaveCount(3);
+    await points.nth(0).locator('input[type=number]').nth(0).fill('-63.5');
+    await points.nth(0).locator('input[type=number]').nth(1).fill('44.6');
+    await points.nth(1).locator('input[type=number]').nth(0).fill('-63.4');
+    await points.nth(1).locator('input[type=number]').nth(1).fill('44.7');
 
     await points.nth(0).locator('.location-map-toggle').click();
     const map = page.locator('.location-map');
     await expect(map).toHaveCount(1);
-    await expect(map.locator('.maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
-    // The map is not inside a list item
-    await expect(list.locator('.list-drag .location-map')).toHaveCount(0);
+    // The map is shown above the location input that opened it
+    await expect(points.nth(0).locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
+    expect((await map.boundingBox())!.y).toBeLessThan((await points.nth(0).locator('input[type=number]').first().boundingBox())!.y);
     await expect(map.locator('.location-marker')).toHaveCount(2, { timeout: 15_000 });
     await expect(map.locator('.location-marker.active')).toHaveCount(1);
 
-    // Selecting another point reuses the same map
+    // Opening the map on another point closes the first one
     await points.nth(1).locator('.location-map-toggle').click();
     await expect(map).toHaveCount(1);
+    await expect(points.nth(0).locator('.location-map')).toHaveCount(0);
+    await expect(points.nth(1).locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
     await expect(points.nth(1).locator('.location-map-toggle')).toHaveClass(/toggled/);
     await expect(points.nth(0).locator('.location-map-toggle')).not.toHaveClass(/toggled/);
 
@@ -81,17 +84,45 @@ test.describe.serial('Map Plugin', () => {
     await page.mouse.move(box.x + box.width * 0.4, box.y + box.height * 0.6, { steps: 10 });
     await page.mouse.up();
     await expect(page.locator('.cdk-drag-preview')).toHaveCount(0);
-    await expect(points.nth(0).locator('input').nth(0)).toHaveValue('-63.5');
-    await expect(points.nth(1).locator('input').nth(0)).toHaveValue('-63.4');
+    await expect(points.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(points.nth(1).locator('input[type=number]').nth(0)).toHaveValue('-63.4');
 
     // Clicking the map moves only the active point
     await page.mouse.click(box.x + box.width * 0.75, box.y + box.height * 0.25);
-    await expect(points.nth(1).locator('input').nth(0)).not.toHaveValue('-63.4');
-    await expect(points.nth(0).locator('input').nth(0)).toHaveValue('-63.5');
+    await expect(points.nth(1).locator('input[type=number]').nth(0)).not.toHaveValue('-63.4');
+    await expect(points.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
 
-    // Toggling the active point closes the map
-    await points.nth(1).locator('.location-map-toggle').click();
+    // Removing another point keeps the map open
+    await list.locator('.list-drag').nth(2).locator('> button', { hasText: '–' }).click();
+    await expect(points).toHaveCount(2);
+    await expect(points.nth(1).locator('.location-map')).toHaveCount(1);
+
+    // Removing the point the map is shown above removes the map
+    await list.locator('.list-drag').nth(1).locator('> button', { hasText: '–' }).click();
+    await expect(points).toHaveCount(1);
     await expect(page.locator('.location-map')).toHaveCount(0);
+    await expect(points.nth(0).locator('.location-map-toggle')).not.toHaveClass(/toggled/);
+
+    // Toggling the point closes the map
+    await points.nth(0).locator('.location-map-toggle').click();
+    await expect(page.locator('.location-map')).toHaveCount(1);
+    await points.nth(0).locator('.location-map-toggle').click();
+    await expect(page.locator('.location-map')).toHaveCount(0);
+  });
+
+  test('opening a map in another plugin closes the first one', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point&tag=plugin/geo/multipoint', { waitUntil: 'networkidle' });
+    const list = page.locator('.plugin-content formly-list-section').first();
+    await list.locator('button', { hasText: '+ Add Point' }).click();
+    await expect(page.locator('.location-field')).toHaveCount(2);
+    const fields = page.locator('.location-field');
+    await fields.nth(0).locator('.location-map-toggle').click();
+    await expect(fields.nth(0).locator('.location-map')).toHaveCount(1);
+    await fields.nth(1).locator('.location-map-toggle').click();
+    await expect(fields.nth(1).locator('.location-map')).toHaveCount(1);
+    await expect(fields.nth(0).locator('.location-map')).toHaveCount(0);
+    await expect(page.locator('.location-map')).toHaveCount(1);
   });
 
   test('polygon rings are closed automatically', async ({ page }) => {
@@ -104,18 +135,18 @@ test.describe.serial('Map Plugin', () => {
     const coords = [[-63.5, 44.6], [-63.4, 44.6], [-63.4, 44.7]];
     for (let i = 0; i < coords.length; i++) {
       await ring.locator('button', { hasText: '+ Add Point' }).click();
-      await points.nth(i).locator('input').nth(0).fill('' + coords[i][0]);
-      await points.nth(i).locator('input').nth(1).fill('' + coords[i][1]);
+      await points.nth(i).locator('input[type=number]').nth(0).fill('' + coords[i][0]);
+      await points.nth(i).locator('input[type=number]').nth(1).fill('' + coords[i][1]);
     }
     // The closing position is hidden
     await expect(points).toHaveCount(3);
     // New points are added before the closing position
     await ring.locator('button', { hasText: '+ Add Point' }).click();
     await expect(points).toHaveCount(4);
-    await points.nth(3).locator('input').nth(0).fill('-63.5');
-    await points.nth(3).locator('input').nth(1).fill('44.7');
+    await points.nth(3).locator('input[type=number]').nth(0).fill('-63.5');
+    await points.nth(3).locator('input[type=number]').nth(1).fill('44.7');
     // Moving the first position moves the closing position
-    await points.nth(0).locator('input').nth(0).fill('-63.6');
+    await points.nth(0).locator('input[type=number]').nth(0).fill('-63.6');
     await page.locator('.plugin-content input[type=color]').fill('#ff0000');
 
     const submitPromise = page.waitForRequest(
@@ -136,28 +167,26 @@ test.describe.serial('Map Plugin', () => {
     const add = list.locator('button', { hasText: '+ Add Point' });
     await add.click();
     const points = list.locator('.location-field');
-    await points.nth(0).locator('input').nth(0).fill('-63.5');
-    await points.nth(0).locator('input').nth(1).fill('44.6');
+    await points.nth(0).locator('input[type=number]').nth(0).fill('-63.5');
+    await points.nth(0).locator('input[type=number]').nth(1).fill('44.6');
     await points.nth(0).locator('.location-map-toggle').click();
     const map = page.locator('.location-map');
     const canvas = map.locator('.maplibregl-canvas');
     await expect(canvas).toBeVisible({ timeout: 15_000 });
     await expect(map.locator('.location-marker')).toHaveCount(1, { timeout: 15_000 });
 
-    // The map is above the add button
-    expect((await map.boundingBox())!.y).toBeLessThan((await add.boundingBox())!.y);
-
     await add.click();
     await expect(points).toHaveCount(2);
-    await expect(points.nth(1).locator('.location-map-toggle')).toHaveClass(/toggled/);
-    await expect(points.nth(0).locator('.location-map-toggle')).not.toHaveClass(/toggled/);
+    // The map stays above the location that opened it
+    await expect(points.nth(0).locator('.location-map')).toHaveCount(1);
+    await expect(points.nth(0).locator('.location-map-toggle')).toHaveClass(/toggled/);
 
     // Clicking the map places the new point, not the previous one
     const box = (await canvas.boundingBox())!;
     await page.mouse.click(box.x + box.width * 0.75, box.y + box.height * 0.25);
-    await expect(points.nth(1).locator('input').nth(0)).not.toHaveValue('-63.5');
-    await expect(points.nth(0).locator('input').nth(0)).toHaveValue('-63.5');
-    await expect(points.nth(0).locator('input').nth(1)).toHaveValue('44.6');
+    await expect(points.nth(1).locator('input[type=number]').nth(0)).not.toHaveValue('-63.5');
+    await expect(points.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(points.nth(0).locator('input[type=number]').nth(1)).toHaveValue('44.6');
   });
 
   test('plugin/geo selects a single geometry', async ({ page }) => {
@@ -188,7 +217,7 @@ test.describe.serial('Map Plugin', () => {
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(375);
     }
-    for (const input of await point.locator('input').all()) {
+    for (const input of await point.locator('input[type=number]').all()) {
       expect((await input.boundingBox())!.width).toBeGreaterThanOrEqual(80);
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
@@ -205,8 +234,8 @@ test.describe.serial('Map Plugin', () => {
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
     const point = page.locator('.location-field').first();
-    await point.locator('input').nth(0).fill('-63.5');
-    await point.locator('input').nth(1).fill('44.6');
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
     await point.locator('.location-map-toggle').click();
     await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
 
@@ -222,13 +251,13 @@ test.describe.serial('Map Plugin', () => {
     // Search only marks the result, it does not move the location
     const found = point.locator('.location-map .geocode-marker');
     await expect(found).toBeVisible();
-    await expect(point.locator('input').nth(0)).toHaveValue('-63.5');
-    await expect(point.locator('input').nth(1)).toHaveValue('44.6');
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
     // Clicking the result marker moves the location there
     await found.click();
     await expect(found).toHaveCount(0);
-    await expect(point.locator('input').nth(0)).toHaveValue('-63.57');
-    await expect(point.locator('input').nth(1)).toHaveValue('44.65');
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.57');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.65');
   });
 
   test('location input map picker expands the address search while in use', async ({ page }) => {
@@ -239,8 +268,8 @@ test.describe.serial('Map Plugin', () => {
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
     const point = page.locator('.location-field').first();
-    await point.locator('input').nth(0).fill('-63.5');
-    await point.locator('input').nth(1).fill('44.6');
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
     await point.locator('.location-map-toggle').click();
     const map = point.locator('.location-map mgl-map');
     await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
@@ -303,8 +332,8 @@ test.describe.serial('Map Plugin', () => {
     // Only shown for web URLs or Refs with a location
     await expect(page.locator('.scrape-title')).toHaveCount(0);
     const point = page.locator('.location-field').first();
-    await point.locator('input').nth(0).fill('-63.57');
-    await point.locator('input').nth(1).fill('44.65');
+    await point.locator('input[type=number]').nth(0).fill('-63.57');
+    await point.locator('input[type=number]').nth(1).fill('44.65');
     await page.locator('.scrape-title').click();
     await expect(page.locator('[name=title]')).toHaveValue('Citadel Hill, Halifax, Nova Scotia, Canada');
   });
@@ -318,13 +347,13 @@ test.describe.serial('Map Plugin', () => {
     // Only shown once there is a location to reverse geocode
     await expect(page.locator('.scrape-title')).toHaveCount(0);
     const point = page.locator('.location-field').first();
-    await point.locator('input').nth(0).fill('-63.57');
-    await point.locator('input').nth(1).fill('44.65');
+    await point.locator('input[type=number]').nth(0).fill('-63.57');
+    await point.locator('input[type=number]').nth(1).fill('44.65');
     await page.locator('.scrape-title').click();
     await expect(page.locator('[name=title]')).toHaveValue('Citadel Hill, Halifax, Nova Scotia, Canada');
   });
 
-  test('plugin/map embeds the ref geo features', async ({ page }) => {
+  test('plugin/geo embeds the ref geo features', async ({ page }) => {
     // Record every scale the embed shows, to catch a jump from the default view
     await page.addInitScript(() => {
       (window as any).mapScales = [];
@@ -335,11 +364,11 @@ test.describe.serial('Map Plugin', () => {
       }).observe(document, { subtree: true, childList: true, characterData: true });
     });
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
-      + '&tag=plugin/map&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
     await page.locator('[name=title]').fill('Map Plugin Test');
     const point = page.locator('.location-field').first();
-    await point.locator('input').nth(0).fill('-63.5');
-    await point.locator('input').nth(1).fill('44.6');
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
     await page.locator('.bbox-field .bbox-west').fill('-65');
     await page.locator('.bbox-field .bbox-south').fill('44');
     await page.locator('.bbox-field .bbox-east').fill('-62');
@@ -378,19 +407,12 @@ test.describe.serial('Map Plugin', () => {
     }).toBeCloseTo(0, 0);
   });
 
-  test('plugin/map expands in the ref list', async ({ page }) => {
-    await page.goto('/tag/@*?debug=ADMIN', { waitUntil: 'networkidle' });
-    const ref = page.locator('.ref-list .ref', { hasText: 'Map Plugin Test' });
-    await ref.locator('button.toggle').click();
-    await expect(page.locator('.ref-list .map-embed .maplibregl-map')).toBeVisible({ timeout: 15_000 });
-  });
-
-  for (const tag of ['plugin/geo', 'plugin/geo/point']) {
-    test(`plugin/map toggle is hidden in the ${tag} list`, async ({ page }) => {
+  for (const tag of ['@*', 'plugin/geo', 'plugin/geo/point']) {
+    test(`plugin/geo map expands in the ${tag} list`, async ({ page }) => {
       await page.goto(`/tag/${tag}?debug=ADMIN`, { waitUntil: 'networkidle' });
       const ref = page.locator('.ref-list .ref', { hasText: 'Map Plugin Test' });
-      await expect(ref).toBeVisible();
-      await expect(ref.locator('button.toggle')).toHaveCount(0);
+      await ref.locator('button.toggle').click();
+      await expect(page.locator('.ref-list .map-embed .maplibregl-map')).toBeVisible({ timeout: 15_000 });
     });
   }
 
@@ -449,8 +471,8 @@ test.describe.serial('Map Plugin', () => {
     await expect(page).toHaveURL(/\/submit\/text\?/);
     await expect(page.locator('[name=title]')).toHaveValue('Halifax, Nova Scotia, Canada');
     const point = page.locator('.location-field').first();
-    await expect(point.locator('input').nth(0)).toHaveValue('-63.57');
-    await expect(point.locator('input').nth(1)).toHaveValue('44.65');
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.57');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.65');
   });
 
   test('map click submits a ref at the reverse geocoded address', async ({ page }) => {
@@ -470,8 +492,8 @@ test.describe.serial('Map Plugin', () => {
     await expect(page).toHaveURL(/\/submit\/text\?/);
     await expect(page.locator('[name=title]')).toHaveValue('Dartmouth, Nova Scotia, Canada');
     const point = page.locator('.location-field').first();
-    await expect(point.locator('input').nth(0)).not.toHaveValue('');
-    await expect(point.locator('input').nth(1)).not.toHaveValue('');
+    await expect(point.locator('input[type=number]').nth(0)).not.toHaveValue('');
+    await expect(point.locator('input[type=number]').nth(1)).not.toHaveValue('');
   });
 
   test('cleanup', async ({ page }) => {

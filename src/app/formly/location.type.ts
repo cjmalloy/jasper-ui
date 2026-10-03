@@ -11,6 +11,11 @@ import { LocationPicker, locationPicker } from './location-picker';
   host: { 'class': 'field location-field' },
   template: `
     <div class="location-input">
+      @if (showMap) {
+        @defer {
+          <app-location-map [picker]="picker"></app-location-map>
+        }
+      }
       <div class="form-array">
         <input type="number"
                class="grow"
@@ -64,11 +69,6 @@ import { LocationPicker, locationPicker } from './location-picker';
                 (click)="toggleMap()"
                 i18n>🗺️</button>
       </div>
-      @if (hostsMap && picker.open) {
-        @defer {
-          <app-location-map [picker]="picker"></app-location-map>
-        }
-      }
     </div>
   `,
   styles: `
@@ -85,6 +85,7 @@ import { LocationPicker, locationPicker } from './location-picker';
     }
     .location-input input {
       min-width: 0;
+      width: 120px;
     }
     @container (max-width: 240px) {
       .location-input .form-array {
@@ -96,6 +97,9 @@ import { LocationPicker, locationPicker } from './location-picker';
       }
       .location-input .form-array > * {
         margin-right: 0;
+      }
+      .location-input input {
+        width: auto;
       }
     }
   `,
@@ -132,15 +136,11 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> implements O
 
   ngOnDestroy() {
     this.subs.unsubscribe();
-    if (this.picker?.active === this.formControl) this.picker.select(undefined);
-  }
-
-  get hostsMap() {
-    return this.picker.host === this.field;
+    this.picker?.removed(this.formControl);
   }
 
   get showMap() {
-    return this.picker.open && this.picker.active === this.formControl;
+    return this.picker.owner === this.formControl;
   }
 
   get lng(): number {

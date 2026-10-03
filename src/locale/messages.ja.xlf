@@ -6654,9 +6654,9 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>A GeoJSON Polygon.</source>
         <target>GeoJSON Polygonです。</target>
       </trans-unit>
-      <trans-unit id="2736239733031148962" datatype="html">
-        <source>A GeoJSON Feature.</source>
-        <target>GeoJSON Featureです。</target>
+      <trans-unit id="1168775078469080032" datatype="html">
+        <source>A GeoJSON Feature. Embeds this Ref as a map showing its own geo features.</source>
+        <target>GeoJSON Featureです。このRefを自身のジオフィーチャーを表示する地図として埋め込みます。</target>
       </trans-unit>
       <trans-unit id="3277324395816403788" datatype="html">
         <source>LaTeX plugin</source>
@@ -7289,10 +7289,6 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="4057359344329666188" datatype="html">
         <source>West</source>
         <target>西</target>
-      </trans-unit>
-      <trans-unit id="4132546496074869287" datatype="html">
-        <source>Embed this Ref as a map showing its own geo features.</source>
-        <target>このRefを自身のジオフィーチャーを表示する地図として埋め込みます。</target>
       </trans-unit>
       <trans-unit id="5375267255227557614" datatype="html">
         <source>South</source>
