@@ -12,7 +12,9 @@
     <app-form-gen #gen
                   [plugins]="plugins"
                   [plugin]="plugin"
+                  [pending]="pending"
                   (togglePlugin)="togglePlugin.next($event)"
+                  (setPlugin)="pending[$event.tag] = $event.value"
                   [children]="admin.getPluginSubForms(plugin.tag)"></app-form-gen>
   }
 }

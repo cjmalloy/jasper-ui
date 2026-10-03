@@ -36,9 +36,10 @@ import { ConfigService } from '../../service/config.service';
 import { HelpService } from '../../service/help.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
+import { getAddTags } from '../../util/add-tags';
 import { encodeBookmarkParams } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic, topAnds } from '../../util/tag';
+import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
 import { ChatComponent } from '../chat/chat.component';
@@ -202,23 +203,14 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
       if (this.tag) {
         this.localTag = localTag(this.tag);
         this.plugin = this.admin.getPlugin(this.tag);
-        if (this.home) {
-          this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
-        } else if (this.plugin) {
-          this.addTags = uniq([
-            ...this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'],
-            ...this.plugin?.config?.submit ? [this.plugin.tag] : [],
-            ...this.plugin?.config?.internal ? ['internal'] : []]);
-        } else {
-          this.addTags = uniq([...this.rootConfig?.addTags || ['public'], ...topAnds(this.tag).map(localTag)]);
-        }
+        this.addTags = getAddTags(this.tag, this.plugin, this.rootConfig, this.home);
         this.mailPlugin = this.admin.getPlugin(getMailbox(this.tag, this.store.account.origin));
         this.tagTemplate = this.admin.getTemplate(this.tag);
         this.writeAccess = this.auth.tagWriteAccess(this.tag);
         this.ui = this.admin.getTemplateUi(this.tag);
       } else {
         this.localTag = undefined;
-        this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
+        this.addTags = getAddTags(undefined, this.plugin, this.rootConfig);
         this.plugin = undefined;
         this.mailPlugin = undefined;
         this.tagTemplate = undefined;

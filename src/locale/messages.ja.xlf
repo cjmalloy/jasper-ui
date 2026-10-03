@@ -7358,6 +7358,41 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>No local version found.</source>
         <target>ローカル版が見つかりません。</target>
       </trans-unit>
+      <trans-unit id="1744081884462787730" datatype="html">
+        <source>🌐️🧩️ Geo Collection</source>
+        <target>🌐️🧩️ ジオコレクション</target>
+      </trans-unit>
+      <trans-unit id="2015437639459926160" datatype="html">
+        <source>A GeoJSON GeometryCollection.</source>
+        <target>GeoJSON の GeometryCollection。</target>
+      </trans-unit>
+      <trans-unit id="3217999400450328473" datatype="html">
+        <source>Features:</source>
+        <target>フィーチャー:</target>
+      </trans-unit>
+      <trans-unit id="381785554865794728" datatype="html">
+        <source>🌐️🎨️ Geo Feature Collection</source>
+        <target>🌐️🎨️ ジオフィーチャーコレクション</target>
+      </trans-unit>
+      <trans-unit id="409166092144328536" datatype="html">
+        <source>Geometries:</source>
+        <target>ジオメトリ:</target>
+      </trans-unit>
+      <trans-unit id="5687525679226023005" datatype="html">
+        <source>🧩️</source>
+      </trans-unit>
+      <trans-unit id="657618480433222574" datatype="html">
+        <source>+ Add Geometry</source>
+        <target>+ ジオメトリを追加</target>
+      </trans-unit>
+      <trans-unit id="8165216462228140986" datatype="html">
+        <source>A GeoJSON FeatureCollection. Each feature has its own color.</source>
+        <target>GeoJSON の FeatureCollection。各フィーチャーに独自の色があります。</target>
+      </trans-unit>
+      <trans-unit id="8289071932526879418" datatype="html">
+        <source>+ Add Feature</source>
+        <target>+ フィーチャーを追加</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

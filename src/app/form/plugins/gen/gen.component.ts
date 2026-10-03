@@ -25,8 +25,16 @@ export class GenFormComponent implements OnInit, OnChanges {
   plugin!: Plugin;
   @Input()
   children: Plugin[] = [];
+  /**
+   * Initial plugin data by tag, used instead of the defaults when a plugin
+   * is added. Consumed when the plugin form is created.
+   */
+  @Input()
+  pending?: Record<string, any>;
   @Output()
   togglePlugin = new EventEmitter<string>();
+  @Output()
+  setPlugin = new EventEmitter<{ tag: string, value: any }>();
 
   model: any;
   options: FormlyFormOptions = {
@@ -34,6 +42,7 @@ export class GenFormComponent implements OnInit, OnChanges {
       admin: this.admin,
       config: {},
       togglePlugin: (tag: string) => this.togglePlugin.next(tag),
+      setPlugin: (tag: string, value: any) => this.setPlugin.next({ tag, value }),
     },
   };
 
@@ -74,7 +83,13 @@ export class GenFormComponent implements OnInit, OnChanges {
   }
 
   ngOnInit(): void {
-    this.group?.patchValue(this.plugin.defaults);
+    const pending = this.pending?.[this.plugin.tag];
+    if (pending) {
+      delete this.pending![this.plugin.tag];
+      this.model = cloneDeep(pending);
+    } else {
+      this.group?.patchValue(this.plugin.defaults);
+    }
     this.options.formState.config = this.plugin.defaults;
   }
 

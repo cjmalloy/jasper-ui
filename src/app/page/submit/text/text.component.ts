@@ -183,7 +183,9 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         const removed = without(this.oldSubmit, ...tags);
         if (added.length || removed.length) {
           this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
-          this.tagsFormComponent!.setTags(this.oldSubmit);
+          // Only apply changes so tags edited in the form are kept
+          for (const t of removed) this.tagsFormComponent!.removeTag(t);
+          if (added.length) this.addTag(...added);
         }
         if (this.store.submit.pluginUpload) {
           this.addTag(this.store.submit.plugin);
@@ -195,18 +197,19 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
             this.addTag('plugin/thumbnail');
           }
         }
-        const location = this.store.submit.location;
-        if (location) {
-          this.addTag('plugin/geo/point');
-          this.plugins.setValue({
-            ...this.textForm.value.plugins || {},
-            'plugin/geo/point': { type: 'Feature', geometry: { type: 'Point', coordinates: location } },
-          });
-        }
         for (const s of this.store.submit.sources) {
           this.addSource(s)
         }
       }));
+      // Seed the location once so later tag changes keep any edits
+      const location = this.store.submit.location;
+      if (location) {
+        this.addTag('plugin/geo/point');
+        this.plugins.setValue({
+          ...this.textForm.value.plugins || {},
+          'plugin/geo/point': { type: 'Feature', geometry: { type: 'Point', coordinates: location } },
+        });
+      }
       if (this.store.submit.embedFiles.length) {
         const files = [...this.store.submit.embedFiles];
         defer(() => {
@@ -343,6 +346,16 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   get customEditor() {
     if (!this.tags?.value) return false;
     return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
+  }
+
+  togglePlugin(tag: string) {
+    if (!tag) return;
+    if (hasTag(tag, this.tags.value)) {
+      this.tagsFormComponent.removeTagAndChildren(tag);
+    } else {
+      this.addTag(tag);
+    }
+    MemoCache.clear(this);
   }
 
   setTags(value: string[]) {

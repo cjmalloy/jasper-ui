@@ -223,6 +223,65 @@ test.describe.serial('Map Plugin', () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
   });
 
+  test('right click on the map adds a point to the active line', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/linestring', { waitUntil: 'networkidle' });
+    const list = page.locator('.plugin-content formly-list-section').first();
+    await list.locator('button', { hasText: '+ Add Point' }).click();
+    const points = list.locator('.location-field');
+    await points.nth(0).locator('input[type=number]').nth(0).fill('-63.5');
+    await points.nth(0).locator('input[type=number]').nth(1).fill('44.6');
+    await points.nth(0).locator('.location-map-toggle').click();
+    const canvas = page.locator('.location-map .maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    const box = (await canvas.boundingBox())!;
+    await page.mouse.click(box.x + box.width * 0.75, box.y + box.height * 0.25, { button: 'right' });
+    await page.mouse.click(box.x + box.width * 0.25, box.y + box.height * 0.75, { button: 'right' });
+    await expect(points).toHaveCount(3);
+    await expect(points.nth(1).locator('input[type=number]').nth(0)).not.toHaveValue('-63.5');
+    await expect(points.nth(2).locator('input[type=number]').nth(0)).not.toHaveValue('-63.5');
+    // The map stays open above the first point
+    await expect(points.nth(0).locator('.location-map')).toHaveCount(1);
+    await expect(page.locator('.location-map .location-marker')).toHaveCount(3);
+  });
+
+  test('changing the geometry on a text post keeps the location', async ({ page }) => {
+    await page.goto('/submit/text?debug=ADMIN&tag=plugin/geo/point&location=-63.5,44.6', { waitUntil: 'networkidle' });
+    // plugin/geo can be added to text posts
+    await expect(page.locator('.select-plugin select option[value="plugin/geo"]')).toHaveCount(1);
+    const geometry = page.locator('.child-plugin-select');
+    await geometry.selectOption('plugin/geo/polygon');
+    await expect(page.locator('button', { hasText: '+ Add Ring' })).toBeVisible();
+    await expect(geometry).toHaveValue('plugin/geo/polygon');
+    // A point becomes a polygon of that single point
+    const point = page.locator('.plugin-content .location-field');
+    await expect(point).toHaveCount(1);
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
+
+    // Collections add geometries to a list instead of replacing them
+    await geometry.selectOption('plugin/geo/collection');
+    await expect(geometry).toHaveValue('plugin/geo/collection');
+    const items = page.locator('.geometries-field .geometry-item');
+    await expect(items).toHaveCount(1);
+    await expect(items.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await page.locator('.geometries-field .geometry-add').selectOption('plugin/geo/linestring');
+    await expect(items).toHaveCount(2);
+    await expect(items.nth(1).locator('button', { hasText: '+ Add Point' })).toBeVisible();
+
+    // Feature collections split the geometries into features with their own color
+    await geometry.selectOption('plugin/geo/features');
+    await expect(geometry).toHaveValue('plugin/geo/features');
+    await expect(items).toHaveCount(2);
+    await expect(items.nth(0).locator('input[type=color]')).toHaveCount(1);
+    await expect(items.nth(1).locator('input[type=color]')).toHaveCount(1);
+    await expect(items.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+
+    // Advanced form still edits the same geometry
+    await page.getByText('show advanced').click();
+    await expect(page.locator('.geometries-field .geometry-item')).toHaveCount(2);
+  });
+
   test('location input map picker searches an address', async ({ page }) => {
     let query = '';
     let viewbox = '';
@@ -490,7 +549,14 @@ test.describe.serial('Map Plugin', () => {
     await expect(found).toHaveAttribute('title', 'Dartmouth, Nova Scotia, Canada');
     await found.click();
     await expect(page).toHaveURL(/\/submit\/text\?/);
+    // Adds the same tags as the Submit button
+    await expect(page).toHaveURL(/[?&]tag=public(&|$)/);
     await expect(page.locator('[name=title]')).toHaveValue('Dartmouth, Nova Scotia, Canada');
+    // Page is interactive after navigating from the map
+    await page.locator('.child-plugin-select').selectOption('plugin/geo/polygon');
+    await expect(page.locator('button', { hasText: '+ Add Ring' })).toBeVisible();
+    await page.getByText('show advanced').click();
+    await expect(page.locator('app-ref-form')).toBeVisible();
     const point = page.locator('.location-field').first();
     await expect(point.locator('input[type=number]').nth(0)).not.toHaveValue('');
     await expect(point.locator('input[type=number]').nth(1)).not.toHaveValue('');

@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
@@ -17,12 +17,15 @@ import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { features, mapTemplate } from '../../mods/map';
+import { RootConfig } from '../../mods/root';
 import { isInlineSvg } from '../../pipe/thumbnail.pipe';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
+import { AuthzService } from '../../service/authz.service';
 import { GeocodeService } from '../../service/geocode.service';
 import { Store } from '../../store/store';
+import { getAddTags } from '../../util/add-tags';
 import { getTitle } from '../../util/format';
 import { GEO_COLOR, geoFeatures, hasLocation } from '../../util/geo';
 import { GeocoderPosition, isConfigured } from '../../util/geocode';
@@ -90,6 +93,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     private refs: RefService,
     private store: Store,
     private geocoder: GeocodeService,
+    private auth: AuthzService,
+    private zone: NgZone,
   ) {
     geocoder.config$.pipe(takeUntilDestroyed()).subscribe(config => {
       this.geocoding = isConfigured(config);
@@ -155,13 +160,16 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     el.tabIndex = 0;
     const activate = (e: Event) => {
       e.stopPropagation();
-      this.clearSearchResult();
-      this.router.navigate(['/submit/text'], {
-        queryParams: {
-          tag: 'plugin/geo/point',
-          location: location.join(','),
-          ...name ? { title: name } : {},
-        },
+      // Marker events run outside Angular
+      this.zone.run(() => {
+        this.clearSearchResult();
+        this.router.navigate(['/submit/text'], {
+          queryParams: {
+            tag: [...this.addTags.filter(t => t !== 'plugin/geo/point'), 'plugin/geo/point'],
+            location: location.join(','),
+            ...name ? { title: name } : {},
+          },
+        });
       });
     };
     el.addEventListener('click', activate);
@@ -174,6 +182,20 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     marker.addTo(this.map);
     this.searchMarker = marker;
     return setName;
+  }
+
+  /**
+   * Tags added to a Ref submitted from the map, the same as the sidebar
+   * Submit button.
+   */
+  get addTags(): string[] {
+    const tag = this.tag || undefined;
+    const plugin = tag ? this.admin.getPlugin(tag) : undefined;
+    const root = this.admin.getTemplate('');
+    const rootConfig = root
+      ? (this.ext?.config || (tag && this.admin.getTemplate(tag)?.defaults) || root.defaults) as RootConfig
+      : undefined;
+    return getAddTags(tag, plugin, rootConfig).filter(t => this.auth.canAddTag(t));
   }
 
   private clearSearchResult() {
@@ -252,10 +274,10 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   get geoData(): FeatureCollection {
     return {
       type: 'FeatureCollection',
-      features: this.mapData.flatMap(([ref]) => features(ref))
+      // Geo points are shown as markers
+      features: this.mapData.flatMap(([ref]) => features(ref, 'plugin/geo/point'))
         .filter(f => f?.type === 'Feature')
-        .flatMap(f => geoFeatures(f))
-        .filter(f => f.geometry.type !== 'Point'),
+        .flatMap(f => geoFeatures(f)),
     };
   }
   onMapError(event: any) {
@@ -300,12 +322,12 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         'line-width': 2,
       },
     });
-    // Circle layer for MultiPoint
+    // Circle layer for Point and MultiPoint
     map.addLayer({
       id: 'geo-multipoints',
       type: 'circle',
       source: 'geo-features',
-      filter: ['==', ['geometry-type'], 'MultiPoint'] as any,
+      filter: ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false] as any,
       paint: {
         'circle-radius': 8,
         'circle-color': GEO_COLOR,
@@ -386,14 +408,14 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         const el = this.createMarkerElement(ref);
         const marker = el ? new Marker({ element: el }) : new Marker();
         marker.addClassName('map-thumbnail');
-const title = getTitle(ref);
+        const title = getTitle(ref);
         const markerElement = marker.getElement();
         markerElement.title = title;
         markerElement.setAttribute('aria-label', title);
         markerElement.setAttribute('role', 'link');
         markerElement.tabIndex = 0;
         marker.setLngLat(pointFeature.geometry.coordinates).addTo(map);
-        const openRef = () => this.router.navigate(['/ref', ref.url]);
+        const openRef = () => this.zone.run(() => this.router.navigate(['/ref', ref.url]));
         marker.on('click', openRef);
         markerElement.addEventListener('keydown', event => {
           if (event.key === 'Enter') {

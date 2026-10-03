@@ -1,12 +1,15 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { FieldType } from '@ngx-formly/core';
+import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../model/plugin';
+import { convertFeature } from '../util/geo';
 import { directChild, hasPrefix } from '../util/tag';
 
 /**
  * Select a single child plugin of the parent plugin (props.parent).
- * Changing the selection swaps the child plugin tag on the Ref.
+ * Changing the selection swaps the child plugin tag on the Ref, converting
+ * the GeoJSON geometry of the previous child where possible.
  * Has no key, so nothing is stored in the parent plugin data.
  */
 @Component({
@@ -41,20 +44,48 @@ export class FormlyFieldChildPlugin extends FieldType {
     return this.formState?.togglePlugin;
   }
 
+  get setPlugin(): ((tag: string, value: any) => void) | undefined {
+    return this.formState?.setPlugin;
+  }
+
+  private get plugins(): AbstractControl | null | undefined {
+    return this.form?.parent;
+  }
+
+  /**
+   * All child plugins currently on the Ref.
+   */
+  get selected(): string[] {
+    const tags: string[] = this.plugins?.parent?.get('tags')?.value
+      || Object.keys((this.plugins as any)?.controls || {});
+    return this.children.map(p => p.tag).filter(t => tags.some(tag => hasPrefix(tag, t)));
+  }
+
   /**
    * The child plugin currently on the Ref.
    */
   get current(): string | undefined {
-    const plugins: AbstractControl | null | undefined = this.form?.parent;
-    const tags: string[] = plugins?.parent?.get('tags')?.value
-      || Object.keys((plugins as any)?.controls || {});
-    return this.children.map(p => p.tag).find(t => tags.some(tag => hasPrefix(tag, t)));
+    return this.selected[0];
   }
 
   select(tag: string) {
-    const current = this.current;
-    if (tag === current) return;
-    if (current) this.togglePlugin?.(current);
-    if (tag) this.togglePlugin?.(tag);
+    const selected = this.selected;
+    if (selected.length === 1 && selected[0] === tag) return;
+    const source = selected.find(t => t !== tag);
+    const sourceValue = source && cloneDeep(this.plugins?.get(source)?.value);
+    // Remove other children, keeping the selected one if already on the Ref
+    for (const t of selected) if (t !== tag) this.togglePlugin?.(t);
+    if (!tag || selected.includes(tag)) return;
+    this.togglePlugin?.(tag);
+    const value = this.convert(sourceValue, tag);
+    if (value) this.setPlugin?.(tag, value);
+  }
+
+  /**
+   * Convert the GeoJSON data of one child plugin to the type of another.
+   */
+  private convert(value: any, tag: string) {
+    const plugin = this.children.find(p => p.tag === tag);
+    return convertFeature(value, plugin?.defaults, !!(plugin?.schema as any)?.optionalProperties?.properties);
   }
 }

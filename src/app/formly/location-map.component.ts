@@ -14,7 +14,7 @@ import { AdminService } from '../service/admin.service';
 import { GeocodeService } from '../service/geocode.service';
 import { GEO_COLOR, geoFeatures, hasLocation } from '../util/geo';
 import { GeocoderPosition, isConfigured } from '../util/geocode';
-import { closedRings, LocationPicker } from './location-picker';
+import { closedRings, locationLists, LocationPicker } from './location-picker';
 
 /**
  * Map picker shared by all location inputs in a plugin form. Every location
@@ -33,6 +33,7 @@ import { closedRings, LocationPicker } from './location-picker';
     <mgl-map [mapStyle]="mapStyle"
              (mapLoad)="mapLoaded($event)"
              (mapClick)="mapClick($event)"
+             (mapContextMenu)="mapContextMenu($event)"
              (mapError)="onMapError($event)"></mgl-map>
   `,
   styleUrls: ['./location-map.component.scss'],
@@ -150,6 +151,49 @@ export class LocationMapComponent implements OnDestroy {
     if (!active || !this.locations.includes(active)) return;
     const { lng, lat } = event.lngLat.wrap();
     this.pick(active, [lng, lat]);
+  }
+
+  /**
+   * Right click adds a point to the line, ring or multi point being edited,
+   * without moving focus away from the map.
+   */
+  mapContextMenu(event: MapMouseEvent) {
+    event.preventDefault();
+    event.originalEvent?.preventDefault();
+    const list = this.addTarget;
+    if (!list) return;
+    const { lng, lat } = event.lngLat.wrap();
+    this.picking = true;
+    try {
+      list.add(undefined, [lng, lat]);
+    } finally {
+      this.picking = false;
+    }
+  }
+
+  /**
+   * The list of the active location, otherwise the last list in this
+   * picker or in the Ref's geo plugins.
+   */
+  private get addTarget() {
+    const parent = this.picker.active?.parent;
+    const active = parent && locationLists.get(parent);
+    if (active) return active;
+    for (const root of [this.control, this.contextRoot]) {
+      const lists = this.locationLists(root);
+      if (lists.length) return lists[lists.length - 1];
+    }
+    return undefined;
+  }
+
+  private locationLists(c: AbstractControl, out: { add(index?: number, initialModel?: any): void }[] = []) {
+    const list = locationLists.get(c);
+    if (list) {
+      out.push(list);
+    } else if (c instanceof FormArray || c instanceof FormGroup) {
+      for (const child of Object.values(c.controls) as AbstractControl[]) this.locationLists(child, out);
+    }
+    return out;
   }
 
   onMapError(event: any) {

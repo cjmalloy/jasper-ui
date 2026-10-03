@@ -1,4 +1,4 @@
-import { convertGeometry, geoCenter, geoFeatures, isLinearRing } from './geo';
+import { convertFeature, convertGeometry, geoCenter, geoFeatures, isLinearRing } from './geo';
 
 describe('geo', () => {
   describe('isLinearRing', () => {
@@ -119,5 +119,49 @@ describe('geo', () => {
       expect(convertGeometry({ type: 'GeometryCollection', geometries: [] }, 'Polygon'))
         .toEqual({ type: 'Polygon', coordinates: [] });
     });
+  });
+
+  describe('convertFeature', () => {
+    const point = { type: 'Point', coordinates: [1, 2] };
+    const line = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
+    const featureCollection = { type: 'FeatureCollection', features: [] };
+
+    it('splits a geometry collection into features', () => {
+      const value = { type: 'Feature', properties: { color: 'red' }, geometry: { type: 'GeometryCollection', geometries: [point, line] } };
+      expect(convertFeature(value, featureCollection)).toEqual({
+        type: 'FeatureCollection',
+        features: [
+          { type: 'Feature', properties: { color: 'red' }, geometry: point },
+          { type: 'Feature', properties: { color: 'red' }, geometry: line },
+        ],
+      });
+    });
+
+    it('collects features into a geometry collection', () => {
+      const value = { type: 'FeatureCollection', features: [
+        { type: 'Feature', properties: { color: 'red' }, geometry: point },
+        { type: 'Feature', properties: { color: 'blue' }, geometry: line },
+      ] };
+      const defaults = { type: 'Feature', geometry: { type: 'GeometryCollection', geometries: [] } };
+      expect(convertFeature(value, defaults)).toEqual({
+        type: 'Feature',
+        properties: { color: 'red' },
+        geometry: { type: 'GeometryCollection', geometries: [point, line] },
+      });
+    });
+
+    it('drops properties when not allowed', () => {
+      const value = { type: 'Feature', properties: { color: 'red' }, geometry: line };
+      const defaults = { type: 'Feature', geometry: { type: 'Point', coordinates: [0, 0] } };
+      expect(convertFeature(value, defaults, false)).toEqual({ type: 'Feature', geometry: { type: 'Point', coordinates: [0, 0] } });
+    });
+  });
+
+  it('renders each feature of a feature collection', () => {
+    const value = { type: 'FeatureCollection', features: [
+      { type: 'Feature', properties: { color: 'red' }, geometry: { type: 'Point', coordinates: [1, 2] } },
+      { type: 'Feature', properties: { color: 'blue' }, geometry: { type: 'Point', coordinates: [3, 4] } },
+    ] };
+    expect(geoFeatures(value).map(f => f.properties)).toEqual([{ color: 'red' }, { color: 'blue' }]);
   });
 });

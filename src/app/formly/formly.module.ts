@@ -25,6 +25,7 @@ import { FormlyWrapperFormGroup } from './form-group.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
 import { FormlyFieldBbox } from './bbox.type';
 import { FormlyFieldChildPlugin } from './child-plugin.type';
+import { FormlyFieldGeometries } from './geometries.type';
 import { FormlyFieldLocation } from './location.type';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
@@ -677,6 +678,9 @@ Private tags start with an underscore.
         name: 'child-plugin',
         component: FormlyFieldChildPlugin,
         wrappers: ['form-field'],
+      }, {
+        name: 'geometries',
+        component: FormlyFieldGeometries,
       }, {
         name: 'bbox',
         component: FormlyFieldBbox,

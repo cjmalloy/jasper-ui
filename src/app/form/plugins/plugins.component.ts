@@ -47,6 +47,10 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
 
   icons: Icon[] = [];
   forms: Plugin[] = [];
+  /**
+   * Initial data for plugins about to be added.
+   */
+  pending: Record<string, any> = {};
 
   constructor(
     public admin: AdminService,

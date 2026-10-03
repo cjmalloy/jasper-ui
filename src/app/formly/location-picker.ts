@@ -77,6 +77,12 @@ let openPicker: LocationPicker | undefined;
  */
 export const closedRings = new WeakSet<AbstractControl>();
 
+/**
+ * Lists of locations (lines, rings and multi points) by form control, so
+ * points can be added from the map.
+ */
+export const locationLists = new WeakMap<AbstractControl, { add(index?: number, initialModel?: any): void }>();
+
 const pickers = new WeakMap<FormlyFieldConfig, LocationPicker>();
 
 /**

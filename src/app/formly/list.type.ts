@@ -8,7 +8,7 @@ import { Store } from '../store/store';
 import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
 import { hasLocation } from '../util/geo';
-import { closedRings, locationPicker } from './location-picker';
+import { closedRings, locationLists, locationPicker } from './location-picker';
 
 @Component({
   selector: 'formly-list-section',
@@ -76,6 +76,8 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
   }
 
   ngOnInit() {
+    // @ts-ignore
+    if (this.field.fieldArray?.type === 'location') locationLists.set(this.formControl, this);
     if (!this.props.ring) return;
     const value = this.formControl.value;
     if (value?.length >= 4 && isEqual(value[0], value[value.length - 1])) closedRings.add(this.formControl);
@@ -84,6 +86,7 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
   }
 
   ngOnDestroy() {
+    if (locationLists.get(this.formControl) === this) locationLists.delete(this.formControl);
     this.ringWatch?.unsubscribe();
   }
 

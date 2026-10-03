@@ -76,11 +76,14 @@ export function isLinearRing(ring: Position[]): boolean {
 }
 
 /**
- * Convert geometry into renderable features. Rings are never closed
+ * Convert a feature or feature collection into renderable features. Rings are never closed
  * automatically: invalid polygons are drawn as open lines and points so the
  * map always shows exactly what is stored.
  */
 export function geoFeatures(feature: any, valid: (p: any) => p is Position = isPosition): Feature[] {
+  if (feature?.type === 'FeatureCollection') {
+    return (Array.isArray(feature.features) ? feature.features : []).flatMap((f: any) => geoFeatures(f, valid));
+  }
   const result: Feature[] = [];
   const add = (geometry?: Geometry) => {
     if (!geometry) return;
@@ -213,4 +216,43 @@ function openRings(rings: any): Position[][] {
 
 function closeRings(rings: Position[][]): Position[][] {
   return rings.map(r => r.length >= 3 && !isLinearRing(r) ? [...r, [...r[0]]] : r);
+}
+
+/**
+ * Convert GeoJSON plugin data (a Feature or FeatureCollection) to the type of
+ * the plugin defaults, keeping as much as possible. A FeatureCollection keeps
+ * the properties of each feature and splits geometry collections into one
+ * feature per geometry, otherwise the first feature's properties are kept.
+ * Properties are dropped if not allowed.
+ */
+export function convertFeature(value: any, defaults: any, properties = true): any {
+  if (!defaults?.type) return undefined;
+  const sourceFeatures: any[] = value?.type === 'FeatureCollection'
+    ? (Array.isArray(value.features) ? value.features : [])
+    : value?.geometry ? [value] : [];
+  if (!sourceFeatures.length) return undefined;
+  const result: any = cloneDeep(defaults);
+  if (value.bbox) result.bbox = cloneDeep(value.bbox);
+  if (defaults.type === 'FeatureCollection') {
+    const template = defaults.features?.[0];
+    // Each geometry in a collection becomes its own feature
+    const split = sourceFeatures.flatMap(f => f.geometry?.type === 'GeometryCollection'
+      ? (Array.isArray(f.geometry.geometries) ? f.geometry.geometries : []).map((geometry: any) => ({ ...f, geometry }))
+      : [f]);
+    result.features = split.map(f => ({
+      type: 'Feature',
+      ...f.properties ? { properties: cloneDeep(f.properties) } : {},
+      geometry: template?.geometry?.type ? convertGeometry(f.geometry, template.geometry.type) : cloneDeep(f.geometry),
+    }));
+    return result;
+  }
+  const type = defaults.geometry?.type;
+  if (!type) return undefined;
+  const geometry = sourceFeatures.length === 1
+    ? sourceFeatures[0].geometry
+    : { type: 'GeometryCollection', geometries: sourceFeatures.map(f => f.geometry).filter(g => !!g) };
+  result.geometry = convertGeometry(geometry, type);
+  const props = sourceFeatures.find(f => f.properties)?.properties;
+  if (properties && props) result.properties = cloneDeep(props);
+  return result;
 }
