@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { mod, openSidebar } from './setup';
+import { mod, openTextSubmit } from './setup';
 
 test.describe.serial('Ref Actions', () => {
   let page: Page;
@@ -29,9 +29,7 @@ test.describe.serial('Ref Actions', () => {
       await page.reload();
     }
     await page.goto('/?debug=MOD');
-    await openSidebar(page);
-    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    await page.locator('.tabs a', { hasText: 'text' }).first().click();
+    await openTextSubmit(page, '+user/debug');
     await page.locator('[name=title]').fill('Title');
     await page.getByText('show advanced').click();
     await page.locator('[name=published]').fill('2020-01-01T00:00');
@@ -146,9 +144,7 @@ test.describe.serial('Ref Actions', () => {
         await page.reload();
       }
       await page.goto('/?debug=MOD');
-      await openSidebar(page);
-      await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-      await page.locator('.tabs a', { hasText: 'text' }).first().click();
+      await openTextSubmit(page, '+user/debug');
       await page.locator('[name=title]').fill('Test Ref for New Indicators');
       await page.getByText('show advanced').click();
       await page.locator('[name=published]').fill('2020-02-01T00:00');

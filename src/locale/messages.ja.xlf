@@ -7274,6 +7274,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>No local version found.</source>
         <target>ローカル版が見つかりません。</target>
       </trans-unit>
+      <trans-unit id="3374858599666683478" datatype="html">
+        <source>⚠️ Skipped <x id="PH" equiv-text="mod"/> mod: unable to merge local changes automatically. Use diff to update manually.</source>
+        <target>⚠️ <x id="PH" equiv-text="mod"/> MODをスキップしました: ローカルの変更を自動的にマージできません。差分を使用して手動で更新してください。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

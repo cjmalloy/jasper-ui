@@ -162,17 +162,18 @@ export class SettingsSetupPage implements OnDestroy {
       const m = modId(this.admin.status.templates[template]);
       if (this.store.view.modUpdates.has(m)) mods.push(m);
     }
+    if (!mods.length) return;
     concat(...uniq(mods).map(mod => {
       const receipt = this.admin.getMod(mod)!;
       if (!this.admin.getTemplate('config/diff') || !this.hasCustomChangesMod(mod)) {
         return this.admin.updateMod$(mod, receipt, receipt, _);
       }
-      this.mergeState = this.getModDiff(mod);
-      if (this.mergeState?.conflict) {
-        // skip
-        return of(null)
+      const diff = this.getModDiff(mod);
+      if (diff.conflict) {
+        _($localize`⚠️ Skipped ${mod} mod: unable to merge local changes automatically. Use diff to update manually.`);
+        return of(null);
       } else {
-        return this.admin.updateMod$(mod, this.mergeState.proposed, receipt, _);
+        return this.admin.updateMod$(mod, diff.proposed, receipt, _);
       }
     })).pipe(
       catchError((res: HttpErrorResponse) => {
