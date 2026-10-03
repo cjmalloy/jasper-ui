@@ -37,6 +37,7 @@ import { HelpService } from '../../service/help.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getAddTags } from '../../util/add-tags';
+import { parseMapView } from '../../util/geo';
 import { encodeBookmarkParams } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic } from '../../util/tag';
@@ -245,6 +246,11 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   get existing() {
     return this.ext?.modified;
+  }
+
+  get location() {
+    if (!this.addTags.includes('plugin/geo/point')) return undefined;
+    return parseMapView(this.store.view.mapView)?.center.join(',');
   }
 
   get expanded(): boolean {

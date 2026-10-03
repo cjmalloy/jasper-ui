@@ -7,7 +7,6 @@ import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { DEFAULT_WIKI_PREFIX } from '../mods/org/wiki';
 import { refCacheIds } from '../util/cache';
-import { parseMapView } from '../util/geo';
 import { EventBus } from './bus';
 
 export type Saving = { url?: string, name: string, progress?: number };
@@ -116,15 +115,8 @@ export class SubmitStore {
 
   /**
    * Location from the "lng,lat" location query param.
-   * Defaults to the center of the map view when submitting a plugin/geo/point.
    */
   get location(): [number, number] | undefined {
-    return this.locationParam || (this.tags.includes('plugin/geo/point')
-      ? parseMapView(this.route.routeSnapshot?.queryParams['map'])?.center
-      : undefined);
-  }
-
-  private get locationParam(): [number, number] | undefined {
     const value = this.route.routeSnapshot?.queryParams['location'];
     if (typeof value !== 'string') return undefined;
     const location = value.split(',').map(n => n.trim() ? Number(n) : NaN);
