@@ -281,7 +281,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       // Geo points are shown as markers
       features: this.mapData.flatMap(([ref]) => features(ref, 'plugin/geo/point'))
         .filter(f => f?.type === 'Feature')
-        .flatMap(f => geoFeatures(f)),
+        .flatMap(f => geoFeatures(f, f.geometry?.type === 'Point' ? hasLocation : undefined)),
     };
   }
   onMapError(event: any) {
