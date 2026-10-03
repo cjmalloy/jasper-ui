@@ -4,8 +4,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MapComponent as MglComponent } from '@maplibre/ngx-maplibre-gl';
 import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { Feature, FeatureCollection } from 'geojson';
-import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
-import { LngLatBounds, Map as MapLibreMap, Marker } from 'maplibre-gl';
+import type { GeoJSONSource } from 'maplibre-gl';
+import { LngLatBounds, Map as MapLibreMap, MapMouseEvent, Marker } from 'maplibre-gl';
 import { defer, isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { addGeocoder } from '../component/map/geocoder';
@@ -68,6 +68,7 @@ export class LocationMapComponent implements OnDestroy {
   private removeGeoLayers?: () => void;
   private searchMarker?: Marker;
   private removeClick?: () => void;
+  private releaseMouseUp?: () => void;
 
   constructor(
     private admin: AdminService,
@@ -217,6 +218,7 @@ export class LocationMapComponent implements OnDestroy {
     this.watch?.unsubscribe();
     this.removeClick?.();
     this.removeClick = undefined;
+    this.releaseMouseUp?.();
     this.removeGeoLayers?.();
     this.removeGeoLayers = undefined;
     this.removeGeocoder?.();
@@ -333,6 +335,27 @@ export class LocationMapComponent implements OnDestroy {
     this.map.easeTo({ center: [value[0], value[1]], zoom: Math.max(this.map.getZoom(), 10) });
   }
 
+  /**
+   * Markers only end a drag on a mouseup inside the map, so pass on a
+   * mouseup released anywhere else on the page.
+   */
+  private captureMouseUp() {
+    const map = this.map;
+    if (!map) return;
+    this.releaseMouseUp?.();
+    const doc = map.getContainer().ownerDocument;
+    const up = (e: MouseEvent) => {
+      this.releaseMouseUp?.();
+      if (map.getCanvasContainer().contains(e.target as Node)) return;
+      map.fire(new MapMouseEvent('mouseup', map, e));
+    };
+    this.zone.runOutsideAngular(() => doc.addEventListener('mouseup', up, true));
+    this.releaseMouseUp = () => {
+      doc.removeEventListener('mouseup', up, true);
+      this.releaseMouseUp = undefined;
+    };
+  }
+
   private updateMarkers() {
     if (!this.map) return;
     const seen = new Set<AbstractControl>();
@@ -352,6 +375,9 @@ export class LocationMapComponent implements OnDestroy {
           this.pick(control, [lng, lat]);
         }));
         m.getElement().addEventListener('click', () => this.zone.run(() => this.select(control)));
+        m.getElement().addEventListener('mousedown', e => {
+          if (e.button === 0) this.captureMouseUp();
+        });
         this.markers.set(control, m);
       } else {
         marker.setLngLat([location[0], location[1]]);

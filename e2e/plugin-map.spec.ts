@@ -772,6 +772,38 @@ test.describe.serial('Map Plugin', () => {
     expect(page.url()).toBe(saved);
   });
 
+  test('dragging a marker out of the map ends the drag on release', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
+    await point.locator('.location-map-toggle').click();
+    const canvas = point.locator('.location-map .maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    const marker = point.locator('.location-marker');
+    await expect(marker).toBeVisible({ timeout: 15_000 });
+
+    const box = (await canvas.boundingBox())!;
+    const m = (await marker.boundingBox())!;
+    await page.mouse.move(m.x + m.width / 2, m.y + m.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.5, { steps: 10 });
+    // Release outside the map
+    await page.mouse.move(box.x + box.width * 0.8, box.y - 40, { steps: 10 });
+    await page.mouse.up();
+    await expect(point.locator('input[type=number]').nth(0)).not.toHaveValue('-63.5');
+    const lng = await point.locator('input[type=number]').nth(0).inputValue();
+    const dropped = (await marker.boundingBox())!;
+
+    // The marker no longer follows the mouse
+    await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.5, { steps: 10 });
+    await page.waitForTimeout(500);
+    const after = (await marker.boundingBox())!;
+    expect(Math.abs(after.x - dropped.x)).toBeLessThan(2);
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue(lng);
+  });
+
   test('cleanup', async ({ page }) => {
     await deleteRef(page, URL);
     await deleteRef(page, POLYGON_URL);
