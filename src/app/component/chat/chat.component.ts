@@ -39,6 +39,7 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { URI_REGEX } from '../../util/format';
+import { memo, MemoCache } from '../../util/memo';
 import { getArgs } from '../../util/query';
 import { braces, hasTag, tagOrigin } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
@@ -140,6 +141,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   init() {
+    MemoCache.clear(this);
     this.messages = undefined;
     this.cursors.clear();
     this.tags = this.store.account.defaultEditors(this.editors);
@@ -156,10 +158,12 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     return this.editorButtons.map(p => p?.toggle as string).filter(p => !!p);
   }
 
+  @memo
   get editorButtons() {
     return sortOrder(this.admin.getEditorButtons()).reverse();
   }
 
+  @memo
   get editorPushButtons() {
     return this.editorButtons.filter(b => !b.ribbon && this.visible(b));
   }

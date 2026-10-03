@@ -231,9 +231,9 @@ export class SubmitStore {
     }
   }
 
-  setRef(ref: Ref) {
+  setRef(ref: Ref, url = ref.url) {
     for (let i = 0; i < this.refs.length; i++) {
-      if (this.refs[i].url === ref.url) {
+      if (this.refs[i].url === url) {
         this.refs[i] = ref;
       }
     }
