@@ -27,7 +27,8 @@ import { GeocodeService } from '../../service/geocode.service';
 import { Store } from '../../store/store';
 import { getAddTags } from '../../util/add-tags';
 import { getTitle } from '../../util/format';
-import { GEO_COLOR, geoFeatures, hasLocation } from '../../util/geo';
+import { geoFeatures, hasLocation } from '../../util/geo';
+import { addGeoLayers } from '../../util/geo-style';
 import { GeocoderPosition, isConfigured } from '../../util/geocode';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
@@ -83,6 +84,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private geocoding = false;
   private geocoderPosition?: GeocoderPosition;
   private removeGeocoder?: () => void;
+  private removeGeoLayers?: () => void;
   private searchMarker?: Marker;
   private reverseGeocode?: AbortController;
 
@@ -243,6 +245,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.clearMarkers();
     this.clearSearchResult();
     this.removeGeocoder = undefined;
+    this.removeGeoLayers?.();
+    this.removeGeoLayers = undefined;
     try {
       this.map?.remove();
     } catch (ignored) { }
@@ -289,50 +293,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.updateGeocoder();
     map.on('click', this.mapClick);
     map.addSource('geo-features', { type: 'geojson', data: this.geoData });
-    // Line layer for LineString and MultiLineString
-    map.addLayer({
-      id: 'geo-lines',
-      type: 'line',
-      source: 'geo-features',
-      filter: ['match', ['geometry-type'], ['LineString', 'MultiLineString'], true, false] as any,
-      paint: {
-        'line-color': GEO_COLOR,
-        'line-width': 2,
-      },
-    });
-    // Fill layer for Polygon and MultiPolygon
-    map.addLayer({
-      id: 'geo-polygons-fill',
-      type: 'fill',
-      source: 'geo-features',
-      filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false] as any,
-      paint: {
-        'fill-color': GEO_COLOR,
-        'fill-opacity': 0.3,
-      },
-    });
-    // Outline layer for Polygon and MultiPolygon
-    map.addLayer({
-      id: 'geo-polygons-outline',
-      type: 'line',
-      source: 'geo-features',
-      filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false] as any,
-      paint: {
-        'line-color': GEO_COLOR,
-        'line-width': 2,
-      },
-    });
-    // Circle layer for Point and MultiPoint
-    map.addLayer({
-      id: 'geo-multipoints',
-      type: 'circle',
-      source: 'geo-features',
-      filter: ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false] as any,
-      paint: {
-        'circle-radius': 8,
-        'circle-color': GEO_COLOR,
-      },
-    });
+    this.removeGeoLayers = this.zone.runOutsideAngular(() => addGeoLayers(map, 'geo-features', 'geo', 8));
     this.updateMapData();
     this.fit();
   }

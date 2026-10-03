@@ -8,7 +8,7 @@ import { directChild } from '../util/tag';
  * List of features in a GeoJSON FeatureCollection. Each child plugin of
  * props.parent with a single geometry type can be added to the list, and is
  * edited with the coordinates form of that plugin. Each feature has its own
- * color.
+ * style.
  */
 @Component({
   selector: 'formly-field-geometries',
@@ -61,7 +61,7 @@ export class FormlyFieldGeometries extends FieldArrayType {
       return {
         fieldGroup: [
           { key: 'type', defaultValue: 'Feature' },
-          { key: 'properties.color', type: 'color' },
+          { key: 'properties', type: 'geo-style', props: { fill: type === 'Polygon' || type === 'MultiPolygon' } },
           { ...field, key: 'geometry' },
         ],
       };

@@ -12,7 +12,8 @@ import { addGeocoder } from '../component/map/geocoder';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
 import { GeocodeService } from '../service/geocode.service';
-import { GEO_COLOR, geoFeatures, hasLocation } from '../util/geo';
+import { geoFeatures, hasLocation } from '../util/geo';
+import { addGeoLayers } from '../util/geo-style';
 import { GeocoderPosition, isConfigured } from '../util/geocode';
 import { closedRings, locationLists, LocationPicker } from './location-picker';
 
@@ -59,6 +60,7 @@ export class LocationMapComponent implements OnDestroy {
   private geocoding = false;
   private geocoderPosition?: GeocoderPosition;
   private removeGeocoder?: () => void;
+  private removeGeoLayers?: () => void;
   private searchMarker?: Marker;
 
   constructor(
@@ -115,27 +117,7 @@ export class LocationMapComponent implements OnDestroy {
   mapLoaded(map: MapLibreMap) {
     this.map = map;
     map.addSource('location-context', { type: 'geojson', data: this.contextData });
-    map.addLayer({
-      id: 'location-context-polygons-fill',
-      type: 'fill',
-      source: 'location-context',
-      filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false] as any,
-      paint: { 'fill-color': GEO_COLOR, 'fill-opacity': 0.3 },
-    });
-    map.addLayer({
-      id: 'location-context-lines',
-      type: 'line',
-      source: 'location-context',
-      filter: ['match', ['geometry-type'], ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'], true, false] as any,
-      paint: { 'line-color': GEO_COLOR, 'line-width': 2 },
-    });
-    map.addLayer({
-      id: 'location-context-points',
-      type: 'circle',
-      source: 'location-context',
-      filter: ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false] as any,
-      paint: { 'circle-radius': 5, 'circle-color': GEO_COLOR },
-    });
+    this.removeGeoLayers = this.zone.runOutsideAngular(() => addGeoLayers(map, 'location-context', 'location-context', 5));
     this.watch?.unsubscribe();
     this.watch = this.contextRoot.valueChanges.subscribe(() => this.update());
     this.watch.add(this.picker.changes.subscribe(() => this.update()));
@@ -202,6 +184,8 @@ export class LocationMapComponent implements OnDestroy {
 
   ngOnDestroy() {
     this.watch?.unsubscribe();
+    this.removeGeoLayers?.();
+    this.removeGeoLayers = undefined;
     this.removeGeocoder?.();
     this.removeGeocoder = undefined;
     this.clearSearchResult();

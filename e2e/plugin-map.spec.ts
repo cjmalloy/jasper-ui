@@ -147,7 +147,15 @@ test.describe.serial('Map Plugin', () => {
     await points.nth(3).locator('input[type=number]').nth(1).fill('44.7');
     // Moving the first position moves the closing position
     await points.nth(0).locator('input[type=number]').nth(0).fill('-63.6');
-    await page.locator('.plugin-content input[type=color]').fill('#ff0000');
+    const style = page.locator('.plugin-content .geo-style-field');
+    await style.locator('.geo-style-color').fill('#ff0000');
+    await style.locator('.geo-style-stroke-width').selectOption('large');
+    await style.locator('.geo-style-stroke-style').selectOption('dashed');
+    await style.locator('.geo-style-fill-color').fill('#00ff00');
+    await style.locator('.geo-style-fill-style').selectOption('crosshatch');
+    // Defaults are not stored
+    await style.locator('.geo-style-stroke-style').selectOption('solid');
+    await style.locator('.geo-style-stroke-style').selectOption('dashed');
 
     const submitPromise = page.waitForRequest(
       req => req.url().includes('/api/v1/ref') && req.method() === 'POST',
@@ -157,7 +165,26 @@ test.describe.serial('Map Plugin', () => {
     expect(ref.plugins['plugin/geo/polygon'].geometry.coordinates).toEqual([[
       [-63.6, 44.6], [-63.4, 44.6], [-63.4, 44.7], [-63.5, 44.7], [-63.6, 44.6],
     ]]);
-    expect(ref.plugins['plugin/geo/polygon'].properties.color).toBe('#ff0000');
+    expect(ref.plugins['plugin/geo/polygon'].properties).toEqual({
+      color: '#ff0000',
+      strokeWidth: 'large',
+      strokeStyle: 'dashed',
+      fillColor: '#00ff00',
+      fillStyle: 'crosshatch',
+    });
+  });
+
+  test('line style hides the fill', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/linestring', { waitUntil: 'networkidle' });
+    const style = page.locator('.plugin-content .geo-style-field');
+    await expect(style.locator('.geo-style-color')).toBeVisible();
+    await expect(style.locator('.geo-style-stroke-style')).toBeVisible();
+    await expect(style.locator('.geo-style-fill-style')).toHaveCount(0);
+    await expect(style.locator('.geo-style-fill-color')).toHaveCount(0);
+    // Style fits on one line
+    const boxes = await style.locator('input, select, button').evaluateAll(els => els.map(e => e.getBoundingClientRect().top));
+    expect(Math.max(...boxes) - Math.min(...boxes)).toBeLessThan(10);
   });
 
   test('adding a point with the map open selects the new point', async ({ page }) => {
@@ -205,6 +232,25 @@ test.describe.serial('Map Plugin', () => {
     await expect(page.locator('button', { hasText: '+ Add Ring' })).toHaveCount(0);
     await expect(page.locator('.plugin-content .location-field')).toHaveCount(1);
     await expect(geometry).toHaveValue('plugin/geo/point');
+
+    // The point is kept with one other geometry
+    await geometry.selectOption('plugin/geo/linestring');
+    await expect(geometry).toHaveValue('plugin/geo/linestring');
+    await expect(page.locator('button', { hasText: '+ Add Point' })).toBeVisible();
+    await expect(page.locator('.plugin-content .location-field')).toHaveCount(1);
+    await geometry.selectOption('plugin/geo/polygon');
+    await expect(geometry).toHaveValue('plugin/geo/polygon');
+    await expect(page.locator('button', { hasText: '+ Add Ring' })).toBeVisible();
+    await expect(page.locator('button', { hasText: '+ Add Point' })).toHaveCount(0);
+    await expect(page.locator('.plugin-content .location-field')).toHaveCount(1);
+    await geometry.selectOption('plugin/geo/point');
+    await expect(geometry).toHaveValue('plugin/geo/point');
+    await expect(page.locator('button', { hasText: '+ Add Ring' })).toHaveCount(0);
+    await expect(page.locator('.plugin-content .location-field')).toHaveCount(1);
+
+    // Removing the geometry removes the point too
+    await geometry.selectOption('');
+    await expect(page.locator('.plugin-content .location-field')).toHaveCount(0);
   });
 
   test('nested location inputs fit on mobile', async ({ page }) => {
@@ -256,11 +302,14 @@ test.describe.serial('Map Plugin', () => {
     await geometry.selectOption('plugin/geo/polygon');
     await expect(page.locator('button', { hasText: '+ Add Ring' })).toBeVisible();
     await expect(geometry).toHaveValue('plugin/geo/polygon');
-    // A point becomes a polygon of that single point
-    const point = page.locator('.plugin-content .location-field');
-    await expect(point).toHaveCount(1);
-    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
-    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
+    // A point becomes a polygon of that single point, and the point is kept
+    const points = page.locator('.plugin-content .location-field');
+    await expect(points).toHaveCount(2);
+    for (let i = 0; i < 2; i++) {
+      await expect(points.nth(i).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+      await expect(points.nth(i).locator('input[type=number]').nth(1)).toHaveValue('44.6');
+    }
+    await expect(page.locator('.plugin-header .child-plugin-select')).toHaveCount(1);
 
     // Features add geometries to a list instead of replacing them
     await geometry.selectOption('plugin/geo/features');
@@ -272,9 +321,13 @@ test.describe.serial('Map Plugin', () => {
     await page.locator('.geometries-field .geometry-add').selectOption('plugin/geo/linestring');
     await expect(items).toHaveCount(2);
     await expect(items.nth(1).locator('button', { hasText: '+ Add Point' })).toBeVisible();
-    // Each feature has its own color
-    await expect(items.nth(0).locator('input[type=color]')).toHaveCount(1);
-    await expect(items.nth(1).locator('input[type=color]')).toHaveCount(1);
+    // Each feature has its own style, with a fill only for areas
+    await expect(items.nth(0).locator('.geo-style-color')).toHaveCount(1);
+    await expect(items.nth(0).locator('.geo-style-fill-style')).toHaveCount(1);
+    await expect(items.nth(1).locator('.geo-style-color')).toHaveCount(1);
+    await expect(items.nth(1).locator('.geo-style-fill-style')).toHaveCount(0);
+    // The point is still kept
+    await expect(page.locator('.plugin-content .location-field:not(.geometries-field .location-field)')).toHaveCount(1);
     await expect(items.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
 
     // Advanced form still edits the same geometry
@@ -421,8 +474,9 @@ test.describe.serial('Map Plugin', () => {
     // Bounds are in the advanced form, toggled from the plugin/geo header row
     const advanced = page.locator('details.advanced.plugin_geo summary');
     const header = (await page.locator('.plugin-header .child-plugin-select').boundingBox())!;
-    const toggle = (await advanced.boundingBox())!;
-    expect(toggle.y).toBeLessThan(header.y + header.height);
+    const toggle = (await page.locator('details.advanced.plugin_geo summary > span').boundingBox())!;
+    // The toggle is centred on the header select
+    expect(Math.abs(toggle.y + toggle.height / 2 - (header.y + header.height / 2))).toBeLessThan(3);
     await expect(page.locator('.bbox-field .bbox-west')).toBeHidden();
     await advanced.click();
     await page.locator('.bbox-field .bbox-west').fill('-65');

@@ -10,6 +10,8 @@ import { directChild, hasPrefix } from '../util/tag';
  * Select a single child plugin of the parent plugin (props.parent).
  * Changing the selection swaps the child plugin tag on the Ref, converting
  * the GeoJSON geometry of the previous child where possible.
+ * Children in props.keep stay on the Ref when another child is selected,
+ * so a kept child can be combined with one other.
  * Has no key, so nothing is stored in the parent plugin data.
  */
 @Component({
@@ -66,19 +68,34 @@ export class FormlyFieldChildPlugin extends FieldType {
   }
 
   /**
-   * The child plugin currently on the Ref.
+   * Child plugins kept on the Ref when another child is selected.
+   */
+  get keep(): string[] {
+    return this.props.keep || [];
+  }
+
+  /**
+   * The child plugin currently selected. A kept child is only shown
+   * when no other child is on the Ref.
    */
   get current(): string | undefined {
-    return this.selected[0];
+    const selected = this.selected;
+    return selected.find(t => !this.keep.includes(t)) || selected[0];
   }
 
   select(tag: string) {
     const selected = this.selected;
-    if (selected.length === 1 && selected[0] === tag) return;
-    const source = selected.find(t => t !== tag);
+    if (this.current === tag && (selected.length === 1 || tag && !this.keep.includes(tag))) return;
+    const others = selected.filter(t => !this.keep.includes(t));
+    // Convert from the other geometry being replaced, or a kept one when adding
+    const source = others.find(t => t !== tag) || selected.find(t => t !== tag);
     const sourceValue = source && cloneDeep(this.plugins?.get(source)?.value);
-    // Remove other children, keeping the selected one if already on the Ref
-    for (const t of selected) if (t !== tag) this.togglePlugin?.(t);
+    // Remove other children, keeping the selected one and kept children if a child is selected
+    for (const t of selected) {
+      if (t === tag) continue;
+      if (tag && this.keep.includes(t)) continue;
+      this.togglePlugin?.(t);
+    }
     if (!tag || selected.includes(tag)) return;
     this.togglePlugin?.(tag);
     const value = this.convert(sourceValue, tag);

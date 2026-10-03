@@ -7365,9 +7365,93 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="5687525679226023005" datatype="html">
         <source>🧩️</source>
       </trans-unit>
-      <trans-unit id="8165216462228140986" datatype="html">
-        <source>A GeoJSON FeatureCollection. Each feature has its own color.</source>
-        <target>GeoJSON の FeatureCollection。各フィーチャーに独自の色があります。</target>
+      <trans-unit id="5912063197730268987" datatype="html">
+        <source>A GeoJSON FeatureCollection. Each feature has its own style.</source>
+        <target>GeoJSON の FeatureCollection。各フィーチャーに独自のスタイルがあります。</target>
+      </trans-unit>
+      <trans-unit id="2023664520936022671" datatype="html">
+        <source>Style: </source>
+        <target>スタイル: </target>
+      </trans-unit>
+      <trans-unit id="332254895678879391" datatype="html">
+        <source>Stroke Color</source>
+        <target>線の色</target>
+      </trans-unit>
+      <trans-unit id="1170994406386405639" datatype="html">
+        <source>Stroke Width</source>
+        <target>線の太さ</target>
+      </trans-unit>
+      <trans-unit id="3692945389836981034" datatype="html">
+        <source>Stroke Style</source>
+        <target>線のスタイル</target>
+      </trans-unit>
+      <trans-unit id="2216982301028943639" datatype="html">
+        <source>Fill Color</source>
+        <target>塗りつぶしの色</target>
+      </trans-unit>
+      <trans-unit id="4294517421455131851" datatype="html">
+        <source>Fill Color (defaults to the stroke color)</source>
+        <target>塗りつぶしの色（既定は線の色）</target>
+      </trans-unit>
+      <trans-unit id="785414958423497037" datatype="html">
+        <source>Fill Style</source>
+        <target>塗りつぶしのスタイル</target>
+      </trans-unit>
+      <trans-unit id="7131377065256068978" datatype="html">
+        <source>Small</source>
+        <target>細</target>
+      </trans-unit>
+      <trans-unit id="5982496808088686844" datatype="html">
+        <source>Medium</source>
+        <target>中</target>
+      </trans-unit>
+      <trans-unit id="3905533329051691155" datatype="html">
+        <source>Large</source>
+        <target>太</target>
+      </trans-unit>
+      <trans-unit id="592980626739521579" datatype="html">
+        <source>Solid</source>
+        <target>実線</target>
+      </trans-unit>
+      <trans-unit id="6113179921997948226" datatype="html">
+        <source>Dashed</source>
+        <target>破線</target>
+      </trans-unit>
+      <trans-unit id="2812108764688288077" datatype="html">
+        <source>Dotted</source>
+        <target>点線</target>
+      </trans-unit>
+      <trans-unit id="1094776776877009619" datatype="html">
+        <source>Blinking</source>
+        <target>点滅</target>
+      </trans-unit>
+      <trans-unit id="45126133619544547" datatype="html">
+        <source>Default Fill</source>
+        <target>既定の塗りつぶし</target>
+      </trans-unit>
+      <trans-unit id="3561055861160191737" datatype="html">
+        <source>No Fill</source>
+        <target>塗りつぶしなし</target>
+      </trans-unit>
+      <trans-unit id="7842082155211851068" datatype="html">
+        <source>Solid Fill</source>
+        <target>べた塗り</target>
+      </trans-unit>
+      <trans-unit id="8456681868623174307" datatype="html">
+        <source>Hatched ↗️</source>
+        <target>斜線 ↗️</target>
+      </trans-unit>
+      <trans-unit id="7783889896272597967" datatype="html">
+        <source>Hatched ↖️</source>
+        <target>斜線 ↖️</target>
+      </trans-unit>
+      <trans-unit id="4304270076077370881" datatype="html">
+        <source>Crosshatch</source>
+        <target>クロスハッチ</target>
+      </trans-unit>
+      <trans-unit id="124082375765594276" datatype="html">
+        <source>Blinking Fill</source>
+        <target>点滅塗りつぶし</target>
       </trans-unit>
       <trans-unit id="8289071932526879418" datatype="html">
         <source>+ Add Feature</source>

@@ -22,7 +22,8 @@
     }
     @if (advancedForm && (form || !promoteAdvanced)) {
       <details class="advanced {{ cssClass(plugin.tag) }}"
-               [class.mini]="!form">
+               [class.mini]="!form"
+               [class.header-toggle]="!!headerForm">
         @if (form) {
           <summary><span i18n>Advanced</span></summary>
         } @else {

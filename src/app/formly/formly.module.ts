@@ -26,6 +26,7 @@ import { ImageUploadComponent } from './image-upload/image-upload.component';
 import { FormlyFieldBbox } from './bbox.type';
 import { FormlyFieldChildPlugin } from './child-plugin.type';
 import { FormlyFieldGeometries } from './geometries.type';
+import { FormlyFieldGeoStyle } from './geo-style.type';
 import { FormlyFieldLocation } from './location.type';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
@@ -78,6 +79,7 @@ const formlyFieldExpressionConfig = withFormlyFieldExpression();
     FormlyFieldLocation,
     FormlyFieldChildPlugin,
     FormlyFieldBbox,
+    FormlyFieldGeoStyle,
     FormlyFieldRange,
     FormlyFieldTagInput,
     FormlyFieldQueryInput,
@@ -680,6 +682,15 @@ Private tags start with an underscore.
       }, {
         name: 'geometries',
         component: FormlyFieldGeometries,
+      }, {
+        name: 'geo-style',
+        component: FormlyFieldGeoStyle,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            label: $localize`Style: `,
+          },
+        },
       }, {
         name: 'bbox',
         component: FormlyFieldBbox,
