@@ -259,9 +259,9 @@ test.describe.serial('Map Plugin', () => {
     await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
     await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
 
-    // Collections add geometries to a list instead of replacing them
-    await geometry.selectOption('plugin/geo/collection');
-    await expect(geometry).toHaveValue('plugin/geo/collection');
+    // Features add geometries to a list instead of replacing them
+    await geometry.selectOption('plugin/geo/feature');
+    await expect(geometry).toHaveValue('plugin/geo/feature');
     const items = page.locator('.geometries-field .geometry-item');
     await expect(items).toHaveCount(1);
     await expect(items.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');

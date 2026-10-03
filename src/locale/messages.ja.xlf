@@ -7358,13 +7358,13 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>No local version found.</source>
         <target>ローカル版が見つかりません。</target>
       </trans-unit>
-      <trans-unit id="1744081884462787730" datatype="html">
-        <source>🌐️🧩️ Geo Collection</source>
-        <target>🌐️🧩️ ジオコレクション</target>
+      <trans-unit id="5123230307125377322" datatype="html">
+        <source>🌐️🧩️ Geo Feature</source>
+        <target>🌐️🧩️ ジオフィーチャー</target>
       </trans-unit>
-      <trans-unit id="2015437639459926160" datatype="html">
-        <source>A GeoJSON GeometryCollection.</source>
-        <target>GeoJSON の GeometryCollection。</target>
+      <trans-unit id="6545302370150389238" datatype="html">
+        <source>A GeoJSON Feature with a GeometryCollection.</source>
+        <target>GeometryCollection を持つ GeoJSON の Feature。</target>
       </trans-unit>
       <trans-unit id="3217999400450328473" datatype="html">
         <source>Features:</source>

@@ -10524,8 +10524,8 @@ Private tags start with an underscore.
           <context context-type="linenumber">1006</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1744081884462787730" datatype="html">
-        <source>🌐️🧩️ Geo Collection</source>
+      <trans-unit id="5123230307125377322" datatype="html">
+        <source>🌐️🧩️ Geo Feature</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
           <context context-type="linenumber">1071</context>
@@ -10538,8 +10538,8 @@ Private tags start with an underscore.
           <context context-type="linenumber">1077</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2015437639459926160" datatype="html">
-        <source>A GeoJSON GeometryCollection.</source>
+      <trans-unit id="6545302370150389238" datatype="html">
+        <source>A GeoJSON Feature with a GeometryCollection.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
           <context context-type="linenumber">1078</context>
