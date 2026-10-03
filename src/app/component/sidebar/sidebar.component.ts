@@ -1,23 +1,9 @@
-import { AsyncPipe } from '@angular/common';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  forwardRef,
-  HostBinding,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  SimpleChanges,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, ElementRef, forwardRef, ChangeDetectionStrategy, effect, input, linkedSignal, signal, computed, untracked, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
-import { catchError, filter, finalize, forkJoin, map, of, Subject } from 'rxjs';
+import { catchError, filter, finalize, forkJoin, map, of, Subject, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -37,7 +23,6 @@ import { HelpService } from '../../service/help.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { encodeBookmarkParams } from '../../util/http';
-import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic, topAnds } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
@@ -55,13 +40,16 @@ import { SortComponent } from '../sort/sort.component';
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
-  host: { 'class': 'sidebar' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    'class': 'sidebar',
+    '[class.floating]': 'floating()',
+    '[class.expanded]': 'expanded()',
+  },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     ExtComponent,
     forwardRef(() => MdComponent),
-    MobxAngularModule,
     SearchComponent,
     QueryComponent,
     FilterComponent,
@@ -70,48 +58,56 @@ import { SortComponent } from '../sort/sort.component';
     BulkComponent,
     RouterLink,
     ChatComponent,
-    AsyncPipe,
     NavComponent,
     RouterLinkActive,
     ChatVideoComponent,
   ]
 })
-export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+export class SidebarComponent {
   private destroy$ = new Subject<void>();
 
-  @Input()
-  tag = '';
-  @Input()
-  activeExts: Ext[] = [];
-  @Input()
-  showToggle = true;
-  @Input()
-  home = false;
-  @Input()
-  @HostBinding('class.floating')
-  floating = true;
+  readonly tagInput = input('', { alias: 'tag' });
+  readonly tag = linkedSignal(() => this.tagInput() || this.ext()?.tag || '');
+  readonly activeExts = input<Ext[]>([]);
+  readonly showToggle = input(true);
+  readonly home = input(false);
+  readonly floating = input(true);
 
-  localTag?: string;
-  addTags: string[] = this.rootConfig?.addTags || ['public'];
-  plugin?: Plugin;
-  mailPlugin?: Plugin;
-  tagTemplate?: Template;
-  template?: Template;
-  writeAccess = false;
-  ui: Template[] = [];
+  readonly localTag = computed(() => this.tag() ? localTag(this.tag()) : undefined);
+  readonly plugin = computed(() => this.tag() ? this.admin.getPlugin(this.tag()) : undefined);
+  readonly mailPlugin = computed(() => this.tag() ? this.admin.getPlugin(getMailbox(this.tag(), this.store.account.origin())) : undefined);
+  readonly tagTemplate = computed(() => this.tag() ? this.admin.getTemplate(this.tag()) : undefined);
+  readonly addTags = computed(() => {
+    let tags = this.rootConfig()?.addTags || this.plugin()?.config?.reply || ['public'];
+    if (this.tag() && !this.home()) {
+      tags = this.plugin() ? uniq([
+        ...tags, ...this.plugin()?.config?.submit ? [this.plugin()!.tag] : [],
+        ...this.plugin()?.config?.internal ? ['internal'] : [],
+      ]) : uniq([...this.rootConfig()?.addTags || ['public'], ...topAnds(this.tag()).map(localTag)]);
+    }
+    return tags.filter(tag => this.auth.canAddTag(tag));
+  });
+  readonly template = toSignal(toObservable(computed(() => {
+    const tag = this.store.view.template();
+    return tag && !isQuery(tag) ? tag + this.store.account.origin() : undefined;
+  })).pipe(switchMap(tag => tag ? this.templates.get(tag).pipe(
+    catchError(() => of(undefined)),
+  ) : of(undefined))), { initialValue: undefined });
+  readonly writeAccess = computed(() => !!this.tag() && this.auth.tagWriteAccess(this.tag()));
+  readonly ui = computed(() => this.tag() ? this.admin.getTemplateUi(this.tag()) : []);
   genUrl = 'internal:' + uuid();
-  bookmarkExts: Ext[] = [];
-  tagSubExts: Ext[] = [];
-  userSubExts: Ext[] = [];
 
-  savingBookmark = false;
-  savingSub = false;
-  savingAlarm = false;
+  readonly savingBookmark = signal(false);
+  readonly savingSub = signal(false);
+  readonly savingAlarm = signal(false);
 
-  private _expanded = false;
-  private _ext?: Ext;
-  private lastView = this.store.view.current;
+  readonly ext = input<Ext | undefined>(undefined);
+  readonly expandedInput = input(false, { alias: 'expanded' });
+  readonly expanded = linkedSignal<{ input: boolean; stored: boolean }, boolean>({
+    source: () => ({ input: this.expandedInput(), stored: this.store.view.sidebarExpanded() }),
+    computation: (source, previous) => previous && previous.source.input === source.input ? source.stored : source.input,
+  });
+  private lastView = this.store.view.current();
 
   constructor(
     public router: Router,
@@ -127,240 +123,140 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     private el: ElementRef,
     private help: HelpService,
   ) {
+    effect(() => {
+      this.home();
+      this.tagInput();
+      this.ext();
+      untracked(() => this.update());
+    });
     if (localStorage.getItem('sidebar-expanded') !== null) {
-      this.expanded = localStorage.getItem('sidebar-expanded') !== 'false';
+      this.expanded.set(localStorage.getItem('sidebar-expanded') !== 'false');
     } else {
-      this.expanded = window.matchMedia && !!window.matchMedia('(min-width: 1024px)').matches;
+      this.expanded.set(window.matchMedia && !!window.matchMedia('(min-width: 1024px)').matches);
     }
 
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
-      if (this.chat) return;
-      if (this.config.tablet && this.lastView != this.store.view.current ||
-        !this.config.huge  && this.store.view.current === 'ref/summary') {
-        this.lastView = this.store.view.current;
-        this.expanded = false;
+      if (this.chat()) return;
+      if (this.config.tablet && this.lastView != this.store.view.current() ||
+        !this.config.huge  && this.store.view.current() === 'ref/summary') {
+        this.lastView = this.store.view.current();
+        this.expanded.set(false);
       }
+    });
+    effect(() => {
+      const value = this.ext();
+      this.store.view.floatingSidebar.set(!value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined);
+    });
+    effect(() => {
+      const value = this.expanded();
+      localStorage.setItem('sidebar-expanded', ''+value);
+      this.store.view.sidebarExpanded.set(value);
     });
   }
 
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
-      this.expanded = this.store.view.sidebarExpanded;
-    }));
-    this.disposers.push(autorun(() => {
-      if (this.store.view.ref) {
-        MemoCache.clear(this);
-      }
-    }));
-    this.disposers.push(autorun(() => {
-      if (!this.store.view.template) {
-        this.template = undefined;
-      } else if (!isQuery(this.store.view.template) && this.template?.tag !== this.store.view.template) {
-        this.templates.get(this.store.view.template + this.store.account.origin).pipe(
-          catchError(() => of(undefined))
-        ).subscribe(t => this.template = t);
-      }
-    }));
-  }
+  private readonly initializeView = afterNextRender(() => {
+    if (this.ext()?.config?.searchHelp) {
+      this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext()!.config.searchHelp);
+    }
+    if (this.ext()?.config?.filterHelp) {
+      this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext()!.config.filterHelp);
+    }
+    if (this.ext()?.config?.sortHelp) {
+      this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext()!.config.sortHelp);
+    }
+  });
 
-  ngAfterViewInit() {
-    if (this.ext?.config?.searchHelp) {
-      this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext.config.searchHelp);
-    }
-    if (this.ext?.config?.filterHelp) {
-      this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext.config.filterHelp);
-    }
-    if (this.ext?.config?.sortHelp) {
-      this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext.config.sortHelp);
+  private update() {
+    if (this.ext()) {
+      if (this.ext()!.config?.searchHelp) {
+        this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext()!.config.searchHelp);
+      }
+      if (this.ext()!.config?.filterHelp) {
+        this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext()!.config.filterHelp);
+      }
+      if (this.ext()!.config?.sortHelp) {
+        this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext()!.config.sortHelp);
+      }
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.home || changes.tag || changes.ext) {
-      MemoCache.clear(this);
-      if (this.ext) {
-        this.bookmarks$.subscribe(xs => this.bookmarkExts = xs);
-        this.tagSubs$.subscribe(xs => this.tagSubExts = xs);
-        this.userSubs$.subscribe(xs => this.userSubExts = xs);
-        this.tag ||= this.ext.tag || '';
-        if (this.ext.config?.searchHelp) {
-          this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext.config.searchHelp);
-        }
-        if (this.ext.config?.filterHelp) {
-          this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext.config.filterHelp);
-        }
-        if (this.ext.config?.sortHelp) {
-          this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext.config.sortHelp);
-        }
-      } else {
-        this.bookmarkExts = [];
-        this.tagSubExts = [];
-        this.userSubExts = [];
-      }
-      if (this.tag) {
-        this.localTag = localTag(this.tag);
-        this.plugin = this.admin.getPlugin(this.tag);
-        if (this.home) {
-          this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
-        } else if (this.plugin) {
-          this.addTags = uniq([
-            ...this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'],
-            ...this.plugin?.config?.submit ? [this.plugin.tag] : [],
-            ...this.plugin?.config?.internal ? ['internal'] : []]);
-        } else {
-          this.addTags = uniq([...this.rootConfig?.addTags || ['public'], ...topAnds(this.tag).map(localTag)]);
-        }
-        this.mailPlugin = this.admin.getPlugin(getMailbox(this.tag, this.store.account.origin));
-        this.tagTemplate = this.admin.getTemplate(this.tag);
-        this.writeAccess = this.auth.tagWriteAccess(this.tag);
-        this.ui = this.admin.getTemplateUi(this.tag);
-      } else {
-        this.localTag = undefined;
-        this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
-        this.plugin = undefined;
-        this.mailPlugin = undefined;
-        this.tagTemplate = undefined;
-        this.writeAccess = false;
-        this.ui = [];
-      }
-      this.addTags = this.addTags.filter(t => this.auth.canAddTag(t));
-    }
-  }
-
-  ngOnDestroy(): void {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+  });
+  readonly local = computed(() => {
+    return !this.existing() || this.ext()?.origin === this.store.account.origin();
+  });
 
-  @memo
-  get local() {
-    return !this.existing || this.ext?.origin === this.store.account.origin;
-  }
+  readonly existing = computed(() => {
+    return this.ext()?.modified;
+  });
 
-  get ext(): Ext | undefined {
-    return this._ext;
-  }
-
-  @Input()
-  set ext(value: Ext | undefined) {
-    this._ext = value;
-    runInAction(() => this.store.view.floatingSidebar = !value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined);
-  }
-
-  get existing() {
-    return this.ext?.modified;
-  }
-
-  get expanded(): boolean {
-    return this._expanded;
-  }
-
-  @Input()
-  @HostBinding('class.expanded')
-  set expanded(value: boolean) {
-    localStorage.setItem('sidebar-expanded', ''+value);
-    this._expanded = value;
-    runInAction(() => this.store.view.sidebarExpanded = value);
-  }
-
-  @memo
-  get root() {
+  readonly root = computed(() => {
     return !!this.admin.getTemplate('');
-  }
-
-  @memo
-  get rootConfig() {
-    if (!this.root) return undefined;
-    return (this.ext?.config || this.tagTemplate?.defaults || this.admin.getTemplate('')!.defaults) as RootConfig;
-  }
-
-  @memo
-  get modmail() {
-    return !this.store.view.query && this.rootConfig?.modmail;
-  }
-
-  @memo
-  get dm() {
-    return this.admin.getTemplate('dm') && this.store.view.current === 'inbox/dms';
-  }
-
-  @memo
-  get dms() {
+  });
+  readonly rootConfig = computed(() => {
+    if (!this.root()) return undefined;
+    return (this.ext()?.config || this.tagTemplate()?.defaults || this.admin.getTemplate('')!.defaults) as RootConfig;
+  });
+  readonly modmail = computed(() => {
+    return !this.store.view.query() && this.rootConfig()?.modmail;
+  });
+  readonly dm = computed(() => {
+    return this.admin.getTemplate('dm') && this.store.view.current() === 'inbox/dms';
+  });
+  readonly dms = computed(() => {
     return uniq([
-      ...this.plugin?.config?.reply ? [ this.plugin.tag ] : [],
-      ...this.rootConfig?.dms ? [this.rootConfig?.dms] : [],
+      ...this.plugin()?.config?.reply ? [ this.plugin()!.tag ] : [],
+      ...this.rootConfig()?.dms ? [this.rootConfig()?.dms] : [],
     ]);
-  }
-
-  @memo
-  get canAddTag() {
-    return !this.plugin?.tag || this.auth.canAddTag(this.plugin.tag);
-  }
-
-  @memo
-  get videoChat() {
-    return !!this.admin.getPlugin('plugin/user/video') && (this.chat || hasPrefix(this.ext?.tag || this.tag, 'chat'));
-  }
-
-  @memo
-  get chat() {
-    return !!this.admin.getPlugin('plugin/user/lobby') && !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
-  }
-
-  @memo
-  get user() {
-    return !this.store.view.query && !!this.admin.getTemplate('user') && hasPrefix(this.tag, 'user') && !this.store.view.userTemplate;
-  }
-
-  @memo
-  get inbox() {
-    return setPublic(this.tag);
-  }
-
-  @memo
-  get outbox() {
-    return setProtected(this.tag);
-  }
-
-  @memo
-  get userConfig() {
-    if (!this.user && !this.home) return null;
-    return this.store.account.ext?.config as UserConfig;
-  }
-
-  @memo
-  get bookmarks$() {
-    return this.exts.getCachedExts(this.store.account.bookmarkQueries).pipe(this.admin.extFallbacks);
-  }
-
-  @memo
-  get userSubs() {
-    return this.userConfig?.subscriptions?.filter((s: string) => hasPrefix(s, 'user'));
-  }
-
-  @memo
-  get userSubs$() {
-    return this.exts.getCachedExts(this.userSubs || []).pipe(this.admin.extFallbacks);
-  }
-
-  @memo
-  get tagSubs() {
-    return this.userConfig?.subscriptions?.filter((s: string) => !hasPrefix(s, 'user'));
-  }
-
-  @memo
-  get tagSubs$() {
-    return this.exts.getCachedExts(this.tagSubs || []).pipe(this.admin.extFallbacks);
-  }
-
-  @memo
-  get queryExts$() {
-    if (!this.store.view.exts.length) return of([]);
-    return forkJoin(this.store.view.exts.map(x => this.exts.page({
+  });
+  readonly canAddTag = computed(() => {
+    return !this.plugin()?.tag || this.auth.canAddTag(this.plugin()!.tag);
+  });
+  readonly videoChat = computed(() => {
+    return !!this.admin.getPlugin('plugin/user/video') && (this.chat() || hasPrefix(this.ext()?.tag || this.tag(), 'chat'));
+  });
+  readonly chat = computed(() => {
+    return !!this.admin.getPlugin('plugin/user/lobby') && !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref());
+  });
+  readonly user = computed(() => {
+    return !this.store.view.query() && !!this.admin.getTemplate('user') && hasPrefix(this.tag(), 'user') && !this.store.view.userTemplate();
+  });
+  readonly inbox = computed(() => {
+    return setPublic(this.tag());
+  });
+  readonly outbox = computed(() => {
+    return setProtected(this.tag());
+  });
+  readonly userConfig = computed(() => {
+    if (!this.user() && !this.home()) return null;
+    return this.store.account.ext()?.config as UserConfig;
+  });
+  readonly bookmarkExts = toSignal(toObservable(computed(() =>
+    this.ext() ? this.store.account.bookmarkQueries() : [])).pipe(
+    switchMap(tags => this.exts.getCachedExts(tags).pipe(this.admin.extFallbacks)),
+  ), { initialValue: [] });
+  readonly userSubs = computed(() => {
+    return this.userConfig()?.subscriptions?.filter((s: string) => hasPrefix(s, 'user'));
+  });
+  readonly userSubExts = toSignal(toObservable(computed(() =>
+    this.ext() ? this.userSubs() || [] : [])).pipe(
+    switchMap(tags => this.exts.getCachedExts(tags).pipe(this.admin.extFallbacks)),
+  ), { initialValue: [] });
+  readonly tagSubs = computed(() => {
+    return this.userConfig()?.subscriptions?.filter((s: string) => !hasPrefix(s, 'user'));
+  });
+  readonly tagSubExts = toSignal(toObservable(computed(() =>
+    this.ext() ? this.tagSubs() || [] : [])).pipe(
+    switchMap(tags => this.exts.getCachedExts(tags).pipe(this.admin.extFallbacks)),
+  ), { initialValue: [] });
+  readonly queryExts = toSignal(toObservable(this.store.view.exts).pipe(
+    switchMap(exts => {
+    if (!exts.length) return of([]);
+    return forkJoin(exts.map(x => this.exts.page({
       query: x.tag,
       sort: ['origin', 'tag:len', 'tag', 'modified,DESC'],
       size: x.config?.childTags || 5,
@@ -375,97 +271,90 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     ))).pipe(
       map(ress => ress.filter(res => !!res)),
     );
-  }
-
-  @memo
-  get messages() {
+    }),
+  ), { initialValue: [] });
+  readonly messages = computed(() => {
     if (!this.admin.getPlugin('plugin/inbox')) return false;
     if (!this.admin.getTemplate('dm')) return false;
-    if (!this.store.account.user) return false;
-    return this.dm || this.user || this.modmail || this.dms.length;
-  }
-
-  @memo
-  get notes() {
-    return this.admin.getTemplate('notes') && this.store.account.user;
-  }
-
-  @memo
-  get homeWriteAccess() {
-    return this.home && this.admin.home && this.auth.tagWriteAccess('config/home');
-  }
-
-  @memo
-  get uiMarkdown() {
-    if (!this.ext) return '';
-    return this.ui.map(t => hydrate(t.config, 'ui', getTemplateScope(this.store.account.roles, t, this.ext!, this.el.nativeElement))).join();
-  }
+    if (!this.store.account.user()) return false;
+    return this.dm() || this.user() || this.modmail() || this.dms().length;
+  });
+  readonly notes = computed(() => {
+    return this.admin.getTemplate('notes') && this.store.account.user();
+  });
+  readonly homeWriteAccess = computed(() => {
+    return this.home() && this.admin.home() && this.auth.tagWriteAccess('config/home');
+  });
+  readonly uiMarkdown = computed(() => {
+    if (!this.ext()) return '';
+    return this.ui().map(t => hydrate(t.config, 'ui', getTemplateScope(this.store.account.roles(), t, this.ext()!, this.el.nativeElement))).join();
+  });
 
   subscribe() {
-    this.savingSub = true;
-    this.account.addSub$(this.tag!).pipe(
-      finalize(() => this.savingSub = false),
+    this.savingSub.set(true);
+    this.account.addSub$(this.tag()!).pipe(
+      finalize(() => this.savingSub.set(false)),
     ).subscribe();
   }
 
   unsubscribe() {
-    this.savingSub = true;
-    this.account.removeSub$(this.tag!).pipe(
-      finalize(() => this.savingSub = false),
+    this.savingSub.set(true);
+    this.account.removeSub$(this.tag()!).pipe(
+      finalize(() => this.savingSub.set(false)),
     ).subscribe();
   }
 
   addBookmark() {
-    this.savingBookmark = true;
-    this.account.addBookmark$(this.bookmark).pipe(
-      finalize(() => this.savingBookmark = false),
+    this.savingBookmark.set(true);
+    this.account.addBookmark$(this.bookmark()).pipe(
+      finalize(() => this.savingBookmark.set(false)),
     ).subscribe();
   }
 
   removeBookmark() {
-    this.savingBookmark = true;
-    this.account.removeBookmark$(this.bookmark).pipe(
-      finalize(() => this.savingBookmark = false),
+    this.savingBookmark.set(true);
+    this.account.removeBookmark$(this.bookmark()).pipe(
+      finalize(() => this.savingBookmark.set(false)),
     ).subscribe();
   }
 
   addAlarm() {
-    this.savingAlarm = true;
-    this.account.addAlarm$(this.tag!).pipe(
-      finalize(() => this.savingAlarm = false),
+    this.savingAlarm.set(true);
+    this.account.addAlarm$(this.tag()!).pipe(
+      finalize(() => this.savingAlarm.set(false)),
     ).subscribe();
   }
 
   removeAlarm() {
-    this.savingAlarm = true;
-    this.account.removeAlarm$(this.tag!).pipe(
-      finalize(() => this.savingAlarm = false),
+    this.savingAlarm.set(true);
+    this.account.removeAlarm$(this.tag()!).pipe(
+      finalize(() => this.savingAlarm.set(false)),
     ).subscribe();
   }
 
-  get inSubs() {
-    return this.store.account.subs.includes(this.tag!);
-  }
+  readonly inSubs = computed(() => {
+    return this.store.account.subs().includes(this.tag()!);
+  });
 
-  get bookmark() {
+  readonly bookmark = computed(() => {
     const qs = encodeBookmarkParams(this.router.url);
-    return qs ? `${this.tag}?${qs}` : this.tag!;
-  }
+    return qs ? `${this.tag()}?${qs}` : this.tag()!;
+  });
 
-  get inBookmarks() {
-    return this.store.account.bookmarks.includes(this.bookmark);
-  }
+  readonly inBookmarks = computed(() => {
+    return this.store.account.bookmarks().includes(this.bookmark());
+  });
 
-  get inAlarms() {
-    return this.store.account.alarms.includes(this.tag!);
-  }
+  readonly inAlarms = computed(() => {
+    return this.store.account.alarms().includes(this.tag()!);
+  });
 
   set showRemotes(value: boolean) {
     this.router.navigate([], { queryParams: { showRemotes: value ? true : null }, queryParamsHandling: 'merge' })
   }
 
   startChat() {
-    runInAction(() => this.store.view.ref?.tags?.push('plugin/chat'));
-    this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe();
+    this.store.view.ref.update(ref => ref ? { ...ref, tags: uniq([...ref.tags || [], 'plugin/chat']) } : ref);
+    this.ts.create('plugin/chat', this.store.view.ref()!.url, this.store.account.origin()).subscribe();
   }
 }

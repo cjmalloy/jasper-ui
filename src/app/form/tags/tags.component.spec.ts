@@ -28,7 +28,7 @@ describe('TagsFormComponent', () => {
 
     fixture = TestBed.createComponent(TagsFormComponent);
     component = fixture.componentInstance;
-    component.group = new UntypedFormGroup({ tags: new UntypedFormControl({}) });
+    fixture.componentRef.setInput('group', new UntypedFormGroup({ tags: new UntypedFormControl({}) }));
     fixture.detectChanges();
   });
 

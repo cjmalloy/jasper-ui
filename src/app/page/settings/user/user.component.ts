@@ -1,6 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { UserService } from '../../../service/api/user.service';
@@ -15,15 +14,14 @@ import { getTagFilter } from '../../../util/query';
   selector: 'app-settings-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [UserListComponent],
 })
-export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
+export class SettingsUserPage implements HasChanges {
 
-  private disposers: IReactionDisposer[] = [];
+  private readonly injector = inject(Injector);
 
-  @ViewChild('list')
-  list?: UserListComponent;
+  readonly list = viewChild<UserListComponent>('list');
 
   constructor(
     private mod: ModService,
@@ -40,36 +38,35 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     if (this.config.scim) {
       // TODO: better way to find unattached profiles
-      this.disposers.push(autorun(() => {
+      effect(() => {
         const args = {
-          page: this.store.view.pageNumber,
-          size: this.store.view.pageSize,
+          page: this.store.view.pageNumber(),
+          size: this.store.view.pageSize(),
         };
         defer(() => this.scim.setArgs(args));
-      }));
+      }, { injector: this.injector });
     }
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = {
-        query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
-        search: this.store.view.search,
-        sort: [...this.store.view.sort],
-        page: this.store.view.pageNumber,
-        size: this.store.view.pageSize,
-        ...getTagFilter(this.store.view.filter),
+        query: this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'),
+        search: this.store.view.search(),
+        sort: [...this.store.view.sort()],
+        page: this.store.view.pageNumber(),
+        size: this.store.view.pageSize(),
+        ...getTagFilter(this.store.view.filter()),
       };
       defer(() => this.query.setArgs(args));
-    }));
-  }
+    }, { injector: this.injector });
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+  });
 }

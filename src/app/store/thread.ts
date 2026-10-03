@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { action, makeAutoObservable, observableRef, observableStruct, runInAction } from 'mobx';
+import { computed, Injectable, signal } from '@angular/core';
+import { isEqual } from 'lodash-es';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs, RefSort } from '../model/ref';
@@ -13,108 +13,101 @@ import { getArgs, UrlFilter } from '../util/query';
 export class ThreadStore {
 
   defaultBatchSize = 500;
-  args?: RefPageArgs = {} as any;
-  pages: Page<Ref>[] = [];
-  error?: HttpErrorResponse = {} as any;
-  cache = new Map<string | undefined, Ref[]>();
-  latest: Ref[] = [];
+  readonly args = signal<RefPageArgs | undefined>({ size: this.defaultBatchSize, page: 0 }, { equal: isEqual });
+  readonly pages = signal<Page<Ref>[]>([]);
+  readonly error = signal<HttpErrorResponse | undefined>(undefined);
+  /**
+   * Read only. Map of source URL to loaded responses.
+   */
+  readonly cache = signal<ReadonlyMap<string | undefined, readonly Ref[]>>(new Map());
+  readonly latest = signal<Ref[]>([]);
+  readonly hasMore = computed(() => {
+    if (!this.pages().length) return false;
+    return this.pages().length < this.pages()[0].page.totalPages;
+  });
 
   private loading?: Subscription;
 
   constructor(
     private refs: RefService,
-  ) {
-    makeAutoObservable(this, {
-      args: observableStruct,
-      cache: observableRef,
-      pages: observableRef,
-      latest: observableRef,
-      clear: action,
-      setArgs: action,
-      add: action,
-      addPage: action,
-      loadMore: action,
-    });
-    this.clear(); // Initial observables may not be null for MobX
-  }
+  ) { }
 
   clear() {
-    this.error = undefined;
-    this.args = {
+    this.error.set(undefined);
+    this.args.set({
       size: this.defaultBatchSize,
       page: 0,
-    };
-    this.pages = [];
-    this.cache.clear();
+    });
+    this.pages.set([]);
+    this.cache.set(new Map());
+    this.latest.set([]);
     this.loading?.unsubscribe();
   }
 
   setArgs(top?: string, sort?: RefSort | RefSort[], filters?: UrlFilter[], search?: string) {
     this.clear();
-    this.args = {
+    this.args.set({
       ...getArgs('plugin/comment', sort, filters, search),
       responses: top,
       size: this.defaultBatchSize,
       page: 0,
-    };
+    });
     this.loadMore();
   }
 
-  add(ref: Ref) {
-    if (!ref.sources?.[0]) return;
-    if (this.cache.has(ref.sources?.[0])) {
-      const arr = this.cache.get(ref.sources?.[0])!;
-      if (!arr.find(x => x.url === ref.url)) arr.push(ref);
-    } else {
-      this.cache.set(ref.sources?.[0], [ref]);
-    }
+  add(...refs: Ref[]) {
+    this.cache.update(previous => {
+      const cache = new Map(previous);
+      for (const ref of refs) {
+        const source = ref.sources?.[0];
+        if (!source) continue;
+        const existing = cache.get(source) || [];
+        if (!existing.some(x => x.url === ref.url)) cache.set(source, [...existing, ref]);
+      }
+      return cache;
+    });
   }
 
   addPage(page: Page<Ref>) {
     if (!page.content.length) return;
-    this.pages.push(page);
-    for (const r of page.content) this.add(r);
-    this.latest = page.content;
+    this.pages.update(pages => [...pages, page]);
+    this.add(...page.content);
+    this.latest.set([...page.content]);
   }
 
   loadMore() {
-    this.args = {
-      ...this.args,
-      page: this.pages.length,
-    };
-    this.loading = this.refs.page(this.args).pipe(
+    this.args.set({
+      ...this.args(),
+      page: this.pages().length,
+    });
+    this.loading = this.refs.page(this.args()).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        this.error.set(err);
         return EMPTY;
       }),
-    ).subscribe(page => runInAction(() => this.addPage(page)));
+    ).subscribe(page => this.addPage(page));
   }
 
   loadAdHoc(source?: string) {
     const args = {
-      ...this.args,
+      ...this.args(),
       responses: source,
     };
-    const existing = this.cache.get(source)?.length;
+    const existing = this.cache().get(source)?.length;
     if (existing) {
       args.size = 20;
       args.page = Math.floor(existing / 20);
     }
     this.loading = this.refs.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        this.error.set(err);
         return EMPTY;
       }),
-    ).subscribe(page => runInAction(() => {
+    ).subscribe(page => {
       if (source) {
-        for (const ref of page.content) this.add(ref);
-        runInAction(() => this.latest = page.content);
+        this.add(...page.content);
+        this.latest.set([...page.content]);
       }
-    }));
-  }
-
-  get hasMore() {
-    if (!this.pages.length) return false;
-    return this.pages.length < this.pages[0].page.totalPages;
+    });
   }
 }

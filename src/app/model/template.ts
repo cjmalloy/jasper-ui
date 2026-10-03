@@ -1,6 +1,6 @@
 import { Schema } from 'jtd';
+import { cloneDeep } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { toJS } from 'mobx';
 import { Ext } from './ext';
 import { Config, TagSort } from './tag';
 import { Roles } from './user';
@@ -93,9 +93,9 @@ export function getTemplateScope(account: Roles, template: Template, ext: Ext, e
   return {
     el,
     ...actions || {},
-    account: toJS(account),
-    ext: toJS(ext),
-    template: toJS(template),
+    account: cloneDeep(account),
+    ext: cloneDeep(ext),
+    template: cloneDeep(template),
     ...(ext.config || {}),
   };
 }

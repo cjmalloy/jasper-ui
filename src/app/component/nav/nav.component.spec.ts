@@ -34,4 +34,11 @@ describe('NavComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('recomputes the local route when a rendered link is reused', () => {
+    fixture.componentRef.setInput('url', 'tag:/first');
+    expect(component.nav()).toEqual(['/tag', 'first']);
+    fixture.componentRef.setInput('url', 'tag:/second');
+    expect(component.nav()).toEqual(['/tag', 'second']);
+  });
 });

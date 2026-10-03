@@ -1,15 +1,20 @@
-import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, input, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { throttle } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 
-@Directive({ selector: '[appFillWidth]' })
-export class FillWidthDirective implements OnDestroy, AfterViewInit {
+@Directive({
+  selector: '[appFillWidth]',
+  host: {
+    '(window:resize)': 'onWindowResize($event)',
+    '(pointerdown)': 'onWindowPointerDown($event)',
+    '(pointerup)': 'onWindowPointerUp($event)',
+  },
+})
+export class FillWidthDirective {
 
-  @Input('appFillWidth')
-  parent?: HTMLElement;
+  readonly parent = input<HTMLElement | undefined>(undefined, { alias: 'appFillWidth' });
 
-  @Input()
-  padding = 4;
+  readonly padding = input(4);
 
   resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   dragging = false;
@@ -21,25 +26,22 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
     this.resizeObserver?.observe(el.nativeElement);
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     this.onResize();
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.resizeObserver?.disconnect();
-  }
+  });
 
-  @HostListener('window:resize', ['$event'])
   onWindowResize(event: UIEvent) {
     this.onResize();
   }
 
-  @HostListener('pointerdown', ['$event'])
   onWindowPointerDown(event: PointerEvent) {
     this.dragging = true;
   }
 
-  @HostListener('pointerup', ['$event'])
   onWindowPointerUp(event: PointerEvent) {
     this.dragging = false;
   }
@@ -60,9 +62,9 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
     } else if (this.dragging) {
       this.el.nativeElement.style.minWidth = '504px';
     } else {
-      const parentWidth = this.parent?.clientWidth || 0;
+      const parentWidth = this.parent()?.clientWidth || 0;
       if (this.el.nativeElement.offsetWidth < parentWidth) {
-        this.el.nativeElement.style.minWidth = Math.min(this.max, parentWidth - this.padding * 2) - 8 + 'px';
+        this.el.nativeElement.style.minWidth = Math.min(this.max, parentWidth - this.padding() * 2) - 8 + 'px';
       }
     }
   }, 16, { leading: true, trailing: true });

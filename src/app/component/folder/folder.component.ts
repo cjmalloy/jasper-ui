@@ -1,9 +1,9 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, effect, ElementRef, ChangeDetectionStrategy, input, linkedSignal, signal, untracked } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
-import { toJS } from 'mobx';
-import { catchError, of, Subscription } from 'rxjs';
+import { catchError, map, of, startWith, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -21,37 +21,52 @@ import { SubfolderComponent } from './subfolder/subfolder.component';
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
   host: { 'class': 'folder ext' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FileComponent,
     SubfolderComponent,
     CdkDrag,
   ],
 })
-export class FolderComponent implements OnChanges, HasChanges {
+export class FolderComponent implements HasChanges {
 
-  @Input()
-  tag?: string;
-  @Input()
-  ext?: Ext;
-  @Input()
-  pinned?: Ref[] | null;
-  @Input()
-  emptyMessage = '';
+  readonly tag = input<string>();
+  readonly ext = input<Ext | undefined>(undefined);
+  readonly page = input<Page<Ref> | undefined>(undefined);
+  readonly pinned = input<Ref[] | null>();
+  readonly emptyMessage = input('');
 
   error: any;
 
-  parent?: Ext;
-  flatten = false;
-  files: Record<string, string | undefined> = {};
-  subfolders: Record<string, string | undefined> = {};
-  folderExts?: Ext[];
-  cursor = '';
-  dragging = false;
+  readonly parent = toSignal(toObservable(this.tag).pipe(
+    switchMap(tag => tag?.includes('/') ? this.exts.getCachedExt(tag.substring(0, tag.lastIndexOf('/')), tagOrigin(tag) || '@').pipe(
+      startWith(undefined),
+    ) : of(undefined)),
+  ), { initialValue: undefined });
+  readonly flatten = computed(() => !!this.ext()?.config?.flatten);
+  readonly files = computed(() => mapValues(this.ext()?.config?.files || {}, p => this.transform(p)));
+  readonly subfolders = computed(() => {
+    const ext = this.ext();
+    if (!ext) return {};
+    return Object.fromEntries(Object.entries<Pos>(ext.config?.subfolders || {})
+      .map(([tag, position]) => [ext.tag + (tag !== '..' ? '/' + tag : ''), this.transform(position)]));
+  });
+  readonly folderExts = toSignal(toObservable(computed(() => ({
+    tag: this.tag(), origin: this.ext()?.origin || '@',
+  }))).pipe(switchMap(({ tag, origin }) => tag ? this.exts.page({
+    query: defaultOrigin(tag, origin), level: level(tag) + 1, size: 100,
+  }).pipe(map(page => page.content), catchError(() => of(undefined)), startWith(undefined)) : of(undefined))),
+  { initialValue: undefined });
+  readonly cursor = linkedSignal(() => this.ext()?.modifiedString || '');
+  readonly dragging = signal(false);
   zIndex = 1;
 
-  private _page?: Page<Ref>;
-  private folderSubscription?: Subscription;
+
+
+
+
+
+
 
   // TODO: handle resize moving relatively positioned moved tiles
 
@@ -60,109 +75,71 @@ export class FolderComponent implements OnChanges, HasChanges {
     private router: Router,
     private exts: ExtService,
     private el: ElementRef<HTMLElement>,
-  ) { }
+  ) {
+    effect(() => {
+      const page = this.page();
+      if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {
+        this.router.navigate([], {
+          queryParams: {
+            pageNumber: page.page.totalPages - 1
+          },
+          queryParamsHandling: "merge",
+        });
+      }
+    });
+  }
 
   saveChanges() {
     // TODO
     return true;
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.tag) {
-      delete this.folderExts;
-      delete this.parent;
-      if (this.tag?.includes('/')) {
-        this.exts.getCachedExt(this.tag.substring(0, this.tag.lastIndexOf('/')), tagOrigin(this.tag) || '@')
-          .subscribe(ext => this.parent = ext);
-      }
-      this.folderSubscription?.unsubscribe();
-      if (!this.tag) return;
-      this.folderSubscription = this.exts.page({
-        query: defaultOrigin(this.tag, (this.ext?.origin || '@')),
-        level: level(this.tag) + 1,
-        size: 100
-      }).pipe(
-        catchError(() => of(undefined)),
-      ).subscribe(page => {
-        this.folderExts = page?.content;
-      });
-    }
-    if (changes.ext) {
-      this.files = {};
-      this.subfolders = {};
-      this.flatten = this.ext?.config?.flatten;
-      if (!this.ext) return;
-      this.cursor = this.ext.modifiedString!;
-      this.files = mapValues(toJS(this.ext.config.files) || {}, p => this.transform(p));
-      for (const e of Object.entries<Pos>(toJS(this.ext.config.subfolders) || {})) {
-        this.subfolders[this.ext.tag + (e[0] !== '..' ? '/' + e[0] : '')] = this.transform(e[1]);
-      }
-    }
-  }
 
-  get local() {
-    return this.ext?.origin === this.store.account.origin;
-  }
+  readonly local = computed(() => {
+    return this.ext()?.origin === this.store.account.origin();
+  });
 
-  get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
-        this.router.navigate([], {
-          queryParams: {
-            pageNumber: this._page.page.totalPages - 1
-          },
-          queryParamsHandling: "merge",
-        });
-      }
-    }
-  }
 
   startMoving(target: HTMLElement) {
     target.style.zIndex = ""+(this.zIndex++);
   }
 
   moveFile(url: string, target: HTMLElement) {
-    if (!this.cursor) return; // Wait for last move to complete
-    if (!this.local) return;
-    const cursor = this.cursor;
-    this.cursor = '';
-    this.dragging = true
+    if (!this.cursor()) return; // Wait for last move to complete
+    if (!this.local()) return;
+    const cursor = this.cursor();
+    this.cursor.set('');
+    this.dragging.set(true)
     const pos = {
       x: Math.floor(target.getBoundingClientRect().x + window.scrollX - this.el.nativeElement.offsetLeft),
       y: Math.floor(target.getBoundingClientRect().y + window.scrollY - this.el.nativeElement.offsetTop),
     };
-    this.exts.patch(this.ext!.tag + this.store.account.origin, cursor, [{
+    this.exts.patch(this.ext()!.tag + this.store.account.origin(), cursor, [{
       op: 'add',
       path: '/config/files/' + escapePath(url),
       value: pos,
-    }]).subscribe(cursor => this.cursor = cursor);
+    }]).subscribe(cursor => this.cursor.set(cursor));
   }
 
   moveFolder(tag: string, target: HTMLElement) {
     // TODO: write patches to websocket
-    if (!this.cursor) return; // Wait for last move to complete
-    if (!this.local) return;
-    const cursor = this.cursor;
-    this.cursor = '';
-    this.dragging = true
-    this.exts.patch(this.ext!.tag + this.store.account.origin, cursor, [{
+    if (!this.cursor()) return; // Wait for last move to complete
+    if (!this.local()) return;
+    const cursor = this.cursor();
+    this.cursor.set('');
+    this.dragging.set(true)
+    this.exts.patch(this.ext()!.tag + this.store.account.origin(), cursor, [{
       op: 'add',
-      path: '/config/subfolders/' + (tag === this.tag ? '..' : escapePath(tag.substring(this.ext!.tag.length + 1))),
+      path: '/config/subfolders/' + (tag === this.tag() ? '..' : escapePath(tag.substring(this.ext()!.tag.length + 1))),
       value: {
         x: Math.floor(target.getBoundingClientRect().x + window.scrollX - this.el.nativeElement.offsetLeft),
         y: Math.floor(target.getBoundingClientRect().y + window.scrollY - this.el.nativeElement.offsetTop),
       },
-    }]).subscribe(cursor => this.cursor = cursor);
+    }]).subscribe(cursor => this.cursor.set(cursor));
   }
 
   inSubfolder(ref: Ref) {
-    return ref.tags?.find(t => t.startsWith(this.ext!.tag + '/'));
+    return ref.tags?.find(t => t.startsWith(this.ext()!.tag + '/'));
   }
 
   transform(p: Pos) {

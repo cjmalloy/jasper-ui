@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { Component, HostBinding, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
@@ -11,6 +11,7 @@ import { getPath } from '../util/http';
   selector: 'formly-list-section',
   host: {
     '(jasper-clipboard-paste)': 'clipboardPaste($any($event))',
+    '[title]': 'title',
   },
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
@@ -20,9 +21,9 @@ import { getPath } from '../util/http';
          cdkScrollable
          [cdkDropListData]="this"
          (cdkDropListDropped)="drop($any($event))"
-         [class.dropping]="dropping"
+         [class.dropping]="dropping()"
          (drop)="dnd($event)"
-         (dragenter)="dropping = true"
+         (dragenter)="dropping.set(true)"
          (dragleave)="dragLeave(fg, $any($event.target))">
       @if (props.showAdd !== false) {
         <button type="button" (click)="add()">{{ props.addText }}</button>
@@ -46,7 +47,7 @@ import { getPath } from '../util/http';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkDropList,
     CdkScrollable,
@@ -57,7 +58,7 @@ import { getPath } from '../util/http';
 })
 export class ListTypeComponent extends FieldArrayType {
 
-  dropping = false;
+  readonly dropping = signal(false);
 
   constructor(
     private store: Store,
@@ -65,7 +66,6 @@ export class ListTypeComponent extends FieldArrayType {
     super();
   }
 
-  @HostBinding('title')
   get title() {
     return this.props.title || '';
   }
@@ -216,7 +216,7 @@ export class ListTypeComponent extends FieldArrayType {
   }
 
   drop(event: CdkDragDrop<ListTypeComponent>) {
-    if (!this.store.hotkey || event.previousContainer === event.container) {
+    if (!this.store.hotkey() || event.previousContainer === event.container) {
       event.previousContainer.data.remove(event.previousIndex);
     }
     let value = event.item.data;
@@ -241,7 +241,7 @@ export class ListTypeComponent extends FieldArrayType {
   }
 
   dnd(event: DragEvent) {
-    this.dropping = false;
+    this.dropping.set(false);
     event.preventDefault();
     event.stopPropagation();
     const items = event.dataTransfer?.items;
@@ -285,8 +285,8 @@ export class ListTypeComponent extends FieldArrayType {
   }
 
   dragLeave(parent: HTMLElement, target: HTMLElement) {
-    if (this.dropping && parent === target || !parent.contains(target)) {
-      this.dropping = false;
+    if (this.dropping() && parent === target || !parent.contains(target)) {
+      this.dropping.set(false);
     }
   }
 }

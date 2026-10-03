@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { computed, ChangeDetectionStrategy, Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
@@ -48,13 +48,13 @@ import { getErrorMessage } from './errors';
     <div class="form-array skip-margin">
       <input class="preview grow"
              type="text"
-             [style.display]="preview ? 'block' : 'none'">
+             [style.display]="preview() ? 'block' : 'none'">
       <div #div
            class="breadcrumbs"
-           [title]="input.value"
-           [style.display]="preview ? 'block' : 'none'"
+           [title]="query()"
+           [style.display]="preview() ? 'block' : 'none'"
            (click)="$event.target === div && edit(input, false)">
-        @for (breadcrumb of breadcrumbs; track breadcrumb) {
+        @for (breadcrumb of breadcrumbs(); track breadcrumb) {
           <span class="crumb">
               @if (breadcrumb.tag) {
                 <a class="tag" [routerLink]="['/tag', breadcrumb.tag]" queryParamsHandling="merge"><span (click)="clickPreview(input, $event, breadcrumb)">{{ breadcrumb.text }}</span></a>
@@ -65,7 +65,7 @@ import { getErrorMessage } from './errors';
         }
       </div>
       <datalist [id]="listId">
-        @for (o of autocomplete; track o.value) {
+        @for (o of autocomplete(); track o.value) {
           <option [value]="o.value">{{ o.label }}</option>
         }
       </datalist>
@@ -76,7 +76,7 @@ import { getErrorMessage } from './errors';
              autocorrect="off"
              autocapitalize="none"
              [attr.list]="listId"
-             [class.hidden-without-removing]="preview"
+             [class.hidden-without-removing]="preview()"
              (input)="search(input.value)"
              (blur)="blur(input)"
              (focusin)="edit(input, false)"
@@ -94,17 +94,18 @@ import { getErrorMessage } from './errors';
     FormlyAttributes,
   ],
 })
-export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
+export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> {
 
   listId = 'list-' + uuid();
-  breadcrumbs: Crumb[] = [];
-  editing = false;
-  autocomplete: { value: string, label: string }[] = [];
+  readonly breadcrumbs = signal<Crumb[]>([]);
+  readonly editing = signal(false);
+  readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
   private showedError = false;
   private searching?: Subscription;
   private formChanges?: Subscription;
-  private _query = '';
+  private breadcrumbChanges = new Subscription();
+  readonly query = signal('');
 
   constructor(
     private router: Router,
@@ -113,45 +114,42 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
     private editor: EditorService,
     private exts: ExtService,
     public store: Store,
-    private cd: ChangeDetectorRef,
   ) {
     super();
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
-      if (!this.editing) {
+      if (!this.editing()) {
         if (value) {
           this.getPreview(value);
         } else {
-          this.query = '';
+          this.setQuery('');
         }
       }
     });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.searching?.unsubscribe();
     this.formChanges?.unsubscribe();
-  }
+    this.breadcrumbChanges.unsubscribe();
+  });
 
-  get preview() {
-    return !this.editing && this.query;
-  }
+  readonly preview = computed(() => {
+    return !this.editing() && this.query();
+  });
 
-  get query(): string {
-    return this._query;
-  }
-
-  set query(value: string) {
-    this.editing = false;
-    this.cd.detectChanges();
-    if (this._query === value) return;
-    this._query = value;
-    this.breadcrumbs = this.queryCrumbs(this._query);
-    this.cd.detectChanges();
+  setQuery(value: string) {
+    this.editing.set(false);
+    if (this.query() === value) return;
+    this.query.set(value);
+    this.breadcrumbChanges.unsubscribe();
+    this.breadcrumbChanges = new Subscription();
+    this.breadcrumbs.set(this.queryCrumbs(value));
+    this.loadBreadcrumbNames();
   }
 
   validate(input: HTMLInputElement) {
@@ -174,20 +172,20 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
   getPreview(value: string) {
     if (!value) return;
     if (this.showError) return;
-    this.query = value;
+    this.setQuery(value);
   }
 
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
     return this.editor.getTagPreview(
       value,
-      this.field.props.origin || this.store.account.origin,
+      this.field.props.origin || this.store.account.origin(),
       false,
       this.field.type !== 'plugin',
       this.field.type !== 'template');
   }
 
   clickPreview(input: HTMLInputElement, event: MouseEvent, breadcrumb: Crumb): boolean {
-    if (this.store.hotkey) {
+    if (this.store.hotkey()) {
       this.router.navigate(['/tag', breadcrumb.tag]);
     } else {
       this.edit(input, breadcrumb);
@@ -198,8 +196,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
   }
 
   edit(input: HTMLInputElement, select: boolean | Crumb) {
-    this.editing = true;
-    this.cd.detectChanges();
+    this.editing.set(true);
     input.focus();
     if (select === true) {
       input.select();
@@ -294,33 +291,37 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
         crumbs.push(notOp);
       }
     }
-    for (const t of crumbs) {
+    return crumbs;
+  }
+
+  private loadBreadcrumbNames() {
+    for (const t of this.breadcrumbs()) {
       const tag = t.tag?.startsWith('!') ? t.tag.substring(1) : t.tag;
       if (tag && !tag.startsWith('@')) {
-        this.exts.getCachedExt(tag).subscribe(ext => {
-          // TODO: possible delayed write
+        this.breadcrumbChanges.add(this.exts.getCachedExt(tag).subscribe(ext => {
+          let text = t.text;
           if (ext.modifiedString && ext.name) {
-            t.text = ext.name;
+            text = ext.name;
           } else if (ext.tag === 'plugin') {
-            t.text = '📦';
+            text = '📦';
           } else if (ext.tag === '+plugin') {
-            t.text = '+📦';
+            text = '+📦';
           } else if (ext.tag === '_plugin') {
-            t.text = '_📦';
+            text = '_📦';
           } else {
             const template = this.admin.getTemplate(ext.tag);
             if (template?.name) {
-              t.text = template.name;
+              text = template.name;
             } else {
               const plugin = this.admin.getPlugin(ext.tag);
-              if (plugin?.name) t.text = plugin.name;
+              if (plugin?.name) text = plugin.name;
             }
           }
-          this.cd.detectChanges();
-        });
+          this.breadcrumbs.update(crumbs => crumbs.map(crumb =>
+            crumb.tag === t.tag && crumb.pos === t.pos && crumb.len === t.len ? { ...crumb, text } : crumb));
+        }));
       }
     }
-    return crumbs;
   }
 
   search = debounce((text: string) => {
@@ -342,11 +343,10 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
-      this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
-      if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(tag, 5 - this.autocomplete.length));
-      if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(tag, 5 - this.autocomplete.length));
-      this.autocomplete = uniqBy(this.autocomplete, 'value')
-      this.cd.detectChanges();
+      const autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
+      if (autocomplete.length < 5) autocomplete.push(...getPlugins(tag, 5 - autocomplete.length));
+      if (autocomplete.length < 5) autocomplete.push(...getTemplates(tag, 5 - autocomplete.length));
+      this.autocomplete.set(uniqBy(autocomplete, 'value'))
     });
   }, 400);
 }

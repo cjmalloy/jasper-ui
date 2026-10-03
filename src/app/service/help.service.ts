@@ -1,8 +1,8 @@
 import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { outputToObservable } from '@angular/core/rxjs-interop';
 import { defer, delay } from 'lodash-es';
-import { runInAction } from 'mobx';
 import { takeUntil } from 'rxjs/operators';
 import { HelpPopupComponent } from '../component/help-popup/help-popup.component';
 import { Store } from '../store/store';
@@ -22,7 +22,6 @@ export class HelpService {
     private store: Store,
     private overlay: Overlay,
     private admin: AdminService,
-    private ngZone: NgZone,
   ) {}
 
   /**
@@ -43,8 +42,8 @@ export class HelpService {
     if (this.shown.includes(id) || this.store.local.shownHelpPopup(id)) return;
     this.shown.push(id);
     this.steps.push({ id, el, text });
-    runInAction(() => this.store.helpSteps = this.steps.length);
-    if (this.store.helpStepIndex === -1) {
+    this.store.helpSteps.set(this.steps.length);
+    if (this.store.helpStepIndex() === -1) {
       // If no tour is active, start immediately with this step
       this.startTour();
     }
@@ -60,9 +59,9 @@ export class HelpService {
       return;
     }
 
-    if (this.store.helpStepIndex === -1) {
+    if (this.store.helpStepIndex() === -1) {
       this.maxIndexReached = -1;
-      runInAction(() => this.store.helpStepIndex = 0);
+      this.store.helpStepIndex.set(0);
     }
 
     delay(() => this.showCurrentStep(), 1000);
@@ -72,9 +71,9 @@ export class HelpService {
    * Advances to the next help step.
    */
   nextStep(): void {
-    this.store.local.dismissHelpPopup(this.steps[this.store.helpStepIndex].id);
-    runInAction(() => this.store.helpStepIndex++);
-    if (this.store.helpStepIndex < this.steps.length) {
+    this.store.local.dismissHelpPopup(this.steps[this.store.helpStepIndex()].id);
+    this.store.helpStepIndex.update(v => v + 1);
+    if (this.store.helpStepIndex() < this.steps.length) {
       this.showCurrentStep();
     } else {
       this.endTour();
@@ -85,22 +84,22 @@ export class HelpService {
    * Goes back to the previous help step.
    */
   previousStep(): void {
-    if (this.store.helpStepIndex > 0) {
-      runInAction(() => this.store.helpStepIndex--);
+    if (this.store.helpStepIndex() > 0) {
+      this.store.helpStepIndex.update(v => v - 1);
       this.showCurrentStep();
     }
   }
 
   private showCurrentStep(): void {
-    if (this.store.helpStepIndex < 0 || this.store.helpStepIndex >= this.steps.length) {
+    if (this.store.helpStepIndex() < 0 || this.store.helpStepIndex() >= this.steps.length) {
       this.endTour();
       return;
     }
-    if (this.store.helpStepIndex > this.maxIndexReached) {
-      this.maxIndexReached = this.store.helpStepIndex;
+    if (this.store.helpStepIndex() > this.maxIndexReached) {
+      this.maxIndexReached = this.store.helpStepIndex();
     }
     this.dismissOverlay();
-    const currentStep = this.steps[this.store.helpStepIndex];
+    const currentStep = this.steps[this.store.helpStepIndex()];
     const element = currentStep.el;
     element.classList.add('help-element');
     this.overlayRef = this.overlay.create({
@@ -120,29 +119,27 @@ export class HelpService {
     });
     const popupPortal = new ComponentPortal(HelpPopupComponent);
     const popupRef = this.overlayRef.attach(popupPortal);
-    popupRef.instance.text = currentStep.text;
+    popupRef.setInput('text', currentStep.text);
     const detach$ = this.overlayRef.detachments();
     const positionStrategy = this.overlayRef.getConfig().positionStrategy as FlexibleConnectedPositionStrategy;
     positionStrategy.positionChanges.pipe(takeUntil(detach$)).subscribe(change => {
-      this.ngZone.run(() => {
-        // Cut a spotlight hole in the backdrop so the help element is not blurred
-        this.applyBackdropSpotlight(element);
-        const pair = change.connectionPair;
-        if (pair.overlayX === 'start' && pair.overlayY === 'center') {
-          popupRef.instance.arrowPosition = 'left';
-        } else if (pair.overlayX === 'end' && pair.overlayY === 'center') {
-          popupRef.instance.arrowPosition = 'right';
-        } else if (pair.overlayY === 'top') {
-          popupRef.instance.arrowPosition = 'top';
-        } else if (pair.overlayY === 'bottom') {
-          popupRef.instance.arrowPosition = 'bottom';
-        }
-      });
+      // Cut a spotlight hole in the backdrop so the help element is not blurred
+      this.applyBackdropSpotlight(element);
+      const pair = change.connectionPair;
+      if (pair.overlayX === 'start' && pair.overlayY === 'center') {
+        popupRef.setInput('arrowPosition', 'left');
+      } else if (pair.overlayX === 'end' && pair.overlayY === 'center') {
+        popupRef.setInput('arrowPosition', 'right');
+      } else if (pair.overlayY === 'top') {
+        popupRef.setInput('arrowPosition', 'top');
+      } else if (pair.overlayY === 'bottom') {
+        popupRef.setInput('arrowPosition', 'bottom');
+      }
     });
     defer(() => positionStrategy.reapplyLastPosition());
-    popupRef.instance.nextClick.pipe(takeUntil(detach$)).subscribe(() => this.nextStep());
-    popupRef.instance.previousClick.pipe(takeUntil(detach$)).subscribe(() => this.previousStep());
-    popupRef.instance.doneClick.pipe(takeUntil(detach$)).subscribe(() => this.endTour());
+    outputToObservable(popupRef.instance.nextClick).pipe(takeUntil(detach$)).subscribe(() => this.nextStep());
+    outputToObservable(popupRef.instance.previousClick).pipe(takeUntil(detach$)).subscribe(() => this.previousStep());
+    outputToObservable(popupRef.instance.doneClick).pipe(takeUntil(detach$)).subscribe(() => this.endTour());
     this.overlayRef.backdropClick().pipe(takeUntil(detach$)).subscribe(() => this.endTour());
   }
 
@@ -165,10 +162,8 @@ export class HelpService {
       : this.steps;
     this.steps = undisplayedSteps;
     this.maxIndexReached = -1;
-    runInAction(() => {
-      this.store.helpStepIndex = -1;
-      this.store.helpSteps = this.steps.length;
-    });
+    this.store.helpStepIndex.set(-1);
+    this.store.helpSteps.set(this.steps.length);
   }
 
   private dismissOverlay(): void {

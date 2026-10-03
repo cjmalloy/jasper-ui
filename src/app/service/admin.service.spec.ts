@@ -38,11 +38,11 @@ describe('AdminService', () => {
   it('should not mutate installed plugin icons or buttons', () => {
     const icon = { label: '🧪️' };
     const button = { label: '🧪️', ribbon: true };
-    service.status.plugins['plugin/test'] = {
+    (service as any).updateStatus((status: any) => status.plugins['plugin/test'] = {
       tag: 'plugin/test',
       name: 'Test',
       config: { icons: [icon], editorButtons: [button] },
-    } as any;
+    });
     const icons = service.getIcons(['plugin/test']);
     expect(icons.length).toBe(1);
     expect(icons[0].tag).toBe('plugin/test');

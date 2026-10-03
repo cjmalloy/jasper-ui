@@ -1,7 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, afterNextRender } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
 import { AdminService } from '../../service/admin.service';
@@ -14,9 +12,8 @@ import { Store } from '../../store/store';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   host: { 'class': 'settings' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     RouterLinkActive,
@@ -24,7 +21,7 @@ import { Store } from '../../store/store';
     RouterOutlet,
   ],
 })
-export class SettingsPage implements OnInit {
+export class SettingsPage {
 
   constructor(
     public admin: AdminService,
@@ -33,12 +30,12 @@ export class SettingsPage implements OnInit {
     public store: Store,
   ) { }
 
-  ngOnInit(): void {
-    if (!this.store.view.settingsTabs.length) {
-      runInAction(() => {
-        this.store.view.settingsTabs = this.admin.settings.filter(p => this.auth.tagReadAccess(p.tag));
-      });
+  private readonly initialize = afterNextRender(() => {
+    if (!this.store.view.settingsTabs().length) {
+      {
+        this.store.view.settingsTabs.set(this.admin.settings().filter(p => this.auth.tagReadAccess(p.tag)));
+      };
     }
-  }
+  });
 
 }

@@ -52,6 +52,6 @@ describe('QueryComponent', () => {
     const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
     expect(input.dataset['jasperClipboardReplace']).toBe('true');
     input.dispatchEvent(new CustomEvent('jasper-clipboard-query-paste', { bubbles: true }));
-    expect(component.replaceOnClipboardPaste).toBe(false);
+    expect(component.replaceOnClipboardPaste()).toBe(false);
   });
 });

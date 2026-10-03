@@ -1,22 +1,22 @@
 <span class="form-array">
   <div class="grow">
-    <input [type]="type"
+    <input [type]="type()"
            autocorrect="off"
            autocapitalize="none"
            (keydown)="keydown($event)"
-           [placeholder]="placeholder"
-           [value]="addingText"
-           (input)="addingText = $any($event.target).value">
+           [placeholder]="placeholder()"
+           [value]="addingText()"
+           (input)="addingText.set($any($event.target).value)">
   </div>
   <button type="button" (click)="add()" i18n>+</button>
 </span>
-@if (error) {
-  <div class="error">{{ error }}</div>
+@if (error()) {
+  <div class="error">{{ error() }}</div>
 }
-@for (l of list; track l; let i = $index) {
+@for (l of list(); track l; let i = $index) {
   <span class="form-array">
     <span tabindex="0"
-          [class.selected]="selectedIndex === i"
+          [class.selected]="selectedIndex() === i"
           (focus)="select(i)">{{ l }}</span>
     <button type="button" (click)="remove(i)" i18n>&ndash;</button>
   </span>

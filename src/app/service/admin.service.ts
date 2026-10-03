@@ -1,8 +1,7 @@
-import { Injectable } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
-import { runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -93,7 +92,6 @@ import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
-import { memo, MemoCache } from '../util/memo';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
@@ -106,18 +104,30 @@ import { equalBundle } from '../util/diff';
 import { neoMod } from '../mods/ai/neo-banana';
 import { mp3Mod } from '../mods/media/mp3';
 
+export interface AdminStatus {
+  plugins: Record<string, Plugin>;
+  disabledPlugins: Record<string, Plugin>;
+  templates: Record<string, Template>;
+  disabledTemplates: Record<string, Template>;
+  receipts: Record<string, Ref>;
+}
+
+function emptyStatus(): AdminStatus {
+  return {
+    plugins: {},
+    disabledPlugins: {},
+    templates: {},
+    disabledTemplates: {},
+    receipts: {},
+  };
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class AdminService {
 
-  status = {
-    plugins: <Record<string, Plugin>> {},
-    disabledPlugins: <Record<string, Plugin>> {},
-    templates: <Record<string, Template>> {},
-    disabledTemplates: <Record<string, Template>> {},
-    receipts: <Record<string, Ref>> {},
-  };
+  private readonly _status = signal<AdminStatus>(emptyStatus());
 
   mods: Mod[] = [
     debugMod,
@@ -218,6 +228,24 @@ export class AdminService {
   _cache = new Map<string, any>();
   private firstRun = false;
 
+  readonly status = computed<AdminStatus>(() => {
+    return this._status();
+  });
+
+  private updateStatus(fn: (status: AdminStatus) => void) {
+    const status = this._status();
+    const next: AdminStatus = {
+      plugins: {...status.plugins},
+      disabledPlugins: {...status.disabledPlugins},
+      templates: {...status.templates},
+      disabledTemplates: {...status.disabledTemplates},
+      receipts: {...status.receipts},
+    };
+    fn(next);
+    this._cache.clear();
+    this._status.set(next);
+  }
+
   constructor(
     private config: ConfigService,
     private auth: AuthzService,
@@ -243,20 +271,12 @@ export class AdminService {
 
   private clearCache() {
     this._cache.clear();
-    MemoCache.clear(this);
   }
 
   get init$() {
     this.clearCache();
-    runInAction(() => {
-      this.store.view.modChanges.clear();
-      this.store.view.modUpdates.clear();
-    });
-    this.status.plugins = {};
-    this.status.disabledPlugins = {};
-    this.status.templates = {};
-    this.status.disabledTemplates = {};
-    this.status.receipts = {};
+    this.store.view.clearModChanges();
+    this._status.set(emptyStatus());
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.firstRun$),
@@ -270,13 +290,13 @@ export class AdminService {
   get firstRun$(): Observable<any> {
     if (this.firstRun) return of(null);
     this.firstRun = true;
-    if (!this.store.account.admin || this.store.account.ext) return of(null);
-    if (Object.values(this.status.plugins).filter(p => !!p).length > 0) return of(null);
-    if (Object.values(this.status.templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return of(null);
+    if (!this.store.account.admin() || this.store.account.ext()) return of(null);
+    if (Object.values(this.status().plugins).filter(p => !!p).length > 0) return of(null);
+    if (Object.values(this.status().templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return of(null);
 
     const installs = this.defaultPlugins.map(p => this.plugins.create({
       ...p,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     }).pipe(
       catchError(err => {
         if (err.status === 409) {
@@ -289,7 +309,7 @@ export class AdminService {
     ));
     installs.push(...this.defaultTemplates.map(t => this.templates.create({
       ...t,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     }).pipe(
       catchError(err => {
         if (err.status === 409) {
@@ -323,9 +343,9 @@ export class AdminService {
     return concat(...receipts).pipe(toArray());
   }
 
-  get localOriginQuery() {
-    return this.store.account.origin || '*';
-  }
+  readonly localOriginQuery = computed(() => {
+    return this.store.account.origin() || '*';
+  });
 
   private loadPlugins$(page = 0): Observable<null> {
     const alreadyLoaded = page * this.config.fetchBatch;
@@ -333,7 +353,7 @@ export class AdminService {
       console.error(`Too many plugins to load, only loaded ${alreadyLoaded}. Increase maxPlugins to load more.`)
       return of(null);
     }
-    return this.plugins.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
+    return this.plugins.page({query: this.localOriginQuery(), page, size: this.config.fetchBatch}).pipe(
       retry(10),
       tap(batch => this.pluginToStatus(batch.content)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadPlugins$(page + 1) : of(null)),
@@ -346,7 +366,7 @@ export class AdminService {
       console.error(`Too many templates to load, only loaded ${alreadyLoaded}. Increase maxTemplates to load more.`)
       return of(null);
     }
-    return this.templates.page({query: this.localOriginQuery + ':!_config', page, size: this.config.fetchBatch}).pipe(
+    return this.templates.page({query: this.localOriginQuery() + ':!_config', page, size: this.config.fetchBatch}).pipe(
       retry(10),
       tap(batch => this.templateToStatus(batch.content)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadTemplates$(page + 1) : of(null)),
@@ -354,13 +374,13 @@ export class AdminService {
   }
 
   private loadReceipts$(page = 0): Observable<null> {
-    if (!this.store.account.admin) return of(null);
+    if (!this.store.account.admin()) return of(null);
     const alreadyLoaded = page * this.config.fetchBatch;
     if (alreadyLoaded >= this.config.maxTemplates + this.config.maxPlugins) {
       console.error(`Too many templates to load, only loaded ${alreadyLoaded}. Increase maxTemplates or maxPlugins to load more.`)
       return of(null);
     }
-    return this.refs.page({query: this.localOriginQuery + ':plugin/mod/receipt', page, size: this.config.fetchBatch}).pipe(
+    return this.refs.page({query: this.localOriginQuery() + ':plugin/mod/receipt', page, size: this.config.fetchBatch}).pipe(
       retry(10),
       tap(batch => this.receiptToStatus(batch.content)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadReceipts$(page + 1) : of(null)),
@@ -368,31 +388,39 @@ export class AdminService {
   }
 
   private pluginToStatus(list: Plugin[]) {
-    for (const p of list) {
-      if (p.config?.disabled) {
-        this.status.disabledPlugins[p.tag] = p;
-      } else {
-        this.status.plugins[p.tag] = p;
-        this.def.plugins[p.tag] ||= clear(p);
+    this.updateStatus(status => {
+      for (const p of list) {
+        if (p.config?.disabled) {
+          status.disabledPlugins[p.tag] = p;
+        } else {
+          status.plugins[p.tag] = p;
+          this.def.plugins[p.tag] ||= clear(p);
+        }
       }
+    });
+    for (const p of list) {
       if (this.needsUpdate(this.def.plugins[p.tag], p)) {
         console.log(p.tag + ' needs update');
-        runInAction(() => this.store.view.modUpdates.add(modId(p)));
+        this.store.view.addModUpdate(modId(p));
       }
     }
   }
 
   private templateToStatus(list: Template[]) {
-    for (const t of list) {
-      if (t.config?.disabled) {
-        this.status.disabledTemplates[t.tag] = t;
-      } else {
-        this.status.templates[t.tag] = t;
-        this.def.templates[t.tag] ||= t;
+    this.updateStatus(status => {
+      for (const t of list) {
+        if (t.config?.disabled) {
+          status.disabledTemplates[t.tag] = t;
+        } else {
+          status.templates[t.tag] = t;
+          this.def.templates[t.tag] ||= t;
+        }
       }
+    });
+    for (const t of list) {
       if (this.needsUpdate(this.def.templates[t.tag], t)) {
         console.log((t.tag || 'Root template') + ' needs update');
-        runInAction(() => this.store.view.modUpdates.add(modId(t)));
+        this.store.view.addModUpdate(modId(t));
       }
     }
   }
@@ -400,25 +428,25 @@ export class AdminService {
   private receiptToStatus(list: Ref[]) {
     for (const r of list) {
       const mod = r.title!
-      if (this.store.view.modChanges.has(mod)) continue;
+      if (this.store.view.modChanges().has(mod)) continue;
       const current = this.getInstalledMod(mod);
       if (!current) continue;
-      this.status.receipts[mod] = r;
-      runInAction(() => this.store.view.modChanges.set(mod, !equalBundle(current, r.plugins?.['plugin/mod'])));
+      this.updateStatus(status => status.receipts[mod] = r);
+      this.store.view.setModChange(mod, !equalBundle(current, r.plugins?.['plugin/mod']));
     }
   }
 
   private checkMissingReceipts() {
     for (const mod of uniq([
-      ...Object.values(this.status.plugins).map(p => modId(p)),
-      ...Object.values(this.status.templates).map(t => modId(t)),
+      ...Object.values(this.status().plugins).map(p => modId(p)),
+      ...Object.values(this.status().templates).map(t => modId(t)),
     ])) {
-      if (this.store.view.modChanges.has(mod)) continue;
+      if (this.store.view.modChanges().has(mod)) continue;
       const current = this.getInstalledMod(mod);
       if (!current) continue;
       const target = this.getMod(mod);
       if (!target) continue;
-      runInAction(() => this.store.view.modChanges.set(mod, !equalBundle(current, target)));
+      this.store.view.setModChange(mod, !equalBundle(current, target));
     }
   }
 
@@ -478,10 +506,11 @@ export class AdminService {
 
   configProperty(...names: string[]): [Plugin | Template] {
     const key = names.join(':');
+    const status = this.status();
     if (!this._cache.has(key)) {
       this._cache.set(key, [
-        ...Object.values(this.status.plugins),
-        ...Object.values(this.status.templates)
+        ...Object.values(status.plugins),
+        ...Object.values(status.templates)
       ].filter(p => {
         for (const n of names) {
           if (n.startsWith('!')) {
@@ -498,8 +527,9 @@ export class AdminService {
 
   pluginConfigProperty(...names: string[]): Plugin[] {
     const key = names.join(':');
+    const status = this.status();
     if (!this._cache.has(key)) {
-      this._cache.set(key, Object.values(this.status.plugins).filter(p => {
+      this._cache.set(key, Object.values(status.plugins).filter(p => {
         for (const n of names) {
           if (n.startsWith('!')) {
             if (p?.config?.[n.substring(1)]) return false;
@@ -515,8 +545,9 @@ export class AdminService {
 
   templateConfigProperty(...names: string[]): Template[] {
     const key = 't!'+names.join(':');
+    const status = this.status();
     if (!this._cache.has(key)) {
-      this._cache.set(key, Object.values(this.status.templates).filter(p => {
+      this._cache.set(key, Object.values(status.templates).filter(p => {
         for (const n of names) {
           if (n.startsWith('!')) {
             if (p?.config?.[n.substring(1)]) return false;
@@ -530,18 +561,18 @@ export class AdminService {
     return this._cache.get(key)!;
   }
 
-  get pip() {
+  readonly pip = computed(() => {
     if (!('documentPictureInPicture' in window)) return false;
     return this.getPlugin('plugin/pip');
-  }
+  });
 
-  get editing() {
+  readonly editing = computed(() => {
     return this.getPlugin('plugin/editing');
-  }
+  });
 
-  get home() {
+  readonly home = computed(() => {
     return this.getTemplate('config/home');
-  }
+  });
 
   get defaultPlugins() {
     return Object.values(this.def.plugins).filter(p => p?.config?.default) as Plugin[];
@@ -551,102 +582,103 @@ export class AdminService {
     return Object.values(this.def.templates).filter(t => t?.config?.default) as Template[];
   }
 
-  get readAccess() {
+  readonly readAccess = computed(() => {
     return this.configProperty('readAccess')
       .flatMap(p => p.config!.readAccess!);
-  }
+  });
 
-  get writeAccess() {
+  readonly writeAccess = computed(() => {
     return this.templateConfigProperty('writeAccess')
       .flatMap(p => p.config!.writeAccess!);
-  }
+  });
 
-  get reply() {
+  readonly reply = computed(() => {
     return this.configProperty('reply');
-  }
+  });
 
-  get inbox() {
+  readonly inbox = computed(() => {
     return this.pluginConfigProperty('inbox');
-  }
+  });
 
-  get submit() {
+  readonly submit = computed(() => {
     return this.pluginConfigProperty('submit', '!genId', '!settings');
-  }
+  });
 
-  get add() {
+  readonly add = computed(() => {
     return this.pluginConfigProperty('add');
-  }
+  });
 
-  get submitGenId() {
+  readonly submitGenId = computed(() => {
     return this.pluginConfigProperty('submit', 'genId', '!settings');
-  }
+  });
 
-  get submitText() {
+  readonly submitText = computed(() => {
     return this.pluginConfigProperty('submitText');
-  }
+  });
 
-  get submitDm() {
+  readonly submitDm = computed(() => {
     return this.pluginConfigProperty('submitDm');
-  }
+  });
 
-  get settings() {
+  readonly settings = computed(() => {
     return this.pluginConfigProperty('settings');
-  }
+  });
 
-  get submitSettings() {
+  readonly submitSettings = computed(() => {
     return this.pluginConfigProperty('submit', 'settings', '!genId');
-  }
+  });
 
-  get extensions() {
+  readonly extensions = computed(() => {
     return this.pluginConfigProperty('extensions');
-  }
+  });
 
-  get prefix() {
+  readonly prefix = computed(() => {
     return this.pluginConfigProperty('prefix');
-  }
+  });
 
-  get hosts() {
+  readonly hosts = computed(() => {
     return this.pluginConfigProperty('hosts');
-  }
+  });
 
-  get tmplSubmit() {
+  readonly tmplSubmit = computed(() => {
     return this.templateConfigProperty('submit');
-  }
+  });
 
-  get view() {
+  readonly view = computed(() => {
     return this.templateConfigProperty('view');
-  }
+  });
 
-  get local() {
+  readonly local = computed(() => {
     return this.templateConfigProperty('local');
-  }
+  });
 
-  get editorButtons() {
+  readonly editorButtons = computed(() => {
     return this.configProperty('editorButtons');
-  }
+  });
 
-  get responseButton() {
+  readonly responseButton = computed(() => {
     return this.pluginConfigProperty('responseButton');
-  }
+  });
 
-  get uis() {
+  readonly uis = computed(() => {
     return this.pluginConfigProperty('ui');
-  }
+  });
 
-  get infoUis() {
+  readonly infoUis = computed(() => {
     return this.pluginConfigProperty('infoUi');
-  }
+  });
 
-  get forms() {
+  readonly forms = computed(() => {
     return this.addPluginParents(uniq([
       ...this.pluginConfigProperty('form'),
       ...this.pluginConfigProperty('advancedForm')
     ]));
-  }
+  });
 
-  get embeddable(): string[] {
+  readonly embeddable = computed<string[]>(() => {
+    const status = this.status();
     if (!this._cache.has('embeddable')) {
-      this._cache.set('embeddable', Object.values(this.status.plugins).filter(p => {
+      this._cache.set('embeddable', Object.values(status.plugins).filter(p => {
         if (!p) return false;
         if (p?.config?.embeddable) return true;
         if (p?.config?.editingViewer) return true;
@@ -655,51 +687,51 @@ export class AdminService {
       }).map(p => p!.tag));
     }
     return this._cache.get('embeddable')!;
-  }
+  });
 
-  get editor() {
+  readonly editor = computed(() => {
     return this.pluginConfigProperty('editor');
-  }
+  });
 
-  get editingViewer() {
+  readonly editingViewer = computed(() => {
     return this.pluginConfigProperty('editingViewer');
-  }
+  });
 
-  get icons() {
+  readonly icons = computed(() => {
     return this.configProperty('icons');
-  }
+  });
 
-  get bulkForm() {
+  readonly bulkForm = computed(() => {
     return this.pluginConfigProperty('bulkForm');
-  }
+  });
 
-  get actions() {
+  readonly actions = computed(() => {
     return this.configProperty('actions');
-  }
+  });
 
-  get advancedActions() {
+  readonly advancedActions = computed(() => {
     return this.configProperty('advancedActions');
-  }
+  });
 
-  get themes() {
+  readonly themes = computed(() => {
     return this.configProperty('themes');
-  }
+  });
 
-  get filters() {
+  readonly filters = computed(() => {
     return this.configProperty('filters')
       .flatMap(p => p.config?.filters!)
       .filter(f => !f.user || this.auth.hasRole('ROLE_USER'));
-  }
+  });
 
-  get refSorts() {
+  readonly refSorts = computed(() => {
     return this.pluginConfigProperty('sorts')
       .flatMap(p => p.config?.sorts!);
-  }
+  });
 
-  get tagSorts() {
+  readonly tagSorts = computed(() => {
     return this.templateConfigProperty('sorts')
       .flatMap(p => p.config?.sorts!);
-  }
+  });
 
   addPluginParents(cs: Plugin[]) {
     return uniq(cs.flatMap(c =>
@@ -717,7 +749,7 @@ export class AdminService {
       ...this.getPluginsForUrl(ref.url).map(p => p.tag),
       ...this.getPluginsForCache(ref),
       ...(ref.alternateUrls || []).flatMap(url => this.getPluginsForUrl(url).map(p => p.tag)),
-    ], this.embeddable) as string[]);
+    ], this.embeddable()) as string[]);
   }
 
   getPluginsForUrl(url: string) {
@@ -734,21 +766,21 @@ export class AdminService {
 
   getPluginsForHost(url: string) {
     const host = getHost(url);
-    return this.hosts.filter(p => p.config!.hosts!.includes(host!))
+    return this.hosts().filter(p => p.config!.hosts!.includes(host!))
   }
 
   getPluginsForPrefix(url: string) {
-    return this.prefix.filter(p => p.config!.prefix!.find(prefix => url.startsWith(prefix)));
+    return this.prefix().filter(p => p.config!.prefix!.find(prefix => url.startsWith(prefix)));
   }
 
   getPluginsForExtension(url: string) {
     const type = getExtension(url) || '';
-    return this.extensions.filter(p => p.config!.extensions!.includes(type))
+    return this.extensions().filter(p => p.config!.extensions!.includes(type))
   }
 
   getActions(tags?: string[], config?: any) {
     const match = ['plugin', ...(tags || [])];
-    return this.actions
+    return this.actions()
       .flatMap(p => p.config!.actions!.filter(a => {
         if (a.condition && !condition(a.condition, config?.[p.tag])) return false;
         if (a.global) return true;
@@ -759,7 +791,7 @@ export class AdminService {
 
   getAdvancedActions(tags?: string[], config?: any) {
     const match = ['plugin', ...(tags || [])];
-    return this.advancedActions
+    return this.advancedActions()
       .flatMap(p => p.config!.advancedActions!.filter(a => {
         if (a.condition && !condition(a.condition, config?.[p.tag])) return false;
         if (a.global) return true;
@@ -770,7 +802,7 @@ export class AdminService {
 
   getIcons(tags?: string[], config?: any, scheme?: string) {
     const match = ['plugin', ...(tags || [])];
-    return this.icons
+    return this.icons()
       .flatMap(p => p.config!.icons!.filter(i => {
         if (i.condition && !condition(i.condition, config?.[p.tag])) return false;
         if (i.global) return true;
@@ -789,7 +821,7 @@ export class AdminService {
 
   getEditorButtons(tags?: string[], scheme?: string): EditorButton[] {
     const match = ['plugin', ...(tags || [])];
-    return this.editorButtons
+    return this.editorButtons()
       .flatMap(config => config.config!.editorButtons!.filter(b => {
         if (b.global) return true;
         if (b.scheme && b.scheme === scheme) return true;
@@ -802,63 +834,58 @@ export class AdminService {
   }
 
   getTemplateView(tag: string) {
-    return this.view
+    return this.view()
       .filter(t => hasPrefix(tag, t.tag));
   }
 
-  @memo
   getPlugin(tag: string) {
-    return Object.values(this.status.plugins).find(p => p?.tag === tag);
+    return Object.values(this.status().plugins).find(p => p?.tag === tag);
   }
 
-  @memo
   searchPlugins(text: string) {
     text = text.toLowerCase();
-    return Object.values(this.status.plugins).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
+    return Object.values(this.status().plugins).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
   }
 
-  @memo
   getParentPlugins(tag: string) {
     return this.getPlugins([tag]);
   }
 
   getPlugins(tags: string[] | undefined) {
     if (!tags) return [];
-    return Object.values(this.status.plugins).filter(p => hasTag(p?.tag, tags)) as Plugin[];
+    return Object.values(this.status().plugins).filter(p => hasTag(p?.tag, tags)) as Plugin[];
   }
 
   getPluginUi(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.uis.filter(p => hasTag(p.tag, match));
+    return this.uis().filter(p => hasTag(p.tag, match));
   }
 
   getPluginInfoUis(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.infoUis.filter(p => hasTag(p.tag, match));
+    return this.infoUis().filter(p => hasTag(p.tag, match));
   }
 
   getPluginForms(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.forms.filter(p => hasTag(p.tag, match));
+    return this.forms().filter(p => hasTag(p.tag, match));
   }
 
-  @memo
   getPluginSubForms(parent: string) {
-    return this.forms.filter(p => p.config?.submitChild && directChild(p.tag, parent));
+    return this.forms().filter(p => p.config?.submitChild && directChild(p.tag, parent));
   }
 
   getTemplate(tag: string) {
-    if (this.status.templates[tag]) return this.status.templates[tag];
-    return Object.values(this.status.templates).find(t => {
+    if (this.status().templates[tag]) return this.status().templates[tag];
+    return Object.values(this.status().templates).find(t => {
       if (t?.tag === tag.replace('+', '')) return true;
       return t?.tag === tag.replace('_', '');
     });
   }
 
-  @memo
   searchTemplates(text: string) {
     text = text.toLowerCase();
-    return Object.values(this.status.templates).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
+    return Object.values(this.status().templates).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
   }
 
   defaultConfig(tag: string) {
@@ -869,10 +896,9 @@ export class AdminService {
 
   getPluginSettings(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.settings.filter(p => hasTag(p.tag, match));
+    return this.settings().filter(p => hasTag(p.tag, match));
   }
 
-  @memo
   getTemplates(tag = ''): Template[] {
     const template = this.getTemplate(tag);
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
@@ -974,8 +1000,8 @@ export class AdminService {
       m.template?.find(t => modId(t) === mod)
     );
     if (bundle) return bundle;
-    const modPlugins = Object.values(this.status.plugins).filter(p => modId(p) === mod).map(p => p.tag);
-    const modTemplates = Object.values(this.status.templates).filter(p => modId(p) === mod).map(t => t.tag);
+    const modPlugins = Object.values(this.status().plugins).filter(p => modId(p) === mod).map(p => p.tag);
+    const modTemplates = Object.values(this.status().templates).filter(p => modId(p) === mod).map(t => t.tag);
     return this.mods.find(m =>
       m.plugin?.find(p => modPlugins.includes(p.tag)) ||
       m.template?.find(t => modTemplates.includes(t.tag))
@@ -984,8 +1010,8 @@ export class AdminService {
 
   getInstalledMod(mod: string) {
     const result =  {
-      plugin: Object.values(this.status.plugins).filter(p => modId(p) === mod),
-      template: Object.values(this.status.templates).filter(t => modId(t) === mod),
+      plugin: Object.values(this.status().plugins).filter(p => modId(p) === mod),
+      template: Object.values(this.status().templates).filter(t => modId(t) === mod),
     };
     if (!result.plugin.length && !result.template.length) return undefined;
     return {
@@ -999,7 +1025,7 @@ export class AdminService {
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.title || def.url} ref...`)),
       switchMap(() => this.refs.create({
         ...def,
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         url: def.url || ('comment:' + uuid()),
       })),
       catchError(err => {
@@ -1016,7 +1042,7 @@ export class AdminService {
   installExt$(def: Ext, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} ext...`)),
-      switchMap(() => this.exts.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.exts.create({ ...def, origin: this.store.account.origin() })),
       catchError(err => {
         if (err.status === 409) {
           _('\u00A0'.repeat(4) + $localize`⚠️ Ext ${def.name || def.tag} already exists...`);
@@ -1031,7 +1057,7 @@ export class AdminService {
   installUser$(def: User, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} user...`)),
-      switchMap(() => this.users.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.users.create({ ...def, origin: this.store.account.origin() })),
       catchError(err => {
         if (err.status === 409) {
           _('\u00A0'.repeat(4) + $localize`⚠️ User ${def.name || def.tag} already exists...`);
@@ -1046,8 +1072,8 @@ export class AdminService {
   installPlugin$(def: Plugin, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} plugin...`)),
-      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin)),
-      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin())),
+      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin() })),
       catchError(err => {
         if (err.status === 409) {
           _('\u00A0'.repeat(4) + $localize`⚠️ Plugin ${def.name || def.tag} already exists...`);
@@ -1062,7 +1088,7 @@ export class AdminService {
   deletePlugin$(p: Plugin, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${p.name || p.tag} plugin...`)),
-      switchMap(() => this.plugins.delete(p.tag + this.store.account.origin)),
+      switchMap(() => this.plugins.delete(p.tag + this.store.account.origin())),
       switchMap(() => this.getPlugin('plugin/delete') ? this.plugins.create(tagDeleteNotice(p)) : of(null)),
       tap(() => _('', 1)),
     );
@@ -1071,8 +1097,8 @@ export class AdminService {
   installTemplate$(def: Template, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} template...`)),
-      switchMap(() => this.templates.delete(def.tag + this.store.account.origin)),
-      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.templates.delete(def.tag + this.store.account.origin())),
+      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin() })),
       catchError(err => {
         if (err.status === 409) {
           _('\u00A0'.repeat(4) + $localize`⚠️ Template ${def.name || def.tag} already exists...`);
@@ -1087,7 +1113,7 @@ export class AdminService {
   deleteTemplate$(t: Template, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${t.name || t.tag} template...`)),
-      switchMap(() => this.templates.delete(t.tag + this.store.account.origin)),
+      switchMap(() => this.templates.delete(t.tag + this.store.account.origin())),
       switchMap(() => this.getPlugin('plugin/delete') ? this.templates.create(tagDeleteNotice(t)) : of(null)),
       tap(() => _('', 1)),
     );
@@ -1133,10 +1159,10 @@ export class AdminService {
   deleteMod$(mod: string, _: progress): Observable<any> {
     return concat(...[
       of(null).pipe(tap(() => _($localize`Deleting ${mod} mod...`))),
-      ...Object.values(this.status.plugins)
+      ...Object.values(this.status().plugins)
         .filter(p => modId(p) === mod)
         .map(p => this.deletePlugin$(p!, _)),
-      ...Object.values(this.status.templates)
+      ...Object.values(this.status().templates)
         .filter(t => modId(t) === mod)
         .map(t => this.deleteTemplate$(t!, _)),
     ]).pipe(toArray());
@@ -1145,8 +1171,8 @@ export class AdminService {
   updatePlugin$(def: Plugin, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`)),
-      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin)),
-      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin())),
+      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin() })),
       tap(() => _('', 1)),
     );
   }
@@ -1154,14 +1180,14 @@ export class AdminService {
   updateTemplate$(def: Template, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`)),
-      switchMap(() => this.templates.delete(def.tag + this.store.account.origin)),
-      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
+      switchMap(() => this.templates.delete(def.tag + this.store.account.origin())),
+      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin() })),
       tap(() => _('', 1)),
     );
   }
 
   needsUpdate(def: Config, status: Config) {
-    if (!this.store.account.admin) return false;
+    if (!this.store.account.admin()) return false;
     if (def.config?.noUpdate || status.config?.noUpdate) return false;
     if (def.config?.version !== undefined) {
       if (status.config?.version === undefined) return true;
@@ -1176,7 +1202,7 @@ export class AdminService {
   logModReceipt$(mod: string, bundle: Mod, _: progress) {
     const ref = {
       url: `mod-receipt:${mod}`,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       title: mod,
       tags: ['internal', 'plugin/mod/receipt'],
       plugins: { 'plugin/mod': bundle },
@@ -1185,7 +1211,7 @@ export class AdminService {
       tap(() => _('\u00A0'.repeat(4) + $localize`Logging ${mod || ref.url} receipt...`)),
       switchMap(() => this.refs.delete(ref.url, ref.origin)),
       switchMap(() => this.refs.create(ref)),
-      tap(() => this.status.receipts[mod] = ref),
+      tap(() => this.updateStatus(status => status.receipts[mod] = ref)),
       tap(() => _('', 1)),
     );
   }

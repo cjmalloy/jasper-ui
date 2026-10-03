@@ -1,8 +1,6 @@
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, ChangeDetectionStrategy, viewChild, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
@@ -22,23 +20,23 @@ import { hasPrefix, localTag } from '../../util/tag';
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    '[class.no-footer-padding]': "noFooterPadding()",
+  },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     LensComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     SidebarComponent,
     LoadingComponent,
   ],
 })
-export class TagPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+export class TagPage implements HasChanges {
 
-  loading = true;
+  readonly loading = signal<boolean>(false);
 
-  @ViewChild('lens')
-  lens?: LensComponent;
+  readonly lens = viewChild<LensComponent>('lens');
 
   constructor(
     public admin: AdminService,
@@ -49,72 +47,71 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     private exts: ExtService,
     private bookmarks: BookmarkService,
   ) {
-    this.disposers.push(autorun(() => this.mod.setTitle(this.store.view.name)));
-    runInAction(() => {
+    effect(() => this.mod.setTitle(this.store.view.name()));
+    {
       this.store.view.clear([
         !!this.admin.getPlugin('plugin/user/vote/up')
           ? 'plugins->plugin/user/vote:decay'
-          : this.store.view.tag.includes('*')
+          : this.store.view.tag().includes('*')
             ? 'published'
             : 'created'
       ]);
-      this.store.view.extTemplates = this.admin.view;
+      this.store.view.extTemplates.set(this.admin.view());
+    };
+    effect(() => {
+      this.store.view.urlQueryTags();
+      untracked(() => {
+        if (!this.store.view.urlQueryTags().length) {
+          this.store.view.exts.set([]);
+          this.loading.set(false);
+        } else {
+          this.loading.set(true);
+          this.exts.getCachedExts(this.store.view.urlQueryTags())
+            .pipe(this.admin.extFallbacks)
+            .subscribe(exts => {
+              if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts().map(x => x.tag + x.origin + x.modifiedString).sort())) {
+                this.store.view.exts.set(exts);
+              }
+              this.loading.set(false);
+            });
+        }
+      });
     });
-    this.disposers.push(autorun(() => {
-      if (!this.store.view.urlQueryTags.length) {
-        runInAction(() => this.store.view.exts = []);
-        this.loading = false;
-      } else {
-        this.loading = true;
-        this.exts.getCachedExts(this.store.view.urlQueryTags)
-          .pipe(this.admin.extFallbacks)
-          .subscribe(exts => {
-            if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts.map(x => x.tag + x.origin + x.modifiedString).sort())) {
-              runInAction(() => this.store.view.exts = exts);
-            }
-            this.loading = false;
-          });
-      }
-    }));
     this.query.clear();
+    effect(() => {
+      const filters = this.store.view.filter().length ? this.store.view.filter() : this.store.view.viewExtFilter();
+      if (!this.store.view.filter().length && this.store.view.viewExtFilter()?.length) {
+        const viewExtFilter = this.store.view.viewExtFilter();
+        untracked(() => this.bookmarks.setFilters(viewExtFilter));
+      }
+      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags().map(localTag)).length;
+      const args = getArgs(
+        this.store.view.tag(),
+        this.store.view.sort(),
+        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'] : ['query/!plugin/delete', 'user/!plugin/user/hide'], ...filters || []]) as UrlFilter[],
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
+      );
+      if (hasPrefix(this.store.view.viewExt()?.tag, 'kanban') ||
+          hasPrefix(this.store.view.viewExt()?.tag, 'chat')) {
+        untracked(() => this.query.setRelatedArgs(args));
+        return;
+      }
+      untracked(() => this.query.setArgs(args));
+    });
   }
 
   saveChanges() {
-    return !this.lens || this.lens.saveChanges();
+    const lens = this.lens();
+    return !lens || lens.saveChanges();
   }
 
-  ngOnInit() {
-    this.disposers.push(autorun(() => {
-      const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
-      if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
-        this.bookmarks.filters = this.store.view.viewExtFilter;
-      }
-      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags.map(localTag)).length;
-      const args = getArgs(
-        this.store.view.tag,
-        this.store.view.sort,
-        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'] : ['query/!plugin/delete', 'user/!plugin/user/hide'], ...filters || []]) as UrlFilter[],
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
-      );
-      if (hasPrefix(this.store.view.viewExt?.tag, 'kanban') ||
-          hasPrefix(this.store.view.viewExt?.tag, 'chat')) {
-        runInAction(() => this.query.setRelatedArgs(args));
-        return;
-      }
-      runInAction(() => this.query.setArgs(args));
-    }));
-  }
-
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+  });
 
-  @HostBinding('class.no-footer-padding')
-  get noFooterPadding() {
+  readonly noFooterPadding = computed(() => {
     return this.store.view.isTemplate('kanban');
-  }
+  });
 }

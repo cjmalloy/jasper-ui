@@ -1,7 +1,7 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema } from 'jtd';
+import { cloneDeep } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { toJS } from 'mobx';
 import { Observable } from 'rxjs';
 import { Ref, RefSort, RefUpdates } from './ref';
 import { Config, EmitAction } from './tag';
@@ -189,8 +189,8 @@ export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Ele
   return {
     el,
     actions,
-    ref: toJS(ref),
-    plugin: toJS(plugin),
-    ...toJS(plugin && ref.plugins?.[plugin.tag || ''] || {}),
+    ref: cloneDeep(ref),
+    plugin: cloneDeep(plugin),
+    ...cloneDeep(plugin && ref.plugins?.[plugin.tag || ''] || {}),
   };
 }

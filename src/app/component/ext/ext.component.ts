@@ -1,31 +1,29 @@
-import { AsyncPipe } from '@angular/common';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   forwardRef,
-  HostBinding,
-  Input,
-  OnChanges,
-  QueryList,
-  SimpleChanges,
-  ViewChild,
-  ViewChildren,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  effect,
+  input,
+  linkedSignal,
+  signal,
+  viewChild,
+  viewChildren,
+  computed,
+  untracked
 } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { toJS } from 'mobx';
-import { catchError, of, switchMap, throwError } from 'rxjs';
+import { catchError, of, startWith, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { equalsExt, Ext, writeExt } from '../../model/ext';
-import { Plugin } from '../../model/plugin';
-import { Template } from '../../model/template';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -34,55 +32,62 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { tagLink } from '../../util/format';
 import { printError } from '../../util/http';
-import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, parentTag } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-ext',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
-  host: { 'class': 'ext list-item' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    'class': 'ext list-item',
+    'tabindex': '0',
+    '[class.deleted]': 'deleted()',
+    '[class.upload]': "uploadedFile()",
+    '[class.exists]': "existsFile()",
+  },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ExtFormComponent),
     RouterLink,
     TitleDirective,
     ConfirmActionComponent,
     ReactiveFormsModule,
-    AsyncPipe,
   ],
 })
-export class ExtComponent implements OnChanges, HasChanges {
-  @HostBinding('attr.tabindex') tabIndex = 0;
+export class ExtComponent implements HasChanges {
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly extInput = input.required<Ext>({ alias: 'ext' });
+  readonly ext = linkedSignal(() => this.extInput());
+  readonly extFormComponent = viewChild<ExtFormComponent>('extForm');
+  readonly useEditPage = input(false);
 
-  @Input()
-  ext!: Ext;
-  @Input()
-  useEditPage = false;
-
-  editForm!: UntypedFormGroup;
-  submitted = false;
-  invalid = false;
-  overwritten = false;
-  overwrite = true;
-  icons: Template[] = [];
-  template?: Template;
-  plugin?: Plugin;
-  editing = false;
-  viewSource = false;
-  @HostBinding('class.deleted')
-  deleted = false;
-  writeAccess = false;
-  serverError: string[] = [];
+  readonly editForm = signal<UntypedFormGroup>(undefined as unknown as UntypedFormGroup);
+  protected readonly editFormValid = controlState(() => this.editForm(), c => c.valid);
+  protected readonly editFormDirty = controlState(() => this.editForm(), c => c.dirty);
+  readonly submitted = linkedSignal(() => { this.ext(); return false; });
+  readonly invalid = linkedSignal(() => { this.ext(); return false; });
+  readonly overwritten = linkedSignal(() => { this.ext(); return false; });
+  readonly overwrite = linkedSignal(() => { this.ext(); return false; });
+  readonly icons = computed(() => [
+    ...this.admin.getTemplateView(this.ext().tag),
+    ...hasPrefix(this.ext().tag, 'user') ? [{tag: 'user', config: { view: $localize`🧑️` }}] : [],
+  ]);
+  readonly template = computed(() => this.admin.getTemplate(this.ext().tag));
+  readonly plugin = computed(() => this.admin.getPlugin(this.ext().tag));
+  readonly editing = linkedSignal(() => { this.ext(); return false; });
+  readonly viewSource = linkedSignal(() => { this.ext(); return false; });
+  readonly deleted = linkedSignal(() => { this.ext(); return false; });
+  readonly writeAccess = computed(() => this.auth.tagWriteAccess(this.qualifiedTag()));
+  readonly serverError = linkedSignal<string[]>(() => { this.ext(); return []; });
 
   private overwrittenModified? = '';
 
@@ -94,163 +99,133 @@ export class ExtComponent implements OnChanges, HasChanges {
     private editor: EditorService,
     public bookmarks: BookmarkService,
     private fb: UntypedFormBuilder,
-  ) { }
+  ) {
+    effect(() => {
+      this.extInput();
+      untracked(() => this.init());
+    });
+    effect(() => {
+      const extForm = this.extFormComponent();
+      untracked(() => extForm?.setValue(this.ext()));
+    });
+  }
 
   saveChanges() {
-    return !this.editForm?.dirty;
+    return !this.editForm()?.dirty;
   }
 
   init() {
-    MemoCache.clear(this);
-    this.submitted = false;
-    this.invalid = false;
-    this.overwrite = false;
-    this.overwritten = false;
-    this.template = this.admin.getTemplate(this.ext.tag);
-    this.plugin = this.admin.getPlugin(this.ext.tag);
-    this.editing = false;
-    this.viewSource = false;
-    this.deleted = false;
-    this.writeAccess = false;
-    this.serverError = [];
-    this.actionComponents?.forEach(c => c.reset());
-    if (this.ext) {
-      this.icons = this.admin.getTemplateView(this.ext.tag);
-      if (hasPrefix(this.ext.tag, 'user')) {
-        this.icons.push({tag: 'user', config: { view: $localize`🧑️` }});
-      }
-      this.editForm = extForm(this.fb, this.ext, this.admin, true);
-      this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag);
-    } else {
-      this.icons = [];
-      this.writeAccess = false;
+    this.actionComponents()?.forEach(c => c.reset());
+    if (this.ext()) {
+      this.editForm.set(extForm(this.fb, this.ext(), this.admin, true));
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ext) {
-      this.init();
-    }
-  }
+  readonly uploadedFile = computed(() => {
+    return this.ext().upload;
+  });
 
-  @HostBinding('class.upload')
-  get uploadedFile() {
-    return this.ext.upload;
-  }
+  readonly existsFile = computed(() => {
+    return this.ext().exists;
+  });
 
-  @HostBinding('class.exists')
-  get existsFile() {
-    return this.ext.exists;
-  }
-
-  @ViewChild('extForm')
-  set extForm(value: ExtFormComponent) {
-    value?.setValue(toJS(this.ext));
-  }
-
-  @memo
-  get qualifiedTag() {
-    return this.ext.tag + this.ext.origin;
-  }
-
-  @memo
-  get parent() {
-    const p = parentTag(this.ext.tag);
+  readonly qualifiedTag = computed(() => {
+    return this.ext().tag + this.ext().origin;
+  });
+  readonly parent = computed(() => {
+    const p = parentTag(this.ext().tag);
     if (!p) return p;
-    return tagLink(p, this.ext.origin, this.store.account.origin);
-  }
-
-  @memo
-  get local() {
-    return this.ext.origin === this.store.account.origin;
-  }
-
-  @memo
-  get extLink() {
-    if (this.admin.local.find(t => hasPrefix(this.ext.tag, t.tag))) return this.ext.tag + (this.ext.origin || '@');
-    return tagLink(this.ext.tag, this.ext.origin, this.store.account.origin);
-  }
-
-  @memo
-  get preview() {
-    return this.editor.getTagPreview(this.ext.tag, this.ext.origin);
-  }
+    return tagLink(p, this.ext().origin, this.store.account.origin());
+  });
+  readonly local = computed(() => {
+    return this.ext().origin === this.store.account.origin();
+  });
+  readonly extLink = computed(() => {
+    if (this.admin.local().find(t => hasPrefix(this.ext().tag, t.tag))) return this.ext().tag + (this.ext().origin || '@');
+    return tagLink(this.ext().tag, this.ext().origin, this.store.account.origin());
+  });
+  readonly preview = toSignal(toObservable(computed(() => ({
+    tag: this.ext().tag, origin: this.ext().origin,
+  }))).pipe(switchMap(({ tag, origin }) => this.editor.getTagPreview(tag, origin).pipe(startWith(undefined)))), { initialValue: undefined });
 
   save() {
-    this.submitted = true;
-    this.editForm.markAllAsTouched();
-    if (!this.editForm.valid) {
+    this.submitted.set(true);
+    this.editForm().markAllAsTouched();
+    if (!this.editForm().valid) {
       scrollToFirstInvalid();
       return;
     }
     let ext = {
-      ...this.editForm.value,
-      tag: this.ext.tag, // Need to fetch because control is disabled
-      modifiedString: this.overwrite ? this.overwrittenModified : this.ext.modifiedString,
+      ...this.editForm().value,
+      tag: this.ext().tag, // Need to fetch because control is disabled
+      modifiedString: this.overwrite() ? this.overwrittenModified : this.ext().modifiedString,
     };
-    const config = this.ext.config;
+    const config = this.ext().config;
     ext = {
-      ...this.ext,
+      ...this.ext(),
       ...ext,
       config: {
         ...isObject(config) ? config : {},
         ...ext.config,
       },
     };
-    if (this.ext.upload) {
+    if (this.ext().upload) {
       ext.upload = true;
-      this.ext = ext;
-      this.store.submit.setExt(this.ext);
+      this.ext.set(ext);
+      this.store.submit.setExt(this.ext());
     } else {
       this.exts.update(ext).pipe(
-        switchMap(() => this.exts.get(this.qualifiedTag)),
+        switchMap(() => this.exts.get(this.qualifiedTag())),
         catchError((res: HttpErrorResponse) => {
           if (res.status === 400) {
-            this.invalid = true;
+            this.invalid.set(true);
             console.log(res.message);
             // TODO: read res.message to find which fields to delete
           }
           if (res.status === 409) {
-            this.overwritten = true;
-            this.exts.get(this.qualifiedTag).subscribe(x => this.overwrittenModified = x.modifiedString);
+            this.overwritten.set(true);
+            this.exts.get(this.qualifiedTag()).subscribe(x => this.overwrittenModified = x.modifiedString);
           }
-          this.serverError = printError(res);
+          this.serverError.set(printError(res));
           return throwError(() => res);
         }),
       ).subscribe(ext => {
-        this.editForm.reset();
-        this.ext = ext;
+        this.editForm().reset();
+        this.ext.set(ext);
         this.init();
       });
     }
   }
 
   upload() {
-    (this.store.submit.overwrite
-      ? this.exts.update({ ...this.ext, origin: this.store.account.origin })
-      : this.exts.create({ ...this.ext, origin: this.store.account.origin })).pipe(
+    (this.store.submit.overwrite()
+      ? this.exts.update({ ...this.ext(), origin: this.store.account.origin() })
+      : this.exts.create({ ...this.ext(), origin: this.store.account.origin() })).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     ).subscribe(cursor => {
-      this.ext.modifiedString = cursor;
-      this.ext.modified = DateTime.fromISO(cursor);
-      this.ext.origin = this.store.account.origin;
-      this.store.submit.removeExt(this.ext);
+      this.ext.set({
+        ...this.ext(),
+        modifiedString: cursor,
+        modified: DateTime.fromISO(cursor),
+        origin: this.store.account.origin(),
+      });
+      this.store.submit.removeExt(this.ext());
       this.init();
     });
   }
 
   copy() {
     const copied: Ext = {
-      ...this.ext,
-      origin: this.store.account.origin,
+      ...this.ext(),
+      origin: this.store.account.origin(),
     };
     this.exts.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          return this.exts.get(this.qualifiedTag).pipe(
+          return this.exts.get(this.qualifiedTag()).pipe(
             switchMap(ext => {
               if (equalsExt(ext, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
@@ -261,31 +236,31 @@ export class ExtComponent implements OnChanges, HasChanges {
             })
           );
         }
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.exts.get(this.ext.tag + this.store.account.origin)),
+      switchMap(() => this.exts.get(this.ext().tag + this.store.account.origin())),
     ).subscribe(ext => {
-      this.ext = ext;
+      this.ext.set(ext);
       this.init();
     });
   }
 
   delete$ = () => {
-    this.serverError = [];
-    if (this.ext.upload) {
-      this.store.submit.removeExt(this.ext);
-      this.deleted = true;
+    this.serverError.set([]);
+    if (this.ext().upload) {
+      this.store.submit.removeExt(this.ext());
+      this.deleted.set(true);
       return of(null);
     } else {
-      const deleteNotice = !isDeletorTag(this.ext.tag) && this.admin.getPlugin('plugin/delete')
-        ? this.exts.create(tagDeleteNotice(this.ext))
+      const deleteNotice = !isDeletorTag(this.ext().tag) && this.admin.getPlugin('plugin/delete')
+        ? this.exts.create(tagDeleteNotice(this.ext()))
         : of(null);
-      return this.exts.delete(this.qualifiedTag).pipe(
-        tap(() => this.deleted = true),
+      return this.exts.delete(this.qualifiedTag()).pipe(
+        tap(() => this.deleted.set(true)),
         switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
-          this.serverError = printError(err);
+          this.serverError.set(printError(err));
           return throwError(() => err);
         }),
       );
@@ -293,6 +268,6 @@ export class ExtComponent implements OnChanges, HasChanges {
   }
 
   download() {
-    downloadTag(writeExt(this.ext));
+    downloadTag(writeExt(this.ext()));
   }
 }

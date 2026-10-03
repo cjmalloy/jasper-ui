@@ -1,4 +1,5 @@
-import { Component, HostBinding, Input, ChangeDetectionStrategy } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { computed, Component, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -15,19 +16,19 @@ import { URI_REGEX } from '../../util/format';
   selector: 'app-links',
   templateUrl: './links.component.html',
   styleUrls: ['./links.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: { 'class': 'form-group' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class LinksFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
+
   static validators = [Validators.pattern(URI_REGEX)];
-  @HostBinding('class') css = 'form-group';
 
-  @Input()
-  group?: UntypedFormGroup;
-  @Input()
-  fieldName = 'links';
+  readonly group = input<UntypedFormGroup | undefined>(undefined);
+  readonly fieldName = input('links');
 
-  model: string[] = [];
+  readonly model = signal<string[]>([]);
   field = {
     type: 'refs',
     props: {
@@ -44,61 +45,56 @@ export class LinksFormComponent {
     },
   };
 
+  readonly emoji = input<string | undefined>(undefined);
+  readonly label = input<string | undefined>(undefined);
+  readonly showLabel = input<boolean | undefined>(undefined);
+  readonly add = input<string | undefined>(undefined);
+  readonly showAdd = input<boolean | undefined>(undefined);
+
   constructor(
     private fb: FormBuilder,
-  ) { }
-
-  @Input()
-  set emoji(value: string) {
-    this.field.fieldArray.props.label = value;
+  ) {
+    effect(() => {
+      const emoji = this.emoji();
+      if (emoji !== undefined) this.field.fieldArray.props.label = emoji;
+      const label = this.label();
+      if (label !== undefined) this.field.props.label = label;
+      const showLabel = this.showLabel();
+      if (showLabel !== undefined) this.field.props.showLabel = showLabel;
+      const add = this.add();
+      if (add !== undefined) this.field.props.addText = add;
+      const showAdd = this.showAdd();
+      if (showAdd !== undefined) this.field.props.showAdd = showAdd;
+    });
   }
 
-  @Input()
-  set label(value: string) {
-    this.field.props.label = value;
-  }
-
-  @Input()
-  set showLabel(value: boolean) {
-    this.field.props.showLabel = value;
-  }
-
-  @Input()
-  set add(value: string) {
-    this.field.props.addText = value;
-  }
-
-  @Input()
-  set showAdd(value: boolean) {
-    this.field.props.showAdd = value;
-  }
-
-  get links() {
-    return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
-  }
+  readonly links = computed(() => {
+    this.rootControlState();
+    return this.group()?.get(this.fieldName()) as UntypedFormArray | undefined;
+  });
 
   setLinks(values: string[]) {
-    this.model = values;
-    if (!this.links) return;
-    while (this.links.length > values.length) this.links.removeAt(this.links.length - 1, { emitEvent: false });
-    while (this.links.length < values.length) this.links.push(this.fb.control(''), { emitEvent: false });
-    this.links.setValue(values);
+    this.model.set(values);
+    const links = this.links();
+    if (!links) return;
+    while (links.length > values.length) links.removeAt(links.length - 1, { emitEvent: false });
+    while (links.length < values.length) links.push(this.fb.control(''), { emitEvent: false });
+    links.setValue(values);
   }
 
   addLink(...values: string[]) {
     if (!values.length) return;
-    this.model = this.links!.value;
+    this.model.set(this.links()!.value);
     this.field.fieldArray.focus = true;
     for (const value of values) {
       if (value) this.field.fieldArray.focus = false;
-      if (value && value !== 'placeholder' && this.model.includes(value)) return;
-      this.model.push(value);
+      if (value && value !== 'placeholder' && this.model().includes(value)) return;
+      this.model.update(model => [...model, value]);
     }
   }
 
   removeLink(index: number) {
-    if (!this.links) return;
-    this.links.removeAt(index);
+    this.links()?.removeAt(index);
   }
 }
 

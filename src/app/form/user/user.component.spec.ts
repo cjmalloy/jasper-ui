@@ -28,7 +28,7 @@ describe('UserFormComponent', () => {
 
     fixture = TestBed.createComponent(UserFormComponent);
     component = fixture.componentInstance;
-    component.group = new UntypedFormGroup({
+    fixture.componentRef.setInput('group', new UntypedFormGroup({
       tag: new UntypedFormControl(),
       name: new UntypedFormControl(),
       role: new UntypedFormControl(),
@@ -38,7 +38,7 @@ describe('UserFormComponent', () => {
       writeAccess: new UntypedFormArray([]),
       tagReadAccess: new UntypedFormArray([]),
       tagWriteAccess: new UntypedFormArray([]),
-    });
+    }));
     fixture.detectChanges();
   });
 

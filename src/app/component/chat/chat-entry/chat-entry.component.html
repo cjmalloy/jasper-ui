@@ -1,10 +1,10 @@
-@if (ref.created) {
+@if (ref().created) {
   <span class="gutter"
-        [class.deleted]="deleted">
-    @if (ref.origin && !authors.length) {
-      <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
+        [class.deleted]="deleted()">
+    @if (ref().origin && !authors().length) {
+      <a class="origin tag" [routerLink]="['/tag', ref().origin]">{{ ref().origin }}</a>
     }
-    @if (authorExts$ | async; as xs) {
+    @if (authorExts(); as xs) {
       @for (x of xs; track x.tag + x.origin) {
         <a class="user tag"
            [title]="formatAuthor(x.tag + x.origin)"
@@ -12,81 +12,81 @@
            [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
       }
     } @else {
-      @for (t of authors; track t) {
+      @for (t of authors(); track t) {
         <a class="user tag"
            [title]="formatAuthor(t)"
            [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
       }
     }
-    <span class="timestamp" [title]="ref.modified?.toISO()">{{ ref.modified?.toRelative() }}</span>
+    <span class="timestamp" [title]="ref().modified?.toISO()">{{ ref().modified | relative }}</span>
     &nbsp;|&nbsp;
   </span>
-} @else if (loading) {
+} @else if (loading()) {
   <div class="loading-container"><app-loading></app-loading></div>
 }
 <span class="message"
-      [class.bubble]="focused"
-      [class.focused]="focused"
-      [class.deleted]="deleted"
-      [class.sending]="!ref.created"
-      (pointerenter)="allowActions = true"
-      (pointerleave)="allowActions = false">
-  <div class="content" [class.has-title]="clickableLink || title && !focused">
-    @if (tagLink) {
-      <app-nav [url]="ref.url" [text]="title"></app-nav>
-    } @else if (clickableLink && (title && !focused || !media)) {
-      <app-nav [url]="ref.url" [text]="title" [external]="true"></app-nav>
+      [class.bubble]="focused()"
+      [class.focused]="focused()"
+      [class.deleted]="deleted()"
+      [class.sending]="!ref().created"
+      (pointerenter)="setHovering(true)"
+      (pointerleave)="setHovering(false)">
+  <div class="content" [class.has-title]="clickableLink() || title() && !focused()">
+    @if (tagLink()) {
+      <app-nav [url]="ref().url" [text]="title()"></app-nav>
+    } @else if (clickableLink() && (title() && !focused() || !media())) {
+      <app-nav [url]="ref().url" [text]="title()" [external]="true"></app-nav>
     } @else {
-      <span>{{ title }}</span>
+      <span>{{ title() }}</span>
     }
-    @if (focused && bareRef?.comment) {
-      <app-md [origin]="ref.origin!"
-              [text]="bareRef!.comment!"
-              [plugins]="bareRef!.tags!"></app-md>
+    @if (focused() && bareRef()?.comment) {
+      <app-md [origin]="ref().origin!"
+              [text]="bareRef()!.comment!"
+              [plugins]="bareRef()!.tags!"></app-md>
     }
-    <app-viewer [ref]="noComment"></app-viewer>
+    <app-viewer [ref]="noComment()"></app-viewer>
   </div>
-  @if (ref.created) {
-    <div class="actions" [style.pointer-events]="allowActions ? 'auto' : 'none'">
-      @if (threads) {
-        <a  [routerLink]="['/ref', ref.url, 'thread']"
-            [queryParams]="{ origin: nonLocalOrigin }"
+  @if (ref().created) {
+    <div class="actions" [style.pointer-events]="allowActions() ? 'auto' : 'none'">
+      @if (threads()) {
+        <a  [routerLink]="['/ref', ref().url, 'thread']"
+            [queryParams]="{ origin: nonLocalOrigin() }"
             (click)="saveRef()"
             i18n>sidebar</a>
-      } @else if (comments) {
-        <a  [routerLink]="['/ref', ref.url, 'comments']"
-            [queryParams]="{ origin: nonLocalOrigin }"
+      } @else if (comments()) {
+        <a  [routerLink]="['/ref', ref().url, 'comments']"
+            [queryParams]="{ origin: nonLocalOrigin() }"
             (click)="saveRef()"
-            i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
-      } @else if (chatroom) {
-        <a [routerLink]="['/ref', ref.url]"
-           [queryParams]="{ origin: nonLocalOrigin }"
+            i18n>{comments(), plural, =1 {1&thinsp;comment} other {{{ comments() }}&thinsp;comments}}</a>
+      } @else if (chatroom()) {
+        <a [routerLink]="['/ref', ref().url]"
+           [queryParams]="{ origin: nonLocalOrigin() }"
            (click)="saveRef()"
            i18n>sidebar</a>
       } @else {
-        <a [routerLink]="['/ref', ref.url]"
-           [queryParams]="{ origin: nonLocalOrigin }"
+        <a [routerLink]="['/ref', ref().url]"
+           [queryParams]="{ origin: nonLocalOrigin() }"
            (click)="saveRef()"
            i18n>permalink</a>
       }
-      @if (store.account.mod || taggingAccess) {
+      @if (store.account.mod() || taggingAccess()) {
         <app-confirm-action #action
-                            [class.force-delete]="deleteAccess"
-                            [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
+                            [class.force-delete]="deleteAccess()"
+                            [action]="store.hotkey() ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
       }
-      @if (taggingAccess) {
-        <app-inline-tag #action [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
+      @if (taggingAccess()) {
+        <app-inline-tag #action [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>
       }
-      @if (!ref.origin && store.account.mod && !approved && !locked) {
+      @if (!ref().origin && store.account.mod() && !approved() && !locked()) {
         <a class="fake-link" (click)="approve()" i18n>approve</a>
       }
-      @if (store.account.mod && approved) {
+      @if (store.account.mod() && approved()) {
         <span class="approved icon" i18n-title title="Moderated" i18n>✔️</span>
       }
     </div>
   }
 </span>
-@for (e of serverError; track e) {
+@for (e of serverError(); track e) {
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
 }

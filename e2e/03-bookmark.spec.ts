@@ -1,5 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
-import { mod, openSidebar } from './setup';
+import { expect, type Page } from '@playwright/test';
+import { mod, openSidebar, test } from './setup';
 
 test.describe.serial('Bookmark Formly Type', () => {
 

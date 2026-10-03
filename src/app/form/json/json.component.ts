@@ -1,6 +1,7 @@
-import { Component, Input, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { isEqual } from 'lodash-es';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { autorun, IReactionDisposer } from 'mobx';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
@@ -11,38 +12,25 @@ import { Store } from '../../store/store';
   templateUrl: './json.component.html',
   styleUrls: ['./json.component.scss'],
   host: { 'class': 'json-editor' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
-export class JsonComponent implements OnDestroy {
+export class JsonComponent {
+  private readonly rootControlState = controlValue(() => this.group());
 
-  private disposers: IReactionDisposer[] = [];
 
-  @Input()
-  group!: UntypedFormGroup;
-  @Input()
-  fieldName = 'source';
+  readonly group = input.required<UntypedFormGroup>();
+  readonly fieldName = input('source');
 
-  options: any = {
+  readonly options = computed(() => ({
     language: 'json',
     automaticLayout: true,
-  };
+    theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
+  }), { equal: isEqual });
 
   constructor(
     public config: ConfigService,
     private store: Store,
-  ) {
-    this.disposers.push(autorun(() => {
-      this.options = {
-        ...this.options,
-        theme: store.darkTheme ? 'vs-dark' : 'vs',
-      }
-    }));
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+  ) { }
 
 }

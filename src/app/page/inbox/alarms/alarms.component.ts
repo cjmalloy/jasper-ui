@@ -1,7 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, DestroyRef, inject } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -15,15 +13,12 @@ import { getArgs } from '../../../util/query';
   templateUrl: './alarms.component.html',
   styleUrls: ['./alarms.component.scss'],
   host: { 'class': 'alarms' },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, RefListComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RefListComponent]
 })
-export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
+export class InboxAlarmsPage implements HasChanges {
 
-  private disposers: IReactionDisposer[] = [];
-
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
   constructor(
     private mod: ModService,
@@ -34,29 +29,25 @@ export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Inbox: Alarms`);
     store.view.clear(['modified']);
     query.clear();
+    effect(() => {
+      const args = getArgs(
+        this.store.account.alarms().length ? this.store.account.alarms().join('|') : '!@*',
+        this.store.view.sort(),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
+      );
+      defer(() => this.query.setArgs(args));
+    });
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
-      const args = getArgs(
-        this.store.account.alarms.length ? this.store.account.alarms.join('|') : '!@*',
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
-      );
-      defer(() => this.query.setArgs(args));
-    }));
-  }
-
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+  });
 }

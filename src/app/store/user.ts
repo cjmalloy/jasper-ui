@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
-import { makeAutoObservable, observableStruct, runInAction } from 'mobx';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { TagPageArgs } from '../model/tag';
@@ -13,25 +12,20 @@ import { UserService } from '../service/api/user.service';
 })
 export class UserStore {
 
-  args?: TagPageArgs = {} as any;
-  page?: Page<User> = {} as any;
-  error?: HttpErrorResponse = {} as any;
+  readonly args = signal<TagPageArgs | undefined>(undefined, { equal: isEqual });
+  readonly page = signal<Page<User> | undefined>(undefined);
+  readonly error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
 
   constructor(
     private users: UserService,
-  ) {
-    makeAutoObservable(this, {
-      args: observableStruct,
-    });
-    this.clear(); // Initial observables may not be null for MobX
-  }
+  ) { }
 
   clear() {
-    this.args = undefined;
-    this.page = undefined;
-    this.error = undefined;
+    this.args.set(undefined);
+    this.page.set(undefined);
+    this.error.set(undefined);
     this.running?.unsubscribe();
   }
 
@@ -40,20 +34,21 @@ export class UserStore {
   }
 
   setArgs(args: TagPageArgs) {
-    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
-    this.args = args;
+    if (!isEqual(omit(this.args(), 'search'), omit(args, 'search'))) this.clear();
+    this.args.set(args);
     this.refresh();
   }
 
   refresh() {
-    if (!this.args) return;
+    const args = this.args();
+    if (!args) return;
     this.running?.unsubscribe();
-    this.running = this.users.page(this.args).pipe(
+    this.running = this.users.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        this.error.set(err);
         return EMPTY;
       }),
-    ).subscribe(p => runInAction(() => this.page = p));;
+    ).subscribe(p => this.page.set(p));
   }
 
 }

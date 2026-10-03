@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { computed, ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, untracked, viewChild, viewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -14,48 +14,54 @@ import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { printError } from '../../util/http';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { LoadingComponent } from '../loading/loading.component';
+import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-template',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent, DiffComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    RelativePipe,FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent, DiffComponent],
+  host: {
+    '[attr.tabindex]': '0',
+    '[class.deleted]': 'deleted()',
+    '[class]': "pluginClass()",
+  },
 })
-export class TemplateComponent implements OnChanges, HasChanges {
+export class TemplateComponent implements HasChanges {
   css = 'template list-item';
-  @HostBinding('attr.tabindex') tabIndex = 0;
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
-  @ViewChild('diffEditor')
-  diffEditor?: DiffComponent<Template>;
-
-  @Input()
-  template!: Template;
+  readonly templateInput = input<Template>({} as Template, { alias: 'template' });
+  readonly template = linkedSignal(() => this.templateInput());
+  readonly deleted = linkedSignal(() => { this.template(); return false; });
+  readonly serverError = linkedSignal<string[]>(() => { this.template(); return []; });
+  readonly configErrors = linkedSignal<string[]>(() => { this.template(); return []; });
+  readonly defaultsErrors = linkedSignal<string[]>(() => { this.template(); return []; });
+  readonly schemaErrors = linkedSignal<string[]>(() => { this.template(); return []; });
+  readonly saving = signal(false);
+  private savingSubscription?: Subscription;
 
   editForm: UntypedFormGroup;
-  submitted = false;
-  editing = false;
-  viewSource = false;
-  diffing = false;
-  diffLocal?: Template;
-  diffRemote?: Template;
-  @HostBinding('class.deleted')
-  deleted = false;
-  serverError: string[] = [];
-  configErrors: string[] = [];
-  defaultsErrors: string[] = [];
-  schemaErrors: string[] = [];
-  saving?: Subscription;
-  loadingDiff?: Subscription;
+  protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
+  protected readonly editFormDirty = controlState(() => this.editForm, c => c.dirty);
+  readonly submitted = linkedSignal(() => { this.template(); return false; });
+  readonly editing = linkedSignal(() => { this.template(); return false; });
+  readonly viewSource = linkedSignal(() => { this.template(); return false; });
+  readonly diffing = linkedSignal(() => { this.template(); return false; });
+  readonly diffLocal = signal<Template | undefined>(undefined);
+  readonly diffRemote = signal<Template | undefined>(undefined);
+  private loadingDiff?: Subscription;
+
+  readonly diffEditor = viewChild<DiffComponent<Template>>('diffEditor');
 
   constructor(
     public admin: AdminService,
@@ -64,183 +70,184 @@ export class TemplateComponent implements OnChanges, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = templateForm(fb);
-  }
-
-  saveChanges() {
-    return !this.editing || !this.editForm.dirty;
-  }
-
-  init(): void {
-    this.actionComponents?.forEach(c => c.reset());
-    this.editForm.patchValue({
-      ...this.template,
-      config: this.template.config ? JSON.stringify(this.template.config, null, 2) : undefined,
-      defaults: this.template.defaults ? JSON.stringify(this.template.defaults, null, 2) : undefined,
-      schema: this.template.schema ? JSON.stringify(this.template.schema, null, 2) : undefined,
+    effect(() => {
+      this.templateInput();
+      untracked(() => this.init());
     });
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.template) {
-      this.init();
-    }
+  saveChanges() {
+    return !this.editing() || !this.editForm.dirty;
   }
 
-  @HostBinding('class')
-  get pluginClass() {
-    return this.css + ' ' + this.template.tag
+  init(): void {
+    this.actionComponents()?.forEach(c => c.reset());
+    this.editForm.patchValue({
+      ...this.template(),
+      config: this.template().config ? JSON.stringify(this.template().config, null, 2) : undefined,
+      defaults: this.template().defaults ? JSON.stringify(this.template().defaults, null, 2) : undefined,
+      schema: this.template().schema ? JSON.stringify(this.template().schema, null, 2) : undefined,
+    });
+  }
+
+  readonly pluginClass = computed(() => {
+    return this.css + ' ' + (this.template().tag || '')
       .replace(/[+_]/g, '')
       .replace(/\//g, '_')
       .replace(/\./g, '-');
-  }
+  });
 
-  get created() {
-    return !!this.template.modified;
-  }
+  readonly created = computed(() => {
+    return !!this.template().modified;
+  });
 
-  get qualifiedTag() {
-    return this.template.tag + this.origin;
-  }
+  readonly qualifiedTag = computed(() => {
+    return this.template().tag + this.origin();
+  });
 
-  get origin() {
-    return this.template.origin || '';
-  }
+  readonly origin = computed(() => {
+    return this.template().origin || '';
+  });
 
-  get local() {
-    return this.origin === this.store.account.origin;
-  }
+  readonly local = computed(() => {
+    return this.origin() === this.store.account.origin();
+  });
 
-  get canDiff() {
-    return !this.local && this.created && !!this.admin.getTemplate('config/diff');
-  }
+  readonly canDiff = computed(() => {
+    return !this.local() && this.created() && !!this.admin.getTemplate('config/diff');
+  });
 
   toggleDiff() {
-    if (this.diffing || this.loadingDiff) {
+    if (this.diffing() || this.loadingDiff) {
       this.loadingDiff?.unsubscribe();
       delete this.loadingDiff;
-      this.diffing = false;
+      this.diffing.set(false);
       return;
     }
-    this.serverError = [];
-    this.viewSource = false;
-    this.loadingDiff = this.templates.get(this.template.tag + this.store.account.origin).pipe(
+    this.serverError.set([]);
+    this.viewSource.set(false);
+    this.loadingDiff = this.templates.get(this.template().tag + this.store.account.origin()).pipe(
       catchError((err: HttpErrorResponse) => {
         delete this.loadingDiff;
-        this.serverError = err.status === 404
+        this.serverError.set(err.status === 404
           ? [$localize`No local version found.`]
-          : printError(err);
+          : printError(err));
         return throwError(() => err);
       }),
     ).subscribe(local => {
       delete this.loadingDiff;
-      this.diffLocal = local;
-      this.diffRemote = this.template;
-      this.editing = false;
-      this.viewSource = false;
-      this.diffing = true;
+      this.diffLocal.set(local);
+      this.diffRemote.set(this.template());
+      this.editing.set(false);
+      this.viewSource.set(false);
+      this.diffing.set(true);
     });
   }
 
   saveDiff() {
-    const merged = this.diffEditor?.getModifiedContent();
-    if (!merged || !this.diffLocal) return;
-    this.saving = this.templates.update({
+    const merged = this.diffEditor()?.getModifiedContent();
+    const local = this.diffLocal();
+    if (!merged || !local) return;
+    this.saving.set(true);
+    this.savingSubscription = this.templates.update({
       ...merged,
-      tag: this.diffLocal.tag,
-      origin: this.store.account.origin,
-      modifiedString: this.diffLocal.modifiedString,
+      tag: local.tag,
+      origin: this.store.account.origin(),
+      modifiedString: local.modifiedString,
     }).pipe(
       catchError((err: HttpErrorResponse) => {
-        delete this.saving;
-        this.serverError = printError(err);
+        this.saving.set(false);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     ).subscribe(() => {
-      delete this.saving;
-      this.serverError = [];
-      this.diffing = false;
+      this.saving.set(false);
+      this.serverError.set([]);
+      this.diffing.set(false);
     });
   }
 
   save() {
-    this.submitted = true;
+    this.submitted.set(true);
     this.editForm.markAllAsTouched();
     if (!this.editForm.valid) {
       scrollToFirstInvalid();
       return;
     }
     const template = {
-      ...this.template,
+      ...this.template(),
       ...this.editForm.value,
     };
-    this.configErrors = [];
-    this.defaultsErrors = [];
-    this.schemaErrors = [];
+    this.configErrors.set([]);
+    this.defaultsErrors.set([]);
+    this.schemaErrors.set([]);
     try {
       if (!template.config) delete template.config;
       if (template.config) template.config = JSON.parse(template.config);
     } catch (e: any) {
-      this.configErrors.push(e.message);
+      this.configErrors.update(configErrors => [...configErrors, e.message]);
     }
     try {
       if (!template.defaults) delete template.defaults;
       if (template.defaults) template.defaults = JSON.parse(template.defaults);
     } catch (e: any) {
-      this.defaultsErrors.push(e.message);
+      this.defaultsErrors.update(defaultsErrors => [...defaultsErrors, e.message]);
     }
     try {
       if (!template.schema) delete template.schema;
       if (template.schema) template.schema = JSON.parse(template.schema);
     } catch (e: any) {
-      this.schemaErrors.push(e.message);
+      this.schemaErrors.update(schemaErrors => [...schemaErrors, e.message]);
     }
-    if (this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length) return;
-    this.saving = this.templates.update(template).pipe(
-      switchMap(() => this.templates.get(this.qualifiedTag)),
+    if (this.configErrors().length || this.defaultsErrors().length || this.schemaErrors().length) return;
+    this.saving.set(true);
+    this.savingSubscription = this.templates.update(template).pipe(
+      switchMap(() => this.templates.get(this.qualifiedTag())),
       catchError((err: HttpErrorResponse) => {
-        delete this.saving;
-        this.serverError = printError(err);
+        this.saving.set(false);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     ).subscribe(template => {
-      delete this.saving;
+      this.saving.set(false);
       this.editForm.reset();
-      this.serverError = [];
-      this.editing = false;
-      this.template = template;
+      this.serverError.set([]);
+      this.editing.set(false);
+      this.template.set(template);
     });
+    this.savingSubscription?.add(() => this.saving.set(false));
   }
 
   copy$ = () => {
     return this.templates.create({
-      ...this.template,
-      origin: this.store.account.origin,
+      ...this.template(),
+      origin: this.store.account.origin(),
     }).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );
   }
 
   delete$ = () => {
-    const deleteNotice = !isDeletorTag(this.template.tag) && this.admin.getPlugin('plugin/delete')
-      ? this.templates.create(tagDeleteNotice(this.template))
+    const deleteNotice = !isDeletorTag(this.template().tag) && this.admin.getPlugin('plugin/delete')
+      ? this.templates.create(tagDeleteNotice(this.template()))
       : of(null);
-    return this.templates.delete(this.qualifiedTag).pipe(
+    return this.templates.delete(this.qualifiedTag()).pipe(
       switchMap(() => deleteNotice),
       tap(() => {
-        this.serverError = [];
-        this.deleted = true;
+        this.serverError.set([]);
+        this.deleted.set(true);
       }),
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );
   }
 
   download() {
-    downloadTag(writeTemplate(this.template));
+    downloadTag(writeTemplate(this.template()));
   }
 }

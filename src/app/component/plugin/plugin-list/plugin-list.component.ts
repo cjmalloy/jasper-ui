@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { Component, effect, input, ChangeDetectionStrategy, viewChildren, untracked } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -12,34 +12,32 @@ import { PluginComponent } from '../plugin.component';
   templateUrl: './plugin-list.component.html',
   styleUrls: ['./plugin-list.component.scss'],
   host: { 'class': 'plugin-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PluginComponent, PageControlsComponent, LoadingComponent]
 })
 export class PluginListComponent implements HasChanges {
 
-  @ViewChildren(PluginComponent)
-  list?: QueryList<PluginComponent>;
+  readonly list = viewChildren(PluginComponent);
 
-  private _page?: Page<Plugin>;
+  readonly page = input<Page<Plugin> | undefined>();
 
-  constructor(private router: Router) { }
+  constructor(private router: Router) {
+    effect(() => {
+      const value = this.page();
+      untracked(() => this.checkPage(value));
+    });
+  }
 
   saveChanges() {
-    return !this.list?.find(p => !p.saveChanges());
+    return !this.list()?.find(p => !p.saveChanges());
   }
 
-  get page() {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Plugin> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
+  private checkPage(page: Page<Plugin> | undefined) {
+    if (page) {
+      if (page.page.number > 0 && page.page.number >= page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.page.totalPages - 1
+            pageNumber: page.page.totalPages - 1
           },
           queryParamsHandling: "merge",
         });

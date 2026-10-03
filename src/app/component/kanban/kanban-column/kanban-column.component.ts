@@ -6,19 +6,17 @@ import { HttpEventType } from '@angular/common/http';
 import {
   DestroyRef,
   inject,
-  AfterViewInit,
   Component,
-  HostBinding,
-  HostListener,
-  Input,
-  NgZone,
-  OnChanges,
-  SimpleChanges,
-  ChangeDetectionStrategy
+  computed,
+  effect,
+  untracked,
+  ChangeDetectionStrategy,
+  input,
+  signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
-import { isEqual, uniq } from 'lodash-es';
+import { isEqual, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, last, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -55,8 +53,18 @@ interface PendingUpload {
   selector: 'app-kanban-column',
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss'],
-  host: { 'class': 'kanban-column' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    'class': 'kanban-column',
+    '[class.dropping]': 'dropping()',
+    '[class.empty]': 'empty()',
+    '(touchstart)': 'touchstart($event)',
+    '(contextmenu)': 'contextmenu($event)',
+    '(drop)': 'handleDrop($event)',
+    '(dragenter)': 'handleDragEnter($event)',
+    '(dragover)': 'handleDragOver($event)',
+    '(dragleave)': 'dragLeave($event)',
+  },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     KanbanCardComponent,
@@ -65,42 +73,43 @@ interface PendingUpload {
     ReactiveFormsModule,
   ],
 })
-export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChanges {
+export class KanbanColumnComponent implements HasChanges {
   private destroyRef = inject(DestroyRef);
 
-  @Input()
-  query = '';
-  @Input()
-  hideSwimLanes = true;
-  @Input()
-  updates?: Observable<KanbanDrag>;
-  @Input()
-  addTags: string[] = [];
-  @Input()
-  ext?: Ext;
-  @Input()
-  size = 8;
-  @Input()
-  sort: RefSort[] = [];
-  @Input()
-  filter: UrlFilter[] = [];
-  @Input()
-  search = '';
+  readonly query = input('');
+  readonly hideSwimLanes = input(true);
+  readonly updates = input<Observable<KanbanDrag>>();
+  readonly addTags = input<string[]>([]);
+  readonly ext = input<Ext>();
+  readonly size = input(8);
+  readonly sort = input<RefSort[]>([]);
+  readonly filter = input<UrlFilter[]>([]);
+  readonly search = input('');
 
-  page?: Page<Ref>;
-  mutated = false;
-  addText = '';
-  pressToUnlock = false;
-  adding: PendingUpload[] = [];
-  failed: { text: string; error: string }[] = [];
-  @HostBinding('class.dropping')
-  dropping = false;
+  readonly page = signal<Page<Ref> | undefined>(undefined);
+  readonly mutated = signal(false);
+  readonly addText = signal('');
+  readonly pressToUnlock = signal(false);
+  readonly adding = signal<PendingUpload[]>([]);
+  readonly failed = signal<{ text: string; error: string }[]>([]);
+  readonly dropping = signal(false);
+
+
+
+
+
+
+
 
   private currentRequest?: Subscription;
   private runningSources?: Subscription;
   private runningResponses?: Subscription;
-  private _sort: RefSort[] = [];
-  private _filter: UrlFilter[] = [];
+  private readonly requestInputs = computed(() => ({
+    query: this.query(),
+    size: this.size(),
+    sort: [...this.sort()],
+    filter: [...this.filter()],
+  }), { equal: isEqual });
 
   constructor(
     public config: ConfigService,
@@ -110,85 +119,73 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     private oembeds: OembedStore,
     private refs: RefService,
     private tags: TaggingService,
-    private zone: NgZone,
     private proxy: ProxyService,
   ) {
     if (config.mobile) {
-      this.pressToUnlock = true;
+      this.pressToUnlock.set(true);
     }
+    let previous: ReturnType<typeof this.requestInputs> | undefined;
+    effect(() => {
+      const inputs = this.requestInputs();
+      this.search();
+      untracked(() => this.clear(inputs !== previous));
+      previous = inputs;
+    });
+    effect(onCleanup => {
+      const subscription = this.updates()?.subscribe(event => this.update(event));
+      onCleanup(() => subscription?.unsubscribe());
+    });
   }
 
-  ngAfterViewInit(): void {
-    this.updates?.pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(event => this.update(event));
-  }
+  readonly empty = computed(() => {
+    return !this.page()?.content.length;
+  });
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.query
-      || changes.size
-      // TODO: why is sort.previousValue overwritten?
-      || changes.sort && !isEqual(changes.sort.currentValue, this._sort)
-      || changes.filter && !isEqual(changes.filter.currentValue, this._filter)) {
-      this.clear()
-    } else if (changes.search) {
-      this.clear(false)
-    }
-  }
+  readonly more = computed(() => {
+    const page = this.page();
+    if (!page) return 0;
+    return page.page.totalElements - page.content.length;
+  });
 
+  readonly hasMore = computed(() => {
+    const page = this.page();
+    if (!page) return false;
+    return page.page.number < page.page.totalPages - 1;
+  });
 
-  @HostBinding('class.empty')
-  get empty() {
-    return !this.page?.content.length;
-  }
-
-  get more() {
-    if (!this.page) return 0;
-    return this.page.page.totalElements - this.page.content.length;
-  }
-
-  get hasMore() {
-    if (!this.page) return false;
-    return this.page.page.number < this.page.page.totalPages - 1;
-  }
-
-  @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
-    this.zone.run(() => this.pressToUnlock = true);
+    this.pressToUnlock.set(true);
   }
 
-  @HostListener('contextmenu', ['$event'])
   contextmenu(event: MouseEvent) {
-    if (this.pressToUnlock) event.preventDefault();
+    if (this.pressToUnlock()) event.preventDefault();
   }
 
   clear(removeCurrent = true) {
-    this._sort = [...this.sort];
-    this._filter = [...this.filter];
-    if (removeCurrent) delete this.page;
+    if (removeCurrent) this.page.set(undefined);
     const args = getArgs(
-      this.query,
-      this.sort,
-      this.filter,
-      this.search,
+      this.query(),
+      this.sort(),
+      this.filter(),
+      this.search(),
       0,
-      this.size,
+      this.size(),
     );
     this.currentRequest?.unsubscribe();
     this.currentRequest = this.refs.page(args).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(page => {
-      this.page = page;
+      this.page.set(page);
       this.runningSources?.unsubscribe();
       if (args.sources) {
         this.runningSources = this.refs.page({ ...args, url: args.sources, size: 1, sources: undefined, responses: undefined }).pipe(
           takeUntilDestroyed(this.destroyRef)
         ).subscribe(res => {
           if (res.content[0]) {
-            this.mutated = true;
+            this.mutated.set(true);
             // @ts-ignore
             res.content[0]['pinned'] = true
-            page.content.unshift(res.content[0]);
+            this.page.update(p => p && { ...p, content: [res.content[0], ...p.content] });
           }
         });
       }
@@ -198,10 +195,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
           takeUntilDestroyed(this.destroyRef)
         ).subscribe(res => {
           if (res.content[0]) {
-            this.mutated = true;
+            this.mutated.set(true);
             // @ts-ignore
             res.content[0]['pinned'] = true
-            page.content.unshift(res.content[0]);
+            this.page.update(p => p && { ...p, content: [res.content[0], ...p.content] });
           }
         });
       }
@@ -209,60 +206,75 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   }
 
   update(event: KanbanDrag) {
-    if (!this.page) return;
-    if (event.from === this.query) {
-      if (this.page.content.includes(event.ref)) {
-        this.mutated ||= event.from !== event.to;
-        this.page.page.totalElements--;
-        this.page.content.splice(this.page.content.indexOf(event.ref), 1);
+    let page = this.page();
+    if (!page) return;
+    const query = this.query();
+    if (event.from === query) {
+      const index = page.content.findIndex(ref => ref.url === event.ref.url && ref.origin === event.ref.origin);
+      if (index >= 0) {
+        if (event.from !== event.to) this.mutated.set(true);
+        page = {
+          ...page,
+          page: { ...page.page, totalElements: page.page.totalElements - 1 },
+          content: page.content.filter((_, i) => i !== index),
+        };
+        this.page.set(page);
       }
     }
-    if (event.to === this.query) {
-      this.mutated ||= event.from !== event.to;
-      this.page.page.totalElements++;
-      this.page.content.splice(Math.min(event.index, this.page.content.length - 1), 0, event.ref);
+    if (event.to === query) {
+      if (event.from !== event.to) this.mutated.set(true);
+      const content = [...page.content];
+      content.splice(Math.min(event.index, content.length - 1), 0, event.ref);
+      this.page.set({
+        ...page,
+        page: { ...page.page, totalElements: page.page.totalElements + 1 },
+        content,
+      });
     }
   }
 
   copy(ref: Ref) {
-    if (!this.page) return;
-    const index = this.page.content.findIndex(r => r.url === ref.url);
+    const page = this.page();
+    if (!page) return;
+    const index = page.content.findIndex(r => r.url === ref.url);
     if (index < 0) return;
-    this.page.content.splice(index, 1, ref);
+    const content = [...page.content];
+    content.splice(index, 1, ref);
+    this.page.set({ ...page, content });
   }
 
   loadMore() {
     const pinned: Ref[] = [];
-    const pageNumber = this.page?.page.number || 0;
-    if (this.page && this.mutated) {
+    const pageNumber = this.page()?.page.number || 0;
+    if (this.page() && this.mutated()) {
       // @ts-ignore
-      pinned.push(...this.page.content.filter(r => r['pinned']));
+      pinned.push(...this.page().content.filter(r => r['pinned']));
       for (let i = 0; i <= pageNumber; i++) {
         this.refreshPage(i);
       }
     }
-    this.mutated = false;
+    this.mutated.set(false);
     this.refreshPage(pageNumber + 1, pinned);
   }
 
   add() {
     // TODO: Move to util function
-    this.addText = this.addText.trim();
-    if (!this.addText) return;
-    const text = this.addText;
-    this.addText = '';
+    this.addText.update(text => text.trim());
+    if (!this.addText()) return;
+    const text = this.addText();
+    this.addText.set('');
     const uploadId = uuid();
-    this.adding.push({ id: uploadId, name: text });
+    this.adding.update(adding => [...adding, { id: uploadId, name: text }]);
     const tagsWithAuthor = this.getTagsWithAuthor();
     const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
     const ref: Ref = isUrl ? {
       url: fixUrl(text, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']),
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       tags: [...tagsWithAuthor],
     } : {
       url: 'comment:' + uuid(),
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       title: text,
       tags: [...tagsWithAuthor],
     };
@@ -306,7 +318,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         }
         if (err.status === 409) {
           // Ref already exists, just tag it
-          return this.tags.patch(this.addTags, ref.url, ref.origin).pipe(
+          return this.tags.patch(this.addTags(), ref.url, ref.origin).pipe(
             catchError(err => {
               if (err.status === 403) {
                 // Can't edit Ref, repost it
@@ -316,44 +328,39 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
             }),
           );
         }
-        const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
-        if (uploadIndex !== -1) {
-          this.adding.splice(uploadIndex, 1);
-        }
-        this.failed.push({ text, error: printError(err).join('\n') });
+        this.adding.update(adding => adding.filter(u => u.id !== uploadId));
+        this.failed.update(failed => [...failed, { text, error: printError(err).join('\n') }]);
         return throwError(err);
       }),
       tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
     ).subscribe(cursor => {
-      this.mutated = true;
-      const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
-      if (uploadIndex !== -1) {
-        this.adding.splice(uploadIndex, 1);
-      }
-      if (!this.page) {
+      this.mutated.set(true);
+      this.adding.update(adding => adding.filter(u => u.id !== uploadId));
+      if (!this.page()) {
         console.error('Should not happen, will probably get cleared.');
-        this.page = {content: []} as any;
+        this.page.set({content: []} as any);
       }
       ref.modified = DateTime.fromISO(cursor);
       ref.modifiedString = cursor;
-      this.page!.content.push(ref)
+      this.page.update(page => ({ ...page!, content: [...page!.content, ref] }));
     });
   }
 
   retry(failedItem: { text: string; error: string }) {
-    this.failed.splice(this.failed.indexOf(failedItem), 1);
-    this.addText = failedItem.text;
+    this.failed.update(failed => without(failed, failedItem));
+    this.addText.set(failedItem.text);
     this.add();
   }
 
   dismissFailed(failedItem: { text: string; error: string }) {
-    this.failed.splice(this.failed.indexOf(failedItem), 1);
+    this.failed.update(failed => without(failed, failedItem));
   }
 
   private getTagsWithAuthor(): string[] {
-    return uniq(!hasTag(this.store.account.localTag, this.addTags)
-      ? [...this.addTags, this.store.account.localTag]
-      : this.addTags).filter(t => !!t);
+    const addTags = this.addTags();
+    return uniq(!hasTag(this.store.account.localTag(), addTags)
+      ? [...addTags, this.store.account.localTag()]
+      : addTags).filter(t => !!t);
   }
 
   handlePaste(event: ClipboardEvent) {
@@ -376,11 +383,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     }
   }
 
-  @HostListener('drop', ['$event'])
   handleDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    this.dropping = false;
+    this.dropping.set(false);
     const items = event.dataTransfer?.items;
     if (!items) return;
 
@@ -398,23 +404,20 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     }
   }
 
-  @HostListener('dragenter', ['$event'])
   handleDragEnter(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    this.dropping = true;
+    this.dropping.set(true);
   }
 
-  @HostListener('dragover', ['$event'])
   handleDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
   }
 
-  @HostListener('dragleave', ['$event'])
   dragLeave(event: DragEvent) {
-    if (this.dropping && event.target === event.currentTarget) {
-      this.dropping = false;
+    if (this.dropping() && event.target === event.currentTarget) {
+      this.dropping.set(false);
     }
   }
 
@@ -425,21 +428,16 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     files.forEach(file => {
       const uploadId = uuid();
       const fileName = file.name;
-      this.adding.push({ id: uploadId, name: fileName, progress: 0 });
+      this.adding.update(adding => [...adding, { id: uploadId, name: fileName, progress: 0 }]);
 
-      this.uploadFile$(file, uploadId).subscribe({
-        next: ref => {
-          if (ref) {
-            this.submitUpload(ref, uploadId);
-          }
-        },
-        error: err => {
-          const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
-          if (uploadIndex !== -1) {
-            this.adding.splice(uploadIndex, 1);
-          }
-          this.failed.push({ text: fileName, error: printError(err).join('\n') });
-        }
+      this.uploadFile$(file, uploadId).pipe(
+        catchError(err => {
+          this.adding.update(adding => adding.filter(u => u.id !== uploadId));
+          this.failed.update(failed => [...failed, { text: fileName, error: printError(err).join('\n') }]);
+          return of(null);
+        }),
+      ).subscribe(ref => {
+        if (ref) this.submitUpload(ref, uploadId);
       });
     });
   }
@@ -450,13 +448,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref: Ref = {
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         url: 'internal:' + uuid(),
         title: file.name,
         tags: [...tagsWithAuthor, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
       };
-      const upload = this.adding.find(u => u.id === uploadId);
-      if (upload) upload.progress = 50;
+      this.setProgress(uploadId, 50);
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
@@ -464,8 +461,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         })),
         map(() => ref),
         tap(() => {
-          const upload = this.adding.find(u => u.id === uploadId);
-          if (upload) upload.progress = 100;
+          this.setProgress(uploadId, 100);
         }),
         catchError(err => {
           console.warn('File upload failed, falling back to base64 encoding:', err);
@@ -484,15 +480,14 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
         tags.push('plugin/pdf');
       }
 
-      return this.proxy.save(file, this.store.account.origin).pipe(
+      return this.proxy.save(file, this.store.account.origin()).pipe(
         map(event => {
           switch (event.type) {
             case HttpEventType.Response:
               return event.body;
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-              const upload = this.adding.find(u => u.id === uploadId);
-              if (upload) upload.progress = percentDone;
+              this.setProgress(uploadId, percentDone);
               return null;
           }
           return null;
@@ -509,40 +504,42 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     }
   }
 
+  private setProgress(uploadId: string, progress: number) {
+    this.adding.update(adding => adding.map(u => u.id === uploadId ? { ...u, progress } : u));
+  }
+
   submitUpload(ref: Ref, uploadId: string) {
-    if (!this.page) {
+    if (!this.page()) {
       // Initialize page if it doesn't exist yet
-      this.page = { content: [], page: { totalElements: 0, number: 0, totalPages: 0, size: 0 } } as Page<Ref>;
+      this.page.set({ content: [], page: { totalElements: 0, number: 0, totalPages: 0, size: 0 } } as Page<Ref>);
     }
 
-    ref.origin = this.store.account.origin;
+    ref.origin = this.store.account.origin();
 
-    this.mutated = true;
-    const uploadIndex = this.adding.findIndex(u => u.id === uploadId);
-    if (uploadIndex !== -1) {
-      this.adding.splice(uploadIndex, 1);
-    }
-    this.page!.content.push(ref);
+    this.mutated.set(true);
+    this.adding.update(adding => adding.filter(u => u.id !== uploadId));
+    this.page.update(page => ({ ...page!, content: [...page!.content, ref] }));
   }
 
   private refreshPage(i: number, pinned?: Ref[]) {
     this.refs.page(getArgs(
-      this.query,
-      this.sort,
-      this.filter,
-      this.search,
+      this.query(),
+      this.sort(),
+      this.filter(),
+      this.search(),
       i,
-      this.size
+      this.size()
     )).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(page => {
-      const pageOffset = i * this.size;
-      this.page!.page.number = page.page.number;
+      const pageOffset = i * this.size();
+      const current = this.page()!;
+      const content = [...current.content];
       for (let offset = 0; offset < page.content.length; offset++) {
-        this.page!.content[pageOffset + offset] = page.content[offset];
+        content[pageOffset + offset] = page.content[offset];
       }
-      if (pinned?.length) this.page!.content.unshift(...pinned);
-
+      if (pinned?.length) content.unshift(...pinned);
+      this.page.set({ ...current, page: { ...current.page, number: page.page.number }, content });
     });
   }
 
@@ -550,7 +547,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
     const rp = 'internal:' + uuid();
     return this.refs.create({
       url: rp,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       tags: ['plugin/repost', ...tags],
       sources: [url],
     }).pipe(
@@ -565,6 +562,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, HasChang
   }
 
   saveChanges(): boolean {
-    return this.adding.length === 0 && this.failed.length === 0;
+    return this.adding().length === 0 && this.failed().length === 0;
   }
 }

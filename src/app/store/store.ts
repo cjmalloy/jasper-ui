@@ -1,11 +1,10 @@
-import { Injectable } from '@angular/core';
-import { makeAutoObservable, observableRef } from 'mobx';
-import { RouterStore } from 'mobx-angular';
+import { computed, Injectable, signal } from '@angular/core';
 import { AccountStore } from './account';
 import { EventBus } from './bus';
 import { GraphStore } from './graph';
 import { LocalStore } from './local';
 import { OriginStore } from './origin';
+import { RouterStore } from './router';
 import { SubmitStore } from './submit';
 import { VideoStore } from './video';
 import { ViewStore } from './view';
@@ -23,22 +22,17 @@ export class Store {
   video = new VideoStore();
   submit = new SubmitStore(this.route, this.eventBus);
   graph = new GraphStore(this.route);
-  theme = 'init-theme';
-  hotkey = false;
-  offline = false;
-  viewportHeight = screen.height;
-  helpSteps = 0;
-  helpStepIndex = -1;
+
+  readonly theme = signal('init-theme');
+  readonly hotkey = signal(false);
+  readonly offline = signal(false);
+  readonly viewportHeight = signal(screen.height);
+  readonly helpSteps = signal(0);
+  readonly helpStepIndex = signal(-1);
 
   constructor(
     private route: RouterStore,
-  ) {
-    makeAutoObservable(this, {
-      local: observableRef,
-    });
-  }
+  ) { }
 
-  get darkTheme() {
-    return this.theme === 'dark-theme';
-  }
+  readonly darkTheme = computed(() => this.theme() === 'dark-theme');
 }

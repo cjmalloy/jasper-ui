@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Directive, effect, ElementRef, input } from '@angular/core';
 import { isArray, isString, uniq } from 'lodash-es';
 import { Ext } from '../model/ext';
 import { getPluginScope } from '../model/plugin';
@@ -9,40 +9,38 @@ import { TagPreview } from '../service/editor.service';
 import { Store } from '../store/store';
 
 @Directive({ selector: '[appTitle]' })
-export class TitleDirective implements OnChanges {
+export class TitleDirective {
 
-  @Input('appTitle')
-  node?: Visibility | Visibility[] | Ext | string | TagPreview;
-  @Input()
-  ref?: Ref;
+  readonly node = input<Visibility | Visibility[] | Ext | string | TagPreview | undefined>(undefined, { alias: 'appTitle' });
+  readonly ref = input<Ref | undefined>();
 
   constructor(
     private store: Store,
     private el: ElementRef,
-  ) { }
-
-  ngOnChanges(changes: SimpleChanges) {
-    this.render();
+  ) {
+    effect(() => this.render());
   }
 
   render(): void {
-    if (!this.node) return;
+    const node = this.node();
+    if (!node) return;
+    const ref = this.ref();
     const title: string[] = [];
-    for (const n of isArray(this.node) ? this.node : [this.node]) {
+    for (const n of isArray(node) ? node : [node]) {
       if (isString(n)) {
         title.push(n);
       } else if ('type' in n && n.type === 'ext') {
-        const ctx = getTemplateScope(this.store.account, null!, n);
+        const ctx = getTemplateScope(this.store.account.roles(), null!, n);
         title.push(
           n.config?.popover
           ? hydrate(n.config, 'popover', ctx)
           : ''
         );
       } else if ('title' in n) {
-        const ctx = getPluginScope(n._parent, this.ref)
+        const ctx = getPluginScope(n._parent, ref)
         title.push(hydrate(n, 'title', ctx));
       } else if ('_parent' in n && n._parent) {
-        const ctx = getPluginScope(n._parent, this.ref)
+        const ctx = getPluginScope(n._parent, ref)
         title.push(
           n._parent.config?.description
           ? hydrate(n._parent.config, 'description', ctx)

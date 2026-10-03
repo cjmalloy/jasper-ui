@@ -1,32 +1,32 @@
-@if (iconEmoji || iconColor) {
+@if (iconEmoji() || iconColor()) {
   <div class="file-icon thumbnail"
-       [style.background-image]="[repostRef, ref] | thumbnail | async | cssUrl"
-       [style.background-color]="iconColor"
-       [style.border-radius.px]="iconRadius">{{ iconEmoji }}</div>
-} @else if (thumbnail) {
+       [style.background-image]="[repostRef(), ref()] | thumbnail | async | cssUrl"
+       [style.background-color]="iconColor()"
+       [style.border-radius.px]="iconRadius()">{{ iconEmoji() }}</div>
+} @else if (thumbnail()) {
   <div class="file-icon thumbnail"
-       [style.background-image]="[repostRef, ref] | thumbnail: true | async | cssUrl"
-       [style.border-radius.px]="iconRadius">{{ iconEmoji }}</div>
-} @else if (iconEmojiDefaults) {
-  <div class="file-icon thumbnail">{{ iconEmojiDefaults }}</div>
+       [style.background-image]="[repostRef(), ref()] | thumbnail: true | async | cssUrl"
+       [style.border-radius.px]="iconRadius()">{{ iconEmoji() }}</div>
+} @else if (iconEmojiDefaults()) {
+  <div class="file-icon thumbnail">{{ iconEmojiDefaults() }}</div>
 } @else {
   <div class="file-icon thumbnail" [class.default-thumbnail]="true"></div>
 }
 <div class="row">
-  @if (showToggle && (ref.comment || expandPlugins.length)) {
-    <div class="toggle" (click)="editing ? editing = false : viewSource = false">
-      @if (!editing && !viewSource && !expanded) {
+  @if (showToggle() && (ref().comment || expandPlugins().length)) {
+    <div class="toggle" (click)="editing() ? editing.set(false) : viewSource.set(false)">
+      @if (!editing() && !viewSource() && !expanded()) {
         <span class="toggle-plus">＋</span>
       } @else {
         <span class="toggle-x">✕</span>
       }
     </div>
   }
-  <a [routerLink]="['/ref', ref.url]"
-     [queryParams]="{ origin: nonLocalOrigin }"
+  <a [routerLink]="['/ref', ref().url]"
+     [queryParams]="{ origin: nonLocalOrigin() }"
      (click)="saveRef()"
-     [style.pointer-events]="dragging ? 'none' : undefined">{{ title }}</a>
+     [style.pointer-events]="dragging() ? 'none' : undefined">{{ title() }}</a>
 </div>
-@if (expanded) {
-  <app-viewer [ref]="ref"></app-viewer>
+@if (expanded()) {
+  <app-viewer [ref]="ref()"></app-viewer>
 }

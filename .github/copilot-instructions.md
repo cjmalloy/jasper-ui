@@ -83,6 +83,7 @@ npx playwright install --with-deps chromium
 | Production build (all locales) | `npm run build` | ~45s (up to ~100s on cold cache) |
 | Unit tests (Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
 | Single spec | `npm test -- --watch=false --include src/app/util/format.spec.ts` | ~6s |
+| App type check (incl. template diagnostics) | `npx ngc -p tsconfig.app.json --noEmit` | ~15s |
 | Unit tests exactly like CI | `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test` | ~4.5 min (cached builder) |
 
 Expected noise that is **not** an error:
@@ -180,8 +181,8 @@ Files that the container writes to `e2e/reports` and `test-results` may be owned
 - Viewport is 1280x720 to avoid the mobile layout.
 
 ```typescript
-import { expect, test } from '@playwright/test';
-import { mod } from './setup';
+import { expect } from '@playwright/test';
+import { mod, test } from './setup';
 
 test.describe.serial('Feature Name', () => {
   test('enable mods', async ({ page }) => {
@@ -194,6 +195,10 @@ test.describe.serial('Feature Name', () => {
   });
 });
 ```
+
+**Always import `test` from `./setup`, never from `@playwright/test`.** That `test` has an auto fixture that fails the test on any `console.error` or uncaught page error (`pageerror`), including pages created in `beforeAll` and contexts created during the test. The only allowed console errors are in `allowedConsoleErrors` in `e2e/setup.ts` (Chrome's `Failed to load resource: ... status of <code>` log for expected 4xx/5xx responses). Don't add Angular errors such as NG0100 or NG0600 to that list; fix them.
+
+The E2E client images are built with `npm run build:e2e` (`--configuration e2e`): production app behaviour (`environment.dev` is false, so no auto login), but unoptimized so Angular dev-mode checks run, including exhaustive `checkNoChanges`.
 
 `e2e/setup.ts` helpers:
 - `clearMods(page, base?)`, `mod(page, ...mods)`, `modRemote(page, base, ...mods)`: reset plugins/templates and enable mods such as `'#mod-wiki'`
@@ -222,10 +227,26 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 
 ## Code Conventions
 
-- Stack: Angular 22, TypeScript 6, MobX (`src/app/store/`), Formly, RxJS, Vitest, Playwright.
+- Stack: Angular 22 (zoneless, signals), TypeScript 6, Formly, RxJS, Vitest, Playwright.
 - Generate new pieces with `npx ng generate component|service|pipe|directive <name>`.
 - **RxJS subscribe style**: always pass a single callback (`obs.subscribe(value => { ... })`). Never pass an observer object, and never pass multiple callbacks.
 - Don't add comments unless they match the surrounding style.
+
+### Signals and change detection
+
+The app is zoneless and every component is `ChangeDetectionStrategy.OnPush`. A template only re-renders when a signal it reads changes, an input changes, or an event fires inside it. Follow these rules; the checks below catch the most common mistakes, but not all of them:
+
+- **All state is signals.** Use `signal()` for state, `computed()` for derived values, `input()`/`input.required()` for inputs, `linkedSignal(() => this.xInput())` for inputs that the component also overwrites, and `model()` when the parent must see the change. Don't use getters that compute from non-signal state in templates.
+- **Always call signals in templates**: `@if (editing())`, `[class.busy]="busy()"`. An uncalled signal is a function and is always truthy.
+- **Never read `FormControl`/`AbstractControl` state (`.value`, `.valid`, `.invalid`, `.errors`, `.dirty`, `.pristine`, `.pending`, `.disabled`, ...) in a binding.** Use `controlValue(() => control)` or `controlState(() => control, c => c.dirty)` from `util/form.ts`. Reading them in an event handler is fine.
+- **Never bind to DOM state of a template reference** (`#input` then `[title]="input.value"`). Keep the value in a signal.
+- **No side effects in `computed()`.** Writing to a form control (`setValue`, `disable`, `addControl`, ...) inside a computed emits control events, which write to `controlValue`/`controlState` signals and throw NG0600.
+- **Relative times**: use the `relative` pipe (`{{ ref().modified | relative }}`), never `.toRelative()` in a template. It formats against `ClockService.now`, which ticks every 10s, so the text is stable within a render.
+- Use `isDevMode()` only for Angular checks. For local development conveniences (auto login, prefetch, ...) use `environment.dev`, which is false in the E2E build.
+
+Checks:
+- **Compiler** (`tsconfig.json`): `strictTemplates` plus the extended diagnostics `interpolatedSignalNotInvoked` (NG8109), `uninvokedFunctionInEventBinding` (NG8111), `uninvokedFunctionInTextInterpolation` (NG8117) and `uninvokedTrackFunction` (NG8115) are errors. `strictTemplates` also reports TS2774 for an uncalled function in `@if`.
+- **Runtime**: dev (`npm start`, `environment.ts`) and E2E (`environment.e2e.ts`) builds add `provideCheckNoChangesConfig({ exhaustive: true })`, so state that changes without notifying an OnPush view logs NG0100. The Playwright fixture turns that into a test failure.
 
 ### Project structure
 
@@ -236,7 +257,7 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 - `src/app/mods/`: built-in plugins/templates (the "mods")
 - `src/app/page/`: routed pages
 - `src/app/service/`: API (`service/api/`) and app services (`config`, `debug`, `authz`, ...)
-- `src/app/store/`: MobX stores
+- `src/app/store/`: Signal-based stores
 - `src/locale/`: i18n XLIFF files
 - `src/theme/`: global SCSS themes
 - `docker/`: nginx entrypoint scripts (`JASPER_API`, CSP, base href, locale, ...)

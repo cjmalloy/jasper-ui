@@ -1,5 +1,6 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, effect, input, untracked, ViewEncapsulation, DestroyRef, inject } from '@angular/core';
+import { isEqual } from 'lodash-es';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
   ControlComponent,
@@ -21,7 +22,6 @@ import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
-import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
@@ -35,7 +35,7 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
   styleUrls: ['./map.component.scss'],
   encapsulation: ViewEncapsulation.None,
   host: { 'class': 'map ext' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MglComponent,
     ControlComponent,
@@ -46,22 +46,20 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
     ResizeHandleDirective
   ]
 })
-export class MapComponent implements OnChanges, OnDestroy, HasChanges {
+export class MapComponent implements HasChanges {
 
-  @Input()
-  tag = '';
-  @Input()
-  ext?: Ext;
-  @Input()
-  pageControls = true;
-  @Input()
-  emptyMessage = 'No results found';
+  readonly tag = input('');
+  readonly ext = input<Ext>();
+  readonly pageControls = input(true);
+  readonly emptyMessage = input('No results found');
+  readonly page = input<Page<Ref> | undefined>(undefined);
 
-  private _page?: Page<Ref>;
   private map?: Map;
   private markers: Marker[] = [];
-  private mapDataUpdates$ = new Subject<Ref[]>();
-  mapData: MapEntry[] = [];
+  readonly mapData = toSignal(toObservable(computed(() => this.page()?.content || [])).pipe(
+    switchMap(content => !content.some(ref => this.isBareRepost(ref))
+      ? of(content.map(ref => [ref] as MapEntry)) : forkJoin(content.map(ref => this.getBareRepost(ref)))),
+  ), { initialValue: [] as MapEntry[] });
 
   constructor(
     private router: Router,
@@ -71,83 +69,56 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     private store: Store,
   ) {
     setWorkerUrl('assets/maplibre-gl-worker.mjs');
-    this.mapDataUpdates$.pipe(
-      switchMap(content => {
-        if (!content.some(ref => this.isBareRepost(ref))) return of(content.map(ref => [ref] as MapEntry));
-        return forkJoin(content.map(ref => this.getBareRepost(ref)));
-      }),
-      takeUntilDestroyed(),
-    ).subscribe(mapData => {
-      this.mapData = mapData;
-      MemoCache.clear(this);
-      this.updateMapData();
+    effect(() => {
+      this.mapData();
+      untracked(() => this.updateMapData());
+    });
+    effect(() => {
+      const value = this.page();
+      if (value && value.page.number !== undefined && value.page.number > 0 && value.page.number >= value.page.totalPages) {
+        this.router.navigate([], {
+          queryParams: {
+            pageNumber: value.page.totalPages - 1
+          },
+          queryParamsHandling: 'merge',
+        });
+      }
     });
   }
-
-  @memo
-  get mapStyle() {
+  readonly mapStyle = computed(() => {
     return {
-      ...this.ext?.config?.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
+      ...this.ext()?.config?.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
       ...this.admin.getTemplate('map')?.config?.mapStyle || {},
     };
-  }
+  }, { equal: isEqual });
 
   saveChanges() {
     return true;
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['ext']) {
-      MemoCache.clear(this);
-    }
-  }
-
-  ngOnDestroy() {
-    this.mapDataUpdates$.complete();
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.clearMarkers();
     try {
       this.map?.remove();
     } catch (ignored) { }
     this.map = undefined;
-  }
+  });
 
-  get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    MemoCache.clear(this);
-    this._page = value;
-    this.mapDataUpdates$.next(value?.content || []);
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
-        this.router.navigate([], {
-          queryParams: {
-            pageNumber: this._page.page.totalPages - 1
-          },
-          queryParamsHandling: 'merge',
-        });
-      }
-    }
-  }
-
-  @memo
-  get geoData(): FeatureCollection {
+  readonly geoData = computed((): FeatureCollection => {
     return {
       type: 'FeatureCollection',
-      features: this.mapData.flatMap(([ref]) => features(ref)).filter(f =>
+      features: this.mapData().flatMap(([ref]) => features(ref)).filter(f =>
         f.type === 'Feature' && f.geometry != null && f.geometry.type !== 'Point'
       ) || [],
     };
-  }
+  });
   onMapError(event: any) {
     console.error('MapLibre Engine Error:', event.error);
   }
 
   mapLoaded(map: Map) {
     this.map = map;
-    map.addSource('geo-features', { type: 'geojson', data: this.geoData });
+    map.addSource('geo-features', { type: 'geojson', data: this.geoData() });
     // Line layer for LineString and MultiLineString
     map.addLayer({
       id: 'geo-lines',
@@ -199,7 +170,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     if (!this.map) return;
     const source = this.map.getSource('geo-features') as GeoJSONSource | undefined;
     if (source) {
-      source.setData(this.geoData);
+      source.setData(this.geoData());
     }
     this.clearMarkers();
     this.addMarkers(this.map);
@@ -211,7 +182,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   private addMarkers(map: Map) {
-    this.mapData.forEach(entry => {
+    this.mapData().forEach(entry => {
       const [ref] = entry;
       const pointFeature = ref.plugins?.['plugin/geo/point'];
       if (pointFeature?.geometry?.type === 'Point' && pointFeature.geometry?.coordinates.length >= 2) {
@@ -248,8 +219,9 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private getBareRepost(ref: Ref) {
     if (!this.isBareRepost(ref)) return of([ref] as MapEntry);
     const source = repost(ref);
-    return (this.store.view.top?.url === source
-        ? of(this.store.view.top)
+    const top = this.store.view.top();
+    return (top?.url === source
+        ? of(top)
         : this.refs.getCurrent(source)
     ).pipe(
       rxMap(sourceRef => [this.withRepostGeo(ref, sourceRef), ref] as MapEntry),

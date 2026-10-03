@@ -1,9 +1,8 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable } from '@angular/core';
+import { effect, Inject, Injectable, untracked } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import flatten from 'css-flatten';
 import { marked } from 'marked';
-import { autorun, runInAction } from 'mobx';
 import { of } from 'rxjs';
 import { Plugin } from '../model/plugin';
 import { Store } from '../store/store';
@@ -25,12 +24,17 @@ export class ModService {
     private account: AccountService,
     private store: Store,
     private titleService: Title,
-  ) { }
+  ) {
+    effect(() => {
+      const css = this.store.account.config().userTheme ? this.getUserCss() : this.getExtCss();
+      untracked(() => this.setCustomCss('custom-css', ...css));
+    });
+  }
 
   get init$() {
     document.documentElement.style.overflowY = 'scroll';
     this.setTheme(localStorage.getItem('theme') || this.systemTheme);
-    autorun(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
+    this.setCustomCss('custom-css', ...(this.store.account.config().userTheme ? this.getUserCss() : this.getExtCss()));
     this.admin.configProperty('css').forEach(p => this.setCustomCss(p.type + '-' + p.tag, p.config!.css));
     this.admin.configProperty('snippet').forEach(p => this.addSnippet(p.type + '-' + p.tag, p.config!.snippet));
     this.admin.configProperty('banner').forEach(p => this.addBanner(p.type + '-' + p.tag, p.config!.banner));
@@ -49,7 +53,7 @@ export class ModService {
   }
 
   toggle(pin: boolean) {
-    if (this.store.theme === 'light-theme') {
+    if (this.store.theme() === 'light-theme') {
       this.setTheme('dark-theme', pin || 'if-not-system');
     } else {
       this.setTheme('light-theme', pin || 'if-not-system');
@@ -64,10 +68,10 @@ export class ModService {
         localStorage.removeItem('theme');
       }
     }
-    if (this.store.theme === theme) return;
+    if (this.store.theme() === theme) return;
     document.body.classList.add(theme);
-    document.body.classList.remove(this.store.theme);
-    runInAction(() => this.store.theme = theme!);
+    document.body.classList.remove(this.store.theme());
+    this.store.theme.set(theme!);
   }
 
   setCustomCss(id: string, ...cs: (string | undefined)[]) {
@@ -179,10 +183,10 @@ export class ModService {
   }
 
   private getUserCss() {
-    return this.getTheme(this.store.account.config.userTheme!, [this.store.account.config.themes || {}, ...this.admin.themes.map(p => p.config!.themes!)]);
+    return this.getTheme(this.store.account.config().userTheme!, [this.store.account.config().themes || {}, ...this.admin.themes().map(p => p.config!.themes!)]);
   }
 
   private getExtCss() {
-    return this.getTheme(this.store.view.ext?.config?.theme, [this.store.view.ext?.config?.themes || {}, ...this.admin.themes.map(p => p.config!.themes!)]);
+    return this.getTheme(this.store.view.ext()?.config?.theme, [this.store.view.ext()?.config?.themes || {}, ...this.admin.themes().map(p => p.config!.themes!)]);
   }
 }

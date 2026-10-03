@@ -1,33 +1,13 @@
+import { controlValue } from '../../util/form';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  ElementRef,
-  EventEmitter,
-  forwardRef,
-  HostBinding,
-  HostListener,
-  inject,
-  Input,
-  OnChanges,
-  OnDestroy,
-  Output,
-  QueryList,
-  SimpleChanges,
-  ViewChild,
-  ViewChildren
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, effect, forwardRef, inject, input, linkedSignal, output, untracked, viewChildren, viewChild, signal, computed, afterNextRender } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
-import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, startWith, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
@@ -55,7 +35,7 @@ import { EditorService } from '../../service/editor.service';
 import { ImageService } from '../../service/image.service';
 import { UploadCacheService } from '../../service/upload-cache.service';
 import { Store } from '../../store/store';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import {
   authors,
   clickableLink,
@@ -67,7 +47,6 @@ import {
   urlSummary
 } from '../../util/format';
 import { getExtension, getScheme, printError } from '../../util/http';
-import { memo, MemoCache } from '../../util/memo';
 import { markRead } from '../../util/response';
 import {
   storyboardAnimation,
@@ -101,13 +80,41 @@ import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
+import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    '[class]': 'allCss()',
+    '[class.deleted]': 'deleted()',
+    '[class.mobile-unlock]': 'mobileUnlock()',
+    '[class.storyboard-ready]': 'storyboardLoaded()',
+    '[attr.data-ref-url]': "refUrlAttr()",
+    '[attr.data-ref-origin]': "refOriginAttr()",
+    '[attr.data-ref-title]': "refTitleAttr()",
+    '[attr.data-ref-thumbnail-url]': "refThumbnailUrlAttr()",
+    '[attr.data-ref-thumbnail-color]': "refThumbnailColorAttr()",
+    '[attr.data-ref-thumbnail-emoji]': "refThumbnailEmojiAttr()",
+    '[attr.data-ref-thumbnail-radius]': "refThumbnailRadiusAttr()",
+    '[class.last-selected]': "lastSelected()",
+    '[class.upload]': "uploadedFile()",
+    '[class.exists]': "existsFile()",
+    '[class.outdated]': "modifiedFile()",
+    '[class.sent]': "isAuthor()",
+    '[style.--storyboard-url]': "storyboardUrl()",
+    '[style.--storyboard-size]': "storyboardSize()",
+    '[style.--storyboard-margin]': "storyboardMargin()",
+    '[style.--storyboard-width]': "storyboardWidth()",
+    '[style.--storyboard-height]': "storyboardHeight()",
+    '[style.--storyboard-animation]': 'storyboardAnimation()',
+    '(fullscreenchange)': 'onFullscreenChange()',
+    '(click)': 'onClick()',
+  },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
@@ -128,85 +135,94 @@ import { ViewerComponent } from '../viewer/viewer.component';
     CssUrlPipe,
   ],
 })
-export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
+export class RefComponent implements HasChanges {
+  private readonly controlState0 = controlValue(() => this.editForm);
+
+
   css = 'ref list-item';
-  @HostBinding('class')
-  allCss = this.getPluginClasses();
+  readonly allCss = computed(() => this.getPluginClasses());
   private destroyRef = inject(DestroyRef);
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
-  @ViewChild('refForm')
-  refForm?: RefFormComponent;
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
-  @ViewChild('diffEditor')
-  diffEditor?: any;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
+  readonly refForm = viewChild<RefFormComponent>('refForm');
+  readonly reply = viewChild<CommentReplyComponent>('reply');
+  readonly diffEditor = viewChild<any>('diffEditor');
+  readonly viewer = viewChild<ViewerComponent>('viewer');
 
-  @Input()
-  ref!: Ref;
-  @Input()
-  expanded = false;
-  @Input()
-  plugins?: string[];
-  @Input()
-  expandInline = false;
-  @Input()
-  showToggle = false;
-  @Input()
-  scrollToLatest = false;
-  @Input()
-  hideEdit = false;
-  @Input()
-  disableResize = false;
-  @Input()
-  showAlarm = true;
-  @Input()
-  showObsolete = true;
-  @Input()
-  fetchRepost = true;
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
+  readonly ref = linkedSignal(() => this.refInput()!);
+  readonly expandedInput = input(false, { alias: 'expanded' });
+  readonly expanded = linkedSignal(() => this.expandedInput());
+  readonly plugins = input<string[]>();
+  readonly expandInlineInput = input(false, { alias: 'expandInline' });
+  readonly expandInline = linkedSignal(() => this.expandInlineInput());
+  readonly showToggleInput = input(false, { alias: 'showToggle' });
+  readonly showToggle = linkedSignal(() => this.showToggleInput());
+  readonly scrollToLatest = input(false);
+  readonly hideEdit = input(false);
+  readonly disableResize = input(false);
+  readonly showAlarm = input(true);
+  readonly showObsolete = input(true);
+  readonly fetchRepost = input(true);
+  readonly copied = output<string>();
 
-  repostRef?: Ref;
+  readonly repostRef = toSignal(toObservable(computed(() =>
+    this.ref() && this.fetchRepost() && this.repost() ? this.url() : undefined,
+  )).pipe(switchMap(url => !url ? of(undefined) :
+    (this.store.view.top()?.url === url ? of(this.store.view.top()) : this.refs.getCurrent(url)).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ))), { initialValue: undefined });
   editForm: UntypedFormGroup;
-  submitted = false;
-  invalid = false;
-  overwritten = false;
-  overwrite = true;
-  expandPlugins: string[] = [];
-  icons: Icon[] = [];
-  alarm?: string;
-  actions: Action[] = [];
-  groupedActions: { [key: string]: Action[] } = {};
-  advancedActions: Action[] = [];
-  groupedAdvancedActions: { [key: string]: Action[] } = {};
-  infoUis: Plugin[] = [];
-  @HostBinding('class.deleted')
-  deleted = false;
-  @HostBinding('class.mobile-unlock')
-  mobileUnlock = false;
-  @HostBinding('class.storyboard-ready')
-  storyboardLoaded = false;
-  actionsExpanded?: boolean;
-  replying = false;
-  writeAccess = false;
-  taggingAccess = false;
-  deleteAccess = false;
-  serverError: string[] = [];
-  publishChanged = false;
-  diffOriginal?: Ref;
-  diffModified?: Ref;
-  fullscreen = false;
+  protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
+  protected readonly editFormDirty = controlState(() => this.editForm, c => c.dirty);
+  readonly submitted = linkedSignal(() => { this.ref(); return false; });
+  readonly invalid = linkedSignal(() => { this.ref(); return false; });
+  readonly overwritten = linkedSignal(() => { this.ref(); return false; });
+  readonly overwrite = linkedSignal(() => { this.ref(); return false; });
+  private readonly fieldRef = computed(() => this.editing()
+    ? { ...this.ref(), ...this.controlState0() } : this.ref());
+  readonly expandPlugins = computed(() => this.bareRepost() && this.repostRef()
+    ? this.admin.getEmbeds(this.repostRef())
+    : [...this.admin.getEmbeds(this.ref()), ...(this.repostRef() ? ['plugin/repost'] : [])]);
+  readonly icons = computed(() => {
+    const ref = this.fieldRef();
+    return uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))));
+  });
+  readonly alarm = computed(() => capturesAny(this.store.account.alarms(), this.fieldRef().tags));
+  readonly actions = computed(() => {
+    const ref = this.fieldRef();
+    return ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(ref.tags, ref.plugins))) : [];
+  });
+  readonly groupedActions = computed(() => groupBy(this.actions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
+  readonly advancedActions = computed(() => {
+    const ref = this.fieldRef();
+    return ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : [];
+  });
+  readonly groupedAdvancedActions = computed(() => groupBy(this.advancedActions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
+  readonly infoUis = computed(() => this.admin.getPluginInfoUis(this.fieldRef().tags));
+  readonly deleted = linkedSignal(() => { this.ref(); return false; });
+  readonly mobileUnlock = signal(false);
+  readonly storyboardLoaded = linkedSignal(() => { this.storyboardRawUrl(); return false; });
+  readonly actionsExpanded = signal<boolean | undefined>(undefined);
+  readonly replying = signal(false);
+  readonly writeAccess = computed(() => this.auth.writeAccess(this.ref()));
+  readonly taggingAccess = computed(() => this.auth.taggingAccess(this.ref()));
+  readonly deleteAccess = computed(() => this.auth.deleteAccess(this.ref()));
+  readonly serverError = linkedSignal<string[]>(() => { this.ref(); return []; });
+  readonly publishChanged = signal(false);
+  readonly diffOriginal = signal<Ref | undefined>(undefined);
+  readonly diffModified = signal<Ref | undefined>(undefined);
+  readonly fullscreen = linkedSignal(() => this.ref() ? this.fullscreenRequired() : false);
 
-  submitting?: Subscription;
+  readonly submitting = signal(false);
+  private submittingSubscription?: Subscription;
   private refreshTap?: () => void;
-  private _editing = false;
-  private _viewSource = false;
-  private _diffing = false;
+  readonly editing = linkedSignal(() => { this.ref(); return false; });
+  readonly viewSource = linkedSignal(() => { this.ref(); return false; });
+  readonly diffing = signal(false);
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
-  private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
   private focusViewer = false;
   private preloadingUrl = '';
@@ -227,42 +243,39 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private router: Router,
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
-    private cd: ChangeDetectorRef,
     private imgs: ImageService,
   ) {
     this.editForm = refForm(fb);
-    this.editForm.valueChanges.pipe(
-      takeUntilDestroyed(),
-    ).subscribe(throttle(value => {
-      if (!this.editing) return;
-      if (!value?.title && !value?.comment || !value?.tags?.length) return;
-      MemoCache.clear(this, 'title');
-      MemoCache.clear(this, 'thumbnail');
-      MemoCache.clear(this, 'thumbnailRefs');
-      MemoCache.clear(this, 'thumbnailRadius');
-      MemoCache.clear(this, 'thumbnailColor');
-      MemoCache.clear(this, 'thumbnailEmoji');
-      MemoCache.clear(this, 'thumbnailEmojiDefaults');
-      MemoCache.clear(this, 'storyboardUrl');
-      MemoCache.clear(this, 'storyboardSize');
-      MemoCache.clear(this, 'storyboardMargin');
-      MemoCache.clear(this, 'storyboardHeight');
-      MemoCache.clear(this, 'storyboardAnimation');
-      defer(() => {
-        // Let Formly finish rebuilding tag rows before derived Ref UI state reacts.
-        this.initFields({ ...this.ref, ...value });
-        cd.detectChanges();
-      });
-    }, 400, { leading: true, trailing: true }));
+    effect(() => {
+      if (!this.refInput()) return;
+      untracked(() => this.init());
+    });
+    effect(() => {
+      const value = this.viewer();
+      untracked(() => this.handleViewer(value));
+    });
+    effect(() => {
+      if (!this.ref()) return;
+      this.storyboardRawUrl();
+      untracked(() => this.preloadStoryboard());
+    });
+    effect(() => {
+      const animation = this.storyboardAnimationData();
+      if (!animation || document.getElementById(animation.styleId)) return;
+      const style = document.createElement('style');
+      style.id = animation.styleId;
+      style.textContent = animation.keyframes;
+      document.head.appendChild(style);
+    });
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
-        if (this.editing || this.viewSource) {
+        if (this.editing() || this.viewSource()) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
           return;
         }
-        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
-          this.ref = event.ref!;
+        if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
+          this.ref.set(event.ref!);
           this.init();
           if (this.refreshTap) {
             this.refreshTap();
@@ -270,8 +283,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           }
         }
       }
-      if (this.ref?.upload && event.event === 'refresh:uploads') {
-        if (this.editing || this.viewSource) {
+      if (this.ref()?.upload && event.event === 'refresh:uploads') {
+        if (this.editing() || this.viewSource()) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
           return;
@@ -279,301 +292,211 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         this.init();
       }
       if (event.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
-          this.serverError = event.errors;
+        if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
+          this.serverError.set(event.errors);
         }
       }
       if (event.event === 'toggle') {
-        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
-          this.expanded = !this.expanded;
+        if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
+          this.expanded.set(!this.expanded());
         }
       }
       if (event.event === 'toggle-all-open') {
-        this.expanded = true;
+        this.expanded.set(true);
       }
       if (event.event === 'toggle-all-closed') {
-        this.expanded = false;
+        this.expanded.set(false);
       }
     });
   }
 
   saveChanges() {
-    return (!this.editing || !this.editForm.dirty)
-      && (!this.reply || this.reply.saveChanges());
+    const reply = this.reply();
+    return (!this.editing() || !this.editForm.dirty)
+      && (!reply || reply.saveChanges());
   }
 
   init() {
-    MemoCache.clear(this);
-    this.serverError.length = 0;
-    this.submitted = false;
-    this.invalid = false;
-    this.overwritten = false;
-    this.overwrite = false;
-    this.deleted = false;
-    this.editing = false;
-    this.viewSource = false;
-    this.storyboardLoaded = false;
-    this.preloadingUrl = '';
-    this.actionComponents?.forEach(c => c.reset());
-    if (this.ref?.upload) this.editForm.get('url')!.enable();
-    this.writeAccess = this.auth.writeAccess(this.ref);
-    this.taggingAccess = this.auth.taggingAccess(this.ref);
-    this.deleteAccess = this.auth.deleteAccess(this.ref);
-    this.fullscreen = this.fullscreenRequired;
-    this.initFields(this.ref);
-
-    this.expandPlugins = this.admin.getEmbeds(this.ref);
-    MemoCache.clear(this);
-    if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
-      (this.store.view.top?.url === this.ref.sources![0]
-          ? of(this.store.view.top)
-          : this.refs.getCurrent(this.url)
-      ).pipe(
-        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => {
-        this.repostRef = ref;
-        if (!ref) return;
-        MemoCache.clear(this);
-        if (this.bareRepost) {
-          this.expandPlugins = this.admin.getEmbeds(ref);
-          this.allCss = this.getPluginClasses();
-        } else {
-          this.expandPlugins.push('plugin/repost');
-        }
-        this.preloadStoryboard();
-      });
-    }
-    this.preloadStoryboard();
+    this.actionComponents()?.forEach(c => c.reset());
+    if (this.ref()?.upload) this.editForm.get('url')!.enable();
   }
 
   private preloadStoryboard() {
-    const url = this.storyboardRawUrl;
+    const url = this.storyboardRawUrl();
+    this.preloadingUrl = url || '';
     if (!url) return;
     this.preloadingUrl = url;
     this.imgs.getImage(url).then(() => {
       if (this.preloadingUrl === url) {
-        this.storyboardLoaded = true;
+        this.storyboardLoaded.set(true);
       }
     }).catch(() => {
       // If preloading fails, storyboard-ready class is never set and hover shows original thumbnail
     });
   }
 
-  initFields(ref: Ref) {
-    this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))));
-    this.alarm = capturesAny(this.store.account.alarms, ref.tags);
-    this.actions = ref.created ? uniqueConfigs(sortOrder(this.admin.getActions(ref.tags, ref.plugins))) : [];
-    this.groupedActions = groupBy(this.actions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
-    // TODO: detect width and move actions that don't fit into advanced actions
-    this.advancedActions = ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : [];
-    this.groupedAdvancedActions = groupBy(this.advancedActions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
-    this.infoUis = this.admin.getPluginInfoUis(ref.tags);
-    this.allCss = this.getPluginClasses()
-  }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref) {
-      this.init();
-    }
-  }
-
-  ngAfterViewInit(): void {
+  private readonly initializeView = afterNextRender(() => {
     delay(() => {
-      if (this.lastSelected) {
+      if (this.lastSelected()) {
         scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' });
       }
     }, 400);
-  }
+  });
 
-  ngOnDestroy() {
-    if (this.lastSelected) {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
+    if (this.lastSelected()) {
       this.store.view.clearLastSelected();
     }
-  }
+  });
 
   unlockViewer(event: Event) {
     if (!this.config.mobile) return;
-    this.mobileUnlock = !this.mobileUnlock;
+    this.mobileUnlock.set(!this.mobileUnlock());
     event.preventDefault();
   }
 
   getPluginClasses() {
-    if (!this.ref) return this.css;
-    const tags = this.bareRepost
-      ? uniq([...(this.ref.tags || []), ...(this.repostRef?.tags || [])])
-      : this.ref.tags;
+    if (!this.ref()) return this.css;
+    const tags = this.bareRepost()
+      ? uniq([...(this.ref().tags || []), ...(this.repostRef()?.tags || [])])
+      : this.ref().tags;
     return this.css + ' ' + [
       ...templates(tags, 'plugin'),
-      ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p),
-      ...(this.ref.metadata?.userUrls || []).map(p => 'user-response-' + p)
+      ...Object.keys(this.ref().metadata?.plugins || {}).map(p => 'response-' + p),
+      ...(this.ref().metadata?.userUrls || []).map(p => 'user-response-' + p)
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
   }
 
-  @HostBinding('attr.data-ref-url')
-  get refUrlAttr() {
-    return this.ref?.url;
-  }
+  readonly refUrlAttr = computed(() => {
+    return this.ref()?.url;
+  });
 
-  @HostBinding('attr.data-ref-origin')
-  get refOriginAttr() {
-    return this.ref?.origin || undefined;
-  }
+  readonly refOriginAttr = computed(() => {
+    return this.ref()?.origin || undefined;
+  });
 
-  @HostBinding('attr.data-ref-title')
-  get refTitleAttr() {
-    return this.title || undefined;
-  }
+  readonly refTitleAttr = computed(() => {
+    return this.title() || undefined;
+  });
 
-  @HostBinding('attr.data-ref-thumbnail-url')
-  get refThumbnailUrlAttr() {
-    if (!this.thumbnail) return undefined;
+  readonly refThumbnailUrlAttr = computed(() => {
+    if (!this.thumbnail()) return undefined;
     return this.refThumbnailUrl() || undefined;
-  }
+  });
 
-  @HostBinding('attr.data-ref-thumbnail-color')
-  get refThumbnailColorAttr() {
-    if (!this.thumbnail) return undefined;
+  readonly refThumbnailColorAttr = computed(() => {
+    if (!this.thumbnail()) return undefined;
     return this.refThumbnailString('color') || undefined;
-  }
+  });
 
-  @HostBinding('attr.data-ref-thumbnail-emoji')
-  get refThumbnailEmojiAttr() {
-    if (!this.thumbnail) return undefined;
-    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
-  }
+  readonly refThumbnailEmojiAttr = computed(() => {
+    if (!this.thumbnail()) return undefined;
+    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults() || undefined;
+  });
 
-  @HostBinding('attr.data-ref-thumbnail-radius')
-  get refThumbnailRadiusAttr() {
-    if (!this.thumbnail) return undefined;
-    const radius = Number(this.refThumbnailPlugin?.['radius']);
+  readonly refThumbnailRadiusAttr = computed(() => {
+    if (!this.thumbnail()) return undefined;
+    const radius = Number(this.refThumbnailPlugin()?.['radius']);
     return Number.isFinite(radius) ? `${radius}` : undefined;
-  }
+  });
 
-  @HostBinding('class.last-selected')
-  get lastSelected() {
-    return this.scrollToLatest && this.store.view.lastSelected?.url === this.ref.url;
-  }
+  readonly lastSelected = computed(() => {
+    return this.scrollToLatest() && this.store.view.lastSelected()?.url === this.ref().url;
+  });
 
-  @HostBinding('class.upload')
-  get uploadedFile() {
-    return this.ref.upload;
-  }
+  readonly uploadedFile = computed(() => {
+    return this.ref().upload;
+  });
 
-  @HostBinding('class.exists')
-  get existsFile() {
-    return this.ref.exists;
-  }
+  readonly existsFile = computed(() => {
+    return this.ref().exists;
+  });
 
-  @HostBinding('class.outdated')
-  get modifiedFile() {
-    return this.ref.outdated;
-  }
+  readonly modifiedFile = computed(() => {
+    return this.ref().outdated;
+  });
 
-  get storyboardData() {
+  readonly storyboardData = computed(() => {
+    this.controlState0();
     if (!this.admin.getPlugin('plugin/image')) return null;
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
-    if (this.editing) {
+    if (this.editing()) {
       return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
     }
-    return this.ref?.plugins?.['plugin/thumbnail/storyboard']
-      || this.repostRef?.plugins?.['plugin/thumbnail/storyboard']
+    return this.ref()?.plugins?.['plugin/thumbnail/storyboard']
+      || this.repostRef()?.plugins?.['plugin/thumbnail/storyboard']
       || null;
-  }
+  });
 
-  private get storyboardRawUrl(): string | null {
-    const sb = this.storyboardData;
+  private readonly storyboardRawUrl = computed<string | null>(() => {
+    const sb = this.storyboardData();
     if (!sb?.url) return null;
     const rawUrl = String(sb.url);
-    const origin = this.ref?.origin || this.repostRef?.origin || '';
+    const origin = this.ref()?.origin || this.repostRef()?.origin || '';
     if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
       return this.proxy.getFetch(rawUrl, origin, 'storyboard');
     } else {
       return rawUrl;
     }
-  }
+  });
 
-  @memo
-  @HostBinding('style.--storyboard-url')
-  get storyboardUrl(): string | null {
-    return storyboardUrl(this.storyboardRawUrl);
-  }
+  readonly storyboardUrl = computed<string | null>(() => {
+    return storyboardUrl(this.storyboardRawUrl());
+  });
 
-  @memo
-  @HostBinding('style.--storyboard-size')
-  get storyboardSize(): string | null {
-    return storyboardSize(this.storyboardData);
-  }
+  readonly storyboardSize = computed<string | null>(() => {
+    return storyboardSize(this.storyboardData());
+  });
 
-  @memo
-  @HostBinding('style.--storyboard-margin')
-  get storyboardMargin(): string | null {
-    return storyboardMargin(this.storyboardData);
-  }
+  readonly storyboardMargin = computed<string | null>(() => {
+    return storyboardMargin(this.storyboardData());
+  });
 
-  @memo
-  @HostBinding('style.--storyboard-width')
-  get storyboardWidth(): string | null {
-    return storyboardWidth(this.storyboardData);
-  }
+  readonly storyboardWidth = computed<string | null>(() => {
+    return storyboardWidth(this.storyboardData());
+  });
 
-  @memo
-  @HostBinding('style.--storyboard-height')
-  get storyboardHeight(): string | null {
-    return storyboardHeight(this.storyboardData);
-  }
+  readonly storyboardHeight = computed<string | null>(() => {
+    return storyboardHeight(this.storyboardData());
+  });
 
-  @memo
-  @HostBinding('style.--storyboard-animation')
-  get storyboardAnimation(): string | null {
-    const animation = storyboardAnimation(this.storyboardData);
-    if (!animation) return null;
-    if (!document.getElementById(animation.styleId)) {
-      const style = document.createElement('style');
-      style.id = animation.styleId;
-      style.textContent = animation.keyframes;
-      document.head.appendChild(style);
-    }
-    return animation.value;
-  }
+  private readonly storyboardAnimationData = computed(() => storyboardAnimation(this.storyboardData()));
+  readonly storyboardAnimation = computed(() => this.storyboardAnimationData()?.value || null);
 
-  get obsoleteOrigin() {
-    if (this.ref.metadata?.obsolete) return this.ref.origin;
+  readonly obsoleteOrigin = computed(() => {
+    if (this.ref().metadata?.obsolete) return this.ref().origin;
     return undefined;
-  }
+  });
 
-  get fullscreenRequired() {
+  readonly fullscreenRequired = computed(() => {
     if (!this.admin.getPlugin('plugin/fullscreen')) return false;
-    if (!hasTag('plugin/fullscreen', this.currentTags)) return false;
-    return !this.ref.plugins?.['plugin/fullscreen']?.optional;
-  }
+    if (!hasTag('plugin/fullscreen', this.currentTags())) return false;
+    return !this.ref().plugins?.['plugin/fullscreen']?.optional;
+  });
 
-  get pipRequired() {
-    if (!this.admin.pip) return false;
-    return hasTag('plugin/pip', this.currentTags);
-  }
+  readonly pipRequired = computed(() => {
+    if (!this.admin.pip()) return false;
+    return hasTag('plugin/pip', this.currentTags());
+  });
 
-  @HostListener('fullscreenchange')
   onFullscreenChange() {
-    if (!this.fullscreen) return;
+    if (!this.fullscreen()) return;
     if (document.fullscreenElement) return;
-    this.fullscreen = this.fullscreenRequired;
-    if (this.closeOffFullscreen) this.expanded = false;
+    this.fullscreen.set(this.fullscreenRequired());
+    if (this.closeOffFullscreen) this.expanded.set(false);
   }
 
-  @HostListener('click')
   onClick() {
-    this.store.view.clearLastSelected(this.ref.url);
+    this.store.view.clearLastSelected(this.ref().url);
   }
 
-  @ViewChild('viewer')
-  set viewer(value: ViewerComponent | undefined) {
-    this._viewer = value;
+  private handleViewer(value: ViewerComponent | undefined) {
     if (value) {
-      if (this.fullscreen) {
+      if (this.fullscreen()) {
         value.el.nativeElement.requestFullscreen().catch((err: TypeError) => {
           console.warn('Could not make fullscreen.');
-          if (this.closeOffFullscreen) this.expanded = false;
+          if (this.closeOffFullscreen) this.expanded.set(false);
         });
       }
       if (this.focusViewer) {
@@ -584,192 +507,152 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     }
   }
 
-  get viewer() {
-    return this._viewer;
-  }
-
-  get viewSource(): boolean {
-    return this._viewSource;
-  }
-
-  set viewSource(value: boolean) {
-    if (this._viewSource === value) return;
-    this._viewSource = value;
+  setViewSource(value: boolean) {
+    if (this.viewSource() === value) return;
+    this.viewSource.set(value);
     if (value) {
       this.syncEditor();
     } else {
-      if (this.expanded) this.focusViewer = true;
+      if (this.expanded()) this.focusViewer = true;
     }
   }
 
-  get diffing(): boolean {
-    return this._diffing;
-  }
-
-  set diffing(value: boolean) {
-    if (this._diffing === value) return;
-    this._diffing = value;
+  setDiffing(value: boolean) {
+    if (this.diffing() === value) return;
+    this.diffing.set(value);
     if (value) {
       this.diff()
     }
   }
 
-  get editing(): boolean {
-    return this._editing;
-  }
-
-  set editing(value: boolean) {
-    if (this._editing === value) return;
-    this._editing = value;
+  setEditing(value: boolean) {
+    if (this.editing() === value) return;
+    this.editing.set(value);
     if (value) {
       this.syncEditor();
-      MemoCache.clear(this, 'storyboardUrl');
-      MemoCache.clear(this, 'storyboardSize');
-      MemoCache.clear(this, 'storyboardMargin');
-      MemoCache.clear(this, 'storyboardHeight');
-      MemoCache.clear(this, 'storyboardAnimation');
     } else {
-      if (this.expanded) this.focusViewer = true;
+      if (this.expanded()) this.focusViewer = true;
       defer(() => {
-        MemoCache.clear(this);
         this.init();
-        this.cd.detectChanges();
       });
     }
   }
 
   syncEditor() {
-    if (!this.editing && !this.viewSource) return;
-    if (this.refForm) {
-      this.refForm.setRef(cloneDeep(this.ref));
-      if (this.editing) this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
+    if (!this.editing() && !this.viewSource()) return;
+    const refFormValue = this.refForm();
+    if (refFormValue) {
+      refFormValue.setRef(cloneDeep(this.ref()));
+      if (this.editing()) this.editor.syncEditor(this.fb, this.editForm, this.ref().comment);
     } else {
       defer(() => this.syncEditor());
     }
   }
 
-  @memo
-  get local() {
-    return this.ref.origin === this.store.account.origin;
-  }
+  readonly local = computed(() => {
+    return this.ref().origin === this.store.account.origin();
+  });
 
-  @memo
-  get localhost() {
-    return this.ref.url.startsWith(this.config.base);
-  }
+  readonly localhost = computed(() => {
+    return this.ref().url.startsWith(this.config.base);
+  });
 
-  @memo
-  get repost() {
-    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
-  }
+  readonly repost = computed(() => {
+    return this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref());
+  });
 
-  @memo
-  get bareRepost() {
-    return this.repost && !this.ref.title && !this.ref.comment;
-  }
+  readonly bareRepost = computed(() => {
+    return this.repost() && !this.ref().title && !this.ref().comment;
+  });
 
-  @memo
-  get currentRef() {
-    return this.repost ? this.repostRef : this.ref;
-  }
+  readonly currentRef = computed(() => {
+    return this.repost() ? this.repostRef() : this.ref();
+  });
 
-  @memo
-  get currentTags() {
-    return uniq([...(this.repost ? this.repostRef?.tags : this.ref.tags) || [], ...this.expandPlugins]);
-  }
+  readonly currentTags = computed(() => {
+    return uniq([...(this.repost() ? this.repostRef()?.tags : this.ref().tags) || [], ...this.expandPlugins()]);
+  });
 
-  @memo
-  get bareRef() {
-    return this.bareRepost ? this.repostRef : this.ref;
-  }
+  readonly bareRef = computed(() => {
+    return this.bareRepost() ? this.repostRef() : this.ref();
+  });
 
-  @memo
-  get commentNoTitle() {
-    if (this.altText) return false;
-    return this.bareRef?.title && this.bareRef?.comment || hasComment(this.bareRef?.comment || '');
-  }
+  readonly commentNoTitle = computed(() => {
+    if (this.altText()) return false;
+    return this.bareRef()?.title && this.bareRef()?.comment || hasComment(this.bareRef()?.comment || '');
+  });
 
-  @memo
-  get feed() {
-    return !!this.admin.getPlugin('plugin/script/feed') && hasTag('plugin/script/feed', this.ref);
-  }
+  readonly feed = computed(() => {
+    return !!this.admin.getPlugin('plugin/script/feed') && hasTag('plugin/script/feed', this.ref());
+  });
 
-  @memo
-  get thread() {
-    return !!this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.ref);
-  }
+  readonly thread = computed(() => {
+    return !!this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.ref());
+  });
 
-  @memo
-  get comment() {
-    return !!this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.ref);
-  }
+  readonly comment = computed(() => {
+    return !!this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.ref());
+  });
 
-  @memo
-  get dm() {
-    return !!this.admin.getTemplate('dm') && hasTag('dm', this.ref);
-  }
+  readonly dm = computed(() => {
+    return !!this.admin.getTemplate('dm') && hasTag('dm', this.ref());
+  });
 
-  @memo
-  get email() {
-    return !!this.admin.getTemplate('email') && hasTag('email', this.ref);
-  }
+  readonly email = computed(() => {
+    return !!this.admin.getTemplate('email') && hasTag('email', this.ref());
+  });
 
-  @memo
-  get remote() {
-    return !!this.admin.getPlugin('+plugin/origin') && hasTag('+plugin/origin', this.ref);
-  }
+  readonly remote = computed(() => {
+    return !!this.admin.getPlugin('+plugin/origin') && hasTag('+plugin/origin', this.ref());
+  });
 
-  @memo
-  get originPull() {
-    return !!this.admin.getPlugin('+plugin/origin/pull') && hasTag('+plugin/origin/pull', this.ref);
-  }
+  readonly originPull = computed(() => {
+    return !!this.admin.getPlugin('+plugin/origin/pull') && hasTag('+plugin/origin/pull', this.ref());
+  });
 
-  @memo
-  get originPush() {
-    return !!this.admin.getPlugin('+plugin/origin/push') && hasTag('+plugin/origin/push', this.ref);
-  }
+  readonly originPush = computed(() => {
+    return !!this.admin.getPlugin('+plugin/origin/push') && hasTag('+plugin/origin/push', this.ref());
+  });
 
-  @memo
-  get localOrigin() {
-    if (this.originPull || this.originPush) {
-      return this.ref.plugins?.['+plugin/origin']?.local && subOrigin(this.ref.origin, this.ref.plugins?.['+plugin/origin']?.local);
+  readonly localOrigin = computed(() => {
+    if (this.originPull() || this.originPush()) {
+      return this.ref().plugins?.['+plugin/origin']?.local && subOrigin(this.ref().origin, this.ref().plugins?.['+plugin/origin']?.local);
     }
     return undefined;
-  }
+  });
 
-  @memo
-  get remoteOrigin() {
-    if (this.originPull || this.originPush) {
-      return this.ref.plugins?.['+plugin/origin']?.remote;
+  readonly remoteOrigin = computed(() => {
+    if (this.originPull() || this.originPush()) {
+      return this.ref().plugins?.['+plugin/origin']?.remote;
     }
     return undefined;
-  }
+  });
 
-  @memo
-  get thumbnail() {
+  readonly thumbnail = computed(() => {
+    this.controlState0();
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    if (this.editing) {
+    if (this.editing()) {
       if (hasTag('plugin/thumbnail', this.editForm.value)) return true;
       if (!this.admin.getPlugin('plugin/image')) return false;
       return hasTag('plugin/image', this.editForm.value);
     }
-    if (hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef)) return true;
+    if (hasTag('plugin/thumbnail', this.ref()) || hasTag('plugin/thumbnail', this.repostRef())) return true;
     if (!this.admin.getPlugin('plugin/image')) return false;
-    return hasTag('plugin/image', this.ref) || hasTag('plugin/image', this.repostRef);
-  }
+    return hasTag('plugin/image', this.ref()) || hasTag('plugin/image', this.repostRef());
+  });
 
-  @memo
-  get thumbnailRefs() {
-    return this.editing ? [{ ...this.editForm.getRawValue(), origin: this.ref.origin }] : [this.repostRef, this.ref];
-  }
+  readonly thumbnailRefs = computed(() => {
+    this.controlState0();
+    return this.editing() ? [{ ...this.editForm.getRawValue(), origin: this.ref().origin }] : [this.repostRef(), this.ref()];
+  });
 
-  get refThumbnailPlugin() {
-    const plugin = this.ref?.plugins?.['plugin/thumbnail'] || this.repostRef?.plugins?.['plugin/thumbnail'];
+  readonly refThumbnailPlugin = computed(() => {
+    const plugin = this.ref()?.plugins?.['plugin/thumbnail'] || this.repostRef()?.plugins?.['plugin/thumbnail'];
     return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
-  }
+  });
 
   refThumbnailString(key: 'url' | 'color' | 'emoji') {
-    const value = this.refThumbnailPlugin?.[key];
+    const value = this.refThumbnailPlugin()?.[key];
     return typeof value === 'string' ? value : '';
   }
 
@@ -780,406 +663,362 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   refThumbnailPluginUrl(plugin: 'plugin/image' | 'plugin/video') {
-    const value = this.ref?.plugins?.[plugin]?.url || this.repostRef?.plugins?.[plugin]?.url;
+    const value = this.ref()?.plugins?.[plugin]?.url || this.repostRef()?.plugins?.[plugin]?.url;
     return typeof value === 'string' ? value : '';
   }
 
-  @memo
-  get thumbnailColor() {
-    if (!this.thumbnail) return '';
-    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
-    return this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color || '';
-  }
+  readonly thumbnailColor = computed(() => {
+    this.controlState0();
+    if (!this.thumbnail()) return '';
+    if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
+    return this.ref()?.plugins?.['plugin/thumbnail']?.color || this.repostRef()?.plugins?.['plugin/thumbnail']?.color || '';
+  });
 
-  @memo
-  get thumbnailEmoji() {
-    if (!this.thumbnail) return '';
-    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
-    return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
-  }
+  readonly thumbnailEmoji = computed(() => {
+    this.controlState0();
+    if (!this.thumbnail()) return '';
+    if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
+    return this.ref()?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef()?.plugins?.['plugin/thumbnail']?.emoji || '';
+  });
 
-  @memo
-  get thumbnailEmojiDefaults() {
-    const icon = this.icons.filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
+  readonly thumbnailEmojiDefaults = computed(() => {
+    const icon = this.icons().filter(i => i.thumbnail || (i.label && (i.order || 0) >= 0) && this.showIcon(i))[0];
     return icon?.label || icon?.thumbnail;
-  }
+  });
 
-  @memo
-  get thumbnailRadius() {
-    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
-    return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
-  }
+  readonly thumbnailRadius = computed(() => {
+    this.controlState0();
+    if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
+    return this.ref()?.plugins?.['plugin/thumbnail']?.radius || this.repostRef()?.plugins?.['plugin/thumbnail']?.radius || 0;
+  });
 
-  @memo
-  get file() {
+  readonly file = computed(() => {
     return this.admin.getPlugin('plugin/file') &&
-      hasTag('plugin/file', this.currentRef);
-  }
+      hasTag('plugin/file', this.currentRef());
+  });
 
-  @memo
-  get audio() {
+  readonly audio = computed(() => {
     return this.admin.getPlugin('plugin/audio') &&
-      hasTag('plugin/audio', this.currentRef) &&
-      (this.ref?.plugins?.['plugin/audio']?.url || this.url);
-  }
+      hasTag('plugin/audio', this.currentRef()) &&
+      (this.ref()?.plugins?.['plugin/audio']?.url || this.url());
+  });
 
-  @memo
-  get video() {
+  readonly video = computed(() => {
     return this.admin.getPlugin('plugin/video') &&
-      hasTag('plugin/video', this.currentRef) &&
-      (this.ref?.plugins?.['plugin/video']?.url || this.url);
-  }
+      hasTag('plugin/video', this.currentRef()) &&
+      (this.ref()?.plugins?.['plugin/video']?.url || this.url());
+  });
 
-  @memo
-  get image() {
+  readonly image = computed(() => {
     return this.admin.getPlugin('plugin/image') &&
-      hasTag('plugin/image', this.currentRef) &&
-      (this.ref?.plugins?.['plugin/image']?.url || this.url);
-  }
+      hasTag('plugin/image', this.currentRef()) &&
+      (this.ref()?.plugins?.['plugin/image']?.url || this.url());
+  });
 
-  @memo
   getFilename(d = $localize`Untitled`) {
-    const ext = getExtension(this.url) || '';
-    const filename = this.ref?.title || d;
+    const ext = getExtension(this.url()) || '';
+    const filename = this.ref()?.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
-  @memo
-  get mediaAttachment() {
-    if (this.file) {
-      return this.proxy.getFetch(this.url, this.origin, this.getFilename());
+  readonly mediaAttachment = computed(() => {
+    if (this.file()) {
+      return this.proxy.getFetch(this.url(), this.origin(), this.getFilename());
     }
-    if (this.audio && (this.audio.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
-      return this.proxy.getFetch(this.audio, this.origin, this.getFilename($localize`Untitled Audio`));
+    if (this.audio() && (this.audio().startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
+      return this.proxy.getFetch(this.audio(), this.origin(), this.getFilename($localize`Untitled Audio`));
     }
-    if (this.video && (this.video.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
-      return this.proxy.getFetch(this.video, this.origin, this.getFilename($localize`Untitled Video`));
+    if (this.video() && (this.video().startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
+      return this.proxy.getFetch(this.video(), this.origin(), this.getFilename($localize`Untitled Video`));
     }
-    if (this.image && (this.image.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
-      return this.proxy.getFetch(this.image, this.origin, this.getFilename($localize`Untitled Image`));
+    if (this.image() && (this.image().startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
+      return this.proxy.getFetch(this.image(), this.origin(), this.getFilename($localize`Untitled Image`));
     }
     return '';
-  }
+  });
 
-  @memo
-  get canInvoice() {
-    if (!this.local) return false;
+  readonly canInvoice = computed(() => {
+    if (!this.local()) return false;
     if (!this.admin.getPlugin('plugin/invoice')) return false;
-    if (!this.isAuthor) return false;
-    return hasTag('queue', this.ref);
-  }
+    if (!this.isAuthor()) return false;
+    return hasTag('queue', this.ref());
+  });
 
-  @memo
-  @HostBinding('class.sent')
-  get isAuthor() {
-    return isAuthorTag(this.store.account.tag, this.ref);
-  }
+  readonly isAuthor = computed(() => {
+    return isAuthorTag(this.store.account.tag(), this.ref());
+  });
 
-  @memo
-  get isRecipient() {
-    return hasTag(this.store.account.mailbox, this.ref);
-  }
+  readonly isRecipient = computed(() => {
+    return hasTag(this.store.account.mailbox(), this.ref());
+  });
 
-  @memo
-  get authors() {
-    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
+  readonly authors = computed(() => {
+    const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     return uniq([
-      ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
-      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
+      ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
+      ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
     ]);
-  }
+  });
 
-  @memo
-  get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
-  }
+  readonly authorExts = toSignal(toObservable(computed(() =>
+    [this.authors(), this.ref().origin || ''] as const)).pipe(
+    switchMap(([tags, origin]) => this.exts.getCachedExts(tags, origin).pipe(this.admin.authorFallback)),
+  ), { initialValue: [] });
 
-  @memo
-  get recipients() {
-    const lookup = this.store.origins.originMap.get(this.ref.origin || '');
-    const userRecipients = without(addressedTo(this.ref), ...this.authors).map(a => {
+  readonly recipients = computed(() => {
+    const lookup = this.store.origins.originMap().get(this.ref().origin || '');
+    const userRecipients = without(addressedTo(this.ref()), ...this.authors()).map(a => {
       if (!tagOrigin(a)) return a;
       return localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a));
     });
     return [
       ...userRecipients,
-      ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
+      ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
     ];
-  }
+  });
 
-  @memo
-  get recipientExts$() {
-    return this.exts.getCachedExts(this.recipients, this.ref.origin || '').pipe(this.admin.recipientFallback);
-  }
+  readonly recipientExts = toSignal(toObservable(computed(() =>
+    [this.recipients(), this.ref().origin || ''] as const)).pipe(
+    switchMap(([tags, origin]) => this.exts.getCachedExts(tags, origin).pipe(this.admin.recipientFallback)),
+  ), { initialValue: [] });
 
-  @memo
-  get mailboxes() {
-    return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
-  }
+  readonly mailboxes = computed(() => {
+    return mailboxes(this.ref(), this.store.account.tag(), this.store.origins.originMap());
+  });
 
-  @memo
-  get replySources() {
-    const sources = [this.ref.url];
-    if (this.comment || this.thread || this.email) {
-      if (this.ref.sources?.length) {
-        sources.push(this.ref.sources[1] || this.ref.sources[0] || this.ref.url);
+  readonly replySources = computed(() => {
+    const sources = [this.ref().url];
+    if (this.comment() || this.thread() || this.email()) {
+      const refSources = this.ref().sources;
+      if (refSources?.length) {
+        sources.push(refSources[1] || refSources[0] || this.ref().url);
       }
     }
     return sources;
-  }
+  });
 
-  @memo
-  get replyTags(): string[] {
+  readonly replyTags = computed<string[]>(() => {
     const tags = [
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref)).flatMap(p => p.config!.reply as string[]),
-      ...this.mailboxes,
+      ...this.admin.reply().filter(p => hasTag(p.tag, this.ref())).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes(),
     ];
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
-  }
+    return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
+  });
 
-  @memo
-  get replyTo() {
-    return this.authors.join(' ')
-  }
+  readonly replyTo = computed(() => {
+    return this.authors().join(' ')
+  });
 
-  @memo
-  get tags() {
-    return interestingTags(this.ref.tags);
-  }
+  readonly tags = computed(() => {
+    return interestingTags(this.ref().tags);
+  });
 
-  @memo
-  get tagExts$() {
-    return this.editor.getTagsPreview(this.tags, this.ref.origin || '');
-  }
+  readonly tagExts = toSignal(toObservable(computed(() =>
+    [this.tags(), this.ref().origin || ''] as const)).pipe(
+    switchMap(([tags, origin]) => this.editor.getTagsPreview(tags, origin)),
+  ), { initialValue: [] });
 
-  @memo
-  get url() {
-    return this.repost ? this.ref.sources![0] : this.ref.url;
-  }
+  readonly url = computed(() => {
+    return this.repost() ? this.ref().sources![0] : this.ref().url;
+  });
 
-  @memo
-  get origin() {
-    return this.bareRef?.origin;
-  }
+  readonly origin = computed(() => {
+    return this.bareRef()?.origin;
+  });
 
-  @memo
-  get link() {
-    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin, this.getFilename());
-    return this.url;
-  }
+  readonly link = computed(() => {
+    if (this.file() || this.url().startsWith('cache:')) return this.proxy.getFetch(this.url(), this.origin(), this.getFilename());
+    return this.url();
+  });
 
-  @memo
-  get title() {
-    if (this.editing) return getTitle(this.editForm.value);
-    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
-    return getTitle(this.ref);
-  }
+  readonly title = computed(() => {
+    this.controlState0();
+    if (this.editing()) return getTitle(this.editForm.value);
+    if (this.bareRepost()) return getTitle(this.repostRef()) || $localize`Repost`;
+    return getTitle(this.ref());
+  });
 
-  @memo
-  get defaultView() {
-    if (this.thread || this.threads || this.dm) return 'thread';
-    if (this.comment) return 'comments';
+  readonly defaultView = computed(() => {
+    if (this.thread() || this.threads() || this.dm()) return 'thread';
+    if (this.comment()) return 'comments';
     return undefined;
-  }
+  });
 
-  @memo
-  get host() {
-    return urlSummary(this.url);
-  }
+  readonly host = computed(() => {
+    return urlSummary(this.url());
+  });
 
-  @memo
-  get tagLink() {
-    return this.url.toLowerCase().startsWith('tag:/');
-  }
+  readonly tagLink = computed(() => {
+    return this.url().toLowerCase().startsWith('tag:/');
+  });
 
-  @memo
-  get editingLink() {
-    if (!hasTag('plugin/editing', this.ref)) return undefined;
-    if (this.url.startsWith('comment:')) {
-      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+  readonly editingLink = computed(() => {
+    if (!hasTag('plugin/editing', this.ref())) return undefined;
+    if (this.url().startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url() } };
     }
-    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
-  }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url() } };
+  });
 
-  @memo
-  get submitRoute() {
-    if (this.url.startsWith('comment:')) {
-      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+  readonly submitRoute = computed(() => {
+    if (this.url().startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url() } };
     }
-    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
-  }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url() } };
+  });
 
-  @memo
-  get clickableLink() {
-    if (this.file) return true;
-    return clickableLink(this.url);
-  }
+  readonly clickableLink = computed(() => {
+    if (this.file()) return true;
+    return clickableLink(this.url());
+  });
 
-  @memo
-  get redundantLink() {
-    if (this.editingLink) return true;
-    if (!this.clickableLink) return true;
-    return this.expandPlugins.length;
-  }
+  readonly redundantLink = computed(() => {
+    if (this.editingLink()) return true;
+    if (!this.clickableLink()) return true;
+    return this.expandPlugins().length;
+  });
 
-  @memo
-  get altText() {
-    if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) {
-      return this.bareRef?.comment;
+  readonly altText = computed(() => {
+    if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) {
+      return this.bareRef()?.comment;
     }
     return undefined;
-  }
+  });
 
-  @memo
-  get comments() {
+  readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
-  }
+    return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
+  });
 
-  @memo
-  get newCommentsCount() {
-    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'comments');
+  readonly newCommentsCount = computed(() => {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref().url, 'comments');
     if (!lastSeen) return 0;
-    return Math.max(0, this.comments - lastSeen);
-  }
+    return Math.max(0, this.comments() - lastSeen);
+  });
 
-  @memo
-  get errors() {
+  readonly errors = computed(() => {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
-    return this.ref.metadata?.plugins?.['+plugin/log'] || 0;
-  }
+    return this.ref().metadata?.plugins?.['+plugin/log'] || 0;
+  });
 
-  @memo
-  get threads() {
+  readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
-  }
+    return this.ref().metadata?.plugins?.['plugin/thread'] || 0;
+  });
 
-  @memo
-  get newThreadsCount() {
-    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'threads');
+  readonly newThreadsCount = computed(() => {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref().url, 'threads');
     if (!lastSeen) return 0;
-    return Math.max(0,  this.threads - lastSeen);
-  }
+    return Math.max(0,  this.threads() - lastSeen);
+  });
 
-  @memo
-  get responses() {
-    return this.ref.metadata?.responses || 0;
-  }
+  readonly responses = computed(() => {
+    return this.ref().metadata?.responses || 0;
+  });
 
-  @memo
-  get newResponsesCount() {
-    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'replies');
+  readonly newResponsesCount = computed(() => {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref().url, 'replies');
     if (!lastSeen) return 0;
-    return Math.max(0, this.responses - lastSeen);
-  }
+    return Math.max(0, this.responses() - lastSeen);
+  });
 
-  @memo
-  get sources() {
-    const sources = uniq(this.ref?.sources).filter(s => s != this.ref.url);
+  readonly sources = computed(() => {
+    const sources = uniq(this.ref()?.sources).filter(s => s != this.ref().url);
     return sources.length || 0;
-  }
+  });
 
-  @memo
-  get top() {
-    return top(this.ref);
-  }
+  readonly top = computed(() => {
+    return top(this.ref());
+  });
 
-  @memo
-  get parent() {
-    const sources = uniq(this.ref.sources).filter(s => s != this.ref.url);
+  readonly parent = computed(() => {
+    const sources = uniq(this.ref().sources).filter(s => s != this.ref().url);
     if (sources.length === 1) return sources[0];
     return false;
-  }
+  });
 
-  @memo
-  get parentComment() {
-    if (!hasTag('plugin/comment', this.ref)) return false;
-    if (this.ref.sources?.[0] === this.ref.url) return false;
-    if (this.ref.sources?.[1] === this.ref.url) return false;
-    if (this.sources === 1 || this.sources === 2) return this.ref.sources![0];
+  readonly parentComment = computed(() => {
+    if (!hasTag('plugin/comment', this.ref())) return false;
+    if (this.ref().sources?.[0] === this.ref().url) return false;
+    if (this.ref().sources?.[1] === this.ref().url) return false;
+    if (this.sources() === 1 || this.sources() === 2) return this.ref().sources![0];
     return false;
-  }
+  });
 
-  @memo
-  get parentCommentTop() {
-    if (!hasTag('plugin/comment', this.ref)) return false;
-    if (this.ref.sources?.[0] === this.ref.url) return false;
-    if (this.ref.sources?.[1] === this.ref.url) return false;
-    if (this.sources === 2) return this.ref.sources![1];
+  readonly parentCommentTop = computed(() => {
+    if (!hasTag('plugin/comment', this.ref())) return false;
+    if (this.ref().sources?.[0] === this.ref().url) return false;
+    if (this.ref().sources?.[1] === this.ref().url) return false;
+    if (this.sources() === 2) return this.ref().sources![1];
     return false;
-  }
+  });
 
-  @memo
-  get parentThreadTop() {
-    if (!hasTag('plugin/thread', this.ref)) return false;
-    if (this.ref.sources?.[0] === this.ref.url) return false;
-    if (this.ref.sources?.[1] === this.ref.url) return false;
-    if (this.sources === 2) return this.ref.sources![1];
-    if (this.sources === 1) return this.ref.sources![0];
+  readonly parentThreadTop = computed(() => {
+    if (!hasTag('plugin/thread', this.ref())) return false;
+    if (this.ref().sources?.[0] === this.ref().url) return false;
+    if (this.ref().sources?.[1] === this.ref().url) return false;
+    if (this.sources() === 2) return this.ref().sources![1];
+    if (this.sources() === 1) return this.ref().sources![0];
     return false;
-  }
+  });
 
-  @memo
-  get publishedIsSubmitted() {
-    return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created!, 'seconds').seconds) <= 5;
-  }
+  readonly publishedIsSubmitted = computed(() => {
+    const ref = this.ref();
+    return !ref.published || Math.abs(ref.published.diff(ref.created!, 'seconds').seconds) <= 5;
+  });
 
-  @memo
-  get modifiedIsSubmitted() {
-    return !this.ref.modified || Math.abs(this.ref.modified.diff(this.ref.created!, 'seconds').seconds) <= 5;
-  }
+  readonly modifiedIsSubmitted = computed(() => {
+    const ref = this.ref();
+    return !ref.modified || Math.abs(ref.modified.diff(ref.created!, 'seconds').seconds) <= 5;
+  });
 
-  @memo
-  get upvote() {
-    return hasUserUrlResponse('plugin/user/vote/up', this.ref);
-  }
+  readonly upvote = computed(() => {
+    return hasUserUrlResponse('plugin/user/vote/up', this.ref());
+  });
 
-  @memo
-  get downvote() {
-    return hasUserUrlResponse('plugin/user/vote/down', this.ref);
-  }
+  readonly downvote = computed(() => {
+    return hasUserUrlResponse('plugin/user/vote/down', this.ref());
+  });
 
-  @memo
-  get isView() {
-    return isRef(this.ref, this.store.view.ref);
-  }
+  readonly isView = computed(() => {
+    return isRef(this.ref(), this.store.view.ref());
+  });
 
   toggle() {
     let read = false;
-    if (this.editing) {
-      this.editing = false;
-    } else if (this.viewSource) {
-      this.viewSource = false;
-    } else if (!this.fullscreen) {
-      if (this.store.hotkey && this.admin.getPlugin('plugin/fullscreen')) {
-        this.fullscreen = true;
-        this.closeOffFullscreen = !this.expanded;
-        if (this.viewer) {
-          this.viewer.el.nativeElement.requestFullscreen().catch(() => {
+    if (this.editing()) {
+      this.setEditing(false);
+    } else if (this.viewSource()) {
+      this.setViewSource(false);
+    } else if (!this.fullscreen()) {
+      if (this.store.hotkey() && this.admin.getPlugin('plugin/fullscreen')) {
+        this.fullscreen.set(true);
+        this.closeOffFullscreen = !this.expanded();
+        const viewer = this.viewer();
+        if (viewer) {
+          viewer.el.nativeElement.requestFullscreen().catch(() => {
             console.warn('Could not make fullscreen.');
           });
         }
         this.focusViewer = true;
-        this.expanded = true;
-        this.cd.detectChanges();
-      } else if (this.pipRequired) {
-        this.store.eventBus.fire('pip', this.ref);
+        this.expanded.set(true);
+      } else if (this.pipRequired()) {
+        this.store.eventBus.fire('pip', this.ref());
         read = true;
       } else {
-        this.expanded = !this.expanded;
-        if (this.expanded) this.focusViewer = true;
-        this.store.local.setRefToggled(this.ref.url, this.expanded);
+        this.expanded.set(!this.expanded());
+        if (this.expanded()) this.focusViewer = true;
+        this.store.local.setRefToggled(this.ref().url, this.expanded());
       }
       // Mark as read
-      if (!read && !this.expanded) return;
+      if (!read && !this.expanded()) return;
       this.markRead();
     }
   }
 
   pip(event?: MouseEvent) {
-    if (!this.admin.pip) return;
-    this.store.eventBus.fire('pip', this.ref);
+    if (!this.admin.pip()) return;
+    this.store.eventBus.fire('pip', this.ref());
     this.markRead();
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
     event?.preventDefault();
@@ -1187,18 +1026,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   markRead() {
-    markRead(this.admin, this.ts, this.ref);
-    this.initFields(this.ref);
+    markRead(this.admin, this.ts, this.ref());
   }
 
-  @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref));
+    return hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref()));
   }
 
   saveRef() {
-    this.store.view.preloadRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref(), this.repostRef());
   }
 
   formatAuthor(user: string) {
@@ -1206,35 +1043,34 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   tag$ = (tag: string) => {
-    if (this.ref.upload) {
-      runInAction(() => {
-        this.ref.tags ||= [];
-        for (const t of tag.split(' ').filter(t => !!t.trim())) {
-          if (t.startsWith('-')) {
-            this.ref.tags = this.ref.tags.filter(r => expandedTagsInclude(r, t.substring(1)));
-          } else if (!hasTag(t, this.ref)) {
-            this.ref.tags.push(t);
-          }
+    if (this.ref().upload) {
+      let tags = this.ref().tags || [];
+      for (const t of tag.split(' ').filter(t => !!t.trim())) {
+        if (t.startsWith('-')) {
+          tags = tags.filter(r => expandedTagsInclude(r, t.substring(1)));
+        } else if (!hasTag(t, { ...this.ref(), tags })) {
+          tags = [...tags, t];
         }
-      });
+      }
+      this.ref.update(r => ({ ...r, tags }));
       this.init();
       return of(null);
     } else {
-      return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref.url, this.ref.origin!).pipe(
+      return this.store.eventBus.runAndReload$(this.ts.create(tag, this.ref().url, this.ref().origin!).pipe(
         tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
-      ), this.ref);
+      ), this.ref());
     }
   }
 
   label(a: Action) {
     if ('tag' in a || 'response' in a) {
-      return active(this.ref, a) ? 'labelOn' : 'labelOff';
+      return active(this.ref(), a) ? 'labelOn' : 'labelOff';
     }
     return 'label';
   }
 
   showIcon(i: Icon) {
-    return visible(this.ref, i, this.isAuthor, this.isRecipient) && active(this.ref, i);
+    return visible(this.ref(), i, this.isAuthor(), this.isRecipient()) && active(this.ref(), i);
   }
 
   clickIcon(i: Icon, ctrl: boolean) {
@@ -1250,20 +1086,20 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   showAction(a: Action) {
-    if (!visible(this.ref, a, this.isAuthor, this.isRecipient)) return false;
+    if (!visible(this.ref(), a, this.isAuthor(), this.isRecipient())) return false;
     if ('scheme' in a) {
-      if (a.scheme !== getScheme(this.repostRef?.url || this.ref.url)) return false;
+      if (a.scheme !== getScheme(this.repostRef()?.url || this.ref().url)) return false;
     }
     if ('tag' in a) {
-      if (a.tag === 'locked' && !this.writeAccess) return false;
-      if (a.tag && !this.taggingAccess) return false;
-      if (a.tag && !hasTag(a.tag, this.ref) && !this.auth.canAddTag(a.tag)) return false;
-      if (a.tag && hasTag(a.tag, this.ref) && !this.writeAccess) return false;
+      if (a.tag === 'locked' && !this.writeAccess()) return false;
+      if (a.tag && !this.taggingAccess()) return false;
+      if (a.tag && !hasTag(a.tag, this.ref()) && !this.auth.canAddTag(a.tag)) return false;
+      if (a.tag && hasTag(a.tag, this.ref()) && !this.writeAccess()) return false;
     }
     if ('tag' in a || 'response' in a) {
       if (!this.auth.hasRole('ROLE_USER')) return false;
-      if (active(this.ref, a) && !a.labelOn) return false;
-      if (!active(this.ref, a) && !a.labelOff) return false;
+      if (active(this.ref(), a) && !a.labelOn) return false;
+      if (!active(this.ref(), a) && !a.labelOff) return false;
     } else {
       if (!a.label) return false;
     }
@@ -1271,117 +1107,127 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   voteUp() {
-    this.ref.metadata ||= {};
-    this.ref.metadata.userUrls ||= [];
-    if (this.upvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/up', this.ref.url), this.ref);
-    } else if (!this.downvote) {
-      this.ref.metadata.userUrls.push('plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/up', this.ref.url), this.ref);
+    const ref = this.ref();
+    let userUrls = ref.metadata?.userUrls || [];
+    let request: Observable<any>;
+    if (this.upvote()) {
+      userUrls = without(userUrls, 'plugin/user/vote/up');
+      request = this.ts.deleteResponse('plugin/user/vote/up', ref.url);
+    } else if (!this.downvote()) {
+      userUrls = [...userUrls, 'plugin/user/vote/up'];
+      request = this.ts.createResponse('plugin/user/vote/up', ref.url);
     } else {
-      this.ref.metadata.userUrls.push('plugin/user/vote/up');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref.url), this.ref);
+      userUrls = without([...userUrls, 'plugin/user/vote/up'], 'plugin/user/vote/down');
+      request = this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], ref.url);
     }
+    const updated = { ...ref, metadata: { ...ref.metadata, userUrls } };
+    this.ref.set(updated);
+    this.store.eventBus.runAndRefresh(request, updated);
   }
 
   voteDown() {
-    this.ref.metadata ||= {};
-    this.ref.metadata.userUrls ||= [];
-    if (this.downvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/down', this.ref.url), this.ref);
-    } else if (!this.upvote) {
-      this.ref.metadata.userUrls.push('plugin/user/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/down', this.ref.url), this.ref);
+    const ref = this.ref();
+    let userUrls = ref.metadata?.userUrls || [];
+    let request: Observable<any>;
+    if (this.downvote()) {
+      userUrls = without(userUrls, 'plugin/user/vote/down');
+      request = this.ts.deleteResponse('plugin/user/vote/down', ref.url);
+    } else if (!this.upvote()) {
+      userUrls = [...userUrls, 'plugin/user/vote/down'];
+      request = this.ts.createResponse('plugin/user/vote/down', ref.url);
     } else {
-      this.ref.metadata.userUrls.push('plugin/user/vote/down');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref.url), this.ref);
+      userUrls = without([...userUrls, 'plugin/user/vote/down'], 'plugin/user/vote/up');
+      request = this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], ref.url);
     }
+    const updated = { ...ref, metadata: { ...ref.metadata, userUrls } };
+    this.ref.set(updated);
+    this.store.eventBus.runAndRefresh(request, updated);
   }
 
   save() {
-    this.submitted = true;
+    this.submitted.set(true);
     this.editForm.markAllAsTouched();
     this.editor.syncEditor(this.fb, this.editForm);
     if (!this.editForm.valid) {
       scrollToFirstInvalid();
       return;
     }
-    const published = this.editForm.value.published ? DateTime.fromISO(this.editForm.value.published) : this.ref.published;
+    const published = this.editForm.value.published ? DateTime.fromISO(this.editForm.value.published) : this.ref().published;
     let ref = {
       ...this.editForm.value,
       published,
       plugins: writePlugins(this.editForm.value.tags, this.editForm.value.plugins),
-      modifiedString: this.overwrite ? this.overwrittenModified : this.ref.modifiedString,
+      modifiedString: this.overwrite() ? this.overwrittenModified : this.ref().modifiedString,
     };
     ref = {
-      ...this.ref,
+      ...this.ref(),
       ...ref,
       plugins: writePlugins(this.editForm.value.tags, {
-        ...this.ref.plugins,
+        ...this.ref().plugins,
         ...ref.plugins,
       }),
     };
-    if (this.ref.upload) {
+    if (this.ref().upload) {
       ref.upload = true;
-      if (ref.url !== this.ref.url) delete ref.exists;
-      this.store.submit.setRef(ref, this.ref.url);
+      if (ref.url !== this.ref().url) delete ref.exists;
+      this.store.submit.setRef(ref, this.ref().url);
       this.editForm.reset();
       this.init();
     } else {
-      this.refreshTap = () => this.publishChanged = +published! !== +this.ref.published!;
-      this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
+      this.refreshTap = () => this.publishChanged.set(+published! !== +this.ref().published!);
+      this.submitting.set(true);
+    this.submittingSubscription = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
         tap(cursor => {
           this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
           this.editForm.reset();
-          delete this.submitting;
-          this.editing = false;
-        }),
+          this.submitting.set(false);
+          this.setEditing(false);
+          }),
         catchError((res: HttpErrorResponse) => {
-          delete this.submitting;
+          this.submitting.set(false);
           if (res.status === 400) {
-            this.invalid = true;
+            this.invalid.set(true);
             console.log(res.message);
             // TODO: read res.message to find which fields to delete
           }
           if (res.status === 409) {
-            this.overwritten = true;
-            this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
+            this.overwritten.set(true);
+            this.refs.get(this.ref().url, this.ref().origin).subscribe(x => {
+              this.overwrittenModified = x.modifiedString;
+                  });
           }
-          return throwError(() => res);
+            return throwError(() => res);
         }),
       ), ref);
+    this.submittingSubscription?.add(() => this.submitting.set(false));
     }
   }
 
   copy$ = () => {
     const tags = uniq([
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...(this.ref.tags || [])
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
+      ...(this.ref().tags || [])
         .filter(t => hasPrefix(t, 'plugin') || !t.startsWith('+') && !t.startsWith('_'))
         .filter(t => !hasPrefix(t, 'user'))
         .filter(t => this.auth.canAddTag(t))
     ]);
     const copied: Ref = {
-      ...this.ref,
-      origin: this.store.account.origin,
+      ...this.ref(),
+      origin: this.store.account.origin(),
       tags,
     };
     copied.plugins = pick(copied.plugins, tags || []);
     if (hasTag('+plugin/origin', copied)) {
-      copied.plugins['+plugin/origin'].local = copied.plugins['+plugin/origin'].remote = subOrigin(this.ref.origin, copied.plugins['+plugin/origin'].local);
-      copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup.get(this.ref.origin || '');
+      copied.plugins['+plugin/origin'].local = copied.plugins['+plugin/origin'].remote = subOrigin(this.ref().origin, copied.plugins['+plugin/origin'].local);
+      copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup().get(this.ref().origin || '');
     }
     if (hasTag('+plugin/origin/tunnel', copied)) {
-      copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(this.ref.origin || '');
+      copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup().get(this.ref().origin || '');
     }
     return this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          return this.refs.get(this.ref.url, this.store.account.origin).pipe(
+          return this.refs.get(this.ref().url, this.store.account.origin()).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
@@ -1391,12 +1237,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
             })
           );
         }
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(this.ref.url, this.store.account.origin)),
+      switchMap(() => this.refs.get(this.ref().url, this.store.account.origin())),
       tap(ref => {
-        this.ref = ref;
+        this.ref.set(ref);
         this.init();
       })
     );
@@ -1406,8 +1252,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     // Fetch obsolete versions and show diff with most recent remote version
     this.diffSubscription?.unsubscribe();
     this.diffSubscription = this.refs.page({
-      url: this.ref.url,
-      query: `!${this.store.account.origin || '*'}`,
+      url: this.ref().url,
+      query: `!${this.store.account.origin() || '*'}`,
       obsolete: null,
       size: 1,
       sort: ['modified,DESC']
@@ -1415,14 +1261,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       takeUntilDestroyed(this.destroyRef),
       map(page => {
         // Find the most recent remote version (not from local origin)
-        const remoteVersion = page.content.find(r => r.origin !== this.store.account.origin);
+        const remoteVersion = page.content.find(r => r.origin !== this.store.account.origin());
         if (!remoteVersion) {
           throw new Error('No remote version found');
         }
         return remoteVersion;
       }),
       switchMap(remoteVersion =>
-        this.refs.get(this.ref.url, this.store.account.origin).pipe(
+        this.refs.get(this.ref().url, this.store.account.origin()).pipe(
           map(localVersion => ({ local: localVersion, remote: remoteVersion }))
         )
       ),
@@ -1432,56 +1278,60 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         return throwError(() => err);
       })
     ).subscribe(({ local, remote }) => {
-      this.diffOriginal = remote;
-      this.diffModified = local;
-      this.diffing = true;
+      this.diffOriginal.set(remote);
+      this.diffModified.set(local);
+      this.setDiffing(true);
     });
   }
 
   saveDiff() {
-    const ref = this.diffEditor?.getModifiedContent();
+    const ref = this.diffEditor()?.getModifiedContent();
     if (!ref) return;
-    ref.origin = this.store.account.origin;
-    ref.modifiedString = this.overwrite ? this.overwrittenModified : this.ref.modifiedString;
-    this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
+    ref.origin = this.store.account.origin();
+    ref.modifiedString = this.overwrite() ? this.overwrittenModified : this.ref().modifiedString;
+    this.submitting.set(true);
+    this.submittingSubscription = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
       tap(cursor => {
         this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
-        delete this.submitting;
-        this.diffing = false;
+        this.submitting.set(false);
+        this.setDiffing(false);
       }),
       catchError((res: HttpErrorResponse) => {
-        delete this.submitting;
+        this.submitting.set(false);
         if (res.status === 400) {
-          this.invalid = true;
+          this.invalid.set(true);
           console.error('Invalid ref data:', res.message);
           // TODO: read res.message to find which fields to delete
         }
         if (res.status === 409) {
-          this.overwritten = true;
-          this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
+          this.overwritten.set(true);
+          this.refs.get(this.ref().url, this.ref().origin).subscribe(x => {
+            this.overwrittenModified = x.modifiedString;
+              });
         }
         return throwError(() => res);
       }),
     ), ref);
+    this.submittingSubscription?.add(() => this.submitting.set(false));
   }
 
   upload$ = () => {
-    const original = this.ref;
-    return this.store.eventBus.catchError$(this.uploadCache.restore$(this.ref, this.store.account.origin), original).pipe(
+    const original = this.ref();
+    return this.store.eventBus.catchError$(this.uploadCache.restore$(original, this.store.account.origin()), original).pipe(
       switchMap((restored: Ref) => {
         const ref: Ref = {
           ...restored,
-          origin: this.store.account.origin,
+          origin: this.store.account.origin(),
           tags: restored.tags?.filter(t => this.auth.canAddTag(t)),
         };
         ref.plugins = pick(ref.plugins, ref.tags || []);
         return this.store.eventBus.runAndReload$(
-          (this.store.submit.overwrite || ref.url !== original.url
+          (this.store.submit.overwrite() || ref.url !== original.url
             ? this.refs.update(ref)
             : this.refs.create(ref).pipe(
               catchError((err: HttpErrorResponse) => {
                 if (err.status === 409) {
-                  return this.refs.get(ref.url, this.store.account.origin).pipe(
+                  return this.refs.get(ref.url, this.store.account.origin()).pipe(
                     switchMap(existing => {
                       if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || confirm('An old version already exists. Overwrite it?')) {
                         // TODO: Show diff and merge or split
@@ -1497,7 +1347,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
             )).pipe(
             tap(() => {
               this.store.submit.removeRef(original);
-              if (!this.store.submit.refs.length && !this.store.submit.exts.length) {
+              if (!this.store.submit.refs().length && !this.store.submit.exts().length) {
                 this.router.navigate(['/ref', ref.url]);
               }
             }),
@@ -1507,51 +1357,51 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   forceDelete$ = () => {
-    this.serverError = [];
-    return this.refs.delete(this.ref.url, this.ref.origin).pipe(
-      tap(() => this.deleted = true),
+    this.serverError.set([]);
+    return this.refs.delete(this.ref().url, this.ref().origin).pipe(
+      tap(() => this.deleted.set(true)),
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );
   }
 
   delete$ = () => {
-    this.serverError = [];
-    return (this.local && hasTag('locked', this.ref)
-        ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin)
-        : this.local && !hasTag('plugin/delete', this.ref) && this.admin.getPlugin('plugin/delete')
-          ? this.refs.update(deleteNotice(this.ref))
-          : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
+    this.serverError.set([]);
+    return (this.local() && hasTag('locked', this.ref())
+        ? this.ts.patch(['plugin/delete', 'internal'], this.ref().url, this.ref().origin)
+        : this.local() && !hasTag('plugin/delete', this.ref()) && this.admin.getPlugin('plugin/delete')
+          ? this.refs.update(deleteNotice(this.ref()))
+          : this.refs.delete(this.ref().url, this.ref().origin).pipe(map(() => ''))
     ).pipe(
       tap((cursor: string) => {
-        this.deleted = true;
-        if (this.store.account.mod && cursor) {
-          this.store.eventBus.reload(this.ref);
+        this.deleted.set(true);
+        if (this.store.account.mod() && cursor) {
+          this.store.eventBus.reload(this.ref());
         }
       }),
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );
   }
 
   remove$ = () => {
-    this.serverError = [];
-    this.store.submit.removeRef(this.ref);
-    this.deleted = true;
+    this.serverError.set([]);
+    this.store.submit.removeRef(this.ref());
+    this.deleted.set(true);
     return of(null);
   }
 
   delayLastSelected() {
-    delay(() => this.store.view.setLastSelected(this.ref), 200);
+    delay(() => this.store.view.setLastSelected(this.ref()), 200);
   }
 
   onReply(ref?: Ref) {
-    this.replying = false;
+    this.replying.set(false);
     if (!ref) return;
-    this.store.eventBus.reload(this.ref);
+    this.store.eventBus.reload(this.ref());
   }
 }

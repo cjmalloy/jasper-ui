@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { forwardRef } from '@angular/core';
+import { ChangeDetectorRef, forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
@@ -13,6 +13,11 @@ import { ExtFormComponent } from './ext.component';
 describe('ExtFormComponent', () => {
   let component: ExtFormComponent;
   let fixture: ComponentFixture<ExtFormComponent>;
+
+  function detectInputChanges() {
+    fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+    fixture.detectChanges();
+  }
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -30,57 +35,75 @@ describe('ExtFormComponent', () => {
 
     fixture = TestBed.createComponent(ExtFormComponent);
     component = fixture.componentInstance;
-    component.group = new UntypedFormGroup({
+    fixture.componentRef.setInput('group', new UntypedFormGroup({
       tag: new UntypedFormControl(),
       name: new UntypedFormControl(),
       config: new UntypedFormGroup({}),
-    });
-    fixture.detectChanges();
+    }));
+    detectInputChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
+  it('renders the generated sidebar editor and keeps it bound through form updates', () => {
+    component.form.set([{
+      key: 'sidebar',
+      type: 'editor',
+      className: 'sidebar-editor',
+    }]);
+    detectInputChanges();
+    const textarea = fixture.nativeElement.querySelector('.sidebar-editor .editor-field textarea') as HTMLTextAreaElement;
+    expect(textarea).toBeTruthy();
+    const sidebar = component.config().get('sidebar');
+    expect(sidebar).toBeTruthy();
+
+    sidebar!.setValue('Sidebar content');
+    detectInputChanges();
+    expect(fixture.nativeElement.querySelector('.sidebar-editor .editor-field textarea')).toBe(textarea);
+    expect(textarea.value).toBe('Sidebar content');
+  });
+
   it('adds, updates, and removes multiple default sorts', () => {
-    component.config.addControl('defaultSort', new FormControl<string[]>([], { nonNullable: true }));
+    component.config().addControl('defaultSort', new FormControl<string[]>([], { nonNullable: true }));
     const select = document.createElement('select');
 
     component.addSort('published', select);
     component.addSort('modified', select);
     component.setSortDir(0, 'DESC');
 
-    expect(component.defaultSort.value).toEqual(['published,DESC', 'modified,DESC']);
+    expect(component.defaultSort().value).toEqual(['published,DESC', 'modified,DESC']);
 
     component.removeSort(0);
-    expect(component.defaultSort.value).toEqual(['modified,DESC']);
+    expect(component.defaultSort().value).toEqual(['modified,DESC']);
   });
 
   it('adds, toggles, dates, and removes multiple default filters', () => {
-    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([], { nonNullable: true }));
+    component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>([], { nonNullable: true }));
     const select = document.createElement('select');
 
     component.addFilter('query/public', select);
     component.addFilter('published/before/2026-07-10T03:00:00.000Z', select);
     component.toggleFilter(0);
-    component.setFilterDate(1, component.defaultFilter.value[1], '2026-07-09T12:30');
+    component.setFilterDate(1, component.defaultFilter().value[1], '2026-07-09T12:30');
 
-    expect(component.defaultFilter.value[0]).toBe('query/!(public)');
-    expect(component.defaultFilter.value[1]).toContain('published/before/2026-07-09T12:30');
+    expect(component.defaultFilter().value[0]).toBe('query/!(public)');
+    expect(component.defaultFilter().value[1]).toContain('published/before/2026-07-09T12:30');
 
     component.removeFilter(0);
-    expect(component.defaultFilter.value).toHaveLength(1);
+    expect(component.defaultFilter().value).toHaveLength(1);
   });
 
   it('shows a negated default filter on its base option', () => {
-    component.allFilters = [
+    component.allFilters.set([
       { filter: 'query/private', label: 'private' },
       { filter: 'query/public', label: 'public' },
-    ];
-    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+    ]);
+    component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'query/public',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     const row = fixture.nativeElement.querySelector('.default-filter-row');
     const select = row.querySelector('select') as HTMLSelectElement;
@@ -88,81 +111,81 @@ describe('ExtFormComponent', () => {
     expect(select.selectedOptions[0].textContent).toBe('public');
 
     button.click();
-    fixture.detectChanges();
+    detectInputChanges();
 
-    expect(component.defaultFilter.value[0]).toBe('query/!(public)');
-    expect(component.filterOption(component.defaultFilter.value[0])).toBe('query/!(public)');
+    expect(component.defaultFilter().value[0]).toBe('query/!(public)');
+    expect(component.filterOption(component.defaultFilter().value[0])).toBe('query/!(public)');
     expect(select.value).toBe('query/!(public)');
     expect(select.selectedOptions[0].textContent).toBe(component.store.account.querySymbol('!') + 'public');
 
     button.click();
-    fixture.detectChanges();
+    detectInputChanges();
     expect(select.selectedOptions[0].textContent).toBe('public');
   });
 
   it('shows a toggled default filter when its base option is negated', () => {
-    component.allFilters = [
+    component.allFilters.set([
       { filter: 'query/public', label: 'public' },
       { filter: 'user/!plugin/user/read', label: 'unread' },
-    ];
-    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+    ]);
+    component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'user/!plugin/user/read',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     component.toggleFilter(0);
-    fixture.detectChanges();
+    detectInputChanges();
 
-    expect(component.defaultFilter.value[0]).toBe('user/plugin/user/read');
-    expect(component.filterOption(component.defaultFilter.value[0])).toBe('user/plugin/user/read');
+    expect(component.defaultFilter().value[0]).toBe('user/plugin/user/read');
+    expect(component.filterOption(component.defaultFilter().value[0])).toBe('user/plugin/user/read');
     const select = fixture.nativeElement.querySelector('.default-filter-row select') as HTMLSelectElement;
     expect(select.value).toBe('user/plugin/user/read');
     expect(select.selectedOptions[0].textContent).toBe(component.store.account.querySymbol('!') + 'unread');
   });
 
   it('updates a negated default filter from its dropdown', () => {
-    component.allFilters = [
+    component.allFilters.set([
       { filter: 'query/private', label: 'private' },
       { filter: 'query/public', label: 'public' },
-    ];
-    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+    ]);
+    component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'query/!(public)',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     const select = fixture.nativeElement.querySelector('.default-filter-row select') as HTMLSelectElement;
     select.value = 'query/private';
     select.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+    detectInputChanges();
 
-    expect(component.defaultFilter.value[0]).toBe('query/private');
+    expect(component.defaultFilter().value[0]).toBe('query/private');
     expect(select.value).toBe('query/private');
     expect(select.selectedOptions[0].textContent).toBe('private');
   });
 
   it('shows an unmatched default filter when it is toggled', () => {
-    component.allFilters = [
+    component.allFilters.set([
       { filter: 'query/public', label: 'public' },
-    ];
-    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+    ]);
+    component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'query/missing',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     const row = fixture.nativeElement.querySelector('.default-filter-row');
     const select = row.querySelector('select') as HTMLSelectElement;
     expect(select.value).toBe('query/missing');
 
     (row.querySelector('.default-filter-negate') as HTMLButtonElement).click();
-    fixture.detectChanges();
+    detectInputChanges();
 
-    expect(component.defaultFilter.value[0]).toBe('query/!(missing)');
+    expect(component.defaultFilter().value[0]).toBe('query/!(missing)');
     expect(select.value).toBe('query/!(missing)');
     expect(select.selectedOptions[0].textContent).toBe('query/!(missing)');
   });
 
   it('includes date filters in the available default filters', () => {
-    expect(component.allFilters.map(filter => filter.filter)).toEqual(expect.arrayContaining([
+    expect(component.allFilters().map(filter => filter.filter)).toEqual(expect.arrayContaining([
       expect.stringMatching(/^modified\/before\//),
       expect.stringMatching(/^response\/after\//),
       expect.stringMatching(/^published\/before\//),
@@ -171,57 +194,57 @@ describe('ExtFormComponent', () => {
   });
 
   it('loads default sort and filter selections from the model', () => {
-    component.allSorts = [
+    component.allSorts.set([
       { value: 'modified', label: 'modified' },
       { value: 'published', label: 'published' },
-    ];
-    component.config.addControl('defaultSort', new FormControl<string[]>([
+    ]);
+    component.config().addControl('defaultSort', new FormControl<string[]>([
       'published,DESC',
       'modified,DESC',
     ], { nonNullable: true }));
-    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+    component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'published/before/PT15M',
       'created/after/2026-07-10T03:00:00.000Z',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     const sorts = fixture.nativeElement.querySelectorAll('.default-sort-row select');
     const filters = fixture.nativeElement.querySelectorAll('.default-filter-row select');
     expect([...sorts].map((select: HTMLSelectElement) => select.value)).toEqual(['published', 'modified']);
     expect([...filters].map((select: HTMLSelectElement) => select.value)).toEqual([
-      component.filterOption(component.defaultFilter.value[0]),
-      component.filterOption(component.defaultFilter.value[1]),
+      component.filterOption(component.defaultFilter().value[0]),
+      component.filterOption(component.defaultFilter().value[1]),
     ]);
   });
 
   it('uses range presets for special dates and while the hotkey is pressed', () => {
-    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+    component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'published/before/PT15M',
       'created/after/2026-07-10T03:00:00.000Z',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
     expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(1);
-    expect(component.filterDatePreset(component.defaultFilter.value[0])).toBe(2);
+    expect(component.filterDatePreset(component.defaultFilter().value[0])).toBe(2);
     expect(component.filterDatePreset('modified/after/now')).toBe(0);
     expect(component.filterSpecialDate('modified/after/P2D')).toBe(true);
     expect(fixture.nativeElement.querySelector('.default-filter-row select').value).toMatch(/^published\/before\//);
 
-    component.store.hotkey = true;
-    fixture.detectChanges();
+    component.store.hotkey.set(true);
+    detectInputChanges();
     expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(2);
 
-    component.setFilterDatePreset(1, component.defaultFilter.value[1], '11');
-    expect(component.defaultFilter.value[1]).toBe('created/after/P1Y');
+    component.setFilterDatePreset(1, component.defaultFilter().value[1], '11');
+    expect(component.defaultFilter().value[1]).toBe('created/after/P1Y');
   });
 
   it('displays range durations in a human-readable format', () => {
-    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+    component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'published/before/PT15M',
     ], { nonNullable: true }));
-    fixture.detectChanges();
+    detectInputChanges();
 
-    expect(component.filterDateLabel(component.defaultFilter.value[0])).toBe('15 minutes');
+    expect(component.filterDateLabel(component.defaultFilter().value[0])).toBe('15 minutes');
     expect(fixture.nativeElement.querySelector('.default-filter-date-range output').textContent).toBe('15 minutes');
   });
 });

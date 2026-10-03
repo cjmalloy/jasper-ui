@@ -1,9 +1,8 @@
 import { Location } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, afterNextRender } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
-import { filter, take } from 'rxjs';
+import { filter, switchMap, take } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -18,16 +17,19 @@ import { Store } from '../../store/store';
   templateUrl: './subscription-bar.component.html',
   styleUrls: ['./subscription-bar.component.scss'],
   host: { 'class': 'subscription-bar' },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, RouterLink, RouterLinkActive, TitleDirective]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, RouterLinkActive, TitleDirective]
 })
-export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+export class SubscriptionBarComponent {
+  readonly bookmarks = toSignal(toObservable(computed(() => ({
+    bookmarks: this.store.account.bookmarks(), origin: this.store.account.origin(),
+  }))).pipe(switchMap(({ bookmarks, origin }) => this.editor.getBookmarksPreview(bookmarks, origin))),
+  { initialValue: [] as TagPreview[] });
+  readonly subs = toSignal(toObservable(this.store.account.subs).pipe(
+    switchMap(subs => this.exts.getCachedExts(subs)),
+  ), { initialValue: [] as TagPreview[] });
 
-  bookmarks: TagPreview[] = [];
-  subs: TagPreview[] = [];
-
-  private startIndex = this.currentIndex;
+  private startIndex = this.currentIndex();
 
   constructor(
     public config: ConfigService,
@@ -44,23 +46,14 @@ export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
       take(1),
-    ).subscribe(() => this.startIndex = this.currentIndex);
-    this.disposers.push(autorun(() => this.editor.getBookmarksPreview(this.store.account.bookmarks, this.store.account.origin)
-      .subscribe(xs => this.bookmarks = xs)));
-    this.disposers.push(autorun(() => this.exts.getCachedExts(this.store.account.subs)
-      .subscribe(xs => this.subs = xs)));
+    ).subscribe(() => this.startIndex = this.currentIndex());
   }
 
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     this.help.pushStep(this.el?.nativeElement, $localize`The top bar holds bookmarks and subscriptions.`);
-  }
+  });
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
-
-  get currentIndex() {
+  currentIndex() {
     if ('navigation' in window) {
       // @ts-ignore
       return navigation.currentEntry?.index || 0
@@ -69,6 +62,6 @@ export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
   }
 
   back() {
-    if (this.currentIndex > this.startIndex) this.location.back();
+    if (this.currentIndex() > this.startIndex) this.location.back();
   }
 }

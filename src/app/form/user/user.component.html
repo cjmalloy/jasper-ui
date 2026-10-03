@@ -1,4 +1,4 @@
-<ng-container [formGroup]="group">
+<ng-container [formGroup]="group()">
 
   <label [for]="id + '-tag'" i18n>Tag:</label>
   <div class="form-array">
@@ -11,8 +11,8 @@
            formControlName="tag"
            (keydown)="$event.key === 'Enter' && validate(tagInput) || true"
            (blur)="blur(tagInput)">
-    @if (showClear) {
-      <button type="button" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
+    @if (showClear()) {
+      <button type="button" (click)="clear.emit()" i18n-title title="New User" i18n>🆑️</button>
     }
   </div>
 
@@ -34,29 +34,29 @@
             i18n-label label="Notifications:"
             fieldName="notifications"
             emoji="✉️"
-            [group]="group"></app-tags>
+            [group]="group()"></app-tags>
 
   <app-tags #readAccess
             i18n-label label="Read Access:"
             fieldName="readAccess"
-            [group]="group"></app-tags>
+            [group]="group()"></app-tags>
 
   <app-tags #writeAccess
             i18n-label label="Write Access:"
             fieldName="writeAccess"
-            [group]="group"></app-tags>
+            [group]="group()"></app-tags>
 
   <app-tags #tagReadAccess
             i18n-label label="Tag Read Access:"
             fieldName="tagReadAccess"
-            [group]="group"></app-tags>
+            [group]="group()"></app-tags>
 
   <app-tags #tagWriteAccess
             i18n-label label="Tag Write Access:"
             fieldName="tagWriteAccess"
-            [group]="group"></app-tags>
+            [group]="group()"></app-tags>
 
-  @if (showPubKey) {
+  @if (showPubKey()) {
     <label [for]="id + '-pubKey'" i18n>SSH Public Key:</label>
     <div>
       <textarea [id]="id + '-pubKey'"
@@ -71,20 +71,20 @@
               [appFillWidth]="fill"></textarea>
   </div>
 
-  @if (store.account.mod || external) {
+  @if (store.account.mod() || external()) {
     <label [for]="id + '-external'" i18n>External Config:</label>
-    @if (!editingExternal && !external) {
+    @if (!editingExternal() && !external()) {
       <div>
-        <button type="button" (click)="editingExternal = true" i18n>+ Add Config</button>
+        <button type="button" (click)="editingExternal.set(true)" i18n>+ Add Config</button>
       </div>
     } @else {
-      <app-json [id]="id + '-external'"
+      <app-json (focusin)="editingExternal.set(true)" [id]="id + '-external'"
                 fieldName="external"
-                [style.pointer-events]="store.account.mod ? 'auto' : 'none'"
-                [group]="group"></app-json>
-      @if (externalErrors.length) {
+                [style.pointer-events]="store.account.mod() ? 'auto' : 'none'"
+                [group]="group()"></app-json>
+      @if (externalErrors().length) {
         <span><!-- Errors --></span>
-        @for (e of externalErrors; track e) {
+        @for (e of externalErrors(); track e) {
           <div>
             <span class="error">{{ e }}</span>
           </div>

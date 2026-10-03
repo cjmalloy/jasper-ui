@@ -5,12 +5,12 @@
   <label>Origin:</label>
   <select #originSelect
           formControlName="origin"
-          [value]="origin"
+          [value]="origin()"
           (input)="selectOrigin(originSelect.value)">
-    @if (!backupOrigins.includes(origin)) {
-      <option [value]="origin">{{ origin || 'default' }}</option>
+    @if (!backupOrigins().includes(origin())) {
+      <option [value]="origin()">{{ origin() || 'default' }}</option>
     }
-    @for (origin of backupOrigins; track origin) {
+    @for (origin of backupOrigins(); track origin) {
       <option [value]="origin">{{ origin || 'default' }}</option>
     }
   </select>
@@ -24,21 +24,21 @@
 </form>
 
 <div class="backup buttons">
-  @if (store.account.admin) {
+  @if (store.account.admin()) {
     <button #backupButton
             type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="showBackupOptions()"
             i18n-title title="Create Backup" i18n>+ backup</button>
     <button type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="deleteOrigin()"
             i18n-title title="Delete all from origin" i18n>&ndash; delete</button>
   }
 
-  @if (!uploading) {
+  @if (!uploading()) {
     <button type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="uploadFile.click()"
             i18n-title
             title="Upload Backup" i18n>+ upload</button>
@@ -50,22 +50,22 @@
          class="upload"
          (change)="upload(uploadFile?.files || undefined)">
 
-  @if (store.account.mod) {
+  @if (store.account.mod()) {
     <button type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="regen()"
             i18n-title
             title="Regenerate Metadata" i18n>♻️ regen</button>
   }
 </div>
 
-@for (e of serverError; track e) {
+@for (e of serverError(); track e) {
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
 }
 
-<app-backup-list [list]="list"
-                 [origin]="origin"></app-backup-list>
+<app-backup-list [list]="list()"
+                 [origin]="origin()"></app-backup-list>
 
 <ng-template #backupOptions>
   <div class="popup bubble" (click)="$event.stopPropagation()" [formGroup]="backupOptionsForm">

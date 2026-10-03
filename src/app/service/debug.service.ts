@@ -1,6 +1,7 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { from, of } from 'rxjs';
 import { ConfigService } from './config.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,7 @@ export class DebugService {
       if (debugRole.toLowerCase() === 'false') return of(null);
       return from(this.getDebugToken(debugTag, 'ROLE_' + debugRole.toUpperCase()).then(jwt => this.config.token = jwt));
     }
-    if (isDevMode() && !location.search.includes('anon=')) {
+    if (environment.dev && !location.search.includes('anon=')) {
       return from(this.getDebugToken('+user/chris', 'ROLE_ADMIN').then(jwt => this.config.token = jwt));
     }
     return of(null)

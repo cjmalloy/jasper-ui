@@ -1,26 +1,27 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 import { ProfileService } from '../../../service/api/profile.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
   selector: 'app-settings-password-page',
   templateUrl: './password.component.html',
   styleUrls: ['./password.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class SettingsPasswordPage {
 
-  submitted = false;
+  readonly submitted = signal<boolean>(false);
+  readonly serverError = signal<string[]>([]);
   passwordForm!: UntypedFormGroup;
-  serverError: string[] = [];
+  protected readonly passwordFormValid = controlState(() => this.passwordForm, c => c.valid);
 
   constructor(
     public admin: AdminService,
@@ -39,8 +40,8 @@ export class SettingsPasswordPage {
   }
 
   save() {
-    this.serverError = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.submitted.set(true);
     this.passwordForm.markAllAsTouched();
     if (!this.passwordForm.valid) {
       scrollToFirstInvalid();
@@ -48,14 +49,14 @@ export class SettingsPasswordPage {
     }
     this.profiles.changePassword({
       ...this.passwordForm.value,
-      tag: this.store.account.tag
+      tag: this.store.account.tag()
     }).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      this.router.navigate(['/tag', this.store.account.tag]);
+      this.router.navigate(['/tag', this.store.account.tag()]);
     });
   }
 }

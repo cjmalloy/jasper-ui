@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, signal, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -16,57 +16,48 @@ import { UserComponent } from '../user.component';
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss'],
   host: { 'class': 'user-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [UserComponent, LoadingComponent, PageControlsComponent]
 })
 export class UserListComponent implements HasChanges {
 
-  @Input()
-  scim?: Page<Profile>;
+  readonly scim = input<Page<Profile>>();
 
-  @ViewChildren(UserComponent)
-  list?: QueryList<UserComponent>;
+  readonly list = viewChildren(UserComponent);
 
-  private _page?: Page<User>;
-  private cache: Map<string, Profile | undefined> = new Map();
+  readonly page = input<Page<User> | undefined>(undefined);
+  private readonly fetched = signal<Record<string, Profile | undefined>>({});
+  private requested = new Set<string>();
 
   constructor(
     private router: Router,
     private profiles: ProfileService,
-  ) { }
+  ) {
+    effect(() => {
+      this.page();
+      this.requested.clear();
+      this.fetched.set({});
+    });
+  }
 
   saveChanges() {
-    return !this.list?.find(u => !u.saveChanges());
-  }
-
-  get page() {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<User> | undefined) {
-    this.cache.clear();
-    this._page = value;
+    return !this.list()?.find(u => !u.saveChanges());
   }
 
   hasUser(tag: string) {
-    return !!find(this.page?.content, p => p.tag === tag);
+    return !!find(this.page()?.content, p => p.tag === tag);
   }
 
   getProfile(user: User) {
     const tag = user.tag + user.origin;
-    if (!this._page) this._page = {} as any;
-    if (!this.cache.has(tag)) {
-      const profile = find(this.scim?.content, p => p.tag === tag);
-      if (profile) {
-        this.cache.set(tag, profile);
-      } else {
-        this.cache.set(tag, undefined);
-        this.profiles.getProfile(tag).pipe(
-          catchError(e => of(undefined))
-        ).subscribe(p => this.cache.set(tag, p as Profile));
-      }
+    const profile = find(this.scim()?.content, p => p.tag === tag);
+    if (profile) return profile;
+    if (!this.requested.has(tag)) {
+      this.requested.add(tag);
+      this.profiles.getProfile(tag).pipe(
+        catchError(e => of(undefined))
+      ).subscribe(p => this.fetched.update(fetched => ({ ...fetched, [tag]: p as Profile })));
     }
-    return this.cache.get(tag) || undefined;
+    return this.fetched()[tag] || undefined;
   }
 }

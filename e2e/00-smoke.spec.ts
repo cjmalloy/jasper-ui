@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { clearMods, deleteRef, openSidebar } from './setup';
+import { expect } from '@playwright/test';
+import { clearMods, deleteRef, openSidebar, test } from './setup';
 
 test.describe.serial('Smoke Tests', () => {
   test('loads the page', async ({ page }) => {

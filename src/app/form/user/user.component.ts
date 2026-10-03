@@ -1,4 +1,5 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { computed, Component, ElementRef, ChangeDetectionStrategy, input, output, signal, viewChild, afterNextRender } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -21,7 +22,7 @@ import { TagsFormComponent } from '../tags/tags.component';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     TagsFormComponent,
@@ -29,39 +30,31 @@ import { TagsFormComponent } from '../tags/tags.component';
     JsonComponent,
   ]
 })
-export class UserFormComponent implements OnInit {
+export class UserFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
 
-  @Input()
-  group!: UntypedFormGroup;
-  @Input()
-  showPubKey = true;
-  @Input()
-  fillWidth?: HTMLElement;
-  @Output()
-  tagChanges = new EventEmitter<string>();
-  @Input()
-  showClear = false;
-  @Output()
-  clear = new EventEmitter<void>();
-  @Input()
-  externalErrors: string[] = [];
+  private readonly controlState0 = controlValue(() => this.group().get('external'));
+  private readonly controlState1 = controlValue(() => this.tag());
 
-  @ViewChild('fill')
-  fill?: ElementRef;
 
-  @ViewChild('notifications')
-  notifications!: TagsFormComponent;
-  @ViewChild('readAccess')
-  readAccess!: TagsFormComponent;
-  @ViewChild('writeAccess')
-  writeAccess!: TagsFormComponent;
-  @ViewChild('tagReadAccess')
-  tagReadAccess!: TagsFormComponent;
-  @ViewChild('tagWriteAccess')
-  tagWriteAccess!: TagsFormComponent;
+  readonly group = input.required<UntypedFormGroup>();
+  readonly showPubKey = input(true);
+  readonly fillWidth = input<HTMLElement>();
+  readonly tagChanges = output<string>();
+  readonly showClear = input(false);
+  readonly clear = output<void>();
+  readonly externalErrors = input<string[]>([]);
+
+  readonly fill = viewChild<ElementRef>('fill');
+
+  readonly notifications = viewChild.required<TagsFormComponent>('notifications');
+  readonly readAccess = viewChild.required<TagsFormComponent>('readAccess');
+  readonly writeAccess = viewChild.required<TagsFormComponent>('writeAccess');
+  readonly tagReadAccess = viewChild.required<TagsFormComponent>('tagReadAccess');
+  readonly tagWriteAccess = viewChild.required<TagsFormComponent>('tagWriteAccess');
 
   id = 'user-' + uuid();
-  editingExternal = false;
+  readonly editingExternal = signal<any>(false);
 
   private showedError = false;
 
@@ -69,33 +62,39 @@ export class UserFormComponent implements OnInit {
     public store: Store,
   ) { }
 
-  ngOnInit(): void {
-    this.pubKey.disable();
-  }
+  private readonly initialize = afterNextRender(() => {
+    this.pubKey().disable();
+  });
 
-  get tag() {
-    return this.group.get('tag') as UntypedFormControl;
-  }
+  readonly tag = computed(() => {
+    this.rootControlState();
+    return this.group().get('tag') as UntypedFormControl;
+  });
 
-  get pubKey() {
-    return this.group.get('pubKey') as UntypedFormControl;
-  }
+  readonly pubKey = computed(() => {
+    this.rootControlState();
+    return this.group().get('pubKey') as UntypedFormControl;
+  });
 
-  get external() {
-    return this.editingExternal ||= this.group.get('external')?.value;
-  }
+  readonly external = computed(() => {
+    this.rootControlState();
+    this.controlState0();
+    return this.editingExternal() || this.group().get('external')?.value;
+  });
 
-  get showError() {
-    return this.tag.touched && this.tag.errors;
-  }
+  readonly showError = computed(() => {
+    this.rootControlState();
+    this.controlState1();
+    return this.tag().touched && this.tag().errors;
+  });
 
   validate(input: HTMLInputElement) {
-    if (this.showError) {
-      if (this.tag.errors?.['required']) {
+    if (this.showError()) {
+      if (this.tag().errors?.['required']) {
         input.setCustomValidity($localize`Tag must not be blank.`);
         input.reportValidity();
       }
-      if (this.tag.errors?.['pattern']) {
+      if (this.tag().errors?.['pattern']) {
         input.setCustomValidity($localize`
           User tags must start with the "+user/" or "_user/" prefix.
           Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
@@ -107,22 +106,22 @@ export class UserFormComponent implements OnInit {
   }
 
   blur(input: HTMLInputElement) {
-    if (this.showError && !this.showedError) {
+    if (this.showError() && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
     } else {
       this.showedError = false;
-      this.tagChanges.next(input.value)
+      this.tagChanges.emit(input.value)
     }
   }
 
   setUser(user: User) {
-    this.notifications.setTags((user.readAccess || []).filter(isMailbox));
-    this.readAccess.setTags((user.readAccess || []).filter(t => !isMailbox(t)));
-    this.writeAccess.setTags([...user.writeAccess || []]);
-    this.tagReadAccess.setTags([...user.tagReadAccess || []]);
-    this.tagWriteAccess.setTags([...user.tagWriteAccess || []]);
-    this.group.patchValue({
+    this.notifications().setTags((user.readAccess || []).filter(isMailbox));
+    this.readAccess().setTags((user.readAccess || []).filter(t => !isMailbox(t)));
+    this.writeAccess().setTags([...user.writeAccess || []]);
+    this.tagReadAccess().setTags([...user.tagReadAccess || []]);
+    this.tagWriteAccess().setTags([...user.tagWriteAccess || []]);
+    this.group().patchValue({
       ...user,
       external: user.external ? JSON.stringify(user.external, null, 2) : undefined,
     });

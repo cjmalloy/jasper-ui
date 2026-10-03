@@ -8,14 +8,13 @@ import {
   APP_INITIALIZER,
   enableProdMode,
   importProvidersFrom,
-  isDevMode,
-  provideZoneChangeDetection
+  provideCheckNoChangesConfig,
+  provideZonelessChangeDetection
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { Settings } from 'luxon';
-import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { retry, switchMap, timer } from 'rxjs';
@@ -87,12 +86,12 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
+    provideZonelessChangeDetection(),
+    ...(environment.checkNoChanges ? [provideCheckNoChangesConfig({ exhaustive: true })] : []),
     importProvidersFrom(
       BrowserModule,
       AppRoutingModule,
       ReactiveFormsModule,
-      MobxAngularModule,
       MarkdownModule.forRoot(),
       MonacoEditorModule.forRoot(),
       DragDropModule,
@@ -102,7 +101,7 @@ bootstrapApplication(AppComponent, {
       ServiceWorkerModule.register('ngsw-worker.js', {
         scope: '.',
         get enabled() {
-          return !isDevMode() && location.hostname != 'localhost' && config().pwa;
+          return environment.production && location.hostname != 'localhost' && config().pwa;
         },
         // Register the ServiceWorker as soon as the application is stable
         // or after 30 seconds (whichever comes first).

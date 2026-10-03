@@ -1,8 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -16,15 +14,14 @@ import { getArgs } from '../../../util/query';
   templateUrl: './all.component.html',
   styleUrls: ['./all.component.scss'],
   host: { 'class': 'inbox-all' },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, RefListComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RefListComponent]
 })
-export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
+export class InboxAllPage implements HasChanges {
 
-  private disposers: IReactionDisposer[] = [];
+  private readonly injector = inject(Injector);
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
   constructor(
     private mod: ModService,
@@ -39,29 +36,28 @@ export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
-  ngOnInit(): void {
-    if (!this.store.view.filter.length) {
+  private readonly initialize = afterNextRender(() => {
+    if (!this.store.view.filter().length) {
       this.router.navigate([], { queryParams: { filter: ['query/!(dm)'] }, replaceUrl: true });
     }
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = getArgs(
-        this.store.account.inboxQuery,
-        this.store.view.sort,
-        ['query/!plugin/delete', 'user/!plugin/user/hide', ...this.store.view.filter],
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.account.inboxQuery(),
+        this.store.view.sort(),
+        ['query/!plugin/delete', 'user/!plugin/user/hide', ...this.store.view.filter()],
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
       defer(() => this.query.setArgs(args));
-    }));
-  }
+    }, { injector: this.injector });
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+  });
 }

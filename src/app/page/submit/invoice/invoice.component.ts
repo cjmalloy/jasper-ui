@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -30,7 +30,7 @@ import { TaggingService } from '../../../service/api/tagging.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { scrollToFirstInvalid, controlState, controlValue } from '../../../util/form';
 import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { getVisibilityTags, prefix } from '../../../util/tag';
@@ -40,7 +40,7 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     EditorComponent,
     ReactiveFormsModule,
@@ -52,20 +52,24 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
 export class SubmitInvoicePage implements HasChanges {
 
 
-  submitted = false;
+  readonly submitted = signal<boolean>(false);
   invoiceForm: UntypedFormGroup;
-  serverError: string[] = [];
+  protected readonly invoiceFormValid = controlState(() => this.invoiceForm, c => c.valid);
+  protected readonly invoiceFormValue = controlValue(() => this.invoiceForm);
+  protected readonly titleRequired = controlState(() => this.title, c => c.touched && !!c.errors?.['required']);
+  readonly serverError = signal<string[]>([]);
 
-  @ViewChild('editor')
-  editorComponent?: EditorComponent;
+  readonly editorComponent = viewChild<EditorComponent>('editor');
 
   refUrl?: string;
-  queue?: string;
+  readonly queue = signal<string | undefined>(undefined);
   editorTags: string[] = [];
-  completedUploads: Ref[] = [];
+  readonly completedUploads = signal<Ref[]>([]);
 
-  submitting?: Subscription;
-  saving?: Subscription;
+  readonly submitting = signal(false);
+  private submittingSubscription?: Subscription;
+  readonly saving = signal(false);
+  private savingSubscription?: Subscription;
   private cursor?: string;
 
   constructor(
@@ -86,7 +90,7 @@ export class SubmitInvoicePage implements HasChanges {
       title: ['', [Validators.required]],
       comment: [''],
     });
-    if (this.admin.editing) {
+    if (this.admin.editing()) {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
@@ -97,13 +101,17 @@ export class SubmitInvoicePage implements HasChanges {
       // TODO: support multiple valid queues
     ).subscribe(ref => {
       if (ref) {
-        this.queue = templates(ref.tags, 'queue')[0];
+        this.queue.set(templates(ref.tags, 'queue')[0]);
       }
     });
   }
 
+  addCompletedUpload(ref: Ref) {
+    this.completedUploads.update(uploads => [...uploads, ref]);
+  }
+
   async saveChanges() {
-    if (this.admin.editing && this.invoiceForm.dirty) {
+    if (this.admin.editing() && this.invoiceForm.dirty) {
       return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
         .pipe(map(() => true), catchError(() => of(false))));
     }
@@ -112,24 +120,26 @@ export class SubmitInvoicePage implements HasChanges {
 
   saveForLater(leave = false) {
     const savedValue = JSON.stringify(this.invoiceForm.value);
-    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+    this.saving.set(true);
+    this.savingSubscription = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        delete this.saving;
+        this.saving.set(false);
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        delete this.saving;
+        this.saving.set(false);
         this.cursor = cursor;
         if (JSON.stringify(this.invoiceForm.value) === savedValue) this.invoiceForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
       });
+    this.savingSubscription?.add(() => this.saving.set(false));
   }
 
 
   writeRef() {
     return <Ref> {
       ...this.invoiceForm.value,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     };
   }
 
@@ -153,7 +163,7 @@ export class SubmitInvoicePage implements HasChanges {
 
   get ref$() {
     return this.refUrl$.pipe(
-      switchMap(url => this.refs.get(url, this.store.account.origin)),
+      switchMap(url => this.refs.get(url, this.store.account.origin())),
     );
   }
 
@@ -189,11 +199,11 @@ export class SubmitInvoicePage implements HasChanges {
       'locked',
       prefix('plugin/invoice', queueExt.tag),
       'plugin/qr',
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
       ...addTags,
     ], ...removeTags);
     for (const approver of queueExt.config?.approvers || []) {
-      result.push(getMailbox(approver, this.store.account.origin));
+      result.push(getMailbox(approver, this.store.account.origin()));
     }
     return uniq(result);
   }
@@ -203,12 +213,12 @@ export class SubmitInvoicePage implements HasChanges {
   }
 
   submit() {
-    if (this.saving) {
-      this.saving.add(() => this.submit());
+    if (this.saving()) {
+      this.savingSubscription?.add(() => this.submit());
       return;
     }
-    this.serverError = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.submitted.set(true);
     this.invoiceForm.markAllAsTouched();
     this.syncEditor();
     if (!this.invoiceForm.valid) {
@@ -216,12 +226,13 @@ export class SubmitInvoicePage implements HasChanges {
       return;
     }
     const published = this.invoiceForm.value.published ? DateTime.fromISO(this.invoiceForm.value.published) : DateTime.now();
-    this.submitting = this.exts.getCachedExt(this.queue!).pipe(
+    this.submitting.set(true);
+    this.submittingSubscription = this.exts.getCachedExt(this.queue()!).pipe(
       switchMap(queueExt => {
         const finalTags = this.getTags(queueExt);
         const ref = {
           ...this.invoiceForm.value,
-          origin: this.store.account.origin,
+          origin: this.store.account.origin(),
           published,
           tags: finalTags,
           sources: flatten([this.refUrl]),
@@ -230,7 +241,7 @@ export class SubmitInvoicePage implements HasChanges {
           switchMap(res => {
             const finalVisibilityTags = getVisibilityTags(finalTags);
             if (!finalVisibilityTags.length) return of(res);
-            const taggingOps = this.completedUploads
+            const taggingOps = this.completedUploads()
               .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
             if (!taggingOps.length) return of(res);
             return forkJoin(taggingOps).pipe(map(() => res));
@@ -238,15 +249,16 @@ export class SubmitInvoicePage implements HasChanges {
         );
       }),
       catchError((res: HttpErrorResponse) => {
-        delete this.submitting;
-        this.serverError = printError(res);
+        this.submitting.set(false);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      delete this.submitting;
+      this.submitting.set(false);
       this.invoiceForm.markAsPristine();
-      this.completedUploads = [];
+      this.completedUploads.set([]);
       this.router.navigate(['/ref', this.invoiceForm.value.url], { queryParams: { published }, replaceUrl: true});
     });
+    this.submittingSubscription?.add(() => this.submitting.set(false));
   }
 }

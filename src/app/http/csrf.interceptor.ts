@@ -1,12 +1,13 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { catchError, Observable, throwError } from 'rxjs';
 import { ConfigService } from '../service/config.service';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class CsrfInterceptor implements HttpInterceptor {
 
-  withCredentials = isDevMode() || this.config.electron || location.hostname === 'localhost';
+  withCredentials = environment.dev || this.config.electron || location.hostname === 'localhost';
 
   constructor(
     private config: ConfigService,

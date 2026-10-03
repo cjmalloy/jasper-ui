@@ -1,5 +1,5 @@
-import { DestroyRef, inject, Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, ChangeDetectionStrategy, computed, effect, input, viewChildren } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -18,7 +18,7 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   templateUrl: './blog.component.html',
   styleUrls: ['./blog.component.scss'],
   host: { 'class': 'blog ext' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     BlogEntryComponent,
     PageControlsComponent,
@@ -26,90 +26,63 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   ],
 })
 export class BlogComponent implements HasChanges {
-  private destroyRef = inject(DestroyRef);
+  readonly pageControls = input(true);
+  readonly emptyMessage = input($localize `No blog entries found`);
+  readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
+  readonly ext = input<Ext | undefined>(undefined);
+  readonly page = input<Page<Ref> | undefined>(undefined);
 
-  @Input()
-  pageControls = true;
-  @Input()
-  emptyMessage = $localize`No blog entries found`;
-
-  pinned: Ref[] = [];
-  colStyle = '';
+  private readonly pinnedResource = rxResource({
+    params: () => this.ext()?.config?.pinned as string[] | undefined,
+    stream: ({ params }) => params?.length
+      ? forkJoin(params.map(pin => this.refs.getCurrent(pin).pipe(catchError(() => of<Ref>({ url: pin })))))
+      : of([]),
+    defaultValue: [] as Ref[],
+  });
+  readonly pinned = computed(() => this.pinnedResource.value());
   error: any;
 
-  @ViewChildren(BlogEntryComponent)
-  list?: QueryList<BlogEntryComponent>;
 
-  private _page?: Page<Ref>;
-  private _ext?: Ext;
-  private _cols? = 0;
+  readonly list = viewChildren(BlogEntryComponent);
 
   constructor(
     private router: Router,
     private store: Store,
     private refs: RefService,
-  ) { }
+  ) {
+    effect(() => {
+      const page = this.page();
+      if (page?.page.number && page.page.number >= page.page.totalPages) {
+        this.router.navigate([], {
+          queryParams: {
+            pageNumber: page.page.totalPages - 1
+          },
+          queryParamsHandling: 'merge',
+        });
+      }
+    });
+  }
 
 
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
-  get page(): Page<Ref> | undefined {
-    return this._page;
-  }
 
-  @Input()
-  set cols(value: number | undefined) {
-    this._cols = value;
-    if (!value) {
-      this.colStyle = '';
-    } else {
-      this.colStyle = ' 1fr'.repeat(value);
-    }
-  }
+  readonly cols = computed(() => {
+    const cols = this.colsInput();
+    if (cols) return cols;
+    return this.config()?.defaultCols;
+  });
 
-  get cols() {
-    if (this._cols) return this._cols;
-    return this.config?.defaultCols;
-  }
+  readonly colStyle = computed(() => {
+    const cols = this.cols();
+    return cols ? ' 1fr'.repeat(cols) : '';
+  });
 
-  get ext() {
-    return this._ext;
-  }
 
-  get config() {
-    return this.ext?.config as RootConfig | undefined;
-  }
-
-  @Input()
-  set ext(value: Ext | undefined) {
-    this._ext = value;
-    if (!value?.config?.pinned?.length) {
-      this.pinned = [];
-    } else {
-      forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({url: pin})),
-          takeUntilDestroyed(this.destroyRef),
-        )))
-        .subscribe(pinned => this.pinned = pinned);
-    }
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
-        this.router.navigate([], {
-          queryParams: {
-            pageNumber: this._page.page.totalPages - 1
-          },
-          queryParamsHandling: "merge",
-        })
-      }
-    }
-  }
+  readonly config = computed(() => {
+    return this.ext()?.config as RootConfig | undefined;
+  });
 
 }

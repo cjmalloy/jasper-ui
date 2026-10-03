@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { tap } from 'rxjs/operators';
-import { memo } from '../util/memo';
+import { environment } from '../../environments/environment';
 
 export function config(): ConfigService {
   // @ts-ignore
@@ -42,7 +42,7 @@ export class ConfigService {
   /**
    * Workaround for non-cookie based auth to scrape images before fetching.
    */
-  prefetch = isDevMode();
+  prefetch = environment.dev;
 
   miniWidth = 380;
   mobileWidth = 740;
@@ -57,9 +57,9 @@ export class ConfigService {
     window.configService = this;
   }
 
-  @memo
+  private _base?: string;
   get base() {
-    return document.getElementsByTagName('base')[0].href;
+    return this._base ??= document.getElementsByTagName('base')[0].href;
   }
 
   get loginLink() {

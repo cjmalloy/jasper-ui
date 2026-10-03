@@ -1,4 +1,4 @@
-<ng-container [formGroup]="group"
+<ng-container [formGroup]="group()"
               cdkDropListGroup>
   <label [for]="id + '-url'" i18n>URL:</label>
   <div class="form-array">
@@ -9,21 +9,21 @@
              [id]="id + '-alts'"
              fieldName="alternateUrls"
              i18n-label label="Alts:"
-             [showLabel]="dropping || !!alts.links?.length"
+             [showLabel]="dropping() || !!alts.links?.length"
              i18n-emoji emoji="📎️"
              [showAdd]="false"
-             [group]="group"
-             [class.no-margin]="!dropping && !alts.links?.length"></app-links>
+             [group]="group()"
+             [class.no-margin]="!dropping() && !alts.links?.length"></app-links>
 
   <label [for]="id + '-title'" i18n>Title:</label>
   <div class="form-array">
     <input [id]="id + '-title'"
            name="title"
            type="text"
-           [formControl]="title"
+           [formControl]="title()"
            (blur)="validate($any($event.target))">
-    @if (web) {
-      @if (scrapingTitle) {
+    @if (web()) {
+      @if (scrapingTitle()) {
         <app-loading class="event-loading"
                      [inline]="true"
                      i18n-title title="Scrape Title"></app-loading>
@@ -39,10 +39,10 @@
            name="published"
            type="datetime-local"
            step="1"
-           [formControl]="published"
+           [formControl]="published()"
            (blur)="validate($any($event.target))">
-    @if (web) {
-      @if (scrapingPublished) {
+    @if (web()) {
+      @if (scrapingPublished()) {
         <app-loading class="event-loading"
                      [inline]="true"
                      i18n-title title="Scrape Published"></app-loading>
@@ -54,7 +54,7 @@
   </div>
   <span><!-- Published Errors --></span>
   <div>
-    @if (published.touched && published.errors?.['required']) {
+    @if (publishedRequired()) {
       <div class="error" i18n>
         Published date is required.
       </div>
@@ -64,11 +64,11 @@
              [id]="id + '-sources'"
              fieldName="sources"
              i18n-label label="Sources:"
-             [showLabel]="dropping || !!sources.links?.length"
+             [showLabel]="dropping() || !!sources.links()?.length"
              i18n-emoji emoji="🔗️"
              [showAdd]="false"
-             [group]="group"
-             [class.no-margin]="!dropping && !sources.links?.length"></app-links>
+             [group]="group()"
+             [class.no-margin]="!dropping() && !sources.links()?.length"></app-links>
 
   <div class="add-plugins-label">
     <label [for]="id + '-plugins'" class="mobile-inline" i18n>Add Plugin:</label>
@@ -77,27 +77,27 @@
                        class="shrink"
                        [add]="true"
                        i18n-title title="Add Plugin"
-                       (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
-  @if (creating && thumbnail) {
+                       (pluginChange)="togglePlugin($event); pluginSelect.plugin.set('')"></app-select-plugin>
+  @if (creating() && thumbnail()) {
     <div class="thumbnail-preview">
       <div class="thumbnail"
-           [style.background-image]="thumbnailRefs | thumbnail: !thumbnailEmoji && !thumbnailColor : false | async | cssUrl: url.value"
-           [style.background-color]="thumbnailColor"
-           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
-           [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
+           [style.background-image]="thumbnailRefs() | thumbnail: !thumbnailEmoji() && !thumbnailColor() : false | async | cssUrl: controlState0()"
+           [style.background-color]="thumbnailColor()"
+           [style.background-size]="thumbnailRadius() ? 'cover' : 'contain'"
+           [style.border-radius.px]="thumbnailRadius()">{{ thumbnailEmoji() }}</div>
     </div>
   }
   </div>
   <app-form-plugins #pluginsFormComponent id="plugins"
                     (togglePlugin)="togglePlugin($event)"
-                    [group]="group"></app-form-plugins>
+                    [group]="group()"></app-form-plugins>
 
-  @if (customEditor) {
+  @if (customEditor()) {
     <span><!-- Editor --></span>
     <div #fill class="fill-editor">
       <ngx-monaco-editor #ed
-                         [formControl]="comment"
-                         [options]="codeOptions"
+                         [formControl]="comment()"
+                         [options]="codeOptions()"
                          [style.width]="'min(900px, 50vw)'"
                          [style.height]="'min(200px, 90vh)'"
                          appResizeHandle
@@ -105,26 +105,26 @@
                          [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
     </div>
   } @else {
-    <label [for]="ed.id" class="editor-label">{{ editorLabel }}:</label><!-- TODO: Let plugins change comment label -->
+    <label [for]="ed.id()" class="editor-label">{{ editorLabel() }}:</label><!-- TODO: Let plugins change comment label -->
     <div #fill class="fill-editor">
       <app-editor #ed
                   class="bubble"
                   [addButton]="true"
-                  [addCommentTitle]="addEditorTitle"
-                  [addCommentLabel]="addEditorLabel"
-                  [control]="comment"
-                  [tags]="tags"
+                  [addCommentTitle]="addEditorTitle()"
+                  [addCommentLabel]="addEditorLabel()"
+                  [control]="comment()"
+                  [tags]="tags()"
                   [fillWidth]="fill"
-                  [url]="web && url.value"
+                  [url]="web() && controlState0()"
                   (scrape)="scrapeAll()"
-                  [scraping]="scrapingAll"
+                  [scraping]="scrapingAll()"
                   (syncEditor)="syncEditor()"
                   (syncTags)="setTags($event)"
                   (addSource)="addSource($event)"
-                  (uploadCompleted)="completedUploads.push($event)"></app-editor>
+                  (uploadCompleted)="addCompletedUpload($event)"></app-editor>
     </div>
   }
 
-  <app-tags #tagsFormComponent [group]="group" [origin]="origin"></app-tags>
+  <app-tags #tagsFormComponent [group]="group()" [origin]="origin()"></app-tags>
 
 </ng-container>

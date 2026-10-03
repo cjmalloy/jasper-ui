@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, uniqBy } from 'lodash-es';
@@ -20,22 +20,21 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-tag.component.html',
   styleUrls: ['./inline-tag.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
   tagsRegex = TAGS_REGEX.source;
 
-  @Input()
-  action: (tag: string) => Observable<any|never> = () => of(null);
+  readonly action = input<(tag: string) => Observable<any | never>>(() => of(null));
 
-  @Input()
-  tags?: string[];
+  readonly tags = input<string[]>();
 
-  editing = false;
-  acting = false;
+  readonly editing = signal(false);
+  readonly acting = signal(false);
+  readonly autocomplete = signal<{ value: string; label: string }[]>([]);
+
   id = 'tag-' + uuid();
-  autocomplete: { value: string; label: string }[] = [];
 
   private searching?: Subscription;
 
@@ -50,12 +49,12 @@ export class InlineTagComponent extends ActionComponent {
 
 
   override reset() {
-    this.editing = false;
-    this.acting = false;
+    this.editing.set(false);
+    this.acting.set(false);
   }
 
   override active() {
-    return this.editing || this.acting;
+    return this.editing() || this.acting();
   }
 
   save(field: HTMLInputElement) {
@@ -69,15 +68,15 @@ export class InlineTagComponent extends ActionComponent {
       field.reportValidity();
       return;
     }
-    this.editing = false;
-    this.acting = true;
-    this.action((field.value || '').toLowerCase().trim()).pipe(
+    this.editing.set(false);
+    this.acting.set(true);
+    this.action()((field.value || '').toLowerCase().trim()).pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.acting = false);
+    ).subscribe(() => this.acting.set(false));
   }
 
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
-    return this.editor.getTagPreview(value, this.store.account.origin, false,);
+    return this.editor.getTagPreview(value, this.store.account.origin(), false,);
   }
 
   search = debounce((input: HTMLInputElement) => {
@@ -88,8 +87,8 @@ export class InlineTagComponent extends ActionComponent {
     const remove = value.startsWith('-') ? '-' : '';
     const tag = value.replace(/[^_+a-z0-9./]/, '').toLowerCase();
     const toEntry = (p: Config) => ({ value: prefix + remove + p.tag, label: remove + (p.name || '#' + p.tag) });
-    const getPlugins = (text: string) => this.admin.searchPlugins(text).filter(p => !hasTag(p.tag, this.tags)).slice(0, 1).map(toEntry);
-    const getTemplates = (text: string) => this.admin.searchTemplates(text).filter(p => !hasTag(p.tag, this.tags)).slice(0, 1).map(toEntry);
+    const getPlugins = (text: string) => this.admin.searchPlugins(text).filter(p => !hasTag(p.tag, this.tags())).slice(0, 1).map(toEntry);
+    const getTemplates = (text: string) => this.admin.searchTemplates(text).filter(p => !hasTag(p.tag, this.tags())).slice(0, 1).map(toEntry);
     this.searching?.unsubscribe();
     this.searching = this.exts.page({
       search: tag,
@@ -98,14 +97,13 @@ export class InlineTagComponent extends ActionComponent {
     }).pipe(
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
-      map(xs => remove ? xs.filter(x => hasTag(x.tag, this.tags)) : xs.filter(x => !hasTag(x.tag, this.tags))),
-      map(xs => remove && !xs.length ? (this.tags || []).filter(t => hasTag(tag, [t])).map(t => ({ tag: t } as { name?: string, tag: string })) : xs),
+      map(xs => remove ? xs.filter(x => hasTag(x.tag, this.tags())) : xs.filter(x => !hasTag(x.tag, this.tags()))),
+      map(xs => remove && !xs.length ? (this.tags() || []).filter(t => hasTag(tag, [t])).map(t => ({ tag: t } as { name?: string, tag: string })) : xs),
     ).subscribe(xs => {
-      this.autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
-      if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
-      this.autocomplete = uniqBy(this.autocomplete, 'value');
-      if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getTemplates(tag));
-      this.autocomplete = uniqBy(this.autocomplete, 'value');
+      let autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
+      if (!remove && autocomplete.length < 3) autocomplete = uniqBy([...autocomplete, ...getPlugins(tag)], 'value');
+      if (!remove && autocomplete.length < 3) autocomplete = uniqBy([...autocomplete, ...getTemplates(tag)], 'value');
+      this.autocomplete.set(autocomplete);
     });
   }, 400);
 
@@ -113,8 +111,8 @@ export class InlineTagComponent extends ActionComponent {
     if (event.key === 'Enter') {
       this.save(input)
     }
-    if (event.key === 'Tab' && this.autocomplete.length) {
-      input.value = this.autocomplete[0].value;
+    if (event.key === 'Tab' && this.autocomplete().length) {
+      input.value = this.autocomplete()[0].value;
       event.preventDefault();
     }
   }

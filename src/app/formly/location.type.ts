@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
+import { computed, ChangeDetectionStrategy, Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
+import { controlValue } from '../util/form';
 
 @Component({
   selector: 'formly-field-location',
@@ -17,7 +18,7 @@ import { getErrorMessage } from './errors';
              step="any"
              aria-label="Longitude"
              i18n-aria-label
-             [value]="lng"
+             [value]="lng()"
              [disabled]="formControl.disabled"
              (input)="setLng($any($event.target).value)"
              (blur)="blur($any($event.target))"
@@ -34,7 +35,7 @@ import { getErrorMessage } from './errors';
              [name]="(field.name || field.id) + '-lat'"
              aria-label="Latitude"
              i18n-aria-label
-             [value]="lat"
+             [value]="lat()"
              [disabled]="formControl.disabled"
              (input)="setLat($any($event.target).value)"
              (blur)="blur($any($event.target))"
@@ -58,26 +59,26 @@ import { getErrorMessage } from './errors';
 export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
 
   private showedError = false;
+  private readonly coords = controlValue<number[]>(() => this.formControl);
 
   constructor(
     private config: FormlyConfig,
-    private cd: ChangeDetectorRef,
   ) {
     super();
   }
 
-  get lng(): number {
-    return this.formControl.value?.[0] ?? 0;
-  }
+  readonly lng = computed<number>(() => {
+    return this.coords()?.[0] ?? 0;
+  });
 
-  get lat(): number {
-    return this.formControl.value?.[1] ?? 0;
-  }
+  readonly lat = computed<number>(() => {
+    return this.coords()?.[1] ?? 0;
+  });
 
   setLng(value: string) {
     const lng = parseFloat(value);
     if (!isNaN(lng)) {
-      this.formControl.setValue([lng, this.lat]);
+      this.formControl.setValue([lng, this.lat()]);
       this.formControl.markAsDirty();
     }
   }
@@ -85,7 +86,7 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
   setLat(value: string) {
     const lat = parseFloat(value);
     if (!isNaN(lat)) {
-      this.formControl.setValue([this.lng, lat]);
+      this.formControl.setValue([this.lng(), lat]);
       this.formControl.markAsDirty();
     }
   }
@@ -96,7 +97,6 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
         pos => {
           this.formControl.setValue([pos.coords.longitude, pos.coords.latitude]);
           this.formControl.markAsDirty();
-          this.cd.markForCheck();
         },
         err => console.error('Geolocation error:', err.message),
       );

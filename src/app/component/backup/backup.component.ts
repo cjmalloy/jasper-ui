@@ -1,10 +1,10 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, linkedSignal, signal, TemplateRef, ViewContainerRef, input, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { catchError, Observable, of, throwError } from 'rxjs';
+import { catchError, filter, of, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { BackupOptions } from '../../model/backup';
 import { AdminService } from '../../service/admin.service';
@@ -18,30 +18,30 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   selector: 'app-backup',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    '[class.deleted]': 'deleted()',
+  },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
 })
 export class BackupComponent {
 
-  @Input()
-  id!: string;
-  @Input()
-  size? = 0;
-  @Input()
-  origin = '';
+  readonly id = input.required<string>();
+  readonly size = input<number | undefined>(0);
+  readonly origin = input('');
 
-  @ViewChild('restoreButton', { read: ElementRef })
-  restoreButton?: ElementRef<HTMLElement>;
-  @ViewChild('restoreOptions')
-  restoreOptionsTemplate!: TemplateRef<any>;
+  readonly restoreButton = viewChild('restoreButton', { read: ElementRef });
+  readonly restoreOptionsTemplate = viewChild.required<TemplateRef<any>>('restoreOptions');
 
-  @HostBinding('class.deleted')
-  deleted = false;
-  serverError: string[] = [];
+  readonly deleted = linkedSignal(() => {
+    this.id();
+    this.origin();
+    return false;
+  });
+  readonly serverError = signal<string[]>([]);
+  private readonly backupKey = signal('');
   restoreOptionsForm: UntypedFormGroup;
   restoreOptionsRef?: OverlayRef;
-
-  private backupKey = '';
 
   constructor(
     public admin: AdminService,
@@ -52,7 +52,7 @@ export class BackupComponent {
     private viewContainerRef: ViewContainerRef,
   ) {
     backups.getDownloadKey()
-      .subscribe(key => this.backupKey = key);
+      .subscribe(key => this.backupKey.set(key));
     this.restoreOptionsForm = fb.group({
       cache: [false],
       ref: [true],
@@ -65,31 +65,28 @@ export class BackupComponent {
     });
   }
 
-  get inProgress() {
-    return this.id.startsWith('_');
-  }
+  readonly inProgress = computed(() => this.id().startsWith('_'));
 
-  get fileSize() {
-    return readableBytes(this.size || 0);
-  }
+  readonly fileSize = computed(() => readableBytes(this.size() || 0));
 
-  get downloadLink() {
-    var link = this.backups.base + '/' + this.id;
+  readonly downloadLink = computed(() => {
+    var link = this.backups.base + '/' + this.id();
     if (link.startsWith('//')) link = location.protocol + link;
     if (link.startsWith("_")) link = link.substring(1);
     if (!link.endsWith(".zip")) link = link + '.zip';
-    if (this.origin) link += '?origin=' + encodeURIComponent(this.origin)
+    const origin = this.origin();
+    if (origin) link += '?origin=' + encodeURIComponent(origin)
     return link;
-  }
+  });
 
-  get downloadLinkAuth() {
-    return this.downloadLink + (this.origin ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
-  }
+  readonly downloadLinkAuth = computed(() =>
+    this.downloadLink() + (this.origin() ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey()));
 
   showRestoreOptions() {
-    if (this.restoreOptionsRef || !this.restoreButton) return;
+    const restoreButton = this.restoreButton();
+    if (this.restoreOptionsRef || !restoreButton) return;
     const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(this.restoreButton)
+      .flexibleConnectedTo(restoreButton)
       .withPositions([{
         originX: 'start',
         originY: 'bottom',
@@ -98,11 +95,14 @@ export class BackupComponent {
         offsetY: 4,
       }]);
     this.restoreOptionsRef = this.overlay.create({
-      hasBackdrop: false,
+      hasBackdrop: true,
+      backdropClass: 'hide',
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.reposition()
     });
-    this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate, this.viewContainerRef));
+    this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate(), this.viewContainerRef));
+    this.restoreOptionsRef.backdropClick().subscribe(() => this.cancelRestore());
+    this.restoreOptionsRef.keydownEvents().pipe(filter(e => e.key === 'Escape')).subscribe(() => this.cancelRestore());
   }
 
   restore$ = () => {
@@ -123,13 +123,13 @@ export class BackupComponent {
       newerThan: this.restoreOptionsForm.value.newerThan || undefined,
     };
     this.closeRestoreOptions();
-    this.backups.restore(this.origin, this.id, options).pipe(
+    this.backups.restore(this.origin(), this.id(), options).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
       tap(() => {
-        this.serverError = [];
+        this.serverError.set([]);
       }),
     ).subscribe();
   }
@@ -145,14 +145,14 @@ export class BackupComponent {
   }
 
   delete$ = () => {
-    return this.backups.delete(this.origin, this.id).pipe(
+    return this.backups.delete(this.origin(), this.id()).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
       tap(() => {
-        this.serverError = [];
-        this.deleted = true;
+        this.serverError.set([]);
+        this.deleted.set(true);
       }),
     );
   }

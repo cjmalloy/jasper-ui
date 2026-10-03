@@ -1,8 +1,6 @@
-import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, untracked, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -25,14 +23,12 @@ import { hasTag, updateMetadata } from '../../../util/tag';
   templateUrl: './errors.component.html',
   styleUrl: './errors.component.scss',
   host: { 'class': 'errors' },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, RefListComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RefListComponent]
 })
 export class RefErrorsComponent implements HasChanges {
 
-  private disposers: IReactionDisposer[] = [];
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
   newRefs$ = new Subject<Ref | undefined>();
 
@@ -49,45 +45,47 @@ export class RefErrorsComponent implements HasChanges {
     private bookmarks: BookmarkService,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = ['published']);
-    if (!this.store.view.filter.length) bookmarks.filters = ['query/' + (store.account.origin || '*')];
+    store.view.defaultSort.set(['published']);
+    if (!this.store.view.filter().length) bookmarks.setFilters(['query/' + (store.account.origin() || '*')]);
     const untilDestroyed = takeUntilDestroyed<Ref | undefined>();
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = getArgs(
         '+plugin/log:!plugin/delete',
-        this.store.view.sort,
-        this.store.view.filter,
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
+        this.store.view.sort(),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
       );
-      args.responses = this.store.view.url;
+      args.responses = this.store.view.url();
       defer(() => this.query.setArgs(args));
-    }));
+    });
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref))));
-    this.disposers.push(autorun(() => {
-      if (this.store.view.url && this.config.websockets) {
-        this.watch?.unsubscribe();
-        this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
-          switchMap(url => this.refs.getCurrent(url)),
-          tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
-          filter(ref => hasTag('+plugin/log', ref)),
-          catchError(err => of(undefined)),
-          untilDestroyed,
-        ).subscribe(ref => this.newRefs$.next(ref));
-      }
-    }));
+    effect(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref())));
+    effect(() => {
+      this.store.view.url();
+      untracked(() => {
+        if (this.store.view.url() && this.config.websockets) {
+          this.watch?.unsubscribe();
+          this.watch = this.stomp.watchResponse(this.store.view.url()).pipe(
+            switchMap(url => this.refs.getCurrent(url)),
+            tap(ref => updateMetadata(this.store.view.ref()!, ref)),
+            filter(ref => hasTag('+plugin/log', ref)),
+            catchError(err => of(undefined)),
+            untilDestroyed,
+          ).subscribe(ref => this.newRefs$.next(ref));
+        }
+      });
+    });
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+  });
 
 }

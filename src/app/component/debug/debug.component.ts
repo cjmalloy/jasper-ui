@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -22,16 +22,16 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './debug.component.html',
   styleUrls: ['./debug.component.scss'],
   host: { 'class': 'debug actions' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, LoadingComponent]
 })
 export class DebugComponent {
 
-  generating = false;
-  settingUser = false;
-  sourcing = false;
-  batchRunning = false;
-  serverError: string[] = [];
+  readonly generating = signal(false);
+  readonly settingUser = signal(false);
+  readonly sourcing = signal(false);
+  readonly batchRunning = signal(false);
+  readonly serverError = signal<string[]>([]);
   debug = this.admin.getPlugin('plugin/debug') || this.admin.getTemplate('debug');
 
   constructor(
@@ -47,35 +47,35 @@ export class DebugComponent {
     private router: Router,
   ) { }
 
-  get empty() {
-    return !this.query.page?.content?.length;
-  }
+  readonly empty = computed(() => {
+    return !this.query.page()?.content?.length;
+  });
 
   batch(fn: (e: any) => Observable<any>) {
-    if (this.batchRunning) return;
-    this.batchRunning = true;
-    concat(...this.query.page!.content.map(e => fn(e).pipe(
+    if (this.batchRunning()) return;
+    this.batchRunning.set(true);
+    concat(...this.query.page()!.content.map(e => fn(e).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError.push(...printError(err));
+        this.serverError.update(errors => [...errors, ...printError(err)]);
         return of(null);
       }),
     ))).pipe(last()).subscribe(() => {
       this.query.refresh();
-      this.batchRunning = false;
+      this.batchRunning.set(false);
     });
   }
 
   repeat(fn: (i: number) => Observable<any>, n = 100) {
-    if (this.batchRunning) return;
-    this.batchRunning = true;
+    if (this.batchRunning()) return;
+    this.batchRunning.set(true);
     generate(0, x => x < n, x => x + 1).pipe(
       concatMap(i => fn(i)),
       catchError((err: HttpErrorResponse) => {
-        this.serverError.push(...printError(err));
+        this.serverError.update(errors => [...errors, ...printError(err)]);
         return of(null);
       }),
     ).subscribe(() => {
-      this.batchRunning = false;
+      this.batchRunning.set(false);
     });
   }
 
@@ -85,12 +85,12 @@ export class DebugComponent {
   }
 
   gen(n: any = 100) {
-    this.generating = false;
+    this.generating.set(false);
     this.repeat(i => {
       const url = 'comment:' + uuid();
       return this.refs.create({
         url,
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         title: 'Generated: ' + i,
         comment: uuid(),
         tags: ['public', 'gen'],
@@ -105,7 +105,7 @@ export class DebugComponent {
   }
 
   source(url: string) {
-    this.sourcing = false;
+    this.sourcing.set(false);
     this.batch(ref => {
       if (!ref.sources?.includes(url)) {
         if (ref.sources) {

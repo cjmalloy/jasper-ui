@@ -36,4 +36,27 @@ describe('AppComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('updates the website when debug mode changes', () => {
+    component.store.account.debug.set(true);
+    expect(component.website()).toBe('https://github.com/cjmalloy/jasper-ui');
+
+    component.store.account.debug.set(false);
+    expect(component.website()).toBe(
+      'https://github.com/cjmalloy/jasper-ui/releases/tag/' + component.config.version,
+    );
+  });
+
+  it('renders reactive progress updates', () => {
+    component.store.eventBus.clearProgress(2);
+    component.store.eventBus.progress('First step');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('progress').value).toBe(1);
+    expect(fixture.nativeElement.querySelector('.log').textContent).toContain('First step');
+
+    component.store.eventBus.clearProgress();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.log')).toBeNull();
+  });
 });

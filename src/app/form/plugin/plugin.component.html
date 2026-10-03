@@ -1,25 +1,25 @@
-<ng-container [formGroup]="group">
+<ng-container [formGroup]="group()">
   <label [for]="id + '-tag'" i18n>Tag:</label>
   <input [id]="id + '-tag'" type="text" formControlName="tag" [attr.disabled]="true">
 
   <label [for]="id + '-title'" i18n>Name:</label>
   <input [id]="id + '-title'"
          type="text"
-         [formControl]="name"
+         [formControl]="name()"
          (blur)="validate($any($event.target))">
 
   <label [for]="id + '-config'" i18n>Config:</label>
-  @if (!editingConfig && !config) {
+  @if (!editingConfig() && !config()) {
     <div>
-      <button type="button" (click)="editingConfig = true" i18n>+ Add Config</button>
+      <button type="button" (click)="editingConfig.set(true)" i18n>+ Add Config</button>
     </div>
   } @else {
-    <app-json [id]="id + '-config'"
+    <app-json (focusin)="editingConfig.set(true)" [id]="id + '-config'"
               fieldName="config"
-              [group]="group"></app-json>
-    @if (configErrors.length) {
+              [group]="group()"></app-json>
+    @if (configErrors().length) {
       <span><!-- Errors --></span>
-      @for (e of configErrors; track e) {
+      @for (e of configErrors(); track e) {
         <div>
           <span class="error">{{ e }}</span>
         </div>
@@ -28,17 +28,17 @@
   }
 
   <label [for]="id + '-defaults'" i18n>Defaults:</label>
-  @if (!editingDefaults && !defaults) {
+  @if (!editingDefaults() && !defaults()) {
     <div>
-      <button type="button" (click)="editingDefaults = true" i18n>+ Add Defaults</button>
+      <button type="button" (click)="editingDefaults.set(true)" i18n>+ Add Defaults</button>
     </div>
   } @else {
-    <app-json [id]="id + '-defaults'"
+    <app-json (focusin)="editingDefaults.set(true)" [id]="id + '-defaults'"
               fieldName="defaults"
-              [group]="group"></app-json>
-    @if (defaultsErrors.length) {
+              [group]="group()"></app-json>
+    @if (defaultsErrors().length) {
       <span><!-- Errors --></span>
-      @for (e of defaultsErrors; track e) {
+      @for (e of defaultsErrors(); track e) {
         <div>
           <span class="error">{{ e }}</span>
         </div>
@@ -47,17 +47,17 @@
   }
 
   <label [for]="id + '-schema'" i18n>Schema:</label>
-  @if (!editingSchema && !schema) {
+  @if (!editingSchema() && !schema()) {
     <div>
-      <button type="button" (click)="editingSchema = true" i18n>+ Add Schema</button>
+      <button type="button" (click)="editingSchema.set(true)" i18n>+ Add Schema</button>
     </div>
   } @else {
-    <app-json [id]="id + '-schema'"
+    <app-json (focusin)="editingSchema.set(true)" [id]="id + '-schema'"
               fieldName="schema"
-              [group]="group"></app-json>
-    @if (schemaErrors.length) {
+              [group]="group()"></app-json>
+    @if (schemaErrors().length) {
       <span><!-- Errors --></span>
-      @for (e of schemaErrors; track e) {
+      @for (e of schemaErrors(); track e) {
         <div>
           <span class="error">{{ e }}</span>
         </div>

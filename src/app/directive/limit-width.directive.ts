@@ -1,41 +1,41 @@
-import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } from '@angular/core';
+import { Directive, effect, ElementRef, input, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { throttle } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 
-@Directive({ selector: '[appLimitWidth]' })
-export class LimitWidthDirective implements OnDestroy, AfterViewInit {
+@Directive({
+  selector: '[appLimitWidth]',
+  host: {
+    '(window:resize)': 'onWindowResize($event)',
+  },
+})
+export class LimitWidthDirective {
 
   resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.fill()) || undefined;
 
-  @Input()
-  limitSibling = false;
+  readonly limitSibling = input(false);
 
-  private _linked?: HTMLElement;
+  readonly linked = input<HTMLElement | undefined | null>(undefined, { alias: 'appLimitWidth' });
 
   constructor(
     private config: ConfigService,
     private el: ElementRef,
-  ) { }
-
-  get linked() {
-    return this._linked;
+  ) {
+    effect(() => {
+      const linked = this.linked();
+      if (linked) this.resizeObserver?.observe(linked);
+      this.fill();
+    });
   }
 
-  @Input('appLimitWidth')
-  set linked(value: HTMLElement | undefined | null) {
-    this._linked = value!;
-    if (value) this.resizeObserver?.observe(value);
-  }
-
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     this.fill();
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.resizeObserver?.disconnect();
-  }
+    this.fill.cancel();
+  });
 
-  @HostListener('window:resize', ['$event'])
   onWindowResize(event: UIEvent) {
     this.fill();
   }
@@ -45,8 +45,9 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
   }
 
   private fill = throttle(() => {
-    let linkedWidth = this._linked?.clientWidth || 0;
-    if (this.limitSibling) linkedWidth += this._linked?.nextElementSibling?.clientWidth || 0;
+    const linked = this.linked();
+    let linkedWidth = linked?.clientWidth || 0;
+    if (this.limitSibling()) linkedWidth += linked?.nextElementSibling?.clientWidth || 0;
     if (this.config.mobile) {
       this.el.nativeElement.style.maxWidth = '100vw';
     } else if (!linkedWidth) {

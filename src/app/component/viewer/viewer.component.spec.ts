@@ -37,6 +37,15 @@ describe('ViewerComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('clears derived lens state when a viewer is reused for an ordinary ref', () => {
+    fixture.componentRef.setInput('ref', { url: 'tag:/science', tags: ['plugin/lens'] });
+    expect(component.lens()).toBe(true);
+    fixture.componentRef.setInput('ref', { url: 'https://example.com', tags: [] });
+    expect(component.lens()).toBe(false);
+    expect(component.lensPage()).toBeUndefined();
+    expect(component.lensQuery()).toBe('');
+  });
+
   it('scopes nesting to each embedded viewer and its descendants', () => {
     const vc = fixture.debugElement.injector.get(ViewContainerRef);
     const ref = { url: 'wiki:Nesting', origin: '' };
@@ -69,9 +78,9 @@ describe('ViewerComponent', () => {
     expect(placeholder.location.nativeElement.querySelector('.load-more')).toBeNull();
 
     const viewer = init.mock.instances[0] as ViewerComponent;
-    expect(viewer.ref).toBe(ref);
-    expect(viewer.fullscreen).toBe(true);
-    const view = (placeholder.instance as EmbedPlaceholderComponent).content.get(0)!;
+    expect(viewer.ref()).toBe(ref);
+    expect(viewer.fullscreen()).toBe(true);
+    const view = (placeholder.instance as EmbedPlaceholderComponent).content().get(0)!;
     const destroy = vi.fn();
     view.onDestroy(destroy);
     placeholder.destroy();

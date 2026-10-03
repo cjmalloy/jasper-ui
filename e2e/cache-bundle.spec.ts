@@ -1,7 +1,7 @@
-import { type APIRequestContext, expect, test } from '@playwright/test';
+import { type APIRequestContext, expect } from '@playwright/test';
 import { readFileSync, writeFileSync } from 'fs';
 import JSZip from 'jszip';
-import { adminHeaders, mod } from './setup';
+import { adminHeaders, mod, test } from './setup';
 
 test.describe.serial('Bulk download cache files', () => {
   const tag = 'cachebundle' + Date.now();

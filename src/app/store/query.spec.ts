@@ -18,7 +18,7 @@ describe('QueryStore', () => {
 
     expect(refs.page).toHaveBeenCalledOnce();
     expect(refs.getCurrent).toHaveBeenCalledWith(source.url);
-    expect(store.sourcesOf).toEqual(source);
+    expect(store.sourcesOf()).toEqual(source);
   });
 
   it('loads related refs without triggering the page query via setRelatedArgs', () => {
@@ -33,7 +33,7 @@ describe('QueryStore', () => {
 
     expect(refs.page).not.toHaveBeenCalled();
     expect(refs.getCurrent).toHaveBeenCalledWith(source.url);
-    expect(store.sourcesOf).toEqual(source);
+    expect(store.sourcesOf()).toEqual(source);
   });
 
   it('uses hidden tie-breakers for ordinary date-sorted page requests', () => {
@@ -51,7 +51,7 @@ describe('QueryStore', () => {
       query: 'test',
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
     });
-    expect(store.args).toBe(args);
+    expect(store.args()).toBe(args);
   });
 
   it('uses a queued cursor request for its matching page navigation', () => {
@@ -71,7 +71,7 @@ describe('QueryStore', () => {
     store.setArgs({ ...args, page: 1 });
 
     expect(loadOffsetPage).not.toHaveBeenCalled();
-    expect(store.page).toBe(cursorPage);
+    expect(store.page()).toBe(cursorPage);
   });
 
   it('discards a queued cursor request when the navigation does not match', () => {
@@ -96,6 +96,6 @@ describe('QueryStore', () => {
       ...directArgs,
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
     });
-    expect(store.page).toBe(offsetPage);
+    expect(store.page()).toBe(offsetPage);
   });
 });

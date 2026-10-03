@@ -1,34 +1,30 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { controlValue } from '../../../util/form';
+import { Component, ChangeDetectionStrategy, computed, input, output, signal, afterNextRender } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
+import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
-import { memo, MemoCache } from '../../../util/memo';
 
 @Component({
   selector: 'app-form-gen',
   templateUrl: './gen.component.html',
   styleUrls: ['./gen.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
-export class GenFormComponent implements OnInit, OnChanges {
+export class GenFormComponent {
+  private readonly rootControlState = controlValue(() => this.plugins());
 
-  @Input()
-  bulk = false;
-  @Input()
-  promoteAdvanced = false;
-  @Input()
-  plugins!: UntypedFormGroup;
-  @Input()
-  plugin!: Plugin;
-  @Input()
-  children: Plugin[] = [];
-  @Output()
-  togglePlugin = new EventEmitter<string>();
 
-  model: any;
+  readonly bulk = input(false);
+  readonly promoteAdvanced = input(false);
+  readonly plugins = input.required<UntypedFormGroup>();
+  readonly plugin = input.required<Plugin>();
+  readonly children = input<Plugin[]>([]);
+  readonly togglePlugin = output<string>();
+
+  readonly model = signal<any>(undefined);
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
@@ -40,45 +36,41 @@ export class GenFormComponent implements OnInit, OnChanges {
     private admin: AdminService,
   ) { }
 
-  ngOnChanges(changes: SimpleChanges) {
-    MemoCache.clear(this);
-  }
+  readonly group = computed(() => {
+    this.rootControlState();
+    return this.plugins().get(this.plugin().tag) as UntypedFormGroup | undefined;
+  });
 
-  get group() {
-    return this.plugins.get(this.plugin.tag) as UntypedFormGroup | undefined;
-  }
-
-  @memo
-  get form() {
-    if (this.bulk) {
-      if (this.plugin.config?.bulkForm === true) {
-        return cloneDeep(this.plugin.config?.form || this.plugin.config?.advancedForm);
+  readonly form = computed(() => {
+    if (this.bulk()) {
+      if (this.plugin().config?.bulkForm === true) {
+        return cloneDeep(this.plugin().config?.form || this.plugin().config?.advancedForm);
       }
-      return cloneDeep(this.plugin.config?.bulkForm);
+      return cloneDeep(this.plugin().config?.bulkForm) as FormlyFieldConfig[] | undefined;
     }
-    return cloneDeep(this.plugin.config?.form);
-  }
+    return cloneDeep(this.plugin().config?.form);
+  });
 
-  @memo
-  get advancedForm() {
-    if (this.bulk) return undefined;
-    return cloneDeep(this.plugin.config?.advancedForm);
-  }
+  readonly advancedForm = computed(() => {
+    if (this.bulk()) return undefined;
+    return cloneDeep(this.plugin().config?.advancedForm);
+  });
 
-  get childrenOn() {
-    for (let i = this.children.length - 1; i >= 0; i--) {
-      if (this.plugins.contains(this.children[i].tag)) return i;
+  readonly childrenOn = computed(() => {
+    this.rootControlState();
+    for (let i = this.children().length - 1; i >= 0; i--) {
+      if (this.plugins().contains(this.children()[i].tag)) return i;
     }
     return 0;
-  }
+  });
 
-  ngOnInit(): void {
-    this.group?.patchValue(this.plugin.defaults);
-    this.options.formState.config = this.plugin.defaults;
-  }
+  private readonly initialize = afterNextRender(() => {
+    this.group()?.patchValue(this.plugin().defaults);
+    this.options.formState.config = this.plugin().defaults;
+  });
 
   setValue(value: any) {
-    this.model = value[this.plugin.tag];
+    this.model.set(value[this.plugin().tag]);
   }
 
   cssClass(tag: string) {
@@ -88,7 +80,7 @@ export class GenFormComponent implements OnInit, OnChanges {
   }
 
   toggleChild(tag: string) {
-    this.togglePlugin.next(tag);
+    this.togglePlugin.emit(tag);
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
   }
 }

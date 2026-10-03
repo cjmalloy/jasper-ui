@@ -1,18 +1,17 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import {
+import { computed,
   Component,
-  EventEmitter,
-  HostBinding,
-  HostListener,
-  Input,
-  NgZone,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ChangeDetectionStrategy
+  effect,
+  ChangeDetectionStrategy,
+  input,
+  linkedSignal,
+  output,
+  signal,
+  untracked,
 } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
-import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
+import { catchError, Observable, of, startWith, Subscription, switchMap, throwError, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
@@ -24,8 +23,12 @@ import { TodoItemComponent } from './item/item.component';
   selector: 'app-todo',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
-  host: { 'class': 'todo-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    'class': 'todo-list',
+    '[class.empty]': "empty()",
+    '(touchstart)': 'touchstart($event)',
+  },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkDropList,
     CdkDrag,
@@ -33,101 +36,86 @@ import { TodoItemComponent } from './item/item.component';
     TodoItemComponent,
   ]
 })
-export class TodoComponent implements OnChanges {
+export class TodoComponent {
 
-  @Input()
-  ref?: Ref;
-  @Input()
-  text? = '';
-  @Input()
-  origin = '';
-  @Input()
-  tags?: string[];
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly ref = input<Ref>();
+  readonly text = input<string | undefined>('');
+  readonly origin = input('');
+  readonly tags = input<string[]>();
+  readonly comment = output<string>();
+  readonly copied = output<string>();
 
-  lines: string[] = [];
-  addText = '';
-  pushText: string[] = [];
-  pressToUnlock = false;
-  serverErrors: string[] = [];
+  private readonly watcher = computed(() => this.ref() ? this.actions.watch(this.ref()!) : undefined);
+  private readonly watchedRef = toSignal(toObservable(this.watcher).pipe(
+    switchMap(watch => watch ? watch.ref$.pipe(startWith(this.ref())) : of(undefined)),
+  ), { initialValue: undefined });
+  readonly lines = linkedSignal(() => (this.watchedRef()
+    ? this.watchedRef()?.comment || ''
+    : this.ref()?.comment || this.text() || '').split('\n').filter(l => !!l));
+  readonly addText = linkedSignal(() => { this.ref(); this.text(); return ''; });
+  readonly pushText = linkedSignal<string[]>(() => { this.ref(); return []; });
+  readonly pressToUnlock = linkedSignal(() => this.config.mobile);
+  readonly serverErrors = linkedSignal<string[]>(() => { this.ref(); return []; });
 
-  private watch?: Subscription;
   private pushing?: Subscription;
-  private comment$!: (comment: string) => Observable<string>;
 
   constructor(
     public config: ConfigService,
     private store: Store,
     private actions: ActionService,
-    private zone: NgZone,
   ) {
-    if (config.mobile) {
-      this.pressToUnlock = true;
-    }
-  }
-
-  init() {
-    this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
-    if (!this.watch && this.ref) {
-      const watch = this.actions.watch(this.ref);
-      this.comment$ = watch.comment$;
-      this.watch = watch.ref$.subscribe(update => {
-        this.ref!.comment = update.comment;
-        this.init();
+    effect(onCleanup => {
+      this.ref();
+      onCleanup(() => {
+        this.pushing?.unsubscribe();
+        this.pushing = undefined;
       });
-    }
+    });
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref || changes.text) {
-      this.init();
-    }
-  }
-
-  @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
-    this.zone.run(() => this.pressToUnlock = true);
+    this.pressToUnlock.set(true);
   }
 
-  @HostBinding('class.empty')
-  get empty() {
-    return !this.lines.length;
-  }
+  readonly empty = computed(() => {
+    return !this.lines().length;
+  });
 
-  get local() {
-    return this.ref?.origin === this.store.account.origin;
-  }
+  readonly local = computed(() => {
+    return this.ref()?.origin === this.store.account.origin();
+  });
 
   drop(event: CdkDragDrop<string, string, string>) {
+    const lines = [...this.lines()];
     if (event.previousContainer.data === event.container.data) {
-      this.lines.splice(event.previousIndex, 1);
+        lines.splice(event.previousIndex, 1);
     } else {
       // TODO: Delete from prev
     }
-    this.lines.splice(event.currentIndex, 0, event.item.data);
-    this.save$(this.lines.join('\n'))?.subscribe();
+    lines.splice(event.currentIndex, 0, event.item.data);
+    this.lines.set(lines);
+    this.save$(this.lines().join('\n'))?.subscribe();
   }
 
   update(line: {index: number, text: string, checked: boolean}) {
+    const lines = [...this.lines()];
     if (!line.text) {
-      this.lines.splice(line.index, 1);
+      lines.splice(line.index, 1);
     } else {
-      this.lines[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
+      lines[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
     }
-    this.save$(this.lines.join('\n'))?.subscribe();
+    this.lines.set(lines);
+    this.save$(this.lines().join('\n'))?.subscribe();
   }
 
   save$(comment: string) {
     this.comment.emit(comment);
-    if (!this.ref) return of();
-    return this.comment$(comment).pipe(
+    if (!this.ref()) return of();
+    return this.watcher()!.comment$(comment).pipe(
       tap(() => {
-        if (!this.local) {
-          this.copied.emit(this.store.account.origin);
-          this.store.eventBus.refresh(this.ref);
+        if (!this.local()) {
+          this.copied.emit(this.store.account.origin());
+          this.store.eventBus.refresh(this.ref());
         }
       }),
     );
@@ -135,16 +123,17 @@ export class TodoComponent implements OnChanges {
 
   add(cancel?: Event) {
     cancel?.preventDefault();
-    this.addText = this.addText.trim();
-    if (!this.addText) return;
-    this.pushText.push(`- [ ] ${this.addText}`);
-    this.addText = '';
+    this.addText.set(this.addText().trim());
+    if (!this.addText()) return;
+    const text = this.addText();
+    this.pushText.update(lines => [...lines, `- [ ] ${text}`]);
+    this.addText.set('');
     if (!this.pushing) this.pushing = this.push$().subscribe();
   }
 
   push$(): Observable<string> {
-    const lines = [...this.pushText];
-    return this.save$([...this.lines, ...lines].join('\n')).pipe(
+    const lines = [...this.pushText()];
+    return this.save$([...this.lines(), ...lines].join('\n')).pipe(
       catchError((err: any) => {
         if (err.conflict) {
           return timer(100).pipe(switchMap(() => this.push$()));
@@ -152,9 +141,9 @@ export class TodoComponent implements OnChanges {
         return throwError(() => err);
       }),
       tap(() => {
-        this.pushText = this.pushText.slice(lines.length);
+        this.pushText.update(queued => queued.slice(lines.length));
         delete this.pushing;
-        if (this.pushText.length) this.pushing = this.push$().subscribe();
+        if (this.pushText().length) this.pushing = this.push$().subscribe();
       }),
     );
   }

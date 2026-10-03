@@ -1,6 +1,6 @@
-import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, model, signal, untracked, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { defer, uniqBy } from 'lodash-es';
+import { uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
@@ -11,64 +11,48 @@ import { AuthzService } from '../../service/authz.service';
   templateUrl: './select-plugin.component.html',
   styleUrls: ['./select-plugin.component.scss'],
   host: { 'class': 'select-plugin' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
-export class SelectPluginComponent implements OnChanges {
+export class SelectPluginComponent {
 
-  @Input()
-  id = 'plugin-' + uuid();
-  @Input()
-  add = false;
-  @Input()
-  text = false;
-  @Input()
-  settings = false;
-  @Output()
-  pluginChange = new EventEmitter<string>();
+  readonly id = input('plugin-' + uuid());
+  readonly add = input(false);
+  readonly text = input(false);
+  readonly settings = input(false);
 
-  @ViewChild('select')
-  select?: ElementRef<HTMLSelectElement>;
+  readonly select = viewChild<ElementRef<HTMLSelectElement>>('select');
 
-  submitPlugins = this.admin.submit.filter(p => this.auth.canAddTag(p.tag));
-  addPlugins = this.admin.add.filter(p => this.auth.canAddTag(p.tag));
-  textPlugins = this.admin.submitText.filter(p => this.auth.canAddTag(p.tag));
-  settingsPlugins = this.admin.submitSettings.filter(p => this.auth.canAddTag(p.tag));
+  readonly submitPlugins = computed(() => this.admin.submit().filter(p => this.auth.canAddTag(p.tag)));
+  readonly addPlugins = computed(() => this.admin.add().filter(p => this.auth.canAddTag(p.tag)));
+  readonly textPlugins = computed(() => this.admin.submitText().filter(p => this.auth.canAddTag(p.tag)));
+  readonly settingsPlugins = computed(() => this.admin.submitSettings().filter(p => this.auth.canAddTag(p.tag)));
 
-  customPlugin?: Plugin;
-  plugins: Plugin[] = [];
+  readonly customPlugin = computed(() => this.admin.getPlugin(this.plugin()));
+  readonly plugin = model('');
+  readonly plugins = computed<Plugin[]>(() => uniqBy([
+    ...(this.customPlugin() ? [this.customPlugin()!] : []),
+    ...(this.add() ? this.addPlugins() : []),
+    ...(this.text() ? this.textPlugins() : []),
+    ...(this.settings() ? this.settingsPlugins() : []),
+    ...this.submitPlugins()
+  ], 'tag'));
 
   constructor(
     private admin: AdminService,
     private auth: AuthzService,
-  ) {  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    this.plugins = uniqBy([
-      ...(this.customPlugin ? [this.customPlugin] : []),
-      ...(this.add ? this.addPlugins : []),
-      ...(this.text ? this.textPlugins : []),
-      ...(this.settings ? this.settingsPlugins : []),
-      ...this.submitPlugins
-    ], 'tag');
+  ) {
+    effect(() => {
+      const plugin = this.plugin();
+      this.plugins();
+      this.select();
+      untracked(() => this.selectPlugin(plugin));
+    });
   }
 
-  @Input()
-  set plugin(value: string) {
-    if (!this.select) {
-      if (value) defer(() => this.plugin = value);
-    } else {
-      if (!this.plugins.find(p => p?.tag === value)) {
-        const plugin = this.admin.getPlugin(value);
-        if (plugin) {
-          this.customPlugin = plugin;
-          this.plugins.unshift(plugin);
-          defer(() => this.select!.nativeElement.selectedIndex = 1);
-          return;
-        }
-      }
-      this.select!.nativeElement.selectedIndex = this.plugins.map(p => p.tag).indexOf(value) + 1;
-    }
+  private selectPlugin(value: string) {
+    const select = this.select();
+    if (select) select.nativeElement.selectedIndex = this.plugins().map(p => p.tag).indexOf(value) + 1;
   }
 
 }

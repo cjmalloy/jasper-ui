@@ -1,5 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
-import { mod, openTextSubmit } from './setup';
+import { expect, type Page } from '@playwright/test';
+import { mod, openTextSubmit, test } from './setup';
 
 test.describe.serial('Ref Actions', () => {
   let page: Page;

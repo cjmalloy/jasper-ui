@@ -265,11 +265,11 @@ export class EditorService {
 
   private syncMailboxes(fb: UntypedFormBuilder, group: UntypedFormGroup, previousComment = '') {
     const existingTags = [
-      ...getMailboxes(previousComment, this.store.account.origin),
+      ...getMailboxes(previousComment, this.store.account.origin()),
       ...(group.value.tags || []),
     ];
     const mailboxes = uniq(difference([
-      ...getMailboxes(group.value.comment, this.store.account.origin)], existingTags));
+      ...getMailboxes(group.value.comment, this.store.account.origin())], existingTags));
     for (const t of mailboxes) {
       (group.get('tags') as UntypedFormArray).push(fb.control(t, TagsFormComponent.validators));
     }
@@ -278,7 +278,7 @@ export class EditorService {
   getTagPreview(tag: string, defaultOrigin = '', returnDefault = true, loadTemplates = true, loadPlugins = true): Observable<{ name?: string, tag: string } | undefined> {
     return this.exts.getCachedExt(tag, defaultOrigin).pipe(
       switchMap(x => {
-        const localExists = x.modified && x.origin === (defaultOrigin || this.store.account.origin);
+        const localExists = x.modified && x.origin === (defaultOrigin || this.store.account.origin());
         if (loadTemplates) {
           const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
           if (templates.length) {

@@ -1,8 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, computed, untracked, afterNextRender, DestroyRef } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { Subject } from 'rxjs';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
 import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
@@ -15,28 +13,26 @@ import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { getTitle } from '../../../util/format';
-import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-comments',
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
-    MobxAngularModule,
     CommentReplyComponent,
     CommentThreadComponent,
     LoadingComponent,
   ],
 })
-export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+export class RefCommentsComponent implements HasChanges {
+
+  private readonly injector = inject(Injector);
   newComments$ = new Subject<Ref | undefined>();
 
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
+  readonly reply = viewChild<CommentReplyComponent>('reply');
 
   constructor(
     private mod: ModService,
@@ -45,65 +41,54 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
     private admin: AdminService,
   ) {
     thread.clear();
-    runInAction(() => store.view.defaultSort = ['published']);
+    store.view.defaultSort.set(['published']);
   }
 
   saveChanges() {
-    return !this.reply || this.reply.saveChanges();
+    const reply = this.reply();
+    return !reply || reply.saveChanges();
   }
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref))));
-    this.disposers.push(autorun(() => {
-      MemoCache.clear(this);
-      const top = this.store.view.url;
-      const sort = this.store.view.sort;
-      const filter = this.store.view.filter;
-      const search = this.store.view.search;
-      runInAction(() => this.thread.setArgs(top, sort, filter, search));
-      if (this.store.view.ref) {
-        const commentCount = this.store.view.ref.metadata?.plugins?.['plugin/comment'] || 0;
-        this.store.local.setLastSeenCount(this.store.view.url, 'comments', commentCount);
+    effect(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref())), { injector: this.injector });
+    effect(() => {
+      const top = this.store.view.url();
+      const sort = this.store.view.sort();
+      const filter = this.store.view.filter();
+      const search = this.store.view.search();
+      untracked(() => this.thread.setArgs(top, sort, filter, search));
+      const ref = this.store.view.ref();
+      if (ref) {
+        const commentCount = ref.metadata?.plugins?.['plugin/comment'] || 0;
+        this.store.local.setLastSeenCount(this.store.view.url(), 'comments', commentCount);
       }
-    }));
+    }, { injector: this.injector });
     this.newComments$.subscribe(c => {
-      if (c && this.store.view.ref) {
-        runInAction(() => updateMetadata(this.store.view.ref!, c));
-        this.store.eventBus.refresh(this.store.view.ref!);
+      if (c && this.store.view.ref()) {
+        updateMetadata(this.store.view.ref()!, c);
+        this.store.eventBus.refresh(this.store.view.ref()!);
       }
     });
-  }
+  });
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.newComments$.complete();
-  }
+  });
 
-  @memo
-  get depth() {
-    return this.store.view.depth || 7;
-  }
+  readonly depth = computed(() => this.store.view.depth() || 7);
 
-  @memo
-  get comment() {
-    return this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref);
-  }
+  readonly comment = computed(() => this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref()));
 
-  @memo
-  get mailboxes() {
-    return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
-  }
+  readonly mailboxes = computed(() => mailboxes(this.store.view.ref()!, this.store.account.tag(), this.store.origins.originMap()));
 
-  @memo
-  get replyTags(): string[] {
+  readonly replyTags = computed((): string[] => {
     const tags = [
       'plugin/comment',
       'internal',
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
-      ...this.mailboxes,
+      ...this.admin.reply().filter(p => hasTag(p.tag, this.store.view.ref())).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes(),
     ];
-    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
-  }
+    return removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq(tags));
+  });
 }

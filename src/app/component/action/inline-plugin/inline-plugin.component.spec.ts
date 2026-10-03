@@ -21,6 +21,7 @@ describe('InlinePluginComponent', () => {
     }).compileComponents();
     fixture = TestBed.createComponent(InlinePluginComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('plugin', { tag: 'plugin/test' });
     fixture.detectChanges();
   });
 

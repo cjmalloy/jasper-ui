@@ -1,5 +1,6 @@
-import { DestroyRef, inject, Component, ElementRef, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { computed, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, input, linkedSignal, signal, afterNextRender } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, Observable, of, startWith, switchMap } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -14,24 +15,33 @@ import { hasPrefix } from '../../util/tag';
   selector: 'app-nav',
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink]
 })
-export class NavComponent implements OnInit {
+export class NavComponent {
   private destroyRef = inject(DestroyRef);
 
-  @Input()
-  url: string = '';
-  @Input()
-  title = '';
-  @Input()
-  text = '';
-  @Input()
-  css = '';
-  @Input()
-  external = false;
+  readonly url = input('');
+  readonly titleInput = input('', { alias: 'title' });
+  readonly title = computed(() => this.titleInput() || this.preview()?.tag || '');
+  readonly textInput = input('', { alias: 'text' });
+  readonly text = computed(() => this.preview()?.name || this.textInput() || this.preview()?.tag || '');
+  readonly css = input('');
+  readonly external = input(false);
 
-  nav?: (string|number)[];
+  private readonly exists = toSignal(toObservable(computed(() =>
+    this.url() && !this.localUrl() && !this.external() ? this.url() : undefined,
+  )).pipe(switchMap(url => !url ? of(false) : new Observable<void>(subscriber => {
+    this.vis.notifyVisible(this.el, () => subscriber.next());
+  }).pipe(switchMap(() => this.refs.exists(url).pipe(catchError(() => of(false)))), startWith(false)))), { initialValue: false });
+  readonly nav = computed(() => this.localUrl() ? this.getNav() : this.exists() ? ['/ref', this.url()] : undefined);
+  private readonly preview = toSignal(toObservable(computed(() => {
+    const nav = this.localUrl() ? this.getNav() : undefined;
+    return nav?.[0] === '/tag' && !this.external() && !this.meaningfulText(this.textInput())
+      ? nav[1] as string : undefined;
+  })).pipe(switchMap(tag => tag ? this.editor.getTagPreview(tag).pipe(startWith(undefined)) : of(undefined))),
+  { initialValue: undefined });
+  private readonly baseHref = document.getElementsByTagName('base')[0]?.href || document.baseURI || location.origin + '/';
 
   constructor(
     private config: ConfigService,
@@ -43,35 +53,14 @@ export class NavComponent implements OnInit {
     private el: ElementRef,
   ) { }
 
-  ngOnInit() {
-    if (this.localUrl) {
-      this.nav = this.getNav();
-      if (this.nav[0] === '/tag' && !this.external && !this.hasText) {
-        this.editor.getTagPreview(this.nav[1] as string)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(x => {
-            this.text = x?.name || this.text || x?.tag || '';
-            this.title ||= x?.tag || '';
-          });
-      }
-    } else if (!this.external) {
-      this.vis.notifyVisible(this.el, () => {
-        this.refs.exists(this.url).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(exists => {
-          if (exists) {
-            this.nav = ['/ref', this.url];
-          }
-        });
-      });
-    }
-  }
-
 
   getNav() {
-    if (this.url.toLowerCase().startsWith('tag:/')) {
-      return ['/tag', getPath(this.url.substring('tag:'.length))!.substring(1)];
+    const url = this.url();
+    if (url.toLowerCase().startsWith('tag:/')) {
+      return ['/tag', getPath(url.substring('tag:'.length))!.substring(1)];
     }
-    let path = getPath(this.url) || '';
-    const basePath = getPath(this.config.base)!;
+    let path = getPath(url) || '';
+    const basePath = getPath(this.baseHref)!;
     if (path.startsWith(basePath)) {
       path = path.substring(basePath.length);
     }
@@ -87,30 +76,34 @@ export class NavComponent implements OnInit {
     return ['/' + route, parts.join('/')];
   }
 
-  get query() {
-    return parseBookmarkParams(this.url);
-  }
+  readonly query = computed(() => {
+    return parseBookmarkParams(this.url());
+  });
 
-  get localUrl() {
-    if (this.url.toLowerCase().startsWith('tag:/'))return true
-    if (this.url.startsWith(this.config.base)) return true
-    if (this.url.startsWith(getPath(this.config.base)!)) return true;
-    if (this.url.startsWith('/')) return true;
+  readonly localUrl = computed(() => {
+    const url = this.url();
+    if (url.toLowerCase().startsWith('tag:/'))return true
+    if (url.startsWith(this.baseHref)) return true
+    if (url.startsWith(getPath(this.baseHref)!)) return true;
+    if (url.startsWith('/')) return true;
     return false;
-  }
+  });
 
-  get hasText() {
-    if (!this.text || hasPrefix(this.text, 'user') || hasPrefix(this.text, 'plugin')) return false;
-    if (this.url.startsWith('/tag/') || this.url.toLowerCase().startsWith('tag:/')) {
-      if (this.text === '#' + this.url.substring(5)) return false;
+  readonly hasText = computed(() => this.meaningfulText(this.text()));
+
+  private meaningfulText(text: string) {
+    const url = this.url();
+    if (!text || hasPrefix(text, 'user') || hasPrefix(text, 'plugin')) return false;
+    if (url.startsWith('/tag/') || url.toLowerCase().startsWith('tag:/')) {
+      if (text === '#' + url.substring(5)) return false;
     }
-    return this.text != this.url;
+    return text != url;
   }
 
   markRead(event: MouseEvent) {
     if (!this.admin.getPlugin('plugin/user/read')) return;
     if (event.button !== 0 && event.button !== 1) return;
-    this.ts.createResponse('plugin/user/read', this.url).subscribe();
+    this.ts.createResponse('plugin/user/read', this.url()).subscribe();
   }
 
 }

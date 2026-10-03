@@ -34,8 +34,8 @@ describe('DiffComponent', () => {
     
     fixture = TestBed.createComponent(DiffComponent);
     component = fixture.componentInstance;
-    component.original = { url: 'http://test.com', origin: '', title: 'Original' };
-    component.modified = { url: 'http://test.com', origin: '', title: 'Modified' };
+    fixture.componentRef.setInput('original', { url: 'http://test.com', origin: '', title: 'Original' });
+    fixture.componentRef.setInput('modified', { url: 'http://test.com', origin: '', title: 'Modified' });
     fixture.detectChanges();
   });
 
@@ -44,46 +44,66 @@ describe('DiffComponent', () => {
   });
 
   it('should initialize original model', () => {
-    expect(component.originalModel).toBeDefined();
-    expect(component.originalModel.language).toBe('json');
-    expect(component.originalModel.code).toContain('Original');
+    expect(component.originalModel()).toBeDefined();
+    expect(component.originalModel().language).toBe('json');
+    expect(component.originalModel().code).toContain('Original');
   });
 
   it('should initialize modified model', () => {
-    expect(component.modifiedModel).toBeDefined();
-    expect(component.modifiedModel.language).toBe('json');
-    expect(component.modifiedModel.code).toContain('Modified');
+    expect(component.modifiedModel()).toBeDefined();
+    expect(component.modifiedModel().language).toBe('json');
+    expect(component.modifiedModel().code).toContain('Modified');
   });
 
   it('should have json language in options', () => {
-    expect(component.options.language).toBe('json');
+    expect(component.options().language).toBe('json');
   });
 
   it('should have automaticLayout enabled', () => {
-    expect(component.options.automaticLayout).toBe(true);
+    expect(component.options().automaticLayout).toBe(true);
   });
 
   it('should disable the resize handle when resizable is false', () => {
     fixture.destroy();
     fixture = TestBed.createComponent(DiffComponent);
     component = fixture.componentInstance;
-    component.original = { url: 'http://test.com', origin: '', title: 'Original' };
-    component.modified = { url: 'http://test.com', origin: '', title: 'Modified' };
-    component.resizable = false;
+    fixture.componentRef.setInput('original', { url: 'http://test.com', origin: '', title: 'Original' });
+    fixture.componentRef.setInput('modified', { url: 'http://test.com', origin: '', title: 'Modified' });
+    fixture.componentRef.setInput('resizable', false);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.resize-handle')).toBeFalsy();
   });
 
+  function fakeEditor(code: string) {
+    return { getModel: () => ({ modified: { getValue: () => code } }) };
+  }
+
   it('should return parsed JSON from getModifiedContent', () => {
-    component.modifiedModel.code = '{"url":"http://test.com","title":"Test"}';
+    component.initEditor(fakeEditor('{"url":"http://test.com","title":"Test"}'));
     const content = component.getModifiedContent();
     expect(content).toEqual({ url: 'http://test.com', title: 'Test' });
   });
 
+  it('should return unedited modified content before the editor loads', () => {
+    expect(component.getModifiedContent()).toEqual(expect.objectContaining({ title: 'Modified' }));
+  });
+
   it('should return null for invalid JSON in getModifiedContent', () => {
-    component.modifiedModel.code = 'not valid json';
+    component.initEditor(fakeEditor('not valid json'));
     const content = component.getModifiedContent();
     expect(content).toBeNull();
+  });
+
+  it('should keep editor models and options referentially stable', () => {
+    const original = component.originalModel();
+    const modified = component.modifiedModel();
+    const options = component.options();
+    component.initEditor(fakeEditor('{"edited":true}'));
+    fixture.componentRef.setInput('modified', { url: 'http://test.com', origin: '', title: 'Modified' });
+    fixture.detectChanges();
+    expect(component.originalModel()).toBe(original);
+    expect(component.modifiedModel()).toBe(modified);
+    expect(component.options()).toBe(options);
   });
 });

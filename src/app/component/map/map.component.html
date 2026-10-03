@@ -1,8 +1,8 @@
-@if (page) {
-  @if (emptyMessage && !page.content.length) {
-    <p class="no-results">{{ emptyMessage }}</p>
+@if (page()) {
+  @if (emptyMessage() && !page()!.content.length) {
+    <p class="no-results">{{ emptyMessage() }}</p>
   } @else{
-    <mgl-map [mapStyle]="mapStyle"
+    <mgl-map [mapStyle]="mapStyle()"
              (mapError)="onMapError($event)"
              (mapLoad)="mapLoaded($event)"
              appResizeHandle>
@@ -16,8 +16,8 @@
                    position="bottom-left"
                    unit="imperial"></mgl-control>
     </mgl-map>
-    @if (pageControls) {
-      <app-page-controls [page]="page"></app-page-controls>
+    @if (pageControls()) {
+      <app-page-controls [page]="page()"></app-page-controls>
     }
   }
 } @else {

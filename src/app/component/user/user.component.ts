@@ -2,20 +2,22 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   Component,
-  HostBinding,
-  Input,
-  OnChanges,
-  QueryList,
-  SimpleChanges,
-  ViewChild,
-  ViewChildren,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  effect,
+  input,
+  linkedSignal,
+  signal,
+  viewChild,
+  viewChildren,
+  computed,
+  untracked
 } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, of, startWith, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
@@ -34,9 +36,8 @@ import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { downloadRef, downloadTag } from '../../util/download';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { printError } from '../../util/http';
-import { memo, MemoCache } from '../../util/memo';
 import { localTag, subOrigin, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
@@ -48,32 +49,49 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  host: { 'class': 'profile list-item' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    'class': 'profile list-item',
+    'tabindex': '0',
+    '[class.deleted]': 'deleted()',
+  },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
-export class UserComponent implements OnChanges, HasChanges {
-  @HostBinding('attr.tabindex') tabIndex = 0;
+export class UserComponent implements HasChanges {
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly profileInput = input<Profile | undefined>(undefined, { alias: 'profile' });
+  readonly userInput = input<User | undefined>(undefined, { alias: 'user' });
+  readonly user = linkedSignal(() => this.userInput());
+  private readonly profileTag = computed(() => !this.profileInput() && this.user()?.modified
+    ? this.user()!.tag + (this.user()!.origin || '') : undefined);
+  private readonly loadedProfile = toSignal(toObservable(this.profileTag).pipe(
+    switchMap(tag => tag ? this.profiles.getProfile(tag).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ) : of(undefined)),
+  ), { initialValue: undefined });
+  readonly profile = linkedSignal(() => this.profileInput() || this.loadedProfile());
+  readonly ext = toSignal(toObservable(this.profileTag).pipe(
+    switchMap(tag => tag ? this.exts.getCachedExt(this.user()!.tag, this.user()!.origin).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ) : of(undefined)),
+  ), { initialValue: undefined });
+  readonly deleted = linkedSignal(() => { this.user(); this.profileInput(); return false; });
+  readonly writeAccess = computed(() => this.auth.tagWriteAccess(this.qualifiedTag()) && this.auth.hasRole(this.role()));
+  readonly serverError = linkedSignal<string[]>(() => { this.user(); this.profileInput(); return []; });
+  readonly externalErrors = linkedSignal<string[]>(() => { this.user(); this.profileInput(); return []; });
+  readonly genKey = linkedSignal(() => { this.user(); this.profileInput(); return false; });
 
-  @Input()
-  profile?: Profile;
-  @Input()
-  user?: User;
+  readonly refForm = viewChild<UserFormComponent>('refForm');
 
   editForm: UntypedFormGroup;
-  ext?: Ext;
-  submitted = false;
-  editing = false;
-  viewSource = false;
-  genKey = false;
-  @HostBinding('class.deleted')
-  deleted = false;
-  writeAccess = false;
-  serverError: string[] = [];
-  externalErrors: string[] = [];
+  protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
+  protected readonly editFormDirty = controlState(() => this.editForm, c => c.dirty);
+  readonly submitted = linkedSignal(() => { this.user(); this.profileInput(); return false; });
+  readonly editing = linkedSignal(() => { this.user(); this.profileInput(); return false; });
+  readonly viewSource = linkedSignal(() => { this.user(); this.profileInput(); return false; });
 
   constructor(
     public admin: AdminService,
@@ -85,113 +103,93 @@ export class UserComponent implements OnChanges, HasChanges {
     private exts: ExtService,
     private fb: FormBuilder,
   ) {
+    effect(() => {
+      this.userInput();
+      this.profileInput();
+      untracked(() => this.init());
+    });
     this.editForm = userForm(fb, true);
+    effect(() => {
+      const refForm = this.refForm();
+      const user = untracked(() => this.user());
+      if (user) defer(() => refForm?.setUser(user));
+    });
   }
 
   saveChanges() {
-    return !this.editing || !this.editForm.dirty;
+    return !this.editing() || !this.editForm.dirty;
   }
 
   init() {
-    MemoCache.clear(this);
-    this.actionComponents?.forEach(c => c.reset());
-    this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
-    if (this.created && !this.profile) {
-      this.exts.getCachedExt(this.user!.tag, this.user!.origin)
-        .subscribe(x => this.ext = x);
-      this.profiles.getProfile(this.qualifiedTag)
-        .subscribe(profile => this.profile = profile);
-    }
+    this.actionComponents()?.forEach(c => c.reset());
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.user || changes.profile) {
-      this.init();
-    }
-  }
+  readonly created = computed(() => {
+    return this.user()?.modified;
+  });
+  readonly qualifiedTag = computed(() => {
+    return this.profile()?.tag || (this.user()!.tag + this.user()!.origin);
+  });
+  readonly localTag = computed(() => {
+    return localTag(this.profile()?.tag) || this.user()!.tag;
+  });
+  readonly origin = computed(() => {
+    return tagOrigin(this.profile()?.tag) || this.user()?.origin || '';
+  });
 
-  @ViewChild('refForm')
-  set refForm(value: UserFormComponent) {
-    if (this.user) defer(() => value?.setUser(this.user!));
-  }
-
-  @memo
-  get created() {
-    return this.user?.modified;
-  }
-
-  @memo
-  get qualifiedTag() {
-    return this.profile?.tag || (this.user!.tag + this.user!.origin);
-  }
-
-  @memo
-  get localTag() {
-    return localTag(this.profile?.tag) || this.user!.tag;
-  }
-
-  @memo
-  get origin() {
-    return tagOrigin(this.profile?.tag) || this.user?.origin || '';
-  }
-
-  @memo
-  get recommendedAlias() {
+  readonly recommendedAlias = computed(() => {
     const api = new URL(this.config.api, location.href);
     const firstPath = api.pathname.split('/').filter(Boolean)[0];
     return firstPath?.startsWith('~') && firstPath.length > 1
       ? '@' + firstPath.substring(1)
       : '@' + api.hostname;
-  }
+  });
 
-  @memo
-  get local() {
-    return this.profile?.tag || (!this.user || this.user?.origin === this.store.account.origin);
-  }
-
-  @memo
-  get role() {
-    return getRole(this.profile?.role, this.user?.role);
-  }
+  readonly local = computed(() => {
+    return this.profile()?.tag || (!this.user() || this.user()?.origin === this.store.account.origin());
+  });
+  readonly role = computed(() => {
+    return getRole(this.profile()?.role, this.user()?.role);
+  });
 
   download() {
-    if (!this.user) {
+    if (!this.user()) {
       return downloadTag({
-        tag: this.profile!.tag,
+        tag: this.profile()!.tag,
         origin: '',
       });
     }
-    const user = { ...this.user };
+    const user = { ...this.user()! };
     user.modified = user.modifiedString as any;
     delete user.type;
     delete user.modifiedString;
     downloadTag(user);
   }
 
-  get connectionRef(): Ref {
-    const template = this.store.origins.origins.find(ref =>
-      subOrigin(ref.origin, ref.plugins?.['+plugin/origin']?.local) === this.origin);
-    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin || this.recommendedAlias;
+  readonly connectionRef = computed((): Ref => {
+    const template = this.store.origins.origins().find(ref =>
+      subOrigin(ref.origin, ref.plugins?.['+plugin/origin']?.local) === this.origin());
+    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin() || this.recommendedAlias();
     return {
       url: template?.url || new URL(this.config.api, document.baseURI).href,
       title: template?.title || local,
       tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
         '+plugin/cron': { ...cronPlugin.defaults },
-        '+plugin/origin': { remote: this.origin, local },
-        '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag },
+        '+plugin/origin': { remote: this.origin(), local },
+        '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag() },
       },
     };
-  }
+  });
 
   connect() {
-    downloadRef(this.connectionRef);
+    downloadRef(this.connectionRef());
   }
 
   setPassword$ = (password: string) => {
-    return this.profiles.changePassword({ tag: this.qualifiedTag, password }).pipe(
+    return this.profiles.changePassword({ tag: this.qualifiedTag(), password }).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     );
@@ -203,31 +201,30 @@ export class UserComponent implements OnChanges, HasChanges {
 
   setRole$ = (role?: Role) => {
     if (!role) return of(null);
-    this.serverError = [];
+    this.serverError.set([]);
     role = role.toUpperCase().trim() as Role;
     if (this.config.scim) {
-      return this.profiles.changeRole({ tag: this.qualifiedTag, role }).pipe(
-        switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
+      return this.profiles.changeRole({ tag: this.qualifiedTag(), role }).pipe(
+        switchMap(() => this.profiles.getProfile(this.qualifiedTag())),
         tap(profile => {
-          this.profile = profile;
+          this.profile.set(profile);
           this.init();
         }),
         catchError((res: HttpErrorResponse) => {
-          this.serverError = printError(res);
+          this.serverError.set(printError(res));
           return throwError(() => res);
         }),
       );
     } else {
-      this.user ||= { tag: this.qualifiedTag };
-      this.user.role = role;
-      return this.users.update(this.user).pipe(
+      const user = { ...(this.user() || { tag: this.qualifiedTag() }), role };
+      this.user.set(user);
+      return this.users.update(user).pipe(
         tap(cursor => {
-          this.user!.modifiedString = cursor;
-          this.user!.modified = DateTime.fromISO(cursor);
+          this.user.set({ ...this.user()!, modifiedString: cursor, modified: DateTime.fromISO(cursor) });
           this.init();
         }),
         catchError((res: HttpErrorResponse) => {
-          this.serverError = printError(res);
+          this.serverError.set(printError(res));
           return throwError(() => res);
         }),
       );
@@ -235,125 +232,123 @@ export class UserComponent implements OnChanges, HasChanges {
   }
 
   activate$ = () => {
-    return this.profiles.activate(this.qualifiedTag).pipe(
-      switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
+    return this.profiles.activate(this.qualifiedTag()).pipe(
+      switchMap(() => this.profiles.getProfile(this.qualifiedTag())),
       tap(profile => {
-        this.profile = profile;
+        this.profile.set(profile);
         this.init();
       }),
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     );
   }
 
   deactivate$ = () => {
-    return this.profiles.deactivate(this.qualifiedTag).pipe(
-      switchMap(() => this.profiles.getProfile(this.qualifiedTag)),
+    return this.profiles.deactivate(this.qualifiedTag()).pipe(
+      switchMap(() => this.profiles.getProfile(this.qualifiedTag())),
       tap(profile => {
-        this.profile = profile;
+        this.profile.set(profile);
         this.init();
       }),
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     );
   }
 
   save() {
-    this.submitted = true;
+    this.submitted.set(true);
     this.editForm.markAllAsTouched();
     if (!this.editForm.valid) {
       scrollToFirstInvalid();
       return;
     }
     const updates: User = {
-      ...(this.user || {}),
+      ...(this.user() || {}),
       ...this.editForm.value,
-      tag: this.localTag,
-      origin: this.origin,
+      tag: this.localTag(),
+      origin: this.origin(),
       readAccess: uniq([...this.editForm.value.readAccess, ...this.editForm.value.notifications]),
     };
-    this.externalErrors = [];
+    this.externalErrors.set([]);
     try {
       if (!updates.external) delete updates.external;
       if (updates.external) updates.external = JSON.parse(updates.external);
     } catch (e: any) {
-      this.externalErrors.push(e.message);
+      this.externalErrors.update(externalErrors => [...externalErrors, e.message]);
     }
-    (this.user
+    (this.user()
       ? this.users.update(updates)
       : this.users.create(updates)).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     ).subscribe(cursor => {
       this.editForm.reset();
-      this.user = updates;
-      this.user.modifiedString = cursor;
-      this.user.modified = DateTime.fromISO(cursor);
-      this.serverError = [];
-      this.editing = false;
+      this.user.set({ ...updates, modifiedString: cursor, modified: DateTime.fromISO(cursor) });
+      this.serverError.set([]);
+      this.editing.set(false);
       this.init();
     });
   }
 
   copy$ = () => {
     return this.users.create({
-      ...this.user!,
-      origin: this.store.account.origin,
+      ...this.user()!,
+      origin: this.store.account.origin(),
     }).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError = printError(err);
+        this.serverError.set(printError(err));
         return throwError(() => err);
       }),
     );
   }
 
   delete$ = () => {
-    this.serverError = [];
+    this.serverError.set([]);
     const os = [];
-    if (this.user) {
-      const deleteNotice = !isDeletorTag(this.user.tag) && this.admin.getPlugin('plugin/delete')
-        ? this.users.create(tagDeleteNotice(this.user))
+    if (this.user()) {
+      const deleteNotice = !isDeletorTag(this.user()!.tag) && this.admin.getPlugin('plugin/delete')
+        ? this.users.create(tagDeleteNotice(this.user()!))
         : of(null);
-      os.push(this.users.delete(this.qualifiedTag).pipe(
-        tap(() => this.deleted = true),
+      os.push(this.users.delete(this.qualifiedTag()).pipe(
+        tap(() => this.deleted.set(true)),
         switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
-          this.serverError = printError(err);
+          this.serverError.set(printError(err));
           return throwError(() => err);
         }),
       ));
     }
-    if (this.profile) {
-      os.push(this.profiles.delete(this.qualifiedTag).pipe(
+    if (this.profile()) {
+      os.push(this.profiles.delete(this.qualifiedTag()).pipe(
         catchError((err: HttpErrorResponse) => {
-          this.serverError.push(...printError(err));
+          this.serverError.update(errors => [...errors, ...printError(err)]);
           return throwError(() => err);
         }),
       ));
     }
     return forkJoin(os).pipe(
-      tap(() => this.deleted = true),
+      tap(() => this.deleted.set(true)),
     );
   }
 
   keygen$ = () => {
-    this.serverError = [];
-    return this.users.keygen(this.qualifiedTag).pipe(
+    this.serverError.set([]);
+    return this.users.keygen(this.qualifiedTag()).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.serverError.push(...printError(err));
+        this.serverError.update(errors => [...errors, ...printError(err)]);
         return throwError(() => err);
       }),
-      switchMap(() => this.users.get(this.qualifiedTag)),
+      switchMap(() => this.users.get(this.qualifiedTag())),
       tap(user => {
-        this.user = user;
-        this.serverError = [];
-        this.genKey = false;
+        this.user.set(user);
+        this.serverError.set([]);
+        this.genKey.set(false);
         this.init();
       })
     );

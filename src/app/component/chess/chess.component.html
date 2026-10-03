@@ -1,24 +1,26 @@
-@for (p of pieces; track i; let i = $index) {
+@for (p of pieces(); track i; let i = $index) {
   <div class="tile {{ color(i) }}"
-       [class.from]="getCoord(white ? i : 63 - i) === from"
-       [class.move]="moves.includes(getCoord(white ? i : 63 - i))"
-       [class.last-move]="getCoord(white ? i : 63 - i) === lastMoveTo"
-       (click)="clickSquare(white ? i : 63 - i)"
+       [class.from]="getCoord(white() ? i : 63 - i) === from()"
+       [class.move]="moves().includes(getCoord(white() ? i : 63 - i))"
+       [class.last-move]="getCoord(white() ? i : 63 - i) === lastMoveTo()"
+       (click)="clickSquare(white() ? i : 63 - i)"
        cdkDropList
-       [cdkDropListData]="white ? i : 63 - i"
+       [cdkDropListData]="white() ? i : 63 - i"
        (cdkDropListDropped)="drop($any($event))">
-    @if (white ? p : pieces[63-i]; as rp) {
+    @if (white() ? p : pieces()[63-i]; as rp) {
       <div class="chess-piece {{ rp?.color }}"
-           [class.translate]="translate.includes(rp.square)"
-           [class.disabled]="!writeAccess || turn !== rp.color"
+           [class.translate]="translate().includes(rp.square)"
+           [class.disabled]="!writeAccess() || turn() !== rp.color"
            cdkDrag
            cdkDragBoundary=".chess-board"
            (cdkDragStarted)="setPieceSize()"
            [cdkDragData]="rp"
-           [cdkDragDisabled]="config.mobile || turn !== rp.color">{{ drawPiece(rp) }}</div>
+           [cdkDragDisabled]="config.mobile || turn() !== rp.color">{{ drawPiece(rp) }}</div>
     }
-    @if (capturedPiece && getCoord(white ? i : 63 - i) === capturedPiece.square) {
-      <div class="chess-piece {{ capturedPiece.piece.color }} captured">{{ drawPiece(capturedPiece.piece) }}</div>
+    @if (capturedPiece(); as captured) {
+      @if (getCoord(white() ? i : 63 - i) === captured.square) {
+        <div class="chess-piece {{ captured.piece.color }} captured">{{ drawPiece(captured.piece) }}</div>
+      }
     }
   </div>
 }

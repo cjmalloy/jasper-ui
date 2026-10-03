@@ -1,5 +1,5 @@
 import { CdkDragHandle } from '@angular/cdk/drag-drop';
-import { Component, HostBinding, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 
 @Component({
@@ -16,11 +16,13 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
       </div>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[title]': 'title',
+  },
   imports: [CdkDragHandle],
 })
 export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> {
-  @HostBinding('title')
   get title() {
     return this.props.title || '';
   }

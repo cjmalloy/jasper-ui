@@ -1,15 +1,15 @@
 <details class="advanced">
   <summary>
     <span i18n>Bulk tools</span>
-    @if (batchRunning) {
+    @if (batchRunning()) {
       <app-loading [batch]="true"></app-loading>
     }
   </summary>
-  @if (empty) {
+  @if (empty()) {
     <span i18n>no results</span>
   } @else {
     <span class="fake-link bulk-download" (click)="download()" i18n>download</span>
-    @if (type === 'ref') {
+    @if (type() === 'ref') {
       <span class="fake-link bulk-export"
             role="button"
             tabindex="0"
@@ -20,26 +20,26 @@
             title="Download with attached files and embedded Refs that have files"
             i18n>export</span>
       <a class="fake-link" (click)="toggle()" i18n>toggle</a>
-      @if (store.account.user) {
-        <a routerLink="/submit" [queryParams]="{source: urls}" i18n>reply</a>
+      @if (store.account.user()) {
+        <a routerLink="/submit" [queryParams]="{source: urls()}" i18n>reply</a>
       }
       <app-inline-tag [action]="tag$" i18n>tag</app-inline-tag>
       <app-confirm-action [action]="copy$" i18n>copy</app-confirm-action>
     }
-    <app-confirm-action class="force-delete" [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
-    @if (type === 'ref') {
+    <app-confirm-action class="force-delete" [action]="store.hotkey() ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
+    @if (type() === 'ref') {
       @if (admin.getPlugin('plugin/invoice')) {
-        <a routerLink="/submit/invoice" [queryParams]="{url: urls}" i18n>invoice</a>
+        <a routerLink="/submit/invoice" [queryParams]="{url: urls()}" i18n>invoice</a>
       }
-      @for (f of forms; track f.tag) {
+      @for (f of forms(); track f.tag) {
         <app-inline-plugin [action]="plugin$"
                            [plugin]="f"
-                           [value]="defaults"
+                           [value]="defaults()"
                            [appTitle]="f">{{ f.tag.substring('plugin/'.length) }}</app-inline-plugin>
       }
-      @for (a of groupedActions | keyvalue; track a.key) {
-        @if (a.value[0].confirm) {
-          <app-confirm-action [message]="a.value[0].confirm!"
+      @for (a of groupedActions() | keyvalue; track a.key) {
+        @if (a.value[0].confirm; as message) {
+          <app-confirm-action [message]="message"
                               [action]="doAction$(a.value)"
                               [appTitle]="a.value">{{ a.key }}</app-confirm-action>
         } @else {
@@ -50,7 +50,10 @@
     }
   }
 
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
+    <div class="error">{{ e }}</div>
+  }
+  @for (e of defaultsError(); track e) {
     <div class="error">{{ e }}</div>
   }
 </details>

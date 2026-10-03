@@ -35,31 +35,31 @@ describe('AccountService', () => {
 
     beforeEach(() => {
       store = TestBed.inject(Store);
-      store.account.tag = '+user/alice';
-      store.account.ext = { tag: '+user/alice', origin: '', config: { alarms: ['science'] } } as any;
+      store.account.tag.set('+user/alice');
+      store.account.ext.set({ tag: '+user/alice', origin: '', config: { alarms: ['science'] } } as any);
       vi.spyOn(TestBed.inject(AdminService), 'getTemplate').mockReturnValue({ tag: 'user' } as any);
-      Object.defineProperty(service, 'userExt$', { get: () => of(store.account.ext) });
+      Object.defineProperty(service, 'userExt$', { get: () => of(store.account.ext()) });
       count = vi.spyOn(TestBed.inject(RefService), 'count');
     });
 
     it('updates notifications and alarm counts together', () => {
-      count.mockImplementation((args: any) => of(args.query === store.account.alarmNotificationsQuery ? 2 : 5));
+      count.mockImplementation((args: any) => of(args.query === store.account.alarmNotificationsQuery() ? 2 : 5));
       service.checkNotifications();
-      expect(store.account.notifications).toBe(5);
-      expect(store.account.alarmCount).toBe(2);
-      expect(store.account.unreadCount).toBe(3);
+      expect(store.account.notifications()).toBe(5);
+      expect(store.account.alarmCount()).toBe(2);
+      expect(store.account.unreadCount()).toBe(3);
     });
 
     it('resets alarm count when alarms are removed', () => {
-      count.mockImplementation((args: any) => of(args.query === store.account.alarmNotificationsQuery ? 2 : 5));
+      count.mockImplementation((args: any) => of(args.query === store.account.alarmNotificationsQuery() ? 2 : 5));
       service.checkNotifications();
-      store.account.ext = { tag: '+user/alice', origin: '', config: { alarms: [] } } as any;
+      store.account.ext.set({ tag: '+user/alice', origin: '', config: { alarms: [] } } as any);
       count.mockReturnValue(of(3));
       service.checkNotifications();
       expect(count).toHaveBeenCalledTimes(3);
-      expect(store.account.notifications).toBe(3);
-      expect(store.account.alarmCount).toBe(0);
-      expect(store.account.unreadCount).toBe(3);
+      expect(store.account.notifications()).toBe(3);
+      expect(store.account.alarmCount()).toBe(0);
+      expect(store.account.unreadCount()).toBe(3);
     });
   });
 });

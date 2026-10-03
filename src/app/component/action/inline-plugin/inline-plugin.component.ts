@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, effect, input, linkedSignal, output, signal, viewChild, untracked } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -15,56 +15,55 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-plugin.component.html',
   styleUrls: ['./inline-plugin.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, GenFormComponent, LoadingComponent]
 })
 export class InlinePluginComponent extends ActionComponent {
 
-  @Input()
-  action: (plugins: any) => Observable<any|never> = () => of(null);
-  @Input()
-  plugin!: Plugin;
-  @Input()
-  value?: Partial<Ref>;
-  @Output()
-  error = new EventEmitter<string>();
+  readonly action = input<(plugins: any) => Observable<any | never>>(() => of(null));
+  readonly plugin = input.required<Plugin>();
+  readonly value = input<Partial<Ref>>();
+  readonly error = output<string>();
+  readonly gen = viewChild<GenFormComponent>('gen');
 
-  editing = false;
-  acting = false;
+  readonly editing = linkedSignal(() => { this.plugin(); this.value(); return false; });
+  readonly acting = signal(false);
 
-  group: UntypedFormGroup = this.fb.group({});
+  readonly group = computed(() => this.fb.group({
+    [this.plugin().tag]: this.fb.group({}),
+  }));
 
   constructor(
     public admin: AdminService,
     private fb: FormBuilder,
   ) {
     super();
-  }
-
-  @ViewChild('gen')
-  set gen(c: GenFormComponent) {
-    if (!c) return;
-    this.group = this.fb.group({
-      [this.plugin.tag]: this.fb.group({}),
+    effect(() => {
+      const gen = this.gen();
+      const plugins = this.value()?.plugins || {};
+      this.group();
+      if (!gen) return;
+      untracked(() => {
+        defer(() => gen.setValue(plugins));
+      });
     });
-    defer(() => c.setValue(this.value?.plugins || {}));
   }
 
   override reset() {
-    this.editing = false;
-    this.acting = false;
+    this.editing.set(false);
+    this.acting.set(false);
   }
 
   override active() {
-    return this.editing || this.acting;
+    return this.editing() || this.acting();
   }
 
   save() {
-    this.editing = false;
-    this.acting = true;
-    this.action(this.group.value).pipe(
+    this.editing.set(false);
+    this.acting.set(true);
+    this.action()(this.group().value).pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.acting = false);
+    ).subscribe(() => this.acting.set(false));
   }
 
 }

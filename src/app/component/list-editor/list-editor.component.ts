@@ -1,56 +1,54 @@
-import { Component, EventEmitter, HostBinding, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, linkedSignal, output, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-list-editor',
   templateUrl: './list-editor.component.html',
   styleUrls: ['./list-editor.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: { 'class': 'listbox form-group' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class ListEditorComponent {
-  @HostBinding('class') css = 'listbox form-group';
 
-  @Input()
-  list: string[] = [];
-  @Input()
-  type = 'email';
-  @Input()
-  placeholder = 'Add item';
-  @Output()
-  onAdd = new EventEmitter<string>();
-  @Output()
-  onRemove = new EventEmitter<string>();
-  @Output()
-  selected = new EventEmitter<string>();
+  readonly listInput = input<string[]>([], { alias: 'list' });
+  readonly list = linkedSignal(() => [...this.listInput()]);
+  readonly type = input('email');
+  readonly placeholder = input('Add item');
+  readonly onAdd = output<string>();
+  readonly onRemove = output<string>();
+  readonly selected = output<string | undefined>();
 
-  addingText = '';
-  selectedIndex = -1;
-
-  error = '';
+  readonly addingText = signal('');
+  readonly selectedIndex = signal(-1);
+  readonly error = signal('');
 
   add() {
-    this.error = '';
-    if (!this.addingText) return;
-    if (this.list.includes(this.addingText)) {
-      this.error = 'Duplicate name';
+    this.error.set('');
+    if (!this.addingText()) return;
+    const list = [...this.list()];
+    if (list.includes(this.addingText())) {
+      this.error.set('Duplicate name');
       return;
     }
-    this.list.push(this.addingText);
-    this.onAdd.emit(this.addingText);
-    this.addingText = '';
-    this.select(this.list.length - 1);
+    list.push(this.addingText());
+    this.list.set(list);
+    this.onAdd.emit(this.addingText());
+    this.addingText.set('');
+    this.select(list.length - 1);
   }
 
   remove(index: number) {
-    this.onRemove.emit(this.list[index]);
-    this.list.splice(index, 1);
+    const list = [...this.list()];
+    this.onRemove.emit(list[index]);
+    list.splice(index, 1);
+    this.list.set(list);
   }
 
   select(index: number) {
-    this.selectedIndex = index;
+    this.selectedIndex.set(index);
     if (index !== -1) {
-      this.selected.emit(this.list[index]);
+      this.selected.emit(this.list()[index]);
     } else {
       this.selected.emit(undefined);
     }

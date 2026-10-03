@@ -15,7 +15,7 @@ export class TagPreviewPipe implements PipeTransform {
   ) { }
 
   transform(tags: string[]): Observable<TagPreview[]> {
-    return this.editor.getTagsPreview(tags, this.store.account.origin);
+    return this.editor.getTagsPreview(tags, this.store.account.origin());
   }
 
 }

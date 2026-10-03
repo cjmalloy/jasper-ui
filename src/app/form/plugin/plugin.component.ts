@@ -1,4 +1,5 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { computed, Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -14,48 +15,58 @@ import { JsonComponent } from '../json/json.component';
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, JsonComponent]
 })
 export class PluginFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
 
-  @Input()
-  group!: UntypedFormGroup;
-  @Input()
-  configErrors: string[] = [];
-  @Input()
-  defaultsErrors: string[] = [];
-  @Input()
-  schemaErrors: string[] = [];
+  private readonly controlState0 = controlValue(() => this.group().get('config'));
+  private readonly controlState1 = controlValue(() => this.group().get('defaults'));
+  private readonly controlState2 = controlValue(() => this.group().get('schema'));
+
+
+  readonly group = input.required<UntypedFormGroup>();
+  readonly configErrors = input<string[]>([]);
+  readonly defaultsErrors = input<string[]>([]);
+  readonly schemaErrors = input<string[]>([]);
 
   id = 'plugin-' + uuid();
-  editingConfig = false;
-  editingDefaults = false;
-  editingSchema = false;
+  readonly editingConfig = signal<any>(false);
+  readonly editingDefaults = signal<any>(false);
+  readonly editingSchema = signal<any>(false);
 
-  get tag() {
-    return this.group.get('tag') as UntypedFormControl;
-  }
+  readonly tag = computed(() => {
+    this.rootControlState();
+    return this.group().get('tag') as UntypedFormControl;
+  });
 
-  get name() {
-    return this.group.get('name') as UntypedFormControl;
-  }
+  readonly name = computed(() => {
+    this.rootControlState();
+    return this.group().get('name') as UntypedFormControl;
+  });
 
-  get config() {
-    return this.editingConfig ||= this.group.get('config')?.value;
-  }
+  readonly config = computed(() => {
+    this.rootControlState();
+    this.controlState0();
+    return this.editingConfig() || this.group().get('config')?.value;
+  });
 
-  get defaults() {
-    return this.editingDefaults ||= this.group.get('defaults')?.value;
-  }
+  readonly defaults = computed(() => {
+    this.rootControlState();
+    this.controlState1();
+    return this.editingDefaults() || this.group().get('defaults')?.value;
+  });
 
-  get schema() {
-    return this.editingSchema ||= this.group.get('schema')?.value;
-  }
+  readonly schema = computed(() => {
+    this.rootControlState();
+    this.controlState2();
+    return this.editingSchema() || this.group().get('schema')?.value;
+  });
 
   validate(input: HTMLInputElement) {
-    if (this.name.touched) {
-      if (this.name.errors?.['required']) {
+    if (this.name().touched) {
+      if (this.name().errors?.['required']) {
         input.setCustomValidity($localize`Name must not be blank.`);
         input.reportValidity();
       }

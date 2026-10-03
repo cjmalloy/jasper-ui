@@ -1,4 +1,5 @@
-import { Component, HostBinding, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { controlValue } from '../../util/form';
+import { computed, Component, ChangeDetectionStrategy, effect, input } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
@@ -9,19 +10,20 @@ import { hasPrefix, hasTag } from '../../util/tag';
   selector: 'app-tags',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: { 'class': 'form-group' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
-export class TagsFormComponent implements OnChanges {
-  static validators = [Validators.pattern(TAG_REGEX)];
-  @HostBinding('class') css = 'form-group';
+export class TagsFormComponent {
+  private readonly rootControlState = controlValue(() => this.group());
 
-  @Input()
-  origin? = '';
-  @Input()
-  group?: UntypedFormGroup;
-  @Input()
-  fieldName = 'tags';
+  private readonly controlState0 = controlValue(() => this.tags());
+
+  static validators = [Validators.pattern(TAG_REGEX)];
+
+  readonly origin = input<string | undefined>('');
+  readonly group = input<UntypedFormGroup | undefined>(undefined);
+  readonly fieldName = input('tags');
 
   field = {
     type: 'tags',
@@ -39,56 +41,50 @@ export class TagsFormComponent implements OnChanges {
     },
   };
 
+  readonly emoji = input<string | undefined>(undefined);
+  readonly label = input<string | undefined>(undefined);
+  readonly showLabel = input<boolean | undefined>(undefined);
+  readonly add = input<string | undefined>(undefined);
+  readonly showAdd = input<boolean | undefined>(undefined);
+
   constructor(
     private fb: FormBuilder,
-  ) {  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    this.field.fieldArray.props.origin = this.origin;
+  ) {
+    effect(() => {
+      this.field.fieldArray.props.origin = this.origin();
+      const emoji = this.emoji();
+      if (emoji !== undefined) this.field.fieldArray.props.label = emoji;
+      const label = this.label();
+      if (label !== undefined) this.field.props.label = label;
+      const showLabel = this.showLabel();
+      if (showLabel !== undefined) this.field.props.showLabel = showLabel;
+      const add = this.add();
+      if (add !== undefined) this.field.props.addText = add;
+      const showAdd = this.showAdd();
+      if (showAdd !== undefined) this.field.props.showAdd = showAdd;
+    });
   }
 
-  @Input()
-  set emoji(value: string) {
-    this.field.fieldArray.props.label = value;
-  }
+  readonly tags = computed(() => {
+    this.rootControlState();
+    return this.group()?.get(this.fieldName()) as UntypedFormArray;
+  });
 
-  @Input()
-  set label(value: string) {
-    this.field.props.label = value;
-  }
-
-  @Input()
-  set showLabel(value: boolean) {
-    this.field.props.showLabel = value;
-  }
-
-  @Input()
-  set add(value: string) {
-    this.field.props.addText = value;
-  }
-
-  @Input()
-  set showAdd(value: boolean) {
-    this.field.props.showAdd = value;
-  }
-
-  get tags() {
-    return this.group?.get(this.fieldName) as UntypedFormArray;
-  }
-
-  get model() {
-    return this.tags?.value;
-  }
+  readonly model = computed(() => {
+    this.rootControlState();
+    this.controlState0();
+    return this.tags()?.value;
+  });
 
   setTags(values: string[]) {
-    if (!this.tags) throw 'Not ready yet!';
-    while (this.tags.length > values.length) this.tags.removeAt(this.tags.length - 1, { emitEvent: false });
-    while (this.tags.length < values.length) this.tags.push(this.fb.control(''), { emitEvent: false });
-    this.tags.setValue(values);
+    if (!this.tags()) throw 'Not ready yet!';
+    while (this.tags().length > values.length) this.tags().removeAt(this.tags().length - 1, { emitEvent: false });
+    while (this.tags().length < values.length) this.tags().push(this.fb.control(''), { emitEvent: false });
+    this.tags().setValue(values);
   }
 
   addTag(...values: string[]) {
-    if (!this.tags) throw 'Not ready yet!';
+    if (!this.tags()) throw 'Not ready yet!';
     if (!values.length) return;
     this.field.fieldArray.focus = true;
     for (const value of values) {
@@ -97,38 +93,38 @@ export class TagsFormComponent implements OnChanges {
         break;
       }
     }
-    values = values.filter(t => t === 'placeholder' || !hasTag(t, this.tags.value));
+    values = values.filter(t => t === 'placeholder' || !hasTag(t, this.tags().value));
     if (values.length) {
-      this.setTags([...this.tags.value, ...values]);
+      this.setTags([...this.tags().value, ...values]);
     }
   }
 
   update() {
-    defer(() => this.tags.controls.forEach(control => control.updateValueAndValidity()));
+    defer(() => this.tags().controls.forEach(control => control.updateValueAndValidity()));
   }
 
   removeTag(tag: string) {
-    if (!this.tags) throw 'Not ready yet!';
-    for (let i = this.tags.value.length - 1; i >= 0; i--) {
-      if (hasPrefix(this.tags.value[i], tag)) {
-        this.tags.removeAt(i);
+    if (!this.tags()) throw 'Not ready yet!';
+    for (let i = this.tags().value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags().value[i], tag)) {
+        this.tags().removeAt(i);
       }
     }
     this.update();
   }
 
   removeTagAndChildren(tag: string) {
-    if (!this.tags) throw 'Not ready yet!';
+    if (!this.tags()) throw 'Not ready yet!';
     let removed = false;
-    for (let i = this.tags.value.length - 1; i >= 0; i--) {
-      if (hasPrefix(this.tags.value[i], tag)) {
-        this.tags.removeAt(i);
+    for (let i = this.tags().value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags().value[i], tag)) {
+        this.tags().removeAt(i);
         removed = true;
       }
     }
     if (removed && tag.includes('/')) {
       const parent = tag.substring(0, tag.lastIndexOf('/'));
-      if (!hasTag(parent, this.tags.value)) this.addTag(parent);
+      if (!hasTag(parent, this.tags().value)) this.addTag(parent);
     }
     if (removed) this.update();
   }

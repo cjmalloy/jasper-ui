@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -9,40 +9,36 @@ import { ActionComponent } from '../action.component';
   templateUrl: './confirm-action.component.html',
   styleUrls: ['./confirm-action.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, LoadingComponent]
 })
 export class ConfirmActionComponent extends ActionComponent {
 
-  @Input()
-  message = $localize`are you sure?`;
-  @Input()
-  warning = '';
-  @Input()
-  action: () => Observable<any|never> = () => of(null);
-  @Input()
-  minDelayMs = 1000;
+  readonly message = input($localize `are you sure?`);
+  readonly warning = input('');
+  readonly action = input<() => Observable<any | never>>(() => of(null));
+  readonly minDelayMs = input(1000);
 
-  confirming = false;
-  acting = false;
-  minTimeout = false;
+  readonly confirming = signal(false);
+  readonly acting = signal(false);
+  readonly minTimeout = signal(false);
 
   override reset() {
-    this.confirming = false;
-    this.acting = false;
+    this.confirming.set(false);
+    this.acting.set(false);
   }
 
   override active() {
-    return this.confirming || this.acting;
+    return this.confirming() || this.acting();
   }
 
   confirm() {
-    this.confirming = false;
-    this.acting = true;
-    this.minTimeout = true;
-    setTimeout(() => this.minTimeout = false, this.minDelayMs);
-    this.action().pipe(
+    this.confirming.set(false);
+    this.acting.set(true);
+    this.minTimeout.set(true);
+    setTimeout(() => this.minTimeout.set(false), this.minDelayMs());
+    this.action()().pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.acting = false);
+    ).subscribe(() => this.acting.set(false));
   }
 }

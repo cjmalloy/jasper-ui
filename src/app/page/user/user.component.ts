@@ -1,10 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { SettingsComponent } from '../../component/settings/settings.component';
 import { LimitWidthDirective } from '../../directive/limit-width.directive';
@@ -17,7 +15,7 @@ import { UserService } from '../../service/api/user.service';
 import { ConfigService } from '../../service/config.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
-import { scrollToFirstInvalid } from '../../util/form';
+import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { printError } from '../../util/http';
 import { prefix, setPublic } from '../../util/tag';
 
@@ -25,20 +23,19 @@ import { prefix, setPublic } from '../../util/tag';
   selector: 'app-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
+  host: { 'class': 'full-page-form' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
-export class UserPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
-  @HostBinding('class') css = 'full-page-form';
+export class UserPage implements HasChanges {
 
-  @ViewChild('form')
-  userForm!: UserFormComponent;
+  readonly submitted = signal<boolean>(false);
+  readonly serverError = signal<string[]>([]);
+  readonly externalErrors = signal<string[]>([]);
 
-  submitted = false;
+  readonly userForm = viewChild.required<UserFormComponent>('form');
   profileForm: UntypedFormGroup;
-  serverError: string[] = [];
-  externalErrors: string[] = [];
+  protected readonly profileFormValid = controlState(() => this.profileForm, c => c.valid);
 
   constructor(
     private mod: ModService,
@@ -57,42 +54,39 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
       role: [''],
       user: userForm(fb),
     });
+    effect(() => {
+      this.store.view.tag();
+      this.store.view.localTag();
+      this.store.account.origin();
+      untracked(() => {
+        if (!this.store.view.tag()) {
+          this.store.view.selectedUser.set(undefined);
+        } else {
+          const tag = this.store.view.localTag() + this.store.account.origin();
+          this.users.get(tag).pipe(
+            catchError(() => of(undefined)),
+          ).subscribe(user => {
+            this.store.view.selectedUser.set(user);
+            if (user) {
+              this.profileForm.setControl('user', userForm(this.fb, true));
+              defer(() => this.userForm().setUser(user));
+            } else {
+              this.profileForm.setControl('user', userForm(this.fb, false));
+              defer(() => this.userForm().setUser({
+                tag: this.store.view.localTag(),
+                origin: this.store.view.origin(),
+                readAccess: this.admin.readAccess().map(t => setPublic(prefix(t, this.store.view.localTag()))),
+                writeAccess: this.admin.writeAccess().map(t => setPublic(prefix(t, this.store.view.localTag()))),
+              }));
+            }
+          });
+        }
+      });
+    });
   }
 
   saveChanges() {
     return !this.profileForm?.dirty;
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
-      if (!this.store.view.tag) {
-        runInAction(() => this.store.view.selectedUser = undefined);
-      } else {
-        const tag = this.store.view.localTag + this.store.account.origin;
-        this.users.get(tag).pipe(
-          catchError(() => of(undefined)),
-        ).subscribe(user => runInAction(() => {
-          this.store.view.selectedUser = user;
-          if (user) {
-            this.profileForm.setControl('user', userForm(this.fb, true));
-            defer(() => this.userForm.setUser(user));
-          } else {
-            this.profileForm.setControl('user', userForm(this.fb, false));
-            defer(() => this.userForm.setUser({
-              tag: this.store.view.localTag,
-              origin: this.store.view.origin,
-              readAccess: this.admin.readAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
-              writeAccess: this.admin.writeAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
-            }));
-          }
-        }));
-      }
-    }));
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get active() {
@@ -116,45 +110,45 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
   }
 
   save() {
-    this.serverError = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.submitted.set(true);
     this.profileForm.markAllAsTouched();
     if (!this.profileForm.valid) {
       scrollToFirstInvalid();
       return;
     }
     const updates = {
-      ...(this.store.view.selectedUser || {}),
+      ...(this.store.view.selectedUser() || {}),
       ...this.user.value,
-      tag: this.store.view.localTag,
-      origin: this.store.account.origin,
+      tag: this.store.view.localTag(),
+      origin: this.store.account.origin(),
       readAccess: uniq([...this.user.value.readAccess, ...this.user.value.notifications]),
     };
     delete updates.notifications;
-    this.externalErrors = [];
+    this.externalErrors.set([]);
     try {
       if (!updates.external) delete updates.external;
       if (updates.external) updates.external = JSON.parse(updates.external);
     } catch (e: any) {
-      this.externalErrors.push(e.message);
+      this.externalErrors.update(errors => [...errors, e.message]);
     }
     const entities: Observable<any>[] = [
-      (this.store.view.selectedUser
+      (this.store.view.selectedUser()
         ? this.users.update(updates)
         : this.users.create(updates)).pipe(
         catchError((res: HttpErrorResponse) => {
-          this.serverError.push(...printError(res));
+          this.serverError.update(errors => [...errors, ...printError(res)]);
           return throwError(() => res);
         }),
       )
     ];
     if (this.config.scim) {
       const profile = {
-        tag: this.store.view.localTag + this.store.account.origin,
+        tag: this.store.view.localTag() + this.store.account.origin(),
         password: this.profileForm.value.password,
         role: this.profileForm.value.role,
       };
-      if (this.store.view.selectedUser) {
+      if (this.store.view.selectedUser()) {
         if (this.password.touched) {
           entities.push(this.profiles.changePassword(profile));
         }
@@ -169,7 +163,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
       } else {
         entities.push(this.profiles.create(profile).pipe(
           catchError((res: HttpErrorResponse) => {
-            this.serverError.push(...printError(res));
+            this.serverError.update(errors => [...errors, ...printError(res)]);
             return throwError(() => res);
           }),
         ));
@@ -177,24 +171,24 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
     }
     forkJoin(entities).subscribe(() => {
       this.profileForm.markAsPristine();
-      this.router.navigate(['/tag', this.tag.value + this.store.account.origin])
+      this.router.navigate(['/tag', this.tag.value + this.store.account.origin()])
     });
   }
 
   delete() {
     // TODO: Better dialogs
     if (confirm($localize`Are you sure you want to delete this user?`)) {
-      const deleteNotice = !isDeletorTag(this.store.view.selectedUser!.tag) && this.admin.getPlugin('plugin/delete')
-        ? this.users.create(tagDeleteNotice(this.store.view.selectedUser!))
+      const deleteNotice = !isDeletorTag(this.store.view.selectedUser()!.tag) && this.admin.getPlugin('plugin/delete')
+        ? this.users.create(tagDeleteNotice(this.store.view.selectedUser()!))
         : of(null);
-      this.users.delete(this.store.view.localTag + this.store.account.origin).pipe(
+      this.users.delete(this.store.view.localTag() + this.store.account.origin()).pipe(
         switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
-          this.serverError = printError(err);
+          this.serverError.set(printError(err));
           return throwError(() => err);
         }),
       ).subscribe(() => {
-        this.router.navigate(['/tag', this.store.view.localTag + this.store.account.origin]);
+        this.router.navigate(['/tag', this.store.view.localTag() + this.store.account.origin()]);
       });
     }
   }

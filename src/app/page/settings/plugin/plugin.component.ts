@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -18,17 +17,14 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PluginListComponent],
 })
-export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
+export class SettingsPluginPage implements HasChanges {
 
-  serverError: string[] = [];
+  readonly serverError = signal<string[]>([]);
 
-  @ViewChild('list')
-  list?: PluginListComponent;
-
-  private disposers: IReactionDisposer[] = [];
+  readonly list = viewChild<PluginListComponent>('list');
 
   constructor(
     private mod: ModService,
@@ -39,47 +35,43 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Settings: Plugins`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
+    effect(() => {
+      const args = {
+        query: this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'),
+        search: this.store.view.search(),
+        sort: [...this.store.view.sort()],
+        page: this.store.view.pageNumber(),
+        size: this.store.view.pageSize(),
+        ...getTagFilter(this.store.view.filter()),
+      };
+      defer(() => this.query.setArgs(args));
+    });
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
-      const args = {
-        query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
-        search: this.store.view.search,
-        sort: [...this.store.view.sort],
-        page: this.store.view.pageNumber,
-        size: this.store.view.pageSize,
-        ...getTagFilter(this.store.view.filter),
-      };
-      defer(() => this.query.setArgs(args));
-    }));
-  }
-
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+  });
 
   upload(files?: FileList) {
-    this.serverError = [];
+    this.serverError.set([]);
     if (!files || !files.length) return;
     getZipOrTextFile(files[0]!, 'plugin.json')
       .then(json => getModels<Plugin>(json))
       .then(plugins => plugins.map(mapPlugin))
       .then(plugins => plugins.map(p => this.uploadPlugin(p)))
-      .catch(err => this.serverError = [err]);
+      .catch(err => this.serverError.set([err]));
   }
 
   uploadPlugin(plugin: Plugin) {
-    return this.plugins.delete(plugin.tag + this.store.account.origin).pipe(
-      switchMap(() => this.plugins.create({ ...plugin, origin: this.store.account.origin })),
+    return this.plugins.delete(plugin.tag + this.store.account.origin()).pipe(
+      switchMap(() => this.plugins.create({ ...plugin, origin: this.store.account.origin() })),
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => this.query.refresh());

@@ -1,17 +1,10 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnDestroy,
-  ViewEncapsulation
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { computed, ChangeDetectionStrategy, Component, effect, signal, ViewEncapsulation, input, untracked, DestroyRef, inject } from '@angular/core';
+import { isEqual } from 'lodash-es';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, forkJoin, of, Subject, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -32,56 +25,45 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
   styleUrl: './grid.component.scss',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { 'class': 'grid ext' },
+  host: {
+    'class': 'grid ext',
+    '[attr.data-theme-version]': 'themeVersion()',
+  },
   imports: [
     AgGridModule,
     PageControlsComponent,
     LoadingComponent,
   ],
 })
-export class GridComponent implements OnDestroy, HasChanges {
+export class GridComponent implements HasChanges {
   private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
-  private disposers: IReactionDisposer[] = [];
-  private rowDataUpdates$ = new Subject<Ref[]>();
+  readonly rowData = toSignal(toObservable(computed(() => this.page()?.content || [])).pipe(
+    switchMap(content => !content.some(ref => this.isBareRepost(ref))
+      ? of(content) : forkJoin(content.map(ref => this.getBareRepost(ref)))),
+  ), { initialValue: [] as Ref[] });
+  readonly themeVersion = computed(() => this.store.darkTheme() ? 1 : 0);
 
-  @Input()
-  tag = '';
-  @Input()
-  ext?: Ext;
-  @Input()
-  pageControls = true;
-  @Input()
-  emptyMessage = 'No results found';
+  readonly tag = input('');
+  readonly ext = input<Ext | undefined>();
+  readonly pageControls = input(true);
+  readonly emptyMessage = input('No results found');
 
-  defaultCols: ColDef[] = this.admin.getTemplate('grid')?.defaults?.columnDefs || gridTemplate.defaults.columnDefs;
-  rowData: Ref[] = [];
+  readonly defaultCols = computed<ColDef[]>(() => this.admin.getTemplate('grid')?.defaults?.columnDefs || gridTemplate.defaults.columnDefs);
 
-  private _page?: Page<Ref>;
-  private _cols = 0;
+  readonly page = input<Page<Ref> | undefined>();
+  readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
 
   constructor(
     public store: Store,
     private admin: AdminService,
     private refs: RefService,
     private router: Router,
-    private cd: ChangeDetectorRef,
   ) {
     ModuleRegistry.registerModules([ AllCommunityModule ]);
-    this.disposers.push(autorun(() => {
-      // Access the observable to subscribe
-      this.store.darkTheme;
-      this.cd.markForCheck();
-    }));
-    this.rowDataUpdates$.pipe(
-      switchMap(content => {
-        if (!content.some(ref => this.isBareRepost(ref))) return of(content);
-        return forkJoin(content.map(ref => this.getBareRepost(ref)));
-      }),
-      takeUntilDestroyed(),
-    ).subscribe(rowData => {
-      this.rowData = rowData;
-      this.cd.markForCheck();
+    effect(() => {
+      const value = this.page();
+      untracked(() => this.updatePage(value));
     });
   }
 
@@ -89,15 +71,9 @@ export class GridComponent implements OnDestroy, HasChanges {
     return true;
   }
 
-  ngOnDestroy() {
-    this.rowDataUpdates$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
-
-  get columnDefs(): ColDef[] {
-    return this.applyFormatters(this.ext?.config?.columnDefs || this.defaultCols);
-  }
+  readonly columnDefs = computed<ColDef[]>(() => {
+    return this.applyFormatters(this.ext()?.config?.columnDefs || this.defaultCols());
+  }, { equal: isEqual });
 
   applyFormatters(cols: ColDef[]): ColDef[] {
     return cols.map(col => {
@@ -136,19 +112,12 @@ export class GridComponent implements OnDestroy, HasChanges {
     return dt.isValid ? dt.toLocaleString(format) : '';
   }
 
-  get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    this._page = value;
-    this.rowDataUpdates$.next(value?.content || []);
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
+  private updatePage(value: Page<Ref> | undefined) {
+    if (value) {
+      if (value.page.number > 0 && value.page.number >= value.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.page.totalPages - 1
+            pageNumber: value.page.totalPages - 1
           },
           queryParamsHandling: 'merge',
         });
@@ -159,8 +128,9 @@ export class GridComponent implements OnDestroy, HasChanges {
   private getBareRepost(ref: Ref) {
     if (!this.isBareRepost(ref)) return of(ref);
     const source = repost(ref);
-    return (this.store.view.top?.url === source
-        ? of(this.store.view.top)
+    const top = this.store.view.top();
+    return (top?.url === source
+        ? of(top)
         : this.refs.getCurrent(source)
     ).pipe(
       catchError(() => of(ref)),
@@ -171,13 +141,8 @@ export class GridComponent implements OnDestroy, HasChanges {
     return !!ref.sources?.[0] && hasTag('plugin/repost', ref) && !ref.title && !ref.comment;
   }
 
-  @Input()
-  set cols(value: number | undefined) {
-    this._cols = value || 0;
-  }
-
-  get cols() {
-    if (this._cols) return this._cols;
-    return this.ext?.config?.defaultCols;
-  }
+  readonly cols = computed(() => {
+    if (this.colsInput()) return this.colsInput();
+    return this.ext()?.config?.defaultCols;
+  });
 }
