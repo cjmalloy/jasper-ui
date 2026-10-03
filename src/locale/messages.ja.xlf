@@ -4410,6 +4410,10 @@ Refのみが削除されたファイルはまだ回復できますが、この�
     a custom theme and a set of non-global custom themes to choose from in addition to global themes.</source>
         <target>共通機能Extタグページを追加します: ピン留めされたRefの追加、サイドバーのマークダウン、カスタムテーマ、およびグローバルテーマに加えて選択できる非グローバルカスタムテーマセット。</target>
       </trans-unit>
+      <trans-unit id="2240639463690490073" datatype="html">
+        <source>browse</source>
+        <target>閲覧</target>
+      </trans-unit>
       <trans-unit id="8515029959000193049" datatype="html">
         <source>http:</source>
       </trans-unit>
