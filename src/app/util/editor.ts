@@ -37,7 +37,8 @@ export function getIfNew<T>(list: T[], old?: T[]): T[] {
 /**
  * Get the URLs embedded in markdown. These are rendered by looking up the Ref.
  * External wiki embeds are rendered as links, and images that are not Refs
- * (web, data and blob URLs, tag queries) are rendered directly, so they are skipped.
+ * (web, data and blob URLs, relative paths and tag queries) are rendered
+ * directly, so they are skipped.
  */
 export function getEmbeds(markdown: string, wikiPrefix?: string, wikiExternal = false) {
   const result: string[] = [];
@@ -46,7 +47,7 @@ export function getEmbeds(markdown: string, wikiPrefix?: string, wikiExternal = 
     const customType = t as any;
     if (customType.type === 'bang-embed' && customType.href) {
       result.push(customType.href);
-    } else if (customType.type === 'image' && customType.href && !/^(https?|data|blob):|^\/?tag\//.test(customType.href)) {
+    } else if (customType.type === 'image' && customType.href && /^[a-z][a-z0-9+.-]*:/i.test(customType.href) && !/^(https?|data|blob):/i.test(customType.href)) {
       result.push(customType.href);
     } else if (customType.type === 'wiki-embed' && customType.text && !wikiExternal) {
       result.push(wikiUriFormat(customType.text, wikiPrefix));

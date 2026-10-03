@@ -6,6 +6,51 @@ const CACHE_ID_REGEX = /^[\w-]+(?:\.[\w-]+)*$/;
 const CACHE_URL_REGEX = /^cache:([\w-]+(?:\.[\w-]+)*)$/;
 const CACHE_URL_TEXT_REGEX = /\bcache:([\w-]+(?:\.[\w-]+)*)(?![\w./-])/g;
 
+const MIME_TYPES: Record<string, string> = {
+  apng: 'image/apng',
+  avif: 'image/avif',
+  bmp: 'image/bmp',
+  gif: 'image/gif',
+  ico: 'image/x-icon',
+  jpeg: 'image/jpeg',
+  jpg: 'image/jpeg',
+  png: 'image/png',
+  svg: 'image/svg+xml',
+  tif: 'image/tiff',
+  tiff: 'image/tiff',
+  webp: 'image/webp',
+  mp4: 'video/mp4',
+  m4v: 'video/mp4',
+  mov: 'video/quicktime',
+  ogv: 'video/ogg',
+  webm: 'video/webm',
+  mkv: 'video/x-matroska',
+  aac: 'audio/aac',
+  flac: 'audio/flac',
+  m4a: 'audio/mp4',
+  mp3: 'audio/mpeg',
+  oga: 'audio/ogg',
+  ogg: 'audio/ogg',
+  opus: 'audio/opus',
+  wav: 'audio/wav',
+  pdf: 'application/pdf',
+  json: 'application/json',
+  zip: 'application/zip',
+  txt: 'text/plain',
+  md: 'text/markdown',
+  csv: 'text/csv',
+  html: 'text/html',
+};
+
+/**
+ * Guess the MIME type of a cache file from the extension of its ID.
+ */
+export function cacheMimeType(id: string) {
+  const dot = id.lastIndexOf('.');
+  if (dot < 0) return '';
+  return MIME_TYPES[id.substring(dot + 1).toLowerCase()] || '';
+}
+
 /**
  * Check if a cache ID is safe to use as a file name in a zip.
  */
@@ -71,7 +116,7 @@ export function rewriteCacheIds(ref: Ref, ids: Map<string, string>): Ref {
   if (ref.plugins) {
     result.plugins = visitStrings(ref.plugins, rewriteUrl);
     const cache = result.plugins!['_plugin/cache'];
-    if (cache?.id && ids.has(cache.id)) {
+    if (cache?.id && !cache.noStore && ids.has(cache.id)) {
       result.plugins!['_plugin/cache'] = { ...cache, id: ids.get(cache.id) };
     }
   }

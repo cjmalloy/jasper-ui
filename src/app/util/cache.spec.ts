@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { Ref } from '../model/ref';
-import { cacheUrlId, isCacheId, refCacheIds, rewriteCacheIds } from './cache';
+import { cacheMimeType, cacheUrlId, isCacheId, refCacheIds, rewriteCacheIds } from './cache';
 
 describe('cache util', () => {
   it('should validate cache IDs', () => {
@@ -53,6 +53,14 @@ describe('cache util', () => {
       plugins: { '_plugin/cache': { id: 'x', noStore: true } },
     };
     expect(refCacheIds(ref)).toEqual([]);
+    expect(rewriteCacheIds(ref, new Map([['x', 'y']])).plugins!['_plugin/cache'].id).toBe('x');
+  });
+
+  it('should guess the MIME type from the cache ID', () => {
+    expect(cacheMimeType('a.png')).toBe('image/png');
+    expect(cacheMimeType('a.b.MP4')).toBe('video/mp4');
+    expect(cacheMimeType('a')).toBe('');
+    expect(cacheMimeType('a.unknown')).toBe('');
   });
 
   it('should rewrite cache IDs', () => {

@@ -17,7 +17,7 @@ describe('download util', () => {
   });
 
   it('should ignore images that are not Refs', () => {
-    expect(getEmbeds('![](data:image/png;base64,AAAA) ![](blob:abc) ![](/tag/science) ![](tag/science) ![](tag:/a)')).toEqual(['tag:/a']);
+    expect(getEmbeds('![](data:image/png;base64,AAAA) ![](blob:abc) ![](/tag/science) ![](tag/science) ![](./a.png) ![](img/a.png) ![](tag:/a)')).toEqual(['tag:/a']);
   });
 
   it('should include one level of embedded Refs with cache files', async () => {

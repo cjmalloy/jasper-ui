@@ -78,6 +78,14 @@ describe('UploadCacheService', () => {
     expect((save.mock.calls[0][0] as File).name).toBe('old');
   });
 
+  it('should guess the MIME type from the cache ID extension', async () => {
+    const zip = new JSZip();
+    zip.file('cache/img.png', 'data');
+    store.submit.addCacheFiles(new Map([['img.png', zip.file('cache/img.png')!]]));
+    await firstValueFrom(service.restore$({ url: 'comment:1', origin: '', comment: '![](cache:img.png)' }, ''));
+    expect((save.mock.calls[0][0] as File).type).toBe('image/png');
+  });
+
   it('should forget mappings no longer referenced by the upload list', async () => {
     const ref: Ref = { url: 'cache:old', origin: '' };
     store.submit.clearUpload([ref]);

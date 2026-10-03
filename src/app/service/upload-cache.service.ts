@@ -4,7 +4,7 @@ import { reaction } from 'mobx';
 import { concat, defer, filter, finalize, map, Observable, of, shareReplay, switchMap, tap, toArray } from 'rxjs';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
-import { cacheUrlId, refCacheIds, rewriteCacheIds } from '../util/cache';
+import { cacheMimeType, cacheUrlId, refCacheIds, rewriteCacheIds } from '../util/cache';
 import { ProxyService } from './api/proxy.service';
 import { RefService } from './api/ref.service';
 
@@ -118,6 +118,6 @@ export class UploadCacheService {
       const cache = r.plugins?.['_plugin/cache'];
       if (cache?.id === id && cache.mimeType) return cache.mimeType;
     }
-    return '';
+    return cacheMimeType(id);
   }
 }
