@@ -349,6 +349,24 @@ test.describe.serial('Map Plugin', () => {
     await expect(page.locator('.location-map .location-marker')).toHaveCount(3);
   });
 
+  test('web link submit uses the location', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=public&location=-63.5,44.6', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
+  });
+
+  test('submit page forwards the location to a web link', async ({ page }) => {
+    await page.goto('/submit?debug=ADMIN&tag=public&location=-63.5,44.6', { waitUntil: 'networkidle' });
+    await page.locator('input#url').fill(URL);
+    await page.locator('button[type=submit]', { hasText: 'Next' }).click();
+    await expect(page).toHaveURL(/\/submit\/web\?/);
+    const point = page.locator('.location-field').first();
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
+  });
+
   test('changing the geometry on a text post keeps the location', async ({ page }) => {
     await page.goto('/submit/text?debug=ADMIN&tag=plugin/geo/point&location=-63.5,44.6', { waitUntil: 'networkidle' });
     // plugin/geo can be added to text posts

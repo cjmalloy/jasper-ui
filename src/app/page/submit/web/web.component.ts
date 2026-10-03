@@ -145,6 +145,11 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         });
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
+      // Seed the location once so later tag changes keep any edits
+      const location = this.store.submit.location;
+      if (location) {
+        this.addPlugin('plugin/geo/point', { type: 'Feature', geometry: { type: 'Point', coordinates: location } });
+      }
       this.disposers.push(autorun(() => {
         const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
         const added = without(tags, ...this.oldSubmit);
