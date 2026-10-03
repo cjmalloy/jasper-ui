@@ -65,6 +65,7 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
   dropping = false;
 
   private ringWatch?: Subscription;
+  private closing?: any;
 
   constructor(
     private store: Store,
@@ -81,7 +82,10 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
     if (this.depth) locationLists.set(this.formControl, this);
     if (!this.props.ring) return;
     const value = this.formControl.value;
-    if (value?.length >= 4 && isEqual(value[0], value[value.length - 1])) closedRings.add(this.formControl);
+    if (value?.length >= 4 && isEqual(value[0], value[value.length - 1])) {
+      closedRings.add(this.formControl);
+      this.closing = cloneDeep(value[value.length - 1]);
+    }
     defer(() => this.closeRing());
     this.ringWatch = this.formControl.valueChanges.subscribe(() => defer(() => this.closeRing()));
   }
@@ -115,10 +119,15 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
   /**
    * Keep rings closed (RFC 7946 3.1.6) by mirroring the first position
    * into a hidden closing position once there are three or more positions.
+   * The closing position is hidden, so if it changed the whole ring was
+   * replaced and closure must be detected again.
    */
   private closeRing() {
     if (this.ringWatch?.closed) return;
     const arr = this.formControl;
+    if (closedRings.has(arr) && !isEqual(arr.at(arr.length - 1)?.value, this.closing)) {
+      closedRings.delete(arr);
+    }
     const closed = closedRings.has(arr);
     const points = arr.length - (closed ? 1 : 0);
     const first = arr.length ? arr.at(0).value : undefined;
@@ -136,6 +145,7 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
       closedRings.delete(arr);
       super.remove(arr.length - 1, { markAsDirty: false });
     }
+    this.closing = closedRings.has(arr) ? cloneDeep(arr.at(arr.length - 1).value) : undefined;
   }
 
   get groupArray() {

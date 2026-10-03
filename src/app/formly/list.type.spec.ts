@@ -1,4 +1,5 @@
 /// <reference types="vitest/globals" />
+import { FormArray, FormControl } from '@angular/forms';
 import { FieldArrayType } from '@ngx-formly/core';
 import { vi } from 'vitest';
 import { ListTypeComponent } from './list.type';
@@ -92,6 +93,47 @@ describe('ListTypeComponent', () => {
       const { component, addSpy } = createLocationList([[0, 0]]);
       component.add();
       expect(addSpy).toHaveBeenCalledWith(undefined, undefined, undefined);
+    });
+  });
+
+  describe('ring closure', () => {
+    function createRing(values: any[]) {
+      const component = new ListTypeComponent({ hotkey: false } as any);
+      const formControl = new FormArray(values.map(v => new FormControl(v)));
+      const model = [...values];
+      component.field = {
+        fieldArray: { type: 'location' },
+        fieldGroup: values.map((_, i) => ({ id: `field-${i}` })),
+        model,
+        formControl,
+        props: { ring: true },
+      } as any;
+      vi.spyOn(FieldArrayType.prototype, 'add').mockImplementation(function(this: any, index?: number, initialModel?: any) {
+        const i = index ?? this.formControl.length;
+        this.model.splice(i, 0, initialModel);
+        this.formControl.insert(i, new FormControl(initialModel));
+      });
+      component.ngOnInit();
+      return { component, formControl };
+    }
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('mirrors an edited first position into the closing position', () => {
+      const { component, formControl } = createRing([[0, 0], [1, 0], [1, 1], [0, 0]]);
+      formControl.at(0).setValue([2, 2]);
+      (component as any).closeRing();
+      expect(formControl.value).toEqual([[2, 2], [1, 0], [1, 1], [2, 2]]);
+      component.ngOnDestroy();
+    });
+
+    it('appends a closing position when the whole ring is replaced', () => {
+      const { component, formControl } = createRing([[0, 0], [1, 0], [1, 1], [0, 0]]);
+      formControl.setValue([[0, 0], [1, 0], [1, 1], [0, 1]]);
+      (component as any).closeRing();
+      expect(formControl.value).toEqual([[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]);
+      expect(closedRings.has(formControl)).toBe(true);
+      component.ngOnDestroy();
     });
   });
 });
