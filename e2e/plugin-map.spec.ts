@@ -149,7 +149,7 @@ test.describe.serial('Map Plugin', () => {
     await points.nth(0).locator('input[type=number]').nth(0).fill('-63.6');
     const style = page.locator('.plugin-content .geo-style-field');
     await style.locator('.geo-style-color').fill('#ff0000');
-    await style.locator('.geo-style-stroke-width').selectOption('large');
+    await style.locator('.geo-style-stroke-width').fill('2');
     await style.locator('.geo-style-stroke-style').selectOption('dashed');
     await style.locator('.geo-style-fill-color').fill('#00ff00');
     await style.locator('.geo-style-fill-style').selectOption('crosshatch');
@@ -169,6 +169,12 @@ test.describe.serial('Map Plugin', () => {
     expect(fillLabel.x).toBeCloseTo(strokeLabel.x, 0);
     expect(fillRow.x).toBeCloseTo(strokeRow.x, 0);
     expect(Math.abs(fillLabel.y - fillRow.y)).toBeLessThan(fillRow.height);
+    // Row items expand to fill the row
+    for (const row of ['.geo-style-stroke', '.geo-style-fill']) {
+      const box = (await style.locator(row).boundingBox())!;
+      const right = Math.max(...await style.locator(row + ' > *').evaluateAll(els => els.map(e => e.getBoundingClientRect().right)));
+      expect(box.x + box.width - right).toBeLessThan(8);
+    }
 
     const submitPromise = page.waitForRequest(
       req => req.url().includes('/api/v1/ref') && req.method() === 'POST',
@@ -192,12 +198,12 @@ test.describe.serial('Map Plugin', () => {
       + '&tag=plugin/geo/polygon', { waitUntil: 'networkidle' });
     const style = page.locator('.plugin-content .geo-style-field');
     await style.locator('.geo-style-color').fill('#ff0000');
-    await style.locator('.geo-style-stroke-width').selectOption('large');
+    await style.locator('.geo-style-stroke-width').fill('2');
     await style.locator('.geo-style-stroke-style').selectOption('dotted');
     await style.locator('.geo-style-fill-color').fill('#00ff00');
     await style.locator('.geo-style-fill-style').selectOption('nw');
     await style.locator('.geo-style-stroke-clear').click();
-    await expect(style.locator('.geo-style-stroke-width')).toHaveValue('medium');
+    await expect(style.locator('.geo-style-stroke-width')).toHaveValue('1');
     await expect(style.locator('.geo-style-stroke-style')).toHaveValue('solid');
     await expect(style.locator('.geo-style-color')).toHaveClass(/cleared/);
     await expect(style.locator('.geo-style-fill-style')).toHaveValue('nw');

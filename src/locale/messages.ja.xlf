@@ -7385,6 +7385,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Stroke Width</source>
         <target>線の太さ</target>
       </trans-unit>
+      <trans-unit id="2852353597235991574" datatype="html">
+        <source>Stroke Width: <x id="PH" equiv-text="this.strokeWidths[this.strokeWidthIndex].label"/></source>
+        <target>線の太さ: <x id="PH" equiv-text="this.strokeWidths[this.strokeWidthIndex].label"/></target>
+      </trans-unit>
       <trans-unit id="3692945389836981034" datatype="html">
         <source>Stroke Style</source>
         <target>線のスタイル</target>

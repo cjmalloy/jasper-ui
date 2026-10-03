@@ -29,15 +29,15 @@ const DEFAULTS: GeoStyle = {
              [value]="style.color || ''"
              [disabled]="formControl.disabled"
              (input)="set('color', $any($event.target).value)">
-      <select class="geo-style-stroke-width"
-              i18n-title title="Stroke Width"
-              i18n-aria-label aria-label="Stroke Width"
-              [disabled]="formControl.disabled"
-              (input)="set('strokeWidth', $any($event.target).value)">
-        @for (o of strokeWidths; track o.value) {
-          <option [value]="o.value" [selected]="o.value === (style.strokeWidth || defaults.strokeWidth)">{{ o.label }}</option>
-        }
-      </select>
+      <input type="range"
+             class="geo-style-stroke-width"
+             min="0" [max]="strokeWidths.length - 1" step="1"
+             i18n-aria-label aria-label="Stroke Width"
+             [title]="strokeWidthLabel"
+             [attr.aria-valuetext]="strokeWidthLabel"
+             [value]="strokeWidthIndex"
+             [disabled]="formControl.disabled"
+             (input)="set('strokeWidth', strokeWidths[+$any($event.target).value].value)">
       <select class="geo-style-stroke-style"
               i18n-title title="Stroke Style"
               i18n-aria-label aria-label="Stroke Style"
@@ -78,9 +78,14 @@ const DEFAULTS: GeoStyle = {
     .form-array {
       min-width: 0;
     }
-    select {
-      flex: 0 1 auto;
+    select,
+    input[type=range] {
+      flex: 1 1 0;
       min-width: 0;
+    }
+    input[type=range] {
+      margin-left: 4px;
+      margin-right: 4px;
     }
     input[type=color] {
       flex: 0 0 auto;
@@ -119,6 +124,14 @@ export class FormlyFieldGeoStyle extends FieldType<FieldTypeConfig> {
     crosshatch: $localize`Crosshatch`,
     blinking: $localize`Blinking Fill`,
   });
+
+  get strokeWidthIndex() {
+    return Math.max(0, GEO_STROKE_WIDTHS.indexOf(this.style.strokeWidth || DEFAULTS.strokeWidth!));
+  }
+
+  get strokeWidthLabel() {
+    return $localize`Stroke Width: ${this.strokeWidths[this.strokeWidthIndex].label}`;
+  }
 
   get fill() {
     return this.props.fill !== false;
