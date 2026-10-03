@@ -55,16 +55,38 @@ export class FormlyFieldBbox extends FieldType<FieldTypeConfig> {
     return this.is3d && index >= 2 ? index + 1 : index;
   }
 
+  private blank = new Set<number>();
+  private saved?: (number | null)[];
+
+  private blanks() {
+    if (this.formControl.value !== this.saved) {
+      this.blank.clear();
+      this.saved = this.formControl.value;
+    }
+    return this.blank;
+  }
+
   value(index: number) {
+    if (this.blanks().has(index)) return '';
     return this.formControl.value?.[this.pos(index)] ?? '';
   }
 
   set(index: number, value: string) {
+    const blank = this.blanks();
     const length = this.is3d ? 6 : 4;
     const bbox: (number | null)[] = Array.from({ length }, (_, i) => this.formControl.value?.[i] ?? null);
+    for (const side of this.sides) {
+      if (bbox[this.pos(side.index)] === null) blank.add(side.index);
+    }
     const n = parseFloat(value);
     bbox[this.pos(index)] = isNaN(n) ? null : n;
-    this.formControl.setValue(bbox.every(b => b === null) ? undefined : bbox.map(b => b ?? 0));
+    if (isNaN(n)) {
+      blank.add(index);
+    } else {
+      blank.delete(index);
+    }
+    this.saved = blank.size === this.sides.length ? undefined : bbox.map(b => b ?? 0);
+    this.formControl.setValue(this.saved);
     this.formControl.markAsDirty();
   }
 }
