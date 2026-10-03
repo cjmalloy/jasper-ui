@@ -180,7 +180,10 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         if (added.length || removed.length) {
           this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
           // Only apply changes so tags edited in the form are kept
-          for (const t of removed) this.tagsFormComponent!.removeTag(t);
+          if (removed.length) {
+            this.tagsFormComponent!.setTags(without(this.tags.value, ...removed));
+            this.tagsFormComponent!.update();
+          }
           if (added.length) this.addTag(...added);
         }
         if (this.store.submit.pluginUpload) {
