@@ -1,4 +1,5 @@
 import type { Feature, Geometry, Position } from 'geojson';
+import { cloneDeep } from 'lodash-es';
 
 export function isPosition(p: any): p is Position {
   return Array.isArray(p) && p.length >= 2 && typeof p[0] === 'number' && typeof p[1] === 'number' && isFinite(p[0]) && isFinite(p[1]);
@@ -137,4 +138,79 @@ function toPolygon(rings: Position[][]): Geometry | undefined {
     ...rs.filter(r => !isLinearRing(r)).map(line),
   ];
   return geometries.length === 1 ? geometries[0] : { type: 'GeometryCollection', geometries };
+}
+
+const DEPTH: Record<string, number> = {
+  Point: 0,
+  MultiPoint: 1,
+  LineString: 1,
+  MultiLineString: 2,
+  Polygon: 2,
+  MultiPolygon: 3,
+};
+
+/**
+ * Convert geometry to another GeoJSON geometry type, keeping as much as
+ * possible. Single geometries are wrapped when converting to a multi type,
+ * and the first is kept when converting back, except a multi point keeps
+ * every position. Polygon rings are lines that
+ * are closed when converting to a polygon, and opened when converting back.
+ * A geometry collection keeps every geometry when converting to a multi type,
+ * otherwise only the first.
+ */
+export function convertGeometry(geometry: any, type: string): Geometry {
+  if (type === 'GeometryCollection') {
+    if (geometry?.type === 'GeometryCollection') return cloneDeep(geometry);
+    return { type, geometries: geometry?.type in DEPTH ? [cloneDeep(geometry)] : [] };
+  }
+  if (!(type in DEPTH)) throw new Error('Unknown geometry type: ' + type);
+  if (geometry?.type === 'GeometryCollection') {
+    const geometries: any[] = Array.isArray(geometry.geometries) ? geometry.geometries : [];
+    if (!type.startsWith('Multi')) return convertGeometry(geometries[0], type);
+    return {
+      type,
+      coordinates: geometries.flatMap(g => (convertGeometry(g, type) as any).coordinates),
+    } as Geometry;
+  }
+  if (geometry?.type === type) return cloneDeep(geometry);
+  let depth = DEPTH[geometry?.type] ?? -1;
+  let c: any = cloneDeep(geometry?.coordinates);
+  // Open polygon rings into lines
+  if (depth === 2 && geometry.type === 'Polygon') c = openRings(c);
+  if (depth === 3) c = (Array.isArray(c) ? c : []).map(openRings);
+  if (depth === 0 && !hasLocation(c) || depth < 0 || depth > 0 && !Array.isArray(c)) {
+    // Nothing to keep
+    depth = 1;
+    c = [];
+  }
+  const target = DEPTH[type];
+  if (type === 'MultiPoint' && depth > 1) {
+    // Keep every position
+    c = c.flat(depth - 1);
+    depth = 1;
+  }
+  while (depth > target) {
+    c = depth === 1 ? c[0] : c[0] || [];
+    depth--;
+  }
+  while (depth < target) {
+    if (Array.isArray(c) && !c.length) {
+      depth = target;
+      break;
+    }
+    c = [c];
+    depth++;
+  }
+  if (target === 0 && !isPosition(c)) c = [0, 0];
+  if (type === 'Polygon') c = closeRings(c);
+  if (type === 'MultiPolygon') c = c.map(closeRings);
+  return { type, coordinates: c } as Geometry;
+}
+
+function openRings(rings: any): Position[][] {
+  return (Array.isArray(rings) ? rings : []).map((r: any) => Array.isArray(r) && isLinearRing(r) ? r.slice(0, -1) : r);
+}
+
+function closeRings(rings: Position[][]): Position[][] {
+  return rings.map(r => r.length >= 3 && !isLinearRing(r) ? [...r, [...r[0]]] : r);
 }

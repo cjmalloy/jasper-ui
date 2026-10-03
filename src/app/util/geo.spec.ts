@@ -1,4 +1,4 @@
-import { geoCenter, geoFeatures, isLinearRing } from './geo';
+import { convertGeometry, geoCenter, geoFeatures, isLinearRing } from './geo';
 
 describe('geo', () => {
   describe('isLinearRing', () => {
@@ -68,5 +68,56 @@ describe('geo', () => {
     expect(geoCenter({
       'plugin/geo/linestring': { geometry: { type: 'LineString', coordinates: [[170, 10], [-160, 20]] } },
     })).toEqual([-175, 15]);
+  });
+
+  describe('convertGeometry', () => {
+    const ring = [[0, 0], [1, 0], [1, 1], [0, 0]];
+    const open = [[0, 0], [1, 0], [1, 1]];
+
+    it('keeps the first polygon of a multi polygon', () => {
+      expect(convertGeometry({ type: 'MultiPolygon', coordinates: [[ring], [[[5, 5]]]] }, 'Polygon'))
+        .toEqual({ type: 'Polygon', coordinates: [ring] });
+      expect(convertGeometry({ type: 'Polygon', coordinates: [ring] }, 'MultiPolygon'))
+        .toEqual({ type: 'MultiPolygon', coordinates: [[ring]] });
+    });
+
+    it('makes a polygon of a single point', () => {
+      expect(convertGeometry({ type: 'Point', coordinates: [1, 2] }, 'Polygon'))
+        .toEqual({ type: 'Polygon', coordinates: [[[1, 2]]] });
+    });
+
+    it('does not keep an unset point', () => {
+      expect(convertGeometry({ type: 'Point', coordinates: [0, 0] }, 'LineString'))
+        .toEqual({ type: 'LineString', coordinates: [] });
+      expect(convertGeometry({ type: 'LineString', coordinates: [] }, 'Point'))
+        .toEqual({ type: 'Point', coordinates: [0, 0] });
+    });
+
+    it('treats lines as unclosed polygon rings', () => {
+      expect(convertGeometry({ type: 'LineString', coordinates: open }, 'Polygon'))
+        .toEqual({ type: 'Polygon', coordinates: [ring] });
+      expect(convertGeometry({ type: 'Polygon', coordinates: [ring, [[5, 5]]] }, 'LineString'))
+        .toEqual({ type: 'LineString', coordinates: open });
+      expect(convertGeometry({ type: 'Polygon', coordinates: [ring] }, 'MultiLineString'))
+        .toEqual({ type: 'MultiLineString', coordinates: [open] });
+    });
+
+    it('keeps every position in a multi point', () => {
+      expect(convertGeometry({ type: 'Polygon', coordinates: [ring, [[5, 5]]] }, 'MultiPoint'))
+        .toEqual({ type: 'MultiPoint', coordinates: [...open, [5, 5]] });
+    });
+
+    it('converts to and from geometry collections', () => {
+      const point = { type: 'Point', coordinates: [1, 2] };
+      const line = { type: 'LineString', coordinates: open };
+      expect(convertGeometry(point, 'GeometryCollection'))
+        .toEqual({ type: 'GeometryCollection', geometries: [point] });
+      const collection = { type: 'GeometryCollection', geometries: [point, line] };
+      expect(convertGeometry(collection, 'Point')).toEqual(point);
+      expect(convertGeometry(collection, 'MultiPoint'))
+        .toEqual({ type: 'MultiPoint', coordinates: [[1, 2], ...open] });
+      expect(convertGeometry({ type: 'GeometryCollection', geometries: [] }, 'Polygon'))
+        .toEqual({ type: 'Polygon', coordinates: [] });
+    });
   });
 });
