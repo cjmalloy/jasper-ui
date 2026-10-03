@@ -1467,8 +1467,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   upload$ = () => {
     const original = this.ref;
-    return this.uploadCache.restore$(this.ref, this.store.account.origin).pipe(
-      switchMap(restored => {
+    return this.store.eventBus.catchError$(this.uploadCache.restore$(this.ref, this.store.account.origin), original).pipe(
+      switchMap((restored: Ref) => {
         const ref: Ref = {
           ...restored,
           origin: this.store.account.origin,

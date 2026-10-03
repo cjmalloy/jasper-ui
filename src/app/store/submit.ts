@@ -197,7 +197,13 @@ export class SubmitStore {
   }
 
   addCacheFiles(files: Map<string, JSZip.JSZipObject>) {
-    for (const [id, file] of files) this.cacheFiles.set(id, file);
+    for (const [id, file] of files) {
+      if (this.cacheFiles.has(id)) {
+        console.warn(`Skipping duplicate cache file in upload: ${id}`);
+        continue;
+      }
+      this.cacheFiles.set(id, file);
+    }
   }
 
   addFiles(files?: File[]) {

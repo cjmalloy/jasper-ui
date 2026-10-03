@@ -11,7 +11,11 @@
     <span class="fake-link bulk-download" (click)="download()" i18n>download</span>
     @if (type === 'ref') {
       <span class="fake-link bulk-export"
+            role="button"
+            tabindex="0"
             (click)="export()"
+            (keydown.enter)="export()"
+            (keydown.space)="$event.preventDefault(); export()"
             i18n-title
             title="Download with attached files and embedded Refs that have files"
             i18n>export</span>

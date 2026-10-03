@@ -16,6 +16,10 @@ describe('download util', () => {
     expect(getEmbeds('')).toEqual([]);
   });
 
+  it('should ignore images that are not Refs', () => {
+    expect(getEmbeds('![](data:image/png;base64,AAAA) ![](blob:abc) ![](/tag/science) ![](tag/science) ![](tag:/a)')).toEqual(['tag:/a']);
+  });
+
   it('should include one level of embedded Refs with cache files', async () => {
     const refs: Record<string, Ref> = {
       'comment:2': { url: 'comment:2', origin: '', tags: ['plugin/image'], plugins: { 'plugin/image': { url: 'cache:a' } }, comment: '![](comment:4)' },

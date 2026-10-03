@@ -492,7 +492,7 @@ export class UploadPage implements OnDestroy {
       return this.router.navigate(['/tag', this.store.submit.exts[0].tag]);
     }
     if (this.store.submit.refs.length === 1) {
-      return this.router.navigate(['/ref', this.uploadedUrls[0] || this.store.submit.refs[0].url]);
+      return this.router.navigate(['/ref', this.uploadedUrls.length === 1 ? this.uploadedUrls[0] : this.store.submit.refs[0].url]);
     }
     if (this.store.submit.refs.length) {
       return this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/file' } });
