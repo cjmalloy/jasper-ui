@@ -680,9 +680,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   get viewerEmbeds() {
     if (!this.plugins) return this.expandPlugins;
-    // Also allow embeds from children of an embeddable lens plugin (ex. plugin/geo/point in plugin/geo)
-    return this.expandPlugins.filter(p => hasTag(p, this.plugins)
-      || this.plugins!.some(t => this.admin.embeddable.includes(t) && hasTag(t, [p])));
+    return this.expandPlugins.filter(p => this.plugins!.some(t => hasTag(t, [p])));
   }
 
   @memo
