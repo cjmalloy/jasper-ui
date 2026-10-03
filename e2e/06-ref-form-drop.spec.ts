@@ -13,7 +13,7 @@ function tagList(page: Page) {
 }
 
 async function dragTagTo(page: Page, target: Locator) {
-  const handle = tagList(page).locator('.list-drag formly-wrapper-form-field > label').first();
+  const handle = tagList(page).locator('.list-drag label').first();
   await expect(handle).toBeVisible();
   const from = (await handle.boundingBox())!;
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
