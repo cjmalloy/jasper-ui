@@ -9,6 +9,7 @@ import { Template } from '../model/template';
 import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
 import { getPageTitle } from '../util/format';
+import { MapView, parseMapView } from '../util/geo';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, top, topAnds } from '../util/tag';
 import { AccountStore } from './account';
@@ -478,6 +479,10 @@ export class ViewStore {
 
   get view(): string {
     return this.route.routeSnapshot?.queryParams['view'];
+  }
+
+  get mapView(): MapView | undefined {
+    return parseMapView(this.route.routeSnapshot?.queryParams['map']);
   }
 
   get noView() {

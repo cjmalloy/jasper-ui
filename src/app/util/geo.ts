@@ -286,3 +286,30 @@ export function convertFeature(value: any, defaults: any, properties = true): an
   if (properties && props) result.properties = cloneDeep(props);
   return result;
 }
+
+export interface MapView {
+  center: [number, number];
+  zoom: number;
+}
+
+/**
+ * Format a map view for the URL as lng,lat,zoom.
+ */
+export function formatMapView(view?: MapView) {
+  if (!view) return '';
+  const fixed = (n: number, digits: number) => '' + (Math.round(n * 10 ** digits) / 10 ** digits);
+  return [fixed(view.center[0], 5), fixed(view.center[1], 5), fixed(view.zoom, 2)].join(',');
+}
+
+/**
+ * Parse a map view from the URL formatted as lng,lat,zoom.
+ */
+export function parseMapView(value?: string | null): MapView | undefined {
+  if (!value || typeof value !== 'string') return undefined;
+  const parts = value.split(',');
+  if (parts.length !== 3 || parts.some(p => !p.trim())) return undefined;
+  const [lng, lat, zoom] = parts.map(Number);
+  if (![lng, lat, zoom].every(isFinite)) return undefined;
+  if (Math.abs(lng) > 180 || Math.abs(lat) > 90 || zoom < 0 || zoom > 24) return undefined;
+  return { center: [lng, lat], zoom };
+}

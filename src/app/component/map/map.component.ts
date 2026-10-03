@@ -28,7 +28,7 @@ import { GeocodeService } from '../../service/geocode.service';
 import { Store } from '../../store/store';
 import { getAddTags } from '../../util/add-tags';
 import { getTitle } from '../../util/format';
-import { geoFeatures, hasLocation, minimalLngInterval } from '../../util/geo';
+import { formatMapView, geoFeatures, hasLocation, MapView, minimalLngInterval, parseMapView } from '../../util/geo';
 import { addGeoLayers } from '../../util/geo-style';
 import { GeocoderPosition, isConfigured } from '../../util/geocode';
 import { memo, MemoCache } from '../../util/memo';
@@ -39,14 +39,10 @@ import { DOUBLE_CLICK_DELAY, isRepeatClick, onSingleClick } from './single-click
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
 
-export { minimalLngInterval };
+export { formatMapView, minimalLngInterval, parseMapView };
+export type { MapView };
 
 type MapEntry = [ref: Ref, bareRepost?: Ref];
-
-export interface MapView {
-  center: [number, number];
-  zoom: number;
-}
 
 @Component({
   selector: 'app-map',
@@ -89,7 +85,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   @Input()
   set saveView(value: boolean) {
     this._saveView = value;
-    this.view = value ? this.urlView : undefined;
+    this.view = value ? this.store.view.mapView : undefined;
   }
   get saveView() {
     return this._saveView;
@@ -156,16 +152,12 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     ).subscribe(() => this.restoreView());
   }
 
-  private get urlView(): MapView | undefined {
-    return parseMapView(this.router.parseUrl(this.location.path()).queryParams['map']);
-  }
-
   /**
    * Back and forward within the same page move the map to the saved view.
    */
   private restoreView() {
     if (!this.saveView || !this.map) return;
-    const view = this.urlView;
+    const view = this.store.view.mapView;
     if (!view) {
       this.writeView();
     } else if (formatMapView(view) !== formatMapView(this.currentView)) {
@@ -556,26 +548,4 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
 function round(n: number) {
   return Math.round(n * 1e6) / 1e6;
-}
-
-/**
- * Format a map view for the URL as lng,lat,zoom.
- */
-export function formatMapView(view?: MapView) {
-  if (!view) return '';
-  const fixed = (n: number, digits: number) => '' + (Math.round(n * 10 ** digits) / 10 ** digits);
-  return [fixed(view.center[0], 5), fixed(view.center[1], 5), fixed(view.zoom, 2)].join(',');
-}
-
-/**
- * Parse a map view from the URL formatted as lng,lat,zoom.
- */
-export function parseMapView(value?: string | null): MapView | undefined {
-  if (!value || typeof value !== 'string') return undefined;
-  const parts = value.split(',');
-  if (parts.length !== 3 || parts.some(p => !p.trim())) return undefined;
-  const [lng, lat, zoom] = parts.map(Number);
-  if (![lng, lat, zoom].every(isFinite)) return undefined;
-  if (Math.abs(lng) > 180 || Math.abs(lat) > 90 || zoom < 0 || zoom > 24) return undefined;
-  return { center: [lng, lat], zoom };
 }
