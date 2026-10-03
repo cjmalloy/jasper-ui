@@ -20,6 +20,7 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
+import { LoadingComponent } from '../../loading/loading.component';
 import { CommentComponent } from '../comment.component';
 
 @Component({
@@ -31,6 +32,7 @@ import { CommentComponent } from '../comment.component';
   imports: [
     forwardRef(() => CommentComponent),
     MobxAngularModule,
+    LoadingComponent,
   ],
 })
 export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, HasChanges {
@@ -50,7 +52,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   @Input()
   newComments$!: Observable<Ref | undefined>;
 
-  @ViewChildren('comment')
+  @ViewChildren(CommentComponent)
   list?: QueryList<CommentComponent>;
 
   comments?: Ref[] = [];
