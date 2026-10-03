@@ -11,6 +11,7 @@ import { writeUser } from '../model/user';
 import { ProxyService } from '../service/api/proxy.service';
 import { config } from '../service/config.service';
 import { Type } from '../store/view';
+import { CACHE_FOLDER, refCacheIds } from './cache';
 import { getSearchParams } from './http';
 
 export async function saveAs(file: Blob, defaultFilename: string) {
@@ -44,18 +45,45 @@ function write(type: Type): any {
   }
 }
 
-export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], query: string) {
+/**
+ * Add all cache files referenced by the Refs to the cache folder of the zip.
+ * This is compatible with the backup format.
+ */
+export async function zipCache(zip: JSZip, refs: Ref[], fetchCache: (id: string, origin: string) => Promise<Blob | undefined>) {
+  const ids = new Map<string, string>();
+  for (const ref of refs) {
+    for (const id of refCacheIds(ref)) {
+      if (!ids.has(id)) ids.set(id, ref.origin || '');
+    }
+  }
+  await Promise.all([...ids.entries()].map(async ([id, origin]) => {
+    try {
+      const blob = await fetchCache(id, origin);
+      if (blob) zip.file(CACHE_FOLDER + id, blob);
+    } catch (error) {
+      console.error(`Skipping cache file in zip due to error fetching: ${id}`, error);
+    }
+  }));
+}
+
+export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], query: string, proxy?: ProxyService) {
   const zip = new JSZip();
   zip.file(type + '.json', file(page.content!.map(write(type))));
   if (exts.length) zip.file('ext.json', file(exts.map(writeExt)));
+  if (type === 'ref' && proxy) {
+    await zipCache(zip, page.content!, async (id, origin) => (await firstValueFrom(proxy.download('cache:' + id, origin, id))).blob);
+  }
   return zip.generateAsync({ type: 'blob' })
     .then(content => saveAs(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));
 }
 
-export async function downloadSet(ref: Ref[], ext: Ext[], title: string) {
+export async function downloadSet(ref: Ref[], ext: Ext[], title: string, cache?: Map<string, JSZip.JSZipObject>) {
   const zip = new JSZip();
   zip.file('ref.json', file(ref.map(writeRef)));
   zip.file('ext.json', file(ext.map(writeExt)));
+  if (cache?.size) {
+    await zipCache(zip, ref, async id => cache.get(id)?.async('blob'));
+  }
   return zip.generateAsync({ type: 'blob' })
     .then(content => saveAs(content, title + '.zip'));
 }

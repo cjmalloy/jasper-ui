@@ -20,6 +20,7 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
+import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
@@ -80,6 +81,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
     public plugin: PluginStore,
     public template: TemplateStore,
     private refs: RefService,
+    private proxy: ProxyService,
     private exts: ExtService,
     private users: UserService,
     private plugins: PluginService,
@@ -205,7 +207,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   download() {
-    downloadPage(this.type, this.items, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
+    downloadPage(this.type, this.items, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name, this.proxy);
   }
 
   get items() {

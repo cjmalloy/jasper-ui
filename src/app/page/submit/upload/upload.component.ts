@@ -24,12 +24,13 @@ import { RefService } from '../../../service/api/ref.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ModService } from '../../../service/mod.service';
+import { UploadCacheService } from '../../../service/upload-cache.service';
 import { Store } from '../../../store/store';
 import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag } from '../../../util/tag';
-import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
+import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedCacheFiles, zippedFile } from '../../../util/zip';
 
 @Component({
   selector: 'app-upload',
@@ -67,6 +68,7 @@ export class UploadPage implements OnDestroy {
     private refs: RefService,
     private exts: ExtService,
     private proxy: ProxyService,
+    private uploadCache: UploadCacheService,
     private auth: AuthzService,
     private router: Router,
   ) {
@@ -333,7 +335,7 @@ export class UploadPage implements OnDestroy {
 
   download() {
     if (this.store.submit.empty) return;
-    return downloadSet(this.store.submit.refs, this.store.submit.exts, 'uploads');
+    return downloadSet(this.store.submit.refs, this.store.submit.exts, 'uploads', this.store.submit.cacheFiles);
   }
 
   push() {
@@ -359,10 +361,24 @@ export class UploadPage implements OnDestroy {
     ref = toJS(ref);
     ref.origin = this.store.account.origin;
     ref.published ||= DateTime.now();
-    ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
-    ref.plugins = Object.fromEntries(
-      Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
+    return this.uploadCache.restore$(ref, this.store.account.origin).pipe(
+      switchMap(restored => {
+        ref = restored;
+        ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
+        ref.plugins = Object.fromEntries(
+          Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
+        );
+        return this.saveRef$(ref);
+      }),
+      catchError((res: HttpErrorResponse) => {
+        this.erroredRefs.push(ref);
+        this.serverErrors.push(...printError(res));
+        return of(null);
+      }),
     );
+  }
+
+  private saveRef$(ref: Ref) {
     return (ref.exists
         ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {
@@ -387,11 +403,6 @@ export class UploadPage implements OnDestroy {
           }
         }
         return throwError(() => err);
-      }),
-      catchError((res: HttpErrorResponse) => {
-        this.erroredRefs.push(ref);
-        this.serverErrors.push(...printError(res));
-        return of(null);
       }),
     );
   }
@@ -451,7 +462,10 @@ export class UploadPage implements OnDestroy {
 
   private getModels(file: File): Promise<FilteredModels> {
     if (file.name.toLowerCase().endsWith('.zip')) {
-      return unzip(file).then(zip => Promise.all([
+      return unzip(file).then(zip => {
+        runInAction(() => this.store.submit.addCacheFiles(zippedCacheFiles(zip)));
+        return zip;
+      }).then(zip => Promise.all([
         zippedFile(zip, 'ext.json')
           .then(json => getModels<Ext>(json))
           .then(exts => exts.map(mapExt)),
