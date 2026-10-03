@@ -1,5 +1,14 @@
 
+nginx_escape() {
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
 if [ -n "$JASPER_API_PROXY" ]; then
+  JASPER_PROXY_USER_TAG=$(nginx_escape "${JASPER_PROXY_USER_TAG:-}")
+  JASPER_PROXY_USER_ROLE=$(nginx_escape "${JASPER_PROXY_USER_ROLE:-}")
+  JASPER_PROXY_READ_ACCESS=$(nginx_escape "${JASPER_PROXY_READ_ACCESS:-}")
+  JASPER_PROXY_WRITE_ACCESS=$(nginx_escape "${JASPER_PROXY_WRITE_ACCESS:-}")
+  JASPER_PROXY_TAG_READ_ACCESS=$(nginx_escape "${JASPER_PROXY_TAG_READ_ACCESS:-}")
+  JASPER_PROXY_TAG_WRITE_ACCESS=$(nginx_escape "${JASPER_PROXY_TAG_WRITE_ACCESS:-}")
   config="
     location ^~ /api/ {
       port_in_redirect off;
@@ -36,6 +45,15 @@ if [ -n "$JASPER_API_PROXY" ]; then
       # https://www.nginx.com/blog/mitigating-the-httpoxy-vulnerability-with-nginx/
       proxy_set_header Proxy                  \"\";
 
+      # Never trust client supplied auth headers. Empty values are not passed upstream.
+      # Authorization is intentionally passed through for bearer tokens.
+      proxy_set_header User-Tag               \"${JASPER_PROXY_USER_TAG}\";
+      proxy_set_header User-Role              \"${JASPER_PROXY_USER_ROLE}\";
+      proxy_set_header Read-Access            \"${JASPER_PROXY_READ_ACCESS}\";
+      proxy_set_header Write-Access           \"${JASPER_PROXY_WRITE_ACCESS}\";
+      proxy_set_header Tag-Read-Access        \"${JASPER_PROXY_TAG_READ_ACCESS}\";
+      proxy_set_header Tag-Write-Access       \"${JASPER_PROXY_TAG_WRITE_ACCESS}\";
+
       proxy_connect_timeout                   5s;
       #proxy_send_timeout                      60s;
       #proxy_read_timeout                      60s;
@@ -65,6 +83,6 @@ if [ -n "$JASPER_API_PROXY" ]; then
     }
     "
 fi
-echo "$config"
-echo "$config" > /etc/nginx/proxy.conf
+printf '%s\n' "$config"
+printf '%s\n' "$config" > /etc/nginx/proxy.conf
 echo "Wrote to /etc/nginx/proxy.conf"

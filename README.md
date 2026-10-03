@@ -235,6 +235,12 @@ file will be generated from environment variables:
 | `version`        | `JASPER_VERSION`         | Version string to display as a tooltip in the footer.                                             | `v1.0.0`                                                                                                |
 | `api`            | `JASPER_API`             | URL of the API server (no trailing slash)                                                         | `//jasperkm.info`                                                                                       |
 |                  | `JASPER_API_PROXY`       | Backend host to proxy on `/api`. Sets `JASPER_API` to `.`                                         | `http://web:80`                                                                                         |
+|                  | `JASPER_PROXY_USER_TAG`  | Value for the `User-Tag` header sent to `JASPER_API_PROXY`. Blank (default) strips it.            |                                                                                                         |
+|                  | `JASPER_PROXY_USER_ROLE` | Value for the `User-Role` header sent to `JASPER_API_PROXY`. Blank (default) strips it.           |                                                                                                         |
+|                  | `JASPER_PROXY_READ_ACCESS` | Value for the `Read-Access` header sent to `JASPER_API_PROXY`. Blank (default) strips it.         |                                                                                                         |
+|                  | `JASPER_PROXY_WRITE_ACCESS` | Value for the `Write-Access` header sent to `JASPER_API_PROXY`. Blank (default) strips it.        |                                                                                                         |
+|                  | `JASPER_PROXY_TAG_READ_ACCESS` | Value for the `Tag-Read-Access` header sent to `JASPER_API_PROXY`. Blank (default) strips it.     |                                                                                                         |
+|                  | `JASPER_PROXY_TAG_WRITE_ACCESS` | Value for the `Tag-Write-Access` header sent to `JASPER_API_PROXY`. Blank (default) strips it.    |                                                                                                         |
 | `logout`         | `JASPER_LOGOUT`          | Optional URL to log out.                                                                          | `//jasperkm.info/oauth2/sign_out?rd=https%3A%2F%2Fauth.jasperkm.info%2Fauthn%2Fauthentication%2Flogout` |
 | `login`          | `JASPER_LOGIN`           | Optional URL to log in. A redirect (`?rd=`) will be appended with the current page.               | `//jasperkm.info/oauth2/sign_in`                                                                        |
 | `signup`         | `JASPER_SIGNUP`          | Optional URL to sign up.                                                                          | `https://auth.jasperkm.info/authn/registration/form`                                                    |
@@ -260,6 +266,20 @@ file will be generated from environment variables:
 |                  | `CSP_CONNECT_SRC`        | Additional URLS to add to the connect-src content security policy.                                |                                                                                                         |
 |                  | `CSP_FONT_SRC`           | Additional URLS to add to the font-src content security policy.                                   |                                                                                                         |
 |                  | `CSP_IMG_SRC`            | Additional URLS to add to the img-src content security policy.                                    |                                                                                                         |
+
+When `JASPER_API_PROXY` is set, the `/api/` proxy (including websockets) never forwards client supplied
+`User-Tag`, `User-Role`, `Read-Access`, `Write-Access`, `Tag-Read-Access` or `Tag-Write-Access` headers.
+By default (blank `JASPER_PROXY_*` variables) these headers are stripped, so they cannot be forged when the
+image is exposed through Cloudflare or a LAN port. Setting a `JASPER_PROXY_*` variable sends that fixed value
+upstream instead, regardless of what the client sent. The `Authorization` header is passed through unchanged
+so bearer tokens (`JASPER_TOKEN`) keep working.
+
+Manual check (with an upstream that echoes request headers as `JASPER_API_PROXY`):
+1. With no `JASPER_PROXY_*` variables set, run
+   `curl -H 'User-Role: ROLE_ADMIN' -H 'User-Tag: +user/evil' http://<ui>/api/...` and confirm the upstream
+   receives neither header.
+2. With `JASPER_PROXY_USER_ROLE=ROLE_VIEWER`, repeat the request and confirm the upstream receives
+   `User-Role: ROLE_VIEWER` and no `User-Tag`.
 
 ## Developing
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.0.
