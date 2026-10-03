@@ -116,7 +116,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/upload/upload.component.ts</context>
-          <context context-type="linenumber">440,445</context>
+          <context context-type="linenumber">446,451</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4046446611860328467" datatype="html">
@@ -754,7 +754,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/bulk/bulk.component.html</context>
-          <context context-type="linenumber">16,17</context>
+          <context context-type="linenumber">20,21</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/comment/comment-reply/comment-reply.component.html</context>
@@ -857,7 +857,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/bulk/bulk.component.html</context>
-          <context context-type="linenumber">21</context>
+          <context context-type="linenumber">25</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/chat/chat-entry/chat-entry.component.html</context>
@@ -900,7 +900,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/bulk/bulk.component.html</context>
-          <context context-type="linenumber">18</context>
+          <context context-type="linenumber">22</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/chat/chat-entry/chat-entry.component.html</context>
@@ -993,7 +993,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/bulk/bulk.component.html</context>
-          <context context-type="linenumber">24,25</context>
+          <context context-type="linenumber">28,29</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/comment/comment.component.html</context>
@@ -1094,11 +1094,18 @@ Please Reload.</source>
           <context context-type="linenumber">9,10</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="5812277912266071076" datatype="html">
+        <source>Download with attached files and embedded Refs that have files</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/bulk/bulk.component.html</context>
+          <context context-type="linenumber">16,17</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="5501510435141891966" datatype="html">
         <source>export</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/bulk/bulk.component.html</context>
-          <context context-type="linenumber">13,14</context>
+          <context context-type="linenumber">17,18</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
@@ -1109,14 +1116,14 @@ Please Reload.</source>
         <source>toggle</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/bulk/bulk.component.html</context>
-          <context context-type="linenumber">14,15</context>
+          <context context-type="linenumber">18,19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6862265996781523030" datatype="html">
         <source>copy</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/bulk/bulk.component.html</context>
-          <context context-type="linenumber">19</context>
+          <context context-type="linenumber">23</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ext/ext.component.html</context>
@@ -1416,11 +1423,11 @@ Please Reload.</source>
         <source>Upload failed</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/chat/chat.component.ts</context>
-          <context context-type="linenumber">559</context>
+          <context context-type="linenumber">563</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/chat/chat.component.ts</context>
-          <context context-type="linenumber">601</context>
+          <context context-type="linenumber">605</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8323509891710996119" datatype="html">
@@ -17324,7 +17331,7 @@ Enter the origin to confirm:</source>
         <source>Submit: Upload</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/upload/upload.component.ts</context>
-          <context context-type="linenumber">75</context>
+          <context context-type="linenumber">76</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9120415821515054163" datatype="html">

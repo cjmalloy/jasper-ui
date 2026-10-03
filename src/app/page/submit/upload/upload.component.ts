@@ -7,7 +7,7 @@ import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, lastValueFrom, map, of, switchMap, tap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { ExtComponent } from '../../../component/ext/ext.component';
@@ -56,6 +56,7 @@ export class UploadPage implements OnDestroy {
 
   erroredExts: Ext[] = [];
   erroredRefs: Ref[] = [];
+  private uploadedUrls: string[] = [];
   serverErrors: string[] = [];
   processing = false;
   fileCache = this.admin.getPlugin('plugin/file');
@@ -341,6 +342,7 @@ export class UploadPage implements OnDestroy {
   push() {
     if (this.processing || this.store.submit.empty) return;
     this.processing = true;
+    this.uploadedUrls = [];
     const uploads = [
       ...this.store.submit.exts.map(ext => this.uploadExt$(ext)),
       ...this.store.submit.refs.map(ref => this.uploadRef$(ref)),
@@ -361,6 +363,7 @@ export class UploadPage implements OnDestroy {
     ref = toJS(ref);
     ref.origin = this.store.account.origin;
     ref.published ||= DateTime.now();
+    const original = ref;
     return this.uploadCache.restore$(ref, this.store.account.origin).pipe(
       switchMap(restored => {
         ref = restored;
@@ -368,10 +371,13 @@ export class UploadPage implements OnDestroy {
         ref.plugins = Object.fromEntries(
           Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
         );
-        return this.saveRef$(ref);
+        return this.saveRef$(ref).pipe(
+          tap(() => this.uploadedUrls.push(ref.url)),
+        );
       }),
       catchError((res: HttpErrorResponse) => {
-        this.erroredRefs.push(ref);
+        original.outdated ||= ref.outdated;
+        this.erroredRefs.push(original);
         this.serverErrors.push(...printError(res));
         return of(null);
       }),
@@ -486,7 +492,7 @@ export class UploadPage implements OnDestroy {
       return this.router.navigate(['/tag', this.store.submit.exts[0].tag]);
     }
     if (this.store.submit.refs.length === 1) {
-      return this.router.navigate(['/ref', this.store.submit.refs[0].url]);
+      return this.router.navigate(['/ref', this.uploadedUrls[0] || this.store.submit.refs[0].url]);
     }
     if (this.store.submit.refs.length) {
       return this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/file' } });

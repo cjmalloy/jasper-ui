@@ -4,7 +4,7 @@ import { Ref } from '../model/ref';
 export const CACHE_FOLDER = 'cache/';
 const CACHE_ID_REGEX = /^[\w-]+(?:\.[\w-]+)*$/;
 const CACHE_URL_REGEX = /^cache:([\w-]+(?:\.[\w-]+)*)$/;
-const CACHE_URL_TEXT_REGEX = /\bcache:([\w-]+(?:\.[\w-]+)*)/g;
+const CACHE_URL_TEXT_REGEX = /\bcache:([\w-]+(?:\.[\w-]+)*)(?![\w./-])/g;
 
 /**
  * Check if a cache ID is safe to use as a file name in a zip.

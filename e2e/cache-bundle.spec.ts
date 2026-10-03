@@ -79,10 +79,10 @@ test.describe.serial('Bulk download cache files', () => {
     expect(newUrl).toMatch(/^cache:/);
     expect(newUrl).not.toBe(oldUrl);
     await expect(page).toHaveURL(url => decodeURIComponent(url.pathname) === '/ref/' + newUrl);
-    const content = await page.evaluate(async url => {
-      const res = await fetch('http://localhost:8081/api/v1/proxy?origin=&url=' + encodeURIComponent(url));
+    const content = await page.evaluate(async ({ api, url }) => {
+      const res = await fetch(api + '/proxy?origin=&url=' + encodeURIComponent(url));
       return res.text();
-    }, newUrl);
+    }, { api, url: newUrl });
     expect(content).toBe('hello cache');
   });
 
@@ -113,7 +113,7 @@ test.describe.serial('Bulk download cache files', () => {
     const updated = page.waitForResponse(res => res.url().includes('/api/v1/ref') && res.request().method() === 'PUT');
     await page.getByRole('button', { name: 'upload all' }).click();
     expect(JSON.parse((await updated).request().postData()!).url).toBe(newUrl);
-    await expect(page).toHaveURL(/\/ref\//);
+    await expect(page).toHaveURL(url => decodeURIComponent(url.pathname) === '/ref/' + newUrl);
     expect(posts).toBe(1);
   });
 

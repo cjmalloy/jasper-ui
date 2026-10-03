@@ -220,8 +220,11 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   export() {
-    downloadPage(this.type, this.items, this.downloadExts, this.name, this.proxy,
-      url => firstValueFrom(this.refs.getCurrent(this.editor.getRefUrl(url))));
+    downloadPage(this.type, this.items, this.downloadExts, this.name, this.proxy, {
+      fetchRef: url => firstValueFrom(this.refs.getCurrent(this.editor.getRefUrl(url))),
+      wikiPrefix: this.admin.getWikiPrefix(),
+      wikiExternal: this.admin.isWikiExternal(),
+    });
   }
 
   get items() {

@@ -35,6 +35,17 @@ describe('cache util', () => {
     expect(refCacheIds(ref).sort()).toEqual(['alt', 'comment', 'gallery', 'image', 'plugin-cache', 'source', 'url']);
   });
 
+  it('should only match complete cache URLs in comments', () => {
+    const ref: Ref = {
+      url: 'comment:1',
+      origin: '',
+      comment: 'cache:a/b cache:a. (cache:c) ![](cache:d.png) "cache:e"',
+    };
+    expect(refCacheIds(ref).sort()).toEqual(['c', 'd.png', 'e']);
+    const ids = new Map([['a', 'x'], ['c', 'y'], ['d.png', 'z'], ['e', 'w']]);
+    expect(rewriteCacheIds(ref, ids).comment).toBe('cache:a/b cache:a. (cache:y) ![](cache:z) "cache:w"');
+  });
+
   it('should ignore noStore caches', () => {
     const ref: Ref = {
       url: 'https://example.com',

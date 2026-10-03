@@ -786,6 +786,10 @@ Please Reload.</source>
         <source>export</source>
         <target>エクスポート</target>
       </trans-unit>
+      <trans-unit id="5812277912266071076" datatype="html">
+        <source>Download with attached files and embedded Refs that have files</source>
+        <target>添付ファイルと、ファイルを持つ埋め込みRefも含めてダウンロード</target>
+      </trans-unit>
       <trans-unit id="5670797229594522972" datatype="html">
         <source>Tag Query</source>
         <target>タグ検索条件</target>
