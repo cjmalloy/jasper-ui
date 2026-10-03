@@ -139,7 +139,7 @@ export class AppComponent implements AfterViewInit {
     this.pipWindow?.close();
     let win: Window | null = null;
     try {
-      win = await createPip(ref, this.pipPlugin?.config?.windowConfig, this.config.electron);
+      win = await createPip(ref, this.pipPlugin?.config?.windowConfig);
     } catch (e) {
       console.error('Failed to open Picture-in-Picture', e);
     }
@@ -155,11 +155,8 @@ export class AppComponent implements AfterViewInit {
       this.pipWindow = undefined;
       this.zone.run(() => this.store.view.removePip(url));
     };
-    // Popup windows lose listeners when they navigate, so poll them for close.
     const poll = setInterval(() => win!.closed && restore(), 500);
-    if (!this.config.electron && 'documentPictureInPicture' in window) {
-      win.addEventListener('pagehide', restore);
-    }
+    win.addEventListener('pagehide', restore);
   }
 
   @memo

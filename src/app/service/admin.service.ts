@@ -531,7 +531,7 @@ export class AdminService {
   }
 
   get pip() {
-    if (!('documentPictureInPicture' in window) && !this.config.electron) return false;
+    if (!('documentPictureInPicture' in window)) return false;
     return this.getPlugin('plugin/pip');
   }
 

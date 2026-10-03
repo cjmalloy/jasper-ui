@@ -109,17 +109,13 @@ export function browseUrl(ref: Ref) {
  * Open the /browse/ route for a Ref in a floating window.
  * Uses Document Picture-in-Picture when available, since PiP windows cannot be
  * navigated the browse route is loaded in a full size iframe.
- * Falls back to a popup window (ex. in Electron, where jasper-app can hook it
- * with setWindowOpenHandler).
  * Returns the opened window, if any.
  */
-export async function createPip(ref: Ref, config?: PipWindowConfig, popup = false): Promise<Window | null> {
+export async function createPip(ref: Ref, config?: PipWindowConfig): Promise<Window | null> {
   const url = browseUrl(ref);
   const width = config?.width || 450;
   const height = config?.height || 600;
-  if (popup || !('documentPictureInPicture' in window)) {
-    return open(url, '_blank', `popup,width=${width},height=${height}`);
-  }
+  if (!('documentPictureInPicture' in window)) return null;
   // @ts-ignore
   const pipWindow: Window = await documentPictureInPicture.requestWindow({ ...config, width, height });
   pipWindow.document.head.innerHTML = `

@@ -6,9 +6,13 @@ test.describe.serial('PiP Plugin', () => {
   let url = '';
 
   test.beforeAll(async ({ browser }) => {
-    // Document PiP is not available in headless browsers, so use the Electron popup fallback
-    page = await browser.newPage({
-      userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Electron/33.0.0 Safari/537.36',
+    page = await browser.newPage();
+    // Document PiP is not available in headless browsers, so stub it with a popup like Electron does
+    await page.addInitScript(() => {
+      (window as any).documentPictureInPicture = {
+        requestWindow: async ({ width, height }: { width: number, height: number }) =>
+          window.open('about:blank', '_blank', `popup,width=${width},height=${height}`),
+      };
     });
   });
 
@@ -43,7 +47,7 @@ test.describe.serial('PiP Plugin', () => {
     const popupPromise = page.waitForEvent('popup');
     await page.locator('.full-page.ref .link-below > button.toggle').click({ button: 'right' });
     const popup = await popupPromise;
-    await popup.waitForURL(/\/browse\//);
+    await expect(popup.locator('iframe')).toHaveAttribute('src', /\/browse\//);
     await expect(viewer).toHaveClass(/is-hidden-in-pip/);
     await expect(viewer).toBeHidden();
 
