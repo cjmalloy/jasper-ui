@@ -110,7 +110,7 @@ export function addGeocoder(
     e.stopPropagation();
     if (e instanceof KeyboardEvent && e.key === 'Enter') e.preventDefault();
   };
-  const events = ['mousedown', 'touchstart', 'dblclick', 'wheel', 'keydown'];
+  const events = ['mousedown', 'touchstart', 'dblclick', 'wheel', 'keydown', 'focusout'];
   for (const e of events) el?.addEventListener(e, stop);
   const theme = () => {
     let style;
