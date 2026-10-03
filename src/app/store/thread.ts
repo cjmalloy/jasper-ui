@@ -40,6 +40,7 @@ export class ThreadStore {
     });
     this.pages.set([]);
     this.cache.set(new Map());
+    this.latest.set([]);
     this.loading?.unsubscribe();
   }
 

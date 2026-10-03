@@ -50,6 +50,7 @@ describe('ThreadStore immutable cache', () => {
     store.clear();
     expect(store.pages()).toEqual([]);
     expect(store.cache().size).toBe(0);
+    expect(store.latest()).toEqual([]);
     expect(cache.size).toBe(1);
   });
 });
