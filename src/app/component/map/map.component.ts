@@ -74,8 +74,6 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   ext?: Ext;
   @Input()
   pageControls = true;
-  @Input()
-  emptyMessage = 'No results found';
   /**
    * Fit the map to this bounding box [west, south, east, north].
    * If empty, fits to the features on the map when fitFeatures is set.
@@ -358,7 +356,6 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   set page(value: Page<Ref> | undefined) {
     MemoCache.clear(this);
     this._page = value;
-    if (this.saveView && this.hidesMap(value)) this.view = this.urlView;
     this.mapDataUpdates$.next(value?.content || []);
     if (this._page) {
       if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
@@ -370,15 +367,6 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         });
       }
     }
-  }
-
-  /**
-   * The empty message replaces the map, which is created again when results
-   * return. Maps without an empty message are kept and do not need the saved
-   * view restored.
-   */
-  hidesMap(page?: Page<Ref>) {
-    return !!this.emptyMessage && !!page && !page.content.length;
   }
 
   @memo
