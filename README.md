@@ -267,6 +267,12 @@ file will be generated from environment variables:
 |                  | `CSP_FONT_SRC`           | Additional URLS to add to the font-src content security policy.                                   |                                                                                                         |
 |                  | `CSP_IMG_SRC`            | Additional URLS to add to the img-src content security policy.                                    |                                                                                                         |
 
+When running in the [jasper-app](https://github.com/cjmalloy/jasper-app) electron window, the app sends the
+server's base64 JWT secret in the `X-Jasper-Key` request header. nginx echoes it back to the client and never
+forwards it to `JASPER_API_PROXY`. The client then signs its own token with the selected user tag: `+user` and
+`_user` get `ROLE_ADMIN`, and any other user gets `ROLE_ANONYMOUS` so the database provides the role.
+A new token is created whenever the secret or the selected user tag changes, and no `User-Tag` header is sent.
+
 ## Developing
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.0.
 
