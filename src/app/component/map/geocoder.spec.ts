@@ -93,7 +93,7 @@ describe('geocoder', () => {
     }) as unknown as Map;
     expect(currentView(map([-63.5, 44.6], [-64, 44, -63, 45]))).toEqual({ center: [-63.5, 44.6], bbox: [-64, 44, -63, 45] });
     expect(currentView(map([0, 0], [-200, -95, 200, 95]))).toEqual({ center: [0, 0], bbox: [-180, -90, 180, 90] });
-    expect(currentView(map([0, 0], [170, -10, 190, 10]))).toEqual({ center: [0, 0], bbox: [170, -10, 180, 10] });
+    expect(currentView(map([0, 0], [170, -10, 190, 10]))).toEqual({ center: [0, 0] });
     expect(currentView(map([0, 0], [190, -10, 200, 10]))).toEqual({ center: [0, 0] });
     // Inverted bbox across the antimeridian is left out
     expect(currentView(map([180, 0], [170, -10, -170, 10]))).toEqual({ center: [180, 0] });
