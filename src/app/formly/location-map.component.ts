@@ -136,9 +136,21 @@ export class LocationMapComponent implements OnDestroy {
   mapLoaded(map: MapLibreMap) {
     this.map = map;
     this.removeClick?.();
-    this.removeClick = onSingleClick(map, e => this.zone.run(() => this.mapClick(e)), {
+    const targets = new WeakMap<MapMouseEvent, AbstractControl>();
+    this.removeClick = onSingleClick(map, e => this.zone.run(() => {
+      const target = targets.get(e);
+      if (!target || target !== this.picker.active || !this.locations.includes(target)) {
+        this.updateMarkers();
+        return;
+      }
+      this.mapClick(e);
+    }), {
       // Move the marker right away, so placing it does not wait for the double click delay
-      preview: e => this.previewClick(e),
+      preview: e => {
+        const target = this.clickTarget(e);
+        if (target) targets.set(e, target);
+        this.previewClick(e);
+      },
       cancel: () => this.updateMarkers(),
     });
     map.addSource('location-context', { type: 'geojson', data: this.contextData });
