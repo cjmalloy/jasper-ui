@@ -1324,10 +1324,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       }),
     };
     if (this.ref.upload) {
+      const oldUrl = this.ref.url;
       ref.upload = true;
+      if (ref.url !== oldUrl) delete ref.exists;
+      if (!ref.published?.isValid) ref.published = this.ref.published;
       this.editForm.reset();
+      this.ref = ref;
       this.init();
-      this.store.submit.setRef(ref);
+      this.store.submit.setRef(ref, oldUrl);
     } else {
       this.refreshTap = () => this.publishChanged = +published !== +this.ref.published!;
       this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
