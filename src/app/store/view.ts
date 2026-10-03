@@ -480,6 +480,10 @@ export class ViewStore {
     return this.route.routeSnapshot?.queryParams['view'];
   }
 
+  get mapView(): string {
+    return this.route.routeSnapshot?.queryParams['map'];
+  }
+
   get noView() {
     return !this.view;
   }

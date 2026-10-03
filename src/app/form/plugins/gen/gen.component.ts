@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
+import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
@@ -25,15 +25,31 @@ export class GenFormComponent implements OnInit, OnChanges {
   plugin!: Plugin;
   @Input()
   children: Plugin[] = [];
+  /**
+   * Initial plugin data by tag, used instead of the defaults when a plugin
+   * is added. Read when the plugin form is created, which emits pendingUsed.
+   */
+  @Input()
+  pending?: Record<string, any>;
+  @Output()
+  pendingUsed = new EventEmitter<string>();
   @Output()
   togglePlugin = new EventEmitter<string>();
+  @Output()
+  setPlugin = new EventEmitter<{ tag: string, value: any }>();
 
   model: any;
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
       config: {},
+      togglePlugin: (tag: string) => this.togglePlugin.next(tag),
+      setPlugin: (tag: string, value: any) => this.setPlugin.next({ tag, value }),
     },
+  };
+  headerModel = {};
+  headerOptions: FormlyFormOptions = {
+    formState: this.options.formState,
   };
 
   constructor(
@@ -56,7 +72,18 @@ export class GenFormComponent implements OnInit, OnChanges {
       }
       return cloneDeep(this.plugin.config?.bulkForm);
     }
-    return cloneDeep(this.plugin.config?.form);
+    const form = this.plugin.config?.form?.filter(f => !isHeader(f));
+    return form?.length ? cloneDeep(form) : undefined;
+  }
+
+  /**
+   * Fields shown in place of the plugin name, such as the child plugin select.
+   */
+  @memo
+  get headerForm() {
+    if (this.bulk) return undefined;
+    const form = this.plugin.config?.form?.filter(isHeader);
+    return form?.length ? cloneDeep(form) : undefined;
   }
 
   @memo
@@ -73,7 +100,13 @@ export class GenFormComponent implements OnInit, OnChanges {
   }
 
   ngOnInit(): void {
-    this.group?.patchValue(this.plugin.defaults);
+    const pending = this.pending?.[this.plugin.tag];
+    if (pending) {
+      this.model = cloneDeep(pending);
+      this.pendingUsed.next(this.plugin.tag);
+    } else {
+      this.group?.patchValue(this.plugin.defaults);
+    }
     this.options.formState.config = this.plugin.defaults;
   }
 
@@ -91,4 +124,8 @@ export class GenFormComponent implements OnInit, OnChanges {
     this.togglePlugin.next(tag);
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
   }
+}
+
+function isHeader(field: FormlyFieldConfig) {
+  return field.type === 'child-plugin';
 }
