@@ -85,7 +85,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   @Input()
   set saveView(value: boolean) {
     this._saveView = value;
-    this.view = value ? this.store.view.mapView : undefined;
+    this.view = value ? parseMapView(this.store.view.mapView) : undefined;
   }
   get saveView() {
     return this._saveView;
@@ -157,7 +157,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
    */
   private restoreView() {
     if (!this.saveView || !this.map) return;
-    const view = this.store.view.mapView;
+    const view = parseMapView(this.store.view.mapView);
     if (!view) {
       this.writeView();
     } else if (formatMapView(view) !== formatMapView(this.currentView)) {
