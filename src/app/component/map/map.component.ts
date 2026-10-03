@@ -197,7 +197,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     const rootConfig = root
       ? (this.ext?.config || (tag && this.admin.getTemplate(tag)?.defaults) || root.defaults) as RootConfig
       : undefined;
-    return getAddTags(tag, plugin, rootConfig).filter(t => this.auth.canAddTag(t));
+    return getAddTags(tag, plugin, rootConfig, tag === 'config/home').filter(t => this.auth.canAddTag(t));
   }
 
   private clearSearchResult() {
