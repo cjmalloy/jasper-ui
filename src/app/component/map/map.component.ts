@@ -289,6 +289,11 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   mapLoaded(map: Map) {
+    this.removeGeocoder?.();
+    this.removeGeocoder = undefined;
+    this.removeGeoLayers?.();
+    this.removeGeoLayers = undefined;
+    this.clearSearchResult();
     this.map = map;
     this.updateGeocoder();
     map.on('click', this.mapClick);
