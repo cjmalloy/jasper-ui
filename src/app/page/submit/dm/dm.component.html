@@ -6,7 +6,7 @@
       <input class="preview grow"
              type="text"
              [value]="preview()"
-             [title]="toInput.value"
+             [title]="previewTitle()"
              [style.display]="preview() ? 'block' : 'none'"
              (focus)="clickPreview(toInput)">
       <datalist id="to-list">
@@ -90,7 +90,7 @@
       <app-loading [inline]="true"></app-loading>
     }
     @if (admin.getPlugin('plugin/editing')) {
-      <button type="button" [disabled]="submitting() || saving() || submitted() || dmForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
+      <button type="button" [disabled]="submitting() || saving() || submitted() || dmFormPristine()" (click)="saveForLater(true)" i18n>Save for later</button>
     }
     <button type="submit" [disabled]="submitting() || (submitted() && !dmFormValid())" i18n>Send</button>
   </span>

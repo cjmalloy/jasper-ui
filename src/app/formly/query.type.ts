@@ -51,7 +51,7 @@ import { getErrorMessage } from './errors';
              [style.display]="preview() ? 'block' : 'none'">
       <div #div
            class="breadcrumbs"
-           [title]="input.value"
+           [title]="query()"
            [style.display]="preview() ? 'block' : 'none'"
            (click)="$event.target === div && edit(input, false)">
         @for (breadcrumb of breadcrumbs(); track breadcrumb) {

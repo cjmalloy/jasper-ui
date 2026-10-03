@@ -23,7 +23,9 @@ test.describe('Backup / Restore', () => {
   });
 
   test('creates backup', async ({ page }) => {
-    await page.goto('/settings/backup?debug=ADMIN');
+    await page.goto('/settings/backup?debug=ADMIN', { waitUntil: 'networkidle' });
+    const completed = page.locator('.list-container .link a');
+    const before = await completed.count();
     await page.locator('.backup.buttons button', { hasText: '+ backup' }).click();
     // Wait for overlay to appear
     await expect(page.locator('.popup button', { hasText: '+ backup' })).toBeVisible();
@@ -31,7 +33,11 @@ test.describe('Backup / Restore', () => {
     await expect(page.locator('#backupTombstones')).not.toBeChecked();
     // Click backup button to create backup with default options
     await page.locator('.popup button', { hasText: '+ backup' }).click();
-    await expect(page.locator('.backup .link a').first()).toHaveAttribute('href', /\.zip\?p=/);
+    // The list does not poll, so reload until the new backup has finished
+    await expect(async () => {
+      await page.reload({ waitUntil: 'networkidle' });
+      expect(await completed.count()).toBeGreaterThan(before);
+    }).toPass({ timeout: 30_000 });
   });
 
   test('deletes ref', async ({ page }) => {

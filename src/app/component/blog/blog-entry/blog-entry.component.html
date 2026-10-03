@@ -55,7 +55,7 @@
                     [ref]="ref()">{{ icon.label }}</span>
             }
           }
-          <span [title]="ref().published?.toISO()">{{ ref().published?.toRelative() }}</span>
+          <span [title]="ref().published?.toISO()">{{ ref().published | relative }}</span>
           @if (!authors().length && ref().created && !local()) {
             <ng-container i18n>
               on <a class="origin tag" [routerLink]="['/tag', ref().origin]">{{ ref().origin }}</a>
@@ -87,7 +87,7 @@
             <app-inline-tag #action [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>
           }
           @if (writeAccess()) {
-            <a class="fake-link" (click)="toggleEditing()" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+            <a class="fake-link" (click)="toggleEditing()" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
           } @else {
             <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
           }

@@ -28,7 +28,7 @@
   @if (!config.websockets) {
     <button type="button"
             class="refresh"
-            [title]="'last polled ' + lastPoll().toRelative()"
+            [title]="'last polled ' + (lastPoll() | relative)"
             (click)="refresh()" i18n>🔄</button>
   }
   @for (button of editorPushButtons(); track button; let i = $index) {

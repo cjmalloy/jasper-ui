@@ -67,7 +67,6 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   ],
 })
 export class SubmitTextPage implements HasChanges {
-  private readonly controlState0 = controlValue(() => this.sources);
 
 
   private readonly injector = inject(Injector);
@@ -76,6 +75,7 @@ export class SubmitTextPage implements HasChanges {
   readonly submitted = signal<boolean>(false);
   textForm: UntypedFormGroup;
   protected readonly textFormValid = controlState(() => this.textForm, c => c.valid);
+  protected readonly textFormPristine = controlState(() => this.textForm, c => c.pristine);
   readonly advanced = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
 
@@ -346,10 +346,9 @@ export class SubmitTextPage implements HasChanges {
     this.submitted.set(false);
   }
 
-  readonly top = computed(() => {
-    this.controlState0();
+  private top() {
     return this.sources.value[1] || this.sources.value[0] || this.ensureUrl();
-  });
+  }
 
   addSource(value = '') {
     while (this.sources.value.length < 2) {

@@ -76,6 +76,7 @@ export class SubmitDmPage implements HasChanges {
   readonly submitted = signal<boolean>(false);
   dmForm: UntypedFormGroup;
   protected readonly dmFormValid = controlState(() => this.dmForm, c => c.valid);
+  protected readonly dmFormPristine = controlState(() => this.dmForm, c => c.pristine);
   readonly serverError = signal<string[]>([]);
 
   readonly limitWidth = signal<HTMLElement | undefined>(undefined);
@@ -87,6 +88,7 @@ export class SubmitDmPage implements HasChanges {
   readonly tagsFormComponent = viewChild<TagsFormComponent>('tagsFormComponent');
 
   readonly preview = signal<string>('');
+  readonly previewTitle = signal('');
   readonly editing = signal<boolean>(false);
   readonly autocomplete = signal<{ value: string, label: string }[]>([]);
   readonly submitting = signal(false);
@@ -337,6 +339,7 @@ export class SubmitDmPage implements HasChanges {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(xs => {
       this.preview.set(xs.map(x => x?.name || x?.tag || '').join(',  '));
+      this.previewTitle.set(value);
     });
   }
 

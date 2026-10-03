@@ -83,6 +83,8 @@ npx playwright install --with-deps chromium
 | Production build (all locales) | `npm run build` | ~45s (up to ~100s on cold cache) |
 | Unit tests (Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
 | Single spec | `npm test -- --watch=false --include src/app/util/format.spec.ts` | ~6s |
+| Template check only | `npm run check:templates` (also runs first in `npm test` and in the Docker build) | ~5s |
+| App type check (incl. template diagnostics) | `npx ngc -p tsconfig.app.json --noEmit` | ~15s |
 | Unit tests exactly like CI | `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test` | ~4.5 min (cached builder) |
 
 Expected noise that is **not** an error:
@@ -180,8 +182,8 @@ Files that the container writes to `e2e/reports` and `test-results` may be owned
 - Viewport is 1280x720 to avoid the mobile layout.
 
 ```typescript
-import { expect, test } from '@playwright/test';
-import { mod } from './setup';
+import { expect } from '@playwright/test';
+import { mod, test } from './setup';
 
 test.describe.serial('Feature Name', () => {
   test('enable mods', async ({ page }) => {
@@ -194,6 +196,10 @@ test.describe.serial('Feature Name', () => {
   });
 });
 ```
+
+**Always import `test` from `./setup`, never from `@playwright/test`.** That `test` has an auto fixture that fails the test on any `console.error` or uncaught page error (`pageerror`), including pages created in `beforeAll` and contexts created during the test. The only allowed console errors are in `allowedConsoleErrors` in `e2e/setup.ts` (Chrome's `Failed to load resource: ... status of <code>` log for expected 4xx/5xx responses). Don't add Angular errors such as NG0100 or NG0600 to that list; fix them.
+
+The E2E client images are built with `npm run build:e2e` (`--configuration e2e`): production app behaviour (`environment.dev` is false, so no auto login), but unoptimized so Angular dev-mode checks run, including exhaustive `checkNoChanges`.
 
 `e2e/setup.ts` helpers:
 - `clearMods(page, base?)`, `mod(page, ...mods)`, `modRemote(page, base, ...mods)`: reset plugins/templates and enable mods such as `'#mod-wiki'`
@@ -226,6 +232,20 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 - Generate new pieces with `npx ng generate component|service|pipe|directive <name>`.
 - **RxJS subscribe style**: always pass a single callback (`obs.subscribe(value => { ... })`). Never pass an observer object, and never pass multiple callbacks.
 - Don't add comments unless they match the surrounding style.
+
+### Signals and change detection
+
+The app is zoneless and every component is `ChangeDetectionStrategy.OnPush`. A template only re-renders when a signal it reads changes, an input changes, or an event fires inside it. These rules are enforced by the build:
+
+- **All state is signals.** Use `signal()` for state, `computed()` for derived values, `input()`/`input.required()` for inputs, `linkedSignal(() => this.xInput())` for inputs that the component also overwrites, and `model()` when the parent must see the change. Don't use getters that compute from non-signal state in templates.
+- **Always call signals in templates**: `@if (editing())`, `[class.busy]="busy()"`. An uncalled signal is a function and is always truthy.
+- **Never read `FormControl`/`AbstractControl` `.value`, `.valid`, `.invalid` or `.errors` in a binding.** Use `controlValue(() => control)` or `controlState(() => control, c => c.valid)` from `util/form.ts`. Reading them in an event handler is fine.
+- Use `isDevMode()` only for Angular checks. For local development conveniences (auto login, prefetch, ...) use `environment.dev`, which is false in the E2E build.
+
+Checks:
+- **Compiler** (`tsconfig.json`): `strictTemplates` plus the extended diagnostics `interpolatedSignalNotInvoked` (NG8109), `uninvokedFunctionInEventBinding` (NG8111), `uninvokedFunctionInTextInterpolation` (NG8117) and `uninvokedTrackFunction` (NG8115) are errors. `strictTemplates` also reports TS2774 for an uncalled function in `@if`.
+- **`npm run check:templates`** (`scripts/check-templates.mjs`): parses every component template and `host` binding with `@angular/compiler`, resolves each expression with the TypeScript type checker, and fails on uncalled `Signal`/`InputSignal`/`ModelSignal` reads (except `.set(...)`-style member access and two-way bindings) and on form control state reads in bindings. It runs before `ng test` in `npm test` and in the Docker build. Exceptions go in `scripts/check-templates.allowlist.json` and need a `reason`; unused entries fail the check.
+- **Runtime**: dev (`npm start`, `environment.ts`) and E2E (`environment.e2e.ts`) builds add `provideCheckNoChangesConfig({ exhaustive: true })`, so state that changes without notifying an OnPush view logs NG0100. The Playwright fixture turns that into a test failure.
 
 ### Project structure
 

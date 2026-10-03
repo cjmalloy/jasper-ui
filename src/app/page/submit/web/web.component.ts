@@ -66,6 +66,7 @@ export class SubmitWebPage implements HasChanges {
   title = '';
   webForm: UntypedFormGroup;
   protected readonly webFormValid = controlState(() => this.webForm, c => c.valid);
+  protected readonly webFormPristine = controlState(() => this.webForm, c => c.pristine);
   readonly serverError = signal<string[]>([]);
 
   readonly limitWidth = signal<HTMLElement | undefined>(undefined);

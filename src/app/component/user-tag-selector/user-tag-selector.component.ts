@@ -18,6 +18,7 @@ import { Store } from '../../store/store';
 export class UserTagSelectorComponent {
 
   readonly preview = signal('');
+  readonly previewTitle = signal('');
   readonly editing = signal(false);
   readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
@@ -53,6 +54,7 @@ export class UserTagSelectorComponent {
     this.previewing?.unsubscribe();
     this.previewing = this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
       this.preview.set(x?.name || x?.tag || '');
+      this.previewTitle.set(value);
     });
   }
 

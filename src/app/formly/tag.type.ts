@@ -20,7 +20,7 @@ import { getErrorMessage } from './errors';
       <input class="preview grow"
              type="text"
              [value]="preview()"
-             [title]="input.value"
+             [title]="previewTitle()"
              [style.display]="preview() ? 'block' : 'none'"
              (focus)="clickPreview(input)">
       <datalist [id]="listId">
@@ -57,6 +57,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> {
 
   listId = 'list-' + uuid();
   readonly preview = signal('');
+  readonly previewTitle = signal('');
   readonly editing = signal(false);
   readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
@@ -118,6 +119,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> {
     this.previewing?.unsubscribe();
     this.previewing = this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
       this.preview.set(x?.name || x?.tag || '');
+      this.previewTitle.set(value);
     });
   }
 

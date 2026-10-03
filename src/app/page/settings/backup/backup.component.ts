@@ -5,7 +5,7 @@ import { computed, Component, ElementRef, TemplateRef, ViewContainerRef, ChangeD
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, throwError } from 'rxjs';
+import { catchError, filter, of, throwError } from 'rxjs';
 import { BackupListComponent } from '../../../component/backup/backup-list/backup-list.component';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { BackupOptions } from '../../../model/backup';
@@ -85,8 +85,12 @@ export class SettingsBackupPage {
 
   fetchBackups(origin?: string) {
     this.list.set(undefined);
-    this.backups.list(origin === undefined ? this.origin() : origin)
-      .subscribe(list => this.list.set(sortBy(list, 'id').reverse()));
+    this.backups.list(origin === undefined ? this.origin() : origin).pipe(
+      catchError((res: HttpErrorResponse) => {
+        this.serverError.set(printError(res));
+        return of([]);
+      }),
+    ).subscribe(list => this.list.set(sortBy(list, 'id').reverse()));
   }
 
   showBackupOptions() {
@@ -108,6 +112,7 @@ export class SettingsBackupPage {
     });
     this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate(), this.viewContainerRef));
     this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
+    this.backupOptionsRef.keydownEvents().pipe(filter(e => e.key === 'Escape')).subscribe(() => this.cancelBackup());
   }
 
   confirmBackup() {

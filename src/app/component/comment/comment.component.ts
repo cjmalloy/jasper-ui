@@ -56,6 +56,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
 import { CommentEditComponent } from './comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
+import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-comment',
@@ -64,6 +65,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   host: { 'class': 'comment', '[attr.tabindex]': '0', '[class.last-selected]': 'lastSelected()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RelativePipe,
     FakeLinkDirective,
     CommentThreadComponent,
     forwardRef(() => ViewerComponent),

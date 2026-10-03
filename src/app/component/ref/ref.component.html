@@ -74,14 +74,14 @@
             @if (publishedIsSubmitted()) {
               <span [title]="ref().created!.toISO()" i18n>
                 @if (!config.mobile) { submitted }
-                {{ ref().created!.toRelative() }}</span>
+                {{ ref().created | relative }}</span>
             } @else {
               <span [title]="ref().published!.toISO()" i18n>
                 @if (!config.mobile) { published }
-                {{ ref().published!.toRelative() }}</span>
+                {{ ref().published | relative }}</span>
             }
             @if (!modifiedIsSubmitted()) {
-              <span i18n-title title="last edited {{ ref().modified!.toRelative() }}">* </span>
+              <span i18n-title title="last edited {{ ref().modified | relative }}">* </span>
             }
           }
           @if (authors().length) {
@@ -243,7 +243,7 @@
           }
           @if (!hideEdit()) {
             @if (ref().created && writeAccess()) {
-              <a class="fake-link" (click)="setEditing(!editing())" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+              <a class="fake-link" (click)="setEditing(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
             } @else {
               <a class="fake-link" (click)="setViewSource(!viewSource())" i18n>source</a>
             }
@@ -270,7 +270,7 @@
               @if (taggingAccess()) {
                 <app-inline-tag #action [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>
               }
-              <a class="fake-link" (click)="setEditing(!editing())" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+              <a class="fake-link" (click)="setEditing(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
             }
             <app-confirm-action #action [action]="remove$" i18n>remove</app-confirm-action>
           }

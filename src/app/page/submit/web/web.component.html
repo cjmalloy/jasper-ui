@@ -28,7 +28,7 @@
       <app-loading [inline]="true"></app-loading>
     }
     @if (admin.getPlugin('plugin/editing')) {
-      <button type="button" [disabled]="submitting() || saving() || submitted() || webForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
+      <button type="button" [disabled]="submitting() || saving() || submitted() || webFormPristine()" (click)="saveForLater(true)" i18n>Save for later</button>
     }
     @if (alreadyExists()) {
       <button type="button" [disabled]="submitting() || saving()" (click)="prepareRepost()" i18n>Repost</button>

@@ -17,7 +17,7 @@ import {
   computed
 } from '@angular/core';
 import { defer } from 'lodash-es';
-import { Subscription } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
 import { TitleDirective } from '../../../directive/title.directive';
 import { Ref, writeRef } from '../../../model/ref';
 import { Action } from '../../../model/tag';
@@ -192,6 +192,7 @@ export class ActionListComponent implements AfterViewInit {
             this.closeAdvanced();
         }
       });
+      this.overlayRef.keydownEvents().pipe(filter(e => e.key === 'Escape')).subscribe(() => this.closeAdvanced());
       this.overlayResizeObserver?.observe(this.overlayRef.overlayElement);
     });
   }

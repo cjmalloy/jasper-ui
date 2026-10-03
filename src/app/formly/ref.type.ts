@@ -33,7 +33,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         <input class="preview grow"
                type="text"
                [value]="preview()"
-               [title]="input.value"
+               [title]="previewTitle()"
                [style.display]="preview() ? 'block' : 'none'"
                (focus)="clickPreview(input)"
                (drop)="upload($event, $event.dataTransfer?.items)"
@@ -84,6 +84,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> {
   listId = 'list-' + uuid();
   previewUrl = '';
   readonly preview = signal('');
+  readonly previewTitle = signal('');
   readonly editing = signal(false);
   readonly progress = signal(0);
   readonly uploading = signal(false);
@@ -151,6 +152,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> {
     this.previewing = this.refs.getCurrent(value).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
     ).subscribe(ref => {
+      this.previewTitle.set(value);
       if (ref) {
         this.preview.set(getPageTitle(ref));
       } else if (value.toLowerCase().startsWith('tag:/')) {
@@ -195,6 +197,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> {
     } else if (event.url) {
       this.uploading.set(false);
       this.preview.set(event.name);
+      this.previewTitle.set(event.url);
       this.field.formControl!.setValue(event.url);
     } else {
       this.uploading.set(true);

@@ -165,7 +165,7 @@
 
         <span><!-- Buttons --></span>
         <span class="buttons right">
-          @if (submitForm.pending) {
+          @if (submitFormPending()) {
             <app-loading [inline]="true"></app-loading>
           }
           <button type="submit"

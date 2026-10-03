@@ -2,7 +2,7 @@
   <input class="preview grow"
          type="text"
          [value]="preview()"
-         [title]="userTagInput.value"
+         [title]="previewTitle()"
          [style.display]="preview() ? 'block' : 'none'"
          (focus)="clickPreview(userTagInput)">
   <datalist id="user-tag">

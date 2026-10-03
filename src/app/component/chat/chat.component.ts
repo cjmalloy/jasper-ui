@@ -47,6 +47,7 @@ import { getArgs } from '../../util/query';
 import { braces, hasTag, tagOrigin } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { ChatEntryComponent } from './chat-entry/chat-entry.component';
+import { RelativePipe } from '../../pipe/relative.pipe';
 
 export interface ChatUpload {
   readonly id: string;
@@ -64,6 +65,7 @@ export interface ChatUpload {
   host: { 'class': 'chat ext' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RelativePipe,
     FakeLinkDirective,
     ChatEntryComponent,
     LoadingComponent,

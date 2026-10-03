@@ -2,6 +2,7 @@
 // Fails when a component template (or host binding) reads change-detection state that OnPush will not track:
 //   1. a Signal / InputSignal / ModelSignal read without being called, e.g. `@if (editing)` or `[class.x]="busy"`
 //   2. FormControl / AbstractControl `.value`, `.valid`, `.invalid` or `.errors` (use `controlValue()` from util/form.ts)
+//   3. DOM state of a template reference (`#input` then `[title]="input.value"`), which changes without notifying Angular
 // Templates are parsed with @angular/compiler and every expression is resolved with the TypeScript type checker.
 // Exceptions go in scripts/check-templates.allowlist.json, and each one needs a reason.
 import {
@@ -36,13 +37,15 @@ import ts from 'typescript';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const allowlistFile = resolve(root, 'scripts/check-templates.allowlist.json');
-const CONTROL_STATE = new Set(['value', 'valid', 'invalid', 'errors']);
+const CONTROL_STATE = new Set(['value', 'valid', 'invalid', 'errors', 'status', 'pending', 'dirty', 'pristine', 'touched', 'untouched', 'disabled', 'enabled']);
 const CONTROL_CLASSES = new Set(['AbstractControl', 'FormControl', 'FormGroup', 'FormArray', 'FormRecord']);
+const DOM_STATE = new Set(['value', 'checked', 'valueAsNumber', 'valueAsDate', 'selectedIndex']);
 
 const configFile = ts.readConfigFile(resolve(root, 'tsconfig.app.json'), ts.sys.readFile);
 const parsed = ts.parseJsonConfigFileContent(configFile.config, ts.sys, root);
 const program = ts.createProgram(parsed.fileNames, parsed.options);
 const checker = program.getTypeChecker();
+const elementTagMap = findElementTagMap();
 
 const allowlist = existsSync(allowlistFile) ? JSON.parse(readFileSync(allowlistFile, 'utf8')) : [];
 const allowUsed = new Set();
@@ -115,10 +118,16 @@ function sourceSpan(text, url) {
   return new ParseSourceSpan(new ParseLocation(file, 0, 0, 0), new ParseLocation(file, text.length, 0, text.length));
 }
 
-/** Template reference variables (#ref) are visible everywhere, so treat them as untyped locals. */
+/**
+ * Template reference variables (#ref) are visible everywhere. References to plain elements are typed
+ * as the DOM element, everything else (directives, components, ng-template) is untyped.
+ */
 function collectReferences(nodes, scope) {
   class RefCollector extends TmplAstRecursiveVisitor {
-    visitElement(el) { el.references.forEach(r => scope.set(r.name, undefined)); super.visitElement(el); }
+    visitElement(el) {
+      el.references.forEach(r => scope.set(r.name, r.value ? undefined : domElementType(el.name)));
+      super.visitElement(el);
+    }
     visitTemplate(t) { t.references.forEach(r => scope.set(r.name, undefined)); super.visitTemplate(t); }
     visitComponent(c) { c.references?.forEach(r => scope.set(r.name, undefined)); super.visitComponent(c); }
   }
@@ -240,6 +249,12 @@ function checkExpression(ctx, loc, scope, ast, { twoWay = false, event = false }
         report(node, `signal '${source(node)}' is read without calling it`);
       }
     }
+    if (!event && DOM_STATE.has(node.name)) {
+      const receiver = nonNull(evalType(ctx, scope, node.receiver));
+      if (receiver && isDomElement(receiver)) {
+        report(node, `'${source(node)}' reads DOM state that Angular does not track; bind to a signal or form control instead`);
+      }
+    }
     if (!event && CONTROL_STATE.has(node.name)) {
       const receiver = nonNull(evalType(ctx, scope, node.receiver));
       const prop = receiver && checker.getPropertyOfType(receiver, node.name);
@@ -322,6 +337,24 @@ function isControlMember(prop) {
       && CONTROL_CLASSES.has(owner.name?.text)
       && d.getSourceFile().fileName.includes('@angular/forms');
   });
+}
+
+function findElementTagMap() {
+  for (const sf of program.getSourceFiles()) {
+    if (!sf.isDeclarationFile || !sf.fileName.includes('lib.dom')) continue;
+    const decl = sf.statements.find(st => ts.isInterfaceDeclaration(st) && st.name.text === 'HTMLElementTagNameMap');
+    if (decl) return checker.getTypeAtLocation(decl.name);
+  }
+  return undefined;
+}
+
+function domElementType(tag) {
+  const prop = elementTagMap && checker.getPropertyOfType(elementTagMap, tag.toLowerCase());
+  return prop ? checker.getTypeOfSymbol(prop) : undefined;
+}
+
+function isDomElement(type) {
+  return !!type.getProperty('tagName') && !!type.getProperty('ownerDocument');
 }
 
 function main() {

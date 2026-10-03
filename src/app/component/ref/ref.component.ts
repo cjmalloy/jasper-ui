@@ -80,6 +80,7 @@ import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
+import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-ref',
@@ -113,6 +114,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
@@ -173,6 +175,7 @@ export class RefComponent implements HasChanges {
     ))), { initialValue: undefined });
   editForm: UntypedFormGroup;
   protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
+  protected readonly editFormDirty = controlState(() => this.editForm, c => c.dirty);
   readonly submitted = linkedSignal(() => { this.ref(); return false; });
   readonly invalid = linkedSignal(() => { this.ref(); return false; });
   readonly overwritten = linkedSignal(() => { this.ref(); return false; });

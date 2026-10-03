@@ -36,7 +36,7 @@ export class ThemesFormComponent {
     const group = this.group();
     const fieldName = this.fieldName();
     if (!group.contains(fieldName)) {
-      group.addControl(fieldName, this.fb.group({}));
+      group.addControl(fieldName, this.fb.group({}), { emitEvent: false });
     }
     return group.get(fieldName) as UntypedFormGroup;
   });

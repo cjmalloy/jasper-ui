@@ -1,4 +1,4 @@
-import { controlValue } from '../../util/form';
+import { controlState, controlValue } from '../../util/form';
 import { AsyncPipe } from '@angular/common';
 import { computed, Component, ChangeDetectionStrategy, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
 import {
@@ -81,6 +81,7 @@ export class SubmitPage {
   readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
   submitForm: UntypedFormGroup;
+  protected readonly submitFormPending = controlState(() => this.submitForm, c => c.pending);
 
   genUrl = 'internal:' + uuid();
   readonly plugin = signal<string>('');

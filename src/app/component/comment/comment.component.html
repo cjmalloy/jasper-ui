@@ -20,9 +20,9 @@
     @if (store.view.isVoteSorted() && admin.getPlugin('plugin/user/vote/up')) {
       <span class="vote-score" i18n>{{ score() }} points&nbsp;</span>
     }
-    <span [title]="ref().created?.toISO()">{{ ref().created?.toRelative() }}</span>
+    <span [title]="ref().created?.toISO()">{{ ref().created | relative }}</span>
     @if (!modifiedIsSubmitted()) {
-      <span [title]="ref().modified?.toRelative()">* </span>
+      <span [title]="ref().modified | relative">* </span>
     }
     @for (icon of icons(); track icon) {
       @if (showIcon(icon)) {
@@ -78,9 +78,9 @@
         @if (admin.getPlugin('plugin/user/vote/up')) {
           <span class="vote-score" i18n>{{ score() }} points&nbsp;</span>
         }
-        <span [title]="ref().created?.toISO()">{{ ref().created?.toRelative() }}</span>
+        <span [title]="ref().created?.toISO()">{{ ref().created | relative }}</span>
         @if (!modifiedIsSubmitted()) {
-          <span [title]="'last edited ' + ref().modified?.toRelative()">* </span>
+          <span [title]="'last edited ' + (ref().modified | relative)">* </span>
         }
         @if (tagged().length) {
           <span i18n> tagged

@@ -88,6 +88,7 @@ export class UserComponent implements HasChanges {
 
   editForm: UntypedFormGroup;
   protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
+  protected readonly editFormDirty = controlState(() => this.editForm, c => c.dirty);
   readonly submitted = linkedSignal(() => { this.user(); this.profileInput(); return false; });
   readonly editing = linkedSignal(() => { this.user(); this.profileInput(); return false; });
   readonly viewSource = linkedSignal(() => { this.user(); this.profileInput(); return false; });

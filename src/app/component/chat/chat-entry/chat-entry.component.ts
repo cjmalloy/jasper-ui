@@ -38,6 +38,7 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { MdComponent } from '../../md/md.component';
 import { NavComponent } from '../../nav/nav.component';
 import { ViewerComponent } from '../../viewer/viewer.component';
+import { RelativePipe } from '../../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-chat-entry',
@@ -46,6 +47,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   host: { 'class': 'chat-entry', '[attr.tabindex]': '0' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => MdComponent),

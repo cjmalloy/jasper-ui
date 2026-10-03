@@ -8,7 +8,7 @@
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="plugin().modified?.toISO()" i18n>modified {{ plugin().modified?.toRelative() }}</span>
+    <span [title]="plugin().modified?.toISO()" i18n>modified {{ plugin().modified | relative }}</span>
     @if (!local()) {
       &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', plugin().origin]">{{ plugin().origin }}</a>
     }
@@ -20,7 +20,7 @@
       <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
     }
     @if (created() && local() && store.account.admin()) {
-      <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+      <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
     } @else {
       <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
     }

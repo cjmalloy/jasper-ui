@@ -4,7 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, ElementRef, linkedSignal, signal, TemplateRef, ViewContainerRef, input, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { catchError, of, throwError } from 'rxjs';
+import { catchError, filter, of, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { BackupOptions } from '../../model/backup';
 import { AdminService } from '../../service/admin.service';
@@ -95,11 +95,14 @@ export class BackupComponent {
         offsetY: 4,
       }]);
     this.restoreOptionsRef = this.overlay.create({
-      hasBackdrop: false,
+      hasBackdrop: true,
+      backdropClass: 'hide',
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.reposition()
     });
     this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate(), this.viewContainerRef));
+    this.restoreOptionsRef.backdropClick().subscribe(() => this.cancelRestore());
+    this.restoreOptionsRef.keydownEvents().pipe(filter(e => e.key === 'Escape')).subscribe(() => this.cancelRestore());
   }
 
   restore$ = () => {

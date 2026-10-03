@@ -21,13 +21,15 @@ import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { LoadingComponent } from '../loading/loading.component';
+import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-plugin',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent, DiffComponent],
+  imports: [
+    RelativePipe,FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent, DiffComponent],
   host: {
     '[attr.tabindex]': '0',
     '[class.deleted]': 'deleted()',
@@ -51,6 +53,7 @@ export class PluginComponent implements HasChanges {
 
   editForm: UntypedFormGroup;
   protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
+  protected readonly editFormDirty = controlState(() => this.editForm, c => c.dirty);
   readonly submitted = linkedSignal(() => { this.plugin(); return false; });
   readonly editing = linkedSignal(() => { this.plugin(); return false; });
   readonly viewSource = linkedSignal(() => { this.plugin(); return false; });

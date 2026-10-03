@@ -38,6 +38,7 @@ import { printError } from '../../util/http';
 import { hasPrefix, parentTag } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-ext',
@@ -52,6 +53,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ExtFormComponent),
     RouterLink,
@@ -70,6 +72,7 @@ export class ExtComponent implements HasChanges {
 
   readonly editForm = signal<UntypedFormGroup>(undefined as unknown as UntypedFormGroup);
   protected readonly editFormValid = controlState(() => this.editForm(), c => c.valid);
+  protected readonly editFormDirty = controlState(() => this.editForm(), c => c.dirty);
   readonly submitted = linkedSignal(() => { this.ext(); return false; });
   readonly invalid = linkedSignal(() => { this.ext(); return false; });
   readonly overwritten = linkedSignal(() => { this.ext(); return false; });

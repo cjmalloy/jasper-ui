@@ -8,5 +8,20 @@
     "file": "src/app/formly/bookmark.type.ts",
     "expression": "formControl.value",
     "reason": "Formly FieldType: in zoneless apps FormlyField subscribes to formControl.events and marks the field component for check on every control event."
+  },
+  {
+    "file": "src/app/formly/location.type.ts",
+    "expression": "formControl.disabled",
+    "reason": "Formly FieldType: in zoneless apps FormlyField subscribes to formControl.events and marks the field component for check on every control event."
+  },
+  {
+    "file": "src/app/formly/multicheckbox.type.ts",
+    "expression": "formControl.disabled",
+    "reason": "Formly FieldType: in zoneless apps FormlyField subscribes to formControl.events and marks the field component for check on every control event."
+  },
+  {
+    "file": "src/app/formly/radio.type.ts",
+    "expression": "formControl.disabled",
+    "reason": "Formly FieldType: in zoneless apps FormlyField subscribes to formControl.events and marks the field component for check on every control event."
   }
 ]

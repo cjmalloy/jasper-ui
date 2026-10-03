@@ -65,6 +65,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
 import { CommentReplyComponent } from '../../comment/comment-reply/comment-reply.component';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summary.component';
+import { RelativePipe } from '../../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-blog-entry',
@@ -73,6 +74,7 @@ import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summ
   host: { 'class': 'blog-entry', '[attr.tabindex]': '0', '[class.deleted]': 'deleted()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
@@ -110,6 +112,7 @@ export class BlogEntryComponent implements HasChanges {
 
   editForm: UntypedFormGroup;
   protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
+  protected readonly editFormDirty = controlState(() => this.editForm, c => c.dirty);
   readonly submitted = linkedSignal({ source: this.ref, computation: () => false });
   readonly icons = computed(() => uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url)))));
   readonly actions = computed(() => uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins))));
