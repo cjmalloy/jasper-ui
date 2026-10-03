@@ -1,5 +1,6 @@
 import MaplibreGeocoder, { type CarmenGeojsonFeature, type MaplibreGeocoderSuggestion } from '@maplibre/maplibre-gl-geocoder';
 import type { Map } from 'maplibre-gl';
+import { Ext } from '../../model/ext';
 import { GeocodeService } from '../../service/geocode.service';
 import { isPosition } from '../../util/geo';
 import { GeocodeResult, GeocoderPosition, GeocodeView } from '../../util/geocode';
@@ -64,6 +65,7 @@ export function currentView(map: Map): GeocodeView | undefined {
 /**
  * Add an address search control to the map. Choosing a result moves the map
  * and calls onResult with the location found.
+ * Searches use the geocoding config of the map's Ext, if given.
  * Returns a function to remove the control.
  */
 export function addGeocoder(
@@ -72,6 +74,7 @@ export function addGeocoder(
   position: GeocoderPosition = 'top-left',
   onResult?: (location: [number, number], name: string) => void,
   onClear?: () => void,
+  ext?: () => Ext | undefined,
 ): () => void {
   const control = new MaplibreGeocoder({
     // All results come from the externalGeocoder
@@ -79,7 +82,7 @@ export function addGeocoder(
   }, {
     externalGeocoder: async query => {
       try {
-        return toFeatureCollection(await geocoder.geocode(query, undefined, currentView(map))).features;
+        return toFeatureCollection(await geocoder.geocode(query, undefined, currentView(map), ext?.())).features;
       } catch (e) {
         console.error('Geocoding error:', e);
         throw e;

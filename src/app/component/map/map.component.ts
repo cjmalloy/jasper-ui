@@ -12,7 +12,7 @@ import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { FeatureCollection } from 'geojson';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
 import { LngLatBounds, Map, Marker } from 'maplibre-gl';
-import { catchError, filter, forkJoin, map as rxMap, of, Subject, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, filter, forkJoin, map as rxMap, of, Subject, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -101,6 +101,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private map?: Map;
   private markers: Marker[] = [];
   private mapDataUpdates$ = new Subject<Ref[]>();
+  private ext$ = new BehaviorSubject<Ext | undefined>(undefined);
   mapData: MapEntry[] = [];
   private geocoding = false;
   private geocoderPosition?: GeocoderPosition;
@@ -126,7 +127,10 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     private auth: AuthzService,
     private zone: NgZone,
   ) {
-    geocoder.config$.pipe(takeUntilDestroyed()).subscribe(config => {
+    this.ext$.pipe(
+      switchMap(ext => geocoder.configFor$(ext)),
+      takeUntilDestroyed(),
+    ).subscribe(config => {
       this.geocoding = isConfigured(config);
       if (this.geocoderPosition !== config.geocoderPosition) {
         this.removeGeocoder?.();
@@ -199,7 +203,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     if (this.geocoding && this.map && !this.removeGeocoder) {
       this.removeGeocoder = addGeocoder(this.map, this.geocoder, this.geocoderPosition,
         (location, name) => this.showSearchResult(location, name),
-        () => this.clearSearchResult());
+        () => this.clearSearchResult(),
+        () => this.ext);
     } else if (!this.geocoding && this.removeGeocoder) {
       this.removeGeocoder();
       this.removeGeocoder = undefined;
@@ -287,7 +292,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     const setName = this.showSearchResult(location);
     if (!setName || !this.geocoding) return;
     const controller = this.reverseGeocode = new AbortController();
-    this.geocoder.reverse(location, controller.signal)
+    this.geocoder.reverse(location, controller.signal, this.ext)
       .then(result => {
         if (!controller.signal.aborted && result?.name) setName(result.name);
       })
@@ -303,6 +308,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['ext']) {
       MemoCache.clear(this);
+      if (this.ext$.value !== this.ext) this.ext$.next(this.ext);
     }
     if (changes['bbox'] && !changes['bbox'].firstChange) {
       MemoCache.clear(this);
@@ -312,6 +318,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
   ngOnDestroy() {
     this.mapDataUpdates$.complete();
+    this.ext$.complete();
     this.clearMarkers();
     this.clearSearchResult();
     this.removeClick?.();

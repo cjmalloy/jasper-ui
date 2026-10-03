@@ -118,7 +118,7 @@ describe('geocoder', () => {
     const remove = addGeocoder(map as unknown as Map, { geocode } as unknown as GeocodeService);
     center = [-63.5, 44.6];
     await control.options.externalGeocoder('halifax');
-    expect(geocode).toHaveBeenCalledWith('halifax', undefined, { center: [-63.5, 44.6], bbox: [-64.5, 43.6, -62.5, 45.6] });
+    expect(geocode).toHaveBeenCalledWith('halifax', undefined, { center: [-63.5, 44.6], bbox: [-64.5, 43.6, -62.5, 45.6] }, undefined);
     remove();
   });
 });
