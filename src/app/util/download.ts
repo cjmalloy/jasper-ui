@@ -11,6 +11,8 @@ import { writeUser } from '../model/user';
 import { ProxyService } from '../service/api/proxy.service';
 import { config } from '../service/config.service';
 import { Type } from '../store/view';
+import { CACHE_FOLDER, cacheUrlId, refCacheIds } from './cache';
+import { getEmbeds } from './editor';
 import { getSearchParams } from './http';
 
 export async function saveAs(file: Blob, defaultFilename: string) {
@@ -44,18 +46,106 @@ function write(type: Type): any {
   }
 }
 
-export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], query: string) {
+/**
+ * Map over items with at most limit promises running at once.
+ */
+export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const result: R[] = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      result[i] = await fn(items[i]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return result;
+}
+
+const FETCH_LIMIT = 6;
+
+/**
+ * Add all cache files referenced by the Refs to the cache folder of the zip.
+ * This is compatible with the backup format, which has a single cache/<id>
+ * namespace. Cache files are identified by origin and ID, so if the same ID
+ * is referenced from multiple origins only the first is bundled.
+ */
+export async function zipCache(zip: JSZip, refs: Ref[], fetchCache: (id: string, origin: string) => Promise<Blob | undefined>) {
+  const ids = new Map<string, string>();
+  const skipped = new Set<string>();
+  for (const ref of refs) {
+    const origin = ref.origin || '';
+    for (const id of refCacheIds(ref)) {
+      if (!ids.has(id)) {
+        ids.set(id, origin);
+      } else if (ids.get(id) !== origin && !skipped.has(origin + ' ' + id)) {
+        skipped.add(origin + ' ' + id);
+        console.warn(`Skipping cache file ${id} from origin ${origin || 'default'}, already bundled from origin ${ids.get(id) || 'default'}`);
+      }
+    }
+  }
+  await mapLimit([...ids.entries()], FETCH_LIMIT, async ([id, origin]) => {
+    try {
+      const blob = await fetchCache(id, origin);
+      if (blob) zip.file(CACHE_FOLDER + id, blob);
+    } catch (error) {
+      console.error(`Skipping cache file in zip due to error fetching: ${id}`, error);
+    }
+  });
+}
+
+export interface EmbedOptions {
+  fetchRef: (url: string) => Promise<Ref | undefined>;
+  wikiPrefix?: string;
+  wikiExternal?: boolean;
+  base?: string;
+}
+
+/**
+ * Fetch the Refs embedded in the comments of the given Refs that reference
+ * cache files. Only one level of embeds is followed, embeds of the embedded
+ * Refs are not.
+ */
+export async function embeddedCacheRefs(refs: Ref[], { fetchRef, wikiPrefix, wikiExternal, base }: EmbedOptions) {
+  const key = (ref: Ref) => ref.url + ' ' + (ref.origin || '');
+  const seen = new Set(refs.map(key));
+  const urls = new Set(refs.flatMap(ref => getEmbeds(ref.comment || '', wikiPrefix, wikiExternal, base)).filter(url => !cacheUrlId(url)));
+  const fetched = await mapLimit([...urls], FETCH_LIMIT, url => fetchRef(url).catch(error => {
+    console.error(`Skipping embed in zip due to error fetching: ${url}`, error);
+    return undefined;
+  }));
+  const result: Ref[] = [];
+  for (const ref of fetched) {
+    if (!ref || seen.has(key(ref)) || !refCacheIds(ref).length) continue;
+    seen.add(key(ref));
+    result.push(ref);
+  }
+  return result;
+}
+
+export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], query: string, proxy?: ProxyService, embeds?: EmbedOptions) {
   const zip = new JSZip();
-  zip.file(type + '.json', file(page.content!.map(write(type))));
+  let content = page.content!;
+  if (type === 'ref' && proxy && embeds) {
+    content = [...content, ...await embeddedCacheRefs(content, embeds)];
+  }
+  zip.file(type + '.json', file(content.map(write(type))));
   if (exts.length) zip.file('ext.json', file(exts.map(writeExt)));
+  if (type === 'ref' && proxy) {
+    await zipCache(zip, content, async (id, origin) => (await firstValueFrom(proxy.download('cache:' + id, origin, id))).blob);
+  }
   return zip.generateAsync({ type: 'blob' })
     .then(content => saveAs(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));
 }
 
-export async function downloadSet(ref: Ref[], ext: Ext[], title: string) {
+export async function downloadSet(ref: Ref[], ext: Ext[], title: string, cache?: Map<string, JSZip.JSZipObject>) {
   const zip = new JSZip();
   zip.file('ref.json', file(ref.map(writeRef)));
   zip.file('ext.json', file(ext.map(writeExt)));
+  if (cache?.size) {
+    // Bundled cache files are already in a single namespace
+    await zipCache(zip, ref.map(r => ({ ...r, origin: '' })), async id => cache.get(id)?.async('blob'));
+  }
   return zip.generateAsync({ type: 'blob' })
     .then(content => saveAs(content, title + '.zip'));
 }

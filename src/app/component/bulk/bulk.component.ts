@@ -5,7 +5,7 @@ import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, Simp
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
+import { catchError, concat, firstValueFrom, last, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
 import { patchPlugins } from '../../form/plugins/plugins.component';
@@ -20,11 +20,14 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { PluginService } from '../../service/api/plugin.service';
+import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { UserService } from '../../service/api/user.service';
 import { AuthzService } from '../../service/authz.service';
+import { ConfigService } from '../../service/config.service';
+import { EditorService } from '../../service/editor.service';
 import { HelpService } from '../../service/help.service';
 import { ExtStore } from '../../store/ext';
 import { PluginStore } from '../../store/plugin';
@@ -33,6 +36,7 @@ import { Store } from '../../store/store';
 import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { Type } from '../../store/view';
+import { refCacheIds } from '../../util/cache';
 import { downloadPage } from '../../util/download';
 import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
@@ -80,6 +84,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
     public plugin: PluginStore,
     public template: TemplateStore,
     private refs: RefService,
+    private proxy: ProxyService,
     private exts: ExtService,
     private users: UserService,
     private plugins: PluginService,
@@ -88,6 +93,8 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
     private ts: TaggingService,
     private el: ElementRef,
     private help: HelpService,
+    private editor: EditorService,
+    private config: ConfigService,
   ) {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
@@ -204,8 +211,23 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.store.eventBus.fire(this.toggled ? 'toggle-all-open' : 'toggle-all-closed');
   }
 
+  get downloadExts() {
+    return this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [];
+  }
+
   download() {
-    downloadPage(this.type, this.items, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
+    const attachments = this.type === 'ref' && this.items.content.some(ref => refCacheIds(ref as Ref).length);
+    const proxy = attachments && confirm($localize`Download attached files?`) ? this.proxy : undefined;
+    downloadPage(this.type, this.items, this.downloadExts, this.name, proxy);
+  }
+
+  export() {
+    downloadPage(this.type, this.items, this.downloadExts, this.name, this.proxy, {
+      fetchRef: url => firstValueFrom(this.refs.getCurrent(this.editor.getRefUrl(url))),
+      wikiPrefix: this.admin.getWikiPrefix(),
+      wikiExternal: this.admin.isWikiExternal(),
+      base: this.config.base,
+    });
   }
 
   get items() {
