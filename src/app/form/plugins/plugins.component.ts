@@ -125,6 +125,10 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
     });
   }
 
+  usePending(tag: string) {
+    delete this.pending[tag];
+  }
+
   visible(v: Visibility) {
     return visible(this.group.value, v, true, false);
   }

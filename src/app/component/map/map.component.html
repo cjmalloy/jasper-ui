@@ -1,5 +1,5 @@
 @if (page) {
-  @if (emptyMessage && !page.content.length) {
+  @if (hidesMap(page)) {
     <p class="no-results">{{ emptyMessage }}</p>
   } @else{
     <mgl-map [mapStyle]="mapStyle"

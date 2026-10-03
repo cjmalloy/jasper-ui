@@ -340,6 +340,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.removeClick?.();
     this.removeClick = undefined;
     this.map?.off('moveend', this.writeView);
+    this.removeGeocoder?.();
     this.removeGeocoder = undefined;
     this.removeGeoLayers?.();
     this.removeGeoLayers = undefined;
@@ -357,8 +358,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   set page(value: Page<Ref> | undefined) {
     MemoCache.clear(this);
     this._page = value;
-    // The map is created again when results return, so restore the latest view
-    if (this.saveView && this.emptyMessage && value && !value.content.length) this.view = this.urlView;
+    if (this.saveView && this.hidesMap(value)) this.view = this.urlView;
     this.mapDataUpdates$.next(value?.content || []);
     if (this._page) {
       if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
@@ -370,6 +370,15 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         });
       }
     }
+  }
+
+  /**
+   * The empty message replaces the map, which is created again when results
+   * return. Maps without an empty message are kept and do not need the saved
+   * view restored.
+   */
+  hidesMap(page?: Page<Ref>) {
+    return !!this.emptyMessage && !!page && !page.content.length;
   }
 
   @memo

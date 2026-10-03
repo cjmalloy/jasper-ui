@@ -136,7 +136,11 @@ export class LocationMapComponent implements OnDestroy {
   mapLoaded(map: MapLibreMap) {
     this.map = map;
     this.removeClick?.();
-    this.removeClick = onSingleClick(map, e => this.zone.run(() => this.mapClick(e)));
+    this.removeClick = onSingleClick(map, e => this.zone.run(() => this.mapClick(e)), {
+      // Move the marker right away, so placing it does not wait for the double click delay
+      preview: e => this.previewClick(e),
+      cancel: () => this.updateMarkers(),
+    });
     map.addSource('location-context', { type: 'geojson', data: this.contextData });
     this.removeGeoLayers = this.zone.runOutsideAngular(() => addGeoLayers(map, 'location-context', 'location-context', 5));
     this.watch?.unsubscribe();
@@ -149,11 +153,25 @@ export class LocationMapComponent implements OnDestroy {
   }
 
   mapClick(event: MapMouseEvent) {
-    if ((event.originalEvent?.target as Element | undefined)?.closest?.('.maplibregl-marker')) return;
-    const active = this.picker.active;
-    if (!active || !this.locations.includes(active)) return;
+    const active = this.clickTarget(event);
+    if (!active) return;
     const { lng, lat } = event.lngLat.wrap();
     this.pick(active, [lng, lat]);
+  }
+
+  private previewClick(event: MapMouseEvent) {
+    const active = this.clickTarget(event);
+    if (active && !active.disabled) this.markers.get(active)?.setLngLat(event.lngLat.wrap());
+  }
+
+  /**
+   * The location moved by clicking the map.
+   */
+  private clickTarget(event: MapMouseEvent) {
+    if ((event.originalEvent?.target as Element | undefined)?.closest?.('.maplibregl-marker')) return undefined;
+    const active = this.picker.active;
+    if (!active || !this.locations.includes(active)) return undefined;
+    return active;
   }
 
   /**

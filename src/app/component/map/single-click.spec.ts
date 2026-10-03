@@ -56,4 +56,27 @@ describe('onSingleClick', () => {
     expect(handler).not.toHaveBeenCalled();
     expect(listeners['click']).toHaveLength(0);
   });
+
+  it('previews clicks and cancels the preview on a double click', () => {
+    const handler = vi.fn();
+    const preview = vi.fn();
+    const cancel = vi.fn();
+    onSingleClick(map, handler, { preview, cancel });
+    click(1);
+    expect(preview).toHaveBeenCalledTimes(1);
+    click(2);
+    expect(cancel).toHaveBeenCalledTimes(1);
+    listeners['dblclick'].forEach(l => l());
+    expect(cancel).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(300);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('does not cancel the preview when removed', () => {
+    const cancel = vi.fn();
+    const remove = onSingleClick(map, vi.fn(), { cancel });
+    click(1);
+    remove();
+    expect(cancel).not.toHaveBeenCalled();
+  });
 });

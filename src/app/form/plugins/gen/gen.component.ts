@@ -27,10 +27,12 @@ export class GenFormComponent implements OnInit, OnChanges {
   children: Plugin[] = [];
   /**
    * Initial plugin data by tag, used instead of the defaults when a plugin
-   * is added. Consumed when the plugin form is created.
+   * is added. Read when the plugin form is created, which emits pendingUsed.
    */
   @Input()
   pending?: Record<string, any>;
+  @Output()
+  pendingUsed = new EventEmitter<string>();
   @Output()
   togglePlugin = new EventEmitter<string>();
   @Output()
@@ -100,8 +102,8 @@ export class GenFormComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     const pending = this.pending?.[this.plugin.tag];
     if (pending) {
-      delete this.pending![this.plugin.tag];
       this.model = cloneDeep(pending);
+      this.pendingUsed.next(this.plugin.tag);
     } else {
       this.group?.patchValue(this.plugin.defaults);
     }
