@@ -131,7 +131,7 @@ function line(ps: Position[]): Geometry {
 function toPolygon(rings: Position[][]): Geometry | undefined {
   const rs = rings.filter(r => r.length);
   if (!rs.length) return undefined;
-  if (!isLinearRing(rs[0])) return { type: 'GeometryCollection', geometries: rs.map(line) };
+  if (!isLinearRing(rings[0])) return { type: 'GeometryCollection', geometries: rs.map(line) };
   const geometries: Geometry[] = [
     { type: 'Polygon', coordinates: rs.filter(isLinearRing) },
     ...rs.filter(r => !isLinearRing(r)).map(line),
