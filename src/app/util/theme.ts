@@ -114,8 +114,8 @@ ${themeBlock('dark', doc)}
  * Add your own rules below. Use the row slots (.ref, .ext, .link, .info, .actions, ...)
  * so your theme keeps working as Jasper changes. For example:
  *
- * .ref.list-item .thumbnail { display: none; }
- * .list-item .info { font-size: 12px; }
+ * .ref.list-item > .thumbnail { display: none; }
+ * .list-item > .info { font-size: 12px; }
  * body.dark-theme .ext.list-item > .link { color: var(--tag); }
  */
 `;

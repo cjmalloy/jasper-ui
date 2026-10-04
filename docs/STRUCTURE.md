@@ -12,31 +12,44 @@ Tags are plain strings, not entities. The `.tag` class is only used for inline t
 ```html
 <!-- Ref -->
 <app-ref class="ref list-item">
-  <div class="row">                      <!-- layout wrapper -->
-    <div class="thumbnail"></div>        <!-- optional -->
-    <div class="stack">                  <!-- layout wrapper -->
-      <div class="link">…</div>          <!-- line 1: title -->
-      <div class="link-below">           <!-- layout wrapper (+ toggles) -->
-        <div class="stack">              <!-- layout wrapper -->
-          <div class="info">…</div>      <!-- line 2: metadata -->
-          <app-viewer class="viewer-inline embed">…</app-viewer>  <!-- optional: inline viewer -->
-          <div class="actions">…</div>   <!-- line 3: links / buttons -->
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="voting">…</div>                            <!-- optional -->
+  <div class="thumbnail"></div>                          <!-- optional -->
+  <div class="link">…</div>                              <!-- line 1: title -->
+  <button class="toggle">…</button>                      <!-- optional: expand toggle -->
+  <div class="info">…</div>                              <!-- line 2: metadata -->
+  <app-viewer class="viewer-inline embed">…</app-viewer> <!-- optional: inline viewer -->
+  <div class="actions">…</div>                           <!-- line 3: links / buttons -->
+  <div class="toggle actions-toggle">…</div>             <!-- mobile only -->
+  <div class="toggle threads | comments | view">…</div>  <!-- mobile only -->
   <app-viewer class="viewer-below embed">…</app-viewer>  <!-- optional: viewer below the row -->
 </app-ref>
 
 <!-- Ext, Plugin, Template or User (root class: ext | plugin | template | profile) -->
 <app-ext class="ext list-item">
-  <div class="link">…</div>              <!-- line 1: title -->
-  <div class="stack">                    <!-- layout wrapper -->
-    <div class="info">…</div>            <!-- line 2: metadata -->
-    <div class="actions">…</div>         <!-- line 3: links / buttons -->
-  </div>
+  <div class="link">…</div>                              <!-- line 1: title -->
+  <div class="info">…</div>                              <!-- line 2: metadata -->
+  <div class="actions">…</div>                           <!-- line 3: links / buttons -->
 </app-ext>
 ```
+
+There are no layout wrappers. Every `.list-item` is a CSS grid, and the slots are its direct children.
+Tag-like rows use a single column. Ref rows use these named column lines:
+
+| Column | Holds |
+|---|---|
+| `voting` | `.voting`, spanning the same rows as `.thumbnail` |
+| `thumbnail` | `.thumbnail`, spanning the `.link`, `.info`, `.viewer-inline` and `.actions` rows |
+| `toggle` | The expand toggle, to the left of `.info` and `.actions`. `.link` starts here. |
+| `main` | `.info`, `.viewer-inline` and `.actions` |
+| `actions-toggle`, `nav-toggle` | Mobile toggles |
+| `end` | End of `.link` |
+
+Anything else (`.viewer-below`, the edit form, errors) spans the full width below the row.
+Always use child selectors such as `.ref > .info`. A descendant selector such as `.ref .info` also
+matches Refs nested inside an `.embed`.
+
+The layout only uses CSS Grid Level 1, so it also works on iOS 13. It doesn't need subgrid, `:has()`,
+`:is()`, `:where()` or `@layer`.
 
 ## Selectors
 
