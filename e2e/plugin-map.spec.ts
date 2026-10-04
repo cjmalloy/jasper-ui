@@ -998,10 +998,6 @@ test.describe.serial('Map Plugin', () => {
     await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toContainText('MapLibre');
     await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toContainText('© MapTiler');
     await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toContainText('OpenStreetMap contributors');
-    // The resize handle has a light background so it shows on satellite imagery
-    const handle = point.locator('.location-map .resize-handle');
-    await expect(handle).toBeVisible();
-    expect(await handle.evaluate(el => getComputedStyle(el, '::before').backgroundColor)).toBe('rgba(255, 255, 255, 0.7)');
     await page.unrouteAll({ behavior: 'ignoreErrors' });
   });
 
@@ -1025,13 +1021,6 @@ test.describe.serial('Map Plugin', () => {
     const handle = list.locator('.location-map .resize-handle');
     const box = (await handle.boundingBox())!;
     expect(Math.round(box.height)).toBe(300);
-    // The handle is drawn in the bottom right corner of the map
-    const grip = await handle.evaluate(el => {
-      const style = getComputedStyle(el, '::before');
-      return { content: style.content, right: style.right, bottom: style.bottom, image: style.backgroundImage };
-    });
-    expect(grip).toMatchObject({ content: '""', right: '0px', bottom: '0px' });
-    expect(grip.image).toContain('data:image/svg+xml');
     const before = (await canvas.boundingBox())!;
     await page.mouse.move(box.x + box.width - 3, box.y + box.height - 3);
     await page.mouse.down();

@@ -12,26 +12,8 @@
     max-width: 100%;
     height: 300px;
     container-type: inline-size;
-
-    // Round the map instead of clipping the host, so the resize handle is not cut off
-    & > .maplibregl-map {
-      border-radius: 4px;
-    }
-
-    // Keep the resize handle visible on satellite and dark basemaps
-    @media (min-width: 741px) {
-      &.resize-handle:before {
-        right: 0;
-        bottom: 0;
-        border-radius: 4px 0 4px 0;
-        background-color: rgba(255, 255, 255, 0.7);
-      }
-    }
-  }
-
-  // The mobile resize handle is drawn below the map
-  @media (max-width: 740px) {
-    margin-bottom: 28px;
+    border-radius: 4px;
+    overflow: hidden;
   }
 
   .location-marker {
