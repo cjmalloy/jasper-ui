@@ -18,12 +18,13 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
 
   async function expectInboxRef(page: Page, title: string, base: string, user: string, remote: boolean) {
     const path = base + `/inbox/all?debug=ADMIN&tag=${user}`;
-    const selector = `.ref-list .link${remote ? '.remote' : ':not(.remote)'}`;
+    const link = `.link${remote ? '.remote' : ':not(.remote)'}`;
+    const selector = `.ref-list ${link}`;
     await expect.poll(async () => {
       await page.goto(path, { waitUntil: 'networkidle' });
       return await page.locator(selector, { hasText: title }).count();
     }, { timeout: 60_000 }).toBeGreaterThan(0);
-    return page.locator(selector, { hasText: title }).locator('..').locator('..').locator('..');
+    return page.locator('.ref-list .ref', { has: page.locator(`:scope > ${link}`, { hasText: title }) });
   }
 
   test('@\u{ff20}main : clear all', async ({ page }) => {
@@ -144,7 +145,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.goto('/?debug=USER&tag=alice', { waitUntil: 'networkidle' });
     await page.locator('.settings .inbox').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link.remote', { hasText: refFromOtherTitle }).locator('..').locator('..').locator('..');
+    const ref = page.locator('.ref-list .ref', { has: page.locator(':scope > .link.remote', { hasText: refFromOtherTitle }) });
     await ref.locator('.actions a', { hasText: 'permalink'}).first().click();
     await page.locator('.comment-reply textarea').fill(replyText);
     await page.locator('.comment-reply textarea').blur();
@@ -170,7 +171,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApi);
     await page.locator('input[type=search]').press('Enter');
-    const repl = page.locator('.link:not(.remote)', { hasText: '@repl' }).locator('..').locator('..').locator('..');
+    const repl = page.locator('.ref', { has: page.locator(':scope > .link:not(.remote)', { hasText: '@repl' }) });
     await repl.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await repl.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });
@@ -182,7 +183,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(mainApi);
     await page.locator('input[type=search]').press('Enter');
-    const main = page.locator('.link:not(.remote)', { hasText: '@main' }).locator('..').locator('..').locator('..');
+    const main = page.locator('.ref', { has: page.locator(':scope > .link:not(.remote)', { hasText: '@main' }) });
     await main.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await main.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });
