@@ -1042,6 +1042,55 @@ test.describe.serial('Map Plugin', () => {
     await expect(points.nth(1).locator('input[type=number]').nth(1)).toHaveValue('44.7');
   });
 
+  test('location input map picker can be resized from the mobile handle', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
+    await point.locator('.location-map-toggle').click();
+    const map = point.locator('.location-map .resize-handle');
+    await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
+    // Scroll the inputs below the map into view, so the whole ⬍ handle is visible
+    await point.locator('input[type=number]').nth(0).scrollIntoViewIfNeeded();
+    const box = (await map.boundingBox())!;
+
+    // The ⬍ handle hangs below the map without covering the inputs
+    const input = (await point.locator('input[type=number]').nth(0).boundingBox())!;
+    expect(input.y).toBeGreaterThanOrEqual(box.y + box.height + 24);
+
+    // Drag the middle of the ⬍ handle
+    const x = box.x + box.width - 34;
+    const y = box.y + box.height;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x, y + 100, { steps: 10 });
+    await page.mouse.up();
+    await expect.poll(async () => (await map.boundingBox())!.height).toBeGreaterThan(box.height + 80);
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
+  });
+
+  test('location labels do not jump on hover on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/multipoint', { waitUntil: 'networkidle' });
+    const list = page.locator('.plugin-content formly-list-section').first();
+    await list.locator('button', { hasText: '+ Add Point' }).click();
+    const label = list.locator('.list-drag .form-label').first();
+    await expect(label).toBeVisible();
+    const textX = () => label.evaluate(el => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return range.getBoundingClientRect().x;
+    });
+    const before = await textX();
+    await label.hover();
+    await page.waitForTimeout(300);
+    expect(Math.abs(await textX() - before)).toBeLessThan(2);
+  });
+
   test('location input map picker pans with text selected', async ({ page }) => {
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });

@@ -152,6 +152,7 @@ $tablet-width: 948px;
     & > formly-field > formly-list-section > label,
     & > formly-field > formly-wrapper-form-field > label {
       flex-basis: 100%;
+      transform-origin: left center;
     }
   }
   .mobile-hide {

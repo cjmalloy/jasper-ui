@@ -15,6 +15,7 @@ import { preventSelectionDrag } from '../component/map/selection-drag';
 import { onSingleClick } from '../component/map/single-click';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
+import { ConfigService } from '../service/config.service';
 import { GeocodeService } from '../service/geocode.service';
 import { geoFeatures, hasLocation, locationBounds } from '../util/geo';
 import { addGeoLayers } from '../util/geo-style';
@@ -44,7 +45,8 @@ import { closedRings, LocationList, locationLists, LocationPicker } from './loca
              (mapContextMenu)="mapContextMenu($event)"
              (mapError)="onMapError($event)"
              (dragstart)="$event.preventDefault()"
-             appResizeHandle></mgl-map>
+             appResizeHandle
+             [hitArea]="config.mobile ? 48 : 20"></mgl-map>
   `,
   styleUrls: ['./location-map.component.scss'],
   encapsulation: ViewEncapsulation.None,
@@ -82,6 +84,7 @@ export class LocationMapComponent implements OnDestroy {
   private releaseMouseUp?: () => void;
 
   constructor(
+    public config: ConfigService,
     private admin: AdminService,
     private geocoder: GeocodeService,
     private zone: NgZone,

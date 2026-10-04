@@ -6,14 +6,23 @@
   width: 100%;
   margin-bottom: 4px;
 
+  // The mobile resize handle hangs below the map
+  @media (max-width: 740px) {
+    margin-bottom: 28px;
+  }
+
   mgl-map {
     display: block;
     width: 100%;
     max-width: 100%;
     height: 300px;
     container-type: inline-size;
-    border-radius: 4px;
-    overflow: hidden;
+
+    // Clip the map instead of the host, so the mobile resize handle below the map is not cut off
+    & > .maplibregl-map {
+      border-radius: 4px;
+      overflow: hidden;
+    }
   }
 
   .location-marker {
