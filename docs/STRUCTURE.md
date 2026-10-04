@@ -47,27 +47,12 @@ Tags are plain strings, not entities. The `.tag` class is only used for inline t
 | `.editing` | Row with the edit form open |
 | `.tag` | Inline tag links (not rows) |
 
-User rows use `.profile` because `.user` is already used on inline user tag links
-(`a.user.tag`).
-
-## Example theme snippets
-
-```css
-/* Hide all thumbnails */
-.ref .thumbnail { display: none; }
-
-/* Quieter metadata line */
-.list-item .info { font-size: 85%; opacity: 0.7; }
-
-/* Tint ext rows */
-.ext.list-item { border-left: 3px solid teal; }
-
-/* Highlight rows being edited */
-.list-item.editing { outline: 2px dashed orange; }
-```
+User rows use `.profile` for the permission entity, and user tag links use `.user`.
 
 ## Known quirks
 
 - Refs nest line 2 deeper than the other rows (inside `.row > .stack > .link-below > .stack`).
 - Plugin views such as comment, blog, chat, kanban and note render refs in their own layouts,
   not as `.ref` rows.
+- Targeting descendants without child selectors like `>` might target more than you expect if
+  there is a lot of recursive embedding.
