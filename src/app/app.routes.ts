@@ -1,6 +1,5 @@
 import { Location } from '@angular/common';
-import { NgModule } from '@angular/core';
-import { DefaultUrlSerializer, RouterModule, Routes, UrlSerializer, UrlTree } from '@angular/router';
+import { DefaultUrlSerializer, Routes, UrlSerializer, UrlTree } from '@angular/router';
 import { conditionGuard } from './guard/condition.guard';
 import { hasRoleGuard } from './guard/has-role.guard';
 import { installedModGuard } from './guard/installed-mod.guard';
@@ -157,7 +156,7 @@ Location.prototype.normalize = function(url) {
   return norm;
 };
 
-const routes: Routes = [
+export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: 'home', component: HomePage, canActivate: [installedModGuard('config/home', ['../all'])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
   { path: 'login', component: LoginPage },
@@ -225,14 +224,3 @@ const routes: Routes = [
     ],
   },
 ];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes, {
-    paramsInheritanceStrategy: 'always',
-    onSameUrlNavigation: 'reload',
-    enableTracing: false,
-  })],
-  exports: [RouterModule],
-  providers: [{ provide: UrlSerializer, useClass: CustomUrlSerializer }]
-})
-export class AppRoutingModule {}

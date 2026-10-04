@@ -12,6 +12,11 @@ import { Store } from '../store/store';
   },
 })
 export class ImageDirective {
+  private config = inject(ConfigService);
+  private store = inject(Store);
+  private elRef = inject(ElementRef);
+  private imgs = inject(ImageService);
+
   readonly grid = input(false);
   readonly padding = input(8);
   readonly ref = input<Ref | undefined>();
@@ -25,12 +30,7 @@ export class ImageDirective {
   private resizeObserver?: ResizeObserver;
   private loadingUrl = '';
 
-  constructor(
-    private config: ConfigService,
-    private store: Store,
-    private elRef: ElementRef,
-    private imgs: ImageService,
-  ) {
+  constructor() {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
         const ref = this.ref();

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, untracked, ViewEncapsulation, DestroyRef, inject } from '@angular/core';
+import { Component, computed, effect, input, untracked, ViewEncapsulation, DestroyRef, inject } from '@angular/core';
 import { isEqual } from 'lodash-es';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -35,7 +35,6 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
   styleUrls: ['./map.component.scss'],
   encapsulation: ViewEncapsulation.None,
   host: { 'class': 'map ext' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MglComponent,
     ControlComponent,
@@ -47,6 +46,12 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
   ]
 })
 export class MapComponent implements HasChanges {
+  private router = inject(Router);
+  private admin = inject(AdminService);
+  private proxy = inject(ProxyService);
+  private refs = inject(RefService);
+  private store = inject(Store);
+
 
   readonly tag = input('');
   readonly ext = input<Ext>();
@@ -61,13 +66,7 @@ export class MapComponent implements HasChanges {
       ? of(content.map(ref => [ref] as MapEntry)) : forkJoin(content.map(ref => this.getBareRepost(ref)))),
   ), { initialValue: [] as MapEntry[] });
 
-  constructor(
-    private router: Router,
-    private admin: AdminService,
-    private proxy: ProxyService,
-    private refs: RefService,
-    private store: Store,
-  ) {
+  constructor() {
     setWorkerUrl('assets/maplibre-gl-worker.mjs');
     effect(() => {
       this.mapData();

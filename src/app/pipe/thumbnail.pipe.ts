@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform, inject } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { Ref } from '../model/ref';
 import { AdminService } from '../service/admin.service';
@@ -13,12 +13,10 @@ type ThumbnailRef = Pick<Ref, 'url' | 'origin' | 'plugins' | 'tags'>;
     pure: true
 })
 export class ThumbnailPipe implements PipeTransform {
+  private admin = inject(AdminService);
+  private store = inject(OembedStore);
+  private proxy = inject(ProxyService);
 
-  constructor(
-    private admin: AdminService,
-    private store: OembedStore,
-    private proxy: ProxyService,
-  ) { }
 
   transform(refs: (ThumbnailRef | undefined)[], force = false, prefetch = true): Observable<string> {
     const imagesEnabled = !!this.admin.getPlugin('plugin/image');

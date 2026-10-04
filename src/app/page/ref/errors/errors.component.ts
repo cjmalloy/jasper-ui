@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, effect, untracked, DestroyRef, inject } from '@angular/core';
+import { Component, viewChild, effect, untracked, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer } from 'lodash-es';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
@@ -23,10 +23,18 @@ import { hasTag, updateMetadata } from '../../../util/tag';
   templateUrl: './errors.component.html',
   styleUrl: './errors.component.scss',
   host: { 'class': 'errors' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent]
 })
 export class RefErrorsComponent implements HasChanges {
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private stomp = inject(StompService);
+  private refs = inject(RefService);
+  private bookmarks = inject(BookmarkService);
+
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -34,16 +42,11 @@ export class RefErrorsComponent implements HasChanges {
 
   private watch?: Subscription;
 
-  constructor(
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    private stomp: StompService,
-    private refs: RefService,
-    private bookmarks: BookmarkService,
-  ) {
+  constructor() {
+    const store = this.store;
+    const query = this.query;
+    const bookmarks = this.bookmarks;
+
     query.clear();
     store.view.defaultSort.set(['published']);
     if (!this.store.view.filter().length) bookmarks.setFilters(['query/' + (store.account.origin() || '*')]);

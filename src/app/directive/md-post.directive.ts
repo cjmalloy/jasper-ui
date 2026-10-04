@@ -1,9 +1,12 @@
-import { Directive, Inject, input, ViewContainerRef, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { Directive, input, ViewContainerRef, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { EmbedService } from '../service/embed.service';
 
 @Directive({ selector: '[appMdPost]' })
 export class MdPostDirective {
+  private embeds = inject(EmbedService);
+  private viewContainerRef = inject<ViewContainerRef>(ViewContainerRef);
+
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => this.cleanup());
 
 
@@ -13,11 +16,6 @@ export class MdPostDirective {
 
   private subscriptions: (() => void)[] = [];
   private lastData = '';
-
-  constructor(
-    private embeds: EmbedService,
-    @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
-  ) { }
 
   private readonly initialize = afterNextRender(() => {
     const load = this.load();

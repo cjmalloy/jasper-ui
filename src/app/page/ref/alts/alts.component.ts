@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
+import { Component, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
 import { defer } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -15,21 +15,23 @@ import { getArgs } from '../../../util/query';
   selector: 'app-ref-alts',
   templateUrl: './alts.component.html',
   styleUrls: ['./alts.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent]
 })
 export class RefAltsComponent implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+
 
   readonly list = viewChild<RefListComponent>('list');
 
   readonly page = signal<Page<Ref>>(Page.of([]));
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const store = this.store;
+    const query = this.query;
+
     query.clear();
     store.view.defaultSort.set(['modified']);
     effect(() => {

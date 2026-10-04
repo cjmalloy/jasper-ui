@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, effect, DestroyRef, inject } from '@angular/core';
+import { Component, viewChild, effect, DestroyRef, inject } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -13,22 +13,25 @@ import { getArgs } from '../../../util/query';
   selector: 'app-inbox-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent],
 })
 export class InboxRefPage implements HasChanges {
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+
 
   readonly list = viewChild<RefListComponent>('list');
 
   plugin?: Plugin;
   writeAccess = false;
 
-  constructor(
-    private mod: ModService,
-    private admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Inbox: `);
     store.view.clear(['modified']);
     query.clear();

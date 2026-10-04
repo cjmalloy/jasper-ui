@@ -8,7 +8,7 @@ import { throwError } from 'rxjs';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
-import { JasperFormlyModule } from '../../../formly/formly.module';
+import { provideJasperFormly } from '../../../formly/formly.config';
 
 import { SubmitWebPage } from './web.component';
 
@@ -20,13 +20,13 @@ describe('SubmitWebPage', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         SubmitWebPage,
         RefFormComponent,
         TagsFormComponent,
         LinksFormComponent,
       ],
       providers: [
+        provideJasperFormly(),
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),

@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, viewChild, signal } from '@angular/core';
+import { Component, viewChild, signal, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
@@ -24,10 +24,17 @@ import { environment } from '../../../../environments/environment';
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
 })
 export class SettingsMePage implements HasChanges {
+  config = inject(ConfigService);
+  store = inject(Store);
+  private exts = inject(ExtService);
+  private accounts = inject(AccountService);
+  private admin = inject(AdminService);
+  private fb = inject(FormBuilder);
+  private location = inject(Location);
+
 
   readonly submitted = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
@@ -38,15 +45,10 @@ export class SettingsMePage implements HasChanges {
   editForm!: UntypedFormGroup;
   protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
 
-  constructor(
-    public config: ConfigService,
-    public store: Store,
-    private exts: ExtService,
-    private accounts: AccountService,
-    private admin: AdminService,
-    private fb: FormBuilder,
-    private location: Location,
-  ) {
+  constructor() {
+    const store = this.store;
+    const fb = this.fb;
+
     const ext = cloneDeep(store.account.ext()!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);

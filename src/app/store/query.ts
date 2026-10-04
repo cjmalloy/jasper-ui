@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { catchError, EMPTY, Observable, Subscription } from 'rxjs';
 import { Page } from '../model/page';
@@ -17,6 +17,8 @@ interface PendingCursor {
   providedIn: 'root'
 })
 export class QueryStore {
+  private refs = inject(RefService);
+
 
   readonly args = signal<RefPageArgs | undefined>(undefined, { equal: isEqual });
   readonly sourcesOf = signal<Ref | undefined>(undefined);
@@ -28,10 +30,6 @@ export class QueryStore {
   private runningSources?: Subscription;
   private runningResponses?: Subscription;
   private pendingCursor?: PendingCursor;
-
-  constructor(
-    private refs: RefService,
-  ) { }
 
   clear() {
     this.args.set(undefined);

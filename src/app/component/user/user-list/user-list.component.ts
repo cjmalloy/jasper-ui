@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input, signal, viewChildren } from '@angular/core';
+import { Component, effect, input, signal, viewChildren, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -16,10 +16,12 @@ import { UserComponent } from '../user.component';
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss'],
   host: { 'class': 'user-list' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [UserComponent, LoadingComponent, PageControlsComponent]
 })
 export class UserListComponent implements HasChanges {
+  private router = inject(Router);
+  private profiles = inject(ProfileService);
+
 
   readonly scim = input<Page<Profile>>();
 
@@ -29,10 +31,7 @@ export class UserListComponent implements HasChanges {
   private readonly fetched = signal<Record<string, Profile | undefined>>({});
   private requested = new Set<string>();
 
-  constructor(
-    private router: Router,
-    private profiles: ProfileService,
-  ) {
+  constructor() {
     effect(() => {
       this.page();
       this.requested.clear();

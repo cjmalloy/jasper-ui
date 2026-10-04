@@ -1,5 +1,5 @@
 import { controlValue } from '../../util/form';
-import { computed, Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
+import { computed, Component, input, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -15,7 +15,6 @@ import { JsonComponent } from '../json/json.component';
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, JsonComponent]
 })
 export class TemplateFormComponent {

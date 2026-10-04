@@ -1,13 +1,23 @@
 /// <reference types="vitest/globals" />
 import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { DateTime } from 'luxon';
 import { ClockService } from '../service/clock.service';
 import { RelativePipe } from './relative.pipe';
 
 describe('RelativePipe', () => {
   const now = DateTime.fromISO('2024-01-01T12:00:00Z');
-  const clock = { now: signal(now) } as unknown as ClockService;
-  const pipe = new RelativePipe(clock);
+  let pipe: RelativePipe;
+
+  beforeEach(() => {
+    const clock = { now: signal(now) } as unknown as ClockService;
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ClockService, useValue: clock },
+      ],
+    });
+    pipe = TestBed.runInInjectionContext(() => new RelativePipe());
+  });
 
   it('formats against the clock', () => {
     expect(pipe.transform(now.minus({ minutes: 5 }))).toBe('5 minutes ago');

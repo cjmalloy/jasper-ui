@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
@@ -10,7 +10,6 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-password.component.html',
   styleUrls: ['./inline-password.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, AutofocusDirective, LoadingComponent]
 })
 export class InlinePasswordComponent extends ActionComponent {

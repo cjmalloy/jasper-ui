@@ -1,9 +1,7 @@
 import { KeyValuePipe } from '@angular/common';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, input, signal,
-  computed
-} from '@angular/core';
+import { Component, ElementRef, input, signal, computed, inject, afterNextRender } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, pick, uniq } from 'lodash-es';
@@ -53,10 +51,30 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './bulk.component.html',
   styleUrls: ['./bulk.component.scss'],
   host: { 'class': 'bulk actions' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
-export class BulkComponent implements AfterViewInit {
+export class BulkComponent {
+  admin = inject(AdminService);
+  auth = inject(AuthzService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  ext = inject(ExtStore);
+  user = inject(UserStore);
+  plugin = inject(PluginStore);
+  template = inject(TemplateStore);
+  private refs = inject(RefService);
+  private proxy = inject(ProxyService);
+  private exts = inject(ExtService);
+  private users = inject(UserService);
+  private plugins = inject(PluginService);
+  private templates = inject(TemplateService);
+  private acts = inject(ActionService);
+  private ts = inject(TaggingService);
+  private el = inject(ElementRef);
+  private help = inject(HelpService);
+  private editor = inject(EditorService);
+  private config = inject(ConfigService);
+
 
   readonly type = input<Type>('ref');
   readonly viewExt = input<Ext>();
@@ -88,33 +106,9 @@ export class BulkComponent implements AfterViewInit {
 
   toggled = false;
 
-  constructor(
-    public admin: AdminService,
-    public auth: AuthzService,
-    public store: Store,
-    public query: QueryStore,
-    public ext: ExtStore,
-    public user: UserStore,
-    public plugin: PluginStore,
-    public template: TemplateStore,
-    private refs: RefService,
-    private proxy: ProxyService,
-    private exts: ExtService,
-    private users: UserService,
-    private plugins: PluginService,
-    private templates: TemplateService,
-    private acts: ActionService,
-    private ts: TaggingService,
-    private el: ElementRef,
-    private help: HelpService,
-    private editor: EditorService,
-    private config: ConfigService,
-  ) {
-  }
-
-  ngAfterViewInit() {
+  private readonly afterViewInit = afterNextRender(() => {
     this.help.pushStep(this.el?.nativeElement, $localize`Bulk actions will only affect all Refs in the current page.`);
-  }
+  });
 
   readonly urls = computed(() => {
     if (!this.query.page()?.content.length) return [];

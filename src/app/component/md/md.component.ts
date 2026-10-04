@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, computed, ElementRef, input, output, inject } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
 import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
 import { Subject } from 'rxjs';
@@ -11,13 +11,16 @@ import { Store } from '../../store/store';
   selector: 'app-md',
   templateUrl: './md.component.html',
   styleUrls: ['./md.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MarkdownComponent,
     MdPostDirective,
   ]
 })
 export class MdComponent {
+  admin = inject(AdminService);
+  store = inject(Store);
+  el = inject(ElementRef);
+
 
   readonly origin = input<string | undefined>('');
   readonly plugins = input<string[] | undefined>();
@@ -39,12 +42,6 @@ export class MdComponent {
   };
 
   readonly text = input<string | undefined>('');
-
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    public el: ElementRef,
-  ) { }
 
   readonly value = computed(() => {
     const text = this.text() || '';

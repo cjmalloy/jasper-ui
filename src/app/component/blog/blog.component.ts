@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, effect, input, viewChildren } from '@angular/core';
+import { Component, computed, effect, input, viewChildren, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -18,7 +18,6 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   templateUrl: './blog.component.html',
   styleUrls: ['./blog.component.scss'],
   host: { 'class': 'blog ext' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     BlogEntryComponent,
     PageControlsComponent,
@@ -26,6 +25,10 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   ],
 })
 export class BlogComponent implements HasChanges {
+  private router = inject(Router);
+  private store = inject(Store);
+  private refs = inject(RefService);
+
   readonly pageControls = input(true);
   readonly emptyMessage = input($localize `No blog entries found`);
   readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
@@ -45,11 +48,7 @@ export class BlogComponent implements HasChanges {
 
   readonly list = viewChildren(BlogEntryComponent);
 
-  constructor(
-    private router: Router,
-    private store: Store,
-    private refs: RefService,
-  ) {
+  constructor() {
     effect(() => {
       const page = this.page();
       if (page?.page.number && page.page.number >= page.page.totalPages) {

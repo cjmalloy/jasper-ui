@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef, input } from '@angular/core';
+import { Component, Directive, ElementRef, forwardRef, input, inject } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { Duration } from 'luxon';
@@ -22,7 +22,6 @@ import { getErrorMessage } from './errors';
              [class.is-invalid]="showError">
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     forwardRef(() => DurationInputAccessor),
@@ -30,12 +29,8 @@ import { getErrorMessage } from './errors';
   ],
 })
 export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
+  private config = inject(FormlyConfig);
 
-  constructor(
-    private config: FormlyConfig,
-  ) {
-    super();
-  }
 
   validate(input: HTMLInputElement) {
     if (this.showError) {
@@ -65,6 +60,8 @@ export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
   },
 })
 export class DurationInputAccessor implements ControlValueAccessor {
+  private elementRef = inject(ElementRef);
+
   onChange: any;
   onTouched: any;
 
@@ -72,8 +69,6 @@ export class DurationInputAccessor implements ControlValueAccessor {
     value: string;
     label: string;
 }[]>([], { alias: "duration" });
-
-  constructor(private elementRef: ElementRef) {}
 
   writeValue(value: any) {
     this.elementRef.nativeElement.value = this.datalist().findIndex(o => o.value === value);

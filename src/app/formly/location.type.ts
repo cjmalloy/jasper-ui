@@ -1,4 +1,4 @@
-import { computed, ChangeDetectionStrategy, Component } from '@angular/core';
+import { computed, Component, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
@@ -50,22 +50,17 @@ import { controlValue } from '../util/form';
               i18n>📍️</button>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FormlyAttributes,
   ],
 })
 export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
+  private config = inject(FormlyConfig);
+
 
   private showedError = false;
   private readonly coords = controlValue<number[]>(() => this.formControl);
-
-  constructor(
-    private config: FormlyConfig,
-  ) {
-    super();
-  }
 
   readonly lng = computed<number>(() => {
     return this.coords()?.[0] ?? 0;

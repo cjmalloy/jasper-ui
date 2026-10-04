@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, input } from '@angular/core';
+import { Component, computed, input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
@@ -14,10 +14,13 @@ import { Store } from '../../../store/store';
     'class': 'subfolder',
     'tabindex': '0',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink]
 })
 export class SubfolderComponent {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private query = inject(QueryStore);
+
   readonly ext = input<Ext>();
   readonly name = input<string>();
   readonly dragging = input(false);
@@ -25,12 +28,6 @@ export class SubfolderComponent {
   submitted = false;
   icons: Icon[] = [];
   actions: Action[] = [];
-
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private query: QueryStore,
-  ) { }
 
   readonly thumbnail = computed(() => {
     // TODO: Thumbnail in config

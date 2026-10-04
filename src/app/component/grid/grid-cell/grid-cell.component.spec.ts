@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
+import { DomSanitizer } from '@angular/platform-browser';
 import { AdminService } from '../../../service/admin.service';
 import { ProxyService } from '../../../service/api/proxy.service';
 import { GridCellComponent } from './grid-cell.component';
@@ -12,11 +13,19 @@ describe('GridCellComponent', () => {
   let sanitizer: any;
   let component: GridCellComponent;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     admin = { getPlugin: vi.fn() };
     proxy = { getFetch: vi.fn() };
     sanitizer = { bypassSecurityTrustUrl: vi.fn(url => url) };
-    component = new GridCellComponent(admin, proxy, sanitizer);
+    await TestBed.configureTestingModule({
+      imports: [GridCellComponent],
+      providers: [
+        { provide: AdminService, useValue: admin },
+        { provide: ProxyService, useValue: proxy },
+        { provide: DomSanitizer, useValue: sanitizer },
+      ],
+    }).compileComponents();
+    component = TestBed.runInInjectionContext(() => new GridCellComponent());
   });
 
   function setImage(url: string) {
@@ -43,13 +52,6 @@ describe('GridCellComponent', () => {
   });
 
   it('renders inline SVG images without an unsafe URL', async () => {
-    await TestBed.configureTestingModule({
-      imports: [GridCellComponent],
-      providers: [
-        { provide: AdminService, useValue: admin },
-        { provide: ProxyService, useValue: proxy },
-      ],
-    }).compileComponents();
     const fixture = TestBed.createComponent(GridCellComponent);
     fixture.componentInstance.agInit({
       value: inlineSvg,

@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { Component, DestroyRef, ElementRef, forwardRef, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
+import { Component, DestroyRef, ElementRef, forwardRef, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -49,7 +49,6 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   templateUrl: './dm.component.html',
   styleUrls: ['./dm.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => EditorComponent),
     ReactiveFormsModule,
@@ -65,6 +64,18 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   ]
 })
 export class SubmitDmPage implements HasChanges {
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  private router = inject(Router);
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private editor = inject(EditorService);
+  private fb = inject(UntypedFormBuilder);
+
   private readonly controlState0 = controlValue(() => this.to);
   protected readonly toMissing = controlState(() => this.to, c => c.touched && !c.value);
 
@@ -102,19 +113,10 @@ export class SubmitDmPage implements HasChanges {
   private searching?: Subscription;
   private readonly tagsValue = controlValue<string[]>(() => this.tags);
 
-  constructor(
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    private router: Router,
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private editor: EditorService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Direct Message`);
     this.dmForm = fb.group({
       to: ['', [Validators.pattern(QUALIFIED_TAGS_REGEX)]],

@@ -2,7 +2,7 @@ import { KeyValuePipe } from '@angular/common';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, viewChild, signal, DestroyRef, inject } from '@angular/core';
+import { Component, TemplateRef, ViewContainerRef, viewChild, signal, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, uniq } from 'lodash-es';
@@ -30,7 +30,6 @@ interface ModUpdatePreview {
   selector: 'app-settings-setup-page',
   templateUrl: './setup.component.html',
   styleUrls: ['./setup.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     ReactiveFormsModule,
@@ -42,6 +41,13 @@ interface ModUpdatePreview {
   ],
 })
 export class SettingsSetupPage {
+  admin = inject(AdminService);
+  private mod = inject(ModService);
+  store = inject(Store);
+  private fb = inject(UntypedFormBuilder);
+  private overlay = inject(Overlay);
+  private vc = inject(ViewContainerRef);
+
 
   readonly submitted = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
@@ -64,14 +70,10 @@ export class SettingsSetupPage {
 
   private mergePopupRef?: OverlayRef;
 
-  constructor(
-    public admin: AdminService,
-    private mod: ModService,
-    public store: Store,
-    private fb: UntypedFormBuilder,
-    private overlay: Overlay,
-    private vc: ViewContainerRef,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),

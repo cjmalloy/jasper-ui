@@ -1,4 +1,4 @@
-import { computed, DestroyRef, inject, Component, effect, forwardRef, ChangeDetectionStrategy, input, untracked, viewChildren, signal, afterNextRender } from '@angular/core';
+import { computed, DestroyRef, inject, Component, effect, forwardRef, input, untracked, viewChildren, signal, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
@@ -20,7 +20,6 @@ import { RefComponent } from '../ref.component';
   templateUrl: './ref-list.component.html',
   styleUrls: ['./ref-list.component.scss'],
   host: { 'class': 'ref-list' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefComponent),
     PageControlsComponent,
@@ -28,6 +27,11 @@ import { RefComponent } from '../ref.component';
   ],
 })
 export class RefListComponent implements HasChanges {
+  private accounts = inject(AccountService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private refs = inject(RefService);
+
   private destroyRef = inject(DestroyRef);
 
   readonly hide = input<number[]>();
@@ -58,12 +62,7 @@ export class RefListComponent implements HasChanges {
   readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
   readonly expandedInput = input<boolean | undefined>(undefined, { alias: 'expanded' });
 
-  constructor(
-    private accounts: AccountService,
-    private router: Router,
-    private store: Store,
-    private refs: RefService,
-  ) {
+  constructor() {
     effect(() => {
       const page = this.page();
       if (!page) return;

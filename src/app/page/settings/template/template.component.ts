@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
+import { Component, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { TemplateListComponent } from '../../../component/template/template-list/template-list.component';
@@ -17,21 +17,24 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   selector: 'app-settings-template-page',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TemplateListComponent],
 })
 export class SettingsTemplatePage implements HasChanges {
+  private mod = inject(ModService);
+  store = inject(Store);
+  query = inject(TemplateStore);
+  private templates = inject(TemplateService);
+
 
   readonly serverError = signal<string[]>([]);
 
   readonly list = viewChild<TemplateListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-    public query: TemplateStore,
-    private templates: TemplateService,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Settings: Templates`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();

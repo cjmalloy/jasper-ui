@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, effect, signal, untracked } from '@angular/core';
+import { Component, effect, signal, untracked, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
@@ -35,7 +35,6 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedCach
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
   host: { 'class': 'full-page-upload' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ExtComponent,
     RefComponent,
@@ -48,6 +47,17 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedCach
   ]
 })
 export class UploadPage {
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private proxy = inject(ProxyService);
+  private uploadCache = inject(UploadCacheService);
+  private auth = inject(AuthzService);
+  private router = inject(Router);
+
 
   readonly erroredExts = signal<Ext[]>([]);
   readonly erroredRefs = signal<Ref[]>([]);
@@ -57,18 +67,9 @@ export class UploadPage {
   tagRegex = TAGS_REGEX.source;
   fileCache = this.admin.getPlugin('plugin/file');
 
-  constructor(
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private mod: ModService,
-    private admin: AdminService,
-    private refs: RefService,
-    private exts: ExtService,
-    private proxy: ProxyService,
-    private uploadCache: UploadCacheService,
-    private auth: AuthzService,
-    private router: Router,
-  ) {
+  constructor() {
+    const mod = this.mod;
+
     mod.setTitle($localize`Submit: Upload`);
     effect(() => {
       this.store.submit.files();

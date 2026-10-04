@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, computed, Component, effect, forwardRef, input, linkedSignal, model, output } from '@angular/core';
+import { computed, Component, effect, forwardRef, input, linkedSignal, model, output, inject } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, Observable, of, startWith, switchMap, throwError } from 'rxjs';
 import { Page } from '../../model/page';
@@ -18,7 +18,6 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'playlist' },
   imports: [
     forwardRef(() => ViewerComponent),
@@ -26,6 +25,11 @@ import { ViewerComponent } from '../viewer/viewer.component';
   ],
 })
 export class PlaylistComponent {
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private proxy = inject(ProxyService);
+  private store = inject(Store);
+
 
   ref = input<Ref | undefined>(undefined);
   readonly indexInput = input(0, { alias: 'index' });
@@ -53,12 +57,7 @@ export class PlaylistComponent {
   readonly sources = linkedSignal(() => this.sourcesInput() || this.loadedSources());
   readonly sourcesChange = output<Page<Ref> | undefined>();
 
-  constructor(
-    private admin: AdminService,
-    private refs: RefService,
-    private proxy: ProxyService,
-    private store: Store,
-  ) {
+  constructor() {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'media' && this.ref() && this.store.eventBus.isRef(event, this.ref()!) && this.sources()?.content.length) {
         const mediaList = [];

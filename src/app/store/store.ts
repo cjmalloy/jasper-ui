@@ -1,4 +1,4 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal, inject } from '@angular/core';
 import { AccountStore } from './account';
 import { EventBus } from './bus';
 import { GraphStore } from './graph';
@@ -13,6 +13,8 @@ import { ViewStore } from './view';
   providedIn: 'root'
 })
 export class Store {
+  private route = inject(RouterStore);
+
 
   local = new LocalStore();
   eventBus = new EventBus();
@@ -29,10 +31,6 @@ export class Store {
   readonly viewportHeight = signal(screen.height);
   readonly helpSteps = signal(0);
   readonly helpStepIndex = signal(-1);
-
-  constructor(
-    private route: RouterStore,
-  ) { }
 
   readonly darkTheme = computed(() => this.theme() === 'dark-theme');
 }

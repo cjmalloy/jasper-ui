@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, output, viewChild, untracked } from '@angular/core';
+import { Component, computed, effect, ElementRef, input, output, viewChild, untracked, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
@@ -9,10 +9,12 @@ import { access } from '../../util/tag';
   templateUrl: './select-template.component.html',
   styleUrls: ['./select-template.component.scss'],
   host: { 'class': 'select-template' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class SelectTemplateComponent {
+  private admin = inject(AdminService);
+  private auth = inject(AuthzService);
+
 
   readonly templateChange = output<string>();
   readonly template = input('', { alias: 'template' });
@@ -29,10 +31,7 @@ export class SelectTemplateComponent {
     return template ? [template, ...templates] : templates;
   });
 
-  constructor(
-    private admin: AdminService,
-    private auth: AuthzService,
-  ) {
+  constructor() {
     effect(() => {
       const value = this.template();
       this.templates();

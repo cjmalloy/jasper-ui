@@ -1,18 +1,6 @@
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  Component,
-  forwardRef,
-  ChangeDetectionStrategy,
-  effect,
-  input,
-  linkedSignal,
-  signal,
-  viewChild,
-  viewChildren,
-  computed,
-  untracked
-} from '@angular/core';
+import { Component, forwardRef, effect, input, linkedSignal, signal, viewChild, viewChildren, computed, untracked, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -51,7 +39,6 @@ import { RelativePipe } from '../../pipe/relative.pipe';
     '[class.upload]': "uploadedFile()",
     '[class.exists]': "existsFile()",
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RelativePipe,
     FakeLinkDirective,
@@ -63,6 +50,14 @@ import { RelativePipe } from '../../pipe/relative.pipe';
   ],
 })
 export class ExtComponent implements HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private exts = inject(ExtService);
+  private editor = inject(EditorService);
+  bookmarks = inject(BookmarkService);
+  private fb = inject(UntypedFormBuilder);
+
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly extInput = input.required<Ext>({ alias: 'ext' });
@@ -91,15 +86,7 @@ export class ExtComponent implements HasChanges {
 
   private overwrittenModified? = '';
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private exts: ExtService,
-    private editor: EditorService,
-    public bookmarks: BookmarkService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
     effect(() => {
       this.extInput();
       untracked(() => this.init());

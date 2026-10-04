@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform, inject } from '@angular/core';
 import { DateTime } from 'luxon';
 import { ClockService } from '../service/clock.service';
 
@@ -11,10 +11,8 @@ import { ClockService } from '../service/clock.service';
   pure: false,
 })
 export class RelativePipe implements PipeTransform {
+  private clock = inject(ClockService);
 
-  constructor(
-    private clock: ClockService,
-  ) { }
 
   transform(value?: DateTime | null): string {
     if (!value?.isValid) return '';

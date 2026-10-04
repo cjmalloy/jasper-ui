@@ -5,7 +5,6 @@ import {
   inject,
   Component,
   forwardRef,
-  ChangeDetectionStrategy,
   effect,
   input,
   linkedSignal,
@@ -72,7 +71,6 @@ import { RelativePipe } from '../../../pipe/relative.pipe';
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss'],
   host: { 'class': 'blog-entry', '[attr.tabindex]': '0', '[class.deleted]': 'deleted()' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RelativePipe,
     FakeLinkDirective,
@@ -91,6 +89,18 @@ import { RelativePipe } from '../../../pipe/relative.pipe';
   ],
 })
 export class BlogEntryComponent implements HasChanges {
+  private config = inject(ConfigService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private bookmarks = inject(BookmarkService);
+  private ts = inject(TaggingService);
+  private router = inject(Router);
+  private fb = inject(UntypedFormBuilder);
+
   private destroyRef = inject(DestroyRef);
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
@@ -131,19 +141,9 @@ export class BlogEntryComponent implements HasChanges {
 
   summaryItems = 5;
 
-  constructor(
-    private config: ConfigService,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private bookmarks: BookmarkService,
-    private ts: TaggingService,
-    private router: Router,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = refForm(fb);
     effect(() => {
       this.ref();

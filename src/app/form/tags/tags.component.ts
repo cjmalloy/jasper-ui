@@ -1,5 +1,5 @@
 import { controlValue } from '../../util/form';
-import { computed, Component, ChangeDetectionStrategy, effect, input } from '@angular/core';
+import { computed, Component, effect, input, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
@@ -11,10 +11,11 @@ import { hasPrefix, hasTag } from '../../util/tag';
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
   host: { 'class': 'form-group' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class TagsFormComponent {
+  private fb = inject(FormBuilder);
+
   private readonly rootControlState = controlValue(() => this.group());
 
   private readonly controlState0 = controlValue(() => this.tags());
@@ -47,9 +48,7 @@ export class TagsFormComponent {
   readonly add = input<string | undefined>(undefined);
   readonly showAdd = input<boolean | undefined>(undefined);
 
-  constructor(
-    private fb: FormBuilder,
-  ) {
+  constructor() {
     effect(() => {
       this.field.fieldArray.props.origin = this.origin();
       const emoji = this.emoji();

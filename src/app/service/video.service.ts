@@ -1,4 +1,4 @@
-import { computed, Injectable } from '@angular/core';
+import { computed, Injectable, inject } from '@angular/core';
 import { filter, interval, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -26,6 +26,13 @@ interface VideoSignaling {
   providedIn: 'root',
 })
 export class VideoService {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private store = inject(Store);
+  private stomp = inject(StompService);
+  private ts = inject(TaggingService);
+  private refs = inject(RefService);
+
   private destroy$ = new Subject<void>();
   poll = 30_000;
   fastPoll = 4_000;
@@ -39,14 +46,7 @@ export class VideoService {
 
   private cleanupHandlers = new Map<string, (() => void)[]>();
 
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private store: Store,
-    private stomp: StompService,
-    private ts: TaggingService,
-    private refs: RefService,
-  ) {
+  constructor() {
     if (environment.dev) timer(3_000, 30_000).pipe(
       mergeMap(() => this.store.video.peers().entries()),
       map(([user, peer]) => ({ user, stats: peer.getStats?.() })),

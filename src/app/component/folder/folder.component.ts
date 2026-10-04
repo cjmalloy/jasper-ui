@@ -1,5 +1,5 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
-import { computed, Component, effect, ElementRef, ChangeDetectionStrategy, input, linkedSignal, signal, untracked } from '@angular/core';
+import { computed, Component, effect, ElementRef, input, linkedSignal, signal, untracked, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
@@ -21,7 +21,6 @@ import { SubfolderComponent } from './subfolder/subfolder.component';
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
   host: { 'class': 'folder ext' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FileComponent,
     SubfolderComponent,
@@ -29,6 +28,11 @@ import { SubfolderComponent } from './subfolder/subfolder.component';
   ],
 })
 export class FolderComponent implements HasChanges {
+  private store = inject(Store);
+  private router = inject(Router);
+  private exts = inject(ExtService);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
+
 
   readonly tag = input<string>();
   readonly ext = input<Ext | undefined>(undefined);
@@ -70,12 +74,7 @@ export class FolderComponent implements HasChanges {
 
   // TODO: handle resize moving relatively positioned moved tiles
 
-  constructor(
-    private store: Store,
-    private router: Router,
-    private exts: ExtService,
-    private el: ElementRef<HTMLElement>,
-  ) {
+  constructor() {
     effect(() => {
       const page = this.page();
       if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {

@@ -1,17 +1,6 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { AsyncPipe } from '@angular/common';
-import {
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  forwardRef,
-  computed,
-  ChangeDetectionStrategy,
-  input,
-  output,
-  signal,
-  viewChild
-} from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, forwardRef, computed, input, output, signal, viewChild, inject } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -58,7 +47,6 @@ import { controlState, controlValue } from '../../util/form';
     '(jasper-drag-end)': 'onDragEnd()',
     '(jasper-drag-start)': 'onCdkDragStart()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => EditorComponent),
     CdkDropListGroup,
@@ -77,6 +65,16 @@ import { controlState, controlValue } from '../../util/form';
   ],
 })
 export class RefFormComponent {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private scrape = inject(ScrapeService);
+  private oembeds = inject(OembedStore);
+  private store = inject(Store);
+  private fb = inject(UntypedFormBuilder);
+  private cd = inject(ChangeDetectorRef);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
+
   private readonly rootControlState = controlValue(() => this.group());
 
   protected readonly controlState0 = controlValue(() => this.url());
@@ -108,18 +106,6 @@ export class RefFormComponent {
   readonly scrapingPublished = signal(false);
   readonly scrapingAll = signal(false);
   readonly completedUploads = signal<Ref[]>([]);
-
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    private editor: EditorService,
-    private scrape: ScrapeService,
-    private oembeds: OembedStore,
-    private store: Store,
-    private fb: UntypedFormBuilder,
-    private cd: ChangeDetectorRef,
-    private el: ElementRef<HTMLElement>,
-  ) { }
 
   readonly web = computed(() => {
     this.rootControlState();

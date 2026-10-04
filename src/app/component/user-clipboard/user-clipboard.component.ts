@@ -1,5 +1,5 @@
 import { AsyncPipe, DOCUMENT } from '@angular/common';
-import { computed, Component, Inject, ChangeDetectionStrategy, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { computed, Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import DOMPurify from 'dompurify';
@@ -73,7 +73,6 @@ interface DragState {
     '(document:paste)': 'paste($event)',
     '(document:focusin)': 'focusIn($event)',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
     CssUrlPipe,
@@ -81,6 +80,14 @@ interface DragState {
   ],
 })
 export class UserClipboardComponent {
+  private config = inject(ConfigService);
+  store = inject(Store);
+  private admin = inject(AdminService);
+  private tags = inject(TaggingService);
+  private editor = inject(EditorService);
+  private stomp = inject(StompService);
+  private router = inject(Router);
+
   readonly remote = signal<Ref | undefined>(undefined);
   readonly items = signal<ClipboardItem[]>([]);
   private watch?: Subscription;
@@ -97,16 +104,9 @@ export class UserClipboardComponent {
   readonly dropActive = signal(false);
   readonly dropFilled = signal(false);
 
-  constructor(
-    @Inject(DOCUMENT) document: Document,
-    private config: ConfigService,
-    public store: Store,
-    private admin: AdminService,
-    private tags: TaggingService,
-    private editor: EditorService,
-    private stomp: StompService,
-    private router: Router,
-  ) {
+  constructor() {
+    const document = inject<Document>(DOCUMENT);
+
     fromEvent<DragEvent>(document, 'drop', { capture: true })
       .pipe(takeUntilDestroyed())
       .subscribe(event => {

@@ -1,4 +1,4 @@
-import { computed, Directive, ElementRef, input, signal } from '@angular/core';
+import { computed, Directive, ElementRef, input, signal, inject } from '@angular/core';
 
 @Directive({
   selector: '[appResize]',
@@ -18,6 +18,8 @@ import { computed, Directive, ElementRef, input, signal } from '@angular/core';
   },
 })
 export class ResizeDirective {
+  private el = inject(ElementRef);
+
 
   readonly enabled = input<boolean | undefined>(undefined, { alias: 'appResize' });
 
@@ -46,8 +48,6 @@ export class ResizeDirective {
   dragging = false;
   wasDragging = false;
   readonly dirty = signal(false);
-
-  constructor(private el: ElementRef) { }
 
   onMousedown(e: MouseEvent) {
     if (this.enabled() === false) return;

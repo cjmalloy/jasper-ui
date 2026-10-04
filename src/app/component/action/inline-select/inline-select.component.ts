@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -9,7 +9,6 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-select.component.html',
   styleUrls: ['./inline-select.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, LoadingComponent]
 })
 export class InlineSelectComponent extends ActionComponent {

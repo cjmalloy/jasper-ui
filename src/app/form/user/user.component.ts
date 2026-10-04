@@ -1,5 +1,5 @@
 import { controlValue } from '../../util/form';
-import { computed, Component, ElementRef, ChangeDetectionStrategy, input, output, signal, viewChild, afterNextRender } from '@angular/core';
+import { computed, Component, ElementRef, input, output, signal, viewChild, afterNextRender, inject } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -22,7 +22,6 @@ import { TagsFormComponent } from '../tags/tags.component';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     TagsFormComponent,
@@ -31,6 +30,8 @@ import { TagsFormComponent } from '../tags/tags.component';
   ]
 })
 export class UserFormComponent {
+  store = inject(Store);
+
   private readonly rootControlState = controlValue(() => this.group());
 
   private readonly controlState0 = controlValue(() => this.group().get('external'));
@@ -57,10 +58,6 @@ export class UserFormComponent {
   readonly editingExternal = signal<any>(false);
 
   private showedError = false;
-
-  constructor(
-    public store: Store,
-  ) { }
 
   private readonly initialize = afterNextRender(() => {
     this.pubKey().disable();

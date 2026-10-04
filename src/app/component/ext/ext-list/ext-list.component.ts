@@ -1,4 +1,4 @@
-import { Component, effect, input, ChangeDetectionStrategy, viewChildren } from '@angular/core';
+import { Component, effect, input, viewChildren, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
@@ -12,7 +12,6 @@ import { ExtComponent } from '../ext.component';
   templateUrl: './ext-list.component.html',
   styleUrls: ['./ext-list.component.scss'],
   host: { 'class': 'ext-list' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ExtComponent,
     PageControlsComponent,
@@ -20,12 +19,14 @@ import { ExtComponent } from '../ext.component';
   ],
 })
 export class ExtListComponent implements HasChanges {
+  private router = inject(Router);
+
 
   readonly list = viewChildren(ExtComponent);
 
   readonly page = input<Page<Ext> | undefined>(undefined);
 
-  constructor(private router: Router) {
+  constructor() {
     effect(() => {
       const page = this.page();
       if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {

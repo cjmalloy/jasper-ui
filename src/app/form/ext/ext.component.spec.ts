@@ -5,7 +5,7 @@ import { ChangeDetectorRef, forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { JasperFormlyModule } from '../../formly/formly.module';
+import { provideJasperFormly } from '../../formly/formly.config';
 import { UrlFilter } from '../../util/query';
 
 import { ExtFormComponent } from './ext.component';
@@ -23,10 +23,10 @@ describe('ExtFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         forwardRef(() => ExtFormComponent),
       ],
       providers: [
+        provideJasperFormly(),
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),

@@ -1,4 +1,4 @@
-import { computed, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, input, linkedSignal, signal, afterNextRender } from '@angular/core';
+import { computed, Component, DestroyRef, ElementRef, inject, input, linkedSignal, signal, afterNextRender } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, Observable, of, startWith, switchMap } from 'rxjs';
 import { RouterLink } from '@angular/router';
@@ -15,10 +15,17 @@ import { hasPrefix } from '../../util/tag';
   selector: 'app-nav',
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink]
 })
 export class NavComponent {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private editor = inject(EditorService);
+  private vis = inject(VisibilityService);
+  private el = inject(ElementRef);
+
   private destroyRef = inject(DestroyRef);
 
   readonly url = input('');
@@ -42,16 +49,6 @@ export class NavComponent {
   })).pipe(switchMap(tag => tag ? this.editor.getTagPreview(tag).pipe(startWith(undefined)) : of(undefined))),
   { initialValue: undefined });
   private readonly baseHref = document.getElementsByTagName('base')[0]?.href || document.baseURI || location.origin + '/';
-
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private refs: RefService,
-    private ts: TaggingService,
-    private editor: EditorService,
-    private vis: VisibilityService,
-    private el: ElementRef,
-  ) { }
 
 
   getNav() {

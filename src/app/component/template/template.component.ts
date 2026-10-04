@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { computed, ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, untracked, viewChild, viewChildren } from '@angular/core';
+import { computed, Component, effect, input, linkedSignal, signal, untracked, viewChild, viewChildren, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -26,7 +26,6 @@ import { RelativePipe } from '../../pipe/relative.pipe';
   selector: 'app-template',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RelativePipe,FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent, DiffComponent],
   host: {
@@ -36,6 +35,11 @@ import { RelativePipe } from '../../pipe/relative.pipe';
   },
 })
 export class TemplateComponent implements HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private templates = inject(TemplateService);
+  private fb = inject(UntypedFormBuilder);
+
   css = 'template list-item';
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
@@ -63,12 +67,9 @@ export class TemplateComponent implements HasChanges {
 
   readonly diffEditor = viewChild<DiffComponent<Template>>('diffEditor');
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private templates: TemplateService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = templateForm(fb);
     effect(() => {
       this.templateInput();

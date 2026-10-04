@@ -1,4 +1,4 @@
-import { computed, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, effect, forwardRef, inject, input, linkedSignal, output, untracked, viewChild, signal, afterNextRender } from '@angular/core';
+import { computed, Component, DestroyRef, ElementRef, effect, forwardRef, inject, input, linkedSignal, output, untracked, viewChild, signal, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
@@ -54,7 +54,6 @@ import { TodoComponent } from '../todo/todo.component';
     '(keydown)': 'onKeydown($event)',
     '(window:resize)': 'measureLayout()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefComponent),
     forwardRef(() => PlaylistComponent),
@@ -72,6 +71,18 @@ import { TodoComponent } from '../todo/todo.component';
   ],
 })
 export class ViewerComponent {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  private proxy = inject(ProxyService);
+  private oembeds = inject(OembedStore);
+  private actions = inject(ActionService);
+  private embeds = inject(EmbedService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private store = inject(Store);
+  private auth = inject(AuthzService);
+  el = inject(ElementRef);
+
   css = 'embed print-images';
   tabIndex = 0;
   private destroyRef = inject(DestroyRef);
@@ -157,19 +168,7 @@ export class ViewerComponent {
     ) : of(undefined)),
   ), { initialValue: undefined });
 
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    private proxy: ProxyService,
-    private oembeds: OembedStore,
-    private actions: ActionService,
-    private embeds: EmbedService,
-    private editor: EditorService,
-    private refs: RefService,
-    private store: Store,
-    private auth: AuthzService,
-    public el: ElementRef,
-  ) {
+  constructor() {
     effect(() => {
       this.refInput();
       this.tagsInput();

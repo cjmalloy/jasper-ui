@@ -10,7 +10,6 @@ import {
   computed,
   effect,
   untracked,
-  ChangeDetectionStrategy,
   input,
   signal
 } from '@angular/core';
@@ -64,7 +63,6 @@ interface PendingUpload {
     '(dragover)': 'handleDragOver($event)',
     '(dragleave)': 'dragLeave($event)',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     KanbanCardComponent,
@@ -74,6 +72,15 @@ interface PendingUpload {
   ],
 })
 export class KanbanColumnComponent implements HasChanges {
+  config = inject(ConfigService);
+  private accounts = inject(AccountService);
+  private admin = inject(AdminService);
+  private store = inject(Store);
+  private oembeds = inject(OembedStore);
+  private refs = inject(RefService);
+  private tags = inject(TaggingService);
+  private proxy = inject(ProxyService);
+
   private destroyRef = inject(DestroyRef);
 
   readonly query = input('');
@@ -111,16 +118,9 @@ export class KanbanColumnComponent implements HasChanges {
     filter: [...this.filter()],
   }), { equal: isEqual });
 
-  constructor(
-    public config: ConfigService,
-    private accounts: AccountService,
-    private admin: AdminService,
-    private store: Store,
-    private oembeds: OembedStore,
-    private refs: RefService,
-    private tags: TaggingService,
-    private proxy: ProxyService,
-  ) {
+  constructor() {
+    const config = this.config;
+
     if (config.mobile) {
       this.pressToUnlock.set(true);
     }

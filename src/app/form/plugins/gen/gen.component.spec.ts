@@ -5,7 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { EditorComponent } from '../../editor/editor.component';
-import { JasperFormlyModule } from '../../../formly/formly.module';
+import { provideJasperFormly } from '../../../formly/formly.config';
 
 import { GenFormComponent } from './gen.component';
 
@@ -17,10 +17,10 @@ describe('GenComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         GenFormComponent,
       ],
       providers: [
+        provideJasperFormly(),
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),

@@ -1,5 +1,5 @@
 import { controlValue } from '../../util/form';
-import { computed, Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
+import { computed, Component, input, signal, inject } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 import { ListEditorComponent } from '../../component/list-editor/list-editor.component';
@@ -10,10 +10,11 @@ import { CodeComponent } from '../code/code.component';
   templateUrl: './themes.component.html',
   styleUrls: ['./themes.component.scss'],
   host: { 'class': 'form-group' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ListEditorComponent, CodeComponent]
 })
 export class ThemesFormComponent {
+  private fb = inject(UntypedFormBuilder);
+
   private readonly rootControlState = controlValue(() => this.group());
 
 
@@ -26,10 +27,6 @@ export class ThemesFormComponent {
     return Object.keys(this.themes().value);
   });
   readonly selectedTheme = signal<string | undefined>(undefined);
-
-  constructor(
-    private fb: UntypedFormBuilder,
-  ) {}
 
   readonly themes = computed(() => {
     this.rootControlState();

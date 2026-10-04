@@ -1,14 +1,7 @@
 import {
   AsyncPipe
 } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  forwardRef,
-  input,
-  linkedSignal,
-} from '@angular/core';
+import { Component, computed, forwardRef, input, linkedSignal, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, of, startWith, switchMap } from 'rxjs';
@@ -39,7 +32,6 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   selector: 'app-file',
   templateUrl: './file.component.html',
   styleUrls: ['./file.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'tabindex': '0' },
   imports: [
     forwardRef(() => ViewerComponent),
@@ -50,6 +42,11 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class FileComponent {
+  admin = inject(AdminService);
+  private refs = inject(RefService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+
   css = 'file ';
 
   readonly refInput = input.required<Ref>({ alias: 'ref' });
@@ -77,13 +74,6 @@ export class FileComponent {
   readonly writeAccess = computed(() => this.auth.writeAccess(this.ref()));
   readonly taggingAccess = computed(() => this.auth.taggingAccess(this.ref()));
   readonly serverError = linkedSignal<string[]>(() => { this.ref(); return []; });
-
-  constructor(
-    public admin: AdminService,
-    private refs: RefService,
-    public store: Store,
-    private auth: AuthzService,
-  ) {}
 
   readonly pluginClasses = computed(() => {
     return this.css + templates(this.ref().tags, 'plugin')

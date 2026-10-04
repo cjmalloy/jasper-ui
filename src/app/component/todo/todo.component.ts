@@ -1,14 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import { computed,
-  Component,
-  effect,
-  ChangeDetectionStrategy,
-  input,
-  linkedSignal,
-  output,
-  signal,
-  untracked,
-} from '@angular/core';
+import { computed, Component, effect, input, linkedSignal, output, signal, untracked, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { catchError, Observable, of, startWith, Subscription, switchMap, throwError, timer } from 'rxjs';
@@ -28,7 +19,6 @@ import { TodoItemComponent } from './item/item.component';
     '[class.empty]': "empty()",
     '(touchstart)': 'touchstart($event)',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkDropList,
     CdkDrag,
@@ -37,6 +27,10 @@ import { TodoItemComponent } from './item/item.component';
   ]
 })
 export class TodoComponent {
+  config = inject(ConfigService);
+  private store = inject(Store);
+  private actions = inject(ActionService);
+
 
   readonly ref = input<Ref>();
   readonly text = input<string | undefined>('');
@@ -59,11 +53,7 @@ export class TodoComponent {
 
   private pushing?: Subscription;
 
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-    private actions: ActionService,
-  ) {
+  constructor() {
     effect(onCleanup => {
       this.ref();
       onCleanup(() => {

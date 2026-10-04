@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, linkedSignal, output, signal } from '@angular/core';
+import { Component, input, linkedSignal, output, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
@@ -6,7 +6,6 @@ import { ReactiveFormsModule } from '@angular/forms';
   templateUrl: './list-editor.component.html',
   styleUrls: ['./list-editor.component.scss'],
   host: { 'class': 'listbox form-group' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class ListEditorComponent {

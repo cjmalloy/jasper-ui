@@ -1,22 +1,38 @@
 /// <reference types="vitest/globals" />
-import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { CsrfInterceptor } from './csrf.interceptor';
+import { csrfInterceptor } from './csrf.interceptor';
 
-describe('CsrfInterceptor', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [],
-    providers: [
-        CsrfInterceptor,
-        provideHttpClient(withXhr(), withInterceptorsFromDi()),
-        provideHttpClientTesting()
-    ]
-}));
+describe('csrfInterceptor', () => {
+  let http: HttpClient;
+  let httpMock: HttpTestingController;
 
-  it('should be created', () => {
-    const interceptor: CsrfInterceptor = TestBed.inject(CsrfInterceptor);
-    expect(interceptor).toBeTruthy();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withXhr(), withInterceptors([csrfInterceptor])),
+        provideHttpClientTesting(),
+      ],
+    });
+    http = TestBed.inject(HttpClient);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => httpMock.verify());
+
+  it('does not add a CSRF header to GET requests', () => {
+    http.get('/test').subscribe();
+    const req = httpMock.expectOne('/test');
+    expect(req.request.headers.has('X-XSRF-TOKEN')).toBe(false);
+    req.flush({});
+  });
+
+  it('adds a CSRF header to POST requests', () => {
+    http.post('/test', {}).subscribe();
+    const req = httpMock.expectOne('/test');
+    expect(req.request.headers.has('X-XSRF-TOKEN')).toBe(true);
+    req.flush({});
   });
 });

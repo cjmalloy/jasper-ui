@@ -1,4 +1,4 @@
-import { Component, effect, input, ChangeDetectionStrategy, viewChildren, untracked } from '@angular/core';
+import { Component, effect, input, viewChildren, untracked, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -12,16 +12,17 @@ import { PluginComponent } from '../plugin.component';
   templateUrl: './plugin-list.component.html',
   styleUrls: ['./plugin-list.component.scss'],
   host: { 'class': 'plugin-list' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PluginComponent, PageControlsComponent, LoadingComponent]
 })
 export class PluginListComponent implements HasChanges {
+  private router = inject(Router);
+
 
   readonly list = viewChildren(PluginComponent);
 
   readonly page = input<Page<Plugin> | undefined>();
 
-  constructor(private router: Router) {
+  constructor() {
     effect(() => {
       const value = this.page();
       untracked(() => this.checkPage(value));

@@ -1,4 +1,4 @@
-import { computed, Component, ChangeDetectionStrategy, viewChild, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
+import { computed, Component, viewChild, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { LensComponent } from '../../component/lens/lens.component';
@@ -23,7 +23,6 @@ import { hasPrefix, localTag } from '../../util/tag';
   host: {
     '[class.no-footer-padding]': "noFooterPadding()",
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     LensComponent,
     TabsComponent,
@@ -33,20 +32,20 @@ import { hasPrefix, localTag } from '../../util/tag';
   ],
 })
 export class TagPage implements HasChanges {
+  admin = inject(AdminService);
+  account = inject(AccountService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private mod = inject(ModService);
+  private exts = inject(ExtService);
+  private bookmarks = inject(BookmarkService);
+
 
   readonly loading = signal<boolean>(false);
 
   readonly lens = viewChild<LensComponent>('lens');
 
-  constructor(
-    public admin: AdminService,
-    public account: AccountService,
-    public store: Store,
-    public query: QueryStore,
-    private mod: ModService,
-    private exts: ExtService,
-    private bookmarks: BookmarkService,
-  ) {
+  constructor() {
     effect(() => this.mod.setTitle(this.store.view.name()));
     {
       this.store.view.clear([

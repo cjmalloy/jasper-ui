@@ -1,19 +1,21 @@
-import { Directive, ElementRef, input, linkedSignal, afterNextRender } from '@angular/core';
+import { Directive, ElementRef, input, linkedSignal, afterNextRender, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
 @Directive({ selector: '[appAutofocus]', })
 export class AutofocusDirective {
+  private elementRef = inject(ElementRef);
+  private router = inject(Router);
+
 
   readonly enabledInput = input<boolean | ''>(true, { alias: 'appAutofocus' });
   readonly enabled = linkedSignal(() => this.enabledInput());
 
   readonly select = input(true);
 
-  constructor(
-    private elementRef: ElementRef,
-    private router: Router,
-  ) {
+  constructor() {
+    const router = this.router;
+
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.focus());

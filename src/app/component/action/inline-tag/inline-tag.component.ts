@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
+import { Component, input, signal, inject } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, uniqBy } from 'lodash-es';
@@ -20,10 +20,14 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-tag.component.html',
   styleUrls: ['./inline-tag.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
+  private store = inject(Store);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+
   tagsRegex = TAGS_REGEX.source;
 
   readonly action = input<(tag: string) => Observable<any | never>>(() => of(null));
@@ -37,15 +41,6 @@ export class InlineTagComponent extends ActionComponent {
   id = 'tag-' + uuid();
 
   private searching?: Subscription;
-
-  constructor(
-    private store: Store,
-    private admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-  ) {
-    super();
-  }
 
 
   override reset() {

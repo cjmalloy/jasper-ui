@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, contentChildren, effect, signal, computed, afterNextRender } from '@angular/core';
+import { Component, DestroyRef, ElementRef, contentChildren, effect, signal, computed, afterNextRender, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -15,10 +15,12 @@ import { SettingsComponent } from '../settings/settings.component';
     '[class.floating-tabs]': "floatingTabs()",
     '(window:resize)': 'onResize()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, SettingsComponent]
 })
 export class TabsComponent {
+  private config = inject(ConfigService);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
+
 
   readonly routerLinks = contentChildren(RouterLink);
   readonly anchors = contentChildren(RouterLink, { read: ElementRef });
@@ -44,11 +46,9 @@ export class TabsComponent {
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private destroyed = false;
 
-  constructor(
-    private config: ConfigService,
-    private el: ElementRef<HTMLElement>,
-    destroyRef: DestroyRef,
-  ) {
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+
     destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.resizeObserver?.disconnect();

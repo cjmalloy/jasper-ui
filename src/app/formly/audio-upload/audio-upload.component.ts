@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, output } from '@angular/core';
+import { Component, output, inject } from '@angular/core';
 import { catchError, last, map } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -11,17 +11,14 @@ import { readFileAsDataURL } from '../../util/async';
   selector: 'app-audio-upload',
   templateUrl: './audio-upload.component.html',
   styleUrls: ['./audio-upload.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'form-array' }
 })
 export class AudioUploadComponent {
+  private store = inject(Store);
+  private proxy = inject(ProxyService);
+
 
   readonly data = output<Saving | undefined | string>();
-
-  constructor(
-    private store: Store,
-    private proxy: ProxyService,
-  ) { }
 
   readAudio(files?: FileList) {
     this.data.emit(undefined)

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { catchError, Observable, of, shareReplay, Subject, throwError } from 'rxjs';
 import { Oembed } from '../model/oembed';
 import { OEmbedService } from '../service/api/oembed.service';
@@ -7,14 +7,12 @@ import { OEmbedService } from '../service/api/oembed.service';
   providedIn: 'root'
 })
 export class OembedStore {
+  private oembeds = inject(OEmbedService);
+
 
   private cache = new Map<string, Observable<Oembed | null>>();
 
   private loading: (() => void)[] = [];
-
-  constructor(
-    private oembeds: OEmbedService,
-  ) { }
 
   get(url: string, theme?: string, maxwidth?: number, maxheight?: number) {
     const key = `${url}-${theme}-${maxwidth}-${maxheight}`;

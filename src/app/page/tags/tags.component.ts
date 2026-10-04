@@ -1,4 +1,4 @@
-import { computed, Component, ChangeDetectionStrategy, viewChild, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
+import { computed, Component, viewChild, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
@@ -18,7 +18,6 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   selector: 'app-tags-page',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ExtListComponent,
     TabsComponent,
@@ -27,20 +26,24 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   ]
 })
 export class TagsPage implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(ExtStore);
+  private auth = inject(AuthzService);
+  private exts = inject(ExtService);
+
 
   readonly title = signal<string>('');
   templates = this.admin.tmplSubmit().filter(t => t.config?.view);
 
   readonly list = viewChild<ExtListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: ExtStore,
-    private auth: AuthzService,
-    private exts: ExtService,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Tags`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();

@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, ElementRef, linkedSignal, signal, TemplateRef, ViewContainerRef, input, viewChild } from '@angular/core';
+import { Component, computed, ElementRef, linkedSignal, signal, TemplateRef, ViewContainerRef, input, viewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, filter, of, throwError } from 'rxjs';
@@ -21,10 +21,16 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   host: {
     '[class.deleted]': 'deleted()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
 })
 export class BackupComponent {
+  admin = inject(AdminService);
+  backups = inject(BackupService);
+  store = inject(Store);
+  private fb = inject(UntypedFormBuilder);
+  private overlay = inject(Overlay);
+  private viewContainerRef = inject(ViewContainerRef);
+
 
   readonly id = input.required<string>();
   readonly size = input<number | undefined>(0);
@@ -43,14 +49,10 @@ export class BackupComponent {
   restoreOptionsForm: UntypedFormGroup;
   restoreOptionsRef?: OverlayRef;
 
-  constructor(
-    public admin: AdminService,
-    public backups: BackupService,
-    public store: Store,
-    private fb: UntypedFormBuilder,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
-  ) {
+  constructor() {
+    const backups = this.backups;
+    const fb = this.fb;
+
     backups.getDownloadKey()
       .subscribe(key => this.backupKey.set(key));
     this.restoreOptionsForm = fb.group({

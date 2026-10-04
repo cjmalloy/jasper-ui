@@ -1,6 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { computed, ChangeDetectionStrategy, Component, ElementRef, signal, TemplateRef, ViewContainerRef, viewChild, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { computed, Component, ElementRef, signal, TemplateRef, ViewContainerRef, viewChild, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
@@ -211,7 +211,6 @@ import { getErrorMessage } from './errors';
       </div>
     </ng-template>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     ReactiveFormsModule,
@@ -220,6 +219,15 @@ import { getErrorMessage } from './errors';
   ],
 })
 export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
+  private router = inject(Router);
+  private config = inject(FormlyConfig);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+  store = inject(Store);
+  private overlay = inject(Overlay);
+  private vcr = inject(ViewContainerRef);
+
 
   readonly paramAnchor = viewChild.required<ElementRef<HTMLSpanElement>>('paramAnchor');
 
@@ -243,19 +251,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
   private breadcrumbChanges = new Subscription();
   private filterOptions?: Subscription;
   readonly query = signal('');
-
-  constructor(
-    private router: Router,
-    private config: FormlyConfig,
-    private admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-    public store: Store,
-    private overlay: Overlay,
-    private vcr: ViewContainerRef,
-  ) {
-    super();
-  }
 
   private readonly initializeView = afterNextRender(() => {
     const v = this.model?.[this.key as any];

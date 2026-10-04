@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, isString, uniqBy } from 'lodash-es';
@@ -68,7 +68,6 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     QrScannerComponent,
@@ -80,6 +79,14 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   ],
 })
 export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> {
+  private configs = inject(ConfigService);
+  store = inject(Store);
+  private config = inject(FormlyConfig);
+  private refs = inject(RefService);
+  private editor = inject(EditorService);
+  private proxy = inject(ProxyService);
+  private admin = inject(AdminService);
+
 
   listId = 'list-' + uuid();
   previewUrl = '';
@@ -95,18 +102,6 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> {
   private previewing?: Subscription;
   private searching?: Subscription;
   private formChanges?: Subscription;
-
-  constructor(
-    private configs: ConfigService,
-    public store: Store,
-    private config: FormlyConfig,
-    private refs: RefService,
-    private editor: EditorService,
-    private proxy: ProxyService,
-    private admin: AdminService,
-  ) {
-    super();
-  }
 
   private readonly initializeView = afterNextRender(() => {
     if (this.model) this.getPreview(this.model[this.key as any]);

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, viewChild, effect, signal, untracked } from '@angular/core';
+import { Component, viewChild, effect, signal, untracked, inject } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -32,7 +32,6 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     SettingsComponent,
@@ -44,6 +43,13 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   ],
 })
 export class ExtPage implements HasChanges {
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  router = inject(Router);
+  store = inject(Store);
+  private exts = inject(ExtService);
+  private fb = inject(UntypedFormBuilder);
+
 
   readonly template = signal<string>('');
   readonly submitted = signal<boolean>(false);
@@ -68,14 +74,10 @@ export class ExtPage implements HasChanges {
   readonly editForm = signal<UntypedFormGroup | undefined>(undefined);
   protected readonly editFormValid = controlState(() => this.editForm(), c => c.valid);
 
-  constructor(
-    private mod: ModService,
-    private admin: AdminService,
-    public router: Router,
-    public store: Store,
-    private exts: ExtService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Edit Tag`);
     this.extForm = fb.group({
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { computed, ChangeDetectionStrategy, Component, effect, input, linkedSignal, signal, untracked, viewChild, viewChildren } from '@angular/core';
+import { computed, Component, effect, input, linkedSignal, signal, untracked, viewChild, viewChildren, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -27,7 +27,6 @@ import { RelativePipe } from '../../pipe/relative.pipe';
   selector: 'app-plugin',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RelativePipe,FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent, DiffComponent],
   host: {
@@ -37,6 +36,12 @@ import { RelativePipe } from '../../pipe/relative.pipe';
   },
 })
 export class PluginComponent implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private plugins = inject(PluginService);
+  private fb = inject(UntypedFormBuilder);
+
   css = 'plugin list-item';
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
@@ -64,13 +69,9 @@ export class PluginComponent implements HasChanges {
 
   readonly diffEditor = viewChild<DiffComponent<Plugin>>('diffEditor');
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    private plugins: PluginService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = pluginForm(fb);
     effect(() => {
       this.pluginInput();

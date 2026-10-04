@@ -9,6 +9,9 @@ import { ConfigService } from '../service/config.service';
   },
 })
 export class LimitWidthDirective {
+  private config = inject(ConfigService);
+  private el = inject(ElementRef);
+
 
   resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.fill()) || undefined;
 
@@ -16,10 +19,7 @@ export class LimitWidthDirective {
 
   readonly linked = input<HTMLElement | undefined | null>(undefined, { alias: 'appLimitWidth' });
 
-  constructor(
-    private config: ConfigService,
-    private el: ElementRef,
-  ) {
+  constructor() {
     effect(() => {
       const linked = this.linked();
       if (linked) this.resizeObserver?.observe(linked);

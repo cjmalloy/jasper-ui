@@ -1,10 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  ViewContainerRef
-} from '@angular/core';
+import { Component, computed, ViewContainerRef, inject } from '@angular/core';
 import { NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
@@ -34,7 +28,6 @@ import { environment } from '../environments/environment';
     '(window:online)': 'online()',
     '(window:paste)': 'paste($event)',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     LoginPopupComponent,
     SubscriptionBarComponent,
@@ -42,7 +35,16 @@ import { environment } from '../environments/environment';
     RouterOutlet,
   ],
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent {
+  config = inject(ConfigService);
+  store = inject(Store);
+  private admin = inject(AdminService);
+  private proxy = inject(ProxyService);
+  private origins = inject(OriginService);
+  private scrape = inject(ScrapeService);
+  private router = inject(Router);
+  private vc = inject(ViewContainerRef);
+
 
   electron = this.config.electron;
 
@@ -59,16 +61,7 @@ export class AppComponent implements AfterViewInit {
   readonly pipPlugin = computed(() => this.admin.getPlugin('plugin/pip') as typeof pipPlugin | undefined);
   readonly userClipboardPlugin = computed(() => this.admin.getPlugin('plugin/user/clipboard') as typeof userClipboardPlugin | undefined);
 
-  constructor(
-    public config: ConfigService,
-    public store: Store,
-    private admin: AdminService,
-    private proxy: ProxyService,
-    private origins: OriginService,
-    private scrape: ScrapeService,
-    private router: Router,
-    private vc: ViewContainerRef,
-  ) {
+  constructor() {
     document.body.style.height = '';
     window.addEventListener('keyup', event => {
       const hotkey = !this.hotkeyActive(event) || this.hotkey(event.key);
@@ -98,9 +91,6 @@ export class AppComponent implements AfterViewInit {
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
-  }
-
-  ngAfterViewInit() {
     this.store.eventBus.events.subscribe(({ event, ref, repost }) => {
       const pdfPlugin = this.pdfPlugin();
       const archivePlugin = this.archivePlugin();

@@ -1,11 +1,18 @@
 /// <reference types="vitest/globals" />
 import { FieldArrayType } from '@ngx-formly/core';
+import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
+import { Store } from '../store/store';
 import { ListTypeComponent } from './list.type';
 
 describe('ListTypeComponent', () => {
   function createComponent() {
-    const component = new ListTypeComponent({ hotkey: false } as any);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Store, useValue: { hotkey: false } },
+      ],
+    });
+    const component = TestBed.runInInjectionContext(() => new ListTypeComponent());
     const patchValue = vi.fn();
     component.field = {
       fieldArray: {},

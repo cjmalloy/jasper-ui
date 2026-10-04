@@ -1,4 +1,4 @@
-import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, inject } from '@angular/core';
 import { Store } from '../../store/store';
 
 @Component({
@@ -6,9 +6,10 @@ import { Store } from '../../store/store';
   templateUrl: './help-popup.component.html',
   styleUrls: ['./help-popup.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HelpPopupComponent {
+  store = inject(Store);
+
   readonly text = input.required<string>();
 
   readonly arrowPosition = input<'left' | 'right' | 'top' | 'bottom'>('left');
@@ -16,8 +17,4 @@ export class HelpPopupComponent {
   readonly nextClick = output<void>();
   readonly previousClick = output<void>();
   readonly doneClick = output<void>();
-
-  constructor(
-    public store: Store,
-  ) { }
 }

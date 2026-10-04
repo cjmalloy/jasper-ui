@@ -1,18 +1,28 @@
 /// <reference types="vitest/globals" />
 import { of } from 'rxjs';
 
+import { TestBed } from '@angular/core/testing';
 import { Page } from '../model/page';
 import { RefService } from '../service/api/ref.service';
 import { QueryStore } from './query';
 
 describe('QueryStore', () => {
+  function createStore(refs: RefService) {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RefService, useValue: refs },
+      ],
+    });
+    return TestBed.runInInjectionContext(() => new QueryStore());
+  }
+
   it('loads the page and related refs when sources are set', () => {
     const source = { url: 'https://example.com/source', title: 'Source' };
     const refs = {
       page: vi.fn(() => of(Page.of([]))),
       getCurrent: vi.fn(() => of(source)),
     } as unknown as RefService;
-    const store = new QueryStore(refs);
+    const store = createStore(refs);
 
     store.setArgs({ query: 'test', sources: source.url });
 
@@ -27,7 +37,7 @@ describe('QueryStore', () => {
       page: vi.fn(() => of(Page.of([]))),
       getCurrent: vi.fn(() => of(source)),
     } as unknown as RefService;
-    const store = new QueryStore(refs);
+    const store = createStore(refs);
 
     store.setRelatedArgs({ query: 'kanban/test', sources: source.url });
 
@@ -41,7 +51,7 @@ describe('QueryStore', () => {
       page: vi.fn(() => of(Page.of([]))),
       getCurrent: vi.fn(),
     } as unknown as RefService;
-    const store = new QueryStore(refs);
+    const store = createStore(refs);
     const args = { query: 'test', sort: ['published,DESC' as const] };
 
     store.setArgs(args);
@@ -62,7 +72,7 @@ describe('QueryStore', () => {
       page: loadOffsetPage,
       getCurrent: vi.fn(),
     } as unknown as RefService;
-    const store = new QueryStore(refs);
+    const store = createStore(refs);
     const args = { query: 'test', page: 0, size: 2, sort: ['published,DESC' as const] };
 
     store.setArgs(args);
@@ -82,7 +92,7 @@ describe('QueryStore', () => {
       page: loadOffsetPage,
       getCurrent: vi.fn(),
     } as unknown as RefService;
-    const store = new QueryStore(refs);
+    const store = createStore(refs);
     const args = { query: 'test', page: 1, size: 2, sort: ['published,DESC' as const] };
 
     store.setArgs(args);

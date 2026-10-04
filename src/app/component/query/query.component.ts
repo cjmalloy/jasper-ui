@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, linkedSignal, signal, viewChild, untracked } from '@angular/core';
+import { Component, computed, effect, ElementRef, input, linkedSignal, signal, viewChild, untracked, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { combineLatest, of, startWith, switchMap } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -16,10 +16,14 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
   selector: 'app-query',
   templateUrl: './query.component.html',
   styleUrls: ['./query.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, RouterLink]
 })
 export class QueryComponent {
+  private router = inject(Router);
+  private exts = inject(ExtService);
+  private admin = inject(AdminService);
+  store = inject(Store);
+
 
   readonly editing = linkedSignal(() => { this.query(); return false; });
   readonly replaceOnClipboardPaste = signal(false);
@@ -47,12 +51,7 @@ export class QueryComponent {
   readonly query = input('');
   readonly editor = viewChild<ElementRef<HTMLInputElement>>('editor');
 
-  constructor(
-    private router: Router,
-    private exts: ExtService,
-    private admin: AdminService,
-    public store: Store,
-  ) {
+  constructor() {
     effect(() => {
       const value = this.editor();
       untracked(() => this.focusEditor(value));

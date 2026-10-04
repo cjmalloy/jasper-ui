@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -9,14 +9,16 @@ import { filter } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class RouterStore {
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+
 
   readonly url = signal('');
   readonly routeSnapshot = signal<ActivatedRouteSnapshot | null>(null, { equal: () => false });
 
-  constructor(
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-  ) {
+  constructor() {
+    const router = this.router;
+
     router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => {

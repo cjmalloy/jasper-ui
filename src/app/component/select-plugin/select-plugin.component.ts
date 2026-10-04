@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, input, linkedSignal, output, untracked, viewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, input, linkedSignal, output, untracked, viewChild, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
@@ -11,10 +11,12 @@ import { AuthzService } from '../../service/authz.service';
   templateUrl: './select-plugin.component.html',
   styleUrls: ['./select-plugin.component.scss'],
   host: { 'class': 'select-plugin' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class SelectPluginComponent {
+  private admin = inject(AdminService);
+  private auth = inject(AuthzService);
+
 
   readonly id = input('plugin-' + uuid());
   readonly add = input(false);
@@ -40,10 +42,7 @@ export class SelectPluginComponent {
     ...this.submitPlugins()
   ], 'tag'));
 
-  constructor(
-    private admin: AdminService,
-    private auth: AuthzService,
-  ) {
+  constructor() {
     effect(() => {
       const plugin = this.selected();
       this.plugins();

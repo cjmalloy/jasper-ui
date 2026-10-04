@@ -1,4 +1,4 @@
-import { Directive, ElementRef } from '@angular/core';
+import { Directive, ElementRef, inject } from '@angular/core';
 
 @Directive({
   selector: '.fake-link',
@@ -11,8 +11,8 @@ import { Directive, ElementRef } from '@angular/core';
   },
 })
 export class FakeLinkDirective {
+  private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  constructor(private elementRef: ElementRef<HTMLElement>) { }
 
   activateWithEnter(): void {
     this.elementRef.nativeElement.click();

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { Component, ElementRef, forwardRef, ChangeDetectionStrategy, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
+import { Component, ElementRef, forwardRef, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -49,7 +49,6 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     forwardRef(() => EditorComponent),
@@ -67,6 +66,18 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   ],
 })
 export class SubmitTextPage implements HasChanges {
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  private router = inject(Router);
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private fb = inject(UntypedFormBuilder);
+
 
 
   private readonly injector = inject(Injector);
@@ -102,19 +113,12 @@ export class SubmitTextPage implements HasChanges {
   private cursor?: string;
   private readonly tagsValue = controlValue<string[]>(() => this.tags);
 
-  constructor(
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    private router: Router,
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const admin = this.admin;
+    const store = this.store;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
     this.ensureUrl();

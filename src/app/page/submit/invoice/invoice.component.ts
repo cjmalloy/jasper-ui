@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, viewChild, signal } from '@angular/core';
+import { Component, viewChild, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -40,7 +40,6 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     EditorComponent,
     ReactiveFormsModule,
@@ -50,6 +49,17 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
   ]
 })
 export class SubmitInvoicePage implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private store = inject(Store);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private fb = inject(UntypedFormBuilder);
+
 
 
   readonly submitted = signal<boolean>(false);
@@ -72,18 +82,10 @@ export class SubmitInvoicePage implements HasChanges {
   private savingSubscription?: Subscription;
   private cursor?: string;
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private store: Store,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Invoice`);
     this.invoiceForm = fb.group({
       url: ['', [Validators.required, Validators.pattern(URI_REGEX)]],

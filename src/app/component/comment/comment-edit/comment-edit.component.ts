@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { DestroyRef, inject, Component, computed, effect, forwardRef, ChangeDetectionStrategy, input, linkedSignal, viewChild, signal } from '@angular/core';
+import { DestroyRef, inject, Component, computed, effect, forwardRef, input, linkedSignal, viewChild, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
@@ -23,13 +23,17 @@ import { LoadingComponent } from '../../loading/loading.component';
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],
   host: { 'class': 'comment-edit' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => EditorComponent),
     LoadingComponent,
   ]
 })
 export class CommentEditComponent implements HasChanges {
+  private store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private fb = inject(FormBuilder);
+
   private destroyRef = inject(DestroyRef);
 
   readonly serverError = signal<string[]>([]);
@@ -48,12 +52,9 @@ export class CommentEditComponent implements HasChanges {
   readonly completedUploads = signal<Ref[]>([]);
 
 
-  constructor(
-    private store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.commentForm = fb.group({
       comment: [''],
     });

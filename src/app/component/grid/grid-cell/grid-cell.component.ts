@@ -1,4 +1,4 @@
-import { computed, ChangeDetectionStrategy, Component, forwardRef, signal } from '@angular/core';
+import { computed, Component, forwardRef, signal, inject } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
@@ -14,7 +14,6 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   selector: 'app-grid-cell',
   templateUrl: './grid-cell.component.html',
   styleUrl: './grid-cell.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => MdComponent),
     forwardRef(() => NavComponent),
@@ -22,15 +21,13 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class GridCellComponent implements ICellRendererAngularComp {
+  private admin = inject(AdminService);
+  private proxy = inject(ProxyService);
+  private sanitizer = inject(DomSanitizer);
+
   readonly type = signal('');
   readonly value = signal<unknown>(undefined);
   private readonly data = signal<Ref | undefined>(undefined);
-
-  constructor(
-    private admin: AdminService,
-    private proxy: ProxyService,
-    private sanitizer: DomSanitizer,
-  ) {}
 
   agInit(params: ICellRendererParams): void {
     this.value.set(params.value);

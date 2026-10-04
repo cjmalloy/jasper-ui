@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
@@ -17,21 +17,16 @@ import { getErrorMessage } from './errors';
            [formlyAttributes]="field"
            [class.is-invalid]="showError">
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FormlyAttributes,
   ],
 })
 export class FormlyFieldRange extends FieldType<FieldTypeConfig> {
+  private config = inject(FormlyConfig);
+
 
   private showedError = false;
-
-  constructor(
-    private config: FormlyConfig,
-  ) {
-    super();
-  }
 
   validate(input: HTMLInputElement) {
     if (this.showError) {

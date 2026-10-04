@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
+import { Component, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -14,22 +14,25 @@ import { getArgs } from '../../../util/query';
   templateUrl: './all.component.html',
   styleUrls: ['./all.component.scss'],
   host: { 'class': 'inbox-all' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent]
 })
 export class InboxAllPage implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private router = inject(Router);
+
 
   private readonly injector = inject(Injector);
 
   readonly list = viewChild<RefListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    private router: Router,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Inbox: All`);
     store.view.clear(['modified']);
     query.clear();

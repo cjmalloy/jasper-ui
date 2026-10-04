@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, viewChildren, effect, computed, untracked, DestroyRef, inject } from '@angular/core';
+import { Component, viewChild, viewChildren, effect, computed, untracked, DestroyRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
@@ -25,10 +25,16 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   selector: 'app-ref-summary',
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
 })
 export class RefSummaryComponent implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  refs = inject(RefService);
+  store = inject(Store);
+  thread = inject(ThreadStore);
+  query = inject(QueryStore);
+
 
   newResp$ = new Subject<Ref | undefined>();
   newComment$ = new Subject<Ref | undefined>();
@@ -40,14 +46,11 @@ export class RefSummaryComponent implements HasChanges {
   readonly threadComponents = viewChildren(CommentThreadComponent);
   readonly list = viewChild<RefListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public refs: RefService,
-    public store: Store,
-    public thread: ThreadStore,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const store = this.store;
+    const thread = this.thread;
+    const query = this.query;
+
     query.clear();
     thread.clear();
     store.view.defaultSort.set(['modified,DESC']);

@@ -5,7 +5,7 @@ import {
 import { TemplatePortal } from '@angular/cdk/portal';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { DestroyRef, inject, Component, ElementRef, forwardRef, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, input, output, signal, viewChild, computed, linkedSignal, effect, untracked, afterNextRender } from '@angular/core';
+import { DestroyRef, inject, Component, ElementRef, forwardRef, TemplateRef, ViewContainerRef, input, output, signal, viewChild, computed, linkedSignal, effect, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
@@ -43,7 +43,6 @@ import { TodoComponent } from '../../todo/todo.component';
     '(press)': 'unlock($event)',
     '(contextmenu)': 'contextMenu($event)',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => MdComponent),
     LoadingComponent,
@@ -56,6 +55,18 @@ import { TodoComponent } from '../../todo/todo.component';
   ],
 })
 export class NoteComponent {
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private admin = inject(AdminService);
+  private config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private tags = inject(TaggingService);
+  private exts = inject(ExtService);
+  private overlay = inject(Overlay);
+  private el = inject(ElementRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
   private destroyRef = inject(DestroyRef);
 
   readonly unlocked = signal(false);
@@ -85,20 +96,6 @@ export class NoteComponent {
   readonly cardMenu = viewChild.required<TemplateRef<any>>('cardMenu');
 
   private overlayEvents?: Subscription;
-
-  constructor(
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private admin: AdminService,
-    private config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
-    private tags: TaggingService,
-    private exts: ExtService,
-    private overlay: Overlay,
-    private el: ElementRef,
-    private viewContainerRef: ViewContainerRef,
-  ) {}
 
   private readonly initializeView = afterNextRender(() => {
     delay(() => {

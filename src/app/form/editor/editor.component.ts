@@ -4,7 +4,7 @@ import {
 } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
-import { effect, Component, ElementRef, forwardRef, computed, linkedSignal, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, input, output, signal, viewChild, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { effect, Component, ElementRef, forwardRef, computed, linkedSignal, TemplateRef, ViewContainerRef, input, output, signal, viewChild, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
@@ -55,7 +55,6 @@ export interface EditorUpload {
     '[style.padding.px]': 'padding()',
     '(window:scroll)': 'preventScroll()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => MdComponent),
     LoadingComponent,
@@ -66,6 +65,19 @@ export interface EditorUpload {
   ],
 })
 export class EditorComponent {
+  admin = inject(AdminService);
+  private accounts = inject(AccountService);
+  private auth = inject(AuthzService);
+  private proxy = inject(ProxyService);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  store = inject(Store);
+  private overlay = inject(Overlay);
+  private router = inject(Router);
+  private el = inject(ElementRef);
+  private vc = inject(ViewContainerRef);
+  private fb = inject(FormBuilder);
+
   private readonly controlState0 = controlValue(() => this.control());
 
 
@@ -138,20 +150,7 @@ export class EditorComponent {
   private scrollMap = new Map<number, number>();
   private sourceMap: number[] = [];
 
-  constructor(
-    public admin: AdminService,
-    private accounts: AccountService,
-    private auth: AuthzService,
-    private proxy: ProxyService,
-    private refs: RefService,
-    private ts: TaggingService,
-    public store: Store,
-    private overlay: Overlay,
-    private router: Router,
-    private el: ElementRef,
-    private vc: ViewContainerRef,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));

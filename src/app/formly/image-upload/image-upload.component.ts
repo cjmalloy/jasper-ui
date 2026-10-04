@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, output } from '@angular/core';
+import { Component, output, inject } from '@angular/core';
 import { catchError, last, map } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -11,17 +11,14 @@ import { readFileAsDataURL } from '../../util/async';
   selector: 'app-image-upload',
   templateUrl: './image-upload.component.html',
   styleUrls: ['./image-upload.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'form-array' }
 })
 export class ImageUploadComponent {
+  private store = inject(Store);
+  private proxy = inject(ProxyService);
+
 
   readonly data = output<Saving | undefined | string>();
-
-  constructor(
-    private store: Store,
-    private proxy: ProxyService,
-  ) { }
 
   readImage(files?: FileList) {
     this.data.emit(undefined)

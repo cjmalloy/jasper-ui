@@ -4,7 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { JasperFormlyModule } from '../../formly/formly.module';
+import { provideJasperFormly } from '../../formly/formly.config';
 
 import { UserPage } from './user.component';
 
@@ -16,10 +16,10 @@ describe('CreateUserPage', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         UserPage
       ],
       providers: [
+        provideJasperFormly(),
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),

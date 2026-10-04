@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy, viewChild, effect, signal, DestroyRef } from '@angular/core';
+import { Component, inject, viewChild, effect, signal, DestroyRef } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -14,23 +14,26 @@ import { getArgs } from '../../../util/query';
   selector: 'app-settings-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent],
 })
 export class SettingsRefPage implements HasChanges {
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  private auth = inject(AuthzService);
+  store = inject(Store);
+  query = inject(QueryStore);
+
 
   readonly plugin = signal<Plugin | undefined>(undefined);
   readonly writeAccess = signal<boolean>(false);
 
   readonly list = viewChild<RefListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    private admin: AdminService,
-    private auth: AuthzService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Settings: `);
     store.view.clear(['metadata->modified']);
     query.clear();

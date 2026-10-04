@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -18,14 +18,12 @@ import { TaggingService } from './api/tagging.service';
   providedIn: 'root'
 })
 export class ActionService {
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private tags = inject(TaggingService);
+  private store = inject(Store);
+  private stomp = inject(StompService);
 
-  constructor(
-    private refs: RefService,
-    private exts: ExtService,
-    private tags: TaggingService,
-    private store: Store,
-    private stomp: StompService,
-  ) { }
 
   wrap(ref?: Ref): PluginApi {
     let o: Subscription | undefined = undefined;

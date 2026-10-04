@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
@@ -8,15 +8,12 @@ import { Store } from '../../store/store';
   templateUrl: './login-popup.component.html',
   styleUrls: ['./login-popup.component.scss'],
   host: { 'class': 'login-popup' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective]
 })
 export class LoginPopupComponent {
+  store = inject(Store);
+  config = inject(ConfigService);
 
-  constructor(
-    public store: Store,
-    public config: ConfigService,
-  ) { }
 
   clear() {
     this.store.account.authError.set(false);

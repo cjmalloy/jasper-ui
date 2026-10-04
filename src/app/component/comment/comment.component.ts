@@ -1,20 +1,5 @@
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  forwardRef,
-  OnDestroy,
-  ChangeDetectionStrategy,
-  effect,
-  input,
-  linkedSignal,
-  viewChildren,
-  viewChild,
-  signal,
-  untracked,
-  computed,
-} from '@angular/core';
+import { Component, ElementRef, forwardRef, effect, input, linkedSignal, viewChildren, viewChild, signal, untracked, computed, inject, DestroyRef, afterNextRender } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
@@ -63,7 +48,6 @@ import { RelativePipe } from '../../pipe/relative.pipe';
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
   host: { 'class': 'comment', '[attr.tabindex]': '0', '[class.last-selected]': 'lastSelected()' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RelativePipe,
     FakeLinkDirective,
@@ -78,7 +62,18 @@ import { RelativePipe } from '../../pipe/relative.pipe';
     CommentReplyComponent,
   ],
 })
-export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
+export class CommentComponent implements HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  thread = inject(ThreadStore);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private editor = inject(EditorService);
+  private ts = inject(TaggingService);
+  private bookmarks = inject(BookmarkService);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+
   maxContext = 20;
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
@@ -108,18 +103,7 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
   readonly deleteAccess = computed(() => this.auth.deleteAccess(this.ref()));
   readonly serverError = signal<string[]>([]);
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    public thread: ThreadStore,
-    private auth: AuthzService,
-    private refs: RefService,
-    private exts: ExtService,
-    private editor: EditorService,
-    private ts: TaggingService,
-    private bookmarks: BookmarkService,
-    private el: ElementRef<HTMLDivElement>,
-  ) {
+  constructor() {
     effect(() => {
       this.ref();
       untracked(() => this.init());
@@ -167,20 +151,20 @@ export class CommentComponent implements AfterViewInit, OnDestroy, HasChanges {
       && (!threadComponent || threadComponent.saveChanges());
   }
 
-  ngAfterViewInit(): void {
+  private readonly afterViewInit = afterNextRender(() => {
     if (this.scrollToLatest() && this.lastSelected()) {
       delay(() => scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' }), 400);
     }
-  }
+  });
 
   init() {
     this.actionComponents()?.forEach(c => c.reset());
   }
 
-  ngOnDestroy(): void {
+  private readonly onDestroy = inject(DestroyRef).onDestroy(() => {
     this.commentEdited$.complete();
     this.newComments$.complete();
-  }
+  });
 
   readonly lastSelected = computed(() => {
     return this.store.view.lastSelected()?.url === this.ref().url;

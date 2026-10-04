@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, afterNextRender } from '@angular/core';
+import { Component, afterNextRender, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -12,7 +12,6 @@ import { Store } from '../../store/store';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   host: { 'class': 'settings' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     TabsComponent,
     RouterLink,
@@ -22,13 +21,11 @@ import { Store } from '../../store/store';
   ],
 })
 export class SettingsPage {
+  admin = inject(AdminService);
+  config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  store = inject(Store);
 
-  constructor(
-    public admin: AdminService,
-    public config: ConfigService,
-    private auth: AuthzService,
-    public store: Store,
-  ) { }
 
   private readonly initialize = afterNextRender(() => {
     if (!this.store.view.settingsTabs().length) {

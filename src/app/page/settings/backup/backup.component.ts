@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, Component, ElementRef, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, signal, viewChild } from '@angular/core';
+import { computed, Component, ElementRef, TemplateRef, ViewContainerRef, signal, viewChild, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -23,10 +23,18 @@ import { printError } from '../../../util/http';
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
   host: { 'class': 'backup' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
 })
 export class SettingsBackupPage {
+  private mod = inject(ModService);
+  store = inject(Store);
+  private backups = inject(BackupService);
+  private bookmarks = inject(BookmarkService);
+  private origins = inject(OriginService);
+  private fb = inject(UntypedFormBuilder);
+  private overlay = inject(Overlay);
+  private viewContainerRef = inject(ViewContainerRef);
+
 
   readonly backupButton = viewChild.required<ElementRef<HTMLButtonElement>>('backupButton');
   readonly backupOptionsTemplate = viewChild.required<TemplateRef<any>>('backupOptions');
@@ -41,16 +49,10 @@ export class SettingsBackupPage {
   readonly backupOrigins = signal<string[]>(this.store.origins.list());
   backupOptionsRef?: OverlayRef;
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-    private backups: BackupService,
-    private bookmarks: BookmarkService,
-    private origins: OriginService,
-    private fb: UntypedFormBuilder,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Settings: Backup & Restore`);
     this.fetchBackups();
     this.originForm = fb.group({

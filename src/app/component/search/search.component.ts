@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, signal, untracked } from '@angular/core';
+import { Component, effect, signal, untracked, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
@@ -12,21 +12,22 @@ import { View } from '../../store/view';
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
   host: { 'class': 'search form-group' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class SearchComponent {
+  router = inject(Router);
+  store = inject(Store);
+  admin = inject(AdminService);
+
   readonly searchValue = signal('');
 
   replace = false;
 
   private searchEvent = false;
 
-  constructor(
-    public router: Router,
-    public store: Store,
-    public admin: AdminService,
-  ) {
+  constructor() {
+    const router = this.router;
+
     effect(() => {
       const search = this.store.view.search();
       untracked(() => this.searchValue.set(search || ''));

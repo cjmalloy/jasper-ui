@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { RxStomp, RxStompConfig } from '@stomp/rx-stomp';
 import { map, Observable } from 'rxjs';
 import { Ext, mapExt } from '../../model/ext';
@@ -19,13 +19,13 @@ function isTestEnvironment(): boolean {
   providedIn: 'root'
 })
 export class StompService extends RxStomp {
+  private config = inject(ConfigService);
+  private store = inject(Store);
+
 
   private stompConfig: RxStompConfig;
 
-  constructor(
-    private config: ConfigService,
-    private store: Store,
-  ) {
+  constructor() {
     super();
     this.stompConfig = {
       brokerURL: this.brokerURL,

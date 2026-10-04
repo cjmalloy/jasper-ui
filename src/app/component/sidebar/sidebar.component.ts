@@ -1,6 +1,6 @@
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { Component, ElementRef, forwardRef, ChangeDetectionStrategy, effect, input, linkedSignal, signal, computed, untracked, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { Component, ElementRef, forwardRef, effect, input, linkedSignal, signal, computed, untracked, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 import { catchError, filter, finalize, forkJoin, map, of, Subject, switchMap } from 'rxjs';
@@ -45,7 +45,6 @@ import { SortComponent } from '../sort/sort.component';
     '[class.floating]': 'floating()',
     '[class.expanded]': 'expanded()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     ExtComponent,
@@ -64,6 +63,19 @@ import { SortComponent } from '../sort/sort.component';
   ]
 })
 export class SidebarComponent {
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private account = inject(AccountService);
+  ts = inject(TaggingService);
+  private exts = inject(ExtService);
+  private templates = inject(TemplateService);
+  private el = inject(ElementRef);
+  private help = inject(HelpService);
+
   private destroy$ = new Subject<void>();
 
   readonly tagInput = input('', { alias: 'tag' });
@@ -109,20 +121,9 @@ export class SidebarComponent {
   });
   private lastView = this.store.view.current();
 
-  constructor(
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    public config: ConfigService,
-    private auth: AuthzService,
-    private account: AccountService,
-    public ts: TaggingService,
-    private exts: ExtService,
-    private templates: TemplateService,
-    private el: ElementRef,
-    private help: HelpService,
-  ) {
+  constructor() {
+    const router = this.router;
+
     effect(() => {
       this.home();
       this.tagInput();

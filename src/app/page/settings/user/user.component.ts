@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
+import { Component, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
 import { defer } from 'lodash-es';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -14,23 +14,27 @@ import { getTagFilter } from '../../../util/query';
   selector: 'app-settings-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [UserListComponent],
 })
 export class SettingsUserPage implements HasChanges {
+  private mod = inject(ModService);
+  config = inject(ConfigService);
+  store = inject(Store);
+  users = inject(UserService);
+  scim = inject(ProfileStore);
+  query = inject(UserStore);
+
 
   private readonly injector = inject(Injector);
 
   readonly list = viewChild<UserListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public config: ConfigService,
-    public store: Store,
-    public users: UserService,
-    public scim: ProfileStore,
-    public query: UserStore,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const scim = this.scim;
+    const query = this.query;
+
     mod.setTitle($localize`Settings: User Profiles`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     scim.clear();

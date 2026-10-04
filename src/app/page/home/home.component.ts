@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
+import { Component, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { LensComponent } from '../../component/lens/lens.component';
@@ -17,7 +17,6 @@ import { getArgs, UrlFilter } from '../../util/query';
   selector: 'app-home-page',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     LensComponent,
     TabsComponent,
@@ -26,19 +25,25 @@ import { getArgs, UrlFilter } from '../../util/query';
   ],
 })
 export class HomePage implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  account = inject(AccountService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private exts = inject(ExtService);
+
 
   private readonly injector = inject(Injector);
 
   readonly lens = viewChild<LensComponent>('lens');
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public account: AccountService,
-    public store: Store,
-    public query: QueryStore,
-    private exts: ExtService,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const admin = this.admin;
+    const store = this.store;
+    const query = this.query;
+    const exts = this.exts;
+
     mod.setTitle($localize`Home`);
     store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
     query.clear();

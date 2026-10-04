@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, DestroyRef, inject, forwardRef, ChangeDetectionStrategy, input, linkedSignal, output, viewChild, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, forwardRef, input, linkedSignal, output, viewChild, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
@@ -27,7 +27,6 @@ import { LoadingComponent } from '../../loading/loading.component';
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
   host: { 'class': 'comment-reply' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => EditorComponent),
     ReactiveFormsModule,
@@ -35,6 +34,12 @@ import { LoadingComponent } from '../../loading/loading.component';
   ]
 })
 export class CommentReplyComponent implements HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private fb = inject(FormBuilder);
+
   private readonly destroyRef = inject(DestroyRef);
 
   readonly to = input.required<Ref>();
@@ -57,13 +62,9 @@ export class CommentReplyComponent implements HasChanges {
   readonly serverError = signal<string[]>([]);
   readonly config = computed(() => this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!);
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.commentForm = fb.group({
       comment: [''],
     });

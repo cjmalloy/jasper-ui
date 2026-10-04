@@ -1,4 +1,4 @@
-import { computed, ChangeDetectionStrategy, Component, ElementRef, input, linkedSignal, viewChild } from '@angular/core';
+import { computed, Component, ElementRef, input, linkedSignal, viewChild, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -25,10 +25,16 @@ import { hasPrefix } from '../../util/tag';
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
   host: { 'class': 'filter form-group' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormsModule]
 })
 export class FilterComponent {
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private bookmarks = inject(BookmarkService);
+  private editor = inject(EditorService);
+
 
   readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
@@ -61,15 +67,6 @@ export class FilterComponent {
 
 
   emoji = emoji($localize`🪄️`) || $localize`🔍️`;
-
-  constructor(
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private bookmarks: BookmarkService,
-    private editor: EditorService,
-  ) {}
 
   private buildFilters() {
     let groups: FilterGroup[] = [];

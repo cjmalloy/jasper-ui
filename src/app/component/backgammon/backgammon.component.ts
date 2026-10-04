@@ -1,19 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import {
-  AfterViewInit,
-  Component,
-  computed,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ChangeDetectionStrategy,
-  effect,
-  input,
-  model,
-  output,
-  signal,
-  untracked
-} from '@angular/core';
+import { Component, computed, ElementRef, effect, input, model, output, signal, untracked, inject, DestroyRef, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { cloneDeep, defer, delay, filter, range, uniq } from 'lodash-es';
 import { catchError, Observable, of, Subscription } from 'rxjs';
@@ -549,10 +535,13 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
     '[class.replay-mode]': 'replayMode()',
     '(window:resize)': 'onResize()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CdkDropList, CdkDrag]
 })
-export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
+export class BackgammonComponent {
+  private store = inject(Store);
+  private actions = inject(ActionService);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+
 
   // TODO: Save in local storage
   readonly red = model(false);
@@ -595,11 +584,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
   private animationHandler = 0;
   readonly errored = signal(false);
 
-  constructor(
-    private store: Store,
-    private actions: ActionService,
-    private el: ElementRef<HTMLDivElement>,
-  ) {
+  constructor() {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'flip' && event.ref?.url === this.ref()?.url) {
         this.red.update(red => !red);
@@ -638,10 +623,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  ngOnInit(): void {
+  private readonly onInit = afterNextRender(() => {
     this.resizeObserver?.observe(this.el.nativeElement.parentElement!);
     this.onResize();
-  }
+  });
 
   init() {
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf()?.redName || $localize`Red`) + '"');
@@ -673,16 +658,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnDestroy {
     this.reset(this.ref()?.comment || this.text());
   }
 
-  ngAfterViewInit() {
-    defer(() => this.loaded.set(true));
-  }
+  private readonly afterViewInit = afterNextRender(() => this.loaded.set(true));
 
-  ngOnDestroy() {
+  private readonly onDestroy = inject(DestroyRef).onDestroy(() => {
     this.resizeObserver?.disconnect();
     clearTimeout(this.resizeTimer);
     this.watch?.unsubscribe();
     this.pauseReplay();
-  }
+  });
 
   readonly bgConf = computed(() => {
     return this.ref()?.plugins?.['plugin/backgammon'];

@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
@@ -47,7 +47,6 @@ import { getPath } from '../util/http';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkDropList,
     CdkScrollable,
@@ -57,14 +56,10 @@ import { getPath } from '../util/http';
   ],
 })
 export class ListTypeComponent extends FieldArrayType {
+  private store = inject(Store);
+
 
   readonly dropping = signal(false);
-
-  constructor(
-    private store: Store,
-  ) {
-    super();
-  }
 
   get title() {
     return this.props.title || '';

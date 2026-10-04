@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal, inject } from '@angular/core';
 import { isEqual } from 'lodash-es';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
@@ -11,6 +11,8 @@ import { getArgs, UrlFilter } from '../util/query';
   providedIn: 'root'
 })
 export class ThreadStore {
+  private refs = inject(RefService);
+
 
   defaultBatchSize = 500;
   readonly args = signal<RefPageArgs | undefined>({ size: this.defaultBatchSize, page: 0 }, { equal: isEqual });
@@ -27,10 +29,6 @@ export class ThreadStore {
   });
 
   private loading?: Subscription;
-
-  constructor(
-    private refs: RefService,
-  ) { }
 
   clear() {
     this.error.set(undefined);

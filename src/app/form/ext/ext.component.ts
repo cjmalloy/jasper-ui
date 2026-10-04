@@ -8,7 +8,6 @@ import { computed,
   Component,
   ElementRef,
   forwardRef,
-  ChangeDetectionStrategy,
   input,
   output,
   signal,
@@ -48,7 +47,6 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefComponent),
     ReactiveFormsModule,
@@ -60,6 +58,11 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   ],
 })
 export class ExtFormComponent  {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
+
   private readonly rootControlState = controlValue(() => this.group());
 
   private readonly controlState0 = controlValue(() => this.group().get('tag')!);
@@ -118,13 +121,6 @@ export class ExtFormComponent  {
   };
 
   private tag?: string;
-
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private el: ElementRef<HTMLElement>,
-  ) { }
 
 
 

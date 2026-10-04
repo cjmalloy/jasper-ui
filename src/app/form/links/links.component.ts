@@ -1,5 +1,5 @@
 import { controlValue } from '../../util/form';
-import { computed, Component, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
+import { computed, Component, effect, input, signal, inject } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -17,10 +17,11 @@ import { URI_REGEX } from '../../util/format';
   templateUrl: './links.component.html',
   styleUrls: ['./links.component.scss'],
   host: { 'class': 'form-group' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class LinksFormComponent {
+  private fb = inject(FormBuilder);
+
   private readonly rootControlState = controlValue(() => this.group());
 
   static validators = [Validators.pattern(URI_REGEX)];
@@ -51,9 +52,7 @@ export class LinksFormComponent {
   readonly add = input<string | undefined>(undefined);
   readonly showAdd = input<boolean | undefined>(undefined);
 
-  constructor(
-    private fb: FormBuilder,
-  ) {
+  constructor() {
     effect(() => {
       const emoji = this.emoji();
       if (emoji !== undefined) this.field.fieldArray.props.label = emoji;

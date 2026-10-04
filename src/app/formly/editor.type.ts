@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyFieldProps } from '@ngx-formly/core';
 import { EditorComponent } from '../form/editor/editor.component';
@@ -25,7 +25,6 @@ interface EditorProps extends FormlyFieldProps {
                   [class.bubble]="props.bubble"></app-editor>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [EditorComponent],
 })
 export class FormlyFieldEditor extends FieldType<FieldTypeConfig<EditorProps>> {

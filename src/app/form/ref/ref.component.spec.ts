@@ -4,7 +4,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { JasperFormlyModule } from '../../formly/formly.module';
+import { provideJasperFormly } from '../../formly/formly.config';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 
 import { RefFormComponent } from './ref.component';
@@ -18,10 +18,10 @@ describe('RefFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         RefFormComponent
       ],
       providers: [
+        provideJasperFormly(),
         PluginsFormComponent,
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),

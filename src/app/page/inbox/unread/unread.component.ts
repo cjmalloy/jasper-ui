@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, effect, untracked, DestroyRef, inject } from '@angular/core';
+import { Component, effect, untracked, DestroyRef, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -15,20 +15,23 @@ import { Store } from '../../../store/store';
   templateUrl: './unread.component.html',
   styleUrls: ['./unread.component.scss'],
   host: { 'class': 'unread' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent]
 })
 export class InboxUnreadPage {
+  private mod = inject(ModService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private account = inject(AccountService);
+  private router = inject(Router);
+
 
   private lastNotified?: DateTime;
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-    public query: QueryStore,
-    private account: AccountService,
-    private router: Router,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Inbox: Unread`);
     store.view.clear(['modified']);
     query.clear();

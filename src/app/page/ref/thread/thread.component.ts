@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, ChangeDetectionStrategy, viewChild, effect, Injector, signal, computed, untracked, afterNextRender } from '@angular/core';
+import { DestroyRef, inject, Component, viewChild, effect, Injector, signal, computed, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer, uniq } from 'lodash-es';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
@@ -25,10 +25,17 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   templateUrl: './thread.component.html',
   styleUrls: ['./thread.component.scss'],
   host: { 'class': 'thread' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RefListComponent, LoadingComponent, CommentReplyComponent]
 })
 export class RefThreadComponent implements HasChanges {
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private stomp = inject(StompService);
+  private refs = inject(RefService);
+
 
   private readonly injector = inject(Injector);
 
@@ -44,15 +51,10 @@ export class RefThreadComponent implements HasChanges {
   private watchUrl = '';
   private watch?: Subscription;
 
-  constructor(
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    private stomp: StompService,
-    private refs: RefService,
-  ) {
+  constructor() {
+    const store = this.store;
+    const query = this.query;
+
     query.clear();
     store.view.defaultSort.set(['published,ASC']);
   }

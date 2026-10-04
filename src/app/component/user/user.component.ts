@@ -1,17 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import {
-  Component,
-  ChangeDetectionStrategy,
-  effect,
-  input,
-  linkedSignal,
-  signal,
-  viewChild,
-  viewChildren,
-  computed,
-  untracked
-} from '@angular/core';
+import { Component, effect, input, linkedSignal, signal, viewChild, viewChildren, computed, untracked, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -54,10 +43,18 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
     'tabindex': '0',
     '[class.deleted]': 'deleted()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserComponent implements HasChanges {
+  admin = inject(AdminService);
+  config = inject(ConfigService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private profiles = inject(ProfileService);
+  private users = inject(UserService);
+  private exts = inject(ExtService);
+  private fb = inject(FormBuilder);
+
   readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly profileInput = input<Profile | undefined>(undefined, { alias: 'profile' });
@@ -93,16 +90,9 @@ export class UserComponent implements HasChanges {
   readonly editing = linkedSignal(() => { this.user(); this.profileInput(); return false; });
   readonly viewSource = linkedSignal(() => { this.user(); this.profileInput(); return false; });
 
-  constructor(
-    public admin: AdminService,
-    public config: ConfigService,
-    public store: Store,
-    private auth: AuthzService,
-    private profiles: ProfileService,
-    private users: UserService,
-    private exts: ExtService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     effect(() => {
       this.userInput();
       this.profileInput();

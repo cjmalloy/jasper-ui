@@ -2,20 +2,7 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe } from '@angular/common';
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  ElementRef,
-  effect,
-  TemplateRef,
-  ViewContainerRef,
-  input,
-  signal,
-  viewChild,
-  computed
-} from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, effect, TemplateRef, ViewContainerRef, input, signal, viewChild, computed, inject } from '@angular/core';
 import { defer } from 'lodash-es';
 import { filter, Subscription } from 'rxjs';
 import { TitleDirective } from '../../../directive/title.directive';
@@ -32,11 +19,17 @@ import { ProxyService } from '../../../service/api/proxy.service';
   selector: 'app-action-list',
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(window:resize)': 'onResize()' },
   imports: [FakeLinkDirective, ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class ActionListComponent implements AfterViewInit {
+  private config = inject(ConfigService);
+  private proxy = inject(ProxyService);
+  private acts = inject(ActionService);
+  private overlay = inject(Overlay);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
 
   readonly ref = input.required<Ref>();
   readonly repostRef = input<Ref>();
@@ -55,15 +48,9 @@ export class ActionListComponent implements AfterViewInit {
   private overlayResizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.overlayRef?.updatePosition()) || undefined;
   private resizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
 
-  constructor(
-    private config: ConfigService,
-    private proxy: ProxyService,
-    private acts: ActionService,
-    private overlay: Overlay,
-    private el: ElementRef<HTMLElement>,
-    private viewContainerRef: ViewContainerRef,
-    destroyRef: DestroyRef,
-  ) {
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+
     destroyRef.onDestroy(() => {
       clearTimeout(this.showAdvancedTimer);
       this.closeAdvanced();

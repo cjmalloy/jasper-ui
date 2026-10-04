@@ -11,6 +11,9 @@ import { ConfigService } from '../service/config.service';
   },
 })
 export class FillWidthDirective {
+  private config = inject(ConfigService);
+  private el = inject<ElementRef<HTMLTextAreaElement>>(ElementRef);
+
 
   readonly parent = input<HTMLElement | undefined>(undefined, { alias: 'appFillWidth' });
 
@@ -19,10 +22,9 @@ export class FillWidthDirective {
   resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   dragging = false;
 
-  constructor(
-    private config: ConfigService,
-    private el: ElementRef<HTMLTextAreaElement>,
-  ) {
+  constructor() {
+    const el = this.el;
+
     this.resizeObserver?.observe(el.nativeElement);
   }
 

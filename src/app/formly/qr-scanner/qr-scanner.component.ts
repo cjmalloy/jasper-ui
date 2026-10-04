@@ -1,6 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { computed, Component, TemplateRef, ViewContainerRef, ChangeDetectionStrategy, input, output, signal, viewChild, DestroyRef, inject } from '@angular/core';
+import { computed, Component, TemplateRef, ViewContainerRef, input, output, signal, viewChild, DestroyRef, inject } from '@angular/core';
 import { loadImage } from '../../util/image';
 import { QrScanner, scanImage } from '../../util/qr-scanner';
 import { Camera, hasCamera, listCameras } from '../../util/webcam';
@@ -9,10 +9,12 @@ import { Camera, hasCamera, listCameras } from '../../util/webcam';
   selector: 'app-qr-scanner',
   templateUrl: './qr-scanner.component.html',
   styleUrls: ['./qr-scanner.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'form-array' }
 })
 export class QrScannerComponent {
+  private viewContainerRef = inject(ViewContainerRef);
+  private overlay = inject(Overlay);
+
 
   readonly video = viewChild.required<TemplateRef<HTMLVideoElement>>('video');
 
@@ -25,10 +27,7 @@ export class QrScannerComponent {
   readonly hasCamera = signal(localStorage.getItem('hasCamera') === 'true');
   readonly cameras = signal<Camera[] | undefined>(undefined);
 
-  constructor(
-    private viewContainerRef: ViewContainerRef,
-    private overlay: Overlay,
-  ) {
+  constructor() {
     if (!this.hasCamera()) hasCamera().then(value => this.setHasCamera(value));
   }
 

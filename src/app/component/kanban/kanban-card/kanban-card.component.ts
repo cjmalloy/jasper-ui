@@ -5,25 +5,7 @@ import {
 import { TemplatePortal } from '@angular/cdk/portal';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  DestroyRef,
-  inject,
-  AfterViewInit,
-  Component,
-  ElementRef,
-  forwardRef,
-  TemplateRef,
-  ViewContainerRef,
-  ChangeDetectionStrategy,
-  input,
-  output,
-  signal,
-  viewChild,
-  computed,
-  linkedSignal,
-  effect,
-  untracked
-} from '@angular/core';
+import { DestroyRef, inject, Component, ElementRef, forwardRef, TemplateRef, ViewContainerRef, input, output, signal, viewChild, computed, linkedSignal, effect, untracked, afterNextRender } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
@@ -64,7 +46,6 @@ import { TodoComponent } from '../../todo/todo.component';
     '(press)': 'unlock($event)',
     '(contextmenu)': 'contextMenu($event)',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => MdComponent),
     LoadingComponent,
@@ -76,7 +57,20 @@ import { TodoComponent } from '../../todo/todo.component';
     CssUrlPipe,
   ],
 })
-export class KanbanCardComponent implements AfterViewInit {
+export class KanbanCardComponent {
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private admin = inject(AdminService);
+  private config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private tags = inject(TaggingService);
+  private editor = inject(EditorService);
+  private accounts = inject(AccountService);
+  private overlay = inject(Overlay);
+  private el = inject(ElementRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
   private destroyRef = inject(DestroyRef);
 
   readonly unlocked = signal(false);
@@ -102,20 +96,7 @@ export class KanbanCardComponent implements AfterViewInit {
 
   private overlayEvents?: Subscription;
 
-  constructor(
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private admin: AdminService,
-    private config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
-    private tags: TaggingService,
-    private editor: EditorService,
-    private accounts: AccountService,
-    private overlay: Overlay,
-    private el: ElementRef,
-    private viewContainerRef: ViewContainerRef,
-  ) {
+  constructor() {
     effect(() => {
       this.refInput();
       untracked(() => this.init());
@@ -135,13 +116,13 @@ export class KanbanCardComponent implements AfterViewInit {
   }
 
 
-  ngAfterViewInit(): void {
+  private readonly afterViewInit = afterNextRender(() => {
     delay(() => {
       if (this.lastSelected()) {
         this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
       }
     }, 400);
-  }
+  });
 
   onClick() {
     if (!this.lastSelected() && this.store.view.lastSelected()) {

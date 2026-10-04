@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FakeLinkDirective } from './fake-link.directive';
 
 @Component({
   template: '<span class="fake-link" (click)="activated = activated + 1">activate</span>',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective],
 })
 class TestComponent {

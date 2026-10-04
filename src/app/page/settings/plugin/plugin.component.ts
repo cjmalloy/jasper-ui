@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
+import { Component, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
@@ -17,21 +17,24 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PluginListComponent],
 })
 export class SettingsPluginPage implements HasChanges {
+  private mod = inject(ModService);
+  store = inject(Store);
+  query = inject(PluginStore);
+  private plugins = inject(PluginService);
+
 
   readonly serverError = signal<string[]>([]);
 
   readonly list = viewChild<PluginListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-    public query: PluginStore,
-    private plugins: PluginService,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Settings: Plugins`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();

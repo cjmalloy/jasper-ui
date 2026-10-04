@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import { computed } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
@@ -8,7 +9,12 @@ import { ThreadStore } from './thread';
 
 describe('ThreadStore immutable cache', () => {
   function createStore() {
-    return new ThreadStore({ page: vi.fn(() => of(Page.of([]))) } as unknown as RefService);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RefService, useValue: { page: vi.fn(() => of(Page.of([]))) } },
+      ],
+    });
+    return TestBed.runInInjectionContext(() => new ThreadStore());
   }
 
   it('copies maps and response arrays while retaining duplicates and unrelated sources', () => {

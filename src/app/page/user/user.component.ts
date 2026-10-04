@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, viewChild, effect, signal, untracked } from '@angular/core';
+import { Component, viewChild, effect, signal, untracked, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -24,10 +24,18 @@ import { prefix, setPublic } from '../../util/tag';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
 export class UserPage implements HasChanges {
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  config = inject(ConfigService);
+  router = inject(Router);
+  store = inject(Store);
+  private profiles = inject(ProfileService);
+  private users = inject(UserService);
+  private fb = inject(UntypedFormBuilder);
+
 
   readonly submitted = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
@@ -37,16 +45,10 @@ export class UserPage implements HasChanges {
   profileForm: UntypedFormGroup;
   protected readonly profileFormValid = controlState(() => this.profileForm, c => c.valid);
 
-  constructor(
-    private mod: ModService,
-    private admin: AdminService,
-    public config: ConfigService,
-    public router: Router,
-    public store: Store,
-    private profiles: ProfileService,
-    private users: UserService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Create Profile`);
     this.profileForm = fb.group({
       active: [true],

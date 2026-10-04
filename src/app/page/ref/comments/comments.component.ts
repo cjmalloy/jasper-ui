@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, viewChild, effect, inject, Injector, computed, untracked, afterNextRender, DestroyRef } from '@angular/core';
+import { Component, viewChild, effect, inject, Injector, computed, untracked, afterNextRender, DestroyRef } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
@@ -19,7 +19,6 @@ import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
   selector: 'app-ref-comments',
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     CommentReplyComponent,
@@ -28,18 +27,21 @@ import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
   ],
 })
 export class RefCommentsComponent implements HasChanges {
+  private mod = inject(ModService);
+  store = inject(Store);
+  thread = inject(ThreadStore);
+  private admin = inject(AdminService);
+
 
   private readonly injector = inject(Injector);
   newComments$ = new Subject<Ref | undefined>();
 
   readonly reply = viewChild<CommentReplyComponent>('reply');
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-    public thread: ThreadStore,
-    private admin: AdminService,
-  ) {
+  constructor() {
+    const store = this.store;
+    const thread = this.thread;
+
     thread.clear();
     store.view.defaultSort.set(['published']);
   }

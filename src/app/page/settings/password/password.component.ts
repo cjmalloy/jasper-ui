@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
@@ -13,23 +13,24 @@ import { printError } from '../../../util/http';
   selector: 'app-settings-password-page',
   templateUrl: './password.component.html',
   styleUrls: ['./password.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule]
 })
 export class SettingsPasswordPage {
+  admin = inject(AdminService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private profiles = inject(ProfileService);
+  private fb = inject(UntypedFormBuilder);
+
 
   readonly submitted = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
   passwordForm!: UntypedFormGroup;
   protected readonly passwordFormValid = controlState(() => this.passwordForm, c => c.valid);
 
-  constructor(
-    public admin: AdminService,
-    private router: Router,
-    private store: Store,
-    private profiles: ProfileService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.passwordForm = fb.group({
       password: [''],
     });

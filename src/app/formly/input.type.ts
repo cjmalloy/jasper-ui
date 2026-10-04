@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
@@ -44,7 +44,6 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     QrScannerComponent,
@@ -56,19 +55,15 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   ],
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
+  private config = inject(FormlyConfig);
+  private admin = inject(AdminService);
+
 
   readonly progress = signal<number | undefined>(undefined);
   readonly uploading = signal(false);
   readonly files = computed(() => !!this.admin.getPlugin('plugin/file'));
 
   private showedError = false;
-
-  constructor(
-    private config: FormlyConfig,
-    private admin: AdminService,
-  ) {
-    super();
-  }
 
   /**
    * Overrides the <input> type. Not related to the formly field type.

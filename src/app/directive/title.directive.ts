@@ -1,4 +1,4 @@
-import { Directive, effect, ElementRef, input } from '@angular/core';
+import { Directive, effect, ElementRef, input, inject } from '@angular/core';
 import { isArray, isString, uniq } from 'lodash-es';
 import { Ext } from '../model/ext';
 import { getPluginScope } from '../model/plugin';
@@ -10,14 +10,14 @@ import { Store } from '../store/store';
 
 @Directive({ selector: '[appTitle]' })
 export class TitleDirective {
+  private store = inject(Store);
+  private el = inject(ElementRef);
+
 
   readonly node = input<Visibility | Visibility[] | Ext | string | TagPreview | undefined>(undefined, { alias: 'appTitle' });
   readonly ref = input<Ref | undefined>();
 
-  constructor(
-    private store: Store,
-    private el: ElementRef,
-  ) {
+  constructor() {
     effect(() => this.render());
   }
 

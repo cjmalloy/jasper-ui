@@ -1,4 +1,4 @@
-import { Component, computed, forwardRef, ChangeDetectionStrategy, input, linkedSignal } from '@angular/core';
+import { Component, computed, forwardRef, input, linkedSignal, inject } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { EMPTY, Observable, switchMap } from 'rxjs';
 import { Ref } from '../../../model/ref';
@@ -13,13 +13,15 @@ import { CommentComponent } from '../comment.component';
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
   host: { 'class': 'thread-summary' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => CommentComponent),
     forwardRef(() => RefComponent),
   ]
 })
 export class ThreadSummaryComponent {
+  private refs = inject(RefService);
+  private store = inject(Store);
+
 
   readonly source = input('');
   readonly commentView = input(false);
@@ -44,10 +46,7 @@ export class ThreadSummaryComponent {
   });
   readonly list = computed(() => this.pageResource.hasValue() ? this.pageResource.value().content : []);
 
-  constructor(
-    private refs: RefService,
-    private store: Store,
-  ) {
+  constructor() {
     toObservable(this.newRefs$).pipe(
       switchMap(refs => refs ?? EMPTY),
       takeUntilDestroyed(),

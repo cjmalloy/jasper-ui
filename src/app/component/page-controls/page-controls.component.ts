@@ -1,4 +1,4 @@
-import { computed, ChangeDetectionStrategy, Component, input, linkedSignal } from '@angular/core';
+import { computed, Component, input, linkedSignal, inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
@@ -54,7 +54,6 @@ function isDateSortField(value: string | undefined): value is DateSortField {
     'class': 'page-controls',
     '[class.print-hide]': "fullResults()",
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     RouterLinkActive,
@@ -63,6 +62,11 @@ function isDateSortField(value: string | undefined): value is DateSortField {
   ]
 })
 export class PageControlsComponent {
+  store = inject(Store);
+  private bookmarks = inject(BookmarkService);
+  private query = inject(QueryStore);
+  private refs = inject(RefService);
+
 
   readonly page = input<Page<any> | undefined>();
   readonly showPageLast = input(true);
@@ -72,13 +76,6 @@ export class PageControlsComponent {
   pageSizes = [6, 24, 48, 96, 480];
   colSizes = [1, 2, 3, 4, 5, 6];
   readonly colsChanged = linkedSignal(() => this.defaultCols() !== undefined || !!this.store.view.cols());
-
-  constructor(
-    public store: Store,
-    private bookmarks: BookmarkService,
-    private query: QueryStore,
-    private refs: RefService,
-  ) {}
 
   readonly fullResults = computed(() => {
     return this.page()?.page.totalPages === 1;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, ElementRef, input, linkedSignal, viewChild } from '@angular/core';
+import { Component, computed, ElementRef, input, linkedSignal, viewChild, inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
@@ -12,10 +12,13 @@ import { convertSort, defaultDesc, SortItem } from '../../util/query';
   templateUrl: './sort.component.html',
   styleUrls: ['./sort.component.scss'],
   host: { 'class': 'sort form-group' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormsModule]
 })
 export class SortComponent {
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
+
   readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
   readonly type = input<Type>('ref');
@@ -32,11 +35,9 @@ export class SortComponent {
 
   replace = false;
 
-  constructor(
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-  ) {
+  constructor() {
+    const router = this.router;
+
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);

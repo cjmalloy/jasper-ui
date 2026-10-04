@@ -1,4 +1,4 @@
-import { computed, ChangeDetectionStrategy, Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { computed, Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
@@ -87,7 +87,6 @@ import { getErrorMessage } from './errors';
              [class.is-invalid]="showError">
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     ReactiveFormsModule,
@@ -95,6 +94,13 @@ import { getErrorMessage } from './errors';
   ],
 })
 export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> {
+  private router = inject(Router);
+  private config = inject(FormlyConfig);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+  store = inject(Store);
+
 
   listId = 'list-' + uuid();
   readonly breadcrumbs = signal<Crumb[]>([]);
@@ -106,17 +112,6 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> {
   private formChanges?: Subscription;
   private breadcrumbChanges = new Subscription();
   readonly query = signal('');
-
-  constructor(
-    private router: Router,
-    private config: FormlyConfig,
-    private admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-    public store: Store,
-  ) {
-    super();
-  }
 
   private readonly initializeView = afterNextRender(() => {
     if (this.model) this.getPreview(this.model[this.key as any]);

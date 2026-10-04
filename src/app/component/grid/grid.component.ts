@@ -1,4 +1,4 @@
-import { computed, ChangeDetectionStrategy, Component, effect, signal, ViewEncapsulation, input, untracked, DestroyRef, inject } from '@angular/core';
+import { computed, Component, effect, signal, ViewEncapsulation, input, untracked, DestroyRef, inject } from '@angular/core';
 import { isEqual } from 'lodash-es';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -24,7 +24,6 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
   templateUrl: './grid.component.html',
   styleUrl: './grid.component.scss',
   encapsulation: ViewEncapsulation.None,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'class': 'grid ext',
     '[attr.data-theme-version]': 'themeVersion()',
@@ -36,6 +35,11 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
   ],
 })
 export class GridComponent implements HasChanges {
+  store = inject(Store);
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private router = inject(Router);
+
   private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   readonly rowData = toSignal(toObservable(computed(() => this.page()?.content || [])).pipe(
@@ -54,12 +58,7 @@ export class GridComponent implements HasChanges {
   readonly page = input<Page<Ref> | undefined>();
   readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
 
-  constructor(
-    public store: Store,
-    private admin: AdminService,
-    private refs: RefService,
-    private router: Router,
-  ) {
+  constructor() {
     ModuleRegistry.registerModules([ AllCommunityModule ]);
     effect(() => {
       const value = this.page();

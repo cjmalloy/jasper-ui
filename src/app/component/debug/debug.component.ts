@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { computed, Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { computed, Component, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -22,10 +22,20 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './debug.component.html',
   styleUrls: ['./debug.component.scss'],
   host: { 'class': 'debug actions' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, LoadingComponent]
 })
 export class DebugComponent {
+  admin = inject(AdminService);
+  private store = inject(Store);
+  query = inject(QueryStore);
+  ext = inject(ExtStore);
+  user = inject(UserStore);
+  plugin = inject(PluginStore);
+  template = inject(TemplateStore);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private router = inject(Router);
+
 
   readonly generating = signal(false);
   readonly settingUser = signal(false);
@@ -33,19 +43,6 @@ export class DebugComponent {
   readonly batchRunning = signal(false);
   readonly serverError = signal<string[]>([]);
   debug = this.admin.getPlugin('plugin/debug') || this.admin.getTemplate('debug');
-
-  constructor(
-    public admin: AdminService,
-    private store: Store,
-    public query: QueryStore,
-    public ext: ExtStore,
-    public user: UserStore,
-    public plugin: PluginStore,
-    public template: TemplateStore,
-    private refs: RefService,
-    private ts: TaggingService,
-    private router: Router,
-  ) { }
 
   readonly empty = computed(() => {
     return !this.query.page()?.content?.length;

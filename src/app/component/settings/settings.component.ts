@@ -1,4 +1,4 @@
-import { computed, Component, ElementRef, ChangeDetectionStrategy, afterNextRender } from '@angular/core';
+import { computed, Component, ElementRef, afterNextRender, inject } from '@angular/core';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../service/account.service';
@@ -12,19 +12,22 @@ import { Store } from '../../store/store';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   host: { 'class': 'settings' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, RouterLink]
 })
 export class SettingsComponent {
+  admin = inject(AdminService);
+  config = inject(ConfigService);
+  store = inject(Store);
+  account = inject(AccountService);
+  private el = inject(ElementRef);
+  private help = inject(HelpService);
 
-  constructor(
-    public admin: AdminService,
-    public config: ConfigService,
-    public store: Store,
-    public account: AccountService,
-    private el: ElementRef,
-    private help: HelpService,
-  ) {
+
+  constructor() {
+    const admin = this.admin;
+    const store = this.store;
+    const account = this.account;
+
     if (admin.getTemplate('user') && admin.getPlugin('plugin/inbox') && store.account.signedIn()) {
       account.checkNotifications();
     }

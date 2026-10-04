@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { computed, signal, ChangeDetectionStrategy, Component, effect, ElementRef, forwardRef, TemplateRef, ViewContainerRef, input, viewChild, untracked, DestroyRef, inject, afterNextRender } from '@angular/core';
+import { computed, signal, Component, effect, ElementRef, forwardRef, TemplateRef, ViewContainerRef, input, viewChild, untracked, DestroyRef, inject, afterNextRender } from '@angular/core';
 import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import { filter } from 'lodash-es';
@@ -30,7 +30,6 @@ import { RefListComponent } from '../../ref/ref-list/ref-list.component';
     '(window:resize)': 'onResize()',
     '(window:click)': 'onWindowClick()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FakeLinkDirective,
     forwardRef(() => RefListComponent),
@@ -38,6 +37,12 @@ import { RefListComponent } from '../../ref/ref-list/ref-list.component';
   ],
 })
 export class ForceDirectedComponent implements HasChanges {
+  store = inject(Store);
+  private admin = inject(AdminService);
+  private graphs = inject(GraphService);
+  private overlay = inject(Overlay);
+  private viewContainerRef = inject(ViewContainerRef);
+
   readonly filter = input<string[]>();
   readonly depth = input(0);
   readonly tag = input<(string | null) | undefined>('science');
@@ -85,13 +90,7 @@ export class ForceDirectedComponent implements HasChanges {
   readonly figWidth = computed(() => this.dimensions().width);
   readonly figHeight = computed(() => this.dimensions().height);
 
-  constructor(
-    public store: Store,
-    private admin: AdminService,
-    private graphs: GraphService,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
-  ) {
+  constructor() {
     effect(() => {
       this.store.graph.nodes();
       this.store.graph.links();

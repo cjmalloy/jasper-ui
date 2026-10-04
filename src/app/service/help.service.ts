@@ -1,6 +1,6 @@
 import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { outputToObservable } from '@angular/core/rxjs-interop';
 import { defer, delay } from 'lodash-es';
 import { takeUntil } from 'rxjs/operators';
@@ -12,17 +12,15 @@ import { AdminService } from './admin.service';
   providedIn: 'root',
 })
 export class HelpService {
+  private store = inject(Store);
+  private overlay = inject(Overlay);
+  private admin = inject(AdminService);
+
   private steps: { id: string, text: string, el: HTMLElement }[] = [];
   private overlayRef: OverlayRef | null = null;
 
   private shown: string[] = [];
   private maxIndexReached: number = -1;
-
-  constructor(
-    private store: Store,
-    private overlay: Overlay,
-    private admin: AdminService,
-  ) {}
 
   /**
    * Adds a help step to the queue. If no tour is active, starts the tour.

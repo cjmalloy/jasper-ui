@@ -15,6 +15,9 @@ import { relativeX, relativeY } from '../util/math';
   },
 })
 export class ResizeHandleDirective {
+  private config = inject(ConfigService);
+  private el = inject(ElementRef);
+
   readonly cursor = signal('auto');
   readonly dragging = signal(false);
 
@@ -29,11 +32,6 @@ export class ResizeHandleDirective {
   height = 0;
 
   resizeObserver?: ResizeObserver;
-
-  constructor(
-    private config: ConfigService,
-    private el: ElementRef,
-  ) { }
 
   get resizeCursor() {
     return this.config.mobile ? 'row-resize' : 'se-resize';

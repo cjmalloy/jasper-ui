@@ -1,4 +1,4 @@
-import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, from, map, of, switchMap } from 'rxjs';
 import { toDataURL, } from 'qrcode'
@@ -6,7 +6,6 @@ import { toDataURL, } from 'qrcode'
 @Component({
   selector: 'app-qr',
   template: '',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./qr.component.scss'],
   host: {
     '[style.background-image]': 'bgImage()',

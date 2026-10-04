@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { delay } from 'lodash-es';
 import { catchError, concat, first, map, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -17,15 +17,15 @@ export const REF_CACHE_MS = 15 * 60 * 1000;
   providedIn: 'root',
 })
 export class RefService {
+  private http = inject(HttpClient);
+  private config = inject(ConfigService);
+  private store = inject(Store);
+  private login = inject(LoginService);
+
 
   private _cache = new Map<string, boolean>();
 
-  constructor(
-    private http: HttpClient,
-    private config: ConfigService,
-    private store: Store,
-    private login: LoginService,
-  ) {
+  constructor() {
     this.store.eventBus.events.subscribe(event => {
       if (event.event === 'reload') {
         this.store.eventBus.catchError$(this.get(event.ref!.url, event.ref!.origin!))

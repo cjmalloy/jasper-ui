@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
@@ -10,16 +10,14 @@ import { ProfileService } from '../service/api/profile.service';
   providedIn: 'root'
 })
 export class ProfileStore {
+  private profiles = inject(ProfileService);
+
 
   readonly args = signal<ProfilePageArgs | undefined>(undefined, { equal: isEqual });
   readonly page = signal<Page<Profile> | undefined>(undefined);
   readonly error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
-
-  constructor(
-    private profiles: ProfileService,
-  ) { }
 
   clear() {
     this.args.set(undefined);

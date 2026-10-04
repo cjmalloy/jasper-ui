@@ -1,18 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import {
-  Component,
-  ElementRef,
-  input,
-  linkedSignal,
-  computed,
-  effect,
-  OnDestroy,
-  OnInit,
-  untracked,
-  ChangeDetectionStrategy,
-  output,
-  signal
-} from '@angular/core';
+import { Component, ElementRef, input, linkedSignal, computed, effect, untracked, output, signal, inject, DestroyRef, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
@@ -38,10 +25,14 @@ type AnimationState = { from: Square; to: Square; capture?: { square: Square; pi
     '[class.flip]': 'flip()',
     '(window:resize)': 'onResize()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CdkDropList, CdkDrag]
 })
-export class ChessComponent implements OnInit, OnDestroy {
+export class ChessComponent {
+  config = inject(ConfigService);
+  private actions = inject(ActionService);
+  private store = inject(Store);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+
 
   readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
   readonly textInput = input<string | undefined>('', { alias: 'text' });
@@ -87,12 +78,7 @@ export class ChessComponent implements OnInit, OnDestroy {
   private board?: string;
   private retry: string[] = [];
 
-  constructor(
-    public config: ConfigService,
-    private actions: ActionService,
-    private store: Store,
-    private el: ElementRef<HTMLDivElement>,
-  ) {
+  constructor() {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'flip' && event.ref?.url === this.ref()?.url) {
         this.flip.set(true);
@@ -122,10 +108,10 @@ export class ChessComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit(): void {
+  private readonly onInit = afterNextRender(() => {
     this.resizeObserver?.observe(this.el.nativeElement);
     this.onResize();
-  }
+  });
 
   init() {
     this.reset(this.ref()?.comment || this.text());
@@ -180,10 +166,10 @@ export class ChessComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
+  private readonly onDestroy = inject(DestroyRef).onDestroy(() => {
     this.resizeObserver?.disconnect();
     this.watch?.unsubscribe();
-  }
+  });
 
   clearErrors() {
     if (this.ref()) {

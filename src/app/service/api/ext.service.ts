@@ -24,6 +24,12 @@ export const EXT_BATCH_SIZE = 50;
   providedIn: 'root',
 })
 export class ExtService {
+  private http = inject(HttpClient);
+  private config = inject(ConfigService);
+  private login = inject(LoginService);
+  private store = inject(Store);
+  private stomp = inject(StompService);
+
   private readonly destroyRef = inject(DestroyRef);
   private readonly cacheTimers = new Set<number>();
 
@@ -31,13 +37,7 @@ export class ExtService {
   private _batchQueue: Array<{ key: string; tag: string; origin?: string; subject: Subject<Ext> }> = [];
   private _batchTimer?: number;
 
-  constructor(
-    private http: HttpClient,
-    private config: ConfigService,
-    private login: LoginService,
-    private store: Store,
-    private stomp: StompService,
-  ) {
+  constructor() {
     this.destroyRef.onDestroy(() => {
       clearTimeout(this._batchTimer);
       for (const timer of this.cacheTimers) clearTimeout(timer);

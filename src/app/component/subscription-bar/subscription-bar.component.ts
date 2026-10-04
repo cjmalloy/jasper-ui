@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, ElementRef, afterNextRender } from '@angular/core';
+import { Component, computed, ElementRef, afterNextRender, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, switchMap, take } from 'rxjs';
@@ -17,10 +17,19 @@ import { Store } from '../../store/store';
   templateUrl: './subscription-bar.component.html',
   styleUrls: ['./subscription-bar.component.scss'],
   host: { 'class': 'subscription-bar' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive, TitleDirective]
 })
 export class SubscriptionBarComponent {
+  config = inject(ConfigService);
+  store = inject(Store);
+  themes = inject(ModService);
+  admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+  location = inject(Location);
+  private el = inject(ElementRef);
+  private help = inject(HelpService);
+
   readonly bookmarks = toSignal(toObservable(computed(() => ({
     bookmarks: this.store.account.bookmarks(), origin: this.store.account.origin(),
   }))).pipe(switchMap(({ bookmarks, origin }) => this.editor.getBookmarksPreview(bookmarks, origin))),
@@ -31,18 +40,9 @@ export class SubscriptionBarComponent {
 
   private startIndex = this.currentIndex();
 
-  constructor(
-    public config: ConfigService,
-    public store: Store,
-    public themes: ModService,
-    public admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-    public location: Location,
-    private el: ElementRef,
-    private help: HelpService,
-    router: Router,
-  ) {
+  constructor() {
+    const router = inject(Router);
+
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
       take(1),

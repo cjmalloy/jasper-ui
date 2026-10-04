@@ -1,4 +1,4 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal, inject } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
@@ -126,6 +126,15 @@ function emptyStatus(): AdminStatus {
   providedIn: 'root',
 })
 export class AdminService {
+  private config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private users = inject(UserService);
+  private plugins = inject(PluginService);
+  private templates = inject(TemplateService);
+  private store = inject(Store);
+
 
   private readonly _status = signal<AdminStatus>(emptyStatus());
 
@@ -246,16 +255,9 @@ export class AdminService {
     this._status.set(next);
   }
 
-  constructor(
-    private config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
-    private exts: ExtService,
-    private users: UserService,
-    private plugins: PluginService,
-    private templates: TemplateService,
-    private store: Store,
-  ) {
+  constructor() {
+    const store = this.store;
+
     this.store.eventBus.events.subscribe(event => {
       const mod = event.ref?.plugins?.['plugin/mod'];
       if (event.event === 'install') {

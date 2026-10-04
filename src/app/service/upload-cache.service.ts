@@ -1,5 +1,5 @@
 import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { Injectable, untracked } from '@angular/core';
+import { Injectable, untracked, inject } from '@angular/core';
 import { concat, defer, filter, finalize, map, Observable, of, shareReplay, switchMap, tap, toArray } from 'rxjs';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
@@ -19,6 +19,10 @@ import { RefService } from './api/ref.service';
   providedIn: 'root',
 })
 export class UploadCacheService {
+  private store = inject(Store);
+  private proxy = inject(ProxyService);
+  private refs = inject(RefService);
+
 
   /**
    * Map of origin and old cache ID to new cache ID.
@@ -33,11 +37,7 @@ export class UploadCacheService {
    */
   private pruned: readonly Ref[];
 
-  constructor(
-    private store: Store,
-    private proxy: ProxyService,
-    private refs: RefService,
-  ) {
+  constructor() {
     this.pruned = untracked(() => this.store.submit.refs());
   }
 

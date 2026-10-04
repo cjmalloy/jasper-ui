@@ -1,4 +1,4 @@
-import { Component, computed, forwardRef, ChangeDetectionStrategy, input, viewChildren } from '@angular/core';
+import { Component, computed, forwardRef, input, viewChildren, inject } from '@angular/core';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -25,7 +25,6 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-lens',
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     LoadingComponent,
     forwardRef(() => RefComponent),
@@ -42,6 +41,10 @@ import { ViewerComponent } from '../viewer/viewer.component';
   ],
 })
 export class LensComponent implements HasChanges {
+  admin = inject(AdminService);
+  account = inject(AccountService);
+  query = inject(QueryStore);
+
 
   readonly ext = input<Ext | undefined>();
   readonly tag = input('');
@@ -60,12 +63,6 @@ export class LensComponent implements HasChanges {
   readonly header = computed(() => this.ext()?.config?.header);
 
   readonly list = viewChildren<HasChanges>('lens');
-
-  constructor(
-    public admin: AdminService,
-    public account: AccountService,
-    public query: QueryStore,
-  ) { }
 
   saveChanges() {
     return !this.list()?.find(t => !t.saveChanges());

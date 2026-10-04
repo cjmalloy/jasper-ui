@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { finalize, forkJoin, map, of, switchMap } from 'rxjs';
@@ -15,26 +15,23 @@ import { hasTag } from '../../../util/tag';
   selector: 'app-chat-video',
   templateUrl: './chat-video.component.html',
   styleUrl: './chat-video.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     TitleDirective,
   ],
 })
-export class ChatVideoComponent implements AfterViewInit {
+export class ChatVideoComponent {
+  store = inject(Store);
+  private admin = inject(AdminService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private vs = inject(VideoService);
+
 
   private readonly destroyRef = inject(DestroyRef);
   readonly url = input('tag:/chat');
 
-  constructor(
-    public store: Store,
-    private admin: AdminService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private vs: VideoService,
-  ) { }
-
-  ngAfterViewInit() {
+  private readonly afterViewInit = afterNextRender(() => {
     if (this.store.local.inCall() && !this.store.video.enabled()) {
       this.ts.getResponse(this.url()).pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(ref => {
@@ -44,7 +41,7 @@ export class ChatVideoComponent implements AfterViewInit {
           }
         });
     }
-  }
+  });
 
   readonly authorExts = toSignal(toObservable(computed(() =>
     [...new Set([...this.userStreams().map(u => u.tag), ...this.hungup()])]

@@ -1,4 +1,4 @@
-import { computed, DestroyRef, inject, Component, ChangeDetectionStrategy, effect, input, signal, viewChildren, afterNextRender } from '@angular/core';
+import { computed, DestroyRef, inject, Component, effect, input, signal, viewChildren, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of, startWith, switchMap } from 'rxjs';
@@ -19,7 +19,6 @@ import { NoteComponent } from './note/note.component';
   templateUrl: './notebook.component.html',
   styleUrl: './notebook.component.scss',
   host: { 'class': 'notebook ext' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     NoteComponent,
     PageControlsComponent,
@@ -27,6 +26,11 @@ import { NoteComponent } from './note/note.component';
   ],
 })
 export class NotebookComponent implements HasChanges {
+  private accounts = inject(AccountService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private refs = inject(RefService);
+
   private destroyRef = inject(DestroyRef);
 
   readonly hide = input<number[]>();
@@ -58,12 +62,7 @@ export class NotebookComponent implements HasChanges {
   readonly expandedInput = input<boolean | undefined>(undefined, { alias: 'expanded' });
   readonly page = input<Page<Ref> | undefined>(undefined);
 
-  constructor(
-    private accounts: AccountService,
-    private router: Router,
-    private store: Store,
-    private refs: RefService,
-  ) {
+  constructor() {
     effect(() => {
       const page = this.page();
       if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {

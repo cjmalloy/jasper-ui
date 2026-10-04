@@ -5,7 +5,6 @@ import {
   inject,
   Component,
   forwardRef,
-  ChangeDetectionStrategy,
   effect,
   input,
   linkedSignal,
@@ -45,7 +44,6 @@ import { RelativePipe } from '../../../pipe/relative.pipe';
   templateUrl: './chat-entry.component.html',
   styleUrls: ['./chat-entry.component.scss'],
   host: { 'class': 'chat-entry', '[attr.tabindex]': '0' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RelativePipe,
     FakeLinkDirective,
@@ -60,6 +58,14 @@ import { RelativePipe } from '../../../pipe/relative.pipe';
   ],
 })
 export class ChatEntryComponent {
+  private config = inject(ConfigService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private refs = inject(RefService);
+
   private destroyRef = inject(DestroyRef);
 
   readonly actionComponents = viewChildren<ActionComponent>('action');
@@ -83,15 +89,7 @@ export class ChatEntryComponent {
   readonly serverError = linkedSignal<string[]>(() => { this.refInput(); return []; });
   private readonly hovering = linkedSignal(() => { this.refInput(); return false; });
 
-  constructor(
-    private config: ConfigService,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private refs: RefService,
-  ) {
+  constructor() {
     effect(() => {
       this.refInput();
       untracked(() => this.actionComponents().forEach(c => c.reset()));

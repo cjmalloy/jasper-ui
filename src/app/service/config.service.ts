@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { tap } from 'rxjs/operators';
@@ -14,6 +14,9 @@ export function config(): ConfigService {
   providedIn: 'root',
 })
 export class ConfigService {
+  private http = inject(HttpClient);
+  private router = inject(Router);
+
   version = DateTime.now().toISO();
   title = 'Jasper';
   api = '//localhost:8081';
@@ -49,10 +52,7 @@ export class ConfigService {
   tabletWidth = 948;
   hugeWidth = 1500;
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-  ) {
+  constructor() {
     // @ts-ignore
     window.configService = this;
   }

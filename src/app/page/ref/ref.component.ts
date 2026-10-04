@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Component, ChangeDetectionStrategy, viewChild, effect, Injector, signal, computed, afterNextRender } from '@angular/core';
+import { DestroyRef, inject, Component, viewChild, effect, Injector, signal, computed, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
@@ -25,7 +25,6 @@ import { hasTag, privateTag, top } from '../../util/tag';
   selector: 'app-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RefComponent,
     TabsComponent,
@@ -37,6 +36,14 @@ import { hasTag, privateTag, top } from '../../util/tag';
   ],
 })
 export class RefPage implements HasChanges {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private router = inject(Router);
+  private stomp = inject(StompService);
+
 
   private readonly injector = inject(Injector);
 
@@ -49,16 +56,6 @@ export class RefPage implements HasChanges {
   private watchUrl = '';
   private watchResponses?: Subscription;
   private seen = new Set<string>();
-
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private router: Router,
-    private stomp: StompService,
-  ) { }
 
   saveChanges() {
     const ref = this.ref();

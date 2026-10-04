@@ -1,9 +1,8 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 
 @Component({
   selector: 'formly-wrapper-form-field',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[title]': 'title',
   },

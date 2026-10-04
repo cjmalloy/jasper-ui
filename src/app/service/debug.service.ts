@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { from, of } from 'rxjs';
 import { signJwt } from '../util/jwt';
 import { ConfigService } from './config.service';
@@ -8,11 +8,9 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class DebugService {
-  loading?: Promise<string>;
+  private config = inject(ConfigService);
 
-  constructor(
-    private config: ConfigService,
-  ) { }
+  loading?: Promise<string>;
 
   get init$() {
     if (location.search.includes('debug=')) {

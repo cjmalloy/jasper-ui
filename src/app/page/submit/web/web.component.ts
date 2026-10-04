@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { Component, forwardRef, ChangeDetectionStrategy, viewChild, effect, inject, Injector, signal, untracked, afterNextRender } from '@angular/core';
+import { Component, forwardRef, viewChild, effect, inject, Injector, signal, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -49,7 +49,6 @@ import { getVisibilityTags } from '../../../util/tag';
   templateUrl: './web.component.html',
   styleUrls: ['./web.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     LimitWidthDirective,
@@ -59,6 +58,19 @@ import { getVisibilityTags } from '../../../util/tag';
   ],
 })
 export class SubmitWebPage implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private oembeds = inject(OembedStore);
+  private scrape = inject(ScrapeService);
+  bookmarks = inject(BookmarkService);
+  private fb = inject(UntypedFormBuilder);
+
 
   private readonly injector = inject(Injector);
 
@@ -81,20 +93,9 @@ export class SubmitWebPage implements HasChanges {
   private oldSubmit: string[] = [];
   private cursor?: string;
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    private router: Router,
-    private store: Store,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private oembeds: OembedStore,
-    private scrape: ScrapeService,
-    public bookmarks: BookmarkService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.setTitle($localize`Submit: Web Link`);
     this.webForm = refForm(fb);
     if (this.admin.editing()) {

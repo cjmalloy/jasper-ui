@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
@@ -11,16 +11,14 @@ import { UserService } from '../service/api/user.service';
   providedIn: 'root'
 })
 export class UserStore {
+  private users = inject(UserService);
+
 
   readonly args = signal<TagPageArgs | undefined>(undefined, { equal: isEqual });
   readonly page = signal<Page<User> | undefined>(undefined);
   readonly error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
-
-  constructor(
-    private users: UserService,
-  ) { }
 
   clear() {
     this.args.set(undefined);

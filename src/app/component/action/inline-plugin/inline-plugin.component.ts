@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, effect, input, linkedSignal, output, signal, viewChild, untracked } from '@angular/core';
+import { Component, computed, effect, input, linkedSignal, output, signal, viewChild, untracked, inject } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -15,10 +15,12 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-plugin.component.html',
   styleUrls: ['./inline-plugin.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FakeLinkDirective, GenFormComponent, LoadingComponent]
 })
 export class InlinePluginComponent extends ActionComponent {
+  admin = inject(AdminService);
+  private fb = inject(FormBuilder);
+
 
   readonly action = input<(plugins: any) => Observable<any | never>>(() => of(null));
   readonly plugin = input.required<Plugin>();
@@ -33,10 +35,7 @@ export class InlinePluginComponent extends ActionComponent {
     [this.plugin().tag]: this.fb.group({}),
   }));
 
-  constructor(
-    public admin: AdminService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
     super();
     effect(() => {
       const gen = this.gen();

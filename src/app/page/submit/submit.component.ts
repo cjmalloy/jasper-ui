@@ -1,6 +1,6 @@
 import { controlState, controlValue } from '../../util/form';
 import { AsyncPipe } from '@angular/common';
-import { computed, Component, ChangeDetectionStrategy, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
+import { computed, Component, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -47,7 +47,6 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RefComponent,
     TabsComponent,
@@ -67,6 +66,14 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   ],
 })
 export class SubmitPage {
+  admin = inject(AdminService);
+  private mod = inject(ModService);
+  private router = inject(Router);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private fb = inject(UntypedFormBuilder);
+
   private readonly controlState0 = controlValue(() => this.submitForm);
   protected readonly urlValue = controlValue(() => this.url);
 
@@ -90,15 +97,12 @@ export class SubmitPage {
   listId = 'list-' + uuid();
   private searching?: Subscription;
 
-  constructor(
-    public admin: AdminService,
-    private mod: ModService,
-    private router: Router,
-    public store: Store,
-    private auth: AuthzService,
-    private refs: RefService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const admin = this.admin;
+    const mod = this.mod;
+    const store = this.store;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Link`);
     this.submitForm = fb.group({
       url: ['', [Validators.required], [this.validator()]],

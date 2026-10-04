@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output, inject } from '@angular/core';
 import { isEqual } from 'lodash-es';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -17,10 +17,12 @@ import { Mod } from '../../model/tag';
   templateUrl: './diff.component.html',
   styleUrl: './diff.component.scss',
   host: { 'class': 'diff-editor' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MonacoEditorModule, ResizeHandleDirective]
 })
 export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod> {
+  config = inject(ConfigService);
+  private store = inject(Store);
+
 
   readonly original = input.required<T>();
   readonly modified = input.required<T>();
@@ -52,11 +54,6 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   }), { equal: isEqual });
 
   private editor?: any;
-
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-  ) { }
 
   initEditor(editor: any) {
     this.editor = editor;

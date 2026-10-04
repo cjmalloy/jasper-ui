@@ -1,5 +1,5 @@
 import { controlValue } from '../../util/form';
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { Component, computed, input, inject } from '@angular/core';
 import { isEqual } from 'lodash-es';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
@@ -12,10 +12,12 @@ import { Store } from '../../store/store';
   templateUrl: './json.component.html',
   styleUrls: ['./json.component.scss'],
   host: { 'class': 'json-editor' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
 export class JsonComponent {
+  config = inject(ConfigService);
+  private store = inject(Store);
+
   private readonly rootControlState = controlValue(() => this.group());
 
 
@@ -27,10 +29,5 @@ export class JsonComponent {
     automaticLayout: true,
     theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
   }), { equal: isEqual });
-
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-  ) { }
 
 }

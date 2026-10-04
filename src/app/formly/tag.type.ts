@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
@@ -47,13 +47,19 @@ import { getErrorMessage } from './errors';
              [class.is-invalid]="showError">
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FormlyAttributes,
   ],
 })
 export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> {
+  private configs = inject(ConfigService);
+  private config = inject(FormlyConfig);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+  store = inject(Store);
+
 
   listId = 'list-' + uuid();
   readonly preview = signal('');
@@ -65,17 +71,6 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> {
   private previewing?: Subscription;
   private searching?: Subscription;
   private formChanges?: Subscription;
-
-  constructor(
-    private configs: ConfigService,
-    private config: FormlyConfig,
-    private admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-    public store: Store,
-  ) {
-    super();
-  }
 
   private readonly initializeView = afterNextRender(() => {
     if (this.model) this.getPreview(this.model[this.key as any]);

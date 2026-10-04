@@ -1,5 +1,5 @@
 import { controlValue } from '../../../util/form';
-import { Component, ChangeDetectionStrategy, computed, input, output, signal, afterNextRender } from '@angular/core';
+import { Component, computed, input, output, signal, afterNextRender, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
@@ -10,10 +10,11 @@ import { AdminService } from '../../../service/admin.service';
   selector: 'app-form-gen',
   templateUrl: './gen.component.html',
   styleUrls: ['./gen.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class GenFormComponent {
+  private admin = inject(AdminService);
+
   private readonly rootControlState = controlValue(() => this.plugins());
 
 
@@ -31,10 +32,6 @@ export class GenFormComponent {
       config: {},
     },
   };
-
-  constructor(
-    private admin: AdminService,
-  ) { }
 
   readonly group = computed(() => {
     this.rootControlState();

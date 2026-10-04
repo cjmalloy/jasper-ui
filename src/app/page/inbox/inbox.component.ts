@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy, afterNextRender } from '@angular/core';
+import { Component, inject, afterNextRender } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -11,16 +11,13 @@ import { Store } from '../../store/store';
   templateUrl: './inbox.component.html',
   styleUrls: ['./inbox.component.scss'],
   host: { 'class': 'inbox' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
 })
 export class InboxPage {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-  ) { }
 
   private readonly initialize = afterNextRender(() => {
     if (!this.store.view.inboxTabs().length) {

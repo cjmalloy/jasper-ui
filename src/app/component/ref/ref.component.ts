@@ -1,7 +1,7 @@
 import { controlValue } from '../../util/form';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, effect, forwardRef, inject, input, linkedSignal, output, untracked, viewChildren, viewChild, signal, computed, afterNextRender } from '@angular/core';
+import { Component, DestroyRef, ElementRef, effect, forwardRef, inject, input, linkedSignal, output, untracked, viewChildren, viewChild, signal, computed, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -112,7 +112,6 @@ import { RelativePipe } from '../../pipe/relative.pipe';
     '(fullscreenchange)': 'onFullscreenChange()',
     '(click)': 'onClick()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RelativePipe,
     FakeLinkDirective,
@@ -136,6 +135,23 @@ import { RelativePipe } from '../../pipe/relative.pipe';
   ],
 })
 export class RefComponent implements HasChanges {
+  config = inject(ConfigService);
+  accounts = inject(AccountService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private bookmarks = inject(BookmarkService);
+  private proxy = inject(ProxyService);
+  private uploadCache = inject(UploadCacheService);
+  private ts = inject(TaggingService);
+  private router = inject(Router);
+  private fb = inject(UntypedFormBuilder);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+  private imgs = inject(ImageService);
+
   private readonly controlState0 = controlValue(() => this.editForm);
 
 
@@ -227,24 +243,9 @@ export class RefComponent implements HasChanges {
   private focusViewer = false;
   private preloadingUrl = '';
 
-  constructor(
-    public config: ConfigService,
-    public accounts: AccountService,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private bookmarks: BookmarkService,
-    private proxy: ProxyService,
-    private uploadCache: UploadCacheService,
-    private ts: TaggingService,
-    private router: Router,
-    private fb: UntypedFormBuilder,
-    private el: ElementRef<HTMLDivElement>,
-    private imgs: ImageService,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = refForm(fb);
     effect(() => {
       if (!this.refInput()) return;

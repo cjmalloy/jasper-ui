@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import Europa from 'europa';
 import { Plugin, PluginApi, PluginConverter } from 'europa-core';
@@ -20,13 +20,13 @@ export type TagPreview = { name?: string,  bookmark?: string, tag: string } | Ex
   providedIn: 'root'
 })
 export class EditorService {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private exts = inject(ExtService);
+  private store = inject(Store);
 
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private exts: ExtService,
-    private store: Store,
-  ) {
+
+  constructor() {
     const superscriptProvider = (api: PluginApi): Plugin => ({
       converters: {
         SUP: {

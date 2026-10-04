@@ -1,12 +1,4 @@
-import {
-  Component,
-  forwardRef,
-  ChangeDetectionStrategy,
-  computed,
-  linkedSignal,
-  input,
-  viewChildren,
-} from '@angular/core';
+import { Component, forwardRef, computed, linkedSignal, input, viewChildren, inject } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { EMPTY, Observable, switchMap } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -20,12 +12,14 @@ import { CommentComponent } from '../comment.component';
   templateUrl: './comment-thread.component.html',
   styleUrls: ['./comment-thread.component.scss'],
   host: { 'class': 'comment-thread' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => CommentComponent),
   ],
 })
 export class CommentThreadComponent implements HasChanges {
+  store = inject(Store);
+  thread = inject(ThreadStore);
+
 
   readonly source = input('');
   readonly scrollToLatest = input(false);
@@ -41,10 +35,7 @@ export class CommentThreadComponent implements HasChanges {
     computation: () => [] as Ref[],
   });
 
-  constructor(
-    public store: Store,
-    public thread: ThreadStore,
-  ) {
+  constructor() {
     toObservable(this.newComments$).pipe(
       switchMap(comments => comments ?? EMPTY),
       takeUntilDestroyed(),

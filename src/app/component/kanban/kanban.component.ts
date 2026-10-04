@@ -1,18 +1,7 @@
 import { CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
-import {
-  Component,
-  computed,
-  forwardRef,
-  OnDestroy,
-  ChangeDetectionStrategy,
-  input,
-  signal,
-  viewChildren,
-  effect,
-  untracked
-} from '@angular/core';
+import { Component, computed, forwardRef, input, signal, viewChildren, effect, untracked, inject, DestroyRef } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
@@ -47,7 +36,6 @@ export interface KanbanDrag {
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss'],
   host: { 'class': 'kanban ext', '(window:resize)': 'onResize()' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => KanbanColumnComponent),
     LoadingComponent,
@@ -61,7 +49,13 @@ export interface KanbanDrag {
     AsyncPipe,
   ],
 })
-export class KanbanComponent implements OnDestroy, HasChanges {
+export class KanbanComponent implements HasChanges {
+  private accounts = inject(AccountService);
+  bookmarks = inject(BookmarkService);
+  store = inject(Store);
+  exts = inject(ExtService);
+  private tags = inject(TaggingService);
+
 
   readonly list = viewChildren(KanbanColumnComponent);
 
@@ -83,13 +77,7 @@ export class KanbanComponent implements OnDestroy, HasChanges {
     columns: []
   };
 
-  constructor(
-    private accounts: AccountService,
-    public bookmarks: BookmarkService,
-    public store: Store,
-    public exts: ExtService,
-    private tags: TaggingService,
-  ) {
+  constructor() {
     effect(() => {
       this.ext();
       untracked(() => this.loadExt());
@@ -116,9 +104,9 @@ export class KanbanComponent implements OnDestroy, HasChanges {
   }
 
 
-  ngOnDestroy() {
+  private readonly onDestroy = inject(DestroyRef).onDestroy(() => {
     this.updates.complete();
-  }
+  });
 
   onResize() {
     const margin = 20;

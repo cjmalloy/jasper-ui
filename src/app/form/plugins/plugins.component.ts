@@ -1,5 +1,5 @@
 import { controlValue } from '../../util/form';
-import { computed, DestroyRef, inject, Component, effect, ChangeDetectionStrategy, input, output, viewChildren, untracked, afterNextRender } from '@angular/core';
+import { computed, DestroyRef, inject, Component, effect, input, output, viewChildren, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -16,10 +16,12 @@ import { GenFormComponent } from './gen/gen.component';
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss'],
   host: { 'class': 'plugins-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent {
+  admin = inject(AdminService);
+  private fb = inject(UntypedFormBuilder);
+
   protected readonly rootControlState = controlValue(() => this.group());
 
   private readonly controlState0 = controlValue(() => this.tags());
@@ -41,10 +43,10 @@ export class PluginsFormComponent {
       .filter(icon => this.showIcon(icon));
   });
 
-  constructor(
-    public admin: AdminService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const admin = this.admin;
+    const fb = this.fb;
+
     this.defaultGroup = fb.group({
       tags: fb.array([]),
       [this.fieldName()]: pluginsForm(fb, admin, []),

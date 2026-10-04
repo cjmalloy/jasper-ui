@@ -5,7 +5,7 @@ import {
 } from '@angular/cdk/scrolling';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpEventType } from '@angular/common/http';
-import { DestroyRef, inject, Component, OnDestroy, ChangeDetectionStrategy, computed, effect, input, linkedSignal, viewChild, signal, untracked } from '@angular/core';
+import { DestroyRef, inject, Component, computed, effect, input, linkedSignal, viewChild, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, differenceWith, uniq, without } from 'lodash-es';
@@ -63,7 +63,6 @@ export interface ChatUpload {
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   host: { 'class': 'chat ext' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RelativePipe,
     FakeLinkDirective,
@@ -76,7 +75,18 @@ export interface ChatUpload {
     AutofocusDirective,
   ],
 })
-export class ChatComponent implements OnDestroy, HasChanges {
+export class ChatComponent implements HasChanges {
+  config = inject(ConfigService);
+  private accounts = inject(AccountService);
+  admin = inject(AdminService);
+  private store = inject(Store);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private editor = inject(EditorService);
+  private stomp = inject(StompService);
+  private proxy = inject(ProxyService);
+  private ts = inject(TaggingService);
+
   private destroyRef = inject(DestroyRef);
   readonly itemSize = 18.5;
   private readonly windowHeight = toSignal(fromEvent(window, 'resize').pipe(
@@ -115,18 +125,7 @@ export class ChatComponent implements OnDestroy, HasChanges {
   private readonly uploadSubscriptions = new Map<string, Subscription>();
   private readonly queryChanged = new Subject<void>();
 
-  constructor(
-    public config: ConfigService,
-    private accounts: AccountService,
-    public admin: AdminService,
-    private store: Store,
-    private auth: AuthzService,
-    private refs: RefService,
-    private editor: EditorService,
-    private stomp: StompService,
-    private proxy: ProxyService,
-    private ts: TaggingService,
-  ) {
+  constructor() {
     effect(() => {
       this.query();
       this.responseOf();
@@ -139,11 +138,11 @@ export class ChatComponent implements OnDestroy, HasChanges {
     return true;
   }
 
-  ngOnDestroy(): void {
+  private readonly onDestroy = inject(DestroyRef).onDestroy(() => {
     this.clearPoll();
     this.refresh.cancel();
     this.cancelAllUploads();
-  }
+  });
 
   init() {
     this.queryChanged.next();

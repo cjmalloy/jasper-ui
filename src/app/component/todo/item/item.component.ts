@@ -1,15 +1,4 @@
-import { computed,
-  Component,
-  ElementRef,
-  effect,
-  forwardRef,
-  ChangeDetectionStrategy,
-  input,
-  output,
-  signal,
-  linkedSignal,
-  untracked,
-} from '@angular/core';
+import { computed, Component, ElementRef, effect, forwardRef, input, output, signal, linkedSignal, untracked, inject } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
@@ -25,13 +14,16 @@ import { MdComponent } from '../../md/md.component';
     '(touchend)': 'touchend($event)',
     '(press)': 'unlock($event)',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AutofocusDirective,
     forwardRef(() => MdComponent),
   ]
 })
 export class TodoItemComponent {
+  private store = inject(Store);
+  config = inject(ConfigService);
+  private el = inject(ElementRef);
+
 
   readonly unlocked = signal(false);
 
@@ -50,12 +42,6 @@ export class TodoItemComponent {
   readonly hovering = signal(false);
 
   readonly line = input('', { alias: 'line' });
-
-  constructor(
-    private store: Store,
-    public config: ConfigService,
-    private el: ElementRef,
-  ) {}
 
   readonly local = computed(() => {
     return this.origin() === this.store.account.origin();
