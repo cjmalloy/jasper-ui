@@ -7286,6 +7286,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>⚠️ Skipped <x id="PH" equiv-text="mod"/> mod: unable to merge local changes automatically. Use diff to update manually.</source>
         <target>⚠️ <x id="PH" equiv-text="mod"/> MODをスキップしました: ローカルの変更を自動的にマージできません。差分を使用して手動で更新してください。</target>
       </trans-unit>
+      <trans-unit id="3599138507718837516" datatype="html">
+        <source>Script:</source>
+        <target>スクリプト:</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
