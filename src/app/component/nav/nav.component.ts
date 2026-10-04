@@ -54,9 +54,11 @@ export class NavComponent implements OnInit {
     if (this.localUrl) {
       const nav = this.getNav();
       this.nav = nav;
-      if (nav[0] === '/tag' && this.store.view.browser) {
-        this.nav = ['/browse', 'tag:/' + nav[1]];
-      }
+if (nav[0] === '/tag' && this.store.view.browser) {
+  const suffixIndex = this.url.search(/[?#]/);
+  const suffix = suffixIndex < 0 ? '' : this.url.substring(suffixIndex);
+  this.nav = ['/browse', 'tag:/' + nav[1] + suffix];
+}
       if (nav[0] === '/tag' && !this.external && !this.hasText) {
         const tag = nav[1] as string;
         const user = this.shortUser && hasPrefix(tag, 'user');
