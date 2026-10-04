@@ -934,6 +934,24 @@ test.describe.serial('Map Plugin', () => {
     await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
   });
 
+  test('location input map picker collapses the attribution before tiles load', async ({ page }) => {
+    // Hold the basemap TileJSON so the map load event is delayed, like a slow satellite basemap
+    await page.route(/tiles\.json/, () => {});
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'domcontentloaded' });
+    const point = page.locator('.location-field').first();
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
+    await point.locator('.location-map-toggle').click();
+    await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
+
+    const attrib = point.locator('.location-map .maplibregl-ctrl-attrib');
+    await expect(attrib).toHaveClass(/maplibregl-compact/);
+    await expect(attrib).not.toHaveClass(/maplibregl-compact-show/);
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toBeHidden();
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+  });
+
   test('location input map picker can be resized', async ({ page }) => {
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/geo/multipoint', { waitUntil: 'networkidle' });
