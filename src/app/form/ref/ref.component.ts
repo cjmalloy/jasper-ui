@@ -15,7 +15,6 @@ import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
-import { FillWidthDirective } from '../../directive/fill-width.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
@@ -57,7 +56,6 @@ import { controlState, controlValue } from '../../util/form';
     PluginsFormComponent,
     MonacoEditorModule,
     ResizeHandleDirective,
-    FillWidthDirective,
     TagsFormComponent,
     AsyncPipe,
     ThumbnailPipe,
@@ -93,7 +91,6 @@ export class RefFormComponent {
   readonly sourcesFormComponent = viewChild.required<LinksFormComponent>('sources');
   readonly altsFormComponent = viewChild.required<LinksFormComponent>('alts');
   readonly pluginsFormComponent = viewChild.required<PluginsFormComponent>('pluginsFormComponent');
-  readonly fill = viewChild<ElementRef>('fill');
   readonly editorComponent = viewChild<EditorComponent>('ed');
 
   readonly dropping = signal(false);

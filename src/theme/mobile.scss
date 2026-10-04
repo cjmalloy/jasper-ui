@@ -123,6 +123,10 @@ $tablet-width: 948px;
 
 /* Phone Screens */
 @media (max-width: $mobile-width) {
+  .fill-editor {
+    max-width: 100vw;
+  }
+
   input[type="color"],
   input[type="date"],
   input[type="datetime"],

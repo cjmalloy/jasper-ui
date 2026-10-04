@@ -121,7 +121,7 @@ export class KanbanColumnComponent implements HasChanges {
   constructor() {
     const config = this.config;
 
-    if (config.mobile) {
+    if (config.mobile()) {
       this.pressToUnlock.set(true);
     }
     let previous: ReturnType<typeof this.requestInputs> | undefined;

@@ -52,7 +52,7 @@ export class ImageDirective {
       this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize());
       this.resizeObserver?.observe(this.el);
     } else {
-      if (this.config.mobile) {
+      if (this.config.mobile()) {
         this.el.style.width = this.defaultWidthPx || null;
         this.el.style.height = this.defaultHeightPx() || this.el.clientWidth + 'px';
       } else {
@@ -79,7 +79,7 @@ export class ImageDirective {
   get defaultWidthPx() {
     const defaultWidth = this.defaultWidth();
     if (!defaultWidth) return undefined;
-    if (this.config.mobile && defaultWidth > window.innerWidth) return 'calc(100vw - 32px)'
+    if (this.config.mobile() && defaultWidth > window.innerWidth) return 'calc(100vw - 32px)'
     return defaultWidth + 'px'
   }
 
@@ -100,7 +100,7 @@ export class ImageDirective {
       .then((dim: Dim) => {
         this.loading.set(false);
         this.el.style.backgroundImage = `url('${value}')`;
-        this.el.style.backgroundSize = this.config.mobile ? 'cover' : 'contain';
+        this.el.style.backgroundSize = this.config.mobile() ? 'cover' : 'contain';
         this.dim = dim;
         this.onResize();
       });
@@ -117,7 +117,7 @@ export class ImageDirective {
     }
     const grid = this.grid();
     const parentWidth = this.parentWidth - (grid ? 0 : this.padding());
-    if (this.config.mobile && !grid && (!defaultWidth || defaultWidth >= window.innerWidth)) {
+    if (this.config.mobile() && !grid && (!defaultWidth || defaultWidth >= window.innerWidth)) {
       this.el.style.width = parentWidth + 'px';
       this.el.style.height = this.defaultHeightPx() || height(parentWidth, this.dim) + 'px';
     } else if (grid || this.dim.width > parentWidth && (!defaultWidth || defaultWidth >= parentWidth)) {

@@ -16,7 +16,6 @@ import { DateTime } from 'luxon';
 import { catchError, firstValueFrom, forkJoin, interval, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../../component/loading/loading.component';
-import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { QrScannerComponent } from '../../../formly/qr-scanner/qr-scanner.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -43,7 +42,6 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
   imports: [
     EditorComponent,
     ReactiveFormsModule,
-    LimitWidthDirective,
     QrScannerComponent,
     LoadingComponent,
   ]

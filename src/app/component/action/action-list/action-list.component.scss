@@ -1,5 +1,4 @@
-.overflow-action {
-  position: absolute;
-  visibility: hidden;
-  pointer-events: none;
+:host {
+  display: flex;
+  flex-wrap: wrap;
 }

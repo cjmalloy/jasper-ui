@@ -1,8 +1,6 @@
 <form class="form"
       [formGroup]="textForm"
-      (ngSubmit)="submit()"
-      [appLimitWidth]="limitWidth()"
-      [limitSibling]="true">
+      (ngSubmit)="submit()">
 
   @if (defaults()?.url || loadingDefaults().length) {
     <span></span>
@@ -34,15 +32,14 @@
 
     @if (customEditor()) {
       <span><!-- Editor --></span>
-      <div #fill class="fill-editor">
+      <div class="fill-editor">
         <ngx-monaco-editor #ed
                            [formControl]="comment"
                            [options]="codeOptions()"
                            [style.width]="'min(900px, 50vw)'"
                            [style.height]="'min(200px, 90vh)'"
-                           [appFillWidth]="fill"
-                           appResizeHandle
-                           [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+                                               appResizeHandle
+                           [hitArea]="config.mobile() ? 48 : 20"></ngx-monaco-editor>
       </div>
     } @else {
       @if (store.submit.wiki()) {
@@ -50,7 +47,7 @@
       } @else {
         <label [for]="ed.id()" class="editor-label" i18n>Comment:</label>
       }
-      <div #fill class="fill-editor">
+      <div class="fill-editor">
         <app-editor #ed
                     class="bubble"
                     [control]="comment"
@@ -59,8 +56,7 @@
                     (syncTags)="setTags($event)"
                     (addSource)="addSource($event)"
                     (uploadCompleted)="addCompletedUpload($event)"
-                    [fillWidth]="fill"
-                    [autoFocus]="true"></app-editor>
+                     [autoFocus]="true"></app-editor>
       </div>
     }
 

@@ -3,6 +3,6 @@
     <ngx-monaco-editor [formControlName]="fieldName()"
                        [options]="options()"
                        appResizeHandle
-                       [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+                       [hitArea]="config.mobile() ? 48 : 20"></ngx-monaco-editor>
   </ng-container>
 }

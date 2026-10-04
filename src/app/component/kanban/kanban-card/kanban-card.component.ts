@@ -216,7 +216,7 @@ export class KanbanCardComponent {
   }
 
   unlock(event: any) {
-    if (!this.config.mobile) return;
+    if (!this.config.mobile()) return;
     this.unlocked.set(true);
     this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);

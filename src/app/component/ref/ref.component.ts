@@ -352,7 +352,7 @@ export class RefComponent implements HasChanges {
   });
 
   unlockViewer(event: Event) {
-    if (!this.config.mobile) return;
+    if (!this.config.mobile()) return;
     this.mobileUnlock.set(!this.mobileUnlock());
     event.preventDefault();
   }

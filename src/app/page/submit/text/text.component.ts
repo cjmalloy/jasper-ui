@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { Component, ElementRef, forwardRef, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
+import { Component, forwardRef, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -18,8 +18,6 @@ import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { NavComponent } from '../../../component/nav/nav.component';
 import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
-import { FillWidthDirective } from '../../../directive/fill-width.directive';
-import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
@@ -53,14 +51,12 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
     FakeLinkDirective,
     forwardRef(() => EditorComponent),
     ReactiveFormsModule,
-    LimitWidthDirective,
     NavComponent,
     LoadingComponent,
     SelectPluginComponent,
     PluginsFormComponent,
     MonacoEditorModule,
     ResizeHandleDirective,
-    FillWidthDirective,
     TagsFormComponent,
     forwardRef(() => RefFormComponent),
   ],
@@ -90,11 +86,6 @@ export class SubmitTextPage implements HasChanges {
   readonly advanced = signal<boolean>(false);
   readonly serverError = signal<string[]>([]);
 
-  readonly limitWidth = signal<HTMLElement | undefined>(undefined);
-
-  readonly fill = viewChild<ElementRef>('fill');
-  private _advancedFill?: ElementRef;
-
   readonly editorComponent = viewChild<EditorComponent>('ed');
 
   readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
@@ -123,10 +114,6 @@ export class SubmitTextPage implements HasChanges {
     this.textForm = refForm(fb);
     this.ensureUrl();
     store.submit.wikiPrefix.set(admin.getWikiPrefix());
-    effect(() => {
-      const fill = this.fill();
-      defer(() => this.limitWidth.set(this._advancedFill?.nativeElement || fill?.nativeElement));
-    });
     effect(() => {
       const value = this.advancedForm();
       untracked(() => this.setAdvancedForm(value));
@@ -277,8 +264,6 @@ export class SubmitTextPage implements HasChanges {
       value.setRef(this.savedRef);
       delete this.savedRef;
     }
-    this._advancedFill = value?.fill();
-    defer(() => this.limitWidth.set(value?.fill()?.nativeElement || this.fill()?.nativeElement));
   }
 
   get url() {

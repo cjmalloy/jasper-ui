@@ -48,7 +48,7 @@ export class TodoComponent {
     : this.ref()?.comment || this.text() || '').split('\n').filter(l => !!l));
   readonly addText = linkedSignal(() => { this.ref(); this.text(); return ''; });
   readonly pushText = linkedSignal<string[]>(() => { this.ref(); return []; });
-  readonly pressToUnlock = linkedSignal(() => this.config.mobile);
+  readonly pressToUnlock = linkedSignal(() => this.config.mobile());
   readonly serverErrors = linkedSignal<string[]>(() => { this.ref(); return []; });
 
   private pushing?: Subscription;

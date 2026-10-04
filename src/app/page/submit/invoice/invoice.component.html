@@ -1,5 +1,4 @@
-<form class="form" [formGroup]="invoiceForm" (ngSubmit)="submit()"
-      [appLimitWidth]="fill" [limitSibling]="true">
+<form class="form" [formGroup]="invoiceForm" (ngSubmit)="submit()">
 
   <label for="to" i18n>Queue:</label>
   <input id="to"
@@ -33,14 +32,13 @@
   </div>
 
   <span><!-- Message --></span>
-  <div #fill class="fill-editor">
+  <div class="fill-editor">
     <app-editor #editor
                 class="bubble"
                 [control]="comment"
                 [addButton]="true"
                 i18n-addCommentTitle addCommentTitle="Add message"
                 i18n-addCommentLabel addCommentLabel="+ Add message"
-                [fillWidth]="fill"
                 (syncEditor)="syncEditor()"
                 [tags]="invoiceFormValue()?.tags"
                 (syncTags)="editorTags = $event"

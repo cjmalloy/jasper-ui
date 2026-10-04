@@ -15,7 +15,7 @@
            cdkDragBoundary=".chess-board"
            (cdkDragStarted)="setPieceSize()"
            [cdkDragData]="rp"
-           [cdkDragDisabled]="config.mobile || turn() !== rp.color">{{ drawPiece(rp) }}</div>
+           [cdkDragDisabled]="config.mobile() || turn() !== rp.color">{{ drawPiece(rp) }}</div>
     }
     @if (capturedPiece(); as captured) {
       @if (getCoord(white() ? i : 63 - i) === captured.square) {

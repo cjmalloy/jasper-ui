@@ -3,7 +3,7 @@
           (click)="addComment()"
           [title]="addCommentTitle()">{{ addCommentLabel() }}</button>
 } @else {
-  <div class="text-wrapper">
+  <div class="text-wrapper fill-editor">
     <div class="toolbar">
       <button type="button"
               (click)="toggleFullscreen()"
@@ -123,8 +123,6 @@
               (dragleave)="dragLeave(editor, $any($event.target))"
               (drop)="drop($event, $event.dataTransfer?.items)"
               (paste)="drop($event, $event.clipboardData?.items)"
-              [appFillWidth]="fillWidth()"
-              [padding]="padding()"
               [appAutofocus]="autoFocus()"></textarea>
     <div class="floating-toggles">
     </div>
@@ -135,7 +133,6 @@
             [origin]="store.account.origin()"
             [text]="currentText()"
             [plugins]="allTags()"
-            [appLimitWidth]="editor"
             (postProcessMarkdown)="postProcessMarkdown()"
             (pointerup)="onSelectPreview()"></app-md>
     <textarea #hiddenMeasure

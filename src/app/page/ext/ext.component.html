@@ -36,9 +36,7 @@
 } @else if (editForm(); as editForm) {
   <form class="form"
         [formGroup]="editForm"
-        (ngSubmit)="save()"
-        [appLimitWidth]="form?.fillPopover()?.nativeElement || form?.fillSidebar()?.nativeElement"
-        [limitSibling]="true">
+        (ngSubmit)="save()">
     <app-ext-form #form
                   [group]="editForm"
                   [showClear]="true"

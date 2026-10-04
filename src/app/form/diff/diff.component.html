@@ -6,5 +6,5 @@
                           [style.width]="fullHeight() ? '100%' : 'min(1200px, 90vw)'"
                           [style.height]="fullHeight() ? '100%' : 'min(400px, 70vh)'"
                           [appResizeHandle]="resizable()"
-                          [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-diff-editor>
+                          [hitArea]="config.mobile() ? 48 : 20"></ngx-monaco-diff-editor>
 }

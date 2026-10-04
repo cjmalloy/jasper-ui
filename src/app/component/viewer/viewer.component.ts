@@ -153,9 +153,9 @@ export class ViewerComponent {
 
   private readonly layout = signal({ parentWidth: 0, height: window.innerHeight, landscape: false });
   private readonly width = computed(() => hasTag('plugin/fullscreen', this.ref()) ? screen.width
-    : this.ref()?.plugins?.['plugin/embed']?.width || ((hasTag('plugin/thread', this.tags() || this.ref()?.tags) || !this.config.mobile) ? Math.floor(this.layout().parentWidth * 0.6) : this.layout().parentWidth - 16));
+    : this.ref()?.plugins?.['plugin/embed']?.width || ((hasTag('plugin/thread', this.tags() || this.ref()?.tags) || !this.config.mobile()) ? Math.floor(this.layout().parentWidth * 0.6) : this.layout().parentWidth - 16));
   private readonly height = computed(() => hasTag('plugin/fullscreen', this.ref()) ? screen.height
-    : this.ref()?.plugins?.['plugin/embed']?.height || (this.config.mobile ? this.layout().height : Math.floor(this.layout().height * 0.8)));
+    : this.ref()?.plugins?.['plugin/embed']?.height || (this.config.mobile() ? this.layout().height : Math.floor(this.layout().height * 0.8)));
   private readonly oembedRequest = computed(() => {
     const url = this.ref()?.url;
     if (!url || !hasTag('plugin/embed', this.tags() || this.ref()?.tags)) return undefined;
@@ -347,7 +347,7 @@ export class ViewerComponent {
   });
 
   readonly resizable = computed(() => {
-    if (this.config.mobile) return false;
+    if (this.config.mobile()) return false;
     if (this.ref()?.plugins?.['plugin/embed']?.noResize) return false;
     const html = this.oembed()?.html;
     return !html || html.startsWith('<iframe');
@@ -408,16 +408,16 @@ export class ViewerComponent {
   });
 
   readonly embedWidth = computed(() => {
-    if (this.embed()?.width) return Math.min(this.embed().width, this.layout().parentWidth - ((this.thread() || !this.config.mobile) ? 32 : 12)) + 'px';
-    if (this.config.mobile && this.layout().landscape) {
+    if (this.embed()?.width) return Math.min(this.embed().width, this.layout().parentWidth - ((this.thread() || !this.config.mobile()) ? 32 : 12)) + 'px';
+    if (this.config.mobile() && this.layout().landscape) {
       return this.thread() ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
-    return this.config.huge ? '67%' : '80%';
+    return this.config.huge() ? '67%' : '80%';
   });
 
   readonly embedHeight = computed(() => {
     if (this.embed()?.height) return Math.min(this.embed().height, this.layout().height) + 'px';
-    if (this.config.mobile && this.layout().landscape) {
+    if (this.config.mobile() && this.layout().landscape) {
       return '100vh';
     }
     return '67vh';

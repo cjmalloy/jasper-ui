@@ -13,7 +13,6 @@ import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
 import { SettingsComponent } from '../../component/settings/settings.component';
-import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -38,7 +37,6 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
     ReactiveFormsModule,
     SelectTemplateComponent,
     LoadingComponent,
-    LimitWidthDirective,
     ExtFormComponent,
   ],
 })

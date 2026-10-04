@@ -4,8 +4,7 @@
   <app-settings></app-settings>
 </div>
 
-<form class="form" [formGroup]="profileForm" (ngSubmit)="save()"
-      [appLimitWidth]="form?.fill()?.nativeElement" [limitSibling]="true">
+<form class="form" [formGroup]="profileForm" (ngSubmit)="save()">
 
   <app-user-form #form
                  [group]="user"

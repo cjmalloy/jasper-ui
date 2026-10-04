@@ -1,8 +1,6 @@
 <form class="form"
       [formGroup]="editForm"
-      (ngSubmit)="save()"
-      [appLimitWidth]="form?.fillPopover()?.nativeElement || form?.fillSidebar()?.nativeElement"
-      [limitSibling]="true">
+      (ngSubmit)="save()">
 
   @if (store.local.selectedUserTag || config.electron || isDevMode() || store.account.localTag() === '+user' || store.account.localTag() === '_user') {
     <label for="change-user" i18n>Change User:</label>

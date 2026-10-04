@@ -14,14 +14,13 @@ interface EditorProps extends FormlyFieldProps {
   selector: 'formly-field-editor',
   host: { 'class': 'field editor-field' },
   template: `
-    <div #fillWidth class="fill-editor">
+    <div class="fill-editor">
       <app-editor [id]="id"
                   [control]="editorControl"
                   [hasTags]="false"
                   [addButton]="!!props.addButton"
                   [addCommentTitle]="addCommentTitle"
                   [addCommentLabel]="addCommentLabel"
-                  [fillWidth]="fillWidth"
                   [class.bubble]="props.bubble"></app-editor>
     </div>
   `,

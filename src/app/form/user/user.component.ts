@@ -1,5 +1,5 @@
 import { controlValue } from '../../util/form';
-import { computed, Component, ElementRef, input, output, signal, viewChild, afterNextRender, inject } from '@angular/core';
+import { computed, Component, input, output, signal, viewChild, afterNextRender, inject } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -9,7 +9,6 @@ import {
 } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
-import { FillWidthDirective } from '../../directive/fill-width.directive';
 import { User } from '../../model/user';
 import { isMailbox } from '../../mods/mailbox';
 import { Store } from '../../store/store';
@@ -25,7 +24,6 @@ import { TagsFormComponent } from '../tags/tags.component';
   imports: [
     ReactiveFormsModule,
     TagsFormComponent,
-    FillWidthDirective,
     JsonComponent,
   ]
 })
@@ -40,13 +38,10 @@ export class UserFormComponent {
 
   readonly group = input.required<UntypedFormGroup>();
   readonly showPubKey = input(true);
-  readonly fillWidth = input<HTMLElement>();
   readonly tagChanges = output<string>();
   readonly showClear = input(false);
   readonly clear = output<void>();
   readonly externalErrors = input<string[]>([]);
-
-  readonly fill = viewChild<ElementRef>('fill');
 
   readonly notifications = viewChild.required<TagsFormComponent>('notifications');
   readonly readAccess = viewChild.required<TagsFormComponent>('readAccess');
