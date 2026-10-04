@@ -58,6 +58,10 @@ export class ViewStore {
   modUpdates = new Set<string>();
   inboxTabs: Plugin[] = [];
   settingsTabs: Plugin[] = [];
+  /**
+   * Current map center and zoom, updated as the map is panned.
+   */
+  liveMapView = '';
 
   constructor(
     public route: RouterStore,
@@ -68,12 +72,17 @@ export class ViewStore {
       setRef: action,
       preloadRef: action,
       setLastSelected: action,
+      setLiveMapView: action,
       exts: observableShallow,
       extTemplates: observableShallow,
       inboxTabs: observableShallow,
       settingsTabs: observableShallow,
     });
     this.clear(); // Initial observables may not be null for MobX
+  }
+
+  setLiveMapView(value = '') {
+    this.liveMapView = value;
   }
 
   setLastSelected(ref?: Ref) {

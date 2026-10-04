@@ -805,6 +805,31 @@ test.describe.serial('Map Plugin', () => {
     expect(page.url()).toBe(saved);
   });
 
+  for (const map of ['&map=-63.5,44.6,9', '']) {
+    test(`sidebar submit uses the map center after panning${map ? '' : ' without a saved view'}`, async ({ page }) => {
+      await page.goto('/tag/public:plugin/geo/point?debug=ADMIN&view=map' + map, { waitUntil: 'networkidle' });
+      await closeSidebar(page);
+      const canvas = page.locator('.map.ext .maplibregl-canvas');
+      await expect(canvas).toBeVisible({ timeout: 15_000 });
+      await expect(page).toHaveURL(/[?&]map=/);
+      await page.waitForTimeout(1000);
+      const initial = page.url();
+
+      const box = (await canvas.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width / 2 - 200, box.y + box.height / 2 - 100, { steps: 10 });
+      await page.mouse.up();
+      await expect(page).not.toHaveURL(initial);
+      await openSidebar(page);
+      const center = new globalThis.URL(page.url()).searchParams.get('map')!.split(',').slice(0, 2).join(',');
+
+      await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
+      await expect(page).toHaveURL(/\/submit\?/);
+      expect(new globalThis.URL(page.url()).searchParams.get('location')).toBe(center);
+    });
+  }
+
   test('dragging a marker out of the map ends the drag on release', async ({ page }) => {
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });

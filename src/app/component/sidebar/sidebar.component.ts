@@ -250,7 +250,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   get location() {
     if (!this.addTags.includes('plugin/geo/point')) return undefined;
-    return parseMapView(this.store.view.mapView)?.center.join(',');
+    return parseMapView(this.store.view.liveMapView || this.store.view.mapView)?.center.join(',');
   }
 
   get expanded(): boolean {

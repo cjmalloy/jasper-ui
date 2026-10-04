@@ -177,6 +177,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     if (!view) return;
     const url = this.router.parseUrl(this.location.path());
     const value = formatMapView(view);
+    this.store.view.setLiveMapView(value);
     if (url.queryParams['map'] === value) return;
     url.queryParams = { ...url.queryParams, map: value };
     this.location.replaceState(this.router.serializeUrl(url), '', this.location.getState());
@@ -330,6 +331,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.removeClick?.();
     this.removeClick = undefined;
     this.map?.off('moveend', this.writeView);
+    if (this.saveView) this.store.view.setLiveMapView();
     this.removeGeocoder?.();
     this.removeGeocoder = undefined;
     this.removeGeoLayers?.();
