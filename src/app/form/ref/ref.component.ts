@@ -24,7 +24,7 @@ import {
 } from '@angular/forms';
 import { defer, some } from 'lodash-es';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
@@ -303,27 +303,26 @@ export class RefFormComponent implements OnChanges {
 
   scrapeTitle() {
     this.scrapingTitle = true;
-    this.scrape$.pipe(
-      catchError(err => {
-        this.scrapingTitle = false;
-        return of({
-          url: this.url.value,
-          title: undefined,
-        })
-      }),
+    (this.web ? this.webTitle$ : of(undefined)).subscribe(title => {
+      this.scrapingTitle = false;
+      title ||= getTitleFromFilename(this.url.value) || undefined;
+      if (title) this.group.patchValue({ title });
+    });
+  }
+
+  private get webTitle$(): Observable<string | undefined> {
+    return this.scrape$.pipe(
+      catchError(() => of(<Ref> { url: this.url.value })),
       switchMap(s => this.oembeds.get(s.url).pipe(
         map(oembed => {
           this.oembed = oembed!;
           if (oembed) s.title ||= oembed.title || '';
           return s;
         }),
-        catchError(err => of(s)),
+        catchError(() => of(s)),
       )),
-    ).subscribe((s: Ref) => {
-      this.scrapingTitle = false;
-      const title = s.title ?? getTitleFromFilename(this.url.value);
-      if (title) this.group.patchValue({ title });
-    });
+      map(s => s.title),
+    );
   }
 
   scrapePublished() {

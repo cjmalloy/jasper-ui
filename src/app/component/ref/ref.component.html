@@ -51,7 +51,7 @@
       <span class="host">({{ host }})</span>
     </div>
     <div class="link-below">
-      @if (showToggle && (thread || commentNoTitle || expandPlugins.length)) {
+      @if (showToggle && (thread || commentNoTitle || viewerEmbeds.length)) {
         <button type="button" class="toggle" (click)="toggle()" (contextmenu)="pip($event)">
           @if (editing || viewSource || diffing) {
             <span class="toggle-x">✕</span>
