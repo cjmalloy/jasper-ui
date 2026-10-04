@@ -443,6 +443,10 @@ test.describe.serial('Map Plugin', () => {
     await search.fill('Halifax');
     await search.press('Enter');
     const result = point.locator('.maplibregl-ctrl-geocoder .suggestions li', { hasText: 'Nova Scotia' });
+    // The result name and address are spaced apart
+    const title = (await result.locator('.maplibregl-ctrl-geocoder--result-title').boundingBox())!;
+    const address = (await result.locator('.maplibregl-ctrl-geocoder--result-address').boundingBox())!;
+    expect(address.x - (title.x + title.width)).toBeGreaterThan(2);
     await result.click();
     expect(query).toBe('Halifax');
     // Search is biased toward the current view
@@ -829,6 +833,50 @@ test.describe.serial('Map Plugin', () => {
       expect(new globalThis.URL(page.url()).searchParams.get('location')).toBe(center);
     });
   }
+
+  test('map pans while text on the page is selected', async ({ page }) => {
+    await page.goto('/tag/public:plugin/geo/point?debug=ADMIN&view=map&map=-63.5,44.6,9', { waitUntil: 'networkidle' });
+    const canvas = page.locator('.map.ext .maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(1000);
+    const initial = page.url();
+    await page.evaluate(() => getSelection()!.selectAllChildren(document.body));
+
+    const box = (await canvas.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 - 200, box.y + box.height / 2 - 100, { steps: 10 });
+    await page.mouse.up();
+    await expect(page).not.toHaveURL(initial);
+    const [lng, lat] = new globalThis.URL(page.url()).searchParams.get('map')!.split(',').map(Number);
+    expect(lng).toBeGreaterThan(-63.4);
+    expect(lat).toBeLessThan(44.55);
+  });
+
+  test('location input map picker pans while text on the page is selected', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
+    await point.locator('.location-map-toggle').click();
+    const canvas = point.locator('.location-map .maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    const marker = point.locator('.location-marker');
+    await expect(marker).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(1000);
+    const before = (await marker.boundingBox())!;
+    await page.evaluate(() => getSelection()!.selectAllChildren(document.body));
+
+    const box = (await canvas.boundingBox())!;
+    await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.8);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.4, box.y + box.height * 0.6, { steps: 10 });
+    await page.mouse.up();
+    await expect.poll(async () => (await marker.boundingBox())!.x - before.x).toBeGreaterThan(50);
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
+  });
 
   test('dragging a marker out of the map ends the drag on release', async ({ page }) => {
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)

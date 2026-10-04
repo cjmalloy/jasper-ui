@@ -35,6 +35,7 @@ import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { addGeocoder } from './geocoder';
+import { preventSelectionDrag } from './selection-drag';
 import { DOUBLE_CLICK_DELAY, isRepeatClick, onSingleClick } from './single-click';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
@@ -388,6 +389,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.map = map;
     this.updateGeocoder();
     this.removeClick = onSingleClick(map, this.mapClick);
+    preventSelectionDrag(map);
     map.addSource('geo-features', { type: 'geojson', data: this.geoData });
     this.removeGeoLayers = this.zone.runOutsideAngular(() => addGeoLayers(map, 'geo-features', 'geo', 8));
     this.updateMapData();

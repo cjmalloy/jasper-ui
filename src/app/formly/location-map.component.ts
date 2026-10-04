@@ -10,6 +10,7 @@ import { defer, isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { addGeocoder } from '../component/map/geocoder';
 import { ResizeHandleDirective } from '../directive/resize-handle.directive';
+import { preventSelectionDrag } from '../component/map/selection-drag';
 import { onSingleClick } from '../component/map/single-click';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
@@ -140,6 +141,7 @@ export class LocationMapComponent implements OnDestroy {
 
   mapLoaded(map: MapLibreMap) {
     this.map = map;
+    preventSelectionDrag(map);
     // MapLibre opens the compact attribution until the first drag, start it closed
     map.getContainer().querySelector('.maplibregl-ctrl-attrib.maplibregl-compact')?.classList.remove('maplibregl-compact-show');
     this.removeClick?.();

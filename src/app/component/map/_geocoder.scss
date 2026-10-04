@@ -107,6 +107,11 @@
   }
 }
 
+// Space between the result name and address
+.maplibregl-ctrl-geocoder--result {
+  gap: 0.5ch;
+}
+
 // Address search result marker
 .maplibregl-marker.geocode-marker {
   cursor: pointer;
