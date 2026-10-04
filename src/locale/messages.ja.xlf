@@ -7489,6 +7489,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Script:</source>
         <target>スクリプト:</target>
       </trans-unit>
+      <trans-unit id="5318176281357174014" datatype="html">
+        <source>🧱️ Masonry</source>
+        <target>🧱️ メイソンリー</target>
+      </trans-unit>
+      <trans-unit id="6324811838853918970" datatype="html">
+        <source>Replaces the built-in Image viewer with a masonry layout where images have a fixed width and variable height.</source>
+        <target>組み込みの画像ビューアを、画像の幅が固定で高さが可変のメイソンリーレイアウトに置き換えます。</target>
+      </trans-unit>
       <trans-unit id="1847047605496409443" datatype="html">
         <source>Street</source>
         <target>通り</target>
