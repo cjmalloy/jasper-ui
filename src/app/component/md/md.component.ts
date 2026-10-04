@@ -1,7 +1,6 @@
 import { Component, computed, ElementRef, input, output, inject } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
 import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
-import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { MdPostDirective } from '../../directive/md-post.directive';
 import { AdminService } from '../../service/admin.service';
@@ -26,7 +25,6 @@ export class MdComponent {
   readonly plugins = input<string[] | undefined>();
   readonly disableSanitizer = input(false);
   readonly postProcessMarkdown = output<void>();
-  readonly postProcessMarkdownSubject = new Subject<void>();
   readonly mermaid = input(true);
   readonly clipboard = input(true);
 

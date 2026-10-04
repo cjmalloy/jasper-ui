@@ -16,6 +16,23 @@ describe('QueryStore', () => {
     return TestBed.runInInjectionContext(() => new QueryStore());
   }
 
+  it('does not re-fetch when the args are deep-equal', () => {
+    const refs = {
+      page: vi.fn(() => of(Page.of([]))),
+      getCurrent: vi.fn(() => of(undefined)),
+    } as unknown as RefService;
+    const store = createStore(refs);
+
+    store.setArgs({ query: 'test', sort: ['published'] });
+    store.setArgs({ query: 'test', sort: ['published'] });
+
+    expect(refs.page).toHaveBeenCalledOnce();
+
+    store.setArgs({ query: 'test', sort: ['modified'] });
+
+    expect(refs.page).toHaveBeenCalledTimes(2);
+  });
+
   it('loads the page and related refs when sources are set', () => {
     const source = { url: 'https://example.com/source', title: 'Source' };
     const refs = {

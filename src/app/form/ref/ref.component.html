@@ -72,12 +72,12 @@
 
   <div class="add-plugins-label">
     <label [for]="id + '-plugins'" class="mobile-inline" i18n>Add Plugin:</label>
-    <app-select-plugin #pluginSelect
+    <app-select-plugin [picker]="true"
                        [id]="id + '-plugins'"
                        class="shrink"
                        [add]="true"
                        i18n-title title="Add Plugin"
-                       (pluginChange)="togglePlugin($event); pluginSelect.reset()"></app-select-plugin>
+                       (picked)="togglePlugin($event)"></app-select-plugin>
   @if (creating() && thumbnail()) {
     <div class="thumbnail-preview">
       <div class="thumbnail"

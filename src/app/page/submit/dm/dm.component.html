@@ -42,11 +42,11 @@
   <label for="title" i18n>Title:</label>
   <input id="title" type="text" [formControl]="title">
 
-  <app-select-plugin #pluginSelect
+  <app-select-plugin [picker]="true"
                      class="shrink"
                      [text]="true"
                      i18n-title title="Add Plugin"
-                     (pluginChange)="bookmarks.toggleTag($event); pluginSelect.reset()"></app-select-plugin>
+                     (picked)="bookmarks.toggleTag($event)"></app-select-plugin>
   <app-form-plugins id="plugins"[group]="dmForm"></app-form-plugins>
 
   @if (customEditor()) {

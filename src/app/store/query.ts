@@ -49,6 +49,7 @@ export class QueryStore {
   }
 
   setArgs(args: RefPageArgs) {
+    if (isEqual(this.args(), args) && !this.error()) return;
     const cursorRequest = this.takeCursor(args);
     if (!isEqual(omit(this.args(), 'search'), omit(args, 'search'))) this.clear();
     this.args.set(args);

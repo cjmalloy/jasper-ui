@@ -1,6 +1,6 @@
 import { computed, signal, untracked } from '@angular/core';
 import JSZip from 'jszip';
-import { flatten, isArray, without } from 'lodash-es';
+import { flatten, isArray, isEqual, without } from 'lodash-es';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -96,7 +96,7 @@ export class SubmitStore {
     const tag = this.route.routeSnapshot()?.queryParams['to'];
     if (!tag) return [];
     return isArray(tag) ? tag : [tag];
-  });
+  }, { equal: isEqual });
 
   readonly tag = computed(() => {
     return this.route.routeSnapshot()?.queryParams['tag'] as string;
@@ -107,7 +107,7 @@ export class SubmitStore {
       .flatMap( t => t.split(/[:|!()]/))
       .map(t => t.includes('@') ? t.substring(0, t.indexOf('@')) : t)
       .filter(t => t && !t.includes('*'));
-  });
+  }, { equal: isEqual });
 
   readonly plugin = computed(() => {
     return this.route.routeSnapshot()?.queryParams['plugin'] || '' as string;
@@ -128,7 +128,7 @@ export class SubmitStore {
 
   readonly sources = computed((): string[] => {
     return flatten(this.source() ? [this.source()] : []);
-  });
+  }, { equal: isEqual });
 
   readonly web = computed(() => {
     return !this.wiki() && (!this.subpage() || this.subpage() === 'web');

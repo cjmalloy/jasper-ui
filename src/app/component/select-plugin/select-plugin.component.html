@@ -2,10 +2,10 @@
   <select #select
           [id]="id()"
           class="big"
-          (input)="choose(select.value)">
-    <option value="" i18n>🧰️</option>
+          (input)="choose(select)">
+    <option value="" [selected]="!plugin()" i18n>🧰️</option>
     @for (p of plugins(); track p.tag) {
-      <option [value]="p.tag">{{ p.name || '#' + p.tag }}</option>
+      <option [value]="p.tag" [selected]="p.tag === plugin()">{{ p.name || '#' + p.tag }}</option>
     }
   </select>
 }

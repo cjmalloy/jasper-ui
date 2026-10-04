@@ -432,7 +432,7 @@ export class ViewStore {
     }
     if (!Array.isArray(sort)) return [sort]
     return sort;
-  });
+  }, { equal: isEqual });
 
   readonly isSorted = computed(() => {
     if (this.sort().length > 1) return true;
@@ -449,17 +449,17 @@ export class ViewStore {
     if (!filter) return [];
     if (!Array.isArray(filter)) return [filter];
     return filter;
-  });
+  }, { equal: isEqual });
 
   readonly filter = computed((): UrlFilter[] => {
     return this.urlFilters().length ? this.urlFilters() : this.viewExtFilter() || [];
-  });
+  }, { equal: isEqual });
 
   readonly queryFilters = computed((): string[] => {
     return this.filter()
       .filter(f => f.startsWith('query/'))
       .map(f => f.substring('query/'.length));
-  });
+  }, { equal: isEqual });
 
   readonly search = computed(() => {
     return this.route.routeSnapshot()?.queryParams['search'];
