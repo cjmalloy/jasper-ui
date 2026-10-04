@@ -1,4 +1,5 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, Input, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -6,7 +7,11 @@ import {
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
+import { FormlyFieldConfig } from '@ngx-formly/core';
+import { cloneDeep } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
+import { AdminService } from '../../service/admin.service';
+import { AdminConfigComponent } from '../admin-config/admin-config.component';
 import { JsonComponent } from '../json/json.component';
 
 @Component({
@@ -15,9 +20,9 @@ import { JsonComponent } from '../json/json.component';
   styleUrls: ['./plugin.component.scss'],
   host: { 'class': 'nested-form' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule, JsonComponent]
+  imports: [ReactiveFormsModule, JsonComponent, AdminConfigComponent, NgTemplateOutlet]
 })
-export class PluginFormComponent {
+export class PluginFormComponent implements OnInit {
 
   @Input()
   group!: UntypedFormGroup;
@@ -32,6 +37,18 @@ export class PluginFormComponent {
   editingConfig = false;
   editingDefaults = false;
   editingSchema = false;
+  adminForm: FormlyFieldConfig[] = [];
+  advancedAdminForm: FormlyFieldConfig[] = [];
+
+  constructor(
+    private admin: AdminService,
+  ) { }
+
+  ngOnInit() {
+    const tag = this.tag?.value || '';
+    this.adminForm = cloneDeep(this.admin.getPluginAdminForm(tag, 'adminForm'));
+    this.advancedAdminForm = cloneDeep(this.admin.getPluginAdminForm(tag, 'advancedAdminForm'));
+  }
 
   get tag() {
     return this.group.get('tag') as UntypedFormControl;
@@ -51,6 +68,10 @@ export class PluginFormComponent {
 
   get schema() {
     return this.editingSchema ||= this.group.get('schema')?.value;
+  }
+
+  get jsonErrors() {
+    return !!(this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length);
   }
 
   validate(input: HTMLInputElement) {

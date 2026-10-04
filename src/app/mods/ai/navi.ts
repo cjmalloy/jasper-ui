@@ -8,7 +8,7 @@ export const naviQueryPlugin: Plugin = {
   name: $localize`👻️💭️ Ask Navi`,
   config: {
     mod: $localize`👻️ Navi Chat`,
-    version: 2,
+    version: 3,
     type: 'tool',
     default: false,
     add: true,
@@ -28,6 +28,15 @@ export const naviQueryPlugin: Plugin = {
     ],
     timeoutMs: 300_000,
     language: 'javascript',
+    subDiff: ['script'],
+    adminForm: [{
+      key: 'script',
+      type: 'code',
+      props: {
+        label: $localize`Script:`,
+        language: 'javascript',
+      },
+    }],
     // language=JavaScript
     script: `
       const bundle = { ref: [] };

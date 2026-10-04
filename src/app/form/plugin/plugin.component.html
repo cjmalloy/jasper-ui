@@ -8,60 +8,86 @@
          [formControl]="name"
          (blur)="validate($any($event.target))">
 
-  <label [for]="id + '-config'" i18n>Config:</label>
-  @if (!editingConfig && !config) {
-    <div>
-      <button type="button" (click)="editingConfig = true" i18n>+ Add Config</button>
-    </div>
+  @if (adminForm.length) {
+    <app-admin-config class="admin-form"
+                      [group]="group"
+                      [fields]="adminForm"></app-admin-config>
   } @else {
-    <app-json [id]="id + '-config'"
-              fieldName="config"
-              [group]="group"></app-json>
-    @if (configErrors.length) {
-      <span><!-- Errors --></span>
-      @for (e of configErrors; track e) {
-        <div>
-          <span class="error">{{ e }}</span>
-        </div>
-      }
-    }
+    <ng-container *ngTemplateOutlet="jsonEditors"></ng-container>
   }
 
-  <label [for]="id + '-defaults'" i18n>Defaults:</label>
-  @if (!editingDefaults && !defaults) {
-    <div>
-      <button type="button" (click)="editingDefaults = true" i18n>+ Add Defaults</button>
-    </div>
-  } @else {
-    <app-json [id]="id + '-defaults'"
-              fieldName="defaults"
-              [group]="group"></app-json>
-    @if (defaultsErrors.length) {
-      <span><!-- Errors --></span>
-      @for (e of defaultsErrors; track e) {
-        <div>
-          <span class="error">{{ e }}</span>
-        </div>
-      }
-    }
+  @if (adminForm.length || advancedAdminForm.length) {
+    <details class="advanced admin-advanced" [open]="!!adminForm.length && jsonErrors">
+      <summary><span i18n>Advanced</span></summary>
+      <div class="form">
+        @if (advancedAdminForm.length) {
+          <app-admin-config class="advanced-admin-form"
+                            [group]="group"
+                            [fields]="advancedAdminForm"></app-admin-config>
+        }
+        @if (adminForm.length) {
+          <ng-container *ngTemplateOutlet="jsonEditors"></ng-container>
+        }
+      </div>
+    </details>
   }
 
-  <label [for]="id + '-schema'" i18n>Schema:</label>
-  @if (!editingSchema && !schema) {
-    <div>
-      <button type="button" (click)="editingSchema = true" i18n>+ Add Schema</button>
-    </div>
-  } @else {
-    <app-json [id]="id + '-schema'"
-              fieldName="schema"
-              [group]="group"></app-json>
-    @if (schemaErrors.length) {
-      <span><!-- Errors --></span>
-      @for (e of schemaErrors; track e) {
-        <div>
-          <span class="error">{{ e }}</span>
-        </div>
+  <ng-template #jsonEditors>
+    <label [for]="id + '-config'" i18n>Config:</label>
+    @if (!editingConfig && !config) {
+      <div>
+        <button type="button" (click)="editingConfig = true" i18n>+ Add Config</button>
+      </div>
+    } @else {
+      <app-json [id]="id + '-config'"
+                fieldName="config"
+                [group]="group"></app-json>
+      @if (configErrors.length) {
+        <span><!-- Errors --></span>
+        @for (e of configErrors; track e) {
+          <div>
+            <span class="error">{{ e }}</span>
+          </div>
+        }
       }
     }
-  }
+
+    <label [for]="id + '-defaults'" i18n>Defaults:</label>
+    @if (!editingDefaults && !defaults) {
+      <div>
+        <button type="button" (click)="editingDefaults = true" i18n>+ Add Defaults</button>
+      </div>
+    } @else {
+      <app-json [id]="id + '-defaults'"
+                fieldName="defaults"
+                [group]="group"></app-json>
+      @if (defaultsErrors.length) {
+        <span><!-- Errors --></span>
+        @for (e of defaultsErrors; track e) {
+          <div>
+            <span class="error">{{ e }}</span>
+          </div>
+        }
+      }
+    }
+
+    <label [for]="id + '-schema'" i18n>Schema:</label>
+    @if (!editingSchema && !schema) {
+      <div>
+        <button type="button" (click)="editingSchema = true" i18n>+ Add Schema</button>
+      </div>
+    } @else {
+      <app-json [id]="id + '-schema'"
+                fieldName="schema"
+                [group]="group"></app-json>
+      @if (schemaErrors.length) {
+        <span><!-- Errors --></span>
+        @for (e of schemaErrors; track e) {
+          <div>
+            <span class="error">{{ e }}</span>
+          </div>
+        }
+      }
+    }
+  </ng-template>
 </ng-container>

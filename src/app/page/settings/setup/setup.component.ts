@@ -11,7 +11,7 @@ import { Config, Mod } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { equalBundle, formatBundleDiff, merge3 } from '../../../util/diff';
+import { equalBundle, mergeBundle } from '../../../util/diff';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
@@ -236,7 +236,7 @@ export class SettingsSetupPage implements OnDestroy {
     }
     const base = this.admin.status.receipts[mod]?.plugins?.['plugin/mod'];
     if (base && !equalBundle(current, base)) {
-      const merged = merge3(formatBundleDiff(current), formatBundleDiff(base), formatBundleDiff(target));
+      const merged = mergeBundle(current, base, target);
       if (!merged.result || merged.conflict) {
         return {
           mod,
@@ -247,7 +247,7 @@ export class SettingsSetupPage implements OnDestroy {
       }
       return {
         mod,
-        proposed: JSON.parse(merged.result),
+        proposed: merged.result,
         diffBase: target,
         conflict: false,
       };

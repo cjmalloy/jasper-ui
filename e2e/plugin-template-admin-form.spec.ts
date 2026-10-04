@@ -1,0 +1,72 @@
+import { type APIRequestContext, expect, test } from '@playwright/test';
+import { adminHeaders } from './setup';
+
+test.describe.serial('Plugin/Template Admin Form', () => {
+  const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
+  const runId = Date.now().toString(36);
+  const tags = {
+    plugin: `plugin/adminform${runId}`,
+    template: `adminform${runId}`,
+  };
+
+  async function headers(request: APIRequestContext) {
+    await request.get(`${api}/plugin/page`);
+    const { cookies } = await request.storageState();
+    const xsrf = cookies.find(c => c.name === 'XSRF-TOKEN')?.value || '';
+    return { Authorization: 'Bearer ' + adminHeaders.jwt, 'X-XSRF-TOKEN': xsrf };
+  }
+
+  test.afterAll(async ({ request }) => {
+    await request.delete(`${api}/plugin`, { headers: await headers(request), params: { tag: tags.plugin } });
+    await request.delete(`${api}/template`, { headers: await headers(request), params: { tag: tags.template } });
+  });
+
+  test('setup', async ({ request }) => {
+    for (const type of ['plugin', 'template'] as const) {
+      const res = await request.post(`${api}/${type}`, {
+        headers: await headers(request),
+        data: {
+          tag: tags[type],
+          name: 'Admin Form Test',
+          config: {
+            title: 'before',
+            other: true,
+            adminForm: [{ key: 'title', type: 'string', props: { label: 'Admin Title:' } }],
+            advancedAdminForm: [{ key: 'script', type: 'code', props: { label: 'Script:' } }],
+          },
+        },
+      });
+      expect(res.ok()).toBeTruthy();
+    }
+  });
+
+  for (const type of ['plugin', 'template'] as const) {
+    test(`edit ${type} config with admin form`, async ({ page, request }) => {
+      await page.goto(`/settings/${type}?debug=ADMIN&search=adminform${runId}`, { waitUntil: 'networkidle' });
+      const item = page.locator(`.${type}.list-item`);
+      await expect(item).toHaveCount(1);
+      await item.locator('.actions .fake-link', { hasText: 'edit' }).click();
+
+      const title = item.locator('.admin-form input');
+      await expect(title).toHaveValue('before');
+      const advanced = item.locator('details.admin-advanced');
+      await expect(advanced).not.toHaveAttribute('open');
+      await expect(advanced.locator('.json-editor')).toHaveCount(1);
+      await expect(advanced.locator('.advanced-admin-form .code-editor')).toHaveCount(1);
+
+      await title.fill('after');
+      const savePromise = page.waitForResponse(resp => (
+        resp.url().includes(`/api/v1/${type}`) && resp.request().method() === 'PUT' && resp.ok()
+      ));
+      await item.locator('button[type=submit]').click();
+      await savePromise;
+
+      const res = await request.get(`${api}/${type}`, { headers: await headers(request), params: { tag: tags[type] } });
+      expect(res.ok()).toBeTruthy();
+      const saved = await res.json();
+      expect(saved.config.title).toBe('after');
+      expect(saved.config.other).toBe(true);
+      expect(saved.config.adminForm).toHaveLength(1);
+    });
+  }
+});
