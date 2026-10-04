@@ -251,6 +251,7 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 
 - Theme files: `src/theme/common.scss` (base variables), `light.scss`, `dark.scss`, `*-highlight.scss`, plus `mobile`, `print`, `android`, `electron`, `mac`.
 - Use CSS variables in component SCSS: `--bg`, `--text`, `--border`, `--active`, `--error`, `--card` (see `common.scss` for the full list).
+- If you add a standard CSS variable, also add it to `THEME_VARS` in `src/app/util/theme.ts` (used to pre-fill new custom themes) and to the table in `docs/STRUCTURE.md`.
 - **Theme-specific selectors (`body.dark-theme ...`) do not work in component SCSS** because of view encapsulation. Put them in the mod's `config.css` string, as `src/app/mods/org/kanban.ts` does:
 
 ```typescript

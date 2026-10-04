@@ -49,11 +49,54 @@ Tags are plain strings, not entities. The `.tag` class is only used for inline t
 
 User rows use `.profile` for the permission entity, and user tag links use `.user`.
 
+## CSS variables
+
+If you only want to change colours, override these variables. They are set on `<body>` in
+`src/theme/common.scss`, `light.scss` and `dark.scss`. Set them for both `body.light-theme` and
+`body.dark-theme`, because Jasper switches between the two to match the user's colour scheme.
+
+When you add a new theme in the **Custom Themes** form, it starts with every variable below,
+pre-filled with the values currently in use for light and dark mode, plus comments to get you started.
+
+| Variable | Used for | Light | Dark |
+|---|---|---|---|
+| `--bg` | Page background | `white` | `#343434` |
+| `--bg-accent` | Subtle background for panels and tabs | `rgba(0, 0, 0, 0.05)` | `rgba(90, 90, 90, 0.05)` |
+| `--bg-hover` | Background on hover and drop targets | `rgba(0, 0, 0, 0.1)` | `rgba(255, 255, 255, 0.1)` |
+| `--bg-active` | Background while pressed or selected | `rgba(0, 0, 0, 0.4)` | `rgba(255, 255, 255, 0.4)` |
+| `--text` | Main text colour | `black` | `#c9c9c9` |
+| `--link` | Link colour | not set | `#5769c2` |
+| `--visited` | Visited link colour | `#551a8b` | `#c66acb` |
+| `--active` | Highlights such as the current page and new response counts | `#da0000` | `#dc5c5c` |
+| `--info` | Secondary text such as row info, quotes and timestamps | `gray` | `#969696` |
+| `--tag` | Inline tag links and accents | `#3d3dbb` | `#af5800` |
+| `--tag-accent` | Inline tag link background (light theme) | `#f3ebc7` | `#f3ebc7` |
+| `--blue` | Tab bar background (light theme) | `rgba(207, 221, 255, 0.7)` | `rgba(207, 221, 255, 0.7)` |
+| `--toggle` | Toggle button background | `#CCC` | `#525252` |
+| `--toggle-accent` | Toggle button background on hover | `#BBB` | `#777` |
+| `--toggle-active` | Toggle button background while pressed | `#AAA` | `#888` |
+| `--toggle-border` | Toggle button border | `grey` | `transparent` |
+| `--form-bg` | Form input background | `white` | `#3b3b3b` |
+| `--border` | Main border colour | `black` | `lightgrey` |
+| `--border-accent` | Softer border for editors and cards | `rgba(0, 0, 0, 0.4)` | `rgba(255, 255, 255, 0.4)` |
+| `--border-light` | Faint border for cards | `rgba(0, 0, 0, 0.2)` | `rgba(0, 0, 0, 0.2)` |
+| `--unselected-tab` | Background of inactive tabs | `#b3b9c4` | `grey` |
+| `--error` | Error text | `#da0000` | `#dc5c5c` |
+| `--error-bg` | Error and login prompt background | `#ffa9a9` | `#231010` |
+| `--warning` | Warning text and borders | `#883` | `#967f46` |
+| `--mod` | Title colour of pinned refs | `#136500` | `#4d9339` |
+| `--card` | Card background (kanban, todo, chat, notes, ...) | `#f3ebc7` | `#3d3d3d` |
+| `--card-dragging` | Card background while dragging | `#ede7dc` | `#4d4d4d` |
+| `--placeholder` | Drop placeholder background | `#efebdf` | `#2c2c2c` |
+| `--deleting` | Background of items about to be deleted | `#ffa9a9` | `#dc5c5c` |
+| `--quote` | Blockquote border in markdown | `#af5800` | `#969696` |
+
+The list lives in `src/app/util/theme.ts` (`THEME_VARS`). Keep it in sync with this table when you
+add a variable.
+
 ## Class reference
 
-Quick lookup of the reusable classes defined in `src/theme/*.scss`. Prefer CSS variables
-(`--bg`, `--text`, `--border`, `--tag`, `--info`, `--active`, `--error`, `--card`, …, see the top of
-`common.scss`) when you only want to change colours.
+Quick lookup of the reusable classes defined in `src/theme/*.scss`.
 
 ### Page state (on `<body>` or `<app-root>`)
 
