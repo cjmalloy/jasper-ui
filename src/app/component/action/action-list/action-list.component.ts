@@ -17,7 +17,7 @@ import { ProxyService } from '../../../service/api/proxy.service';
   selector: 'app-action-list',
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss',
-  host: { 'class': 'actions' },
+  host: { 'class': 'action-list' },
   imports: [FakeLinkDirective, ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class ActionListComponent {
@@ -69,11 +69,8 @@ export class ActionListComponent {
 
   showAdvanced(event: MouseEvent) {
     this.closeAdvanced();
-    const origin = event.detail === 0
-      ? event.currentTarget as HTMLElement
-      : {x: event.x, y: event.y};
     const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(origin)
+      .flexibleConnectedTo(event.currentTarget as HTMLElement)
       .withPositions([{
         originX: 'center',
         originY: 'center',
@@ -82,7 +79,7 @@ export class ActionListComponent {
       }]);
     this.overlayRef = this.overlay.create({
       positionStrategy,
-      scrollStrategy: this.overlay.scrollStrategies.close(),
+      scrollStrategy: this.overlay.scrollStrategies.reposition(),
     });
     this.overlayRef.attach(new TemplatePortal(this.actionsMenu(), this.viewContainerRef));
     this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
