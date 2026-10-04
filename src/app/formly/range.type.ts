@@ -4,6 +4,8 @@ import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx
 import { isEqual } from 'lodash-es';
 import { getErrorMessage } from './errors';
 
+const MAX_TICKS = 30;
+
 @Component({
   selector: 'formly-field-range',
   host: { 'class': 'field' },
@@ -18,6 +20,15 @@ import { getErrorMessage } from './errors';
              [formControl]="formControl"
              [formlyAttributes]="field"
              [class.is-invalid]="showError">
+      @if (ticks.length) {
+        <div class="range-ticks" aria-hidden="true">
+          @for (t of ticks; track t.value) {
+            <span class="range-tick"
+                  [class.labeled]="t.labeled"
+                  [style.left.%]="t.percent"></span>
+          }
+        </div>
+      }
       @if (labels.length) {
         <datalist [id]="field.id + '-labels'">
           @for (l of labels; track l.value) {
@@ -43,6 +54,23 @@ import { getErrorMessage } from './errors';
       display: flex;
       flex-direction: column;
       min-width: 0;
+    }
+    .range-ticks {
+      position: relative;
+      height: 6px;
+      margin: 0 8px;
+    }
+    .range-tick {
+      position: absolute;
+      top: 0;
+      width: 1px;
+      height: 3px;
+      background: currentColor;
+      opacity: 0.4;
+    }
+    .range-tick.labeled {
+      height: 6px;
+      opacity: 0.7;
     }
     .range-labels {
       position: relative;
@@ -79,6 +107,8 @@ export class FormlyFieldRange extends FieldType<FieldTypeConfig> {
   private showedError = false;
   private _labels?: { value: number, label: string, percent: number }[];
   private _labelsFor?: any;
+  private _ticks?: { value: number, percent: number, labeled: boolean }[];
+  private _ticksFor?: any;
 
   constructor(
     private config: FormlyConfig,
@@ -100,6 +130,29 @@ export class FormlyFieldRange extends FieldType<FieldTypeConfig> {
       .filter(l => isFinite(l.value) && l.value >= min && l.value <= max)
       .sort((a, b) => a.value - b.value)
       .map(l => ({ ...l, percent: max > min ? 100 * (l.value - min) / (max - min) : 0 }));
+  }
+
+  /**
+   * Tick marks under the slider, one per step when there are few enough steps,
+   * otherwise only at the labeled values.
+   */
+  get ticks() {
+    const min = this.props.min ?? 0;
+    const max = this.props.max ?? 10;
+    const step = this.props.step || 1;
+    const labels = this.labels;
+    const key = [labels, min, max, step];
+    if (this._ticks && isEqual(this._ticksFor, key)) return this._ticks;
+    this._ticksFor = key;
+    const labeled = new Set(labels.map(l => l.value));
+    const values = new Set(labeled);
+    const count = (max - min) / step;
+    if (max > min && step > 0 && count <= MAX_TICKS) {
+      for (let i = 0; i <= count; i++) values.add(min + i * step);
+    }
+    return this._ticks = [...values]
+      .sort((a, b) => a - b)
+      .map(value => ({ value, labeled: labeled.has(value), percent: max > min ? 100 * (value - min) / (max - min) : 0 }));
   }
 
   validate(input: HTMLInputElement) {

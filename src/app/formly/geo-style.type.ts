@@ -29,15 +29,31 @@ const DEFAULTS: GeoStyle = {
              [value]="style.color || ''"
              [disabled]="formControl.disabled"
              (input)="set('color', $any($event.target).value)">
-      <input type="range"
-             class="geo-style-stroke-width"
-             min="0" [max]="strokeWidths.length - 1" step="1"
-             i18n-aria-label aria-label="Stroke Width"
-             [title]="strokeWidthLabel"
-             [attr.aria-valuetext]="strokeWidthLabel"
-             [value]="strokeWidthIndex"
-             [disabled]="formControl.disabled"
-             (input)="set('strokeWidth', strokeWidths[+$any($event.target).value].value)">
+      <div class="range-input geo-style-stroke-width-input">
+        <input type="range"
+               class="geo-style-stroke-width"
+               min="0" [max]="strokeWidths.length - 1" step="1"
+               i18n-aria-label aria-label="Stroke Width"
+               [title]="strokeWidthLabel"
+               [attr.aria-valuetext]="strokeWidthLabel"
+               [value]="strokeWidthIndex"
+               [disabled]="formControl.disabled"
+               (input)="set('strokeWidth', strokeWidths[+$any($event.target).value].value)">
+        <div class="range-ticks" aria-hidden="true">
+          @for (w of strokeWidths; track w.value; let i = $index) {
+            <span class="range-tick" [style.left.%]="tickPercent(i)"></span>
+          }
+        </div>
+        <div class="range-labels" aria-hidden="true">
+          @for (w of strokeWidths; track w.value; let i = $index) {
+            <span class="range-label"
+                  [class.active]="i === strokeWidthIndex"
+                  [class.start]="i === 0"
+                  [class.end]="i === strokeWidths.length - 1"
+                  [style.left.%]="tickPercent(i)">{{ w.label }}</span>
+          }
+        </div>
+      </div>
       <select class="geo-style-stroke-style"
               i18n-title title="Stroke Style"
               i18n-aria-label aria-label="Stroke Style"
@@ -79,13 +95,51 @@ const DEFAULTS: GeoStyle = {
       min-width: 0;
     }
     select,
-    input[type=range] {
+    .range-input {
       flex: 1 1 0;
       min-width: 0;
     }
-    input[type=range] {
+    .range-input {
+      display: flex;
+      flex-direction: column;
       margin-left: 4px;
       margin-right: 4px;
+    }
+    .range-ticks {
+      position: relative;
+      height: 6px;
+      margin: 0 8px;
+    }
+    .range-tick {
+      position: absolute;
+      top: 0;
+      width: 1px;
+      height: 6px;
+      background: currentColor;
+      opacity: 0.7;
+    }
+    .range-labels {
+      position: relative;
+      height: 1.4em;
+      margin: 0 8px;
+      font-size: 80%;
+      opacity: 0.7;
+    }
+    .range-label {
+      position: absolute;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      cursor: default;
+    }
+    .range-label.start {
+      transform: none;
+    }
+    .range-label.end {
+      transform: translateX(-100%);
+    }
+    .range-label.active {
+      opacity: 1;
+      font-weight: bold;
     }
     input[type=color] {
       flex: 0 0 auto;
@@ -131,6 +185,10 @@ export class FormlyFieldGeoStyle extends FieldType<FieldTypeConfig> {
 
   get strokeWidthLabel() {
     return $localize`Stroke Width: ${this.strokeWidths[this.strokeWidthIndex].label}`;
+  }
+
+  tickPercent(i: number) {
+    return this.strokeWidths.length > 1 ? 100 * i / (this.strokeWidths.length - 1) : 0;
   }
 
   get fill() {

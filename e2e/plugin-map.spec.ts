@@ -149,7 +149,10 @@ test.describe.serial('Map Plugin', () => {
     await points.nth(0).locator('input[type=number]').nth(0).fill('-63.6');
     const style = page.locator('.plugin-content .geo-style-field');
     await style.locator('.geo-style-color').fill('#ff0000');
+    await expect(style.locator('.geo-style-stroke-width-input .range-tick')).toHaveCount(3);
+    await expect(style.locator('.geo-style-stroke-width-input .range-label')).toHaveText(['Small', 'Medium', 'Large']);
     await style.locator('.geo-style-stroke-width').fill('2');
+    await expect(style.locator('.geo-style-stroke-width-input .range-label.active')).toHaveText('Large');
     await style.locator('.geo-style-stroke-style').selectOption('dashed');
     await style.locator('.geo-style-fill-color').fill('#00ff00');
     await style.locator('.geo-style-fill-style').selectOption('crosshatch');
@@ -1170,6 +1173,10 @@ test.describe.serial('Map Plugin', () => {
     await page.locator('button', { hasText: 'Extend' }).click();
     const labels = page.locator('.range-labels .range-label');
     await expect(labels).toHaveText(['World', 'Country', 'Region', 'City', 'Street', 'Building']);
+    // One tick per zoom level, taller at the labeled levels
+    await expect(page.locator('.range-ticks .range-tick').first()).toBeVisible();
+    await expect(page.locator('.range-ticks').first().locator('.range-tick')).toHaveCount(23);
+    await expect(page.locator('.range-ticks').first().locator('.range-tick.labeled')).toHaveCount(6);
     const slider = page.locator('.range-input input[type=range]').first();
     await slider.fill('12');
     await expect(page.locator('.range-label.active')).toHaveText('City');
