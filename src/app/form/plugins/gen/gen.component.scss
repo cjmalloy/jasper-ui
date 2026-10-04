@@ -5,3 +5,12 @@
 .plugin-content {
   margin-top: 8px;
 }
+
+.plugin-header {
+  display: inline-block;
+}
+
+// Centre the mini advanced toggle on a header form field, which is taller than a label
+details.advanced.mini.header-toggle:not([open]) {
+  margin-top: 3px !important;
+}

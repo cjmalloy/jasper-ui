@@ -1,0 +1,43 @@
+@import 'maplibre-gl/dist/maplibre-gl.css';
+@import '../component/map/geocoder';
+
+.location-map {
+  display: block;
+  width: 100%;
+  margin-bottom: 4px;
+
+  // The mobile resize handle hangs below the map
+  @media (max-width: 740px) {
+    margin-bottom: 28px;
+  }
+
+  mgl-map {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: 300px;
+    container-type: inline-size;
+
+    // Clip the map instead of the host, so the mobile resize handle below the map is not cut off
+    & > .maplibregl-map {
+      border-radius: 4px;
+      overflow: hidden;
+    }
+  }
+
+  .location-marker {
+    cursor: pointer;
+    opacity: 0.7;
+    &.active {
+      opacity: 1;
+      z-index: 1;
+      svg > g > g:nth-child(2) {
+        fill: #e55e5e;
+      }
+    }
+  }
+
+  .maplibregl-canvas-container.maplibregl-interactive {
+    cursor: crosshair;
+  }
+}

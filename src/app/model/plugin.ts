@@ -48,6 +48,12 @@ export interface Plugin extends Config {
      */
     submitChild?: string,
     /**
+     * Hide this plugin from the child plugin dropdown of its parent plugin,
+     * unless it is already selected. It can still be added in other ways,
+     * such as a feature of a FeatureCollection.
+     */
+    hideChild?: boolean,
+    /**
      * Add to the sort dropdown.
      */
     sorts?: SortConfig[],
