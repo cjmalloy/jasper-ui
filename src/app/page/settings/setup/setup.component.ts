@@ -55,15 +55,10 @@ export class SettingsSetupPage implements OnDestroy {
   mergeState?: ModUpdatePreview;
   mergeSaving?: Subscription;
   mergePopupSub = new Subscription();
-  altMods: Record<string, Config> = Object.fromEntries([
-    ...this.admin.alt?.plugins || [],
-    ...this.admin.alt?.templates || [],
-  ].map(c => [this.altKey(c), c]));
   modGroups = configGroups({
     ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
     ...this.admin.status.plugins, ...this.admin.status.templates,
-    ...this.admin.def.plugins, ...this.admin.def.templates,
-    ...this.altMods });
+    ...this.admin.def.plugins, ...this.admin.def.templates });
 
   private mergePopupRef?: OverlayRef;
 
@@ -77,7 +72,7 @@ export class SettingsSetupPage implements OnDestroy {
   ) {
     mod.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
-      mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates, ...this.altMods })),
+      mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
   }
@@ -100,7 +95,7 @@ export class SettingsSetupPage implements OnDestroy {
     for (const plugin in this.admin.def.plugins) {
       const formName = plugin.replace(/[.]/g, '-');
       const def = this.admin.def.plugins[plugin];
-      const status = this.defStatus(def, this.admin.status.plugins[plugin] || this.admin.status.disabledPlugins[plugin]);
+      const status = this.admin.status.plugins[plugin] || this.admin.status.disabledPlugins[plugin];
       if (!!status === !!this.adminForm.value.mods[formName]) continue;
       if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
@@ -111,26 +106,12 @@ export class SettingsSetupPage implements OnDestroy {
     for (const template in this.admin.def.templates) {
       const formName = template.replace(/[.]/g, '-');
       const def = this.admin.def.templates[template];
-      const status = this.defStatus(def, this.admin.status.templates[template] || this.admin.status.disabledTemplates[template]);
+      const status = this.admin.status.templates[template] || this.admin.status.disabledTemplates[template];
       if (!!status === !!this.adminForm.value.mods[formName]) continue;
       if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
       } else {
         deletes.push(modId(status));
-      }
-    }
-    for (const key in this.altMods) {
-      const def = this.altMods[key];
-      const status = this.installed(def) || this.disabled(def);
-      const replaced = this.getAltReplaced(modId(def));
-      if (this.adminForm.value.mods[key]) {
-        // Reinstall if a replaced default is being installed
-        if (!status || replaced.find(c => installs.includes(modId(c)))) installs.push(modId(def));
-      } else if (status) {
-        deletes.push(modId(status));
-        for (const c of replaced) {
-          if (this.adminForm.value.mods[c.tag.replace(/[.]/g, '-')]) installs.push(modId(c));
-        }
       }
     }
     const _ = (msg?: string) => this.installMessages.push(msg!);
@@ -160,45 +141,14 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   clear() {
-    const mods: Record<string, Config | undefined> = <any> formSafeNames({
-      ...this.admin.status.plugins,
-      ...this.admin.status.disabledPlugins,
-      ...this.admin.status.templates,
-      ...this.admin.status.disabledTemplates,
+    this.adminForm.reset({
+      mods: formSafeNames({
+        ...this.admin.status.plugins,
+        ...this.admin.status.disabledPlugins,
+        ...this.admin.status.templates,
+        ...this.admin.status.disabledTemplates,
+      }),
     });
-    for (const c of [...this.admin.alt?.plugins || [], ...this.admin.alt?.templates || []]) {
-      const formName = c.tag.replace(/[.]/g, '-');
-      const def = this.admin.def.templates[c.tag] || this.admin.def.plugins[c.tag];
-      if (mods[formName] && def) mods[formName] = this.defStatus(def, mods[formName]);
-    }
-    for (const key in this.altMods) {
-      const c = this.altMods[key];
-      mods[key] = this.installed(c) || this.disabled(c);
-    }
-    this.adminForm.reset({ mods });
-  }
-
-  altKey(c: Config) {
-    return 'alt-' + (modId(c).replace(/\W/g, '') || c.tag.replace(/\W/g, '-')).toLowerCase();
-  }
-
-  /**
-   * Status of a default plugin or template, ignoring alternate mods installed over it.
-   */
-  private defStatus(def: Config, status?: Config) {
-    if (!status || modId(status) === modId(def)) return status;
-    if (!this.altMods[this.altKey(status)]) return status;
-    return this.installed(def) || this.disabled(def);
-  }
-
-  /**
-   * Default plugins and templates replaced by an alternate mod.
-   */
-  private getAltReplaced(mod: string): Config[] {
-    return [
-      ...(this.admin.alt?.plugins || []).filter(p => modId(p) === mod).map(p => this.admin.def.plugins[p.tag]),
-      ...(this.admin.alt?.templates || []).filter(t => modId(t) === mod).map(t => this.admin.def.templates[t.tag]),
-    ].filter(c => !!c);
   }
 
   updateAll() {
