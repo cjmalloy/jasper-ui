@@ -2,7 +2,7 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { equalBundle, formatBundleDiff, formatDiff, merge3 } from './diff';
+import { equalBundle, formatBundleDiff, formatDiff, merge3, mergeBundle } from './diff';
 
 describe('Diff Utils', () => {
   describe('formatDiff', () => {
@@ -265,6 +265,56 @@ describe('Diff Utils', () => {
 
       const { result } = merge3(ours, base, theirs, ' ');
       expect(result).toBe('r r o o');
+    });
+  });
+
+  describe('mergeBundle', () => {
+    const bundle = (script: string, extra: any = {}, subDiff = ['script']) => ({
+      plugin: [{ tag: 'plugin/test', config: { mod: 'Test', subDiff, script, ...extra } }],
+    } as any);
+
+    it('should conflict on whole-line string changes without subDiff', () => {
+      const base = bundle('a\nb\nc\nd\ne', {}, []);
+      const ours = bundle('a\nB\nc\nd\ne', {}, []);
+      const theirs = bundle('a\nb\nc\nD\ne', {}, []);
+      expect(mergeBundle(ours, base, theirs).conflict).toBe(true);
+    });
+
+    it('should merge subDiff fields line-by-line', () => {
+      const base = bundle('a\nb\nc\nd\ne');
+      const ours = bundle('a\nB\nc\nd\ne');
+      const theirs = bundle('a\nb\nc\nD\ne', { version: 2 });
+      const { result, conflict } = mergeBundle(ours, base, theirs);
+      expect(conflict).toBeFalsy();
+      expect(result!.plugin![0].config!.script).toBe('a\nB\nc\nD\ne');
+      expect(result!.plugin![0].config!.version).toBe(2);
+    });
+
+    it('should support nested subDiff paths', () => {
+      const nested = (s: string) => ({ plugin: [{ tag: 'plugin/test', config: { subDiff: ['a.script'], a: { script: s } } }] } as any);
+      const { result } = mergeBundle(nested('a\nB\nc\nd\ne'), nested('a\nb\nc\nd\ne'), nested('a\nb\nc\nD\ne'));
+      expect(result!.plugin![0].config!.a.script).toBe('a\nB\nc\nD\ne');
+    });
+
+    it('should take one-sided subDiff changes', () => {
+      const base = bundle('a\nb');
+      const ours = bundle('a\nb');
+      const theirs = bundle('x\ny');
+      expect(mergeBundle(ours, base, theirs).result!.plugin![0].config!.script).toBe('x\ny');
+    });
+
+    it('should conflict when the same line is changed', () => {
+      const base = bundle('a\nb\nc\nd\ne');
+      const ours = bundle('a\nX\nc\nd\ne');
+      const theirs = bundle('a\nY\nc\nd\ne');
+      expect(mergeBundle(ours, base, theirs).conflict).toBe(true);
+    });
+
+    it('should remove a subDiff field deleted on both sides', () => {
+      const base = bundle('a');
+      const ours = { plugin: [{ tag: 'plugin/test', config: { mod: 'Test', subDiff: ['script'] } }] } as any;
+      const { result } = mergeBundle(ours, base, ours);
+      expect(result!.plugin![0].config!.script).toBeUndefined();
     });
   });
 });

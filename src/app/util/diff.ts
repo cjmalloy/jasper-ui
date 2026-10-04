@@ -1,5 +1,5 @@
 import { diff3Merge, MergeRegion } from 'node-diff3';
-import { isArray, isEmpty, isObject, sortBy } from 'lodash-es';
+import { cloneDeep, get, isArray, isEmpty, isObject, isString, set, sortBy, uniq, unset } from 'lodash-es';
 import { Ref, writeRef } from '../model/ref';
 import { Ext, writeExt } from '../model/ext';
 import { User, writeUser } from '../model/user';
@@ -126,4 +126,67 @@ export function merge3(ours: string, base: string, theirs: string, delimiter = '
     }
   }
   return { result: mergedLines.join(delimiter) };
+}
+
+export type BundleMerge = { result?: Mod, conflict?: boolean };
+
+type SubDiff = { type: 'plugin' | 'template', tag: string, path: string, value?: string };
+
+/**
+ * Three-way merge of mod bundles.
+ * String config fields listed in a Plugin or Template config.subDiff are
+ * merged line-by-line separately, so independent changes to different lines
+ * of the same script do not conflict.
+ */
+export function mergeBundle(ours: Mod, base: Mod, theirs: Mod): BundleMerge {
+  ours = cloneDeep(clearMod(ours));
+  base = cloneDeep(clearMod(base));
+  theirs = cloneDeep(clearMod(theirs));
+  const subDiffs: SubDiff[] = [];
+  for (const type of ['plugin', 'template'] as const) {
+    const tags = uniq([...ours[type] || [], ...base[type] || [], ...theirs[type] || []].map(c => c.tag));
+    for (const tag of tags) {
+      const o = ours[type]?.find(c => c.tag === tag);
+      const b = base[type]?.find(c => c.tag === tag);
+      const t = theirs[type]?.find(c => c.tag === tag);
+      if (!o || !b || !t) continue;
+      const paths = uniq([...o.config?.subDiff || [], ...b.config?.subDiff || [], ...t.config?.subDiff || []]);
+      for (const path of paths) {
+        if (!isString(path) || !path) continue;
+        const ov = get(o.config, path);
+        const bv = get(b.config, path);
+        const tv = get(t.config, path);
+        if (ov === undefined && bv === undefined && tv === undefined) continue;
+        if ([ov, bv, tv].some(v => v !== undefined && !isString(v))) continue;
+        let value: string | undefined;
+        if (ov === tv) {
+          value = ov;
+        } else if (ov === bv) {
+          value = tv;
+        } else if (tv === bv) {
+          value = ov;
+        } else {
+          const merged = merge3(ov || '', bv || '', tv || '');
+          if (merged.conflict || merged.result === undefined) return { conflict: true };
+          value = merged.result;
+        }
+        const placeholder = `subDiff:${type}:${tag}:${path}`;
+        for (const c of [o, b, t]) set(c.config ||= {}, path, placeholder);
+        subDiffs.push({ type, tag, path, value });
+      }
+    }
+  }
+  const merged = merge3(formatBundleDiff(ours), formatBundleDiff(base), formatBundleDiff(theirs));
+  if (merged.conflict || !merged.result) return { conflict: true };
+  const result: Mod = JSON.parse(merged.result);
+  for (const d of subDiffs) {
+    const c = result[d.type]?.find(c => c.tag === d.tag);
+    if (!c) continue;
+    if (d.value === undefined) {
+      unset(c.config, d.path);
+    } else {
+      set(c.config ||= {}, d.path, d.value);
+    }
+  }
+  return { result };
 }
