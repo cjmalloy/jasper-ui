@@ -1,5 +1,4 @@
-import { Component, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
-import { defer } from 'lodash-es';
+import { Component, viewChild, effect, signal, inject } from '@angular/core';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -30,25 +29,21 @@ export class RefAltsComponent implements HasChanges {
 
   constructor() {
     const store = this.store;
-    const query = this.query;
-
-    query.clear();
     store.view.defaultSort.set(['modified']);
     effect(() => {
       this.page.set(Page.of(this.store.view.ref()?.alternateUrls?.map(url => ({ url })) || []));
     });
-    effect(() => {
-      const args = getArgs(
+    this.query.watch(() => ({
+      ...getArgs(
         '',
         this.store.view.sort(),
         this.store.view.filter(),
         this.store.view.search(),
         this.store.view.pageNumber(),
         this.store.view.pageSize(),
-      );
-      args.url = this.store.view.url();
-      defer(() => this.query.setArgs(args));
-    });
+      ),
+      url: this.store.view.url(),
+    }));
     effect(() => {
       const page = this.query.page();
       if (!page) return;
@@ -71,9 +66,5 @@ export class RefAltsComponent implements HasChanges {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 
 }

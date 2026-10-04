@@ -1,5 +1,5 @@
-import { computed, Component, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
-import { defer, uniq } from 'lodash-es';
+import { computed, Component, viewChild, effect, signal, inject } from '@angular/core';
+import { uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -32,25 +32,21 @@ export class RefSourcesComponent implements HasChanges {
 
   constructor() {
     const store = this.store;
-    const query = this.query;
-
-    query.clear();
     store.view.defaultSort.set(['published']);
     effect(() => {
       this.page.set(Page.of(this.sources().map(url => ({ url })) || []));
     });
-    effect(() => {
-      const args = getArgs(
+    this.query.watch(() => ({
+      ...getArgs(
         '',
         this.store.view.sort(),
         this.store.view.filter(),
         this.store.view.search(),
         this.store.view.pageNumber(),
         this.store.view.pageSize(),
-      );
-      args.sources = this.store.view.url();
-      defer(() => this.query.setArgs(args));
-    });
+      ),
+      sources: this.store.view.url(),
+    }));
     effect(() => {
       if (!this.query.page()) return;
       this.page.update(page => ({
@@ -70,10 +66,6 @@ export class RefSourcesComponent implements HasChanges {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 
   readonly sources = computed(() => {
     return uniq(this.store.view.ref()?.sources).filter(s => s != this.store.view.url());

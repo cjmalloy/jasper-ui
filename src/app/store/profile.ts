@@ -1,46 +1,15 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, signal, inject } from '@angular/core';
-import { isEqual, omit } from 'lodash-es';
-import { catchError, EMPTY, Subscription } from 'rxjs';
-import { Page } from '../model/page';
+import { Injectable, inject } from '@angular/core';
 import { Profile, ProfilePageArgs } from '../model/profile';
 import { ProfileService } from '../service/api/profile.service';
+import { PageStore } from '../util/page-store';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ProfileStore {
+export class ProfileStore extends PageStore<ProfilePageArgs, Profile> {
   private profiles = inject(ProfileService);
 
-
-  readonly args = signal<ProfilePageArgs | undefined>(undefined, { equal: isEqual });
-  readonly page = signal<Page<Profile> | undefined>(undefined);
-  readonly error = signal<HttpErrorResponse | undefined>(undefined);
-
-  private running?: Subscription;
-
-  clear() {
-    this.args.set(undefined);
-    this.page.set(undefined);
-    this.error.set(undefined);
+  protected load(args: ProfilePageArgs) {
+    return this.profiles.page(args);
   }
-
-  setArgs(args: ProfilePageArgs) {
-    if (!isEqual(omit(this.args(), 'search'), omit(args, 'search'))) this.clear();
-    this.args.set(args);
-    this.refresh();
-  }
-
-  refresh() {
-    const args = this.args();
-    if (!args) return;
-    this.running?.unsubscribe();
-    this.running = this.profiles.page(args).pipe(
-      catchError((err: HttpErrorResponse) => {
-        this.error.set(err);
-        return EMPTY;
-      }),
-    ).subscribe(p => this.page.set(p));
-  }
-
 }

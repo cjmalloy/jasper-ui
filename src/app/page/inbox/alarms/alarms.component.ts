@@ -1,5 +1,4 @@
-import { Component, viewChild, effect, DestroyRef, inject } from '@angular/core';
-import { defer } from 'lodash-es';
+import { Component, viewChild, inject } from '@angular/core';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -27,30 +26,21 @@ export class InboxAlarmsPage implements HasChanges {
   constructor() {
     const mod = this.mod;
     const store = this.store;
-    const query = this.query;
 
     mod.setTitle($localize`Inbox: Alarms`);
     store.view.clear(['modified']);
-    query.clear();
-    effect(() => {
-      const args = getArgs(
-        this.store.account.alarms().length ? this.store.account.alarms().join('|') : '!@*',
-        this.store.view.sort(),
-        this.store.view.filter(),
-        this.store.view.search(),
-        this.store.view.pageNumber(),
-        this.store.view.pageSize(),
-      );
-      defer(() => this.query.setArgs(args));
-    });
+    this.query.watch(() => getArgs(
+      this.store.account.alarms().length ? this.store.account.alarms().join('|') : '!@*',
+      this.store.view.sort(),
+      this.store.view.filter(),
+      this.store.view.search(),
+      this.store.view.pageNumber(),
+      this.store.view.pageSize(),
+    ));
   }
 
   saveChanges() {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 }

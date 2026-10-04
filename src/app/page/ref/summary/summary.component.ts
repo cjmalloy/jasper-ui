@@ -1,6 +1,6 @@
-import { Component, viewChild, viewChildren, effect, computed, untracked, DestroyRef, inject } from '@angular/core';
+import { Component, viewChild, viewChildren, effect, computed, DestroyRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { defer, uniq } from 'lodash-es';
+import { uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
 import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
@@ -48,33 +48,26 @@ export class RefSummaryComponent implements HasChanges {
 
   constructor() {
     const store = this.store;
-    const thread = this.thread;
-    const query = this.query;
-
-    query.clear();
-    thread.clear();
     store.view.defaultSort.set(['modified,DESC']);
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle(getTitle(this.store.view.ref())));
-    effect(() => {
-      const top = this.store.view.url();
-      const sort = this.store.view.sort();
-      const filter = this.store.view.filter();
-      const search = this.store.view.search();
-      untracked(() => this.thread.setArgs(top, sort, filter, search));
-    });
-    effect(() => {
-      const args = getArgs(
+    this.thread.watch(() => ({
+      top: this.store.view.url(),
+      sort: this.store.view.sort(),
+      filters: this.store.view.filter(),
+      search: this.store.view.search(),
+    }));
+    this.query.watch(() => ({
+      ...getArgs(
         '',
         this.store.view.sort(),
         uniq(['query/!internal', 'query/!plugin/comment', 'query/!plugin/thread', ...this.store.view.filter()]),
         this.store.view.search(),
         this.store.view.pageNumber(),
         this.summaryItems,
-      );
-      args.responses = this.store.view.url();
-      defer(() => this.query.setArgs(args));
-    });
+      ),
+      responses: this.store.view.url(),
+    }));
   }
 
   saveChanges() {
@@ -86,7 +79,6 @@ export class RefSummaryComponent implements HasChanges {
   }
 
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
     this.newResp$.complete();
     this.newComment$.complete();
     this.newThread$.complete();

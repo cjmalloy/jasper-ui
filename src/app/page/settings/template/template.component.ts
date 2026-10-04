@@ -1,6 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, viewChild, effect, signal, DestroyRef, inject } from '@angular/core';
-import { defer } from 'lodash-es';
+import { Component, viewChild, signal, inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { TemplateListComponent } from '../../../component/template/template-list/template-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -33,32 +32,23 @@ export class SettingsTemplatePage implements HasChanges {
   constructor() {
     const mod = this.mod;
     const store = this.store;
-    const query = this.query;
 
     mod.setTitle($localize`Settings: Templates`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
-    query.clear();
-    effect(() => {
-      const args = {
-        query: this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'),
-        search: this.store.view.search(),
-        sort: [...this.store.view.sort()],
-        page: this.store.view.pageNumber(),
-        size: this.store.view.pageSize(),
-        ...getTagFilter(this.store.view.filter()),
-      };
-      defer(() => this.query.setArgs(args));
-    });
+    this.query.watch(() => ({
+      query: this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'),
+      search: this.store.view.search(),
+      sort: [...this.store.view.sort()],
+      page: this.store.view.pageNumber(),
+      size: this.store.view.pageSize(),
+      ...getTagFilter(this.store.view.filter()),
+    }));
   }
 
   saveChanges() {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 
   upload(files?: FileList) {
     this.serverError.set([]);

@@ -1,5 +1,4 @@
-import { Component, viewChild, effect, DestroyRef, inject } from '@angular/core';
-import { defer } from 'lodash-es';
+import { Component, viewChild, effect, inject } from '@angular/core';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -26,23 +25,19 @@ export class RefVersionsComponent implements HasChanges {
 
   constructor() {
     const store = this.store;
-    const query = this.query;
-
-    query.clear();
     store.view.defaultSort.set(['published']);
-    effect(() => {
-      const args = getArgs(
+    this.query.watch(() => ({
+      ...getArgs(
         '',
         this.store.view.sort(),
         this.store.view.filter(),
         this.store.view.search(),
         this.store.view.pageNumber(),
         this.store.view.pageSize(),
-      );
-      args.url = this.store.view.url();
-      args.obsolete = this.store.view.ref()?.metadata?.obsolete ? null : true;
-      defer(() => this.query.setArgs(args));
-    });
+      ),
+      url: this.store.view.url(),
+      obsolete: this.store.view.ref()?.metadata?.obsolete ? null : true,
+    }));
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref())));
   }
@@ -51,9 +46,5 @@ export class RefVersionsComponent implements HasChanges {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 
 }

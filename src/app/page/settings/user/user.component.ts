@@ -1,5 +1,4 @@
-import { Component, viewChild, effect, inject, Injector, afterNextRender, DestroyRef } from '@angular/core';
-import { defer } from 'lodash-es';
+import { Component, inject, viewChild } from '@angular/core';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { UserService } from '../../../service/api/user.service';
@@ -25,52 +24,33 @@ export class SettingsUserPage implements HasChanges {
   query = inject(UserStore);
 
 
-  private readonly injector = inject(Injector);
-
   readonly list = viewChild<UserListComponent>('list');
 
   constructor() {
     const mod = this.mod;
     const store = this.store;
-    const scim = this.scim;
-    const query = this.query;
 
     mod.setTitle($localize`Settings: User Profiles`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
-    scim.clear();
-    query.clear();
+    if (this.config.scim) {
+      // TODO: better way to find unattached profiles
+      this.scim.watch(() => ({
+        page: this.store.view.pageNumber(),
+        size: this.store.view.pageSize(),
+      }));
+    }
+    this.query.watch(() => ({
+      query: this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'),
+      search: this.store.view.search(),
+      sort: [...this.store.view.sort()],
+      page: this.store.view.pageNumber(),
+      size: this.store.view.pageSize(),
+      ...getTagFilter(this.store.view.filter()),
+    }));
   }
 
   saveChanges() {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly initialize = afterNextRender(() => {
-    if (this.config.scim) {
-      // TODO: better way to find unattached profiles
-      effect(() => {
-        const args = {
-          page: this.store.view.pageNumber(),
-          size: this.store.view.pageSize(),
-        };
-        defer(() => this.scim.setArgs(args));
-      }, { injector: this.injector });
-    }
-    effect(() => {
-      const args = {
-        query: this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'),
-        search: this.store.view.search(),
-        sort: [...this.store.view.sort()],
-        page: this.store.view.pageNumber(),
-        size: this.store.view.pageSize(),
-        ...getTagFilter(this.store.view.filter()),
-      };
-      defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
-  });
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 }

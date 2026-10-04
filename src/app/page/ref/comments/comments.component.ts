@@ -1,4 +1,4 @@
-import { Component, viewChild, effect, inject, Injector, computed, untracked, afterNextRender, DestroyRef } from '@angular/core';
+import { Component, viewChild, effect, inject, Injector, computed, afterNextRender, DestroyRef } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
@@ -40,10 +40,14 @@ export class RefCommentsComponent implements HasChanges {
 
   constructor() {
     const store = this.store;
-    const thread = this.thread;
 
-    thread.clear();
     store.view.defaultSort.set(['published']);
+    this.thread.watch(() => ({
+      top: this.store.view.url(),
+      sort: this.store.view.sort(),
+      filters: this.store.view.filter(),
+      search: this.store.view.search(),
+    }));
   }
 
   saveChanges() {
@@ -55,11 +59,6 @@ export class RefCommentsComponent implements HasChanges {
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref())), { injector: this.injector });
     effect(() => {
-      const top = this.store.view.url();
-      const sort = this.store.view.sort();
-      const filter = this.store.view.filter();
-      const search = this.store.view.search();
-      untracked(() => this.thread.setArgs(top, sort, filter, search));
       const ref = this.store.view.ref();
       if (ref) {
         const commentCount = ref.metadata?.plugins?.['plugin/comment'] || 0;

@@ -1,6 +1,6 @@
 import { DestroyRef, inject, Component, viewChild, effect, Injector, signal, computed, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { defer, uniq } from 'lodash-es';
+import { uniq } from 'lodash-es';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
@@ -53,10 +53,18 @@ export class RefThreadComponent implements HasChanges {
 
   constructor() {
     const store = this.store;
-    const query = this.query;
-
-    query.clear();
     store.view.defaultSort.set(['published,ASC']);
+    this.query.watch(() => ({
+      ...getArgs(
+        'plugin/thread:!plugin/delete',
+        this.store.view.sort(),
+        this.store.view.filter(),
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
+      ),
+      responses: this.store.view.url(),
+    }));
   }
 
   saveChanges() {
@@ -71,30 +79,6 @@ export class RefThreadComponent implements HasChanges {
       if (this.store.view.pageSize()) {
         this.store.view.defaultPageNumber.set(Math.floor(((this.to()?.metadata?.plugins?.['plugin/thread'] || 1) - 1) / this.store.view.pageSize()));
       }
-    }, { injector: this.injector });
-    effect(() => {
-      const args = getArgs(
-        'plugin/thread:!plugin/delete',
-        this.store.view.sort(),
-        this.store.view.filter(),
-        this.store.view.search(),
-        this.store.view.pageNumber(),
-        this.store.view.pageSize(),
-      );
-      args.responses = this.store.view.url();
-      defer(() => this.query.setArgs(args));
-    }, { injector: this.injector });
-    effect(() => {
-      const args = getArgs(
-        'plugin/thread:!plugin/delete',
-        this.store.view.sort(),
-        this.store.view.filter(),
-        this.store.view.search(),
-        this.store.view.pageNumber(),
-        this.store.view.pageSize(),
-      );
-      args.responses = this.store.view.url();
-      defer(() => this.query.setArgs(args));
     }, { injector: this.injector });
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref())), { injector: this.injector });
@@ -135,10 +119,6 @@ export class RefThreadComponent implements HasChanges {
         }
       }
     });
-  });
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
   });
 
   readonly thread = computed(() => this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.store.view.ref()));

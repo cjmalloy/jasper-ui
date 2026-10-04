@@ -35,8 +35,8 @@ describe('CommentThreadComponent', () => {
   it('does not pad a short cached thread with undefined comments', () => {
     fixture.componentRef.setInput('source', 'comment:parent');
     fixture.componentRef.setInput('pageSize', 5);
-    component.thread.cache.set(new Map([['comment:parent', [{ url: 'comment:child' }]]]));
-    expect(component.comments()).toEqual([{ url: 'comment:child' }]);
+    component.thread.add({ url: 'comment:child', sources: ['comment:parent'] });
+    expect(component.comments()).toEqual([{ url: 'comment:child', sources: ['comment:parent'] }]);
   });
 
   it('resets local replies when the source changes', () => {

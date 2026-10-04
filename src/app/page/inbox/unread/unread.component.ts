@@ -1,9 +1,6 @@
-import { Component, effect, untracked, DestroyRef, inject } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, untracked } from '@angular/core';
 import { Router } from '@angular/router';
-import { defer } from 'lodash-es';
-import { DateTime } from 'luxon';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
-import { RefPageArgs } from '../../../model/ref';
 import { newest } from '../../../mods/mailbox';
 import { AccountService } from '../../../service/account.service';
 import { ModService } from '../../../service/mod.service';
@@ -25,53 +22,38 @@ export class InboxUnreadPage {
   private router = inject(Router);
 
 
-  private lastNotified?: DateTime;
+  private readonly lastNotified = computed(() => newest(this.query.page()?.content || [])?.modified);
 
   constructor() {
     const mod = this.mod;
     const store = this.store;
-    const query = this.query;
 
     mod.setTitle($localize`Inbox: Unread`);
     store.view.clear(['modified']);
-    query.clear();
+    this.query.watch(() => ({
+      query: this.store.account.notificationsQuery(),
+      modifiedAfter: this.store.account.config().lastNotified,
+      sort: ['modified,ASC'],
+      size: this.store.view.pageSize(),
+    }));
+    // Sync paging to the server: the next page marks the current page as read
     effect(() => {
-      this.store.view.pageNumber();
-      this.store.account.notificationsQuery();
-      this.store.account.config().lastNotified;
-      this.store.view.pageSize();
+      if (!this.store.view.pageNumber()) return;
       untracked(() => {
-        if (this.store.view.pageNumber()) {
-          this.router.navigate([], {
-            queryParams: { pageNumber: null },
-            queryParamsHandling: 'merge',
-            replaceUrl: true
-          });
-          if (this.lastNotified) {
-            this.account.clearNotifications(this.lastNotified);
-          }
-        }
-        const args: RefPageArgs = {
-          query: this.store.account.notificationsQuery(),
-          modifiedAfter: this.store.account.config().lastNotified,
-          sort: ['modified,ASC'],
-          size: this.store.view.pageSize(),
-        };
-        defer(() => this.query.setArgs(args));
+        this.router.navigate([], {
+          queryParams: { pageNumber: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+        const lastNotified = this.lastNotified();
+        if (lastNotified) this.account.clearNotifications(lastNotified);
       });
-    });
-    effect(() => {
-      if (this.query.page() && this.query.page()!.content.length) {
-        this.lastNotified = newest(this.query.page()!.content)!.modified!;
-      }
     });
   }
 
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-    if (this.lastNotified) {
-      this.account.clearNotifications(this.lastNotified);
-    }
+    const lastNotified = this.lastNotified();
+    if (lastNotified) this.account.clearNotifications(lastNotified);
   });
 
 }

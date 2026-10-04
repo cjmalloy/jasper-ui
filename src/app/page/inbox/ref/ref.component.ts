@@ -1,8 +1,7 @@
-import { Component, viewChild, effect, DestroyRef, inject } from '@angular/core';
-import { defer, uniq } from 'lodash-es';
+import { Component, computed, effect, inject, viewChild } from '@angular/core';
+import { uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
-import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
@@ -24,38 +23,28 @@ export class InboxRefPage implements HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
-  plugin?: Plugin;
-  writeAccess = false;
+  readonly plugin = computed(() => this.admin.getPlugin(this.store.view.inboxTag()));
 
   constructor() {
     const mod = this.mod;
     const store = this.store;
-    const query = this.query;
 
     mod.setTitle($localize`Inbox: `);
     store.view.clear(['modified']);
-    query.clear();
-    effect(() => {
-      this.plugin = this.admin.getPlugin(this.store.view.inboxTag());
-      this.mod.setTitle($localize`Inbox: ${this.plugin?.config?.inbox || this.store.view.inboxTag()}`);
-      const args = getArgs(
-        this.store.view.inboxTag() + (this.store.view.showRemotes() ? '' : (this.plugin?.origin || '@')),
-        this.store.view.sort(),
-        uniq(['!obsolete', ...this.store.view.filter()]),
-        this.store.view.search(),
-        this.store.view.pageNumber(),
-        this.store.view.pageSize(),
-      );
-      defer(() => this.query.setArgs(args));
-    });
+    // Sync the document title
+    effect(() => this.mod.setTitle($localize`Inbox: ${this.plugin()?.config?.inbox || this.store.view.inboxTag()}`));
+    this.query.watch(() => getArgs(
+      this.store.view.inboxTag() + (this.store.view.showRemotes() ? '' : (this.plugin()?.origin || '@')),
+      this.store.view.sort(),
+      uniq(['!obsolete', ...this.store.view.filter()]),
+      this.store.view.search(),
+      this.store.view.pageNumber(),
+      this.store.view.pageSize(),
+    ));
   }
 
   saveChanges() {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 }

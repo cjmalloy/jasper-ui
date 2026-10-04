@@ -1,6 +1,5 @@
-import { Component, viewChild, effect, untracked, DestroyRef, inject } from '@angular/core';
+import { Component, viewChild, effect, untracked, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { defer } from 'lodash-es';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -44,25 +43,21 @@ export class RefErrorsComponent implements HasChanges {
 
   constructor() {
     const store = this.store;
-    const query = this.query;
     const bookmarks = this.bookmarks;
-
-    query.clear();
     store.view.defaultSort.set(['published']);
     if (!this.store.view.filter().length) bookmarks.setFilters(['query/' + (store.account.origin() || '*')]);
     const untilDestroyed = takeUntilDestroyed<Ref | undefined>();
-    effect(() => {
-      const args = getArgs(
+    this.query.watch(() => ({
+      ...getArgs(
         '+plugin/log:!plugin/delete',
         this.store.view.sort(),
         this.store.view.filter(),
         this.store.view.search(),
         this.store.view.pageNumber(),
         this.store.view.pageSize(),
-      );
-      args.responses = this.store.view.url();
-      defer(() => this.query.setArgs(args));
-    });
+      ),
+      responses: this.store.view.url(),
+    }));
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref())));
     effect(() => {
@@ -86,9 +81,5 @@ export class RefErrorsComponent implements HasChanges {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 
 }

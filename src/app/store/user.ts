@@ -1,52 +1,16 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, signal, inject } from '@angular/core';
-import { isEqual, omit } from 'lodash-es';
-import { catchError, EMPTY, Subscription } from 'rxjs';
-import { Page } from '../model/page';
-import { TagPageArgs } from '../model/tag';
+import { Injectable, inject } from '@angular/core';
 import { User } from '../model/user';
+import { TagPageArgs } from '../model/tag';
 import { UserService } from '../service/api/user.service';
+import { PageStore } from '../util/page-store';
 
 @Injectable({
   providedIn: 'root'
 })
-export class UserStore {
+export class UserStore extends PageStore<TagPageArgs, User> {
   private users = inject(UserService);
 
-
-  readonly args = signal<TagPageArgs | undefined>(undefined, { equal: isEqual });
-  readonly page = signal<Page<User> | undefined>(undefined);
-  readonly error = signal<HttpErrorResponse | undefined>(undefined);
-
-  private running?: Subscription;
-
-  clear() {
-    this.args.set(undefined);
-    this.page.set(undefined);
-    this.error.set(undefined);
-    this.running?.unsubscribe();
+  protected load(args: TagPageArgs) {
+    return this.users.page(args);
   }
-
-  close() {
-    if (this.running && !this.running.closed) this.clear();
-  }
-
-  setArgs(args: TagPageArgs) {
-    if (!isEqual(omit(this.args(), 'search'), omit(args, 'search'))) this.clear();
-    this.args.set(args);
-    this.refresh();
-  }
-
-  refresh() {
-    const args = this.args();
-    if (!args) return;
-    this.running?.unsubscribe();
-    this.running = this.users.page(args).pipe(
-      catchError((err: HttpErrorResponse) => {
-        this.error.set(err);
-        return EMPTY;
-      }),
-    ).subscribe(p => this.page.set(p));
-  }
-
 }

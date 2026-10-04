@@ -1,5 +1,5 @@
-import { Component, viewChild, effect, DestroyRef, inject } from '@angular/core';
-import { defer, uniq } from 'lodash-es';
+import { Component, viewChild, effect, inject } from '@angular/core';
+import { uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -28,22 +28,20 @@ export class RefResponsesComponent implements HasChanges {
 
   constructor() {
     const store = this.store;
-    const query = this.query;
-
-    query.clear();
     store.view.defaultSort.set(['published']);
-    effect(() => {
+    this.query.watch(() => {
       const hideInternal = !this.admin.getPlugins(this.store.view.queryTags()).length;
-      const args = getArgs(
-        '',
-        this.store.view.sort(),
-        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'] : ['query/!plugin/delete', 'user/!plugin/user/hide'], ...this.store.view.filter() || []]) as UrlFilter[],
-        this.store.view.search(),
-        this.store.view.pageNumber(),
-        this.store.view.pageSize(),
-      );
-      args.responses = this.store.view.url();
-      defer(() => this.query.setArgs(args));
+      return {
+        ...getArgs(
+          '',
+          this.store.view.sort(),
+          uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'] : ['query/!plugin/delete', 'user/!plugin/user/hide'], ...this.store.view.filter() || []]) as UrlFilter[],
+          this.store.view.search(),
+          this.store.view.pageNumber(),
+          this.store.view.pageSize(),
+            ),
+        responses: this.store.view.url(),
+        };
     });
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref())));
@@ -60,9 +58,5 @@ export class RefResponsesComponent implements HasChanges {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 
 }

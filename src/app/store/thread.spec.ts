@@ -1,62 +1,84 @@
 /// <reference types="vitest/globals" />
-import { computed } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
-import { ThreadStore } from './thread';
+import { ThreadArgs, ThreadStore } from './thread';
 
-describe('ThreadStore immutable cache', () => {
+describe('ThreadStore', () => {
+  const firstPage = Page.of([{ url: 'comment:first', sources: ['https://example.com'] } as Ref]);
+  const secondPage = Page.of([{ url: 'comment:second', sources: ['https://example.com'] } as Ref]);
+  let refs: { page: ReturnType<typeof vi.fn> };
+
   function createStore() {
+    refs = { page: vi.fn() };
+    refs.page.mockReturnValueOnce(of(firstPage)).mockReturnValue(of(secondPage));
     TestBed.configureTestingModule({
       providers: [
-        { provide: RefService, useValue: { page: vi.fn(() => of(Page.of([]))) } },
+        { provide: RefService, useValue: refs },
       ],
     });
-    return TestBed.runInInjectionContext(() => new ThreadStore());
+    return TestBed.inject(ThreadStore);
   }
 
-  it('copies maps and response arrays while retaining duplicates and unrelated sources', () => {
+  function watch(store: ThreadStore, args: ThreadArgs) {
+    const source = signal<ThreadArgs | undefined>(args);
+    TestBed.runInInjectionContext(() => store.watch(source));
+    store.pages();
+    TestBed.tick();
+    return source;
+  }
+
+  it('loads the first page for the watched args', () => {
     const store = createStore();
-    const first = { url: 'comment:first', sources: ['https://example.com'] } as Ref;
-    const second = { url: 'comment:second', sources: first.sources } as Ref;
-    const other = { url: 'comment:other', sources: ['https://other.example.com'] } as Ref;
-    store.add(first, other);
-    const previous = store.cache();
-    const responses = previous.get(first.sources![0])!;
-    const count = computed(() => store.cache().get(first.sources![0])?.length);
-    expect(count()).toBe(1);
+    watch(store, { top: 'https://example.com' });
 
-    store.add(first, second, second, { url: 'comment:orphan' } as Ref);
-
-    expect(count()).toBe(2);
-    expect(store.cache()).not.toBe(previous);
-    expect(responses).toEqual([first]);
-    expect(store.cache().get(first.sources![0])).toEqual([first, second]);
-    expect(store.cache().get(other.sources![0])).toBe(previous.get(other.sources![0]));
+    expect(refs.page).toHaveBeenCalledOnce();
+    expect(refs.page.mock.calls[0][0]).toMatchObject({ responses: 'https://example.com', page: 0 });
+    expect(store.pages()).toEqual([firstPage]);
+    expect(store.cache().get('https://example.com')).toEqual(firstPage.content);
+    expect(store.latest()).toEqual(firstPage.content);
   });
 
-  it('appends pages and clears without mutating published collections', () => {
+  it('appends pages without mutating published collections', () => {
     const store = createStore();
-    const first = Page.of([{ url: 'comment:first', sources: ['https://example.com'] } as Ref]);
-    store.addPage(first);
+    watch(store, { top: 'https://example.com' });
     const pages = store.pages();
     const cache = store.cache();
-    const latest = store.latest();
-    const second = Page.of([{ url: 'comment:second', sources: ['https://example.com'] } as Ref]);
-    store.addPage(second);
 
-    expect(pages).toEqual([first]);
-    expect(cache.get('https://example.com')).toEqual(first.content);
-    expect(latest).toEqual(first.content);
-    expect(latest).not.toBe(first.content);
-    expect(store.pages()).toEqual([first, second]);
+    store.loadMore();
 
-    store.clear();
-    expect(store.pages()).toEqual([]);
-    expect(store.cache().size).toBe(0);
-    expect(store.latest()).toEqual([]);
-    expect(cache.size).toBe(1);
+    expect(refs.page.mock.calls[1][0]).toMatchObject({ page: 1 });
+    expect(pages).toEqual([firstPage]);
+    expect(cache.get('https://example.com')).toEqual(firstPage.content);
+    expect(store.pages()).toEqual([firstPage, secondPage]);
+    expect(store.latest()).toEqual(secondPage.content);
+    expect(store.cache().get('https://example.com')).toEqual([...firstPage.content, ...secondPage.content]);
+  });
+
+  it('ignores duplicates and orphans when adding comments', () => {
+    const store = createStore();
+    watch(store, { top: 'https://example.com' });
+    const count = computed(() => store.cache().get('https://example.com')?.length);
+    expect(count()).toBe(1);
+
+    store.add(firstPage.content[0], secondPage.content[0], secondPage.content[0], { url: 'comment:orphan' } as Ref);
+
+    expect(count()).toBe(2);
+  });
+
+  it('resets when the args change', () => {
+    const store = createStore();
+    const args = watch(store, { top: 'https://example.com' });
+    store.add({ url: 'comment:extra', sources: ['https://example.com'] } as Ref);
+
+    args.set({ top: 'https://other.example.com' });
+    store.pages();
+    TestBed.tick();
+
+    expect(store.pages()).toEqual([secondPage]);
+    expect(store.cache().get('https://example.com')).toEqual(secondPage.content);
   });
 });

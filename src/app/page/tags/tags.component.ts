@@ -1,6 +1,6 @@
-import { computed, Component, viewChild, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
+import { Component, computed, inject, viewChild } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { defer } from 'lodash-es';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -34,7 +34,15 @@ export class TagsPage implements HasChanges {
   private exts = inject(ExtService);
 
 
-  readonly title = signal<string>('');
+  private readonly templateExt = rxResource({
+    params: () => this.store.view.template(),
+    stream: ({ params }) => this.exts.getCachedExt(params),
+  });
+  readonly title = computed(() => (this.templateExt.hasValue() ? this.templateExt.value().name : '')
+    || this.store.view.template() && this.admin.getTemplate(this.store.view.template())?.name
+    || this.store.view.ext()?.name
+    || this.store.view.template()
+    || '');
   templates = this.admin.tmplSubmit().filter(t => t.config?.view);
 
   readonly list = viewChild<ExtListComponent>('list');
@@ -42,16 +50,10 @@ export class TagsPage implements HasChanges {
   constructor() {
     const mod = this.mod;
     const store = this.store;
-    const query = this.query;
 
     mod.setTitle($localize`Tags`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
-    query.clear();
-    effect(() => {
-      this.title.set(this.store.view.template() && this.admin.getTemplate(this.store.view.template())?.name || this.store.view.ext()?.name || this.store.view.template() || '');
-      const template = this.store.view.template();
-      untracked(() => this.exts.getCachedExt(template)
-        .subscribe(ext => this.title.set(ext.name || this.title())));
+    this.query.watch(() => {
       const query
         = this.store.view.home()
         ? [...getPrefixes('config/home'), ...this.store.account.subs(), ...this.store.account.bookmarkQueries()].filter(t => this.auth.tagReadAccess(t)).join('|')
@@ -62,7 +64,7 @@ export class TagsPage implements HasChanges {
               ? getPrefixes(this.store.view.template()).filter(t => this.auth.tagReadAccess(t)).join('|')
               : this.store.view.template())
             : '@*';
-      const args = {
+      return {
         query: getTagQueryFilter(braces(query), this.store.view.filter()) + (!this.store.view.showRemotes() ? ':' + (this.store.account.origin() || '*') : ''),
         search: this.store.view.search(),
         sort: [...this.store.view.sort()],
@@ -70,7 +72,6 @@ export class TagsPage implements HasChanges {
         size: this.store.view.pageSize(),
         ...getTagFilter(this.store.view.filter()),
       };
-      defer(() => this.query.setArgs(args));
     });
   }
 
@@ -78,10 +79,6 @@ export class TagsPage implements HasChanges {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 
   templateIs(tag: string): boolean {
     return hasPrefix(this.store.view.localTemplate(), tag);

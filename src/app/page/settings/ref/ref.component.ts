@@ -1,8 +1,7 @@
-import { Component, inject, viewChild, effect, signal, DestroyRef } from '@angular/core';
-import { defer, uniq } from 'lodash-es';
+import { Component, computed, effect, inject, viewChild } from '@angular/core';
+import { uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
-import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
 import { AuthzService } from '../../../service/authz.service';
 import { ModService } from '../../../service/mod.service';
@@ -24,44 +23,33 @@ export class SettingsRefPage implements HasChanges {
   query = inject(QueryStore);
 
 
-  readonly plugin = signal<Plugin | undefined>(undefined);
-  readonly writeAccess = signal<boolean>(false);
+  readonly plugin = computed(() => this.admin.getPlugin(this.store.view.settingsTag()));
+  readonly writeAccess = computed(() => this.auth.canAddTag(this.store.view.settingsTag()));
 
   readonly list = viewChild<RefListComponent>('list');
 
   constructor() {
     const mod = this.mod;
     const store = this.store;
-    const query = this.query;
 
     mod.setTitle($localize`Settings: `);
     store.view.clear(['metadata->modified']);
-    query.clear();
-    effect(() => {
-      const plugin = this.admin.getPlugin(this.store.view.settingsTag());
-      this.plugin.set(plugin);
-      this.writeAccess.set(this.auth.canAddTag(this.store.view.settingsTag()));
-      this.mod.setTitle($localize`Settings: ${plugin?.config?.settings || this.store.view.settingsTag()}`);
-      const args = getArgs(
-        this.store.view.settingsTag() + (this.store.view.showRemotes() ? '' : (plugin?.origin || '@')),
-        this.store.view.sort(),
-        uniq(['!obsolete', ...this.store.view.filter()]),
-        this.store.view.search(),
-        this.store.view.pageNumber(),
-        this.store.view.pageSize(),
-      );
-      defer(() => this.query.setArgs(args));
-    });
+    // Sync the document title
+    effect(() => this.mod.setTitle($localize`Settings: ${this.plugin()?.config?.settings || this.store.view.settingsTag()}`));
+    this.query.watch(() => getArgs(
+      this.store.view.settingsTag() + (this.store.view.showRemotes() ? '' : (this.plugin()?.origin || '@')),
+      this.store.view.sort(),
+      uniq(['!obsolete', ...this.store.view.filter()]),
+      this.store.view.search(),
+      this.store.view.pageNumber(),
+      this.store.view.pageSize(),
+    ));
   }
 
   saveChanges() {
     const list = this.list();
     return !list || list.saveChanges();
   }
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.query.close();
-  });
 
   loadDefaults() {
     if (!this.plugin()?.config?.defaultsConfirm || confirm(this.plugin()?.config?.defaultsConfirm)) {

@@ -1,4 +1,4 @@
-import { computed, signal } from '@angular/core';
+import { computed, linkedSignal, signal } from '@angular/core';
 import { isEqual, uniq } from 'lodash-es';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -48,7 +48,14 @@ export class ViewStore {
   readonly top = signal<Ref | undefined>(undefined);
   readonly lastSelected = signal<Ref | undefined>(undefined);
   readonly versions = signal(0);
-  readonly exts = signal<Ext[]>([]);
+  private readonly extsSource = signal<() => Ext[]>(() => []);
+  /**
+   * Exts for the current view. Pages bind a reactive source with {@link watchExts},
+   * or set the value directly.
+   */
+  readonly exts = linkedSignal(() => this.extsSource()(), {
+    equal: (a, b) => isEqual(a.map(x => x.tag + x.origin + x.modifiedString).sort(), b.map(x => x.tag + x.origin + x.modifiedString).sort()),
+  });
   readonly extTemplates = signal<Template[]>([]);
   readonly selectedUser = signal<User | undefined>(undefined);
   /**
@@ -70,6 +77,10 @@ export class ViewStore {
     public route: RouterStore,
     private account: AccountStore,
   ) { }
+
+  watchExts(source: () => Ext[]) {
+    this.extsSource.set(source);
+  }
 
   setModChange(mod: string, changed: boolean) {
     this.modChanges.update(m => new Map(m).set(mod, changed));
@@ -98,6 +109,7 @@ export class ViewStore {
     this.ref.set(undefined);
     this.top.set(undefined);
     this.versions.set(0);
+    this.extsSource.set(() => []);
     this.exts.set([]);
     this.extTemplates.set([]);
     this.selectedUser.set(undefined);
