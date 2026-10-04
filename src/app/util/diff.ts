@@ -178,6 +178,11 @@ export function mergeBundle(ours: Mod, base: Mod, theirs: Mod): BundleMerge {
           if (!(oh === th ? oh : oh === bh ? th : oh)) prune.push(container);
         }
         const placeholder = `subDiff:${type}:${tag}:${path}`;
+        const parents = segments.slice(0, -1).map((_, i) => ['config', ...segments.slice(0, i + 1)]);
+        if ([o, b, t].some(c => parents.some(parent => {
+          const value = get(c, parent);
+          return value !== undefined && !isObject(value);
+        }))) continue;
         for (const c of [o, b, t]) set(c.config ||= {}, path, placeholder);
         subDiffs.push({ type, tag, path, value, prune });
       }
