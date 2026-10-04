@@ -28,13 +28,12 @@ describe('AdminService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should merge template admin forms down the tag hierarchy', () => {
+  it('should not inherit template admin forms', () => {
     service.status.templates['parent'] = { tag: 'parent', config: { adminForm: [{ key: 'a' }], advancedAdminForm: [{ key: 'b' }] } };
     service.status.templates['parent/child'] = { tag: 'parent/child', config: { adminForm: [{ key: 'c' }] } };
-    expect(service.getTemplateAdminForm('parent/child').map(f => f.key)).toEqual(['c', 'a']);
-    expect(service.getTemplateAdminForm('parent/child', 'advancedAdminForm').map(f => f.key)).toEqual(['b']);
-    service.status.templates['parent/child']!.config!.overrideForm = true;
     expect(service.getTemplateAdminForm('parent/child').map(f => f.key)).toEqual(['c']);
+    expect(service.getTemplateAdminForm('parent/child', 'advancedAdminForm')).toEqual([]);
+    expect(service.getTemplateAdminForm('parent', 'advancedAdminForm').map(f => f.key)).toEqual(['b']);
   });
 
   it('should keep formly expressions serializable for built-in mods', () => {

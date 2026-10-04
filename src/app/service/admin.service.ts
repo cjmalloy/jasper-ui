@@ -927,17 +927,8 @@ export class AdminService {
     return this.getPlugin(tag)?.config?.[field] || [];
   }
 
-  getTemplateAdminForm(tag = '', field: 'adminForm' | 'advancedAdminForm' = 'adminForm'): FormlyFieldConfig[] {
-    const template = this.getTemplate(tag);
-    const form = template?.config?.[field];
-    const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;
-    if (form) {
-      if (!tag || template!.config?.overrideForm) return form;
-      return [...form, ...this.getTemplateAdminForm(parent!, field)]
-    } else if (tag) {
-      return this.getTemplateAdminForm(parent!, field);
-    }
-    return [];
+  getTemplateAdminForm(tag: string, field: 'adminForm' | 'advancedAdminForm' = 'adminForm'): FormlyFieldConfig[] {
+    return this.getTemplate(tag)?.config?.[field] || [];
   }
 
   getDefaults(tag = ''): any {
