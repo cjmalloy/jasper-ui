@@ -34,8 +34,16 @@ test.describe.serial('Masonry Template', () => {
   });
 
   test('renders images in masonry columns', async ({ page }) => {
-    expect(await listDisplay(page)).toBe('block');
-    await expect(page.locator('.list-container').first()).toHaveCSS('column-width', '300px');
+    const display = await listDisplay(page);
+    const list = page.locator('.list-container').first();
+    if (await page.evaluate(() => CSS.supports('display', 'grid-lanes'))) {
+      expect(display).toBe('grid-lanes');
+    } else if (await page.evaluate(() => CSS.supports('grid-template-rows', 'masonry'))) {
+      await expect(list).toHaveCSS('grid-template-rows', 'masonry');
+    } else {
+      expect(display).toBe('block');
+      await expect(list).toHaveCSS('column-width', '300px');
+    }
   });
 
   test('removing masonry restores image grid', async ({ page }) => {
