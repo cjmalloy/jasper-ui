@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { tap } from 'rxjs/operators';
@@ -8,6 +8,15 @@ import { environment } from '../../environments/environment';
 export function config(): ConfigService {
   // @ts-ignore
   return window.configService;
+}
+
+function mediaSignal(query: string) {
+  const result = signal(false);
+  if (typeof window === 'undefined' || !window.matchMedia) return result;
+  const media = window.matchMedia(query);
+  result.set(media.matches);
+  media.addEventListener?.('change', event => result.set(event.matches));
+  return result;
 }
 
 @Injectable({
@@ -47,10 +56,10 @@ export class ConfigService {
    */
   prefetch = environment.dev;
 
-  miniWidth = 380;
-  mobileWidth = 740;
-  tabletWidth = 948;
-  hugeWidth = 1500;
+  readonly mini = mediaSignal('(max-width: 380px)');
+  readonly mobile = mediaSignal('(max-width: 740px)');
+  readonly tablet = mediaSignal('(max-width: 948px)');
+  readonly huge = mediaSignal('(min-width: 1500px)');
 
   constructor() {
     // @ts-ignore
@@ -74,23 +83,6 @@ export class ConfigService {
         }
       }),
     );
-  }
-
-  get mini() {
-    return window.innerWidth <= this.miniWidth;
-  }
-
-  get mobile() {
-    return window.innerWidth <= this.mobileWidth;
-  }
-
-  get tablet() {
-    return window.innerWidth <= this.tabletWidth;
-  }
-
-
-  get huge() {
-    return window.innerWidth >= this.hugeWidth;
   }
 
   logIn() {

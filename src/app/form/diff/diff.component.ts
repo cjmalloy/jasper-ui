@@ -48,7 +48,7 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   readonly options = computed(() => ({
     language: 'json',
     automaticLayout: true,
-    renderSideBySide: !this.config.mobile,
+    renderSideBySide: !this.config.mobile(),
     theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
     readOnly: this.readOnly(),
   }), { equal: isEqual });

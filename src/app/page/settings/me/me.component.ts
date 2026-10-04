@@ -7,7 +7,6 @@ import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { UserTagSelectorComponent } from '../../../component/user-tag-selector/user-tag-selector.component';
-import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../../form/ext/ext.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AccountService } from '../../../service/account.service';
@@ -24,7 +23,7 @@ import { environment } from '../../../../environments/environment';
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
+  imports: [ReactiveFormsModule, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
 })
 export class SettingsMePage implements HasChanges {
   config = inject(ConfigService);

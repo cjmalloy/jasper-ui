@@ -6,7 +6,6 @@ import { computed,
   DestroyRef,
   inject,
   Component,
-  ElementRef,
   forwardRef,
   input,
   output,
@@ -61,7 +60,6 @@ export class ExtFormComponent  {
   admin = inject(AdminService);
   store = inject(Store);
   private refs = inject(RefService);
-  private el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   private readonly rootControlState = controlValue(() => this.group());
 
@@ -141,19 +139,6 @@ export class ExtFormComponent  {
     this.rootControlState();
     return this.group().get('config') as UntypedFormGroup;
   });
-
-  readonly fillPopover = computed<ElementRef<HTMLElement> | undefined>(() => {
-    return this.fillEditor('.popover-editor');
-  });
-
-  readonly fillSidebar = computed<ElementRef<HTMLElement> | undefined>(() => {
-    return this.fillEditor('.sidebar-editor');
-  });
-
-  private fillEditor(selector: string) {
-    const element = this.el.nativeElement.querySelector<HTMLElement>(selector + ' .fill-editor');
-    return element ? new ElementRef(element) : undefined;
-  }
 
   readonly inbox = computed(() => {
     this.rootControlState();

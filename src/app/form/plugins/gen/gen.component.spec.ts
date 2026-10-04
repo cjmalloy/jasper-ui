@@ -67,9 +67,6 @@ describe('GenComponent', () => {
     expect(editor.hasTags()).toBe(false);
     expect(editor.addCommentTitle()).toBe('Add comment');
     expect(editor.addCommentLabel()).toBe('+ Add comment');
-    expect(editor.fillWidth()).toBe(
-      fixture.nativeElement.querySelector('.editor-field .fill-editor'),
-    );
   });
 
   it('keeps Formly schemas stable when controls emit new values', () => {

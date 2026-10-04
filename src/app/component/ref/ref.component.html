@@ -73,11 +73,11 @@
           } @else {
             @if (publishedIsSubmitted()) {
               <span [title]="ref().created!.toISO()" i18n>
-                @if (!config.mobile) { submitted }
+                @if (!config.mobile()) { submitted }
                 {{ ref().created | relative }}</span>
             } @else {
               <span [title]="ref().published!.toISO()" i18n>
-                @if (!config.mobile) { published }
+                @if (!config.mobile()) { published }
                 {{ ref().published | relative }}</span>
             }
             @if (!modifiedIsSubmitted()) {

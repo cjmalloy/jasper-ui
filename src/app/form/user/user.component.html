@@ -65,10 +65,9 @@
   }
 
   <label [for]="id + '-authorizedKeys'" i18n>Authorized Keys:</label>
-  <div #fill>
+  <div>
     <textarea [id]="id + '-authorizedKeys'"
-              formControlName="authorizedKeys"
-              [appFillWidth]="fill"></textarea>
+              formControlName="authorizedKeys"></textarea>
   </div>
 
   @if (store.account.mod() || external()) {

@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
@@ -25,7 +26,7 @@ describe('DiffComponent', () => {
         {
           provide: ConfigService,
           useValue: {
-            get mobile() { return false; },
+            mobile: signal(false),
             get base() { return { href: 'http://localhost' }; }
           }
         }

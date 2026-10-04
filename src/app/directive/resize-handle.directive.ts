@@ -34,7 +34,7 @@ export class ResizeHandleDirective {
   resizeObserver?: ResizeObserver;
 
   get resizeCursor() {
-    return this.config.mobile ? 'row-resize' : 'se-resize';
+    return this.config.mobile() ? 'row-resize' : 'se-resize';
   }
 
   readonly enabled = computed(() => {
@@ -47,7 +47,7 @@ export class ResizeHandleDirective {
     const child = this.child();
     if (child) {
       if (this.initChild()) {
-        child.style.width = this.el.nativeElement.style.width || (this.config.mobile ? 'min(100%, 100vw - 16px)' : 'min(100%, 80vw)');
+        child.style.width = this.el.nativeElement.style.width || (this.config.mobile() ? 'min(100%, 100vw - 16px)' : 'min(100%, 80vw)');
         child.style.height = this.el.nativeElement.style.height || '80vh';
       }
       this.resizeObserver?.observe(child);

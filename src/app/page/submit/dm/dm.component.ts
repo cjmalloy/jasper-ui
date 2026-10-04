@@ -1,7 +1,7 @@
 import {
   HttpErrorResponse
 } from '@angular/common/http';
-import { Component, DestroyRef, ElementRef, forwardRef, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
+import { Component, DestroyRef, forwardRef, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -20,8 +20,6 @@ import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
-import { FillWidthDirective } from '../../../directive/fill-width.directive';
-import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
@@ -52,13 +50,11 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   imports: [
     forwardRef(() => EditorComponent),
     ReactiveFormsModule,
-    LimitWidthDirective,
     AutofocusDirective,
     SelectPluginComponent,
     PluginsFormComponent,
     MonacoEditorModule,
     ResizeHandleDirective,
-    FillWidthDirective,
     TagsFormComponent,
     LoadingComponent,
   ]
@@ -90,10 +86,6 @@ export class SubmitDmPage implements HasChanges {
   protected readonly dmFormPristine = controlState(() => this.dmForm, c => c.pristine);
   readonly serverError = signal<string[]>([]);
 
-  readonly limitWidth = signal<HTMLElement | undefined>(undefined);
-
-  readonly fill = viewChild<ElementRef>('fill');
-
   readonly editorComponent = viewChild<EditorComponent>('ed');
 
   readonly tagsFormComponent = viewChild<TagsFormComponent>('tagsFormComponent');
@@ -124,10 +116,6 @@ export class SubmitDmPage implements HasChanges {
       sources: fb.array([]),
       comment: [''],
       tags: fb.array([]),
-    });
-    effect(() => {
-      const fill = this.fill();
-      defer(() => this.limitWidth.set(fill?.nativeElement));
     });
     if (this.admin.editing()) {
       interval(5_000).pipe(

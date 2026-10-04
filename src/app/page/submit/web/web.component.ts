@@ -23,7 +23,6 @@ import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { NavComponent } from '../../../component/nav/nav.component';
-import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -51,7 +50,6 @@ import { getVisibilityTags } from '../../../util/tag';
   host: { 'class': 'full-page-form' },
   imports: [
     ReactiveFormsModule,
-    LimitWidthDirective,
     NavComponent,
     LoadingComponent,
     forwardRef(() => RefFormComponent),
@@ -81,7 +79,6 @@ export class SubmitWebPage implements HasChanges {
   protected readonly webFormPristine = controlState(() => this.webForm, c => c.pristine);
   readonly serverError = signal<string[]>([]);
 
-  readonly limitWidth = signal<HTMLElement | undefined>(undefined);
   readonly submitting = signal(false);
   private submittingSubscription?: Subscription;
   readonly saving = signal(false);
@@ -250,7 +247,6 @@ export class SubmitWebPage implements HasChanges {
         });
       }, { injector: this.injector });
     });
-    defer(() => this.limitWidth.set(this.refForm.fill()?.nativeElement));
   });
 
   readonly refFormView = viewChild.required<RefFormComponent>('refForm');

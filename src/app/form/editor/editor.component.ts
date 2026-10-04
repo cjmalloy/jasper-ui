@@ -15,8 +15,6 @@ import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { MdComponent } from '../../component/md/md.component';
 import { AutofocusDirective } from '../../directive/autofocus.directive';
-import { FillWidthDirective } from '../../directive/fill-width.directive';
-import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { mimeToCode } from '../../mods/media/code';
@@ -59,9 +57,7 @@ export interface EditorUpload {
     forwardRef(() => MdComponent),
     LoadingComponent,
     ReactiveFormsModule,
-    FillWidthDirective,
     AutofocusDirective,
-    LimitWidthDirective,
   ],
 })
 export class EditorComponent {
@@ -108,7 +104,6 @@ export class EditorComponent {
   readonly url = input('');
   readonly addCommentTitle = input($localize `Add comment`);
   readonly addCommentLabel = input($localize `+ Add comment`);
-  readonly fillWidth = input<HTMLElement>();
   readonly syncEditor = output<string>();
   readonly syncTags = output<string[]>();
   readonly addSource = output<string>();

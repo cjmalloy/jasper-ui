@@ -5,7 +5,6 @@ import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { SettingsComponent } from '../../component/settings/settings.component';
-import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
@@ -24,7 +23,7 @@ import { prefix, setPublic } from '../../util/tag';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
+  imports: [RouterLink, SettingsComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserPage implements HasChanges {
   private mod = inject(ModService);

@@ -140,8 +140,8 @@ export class SidebarComponent {
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
       if (this.chat()) return;
-      if (this.config.tablet && this.lastView != this.store.view.current() ||
-        !this.config.huge  && this.store.view.current() === 'ref/summary') {
+      if (this.config.tablet() && this.lastView != this.store.view.current() ||
+        !this.config.huge()  && this.store.view.current() === 'ref/summary') {
         this.lastView = this.store.view.current();
         this.expanded.set(false);
       }
