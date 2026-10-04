@@ -1658,6 +1658,7 @@ formly-field-radio, formly-field-multicheckbox {
     [actions-toggle] auto
     [nav-toggle] auto
     [end];
+  grid-auto-rows: min-content;
 
   & > * {
     grid-column: 1 / -1;
@@ -1687,6 +1688,9 @@ formly-field-radio, formly-field-multicheckbox {
   & > .toggle.comments,
   & > .toggle.view {
     grid-area: 2 / nav-toggle;
+  }
+  & > .comment-reply {
+    justify-self: start;
   }
 }
 
