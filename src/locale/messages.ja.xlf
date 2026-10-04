@@ -7485,6 +7485,30 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>⚠️ Skipped <x id="PH" equiv-text="mod"/> mod: unable to merge local changes automatically. Use diff to update manually.</source>
         <target>⚠️ <x id="PH" equiv-text="mod"/> MODをスキップしました: ローカルの変更を自動的にマージできません。差分を使用して手動で更新してください。</target>
       </trans-unit>
+      <trans-unit id="1847047605496409443" datatype="html">
+        <source>Street</source>
+        <target>通り</target>
+      </trans-unit>
+      <trans-unit id="2314075913167237221" datatype="html">
+        <source>City</source>
+        <target>都市</target>
+      </trans-unit>
+      <trans-unit id="2702200797962830082" datatype="html">
+        <source>Region</source>
+        <target>地域</target>
+      </trans-unit>
+      <trans-unit id="516176798986294299" datatype="html">
+        <source>Country</source>
+        <target>国</target>
+      </trans-unit>
+      <trans-unit id="5782981899482871069" datatype="html">
+        <source>Building</source>
+        <target>建物</target>
+      </trans-unit>
+      <trans-unit id="7806416699195259046" datatype="html">
+        <source>World</source>
+        <target>世界</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

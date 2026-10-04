@@ -313,3 +313,16 @@ export function parseMapView(value?: string | null): MapView | undefined {
   if (Math.abs(lng) > 180 || Math.abs(lat) > 90 || zoom < 0 || zoom > 24) return undefined;
   return { center: [lng, lat], zoom };
 }
+
+/**
+ * Parse a "lng, lat" location, optionally wrapped in brackets like a GeoJSON position.
+ */
+export function parseLocation(value?: string | null): [number, number] | undefined {
+  if (!value || typeof value !== 'string') return undefined;
+  const parts = value.trim().replace(/^\[(.*)]$/s, '$1').split(',');
+  if (parts.length !== 2 || parts.some(p => !p.trim())) return undefined;
+  const [lng, lat] = parts.map(Number);
+  if (!isFinite(lng) || !isFinite(lat)) return undefined;
+  if (Math.abs(lng) > 180 || Math.abs(lat) > 90) return undefined;
+  return [lng, lat];
+}

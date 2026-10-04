@@ -1,4 +1,4 @@
-import { convertFeature, convertGeometry, geoCenter, geoFeatures, isLinearRing, locationBounds } from './geo';
+import { convertFeature, convertGeometry, geoCenter, geoFeatures, isLinearRing, locationBounds, parseLocation } from './geo';
 
 describe('geo', () => {
   describe('locationBounds', () => {
@@ -172,5 +172,22 @@ describe('geo', () => {
       { type: 'Feature', properties: { color: 'blue' }, geometry: { type: 'Point', coordinates: [3, 4] } },
     ] };
     expect(geoFeatures(value).map(f => f.properties)).toEqual([{ color: 'red' }, { color: 'blue' }]);
+  });
+
+  describe('parseLocation', () => {
+    it('parses lng, lat', () => {
+      expect(parseLocation('-63.5, 44.6')).toEqual([-63.5, 44.6]);
+      expect(parseLocation(' -63.5,44.6 ')).toEqual([-63.5, 44.6]);
+      expect(parseLocation('[-63.5, 44.6]')).toEqual([-63.5, 44.6]);
+    });
+
+    it('rejects anything else', () => {
+      expect(parseLocation('-63.5')).toBeUndefined();
+      expect(parseLocation('-63.5, 44.6, 10')).toBeUndefined();
+      expect(parseLocation('-63.5,')).toBeUndefined();
+      expect(parseLocation('Halifax, NS')).toBeUndefined();
+      expect(parseLocation('44.6, -200')).toBeUndefined();
+      expect(parseLocation('-63.5, 95')).toBeUndefined();
+    });
   });
 });

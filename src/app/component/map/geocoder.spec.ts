@@ -26,7 +26,7 @@ describe('geocoder', () => {
     el.innerHTML = renderResult(feature);
     expect(el.querySelector('img')).toBeNull();
     expect(el.querySelector('.maplibregl-ctrl-geocoder--result-title')?.textContent).toBe('<img src=x onerror=alert(1)>');
-    expect(el.querySelector('.maplibregl-ctrl-geocoder--result-address')?.textContent).toBe(' Halifax');
+    expect(el.querySelector('.maplibregl-ctrl-geocoder--result-address')?.textContent).toBe('Halifax');
   });
 
   it('detects dark basemaps', () => {

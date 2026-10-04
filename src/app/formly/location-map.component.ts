@@ -40,6 +40,7 @@ import { closedRings, LocationList, locationLists, LocationPicker } from './loca
              (mapLoad)="mapLoaded($event)"
              (mapContextMenu)="mapContextMenu($event)"
              (mapError)="onMapError($event)"
+             (dragstart)="$event.preventDefault()"
              appResizeHandle></mgl-map>
   `,
   styleUrls: ['./location-map.component.scss'],

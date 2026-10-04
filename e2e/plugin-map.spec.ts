@@ -975,6 +975,90 @@ test.describe.serial('Map Plugin', () => {
     await expect(points.nth(1).locator('input[type=number]').nth(1)).toHaveValue('44.7');
   });
 
+  test('location input map picker pans with text selected', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
+    await point.locator('.location-map-toggle').click();
+    const canvas = point.locator('.location-map .maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    const marker = point.locator('.location-marker');
+    await expect(marker).toBeVisible({ timeout: 15_000 });
+    await page.waitForTimeout(500);
+
+    await page.evaluate(() => document.getSelection()!.selectAllChildren(document.body));
+    const before = (await marker.boundingBox())!;
+    const box = (await canvas.boundingBox())!;
+    const x = box.x + box.width / 3;
+    const y = box.y + box.height / 3;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 100, y + 50, { steps: 10 });
+    await page.mouse.up();
+    // Selected text is not dragged instead of panning the map
+    await expect.poll(async () => (await marker.boundingBox())!.x - before.x).toBeGreaterThan(80);
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
+  });
+
+  test('location input pastes lng, lat into both inputs', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    const lng = point.locator('input[type=number]').nth(0);
+    const lat = point.locator('input[type=number]').nth(1);
+    const paste = (input: typeof lng, text: string) => input.evaluate((el, text) => {
+      const clipboardData = new DataTransfer();
+      clipboardData.setData('text/plain', text);
+      el.dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }));
+    }, text);
+
+    await paste(lng, '-63.5, 44.6');
+    await expect(lng).toHaveValue('-63.5');
+    await expect(lat).toHaveValue('44.6');
+    await paste(lat, '[-63.4,44.7]');
+    await expect(lng).toHaveValue('-63.4');
+    await expect(lat).toHaveValue('44.7');
+  });
+
+  test('address search results space the name from the address', async ({ page }) => {
+    await page.route('https://nominatim.openstreetmap.org/search**', route => route.fulfill({
+      headers: CORS,
+      json: [{ display_name: 'Halifax, Nova Scotia, Canada', lat: '44.65', lon: '-63.57' }],
+    }));
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
+    await point.locator('.location-map-toggle').click();
+    await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
+
+    const search = point.locator('.location-map .maplibregl-ctrl-geocoder--input');
+    await search.fill('Halifax');
+    await search.press('Enter');
+    const result = point.locator('.maplibregl-ctrl-geocoder .suggestions li', { hasText: 'Nova Scotia' });
+    const title = result.locator('.maplibregl-ctrl-geocoder--result-title');
+    const address = result.locator('.maplibregl-ctrl-geocoder--result-address');
+    await expect(title).toHaveText('Halifax');
+    await expect(address).toHaveText('Nova Scotia, Canada');
+    const titleBox = (await title.boundingBox())!;
+    const addressBox = (await address.boundingBox())!;
+    expect(addressBox.x - (titleBox.x + titleBox.width)).toBeGreaterThan(3);
+  });
+
+  test('map template zoom slider has labels', async ({ page }) => {
+    await page.goto('/ext/map?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.locator('button', { hasText: 'Extend' }).click();
+    const labels = page.locator('.range-labels .range-label');
+    await expect(labels).toHaveText(['World', 'Country', 'Region', 'City', 'Street', 'Building']);
+    const slider = page.locator('.range-input input[type=range]').first();
+    await slider.fill('12');
+    await expect(page.locator('.range-label.active')).toHaveText('City');
+  });
+
   test('main map keeps the default attribution', async ({ page }) => {
     await page.goto('/tag/@*?debug=ADMIN&view=map&map=-63.5,44.6,9', { waitUntil: 'networkidle' });
     const attrib = page.locator('.map.ext .maplibregl-ctrl-attrib');

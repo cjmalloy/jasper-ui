@@ -32,7 +32,7 @@ export function renderResult(item: CarmenGeojsonFeature | MaplibreGeocoderSugges
   const [title, ...address] = ('place_name' in item && item.place_name || item.text || '').split(',');
   return '<div class="maplibregl-ctrl-geocoder--result">'
     + '<div class="maplibregl-ctrl-geocoder--result-title">' + escapeHtml(title) + '</div>'
-    + '<div class="maplibregl-ctrl-geocoder--result-address">' + escapeHtml(address.join(',')) + '</div>'
+    + '<div class="maplibregl-ctrl-geocoder--result-address">' + escapeHtml(address.join(',').trim()) + '</div>'
     + '</div>';
 }
 

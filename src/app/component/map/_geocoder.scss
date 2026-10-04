@@ -54,6 +54,11 @@
     }
   }
 
+  // The title and address are side by side
+  .maplibregl-ctrl-geocoder--result {
+    gap: 0.5em;
+  }
+
   button.maplibregl-ctrl-geocoder--button {
     min-width: 0 !important;
     min-height: 0 !important;

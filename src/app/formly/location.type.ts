@@ -4,6 +4,7 @@ import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx
 import { Subscription } from 'rxjs';
 import { getErrorMessage } from './errors';
 import { LocationMapComponent } from './location-map.component';
+import { parseLocation } from '../util/geo';
 import { LocationPicker, locationPicker } from './location-picker';
 
 @Component({
@@ -29,6 +30,7 @@ import { LocationPicker, locationPicker } from './location-picker';
                [value]="lng"
                [disabled]="formControl.disabled"
                (input)="setLng($any($event.target).value)"
+               (paste)="paste($event)"
                (blur)="blur($any($event.target))"
                [formlyAttributes]="field"
                [class.is-invalid]="showError">
@@ -46,6 +48,7 @@ import { LocationPicker, locationPicker } from './location-picker';
                [value]="lat"
                [disabled]="formControl.disabled"
                (input)="setLat($any($event.target).value)"
+               (paste)="paste($event)"
                (blur)="blur($any($event.target))"
                [class.is-invalid]="showError">
         <button type="button"
@@ -168,6 +171,16 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> implements O
     if (!isNaN(lat)) {
       this.setLocation([this.lng, lat]);
     }
+  }
+
+  /**
+   * Pasting "lng, lat" fills in both inputs.
+   */
+  paste(event: ClipboardEvent) {
+    const location = parseLocation(event.clipboardData?.getData('text') || '');
+    if (!location) return;
+    event.preventDefault();
+    this.setLocation(location);
   }
 
   setLocation(value: [number, number]) {

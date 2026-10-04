@@ -6,6 +6,7 @@
            [fitBoundsOptions]="fitBoundsOptions"
            (mapError)="onMapError($event)"
            (mapLoad)="mapLoaded($event)"
+           (dragstart)="$event.preventDefault()"
            appResizeHandle>
     <mgl-control mglScale
                  position="bottom-left"
