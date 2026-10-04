@@ -1,7 +1,9 @@
 # Ref / Tag CSS Structure
 
 The UI shows two kinds of entity: **refs** and **tags**. Exts, Plugins, Templates and
-Users all count as tags. Both kinds use the same two-line row layout:
+Users all count as tags. Each entity row has its own root class (`.ref`, `.ext`, `.plugin`,
+`.template`, `.user`); `.tag` is not a row root because it already names inline tag chips.
+All rows use the same two-line row layout:
 
 ```
 [thumbnail?] line 1: title   (.link    — the main link, plus any toggles/badges)
@@ -57,7 +59,7 @@ Users all count as tags. Both kinds use the same two-line row layout:
 ### Tag (`app-ext`, `app-plugin`, `app-template`, `app-user`)
 
 ```html
-<app-ext class="tag ext list-item             <!-- root + kind + base row class -->
+<app-ext class="ext list-item                 <!-- root + base row class -->
                 editing deleted upload exists outdated">  <!-- states -->
   <div class="link remote?">                  <!-- LINE 1 -->
     <a>Name</a> <span class="host">(tag@origin)</span>
@@ -76,7 +78,7 @@ Users all count as tags. Both kinds use the same two-line row layout:
 </app-ext>
 ```
 
-The kind classes are `.ext`, `.plugin`, `.template` and `.profile` (users). Plugin and template rows
+The root classes are `.ext`, `.plugin`, `.template` and `.user`. Plugin and template rows
 also get one class for their own tag (for example `plugin_thread`). Tag rows have no thumbnail or side
 columns, so they leave out `.row`. Add `.row` only when the row needs a side column.
 
@@ -85,9 +87,8 @@ columns, so they leave out `.row`. Add `.row` only when the row needs a side col
 | Class | Slot / modifier / state | Meaning | Allowed parents |
 |---|---|---|---|
 | `.ref` | root | A Ref row. | list containers (`.list-container`), page body, `.lens`, `.responses-of`, `.sources-of` |
-| `.tag` (on a row) | root | A tag-like row: Ext, Plugin, Template or User. Always pair it with `.list-item` or a kind class in selectors. | `.list-container`, upload page |
 | `.list-item` | root base | Every entity row has it (including `.full-page`). Sets the row box model. | — (on the root) |
-| `.ext` `.plugin` `.template` `.profile` | modifier (kind) | Which tag entity the row shows. | `.tag` root |
+| `.ext` `.plugin` `.template` `.user` | root | A tag entity row: Ext, Plugin, Template or User. Pair `.user` with `.list-item` in selectors (`a.user.tag` is an author chip). | `.list-container`, upload page |
 | `.full-page` | modifier | The main Ref on `/ref/:url/**`, and the `responseOf` / `sourcesOf` header in a lens. | `.ref` root |
 | `.ref-list-item` | modifier | A Ref rendered by `app-ref-list`. | `.ref` root inside `.ref-list` |
 | `.pinned` | modifier | A pinned Ref at the top of a list. | `.ref.ref-list-item` |
@@ -96,7 +97,7 @@ columns, so they leave out `.row`. Add `.row` only when the row needs a side col
 | `.plugin_*`, `.response-*`, `.user-response-*` | modifier | One per plugin tag, plugin response and user response (e.g. `.plugin_dm`, `.user-response-plugin_user_read`). | `.ref` root |
 | `.editing` | state | The edit form is open. | root |
 | `.deleted` | state | The entity was deleted (struck through). | root |
-| `.upload` `.exists` `.outdated` | state | Unsaved upload; it already exists; the existing copy differs. | `.ref` / `.tag.ext` root |
+| `.upload` `.exists` `.outdated` | state | Unsaved upload; it already exists; the existing copy differs. | `.ref` / `.ext` root |
 | `.last-selected` | state | The row that was opened last. | `.ref` root |
 | `.row` | layout | Flex line holding side columns (`.voting`, `.thumbnail`) and the `.stack`. | `.ref` root |
 | `.stack` | layout | Flex column that stacks lines. | `.row`, `.link-below`, root |
@@ -106,7 +107,7 @@ columns, so they leave out `.row`. Add `.row` only when the row needs a side col
 | `.link` | slot, line 1 | Main link/title, `.host`, badges. Modifiers: `.remote`, `.redundant`, `.comment-title`. | `.row > .stack`, tag root |
 | `.host` | part of `.link` | `(host)` or `(tag@origin)` after the title. | `.link` |
 | `.info` | slot, line 2 | Who, when, tags, icons, counts, origin. | `.stack` |
-| `a.tag`, `a.user.tag`, `a.origin.tag` | part of `.info` | Inline tag/author/origin chip. It is always an `<a>`; don't confuse it with the `.tag` row root. | `.info`, markdown, breadcrumbs |
+| `.tag`, `.user.tag`, `.origin.tag` | part of `.info` | Inline tag/author/origin chip. Not a row root. | `.info`, markdown, breadcrumbs |
 | `.icon` | part of `.info` | Clickable plugin icon. `.filter-toggle` when it toggles a filter. | `.info` |
 | `.actions` | slot | Action strip. Direct children may only be `a`, `.fake-link`, `.action` or `.action-list`. | `.stack`, after `.info` |
 | `.fake-link` | action | A link-styled `<a>` or `<span>` that runs code instead of navigating. | `.actions`, `.action`, `.action-list`, `.advanced-actions` |
@@ -132,14 +133,14 @@ Classes that look alike but mean something else: `.ref-list` / `.ext-list` / `.p
 | `/ref/:url/comments` | `app-ref.full-page` + `app-comment-thread` | `.ref.full-page`, `.comment` (see below) |
 | `/ref/:url/responses`, `sources`, `alts`, `errors`, `versions` | `app-ref.full-page` + `app-ref-list` | `.ref.full-page`, `.ref.ref-list-item` |
 | `/inbox/*` | `app-ref-list` | `.ref.ref-list-item` |
-| `/tags/:template` | `app-ext-list` | `.tag.ext.list-item` |
-| `/settings/plugin` | `app-plugin-list` | `.tag.plugin.list-item` |
-| `/settings/template` | `app-template-list` | `.tag.template.list-item` |
-| `/settings/user` | `app-user-list` | `.tag.profile.list-item` |
+| `/tags/:template` | `app-ext-list` | `.ext.list-item` |
+| `/settings/plugin` | `app-plugin-list` | `.plugin.list-item` |
+| `/settings/template` | `app-template-list` | `.template.list-item` |
+| `/settings/user` | `app-user-list` | `.user.list-item` |
 | `/settings/ref/:tag` | `app-ref-list` | `.ref.ref-list-item` |
 | `/settings/backup` | `app-backup-list` | `.backup` (not an entity, but uses the same `.link` / `.info` / `.actions` slots) |
 | `/submit/web` (existing / responses / unsaved) | `app-ref` | `.ref.list-item` |
-| `/submit/upload` | `app-ext`, `app-ref` | `.tag.ext.upload`, `.ref.upload` |
+| `/submit/upload` | `app-ext`, `app-ref` | `.ext.upload`, `.ref.upload` |
 | `/ext/:tag`, `/user/:tag`, `/settings/me`, `/submit/*` forms | entity forms | `.full-page-form` (form page, not a row) |
 
 Plugin-specific ref views (`.comment`, `.blog-entry`, `.chat-entry`, `.kanban-card`, `.note`, …) render refs in
@@ -154,17 +155,13 @@ What the code and e2e specs already relied on, and what changed:
   `a.tag` / `a.user.tag` / `a.origin.tag` chips, `.backup`, `.error-404`. E2E specs use
   `.full-page.ref .link a`, `.full-page.ref .actions .fake-link`, `.full-page.ref .tag:not(.user)`,
   `.ref-list-item .link a`, `.backup .link a`, `.${type}.list-item` and so on.
-- **Tag rows had no shared root.** Ext, Plugin, Template and User rows used `.ext`, `.plugin`, `.template` and
-  `.profile`. They now also have `.tag`; the old classes stay as kind modifiers.
-- **`.tag` meant two things.** Chips were styled with a bare `.tag` rule, so a `.tag` row root would have
-  picked up chip colors and margins. The chip rules in `theme/common.scss` and `theme/light.scss` are now
-  scoped to `a.tag` (every chip is an `<a>`), so rows look the same.
-- **`.ext.upload` only covered Exts.** It is now `.tag.upload`.
+- **User rows used `.profile`.** They now use `.user`, matching `.ext`, `.plugin` and `.template`.
+  `.tag` is not used as a row root because it already names inline tag chips.
 - **No `.editing` state.** Rows only had an `editing` field. Refs and tags now set the `.editing` class on the root.
 - **`app-action-list` had no class**, so `.actions` children couldn't be checked without selecting a custom
   tag. It now has `.action-list`.
 - **Known, intentionally left alone** (fixing them would change how things look):
   - Refs wrap line 2 in `.row > .stack > .link-below > .stack`, while tags use a flat `.stack`.
-  - In the sidebar, `.ref, .ext` (not every `.tag`) get the nowrap / 28px rules.
+  - In the sidebar, only `.ref, .ext` get the nowrap / 28px rules.
   - The origin in an Ext's `.info` is a plain `<a>`, not an `a.origin.tag` chip.
   - Only refs in lists get a list modifier (`.ref-list-item`); tag rows are identified by their list container.

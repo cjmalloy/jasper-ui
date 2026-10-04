@@ -209,8 +209,8 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 - Give interactive and structurally significant elements descriptive, semantic `class` names (`.filter-toggle`, `.filter-preview`, `.bookmark-field`, `.params-panel`). Name them after their role, not their look.
 - **Never** select custom component tags (`app-ref`, `formly-field-*`) in E2E tests. Standard HTML tags are acceptable, but classes are preferred.
 - Add host classes to formly field components: `host: { 'class': 'field my-field-type' }`.
-- **New entity UIs must use the ref/tag slots** documented in [`docs/STRUCTURE.md`](../docs/STRUCTURE.md): a `.ref` or `.tag` root (plus `.list-item` and variant/state modifiers), then `.thumbnail?` → `.link` (line 1) → `.info` (line 2) → `.actions` (only `a`, `.fake-link`, `.action`, `.action-list`).
-- A bare `.tag` also names the inline tag chip (`a.tag`). Select tag rows with `.tag.list-item` or a kind class (`.tag.ext`, `.tag.plugin`, `.tag.template`, `.tag.profile`).
+- **New entity UIs must use the ref/tag slots** documented in [`docs/STRUCTURE.md`](../docs/STRUCTURE.md): an entity root class (`.ref`, `.ext`, `.plugin`, `.template`, `.user`) plus `.list-item` and variant/state modifiers, then `.thumbnail?` → `.link` (line 1) → `.info` (line 2) → `.actions` (only `a`, `.fake-link`, `.action`, `.action-list`).
+- `.tag` names the inline tag chip, not a row. Select user rows with `.user.list-item` (`.user.tag` is an author chip).
 
 ### Debugging failing tests
 
