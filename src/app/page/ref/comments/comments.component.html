@@ -1,9 +1,8 @@
 <ng-container *mobxAutorun>
   @if (store.view.ref) {
-    @if (store.account.signedIn) {
+    @if (!store.view.browser || store.account.signedIn) {
       <app-comment-reply #reply
                          [to]="store.view.ref"
-                         quote=""
                          [tags]="replyTags"
                          (save)="newComments$.next($event)"></app-comment-reply>
     }

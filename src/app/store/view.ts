@@ -233,6 +233,11 @@ export class ViewStore {
     return this.browser ? '/browse' : '/ref';
   }
 
+  subviewPath(subview?: string) {
+    if (!subview || subview === 'comments' || subview === 'thread') return this.refPath;
+    return '/ref';
+  }
+
   get current(): View | undefined {
     const s = this.route.routeSnapshot?.firstChild;
     switch (s?.url[0].path) {

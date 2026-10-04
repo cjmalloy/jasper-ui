@@ -103,13 +103,13 @@
              (click)="replying = !replying"
              i18n>reply</a>
           @if (responses) {
-            <a [routerLink]="[store.view.refPath, ref.url, 'responses']"
+            <a [routerLink]="[store.view.subviewPath('responses'), ref.url, 'responses']"
                [queryParams]="{ origin: nonLocalOrigin }"
                (click)="store.view.preloadRef(ref)"
                i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
           }
           @if (sources > 2) {
-            <a [routerLink]="[store.view.refPath, ref.url, 'sources']"
+            <a [routerLink]="[store.view.subviewPath('sources'), ref.url, 'sources']"
                [queryParams]="{ origin: nonLocalOrigin }"
                (click)="store.view.preloadRef(ref)"
                i18n>{{ sources }}&thinsp;sources</a>

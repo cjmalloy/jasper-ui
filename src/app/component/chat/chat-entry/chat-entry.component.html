@@ -2,7 +2,7 @@
   <span class="gutter"
         [class.deleted]="deleted">
     @if (ref.origin && !authors.length) {
-      <app-nav css="origin tag" [url]="'tag:/' + (ref.origin || '*')"></app-nav>
+      <app-nav css="origin tag" [url]="'tag:/' + ref.origin"></app-nav>
     }
     @if (authors.length) {
       <span i18n> by
@@ -12,7 +12,7 @@
                    [title]="formatAuthor(t)"
                    [shortUser]="true"></app-nav>
         }
-            </span>
+      </span>
     }
     <span class="timestamp" [title]="ref.modified?.toISO()">{{ ref.modified?.toRelative() }}</span>
     &nbsp;|&nbsp;

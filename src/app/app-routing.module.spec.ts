@@ -102,5 +102,48 @@ describe('CustomUrlSerializer', () => {
       expect(paths(tree)).toEqual(['browse', 'tag:/science@', 'thread']);
       expect(tree.queryParams).toEqual({ origin: '@x' });
     });
+
+    it('round-trips escaped subviews with router query params and fragments', () => {
+      const original = browse('https://example.com/a?b=c#d', 'comments', { origin: '@x' }, 'top');
+      expect(serializer.serialize(original)).toMatch(/^\/browse\/e\//);
+
+      const tree = roundTrip(original);
+
+      expect(paths(tree)).toEqual(['browse', 'https://example.com/a?b=c#d', 'comments']);
+      expect(tree.queryParams).toEqual({ origin: '@x' });
+      expect(tree.fragment).toBe('top');
+    });
+
+    it('parses raw urls containing /e/', () => {
+      const tree = serializer.parse('/browse/https://example.com/e/foo');
+
+      expect(paths(tree)).toEqual(['browse', 'https://example.com/e/foo']);
+    });
+
+    it('round-trips escaped urls containing /e/', () => {
+      const original = browse('https://example.com/e/foo', undefined, { origin: '@x' });
+      expect(serializer.serialize(original)).toMatch(/^\/browse\/e\//);
+
+      const tree = roundTrip(original);
+
+      expect(paths(tree)).toEqual(['browse', 'https://example.com/e/foo']);
+      expect(tree.queryParams).toEqual({ origin: '@x' });
+    });
+
+    it('round-trips tag urls with an origin', () => {
+      expect(paths(roundTrip(browse('tag:/science@remote')))).toEqual(['browse', 'tag:/science@remote']);
+
+      const tree = roundTrip(browse('tag:/science@remote', undefined, { origin: '@remote' }));
+
+      expect(paths(tree)).toEqual(['browse', 'tag:/science@remote']);
+      expect(tree.queryParams).toEqual({ origin: '@remote' });
+    });
+
+    it('round-trips trailing slash urls with router query params', () => {
+      const tree = roundTrip(browse('https://example.com/', undefined, { origin: '@x' }));
+
+      expect(paths(tree)).toEqual(['browse', 'https://example.com/']);
+      expect(tree.queryParams).toEqual({ origin: '@x' });
+    });
   });
 });

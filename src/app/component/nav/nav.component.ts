@@ -8,6 +8,7 @@ import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { VisibilityService } from '../../service/visibility.service';
 import { Store } from '../../store/store';
+import { formatAuthor } from '../../util/format';
 import { getPath, parseBookmarkParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
@@ -51,19 +52,19 @@ export class NavComponent implements OnInit {
 
   ngOnInit() {
     if (this.localUrl) {
-      this.nav = this.getNav();
-      if (this.nav[0] === '/tag' && !this.external && !this.hasText) {
-        const tag = this.nav[1] as string;
-        this.text = this.text || (tag && !tag.startsWith('@') ? '#' + tag : tag) || '';
-        this.title ||= tag ? '#' + tag : '';
-        this.editor.getTagPreview(tag, this.origin, true, !this.shortUser || !hasPrefix(tag, 'user'))
+      const nav = this.getNav();
+      this.nav = nav;
+      if (nav[0] === '/tag' && this.store.view.browser) {
+        this.nav = ['/browse', 'tag:/' + nav[1]];
+      }
+      if (nav[0] === '/tag' && !this.external && !this.hasText) {
+        const tag = nav[1] as string;
+        const user = this.shortUser && hasPrefix(tag, 'user');
+        this.text = this.text || (user ? formatAuthor(tag) : tag && !tag.startsWith('@') ? '#' + tag : tag) || '';
+        this.title ||= user ? formatAuthor(tag) : tag ? '#' + tag : '';
+        this.editor.getTagPreview(tag, this.origin, true, !user)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(x => {
-            this.text = x?.name || this.text;
-            if (this.store.view.browser) {
-              this.nav = ['/browse/', 'tag:/' + this.nav![1]];
-            }
-          });
+          .subscribe(x => this.text = x?.name || this.text);
       }
     } else if (!this.external) {
       this.vis.notifyVisible(this.el, () => {

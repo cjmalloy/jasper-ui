@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   <h1 class="print-block"
-      [class.browse]="this.store.view.browser">{{ store.view.pageTitle }}</h1>
+      [class.browse]="store.view.browser">{{ store.view.pageTitle }}</h1>
   @if (!store.view.browser) {
     <app-tabs>
       <a class="logo" routerLink="/"></a>
@@ -91,7 +91,7 @@
         <a class="parent-link print-hide" [routerLink]="[store.view.refPath, store.view.top.url]" (click)="store.view.preloadRef(store.view.top)" i18n>parent</a>
       }
     }
-    @if (this.store.view.browser) {
+    @if (store.view.browser) {
       <app-viewer class="browse"
                   [ref]="store.view.ref"></app-viewer>
     } @else {
@@ -133,7 +133,7 @@
         }
       </div>
     }
-    @if (this.store.view.browser) {
+    @if (store.view.browser) {
       @if (admin.getPlugin('plugin/comment')) {
         <hr>
         <app-ref-comments></app-ref-comments>
