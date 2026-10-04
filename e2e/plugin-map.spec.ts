@@ -862,6 +862,80 @@ test.describe.serial('Map Plugin', () => {
     await expect(point.locator('input[type=number]').nth(0)).toHaveValue(lng);
   });
 
+  test('location input map picker starts with a collapsed attribution', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/point', { waitUntil: 'networkidle' });
+    const point = page.locator('.location-field').first();
+    await point.locator('input[type=number]').nth(0).fill('-63.5');
+    await point.locator('input[type=number]').nth(1).fill('44.6');
+    await point.locator('.location-map-toggle').click();
+    await expect(point.locator('.location-map .maplibregl-canvas')).toBeVisible({ timeout: 15_000 });
+    await expect(point.locator('.location-marker')).toBeVisible({ timeout: 15_000 });
+
+    const attrib = point.locator('.location-map .maplibregl-ctrl-attrib');
+    await expect(attrib).toHaveClass(/maplibregl-compact/);
+    await expect(attrib).not.toHaveClass(/maplibregl-compact-show/);
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toBeHidden();
+
+    await attrib.locator('.maplibregl-ctrl-attrib-button').click();
+    await expect(attrib).toHaveClass(/maplibregl-compact-show/);
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toBeVisible();
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toContainText('MapLibre');
+    // Opening the attribution does not move the location
+    await expect(point.locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
+  });
+
+  test('location input map picker can be resized', async ({ page }) => {
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
+      + '&tag=plugin/geo/multipoint', { waitUntil: 'networkidle' });
+    const list = page.locator('.plugin-content formly-list-section').first();
+    await list.locator('button', { hasText: '+ Add Point' }).click();
+    await list.locator('button', { hasText: '+ Add Point' }).click();
+    const points = list.locator('.location-field');
+    await expect(points).toHaveCount(2);
+    await points.nth(0).locator('input[type=number]').nth(0).fill('-63.5');
+    await points.nth(0).locator('input[type=number]').nth(1).fill('44.6');
+    await points.nth(1).locator('input[type=number]').nth(0).fill('-63.4');
+    await points.nth(1).locator('input[type=number]').nth(1).fill('44.7');
+    await points.nth(0).locator('.location-map-toggle').click();
+    const canvas = list.locator('.location-map .maplibregl-canvas');
+    await expect(canvas).toBeVisible({ timeout: 15_000 });
+    await expect(list.locator('.location-marker')).toHaveCount(2, { timeout: 15_000 });
+
+    const handle = list.locator('.location-map .resize-handle');
+    const box = (await handle.boundingBox())!;
+    expect(Math.round(box.height)).toBe(300);
+    const before = (await canvas.boundingBox())!;
+    await page.mouse.move(box.x + box.width - 3, box.y + box.height - 3);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width - 53, box.y + box.height + 97, { steps: 10 });
+    // Resizing does not start a list drag and drop
+    await expect(page.locator('.cdk-drag-preview')).toHaveCount(0);
+    await page.mouse.up();
+
+    const resized = (await handle.boundingBox())!;
+    expect(resized.height).toBeGreaterThan(380);
+    expect(resized.width).toBeLessThan(box.width - 40);
+    // MapLibre redraws to fill the new size
+    await expect.poll(async () => (await canvas.boundingBox())!.height).toBeGreaterThan(before.height + 80);
+    await page.waitForTimeout(500);
+    // Resizing does not move the active location or reorder the list
+    await expect(points.nth(0).locator('input[type=number]').nth(0)).toHaveValue('-63.5');
+    await expect(points.nth(0).locator('input[type=number]').nth(1)).toHaveValue('44.6');
+    await expect(points.nth(1).locator('input[type=number]').nth(0)).toHaveValue('-63.4');
+    await expect(points.nth(1).locator('input[type=number]').nth(1)).toHaveValue('44.7');
+  });
+
+  test('main map keeps the default attribution', async ({ page }) => {
+    await page.goto('/tag/@*?debug=ADMIN&view=map&map=-63.5,44.6,9', { waitUntil: 'networkidle' });
+    const attrib = page.locator('.map.ext .maplibregl-ctrl-attrib');
+    await expect(attrib).toBeVisible({ timeout: 15_000 });
+    // MapLibre shows the attribution until the map is dragged
+    await expect(attrib).toHaveClass(/maplibregl-compact-show/);
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toBeVisible();
+  });
+
   test('cleanup', async ({ page }) => {
     await deleteRef(page, URL);
     await deleteRef(page, POLYGON_URL);

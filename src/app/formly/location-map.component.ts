@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, NgZone, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, NgZone, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MapComponent as MglComponent } from '@maplibre/ngx-maplibre-gl';
@@ -9,6 +9,7 @@ import { LngLatBounds, Map as MapLibreMap, MapMouseEvent, Marker } from 'maplibr
 import { defer, isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { addGeocoder } from '../component/map/geocoder';
+import { ResizeHandleDirective } from '../directive/resize-handle.directive';
 import { onSingleClick } from '../component/map/single-click';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
@@ -35,14 +36,16 @@ import { closedRings, LocationList, locationLists, LocationPicker } from './loca
     <mgl-map [mapStyle]="mapStyle"
              [bounds]="bounds"
              [fitBoundsOptions]="fitBoundsOptions"
+             [attributionControl]="attributionControl"
              (mapLoad)="mapLoaded($event)"
              (mapContextMenu)="mapContextMenu($event)"
-             (mapError)="onMapError($event)"></mgl-map>
+             (mapError)="onMapError($event)"
+             appResizeHandle></mgl-map>
   `,
   styleUrls: ['./location-map.component.scss'],
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MglComponent],
+  imports: [MglComponent, ResizeHandleDirective],
   providers: [provideMaplibreWorker('assets/maplibre-gl-worker.mjs')],
 })
 export class LocationMapComponent implements OnDestroy {
@@ -51,6 +54,16 @@ export class LocationMapComponent implements OnDestroy {
   picker!: LocationPicker;
 
   readonly fitBoundsOptions = { padding: 40, maxZoom: 15 };
+  /**
+   * Same as the MapLibre default, but always compact.
+   */
+  readonly attributionControl = {
+    compact: true,
+    customAttribution: '<a href="https://maplibre.org/" target="_blank">MapLibre</a>',
+  };
+
+  @ViewChild(ResizeHandleDirective)
+  resizeHandle?: ResizeHandleDirective;
 
   private _mapStyle: any;
   private _bounds?: LngLatBounds | null;
@@ -135,6 +148,8 @@ export class LocationMapComponent implements OnDestroy {
 
   mapLoaded(map: MapLibreMap) {
     this.map = map;
+    // MapLibre opens the compact attribution until the first drag, start it closed
+    map.getContainer().querySelector('.maplibregl-ctrl-attrib.maplibregl-compact')?.classList.remove('maplibregl-compact-show');
     this.removeClick?.();
     const targets = new WeakMap<MapMouseEvent, AbstractControl>();
     this.removeClick = onSingleClick(map, e => this.zone.run(() => {
@@ -180,6 +195,8 @@ export class LocationMapComponent implements OnDestroy {
    * The location moved by clicking the map.
    */
   private clickTarget(event: MapMouseEvent) {
+    // Releasing the resize handle is not a click on the map
+    if (this.resizeHandle?.dragging) return undefined;
     if ((event.originalEvent?.target as Element | undefined)?.closest?.('.maplibregl-marker')) return undefined;
     const active = this.picker.active;
     if (!active || !this.locations.includes(active)) return undefined;
