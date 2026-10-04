@@ -18,6 +18,7 @@ import {
 } from '../util/format';
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { FormlyFieldCheckbox } from './checkbox.type';
+import { FormlyFieldCode } from './code.type';
 import { DurationInputAccessor, FormlyFieldDuration } from './duration.type';
 import { FormlyFieldEditor } from './editor.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
@@ -79,6 +80,7 @@ const formlyFieldExpressionConfig = withFormlyFieldExpression();
     FormlyFieldBookmarkInput,
     FormlyFieldRefInput,
     FormlyFieldTextArea,
+    FormlyFieldCode,
     FormlyFieldCheckbox,
     FormlyFieldMultiCheckbox,
     FormlyFieldRadio,
@@ -636,6 +638,10 @@ Private tags start with an underscore.
       }, {
         name: 'textarea',
         component: FormlyFieldTextArea,
+        wrappers: ['form-field'],
+      }, {
+        name: 'code',
+        component: FormlyFieldCode,
         wrappers: ['form-field'],
       }, {
         name: 'checkbox',
