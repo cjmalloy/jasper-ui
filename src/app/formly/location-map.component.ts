@@ -36,7 +36,6 @@ import { closedRings, LocationList, locationLists, LocationPicker } from './loca
     <mgl-map [mapStyle]="mapStyle"
              [bounds]="bounds"
              [fitBoundsOptions]="fitBoundsOptions"
-             [attributionControl]="attributionControl"
              (mapLoad)="mapLoaded($event)"
              (mapContextMenu)="mapContextMenu($event)"
              (mapError)="onMapError($event)"
@@ -54,13 +53,6 @@ export class LocationMapComponent implements OnDestroy {
   picker!: LocationPicker;
 
   readonly fitBoundsOptions = { padding: 40, maxZoom: 15 };
-  /**
-   * Same as the MapLibre default, but always compact.
-   */
-  readonly attributionControl = {
-    compact: true,
-    customAttribution: '<a href="https://maplibre.org/" target="_blank">MapLibre</a>',
-  };
 
   @ViewChild(ResizeHandleDirective)
   resizeHandle?: ResizeHandleDirective;
