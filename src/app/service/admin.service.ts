@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
-import { identity, isEqual, reduce, uniq } from 'lodash-es';
+import { identity, isEqual, reduce, uniq, uniqBy } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -39,6 +39,7 @@ import { durationMod } from '../mods/media/duration';
 import { embedMod } from '../mods/media/embed';
 import { fileMod } from '../mods/media/file';
 import { imageMod } from '../mods/media/image';
+import { masonryMod } from '../mods/media/masonry';
 import { pdfMod } from '../mods/media/pdf';
 import { playlistMod } from '../mods/media/playlist';
 import { tableMod } from '../mods/media/table';
@@ -198,6 +199,7 @@ export class AdminService {
     markitdownMod,
     voteMod,
     imageMod,
+    masonryMod,
     lensMod,
     pipMod,
     chessMod,
@@ -211,8 +213,16 @@ export class AdminService {
   ];
 
   def = {
-    plugins: <Record<string, Plugin>> Object.fromEntries(this.mods.flatMap(mod => mod.plugin || []).map(p => [p.tag, p])),
-    templates: <Record<string, Template>> Object.fromEntries(this.mods.flatMap(mod => mod.template || []).map(t => [t.tag, t])),
+    plugins: <Record<string, Plugin>> Object.fromEntries(uniqBy(this.mods.flatMap(mod => mod.plugin || []), 'tag').map(p => [p.tag, p])),
+    templates: <Record<string, Template>> Object.fromEntries(uniqBy(this.mods.flatMap(mod => mod.template || []), 'tag').map(t => [t.tag, t])),
+  };
+
+  /**
+   * Alternate mods which replace a default plugin or template with the same tag.
+   */
+  alt = {
+    plugins: this.mods.flatMap(mod => mod.plugin || []).filter(p => this.def.plugins[p.tag] !== p),
+    templates: this.mods.flatMap(mod => mod.template || []).filter(t => this.def.templates[t.tag] !== t),
   };
 
   _cache = new Map<string, any>();
@@ -375,7 +385,8 @@ export class AdminService {
         this.status.plugins[p.tag] = p;
         this.def.plugins[p.tag] ||= clear(p);
       }
-      if (this.needsUpdate(this.def.plugins[p.tag], p)) {
+      const def = this.alt.plugins.find(a => a.tag === p.tag && modId(a) === modId(p)) || this.def.plugins[p.tag];
+      if (this.needsUpdate(def, p)) {
         console.log(p.tag + ' needs update');
         runInAction(() => this.store.view.modUpdates.add(modId(p)));
       }
@@ -390,7 +401,8 @@ export class AdminService {
         this.status.templates[t.tag] = t;
         this.def.templates[t.tag] ||= t;
       }
-      if (this.needsUpdate(this.def.templates[t.tag], t)) {
+      const def = this.alt.templates.find(a => a.tag === t.tag && modId(a) === modId(t)) || this.def.templates[t.tag];
+      if (this.needsUpdate(def, t)) {
         console.log((t.tag || 'Root template') + ' needs update');
         runInAction(() => this.store.view.modUpdates.add(modId(t)));
       }
