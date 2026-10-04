@@ -75,6 +75,8 @@ export class PluginComponent implements OnChanges, HasChanges {
 
   init(): void {
     this.actionComponents?.forEach(c => c.reset());
+    this.submitted = false;
+    this.editForm.reset();
     this.editForm.patchValue({
       ...this.plugin,
       config: this.plugin.config ? JSON.stringify(this.plugin.config, null, 2) : undefined,
@@ -207,10 +209,10 @@ export class PluginComponent implements OnChanges, HasChanges {
       }),
     ).subscribe(tag => {
       delete this.saving;
-      this.editForm.reset();
       this.serverError = [];
       this.editing = false;
       this.plugin = tag;
+      this.init();
     });
   }
 

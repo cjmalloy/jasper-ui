@@ -15,7 +15,7 @@ test.describe.serial('MarkItDown Plugin', () => {
       '#mod-scripts',
       '#mod-pdf',
       '#mod-thumbnail',
-      '#mod-masonry',
+      '#mod-images',
       '#mod-error',
       '#mod-markitdown',
       '#mod-cache',

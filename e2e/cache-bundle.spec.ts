@@ -17,7 +17,7 @@ test.describe.serial('Bulk download cache files', () => {
   }
 
   test('enable file cache mod', async ({ page }) => {
-    await mod(page, '#mod-cache', '#mod-filecache', '#mod-masonry');
+    await mod(page, '#mod-cache', '#mod-filecache', '#mod-images');
   });
 
   test('cache a file', async ({ page }) => {

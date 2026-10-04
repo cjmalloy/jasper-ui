@@ -7,7 +7,7 @@ export const markitdownPlugin: Plugin = {
   name: $localize`⬇️ MarkItDown Query`,
   config: {
     mod: $localize`⬇️ MarkItDown`,
-    version: 1,
+    version: 2,
     type: 'tool',
     default: false,
     add: true,
@@ -46,6 +46,15 @@ Resources are fetched through the Jasper proxy API.`,
       requests
     `,
     language: 'python',
+    subDiff: ['script'],
+    adminForm: [{
+      key: 'script',
+      type: 'code',
+      props: {
+        label: $localize`Script:`,
+        language: 'python',
+      },
+    }],
     // language=python
     script: `
 import json

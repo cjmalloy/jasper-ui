@@ -142,6 +142,23 @@ export interface Config extends Tag {
      */
     advancedForm?: FormlyFieldConfig[],
     /**
+     * Optional formly config for editing the config of this Plugin or
+     * Template in the admin editor. The model is the config object.
+     * If set, the raw JSON editors will be moved to the advanced tab.
+     */
+    adminForm?: FormlyFieldConfig[],
+    /**
+     * Extra formly config for the admin editor to hide in advanced tab.
+     * Augments the raw JSON editors without hiding them.
+     */
+    advancedAdminForm?: FormlyFieldConfig[],
+    /**
+     * Paths of string config fields (relative to config) which should be
+     * merged line-by-line instead of as a single value when merging local
+     * changes with mod updates.
+     */
+    subDiff?: string[],
+    /**
      * Optional icons to add to refs based on tag triggers.
      */
     icons?: Icon[],

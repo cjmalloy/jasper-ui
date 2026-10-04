@@ -1,19 +1,18 @@
 import { Mod } from '../../model/tag';
 import { Template } from '../../model/template';
-import { imageTemplate } from './image';
 
 export const masonryTemplate: Template = {
-  ...imageTemplate,
+  tag: 'plugin/image/masonry',
   name: $localize`🧱️ Masonry`,
   config: {
-    ...imageTemplate.config,
     mod: $localize`🧱️ Masonry`,
-    version: 1000 + imageTemplate.config!.version!,
+    version: 1,
+    type: 'plugin',
     default: false,
-    description: $localize`Replaces the built-in Image viewer with a masonry layout where images have a fixed width and variable height.`,
+    description: $localize`Overrides the built-in Image viewer with a masonry layout where images have a fixed width and variable height.`,
     // language=CSS
-    css: imageTemplate.config!.css + `
-      app-ref-list.plugin_image .list-container {
+    css: `
+      body app-ref-list.plugin_image .list-container {
         grid-template-rows: masonry;
         align-items: start;
       }
