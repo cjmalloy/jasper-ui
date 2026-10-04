@@ -23,9 +23,10 @@ export class TabsComponent {
   readonly anchors = contentChildren(RouterLink, { read: ElementRef });
 
   readonly options = computed(() => {
-    return this.anchors().map(t => t.nativeElement as HTMLAnchorElement)
-      .filter(el => el.tagName === 'A' && !el.classList.contains('logo'))
-      .map((el, index) => ({ label: el.title || el.innerText, index }));
+    return this.anchors()
+      .map((anchor, index) => ({ el: anchor.nativeElement as HTMLElement, index }))
+      .filter(({ el }) => el.tagName === 'A' && !el.classList.contains('logo'))
+      .map(({ el, index }) => ({ label: el.title || el.innerText, index }));
   });
 
   constructor() {
