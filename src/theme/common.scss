@@ -983,29 +983,25 @@ video.qr-preview {
     }
   }
 
+  @media (max-width: 500px) {
+    flex-wrap: wrap;
+  }
+
   @container (max-width: 500px) {
-    .tabs {
-      & > a:not(.logo) {
-        display: none !important;
+    & > a:not(.logo) {
+      display: none !important;
 
-        &.current-tab {
-          display: block !important;
-          border: 1px solid var(--border) !important;
-          margin: 4px;
-          flex-basis: 100%;
-          border-radius: 4px;
-        }
+      &.current-tab {
+        display: block !important;
+        border: 1px solid var(--border) !important;
+        margin: 4px;
+        flex-basis: 100%;
+        border-radius: 4px;
       }
+    }
 
-      @media (max-width: 500px) {
-        .tabs {
-          flex-wrap: wrap;
-        }
-      }
-
-      .mobile-tab-select {
-        display: inline-block;
-      }
+    .mobile-tab-select {
+      display: inline-block;
     }
   }
 
