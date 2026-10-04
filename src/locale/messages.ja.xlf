@@ -7286,6 +7286,166 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>⚠️ Skipped <x id="PH" equiv-text="mod"/> mod: unable to merge local changes automatically. Use diff to update manually.</source>
         <target>⚠️ <x id="PH" equiv-text="mod"/> MODをスキップしました: ローカルの変更を自動的にマージできません。差分を使用して手動で更新してください。</target>
       </trans-unit>
+      <trans-unit id="2180343879821060413" datatype="html">
+        <source>Page background</source>
+        <target>ページの背景</target>
+      </trans-unit>
+      <trans-unit id="1848788423821826422" datatype="html">
+        <source>Subtle background for panels and tabs</source>
+        <target>パネルとタブの控えめな背景</target>
+      </trans-unit>
+      <trans-unit id="3484079160457165334" datatype="html">
+        <source>Background on hover and drop targets</source>
+        <target>ホバー時とドロップ先の背景</target>
+      </trans-unit>
+      <trans-unit id="6691191016350160807" datatype="html">
+        <source>Background while pressed or selected</source>
+        <target>押下中または選択中の背景</target>
+      </trans-unit>
+      <trans-unit id="1088326034441374678" datatype="html">
+        <source>Main text colour</source>
+        <target>メインのテキスト色</target>
+      </trans-unit>
+      <trans-unit id="6823827552471984360" datatype="html">
+        <source>Link colour</source>
+        <target>リンクの色</target>
+      </trans-unit>
+      <trans-unit id="1001902665715822882" datatype="html">
+        <source>Visited link colour</source>
+        <target>訪問済みリンクの色</target>
+      </trans-unit>
+      <trans-unit id="477820793827592489" datatype="html">
+        <source>Highlights such as the current page and new response counts</source>
+        <target>現在のページや新しい返信数などのハイライト</target>
+      </trans-unit>
+      <trans-unit id="3304758881123522444" datatype="html">
+        <source>Secondary text such as row info, quotes and timestamps</source>
+        <target>行の情報、引用、タイムスタンプなどの補助テキスト</target>
+      </trans-unit>
+      <trans-unit id="3340539540489255204" datatype="html">
+        <source>Inline tag links and accents</source>
+        <target>インラインのタグリンクとアクセント</target>
+      </trans-unit>
+      <trans-unit id="7093805717395284707" datatype="html">
+        <source>Inline tag link background (light theme)</source>
+        <target>インラインのタグリンクの背景（ライトテーマ）</target>
+      </trans-unit>
+      <trans-unit id="7242952314966916109" datatype="html">
+        <source>Tab bar background (light theme)</source>
+        <target>タブバーの背景（ライトテーマ）</target>
+      </trans-unit>
+      <trans-unit id="7665940442169044638" datatype="html">
+        <source>Toggle button background</source>
+        <target>トグルボタンの背景</target>
+      </trans-unit>
+      <trans-unit id="3973867441994270422" datatype="html">
+        <source>Toggle button background on hover</source>
+        <target>ホバー時のトグルボタンの背景</target>
+      </trans-unit>
+      <trans-unit id="5910026333631961944" datatype="html">
+        <source>Toggle button background while pressed</source>
+        <target>押下中のトグルボタンの背景</target>
+      </trans-unit>
+      <trans-unit id="4326740526093069667" datatype="html">
+        <source>Toggle button border</source>
+        <target>トグルボタンの枠線</target>
+      </trans-unit>
+      <trans-unit id="308107226385339772" datatype="html">
+        <source>Form input background</source>
+        <target>フォーム入力欄の背景</target>
+      </trans-unit>
+      <trans-unit id="1186418830405291674" datatype="html">
+        <source>Main border colour</source>
+        <target>メインの枠線の色</target>
+      </trans-unit>
+      <trans-unit id="6922013117648048603" datatype="html">
+        <source>Softer border for editors and cards</source>
+        <target>エディターとカード用の柔らかい枠線</target>
+      </trans-unit>
+      <trans-unit id="2319675836132242393" datatype="html">
+        <source>Faint border for cards</source>
+        <target>カード用の薄い枠線</target>
+      </trans-unit>
+      <trans-unit id="2393473681211397784" datatype="html">
+        <source>Background of inactive tabs</source>
+        <target>非アクティブなタブの背景</target>
+      </trans-unit>
+      <trans-unit id="1549271489840245870" datatype="html">
+        <source>Error text</source>
+        <target>エラーテキスト</target>
+      </trans-unit>
+      <trans-unit id="7003779204629001487" datatype="html">
+        <source>Error and login prompt background</source>
+        <target>エラーとログイン案内の背景</target>
+      </trans-unit>
+      <trans-unit id="5979849428926839768" datatype="html">
+        <source>Warning text and borders</source>
+        <target>警告のテキストと枠線</target>
+      </trans-unit>
+      <trans-unit id="2060859484922097947" datatype="html">
+        <source>Title colour of pinned refs</source>
+        <target>ピン留めされたRefのタイトル色</target>
+      </trans-unit>
+      <trans-unit id="8270186147962434724" datatype="html">
+        <source>Card background (kanban, todo, chat, notes, ...)</source>
+        <target>カードの背景（カンバン、ToDo、チャット、ノートなど）</target>
+      </trans-unit>
+      <trans-unit id="2028351303134348407" datatype="html">
+        <source>Card background while dragging</source>
+        <target>ドラッグ中のカードの背景</target>
+      </trans-unit>
+      <trans-unit id="1182369490837574216" datatype="html">
+        <source>Drop placeholder background</source>
+        <target>ドロップ位置のプレースホルダーの背景</target>
+      </trans-unit>
+      <trans-unit id="5059649595330498698" datatype="html">
+        <source>Background of items about to be deleted</source>
+        <target>削除予定の項目の背景</target>
+      </trans-unit>
+      <trans-unit id="5253033976705755151" datatype="html">
+        <source>Blockquote border in markdown</source>
+        <target>Markdownの引用ブロックの枠線</target>
+      </trans-unit>
+      <trans-unit id="6196592270609038399" datatype="html">
+        <source>(not set)</source>
+        <target>（未設定）</target>
+      </trans-unit>
+      <trans-unit id="5093220205467023095" datatype="html">
+        <source>Custom theme</source>
+        <target>カスタムテーマ</target>
+      </trans-unit>
+      <trans-unit id="2229617771577308263" datatype="html">
+        <source>Jasper adds .light-theme or .dark-theme to &lt;body&gt; depending on the colour scheme,</source>
+        <target>Jasperはカラースキームに応じて &lt;body&gt; に .light-theme または .dark-theme を追加します。</target>
+      </trans-unit>
+      <trans-unit id="4303275797181496743" datatype="html">
+        <source>so set colours for both. Every standard CSS variable is listed below with the</source>
+        <target>そのため両方の色を設定してください。以下にすべての標準CSS変数を</target>
+      </trans-unit>
+      <trans-unit id="8720295806661616443" datatype="html">
+        <source>value currently in use. Change what you want and delete the rest.</source>
+        <target>現在の値とともに記載しています。変更したいものを編集し、残りは削除してください。</target>
+      </trans-unit>
+      <trans-unit id="2091529450896286978" datatype="html">
+        <source>Row structure and reusable classes for theming:</source>
+        <target>テーマ用の行構造と再利用可能なクラス:</target>
+      </trans-unit>
+      <trans-unit id="2691014706193835883" datatype="html">
+        <source>Light theme</source>
+        <target>ライトテーマ</target>
+      </trans-unit>
+      <trans-unit id="7278213602149834905" datatype="html">
+        <source>Dark theme</source>
+        <target>ダークテーマ</target>
+      </trans-unit>
+      <trans-unit id="3991325437991703681" datatype="html">
+        <source>Add your own rules below. Use the row slots (.ref, .ext, .link, .info, .actions, ...)</source>
+        <target>独自のルールは以下に追加してください。行スロット（.ref、.ext、.link、.info、.actions など）を使うと、</target>
+      </trans-unit>
+      <trans-unit id="3376651329803832108" datatype="html">
+        <source>so your theme keeps working as Jasper changes. For example:</source>
+        <target>Jasperが変更されてもテーマが動作し続けます。例:</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -5,36 +5,36 @@ export type ColorScheme = 'light' | 'dark';
  * Keep in sync with docs/STRUCTURE.md.
  */
 export const THEME_VARS: { name: string, description: string }[] = [
-  { name: '--bg', description: 'Page background' },
-  { name: '--bg-accent', description: 'Subtle background for panels and tabs' },
-  { name: '--bg-hover', description: 'Background on hover and drop targets' },
-  { name: '--bg-active', description: 'Background while pressed or selected' },
-  { name: '--text', description: 'Main text colour' },
-  { name: '--link', description: 'Link colour' },
-  { name: '--visited', description: 'Visited link colour' },
-  { name: '--active', description: 'Highlights such as the current page and new response counts' },
-  { name: '--info', description: 'Secondary text such as row info, quotes and timestamps' },
-  { name: '--tag', description: 'Inline tag links and accents' },
-  { name: '--tag-accent', description: 'Inline tag link background (light theme)' },
-  { name: '--blue', description: 'Tab bar background (light theme)' },
-  { name: '--toggle', description: 'Toggle button background' },
-  { name: '--toggle-accent', description: 'Toggle button background on hover' },
-  { name: '--toggle-active', description: 'Toggle button background while pressed' },
-  { name: '--toggle-border', description: 'Toggle button border' },
-  { name: '--form-bg', description: 'Form input background' },
-  { name: '--border', description: 'Main border colour' },
-  { name: '--border-accent', description: 'Softer border for editors and cards' },
-  { name: '--border-light', description: 'Faint border for cards' },
-  { name: '--unselected-tab', description: 'Background of inactive tabs' },
-  { name: '--error', description: 'Error text' },
-  { name: '--error-bg', description: 'Error and login prompt background' },
-  { name: '--warning', description: 'Warning text and borders' },
-  { name: '--mod', description: 'Title colour of pinned refs' },
-  { name: '--card', description: 'Card background (kanban, todo, chat, notes, ...)' },
-  { name: '--card-dragging', description: 'Card background while dragging' },
-  { name: '--placeholder', description: 'Drop placeholder background' },
-  { name: '--deleting', description: 'Background of items about to be deleted' },
-  { name: '--quote', description: 'Blockquote border in markdown' },
+  { name: '--bg', description: $localize`Page background` },
+  { name: '--bg-accent', description: $localize`Subtle background for panels and tabs` },
+  { name: '--bg-hover', description: $localize`Background on hover and drop targets` },
+  { name: '--bg-active', description: $localize`Background while pressed or selected` },
+  { name: '--text', description: $localize`Main text colour` },
+  { name: '--link', description: $localize`Link colour` },
+  { name: '--visited', description: $localize`Visited link colour` },
+  { name: '--active', description: $localize`Highlights such as the current page and new response counts` },
+  { name: '--info', description: $localize`Secondary text such as row info, quotes and timestamps` },
+  { name: '--tag', description: $localize`Inline tag links and accents` },
+  { name: '--tag-accent', description: $localize`Inline tag link background (light theme)` },
+  { name: '--blue', description: $localize`Tab bar background (light theme)` },
+  { name: '--toggle', description: $localize`Toggle button background` },
+  { name: '--toggle-accent', description: $localize`Toggle button background on hover` },
+  { name: '--toggle-active', description: $localize`Toggle button background while pressed` },
+  { name: '--toggle-border', description: $localize`Toggle button border` },
+  { name: '--form-bg', description: $localize`Form input background` },
+  { name: '--border', description: $localize`Main border colour` },
+  { name: '--border-accent', description: $localize`Softer border for editors and cards` },
+  { name: '--border-light', description: $localize`Faint border for cards` },
+  { name: '--unselected-tab', description: $localize`Background of inactive tabs` },
+  { name: '--error', description: $localize`Error text` },
+  { name: '--error-bg', description: $localize`Error and login prompt background` },
+  { name: '--warning', description: $localize`Warning text and borders` },
+  { name: '--mod', description: $localize`Title colour of pinned refs` },
+  { name: '--card', description: $localize`Card background (kanban, todo, chat, notes, ...)` },
+  { name: '--card-dragging', description: $localize`Card background while dragging` },
+  { name: '--placeholder', description: $localize`Drop placeholder background` },
+  { name: '--deleting', description: $localize`Background of items about to be deleted` },
+  { name: '--quote', description: $localize`Blockquote border in markdown` },
 ];
 
 function matches(selectorText: string, selector: string) {
@@ -83,7 +83,7 @@ function themeBlock(scheme: ColorScheme, doc: Document) {
   const values = themeVars(scheme, doc);
   const lines = THEME_VARS.map(v => values[v.name]
     ? `  ${v.name}: ${values[v.name]}; /* ${v.description} */`
-    : `  /* ${v.name}: ; ${v.description} (not set) */`);
+    : `  /* ${v.name}: ; ${v.description} ${$localize`(not set)`} */`);
   return `body.${scheme}-theme {\n${lines.join('\n')}\n}`;
 }
 
@@ -92,27 +92,26 @@ function themeBlock(scheme: ColorScheme, doc: Document) {
  * light and dark mode, pre-filled with the current values.
  */
 export function newTheme(doc: Document = document) {
-  // language=CSS
   return `/*
- * Custom theme
+ * ${$localize`Custom theme`}
  *
- * Jasper adds .light-theme or .dark-theme to <body> depending on the colour scheme,
- * so set colours for both. Every standard CSS variable is listed below with the
- * value currently in use. Change what you want and delete the rest.
+ * ${$localize`Jasper adds .light-theme or .dark-theme to <body> depending on the colour scheme,`}
+ * ${$localize`so set colours for both. Every standard CSS variable is listed below with the`}
+ * ${$localize`value currently in use. Change what you want and delete the rest.`}
  *
- * Row structure and reusable classes for theming:
+ * ${$localize`Row structure and reusable classes for theming:`}
  * https://github.com/cjmalloy/jasper-ui/blob/master/docs/STRUCTURE.md
  */
 
-/* Light theme */
+/* ${$localize`Light theme`} */
 ${themeBlock('light', doc)}
 
-/* Dark theme */
+/* ${$localize`Dark theme`} */
 ${themeBlock('dark', doc)}
 
 /*
- * Add your own rules below. Use the row slots (.ref, .ext, .link, .info, .actions, ...)
- * so your theme keeps working as Jasper changes. For example:
+ * ${$localize`Add your own rules below. Use the row slots (.ref, .ext, .link, .info, .actions, ...)`}
+ * ${$localize`so your theme keeps working as Jasper changes. For example:`}
  *
  * .ref.list-item > .thumbnail { display: none; }
  * .list-item > .info { font-size: 12px; }
