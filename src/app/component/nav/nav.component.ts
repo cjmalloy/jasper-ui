@@ -102,6 +102,7 @@ if (nav[0] === '/tag' && this.store.view.browser) {
   }
 
   get query() {
+    if (this.nav?.[0] === '/browse') return undefined;
     return parseBookmarkParams(this.url);
   }
 
