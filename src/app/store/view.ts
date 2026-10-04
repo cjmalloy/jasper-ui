@@ -68,6 +68,10 @@ export class ViewStore {
   readonly modUpdates = signal<ReadonlySet<string>>(new Set());
   readonly inboxTabs = signal<Plugin[]>([]);
   readonly settingsTabs = signal<Plugin[]>([]);
+  /**
+   * Current map center and zoom, updated as the map is panned.
+   */
+  readonly liveMapView = signal('');
 
   defaultPageSize = 24;
   defaultKanbanLoadSize = 8;
@@ -499,6 +503,10 @@ export class ViewStore {
 
   readonly view = computed((): string => {
     return this.route.routeSnapshot()?.queryParams['view'];
+  });
+
+  readonly mapView = computed((): string => {
+    return this.route.routeSnapshot()?.queryParams['map'];
   });
 
   readonly noView = computed(() => {

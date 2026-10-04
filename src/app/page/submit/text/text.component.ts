@@ -185,7 +185,12 @@ export class SubmitTextPage implements HasChanges {
           const removed = without(this.oldSubmit, ...tags);
           if (added.length || removed.length) {
             this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
-            this.tagsFormComponent()!.setTags(this.oldSubmit);
+            // Only apply changes so tags edited in the form are kept
+            if (removed.length) {
+              this.tagsFormComponent().setTags(without(this.tags.value, ...removed));
+              this.tagsFormComponent().update();
+            }
+            if (added.length) this.addTag(...added);
           }
           if (this.store.submit.pluginUpload()) {
             this.addTag(this.store.submit.plugin());
@@ -202,6 +207,15 @@ export class SubmitTextPage implements HasChanges {
           }
         });
       }, { injector: this.injector });
+      // Seed the location once so later tag changes keep any edits
+      const location = this.store.submit.location();
+      if (location) {
+        this.addTag('plugin/geo/point');
+        this.plugins().setValue({
+          ...this.textForm.value.plugins || {},
+          'plugin/geo/point': { type: 'Feature', geometry: { type: 'Point', coordinates: location } },
+        });
+      }
       if (this.store.submit.embedFiles().length) {
         const files = [...this.store.submit.embedFiles()];
         defer(() => {
@@ -306,6 +320,15 @@ export class SubmitTextPage implements HasChanges {
     if (!tags) return false;
     return some(this.admin.editor(), t => hasTag(t.tag, tags));
   });
+
+  togglePlugin(tag: string) {
+    if (!tag) return;
+    if (hasTag(tag, this.tags.value)) {
+      this.tagsFormComponent().removeTagAndChildren(tag);
+    } else {
+      this.addTag(tag);
+    }
+  }
 
   setTags(value: string[]) {
     const tagsFormComponent = this.tagsFormComponent();

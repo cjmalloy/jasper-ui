@@ -42,6 +42,10 @@ export class PluginsFormComponent {
       .filter(icon => !this.forms().find(plugin => plugin.tag === icon.tag)))
       .filter(icon => this.showIcon(icon));
   });
+  /**
+   * Initial data for plugins about to be added.
+   */
+  pending: Record<string, any> = {};
 
   constructor() {
     const admin = this.admin;
@@ -116,6 +120,10 @@ export class PluginsFormComponent {
       this.plugins().patchValue(value);
       this.gens()!.forEach(g => g.setValue(value))
     });
+  }
+
+  usePending(tag: string) {
+    delete this.pending[tag];
   }
 
   visible(v: Visibility) {

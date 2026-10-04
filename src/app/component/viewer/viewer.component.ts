@@ -33,6 +33,7 @@ import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
+import { MapComponent } from '../map/map.component';
 import { LensComponent } from '../lens/lens.component';
 import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
@@ -66,6 +67,7 @@ import { TodoComponent } from '../todo/todo.component';
     TodoComponent,
     BackgammonComponent,
     ChessComponent,
+    MapComponent,
     ResizeHandleDirective,
     LoadingComponent,
   ],
@@ -79,7 +81,7 @@ export class ViewerComponent {
   private embeds = inject(EmbedService);
   private editor = inject(EditorService);
   private refs = inject(RefService);
-  private store = inject(Store);
+  readonly store = inject(Store);
   private auth = inject(AuthzService);
   el = inject(ElementRef);
 
@@ -150,6 +152,8 @@ export class ViewerComponent {
   readonly chessWhite = computed(() => !!this.ref()?.tags?.includes(this.store.account.localTag()));
   readonly uis = computed(() => this.admin.getPluginUi(this.currentTags()));
   readonly embedReady = linkedSignal(() => { this.ref(); return false; });
+  readonly map = computed(() => !!this.admin.getPlugin('plugin/geo') && !!this.ref() && hasTag('plugin/geo', this.currentTags()));
+  readonly mapPage = computed(() => this.map() ? Page.of([this.ref()!]) : undefined);
 
   private readonly layout = signal({ parentWidth: 0, height: window.innerHeight, landscape: false });
   private readonly width = computed(() => hasTag('plugin/fullscreen', this.ref()) ? screen.width

@@ -22,8 +22,10 @@ import { ConfigService } from '../../service/config.service';
 import { HelpService } from '../../service/help.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
+import { getAddTags } from '../../util/add-tags';
+import { parseMapView } from '../../util/geo';
 import { encodeBookmarkParams } from '../../util/http';
-import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic, topAnds } from '../../util/tag';
+import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
 import { ChatComponent } from '../chat/chat.component';
@@ -90,14 +92,8 @@ export class SidebarComponent {
   readonly mailPlugin = computed(() => this.tag() ? this.admin.getPlugin(getMailbox(this.tag(), this.store.account.origin())) : undefined);
   readonly tagTemplate = computed(() => this.tag() ? this.admin.getTemplate(this.tag()) : undefined);
   readonly addTags = computed(() => {
-    let tags = this.rootConfig()?.addTags || this.plugin()?.config?.reply || ['public'];
-    if (this.tag() && !this.home()) {
-      tags = this.plugin() ? uniq([
-        ...tags, ...this.plugin()?.config?.submit ? [this.plugin()!.tag] : [],
-        ...this.plugin()?.config?.internal ? ['internal'] : [],
-      ]) : uniq([...this.rootConfig()?.addTags || ['public'], ...topAnds(this.tag()).map(localTag)]);
-    }
-    return tags.filter(tag => this.auth.canAddTag(tag));
+    return getAddTags(this.tag() || undefined, this.plugin(), this.rootConfig(), this.home())
+      .filter(tag => this.auth.canAddTag(tag));
   });
   readonly template = toSignal(toObservable(computed(() => {
     const tag = this.store.view.template();
@@ -193,6 +189,11 @@ export class SidebarComponent {
 
   readonly existing = computed(() => {
     return this.ext()?.modified;
+  });
+
+  readonly location = computed(() => {
+    if (!this.addTags().includes('plugin/geo/point')) return undefined;
+    return parseMapView(this.store.view.liveMapView() || this.store.view.mapView())?.center.join(',');
   });
 
   readonly root = computed(() => {

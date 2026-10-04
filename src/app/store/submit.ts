@@ -118,6 +118,19 @@ export class SubmitStore {
     return this.route.routeSnapshot()?.queryParams['upload'] || '' as string;
   });
 
+  /**
+   * Location from the "lng,lat" location query param.
+   */
+  readonly location = computed((): [number, number] | undefined => {
+    const value = this.route.routeSnapshot()?.queryParams['location'];
+    if (typeof value !== 'string') return undefined;
+    const location = value.split(',').map(n => n.trim() ? Number(n) : NaN);
+    if (location.length !== 2 || !location.every(n => isFinite(n))) return undefined;
+    const [lng, lat] = location;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return undefined;
+    return [lng, lat];
+  }, { equal: isEqual });
+
   readonly repost = computed(() => {
     return this.tags().includes('plugin/repost');
   });

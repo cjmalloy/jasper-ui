@@ -571,6 +571,12 @@ export class RefComponent implements HasChanges {
     return uniq([...(this.repost() ? this.repostRef()?.tags : this.ref().tags) || [], ...this.expandPlugins()]);
   });
 
+  readonly viewerEmbeds = computed(() => {
+    const plugins = this.plugins();
+    if (!plugins) return this.expandPlugins();
+    return this.expandPlugins().filter(p => plugins.some(t => hasTag(t, [p])));
+  });
+
   readonly bareRef = computed(() => {
     return this.bareRepost() ? this.repostRef() : this.ref();
   });

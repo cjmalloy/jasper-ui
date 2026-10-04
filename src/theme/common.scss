@@ -28,6 +28,7 @@ body {
   --card-dragging: #ede7dc;
   --placeholder: #efebdf;
   --deleting: #ffa9a9;
+  --sidebar-width: 416px;
 }
 
 html, body {
@@ -1035,7 +1036,7 @@ video.qr-preview {
   float: right;
   overflow: hidden;
   transition: width .5s;
-  width: 416px;
+  width: var(--sidebar-width);
   margin-bottom: 100px;
   margin-left: 4px;
   border-bottom-left-radius: 4px;
@@ -1364,7 +1365,8 @@ progress.grow {
 
 .max-form-width,
 .form,
-formly-list-section .form-array > formly-field > formly-group {
+formly-list-section .form-array > formly-field > formly-group,
+formly-field-geometries .geometry-item > formly-field > formly-group {
   max-width: 600px;
 }
 
@@ -1386,7 +1388,8 @@ formly-list-section .form-array > formly-field > formly-group {
 }
 
 .form,
-formly-list-section .form-array > formly-field > formly-group {
+formly-list-section .form-array > formly-field > formly-group,
+formly-field-geometries .geometry-item > formly-field > formly-group {
   display: grid !important;
   grid-template-columns: min-content auto;
   grid-auto-rows: min-content;
@@ -1547,6 +1550,10 @@ formly-list-section > .form-group {
       visibility: hidden;
     }
   }
+}
+
+.list-drag > formly-field > formly-list-section > .form-group {
+  flex: 1;
 }
 
 formly-list-section .form-array:not(:nth-child(2)) > formly-field > formly-group {

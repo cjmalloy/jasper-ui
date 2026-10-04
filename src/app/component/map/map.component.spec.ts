@@ -7,7 +7,7 @@ import { provideRouter } from '@angular/router';
 
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
-import { MapComponent } from './map.component';
+import { formatMapView, MapComponent, minimalLngInterval, parseMapView } from './map.component';
 
 describe('MapComponent', () => {
   let component: MapComponent;
@@ -240,5 +240,38 @@ describe('MapComponent', () => {
       ]]);
       expect(component.mapData().some(([ref]) => ref.url === firstRepost.sources![0])).toBe(false);
     });
+  });
+});
+
+describe('minimalLngInterval', () => {
+  it('should return plain interval when not crossing antimeridian', () => {
+    expect(minimalLngInterval([10, -20, 5])).toEqual([-20, 10]);
+  });
+
+  it('should cross the antimeridian when shorter', () => {
+    expect(minimalLngInterval([179, -179])).toEqual([179, 181]);
+  });
+
+  it('should handle a single longitude', () => {
+    expect(minimalLngInterval([42])).toEqual([42, 42]);
+  });
+});
+
+describe('map view URL param', () => {
+  it('should round trip a view', () => {
+    const value = formatMapView({ center: [-63.5712345, 44.6512345], zoom: 9.876 });
+    expect(value).toBe('-63.57123,44.65123,9.88');
+    expect(parseMapView(value)).toEqual({ center: [-63.57123, 44.65123], zoom: 9.88 });
+  });
+
+  it('should ignore invalid views', () => {
+    expect(parseMapView(undefined)).toBeUndefined();
+    expect(parseMapView('')).toBeUndefined();
+    expect(parseMapView('1,2')).toBeUndefined();
+    expect(parseMapView('1,,3')).toBeUndefined();
+    expect(parseMapView('a,2,3')).toBeUndefined();
+    expect(parseMapView('0,91,3')).toBeUndefined();
+    expect(parseMapView('181,0,3')).toBeUndefined();
+    expect(parseMapView('0,0,30')).toBeUndefined();
   });
 });

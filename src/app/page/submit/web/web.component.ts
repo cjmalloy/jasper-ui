@@ -131,6 +131,9 @@ export class SubmitWebPage implements HasChanges {
     ).subscribe(d => {
       this.defaults.set(d);
       this.loadingDefaults.set([]);
+      // Seed the location once so later tag changes keep any edits
+      const location = this.store.submit.location();
+      const point = location ? { type: 'Feature', geometry: { type: 'Point', coordinates: location } } : undefined;
       if (d) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         for (const k in d.ref.plugins) {
@@ -139,10 +142,12 @@ export class SubmitWebPage implements HasChanges {
         }
         this.refForm.setRef({
           ...d.ref,
-          tags: this.oldSubmit,
+          tags: point ? uniq([...this.oldSubmit, 'plugin/geo/point']) : this.oldSubmit,
+          plugins: point ? { ...d.ref.plugins || {}, 'plugin/geo/point': point } : d.ref.plugins,
         });
       }
       if (this.store.account.localTag()) this.addTag(this.store.account.localTag());
+      if (point && !d) this.addPlugin('plugin/geo/point', point);
       effect(() => {
         this.store.submit.tags();
         this.store.account.localTag();

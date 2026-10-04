@@ -2,10 +2,13 @@ import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/d
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Component, signal, inject } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
-import { defer } from 'lodash-es';
+import { cloneDeep, defer, isEqual } from 'lodash-es';
+import { Subscription } from 'rxjs';
 import { Store } from '../store/store';
 import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
+import { hasLocation } from '../util/geo';
+import { closedRings, locationLists, locationPicker } from './location-picker';
 
 @Component({
   selector: 'formly-list-section',
@@ -29,6 +32,7 @@ import { getPath } from '../util/http';
         <button type="button" (click)="add()">{{ props.addText }}</button>
       }
       @for (field of field.fieldGroup; track field.id; let i = $index) {
+        @if (i < size) {
         <div class="form-array list-drag"
              cdkDrag
              [cdkDragData]="model[i]"
@@ -44,6 +48,7 @@ import { getPath } from '../util/http';
                         (keydown)="keydown($event, i)"></formly-field>
           <button type="button" (click)="remove(i)" i18n>&ndash;</button>
         </div>
+        }
       }
     </div>
   `,
@@ -60,9 +65,81 @@ export class ListTypeComponent extends FieldArrayType {
 
 
   readonly dropping = signal(false);
+  private ringWatch?: Subscription;
+  private closing?: any;
 
   get title() {
     return this.props.title || '';
+  }
+
+  ngOnInit() {
+    if (this.depth) locationLists.set(this.formControl, this);
+    if (!this.props.ring) return;
+    const value = this.formControl.value;
+    if (value?.length >= 4 && isEqual(value[0], value[value.length - 1])) {
+      closedRings.add(this.formControl);
+      this.closing = cloneDeep(value[value.length - 1]);
+    }
+    defer(() => this.closeRing());
+    this.ringWatch = this.formControl.valueChanges.subscribe(() => defer(() => this.closeRing()));
+  }
+
+  ngOnDestroy() {
+    if (locationLists.get(this.formControl) === this) locationLists.delete(this.formControl);
+    this.ringWatch?.unsubscribe();
+  }
+
+  /**
+   * Number of nested lists down to locations, or 0 if this is not a list
+   * of locations.
+   */
+  get depth() {
+    let depth = 1;
+    for (let f: any = this.field.fieldArray; f; f = f.fieldArray, depth++) {
+      if (f.type === 'location') return depth;
+      if (f.type !== 'list') return 0;
+    }
+    return 0;
+  }
+
+  /**
+   * Number of visible items. A closed ring hides its closing position.
+   */
+  get size() {
+    const length = this.field.fieldGroup?.length || 0;
+    return closedRings.has(this.formControl) ? length - 1 : length;
+  }
+
+  /**
+   * Keep rings closed (RFC 7946 3.1.6) by mirroring the first position
+   * into a hidden closing position once there are three or more positions.
+   * The closing position is hidden, so if it changed the whole ring was
+   * replaced and closure must be detected again.
+   */
+  private closeRing() {
+    if (this.ringWatch?.closed) return;
+    const arr = this.formControl;
+    if (closedRings.has(arr) && !isEqual(arr.at(arr.length - 1)?.value, this.closing)) {
+      closedRings.delete(arr);
+    }
+    const closed = closedRings.has(arr);
+    const points = arr.length - (closed ? 1 : 0);
+    const first = arr.length ? arr.at(0).value : undefined;
+    if (points >= 3) {
+      if (!closed) {
+        closedRings.add(arr);
+        if (arr.length < 4 || !isEqual(arr.at(arr.length - 1).value, first)) {
+          super.add(arr.length, first, { markAsDirty: false });
+        }
+      } else if (!isEqual(arr.at(arr.length - 1).value, first)) {
+        this.model[arr.length - 1] = cloneDeep(first);
+        arr.at(arr.length - 1).setValue(cloneDeep(first));
+      }
+    } else if (closed) {
+      closedRings.delete(arr);
+      super.remove(arr.length - 1, { markAsDirty: false });
+    }
+    this.closing = closedRings.has(arr) ? cloneDeep(arr.at(arr.length - 1).value) : undefined;
   }
 
   get groupArray() {
@@ -96,16 +173,54 @@ export class ListTypeComponent extends FieldArrayType {
     return this.field.fieldArray?.type;
   }
 
-  override add(index?: number, initialModel?: any) {
+  override add(index?: number, initialModel?: any, options?: { markAsDirty: boolean }) {
     // @ts-ignore
     this.field.fieldArray.focus = index === undefined && !initialModel;
-    super.add(...arguments);
+    if (index === undefined && closedRings.has(this.formControl)) index = this.size;
+    // @ts-ignore
+    if (initialModel === undefined && this.field.fieldArray?.type === 'location') {
+      initialModel = this.seedLocation(index ?? this.size);
+    }
+    const i = index ?? this.field.fieldGroup?.length ?? 0;
+    super.add(index, initialModel, options);
+    const depth = this.depth;
+    if (!depth) return;
+    const added = this.field.fieldGroup?.[i];
+    const picker = added && locationPicker(added);
+    if (!picker?.open || !added?.formControl) return;
+    if (depth === 1) {
+      // Select the new location so clicking the map places it
+      picker.select(added.formControl);
+    } else {
+      // Right clicking the map adds points to the new list
+      picker.target = added.formControl;
+    }
+  }
+
+  /**
+   * Start a new location next to its neighbours instead of at [0, 0].
+   * In a closed ring use the midpoint of the edge being split, otherwise
+   * copy the previous (or next) location.
+   */
+  private seedLocation(index: number): [number, number] | undefined {
+    const values: any[] = (this.formControl.value || []).slice(0, this.size);
+    if (closedRings.has(this.formControl) && values.length) {
+      const prev = values[(index - 1 + values.length) % values.length];
+      const next = values[index % values.length];
+      if (hasLocation(prev) && hasLocation(next)) {
+        const deltaLng = ((next[0] - prev[0] + 540) % 360) - 180;
+        const lng = ((prev[0] + deltaLng / 2 + 540) % 360) - 180;
+        return [lng, (prev[1] + next[1]) / 2];
+      }
+    }
+    const neighbour = [values[index - 1], values[index]].find(hasLocation);
+    return neighbour && [neighbour[0], neighbour[1]];
   }
 
   keydown(event: KeyboardEvent, index: number) {
     if (this.groupArray) return;
     if (event.repeat) return;
-    const len = this.formControl.length;
+    const len = this.size;
     if (!event.shiftKey) {
       if (event.key === 'Enter' || event.key === 'Tab' && len - 1 === index) {
         if (!this.model[index]) {
@@ -151,7 +266,7 @@ export class ListTypeComponent extends FieldArrayType {
     }
     if (!this.model[index] && event.key === 'Delete') {
       event.preventDefault();
-      if (index === this.field.fieldGroup!.length - 1) {
+      if (index === len - 1) {
         this.remove(index);
         this.focus(index - 1);
       } else {
@@ -174,7 +289,7 @@ export class ListTypeComponent extends FieldArrayType {
   focus(index?: number, select = false) {
     if (this.groupArray) return;
     if (this.field.fieldGroup?.length === 0) return;
-    if (index === undefined || index >= this.field.fieldGroup!.length) index = this.field.fieldGroup!.length - 1;
+    if (index === undefined || index >= this.size) index = this.size - 1;
     if (index < 0) index = 0;
     defer(() => {
       const selector = '#' + this.field.fieldGroup![index].id;
