@@ -934,9 +934,47 @@ test.describe.serial('Map Plugin', () => {
     await expect(point.locator('input[type=number]').nth(1)).toHaveValue('44.6');
   });
 
-  test('location input map picker collapses the attribution before tiles load', async ({ page }) => {
-    // Hold the basemap TileJSON so the map load event is delayed, like a slow satellite basemap
-    await page.route(/tiles\.json/, () => {});
+  test('location input map picker collapses the attribution of a MapTiler basemap', async ({ page }) => {
+    // Use a MapTiler satellite hybrid basemap in the map template
+    const attribution = '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> '
+      + '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>';
+    const mapStyle = {
+      version: 8,
+      name: 'Satellite Hybrid',
+      sources: {
+        maptiler_planet: {
+          type: 'vector',
+          tiles: ['https://api.maptiler.com/tiles/v4/{z}/{x}/{y}.pbf?key=api-key'],
+          maxzoom: 14,
+          attribution,
+        },
+        satellite: {
+          type: 'raster',
+          tiles: ['https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=api-key'],
+          tileSize: 512,
+          maxzoom: 20,
+          attribution,
+        },
+      },
+      layers: [
+        { id: 'Satellite', type: 'raster', source: 'satellite' },
+        { id: 'Path', type: 'line', source: 'maptiler_planet', 'source-layer': 'pathway', paint: { 'line-color': '#fff' } },
+      ],
+    };
+    const useStyle = (value: any): void => {
+      if (Array.isArray(value)) return value.forEach(useStyle);
+      if (!value || typeof value !== 'object') return;
+      if (value.tag === 'map' && value.config) value.config.mapStyle = mapStyle;
+      Object.values(value).forEach(useStyle);
+    };
+    await page.route(/\/api\/v1\/template/, async route => {
+      const response = await route.fetch();
+      const json = await response.json();
+      useStyle(json);
+      await route.fulfill({ response, json });
+    });
+    // MapTiler is not reachable, so its tiles never load
+    await page.route(/api\.maptiler\.com/, route => route.abort());
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/geo/point', { waitUntil: 'domcontentloaded' });
     const point = page.locator('.location-field').first();
@@ -949,6 +987,21 @@ test.describe.serial('Map Plugin', () => {
     await expect(attrib).toHaveClass(/maplibregl-compact/);
     await expect(attrib).not.toHaveClass(/maplibregl-compact-show/);
     await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toBeHidden();
+    // Stays collapsed after the source attribution loads
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toContainText('MapTiler', { timeout: 15_000 });
+    await page.waitForTimeout(500);
+    await expect(attrib).not.toHaveClass(/maplibregl-compact-show/);
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toBeHidden();
+    // Shows the default and style source attribution
+    await attrib.locator('.maplibregl-ctrl-attrib-button').click();
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toBeVisible();
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toContainText('MapLibre');
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toContainText('© MapTiler');
+    await expect(attrib.locator('.maplibregl-ctrl-attrib-inner')).toContainText('OpenStreetMap contributors');
+    // The resize handle has a light background so it shows on satellite imagery
+    const handle = point.locator('.location-map .resize-handle');
+    await expect(handle).toBeVisible();
+    expect(await handle.evaluate(el => getComputedStyle(el, '::before').backgroundColor)).toBe('rgba(255, 255, 255, 0.7)');
     await page.unrouteAll({ behavior: 'ignoreErrors' });
   });
 
@@ -972,6 +1025,13 @@ test.describe.serial('Map Plugin', () => {
     const handle = list.locator('.location-map .resize-handle');
     const box = (await handle.boundingBox())!;
     expect(Math.round(box.height)).toBe(300);
+    // The handle is drawn in the bottom right corner of the map
+    const grip = await handle.evaluate(el => {
+      const style = getComputedStyle(el, '::before');
+      return { content: style.content, right: style.right, bottom: style.bottom, image: style.backgroundImage };
+    });
+    expect(grip).toMatchObject({ content: '""', right: '0px', bottom: '0px' });
+    expect(grip.image).toContain('data:image/svg+xml');
     const before = (await canvas.boundingBox())!;
     await page.mouse.move(box.x + box.width - 3, box.y + box.height - 3);
     await page.mouse.down();

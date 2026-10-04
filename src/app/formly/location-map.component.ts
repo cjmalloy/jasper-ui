@@ -8,6 +8,7 @@ import type { GeoJSONSource } from 'maplibre-gl';
 import { LngLatBounds, Map as MapLibreMap, MapMouseEvent, Marker } from 'maplibre-gl';
 import { defer, isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
+import { CollapsedAttributionControl } from '../component/map/collapsed-attribution';
 import { addGeocoder } from '../component/map/geocoder';
 import { ResizeHandleDirective } from '../directive/resize-handle.directive';
 import { preventSelectionDrag } from '../component/map/selection-drag';
@@ -37,7 +38,8 @@ import { closedRings, LocationList, locationLists, LocationPicker } from './loca
     <mgl-map [mapStyle]="mapStyle"
              [bounds]="bounds"
              [fitBoundsOptions]="fitBoundsOptions"
-             (styleData)="collapseAttribution($event.target)"
+             [attributionControl]="false"
+             (styleData)="addAttribution($event.target)"
              (mapLoad)="mapLoaded($event)"
              (mapContextMenu)="mapContextMenu($event)"
              (mapError)="onMapError($event)"
@@ -69,7 +71,7 @@ export class LocationMapComponent implements OnDestroy {
   private lastActive?: AbstractControl;
   private lastActiveValue?: any;
   private redrawPending = false;
-  private attributionCollapsed = false;
+  private attribution?: CollapsedAttributionControl;
 
   private geocoding = false;
   private geocoderPosition?: GeocoderPosition;
@@ -145,7 +147,7 @@ export class LocationMapComponent implements OnDestroy {
   mapLoaded(map: MapLibreMap) {
     this.map = map;
     preventSelectionDrag(map);
-    this.collapseAttribution(map);
+    this.addAttribution(map);
     this.removeClick?.();
     const targets = new WeakMap<MapMouseEvent, AbstractControl>();
     this.removeClick = onSingleClick(map, e => this.zone.run(() => {
@@ -176,15 +178,12 @@ export class LocationMapComponent implements OnDestroy {
   }
 
   /**
-   * MapLibre opens the compact attribution until the first drag, start it closed.
-   * Done once the style loads, since slow tiles can delay the map load event.
+   * The picker is small, so the attribution starts collapsed to the ⓘ button.
+   * Added once the style loads, since slow tiles can delay the map load event.
    */
-  collapseAttribution(map: MapLibreMap) {
-    if (this.attributionCollapsed) return;
-    const attrib = map.getContainer().querySelector('.maplibregl-ctrl-attrib.maplibregl-compact');
-    if (!attrib) return;
-    attrib.classList.remove('maplibregl-compact-show');
-    this.attributionCollapsed = true;
+  addAttribution(map: MapLibreMap) {
+    if (this.attribution) return;
+    map.addControl(this.attribution = new CollapsedAttributionControl());
   }
 
   mapClick(event: MapMouseEvent) {
