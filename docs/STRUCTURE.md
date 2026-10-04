@@ -199,7 +199,7 @@ Quick lookup of the reusable classes defined in `src/theme/*.scss`.
 
 ## Known quirks
 
-- Refs nest line 2 deeper than the other rows (inside `.row > .stack > .link-below > .stack`).
+- Ref rows have additional direct-child slots for voting, expand controls and mobile navigation.
 - Plugin views such as comment, blog, chat, kanban and note render refs in their own layouts,
   not as `.ref` rows.
 - Targeting descendants without child selectors like `>` might target more than you expect if
