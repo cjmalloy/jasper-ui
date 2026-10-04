@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ValidatorFn } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { AdminService } from '../../service/admin.service';
 
@@ -35,6 +35,7 @@ export class AdminConfigComponent implements OnInit {
   };
 
   private json?: string;
+  private formValidator: ValidatorFn = () => this.form.invalid ? { adminForm: true } : null;
 
   constructor(
     public admin: AdminService,
@@ -50,6 +51,14 @@ export class AdminConfigComponent implements OnInit {
     this.control.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(value => this.readJson(value));
+    this.control.addValidators(this.formValidator);
+    this.form.statusChanges.pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => this.control.updateValueAndValidity({ emitEvent: false }));
+    this.destroyRef.onDestroy(() => {
+      this.control.removeValidators(this.formValidator);
+      this.control.updateValueAndValidity({ emitEvent: false });
+    });
   }
 
   private readJson(value?: string) {

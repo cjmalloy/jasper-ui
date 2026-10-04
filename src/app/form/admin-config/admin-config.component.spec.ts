@@ -50,4 +50,21 @@ describe('AdminConfigComponent', () => {
     component.group.get('config')!.setValue('{');
     expect(component.model).toEqual({ script: 'a', other: 1 });
   });
+
+  it('should propagate form validity to the JSON control', () => {
+    component.fields = [{ key: 'required', type: 'string', props: { required: true } }];
+    fixture.detectChanges();
+    expect(component.form.invalid).toBe(true);
+    expect(component.group.invalid).toBe(true);
+    component.form.get('required')!.setValue('x');
+    expect(component.group.valid).toBe(true);
+  });
+
+  it('should remove the validator on destroy', () => {
+    component.fields = [{ key: 'required', type: 'string', props: { required: true } }];
+    fixture.detectChanges();
+    expect(component.group.invalid).toBe(true);
+    fixture.destroy();
+    expect(component.group.valid).toBe(true);
+  });
 });
