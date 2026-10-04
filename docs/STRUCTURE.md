@@ -19,11 +19,13 @@ Tags are plain strings, not entities. The `.tag` class is only used for inline t
       <div class="link-below">           <!-- layout wrapper (+ toggles) -->
         <div class="stack">              <!-- layout wrapper -->
           <div class="info">…</div>      <!-- line 2: metadata -->
+          <app-viewer class="viewer-inline embed">…</app-viewer>  <!-- optional: inline viewer -->
           <div class="actions">…</div>   <!-- line 3: links / buttons -->
         </div>
       </div>
     </div>
   </div>
+  <app-viewer class="viewer-below embed">…</app-viewer>  <!-- optional: viewer below the row -->
 </app-ref>
 
 <!-- Ext, Plugin, Template or User (root class: ext | plugin | template | profile) -->
@@ -44,6 +46,7 @@ Tags are plain strings, not entities. The `.tag` class is only used for inline t
 | `.ext`, `.plugin`, `.template`, `.profile` | Ext, Plugin, Template and User rows |
 | `.list-item` | Any entity row |
 | `.thumbnail`, `.link`, `.info`, `.actions` | Row slots |
+| `.embed` | Expanded Ref viewer (`.viewer-inline` between `.info` and `.actions`, or `.viewer-below` after the row) |
 | `.editing` | Row with the edit form open |
 | `.tag` | Inline tag links (not rows) |
 
