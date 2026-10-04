@@ -1373,16 +1373,19 @@ formly-list-section .form-array > formly-field > formly-group {
 }
 
 .form:has(.fill-editor) {
-  width: fit-content;
-  min-width: min(600px, 100%);
+  width: 100%;
   max-width: none;
+}
+
+.form:has(.fill-editor :is(textarea, ngx-monaco-editor)[style*="width"]) {
+  width: fit-content;
 }
 
 .fill-editor {
   textarea,
   ngx-monaco-editor {
     width: 100%;
-    min-width: min(504px, 100%);
+    min-width: min(504px, 100vw - 32px);
   }
 }
 

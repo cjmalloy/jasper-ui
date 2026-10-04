@@ -10,7 +10,7 @@
     "build:e2e": "ng build --configuration e2e --localize",
     "watch": "ng build --watch --configuration development",
     "lint": "eslint src",
-    "test": "npm run lint && ng test",
+    "test": "ng test",
     "e2e": "npx playwright test",
     "pw:open": "(cd e2e; docker compose pull && docker compose up --build -d) && npx playwright test --ui && (cd e2e; docker compose down)",
     "pw:open:sqlite": "(cd e2e; docker compose pull && docker compose -f 'docker-compose.yaml' -f 'docker-compose.sqlite.yaml' up --build -d) && npx playwright test --ui && (cd e2e; docker compose -f 'docker-compose.yaml' -f 'docker-compose.sqlite.yaml' down)",

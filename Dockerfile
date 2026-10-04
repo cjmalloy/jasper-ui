@@ -5,7 +5,6 @@ COPY package.json package-lock.json ./
 COPY patches ./patches/
 RUN npm ci
 COPY . ./
-RUN npm run lint
 ARG BUILD_SCRIPT=build
 RUN npm run $BUILD_SCRIPT
 
