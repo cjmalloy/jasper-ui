@@ -175,10 +175,8 @@
     }
   }
 </div>
-@if (expanded && !editing && !viewSource) {
-  <app-viewer #viewer
-              [class.viewer-inline]="expandInline"
-              [class.viewer-below]="!expandInline"
+@if (expanded && expandInline && !editing && !viewSource) {
+  <app-viewer #viewer class="viewer-inline"
               [ref]="bareRef"
               [tags]="plugins || currentTags"
               [disableResize]="disableResize"
@@ -316,6 +314,15 @@
                      [selectResponseType]="!thread && !comment && !dm"
                      [tags]="replyTags"
                      (save)="onReply($event)"></app-comment-reply>
+}
+@if (expanded && !expandInline && !editing && !viewSource) {
+  <app-viewer #viewer class="viewer-below"
+              [ref]="bareRef"
+              [tags]="plugins || currentTags"
+              [disableResize]="disableResize"
+              [fullscreen]="fullscreen"
+              (contextmenu)="unlockViewer($event)"
+              (copied)="copied.emit($event)"></app-viewer>
 }
 
 @if (editing) {

@@ -17,10 +17,11 @@ Tags are plain strings, not entities. The `.tag` class is only used for inline t
   <div class="link">…</div>                              <!-- line 1: title -->
   <button class="toggle">…</button>                      <!-- optional: expand toggle -->
   <div class="info">…</div>                              <!-- line 2: metadata -->
-  <app-viewer class="viewer-inline | viewer-below embed">…</app-viewer> <!-- optional: viewer -->
+  <app-viewer class="viewer-inline embed">…</app-viewer> <!-- optional: inline viewer -->
   <div class="actions">…</div>                           <!-- line 3: links / buttons -->
   <div class="toggle actions-toggle">…</div>             <!-- mobile only -->
   <div class="toggle threads | comments | view">…</div>  <!-- mobile only -->
+  <app-viewer class="viewer-below embed">…</app-viewer>  <!-- optional: viewer below the row -->
 </app-ref>
 
 <!-- Ext, Plugin, Template or User (root class: ext | plugin | template | profile) -->
@@ -44,8 +45,6 @@ Tag-like rows use a single column. Ref rows use these named column lines:
 | `end` | End of `.link` |
 
 Anything else (`.viewer-below`, the edit form, errors) spans the full width below the row.
-There is only one viewer. It is always placed between `.info` and `.actions` in the DOM; `.viewer-below`
-uses `order` to move it below the row.
 Always use child selectors such as `.ref > .info`. A descendant selector such as `.ref .info` also
 matches Refs nested inside an `.embed`.
 
@@ -60,7 +59,7 @@ The layout only uses CSS Grid Level 1, so it also works on iOS 13. It doesn't ne
 | `.ext`, `.plugin`, `.template`, `.profile` | Ext, Plugin, Template and User rows |
 | `.list-item` | Any entity row |
 | `.thumbnail`, `.link`, `.info`, `.actions` | Row slots |
-| `.embed` | Expanded Ref viewer (`.viewer-inline` between `.info` and `.actions`, or `.viewer-below` under the row) |
+| `.embed` | Expanded Ref viewer (`.viewer-inline` between `.info` and `.actions`, or `.viewer-below` after the row) |
 | `.editing` | Row with the edit form open |
 | `.tag` | Inline tag links (not rows) |
 
