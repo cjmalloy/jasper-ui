@@ -1692,6 +1692,14 @@ formly-field-radio, formly-field-multicheckbox {
   & > .comment-reply {
     justify-self: start;
   }
+  & > .viewer-below {
+    order: 1;
+  }
+  & > .form,
+  & > .error,
+  & > .warning {
+    order: 2;
+  }
 }
 
 .list-item:not(.full-page):not(.expand),
