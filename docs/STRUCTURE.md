@@ -112,7 +112,7 @@ columns, so they leave out `.row`. Add `.row` only when the row needs a side col
 | `a.tag`, `a.user.tag`, `a.origin.tag` | part of `.info` | Inline tag/author/origin chip. It is always an `<a>`; don't confuse it with the `.tag` row root. | `.info`, markdown, breadcrumbs |
 | `.icon` | part of `.info` | Clickable plugin icon. `.filter-toggle` when it toggles a filter. | `.info` |
 | `.actions` | slot | Action strip. Direct children may only be `a`, `.fake-link`, `.action` or `.action-list`. | `.stack`, after `.info` |
-| `.fake-link` | action | An `<a>` that runs code instead of navigating. | `.actions`, `.advanced-actions` |
+| `.fake-link` | action | A link-styled `<a>` or `<span>` that runs code instead of navigating. | `.actions`, `.action`, `.action-list`, `.advanced-actions` |
 | `.action` | action | Host class of `app-confirm-action`, `app-inline-button`, `app-inline-tag`, `app-inline-select`, `app-inline-password` and `app-inline-plugin`. | `.actions`, `.action-list`, `.advanced-actions` |
 | `.action-list` | action | Plugin actions plus the `…` `.show-more` menu (`.advanced-actions`). | `.actions` |
 | `.toggle` | control | Expand / ⚙️ / 💬️ / 🧵️ buttons beside line 2. | `.link-below` |
