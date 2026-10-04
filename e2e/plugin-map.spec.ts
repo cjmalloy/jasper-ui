@@ -149,10 +149,10 @@ test.describe.serial('Map Plugin', () => {
     await points.nth(0).locator('input[type=number]').nth(0).fill('-63.6');
     const style = page.locator('.plugin-content .geo-style-field');
     await style.locator('.geo-style-color').fill('#ff0000');
-    await expect(style.locator('.geo-style-stroke-width-input .range-tick')).toHaveCount(3);
-    await expect(style.locator('.geo-style-stroke-width-input .range-label')).toHaveText(['Small', 'Medium', 'Large']);
+    await expect(style.locator('.geo-style-stroke-width-label')).toHaveText('Medium');
+    await expect(style.locator('.geo-style-stroke-width-input .range-tick')).toHaveCount(0);
     await style.locator('.geo-style-stroke-width').fill('2');
-    await expect(style.locator('.geo-style-stroke-width-input .range-label.active')).toHaveText('Large');
+    await expect(style.locator('.geo-style-stroke-width-label')).toHaveText('Large');
     await style.locator('.geo-style-stroke-style').selectOption('dashed');
     await style.locator('.geo-style-fill-color').fill('#00ff00');
     await style.locator('.geo-style-fill-style').selectOption('crosshatch');
@@ -1171,15 +1171,24 @@ test.describe.serial('Map Plugin', () => {
   test('map template zoom slider has labels', async ({ page }) => {
     await page.goto('/ext/map?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('button', { hasText: 'Extend' }).click();
-    const labels = page.locator('.range-labels .range-label');
-    await expect(labels).toHaveText(['World', 'Country', 'Region', 'City', 'Street', 'Building']);
-    // One tick per zoom level, taller at the labeled levels
-    await expect(page.locator('.range-ticks .range-tick').first()).toBeVisible();
-    await expect(page.locator('.range-ticks').first().locator('.range-tick')).toHaveCount(23);
-    await expect(page.locator('.range-ticks').first().locator('.range-tick.labeled')).toHaveCount(6);
-    const slider = page.locator('.range-input input[type=range]').first();
+    const zoom = page.locator('.range-input').first();
+    const slider = zoom.locator('input[type=range]');
+    // One tick per zoom level, numbered every other level
+    await expect(zoom.locator('.range-tick')).toHaveCount(23);
+    await expect(zoom.locator('.range-number')).toHaveText(['0', '2', '4', '6', '8', '10', '12', '14', '16', '18', '20', '22']);
     await slider.fill('12');
-    await expect(page.locator('.range-label.active')).toHaveText('City');
+    await expect(zoom.locator('.range-value')).toHaveText('City');
+    await expect(zoom.locator('.range-number.active')).toHaveText('12');
+    await slider.fill('13');
+    await expect(zoom.locator('.range-value')).toHaveText('City');
+    await expect(zoom.locator('.range-number.active')).toHaveCount(0);
+    // Clicking the slider above a tick snaps to that tick's value
+    const box = (await slider.boundingBox())!;
+    for (const value of [0, 5, 12, 22]) {
+      const tick = (await zoom.locator('.range-tick').nth(value).boundingBox())!;
+      await page.mouse.click(tick.x + tick.width / 2, box.y + box.height / 2);
+      await expect(slider).toHaveValue('' + value);
+    }
   });
 
   test('main map keeps the default attribution', async ({ page }) => {
