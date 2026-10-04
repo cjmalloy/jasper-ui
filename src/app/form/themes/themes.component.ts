@@ -1,5 +1,5 @@
 import { controlValue } from '../../util/form';
-import { computed, Component, input, signal, inject } from '@angular/core';
+import { computed, Component, effect, input, signal, inject } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 import { ListEditorComponent } from '../../component/list-editor/list-editor.component';
@@ -24,26 +24,32 @@ export class ThemesFormComponent {
 
   readonly keys = computed(() => {
     this.rootControlState();
-    return Object.keys(this.themes().value);
+    return Object.keys(this.themes()?.value || {});
   });
   readonly selectedTheme = signal<string | undefined>(undefined);
 
   readonly themes = computed(() => {
     this.rootControlState();
-    const group = this.group();
-    const fieldName = this.fieldName();
-    if (!group.contains(fieldName)) {
-      group.addControl(fieldName, this.fb.group({}), { emitEvent: false });
-    }
-    return group.get(fieldName) as UntypedFormGroup;
+    return this.group().get(this.fieldName()) as UntypedFormGroup | null;
   });
 
+  constructor() {
+    // Sync: add the missing themes control to the parent form
+    effect(() => {
+      const group = this.group();
+      const fieldName = this.fieldName();
+      if (!group.contains(fieldName)) {
+        group.addControl(fieldName, this.fb.group({}));
+      }
+    });
+  }
+
   addTheme(name: string, value = '') {
-    this.themes().addControl(name, this.fb.control(value));
+    this.themes()?.addControl(name, this.fb.control(value));
   }
 
   removeTheme(name: string) {
-    this.themes().removeControl(name);
+    this.themes()?.removeControl(name);
   }
 
   edit(name?: string) {

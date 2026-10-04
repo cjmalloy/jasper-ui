@@ -5,8 +5,8 @@
                  (onRemove)="removeTheme($event)"
                  (selected)="edit($event)"></app-list-editor>
 @for (theme of keys(); track theme) {
-  @if (theme === selectedTheme()) {
-    <app-code [group]="themes()"
+  @if (theme === selectedTheme() && themes(); as group) {
+    <app-code [group]="group"
               language="css"
               [fieldName]="theme"></app-code>
   }

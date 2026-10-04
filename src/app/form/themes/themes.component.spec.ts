@@ -28,15 +28,16 @@ describe('ThemesFormComponent', () => {
 
   it('derives theme keys from external form updates', () => {
     expect(component.keys()).toEqual([]);
-    component.themes().addControl('custom', new UntypedFormControl('body {}'));
+    component.themes()!.addControl('custom', new UntypedFormControl('body {}'));
     expect(component.keys()).toEqual(['custom']);
-    component.themes().removeControl('custom');
+    component.themes()!.removeControl('custom');
     expect(component.keys()).toEqual([]);
   });
 
   it('selects and initializes a different theme field reactively', () => {
     fixture.componentRef.setInput('fieldName', 'alternateThemes');
     fixture.detectChanges();
+    expect(component.themes()).toBeTruthy();
     expect(component.themes()).toBe(component.group().get('alternateThemes'));
     component.addTheme('alternate');
     expect(component.keys()).toEqual(['alternate']);
