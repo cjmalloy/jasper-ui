@@ -13,7 +13,6 @@ import { Store } from '../../../store/store';
 import { TAGS_REGEX } from '../../../util/format';
 import { hasTag } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
-import { ActionComponent } from '../action.component';
 
 @Component({
   selector: 'app-inline-tag',
@@ -22,7 +21,7 @@ import { ActionComponent } from '../action.component';
   host: { 'class': 'action' },
   imports: [FakeLinkDirective, ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
-export class InlineTagComponent extends ActionComponent {
+export class InlineTagComponent {
   private store = inject(Store);
   private admin = inject(AdminService);
   private editor = inject(EditorService);
@@ -41,16 +40,6 @@ export class InlineTagComponent extends ActionComponent {
   id = 'tag-' + uuid();
 
   private searching?: Subscription;
-
-
-  override reset() {
-    this.editing.set(false);
-    this.acting.set(false);
-  }
-
-  override active() {
-    return this.editing() || this.acting();
-  }
 
   save(field: HTMLInputElement) {
     if (field.validity.patternMismatch) {

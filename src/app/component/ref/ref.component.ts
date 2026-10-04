@@ -71,7 +71,6 @@ import {
   top
 } from '../../util/tag';
 import { ActionListComponent } from '../action/action-list/action-list.component';
-import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
@@ -159,7 +158,6 @@ export class RefComponent implements HasChanges {
   readonly allCss = computed(() => this.getPluginClasses());
   private destroyRef = inject(DestroyRef);
 
-  readonly actionComponents = viewChildren<ActionComponent>('action');
   readonly refForm = viewChild<RefFormComponent>('refForm');
   readonly reply = viewChild<CommentReplyComponent>('reply');
   readonly diffEditor = viewChild<any>('diffEditor');
@@ -318,7 +316,6 @@ export class RefComponent implements HasChanges {
   }
 
   init() {
-    this.actionComponents()?.forEach(c => c.reset());
     if (this.ref()?.upload) this.editForm.get('url')!.enable();
   }
 

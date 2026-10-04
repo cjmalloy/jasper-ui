@@ -140,12 +140,12 @@
              (click)="editing.set(!editing())" i18n>edit</a>
         }
         @if (store.account.mod() || taggingAccess()) {
-          <app-confirm-action #action
+          <app-confirm-action
                               [class.force-delete]="deleteAccess()"
                               [action]="store.hotkey() ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
         }
         @if (taggingAccess()) {
-          <app-inline-tag #action
+          <app-inline-tag
                           [action]="tag$"
                           [tags]="ref().tags"
                           i18n>tag</app-inline-tag>

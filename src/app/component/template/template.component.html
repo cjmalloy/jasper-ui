@@ -23,9 +23,9 @@
   </div>
   <div class="actions">
     @if (!created() && store.account.admin()) {
-      <app-confirm-action #action [action]="copy$" i18n>install</app-confirm-action>
+      <app-confirm-action [action]="copy$" i18n>install</app-confirm-action>
     } @else if (!local()) {
-      <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
+      <app-inline-button [action]="copy$" i18n>copy</app-inline-button>
     }
     @if (created() && local() && store.account.admin()) {
       <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
@@ -37,7 +37,7 @@
     }
     <a class="fake-link" (click)="download()" i18n>download</a>
     @if (created() && store.account.admin()) {
-      <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
+      <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
     }
   </div>
 </div>

@@ -8,7 +8,6 @@ import { Plugin } from '../../../model/plugin';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { LoadingComponent } from '../../loading/loading.component';
-import { ActionComponent } from '../action.component';
 
 @Component({
   selector: 'app-inline-plugin',
@@ -17,10 +16,9 @@ import { ActionComponent } from '../action.component';
   host: { 'class': 'action' },
   imports: [FakeLinkDirective, GenFormComponent, LoadingComponent]
 })
-export class InlinePluginComponent extends ActionComponent {
+export class InlinePluginComponent {
   admin = inject(AdminService);
   private fb = inject(FormBuilder);
-
 
   readonly action = input<(plugins: any) => Observable<any | never>>(() => of(null));
   readonly plugin = input.required<Plugin>();
@@ -36,7 +34,6 @@ export class InlinePluginComponent extends ActionComponent {
   }));
 
   constructor() {
-    super();
     effect(() => {
       const gen = this.gen();
       const plugins = this.value()?.plugins || {};
@@ -46,15 +43,6 @@ export class InlinePluginComponent extends ActionComponent {
         defer(() => gen.setValue(plugins));
       });
     });
-  }
-
-  override reset() {
-    this.editing.set(false);
-    this.acting.set(false);
-  }
-
-  override active() {
-    return this.editing() || this.acting();
   }
 
   save() {

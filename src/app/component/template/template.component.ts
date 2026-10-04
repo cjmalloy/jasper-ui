@@ -16,7 +16,6 @@ import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { printError } from '../../util/http';
-import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { LoadingComponent } from '../loading/loading.component';
@@ -42,7 +41,6 @@ export class TemplateComponent implements HasChanges {
 
   css = 'template list-item';
 
-  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly templateInput = input<Template>({} as Template, { alias: 'template' });
   readonly template = linkedSignal(() => this.templateInput());
@@ -82,7 +80,6 @@ export class TemplateComponent implements HasChanges {
   }
 
   init(): void {
-    this.actionComponents()?.forEach(c => c.reset());
     this.editForm.patchValue({
       ...this.template(),
       config: this.template().config ? JSON.stringify(this.template().config, null, 2) : undefined,

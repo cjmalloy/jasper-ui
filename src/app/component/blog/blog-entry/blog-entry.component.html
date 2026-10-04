@@ -79,12 +79,12 @@
             <a [routerLink]="['/ref', ref().url, 'sources']" [queryParams]="{ origin: nonLocalOrigin() }" (click)="saveRef()" i18n>{{ sources() }}&thinsp;sources</a>
           }
           @if (store.account.mod() || taggingAccess()) {
-            <app-confirm-action #action
+            <app-confirm-action
                                 [class.force-delete]="deleteAccess()"
                                 [action]="store.hotkey() ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
           }
           @if (taggingAccess()) {
-            <app-inline-tag #action [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>
+            <app-inline-tag [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>
           }
           @if (writeAccess()) {
             <a class="fake-link" (click)="toggleEditing()" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>

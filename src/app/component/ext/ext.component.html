@@ -46,7 +46,7 @@
       }
       <a class="fake-link" (click)="download()" i18n>download</a>
       @if (store.account.mod() || writeAccess()) {
-        <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
+        <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
       }
     }
     @if (store.account.user() && ext().upload) {
@@ -57,7 +57,7 @@
       <a [routerLink]="['/tags', ext().tag]" i18n>tags</a>
       <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
       <a class="fake-link" (click)="download()" i18n>download</a>
-      <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
+      <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
     }
   </div>
 </div>

@@ -2,7 +2,6 @@ import { Component, input, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
-import { ActionComponent } from '../action.component';
 
 @Component({
   selector: 'app-confirm-action',
@@ -11,7 +10,7 @@ import { ActionComponent } from '../action.component';
   host: { 'class': 'action' },
   imports: [FakeLinkDirective, LoadingComponent]
 })
-export class ConfirmActionComponent extends ActionComponent {
+export class ConfirmActionComponent {
 
   readonly message = input($localize `are you sure?`);
   readonly warning = input('');
@@ -21,15 +20,6 @@ export class ConfirmActionComponent extends ActionComponent {
   readonly confirming = signal(false);
   readonly acting = signal(false);
   readonly minTimeout = signal(false);
-
-  override reset() {
-    this.confirming.set(false);
-    this.acting.set(false);
-  }
-
-  override active() {
-    return this.confirming() || this.acting();
-  }
 
   confirm() {
     this.confirming.set(false);

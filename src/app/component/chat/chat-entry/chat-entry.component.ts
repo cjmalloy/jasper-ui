@@ -30,7 +30,6 @@ import { Store } from '../../../store/store';
 import { authors, clickableLink, formatAuthor, getNiceTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag, localTag, tagOrigin } from '../../../util/tag';
-import { ActionComponent } from '../../action/action.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -68,7 +67,6 @@ export class ChatEntryComponent {
 
   private destroyRef = inject(DestroyRef);
 
-  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly refInput = input.required<Ref>({ alias: 'ref' });
   readonly ref = linkedSignal(() => this.refInput());
@@ -89,17 +87,6 @@ export class ChatEntryComponent {
   readonly serverError = linkedSignal<string[]>(() => { this.refInput(); return []; });
   private readonly hovering = linkedSignal(() => { this.refInput(); return false; });
 
-  constructor() {
-    effect(() => {
-      this.refInput();
-      untracked(() => this.actionComponents().forEach(c => c.reset()));
-    });
-    effect(() => {
-      const actionComponents = this.actionComponents();
-      if (!this.focused() && !this.hovering()) untracked(() => actionComponents.forEach(c => c.reset()));
-    });
-  }
-
   readonly title = computed(() => {
     const title = (this.ref()?.title || '').trim();
     if (title) return title;
@@ -108,7 +95,7 @@ export class ChatEntryComponent {
     return getNiceTitle(this.ref());
   });
 
-  readonly allowActions = computed(() => this.hovering() || this.focused() || !!this.actionComponents()?.find(c => c.active()));
+  readonly allowActions = computed(() => this.hovering() || this.focused());
 
   setHovering(value: boolean) {
     this.hovering.set(value);

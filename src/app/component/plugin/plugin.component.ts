@@ -17,7 +17,6 @@ import { Store } from '../../store/store';
 import { downloadPluginExport, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { printError } from '../../util/http';
-import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { LoadingComponent } from '../loading/loading.component';
@@ -44,7 +43,6 @@ export class PluginComponent implements HasChanges {
 
   css = 'plugin list-item';
 
-  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly pluginInput = input<Plugin>({} as Plugin, { alias: 'plugin' });
   readonly plugin = linkedSignal(() => this.pluginInput());
@@ -84,7 +82,6 @@ export class PluginComponent implements HasChanges {
   }
 
   init(): void {
-    this.actionComponents()?.forEach(c => c.reset());
     this.editForm.patchValue({
       ...this.plugin(),
       config: this.plugin().config ? JSON.stringify(this.plugin().config, null, 2) : undefined,

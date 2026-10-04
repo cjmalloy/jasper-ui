@@ -3,7 +3,6 @@ import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { LoadingComponent } from '../../loading/loading.component';
-import { ActionComponent } from '../action.component';
 
 @Component({
   selector: 'app-inline-password',
@@ -12,22 +11,13 @@ import { ActionComponent } from '../action.component';
   host: { 'class': 'action' },
   imports: [FakeLinkDirective, AutofocusDirective, LoadingComponent]
 })
-export class InlinePasswordComponent extends ActionComponent {
+export class InlinePasswordComponent {
 
   readonly action = input<(password: string) => Observable<any | never>>(() => of(null));
   readonly error = output<string>();
 
   readonly editing = signal(false);
   readonly acting = signal(false);
-
-  override reset() {
-    this.editing.set(false);
-    this.acting.set(false);
-  }
-
-  override active() {
-    return this.editing() || this.acting();
-  }
 
   save(field: HTMLInputElement) {
     const password = (field.value || '').trim();

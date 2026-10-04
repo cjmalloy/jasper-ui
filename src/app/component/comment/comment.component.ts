@@ -34,7 +34,6 @@ import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/http';
 import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin } from '../../util/tag';
 import { ActionListComponent } from '../action/action-list/action-list.component';
-import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
 import { ViewerComponent } from '../viewer/viewer.component';
@@ -76,7 +75,6 @@ export class CommentComponent implements HasChanges {
 
   maxContext = 20;
 
-  readonly actionComponents = viewChildren<ActionComponent>('action');
   readonly replyComponent = viewChild<CommentReplyComponent>('replyComponent');
   readonly editComponent = viewChild<CommentEditComponent>('editComponent');
   readonly threadComponent = viewChild<CommentThreadComponent>('threadComponent');
@@ -158,7 +156,6 @@ export class CommentComponent implements HasChanges {
   });
 
   init() {
-    this.actionComponents()?.forEach(c => c.reset());
   }
 
   private readonly onDestroy = inject(DestroyRef).onDestroy(() => {

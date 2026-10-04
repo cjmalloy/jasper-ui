@@ -55,7 +55,6 @@ import { authors, clickableLink, formatAuthor, interestingTags } from '../../../
 import { getScheme, printError } from '../../../util/http';
 import { hasTag, isAuthorTag, localTag, removeTag, tagOrigin } from '../../../util/tag';
 import { ActionListComponent } from '../../action/action-list/action-list.component';
-import { ActionComponent } from '../../action/action.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -103,7 +102,6 @@ export class BlogEntryComponent implements HasChanges {
 
   private destroyRef = inject(DestroyRef);
 
-  readonly actionComponents = viewChildren<ActionComponent>('action');
   readonly refForm = viewChild<RefFormComponent>('refForm');
 
   readonly blog = input<Ext>();
@@ -180,7 +178,6 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   init() {
-    this.actionComponents()?.forEach(c => c.reset());
   }
 
   readonly nonLocalOrigin = computed(() => {

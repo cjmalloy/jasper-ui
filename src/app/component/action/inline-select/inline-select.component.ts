@@ -2,7 +2,6 @@ import { Component, input, output, signal } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
-import { ActionComponent } from '../action.component';
 
 @Component({
   selector: 'app-inline-select',
@@ -11,7 +10,7 @@ import { ActionComponent } from '../action.component';
   host: { 'class': 'action' },
   imports: [FakeLinkDirective, LoadingComponent]
 })
-export class InlineSelectComponent extends ActionComponent {
+export class InlineSelectComponent {
 
   readonly action = input<(value: any) => Observable<any | never>>(() => of(null));
   readonly value = input<any>();
@@ -19,15 +18,6 @@ export class InlineSelectComponent extends ActionComponent {
 
   readonly editing = signal(false);
   readonly acting = signal(false);
-
-  override reset() {
-    this.editing.set(false);
-    this.acting.set(false);
-  }
-
-  override active() {
-    return this.editing() || this.acting();
-  }
 
   save(field: HTMLSelectElement) {
     this.editing.set(false);

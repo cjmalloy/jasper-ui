@@ -24,7 +24,6 @@ import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { tagLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasPrefix, parentTag } from '../../util/tag';
-import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { RelativePipe } from '../../pipe/relative.pipe';
 
@@ -58,7 +57,6 @@ export class ExtComponent implements HasChanges {
   bookmarks = inject(BookmarkService);
   private fb = inject(UntypedFormBuilder);
 
-  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly extInput = input.required<Ext>({ alias: 'ext' });
   readonly ext = linkedSignal(() => this.extInput());
@@ -102,7 +100,6 @@ export class ExtComponent implements HasChanges {
   }
 
   init() {
-    this.actionComponents()?.forEach(c => c.reset());
     if (this.ext()) {
       this.editForm.set(extForm(this.fb, this.ext(), this.admin, true));
     }

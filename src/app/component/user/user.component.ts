@@ -28,7 +28,6 @@ import { downloadRef, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid, controlState } from '../../util/form';
 import { printError } from '../../util/http';
 import { localTag, subOrigin, tagOrigin } from '../../util/tag';
-import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { InlinePasswordComponent } from '../action/inline-password/inline-password.component';
@@ -55,7 +54,6 @@ export class UserComponent implements HasChanges {
   private exts = inject(ExtService);
   private fb = inject(FormBuilder);
 
-  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly profileInput = input<Profile | undefined>(undefined, { alias: 'profile' });
   readonly userInput = input<User | undefined>(undefined, { alias: 'user' });
@@ -111,7 +109,6 @@ export class UserComponent implements HasChanges {
   }
 
   init() {
-    this.actionComponents()?.forEach(c => c.reset());
   }
 
   readonly created = computed(() => {
