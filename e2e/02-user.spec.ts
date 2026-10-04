@@ -49,7 +49,7 @@ test.describe.serial('User Page', () => {
 
   test('downloads a pre-filled connection ref', async ({ page }) => {
     await page.goto('/settings/user?debug=ADMIN', { waitUntil: 'networkidle' });
-    const profile = page.locator('.user.list-item', {
+    const profile = page.locator('.profile', {
       has: page.getByRole('link', { name: '+user', exact: true }),
     });
     const downloadPromise = page.waitForEvent('download');

@@ -29,7 +29,7 @@ import { LoadingComponent } from '../loading/loading.component';
   imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent, DiffComponent]
 })
 export class TemplateComponent implements OnChanges, HasChanges {
-  css = 'template list-item';
+  css = 'tag template list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @ViewChildren('action')

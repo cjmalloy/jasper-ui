@@ -48,7 +48,7 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  host: { 'class': 'user list-item' },
+  host: { 'class': 'tag profile list-item' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FakeLinkDirective, RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
