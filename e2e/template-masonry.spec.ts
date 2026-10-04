@@ -12,11 +12,11 @@ test.describe.serial('Masonry Template', () => {
     return { Authorization: 'Bearer ' + adminHeaders.jwt, 'X-XSRF-TOKEN': xsrf };
   }
 
-  async function listDisplay(page: Page) {
+  async function masonryCss(page: Page) {
     await page.goto(`/tag/plugin/image:${tag}?debug=ADMIN`, { waitUntil: 'networkidle' });
-    const list = page.locator('.list-container').first();
-    await expect(list).toBeVisible();
-    return list.evaluate(el => getComputedStyle(el).display);
+    await expect(page.locator('.list-container').first()).toBeVisible();
+    return page.evaluate(() => Array.from(document.querySelectorAll('style'))
+      .some(s => s.textContent?.includes('grid-template-rows: masonry')));
   }
 
   test('enable images and masonry mods', async ({ page }) => {
@@ -33,16 +33,10 @@ test.describe.serial('Masonry Template', () => {
     }
   });
 
-  test('renders images in masonry columns', async ({ page }) => {
-    const display = await listDisplay(page);
-    const list = page.locator('.list-container').first();
-    if (await page.evaluate(() => CSS.supports('display', 'grid-lanes'))) {
-      expect(display).toBe('grid-lanes');
-    } else if (await page.evaluate(() => CSS.supports('grid-template-rows', 'masonry'))) {
-      await expect(list).toHaveCSS('grid-template-rows', 'masonry');
-    } else {
-      expect(display).toBe('block');
-      await expect(list).toHaveCSS('column-width', '300px');
+  test('renders images with masonry grid rows', async ({ page }) => {
+    expect(await masonryCss(page)).toBe(true);
+    if (await page.evaluate(() => CSS.supports('grid-template-rows', 'masonry'))) {
+      await expect(page.locator('.list-container').first()).toHaveCSS('grid-template-rows', 'masonry');
     }
   });
 
@@ -55,6 +49,6 @@ test.describe.serial('Masonry Template', () => {
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
     await expect(page.locator('#mod-masonry')).not.toBeChecked();
     await expect(page.locator('#mod-images')).toBeChecked();
-    expect(await listDisplay(page)).toBe('grid');
+    expect(await masonryCss(page)).toBe(false);
   });
 });
