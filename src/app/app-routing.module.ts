@@ -106,6 +106,9 @@ export class CustomUrlSerializer implements UrlSerializer {
         return dus.parse('/ref/' + this.stripParam(url.substring('/ref/e/'.length + refChildren[1].length + 1)) + '/' + refChildren[1] + this.getExtras(url));
       }
     }
+    if (url.startsWith('/browse/e/')) {
+      return dus.parse('/browse/' + url.substring('/browse/e/'.length));
+    }
     if (url.startsWith('/browse/')) {
       return dus.parse('/browse/' + encodeURIComponent(url.substring('/browse/'.length)));
     }
@@ -134,7 +137,14 @@ export class CustomUrlSerializer implements UrlSerializer {
       }
     }
     if (tree.root.children.primary?.segments[0]?.path === 'browse' && tree.root.children.primary.segments.length === 2) {
-      return '/browse/' + tree.root.children.primary.segments[1].path;
+      if (!this.getExtras(url)) {
+        return '/browse/' + tree.root.children.primary.segments[1].path;
+      } else {
+        return '/browse/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
+      }
+    }
+    if (tree.root.children.primary?.segments[0]?.path === 'browse' && tree.root.children.primary.segments.length === 3) {
+      return '/browse/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + '/' + tree.root.children.primary.segments[2].path + this.getExtras(url);
     }
     for (let page of ['tag', 'tags', 'ext', 'user', 'inbox/ref', 'settings/ref']) {
       const parts = (page.match(/\//g)?.length || 0) + 1;
@@ -184,6 +194,7 @@ const routes: Routes = [
   { path: 'user/:tag', component: UserPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
   { path: 'browse', redirectTo: 'browse/wiki:Homepage', pathMatch: 'full' },
   { path: 'browse/:url', component: RefPage },
+  { path: 'browse/:url/:subview', redirectTo: 'browse/:url' },
   {
     path: 'ref/:url',
     component: RefPage,

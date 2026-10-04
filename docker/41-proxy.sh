@@ -44,6 +44,9 @@ if [ -n "$JASPER_API_PROXY" ]; then
       proxy_set_header Write-Access           \"${JASPER_PROXY_WRITE_ACCESS}\";
       proxy_set_header Tag-Read-Access        \"${JASPER_PROXY_TAG_READ_ACCESS}\";
       proxy_set_header Tag-Write-Access       \"${JASPER_PROXY_TAG_WRITE_ACCESS}\";
+      # The JWT secret from the jasper-app electron window is only echoed back to the client
+      proxy_set_header X-Jasper-Key           \"\";
+      proxy_hide_header X-Jasper-Key;
 
       proxy_connect_timeout                   5s;
       #proxy_send_timeout                      60s;

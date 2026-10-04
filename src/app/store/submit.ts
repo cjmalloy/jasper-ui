@@ -1,3 +1,4 @@
+import JSZip from 'jszip';
 import { flatten, isArray, without } from 'lodash-es';
 import { action, autorun, makeAutoObservable, observableShallow } from 'mobx';
 import { RouterStore } from 'mobx-angular';
@@ -5,6 +6,7 @@ import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { DEFAULT_WIKI_PREFIX } from '../mods/org/wiki';
+import { refCacheIds } from '../util/cache';
 import { EventBus } from './bus';
 
 export type Saving = { url?: string, name: string, progress?: number };
@@ -19,6 +21,10 @@ export class SubmitStore {
   caching: Map<File, Saving> = new Map<File, Saving>();
   exts: Ext[] = [];
   refs: Ref[] = [];
+  /**
+   * Cache files from uploaded zips, keyed by their original cache ID.
+   */
+  cacheFiles = new Map<string, JSZip.JSZipObject>();
   overwrite = false;
   refLimitOverride = false;
 
@@ -32,6 +38,7 @@ export class SubmitStore {
       files: observableShallow,
       embedFiles: observableShallow,
       caching: observableShallow,
+      cacheFiles: false,
       setRef: action,
       setExt: action,
     });
@@ -183,6 +190,20 @@ export class SubmitStore {
   clearUpload(refs: Ref[] = [], exts: Ext[] = []) {
     this.exts = exts;
     this.refs = refs;
+    const keep = new Set(refs.flatMap(refCacheIds));
+    for (const id of [...this.cacheFiles.keys()]) {
+      if (!keep.has(id)) this.cacheFiles.delete(id);
+    }
+  }
+
+  addCacheFiles(files: Map<string, JSZip.JSZipObject>) {
+    for (const [id, file] of files) {
+      if (this.cacheFiles.has(id)) {
+        console.warn(`Skipping duplicate cache file in upload: ${id}`);
+        continue;
+      }
+      this.cacheFiles.set(id, file);
+    }
   }
 
   addFiles(files?: File[]) {
