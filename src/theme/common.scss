@@ -1372,13 +1372,25 @@ formly-list-section .form-array > formly-field > formly-group {
   max-width: 600px;
 }
 
+.form:has(.fill-editor) {
+  width: fit-content;
+  min-width: min(600px, 100%);
+  max-width: none;
+}
+
+.fill-editor {
+  textarea,
+  ngx-monaco-editor {
+    width: 100%;
+    min-width: min(504px, 100%);
+  }
+}
+
 .form,
 formly-list-section .form-array > formly-field > formly-group {
   display: grid !important;
   grid-template-columns: min-content auto;
   grid-auto-rows: min-content;
-  width: fit-content;
-  max-width: 100%;
   padding: 10px;
   .shrink select {
     margin-top: 2px;
@@ -1410,15 +1422,6 @@ formly-list-section .form-array > formly-field > formly-group {
     }
   }
 
-  .fill-editor {
-    max-width: 100%;
-
-    & > textarea,
-    & > ngx-monaco-editor {
-      width: 100%;
-      min-width: min(504px, 100%);
-    }
-  }
   & > * {
     margin: 4px;
   }
