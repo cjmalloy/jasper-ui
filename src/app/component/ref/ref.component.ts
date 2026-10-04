@@ -1381,7 +1381,7 @@ export class RefComponent implements HasChanges {
     ).pipe(
       tap((cursor: string) => {
         this.deleted.set(true);
-        if (this.store.account.mod() && cursor) {
+        if (this.store.account.mod && cursor) {
           this.store.eventBus.reload(this.ref());
         }
       }),

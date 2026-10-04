@@ -22,12 +22,12 @@
     }
   </div>
   <div class="actions">
-    @if (!created() && store.account.admin()) {
+    @if (!created() && store.account.admin) {
       <app-confirm-action [action]="copy$" i18n>install</app-confirm-action>
     } @else if (!local()) {
       <app-inline-button [action]="copy$" i18n>copy</app-inline-button>
     }
-    @if (created() && local() && store.account.admin()) {
+    @if (created() && local() && store.account.admin) {
       <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
     } @else {
       <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
@@ -36,7 +36,7 @@
       <a class="fake-link diff-link" (click)="toggleDiff()" i18n>diff</a>
     }
     <a class="fake-link" (click)="download()" i18n>download</a>
-    @if (created() && store.account.admin()) {
+    @if (created() && store.account.admin) {
       <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
     }
   </div>
@@ -73,7 +73,7 @@
     <app-diff #diffEditor
               [original]="diffLocal()!"
               [modified]="diffRemote()!"
-              [readOnly]="!store.account.admin()">
+              [readOnly]="!store.account.admin">
     </app-diff>
 
     @for (e of serverError(); track e) {
@@ -86,7 +86,7 @@
       @if (saving()) {
         <app-loading [inline]="true"></app-loading>
       }
-      @if (store.account.admin()) {
+      @if (store.account.admin) {
         <button type="button" class="save-diff" [disabled]="saving()" (click)="saveDiff()" i18n>save</button>
       }
       <button type="button" (click)="diffing.set(false)" i18n>cancel</button>

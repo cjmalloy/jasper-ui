@@ -7,7 +7,7 @@
        i18n-title title="⚙️ My settings"
        i18n>me</a>
   }
-  @if (store.account.admin()) {
+  @if (store.account.admin) {
     <a routerLink="./setup"
        routerLinkActive="current-tab"
        i18n-title title="📦 Setup"
@@ -30,7 +30,7 @@
      routerLinkActive="current-tab"
      i18n-title title="🎨 Ext Templates"
      i18n>template</a>
-  @if (store.account.mod()) {
+  @if (store.account.mod) {
     <a routerLink="./backup"
        routerLinkActive="current-tab"
        i18n-title title="⏏️ Backup"

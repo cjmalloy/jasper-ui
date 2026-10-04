@@ -278,11 +278,11 @@ export class SidebarComponent {
   readonly messages = computed(() => {
     if (!this.admin.getPlugin('plugin/inbox')) return false;
     if (!this.admin.getTemplate('dm')) return false;
-    if (!this.store.account.user()) return false;
+    if (!this.store.account.user) return false;
     return this.dm() || this.user() || this.modmail() || this.dms().length;
   });
   readonly notes = computed(() => {
-    return this.admin.getTemplate('notes') && this.store.account.user();
+    return this.admin.getTemplate('notes') && this.store.account.user;
   });
   readonly homeWriteAccess = computed(() => {
     return this.home() && this.admin.home() && this.auth.tagWriteAccess('config/home');

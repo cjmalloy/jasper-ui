@@ -20,7 +20,7 @@
             title="Download with attached files and embedded Refs that have files"
             i18n>export</span>
       <a class="fake-link" (click)="toggle()" i18n>toggle</a>
-      @if (store.account.user()) {
+      @if (store.account.user) {
         <a routerLink="/submit" [queryParams]="{source: urls()}" i18n>reply</a>
       }
       <app-inline-tag [action]="tag$" i18n>tag</app-inline-tag>

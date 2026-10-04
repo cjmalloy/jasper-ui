@@ -294,7 +294,7 @@ export class AdminService {
   get firstRun$(): Observable<any> {
     if (this.firstRun) return of(null);
     this.firstRun = true;
-    if (!this.store.account.admin() || this.store.account.ext()) return of(null);
+    if (!this.store.account.admin || this.store.account.ext()) return of(null);
     if (Object.values(this.status().plugins).filter(p => !!p).length > 0) return of(null);
     if (Object.values(this.status().templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return of(null);
 
@@ -378,7 +378,7 @@ export class AdminService {
   }
 
   private loadReceipts$(page = 0): Observable<null> {
-    if (!this.store.account.admin()) return of(null);
+    if (!this.store.account.admin) return of(null);
     const alreadyLoaded = page * this.config.fetchBatch;
     if (alreadyLoaded >= this.config.maxTemplates + this.config.maxPlugins) {
       console.error(`Too many templates to load, only loaded ${alreadyLoaded}. Increase maxTemplates or maxPlugins to load more.`)
@@ -1191,7 +1191,7 @@ export class AdminService {
   }
 
   needsUpdate(def: Config, status: Config) {
-    if (!this.store.account.admin()) return false;
+    if (!this.store.account.admin) return false;
     if (def.config?.noUpdate || status.config?.noUpdate) return false;
     if (def.config?.version !== undefined) {
       if (status.config?.version === undefined) return true;

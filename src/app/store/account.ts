@@ -22,26 +22,26 @@ export class AccountStore {
    * Owns everything.
    * Limited to origin and sub origins.
    */
-  readonly admin = signal<boolean>(false);
+  admin = false;
   /**
    * Is mod.
    * Owns everything except plugins and templates.
    * Limited to origin and sub origins.
    */
-  readonly mod = signal<boolean>(false);
+  mod = false;
   /**
    * Is editor.
    * Allowed to toggle any public tag (except public and locked) to any Ref in view.
    * Limited to origin and sub origins.
    */
-  readonly editor = signal<boolean>(false);
+  editor = false;
   /**
    * Is user.
    * Allowed to post Refs.
    * May be given access to other tags.
    * Limited to origin and sub origins.
    */
-  readonly user = signal<boolean>(false);
+  user = false;
   /**
    * Is viewer.
    * Allowed to edit user ext.
@@ -49,13 +49,13 @@ export class AccountStore {
    * May not be given write access to other tags.
    * Limited to origin and sub origins.
    */
-  readonly viewer = signal<boolean>(false);
+  viewer = false;
   /**
    * Is banned.
    * No access, ban message shown instead.
    * Limited to origin and sub origins.
    */
-  readonly banned = signal<boolean>(false);
+  banned = false;
   /**
    * Unread inbox and alarms total count.
    */
@@ -100,11 +100,11 @@ export class AccountStore {
 
   readonly role = computed(() => {
     if (!this.signedIn()) return '';
-    if (this.admin()) return 'admin';
-    if (this.mod()) return 'mod';
-    if (this.editor()) return 'editor';
-    if (this.user()) return 'user';
-    if (this.viewer()) return 'viewer';
+    if (this.admin) return 'admin';
+    if (this.mod) return 'mod';
+    if (this.editor) return 'editor';
+    if (this.user) return 'user';
+    if (this.viewer) return 'viewer';
     return 'anon';
   });
 
@@ -112,12 +112,12 @@ export class AccountStore {
     return {
       debug: this.debug(),
       tag: this.tag(),
-      admin: this.admin(),
-      mod: this.mod(),
-      editor: this.editor(),
-      user: this.user(),
-      viewer: this.viewer(),
-      banned: this.banned(),
+      admin: this.admin,
+      mod: this.mod,
+      editor: this.editor,
+      user: this.user,
+      viewer: this.viewer,
+      banned: this.banned,
     };
   });
 
@@ -273,12 +273,12 @@ export class AccountStore {
       // Not logged in, only local origin is set
       this.tag.set('');
     }
-    this.admin.set(roles.admin);
-    this.mod.set(roles.mod);
-    this.editor.set(roles.editor);
-    this.user.set(roles.user);
-    this.viewer.set(roles.viewer);
-    this.banned.set(roles.banned);
+    this.admin = roles.admin;
+    this.mod = roles.mod;
+    this.editor = roles.editor;
+    this.user = roles.user;
+    this.viewer = roles.viewer;
+    this.banned = roles.banned;
   }
 
   defaultEditors(plugins: string[]) {

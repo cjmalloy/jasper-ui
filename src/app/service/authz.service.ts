@@ -17,7 +17,7 @@ export class AuthzService {
     if (!this.store.account.signedIn()) return false;
     if (ref.origin !== this.store.account.origin()) return false;
     if (hasTag('locked', ref)) return false;
-    if (this.store.account.mod()) return true;
+    if (this.store.account.mod) return true;
     if (isOwnerTag(this.store.account.tag(), ref)) return true;
     const access = this.store.account.access();
     if (!access) return false;
@@ -28,7 +28,7 @@ export class AuthzService {
   taggingAccess(ref: Ref): boolean {
     if (!this.store.account.signedIn()) return false;
     if (ref.origin !== this.store.account.origin()) return false;
-    if (this.store.account.editor()) return true;
+    if (this.store.account.editor) return true;
     if (isOwnerTag(this.store.account.tag(), ref)) return true;
     const access = this.store.account.access();
     if (!access) return false;
@@ -38,7 +38,7 @@ export class AuthzService {
 
   deleteAccess(ref: Ref): boolean {
     if (!this.store.account.signedIn()) return false;
-    if (this.store.account.mod()) return true;
+    if (this.store.account.mod) return true;
     if (ref.origin !== this.store.account.origin()) return false;
     return this.taggingAccess(ref);
   }
@@ -56,10 +56,10 @@ export class AuthzService {
     tag = localTag(tag);
     if (publicTag(tag)) return true;
     if (!this.store.account.signedIn()) return false;
-    if (this.store.account.mod()) return true;
+    if (this.store.account.mod) return true;
     if (this.store.account.localTag() === tag) return true;
     if (hasTag(tag, this.config.modSeals)) return false;
-    if (!this.store.account.editor() && hasTag(tag, this.config.editorSeals)) return false;
+    if (!this.store.account.editor && hasTag(tag, this.config.editorSeals)) return false;
     const access = this.store.account.access();
     if (!access) return false;
     if (capturesAny(access.tagReadAccess, [tag])) return true;
@@ -72,7 +72,7 @@ export class AuthzService {
     tag = localTag(tag);
     if (!privateTag(tag)) return true;
     if (!this.store.account.signedIn()) return false;
-    if (this.store.account.mod()) return true;
+    if (this.store.account.mod) return true;
     if (this.store.account.localTag() === tag) return true;
     const access = this.store.account.access();
     if (!access) return false;
@@ -85,8 +85,8 @@ export class AuthzService {
     if (!tag) return false;
     tag = localTag(tag);
     if (tag === 'locked') return false;
-    if (this.store.account.mod()) return true;
-    if (this.store.account.editor() && publicTag(tag)) return true;
+    if (this.store.account.mod) return true;
+    if (this.store.account.editor && publicTag(tag)) return true;
     if (this.store.account.localTag() === tag) return true;
     const access = this.store.account.access();
     if (!access) return false;
@@ -96,13 +96,13 @@ export class AuthzService {
 
   hasRole(role: Role) {
     switch(role) {
-      case 'ROLE_ADMIN': return this.store.account.admin();
-      case 'ROLE_MOD': return this.store.account.mod();
-      case 'ROLE_EDITOR': return this.store.account.editor();
-      case 'ROLE_USER': return this.store.account.user();
-      case 'ROLE_VIEWER': return this.store.account.viewer();
+      case 'ROLE_ADMIN': return this.store.account.admin;
+      case 'ROLE_MOD': return this.store.account.mod;
+      case 'ROLE_EDITOR': return this.store.account.editor;
+      case 'ROLE_USER': return this.store.account.user;
+      case 'ROLE_VIEWER': return this.store.account.viewer;
       case 'ROLE_ANONYMOUS': return true;
-      case 'ROLE_BANNED': return this.store.account.banned();
+      case 'ROLE_BANNED': return this.store.account.banned;
     }
   }
 }

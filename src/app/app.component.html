@@ -13,7 +13,7 @@
     <app-user-clipboard></app-user-clipboard>
   }
   <router-outlet></router-outlet>
-  @if (store.account.banned()) {
+  @if (store.account.banned) {
     <div class="ban-message">
       You have been banned.
     </div>

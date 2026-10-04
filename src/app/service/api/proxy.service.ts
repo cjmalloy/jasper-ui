@@ -124,7 +124,7 @@ export class ProxyService {
   getFetch(url: string, origin = '', filename = 'file', thumbnail = false, prefetch = true) {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
-    if (prefetch && this.config.prefetch && this.store.account.user()) this.prefetch(url, origin, filename);
+    if (prefetch && this.config.prefetch && this.store.account.user) this.prefetch(url, origin, filename);
     if (thumbnail) return `${this.base}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
     return `${this.base}/${sanitizePath(filename.trim())}?url=${encodeURIComponent(url)}&origin=${origin}`;
   }
