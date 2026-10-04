@@ -47,6 +47,10 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
 
   icons: Icon[] = [];
   forms: Plugin[] = [];
+  /**
+   * Initial data for plugins about to be added.
+   */
+  pending: Record<string, any> = {};
 
   constructor(
     public admin: AdminService,
@@ -119,6 +123,10 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
       this.plugins.patchValue(value);
       this.gens!.forEach(g => g.setValue(value))
     });
+  }
+
+  usePending(tag: string) {
+    delete this.pending[tag];
   }
 
   visible(v: Visibility) {
