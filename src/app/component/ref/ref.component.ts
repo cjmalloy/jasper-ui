@@ -679,6 +679,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return uniq([...(this.repost ? this.repostRef?.tags : this.ref.tags) || [], ...this.expandPlugins]);
   }
 
+  get viewerEmbeds() {
+    if (!this.plugins) return this.expandPlugins;
+    return this.expandPlugins.filter(p => this.plugins!.some(t => hasTag(t, [p])));
+  }
+
   @memo
   get bareRef() {
     return this.bareRepost ? this.repostRef : this.ref;

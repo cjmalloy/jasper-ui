@@ -86,6 +86,19 @@
             [url]="qrUrl"
             [appResize]="!disableResize"></app-qr>
   }
+  @if (map && mapPage) {
+    @defer {
+      <app-map class="map-embed"
+               [page]="mapPage"
+               [tag]="store.view.tag"
+               [ext]="store.view.viewExt"
+               [pageControls]="false"
+               [bbox]="ref?.plugins?.['plugin/geo']?.bbox"
+               [fitFeatures]="true"></app-map>
+    } @placeholder {
+      <app-loading></app-loading>
+    }
+  }
   @if (todo) {
     <app-todo class="zoom"
               [ref]="ref"

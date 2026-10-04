@@ -146,6 +146,15 @@ $tablet-width: 948px;
   .mobile-col {
     flex-direction: column;
   }
+  .list-drag:has(> formly-field > formly-list-section, > formly-field > formly-wrapper-form-field > .location-field) {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    & > formly-field > formly-list-section > label,
+    & > formly-field > formly-wrapper-form-field > label {
+      flex-basis: 100%;
+      transform-origin: left center;
+    }
+  }
   .mobile-hide {
     display: none !important;
   }
