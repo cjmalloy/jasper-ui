@@ -30,6 +30,7 @@ const DEFAULTS: GeoStyle = {
              [disabled]="formControl.disabled"
              (input)="set('color', $any($event.target).value)">
       <div class="range-input geo-style-stroke-width-input">
+        <div class="range-value geo-style-stroke-width-label" aria-hidden="true">{{ strokeWidths[strokeWidthIndex].label }}</div>
         <input type="range"
                class="geo-style-stroke-width"
                min="0" [max]="strokeWidths.length - 1" step="1"
@@ -39,7 +40,6 @@ const DEFAULTS: GeoStyle = {
                [value]="strokeWidthIndex"
                [disabled]="formControl.disabled"
                (input)="set('strokeWidth', strokeWidths[+$any($event.target).value].value)">
-        <div class="range-value geo-style-stroke-width-label" aria-hidden="true">{{ strokeWidths[strokeWidthIndex].label }}</div>
       </div>
       <select class="geo-style-stroke-style"
               i18n-title title="Stroke Style"
@@ -86,7 +86,12 @@ const DEFAULTS: GeoStyle = {
       flex: 1 1 0;
       min-width: 0;
     }
+    :host .geo-style-stroke-label,
+    :host .geo-style-stroke {
+      margin-top: calc(4px + 1em);
+    }
     .range-input {
+      position: relative;
       display: flex;
       align-items: center;
       margin-left: 4px;
@@ -97,9 +102,14 @@ const DEFAULTS: GeoStyle = {
       min-width: 0;
     }
     .range-value {
-      flex: 0 0 auto;
-      margin-left: 4px;
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      line-height: 1;
+      text-align: center;
       white-space: nowrap;
+      pointer-events: none;
     }
     input[type=color] {
       flex: 0 0 auto;

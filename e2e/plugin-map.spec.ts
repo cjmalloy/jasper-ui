@@ -151,8 +151,15 @@ test.describe.serial('Map Plugin', () => {
     await style.locator('.geo-style-color').fill('#ff0000');
     await expect(style.locator('.geo-style-stroke-width-label')).toHaveText('Medium');
     await expect(style.locator('.geo-style-stroke-width-input .range-tick')).toHaveCount(0);
+    const slider = (await style.locator('.geo-style-stroke-width').boundingBox())!;
     await style.locator('.geo-style-stroke-width').fill('2');
     await expect(style.locator('.geo-style-stroke-width-label')).toHaveText('Large');
+    // The width label sits above the slider, so the slider does not resize as the label changes
+    expect((await style.locator('.geo-style-stroke-width').boundingBox())!.width).toBe(slider.width);
+    const widthLabel = (await style.locator('.geo-style-stroke-width-label').boundingBox())!;
+    expect(widthLabel.y + widthLabel.height).toBeLessThanOrEqual(slider.y);
+    const rowTop = (await style.locator('.geo-style-stroke').boundingBox())!.y;
+    expect(widthLabel.y).toBeGreaterThanOrEqual(rowTop - 4 - widthLabel.height);
     await style.locator('.geo-style-stroke-style').selectOption('dashed');
     await style.locator('.geo-style-fill-color').fill('#00ff00');
     await style.locator('.geo-style-fill-style').selectOption('crosshatch');
