@@ -215,6 +215,16 @@ $tablet-width: 948px;
     }
   }
 
+  .ref.list-item {
+    & > .info,
+    & > .actions {
+      grid-row: 2;
+    }
+    & > .actions {
+      align-self: end;
+    }
+  }
+
   .thread > .ref-list > .list-container > .ref,
   .md .ref.plugin_thread:not(.ref-list-item),
   .thread .ref.plugin_thread:not(.ref-list-item),
@@ -243,6 +253,7 @@ $tablet-width: 948px;
       margin-left: 0;
       transition: none;
       height: 28px;
+      grid-row: auto;
       line-height: 28px;
       padding: 0 8px;
     }
@@ -455,6 +466,7 @@ $tablet-width: 948px;
       & > .info, & > .actions {
         height: 32px !important;
         transition: none !important;
+        grid-row: auto;
       }
       & > .toggle {
         &.actions-toggle, &.view, &.threads, &.comments {
@@ -467,6 +479,7 @@ $tablet-width: 948px;
   app-ref-list.plugin_image .list-container > .ref {
     & > .info, & > .actions {
       height: 28px;
+      grid-row: auto;
     }
   }
 
