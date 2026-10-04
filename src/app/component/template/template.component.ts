@@ -80,6 +80,7 @@ export class TemplateComponent implements HasChanges {
   }
 
   init(): void {
+    this.editForm.reset();
     this.editForm.patchValue({
       ...this.template(),
       config: this.template().config ? JSON.stringify(this.template().config, null, 2) : undefined,
@@ -208,10 +209,10 @@ export class TemplateComponent implements HasChanges {
       }),
     ).subscribe(template => {
       this.saving.set(false);
-      this.editForm.reset();
       this.serverError.set([]);
       this.editing.set(false);
       this.template.set(template);
+      this.init();
     });
     this.savingSubscription?.add(() => this.saving.set(false));
   }

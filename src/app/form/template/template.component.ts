@@ -1,5 +1,5 @@
-import { controlValue } from '../../util/form';
-import { computed, Component, input, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { computed, Component, inject, input, signal, untracked } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -7,7 +7,12 @@ import {
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
+import { FormlyFieldConfig } from '@ngx-formly/core';
+import { cloneDeep } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
+import { controlValue } from '../../util/form';
+import { AdminService } from '../../service/admin.service';
+import { AdminConfigComponent } from '../admin-config/admin-config.component';
 import { JsonComponent } from '../json/json.component';
 
 @Component({
@@ -15,9 +20,11 @@ import { JsonComponent } from '../json/json.component';
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
   host: { 'class': 'nested-form' },
-  imports: [ReactiveFormsModule, JsonComponent]
+  imports: [ReactiveFormsModule, JsonComponent, AdminConfigComponent, NgTemplateOutlet]
 })
 export class TemplateFormComponent {
+  private admin = inject(AdminService);
+
   private readonly rootControlState = controlValue(() => this.group());
 
   private readonly controlState0 = controlValue(() => this.group().get('config'));
@@ -34,6 +41,13 @@ export class TemplateFormComponent {
   readonly editingConfig = signal<any>(false);
   readonly editingDefaults = signal<any>(false);
   readonly editingSchema = signal<any>(false);
+
+  private readonly initialTag = computed(() => {
+    const group = this.group();
+    return untracked(() => group.get('tag')?.value) || '';
+  });
+  readonly adminForm = computed(() => cloneDeep(this.admin.getTemplateAdminForm(this.initialTag(), 'adminForm')));
+  readonly advancedAdminForm = computed(() => cloneDeep(this.admin.getTemplateAdminForm(this.initialTag(), 'advancedAdminForm')));
 
   readonly tag = computed(() => {
     this.rootControlState();
@@ -62,6 +76,8 @@ export class TemplateFormComponent {
     this.controlState2();
     return this.editingSchema() || this.group().get('schema')?.value;
   });
+
+  readonly jsonErrors = computed(() => !!(this.configErrors().length || this.defaultsErrors().length || this.schemaErrors().length));
 
   validate(input: HTMLInputElement) {
     if (this.name().touched) {

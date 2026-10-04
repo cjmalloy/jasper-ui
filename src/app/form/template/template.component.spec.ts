@@ -1,6 +1,9 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { provideRouter } from '@angular/router';
 
 import { TemplateFormComponent } from './template.component';
 
@@ -10,7 +13,12 @@ describe('TemplateFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TemplateFormComponent]
+      imports: [TemplateFormComponent],
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(TemplateFormComponent);

@@ -953,6 +953,14 @@ export class AdminService {
     return [];
   }
 
+  getPluginAdminForm(tag: string, field: 'adminForm' | 'advancedAdminForm' = 'adminForm'): FormlyFieldConfig[] {
+    return this.getPlugin(tag)?.config?.[field] || [];
+  }
+
+  getTemplateAdminForm(tag: string, field: 'adminForm' | 'advancedAdminForm' = 'adminForm'): FormlyFieldConfig[] {
+    return this.getTemplate(tag)?.config?.[field] || [];
+  }
+
   getDefaults(tag = ''): any {
     const template = this.getTemplate(tag);
     const defaults = template?.defaults;

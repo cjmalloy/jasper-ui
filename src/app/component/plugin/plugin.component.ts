@@ -82,6 +82,7 @@ export class PluginComponent implements HasChanges {
   }
 
   init(): void {
+    this.editForm.reset();
     this.editForm.patchValue({
       ...this.plugin(),
       config: this.plugin().config ? JSON.stringify(this.plugin().config, null, 2) : undefined,
@@ -210,10 +211,10 @@ export class PluginComponent implements HasChanges {
       }),
     ).subscribe(tag => {
       this.saving.set(false);
-      this.editForm.reset();
       this.serverError.set([]);
       this.editing.set(false);
       this.plugin.set(tag);
+      this.init();
     });
     this.savingSubscription?.add(() => this.saving.set(false));
   }
