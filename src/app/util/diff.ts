@@ -1,5 +1,5 @@
 import { diff3Merge, MergeRegion } from 'node-diff3';
-import { cloneDeep, get, isArray, isEmpty, isObject, isString, set, sortBy, uniq, unset } from 'lodash-es';
+import { cloneDeep, get, isArray, isEmpty, isObject, isString, set, sortBy, toPath, uniq, unset } from 'lodash-es';
 import { Ref, writeRef } from '../model/ref';
 import { Ext, writeExt } from '../model/ext';
 import { User, writeUser } from '../model/user';
@@ -130,7 +130,7 @@ export function merge3(ours: string, base: string, theirs: string, delimiter = '
 
 export type BundleMerge = { result?: Mod, conflict?: boolean };
 
-type SubDiff = { type: 'plugin' | 'template', tag: string, path: string, value?: string };
+type SubDiff = { type: 'plugin' | 'template', tag: string, path: string, value?: string, prune: string[][] };
 
 /**
  * Three-way merge of mod bundles.
@@ -170,9 +170,16 @@ export function mergeBundle(ours: Mod, base: Mod, theirs: Mod): BundleMerge {
           if (merged.conflict || merged.result === undefined) return { conflict: true };
           value = merged.result;
         }
+        const segments = toPath(path);
+        const prune: string[][] = [];
+        for (let i = segments.length - 1; i >= 0; i--) {
+          const container = ['config', ...segments.slice(0, i)];
+          const [oh, bh, th] = [o, b, t].map(c => get(c, container) !== undefined);
+          if (!(oh === th ? oh : oh === bh ? th : oh)) prune.push(container);
+        }
         const placeholder = `subDiff:${type}:${tag}:${path}`;
         for (const c of [o, b, t]) set(c.config ||= {}, path, placeholder);
-        subDiffs.push({ type, tag, path, value });
+        subDiffs.push({ type, tag, path, value, prune });
       }
     }
   }
@@ -184,6 +191,11 @@ export function mergeBundle(ours: Mod, base: Mod, theirs: Mod): BundleMerge {
     if (!c) continue;
     if (d.value === undefined) {
       unset(c.config, d.path);
+      for (const container of d.prune) {
+        const v = get(c, container);
+        if (!isObject(v) || !isEmpty(v)) break;
+        unset(c, container);
+      }
     } else {
       set(c.config ||= {}, d.path, d.value);
     }

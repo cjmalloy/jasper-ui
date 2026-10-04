@@ -2,7 +2,7 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { equalBundle, formatBundleDiff, formatDiff, merge3, mergeBundle } from './diff';
+import { clearMod, equalBundle, formatBundleDiff, formatDiff, merge3, mergeBundle } from './diff';
 
 describe('Diff Utils', () => {
   describe('formatDiff', () => {
@@ -315,6 +315,27 @@ describe('Diff Utils', () => {
       const ours = { plugin: [{ tag: 'plugin/test', config: { mod: 'Test', subDiff: ['script'] } }] } as any;
       const { result } = mergeBundle(ours, base, ours);
       expect(result!.plugin![0].config!.script).toBeUndefined();
+    });
+
+    it('should prune containers introduced for deleted nested subDiff fields', () => {
+      const base = { plugin: [{ tag: 'plugin/test', config: { subDiff: ['a.script'], a: { script: 'a' } } }] } as any;
+      const ours = { plugin: [{ tag: 'plugin/test', config: { subDiff: ['a.script'] } }] } as any;
+      const { result } = mergeBundle(ours, base, ours);
+      expect(result!.plugin![0].config).toEqual({ subDiff: ['a.script'] });
+    });
+
+    it('should not leave placeholder artifacts when config is deleted on both sides', () => {
+      const base = { plugin: [{ tag: 'plugin/test', config: { subDiff: ['a.script'], a: { script: 'a' } } }] } as any;
+      const ours = { plugin: [{ tag: 'plugin/test' }] } as any;
+      const { result } = mergeBundle(ours, base, ours);
+      expect(result).toEqual(clearMod(ours));
+    });
+
+    it('should keep pre-existing empty containers', () => {
+      const base = { plugin: [{ tag: 'plugin/test', config: { subDiff: ['a.script'], a: { script: 'a' } } }] } as any;
+      const ours = { plugin: [{ tag: 'plugin/test', config: { subDiff: ['a.script'], a: {} } }] } as any;
+      const { result } = mergeBundle(ours, base, ours);
+      expect(result!.plugin![0].config!.a).toEqual({});
     });
   });
 });
