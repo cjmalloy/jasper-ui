@@ -9,9 +9,6 @@ Users all count as tags. Both kinds use the same two-line row layout:
                      actions (.actions — fake-links, action components, action-list)
 ```
 
-The selector names below are also exported from [`e2e/selectors.ts`](../e2e/selectors.ts), and
-[`e2e/structure.spec.ts`](../e2e/structure.spec.ts) fails if a page drifts from this structure.
-
 ## Skeletons
 
 ### Ref (`app-ref`, `component/ref`)
@@ -146,7 +143,7 @@ Classes that look alike but mean something else: `.ref-list` / `.ext-list` / `.p
 | `/ext/:tag`, `/user/:tag`, `/settings/me`, `/submit/*` forms | entity forms | `.full-page-form` (form page, not a row) |
 
 Plugin-specific ref views (`.comment`, `.blog-entry`, `.chat-entry`, `.kanban-card`, `.note`, …) render refs in
-their own layouts. They are not `.ref` rows and are not checked by `e2e/structure.spec.ts`.
+their own layouts. They are not `.ref` rows.
 
 ## Inventory (before standardizing)
 
