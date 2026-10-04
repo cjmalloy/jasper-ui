@@ -77,7 +77,7 @@
                        class="shrink"
                        [add]="true"
                        i18n-title title="Add Plugin"
-                       (pluginChange)="togglePlugin($event); pluginSelect.plugin.set('')"></app-select-plugin>
+                       (pluginChange)="togglePlugin($event); pluginSelect.reset()"></app-select-plugin>
   @if (creating() && thumbnail()) {
     <div class="thumbnail-preview">
       <div class="thumbnail"
