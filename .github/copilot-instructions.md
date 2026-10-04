@@ -209,7 +209,7 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 - Give interactive and structurally significant elements descriptive, semantic `class` names (`.filter-toggle`, `.filter-preview`, `.bookmark-field`, `.params-panel`). Name them after their role, not their look.
 - **Never** select custom component tags (`app-ref`, `formly-field-*`) in E2E tests. Standard HTML tags are acceptable, but classes are preferred.
 - Add host classes to formly field components: `host: { 'class': 'field my-field-type' }`.
-- **New entity UIs must use the row slots** documented in [`docs/STRUCTURE.md`](../docs/STRUCTURE.md): a `.ref` or `.tag` root, then `.link` → `.info` → `.actions`. Select tag rows with `.tag.list-item` or a kind class (`.tag.ext`, `.tag.plugin`, `.tag.template`, `.tag.profile`), never a bare `.tag`, which also matches inline chips.
+- **New entity UIs must use the row slots** documented in [`docs/STRUCTURE.md`](../docs/STRUCTURE.md): a `.ref`, `.ext`, `.plugin`, `.template` or `.profile` (User) root, then `.link` → `.info` → `.actions`. `.tag` is only for inline tag links; never put it on a row.
 
 ### Debugging failing tests
 

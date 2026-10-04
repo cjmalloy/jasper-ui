@@ -140,7 +140,7 @@ textarea {
   opacity: 0;
 }
 
-a.tag {
+.tag {
   color: var(--tag) !important;
 }
 
@@ -742,13 +742,13 @@ video.qr-preview {
   }
 }
 
-a.tag,
+.tag,
 .icon:not(:empty) {
   margin: 0 4px;
   line-height: 10px;
   cursor: pointer;
   font-style: normal;
-  & + a.tag,
+  & + .tag,
   & + .icon {
     margin-left: 0;
   }
