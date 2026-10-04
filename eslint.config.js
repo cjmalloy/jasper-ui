@@ -24,7 +24,7 @@ module.exports = tseslint.config(
         selector: 'ClassDeclaration > TSClassImplements[expression.name=/^(On|After|Do)[A-Z]/]',
         message: 'Do not implement lifecycle interfaces. Use computed(), afterNextRender() or DestroyRef.',
       }, {
-        selector: "ImportDeclaration[source.value='lodash-es'] > ImportSpecifier[imported.name='defer']",
+        selector: "ImportDeclaration[source.value='lodash-es'] > ImportSpecifier[imported.name=/^(defer|delay)$/]",
         message: 'Do not defer to wait for rendering. Use afterNextRender() when the DOM is really needed.',
       }],
       'no-restricted-imports': ['error', {

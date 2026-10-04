@@ -81,8 +81,9 @@ npx playwright install --with-deps chromium
 | Task | Command | Verified time |
 |---|---|---|
 | Production build (all locales) | `npm run build` | ~45s (up to ~100s on cold cache) |
-| Unit tests (Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
-| Single spec | `npm test -- --watch=false --include src/app/util/format.spec.ts` | ~6s |
+| Lint (angular-eslint) | `npm run lint` | ~10s. `npx eslint src --fix` fixes self-closing tags. |
+| Unit tests (lint, then Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
+| Single spec | `npx ng test --watch=false --include src/app/util/format.spec.ts` | ~6s |
 | App type check (incl. template diagnostics) | `npx ngc -p tsconfig.app.json --noEmit` | ~15s |
 | Unit tests exactly like CI | `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test` | ~4.5 min (cached builder) |
 
@@ -232,19 +233,31 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 - **RxJS subscribe style**: always pass a single callback (`obs.subscribe(value => { ... })`). Never pass an observer object, and never pass multiple callbacks.
 - Don't add comments unless they match the surrounding style.
 
-### Signals and change detection
+### Data flow
 
-The app is zoneless and every component is `ChangeDetectionStrategy.OnPush`. A template only re-renders when a signal it reads changes, an input changes, or an event fires inside it. Follow these rules; the checks below catch the most common mistakes, but not all of them:
+The app is zoneless. Components are OnPush (the Angular 22 default, so don't set `changeDetection`). A template only re-renders when a signal it reads changes, an input changes, or an event fires inside it.
 
-- **All state is signals.** Use `signal()` for state, `computed()` for derived values, `input()`/`input.required()` for inputs, `linkedSignal(() => this.xInput())` for inputs that the component also overwrites, and `model()` when the parent must see the change. Don't use getters that compute from non-signal state in templates.
+1. **State flows down, events flow up.** `input()` in, `output()` out. A parent never calls methods on a child (no `viewChild(...).reset()`, no `viewChildren(...).forEach(...)`).
+2. **State is `signal()`, derived values are `computed()`, async data is `resource`/`rxResource`/`httpResource`.** `rxResource(...).value()` throws in the error state, so read it as `r.hasValue() ? r.value() : fallback`.
+3. **`effect()` only syncs to something outside Angular** (localStorage, document title, Monaco/maplibre/d3/ag-grid, `<video>`, router, STOMP). An effect never writes a signal. Put a one-line comment above each effect saying what it syncs.
+4. **`linkedSignal` only for a local edit buffer seeded from an input.** UI state (`editing`, `replying`, `viewSource`, `submitted`) is a plain `signal(false)`, changed only by user events. To reset a row for a new entity, re-create it with `@for (…; track ref.url)`.
+5. **No `defer`/`delay`/`setTimeout` to wait for rendering.** Use `afterNextRender`/`afterRenderEffect` only when the DOM is really needed.
+6. **Layout is CSS.** No measuring DOM widths in TypeScript to decide what to show. Breakpoints are SCSS media queries.
+
+More rules:
+- Use `inject()`, never constructor parameter injection. Don't implement lifecycle interfaces (`OnInit`, `OnDestroy`, `AfterViewInit`, ...): use field initializers, `computed()`, `afterNextRender()` and `inject(DestroyRef).onDestroy()`.
+- Route pages load their list with `inject(QueryStore).watch(() => args)` (or `ExtStore`/`PluginStore`/`TemplateStore`/`UserStore`/`ProfileStore`, all `util/page-store.ts`) in the constructor. The store loads with `rxResource` and stops when the page is destroyed.
+- A row that saves, votes, tags or deletes sets the result into its own `ref` in the same handler. `EventBus` is only for real cross-component broadcasts.
+- Don't pass RxJS `Subject`s between components. Use signals, `output()` or a direct call.
 - **Always call signals in templates**: `@if (editing())`, `[class.busy]="busy()"`. An uncalled signal is a function and is always truthy.
-- **Never read `FormControl`/`AbstractControl` state (`.value`, `.valid`, `.invalid`, `.errors`, `.dirty`, `.pristine`, `.pending`, `.disabled`, ...) in a binding.** Use `controlValue(() => control)` or `controlState(() => control, c => c.dirty)` from `util/form.ts`. Reading them in an event handler is fine.
+- **Never read `FormControl`/`AbstractControl` state (`.value`, `.valid`, `.dirty`, ...) in a binding.** Read it in event handlers. State a template needs is a plain signal set from the handler, or from `valueChanges`/`statusChanges` with `takeUntilDestroyed()`. Use typed forms (`FormControl<T>`), not `Untyped*`.
 - **Never bind to DOM state of a template reference** (`#input` then `[title]="input.value"`). Keep the value in a signal.
-- **No side effects in `computed()`.** Writing to a form control (`setValue`, `disable`, `addControl`, ...) inside a computed emits control events, which write to `controlValue`/`controlState` signals and throw NG0600.
+- **No side effects in `computed()`.**
 - **Relative times**: use the `relative` pipe (`{{ ref().modified | relative }}`), never `.toRelative()` in a template. It formats against `ClockService.now`, which ticks every 10s, so the text is stable within a render.
 - Use `isDevMode()` only for Angular checks. For local development conveniences (auto login, prefetch, ...) use `environment.dev`, which is false in the E2E build.
 
 Checks:
+- **Lint** (`npm run lint`, also run by `npm test` and the Docker build): angular-eslint `prefer-inject`, `prefer-signals`, `template/prefer-control-flow`, `template/prefer-self-closing-tags`; bans `@Input`/`@Output`/`@ViewChild(ren)`/`@ContentChild(ren)`/`@HostBinding`/`@HostListener`, lifecycle interfaces, lodash `defer`/`delay`, and imports of `zone.js`, `mobx*`, `NgZone` and `HTTP_INTERCEPTORS`. Config: `eslint.config.js`.
 - **Compiler** (`tsconfig.json`): `strictTemplates` plus the extended diagnostics `interpolatedSignalNotInvoked` (NG8109), `uninvokedFunctionInEventBinding` (NG8111), `uninvokedFunctionInTextInterpolation` (NG8117) and `uninvokedTrackFunction` (NG8115) are errors. `strictTemplates` also reports TS2774 for an uncalled function in `@if`.
 - **Runtime**: dev (`npm start`, `environment.ts`) and E2E (`environment.e2e.ts`) builds add `provideCheckNoChangesConfig({ exhaustive: true })`, so state that changes without notifying an OnPush view logs NG0100. The Playwright fixture turns that into a test failure.
 
