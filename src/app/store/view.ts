@@ -59,6 +59,10 @@ export class ViewStore {
   inboxTabs: Plugin[] = [];
   settingsTabs: Plugin[] = [];
   /**
+   * URL of the Ref currently open in the Picture-in-Picture window.
+   */
+  pip = '';
+  /**
    * Current map center and zoom, updated as the map is panned.
    */
   liveMapView = '';
@@ -72,6 +76,8 @@ export class ViewStore {
       setRef: action,
       preloadRef: action,
       setLastSelected: action,
+      addPip: action,
+      removePip: action,
       setLiveMapView: action,
       exts: observableShallow,
       extTemplates: observableShallow,
@@ -240,6 +246,18 @@ export class ViewStore {
 
   get refPath() {
     return this.browser ? '/browse' : '/ref';
+  }
+
+  addPip(url: string) {
+    this.pip = url;
+  }
+
+  removePip(url: string) {
+    if (this.pip === url) this.pip = '';
+  }
+
+  inPip(url?: string) {
+    return !!url && this.pip === url;
   }
 
   subviewPath(subview?: string) {
