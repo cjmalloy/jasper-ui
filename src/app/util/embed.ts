@@ -50,6 +50,22 @@ export function parseSrc(html: string) {
   return iframes.length > 0 ? iframes[0].src : '';
 }
 
+/**
+ * Navigate an iframe without adding an entry to the browser history.
+ * Setting iframe.src on an already loaded iframe pushes to the joint session history.
+ */
+export function setIframeSrc(iframe: HTMLIFrameElement, url: string) {
+  if (url && iframe.isConnected && iframe.contentWindow) {
+    try {
+      iframe.contentWindow.location.replace(url);
+      return;
+    } catch (e) {
+      // Fall back to src
+    }
+  }
+  iframe.src = url;
+}
+
 export function createLink(vc: ViewContainerRef, url: string, text: string, title = '', css = ''): ComponentRef<NavComponent> {
   const c = vc.createComponent(NavComponent);
   c.instance.url = url;

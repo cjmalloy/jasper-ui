@@ -42,7 +42,7 @@ import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
-import { embedUrl } from '../../util/embed';
+import { embedUrl, setIframeSrc } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
@@ -343,7 +343,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
             MemoCache.clear(this);
           });
       } else {
-        i.src = embedUrl(this.embed?.url || this.ref?.url);
+        setIframeSrc(i, embedUrl(this.embed?.url || this.ref?.url));
         if (!i.style.width) i.style.width = this.embedWidth;
         if (!i.style.height) i.style.height = this.embedHeight;
         this.embedReady = true;
