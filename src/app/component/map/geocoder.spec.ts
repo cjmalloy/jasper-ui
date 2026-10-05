@@ -45,11 +45,14 @@ describe('geocoder', () => {
     const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ width: 101 } as DOMRect);
     measurePlaceholder(el);
     expect(el.style.getPropertyValue('--map-geocoder-placeholder-width')).toBe('5.05em');
+    expect(el.classList).toContain('measured');
     expect(el.querySelector('span')).toBeNull();
     rect.mockReturnValue({ width: 0 } as DOMRect);
     el.style.removeProperty('--map-geocoder-placeholder-width');
+    el.classList.remove('measured');
     measurePlaceholder(el);
     expect(el.style.getPropertyValue('--map-geocoder-placeholder-width')).toBe('');
+    expect(el.classList).not.toContain('measured');
     el.querySelector('input')!.placeholder = '';
     measurePlaceholder(el);
     expect(el.style.getPropertyValue('--map-geocoder-placeholder-width')).toBe('0em');
@@ -57,7 +60,7 @@ describe('geocoder', () => {
     el.remove();
   });
 
-  it('adds the control top left and tracks the basemap theme', async () => {
+  it('adds the control top left and tracks the basemap theme', () => {
     const container = document.createElement('div');
     const listeners: Record<string, Function> = {};
     let style = { name: 'Dark Matter' };
@@ -76,11 +79,6 @@ describe('geocoder', () => {
     style = { name: 'OSM Liberty' };
     listeners['styledata']();
     expect(el.hasAttribute('data-theme')).toBe(false);
-    // Fits the placeholder again when it changes
-    const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ width: 50 } as DOMRect);
-    el.querySelector('input')!.placeholder = 'Find';
-    await vi.waitFor(() => expect((el as HTMLElement).style.getPropertyValue('--map-geocoder-placeholder-width')).not.toBe(''));
-    rect.mockRestore();
     remove();
     expect(map.off).toHaveBeenCalledWith('styledata', listeners['styledata']);
     expect(map.removeControl).toHaveBeenCalled();

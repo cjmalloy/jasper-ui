@@ -130,17 +130,15 @@ export function addGeocoder(
   };
   const events = ['mousedown', 'touchstart', 'dblclick', 'wheel', 'keydown', 'focusout'];
   for (const e of events) el?.addEventListener(e, stop);
-  // Rest at the CSS fallback width until laid out, then shrink to fit the placeholder,
-  // and measure again when the map is shown or resized, or the placeholder changes
-  const measure = () => {
+  // Hidden until fit to the placeholder, measured once it has been laid out
+  const measured = () => {
     if (el) measurePlaceholder(el);
+    return !el || el.classList.contains('measured');
   };
-  const resized = window.ResizeObserver && new ResizeObserver(measure) || undefined;
+  const resized = !measured() && window.ResizeObserver && new ResizeObserver(() => {
+    if (measured()) resized?.disconnect();
+  }) || undefined;
   resized?.observe(map.getContainer());
-  const placeholder = window.MutationObserver && new MutationObserver(measure) || undefined;
-  const input = el?.querySelector('input');
-  if (input) placeholder?.observe(input, { attributes: true, attributeFilter: ['placeholder'] });
-  document.fonts?.ready.then(measure);
   const theme = () => {
     let style;
     try {
@@ -157,7 +155,6 @@ export function addGeocoder(
   return () => {
     map.off('styledata', theme);
     resized?.disconnect();
-    placeholder?.disconnect();
     control.off('result', result);
     control.off('clear', clear);
     for (const e of events) el?.removeEventListener(e, stop);
@@ -175,7 +172,7 @@ export function measurePlaceholder(el: HTMLElement) {
   const input = el.querySelector<HTMLInputElement>('input');
   if (!input) return;
   if (!input.placeholder) {
-    el.style.setProperty('--map-geocoder-placeholder-width', '0em');
+    show(el, '0em');
     return;
   }
   const span = document.createElement('span');
@@ -186,7 +183,18 @@ export function measurePlaceholder(el: HTMLElement) {
   const fontSize = parseFloat(getComputedStyle(span).fontSize);
   span.remove();
   if (!width || !fontSize) return;
-  el.style.setProperty('--map-geocoder-placeholder-width', Math.ceil(width / fontSize * 100) / 100 + 'em');
+  show(el, Math.ceil(width / fontSize * 100) / 100 + 'em');
+}
+
+/**
+ * Set the measured width, and show the control at that size the first time.
+ */
+function show(el: HTMLElement, width: string) {
+  el.style.setProperty('--map-geocoder-placeholder-width', width);
+  if (el.classList.contains('measured')) return;
+  // Apply the final width before the width transition is enabled
+  void el.offsetWidth;
+  el.classList.add('measured');
 }
 
 function clamp(n: number, min: number, max: number) {
