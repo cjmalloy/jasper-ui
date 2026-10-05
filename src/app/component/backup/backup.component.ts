@@ -106,7 +106,16 @@ export class BackupComponent {
         overlayX: 'start',
         overlayY: 'top',
         offsetY: 4,
-      }]);
+      }, {
+        originX: 'start',
+        originY: 'top',
+        overlayX: 'start',
+        overlayY: 'bottom',
+        offsetY: -4,
+      }])
+      .withFlexibleDimensions(false)
+      .withPush(true)
+      .withViewportMargin(8);
     this.restoreOptionsRef = this.overlay.create({
       hasBackdrop: true,
       backdropClass: 'hide',
