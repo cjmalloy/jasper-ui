@@ -130,6 +130,15 @@ export function addGeocoder(
   };
   const events = ['mousedown', 'touchstart', 'dblclick', 'wheel', 'keydown', 'focusout'];
   for (const e of events) el?.addEventListener(e, stop);
+  // Fit to the placeholder once it has been laid out
+  const measured = () => {
+    if (el) measurePlaceholder(el);
+    return !el || el.classList.contains('measured');
+  };
+  const resized = !measured() && window.ResizeObserver && new ResizeObserver(() => {
+    if (measured()) resized?.disconnect();
+  }) || undefined;
+  resized?.observe(map.getContainer());
   const theme = () => {
     let style;
     try {
@@ -145,6 +154,7 @@ export function addGeocoder(
   theme();
   return () => {
     map.off('styledata', theme);
+    resized?.disconnect();
     control.off('result', result);
     control.off('clear', clear);
     for (const e of events) el?.removeEventListener(e, stop);
@@ -152,6 +162,39 @@ export function addGeocoder(
       map.removeControl(control);
     } catch { }
   };
+}
+
+/**
+ * Size the resting control to fit its placeholder, in whatever language it is.
+ * The width is stored in em so it follows the control's responsive font size.
+ */
+export function measurePlaceholder(el: HTMLElement) {
+  const input = el.querySelector<HTMLInputElement>('input');
+  if (!input) return;
+  if (!input.placeholder) {
+    show(el, '0em');
+    return;
+  }
+  const span = document.createElement('span');
+  span.textContent = input.placeholder;
+  span.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:inherit';
+  el.appendChild(span);
+  const width = span.getBoundingClientRect().width;
+  const fontSize = parseFloat(getComputedStyle(span).fontSize);
+  span.remove();
+  if (!width || !fontSize) return;
+  show(el, Math.ceil(width / fontSize * 100) / 100 + 'em');
+}
+
+/**
+ * Set the measured width, then enable the width transition.
+ */
+function show(el: HTMLElement, width: string) {
+  el.style.setProperty('--map-geocoder-placeholder-width', width);
+  if (el.classList.contains('measured')) return;
+  // Apply the width before the transition is enabled, so it does not animate
+  void el.offsetWidth;
+  el.classList.add('measured');
 }
 
 function clamp(n: number, min: number, max: number) {

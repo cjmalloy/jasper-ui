@@ -77,6 +77,7 @@ export class ExtComponent implements OnChanges, HasChanges {
   icons: Template[] = [];
   template?: Template;
   plugin?: Plugin;
+  @HostBinding('class.editing')
   editing = false;
   viewSource = false;
   @HostBinding('class.deleted')

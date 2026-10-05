@@ -612,6 +612,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     }
   }
 
+  @HostBinding('class.editing')
   get editing(): boolean {
     return this._editing;
   }

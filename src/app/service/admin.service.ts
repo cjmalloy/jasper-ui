@@ -39,6 +39,7 @@ import { durationMod } from '../mods/media/duration';
 import { embedMod } from '../mods/media/embed';
 import { fileMod } from '../mods/media/file';
 import { imageMod } from '../mods/media/image';
+import { masonryMod } from '../mods/media/masonry';
 import { pdfMod } from '../mods/media/pdf';
 import { playlistMod } from '../mods/media/playlist';
 import { tableMod } from '../mods/media/table';
@@ -198,6 +199,7 @@ export class AdminService {
     markitdownMod,
     voteMod,
     imageMod,
+    masonryMod,
     lensMod,
     pipMod,
     chessMod,
@@ -930,6 +932,14 @@ export class AdminService {
       return this.getTemplateAdvancedForm(parent!);
     }
     return [];
+  }
+
+  getPluginAdminForm(tag: string, field: 'adminForm' | 'advancedAdminForm' = 'adminForm'): FormlyFieldConfig[] {
+    return this.getPlugin(tag)?.config?.[field] || [];
+  }
+
+  getTemplateAdminForm(tag: string, field: 'adminForm' | 'advancedAdminForm' = 'adminForm'): FormlyFieldConfig[] {
+    return this.getTemplate(tag)?.config?.[field] || [];
   }
 
   getDefaults(tag = ''): any {

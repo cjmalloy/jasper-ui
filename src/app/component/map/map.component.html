@@ -5,6 +5,7 @@
            [zoom]="view?.zoom"
            [fitBoundsOptions]="fitBoundsOptions"
            (mapError)="onMapError($event)"
+           (styleData)="styleLoaded($event.target)"
            (mapLoad)="mapLoaded($event)"
            (dragstart)="$event.preventDefault()"
            appResizeHandle>
@@ -12,7 +13,7 @@
                  position="bottom-left"
                  unit="imperial"></mgl-control>
     <mgl-control mglNavigation
-                 position="bottom-left"
+                 position="top-left"
                  [visualizePitch]="true"
                  [visualizeRoll]="true"
                  [showCompass]="true"

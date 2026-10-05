@@ -28,6 +28,14 @@ describe('AdminService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('should not inherit template admin forms', () => {
+    service.status.templates['parent'] = { tag: 'parent', config: { adminForm: [{ key: 'a' }], advancedAdminForm: [{ key: 'b' }] } };
+    service.status.templates['parent/child'] = { tag: 'parent/child', config: { adminForm: [{ key: 'c' }] } };
+    expect(service.getTemplateAdminForm('parent/child').map(f => f.key)).toEqual(['c']);
+    expect(service.getTemplateAdminForm('parent/child', 'advancedAdminForm')).toEqual([]);
+    expect(service.getTemplateAdminForm('parent', 'advancedAdminForm').map(f => f.key)).toEqual(['b']);
+  });
+
   it('should keep formly expressions serializable for built-in mods', () => {
     expect(userTemplate.config?.form?.find(f => f.key === 'subscriptions')?.expressions?.hide).toBe('!formState.admin.home');
     expect(blogTemplate.config?.form?.find(f => f.key === 'tags')?.expressions?.hide).toBe('!field.parent.model.filterTags');
