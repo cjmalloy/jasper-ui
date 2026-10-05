@@ -43,7 +43,7 @@ describe('BookmarkService signals', () => {
     it('toggles tags without mutating the submit store snapshot', () => {
       const original = ['alpha', 'alpha/child', 'beta'];
       const tags = signal(original);
-      const navigate = vi.fn();
+      const navigate = vi.fn().mockResolvedValue(true);
       TestBed.configureTestingModule({
         providers: [
           BookmarkService,
@@ -56,6 +56,24 @@ describe('BookmarkService signals', () => {
       expect(tags()).toBe(original);
       expect(navigate).toHaveBeenCalledWith([], expect.objectContaining({
         queryParams: { tag: ['beta'], pageNumber: null },
+      }));
+    });
+
+    it('keeps earlier toggles while the navigation is pending', () => {
+      const tags = signal(['geo', 'geo/polygon']);
+      const navigate = vi.fn().mockReturnValue(new Promise(() => {}));
+      TestBed.configureTestingModule({
+        providers: [
+          BookmarkService,
+          { provide: Store, useValue: { submit: { tags } } },
+          { provide: Router, useValue: { navigate } },
+        ],
+      });
+      const service = TestBed.inject(BookmarkService);
+      service.toggleTag('geo/polygon');
+      service.toggleTag('geo/point');
+      expect(navigate).toHaveBeenLastCalledWith([], expect.objectContaining({
+        queryParams: { tag: ['geo', 'geo/point'], pageNumber: null },
       }));
     });
 });

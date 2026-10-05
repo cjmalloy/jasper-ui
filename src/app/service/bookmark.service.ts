@@ -59,7 +59,7 @@ export class BookmarkService {
 
   toggleTag(...ts: string[]) {
     if (!ts.length) return;
-    const tags = [...this.tags()];
+    const tags = [...this.pendingTags || this.tags()];
     for (const t of ts) {
       if (tags.includes(t)) {
         for (let i = tags.length - 1; i >= 0; i--) {
@@ -76,11 +76,20 @@ export class BookmarkService {
 
   readonly tags = computed(() => this.store.submit.tags());
 
+  /**
+   * Tags set by a navigation that has not finished yet, so toggling
+   * several tags in a row does not undo the previous toggles.
+   */
+  private pendingTags?: string[];
+
   setTags(tags: string[]) {
+    this.pendingTags = tags;
     this.router.navigate([], {
       queryParams: { tag: tags.length ? tags : null, pageNumber: null },
       queryParamsHandling: 'merge',
       replaceUrl: true,
+    }).finally(() => {
+      if (this.pendingTags === tags) this.pendingTags = undefined;
     });
   }
 
