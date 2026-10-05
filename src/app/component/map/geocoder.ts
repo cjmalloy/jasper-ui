@@ -130,6 +130,11 @@ export function addGeocoder(
   };
   const events = ['mousedown', 'touchstart', 'dblclick', 'wheel', 'keydown', 'focusout'];
   for (const e of events) el?.addEventListener(e, stop);
+  const measure = () => {
+    if (el) measurePlaceholder(el);
+  };
+  measure();
+  document.fonts?.ready.then(measure);
   const theme = () => {
     let style;
     try {
@@ -152,6 +157,24 @@ export function addGeocoder(
       map.removeControl(control);
     } catch { }
   };
+}
+
+/**
+ * Size the resting control to fit its placeholder, in whatever language it is.
+ * The width is stored in em so it follows the control's responsive font size.
+ */
+export function measurePlaceholder(el: HTMLElement) {
+  const input = el.querySelector<HTMLInputElement>('input');
+  if (!input?.placeholder) return;
+  const span = document.createElement('span');
+  span.textContent = input.placeholder;
+  span.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:inherit';
+  el.appendChild(span);
+  const width = span.getBoundingClientRect().width;
+  const fontSize = parseFloat(getComputedStyle(span).fontSize);
+  span.remove();
+  if (!width || !fontSize) return;
+  el.style.setProperty('--map-geocoder-placeholder-width', Math.ceil(width / fontSize * 100) / 100 + 'em');
 }
 
 function clamp(n: number, min: number, max: number) {

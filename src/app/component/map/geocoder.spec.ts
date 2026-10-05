@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import type { Map } from 'maplibre-gl';
 import { GeocodeService } from '../../service/geocode.service';
-import { addGeocoder, currentView, isDarkBasemap, renderResult, toFeatureCollection, viewBbox } from './geocoder';
+import { addGeocoder, currentView, isDarkBasemap, measurePlaceholder, renderResult, toFeatureCollection, viewBbox } from './geocoder';
 
 describe('geocoder', () => {
 
@@ -35,6 +35,23 @@ describe('geocoder', () => {
     expect(isDarkBasemap({ name: 'Google Hybrid' })).toBe(true);
     expect(isDarkBasemap({ name: 'OSM Liberty' })).toBe(false);
     expect(isDarkBasemap(undefined)).toBe(false);
+  });
+
+  it('measures the placeholder in em', () => {
+    const el = document.createElement('div');
+    el.style.fontSize = '20px';
+    el.innerHTML = '<input placeholder="Search address">';
+    document.body.appendChild(el);
+    const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ width: 101 } as DOMRect);
+    measurePlaceholder(el);
+    expect(el.style.getPropertyValue('--map-geocoder-placeholder-width')).toBe('5.05em');
+    expect(el.querySelector('span')).toBeNull();
+    rect.mockReturnValue({ width: 0 } as DOMRect);
+    el.style.removeProperty('--map-geocoder-placeholder-width');
+    measurePlaceholder(el);
+    expect(el.style.getPropertyValue('--map-geocoder-placeholder-width')).toBe('');
+    rect.mockRestore();
+    el.remove();
   });
 
   it('adds the control top left and tracks the basemap theme', () => {
