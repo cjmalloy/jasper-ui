@@ -40,7 +40,7 @@ import { closedRings, LocationList, locationLists, LocationPicker } from './loca
              [bounds]="bounds()"
              [fitBoundsOptions]="fitBoundsOptions"
              [attributionControl]="false"
-             (styleData)="addAttribution($event.target)"
+             (styleData)="styleLoaded($event.target)"
              (mapLoad)="mapLoaded($event)"
              (mapContextMenu)="mapContextMenu($event)"
              (mapError)="onMapError($event)"
@@ -65,6 +65,7 @@ export class LocationMapComponent {
   readonly resizeHandle = viewChild(ResizeHandleDirective);
 
   private map?: MapLibreMap;
+  private geocoderMap?: MapLibreMap;
   private markers = new Map<AbstractControl, Marker>();
   private watch?: Subscription;
   private picking = false;
@@ -177,7 +178,7 @@ export class LocationMapComponent {
     this.watch = this.contextRoot.valueChanges.subscribe(() => this.update());
     this.watch.add(this.picker().changes.subscribe(() => this.update()));
     this.updateMarkers();
-    this.updateGeocoder();
+    this.styleLoaded(map);
     // The location may have changed while the map style was loading
     this.panToActive();
   }
@@ -186,6 +187,18 @@ export class LocationMapComponent {
    * The picker is small, so the attribution starts collapsed to the ⓘ button.
    * Added once the style loads, since slow tiles can delay the map load event.
    */
+  /**
+   * Add the address search as soon as the style is ready, without waiting for the tiles to load.
+   */
+  styleLoaded(map: MapLibreMap) {
+    this.addAttribution(map);
+    if (this.geocoderMap === map) return;
+    this.removeGeocoder?.();
+    this.removeGeocoder = undefined;
+    this.geocoderMap = map;
+    this.updateGeocoder();
+  }
+
   addAttribution(map: MapLibreMap) {
     if (this.attribution) return;
     map.addControl(this.attribution = new CollapsedAttributionControl());
@@ -284,6 +297,7 @@ export class LocationMapComponent {
     this.removeGeoLayers = undefined;
     this.removeGeocoder?.();
     this.removeGeocoder = undefined;
+    this.geocoderMap = undefined;
     this.clearSearchResult();
     for (const marker of this.markers.values()) marker.remove();
     this.markers.clear();
@@ -291,8 +305,8 @@ export class LocationMapComponent {
   });
 
   private updateGeocoder() {
-    if (this.geocoding && this.map && !this.removeGeocoder) {
-      this.removeGeocoder = addGeocoder(this.map, this.geocoder, this.geocoderPosition,
+    if (this.geocoding && this.geocoderMap && !this.removeGeocoder) {
+      this.removeGeocoder = addGeocoder(this.geocoderMap, this.geocoder, this.geocoderPosition,
         location => this.showSearchResult(location),
         () => this.clearSearchResult());
     } else if (!this.geocoding && this.removeGeocoder) {

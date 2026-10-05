@@ -89,6 +89,7 @@ export class MapComponent implements HasChanges {
   readonly page = input<Page<Ref> | undefined>(undefined);
 
   private map?: Map;
+  private geocoderMap?: Map;
   private markers: Marker[] = [];
   readonly mapData = toSignal(toObservable(computed(() => this.page()?.content || [])).pipe(
     switchMap(content => !content.some(ref => this.isBareRepost(ref))
@@ -190,8 +191,8 @@ export class MapComponent implements HasChanges {
   }, { equal: isEqual });
 
   private updateGeocoder() {
-    if (this.geocoding && this.map && !this.removeGeocoder) {
-      this.removeGeocoder = addGeocoder(this.map, this.geocoder, this.geocoderPosition,
+    if (this.geocoding && this.geocoderMap && !this.removeGeocoder) {
+      this.removeGeocoder = addGeocoder(this.geocoderMap, this.geocoder, this.geocoderPosition,
         (location, name) => this.showSearchResult(location, name),
         () => this.clearSearchResult(),
         () => this.ext());
@@ -316,6 +317,7 @@ export class MapComponent implements HasChanges {
     if (this.saveView()) this.store.view.liveMapView.set('');
     this.removeGeocoder?.();
     this.removeGeocoder = undefined;
+    this.geocoderMap = undefined;
     this.removeGeoLayers?.();
     this.removeGeoLayers = undefined;
     try {
@@ -337,16 +339,25 @@ export class MapComponent implements HasChanges {
     console.error('MapLibre Engine Error:', event.error);
   }
 
-  mapLoaded(map: Map) {
+  /**
+   * Add the address search as soon as the style is ready, without waiting for the tiles to load.
+   */
+  styleLoaded(map: Map) {
+    if (this.geocoderMap === map) return;
     this.removeGeocoder?.();
     this.removeGeocoder = undefined;
+    this.geocoderMap = map;
+    this.updateGeocoder();
+  }
+
+  mapLoaded(map: Map) {
     this.removeGeoLayers?.();
     this.removeGeoLayers = undefined;
     this.clearSearchResult();
     this.removeClick?.();
     this.map?.off('moveend', this.writeView);
     this.map = map;
-    this.updateGeocoder();
+    this.styleLoaded(map);
     this.removeClick = onSingleClick(map, this.mapClick);
     preventSelectionDrag(map);
     map.addSource('geo-features', { type: 'geojson', data: this.geoData() });

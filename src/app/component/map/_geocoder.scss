@@ -18,10 +18,20 @@
 .maplibregl-map .maplibregl-ctrl-geocoder.maplibregl-ctrl {
   // Rest at an explicit length so the width transition starts from the rendered size
   // (upstream rests at a small percentage clamped by min-width: 240px, which flickers)
-  width: min(240px, calc(100cqw - 20px));
+  // 175px, or wider if the placeholder (measured in addGeocoder) plus the icon and clear button needs it
+  --map-geocoder-padding: 45px;
+  width: max(175px, calc(var(--map-geocoder-placeholder-width, 0px) + 2 * var(--map-geocoder-padding)));
   min-width: 0;
   max-width: calc(100cqw - 20px);
-  transition: width 150ms ease;
+  // Grow to fit a long placeholder without animating
+  transition: none;
+  &.measured {
+    transition: width 150ms ease;
+  }
+  @media screen and (min-width: 640px) {
+    --map-geocoder-padding: 35px;
+  }
+
 
   // Expand when focused or when there is a query typed
   // (cqw resolves against the mgl-map, which sets container-type: inline-size)
@@ -35,7 +45,7 @@
     width: 100%;
     height: 50px;
     margin: 0;
-    padding: 6px 45px;
+    padding: 6px var(--map-geocoder-padding, 45px);
     border: 0;
     border-radius: 4px;
     outline: none;
@@ -50,7 +60,6 @@
     }
     @media screen and (min-width: 640px) {
       height: 36px;
-      padding: 6px 35px;
     }
   }
 
@@ -69,6 +78,12 @@
     background: #fff;
     line-height: 1;
   }
+}
+
+// Sit to the right of the zoom controls in the same corner
+.maplibregl-map .maplibregl-ctrl-group + .maplibregl-ctrl-geocoder.maplibregl-ctrl {
+  clear: none;
+  max-width: calc(100cqw - 59px);
 }
 
 .maplibregl-map .maplibregl-ctrl-geocoder.maplibregl-ctrl[data-theme="dark"] {
