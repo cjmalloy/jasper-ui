@@ -264,4 +264,65 @@ describe('aiQueryPlugin', () => {
       tags: expect.arrayContaining(['internal', '+plugin/log']),
     }));
   });
+
+  it('waits for source metadata to cascade before loading sources', async () => {
+    const response = {
+      url: 'ai:response',
+      origin: '',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: ['spec:question', 'spec:question', 'system:prompt'],
+      plugins: { 'plugin/llm': { provider: 'gemini' } },
+      metadata: { cascade: true },
+    };
+    let cascaded = false;
+    const axios = {
+      get: vi.fn(async (url: string, options: { params: { query?: string, url?: string } }) => {
+        const { query } = options.params;
+        if (url.endsWith('/api/v1/ref')) {
+          const done = cascaded;
+          cascaded = true;
+          return { data: { ...response, metadata: done ? {} : { cascade: true } } };
+        }
+        if (query?.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query?.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
+        if (query?.startsWith('+system/prompt') && cascaded) {
+          return { data: { content: [{ url: 'system:prompt', comment: 'System prompt', tags: ['+system/prompt'] }] } };
+        }
+        return { data: { content: [] } };
+      }),
+    };
+    const generateContent = vi.fn().mockResolvedValue({
+      candidates: [{ content: { parts: [{ text: 'Answer' }] } }],
+    });
+    class GoogleGenAI {
+      models = { generateContent };
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
+      '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
+    })[module];
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+
+    vi.useFakeTimers({ toFake: ['setTimeout'] });
+    try {
+      const done = run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: vi.fn(), error: vi.fn() });
+      await vi.runAllTimersAsync();
+      await done;
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(axios.get.mock.calls.filter(c => c[0].endsWith('/api/v1/ref'))).toHaveLength(2);
+    expect(generateContent.mock.calls[0][0].config.systemInstruction).toBe('System prompt');
+  });
 });

@@ -8,7 +8,7 @@ export const naviQueryPlugin: Plugin = {
   name: $localize`👻️💭️ Ask Navi`,
   config: {
     mod: $localize`👻️ Navi Chat`,
-    version: 3,
+    version: 4,
     type: 'tool',
     default: false,
     add: true,
@@ -64,6 +64,25 @@ export const naviQueryPlugin: Plugin = {
           throw new Error(e);
         })).data.content[0];
       if (existingResponse) process.exit(0);
+      // Only the first sources are linked synchronously, wait for the server to cascade the rest
+      for (let i = 0, current = ref; current?.metadata?.cascade; i++) {
+        if (i >= 60) {
+          console.error('Timed out waiting for source metadata to cascade');
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        current = (await axios.get(process.env.JASPER_API + '/api/v1/ref', {
+          headers: {
+            'Local-Origin': origin || 'default',
+            'User-Tag': authors[0] || '',
+            'User-Role': followup ? 'ROLE_ADMIN' : '',
+          },
+          params: { url: ref.url, origin },
+        }).catch(e => {
+            console.error(e.response.data);
+            throw new Error(e);
+          })).data;
+      }
       const context = new Map();
       const getSources = async (url, rel = 'sources') => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
