@@ -64,3 +64,27 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+- package-ecosystem: docker
+  target-branch: v1.3
+  directories:
+    - "/"
+    - "/e2e"
+  schedule:
+    interval: daily
+    timezone: America/Halifax
+- package-ecosystem: npm
+  target-branch: v1.3
+  directory: /
+  schedule:
+    interval: daily
+    timezone: America/Halifax
+  cooldown:
+    semver-major-days: 0
+    semver-minor-days: 0
+    semver-patch-days: 0
+- package-ecosystem: github-actions
+  target-branch: v1.3
+  directory: /
+  schedule:
+    interval: daily
+    timezone: America/Halifax
