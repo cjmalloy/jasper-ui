@@ -166,3 +166,20 @@ export async function createPip(vc: ViewContainerRef, ref: Ref, config: PipWindo
 export function embedUrl(url: string) {
   return url.includes('https://www.youtube.com') ? url.replace('https://www.youtube.com', 'https://www.youtube-nocookie.com') : url;
 }
+
+/**
+ * Navigate an iframe without adding an entry to the session history.
+ * Reused iframes (for example when stepping through a playlist) would
+ * otherwise force the user to press back once for every item viewed.
+ */
+export function setIframeSrc(iframe: HTMLIFrameElement, url: string) {
+  try {
+    if (iframe.contentWindow) {
+      iframe.contentWindow.location.replace(url);
+      return;
+    }
+  } catch (e) {
+    // Fall back to setting src
+  }
+  iframe.src = url;
+}
