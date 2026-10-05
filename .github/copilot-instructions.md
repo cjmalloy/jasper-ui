@@ -242,7 +242,7 @@ The app is zoneless. Components are OnPush (the Angular 22 default, so don't set
 3. **`effect()` only syncs to something outside Angular** (localStorage, document title, Monaco/maplibre/d3/ag-grid, `<video>`, router, STOMP). An effect never writes a signal. Put a one-line comment above each effect saying what it syncs.
 4. **`linkedSignal` only for a local edit buffer seeded from an input.** UI state (`editing`, `replying`, `viewSource`, `submitted`) is a plain `signal(false)`, changed only by user events. To reset a row for a new entity, re-create it with `@for (…; track ref.url)`.
 5. **No `defer`/`delay`/`setTimeout` to wait for rendering.** Use `afterNextRender`/`afterRenderEffect` only when the DOM is really needed.
-6. **Layout is CSS.** No measuring DOM widths in TypeScript to decide what to show. Breakpoints are SCSS media queries.
+6. **Layout is CSS.** Breakpoints are SCSS media queries. Only measure DOM widths in TypeScript when CSS cannot express it, such as `TabsComponent` moving overflowing tabs into its dropdown (measured from a `ResizeObserver` and `afterRenderEffect`).
 
 More rules:
 - Use `inject()`, never constructor parameter injection. Don't implement lifecycle interfaces (`OnInit`, `OnDestroy`, `AfterViewInit`, ...): use field initializers, `computed()`, `afterNextRender()` and `inject(DestroyRef).onDestroy()`.
