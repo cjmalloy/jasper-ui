@@ -130,10 +130,16 @@ export function addGeocoder(
   };
   const events = ['mousedown', 'touchstart', 'dblclick', 'wheel', 'keydown', 'focusout'];
   for (const e of events) el?.addEventListener(e, stop);
+  // Rest at the CSS fallback width until laid out, then shrink to fit the placeholder,
+  // and measure again when the map is shown or resized, or the placeholder changes
   const measure = () => {
     if (el) measurePlaceholder(el);
   };
-  measure();
+  const resized = window.ResizeObserver && new ResizeObserver(measure) || undefined;
+  resized?.observe(map.getContainer());
+  const placeholder = window.MutationObserver && new MutationObserver(measure) || undefined;
+  const input = el?.querySelector('input');
+  if (input) placeholder?.observe(input, { attributes: true, attributeFilter: ['placeholder'] });
   document.fonts?.ready.then(measure);
   const theme = () => {
     let style;
@@ -150,6 +156,8 @@ export function addGeocoder(
   theme();
   return () => {
     map.off('styledata', theme);
+    resized?.disconnect();
+    placeholder?.disconnect();
     control.off('result', result);
     control.off('clear', clear);
     for (const e of events) el?.removeEventListener(e, stop);
@@ -165,7 +173,11 @@ export function addGeocoder(
  */
 export function measurePlaceholder(el: HTMLElement) {
   const input = el.querySelector<HTMLInputElement>('input');
-  if (!input?.placeholder) return;
+  if (!input) return;
+  if (!input.placeholder) {
+    el.style.setProperty('--map-geocoder-placeholder-width', '0em');
+    return;
+  }
   const span = document.createElement('span');
   span.textContent = input.placeholder;
   span.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:inherit';

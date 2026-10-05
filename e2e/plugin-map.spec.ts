@@ -1,10 +1,16 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Locator, test } from '@playwright/test';
 import { closeSidebar, deleteRef, mod, openSidebar } from './setup';
 
 const URL = 'https://jasperkm.info/plugin-map-test';
 const POLYGON_URL = 'https://jasperkm.info/plugin-map-polygon-test';
 const GEO_URL = 'geo:44.65,-63.57';
 const CORS = { 'Access-Control-Allow-Origin': '*' };
+
+/** Wait for the address search to fit its placeholder and finish animating. */
+async function settled(geocoder: Locator) {
+  await expect(geocoder).toHaveAttribute('style', /--map-geocoder-placeholder-width/);
+  await geocoder.evaluate(el => Promise.all(el.getAnimations().map(a => a.finished)));
+}
 
 test.describe.serial('Map Plugin', () => {
 
@@ -492,7 +498,8 @@ test.describe.serial('Map Plugin', () => {
     const search = geocoder.locator('.maplibregl-ctrl-geocoder--input');
     const width = async () => (await geocoder.boundingBox())!.width;
 
-    // Default size while not in use
+    // Default size while not in use, once it has eased down to fit the placeholder
+    await settled(geocoder);
     const initial = await width();
     expect(initial).toBeLessThan(mapWidth * 0.6);
 
@@ -605,6 +612,11 @@ test.describe.serial('Map Plugin', () => {
     expect(embedMap.height).toBeGreaterThan(300);
     const geocoder = page.locator('.full-page.ref .map-embed .maplibregl-ctrl-geocoder');
     expect((await geocoder.boundingBox())!.width).toBeLessThan(embedMap.width * 0.6);
+    // The resting width follows the placeholder
+    await settled(geocoder);
+    const resting = (await geocoder.boundingBox())!.width;
+    await geocoder.locator('.maplibregl-ctrl-geocoder--input').evaluate((el: HTMLInputElement) => el.placeholder = 'Go');
+    await expect.poll(async () => (await geocoder.boundingBox())!.width).toBeLessThan(resting - 20);
     await geocoder.locator('.maplibregl-ctrl-geocoder--input').focus();
     await expect.poll(async () => (await geocoder.boundingBox())!.width).toBeGreaterThan(embedMap.width * 0.75);
     await openSidebar(page);
