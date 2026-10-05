@@ -96,10 +96,11 @@ export class ThreadStore {
     if (!args) return;
     this.loading = this.refs.page({ ...args, page: this.pages().length }).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.error.set(err);
+        if (this.args() === args) this.error.set(err);
         return EMPTY;
       }),
     ).subscribe(page => {
+      if (this.args() !== args) return;
       if (!page.content.length) return;
       this.pages.update(pages => [...pages, page]);
     });

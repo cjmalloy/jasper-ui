@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
@@ -80,5 +80,21 @@ describe('ThreadStore', () => {
 
     expect(store.pages()).toEqual([secondPage]);
     expect(store.cache().get('https://example.com')).toEqual(secondPage.content);
+  });
+
+  it('discards a load more response for previous args', () => {
+    const store = createStore();
+    const args = watch(store, { top: 'https://example.com' });
+    const stale = new Subject<Page<Ref>>();
+    refs.page.mockReturnValueOnce(stale);
+    store.loadMore();
+
+    args.set({ top: 'https://other.example.com' });
+    store.pages();
+    TestBed.tick();
+    stale.next(Page.of([{ url: 'comment:stale', sources: ['https://example.com'] } as Ref]));
+
+    expect(store.pages()).toEqual([secondPage]);
+    expect(store.latest()).toEqual(secondPage.content);
   });
 });
