@@ -48,10 +48,17 @@ import { TagsPage } from './page/tags/tags.component';
 import { UserPage } from './page/user/user.component';
 import { parts } from './util/http';
 
-const stripTrailingSlash = Location.stripTrailingSlash;
-Location.stripTrailingSlash = (url) => {
-  if (url.startsWith('/browse/')) return url;
-  return stripTrailingSlash(url);
+// Browse URLs embed the target URL raw, so a trailing slash is significant
+// (e.g. /browse/https://example.com/) and must not be stripped.
+const BROWSE_STRIP_PATCHED = Symbol.for('jasper.browseStripTrailingSlash');
+if (!(Location.stripTrailingSlash as any)[BROWSE_STRIP_PATCHED]) {
+  const stripTrailingSlash = Location.stripTrailingSlash;
+  const patched = (url: string) => {
+    if (url.startsWith('/browse/')) return url;
+    return stripTrailingSlash(url);
+  };
+  (patched as any)[BROWSE_STRIP_PATCHED] = true;
+  Location.stripTrailingSlash = patched;
 }
 
 const dus = new DefaultUrlSerializer();
@@ -194,7 +201,9 @@ const routes: Routes = [
   { path: 'user/:tag', component: UserPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
   { path: 'browse', redirectTo: 'browse/wiki:Homepage', pathMatch: 'full' },
   { path: 'browse/:url', component: RefPage },
-  { path: 'browse/:url/:subview', redirectTo: 'browse/:url' },
+  { path: 'browse/:url/comments', redirectTo: 'browse/:url' },
+  { path: 'browse/:url/thread', redirectTo: 'browse/:url' },
+  { path: 'browse/:url/:subview', redirectTo: 'ref/:url/:subview' },
   {
     path: 'ref/:url',
     component: RefPage,

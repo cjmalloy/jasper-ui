@@ -42,6 +42,9 @@ export class ThreadStore {
 
   clear() {
     this.error = undefined;
+    this.empty = false;
+    this.newComments = false;
+    this.latest = [];
     this.args = {
       size: this.defaultBatchSize,
       page: 0,

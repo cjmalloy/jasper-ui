@@ -184,7 +184,8 @@ saved games, and score tracking.
 49. **Help Popups:** Enable contextual help popups that guide users through different parts of
 the application.
 50. **Map:** View Refs on an interactive map. Includes GeoJSON and GeoPackage support for point,
-line, polygon, and multi-geometry data.
+line, polygon, and multi-geometry data. Addresses can be searched with OpenStreetMap (Nominatim),
+Photon, or Google Maps geocoding. A self-hosted Photon URL must be added to `CSP_CONNECT_SRC`.
 51. **Drafts:** Save edits to a Ref before publishing, then commit or revert them later.
 52. **Duration:** Store media duration metadata in a tag and display it in the Ref info area.
 53. **Grid:** View query results in a configurable multi-column grid.

@@ -8,7 +8,7 @@ export const lensPlugin: Plugin = {
   name: $localize`🪞 Lens`,
   config: {
     mod: $localize`🪞 Lenses`,
-    version: 1,
+    version: 2,
     type: 'plugin',
     default: true,
     add: true,
@@ -23,7 +23,8 @@ export const lensPlugin: Plugin = {
     automatically be shown, otherwise the lens type can be overridden by adding ?view=lens to the URL.
     For markdown, any relative or absolute links to a query will automatically display the default lens.
     If no lens can be found, the list lens is used.
-    Use ![+](/tag/lens) to display a link with an embed toggle.
+    Use [query](/tag/lens) to display a link with an embed toggle.
+    Use ![+](/tag/lens) to display only an embed toggle.
     Use ![](/tag/lens) to embed the lens directly.`,
     icons: [{ label: $localize`🪞`, order: 1 }],
     filters: [

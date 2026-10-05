@@ -62,6 +62,10 @@ export class ViewStore {
    * URL of the Ref currently open in the Picture-in-Picture window.
    */
   pip = '';
+  /**
+   * Current map center and zoom, updated as the map is panned.
+   */
+  liveMapView = '';
 
   constructor(
     public route: RouterStore,
@@ -74,12 +78,17 @@ export class ViewStore {
       setLastSelected: action,
       addPip: action,
       removePip: action,
+      setLiveMapView: action,
       exts: observableShallow,
       extTemplates: observableShallow,
       inboxTabs: observableShallow,
       settingsTabs: observableShallow,
     });
     this.clear(); // Initial observables may not be null for MobX
+  }
+
+  setLiveMapView(value = '') {
+    this.liveMapView = value;
   }
 
   setLastSelected(ref?: Ref) {
@@ -249,6 +258,11 @@ export class ViewStore {
 
   inPip(url?: string) {
     return !!url && this.pip === url;
+  }
+
+  subviewPath(subview?: string) {
+    if (!subview || subview === 'comments' || subview === 'thread') return this.refPath;
+    return '/ref';
   }
 
   get current(): View | undefined {
@@ -505,6 +519,10 @@ export class ViewStore {
 
   get view(): string {
     return this.route.routeSnapshot?.queryParams['view'];
+  }
+
+  get mapView(): string {
+    return this.route.routeSnapshot?.queryParams['map'];
   }
 
   get noView() {

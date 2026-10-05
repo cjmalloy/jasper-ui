@@ -58,12 +58,12 @@
             <a [routerLink]="[store.view.refPath, ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
           }
           @if (responses) {
-            <a [routerLink]="[store.view.refPath, ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
+            <a [routerLink]="[store.view.subviewPath('responses'), ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
           }
           @if (sources === 1) {
             <a [routerLink]="[store.view.refPath, ref.sources![0]]" [queryParams]="{ origin: nonLocalOrigin }" i18n>parent</a>
           } @else if (sources > 1) {
-            <a [routerLink]="[store.view.refPath, ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
+            <a [routerLink]="[store.view.subviewPath('sources'), ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
           }
           @if (store.account.mod || taggingAccess) {
             <app-confirm-action #action

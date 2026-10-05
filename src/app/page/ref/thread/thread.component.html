@@ -9,10 +9,9 @@
   } @else {
     <app-loading></app-loading>
   }
-  @if (store.view.ref && store.account.signedIn) {
+  @if (store.view.ref && (!store.view.browser || store.account.signedIn)) {
     <app-comment-reply #reply
                        [to]="to"
-                       quote=""
                        [tags]="replyTags"
                        (save)="newRefs$.next($event)"></app-comment-reply>
   }

@@ -114,7 +114,10 @@ export class AppComponent implements AfterViewInit {
         this.pip(ref);
       }
       if (event === 'browse' && ref?.url) {
-        open('/browse/' + ref.url, '_blank', 'toolbar=no,menubar=no');
+        const path = this.router.serializeUrl(this.router.createUrlTree(['/browse', ref.url], {
+          queryParams: { origin: ref.origin !== this.store.account.origin ? ref.origin : undefined },
+        }));
+        open(new URL(path.replace(/^\//, ''), document.baseURI).href, '_blank', 'toolbar=no,menubar=no,noopener');
       }
     });
     window.visualViewport?.addEventListener('resize', event => {

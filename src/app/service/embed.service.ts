@@ -1,5 +1,5 @@
 import { Injectable, ViewContainerRef } from '@angular/core';
-import { escape, uniq } from 'lodash-es';
+import { escape, maxBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, Token, Tokens, TokensList } from 'marked';
 import { MarkdownService, MarkedRenderer } from 'ngx-markdown';
@@ -713,7 +713,7 @@ export class EmbedService {
     }
     const ext = exts.find(x => x.modifiedString && x.tag === view);
     if (ext) return ext;
-    const t = this.admin.view.find(t => hasPrefix(view, t.tag));
+    const t = maxBy(this.admin.view.filter(t => hasPrefix(view, t.tag)), t => t.tag.length);
     if (t) {
       return { tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } };
     }

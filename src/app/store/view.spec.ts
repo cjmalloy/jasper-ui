@@ -56,3 +56,46 @@ describe('ViewStore defaults', () => {
     expect(store.queryTags).toEqual(['science', 'public']);
   });
 });
+
+describe('ViewStore browser', () => {
+  function createStore(path: string) {
+    const route = {
+      routeSnapshot: {
+        queryParams: {},
+        firstChild: {
+          url: [{ path }],
+          params: {},
+        },
+      },
+    } as any;
+    return new ViewStore(route, {} as any);
+  }
+
+  it('uses /ref outside of browser mode', () => {
+    const store = createStore('ref');
+
+    expect(store.browser).toBe(false);
+    expect(store.refPath).toBe('/ref');
+    expect(store.subviewPath()).toBe('/ref');
+    expect(store.subviewPath('comments')).toBe('/ref');
+    expect(store.subviewPath('responses')).toBe('/ref');
+  });
+
+  it('uses /browse in browser mode', () => {
+    const store = createStore('browse');
+
+    expect(store.browser).toBe(true);
+    expect(store.refPath).toBe('/browse');
+    expect(store.subviewPath()).toBe('/browse');
+    expect(store.subviewPath('comments')).toBe('/browse');
+    expect(store.subviewPath('thread')).toBe('/browse');
+  });
+
+  it('falls back to /ref for subviews unsupported in browser mode', () => {
+    const store = createStore('browse');
+
+    for (const subview of ['responses', 'sources', 'errors', 'alts', 'versions']) {
+      expect(store.subviewPath(subview)).toBe('/ref');
+    }
+  });
+});
