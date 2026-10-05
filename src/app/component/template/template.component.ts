@@ -43,6 +43,7 @@ export class TemplateComponent implements OnChanges, HasChanges {
 
   editForm: UntypedFormGroup;
   submitted = false;
+  @HostBinding('class.editing')
   editing = false;
   viewSource = false;
   diffing = false;

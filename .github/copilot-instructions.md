@@ -209,6 +209,7 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 - Give interactive and structurally significant elements descriptive, semantic `class` names (`.filter-toggle`, `.filter-preview`, `.bookmark-field`, `.params-panel`). Name them after their role, not their look.
 - **Never** select custom component tags (`app-ref`, `formly-field-*`) in E2E tests. Standard HTML tags are acceptable, but classes are preferred.
 - Add host classes to formly field components: `host: { 'class': 'field my-field-type' }`.
+- **New entity UIs must use the row slots** documented in [`docs/STRUCTURE.md`](../docs/STRUCTURE.md): a `.ref`, `.ext`, `.plugin`, `.template` or `.profile` (User) root, then `.link` → `.info` → `.actions`. `.tag` is only for inline tag links; never put it on a row.
 
 ### Debugging failing tests
 
@@ -241,6 +242,7 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 - `src/theme/`: global SCSS themes
 - `docker/`: nginx entrypoint scripts (`JASPER_API`, CSP, base href, locale, ...)
 - `e2e/`: Playwright specs, `setup.ts`, compose files. `quickstart/`: sample deployment.
+- `docs/STRUCTURE.md`: row structure guide for theme authors
 - `patches/`: patch-package patches, applied on `postinstall`
 
 ## Theming
@@ -249,6 +251,7 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 
 - Theme files: `src/theme/common.scss` (base variables), `light.scss`, `dark.scss`, `*-highlight.scss`, plus `mobile`, `print`, `android`, `electron`, `mac`.
 - Use CSS variables in component SCSS: `--bg`, `--text`, `--border`, `--active`, `--error`, `--card` (see `common.scss` for the full list).
+- If you add a standard CSS variable, also add it to `THEME_VARS` in `src/app/util/theme.ts` (used to pre-fill new custom themes) and to the table in `docs/STRUCTURE.md`.
 - **Theme-specific selectors (`body.dark-theme ...`) do not work in component SCSS** because of view encapsulation. Put them in the mod's `config.css` string, as `src/app/mods/org/kanban.ts` does:
 
 ```typescript

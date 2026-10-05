@@ -2,6 +2,7 @@ import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } f
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 import { ListEditorComponent } from '../../component/list-editor/list-editor.component';
+import { newTheme } from '../../util/theme';
 import { CodeComponent } from '../code/code.component';
 
 @Component({
@@ -41,7 +42,7 @@ export class ThemesFormComponent implements OnChanges {
     return this.group.get(this.fieldName) as UntypedFormGroup;
   }
 
-  addTheme(name: string, value = '') {
+  addTheme(name: string, value = newTheme()) {
     this.themes.addControl(name, this.fb.control(value));
   }
 
