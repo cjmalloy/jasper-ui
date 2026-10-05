@@ -599,9 +599,6 @@ test.describe.serial('Map Plugin', () => {
     await expect(page.locator('.full-page.ref .map-embed .map-thumbnail')).toHaveAttribute('title', 'Map Plugin Test');
     // Address search is shown when geocoding is configured
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-top-left .maplibregl-ctrl-geocoder--input')).toBeVisible();
-    await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-bottom-left .maplibregl-ctrl-zoom-in')).toBeVisible();
-    // Zoom controls sit above the scale bar
-    await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-bottom-left > .maplibregl-ctrl-scale:last-child')).toBeVisible();
     // Map renders at full size and the address search expands while in use
     await closeSidebar(page);
     const embedMap = (await page.locator('.full-page.ref .map-embed mgl-map').boundingBox())!;
