@@ -1,5 +1,5 @@
-@import 'maplibre-gl/dist/maplibre-gl.css';
-@import '../component/map/geocoder';
+@use 'maplibre-gl/dist/maplibre-gl.css';
+@use '../component/map/geocoder';
 
 .location-map {
   display: block;

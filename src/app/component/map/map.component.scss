@@ -1,5 +1,5 @@
-@import 'maplibre-gl/dist/maplibre-gl.css';
-@import 'geocoder';
+@use 'maplibre-gl/dist/maplibre-gl.css';
+@use 'geocoder';
 
 mgl-map {
   margin-top: 1px;
