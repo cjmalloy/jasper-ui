@@ -50,12 +50,17 @@ export function parseSrc(html: string) {
   return iframes.length > 0 ? iframes[0].src : '';
 }
 
+const navigatedIframes = new WeakSet<HTMLIFrameElement>();
+
 /**
  * Navigate an iframe without adding an entry to the browser history.
  * Setting iframe.src on an already loaded iframe pushes to the joint session history.
+ * The first navigation still uses iframe.src, since it replaces the initial about:blank
+ * document without adding history, and location.replace() would race the pending
+ * about:blank load (which revokes blob URLs early or overwrites the new page).
  */
 export function setIframeSrc(iframe: HTMLIFrameElement, url: string) {
-  if (url && iframe.isConnected && iframe.contentWindow) {
+  if (url && navigatedIframes.has(iframe) && iframe.isConnected && iframe.contentWindow) {
     try {
       iframe.contentWindow.location.replace(url);
       return;
@@ -64,6 +69,7 @@ export function setIframeSrc(iframe: HTMLIFrameElement, url: string) {
     }
   }
   iframe.src = url;
+  if (url) navigatedIframes.add(iframe);
 }
 
 export function createLink(vc: ViewContainerRef, url: string, text: string, title = '', css = ''): ComponentRef<NavComponent> {
