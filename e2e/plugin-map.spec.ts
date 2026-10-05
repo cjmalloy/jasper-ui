@@ -498,20 +498,10 @@ test.describe.serial('Map Plugin', () => {
     const search = geocoder.locator('.maplibregl-ctrl-geocoder--input');
     const width = async () => (await geocoder.boundingBox())!.width;
 
-    // Appears at its final size without resizing
-    const widths = geocoder.evaluate(el => new Promise<number[]>(resolve => {
-      const seen = new Set<number>();
-      const end = performance.now() + 500;
-      const sample = () => {
-        if (getComputedStyle(el).visibility === 'visible') seen.add(Math.round(el.getBoundingClientRect().width));
-        if (performance.now() < end) requestAnimationFrame(sample); else resolve([...seen]);
-      };
-      sample();
-    }));
-    expect(await widths).toHaveLength(1);
-    // Default size while not in use, fit to the placeholder
+    // Default size while not in use, at least 175px and wide enough for the placeholder
     await settled(geocoder);
     const initial = await width();
+    expect(initial).toBeGreaterThanOrEqual(175);
     expect(initial).toBeLessThan(mapWidth * 0.6);
 
     // Expands while focused, animating up from the default size without shrinking first

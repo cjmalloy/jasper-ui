@@ -130,7 +130,7 @@ export function addGeocoder(
   };
   const events = ['mousedown', 'touchstart', 'dblclick', 'wheel', 'keydown', 'focusout'];
   for (const e of events) el?.addEventListener(e, stop);
-  // Hidden until fit to the placeholder, measured once it has been laid out
+  // Fit to the placeholder once it has been laid out
   const measured = () => {
     if (el) measurePlaceholder(el);
     return !el || el.classList.contains('measured');
@@ -187,12 +187,12 @@ export function measurePlaceholder(el: HTMLElement) {
 }
 
 /**
- * Set the measured width, and show the control at that size the first time.
+ * Set the measured width, then enable the width transition.
  */
 function show(el: HTMLElement, width: string) {
   el.style.setProperty('--map-geocoder-placeholder-width', width);
   if (el.classList.contains('measured')) return;
-  // Apply the final width before the width transition is enabled
+  // Apply the width before the transition is enabled, so it does not animate
   void el.offsetWidth;
   el.classList.add('measured');
 }

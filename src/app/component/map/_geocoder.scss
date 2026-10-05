@@ -18,16 +18,14 @@
 .maplibregl-map .maplibregl-ctrl-geocoder.maplibregl-ctrl {
   // Rest at an explicit length so the width transition starts from the rendered size
   // (upstream rests at a small percentage clamped by min-width: 240px, which flickers)
-  // Just wide enough for the placeholder, measured in addGeocoder, plus the icon and clear button
+  // 175px, or wider if the placeholder (measured in addGeocoder) plus the icon and clear button needs it
   --map-geocoder-padding: 45px;
-  width: calc(var(--map-geocoder-placeholder-width, 10em) + 2 * var(--map-geocoder-padding) + 8px);
+  width: max(175px, calc(var(--map-geocoder-placeholder-width, 0px) + 2 * var(--map-geocoder-padding)));
   min-width: 0;
   max-width: calc(100cqw - 20px);
-  // Hidden until measured, so it first appears at its final size
-  visibility: hidden;
+  // Grow to fit a long placeholder without animating
   transition: none;
   &.measured {
-    visibility: visible;
     transition: width 150ms ease;
   }
   @media screen and (min-width: 640px) {
