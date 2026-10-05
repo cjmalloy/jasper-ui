@@ -6,63 +6,61 @@
     <span class="host">({{ origin() }})</span>
   }
 </div>
-<div class="stack">
-  <div class="info">
-    <span>{{ role().toLowerCase().replace('role_', '') }}</span>
-  </div>
-  <div class="actions">
-    @if (!created() && store.account.admin) {
-      <app-confirm-action [action]="copy$" i18n>install</app-confirm-action>
-    } @else if (!local()) {
-      <app-inline-button [action]="copy$" i18n>copy</app-inline-button>
-    }
-    @if (created() && local() && store.account.admin) {
-      <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
-    } @else {
-      <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
-    }
-    <a class="fake-link" (click)="download()" i18n>download</a>
-    <a class="fake-link connect-action" (click)="connect()" i18n>connect</a>
-    @if (store.account.root() && store.account.mod && config.scim && !profile()) {
-      <app-inline-button [action]="activate$" i18n>sync</app-inline-button>
-    }
-    @if (profile() && writeAccess()) {
-      <app-inline-password [action]="setPassword$" i18n>password</app-inline-password>
-    }
-    @if (created() || profile()) {
-      @if (store.account.mod && writeAccess()) {
-        <app-confirm-action [action]="ban$" i18n>ban</app-confirm-action>
-        <app-inline-select [action]="setRole$" [value]="role()">
-          <span i18n>role</span>
-          <option value="ROLE_ADMIN" i18n>admin</option>
-          <option value="ROLE_MOD" i18n>mod</option>
-          <option value="ROLE_EDITOR" i18n>editor</option>
-          <option value="ROLE_USER" i18n>user</option>
-          <option value="ROLE_VIEWER" i18n>viewer</option>
-          <option value="ROLE_BANNED" i18n>banned</option>
-        </app-inline-select>
-        @if (profile()) {
-          @if (!profile()!.active) {
-            <app-inline-button [action]="activate$" i18n>activate</app-inline-button>
-          } @else {
-            <app-inline-button [action]="deactivate$" i18n>deactivate</app-inline-button>
-          }
+<div class="info">
+  <span>{{ role().toLowerCase().replace('role_', '') }}</span>
+</div>
+<div class="actions">
+  @if (!created() && store.account.admin) {
+    <app-confirm-action [action]="copy$" i18n>install</app-confirm-action>
+  } @else if (!local()) {
+    <app-inline-button [action]="copy$" i18n>copy</app-inline-button>
+  }
+  @if (created() && local() && store.account.admin) {
+    <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
+  } @else {
+    <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
+  }
+  <a class="fake-link" (click)="download()" i18n>download</a>
+  <a class="fake-link connect-action" (click)="connect()" i18n>connect</a>
+  @if (store.account.root() && store.account.mod && config.scim && !profile()) {
+    <app-inline-button [action]="activate$" i18n>sync</app-inline-button>
+  }
+  @if (profile() && writeAccess()) {
+    <app-inline-password [action]="setPassword$" i18n>password</app-inline-password>
+  }
+  @if (created() || profile()) {
+    @if (store.account.mod && writeAccess()) {
+      <app-confirm-action [action]="ban$" i18n>ban</app-confirm-action>
+      <app-inline-select [action]="setRole$" [value]="role()">
+        <span i18n>role</span>
+        <option value="ROLE_ADMIN" i18n>admin</option>
+        <option value="ROLE_MOD" i18n>mod</option>
+        <option value="ROLE_EDITOR" i18n>editor</option>
+        <option value="ROLE_USER" i18n>user</option>
+        <option value="ROLE_VIEWER" i18n>viewer</option>
+        <option value="ROLE_BANNED" i18n>banned</option>
+      </app-inline-select>
+      @if (profile()) {
+        @if (!profile()!.active) {
+          <app-inline-button [action]="activate$" i18n>activate</app-inline-button>
+        } @else {
+          <app-inline-button [action]="deactivate$" i18n>deactivate</app-inline-button>
         }
       }
-      @if ((!profile() || store.account.root()) && store.account.mod || writeAccess()) {
-        <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
-      }
     }
-    @if (created() && (store.account.mod || writeAccess())) {
-      @if (user()?.pubKey) {
-        <app-confirm-action [action]="keygen$"
-                            i18n-warning warning="This will overwrite existing key!"
-                            i18n>keygen</app-confirm-action>
-      } @else {
-        <app-confirm-action [action]="keygen$" i18n>keygen</app-confirm-action>
-      }
+    @if ((!profile() || store.account.root()) && store.account.mod || writeAccess()) {
+      <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
     }
-  </div>
+  }
+  @if (created() && (store.account.mod || writeAccess())) {
+    @if (user()?.pubKey) {
+      <app-confirm-action [action]="keygen$"
+                          i18n-warning warning="This will overwrite existing key!"
+                          i18n>keygen</app-confirm-action>
+    } @else {
+      <app-confirm-action [action]="keygen$" i18n>keygen</app-confirm-action>
+    }
+  }
 </div>
 
 @if (editing()) {

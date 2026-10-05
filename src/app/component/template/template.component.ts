@@ -30,6 +30,7 @@ import { RelativePipe } from '../../pipe/relative.pipe';
   host: {
     '[attr.tabindex]': '0',
     '[class.deleted]': 'deleted()',
+    '[class.editing]': 'editing()',
     '[class]': "pluginClass()",
   },
 })

@@ -3,6 +3,7 @@ import { computed, Component, effect, input, signal, inject } from '@angular/cor
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 import { ListEditorComponent } from '../../component/list-editor/list-editor.component';
+import { newTheme } from '../../util/theme';
 import { CodeComponent } from '../code/code.component';
 
 @Component({
@@ -44,7 +45,7 @@ export class ThemesFormComponent {
     });
   }
 
-  addTheme(name: string, value = '') {
+  addTheme(name: string, value = newTheme()) {
     this.themes()?.addControl(name, this.fb.control(value));
   }
 

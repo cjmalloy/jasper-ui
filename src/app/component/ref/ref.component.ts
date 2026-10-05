@@ -88,6 +88,7 @@ import { RelativePipe } from '../../pipe/relative.pipe';
   host: {
     '[class]': 'allCss()',
     '[class.deleted]': 'deleted()',
+    '[class.editing]': 'editing()',
     '[class.mobile-unlock]': 'mobileUnlock()',
     '[class.storyboard-ready]': 'storyboardLoaded()',
     '[attr.data-ref-url]': "refUrlAttr()",

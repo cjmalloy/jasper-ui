@@ -64,7 +64,7 @@ test.describe.serial('Origin Pull Plugin', () => {
       await page.goto(path, { waitUntil: 'networkidle' });
       return await page.locator('.ref-list .link.remote', { hasText: title }).count();
     }, { timeout: 60_000 }).toBeGreaterThan(0);
-    const ref = page.locator('.ref-list .link.remote', { hasText: title }).locator('..').locator('..').locator('..');
+    const ref = page.locator('.ref-list .ref', { has: page.locator(':scope > .link.remote', { hasText: title }) });
     await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
   }
 
@@ -137,7 +137,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApiProxy);
     await page.locator('input[type=search]').press('Enter');
-    const repl = page.locator('.link:not(.remote)', { hasText: '@repl' }).locator('..').locator('..').locator('..');
+    const repl = page.locator('.ref', { has: page.locator(':scope > .link:not(.remote)', { hasText: '@repl' }) });
     await repl.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await repl.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });

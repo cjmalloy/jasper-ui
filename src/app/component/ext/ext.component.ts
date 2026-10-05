@@ -35,6 +35,7 @@ import { RelativePipe } from '../../pipe/relative.pipe';
     'class': 'ext list-item',
     'tabindex': '0',
     '[class.deleted]': 'deleted()',
+    '[class.editing]': 'editing()',
     '[class.upload]': "uploadedFile()",
     '[class.exists]': "existsFile()",
   },

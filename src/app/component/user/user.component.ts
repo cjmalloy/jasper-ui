@@ -41,6 +41,7 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
     'class': 'profile list-item',
     'tabindex': '0',
     '[class.deleted]': 'deleted()',
+    '[class.editing]': 'editing()',
   },
   imports: [FakeLinkDirective, RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })

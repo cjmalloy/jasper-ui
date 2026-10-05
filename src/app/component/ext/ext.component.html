@@ -10,56 +10,54 @@
     <span class="host">({{ ext().origin }})</span>
   }
 </div>
-<div class="stack">
-  <div class="info">
-    @if (ext().modified) {
-      <span [title]="ext().modified!.toISO()" i18n>modified {{ ext().modified | relative }}</span>
-    } @else {
-      <span i18n>not found</span>
+<div class="info">
+  @if (ext().modified) {
+    <span [title]="ext().modified!.toISO()" i18n>modified {{ ext().modified | relative }}</span>
+  } @else {
+    <span i18n>not found</span>
+  }
+  @for (icon of icons(); track icon) {
+    <span class="icon" (click)="bookmarks.toggleTag(icon.tag)" [title]="icon.tag">{{ icon.config!.view! }}</span>
+  }
+  @if (!local()) {
+    &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', ext().origin]">{{ ext().origin || 'default' }}</a>
+  }
+</div>
+<div class="actions">
+  @if (!ext().upload) {
+    @if (parent()) {
+      <a [routerLink]="['/tags', parent()]" i18n>parent</a>
     }
-    @for (icon of icons(); track icon) {
-      <span class="icon" (click)="bookmarks.toggleTag(icon.tag)" [title]="icon.tag">{{ icon.config!.view! }}</span>
-    }
+    <a [routerLink]="['/tags', extLink()]" i18n>tags</a>
     @if (!local()) {
-      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', ext().origin]">{{ ext().origin || 'default' }}</a>
+      <a class="fake-link" (click)="copy()" i18n>copy</a>
     }
-  </div>
-  <div class="actions">
-    @if (!ext().upload) {
-      @if (parent()) {
-        <a [routerLink]="['/tags', parent()]" i18n>parent</a>
-      }
-      <a [routerLink]="['/tags', extLink()]" i18n>tags</a>
-      @if (!local()) {
-        <a class="fake-link" (click)="copy()" i18n>copy</a>
-      }
-      @if (local() && writeAccess()) {
-        @if (useEditPage()) {
-          <a [routerLink]="['/ext/', ext().tag]" i18n>edit</a>
-        } @else {
-          <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
-        }
-      } @else if (useEditPage()) {
-        <a [routerLink]="['/ext/', ext().tag]" i18n>source</a>
+    @if (local() && writeAccess()) {
+      @if (useEditPage()) {
+        <a [routerLink]="['/ext/', ext().tag]" i18n>edit</a>
       } @else {
-        <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
+        <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
       }
-      <a class="fake-link" (click)="download()" i18n>download</a>
-      @if (store.account.mod || writeAccess()) {
-        <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
-      }
+    } @else if (useEditPage()) {
+      <a [routerLink]="['/ext/', ext().tag]" i18n>source</a>
+    } @else {
+      <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
     }
-    @if (store.account.user && ext().upload) {
-      <a class="fake-link" (click)="upload()" i18n>upload</a>
-      @if (parent()) {
-        <a [routerLink]="['/tags', parent()]" i18n>parent</a>
-      }
-      <a [routerLink]="['/tags', ext().tag]" i18n>tags</a>
-      <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
-      <a class="fake-link" (click)="download()" i18n>download</a>
+    <a class="fake-link" (click)="download()" i18n>download</a>
+    @if (store.account.mod || writeAccess()) {
       <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
     }
-  </div>
+  }
+  @if (store.account.user && ext().upload) {
+    <a class="fake-link" (click)="upload()" i18n>upload</a>
+    @if (parent()) {
+      <a [routerLink]="['/tags', parent()]" i18n>parent</a>
+    }
+    <a [routerLink]="['/tags', ext().tag]" i18n>tags</a>
+    <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
+    <a class="fake-link" (click)="download()" i18n>download</a>
+    <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
+  }
 </div>
 
 @if (editing()) {

@@ -209,16 +209,15 @@ disputed, paid).
 7. **Table:** Create and edit spreadsheet-style tables with CSV data in Refs.
 8. **Poll:** Create multiple-choice polls and view results. Voting is done by adding a Ref
 response for each poll option.
-9. **Archive:** Generate and use external archive/unpaywalled links (e.g., archive.ph, 12ft.io) for Refs.
-10. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
-11. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
+9. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
+10. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
 applied to a Ref, add fields to define the chart type, labels, and data location. Adds an
 optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
 Ref will be used to point to a TSV file.
-12. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
+11. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
 tracking for that ref.
-13. **Clipboard:** Manage in-browser clipboard bubbles for copied Refs, tags, queries, bookmarks,
+12. **Clipboard:** Manage in-browser clipboard bubbles for copied Refs, tags, queries, bookmarks,
 and local-only images.
 
 ## Deployment

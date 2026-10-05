@@ -14,32 +14,30 @@
     <span class="host">({{ template().origin }})</span>
   }
 </div>
-<div class="stack">
-  <div class="info">
-    <span [title]="template().modified?.toISO()" i18n>modified {{ template().modified | relative }}</span>
-    @if (!local()) {
-      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', template().origin]">{{ template().origin }}</a>
-    }
-  </div>
-  <div class="actions">
-    @if (!created() && store.account.admin) {
-      <app-confirm-action [action]="copy$" i18n>install</app-confirm-action>
-    } @else if (!local()) {
-      <app-inline-button [action]="copy$" i18n>copy</app-inline-button>
-    }
-    @if (created() && local() && store.account.admin) {
-      <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
-    } @else {
-      <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
-    }
-    @if (canDiff()) {
-      <a class="fake-link diff-link" (click)="toggleDiff()" i18n>diff</a>
-    }
-    <a class="fake-link" (click)="download()" i18n>download</a>
-    @if (created() && store.account.admin) {
-      <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
-    }
-  </div>
+<div class="info">
+  <span [title]="template().modified?.toISO()" i18n>modified {{ template().modified | relative }}</span>
+  @if (!local()) {
+    &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', template().origin]">{{ template().origin }}</a>
+  }
+</div>
+<div class="actions">
+  @if (!created() && store.account.admin) {
+    <app-confirm-action [action]="copy$" i18n>install</app-confirm-action>
+  } @else if (!local()) {
+    <app-inline-button [action]="copy$" i18n>copy</app-inline-button>
+  }
+  @if (created() && local() && store.account.admin) {
+    <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
+  } @else {
+    <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
+  }
+  @if (canDiff()) {
+    <a class="fake-link diff-link" (click)="toggleDiff()" i18n>diff</a>
+  }
+  <a class="fake-link" (click)="download()" i18n>download</a>
+  @if (created() && store.account.admin) {
+    <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
+  }
 </div>
 
 @if (editing()) {
