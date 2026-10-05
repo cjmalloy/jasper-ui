@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { FieldType } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../model/plugin';
+import { controlValue } from '../util/form';
 import { convertFeature } from '../util/geo';
 import { directChild, hasPrefix } from '../util/tag';
 
@@ -29,9 +30,10 @@ import { directChild, hasPrefix } from '../util/tag';
       }
     </select>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class FormlyFieldChildPlugin extends FieldType {
+
+  private readonly refValue = controlValue(() => this.plugins?.parent || this.plugins);
 
   get parent(): string {
     return this.props.parent;
@@ -71,6 +73,7 @@ export class FormlyFieldChildPlugin extends FieldType {
    * All child plugins currently on the Ref.
    */
   get selected(): string[] {
+    this.refValue();
     const tags: string[] = this.plugins?.parent?.get('tags')?.value
       || Object.keys((this.plugins as any)?.controls || {});
     return this.children.map(p => p.tag).filter(t => tags.some(tag => hasPrefix(tag, t)));
