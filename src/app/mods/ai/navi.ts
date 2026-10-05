@@ -64,50 +64,42 @@ export const naviQueryPlugin: Plugin = {
           throw new Error(e);
         })).data.content[0];
       if (existingResponse) process.exit(0);
-      // Only the first sources are linked synchronously, wait for the server to cascade the rest
-      for (let i = 0, current = ref; current?.metadata?.cascade; i++) {
-        if (i >= 60) {
-          console.error('Timed out waiting for source metadata to cascade');
-          break;
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        current = (await axios.get(process.env.JASPER_API + '/api/v1/ref', {
-          headers: {
-            'Local-Origin': origin || 'default',
-            'User-Tag': authors[0] || '',
-            'User-Role': followup ? 'ROLE_ADMIN' : '',
-          },
-          params: { url: ref.url, origin },
-        }).catch(e => {
-            console.error(e.response.data);
-            throw new Error(e);
-          })).data;
-      }
       const context = new Map();
-      const getSources = async (url, rel = 'sources') => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+      const getPage = async params => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
           'Local-Origin': origin || 'default',
           'User-Tag': authors[0] || '',
           'User-Role': followup ? 'ROLE_ADMIN' : '',
         },
-        params: {
-          query: '!+plugin/log',
-          [rel]: url,
-          sort: 'published,desc',
-          size: config.maxSources,
-        },
+        params: { query: '!+plugin/log', ...params },
       }).catch(e => {
           console.error(e.response.data);
           throw new Error(e);
-        })).data.content.filter(p => !p.url.startsWith('tag:') || !p.url.includes('?'));
-      let parents = await getSources(ref.url);
+        })).data.content;
+      const getSources = async (url, rel = 'sources', parent) => {
+        const found = await getPage({ [rel]: url, sort: 'published,desc', size: config.maxSources });
+        if (rel === 'sources' && parent?.metadata?.cascade) {
+          // Only the first sources are linked synchronously, look up the rest directly until the server cascades them
+          const loaded = new Set(found.map(p => p.url));
+          const missing = (parent.sources || []).filter((v, i, a) => a.indexOf(v) === i).filter(s => s && s !== url && !loaded.has(s) && !context.has(s));
+          for (let i = 0; i < missing.length && found.length < config.maxSources; i += 10) {
+            const pages = await Promise.all(missing.slice(i, i + 10).map(s => getPage({ url: s, sort: 'modified,desc' })));
+            for (const versions of pages) {
+              const p = versions.find(p => (p.origin || '') === origin) || versions[0];
+              if (p) found.push(p);
+            }
+          }
+        }
+        return found.filter(p => !p.url.startsWith('tag:') || !p.url.includes('?'));
+      };
+      let parents = await getSources(ref.url, 'sources', ref);
       parents.forEach(p => context.set(p.url, p));
       for (let i = 0; i < config.maxContext; i++) {
         if (!parents.length || context.size >= config.maxSources) break;
         const grandParents = [];
         for (const parent of parents) {
           if (context.size >= config.maxSources) break;
-          const fetched = await getSources(parent.url);
+          const fetched = await getSources(parent.url, 'sources', parent);
           for (const grandParent of fetched) {
             if (grandParent?.url && !context.has(grandParent.url)) {
               grandParents.push(grandParent);

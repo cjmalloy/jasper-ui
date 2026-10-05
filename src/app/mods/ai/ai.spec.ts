@@ -265,31 +265,29 @@ describe('aiQueryPlugin', () => {
     }));
   });
 
-  it('waits for source metadata to cascade before loading sources', async () => {
+  it('looks up sources directly while the placeholder is waiting for cascade', async () => {
     const response = {
       url: 'ai:response',
-      origin: '',
       title: 'Response',
       comment: '',
       tags: ['+plugin/placeholder'],
-      sources: ['spec:question', 'spec:question', 'system:prompt'],
+      sources: ['spec:question', 'spec:question', 'system:prompt', 'spec:context', 'tag:/missing'],
       plugins: { 'plugin/llm': { provider: 'gemini' } },
       metadata: { cascade: true },
     };
-    let cascaded = false;
+    const refs: Record<string, any> = {
+      'spec:question': { url: 'spec:question', comment: 'Question', tags: ['public'], published: '2026-01-03T00:00:00Z' },
+      'system:prompt': { url: 'system:prompt', comment: 'System prompt', tags: ['+system/prompt'], published: '2026-01-01T00:00:00Z' },
+      'spec:context': { url: 'spec:context', comment: 'Context', tags: ['public'], published: '2026-01-02T00:00:00Z' },
+    };
     const axios = {
-      get: vi.fn(async (url: string, options: { params: { query?: string, url?: string } }) => {
-        const { query } = options.params;
-        if (url.endsWith('/api/v1/ref')) {
-          const done = cascaded;
-          cascaded = true;
-          return { data: { ...response, metadata: done ? {} : { cascade: true } } };
-        }
+      get: vi.fn(async (_url: string, options: { params: { query?: string, sources?: string, url?: string } }) => {
+        const { query, sources, url } = options.params;
         if (query?.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
         if (query?.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
-        if (query?.startsWith('+system/prompt') && cascaded) {
-          return { data: { content: [{ url: 'system:prompt', comment: 'System prompt', tags: ['+system/prompt'] }] } };
-        }
+        // Only the first sources have been linked synchronously
+        if (sources && query === '!+system/prompt') return { data: { content: [refs['spec:question']] } };
+        if (url) return { data: { content: refs[url] ? [refs[url]] : [] } };
         return { data: { content: [] } };
       }),
     };
@@ -313,16 +311,57 @@ describe('aiQueryPlugin', () => {
       `return (async () => {${aiQueryPlugin.config?.script}})()`,
     );
 
-    vi.useFakeTimers({ toFake: ['setTimeout'] });
-    try {
-      const done = run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: vi.fn(), error: vi.fn() });
-      await vi.runAllTimersAsync();
-      await done;
-    } finally {
-      vi.useRealTimers();
-    }
+    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: vi.fn(), error: vi.fn() });
 
-    expect(axios.get.mock.calls.filter(c => c[0].endsWith('/api/v1/ref'))).toHaveLength(2);
+    const request = generateContent.mock.calls[0][0];
+    expect(request.config.systemInstruction).toBe('System prompt');
+    expect(request.contents.map((c: any) => c.parts[0].text)).toEqual(['Context', 'Question']);
+    expect(axios.get.mock.calls.filter(c => c[1].params.url).map(c => c[1].params.url))
+      .toEqual(['system:prompt', 'spec:context', 'tag:/missing']);
+  });
+
+  it('does not look up sources once cascaded', async () => {
+    const response = {
+      url: 'ai:response',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: ['spec:question', 'spec:question', 'system:prompt'],
+      plugins: { 'plugin/llm': { provider: 'gemini' } },
+      metadata: { cascade: false },
+    };
+    const axios = {
+      get: vi.fn(async (_url: string, options: { params: { query?: string } }) => {
+        const { query } = options.params;
+        if (query?.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query?.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
+        if (query?.startsWith('+system/prompt')) return { data: { content: [{ url: 'system:prompt', comment: 'System prompt', tags: ['+system/prompt'] }] } };
+        return { data: { content: [] } };
+      }),
+    };
+    const generateContent = vi.fn().mockResolvedValue({
+      candidates: [{ content: { parts: [{ text: 'Answer' }] } }],
+    });
+    class GoogleGenAI {
+      models = { generateContent };
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
+      '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
+    })[module];
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+
+    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: vi.fn(), error: vi.fn() });
+
     expect(generateContent.mock.calls[0][0].config.systemInstruction).toBe('System prompt');
+    expect(axios.get.mock.calls.some(c => (c[1].params as any).url)).toBe(false);
   });
 });

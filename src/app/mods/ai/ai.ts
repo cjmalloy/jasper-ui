@@ -44,7 +44,7 @@ export const aiQueryPlugin: Plugin = {
       const uniq = (v, i, a) => a.indexOf(v) === i;
       const followup = hasTag('+plugin/delta/ai', ref);
       const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
-      let response = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+      const response = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
           'Local-Origin': origin || 'default',
           'User-Tag': authors[0] || '',
@@ -61,24 +61,6 @@ export const aiQueryPlugin: Plugin = {
       if (!response) {
         // No placeholder, earlier stage failed
         process.exit(0);
-      }
-      // Only the first sources are linked synchronously, wait for the server to cascade the rest
-      for (let i = 0; response.metadata?.cascade; i++) {
-        if (i >= 60) {
-          console.error('Timed out waiting for source metadata to cascade');
-          break;
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        response = (await axios.get(process.env.JASPER_API + '/api/v1/ref', {
-          headers: {
-            'Local-Origin': origin || 'default',
-            'User-Tag': authors[0] || '',
-          },
-          params: { url: response.url, origin: response.origin || '' },
-        }).catch(e => {
-            console.error(e.response.data);
-            throw new Error(e);
-          })).data;
       }
       const config = {
         ...ref.plugins?.['plugin/llm'] || {},
@@ -600,13 +582,13 @@ export const aiQueryPlugin: Plugin = {
           throw new Error(e);
         })).data.content[0]?.comment;
       const messages = [];
-      const systemPrompts = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+      const getSources = async query => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
           'Local-Origin': origin || 'default',
           'User-Tag': authors[0] || '',
         },
         params: {
-          query: '+system/prompt' + (origin || '@'),
+          query,
           sources: response.url,
           sort: 'published',
           size: response.sources.length,
@@ -615,6 +597,37 @@ export const aiQueryPlugin: Plugin = {
           console.error(e.response.data);
           throw new Error(e);
         })).data.content;
+      const systemPrompts = await getSources('+system/prompt' + (origin || '@'));
+      const sources = await getSources('!+system/prompt');
+      if (response.metadata?.cascade) {
+        // Only the first sources are linked synchronously, look up the rest directly until the server cascades them
+        const loaded = new Set([...systemPrompts, ...sources].map(c => c.url));
+        const missing = response.sources.filter(uniq).filter(s => s && s !== response.url && !loaded.has(s));
+        for (let i = 0; i < missing.length; i += 10) {
+          const found = await Promise.all(missing.slice(i, i + 10).map(async url => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+            },
+            params: { url, sort: 'modified,desc' },
+          }).catch(e => {
+              console.error(e.response.data);
+              throw new Error(e);
+            })).data.content));
+          for (const versions of found) {
+            const c = versions.find(c => (c.origin || '') === origin) || versions[0];
+            if (!c) continue;
+            if (!hasTag('+system/prompt', c)) {
+              sources.push(c);
+            } else if ((c.origin || '') === origin) {
+              systemPrompts.push(c);
+            }
+          }
+        }
+        const byPublished = (a, b) => (Date.parse(a.published) || 0) - (Date.parse(b.published) || 0);
+        systemPrompts.sort(byPublished);
+        sources.sort(byPublished);
+      }
       for (const c of systemPrompts) {
         if (c.url === 'system:ext-prompt') continue; // Placeholder
         if (config.systemPrompt && c.url === 'system:app-prompt') continue; // Overridden by config.systemPrompt
@@ -694,21 +707,6 @@ export const aiQueryPlugin: Plugin = {
           });
         }
       }
-      const sources = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-        headers: {
-          'Local-Origin': origin || 'default',
-          'User-Tag': authors[0] || '',
-        },
-        params: {
-          query: '!+system/prompt',
-          sources: response.url,
-          sort: 'published',
-          size: response.sources.length,
-        },
-      }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        })).data.content;
       const logs = [];
       const attachLog = (source, comment) => {
         const tags = ['internal', '+plugin/log'];
