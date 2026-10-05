@@ -48,6 +48,19 @@ import { TagsPage } from './page/tags/tags.component';
 import { UserPage } from './page/user/user.component';
 import { parts } from './util/http';
 
+// Browse URLs embed the target URL raw, so a trailing slash is significant
+// (e.g. /browse/https://example.com/) and must not be stripped.
+const BROWSE_STRIP_PATCHED = Symbol.for('jasper.browseStripTrailingSlash');
+if (!(Location.stripTrailingSlash as any)[BROWSE_STRIP_PATCHED]) {
+  const stripTrailingSlash = Location.stripTrailingSlash;
+  const patched = (url: string) => {
+    if (url.startsWith('/browse/')) return url;
+    return stripTrailingSlash(url);
+  };
+  (patched as any)[BROWSE_STRIP_PATCHED] = true;
+  Location.stripTrailingSlash = patched;
+}
+
 const dus = new DefaultUrlSerializer();
 export class CustomUrlSerializer implements UrlSerializer {
 
@@ -100,6 +113,12 @@ export class CustomUrlSerializer implements UrlSerializer {
         return dus.parse('/ref/' + this.stripParam(url.substring('/ref/e/'.length + refChildren[1].length + 1)) + '/' + refChildren[1] + this.getExtras(url));
       }
     }
+    if (url.startsWith('/browse/e/')) {
+      return dus.parse('/browse/' + url.substring('/browse/e/'.length));
+    }
+    if (url.startsWith('/browse/')) {
+      return dus.parse('/browse/' + encodeURIComponent(url.substring('/browse/'.length)));
+    }
     for (const page of ['/tag/', '/tags/', '/ext/', '/user/', '/inbox/ref/', '/settings/ref/']) {
       if (url.startsWith(page)) {
         return dus.parse(page + this.encodeTagParam(url.substring(page.length)));
@@ -123,6 +142,16 @@ export class CustomUrlSerializer implements UrlSerializer {
       } else {
         return '/ref/' + tree.root.children.primary.segments[2].path + '/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
       }
+    }
+    if (tree.root.children.primary?.segments[0]?.path === 'browse' && tree.root.children.primary.segments.length === 2) {
+      if (!this.getExtras(url)) {
+        return '/browse/' + tree.root.children.primary.segments[1].path;
+      } else {
+        return '/browse/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
+      }
+    }
+    if (tree.root.children.primary?.segments[0]?.path === 'browse' && tree.root.children.primary.segments.length === 3) {
+      return '/browse/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + '/' + tree.root.children.primary.segments[2].path + this.getExtras(url);
     }
     for (let page of ['tag', 'tags', 'ext', 'user', 'inbox/ref', 'settings/ref']) {
       const parts = (page.match(/\//g)?.length || 0) + 1;
@@ -170,6 +199,11 @@ const routes: Routes = [
   { path: 'ext/:tag', component: ExtPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
   { path: 'user', component: UserPage },
   { path: 'user/:tag', component: UserPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
+  { path: 'browse', redirectTo: 'browse/wiki:Homepage', pathMatch: 'full' },
+  { path: 'browse/:url', component: RefPage },
+  { path: 'browse/:url/comments', redirectTo: 'browse/:url' },
+  { path: 'browse/:url/thread', redirectTo: 'browse/:url' },
+  { path: 'browse/:url/:subview', redirectTo: 'ref/:url/:subview' },
   {
     path: 'ref/:url',
     component: RefPage,
@@ -231,6 +265,7 @@ const routes: Routes = [
     paramsInheritanceStrategy: 'always',
     onSameUrlNavigation: 'reload',
     enableTracing: false,
+    scrollPositionRestoration: 'enabled',
   })],
   exports: [RouterModule],
   providers: [{ provide: UrlSerializer, useClass: CustomUrlSerializer }]

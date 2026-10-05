@@ -34,6 +34,7 @@ import { Store } from '../../store/store';
 import { negate, UrlFilter } from '../../util/query';
 import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
+import { NavComponent } from '../nav/nav.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
 
@@ -57,11 +58,10 @@ export interface KanbanDrag {
     CdkDropListGroup,
     CdkScrollable,
     CdkDropList,
-    RouterLink,
-    TitleDirective,
     ReactiveFormsModule,
     PageControlsComponent,
     AsyncPipe,
+    NavComponent,
   ],
 })
 export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {

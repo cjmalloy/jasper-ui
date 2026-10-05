@@ -5,7 +5,7 @@
 video:focus, video:focus-visible {
   outline: none;
 }
-* {
+:host:not(.browse) * {
   display: block;
 }
 iframe {
@@ -26,6 +26,19 @@ iframe {
     iframe {
       margin-top: -10px;
       margin-bottom: -10px;
+    }
+  }
+}
+
+:host.browse {
+  & > * {
+    display: block;
+    margin: auto !important;
+    &.embed-container {
+      display: contents;
+      & > * {
+        margin: auto;
+      }
     }
   }
 }

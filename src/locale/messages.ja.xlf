@@ -197,14 +197,19 @@ Please Reload.</source>
       <trans-unit id="3347932678307141902" datatype="html">
         <source>restore</source>
       </trans-unit>
-      <trans-unit id="4936024166764234896" datatype="html">
-        <source> by <x id="START_BLOCK_IF" equiv-text="@if (authorExts$ | async; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x.tag) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(x.tag + x.origin)&quot;                      [routerLink]=&quot;['/tag', x.tag + x.origin]&quot;                      [appTitle]=&quot;x&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || formatAuthor(x.tag) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of authors; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ formatAuthor(t) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+      <trans-unit id="7350282992166052287" datatype="html">
+        <source> by <x id="START_BLOCK_FOR" equiv-text="@for (t of authors; track t) {"/><x id="START_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;app-nav css=&quot;user tag&quot;
+                         [url]=&quot;&apos;tag:/&apos; + t&quot;
+                         [title]=&quot;formatAuthor(t)&quot;
+                         [shortUser]=&quot;true&quot;&gt;"/><x id="CLOSE_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;/app-nav&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/></source>
       </trans-unit>
-      <trans-unit id="8744130888389005921" datatype="html">
-        <source> tagged <x id="START_BLOCK_IF" equiv-text="@if (tagExts$ | async; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x.tag) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', x.tag]&quot; [appTitle]=&quot;x.tag&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || '#' + x.tag }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of tags; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ t }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+      <trans-unit id="8995794086065516597" datatype="html">
+        <source> tagged <x id="START_BLOCK_FOR" equiv-text="@for (t of tags; track t) {"/><x id="START_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;app-nav css=&quot;tag&quot;
+                         [url]=&quot;&apos;tag:/&apos; + t&quot;
+                         [origin]=&quot;origin&quot;&gt;"/><x id="CLOSE_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;/app-nav&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/></source>
       </trans-unit>
-      <trans-unit id="2402409795048148312" datatype="html">
-        <source> on <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', ref.origin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ ref.origin }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
+      <trans-unit id="6922760255988880560" datatype="html">
+        <source> on <x id="START_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;app-nav css=&quot;origin tag&quot; [url]=&quot;&apos;tag:/&apos; + (origin || &apos;*&apos;)&quot;&gt;"/><x id="CLOSE_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;/app-nav&gt;"/></source>
       </trans-unit>
       <trans-unit id="4087625955892152801" datatype="html">
         <source>permalink</source>
@@ -802,9 +807,15 @@ Please Reload.</source>
         <source>last edited <x id="INTERPOLATION" equiv-text="{{ ref.modified!.toRelative() }}"/></source>
         <target>最終編集 <x id="INTERPOLATION" equiv-text="{{ ref.modified!.toRelative() }}"/></target>
       </trans-unit>
-      <trans-unit id="3700586480750627287" datatype="html">
-        <source> to <x id="START_BLOCK_IF" equiv-text="@if (recipientExts$ | async; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x.tag + x.origin) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(x.tag + x.origin)&quot;                      [routerLink]=&quot;['/tag', x.tag + x.origin]&quot;                      [appTitle]=&quot;x&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || formatAuthor(x.tag + x.origin) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of recipients; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ formatAuthor(t) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
-        <target><x id="START_BLOCK_IF" equiv-text="@if (recipientExts$ | async; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x.tag + x.origin) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(x.tag + x.origin)&quot;                      [routerLink]=&quot;['/tag', x.tag + x.origin]&quot;                      [appTitle]=&quot;x&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || formatAuthor(x.tag + x.origin) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of recipients; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ formatAuthor(t) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/>へ</target>
+      <trans-unit id="9140613462861468790" datatype="html">
+        <source> to <x id="START_BLOCK_FOR" equiv-text="@for (t of recipients; track t) {"/><x id="START_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;app-nav css=&quot;user tag&quot;
+                         [url]=&quot;&apos;tag:/&apos; + t&quot;
+                         [title]=&quot;formatAuthor(t)&quot;
+                         [shortUser]=&quot;true&quot;&gt;"/><x id="CLOSE_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;/app-nav&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/></source>
+        <target><x id="START_BLOCK_FOR" equiv-text="@for (t of recipients; track t) {"/><x id="START_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;app-nav css=&quot;user tag&quot;
+                         [url]=&quot;&apos;tag:/&apos; + t&quot;
+                         [title]=&quot;formatAuthor(t)&quot;
+                         [shortUser]=&quot;true&quot;&gt;"/><x id="CLOSE_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;/app-nav&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/>へ</target>
       </trans-unit>
       <trans-unit id="1196103407975658227" datatype="html">
         <source>Alarm (<x id="INTERPOLATION" equiv-text="{{ alarm }}"/>)</source>
@@ -4405,6 +4416,10 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Add common features Ext tag pages: Adding pinned Refs, sidebar markdown,
     a custom theme and a set of non-global custom themes to choose from in addition to global themes.</source>
         <target>共通機能Extタグページを追加します: ピン留めされたRefの追加、サイドバーのマークダウン、カスタムテーマ、およびグローバルテーマに加えて選択できる非グローバルカスタムテーマセット。</target>
+      </trans-unit>
+      <trans-unit id="2240639463690490073" datatype="html">
+        <source>browse</source>
+        <target>閲覧</target>
       </trans-unit>
       <trans-unit id="8515029959000193049" datatype="html">
         <source>http:</source>

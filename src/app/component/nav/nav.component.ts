@@ -7,6 +7,8 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { VisibilityService } from '../../service/visibility.service';
+import { Store } from '../../store/store';
+import { formatAuthor } from '../../util/format';
 import { getPath, parseBookmarkParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
@@ -21,6 +23,8 @@ export class NavComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   @Input()
+  origin: string = '';
+  @Input()
   url: string = '';
   @Input()
   title = '';
@@ -30,12 +34,15 @@ export class NavComponent implements OnInit {
   css = '';
   @Input()
   external = false;
+  @Input()
+  shortUser = false;
 
   nav?: (string|number)[];
 
   constructor(
     private config: ConfigService,
     private admin: AdminService,
+    private store: Store,
     private refs: RefService,
     private ts: TaggingService,
     private editor: EditorService,
@@ -45,20 +52,27 @@ export class NavComponent implements OnInit {
 
   ngOnInit() {
     if (this.localUrl) {
-      this.nav = this.getNav();
-      if (this.nav[0] === '/tag' && !this.external && !this.hasText) {
-        this.editor.getTagPreview(this.nav[1] as string)
+      const nav = this.getNav();
+      this.nav = nav;
+if (nav[0] === '/tag' && this.store.view.browser) {
+  const suffixIndex = this.url.search(/[?#]/);
+  const suffix = suffixIndex < 0 ? '' : this.url.substring(suffixIndex);
+  this.nav = ['/browse', 'tag:/' + nav[1] + suffix];
+}
+      if (nav[0] === '/tag' && !this.external && !this.hasText) {
+        const tag = nav[1] as string;
+        const user = this.shortUser && hasPrefix(tag, 'user');
+        this.text = this.text || (user ? formatAuthor(tag) : tag && !tag.startsWith('@') ? '#' + tag : tag) || '';
+        this.title ||= user ? formatAuthor(tag) : tag ? '#' + tag : '';
+        this.editor.getTagPreview(tag, this.origin, true, !user)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(x => {
-            this.text = x?.name || this.text || x?.tag || '';
-            this.title ||= x?.tag || '';
-          });
+          .subscribe(x => this.text = x?.name || this.text);
       }
     } else if (!this.external) {
       this.vis.notifyVisible(this.el, () => {
         this.refs.exists(this.url).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(exists => {
           if (exists) {
-            this.nav = ['/ref', this.url];
+            this.nav = [this.store.view.refPath, this.url];
           }
         });
       });
@@ -88,6 +102,7 @@ export class NavComponent implements OnInit {
   }
 
   get query() {
+    if (this.nav?.[0] === '/browse') return undefined;
     return parseBookmarkParams(this.url);
   }
 
