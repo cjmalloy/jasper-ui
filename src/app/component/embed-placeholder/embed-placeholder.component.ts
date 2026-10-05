@@ -1,4 +1,4 @@
-import { Component, signal, ViewContainerRef, viewChild } from '@angular/core';
+import { Component, signal, viewChild, ViewContainerRef } from '@angular/core';
 
 @Component({
   selector: 'app-embed-placeholder',

@@ -1,5 +1,5 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
-import { computed, Component, effect, ElementRef, input, linkedSignal, signal, untracked, inject } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, input, linkedSignal, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';

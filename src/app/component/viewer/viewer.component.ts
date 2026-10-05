@@ -1,18 +1,32 @@
-import { computed, Component, DestroyRef, ElementRef, effect, forwardRef, inject, input, linkedSignal, output, untracked, viewChild, signal, afterNextRender } from '@angular/core';
-import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  forwardRef,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
 import Hls from 'hls.js';
-import { defer, isEqual, some, without } from 'lodash-es';
+import { isEqual, some, without } from 'lodash-es';
 import { BehaviorSubject, catchError, of, startWith, Subject, switchMap } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
-import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
-import { mapRef, Ref, RefSort, RefUpdates } from '../../model/ref';
+import { mapRef, Ref, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
 import { pdfUrl } from '../../mods/media/pdf';
 import { ActionService } from '../../service/action.service';
@@ -29,13 +43,12 @@ import { embedUrl, setIframeSrc } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
-import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
-import { MapComponent } from '../map/map.component';
 import { LensComponent } from '../lens/lens.component';
 import { LoadingComponent } from '../loading/loading.component';
+import { MapComponent } from '../map/map.component';
 import { MdComponent } from '../md/md.component';
 import { ModComponent } from '../mod/mod.component';
 import { PlaylistComponent } from '../playlist/playlist.component';

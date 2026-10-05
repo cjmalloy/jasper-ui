@@ -5,11 +5,11 @@ import { forwardRef, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
+import { Observable } from 'rxjs';
 
 import { ExtService } from '../../service/api/ext.service';
-import { ExtComponent } from './ext.component';
 import { EditorService } from '../../service/editor.service';
-import { Observable } from 'rxjs';
+import { ExtComponent } from './ext.component';
 
 describe('ExtComponent', () => {
   let component: ExtComponent;

@@ -1,8 +1,8 @@
-import { controlValue } from '../../util/form';
-import { computed, Component, effect, input, signal, inject } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 import { ListEditorComponent } from '../../component/list-editor/list-editor.component';
+import { controlValue } from '../../util/form';
 import { newTheme } from '../../util/theme';
 import { CodeComponent } from '../code/code.component';
 

@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, effect, signal, untracked, inject } from '@angular/core';
+import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
@@ -28,7 +28,15 @@ import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag } from '../../../util/tag';
-import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedCacheFiles, zippedFile } from '../../../util/zip';
+import {
+  FilteredModels,
+  filterModels,
+  getModels,
+  getTextFile,
+  unzip,
+  zippedCacheFiles,
+  zippedFile
+} from '../../../util/zip';
 
 @Component({
   selector: 'app-upload',

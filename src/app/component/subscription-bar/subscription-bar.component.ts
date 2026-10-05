@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, computed, ElementRef, afterNextRender, inject } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, switchMap, take } from 'rxjs';

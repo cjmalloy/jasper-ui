@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { throwError } from 'rxjs';
 import { Store } from '../store/store';
 import { ConfigService } from './config.service';

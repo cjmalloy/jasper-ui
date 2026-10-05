@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform, inject } from '@angular/core';
+import { inject, Pipe, PipeTransform } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { Ref } from '../model/ref';
 import { AdminService } from '../service/admin.service';

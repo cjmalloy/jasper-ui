@@ -1,18 +1,16 @@
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  DestroyRef,
-  inject,
   Component,
-  forwardRef,
+  computed,
+  DestroyRef,
   effect,
+  forwardRef,
+  inject,
   input,
   linkedSignal,
   signal,
   untracked,
   viewChild,
-  viewChildren,
-  computed,
 } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -21,6 +19,7 @@ import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, finalize, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TitleDirective } from '../../../directive/title.directive';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -39,7 +38,9 @@ import {
   visible
 } from '../../../model/tag';
 import { deleteNotice } from '../../../mods/delete';
+import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { findArchive } from '../../../mods/tools/archive';
+import { RelativePipe } from '../../../pipe/relative.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -50,20 +51,18 @@ import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { downloadRef } from '../../../util/download';
-import { scrollToFirstInvalid, controlState } from '../../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
 import { hasTag, isAuthorTag, localTag, removeTag, tagOrigin } from '../../../util/tag';
 import { ActionListComponent } from '../../action/action-list/action-list.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
+import { CommentReplyComponent } from '../../comment/comment-reply/comment-reply.component';
+import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summary.component';
 import { LoadingComponent } from '../../loading/loading.component';
 import { NavComponent } from '../../nav/nav.component';
 import { ViewerComponent } from '../../viewer/viewer.component';
-import { CommentReplyComponent } from '../../comment/comment-reply/comment-reply.component';
-import { getMailbox, mailboxes } from '../../../mods/mailbox';
-import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summary.component';
-import { RelativePipe } from '../../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-blog-entry',

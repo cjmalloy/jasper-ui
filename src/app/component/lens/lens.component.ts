@@ -1,4 +1,4 @@
-import { Component, computed, forwardRef, input, viewChildren, inject } from '@angular/core';
+import { Component, computed, forwardRef, inject, input, viewChildren } from '@angular/core';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';

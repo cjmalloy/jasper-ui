@@ -1,11 +1,25 @@
-import { controlValue } from '../../util/form';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, ElementRef, effect, forwardRef, inject, input, linkedSignal, output, untracked, viewChildren, viewChild, signal, computed, afterNextRender } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  forwardRef,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
+import { cloneDeep, defer, delay, groupBy, pick, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Observable, of, startWith, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -15,12 +29,13 @@ import { DiffComponent } from '../../form/diff/diff.component';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
-import { getPluginScope, Plugin } from '../../model/plugin';
+import { getPluginScope } from '../../model/plugin';
 import { equalsRef, isRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
+import { RelativePipe } from '../../pipe/relative.pipe';
 import { isInlineSvg, ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -35,7 +50,7 @@ import { EditorService } from '../../service/editor.service';
 import { ImageService } from '../../service/image.service';
 import { UploadCacheService } from '../../service/upload-cache.service';
 import { Store } from '../../store/store';
-import { scrollToFirstInvalid, controlState } from '../../util/form';
+import { controlState, controlValue, scrollToFirstInvalid } from '../../util/form';
 import {
   authors,
   clickableLink,
@@ -65,7 +80,6 @@ import {
   isAuthorTag,
   localTag,
   removeTag,
-  repost,
   subOrigin,
   tagOrigin,
   top
@@ -79,7 +93,6 @@ import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
-import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-ref',

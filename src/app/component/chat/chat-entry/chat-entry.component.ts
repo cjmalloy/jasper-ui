@@ -1,26 +1,16 @@
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { HttpErrorResponse } from '@angular/common/http';
-import {
-  DestroyRef,
-  inject,
-  Component,
-  forwardRef,
-  effect,
-  input,
-  linkedSignal,
-  viewChildren,
-  untracked,
-  computed,
-} from '@angular/core';
-import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, DestroyRef, forwardRef, inject, input, linkedSignal, } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { uniq } from 'lodash-es';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TitleDirective } from '../../../directive/title.directive';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
+import { RelativePipe } from '../../../pipe/relative.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -37,7 +27,6 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { MdComponent } from '../../md/md.component';
 import { NavComponent } from '../../nav/nav.component';
 import { ViewerComponent } from '../../viewer/viewer.component';
-import { RelativePipe } from '../../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-chat-entry',

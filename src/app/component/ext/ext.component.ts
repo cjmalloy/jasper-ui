@@ -1,6 +1,16 @@
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, forwardRef, effect, input, linkedSignal, signal, viewChild, viewChildren, computed, untracked, inject } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  forwardRef,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,11 +18,13 @@ import { isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, of, startWith, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { equalsExt, Ext, writeExt } from '../../model/ext';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
+import { RelativePipe } from '../../pipe/relative.pipe';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
@@ -20,12 +32,11 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
-import { scrollToFirstInvalid, controlState } from '../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../util/form';
 import { tagLink } from '../../util/format';
 import { printError } from '../../util/http';
 import { hasPrefix, parentTag } from '../../util/tag';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
-import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-ext',

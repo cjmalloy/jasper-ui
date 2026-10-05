@@ -5,11 +5,11 @@ import {
   getFilter,
   getFilters,
   getFiltersQuery,
-  negate,
   negatable,
-  withStableDateSort,
+  negate,
   toggle,
   UrlFilter,
+  withStableDateSort,
 } from './query';
 
 describe('Query Utils', () => {

@@ -12,21 +12,21 @@ import {
   URI_REGEX,
   USER_REGEX
 } from '../util/format';
+import { FormlyFieldBbox } from './bbox.type';
+import { FormlyFieldBookmarkInput } from './bookmark.type';
 import { FormlyFieldCheckbox } from './checkbox.type';
+import { FormlyFieldChildPlugin } from './child-plugin.type';
 import { FormlyFieldCode } from './code.type';
 import { FormlyFieldDuration } from './duration.type';
 import { FormlyFieldEditor } from './editor.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { FormlyWrapperFormGroup } from './form-group.wrapper';
-import { FormlyFieldBbox } from './bbox.type';
-import { FormlyFieldChildPlugin } from './child-plugin.type';
-import { FormlyFieldGeometries } from './geometries.type';
 import { FormlyFieldGeoStyle } from './geo-style.type';
-import { FormlyFieldLocation } from './location.type';
+import { FormlyFieldGeometries } from './geometries.type';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
+import { FormlyFieldLocation } from './location.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
-import { FormlyFieldBookmarkInput } from './bookmark.type';
 import { FormlyFieldQueryInput } from './query.type';
 import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldRange } from './range.type';

@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { effect, Injectable, untracked, inject } from '@angular/core';
+import { effect, inject, Injectable, untracked } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import flatten from 'css-flatten';
 import { marked } from 'marked';

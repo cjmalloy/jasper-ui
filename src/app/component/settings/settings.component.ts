@@ -1,6 +1,6 @@
-import { computed, Component, ElementRef, afterNextRender, inject } from '@angular/core';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
+import { afterNextRender, Component, computed, ElementRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';

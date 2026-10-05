@@ -1,4 +1,4 @@
-import { Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, inject, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
@@ -7,7 +7,7 @@ import { v4 as uuid } from 'uuid';
 import { Config } from '../model/tag';
 import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
-import { config, ConfigService } from '../service/config.service';
+import { ConfigService } from '../service/config.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { getErrorMessage } from './errors';

@@ -1,4 +1,4 @@
-import { Component, computed, input, output, inject } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';

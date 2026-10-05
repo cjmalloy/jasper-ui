@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { Component, output, inject } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { catchError, last, map } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';

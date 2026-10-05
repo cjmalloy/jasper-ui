@@ -1,6 +1,6 @@
 import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { outputToObservable } from '@angular/core/rxjs-interop';
 import { defer, delay } from 'lodash-es';
 import { takeUntil } from 'rxjs/operators';

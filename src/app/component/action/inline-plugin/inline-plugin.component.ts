@@ -1,8 +1,19 @@
-import { Component, computed, effect, input, linkedSignal, output, signal, viewChild, untracked, inject } from '@angular/core';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { FormBuilder, UntypedFormGroup } from '@angular/forms';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
+import { FormBuilder } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { catchError, Observable, of } from 'rxjs';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { GenFormComponent } from '../../../form/plugins/gen/gen.component';
 import { Plugin } from '../../../model/plugin';
 import { Ref } from '../../../model/ref';

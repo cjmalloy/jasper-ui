@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, from, map, of, switchMap } from 'rxjs';
 import { toDataURL, } from 'qrcode'
+import { catchError, from, map, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-qr',

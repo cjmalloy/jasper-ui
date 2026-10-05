@@ -1,11 +1,17 @@
-import {
-  CdkFixedSizeVirtualScroll,
-  CdkVirtualForOf,
-  CdkVirtualScrollViewport
-} from '@angular/cdk/scrolling';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { HttpEventType } from '@angular/common/http';
-import { DestroyRef, inject, Component, computed, effect, input, linkedSignal, viewChild, signal, untracked } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, differenceWith, uniq, without } from 'lodash-es';
@@ -18,8 +24,8 @@ import {
   map,
   Observable,
   of,
-  Subscription,
   Subject,
+  Subscription,
   switchMap,
   takeUntil,
   tap,
@@ -27,10 +33,12 @@ import {
 } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AutofocusDirective } from '../../directive/autofocus.directive';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { mimeToCode } from '../../mods/media/code';
+import { RelativePipe } from '../../pipe/relative.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -47,7 +55,6 @@ import { getArgs } from '../../util/query';
 import { braces, hasTag, tagOrigin } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { ChatEntryComponent } from './chat-entry/chat-entry.component';
-import { RelativePipe } from '../../pipe/relative.pipe';
 
 export interface ChatUpload {
   readonly id: string;

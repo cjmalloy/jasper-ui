@@ -1,7 +1,5 @@
-import {
-  HttpErrorResponse
-} from '@angular/common/http';
-import { Component, viewChild, signal, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -29,7 +27,7 @@ import { TaggingService } from '../../../service/api/tagging.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid, controlState, controlValue } from '../../../util/form';
+import { controlState, controlValue, scrollToFirstInvalid } from '../../../util/form';
 import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { getVisibilityTags, prefix } from '../../../util/tag';

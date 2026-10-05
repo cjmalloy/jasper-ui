@@ -1,6 +1,5 @@
-import { controlState, controlValue } from '../../util/form';
 import { AsyncPipe } from '@angular/common';
-import { computed, Component, effect, signal, untracked, DestroyRef, inject } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, signal, untracked } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -37,6 +36,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 import { Saving } from '../../store/submit';
+import { controlState, controlValue } from '../../util/form';
 import { getPageTitle, URI_REGEX } from '../../util/format';
 import { fixUrl } from '../../util/http';
 import { hasPrefix } from '../../util/tag';

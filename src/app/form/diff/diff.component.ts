@@ -1,16 +1,16 @@
-import { Component, computed, input, output, inject } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { isEqual } from 'lodash-es';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
+import { Ext } from '../../model/ext';
+import { Plugin } from '../../model/plugin';
+import { Ref } from '../../model/ref';
+import { Mod } from '../../model/tag';
+import { Template } from '../../model/template';
+import { User } from '../../model/user';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { formatBundleDiff, formatDiff } from '../../util/diff';
-import { Ref } from '../../model/ref';
-import { Ext } from '../../model/ext';
-import { User } from '../../model/user';
-import { Plugin } from '../../model/plugin';
-import { Template } from '../../model/template';
-import { Mod } from '../../model/tag';
 
 @Component({
   selector: 'app-diff',

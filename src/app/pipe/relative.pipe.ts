@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform, inject } from '@angular/core';
+import { inject, Pipe, PipeTransform } from '@angular/core';
 import { DateTime } from 'luxon';
 import { ClockService } from '../service/clock.service';
 

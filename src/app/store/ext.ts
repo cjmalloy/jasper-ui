@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Ext } from '../model/ext';
 import { TagPageArgs } from '../model/tag';
 import { ExtService } from '../service/api/ext.service';

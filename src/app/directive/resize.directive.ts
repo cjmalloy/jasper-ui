@@ -1,4 +1,4 @@
-import { computed, Directive, ElementRef, input, signal, inject } from '@angular/core';
+import { computed, Directive, ElementRef, inject, input, signal } from '@angular/core';
 
 @Directive({
   selector: '[appResize]',

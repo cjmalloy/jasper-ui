@@ -3,10 +3,10 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-
-import { HelpService } from './help.service';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
+
+import { HelpService } from './help.service';
 
 describe('HelpService', () => {
   let service: HelpService;
@@ -21,7 +21,7 @@ describe('HelpService', () => {
         provideRouter([]),
       ]
     }).compileComponents();
-    
+
     service = TestBed.inject(HelpService);
     store = TestBed.inject(Store);
     adminService = TestBed.inject(AdminService);

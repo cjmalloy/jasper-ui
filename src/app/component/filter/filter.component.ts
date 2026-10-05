@@ -1,10 +1,10 @@
-import { computed, Component, ElementRef, input, linkedSignal, viewChild, inject } from '@angular/core';
+import { Component, computed, ElementRef, inject, input, linkedSignal, viewChild } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, uniq } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
+import { combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
 import { KanbanConfig } from '../../mods/org/kanban';

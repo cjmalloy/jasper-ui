@@ -1,10 +1,23 @@
-import {
-  Overlay,
-  OverlayRef
-} from '@angular/cdk/overlay';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
-import { effect, Component, ElementRef, forwardRef, computed, linkedSignal, TemplateRef, ViewContainerRef, input, output, signal, viewChild, afterNextRender, DestroyRef, inject } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  forwardRef,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+  TemplateRef,
+  viewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
@@ -26,8 +39,8 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
-import { expandedTagsInclude, hasTag, test } from '../../util/tag';
 import { controlValue } from '../../util/form';
+import { expandedTagsInclude, hasTag, test } from '../../util/tag';
 
 export interface EditorUpload {
   id: string;

@@ -1,4 +1,14 @@
-import { computed, DestroyRef, inject, Component, effect, input, signal, viewChildren, afterNextRender } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  signal,
+  viewChildren
+} from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of, startWith, switchMap } from 'rxjs';

@@ -1,5 +1,18 @@
 import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, computed, ElementRef, effect, input, model, output, signal, untracked, inject, DestroyRef, afterNextRender } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  model,
+  output,
+  signal,
+  untracked
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { cloneDeep, defer, delay, filter, range, uniq } from 'lodash-es';
 import { catchError, Observable, of, Subscription } from 'rxjs';

@@ -1,5 +1,14 @@
 /// <reference types="vitest/globals" />
-import { geocode, geocodeUrl, isConfigured, parseGeocode, resetNominatim, reverseGeocode, reverseGeocodeUrl, sortByDistance } from './geocode';
+import {
+  geocode,
+  geocodeUrl,
+  isConfigured,
+  parseGeocode,
+  resetNominatim,
+  reverseGeocode,
+  reverseGeocodeUrl,
+  sortByDistance
+} from './geocode';
 
 describe('geocode', () => {
   afterEach(() => {

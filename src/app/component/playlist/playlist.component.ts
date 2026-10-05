@@ -1,4 +1,4 @@
-import { computed, Component, effect, forwardRef, input, linkedSignal, model, output, inject } from '@angular/core';
+import { Component, computed, effect, forwardRef, inject, input, linkedSignal, model, output } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, Observable, of, startWith, switchMap, throwError } from 'rxjs';
 import { Page } from '../../model/page';

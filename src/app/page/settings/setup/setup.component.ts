@@ -1,23 +1,23 @@
-import { KeyValuePipe } from '@angular/common';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
+import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, TemplateRef, ViewContainerRef, viewChild, signal, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, uniq } from 'lodash-es';
 import { catchError, concat, last, of, Subscription, throwError } from 'rxjs';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
+import { DiffComponent } from '../../../form/diff/diff.component';
 import { Config, Mod } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { equalBundle, mergeBundle } from '../../../util/diff';
-import { scrollToFirstInvalid, controlState } from '../../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { DiffComponent } from '../../../form/diff/diff.component';
-import { LoadingComponent } from '../../../component/loading/loading.component';
-import { TemplatePortal } from '@angular/cdk/portal';
 
 interface ModUpdatePreview {
   mod: string;

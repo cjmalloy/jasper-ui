@@ -2,7 +2,6 @@ import { Location } from '@angular/common';
 import { Component, computed, DestroyRef, effect, inject, input, untracked, ViewEncapsulation } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
-import { isEqual } from 'lodash-es';
 import {
   ControlComponent,
   MapComponent as MglComponent,
@@ -11,9 +10,11 @@ import {
 } from '@maplibre/ngx-maplibre-gl';
 import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { FeatureCollection } from 'geojson';
+import { isEqual } from 'lodash-es';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
 import { LngLatBounds, Map, Marker } from 'maplibre-gl';
 import { catchError, filter, forkJoin, map as rxMap, of, switchMap } from 'rxjs';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -34,11 +35,10 @@ import { addGeoLayers } from '../../util/geo-style';
 import { GeocoderPosition, isConfigured } from '../../util/geocode';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
+import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { addGeocoder } from './geocoder';
 import { preventSelectionDrag } from './selection-drag';
 import { DOUBLE_CLICK_DELAY, isRepeatClick, onSingleClick } from './single-click';
-import { PageControlsComponent } from '../page-controls/page-controls.component';
-import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
 
 export { formatMapView, minimalLngInterval, parseMapView };
 export type { MapView };

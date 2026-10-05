@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, viewChild, effect, signal, untracked, inject } from '@angular/core';
+import { Component, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -21,7 +21,7 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
-import { scrollToFirstInvalid, controlState } from '../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../util/form';
 import { TAG_SUFFIX_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 import { access, hasPrefix, localTag, prefix } from '../../util/tag';

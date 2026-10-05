@@ -1,6 +1,7 @@
-import { computed, Injectable, inject } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
 import { filter, interval, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
 import { escapePath, OpPatch } from '../util/json-patch';
@@ -10,7 +11,6 @@ import { RefService } from './api/ref.service';
 import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
 import { ConfigService } from './config.service';
-import { environment } from '../../environments/environment';
 
 /**
  * Interface for video signaling data structure used in WebRTC communication

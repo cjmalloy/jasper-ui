@@ -1,11 +1,11 @@
-import { Component, computed, ElementRef, input, linkedSignal, viewChild, inject } from '@angular/core';
+import { Component, computed, ElementRef, inject, input, linkedSignal, viewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
-import { convertSort, defaultDesc, SortItem } from '../../util/query';
+import { convertSort, defaultDesc } from '../../util/query';
 
 @Component({
   selector: 'app-sort',

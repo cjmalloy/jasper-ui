@@ -1,6 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { Component, forwardRef, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  effect,
+  forwardRef,
+  inject,
+  Injector,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -18,6 +28,7 @@ import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { NavComponent } from '../../../component/nav/nav.component';
 import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
@@ -38,7 +49,7 @@ import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { readFileAsString } from '../../../util/async';
-import { scrollToFirstInvalid, controlValue, controlState } from '../../../util/form';
+import { controlState, controlValue, scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 

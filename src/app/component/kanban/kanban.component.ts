@@ -1,7 +1,18 @@
 import { CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
-import { Component, computed, forwardRef, input, signal, viewChildren, effect, untracked, inject, DestroyRef } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  forwardRef,
+  inject,
+  input,
+  signal,
+  untracked,
+  viewChildren
+} from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';

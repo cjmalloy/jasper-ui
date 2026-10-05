@@ -1,4 +1,4 @@
-import { Component, computed, forwardRef, input, linkedSignal, inject } from '@angular/core';
+import { Component, computed, forwardRef, inject, input, linkedSignal } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { EMPTY, Observable, switchMap } from 'rxjs';
 import { Ref } from '../../../model/ref';

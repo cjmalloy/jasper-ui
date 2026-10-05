@@ -1,4 +1,4 @@
-import { Component, viewChild, inject } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';

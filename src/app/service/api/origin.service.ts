@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { DateTime } from 'luxon';
 import { catchError, map, Observable } from 'rxjs';
 import { params } from '../../util/http';

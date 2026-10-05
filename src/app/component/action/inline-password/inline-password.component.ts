@@ -1,7 +1,7 @@
 import { Component, input, output, signal } from '@angular/core';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({

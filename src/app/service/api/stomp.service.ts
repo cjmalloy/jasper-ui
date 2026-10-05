@@ -1,12 +1,12 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { RxStomp, RxStompConfig } from '@stomp/rx-stomp';
 import { map, Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { Ext, mapExt } from '../../model/ext';
 import { mapRef, RefUpdates } from '../../model/ref';
 import { Store } from '../../store/store';
 import { isSubOrigin, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
-import { environment } from '../../../environments/environment';
 
 
 function isTestEnvironment(): boolean {

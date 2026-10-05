@@ -1,11 +1,11 @@
-import { controlValue } from '../../util/form';
-import { Component, computed, input, inject } from '@angular/core';
-import { isEqual } from 'lodash-es';
+import { Component, computed, inject, input } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
+import { isEqual } from 'lodash-es';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
+import { controlValue } from '../../util/form';
 
 @Component({
   selector: 'app-json',

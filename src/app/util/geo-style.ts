@@ -1,5 +1,5 @@
-import type { Map as MapLibreMap, StyleImageInterface } from 'maplibre-gl';
 import type { Schema } from 'jtd';
+import type { Map as MapLibreMap, StyleImageInterface } from 'maplibre-gl';
 
 /**
  * Style of a GeoJSON feature, stored in the feature properties.

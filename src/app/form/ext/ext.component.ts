@@ -1,17 +1,5 @@
-import { controlValue } from '../../util/form';
-import {
-  CdkDropListGroup
-} from '@angular/cdk/drag-drop';
-import { computed,
-  DestroyRef,
-  inject,
-  Component,
-  forwardRef,
-  input,
-  output,
-  signal,
-  viewChild
-} from '@angular/core';
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { Component, computed, DestroyRef, forwardRef, inject, input, output, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
@@ -35,6 +23,7 @@ import { getMailbox } from '../../mods/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
+import { controlValue } from '../../util/form';
 import { TAG_REGEX } from '../../util/format';
 import { convertFilter, convertSort, defaultDesc, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';

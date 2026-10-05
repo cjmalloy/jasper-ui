@@ -3,13 +3,13 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Ref } from '../model/ref';
 import { of } from 'rxjs';
 import { Page } from '../model/page';
+import { Ref } from '../model/ref';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
-import { ConfigService } from './config.service';
 import { RefService } from './api/ref.service';
+import { ConfigService } from './config.service';
 
 import { OriginMapService } from './origin-map.service';
 

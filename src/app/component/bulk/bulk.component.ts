@@ -1,12 +1,12 @@
 import { KeyValuePipe } from '@angular/common';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, input, signal, computed, inject, afterNextRender } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, pick, uniq } from 'lodash-es';
 import { catchError, concat, firstValueFrom, last, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
 import { patchPlugins } from '../../form/plugins/plugins.component';
 import { Ext } from '../../model/ext';

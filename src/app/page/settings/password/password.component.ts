@@ -1,12 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, signal, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 import { ProfileService } from '../../../service/api/profile.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid, controlState } from '../../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({

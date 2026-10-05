@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Profile, ProfilePageArgs } from '../model/profile';
 import { ProfileService } from '../service/api/profile.service';
 import { PageStore } from '../util/page-store';

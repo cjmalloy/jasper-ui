@@ -1,17 +1,26 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe } from '@angular/common';
-import { Component, DestroyRef, TemplateRef, ViewContainerRef, input, viewChild, computed, inject } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  input,
+  TemplateRef,
+  viewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { filter, Subscription } from 'rxjs';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TitleDirective } from '../../../directive/title.directive';
 import { Ref, writeRef } from '../../../model/ref';
 import { Action } from '../../../model/tag';
 import { ActionService } from '../../../service/action.service';
+import { ProxyService } from '../../../service/api/proxy.service';
 import { downloadRef, downloadUrl } from '../../../util/download';
 import { ConfirmActionComponent } from '../confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../inline-button/inline-button.component';
-import { ProxyService } from '../../../service/api/proxy.service';
 
 @Component({
   selector: 'app-action-list',

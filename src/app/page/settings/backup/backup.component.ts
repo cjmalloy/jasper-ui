@@ -1,7 +1,16 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, Component, ElementRef, TemplateRef, ViewContainerRef, signal, viewChild, inject } from '@angular/core';
+import {
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  signal,
+  TemplateRef,
+  viewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -14,7 +23,7 @@ import { OriginService } from '../../../service/api/origin.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid, controlState } from '../../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../../util/form';
 import { ORIGIN_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 

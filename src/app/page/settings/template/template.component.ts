@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, viewChild, signal, inject } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { TemplateListComponent } from '../../../component/template/template-list/template-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';

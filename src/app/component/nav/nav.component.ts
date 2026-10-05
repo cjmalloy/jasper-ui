@@ -1,7 +1,7 @@
-import { computed, Component, DestroyRef, ElementRef, inject, input, linkedSignal, signal, afterNextRender } from '@angular/core';
+import { Component, computed, DestroyRef, ElementRef, inject, input } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, Observable, of, startWith, switchMap } from 'rxjs';
 import { RouterLink } from '@angular/router';
+import { catchError, Observable, of, startWith, switchMap } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';

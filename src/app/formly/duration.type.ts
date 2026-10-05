@@ -1,4 +1,4 @@
-import { Component, Directive, ElementRef, forwardRef, input, inject } from '@angular/core';
+import { Component, Directive, ElementRef, forwardRef, inject, input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { Duration } from 'luxon';

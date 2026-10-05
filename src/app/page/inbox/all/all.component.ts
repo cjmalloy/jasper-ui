@@ -1,4 +1,4 @@
-import { Component, viewChild, inject, afterNextRender } from '@angular/core';
+import { afterNextRender, Component, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';

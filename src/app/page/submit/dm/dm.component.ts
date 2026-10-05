@@ -1,7 +1,17 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
-  HttpErrorResponse
-} from '@angular/common/http';
-import { Component, DestroyRef, forwardRef, viewChild, effect, computed, signal, inject, Injector, untracked, afterNextRender } from '@angular/core';
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  forwardRef,
+  inject,
+  Injector,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -15,7 +25,18 @@ import { Router } from '@angular/router';
 import { debounce, defer, isEqual, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, firstValueFrom, forkJoin, interval, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import {
+  catchError,
+  firstValueFrom,
+  forkJoin,
+  interval,
+  map,
+  Observable,
+  of,
+  Subscription,
+  switchMap,
+  throwError
+} from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
@@ -37,7 +58,7 @@ import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid, controlValue, controlState } from '../../../util/form';
+import { controlState, controlValue, scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/tag';

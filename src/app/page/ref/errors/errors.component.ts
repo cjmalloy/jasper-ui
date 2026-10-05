@@ -1,4 +1,4 @@
-import { Component, viewChild, effect, untracked, inject } from '@angular/core';
+import { Component, effect, inject, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';

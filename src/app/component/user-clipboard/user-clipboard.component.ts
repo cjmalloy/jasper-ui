@@ -1,12 +1,13 @@
 import { AsyncPipe, DOCUMENT } from '@angular/common';
-import { computed, Component, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import DOMPurify from 'dompurify';
+import { DateTime } from 'luxon';
 import { catchError, finalize, fromEvent, of, Subscription } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
-import { mapRef, Ref, RefUpdates, writeRef } from '../../model/ref';
+import { mapRef, Ref, RefUpdates } from '../../model/ref';
 import { active, Icon, sortOrder, uniqueConfigs } from '../../model/tag';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
@@ -14,11 +15,10 @@ import { AdminService } from '../../service/admin.service';
 import { StompService } from '../../service/api/stomp.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
+import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { getTitle } from '../../util/format';
 import { getScheme } from '../../util/http';
-import { EditorService } from '../../service/editor.service';
-import { DateTime } from 'luxon';
 
 const BUBBLE_START_X = 12;
 const BUBBLE_START_Y = 72;

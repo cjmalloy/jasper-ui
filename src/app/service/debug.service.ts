@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { from, of } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { signJwt } from '../util/jwt';
 import { ConfigService } from './config.service';
-import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

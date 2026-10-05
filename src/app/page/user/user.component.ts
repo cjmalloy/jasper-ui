@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, viewChild, effect, signal, untracked, inject } from '@angular/core';
+import { Component, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -14,7 +14,7 @@ import { UserService } from '../../service/api/user.service';
 import { ConfigService } from '../../service/config.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
-import { scrollToFirstInvalid, controlState } from '../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { prefix, setPublic } from '../../util/tag';
 

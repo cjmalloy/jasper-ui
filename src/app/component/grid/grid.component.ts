@@ -1,11 +1,11 @@
-import { computed, Component, effect, signal, ViewEncapsulation, input, untracked, DestroyRef, inject } from '@angular/core';
-import { isEqual } from 'lodash-es';
+import { Component, computed, effect, inject, input, untracked, ViewEncapsulation } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
+import { isEqual } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, forkJoin, of, Subject, switchMap } from 'rxjs';
+import { catchError, forkJoin, of, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';

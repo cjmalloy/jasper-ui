@@ -1,5 +1,4 @@
-import { controlValue } from '../../util/form';
-import { computed, Component, effect, input, signal, inject } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -10,6 +9,7 @@ import {
 } from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
 import { map } from 'lodash-es';
+import { controlValue } from '../../util/form';
 import { URI_REGEX } from '../../util/format';
 
 @Component({

@@ -5,10 +5,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { Store } from '../store/store';
-import { AdminService } from './admin.service';
-import { RefService } from './api/ref.service';
 
 import { AccountService } from './account.service';
+import { AdminService } from './admin.service';
+import { RefService } from './api/ref.service';
 
 describe('AccountService', () => {
   let service: AccountService;

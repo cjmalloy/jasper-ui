@@ -1,4 +1,4 @@
-import { Component, effect, input, viewChildren, untracked, inject } from '@angular/core';
+import { Component, effect, inject, input, untracked, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';

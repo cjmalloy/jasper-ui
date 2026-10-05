@@ -1,13 +1,10 @@
-import {
-  AsyncPipe
-} from '@angular/common';
-import { Component, computed, forwardRef, input, linkedSignal, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Component, computed, forwardRef, inject, input, linkedSignal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, of, startWith, switchMap } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import {
-  Action,
   active,
   Icon,
   ResponseAction,
@@ -25,7 +22,7 @@ import { AuthzService } from '../../../service/authz.service';
 import { Store } from '../../../store/store';
 import { getTitle, templates } from '../../../util/format';
 import { getScheme } from '../../../util/http';
-import { hasTag, isAuthorTag, repost } from '../../../util/tag';
+import { hasTag, isAuthorTag } from '../../../util/tag';
 import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({

@@ -1,25 +1,25 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { computed, Component, effect, input, linkedSignal, signal, untracked, viewChild, viewChildren, inject } from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, signal, untracked, viewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { templateForm, TemplateFormComponent } from '../../form/template/template.component';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { DiffComponent } from '../../form/diff/diff.component';
+import { templateForm, TemplateFormComponent } from '../../form/template/template.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Template, writeTemplate } from '../../model/template';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
+import { RelativePipe } from '../../pipe/relative.pipe';
 import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
-import { scrollToFirstInvalid, controlState } from '../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { LoadingComponent } from '../loading/loading.component';
-import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-template',

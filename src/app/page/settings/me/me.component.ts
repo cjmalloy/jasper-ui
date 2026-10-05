@@ -1,10 +1,11 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, viewChild, signal, inject } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { UserTagSelectorComponent } from '../../../component/user-tag-selector/user-tag-selector.component';
 import { extForm, ExtFormComponent } from '../../../form/ext/ext.component';
@@ -14,9 +15,8 @@ import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid, controlState } from '../../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
-import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-settings-me-page',

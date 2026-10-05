@@ -2,7 +2,19 @@ import { HttpClient } from '@angular/common/http';
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { delay } from 'lodash-es';
-import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, takeWhile, timeInterval, toArray } from 'rxjs';
+import {
+  catchError,
+  concat,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  Subject,
+  switchMap,
+  takeWhile,
+  timeInterval,
+  toArray
+} from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext, mapExt, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';

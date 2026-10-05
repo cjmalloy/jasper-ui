@@ -1,4 +1,4 @@
-import { Directive, ElementRef, input, linkedSignal, afterNextRender, inject } from '@angular/core';
+import { afterNextRender, Directive, ElementRef, inject, input, linkedSignal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 

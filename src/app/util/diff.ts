@@ -1,12 +1,12 @@
-import { diff3Merge, MergeRegion } from 'node-diff3';
 import { cloneDeep, get, isArray, isEmpty, isObject, isString, set, sortBy, toPath, uniq, unset } from 'lodash-es';
-import { Ref, writeRef } from '../model/ref';
-import { Ext, writeExt } from '../model/ext';
-import { User, writeUser } from '../model/user';
-import { Template, writeTemplate } from '../model/template';
-import { Plugin, writePlugin } from '../model/plugin';
-import { clear, Config, Mod } from '../model/tag';
 import { DateTime } from 'luxon';
+import { diff3Merge, MergeRegion } from 'node-diff3';
+import { Ext, writeExt } from '../model/ext';
+import { Plugin, writePlugin } from '../model/plugin';
+import { Ref, writeRef } from '../model/ref';
+import { clear, Config, Mod } from '../model/tag';
+import { Template, writeTemplate } from '../model/template';
+import { User, writeUser } from '../model/user';
 
 export function sortEntity(entity: Record<string, any>): Record<string, any> {
   const { origin, modified, metadata, created, modifiedString, ...rest } = entity as any;

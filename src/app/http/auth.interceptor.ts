@@ -1,5 +1,5 @@
 import { HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest, HttpResponseBase } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { from, Observable, switchMap, tap } from 'rxjs';
 import { ConfigService } from '../service/config.service';
 import { Store } from '../store/store';

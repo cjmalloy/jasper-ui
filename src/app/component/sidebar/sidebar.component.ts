@@ -1,14 +1,26 @@
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  forwardRef,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+  untracked
+} from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { Component, ElementRef, forwardRef, effect, input, linkedSignal, signal, computed, untracked, afterNextRender, DestroyRef, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 import { catchError, filter, finalize, forkJoin, map, of, Subject, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { Ext } from '../../model/ext';
-import { Plugin } from '../../model/plugin';
 import { hydrate } from '../../model/tag';
-import { getTemplateScope, Template } from '../../model/template';
+import { getTemplateScope } from '../../model/template';
 import { getMailbox } from '../../mods/mailbox';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';

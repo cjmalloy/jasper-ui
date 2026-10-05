@@ -1,9 +1,20 @@
-import { Component, computed, effect, ElementRef, input, linkedSignal, signal, viewChild, untracked, inject } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { combineLatest, of, startWith, switchMap } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
+import { combineLatest, of, startWith, switchMap } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';

@@ -1,10 +1,10 @@
-import { Component, viewChild, effect, inject, Injector, computed, afterNextRender, DestroyRef } from '@angular/core';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
+import { afterNextRender, Component, computed, DestroyRef, effect, inject, Injector, viewChild } from '@angular/core';
 import { uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
 import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
 import { LoadingComponent } from '../../../component/loading/loading.component';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';

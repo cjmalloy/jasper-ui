@@ -1,6 +1,17 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, forwardRef, computed, input, output, signal, viewChild, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  computed,
+  ElementRef,
+  forwardRef,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild
+} from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -26,13 +37,13 @@ import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
+import { controlState, controlValue } from '../../util/form';
 import { getScheme, getTitleFromFilename } from '../../util/http';
 import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
 import { EditorComponent } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
-import { controlState, controlValue } from '../../util/form';
 
 @Component({
   selector: 'app-ref-form',

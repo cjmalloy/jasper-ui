@@ -1,4 +1,4 @@
-import { computed, Directive, ElementRef, input, signal, afterNextRender, DestroyRef, inject } from '@angular/core';
+import { afterNextRender, computed, DestroyRef, Directive, ElementRef, inject, input, signal } from '@angular/core';
 import { defer } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';

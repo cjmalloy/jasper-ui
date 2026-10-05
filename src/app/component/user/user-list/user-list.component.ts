@@ -1,4 +1,4 @@
-import { Component, effect, input, signal, viewChildren, inject } from '@angular/core';
+import { Component, effect, inject, input, signal, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';

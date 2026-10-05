@@ -1,6 +1,6 @@
-import { Injectable, inject } from '@angular/core';
-import { User } from '../model/user';
+import { inject, Injectable } from '@angular/core';
 import { TagPageArgs } from '../model/tag';
+import { User } from '../model/user';
 import { UserService } from '../service/api/user.service';
 import { PageStore } from '../util/page-store';
 

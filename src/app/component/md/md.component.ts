@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, input, output, inject } from '@angular/core';
+import { Component, computed, ElementRef, inject, input, output } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
 import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
 import * as XLSX from 'xlsx';

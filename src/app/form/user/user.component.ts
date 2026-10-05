@@ -1,5 +1,4 @@
-import { controlValue } from '../../util/form';
-import { computed, Component, input, output, signal, viewChild, afterNextRender, inject } from '@angular/core';
+import { afterNextRender, Component, computed, inject, input, output, signal, viewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -12,6 +11,7 @@ import { v4 as uuid } from 'uuid';
 import { User } from '../../model/user';
 import { isMailbox } from '../../mods/mailbox';
 import { Store } from '../../store/store';
+import { controlValue } from '../../util/form';
 import { USER_REGEX } from '../../util/format';
 import { JsonComponent } from '../json/json.component';
 import { TagsFormComponent } from '../tags/tags.component';

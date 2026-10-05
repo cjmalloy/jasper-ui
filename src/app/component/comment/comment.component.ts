@@ -1,9 +1,23 @@
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { Component, ElementRef, forwardRef, effect, input, linkedSignal, viewChildren, viewChild, signal, untracked, computed, inject, DestroyRef, afterNextRender } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  forwardRef,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
 import { Observable, Subject } from 'rxjs';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
@@ -21,6 +35,7 @@ import {
 import { deleteNotice } from '../../mods/delete';
 import { getMailbox, mailboxes } from '../../mods/mailbox';
 import { score } from '../../mods/vote';
+import { RelativePipe } from '../../pipe/relative.pipe';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
@@ -40,7 +55,6 @@ import { ViewerComponent } from '../viewer/viewer.component';
 import { CommentEditComponent } from './comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
-import { RelativePipe } from '../../pipe/relative.pipe';
 
 @Component({
   selector: 'app-comment',

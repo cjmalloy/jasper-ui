@@ -1,7 +1,15 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
-  HttpErrorResponse
-} from '@angular/common/http';
-import { Component, forwardRef, viewChild, effect, inject, Injector, signal, untracked, afterNextRender } from '@angular/core';
+  afterNextRender,
+  Component,
+  effect,
+  forwardRef,
+  inject,
+  Injector,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -38,7 +46,7 @@ import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { OembedStore } from '../../../store/oembed';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid, controlState } from '../../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../../util/form';
 import { interestingTags } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { getVisibilityTags } from '../../../util/tag';

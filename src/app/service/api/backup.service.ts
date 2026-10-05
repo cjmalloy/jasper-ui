@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { catchError, map, Observable, shareReplay } from 'rxjs';
 import { all, BackupOptions } from '../../model/backup';

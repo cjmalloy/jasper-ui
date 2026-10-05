@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { computed, Component, inject, input, signal, untracked } from '@angular/core';
+import { Component, computed, inject, input, signal, untracked } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -7,11 +7,10 @@ import {
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
-import { FormlyFieldConfig } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
-import { controlValue } from '../../util/form';
 import { AdminService } from '../../service/admin.service';
+import { controlValue } from '../../util/form';
 import { AdminConfigComponent } from '../admin-config/admin-config.component';
 import { JsonComponent } from '../json/json.component';
 

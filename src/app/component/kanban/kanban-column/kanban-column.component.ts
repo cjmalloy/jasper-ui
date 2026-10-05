@@ -1,18 +1,6 @@
-import {
-  CdkDrag
-} from '@angular/cdk/drag-drop';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
+import { CdkDrag } from '@angular/cdk/drag-drop';
 import { HttpEventType } from '@angular/common/http';
-import {
-  DestroyRef,
-  inject,
-  Component,
-  computed,
-  effect,
-  untracked,
-  input,
-  signal
-} from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, input, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { isEqual, uniq, without } from 'lodash-es';
@@ -20,6 +8,7 @@ import { DateTime } from 'luxon';
 import { catchError, last, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';

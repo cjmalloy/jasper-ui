@@ -1,4 +1,4 @@
-import { Component, computed, effect, input, viewChildren, inject } from '@angular/core';
+import { Component, computed, effect, inject, input, viewChildren } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';

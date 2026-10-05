@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
-import { Mod } from '../model/tag';
 import { refViewSchema } from '../model/ref';
+import { Mod } from '../model/tag';
 
 export const userClipboardPlugin: Plugin = {
   tag: 'plugin/user/clipboard',

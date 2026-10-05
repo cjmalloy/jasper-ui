@@ -1,10 +1,10 @@
-import { controlValue } from '../../../util/form';
-import { Component, computed, input, output, signal, afterNextRender, inject } from '@angular/core';
+import { afterNextRender, Component, computed, inject, input, output, signal } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
+import { controlValue } from '../../../util/form';
 
 @Component({
   selector: 'app-form-gen',

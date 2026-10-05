@@ -1,13 +1,28 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { computed, signal, Component, effect, ElementRef, forwardRef, TemplateRef, ViewContainerRef, input, viewChild, untracked, DestroyRef, inject, afterNextRender } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  forwardRef,
+  inject,
+  input,
+  signal,
+  TemplateRef,
+  untracked,
+  viewChild,
+  ViewContainerRef
+} from '@angular/core';
 import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import { filter } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref, RefNode } from '../../../model/ref';
 import { active, sortOrder } from '../../../model/tag';

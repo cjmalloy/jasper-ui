@@ -1,4 +1,4 @@
-import { Component, afterNextRender } from '@angular/core';
+import { afterNextRender, Component } from '@angular/core';
 import { LoadingComponent } from '../../component/loading/loading.component';
 
 @Component({

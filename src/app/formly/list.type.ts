@@ -1,13 +1,13 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { Component, signal, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { cloneDeep, defer, isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { Store } from '../store/store';
 import { clipboardPasteValues } from '../util/clipboard';
-import { getPath } from '../util/http';
 import { hasLocation } from '../util/geo';
+import { getPath } from '../util/http';
 import { closedRings, locationLists, locationPicker } from './location-picker';
 
 @Component({

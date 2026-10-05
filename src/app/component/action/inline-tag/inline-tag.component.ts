@@ -1,10 +1,10 @@
-import { Component, input, signal, inject } from '@angular/core';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
+import { Component, inject, input, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, uniqBy } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { Config } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';

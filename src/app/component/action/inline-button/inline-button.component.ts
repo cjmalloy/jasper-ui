@@ -1,6 +1,6 @@
 import { Component, input, signal } from '@angular/core';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({

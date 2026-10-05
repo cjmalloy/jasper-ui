@@ -1,20 +1,20 @@
-import { VideoStore } from '../store/video';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { computed, signal } from '@angular/core';
 /// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
-import { VideoService } from './video.service';
+import { Page } from '../model/page';
+import { Ref } from '../model/ref';
 import { Store } from '../store/store';
+import { VideoStore } from '../store/video';
+import { AdminService } from './admin.service';
+import { RefService } from './api/ref.service';
 import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
-import { RefService } from './api/ref.service';
-import { AdminService } from './admin.service';
 import { ConfigService } from './config.service';
-import { Ref } from '../model/ref';
-import { Page } from '../model/page';
+import { VideoService } from './video.service';
 
 // Constants for test timing
 const ASYNC_OPERATION_WAIT_MS = 150;
@@ -541,7 +541,7 @@ describe('VideoService', () => {
       expect(trackHandler).toBeDefined();
 
       // Simulate track event
-      const mockEvent = { 
+      const mockEvent = {
         streams: [mockRemoteStream],
         track: { readyState: 'live', addEventListener: vi.fn(), removeEventListener: vi.fn() }
       } as any;

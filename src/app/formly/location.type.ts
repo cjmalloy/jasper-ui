@@ -1,10 +1,10 @@
-import { computed, Component, DestroyRef, inject, afterNextRender } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
-import { getErrorMessage } from './errors';
 import { controlValue } from '../util/form';
-import { LocationMapComponent } from './location-map.component';
 import { parseLocation } from '../util/geo';
+import { getErrorMessage } from './errors';
+import { LocationMapComponent } from './location-map.component';
 import { LocationPicker, locationPicker } from './location-picker';
 
 @Component({

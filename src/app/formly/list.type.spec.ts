@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
+import { TestBed } from '@angular/core/testing';
 import { FormArray, FormControl } from '@angular/forms';
 import { FieldArrayType } from '@ngx-formly/core';
-import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { Store } from '../store/store';
 import { ListTypeComponent } from './list.type';

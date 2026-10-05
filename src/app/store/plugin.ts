@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Plugin } from '../model/plugin';
 import { TagPageArgs } from '../model/tag';
 import { PluginService } from '../service/api/plugin.service';

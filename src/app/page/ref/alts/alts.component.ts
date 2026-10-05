@@ -1,4 +1,4 @@
-import { Component, viewChild, effect, signal, inject } from '@angular/core';
+import { Component, effect, inject, signal, viewChild } from '@angular/core';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';

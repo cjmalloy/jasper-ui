@@ -4,8 +4,8 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { EditorComponent } from '../../editor/editor.component';
 import { provideJasperFormly } from '../../../formly/formly.config';
+import { EditorComponent } from '../../editor/editor.component';
 
 import { GenFormComponent } from './gen.component';
 

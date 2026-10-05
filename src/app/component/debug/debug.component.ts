@@ -1,10 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { computed, Component, signal, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';

@@ -1,4 +1,4 @@
-import { computed, Injectable, ViewContainerRef, inject } from '@angular/core';
+import { computed, inject, Injectable, ViewContainerRef } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, Token, Tokens, TokensList } from 'marked';
