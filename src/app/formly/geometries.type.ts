@@ -111,7 +111,7 @@ function geometryType(item: any): string | undefined {
  */
 function geometryPlugins(field: FormlyFieldConfig): Plugin[] {
   const parent = field.props?.parent;
-  const plugins: Record<string, Plugin | undefined> = field.options?.formState?.admin?.status?.plugins || {};
+  const plugins: Record<string, Plugin | undefined> = field.options?.formState?.admin?.status()?.plugins || {};
   return (Object.values(plugins) as Plugin[])
     .filter(p => !!p && directChild(p.tag, parent))
     .filter(p => p.defaults?.geometry?.type && geometryCoordinates(p));

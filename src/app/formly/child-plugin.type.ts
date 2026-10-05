@@ -42,7 +42,7 @@ export class FormlyFieldChildPlugin extends FieldType {
   }
 
   get children(): Plugin[] {
-    const plugins: Record<string, Plugin | undefined> = this.formState?.admin?.status?.plugins || {};
+    const plugins: Record<string, Plugin | undefined> = this.formState?.admin?.status()?.plugins || {};
     return Object.values(plugins)
       .filter(p => !!p && directChild(p.tag, this.parent)) as Plugin[];
   }
