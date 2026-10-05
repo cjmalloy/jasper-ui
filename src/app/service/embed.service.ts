@@ -12,7 +12,7 @@ import { wikiUriFormat } from '../mods/org/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
-import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc } from '../util/embed';
+import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc, setIframeSrc } from '../util/embed';
 import { getArray, parseBookmarkParams } from '../util/http';
 import { getArgs, getFilters, UrlFilter } from '../util/query';
 import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
@@ -628,12 +628,12 @@ export class EmbedService {
     if (!iframe.style.height && oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
       if (oembed.html.startsWith('<iframe')) {
-        iframe.src = embedUrl(parseSrc(oembed.html));
+        setIframeSrc(iframe, embedUrl(parseSrc(oembed.html)));
       } else {
         this.writeIframeHtml(oembed.html || '', iframe, scroll);
       }
     } else {
-      iframe.src = embedUrl(oembed.url);
+      setIframeSrc(iframe, embedUrl(oembed.url));
     }
     if (!iframe.style.height && !oembed.height) {
       iframe.style.height = (oembed.width ? oembed.width + 'px' : width);
@@ -691,7 +691,7 @@ export class EmbedService {
     iframe.addEventListener('load', () => {
       URL.revokeObjectURL(blobUrl);
     }, { once: true });
-    iframe.src = blobUrl;
+    setIframeSrc(iframe, blobUrl);
   }
 
   loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
