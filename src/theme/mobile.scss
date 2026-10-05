@@ -459,7 +459,7 @@ $tablet-width: 948px;
         padding-top: 2px;
       }
       &.not-expanded {
-        transition: height .5s;
+        transition: height .5s, padding-top 0s .5s;
       }
     }
     &.full-page {
