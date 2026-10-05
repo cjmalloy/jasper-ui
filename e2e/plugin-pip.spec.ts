@@ -39,13 +39,13 @@ test.describe.serial('PiP Plugin', () => {
   test('hides viewer while in PiP and restores on close', async () => {
     const viewer = page.locator('.full-page.ref .viewer-inline');
     if (!await viewer.isVisible()) {
-      await page.locator('.full-page.ref .link-below > button.toggle').click();
+      await page.locator('.full-page.ref > button.toggle').click();
     }
     await expect(viewer).toBeVisible();
     await expect(viewer).not.toHaveClass(/is-hidden-in-pip/);
 
     const popupPromise = page.waitForEvent('popup');
-    await page.locator('.full-page.ref .link-below > button.toggle').click({ button: 'right' });
+    await page.locator('.full-page.ref > button.toggle').click({ button: 'right' });
     const popup = await popupPromise;
     await expect(popup.locator('iframe')).toHaveAttribute('src', /\/browse\//);
     await expect(viewer).toHaveClass(/is-hidden-in-pip/);

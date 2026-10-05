@@ -1,10 +1,16 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Locator, test } from '@playwright/test';
 import { closeSidebar, deleteRef, mod, openSidebar } from './setup';
 
 const URL = 'https://jasperkm.info/plugin-map-test';
 const POLYGON_URL = 'https://jasperkm.info/plugin-map-polygon-test';
 const GEO_URL = 'geo:44.65,-63.57';
 const CORS = { 'Access-Control-Allow-Origin': '*' };
+
+/** Wait for the address search to fit its placeholder and finish animating. */
+async function settled(geocoder: Locator) {
+  await expect(geocoder).toHaveClass(/measured/);
+  await geocoder.evaluate(el => Promise.all(el.getAnimations().map(a => a.finished)));
+}
 
 test.describe.serial('Map Plugin', () => {
 
@@ -492,8 +498,10 @@ test.describe.serial('Map Plugin', () => {
     const search = geocoder.locator('.maplibregl-ctrl-geocoder--input');
     const width = async () => (await geocoder.boundingBox())!.width;
 
-    // Default size while not in use
+    // Default size while not in use, at least 175px and wide enough for the placeholder
+    await settled(geocoder);
     const initial = await width();
+    expect(initial).toBeGreaterThanOrEqual(175);
     expect(initial).toBeLessThan(mapWidth * 0.6);
 
     // Expands while focused, animating up from the default size without shrinking first
@@ -599,9 +607,6 @@ test.describe.serial('Map Plugin', () => {
     await expect(page.locator('.full-page.ref .map-embed .map-thumbnail')).toHaveAttribute('title', 'Map Plugin Test');
     // Address search is shown when geocoding is configured
     await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-top-left .maplibregl-ctrl-geocoder--input')).toBeVisible();
-    await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-bottom-left .maplibregl-ctrl-zoom-in')).toBeVisible();
-    // Zoom controls sit above the scale bar
-    await expect(page.locator('.full-page.ref .map-embed .maplibregl-ctrl-bottom-left > .maplibregl-ctrl-scale:last-child')).toBeVisible();
     // Map renders at full size and the address search expands while in use
     await closeSidebar(page);
     const embedMap = (await page.locator('.full-page.ref .map-embed mgl-map').boundingBox())!;

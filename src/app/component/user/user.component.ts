@@ -66,6 +66,7 @@ export class UserComponent implements OnChanges, HasChanges {
   editForm: UntypedFormGroup;
   ext?: Ext;
   submitted = false;
+  @HostBinding('class.editing')
   editing = false;
   viewSource = false;
   genKey = false;

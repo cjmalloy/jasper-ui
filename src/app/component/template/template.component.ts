@@ -43,6 +43,7 @@ export class TemplateComponent implements OnChanges, HasChanges {
 
   editForm: UntypedFormGroup;
   submitted = false;
+  @HostBinding('class.editing')
   editing = false;
   viewSource = false;
   diffing = false;
@@ -72,6 +73,8 @@ export class TemplateComponent implements OnChanges, HasChanges {
 
   init(): void {
     this.actionComponents?.forEach(c => c.reset());
+    this.submitted = false;
+    this.editForm.reset();
     this.editForm.patchValue({
       ...this.template,
       config: this.template.config ? JSON.stringify(this.template.config, null, 2) : undefined,
@@ -204,10 +207,10 @@ export class TemplateComponent implements OnChanges, HasChanges {
       }),
     ).subscribe(template => {
       delete this.saving;
-      this.editForm.reset();
       this.serverError = [];
       this.editing = false;
       this.template = template;
+      this.init();
     });
   }
 

@@ -8,7 +8,7 @@ export const summaryQueryPlugin: Plugin = {
   name: $localize`✂️️💭️ Summarize`,
   config: {
     mod: $localize`✂️ Summarize`,
-    version: 1,
+    version: 2,
     type: 'tool',
     default: false,
     add: true,
@@ -23,6 +23,15 @@ export const summaryQueryPlugin: Plugin = {
     ],
     timeoutMs: 30_000,
     language: 'javascript',
+    subDiff: ['script'],
+    adminForm: [{
+      key: 'script',
+      type: 'code',
+      props: {
+        label: $localize`Script:`,
+        language: 'javascript',
+      },
+    }],
     // language=JavaScript
     script: `
       const bundle = { ref: [] };

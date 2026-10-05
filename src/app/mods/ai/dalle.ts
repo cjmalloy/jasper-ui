@@ -7,7 +7,7 @@ export const dalleQueryPlugin: Plugin = {
   name: $localize`👨️‍🎨️💭️ Ask DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
-    version: 2,
+    version: 3,
     type: 'tool',
     default: false,
     add: true,
@@ -121,6 +121,15 @@ export const dalleQueryPlugin: Plugin = {
     ],
     timeoutMs: 30_000,
     language: 'javascript',
+    subDiff: ['script'],
+    adminForm: [{
+      key: 'script',
+      type: 'code',
+      props: {
+        label: $localize`Script:`,
+        language: 'javascript',
+      },
+    }],
     // language=JavaScript
     script: `
       const uuid = require('uuid');
