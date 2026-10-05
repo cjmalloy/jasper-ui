@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { FieldArrayType, FormlyField, FormlyFieldConfig } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../model/plugin';
+import { controlValue } from '../util/form';
 import { directChild } from '../util/tag';
 
 /**
@@ -29,7 +30,7 @@ import { directChild } from '../util/tag';
       @for (f of field.fieldGroup; track f.id; let i = $index) {
         <div class="geometry-item">
           <div class="form-array geometry-header">
-            <span class="geometry-name">{{ name(geometryType(model?.[i])) }}</span>
+            <span class="geometry-name">{{ name(geometryType(value()?.[i])) }}</span>
             <button type="button" class="geometry-remove" (click)="remove(i)" i18n>&ndash;</button>
           </div>
           <formly-field [field]="f" />
@@ -55,10 +56,11 @@ import { directChild } from '../util/tag';
       flex: 0 0 auto;
     }
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormlyField],
 })
 export class FormlyFieldGeometries extends FieldArrayType {
+
+  protected readonly value = controlValue<any[]>(() => this.formControl);
 
   /**
    * Build each geometry with the form of its plugin. Set here since
