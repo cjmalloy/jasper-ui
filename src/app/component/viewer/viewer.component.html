@@ -150,12 +150,12 @@
             referrerpolicy="strict-origin-when-cross-origin"></iframe>
   </div>
 }
-@for (ui of uis(); track ui.tag) {
+@for (ui of uiMarkdowns(); track ui.tag) {
   <app-md class="zoom md-container"
           [class]="uiCss(ui.tag)"
           [disableSanitizer]="true"
           [origin]="currentOrigin()"
-          [text]="uiMarkdown(ui.tag)"></app-md>
+          [text]="ui.text"></app-md>
 }
 @if (mod()) {
   <app-mod class="zoom md-container"

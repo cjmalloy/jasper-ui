@@ -600,10 +600,18 @@ export class ViewerComponent {
     return api;
   });
 
-  uiMarkdown(tag: string) {
-    const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.refOrDefault(), this.el.nativeElement, this.uiActions()));
-  }
+  /** Hydrated plugin UIs. Hydrating runs the template's deferred scripts, so only redo it when the inputs change. */
+  readonly uiMarkdowns = computed(() => {
+    const ref = this.refOrDefault();
+    const actions = this.uiActions();
+    return this.uis().map(ui => {
+      const plugin = this.admin.getPlugin(ui.tag)!;
+      return {
+        tag: ui.tag,
+        text: hydrate(plugin.config, 'ui', getPluginScope(plugin, ref, this.el.nativeElement, actions)),
+      };
+    });
+  });
 
   uiCss(tag: string) {
     return 'ui ' + tag.replace(/\//g, '_').replace(/\./g, '-');

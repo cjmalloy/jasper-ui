@@ -147,11 +147,11 @@
             [ref]="ref()">{{ icon.label }}</span>
     }
   }
-  @for (ui of infoUis(); track ui) {
+  @for (ui of infoUiMarkdowns(); track ui.tag) {
     <app-md class="inline-ui"
             [disableSanitizer]="true"
             [origin]="ref().origin"
-            [text]="uiMarkdown(ui.tag)"></app-md>
+            [text]="ui.text"></app-md>
   }
   @if (ref().created && !local()) {
     <span i18n> on <a class="origin tag" [routerLink]="['/tag', ref().origin || '*']">{{ ref().origin || 'default' }}</a></span>

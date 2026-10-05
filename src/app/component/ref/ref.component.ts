@@ -1034,10 +1034,10 @@ export class RefComponent implements HasChanges {
     markRead(this.admin, this.ts, this.ref());
   }
 
-  uiMarkdown(tag: string) {
-    const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref()));
-  }
+  readonly infoUiMarkdowns = computed(() => this.infoUis().map(ui => {
+    const plugin = this.admin.getPlugin(ui.tag)!;
+    return { tag: ui.tag, text: hydrate(plugin.config, 'infoUi', getPluginScope(plugin, this.ref())) };
+  }));
 
   saveRef() {
     this.store.view.preloadRef(this.ref(), this.repostRef());

@@ -4,8 +4,10 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef, ViewContainerRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { MarkdownModule } from 'ngx-markdown';
 
+import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
 import { createEmbed, EMBED_NESTING } from '../../util/embed';
 import { EmbedPlaceholderComponent } from '../embed-placeholder/embed-placeholder.component';
@@ -86,5 +88,18 @@ describe('ViewerComponent', () => {
     placeholder.destroy();
     expect(view.destroyed).toBe(true);
     expect(destroy).toHaveBeenCalledOnce();
+  });
+
+  it('hydrates plugin UIs once until the Ref changes', () => {
+    const hydrated = vi.fn(() => '');
+    Handlebars.registerHelper('viewerSpecHydrated', hydrated);
+    const admin = TestBed.inject(AdminService);
+    const plugin = { tag: 'plugin/test', config: { ui: '{{viewerSpecHydrated}}' } };
+    vi.spyOn(admin, 'getPluginUi').mockReturnValue([plugin]);
+    vi.spyOn(admin, 'getPlugin').mockReturnValue(plugin);
+    fixture.componentRef.setInput('ref', { url: 'https://example.com', tags: ['plugin/test'] });
+    expect(component.uiMarkdowns().map(ui => ui.tag)).toEqual(['plugin/test']);
+    component.uiMarkdowns();
+    expect(hydrated).toHaveBeenCalledOnce();
   });
 });
