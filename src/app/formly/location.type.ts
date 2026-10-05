@@ -13,7 +13,7 @@ import { LocationPicker, locationPicker } from './location-picker';
   template: `
     <div class="location-input">
       @if (showMap) {
-        @defer {
+        @defer (on immediate) {
           <app-location-map [picker]="picker" />
         }
       }
