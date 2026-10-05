@@ -41,6 +41,8 @@ import { TodoComponent } from '../../todo/todo.component';
     'class': 'kanban-card',
     '[class.unlocked]': 'unlocked()',
     '[class.full-size]': 'todo()',
+    '[class.no-write]': 'noWrite()',
+    '[class.last-selected]': 'lastSelected()',
     '(click)': 'onClick()',
     '(touchend)': 'touchend($event)',
     '(press)': 'unlock($event)',

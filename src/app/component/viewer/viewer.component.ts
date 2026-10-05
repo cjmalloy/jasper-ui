@@ -151,33 +151,49 @@ export class ViewerComponent {
   readonly chess = computed(() => !!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags()));
   readonly chessWhite = computed(() => !!this.ref()?.tags?.includes(this.store.account.localTag()));
   readonly uis = computed(() => this.admin.getPluginUi(this.currentTags()));
-  readonly embedReady = linkedSignal(() => { this.ref(); return false; });
+  readonly embedReady = signal(false);
   readonly map = computed(() => !!this.admin.getPlugin('plugin/geo') && !!this.ref() && hasTag('plugin/geo', this.currentTags()));
   readonly mapPage = computed(() => this.map() ? Page.of([this.ref()!]) : undefined);
 
   private readonly layout = signal({ parentWidth: 0, height: window.innerHeight, landscape: false });
-  private readonly width = computed(() => hasTag('plugin/fullscreen', this.ref()) ? screen.width
-    : this.ref()?.plugins?.['plugin/embed']?.width || ((hasTag('plugin/thread', this.tags() || this.ref()?.tags) || !this.config.mobile()) ? Math.floor(this.layout().parentWidth * 0.6) : this.layout().parentWidth - 16));
-  private readonly height = computed(() => hasTag('plugin/fullscreen', this.ref()) ? screen.height
-    : this.ref()?.plugins?.['plugin/embed']?.height || (this.config.mobile() ? this.layout().height : Math.floor(this.layout().height * 0.8)));
+  private readonly embedSize = signal<{ width: number, height: number } | undefined>(undefined, { equal: isEqual });
   private readonly oembedRequest = computed(() => {
     const url = this.ref()?.url;
-    if (!url || !hasTag('plugin/embed', this.tags() || this.ref()?.tags)) return undefined;
-    return { url, theme: this.theme(), width: this.width(), height: this.height() };
-  });
+    const size = this.embedSize();
+    if (!url || !size || !hasTag('plugin/embed', this.tags() || this.ref()?.tags)) return undefined;
+    return { url, theme: this.theme(), ...size };
+  }, { equal: isEqual });
+  /** undefined while loading, null if there is no oEmbed. */
   readonly oembed = toSignal(toObservable(this.oembedRequest).pipe(
     switchMap(request => request ? this.oembeds.get(request.url, request.theme, request.width, request.height).pipe(
-      catchError(() => of(undefined)),
+      catchError(() => of(null)),
       startWith(undefined),
     ) : of(undefined)),
-  ), { initialValue: undefined });
+  ), { initialValue: undefined as Oembed | null | undefined });
+  private prevRef?: Ref;
+  private prevTags?: string[];
+  private prevText?: string;
+  private initialized = false;
 
   constructor() {
+    // Syncs embedded media and oEmbed sizing to Ref changes
     effect(() => {
-      this.refInput();
-      this.tagsInput();
-      this.textInput();
-      untracked(() => this.init());
+      const ref = this.refInput();
+      const tags = this.tagsInput();
+      const text = this.textInput();
+      untracked(() => {
+        const newRef = ref?.url !== this.prevRef?.url;
+        const changesRef = !this.initialized || ref?.modifiedString !== this.prevRef?.modifiedString || newRef;
+        const changesTags = !isEqual(tags, this.prevTags);
+        const changesText = text !== this.prevText;
+        this.initialized = true;
+        this.prevRef = ref;
+        this.prevTags = tags;
+        this.prevText = text;
+        if (!changesRef && !changesTags && !changesText) return;
+        if (this.editingViewer() && !newRef) return;
+        this.init();
+      });
     });
     effect(() => {
       const value = this.videoEl();
@@ -194,13 +210,23 @@ export class ViewerComponent {
     effect(() => {
       const oembed = this.oembed();
       this.iframe();
-      if (!this.embedIframe()) return;
-      untracked(() => this.setOembed(oembed || null));
+      if (oembed === undefined || !this.embedIframe()) return;
+      untracked(() => this.setOembed(oembed));
     });
   }
 
   init() {
     this.measureLayout();
+    const ref = this.ref();
+    const layout = this.layout();
+    if (hasTag('plugin/fullscreen', ref)) {
+      this.embedSize.set({ width: screen.width, height: screen.height });
+    } else {
+      this.embedSize.set({
+        width: ref?.plugins?.['plugin/embed']?.width || ((hasTag('plugin/thread', this.tags() || ref?.tags) || !this.config.mobile()) ? Math.floor(layout.parentWidth * 0.6) : layout.parentWidth - 16),
+        height: ref?.plugins?.['plugin/embed']?.height || (this.config.mobile() ? layout.height : Math.floor(layout.height * 0.8)),
+      });
+    }
     this.reload(this.currentAudio);
     this.reload(this.currentVideo);
     this.setPdfIframe(this.pdfIframeEl());
@@ -307,13 +333,15 @@ export class ViewerComponent {
     if (oembed?.type === 'photo') return;
     if (iframe) {
       const i = iframe.nativeElement;
+      this.embedReady.set(false);
       if (oembed) {
         this.embeds.writeIframe(oembed, i, this.embedWidth(), true)
           .then(() => {
             if (this.oembed() !== oembed || this.iframe()?.nativeElement !== i) return;
-            if (oembed.width! > this.width()) {
-              const s = this.width() / oembed.width!;
-              const marginLeft = oembed.width! - this.width();
+            const width = this.embedSize()?.width || 0;
+            if (oembed.width! > width) {
+              const s = width / oembed.width!;
+              const marginLeft = oembed.width! - width;
               const marginTop = marginLeft * oembed.height! / oembed.width!;
               i.style.transform = `scale(${s}, ${s})`;
               i.style.transformOrigin = 'top left';

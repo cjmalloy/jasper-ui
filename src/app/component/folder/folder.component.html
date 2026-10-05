@@ -6,9 +6,8 @@
                    [dragging]="dragging()"
                    [style.transform]="subfolders()[ext()!.tag]"
                    [style.position]="subfolders()[ext()!.tag] ? 'absolute' : 'relative'"
-                   (cdkDragStarted)="startMoving($any($event.event.target))"
-                   (cdkDragMoved)="moveFolder(ext()!.tag, $any($event.event.target))"
-                   (cdkDragEnded)="dragging.set(false)"
+                   (cdkDragStarted)="startMoving($event.source.element.nativeElement)"
+                   (cdkDragEnded)="moveFolder(ext()!.tag, $event.source.element.nativeElement)"
                    [ext]="parent()"
                    [name]="'..'"></app-subfolder>
   }
@@ -20,9 +19,8 @@
                      [dragging]="dragging()"
                      [style.transform]="subfolders()[f.tag]"
                      [style.position]="subfolders()[f.tag] ? 'absolute' : 'relative'"
-                     (cdkDragStarted)="startMoving($any($event.event.target))"
-                     (cdkDragMoved)="moveFolder(f.tag, $any($event.event.target))"
-                     (cdkDragEnded)="dragging.set(false)"
+                     (cdkDragStarted)="startMoving($event.source.element.nativeElement)"
+                     (cdkDragEnded)="moveFolder(f.tag, $event.source.element.nativeElement)"
                      [ext]="f"
                      [name]="f.name || '#' + f.tag"></app-subfolder>
     }
@@ -34,9 +32,8 @@
                   [dragging]="dragging()"
                   [style.transform]="files()[ref.url]"
                   [style.position]="files()[ref.url] ? 'absolute' : 'relative'"
-                  (cdkDragStarted)="startMoving($any($event.event.target))"
-                  (cdkDragMoved)="moveFile(ref.url, $any($event.event.target))"
-                  (cdkDragEnded)="dragging.set(false)"
+                  (cdkDragStarted)="startMoving($event.source.element.nativeElement)"
+                  (cdkDragEnded)="moveFile(ref.url, $event.source.element.nativeElement)"
                   [ref]="ref"></app-file>
       }
     }

@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, input, output, viewChild, untracked, inject } from '@angular/core';
+import { Component, computed, input, output, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
@@ -19,8 +19,6 @@ export class SelectTemplateComponent {
   readonly templateChange = output<string>();
   readonly template = input('', { alias: 'template' });
 
-  readonly select = viewChild<ElementRef<HTMLSelectElement>>('select');
-
   readonly submitTemplates = computed(() => this.admin.tmplSubmit().filter(p => this.auth.canAddTag(p.tag)));
 
   readonly templates = computed(() => {
@@ -31,24 +29,12 @@ export class SelectTemplateComponent {
     return template ? [template, ...templates] : templates;
   });
 
-  constructor() {
-    effect(() => {
-      const value = this.template();
-      this.templates();
-      this.select();
-      untracked(() => this.selectTemplate(value));
-    });
-  }
-
-  private selectTemplate(value: string) {
-    const select = this.select();
-    if (select) {
-      let hit = this.templates().map(t => t.tag).indexOf(value) + 1;
-      if (!hit) {
-        hit = this.templates().map(t => t.tag).indexOf(value.substring(access(value).length)) + 1;
-      }
-      select.nativeElement.selectedIndex = hit;
-    }
-  }
+  readonly selected = computed(() => {
+    const value = this.template();
+    const tags = this.templates().map(t => t.tag);
+    if (tags.includes(value)) return value;
+    const stripped = value.substring(access(value).length);
+    return tags.includes(stripped) ? stripped : '';
+  });
 
 }

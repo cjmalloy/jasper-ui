@@ -95,26 +95,27 @@ export class ChatComponent implements HasChanges {
 
   readonly query = input('chat');
   readonly responseOf = input<Ref>();
+  readonly responseUrl = computed(() => this.responseOf()?.url);
 
   readonly viewport = viewChild.required<CdkVirtualScrollViewport>('viewport');
 
   cursors = new Map<string, string | undefined>();
-  readonly loadingPrev = linkedSignal(() => { this.query(); this.responseOf(); return false; });
+  readonly loadingPrev = linkedSignal(() => { this.query(); this.responseUrl(); return false; });
   readonly plugins = linkedSignal(() => this.store.account.defaultEditors(['plugin/latex']));
   readonly lastPoll = signal<DateTime>(DateTime.now());
   initialSize = 50;
-  readonly messages = linkedSignal<Ref[] | undefined>(() => { this.query(); this.responseOf(); return undefined; });
-  readonly addText = linkedSignal(() => { this.query(); this.responseOf(); return ''; });
-  readonly sending = linkedSignal<Ref[]>(() => { this.query(); this.responseOf(); return []; });
-  readonly errored = linkedSignal<Ref[]>(() => { this.query(); this.responseOf(); return []; });
-  readonly scrollLock = linkedSignal<number | undefined>(() => { this.query(); this.responseOf(); return undefined; });
-  readonly notAtBottom = linkedSignal(() => { this.query(); this.responseOf(); return false; });
-  readonly uploads = linkedSignal<readonly ChatUpload[]>(() => { this.query(); this.responseOf(); return []; });
-  readonly dropping = linkedSignal(() => { this.query(); this.responseOf(); return false; });
+  readonly messages = linkedSignal<Ref[] | undefined>(() => { this.query(); this.responseUrl(); return undefined; });
+  readonly addText = linkedSignal(() => { this.query(); this.responseUrl(); return ''; });
+  readonly sending = linkedSignal<Ref[]>(() => { this.query(); this.responseUrl(); return []; });
+  readonly errored = linkedSignal<Ref[]>(() => { this.query(); this.responseUrl(); return []; });
+  readonly scrollLock = linkedSignal<number | undefined>(() => { this.query(); this.responseUrl(); return undefined; });
+  readonly notAtBottom = linkedSignal(() => { this.query(); this.responseUrl(); return false; });
+  readonly uploads = linkedSignal<readonly ChatUpload[]>(() => { this.query(); this.responseUrl(); return []; });
+  readonly dropping = linkedSignal(() => { this.query(); this.responseUrl(); return false; });
   readonly latex = linkedSignal(() => !!this.admin.getPlugin('plugin/latex'));
   readonly tags = linkedSignal(() => {
     this.query();
-    this.responseOf();
+    this.responseUrl();
     return this.store.account.defaultEditors(this.editors());
   });
 
@@ -128,7 +129,7 @@ export class ChatComponent implements HasChanges {
   constructor() {
     effect(() => {
       this.query();
-      this.responseOf();
+      this.responseUrl();
       untracked(() => this.init());
     });
   }

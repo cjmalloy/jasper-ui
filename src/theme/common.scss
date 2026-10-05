@@ -1360,16 +1360,19 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   max-width: 600px;
 }
 
-.form:has(.fill-editor :is(textarea, ngx-monaco-editor):is([style^="width"], [style*=" width"], [style*=";width"])) {
+.form:has(.fill-editor > :is(textarea, ngx-monaco-editor):is([style^="width"], [style*=" width"], [style*=";width"])) {
   width: fit-content;
   max-width: none;
 }
 
 .fill-editor {
-  textarea,
-  ngx-monaco-editor {
+  & > textarea,
+  & > ngx-monaco-editor {
     width: 100%;
     min-width: min(504px, 100vw - 32px);
+  }
+  & > ngx-monaco-editor {
+    contain: inline-size;
   }
 }
 

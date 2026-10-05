@@ -101,14 +101,15 @@ export class FolderComponent implements HasChanges {
 
   startMoving(target: HTMLElement) {
     target.style.zIndex = ""+(this.zIndex++);
+    this.dragging.set(true);
   }
 
   moveFile(url: string, target: HTMLElement) {
+    this.dragging.set(false);
     if (!this.cursor()) return; // Wait for last move to complete
     if (!this.local()) return;
     const cursor = this.cursor();
     this.cursor.set('');
-    this.dragging.set(true)
     const pos = {
       x: Math.floor(target.getBoundingClientRect().x + window.scrollX - this.el.nativeElement.offsetLeft),
       y: Math.floor(target.getBoundingClientRect().y + window.scrollY - this.el.nativeElement.offsetTop),
@@ -122,11 +123,11 @@ export class FolderComponent implements HasChanges {
 
   moveFolder(tag: string, target: HTMLElement) {
     // TODO: write patches to websocket
+    this.dragging.set(false);
     if (!this.cursor()) return; // Wait for last move to complete
     if (!this.local()) return;
     const cursor = this.cursor();
     this.cursor.set('');
-    this.dragging.set(true)
     this.exts.patch(this.ext()!.tag + this.store.account.origin(), cursor, [{
       op: 'add',
       path: '/config/subfolders/' + (tag === this.tag() ? '..' : escapePath(tag.substring(this.ext()!.tag.length + 1))),

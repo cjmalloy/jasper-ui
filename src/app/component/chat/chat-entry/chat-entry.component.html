@@ -4,7 +4,7 @@
     @if (ref().origin && !authors().length) {
       <a class="origin tag" [routerLink]="['/tag', ref().origin]">{{ ref().origin }}</a>
     }
-    @if (authorExts(); as xs) {
+    @if (authorExts$() | async; as xs) {
       @for (x of xs; track x.tag + x.origin) {
         <a class="user tag"
            [title]="formatAuthor(x.tag + x.origin)"

@@ -32,7 +32,11 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   selector: 'app-file',
   templateUrl: './file.component.html',
   styleUrls: ['./file.component.scss'],
-  host: { 'tabindex': '0' },
+  host: {
+    'tabindex': '0',
+    '[class]': 'pluginClasses()',
+    '[class.sent]': 'isAuthor()',
+  },
   imports: [
     forwardRef(() => ViewerComponent),
     RouterLink,

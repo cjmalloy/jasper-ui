@@ -13,6 +13,7 @@ import {
   computed,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { uniq } from 'lodash-es';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
@@ -44,6 +45,7 @@ import { RelativePipe } from '../../../pipe/relative.pipe';
   styleUrls: ['./chat-entry.component.scss'],
   host: { 'class': 'chat-entry', '[attr.tabindex]': '0' },
   imports: [
+    AsyncPipe,
     RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
@@ -118,10 +120,8 @@ export class ChatEntryComponent {
     ]);
   });
 
-  readonly authorExts = toSignal(toObservable(computed(() => ({
-    authors: this.authors(), origin: this.ref().origin || '',
-  }))).pipe(switchMap(({ authors, origin }) =>
-    this.exts.getCachedExts(authors, origin).pipe(this.admin.authorFallback))));
+  readonly authorExts$ = computed(() =>
+    this.exts.getCachedExts(this.authors(), this.ref().origin || '').pipe(this.admin.authorFallback));
 
   readonly tagLink = computed(() => this.url().toLowerCase().startsWith('tag:/'));
 
