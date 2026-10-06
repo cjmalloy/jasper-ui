@@ -89,7 +89,6 @@ updates:
         - "@angular-devkit/*"
         - "rxjs"
         - "zone.js"
-        - "typescript"
         - "tslib"
         - "ngx-monaco-editor"
         - "@ngx-formly/*"
