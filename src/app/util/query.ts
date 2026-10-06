@@ -2,7 +2,7 @@ import { isArray, uniq, without } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
-import { andQueries, dnfAnd, dnfQuery, fixClientQuery, hasPrefix, isGroup, isNegatedGroup, queryDnf } from './tag';
+import { andQueries, fixClientQuery, hasPrefix, isGroup, isNegatedGroup } from './tag';
 
 const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
 const DEFAULT_DESC_PREFIXES = ['metadata->'];
@@ -168,18 +168,7 @@ export function negate(query: string): string {
     if (query.startsWith('!')) return query.substring(1);
     return '!' + query;
   }
-  if (!query.includes('(')) return `!(${query})`;
-  // Groups cannot be nested, so apply De Morgan's laws to the top level terms
-  return dnfQuery(queryDnf(query)
-    .map(and => and.flatMap(negateTerm))
-    .reduce(dnfAnd));
-}
-
-function negateTerm(term: string): string[][] {
-  if (isNegatedGroup(term)) return [[term.substring(1)]];
-  if (isGroup(term)) return [['!' + term]];
-  if (term.startsWith('!')) return [[term.substring(1)]];
-  return [['!' + term]];
+  return `!(${query})`;
 }
 
 export function getFiltersQuery(filters: UrlFilter[] | UrlFilter){

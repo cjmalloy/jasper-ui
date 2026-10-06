@@ -115,12 +115,12 @@ describe('Query Utils', () => {
       expect(negate('a:b|c')).toBe('!(a:b|c)');
     });
 
-    it('should apply De Morgan to queries with groups to avoid nesting', () => {
-      expect(negate('(a|b):c')).toBe('!(a|b)|!c');
-      expect(negate('(a|b):(c|d)')).toBe('!(a|b)|!(c|d)');
-      expect(negate('!(a|b):c')).toBe('a|b|!c');
-      expect(negate('!(a:b):c')).toBe('a:b|!c');
-      expect(negate('(a|b):c|d')).toBe('!(a|b):!d|!c:!d');
+    it('should wrap queries with groups in a nested negated group', () => {
+      expect(negate('(a|b):c')).toBe('!((a|b):c)');
+      expect(negate('(a|b):(c|d)')).toBe('!((a|b):(c|d))');
+      expect(negate('!(a|b):c')).toBe('!(!(a|b):c)');
+      expect(negate('!(a:b):c')).toBe('!(!(a:b):c)');
+      expect(negate('(a|b):c|d')).toBe('!((a|b):c|d)');
     });
 
     it('should unwrap negated group', () => {
@@ -159,9 +159,9 @@ describe('Query Utils', () => {
       expect(getFilter('query/!(a|b):!(c|d)')).toBe('!(a|b):!(c|d)');
     });
 
-    it('should not nest groups when negating filters with groups', () => {
-      expect(getFilter('query/!((a|b):c)')).toBe('!(a|b)|!c');
-      expect(getFilter(toggle('query/!(a|b):c') as `query/${string}`)).toBe('a|b|!c');
+    it('should keep nested negated groups when negating filters with groups', () => {
+      expect(getFilter('query/!((a|b):c)')).toBe('!((a|b):c)');
+      expect(getFilter(toggle('query/!(a|b):c') as `query/${string}`)).toBe('!(!(a|b):c)');
     });
   });
 
@@ -200,9 +200,9 @@ describe('Query Utils', () => {
       expect(getFiltersQuery(filters)).toBe('!(a|b):c');
     });
 
-    it('should distribute instead of nesting groups', () => {
+    it('should combine nested negated groups', () => {
       const filters: UrlFilter[] = ['query/!((a|b):c)', 'query/d|e'];
-      expect(getFiltersQuery(filters)).toBe('!(a|b):d|!(a|b):e|!c:d|!c:e');
+      expect(getFiltersQuery(filters)).toBe('!((a|b):c):(d|e)');
     });
   });
 
