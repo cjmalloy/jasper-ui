@@ -98,12 +98,37 @@ describe('Query Utils', () => {
       expect(negate('!science')).toBe('science');
     });
 
-    it('should convert AND to OR with negated tags', () => {
-      expect(negate('a:b')).toBe('(!a|!b)');
+    it('should wrap AND query in negated group', () => {
+      expect(negate('a:b')).toBe('!(a:b)');
     });
 
-    it('should convert OR to AND with negated tags', () => {
-      expect(negate('a|b')).toBe('!a:!b');
+    it('should wrap OR query in negated group', () => {
+      expect(negate('a|b')).toBe('!(a|b)');
+    });
+
+    it('should wrap mixed query in negated group', () => {
+      expect(negate('a:b|c')).toBe('!(a:b|c)');
+      expect(negate('(a|b):c')).toBe('!((a|b):c)');
+    });
+
+    it('should unwrap negated group', () => {
+      expect(negate('!(a:b)')).toBe('a:b');
+      expect(negate('!(a|b)')).toBe('a|b');
+    });
+
+    it('should not double wrap a group covering the whole query', () => {
+      expect(negate('(a|b)')).toBe('!(a|b)');
+    });
+
+    it('should not treat partial groups as whole query groups', () => {
+      expect(negate('!(a|b):c')).toBe('!(!(a|b):c)');
+      expect(negate('(a|b):(c|d)')).toBe('!((a|b):(c|d))');
+    });
+
+    it('should be its own inverse', () => {
+      for (const q of ['science', '!science', 'a:b', 'a|b', 'a:b|c', '(a|b):c']) {
+        expect(negate(negate(q))).toBe(q);
+      }
     });
   });
 
@@ -114,6 +139,12 @@ describe('Query Utils', () => {
 
     it('should negate query if wrapped in !()', () => {
       expect(getFilter('query/!(science)')).toBe('!science');
+    });
+
+    it('should return negated group for complex negated filter', () => {
+      expect(getFilter('query/!(a:b)')).toBe('!(a:b)');
+      expect(getFilter('query/!(a|b)')).toBe('!(a|b)');
+      expect(getFilter(toggle('query/a|b') as `query/${string}`)).toBe('!(a|b)');
     });
   });
 
@@ -145,6 +176,11 @@ describe('Query Utils', () => {
     it('should wrap OR queries in braces', () => {
       const filters: UrlFilter[] = ['query/a|b', 'query/c'];
       expect(getFiltersQuery(filters)).toBe('(a|b):c');
+    });
+
+    it('should not nest negated groups in braces', () => {
+      const filters: UrlFilter[] = ['query/!(a|b)', 'query/c'];
+      expect(getFiltersQuery(filters)).toBe('!(a|b):c');
     });
   });
 

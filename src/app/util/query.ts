@@ -2,7 +2,7 @@ import { isArray, uniq, without } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
-import { braces, fixClientQuery, hasPrefix } from './tag';
+import { braces, fixClientQuery, hasPrefix, isGroup, isNegatedGroup } from './tag';
 
 const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
 const DEFAULT_DESC_PREFIXES = ['metadata->'];
@@ -161,20 +161,14 @@ export function getFilter(filter: `query/${string}`) {
 }
 
 export function negate(query: string): string {
-  if (query.includes('(') || query.includes(':') && query.includes('|')) {
-    // TODO: Parse query to negate
-    console.error('Query parsing not implemented. Bailing on negate.');
-    return query;
+  if (isNegatedGroup(query)) return query.substring(2, query.length - 1);
+  if (isGroup(query)) return '!' + query;
+  if (!/[:|()]/.test(query)) {
+    // Single tag
+    if (query.startsWith('!')) return query.substring(1);
+    return '!' + query;
   }
-  if (query.includes(':')) {
-    return braces(query.split(':').map(negate).join('|'));
-  }
-  if (query.includes('|')) {
-    return query.split('|').map(negate).join(':');
-  }
-  // Single tag
-  if (query.startsWith('!')) return query.substring(1);
-  return '!' + query;
+  return `!(${query})`;
 }
 
 export function getFiltersQuery(filters: UrlFilter[] | UrlFilter){

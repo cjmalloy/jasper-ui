@@ -1,6 +1,35 @@
-import { removeTag, setPrivate, setProtected } from './tag';
+import { braces, isGroup, isNegatedGroup, removeTag, setPrivate, setProtected } from './tag';
 
 describe('Tag Utils', () => {
+  describe('isGroup', () => {
+    it('should detect groups covering the whole query', () => {
+      expect(isGroup('(a|b)')).toBe(true);
+      expect(isGroup('((a|b):c)')).toBe(true);
+      expect(isGroup('(a|b):(c|d)')).toBe(false);
+      expect(isGroup('a|b')).toBe(false);
+      expect(isGroup('!(a|b)')).toBe(false);
+    });
+
+    it('should detect negated groups covering the whole query', () => {
+      expect(isNegatedGroup('!(a|b)')).toBe(true);
+      expect(isNegatedGroup('!(a|b):(c)')).toBe(false);
+      expect(isNegatedGroup('!a')).toBe(false);
+    });
+  });
+
+  describe('braces', () => {
+    it('should wrap OR queries', () => {
+      expect(braces('a|b')).toBe('(a|b)');
+      expect(braces('a:b')).toBe('a:b');
+    });
+
+    it('should not wrap whole query groups', () => {
+      expect(braces('(a|b)')).toBe('(a|b)');
+      expect(braces('!(a|b)')).toBe('!(a|b)');
+      expect(braces('!(a|b):c|d')).toBe('(!(a|b):c|d)');
+    });
+  });
+
   describe('removeTag', () => {
     it('should remove a single tag from array', () => {
       const tags = ['science', 'funny', 'news'];

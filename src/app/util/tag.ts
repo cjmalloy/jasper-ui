@@ -262,9 +262,25 @@ export function getPrefixes(tag: string) {
   return [tag, '+' + tag, '_' + tag].map(t => not ? '!' + t : t);
 }
 
+export function isGroup(query: string) {
+  if (!query?.startsWith('(') || !query.endsWith(')')) return false;
+  let depth = 0;
+  for (let i = 0; i < query.length; i++) {
+    if (query[i] === '(') depth++;
+    else if (query[i] === ')') depth--;
+    if (!depth && i < query.length - 1) return false;
+  }
+  return !depth;
+}
+
+export function isNegatedGroup(query: string) {
+  return !!query?.startsWith('!') && isGroup(query.substring(1));
+}
+
 export function braces(query: string) {
   if (!query) return '';
   if (!query.includes('|')) return query;
+  if (isGroup(query) || isNegatedGroup(query)) return query;
   if (query.startsWith('(') && query.endsWith(')') && !query.substring(1, query.length-2).includes('(')) return query;
   return `(${query})`;
 }
