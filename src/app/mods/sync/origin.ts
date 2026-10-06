@@ -38,6 +38,7 @@ export const originPlugin: Plugin = {
       }
     }, {
       key: 'aliases',
+      className: 'account-aliases',
       type: 'tags',
       props: {
         label: $localize`Account Aliases:`,

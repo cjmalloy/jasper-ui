@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 
@@ -213,6 +213,52 @@ describe('AccountService', () => {
       expect(cursors.has('@city')).toBe(true);
       expect(cursors.has('@town')).toBe(true);
     });
+    it('counts and clears an alarm origin without a stream', () => {
+      const readDate = DateTime.fromISO('2026-02-01T00:00:00.000Z');
+      const count = vi.spyOn((service as any).refs, 'count').mockReturnValue(of(0));
+      const clear = vi.spyOn(service, 'clearNotifications').mockImplementation(() => Promise.resolve());
+
+      service.clearNotificationsIfNone(readDate, '@city');
+
+      expect(count).toHaveBeenCalledWith(expect.objectContaining({
+        query: '@city:!plugin/delete:(alarm)',
+        modifiedAfter: localCursor,
+        modifiedBefore: readDate,
+      }));
+      expect(clear).toHaveBeenCalledWith(readDate, ['@city']);
+    });
+
+    it('discovers alarm origins before clearing all origins', async () => {
+      const readDate = DateTime.fromISO('2026-02-01T00:00:00.000Z');
+      const cursor = readDate.plus({ millisecond: 1 }).toISO();
+      vi.spyOn(service, 'checkNotifications').mockImplementation(() => {});
+      const page = vi.spyOn((service as any).refs, 'page')
+        .mockReturnValueOnce(of(Page.of([{ url: 'spec:a', origin: '@city' }])))
+        .mockReturnValueOnce(of(Page.of([])));
+      const cleared = service.clearNotifications(readDate);
+      expect(page).toHaveBeenNthCalledWith(1, expect.objectContaining({ query: '!plugin/delete:(alarm):!@' }));
+      http.expectOne(req => req.method === 'GET' && req.params.get('url') === 'tag:/plugin/outbox/city')
+        .flush({}, { status: 404, statusText: 'Not Found' });
+      const create = http.expectOne(req => req.method === 'PATCH' && req.params.get('url') === 'tag:/plugin/outbox/city');
+      expect(create.request.body['plugin/user/cursor'].cursor).toEqual(cursor);
+      create.flush(null);
+      http.expectOne(req => req.method === 'GET' && req.params.get('url') === 'tag:/plugin/outbox/city').flush({
+        url: 'tag:/+user/dad?url=tag:/plugin/outbox/city',
+        origin: '',
+        plugins: { 'plugin/user/cursor': { cursor } },
+      });
+      expect(page).toHaveBeenNthCalledWith(2, expect.objectContaining({ query: '!plugin/delete:(alarm):!@:!@city' }));
+      http.expectOne(req => req.method === 'PATCH' && req.params.get('url') === 'tag:/plugin/inbox').flush(null);
+      http.expectOne(req => req.method === 'GET' && req.params.get('url') === 'tag:/plugin/inbox').flush({
+        url: 'tag:/+user/dad?url=tag:/plugin/inbox',
+        origin: '',
+        plugins: { 'plugin/user/cursor': { cursor } },
+      });
+      await cleared;
+
+      expect((service as any).store.account.notificationCursors.get('@city')).toEqual(cursor);
+      expect((service as any).store.account.notificationCursors.get('')).toEqual(cursor);
+    });
   });
 
   it('loads independent cursors for multiple origins', () => {
@@ -320,6 +366,17 @@ describe('AccountService', () => {
       expect(store.account.notifications).toBe(6);
       expect(store.account.alarmCount).toBe(2);
       expect(store.account.unreadCount).toBe(4);
+    });
+
+    it('cancels superseded notification checks', () => {
+      const store = (service as any).store;
+      const stale = new Subject<number>();
+      count.mockReturnValueOnce(stale).mockReturnValue(of(1));
+      service.checkNotifications();
+      service.checkNotifications();
+      stale.next(9);
+      stale.complete();
+      expect(store.account.notifications).toBe(3);
     });
 
     it('resets alarm count when alarms are removed', () => {

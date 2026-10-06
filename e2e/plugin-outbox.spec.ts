@@ -66,10 +66,8 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.floating-ribbons .plugin_origin_pull').click();
     await page.locator('[name=local]').fill('@repl');
     await page.locator('[name=remote]').fill('@repl');
-    const aliases = page.locator('.form-group').filter({
-      has: page.getByRole('button', { name: '+ Add another account alias' }),
-    });
-    await aliases.getByRole('button', { name: '+ Add another account alias' }).click();
+    const aliases = page.locator('.account-aliases');
+    await aliases.locator('button').first().click();
     await aliases.locator('.tag-field input.grow:not(.preview)').fill('+user/charlie');
     await aliases.locator('.tag-field input.grow:not(.preview)').blur();
     await page.locator('.plugins-form details.plugin_origin.advanced summary').click();
