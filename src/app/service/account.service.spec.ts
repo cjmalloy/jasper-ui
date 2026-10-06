@@ -481,8 +481,25 @@ describe('AccountService', () => {
       expect((service as any).cursorRefs.get('@city').modifiedString).toEqual('m3');
     });
 
-    it('adds the cursor plugin to an existing settings Ref', async () => {
+    it('merges the cursor plugin into an existing settings Ref without plugins', async () => {
       (service as any).cursorRefs.set('@city', { url: cityUrl, origin: '', modifiedString: 'm1' });
+      const patchResponse = vi.spyOn((service as any).tags, 'patchResponse');
+      const merge = vi.spyOn((service as any).tags, 'mergeResponse').mockReturnValue(of(undefined));
+      vi.spyOn((service as any).tags, 'getResponse').mockReturnValue(of(cursorRef(cursor, 'm2')));
+
+      await service.clearNotifications(readDate, ['@city']);
+
+      expect(patch).not.toHaveBeenCalled();
+      expect(patchResponse).not.toHaveBeenCalled();
+      expect(merge).toHaveBeenCalledWith(['plugin/user/cursor'], 'tag:/plugin/outbox/city', {
+        'plugin/user/cursor': { cursor },
+      });
+      expect((service as any).cursorRefs.get('@city').modifiedString).toEqual('m2');
+      expect((service as any).store.account.notificationCursors.get('@city')).toEqual(cursor);
+    });
+
+    it('patches the cursor through the tag response when the Ref has no modified cursor', async () => {
+      (service as any).cursorRefs.set('@city', { url: cityUrl, origin: '', plugins: { 'plugin/user/cursor': { cursor: oldCursor } } });
       const patchResponse = vi.spyOn((service as any).tags, 'patchResponse').mockReturnValue(of(undefined));
 
       await service.clearNotifications(readDate, ['@city']);
@@ -490,8 +507,8 @@ describe('AccountService', () => {
       expect(patch).not.toHaveBeenCalled();
       expect(patchResponse).toHaveBeenCalledWith(['plugin/user/cursor'], 'tag:/plugin/outbox/city', [{
         op: 'add',
-        path: '/plugins/plugin~1user~1cursor',
-        value: { cursor },
+        path: '/plugins/plugin~1user~1cursor/cursor',
+        value: cursor,
       }]);
       expect((service as any).store.account.notificationCursors.get('@city')).toEqual(cursor);
     });

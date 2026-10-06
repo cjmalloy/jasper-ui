@@ -500,8 +500,9 @@ export class AccountService {
 
   private writeNotificationCursor$(stream: NotificationStream, cursor: string, retry = true): Observable<unknown> {
     const ref = this.cursorRefs.get(stream.origin);
+    const plugin = ref?.plugins?.['plugin/user/cursor'];
     let write$: Observable<unknown>;
-    if (!ref) {
+    if (!plugin) {
       write$ = this.tags.mergeResponse(['plugin/user/cursor'], stream.settingsUrl, {
         'plugin/user/cursor': { cursor },
       }).pipe(
@@ -509,17 +510,15 @@ export class AccountService {
         tap(created => this.cursorRefs.set(stream.origin, created)),
       );
     } else {
-      const plugin = ref.plugins?.['plugin/user/cursor'];
-      const path = '/plugins/' + escapePath('plugin/user/cursor');
       const patch = [{
         op: 'add',
-        path: plugin ? path + '/cursor' : path,
-        value: plugin ? cursor : { cursor },
+        path: '/plugins/' + escapePath('plugin/user/cursor') + '/cursor',
+        value: cursor,
       }] as const;
-      if (plugin && ref.modifiedString) {
-        write$ = this.refs.patch(ref.url, ref.origin || this.store.account.origin, ref.modifiedString, [...patch]).pipe(
+      if (ref!.modifiedString) {
+        write$ = this.refs.patch(ref!.url, ref!.origin || this.store.account.origin, ref!.modifiedString, [...patch]).pipe(
           tap(modified => this.cursorRefs.set(stream.origin, {
-            ...ref,
+            ...ref!,
             modified: DateTime.fromISO(modified),
             modifiedString: modified,
           })),
