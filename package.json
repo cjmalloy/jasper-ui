@@ -58,7 +58,7 @@
     "mermaid": "^12.0.0",
     "mobx": "^7.0.4",
     "mobx-angular": "^4.8.0",
-    "monaco-editor": "^0.56.0",
+    "monaco-editor": "^0.57.0",
     "ngx-markdown": "^22.0.2",
     "ngx-monaco-editor": "^12.0.0",
     "node-diff3": "3.2.1",
