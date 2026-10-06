@@ -1,4 +1,4 @@
-import { braces, isGroup, isNegatedGroup, removeTag, setPrivate, setProtected } from './tag';
+import { andQueries, braces, isGroup, isNegatedGroup, removeTag, setPrivate, setProtected } from './tag';
 
 describe('Tag Utils', () => {
   describe('isGroup', () => {
@@ -27,6 +27,23 @@ describe('Tag Utils', () => {
       expect(braces('(a|b)')).toBe('(a|b)');
       expect(braces('!(a|b)')).toBe('!(a|b)');
       expect(braces('!(a|b):c|d')).toBe('(!(a|b):c|d)');
+    });
+
+    it('should only wrap top level OR queries', () => {
+      expect(braces('(a|b):c')).toBe('(a|b):c');
+      expect(braces('!(a|b):(c|d)')).toBe('!(a|b):(c|d)');
+    });
+  });
+
+  describe('andQueries', () => {
+    it('should join with braces', () => {
+      expect(andQueries(['a|b', '', 'c'])).toBe('(a|b):c');
+      expect(andQueries(['(a|b):c', 'd'])).toBe('(a|b):c:d');
+    });
+
+    it('should distribute top level OR queries with groups', () => {
+      expect(andQueries(['!(a|b)|c', 'd'])).toBe('!(a|b):d|c:d');
+      expect(andQueries(['!(a|b)|c', 'd|e'])).toBe('!(a|b):d|!(a|b):e|c:d|c:e');
     });
   });
 

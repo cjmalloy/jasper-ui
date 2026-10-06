@@ -277,12 +277,54 @@ export function isNegatedGroup(query: string) {
   return !!query?.startsWith('!') && isGroup(query.substring(1));
 }
 
+export function splitTop(query: string, separator: ':' | '|') {
+  const result: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < query.length; i++) {
+    if (query[i] === '(') depth++;
+    else if (query[i] === ')') depth--;
+    else if (!depth && query[i] === separator) {
+      result.push(query.substring(start, i));
+      start = i + 1;
+    }
+  }
+  result.push(query.substring(start));
+  return result;
+}
+
 export function braces(query: string) {
   if (!query) return '';
-  if (!query.includes('|')) return query;
-  if (isGroup(query) || isNegatedGroup(query)) return query;
-  if (query.startsWith('(') && query.endsWith(')') && !query.substring(1, query.length-2).includes('(')) return query;
+  if (splitTop(query, '|').length < 2) return query;
   return `(${query})`;
+}
+
+/**
+ * Parse a query into disjunctive normal form: an OR of ANDs of terms.
+ * Terms may be tags, negated tags, groups or negated groups.
+ */
+export function queryDnf(query: string): string[][] {
+  return splitTop(query, '|').map(and => splitTop(and, ':'));
+}
+
+export function dnfQuery(dnf: string[][]): string {
+  return uniq(dnf.map(and => {
+    if (and.length === 1 && isGroup(and[0])) return and[0].substring(1, and[0].length - 1);
+    return uniq(and.map(t => isGroup(t) && !t.includes('|') ? t.substring(1, t.length - 1) : t)).join(':');
+  })).join('|');
+}
+
+export function dnfAnd(a: string[][], b: string[][]): string[][] {
+  return a.flatMap(x => b.map(y => [...x, ...y]));
+}
+
+/**
+ * AND queries together without nesting groups.
+ */
+export function andQueries(queries: string[]) {
+  queries = queries.filter(q => !!q);
+  if (!queries.some(q => q.includes('(') && splitTop(q, '|').length > 1)) return queries.map(braces).join(':');
+  return dnfQuery(queries.map(queryDnf).reduce(dnfAnd));
 }
 
 export function fixClientQuery(query: string) {
