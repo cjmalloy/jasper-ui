@@ -24,7 +24,7 @@ import { Ext } from '../model/ext';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
-import { cursorSettingsUrl, getMailbox } from '../mods/mailbox';
+import { cursorSettingsUrl } from '../mods/mailbox';
 import { UserConfig } from '../mods/user';
 import { Store } from '../store/store';
 import { escapePath } from '../util/json-patch';
@@ -413,10 +413,7 @@ export class AccountService {
       this.store.account.mailbox,
       ...(this.store.account.modmail || []),
       ...(this.store.account.outboxes || []),
-      ...this.origins.aliasesFor(this.store.account.tag).map(alias => {
-        const origin = tagOrigin(alias);
-        return getMailbox(alias, origin) + origin;
-      }),
+      ...this.store.account.aliasMailboxes,
     ].filter(mailbox => !!mailbox) as string[];
     const grouped = new Map<string, string[]>();
     for (const mailbox of uniq(mailboxes)) {

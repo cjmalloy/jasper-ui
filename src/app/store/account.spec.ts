@@ -40,4 +40,19 @@ describe('AccountStore notifications', () => {
     store.alarmCount = 3;
     expect(store.unreadCount).toBe(0);
   });
+
+  it('includes alias mailboxes in the inbox query', () => {
+    const origins = new OriginStore();
+    const store = new AccountStore(origins);
+    store.tag = '+user/alice';
+    store.ext = { tag: '+user/alice', origin: '', config: {} } as any;
+    origins.accountAliases = [
+      { from: '', origin: '@repl', local: '+user/alice', remote: '+user/charlie' },
+      { from: '', origin: '@repl', local: '+user/alice/phone', remote: '+user/dave' },
+      { from: '', origin: '@repl', local: '+user/alicia', remote: '+user/eve' },
+      { from: '@b', origin: '@c', local: '+user/alice', remote: '+user/mallory' },
+    ];
+    expect(store.aliasMailboxes).toEqual(['plugin/inbox/user/charlie@repl']);
+    expect(store.inboxQuery).toBe('plugin/inbox/user/alice@|plugin/inbox/user/charlie@repl');
+  });
 });
