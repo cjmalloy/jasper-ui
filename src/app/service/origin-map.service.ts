@@ -215,9 +215,10 @@ export class OriginMapService {
   }
 
   isCurrentAccountRef(ref: Ref, selector = this.store.account.tag): boolean {
-    const selectors = ref.origin === this.store.account.origin
+    const origin = ref.origin || '';
+    const selectors = origin === (this.store.account.origin || '')
       ? [localTag(selector)]
-      : this.aliasesFor(selector, ref.origin).map(localTag);
+      : this.aliasesFor(selector, origin).map(localTag);
     return userAuthors(ref).some(author =>
       selectors.some(candidate => selectorMatches(candidate, localTag(author))));
   }
