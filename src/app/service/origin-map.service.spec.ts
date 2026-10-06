@@ -231,6 +231,64 @@ describe('OriginMapService', () => {
         tags: ['+user/christopher'],
       }, '+user/dad')).toBeFalsy();
     });
+
+    it('does not chain links transitively', () => {
+      setOrigins([
+        aliasRef('', '@b', '+user/me', [], 'spec:b'),
+        aliasRef('', '@c', '+user/me', [], 'spec:c'),
+        aliasRef('', '@d', '+user/me', [], 'spec:d'),
+        aliasRef('@b', '@c', '+user/yukie', ['+user/yukie'], 'spec:c'),
+        aliasRef('@c', '@b', '+user/yukie', ['+user/yukie'], 'spec:b'),
+        aliasRef('@c', '@d', '+user/yukie', ['+user/yukie'], 'spec:d'),
+        aliasRef('@d', '@c', '+user/yukie', ['+user/yukie'], 'spec:c'),
+      ]);
+      setApi('spec:test');
+      setLocal('');
+
+      expect(service.aliasesFor('+user/yukie@b')).toEqual(['+user/yukie@c']);
+      expect(service.aliasesFor('+user/yukie@c')).toEqual(['+user/yukie@b', '+user/yukie@d']);
+      expect(service.aliasesFor('+user/yukie@d')).toEqual(['+user/yukie@c']);
+    });
+
+    it('resolves remote targets by url ignoring a trailing slash', () => {
+      setOrigins([
+        aliasRef('', '@b', '+user/me', [], 'spec:b/'),
+        aliasRef('', '@c', '+user/me', [], 'spec:c'),
+        aliasRef('@b', '@x', '+user/yukie', ['+user/yukie'], 'spec:c/'),
+        aliasRef('@c', '@y', '+user/yukie', ['+user/yukie'], 'spec:b'),
+      ]);
+      setApi('spec:test');
+      setLocal('');
+
+      expect(service.aliasesFor('+user/yukie@b')).toEqual(['+user/yukie@c']);
+      expect(service.aliasesFor('+user/yukie@c')).toEqual(['+user/yukie@b']);
+    });
+
+    it('only trusts the local declaration when a replicating remote declares the same link', () => {
+      setOrigins([
+        aliasRef('', '@home', '+user/chris', ['+user/bob'], 'spec:home'),
+        aliasRef('@home', '@main', '+user/bob', ['+user/chris'], 'spec:test'),
+      ]);
+      setApi('spec:test');
+      setLocal('');
+
+      expect(service.aliasesFor('+user/chris')).toEqual(['+user/bob@home']);
+      expect(service.aliasesFor('+user/bob@home')).toEqual([]);
+    });
+
+    it('treats a Ref without an origin as local', () => {
+      setOrigins([aliasRef('', '@city', '+user/dad', ['+user/chris'])]);
+      setLocal('');
+
+      expect(service.isCurrentAccountRef({
+        url: 'spec:post',
+        tags: ['+user/dad'],
+      }, '+user/dad')).toBeTruthy();
+      expect(service.isCurrentAccountRef({
+        url: 'spec:post',
+        tags: ['+user/chris'],
+      }, '+user/dad')).toBeFalsy();
+    });
   });
 
 });
