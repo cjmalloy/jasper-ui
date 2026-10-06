@@ -142,6 +142,7 @@ describe('AccountService', () => {
       store.account.ext.config.alarms = ['alarm'];
       store.origins.list = ['', '@city', '@town'];
       (service as any).cursorAccount = store.account.tagWithOrigin;
+      (service as any).savedCursors = of(undefined);
       store.account.notificationCursors.set('', localCursor);
       vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({ tag: 'user' });
     });
@@ -607,6 +608,30 @@ describe('AccountService', () => {
       expect((service as any).alarmOrigins.size).toBe(0);
       inboxGet().flush(inboxRef('2026-02-01T00:00:00.000Z'));
       expect(store.account.notificationCursors.get('')).toEqual('2026-02-01T00:00:00.000Z');
+    });
+
+    it('loads saved cursors for alarm-only origins after switching accounts', () => {
+      setAccount();
+      const store = (service as any).store;
+      store.account.ext.config.alarms = ['alarm'];
+      const saved = '2026-03-01T00:00:00.000Z';
+      const page = vi.spyOn((service as any).refs, 'page').mockReturnValue(of(Page.of([
+        { url: 'tag:/user/dad?url=tag:/plugin/outbox/city', origin: '', plugins: { 'plugin/user/cursor': { cursor: saved } } },
+        { url: 'tag:/user/dad?url=tag:/plugin/outbox/town', origin: '', plugins: {} },
+        { url: 'tag:/user/mom?url=tag:/plugin/outbox/village', origin: '', plugins: { 'plugin/user/cursor': { cursor: saved } } },
+      ])));
+      let streams: any[] = [];
+      service.loadNotificationCursors$().subscribe(result => streams = result);
+      inboxGet().flush(inboxRef('2026-01-01T00:00:00.000Z'));
+
+      expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: 'plugin/user/cursor:+user/dad@' }));
+      expect(store.account.notificationCursors.get('@city')).toEqual(saved);
+      expect(store.account.notificationCursors.has('@town')).toBe(false);
+      expect(store.account.notificationCursors.has('@village')).toBe(false);
+      expect(streams.map(stream => stream.origin)).toEqual(['', '@city']);
+
+      service.loadNotificationCursors$().subscribe();
+      expect(page).toHaveBeenCalledOnce();
     });
 
     it('shares one request between concurrent loads', () => {

@@ -28,7 +28,7 @@ import { cursorSettingsUrl } from '../mods/mailbox';
 import { UserConfig } from '../mods/user';
 import { Store } from '../store/store';
 import { escapePath } from '../util/json-patch';
-import { hasPrefix, localTag, tagOrigin } from '../util/tag';
+import { hasPrefix, localTag, setPublic, subOrigin, tagOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -59,6 +59,7 @@ export class AccountService {
   private cursorRefs = new Map<string, Ref | undefined>();
   private alarmOrigins = new Map<string, string>();
   private cursorLoads = new Map<string, Observable<undefined>>();
+  private savedCursors?: Observable<undefined>;
   private check?: Subscription;
 
   constructor(
@@ -451,8 +452,55 @@ export class AccountService {
       this.cursorRefs.clear();
       this.cursorLoads.clear();
       this.alarmOrigins.clear();
+      this.savedCursors = undefined;
       runInAction(() => this.store.account.notificationCursors.clear());
     }
+    if (this.store.account.alarmsQuery) {
+      return this.loadSavedCursors$().pipe(switchMap(() => this.loadStreamCursors$()));
+    }
+    return this.loadStreamCursors$();
+  }
+
+  /**
+   * Alarm-only origins do not have a mailbox, so their saved cursors must be
+   * found by searching for cursor Refs instead of loading each stream.
+   */
+  private loadSavedCursors$(): Observable<undefined> {
+    if (!this.savedCursors) {
+      const account = this.cursorAccount;
+      const prefix = `tag:/${setPublic(this.store.account.localTag)}?url=tag:/plugin/outbox/`;
+      const page$ = (page: number) => this.refs.page({
+        query: `plugin/user/cursor:${account}`,
+        page,
+        size: DISCOVER_PAGE_SIZE,
+      });
+      this.savedCursors = page$(0).pipe(
+        expand(result => result.page.number + 1 < result.page.totalPages ? page$(result.page.number + 1) : EMPTY),
+        tap(result => runInAction(() => {
+          if (this.cursorAccount !== account) return;
+          for (const ref of result.content) {
+            if (!ref.url.startsWith(prefix)) continue;
+            const cursor = ref.plugins?.['plugin/user/cursor']?.cursor;
+            if (!cursor) continue;
+            const origin = subOrigin(this.store.account.origin, ref.url.substring(prefix.length));
+            if (this.store.account.notificationCursors.has(origin)) continue;
+            this.cursorRefs.set(origin, ref);
+            this.store.account.notificationCursors.set(origin, cursor);
+          }
+        })),
+        toArray(),
+        map(() => undefined),
+        catchError(err => {
+          if (this.cursorAccount === account) this.savedCursors = undefined;
+          return throwError(() => err);
+        }),
+        shareReplay(1),
+      );
+    }
+    return this.savedCursors;
+  }
+
+  private loadStreamCursors$(): Observable<NotificationStream[]> {
     const streams = this.notificationStreams;
     const missing = streams.filter(stream => !this.store.account.notificationCursors.has(stream.origin));
     if (!missing.length) return of(streams);
