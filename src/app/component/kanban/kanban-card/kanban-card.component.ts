@@ -346,14 +346,14 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   toggleBadge(tag: string, event?: MouseEvent) {
     if (hasTag(tag, this.ref.tags)) {
       this.tags.delete(tag, this.ref.url, this.ref.origin).pipe(
-        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref.origin!)),
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref.origin)),
       ).subscribe(() => {
         this.ref.tags = this.ref.tags!.filter(t => expandedTagsInclude(t, tag));
         this.init();
       });
     } else {
       this.tags.create(tag, this.ref.url, this.ref.origin).pipe(
-        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref.origin!)),
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref.origin)),
       ).subscribe(() => {
         this.ref.tags ||= [];
         this.ref.tags.push(tag);

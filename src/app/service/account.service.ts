@@ -26,6 +26,7 @@ export const CACHE_MS = 15 * 1000;
 export interface NotificationStream {
   origin: string;
   query: string;
+  alarmQuery?: string;
   settingsUrl: string;
 }
 
@@ -39,6 +40,7 @@ export class AccountService {
   private _notificationCursors$?: Observable<NotificationStream[]>;
   private cursorAccount = '';
   private cursorRefs = new Map<string, Ref | undefined>();
+  private alarmOrigins = new Map<string, string>();
 
   constructor(
     private store: Store,
@@ -241,13 +243,13 @@ export class AccountService {
   checkNotifications() {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.loadNotificationCursors$().pipe(
+    this.discoverAlarmOrigins$().pipe(
       switchMap(streams => !streams.length ? of([]) : forkJoin(streams.map(stream => {
         const modifiedAfter = this.store.account.notificationCursors.get(stream.origin);
         return forkJoin([
           this.refs.count({ query: stream.query, modifiedAfter }),
-          this.store.account.alarmsQuery
-            ? this.refs.count({ query: `${stream.query}:(${this.store.account.alarmsQuery})`, modifiedAfter })
+          stream.alarmQuery
+            ? this.refs.count({ query: stream.alarmQuery, modifiedAfter })
             : of(0),
         ]);
       }))),
@@ -258,7 +260,7 @@ export class AccountService {
   }
 
   notificationPage$(size: number): Observable<Page<Ref>> {
-    return this.loadNotificationCursors$().pipe(
+    return this.discoverAlarmOrigins$().pipe(
       switchMap(streams => forkJoin(streams.map(stream => this.refs.page({
         query: stream.query,
         modifiedAfter: this.store.account.notificationCursors.get(stream.origin),
@@ -279,8 +281,9 @@ export class AccountService {
     );
   }
 
-  clearNotificationsIfNone(readDate: DateTime | undefined, origin: string) {
+  clearNotificationsIfNone(readDate: DateTime | undefined, origin?: string) {
     if (!readDate) return;
+    origin = origin || '';
     if (!this.store.account.signedIn) return;
     if (!this.admin.getTemplate('user')) return;
     this.loadNotificationCursors$().pipe(
@@ -302,6 +305,7 @@ export class AccountService {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     const cursor = readDate.plus({ millisecond: 1 }).toISO()!;
+    origins = origins?.map(origin => origin || '');
     return firstValueFrom(this.loadNotificationCursors$().pipe(
       switchMap(streams => forkJoin(streams
         .filter(stream => !origins || origins.includes(stream.origin))
@@ -326,22 +330,27 @@ export class AccountService {
       }),
     ].filter(mailbox => !!mailbox) as string[];
     const grouped = new Map<string, string[]>();
-    if (this.store.account.alarmsQuery) {
-      for (const origin of this.store.origins.list) grouped.set(origin, []);
-    }
     for (const mailbox of uniq(mailboxes)) {
       const origin = tagOrigin(mailbox);
       grouped.set(origin, [...(grouped.get(origin) || []), mailbox]);
+    }
+    if (this.store.account.alarmsQuery) {
+      for (const origin of [...this.store.account.notificationCursors.keys(), ...this.alarmOrigins.keys()]) {
+        if (!grouped.has(origin)) grouped.set(origin, []);
+      }
     }
     return Array.from(grouped).map(([origin, boxes]) => {
       const selectors = origin === this.store.account.origin
         ? [this.store.account.tag]
         : this.origins.aliasesFor(this.store.account.tag, origin);
       const excludeAuthors = selectors.map(selector => `!${selector}`).join(':');
-      const notifications = [...boxes, ...(this.store.account.alarmsQuery ? [this.store.account.alarmsQuery] : [])];
+      const alarms = this.store.account.alarmsQuery;
+      const notifications = [...boxes, ...(alarms ? [alarms] : [])];
+      const filter = `${origin || '@'}:${excludeAuthors ? excludeAuthors + ':' : ''}!plugin/delete`;
       return {
         origin,
-        query: `${origin || '@'}:${excludeAuthors ? excludeAuthors + ':' : ''}!plugin/delete:(${notifications.join('|')})`,
+        query: `${filter}:(${notifications.join('|')})`,
+        ...(alarms ? { alarmQuery: `${filter}:(${alarms})` } : {}),
         settingsUrl: cursorSettingsUrl(origin, this.store.account.origin),
       };
     });
@@ -352,6 +361,7 @@ export class AccountService {
     if (this.cursorAccount !== account) {
       this.cursorAccount = account;
       this.cursorRefs.clear();
+      this.alarmOrigins.clear();
       runInAction(() => this.store.account.notificationCursors.clear());
     }
     const streams = this.notificationStreams;
@@ -369,7 +379,7 @@ export class AccountService {
             runInAction(() => this.store.account.notificationCursors.set(stream.origin, existing));
             return of(undefined);
           }
-          return this.writeNotificationCursor$(stream, DateTime.now().toISO()!);
+          return this.writeNotificationCursor$(stream, this.alarmOrigins.get(stream.origin) || DateTime.now().toISO()!);
         }),
       );
     })).pipe(
@@ -378,6 +388,37 @@ export class AccountService {
       shareReplay(1),
     );
     return this._notificationCursors$;
+  }
+
+  /**
+   * Alarms can come from any origin. Find alarms from origins without a
+   * notification stream and start tracking those origins from the local cursor.
+   */
+  discoverAlarmOrigins$(): Observable<NotificationStream[]> {
+    return this.loadNotificationCursors$().pipe(
+      switchMap(streams => {
+        const alarms = this.store.account.alarmsQuery;
+        if (!alarms) return of(streams);
+        const localCursor = this.store.account.notificationCursors.get(this.store.account.origin);
+        const exclude = streams.map(stream => `:!${stream.origin || '@'}`).join('');
+        return this.refs.page({
+          query: `!plugin/delete:(${alarms})${exclude}`,
+          modifiedAfter: localCursor,
+          size: 20,
+        }).pipe(
+          switchMap(page => {
+            const known = new Set(streams.map(stream => stream.origin));
+            const found = uniq(page.content.map(ref => ref.origin || '')).filter(origin => !known.has(origin));
+            if (!found.length) return of(streams);
+            const cursor = localCursor || DateTime.now().toISO()!;
+            for (const origin of found) {
+              if (!this.alarmOrigins.has(origin)) this.alarmOrigins.set(origin, cursor);
+            }
+            return this.loadNotificationCursors$();
+          }),
+        );
+      }),
+    );
   }
 
   private writeNotificationCursor$(stream: NotificationStream, cursor: string): Observable<unknown> {
