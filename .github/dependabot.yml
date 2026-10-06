@@ -64,3 +64,48 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+- package-ecosystem: docker
+  target-branch: v1.3
+  directories:
+    - "/"
+    - "/e2e"
+  schedule:
+    interval: daily
+    timezone: America/Halifax
+- package-ecosystem: npm
+  target-branch: v1.3
+  directory: /
+  schedule:
+    interval: daily
+    timezone: America/Halifax
+  cooldown:
+    semver-major-days: 0
+    semver-minor-days: 0
+    semver-patch-days: 0
+  groups:
+    angular:
+      patterns:
+        - "@angular/*"
+        - "@angular-devkit/*"
+        - "rxjs"
+        - "zone.js"
+        - "tslib"
+        - "ngx-monaco-editor"
+        - "@ngx-formly/*"
+        - "ngx-markdown"
+        - "marked"
+        - "marked-*"
+        - "ag-grid-angular"
+        - "ag-grid-community"
+        - "@maplibre/*"
+        - "maplibre-gl"
+        - "@vitest/*"
+        - "vitest"
+        - "jsdom"
+        - "@playwright/*"
+- package-ecosystem: github-actions
+  target-branch: v1.3
+  directory: /
+  schedule:
+    interval: daily
+    timezone: America/Halifax
