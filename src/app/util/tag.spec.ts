@@ -41,9 +41,9 @@ describe('Tag Utils', () => {
       expect(andQueries(['(a|b):c', 'd'])).toBe('(a|b):c:d');
     });
 
-    it('should distribute top level OR queries with groups', () => {
-      expect(andQueries(['!(a|b)|c', 'd'])).toBe('!(a|b):d|c:d');
-      expect(andQueries(['!(a|b)|c', 'd|e'])).toBe('!(a|b):d|!(a|b):e|c:d|c:e');
+    it('should nest top level OR queries with groups', () => {
+      expect(andQueries(['!(a|b)|c', 'd'])).toBe('(!(a|b)|c):d');
+      expect(andQueries(['!(a|b)|c', 'd|e'])).toBe('(!(a|b)|c):(d|e)');
     });
   });
 
