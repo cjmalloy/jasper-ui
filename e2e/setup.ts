@@ -11,7 +11,7 @@ const jwtBody = [
   encodeJwt(JSON.stringify({ alg: 'HS256', typ: 'JWT' })),
   encodeJwt(JSON.stringify({ verified_email: true, sub: 'debug', auth: 'ROLE_ADMIN' })),
 ].join('.');
-const adminHeaders = {
+export const adminHeaders = {
   jwt: `${jwtBody}.${createHmac('sha256', debugSecret).update(jwtBody).digest('base64url')}`,
 };
 
@@ -64,17 +64,21 @@ async function subscribeStomp(api: string, destination: string): Promise<StompEv
 }
 
 export async function clearMods(page: Page, base = '') {
-  await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
-  const selectAll = page.locator('button', { hasText: 'Select All' });
-  const selectNone = page.locator('button', { hasText: 'Select None' });
-  if (await selectNone.isVisible()) {
-    await selectNone.click();
-  } else {
-    await selectAll.click();
-    await selectNone.click();
-  }
-  await page.locator('button', { hasText: 'Save' }).click();
-  await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+  await expect(async () => {
+    await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
+    const selectAll = page.locator('button', { hasText: 'Select All' });
+    const selectNone = page.locator('button', { hasText: 'Select None' });
+    if (await selectNone.isVisible()) {
+      await selectNone.click();
+    } else {
+      await selectAll.click();
+      await selectNone.click();
+    }
+    await page.locator('button', { hasText: 'Save' }).click();
+    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+    await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
+    await expect(page.locator('.mod-row input[type=checkbox]:checked')).toHaveCount(0, { timeout: 5_000 });
+  }).toPass({ timeout: 90_000 });
 }
 
 /**
@@ -182,6 +186,14 @@ export async function openSidebar(page: Page) {
   if (!await sidebar.evaluate(el => el.classList.contains('expanded'))) {
     await sidebar.locator('.row .toggle').click();
   }
+}
+
+export async function openTextSubmit(page: Page, userTag: string) {
+  await openSidebar(page);
+  await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
+  await page.locator('.tabs a', { hasText: 'text' }).first().click();
+  // Defaults and user tag are added asynchronously; submitting before then drops all tags
+  await expect(page.locator(`.tag-field input.preview[title="${userTag}"]`)).toBeAttached();
 }
 
 export async function closeSidebar(page: Page) {

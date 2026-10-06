@@ -1,24 +1,26 @@
 @if (page) {
-  @if (emptyMessage && !page.content.length) {
-    <p class="no-results">{{ emptyMessage }}</p>
-  } @else{
-    <mgl-map [mapStyle]="mapStyle"
-             (mapError)="onMapError($event)"
-             (mapLoad)="mapLoaded($event)"
-             appResizeHandle>
-      <mgl-control mglNavigation
-                   position="top-left"
-                   [visualizePitch]="true"
-                   [visualizeRoll]="true"
-                   [showCompass]="true"
-                   [showZoom]="true"></mgl-control>
-      <mgl-control mglScale
-                   position="bottom-left"
-                   unit="imperial"></mgl-control>
-    </mgl-map>
-    @if (pageControls) {
-      <app-page-controls [page]="page"></app-page-controls>
-    }
+  <mgl-map [mapStyle]="mapStyle"
+           [bounds]="view ? undefined : bounds"
+           [center]="view?.center"
+           [zoom]="view?.zoom"
+           [fitBoundsOptions]="fitBoundsOptions"
+           (mapError)="onMapError($event)"
+           (styleData)="styleLoaded($event.target)"
+           (mapLoad)="mapLoaded($event)"
+           (dragstart)="$event.preventDefault()"
+           appResizeHandle>
+    <mgl-control mglScale
+                 position="bottom-left"
+                 unit="imperial"></mgl-control>
+    <mgl-control mglNavigation
+                 position="top-left"
+                 [visualizePitch]="true"
+                 [visualizeRoll]="true"
+                 [showCompass]="true"
+                 [showZoom]="true"></mgl-control>
+  </mgl-map>
+  @if (pageControls) {
+    <app-page-controls [page]="page"></app-page-controls>
   }
 } @else {
   <app-loading></app-loading>

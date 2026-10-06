@@ -190,4 +190,42 @@ describe('AccountService', () => {
     expect(count).toHaveBeenCalledWith(expect.objectContaining({ query: '@city:inbox' }));
     expect(clear).toHaveBeenCalledWith(readDate, ['@city']);
   });
+
+  describe('checkNotifications', () => {
+    const streams = [
+      { origin: '', query: '@:inbox', settingsUrl: 'tag:/plugin/inbox' },
+      { origin: '@city', query: '@city:inbox', settingsUrl: 'tag:/plugin/outbox/city' },
+    ];
+    let count: any;
+
+    beforeEach(() => {
+      setAccount();
+      (service as any).store.account.ext.config.alarms = ['science'];
+      vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({ tag: 'user' });
+      vi.spyOn(service, 'loadNotificationCursors$').mockReturnValue(of(streams));
+      count = vi.spyOn((service as any).refs, 'count');
+    });
+
+    it('updates notifications and alarm counts together', () => {
+      const store = (service as any).store;
+      count.mockImplementation((args: any) => of(args.query.endsWith(':(science)') ? 1 : 3));
+      service.checkNotifications();
+      expect(store.account.notifications).toBe(6);
+      expect(store.account.alarmCount).toBe(2);
+      expect(store.account.unreadCount).toBe(4);
+    });
+
+    it('resets alarm count when alarms are removed', () => {
+      const store = (service as any).store;
+      count.mockImplementation((args: any) => of(args.query.endsWith(':(science)') ? 1 : 3));
+      service.checkNotifications();
+      store.account.ext = { tag: '+user/dad', origin: '', config: { alarms: [] } };
+      count.mockReturnValue(of(2));
+      service.checkNotifications();
+      expect(count).toHaveBeenCalledTimes(6);
+      expect(store.account.notifications).toBe(4);
+      expect(store.account.alarmCount).toBe(0);
+      expect(store.account.unreadCount).toBe(4);
+    });
+  });
 });

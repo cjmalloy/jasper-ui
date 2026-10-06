@@ -18,11 +18,16 @@ import {
 } from '../util/format';
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { FormlyFieldCheckbox } from './checkbox.type';
+import { FormlyFieldCode } from './code.type';
 import { DurationInputAccessor, FormlyFieldDuration } from './duration.type';
 import { FormlyFieldEditor } from './editor.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { FormlyWrapperFormGroup } from './form-group.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
+import { FormlyFieldBbox } from './bbox.type';
+import { FormlyFieldChildPlugin } from './child-plugin.type';
+import { FormlyFieldGeometries } from './geometries.type';
+import { FormlyFieldGeoStyle } from './geo-style.type';
 import { FormlyFieldLocation } from './location.type';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
@@ -73,12 +78,16 @@ const formlyFieldExpressionConfig = withFormlyFieldExpression();
     FormlyWrapperFormField,
     FormlyFieldInput,
     FormlyFieldLocation,
+    FormlyFieldChildPlugin,
+    FormlyFieldBbox,
+    FormlyFieldGeoStyle,
     FormlyFieldRange,
     FormlyFieldTagInput,
     FormlyFieldQueryInput,
     FormlyFieldBookmarkInput,
     FormlyFieldRefInput,
     FormlyFieldTextArea,
+    FormlyFieldCode,
     FormlyFieldCheckbox,
     FormlyFieldMultiCheckbox,
     FormlyFieldRadio,
@@ -638,6 +647,10 @@ Private tags start with an underscore.
         component: FormlyFieldTextArea,
         wrappers: ['form-field'],
       }, {
+        name: 'code',
+        component: FormlyFieldCode,
+        wrappers: ['form-field'],
+      }, {
         name: 'checkbox',
         component: FormlyFieldCheckbox,
         wrappers: ['form-field'],
@@ -667,6 +680,24 @@ Private tags start with an underscore.
           defaultValue: [0, 0],
           props: {
             label: $localize`Location: `,
+          },
+        },
+      }, {
+        name: 'child-plugin',
+        component: FormlyFieldChildPlugin,
+      }, {
+        name: 'geometries',
+        component: FormlyFieldGeometries,
+      }, {
+        name: 'geo-style',
+        component: FormlyFieldGeoStyle,
+      }, {
+        name: 'bbox',
+        component: FormlyFieldBbox,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            label: $localize`Bounds: `,
           },
         },
       }],

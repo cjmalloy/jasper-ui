@@ -217,7 +217,10 @@ export class AccountService {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.addConfigArray$('alarms', tag).pipe(
-      tap(() => this.clearCache()),
+      tap(() => {
+        this.clearCache();
+        this.checkNotifications();
+      }),
       switchMap(() => this.alarms$),
     );
   }
@@ -227,7 +230,10 @@ export class AccountService {
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.alarms$.pipe(
       switchMap(() => this.removeConfigArray$('alarms', tag)),
-      tap(() => this.clearCache()),
+      tap(() => {
+        this.clearCache();
+        this.checkNotifications();
+      }),
       switchMap(() => this.alarms$),
     );
   }
@@ -236,15 +242,19 @@ export class AccountService {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.loadNotificationCursors$().pipe(
-      switchMap(streams => forkJoin(streams.map(stream => this.refs.count({
-        query: stream.query,
-        modifiedAfter: this.store.account.notificationCursors.get(stream.origin),
-      })))),
-    ).subscribe(counts => {
-      runInAction(() =>
-        this.store.account.notifications = counts.reduce((sum, count) => sum + count, 0));
-      this.checkAlarms();
-    });
+      switchMap(streams => !streams.length ? of([]) : forkJoin(streams.map(stream => {
+        const modifiedAfter = this.store.account.notificationCursors.get(stream.origin);
+        return forkJoin([
+          this.refs.count({ query: stream.query, modifiedAfter }),
+          this.store.account.alarmsQuery
+            ? this.refs.count({ query: `${stream.query}:(${this.store.account.alarmsQuery})`, modifiedAfter })
+            : of(0),
+        ]);
+      }))),
+    ).subscribe(counts => runInAction(() => {
+      this.store.account.notifications = counts.reduce((sum, [count]) => sum + count, 0);
+      this.store.account.alarmCount = counts.reduce((sum, [, count]) => sum + count, 0);
+    }));
   }
 
   notificationPage$(size: number): Observable<Page<Ref>> {
@@ -303,19 +313,6 @@ export class AccountService {
       tap(() => this.checkNotifications()),
       map(() => undefined),
     ), { defaultValue: undefined });
-  }
-
-  checkAlarms() {
-    if (!this.store.account.signedIn) throw 'Not signed in';
-    if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    if (!this.store.account.alarms.length) return;
-    this.loadNotificationCursors$().pipe(
-      switchMap(streams => forkJoin(streams.map(stream => this.refs.count({
-        query: `${stream.query}:(${this.store.account.alarmsQuery})`,
-        modifiedAfter: this.store.account.notificationCursors.get(stream.origin),
-      })))),
-    ).subscribe(counts => runInAction(() =>
-      this.store.account.alarmCount = counts.reduce((sum, count) => sum + count, 0)));
   }
 
   get notificationStreams(): NotificationStream[] {

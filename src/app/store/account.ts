@@ -196,7 +196,20 @@ export class AccountStore {
   get notificationsQuery() {
     if (!this.signedIn) return undefined;
     const alarms = this.alarmsQuery ? '|' + this.alarmsQuery : '';
-    return `!${this.tag}:!plugin/delete:` + braces(this.inboxQuery) + alarms;
+    return `!${this.tag}:!plugin/delete:` + braces(this.inboxQuery + alarms);
+  }
+
+  get alarmNotificationsQuery() {
+    if (!this.signedIn) return undefined;
+    if (!this.alarmsQuery) return '';
+    return `!${this.tag}:!plugin/delete:` + braces(this.alarmsQuery);
+  }
+
+  /**
+   * Unread inbox count, not including alarms.
+   */
+  get unreadCount() {
+    return Math.max(0, this.notifications - this.alarmCount);
   }
 
   get alarmsQuery() {

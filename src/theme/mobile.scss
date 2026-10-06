@@ -146,6 +146,15 @@ $tablet-width: 948px;
   .mobile-col {
     flex-direction: column;
   }
+  .list-drag:has(> formly-field > formly-list-section, > formly-field > formly-wrapper-form-field > .location-field) {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    & > formly-field > formly-list-section > label,
+    & > formly-field > formly-wrapper-form-field > label {
+      flex-basis: 100%;
+      transform-origin: left center;
+    }
+  }
   .mobile-hide {
     display: none !important;
   }
@@ -206,6 +215,16 @@ $tablet-width: 948px;
     }
   }
 
+  .ref.list-item {
+    & > .info,
+    & > .actions {
+      grid-row: 2;
+    }
+    & > .actions {
+      align-self: end;
+    }
+  }
+
   .thread > .ref-list > .list-container > .ref,
   .md .ref.plugin_thread:not(.ref-list-item),
   .thread .ref.plugin_thread:not(.ref-list-item),
@@ -227,22 +246,21 @@ $tablet-width: 948px;
       margin-left: 4px;
       justify-self: right;
     }
-    & > .row > .stack {
-      padding: 8px;
-      & > .link-below > .stack > .info,
-      & > .link-below > .stack > .actions,
-      & > .link  {
-        margin-left: 0;
-        transition: none;
-        height: 28px;
-        line-height: 28px;
-        padding: 0 8px;
-      }
-      & > .link  {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+    padding: 8px;
+    & > .info,
+    & > .actions,
+    & > .link  {
+      margin-left: 0;
+      transition: none;
+      height: 28px;
+      grid-row: auto;
+      line-height: 28px;
+      padding: 0 8px;
+    }
+    & > .link  {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 
@@ -426,7 +444,7 @@ $tablet-width: 948px;
 
   .ref {
     max-width: 100vw;
-    .row {
+    & > * {
       max-width: calc(100vw - 12px);
     }
     .info, .actions {
@@ -441,21 +459,27 @@ $tablet-width: 948px;
         padding-top: 2px;
       }
       &.not-expanded {
-        transition: height .5s;
+        transition: height .5s, padding-top 0s .5s;
       }
     }
-    &.full-page > .row > .stack > .link-below {
-      & > .stack > * {
-        &.info, &.actions {
-          height: 32px !important;
-          transition: none !important;
-        }
+    &.full-page {
+      & > .info, & > .actions {
+        height: 32px !important;
+        transition: none !important;
+        grid-row: auto;
       }
       & > .toggle {
         &.actions-toggle, &.view, &.threads, &.comments {
           display: none !important;
         }
       }
+    }
+  }
+
+  app-ref-list.plugin_image .list-container > .ref {
+    & > .info, & > .actions {
+      height: 28px;
+      grid-row: auto;
     }
   }
 

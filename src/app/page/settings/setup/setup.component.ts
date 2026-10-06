@@ -11,7 +11,7 @@ import { Config, Mod } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { equalBundle, formatBundleDiff, merge3 } from '../../../util/diff';
+import { equalBundle, mergeBundle } from '../../../util/diff';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
@@ -162,17 +162,18 @@ export class SettingsSetupPage implements OnDestroy {
       const m = modId(this.admin.status.templates[template]);
       if (this.store.view.modUpdates.has(m)) mods.push(m);
     }
+    if (!mods.length) return;
     concat(...uniq(mods).map(mod => {
       const receipt = this.admin.getMod(mod)!;
       if (!this.admin.getTemplate('config/diff') || !this.hasCustomChangesMod(mod)) {
         return this.admin.updateMod$(mod, receipt, receipt, _);
       }
-      this.mergeState = this.getModDiff(mod);
-      if (this.mergeState?.conflict) {
-        // skip
-        return of(null)
+      const diff = this.getModDiff(mod);
+      if (diff.conflict) {
+        _($localize`⚠️ Skipped ${mod} mod: unable to merge local changes automatically. Use diff to update manually.`);
+        return of(null);
       } else {
-        return this.admin.updateMod$(mod, this.mergeState.proposed, receipt, _);
+        return this.admin.updateMod$(mod, diff.proposed, receipt, _);
       }
     })).pipe(
       catchError((res: HttpErrorResponse) => {
@@ -235,7 +236,7 @@ export class SettingsSetupPage implements OnDestroy {
     }
     const base = this.admin.status.receipts[mod]?.plugins?.['plugin/mod'];
     if (base && !equalBundle(current, base)) {
-      const merged = merge3(formatBundleDiff(current), formatBundleDiff(base), formatBundleDiff(target));
+      const merged = mergeBundle(current, base, target);
       if (!merged.result || merged.conflict) {
         return {
           mod,
@@ -246,7 +247,7 @@ export class SettingsSetupPage implements OnDestroy {
       }
       return {
         mod,
-        proposed: JSON.parse(merged.result),
+        proposed: merged.result,
         diffBase: target,
         conflict: false,
       };

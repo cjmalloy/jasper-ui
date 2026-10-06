@@ -10,6 +10,10 @@
         <source>download</source>
         <target>ダウンロード</target>
       </trans-unit>
+      <trans-unit id="6213042512958559029" datatype="html">
+        <source>Download attached files?</source>
+        <target>添付ファイルもダウンロードしますか？</target>
+      </trans-unit>
       <trans-unit id="2452584011865748061" datatype="html">
         <source>connect</source>
         <target>接続</target>
@@ -176,6 +180,10 @@ Please Reload.</source>
       </trans-unit>
       <trans-unit id="5433675495457939071" datatype="html">
         <source>Templates</source>
+      </trans-unit>
+      <trans-unit id="8057107542698632429" datatype="html">
+        <source>Tombstones</source>
+        <target>削除記録</target>
       </trans-unit>
       <trans-unit id="2258332150307719183" datatype="html">
         <source>Newer than:</source>
@@ -413,10 +421,6 @@ Please Reload.</source>
       <trans-unit id="6552388923703110543" datatype="html">
         <source>bob</source>
         <target>ボブ</target>
-      </trans-unit>
-      <trans-unit id="6631335043395560353" datatype="html">
-        <source>Embed one more level</source>
-        <target>もう1階層埋め込む</target>
       </trans-unit>
       <trans-unit id="2236371857137398396" datatype="html">
         <source> No results found </source>
@@ -777,6 +781,10 @@ Please Reload.</source>
       <trans-unit id="5501510435141891966" datatype="html">
         <source>export</source>
         <target>エクスポート</target>
+      </trans-unit>
+      <trans-unit id="5812277912266071076" datatype="html">
+        <source>Download with attached files and embedded Refs that have files</source>
+        <target>添付ファイルと、ファイルを持つ埋め込みRefも含めてダウンロード</target>
       </trans-unit>
       <trans-unit id="5670797229594522972" datatype="html">
         <source>Tag Query</source>
@@ -5923,10 +5931,6 @@ Enter the origin to confirm:</source>
         <source>Installing <x id="PH" equiv-text="def.title || def.url"/> ref...</source>
         <target><x id="PH" equiv-text="def.title || def.url"/> Refをインストール中...</target>
       </trans-unit>
-      <trans-unit id="4147619993239863788" datatype="html">
-        <source>Ref <x id="PH" equiv-text="def.title || def.url"/> already exists...</source>
-        <target>Ref <x id="PH" equiv-text="def.title || def.url"/> は既に存在します...</target>
-      </trans-unit>
       <trans-unit id="612983901370848355" datatype="html">
         <source>Logging <x id="PH" equiv-text="mod || ref.url"/> receipt...</source>
         <target><x id="PH" equiv-text="mod || ref.url"/> の受領記録を保存中...</target>
@@ -5935,25 +5939,13 @@ Enter the origin to confirm:</source>
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> ext...</source>
         <target><x id="PH" equiv-text="def.name || def.tag"/> Extをインストール中...</target>
       </trans-unit>
-      <trans-unit id="3297602259759413939" datatype="html">
-        <source>Ext <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
-        <target>Ext <x id="PH" equiv-text="def.name || def.tag"/> は既に存在します...</target>
-      </trans-unit>
       <trans-unit id="3524609671751595375" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> user...</source>
         <target><x id="PH" equiv-text="def.name || def.tag"/> ユーザーをインストール中...</target>
       </trans-unit>
-      <trans-unit id="8104259115775582236" datatype="html">
-        <source>User <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
-        <target>ユーザー <x id="PH" equiv-text="def.name || def.tag"/> は既に存在します...</target>
-      </trans-unit>
       <trans-unit id="4744345424867452582" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> plugin...</source>
         <target><x id="PH" equiv-text="def.name || def.tag"/> プラグインをインストール中...</target>
-      </trans-unit>
-      <trans-unit id="6857764545124483676" datatype="html">
-        <source>Plugin <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
-        <target>プラグイン <x id="PH" equiv-text="def.name || def.tag"/> は既に存在します...</target>
       </trans-unit>
       <trans-unit id="663969018956266050" datatype="html">
         <source>Deleting <x id="PH" equiv-text="p.name || p.tag"/> plugin...</source>
@@ -5962,10 +5954,6 @@ Enter the origin to confirm:</source>
       <trans-unit id="7341203762945439729" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> template...</source>
         <target><x id="PH" equiv-text="def.name || def.tag"/> テンプレートをインストール中...</target>
-      </trans-unit>
-      <trans-unit id="1914752778486056818" datatype="html">
-        <source>Template <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
-        <target>テンプレート <x id="PH" equiv-text="def.name || def.tag"/> は既に存在します...</target>
       </trans-unit>
       <trans-unit id="8397044276128761089" datatype="html">
         <source>Deleting <x id="PH" equiv-text="t.name || t.tag"/> template...</source>
@@ -6633,8 +6621,8 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Activates built-in map mode for viewing Refs on a map.</source>
         <target>マップ上でRefを閲覧するための組み込みマップモードを有効にします。</target>
       </trans-unit>
-      <trans-unit id="1148070139385865383" datatype="html">
-        <source>📌️📌️</source>
+      <trans-unit id="602020783060255341" datatype="html">
+        <source>〰️</source>
       </trans-unit>
       <trans-unit id="1273958037222279236" datatype="html">
         <source>Lines:</source>
@@ -6659,8 +6647,8 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>The top bar holds bookmarks and subscriptions.</source>
         <target>トップバーにはブックマークとサブスクリプションが含まれます。</target>
       </trans-unit>
-      <trans-unit id="2218320403848242937" datatype="html">
-        <source>🌐️📌️📌️📌️ Geo Multi Line String</source>
+      <trans-unit id="3085459102071609875" datatype="html">
+        <source>🌐️〰️〰️ Geo Multi Line String</source>
       </trans-unit>
       <trans-unit id="2275170855711102720" datatype="html">
         <source>A GeoJSON LineString.</source>
@@ -6674,9 +6662,9 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>A GeoJSON Polygon.</source>
         <target>GeoJSON Polygonです。</target>
       </trans-unit>
-      <trans-unit id="2736239733031148962" datatype="html">
-        <source>A GeoJSON Feature.</source>
-        <target>GeoJSON Featureです。</target>
+      <trans-unit id="1168775078469080032" datatype="html">
+        <source>A GeoJSON Feature. Embeds this Ref as a map showing its own geo features.</source>
+        <target>GeoJSON Featureです。このRefを自身のジオフィーチャーを表示する地図として埋め込みます。</target>
       </trans-unit>
       <trans-unit id="3277324395816403788" datatype="html">
         <source>LaTeX plugin</source>
@@ -6693,8 +6681,8 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Center: </source>
         <target>中心: </target>
       </trans-unit>
-      <trans-unit id="3756736517696790696" datatype="html">
-        <source>🌐️📌️📌️ Geo Line String</source>
+      <trans-unit id="5849892264785751485" datatype="html">
+        <source>🌐️〰️ Geo Line String</source>
       </trans-unit>
       <trans-unit id="3854602051337754678" datatype="html">
         <source>📍️</source>
@@ -6715,8 +6703,8 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Points:</source>
         <target>ポイント:</target>
       </trans-unit>
-      <trans-unit id="4322442265667757327" datatype="html">
-        <source>📌️📌️📌️</source>
+      <trans-unit id="1111379210144514904" datatype="html">
+        <source>〰️〰️</source>
       </trans-unit>
       <trans-unit id="4322913822633731185" datatype="html">
         <source>+ Add Line</source>
@@ -7281,6 +7269,433 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="6845948372805707808" datatype="html">
         <source>Notification Cursor</source>
         <target>通知カーソル</target>
+      </trans-unit>
+      <trans-unit id="1858593291803956631" datatype="html">
+        <source>⚠️ Ext <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
+        <target>⚠️ Ext <x id="PH" equiv-text="def.name || def.tag"/> は既に存在します...</target>
+      </trans-unit>
+      <trans-unit id="2090507741999597777" datatype="html">
+        <source>⚠️ Template <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
+        <target>⚠️ テンプレート <x id="PH" equiv-text="def.name || def.tag"/> は既に存在します...</target>
+      </trans-unit>
+      <trans-unit id="3325694507372119924" datatype="html">
+        <source>⚠️ Plugin <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
+        <target>⚠️ プラグイン <x id="PH" equiv-text="def.name || def.tag"/> は既に存在します...</target>
+      </trans-unit>
+      <trans-unit id="5344791164491756179" datatype="html">
+        <source>Playlist</source>
+        <target>プレイリスト</target>
+      </trans-unit>
+      <trans-unit id="561504958933416072" datatype="html">
+        <source>⚠️ Ref <x id="PH" equiv-text="def.title || def.url"/> already exists...</source>
+        <target>⚠️ Ref <x id="PH" equiv-text="def.title || def.url"/> は既に存在します...</target>
+      </trans-unit>
+      <trans-unit id="7080347165498627487" datatype="html">
+        <source>⚠️ User <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
+        <target>⚠️ ユーザー <x id="PH" equiv-text="def.name || def.tag"/> は既に存在します...</target>
+      </trans-unit>
+      <trans-unit id="8661911075375968481" datatype="html">
+        <source>Pick location on map</source>
+        <target>地図で場所を選択</target>
+      </trans-unit>
+      <trans-unit id="2507676024821952431" datatype="html">
+        <source>East</source>
+        <target>東</target>
+      </trans-unit>
+      <trans-unit id="3999096471992552378" datatype="html">
+        <source>North</source>
+        <target>北</target>
+      </trans-unit>
+      <trans-unit id="4057359344329666188" datatype="html">
+        <source>West</source>
+        <target>西</target>
+      </trans-unit>
+      <trans-unit id="5375267255227557614" datatype="html">
+        <source>South</source>
+        <target>南</target>
+      </trans-unit>
+      <trans-unit id="7847028519699724882" datatype="html">
+        <source>Bounds: </source>
+        <target>範囲: </target>
+      </trans-unit>
+      <trans-unit id="4168319851953294418" datatype="html">
+        <source>Photon</source>
+      </trans-unit>
+      <trans-unit id="521557909863788329" datatype="html">
+        <source>Geocoding: </source>
+        <target>ジオコーディング: </target>
+      </trans-unit>
+      <trans-unit id="5914380341841503873" datatype="html">
+        <source>OpenStreetMap (Nominatim)</source>
+      </trans-unit>
+      <trans-unit id="632822263124795513" datatype="html">
+        <source>Search address</source>
+        <target>住所を検索</target>
+      </trans-unit>
+      <trans-unit id="2149672055824381063" datatype="html">
+        <source>Search Position: </source>
+        <target>検索の位置: </target>
+      </trans-unit>
+      <trans-unit id="7437546388321615771" datatype="html">
+        <source>Top Left</source>
+        <target>左上</target>
+      </trans-unit>
+      <trans-unit id="8224585816284521000" datatype="html">
+        <source>Top Right</source>
+        <target>右上</target>
+      </trans-unit>
+      <trans-unit id="6072329911847367445" datatype="html">
+        <source>Bottom Left</source>
+        <target>左下</target>
+      </trans-unit>
+      <trans-unit id="4924851972474284371" datatype="html">
+        <source>Bottom Right</source>
+        <target>右下</target>
+      </trans-unit>
+      <trans-unit id="9186765879953866634" datatype="html">
+        <source>Submit a Ref here</source>
+        <target>ここにRefを投稿</target>
+      </trans-unit>
+      <trans-unit id="2792509567173760071" datatype="html">
+        <source>Move the location here</source>
+        <target>位置をここに移動</target>
+      </trans-unit>
+      <trans-unit id="6574802489883645842" datatype="html">
+        <source>Google Maps API key is not configured.</source>
+        <target>Google Maps APIキーが設定されていません。</target>
+      </trans-unit>
+      <trans-unit id="6930809139270583742" datatype="html">
+        <source>Google Maps API Key: </source>
+        <target>Google Maps APIキー: </target>
+      </trans-unit>
+      <trans-unit id="7310439367454019720" datatype="html">
+        <source>Google Maps</source>
+      </trans-unit>
+      <trans-unit id="8162805192658576220" datatype="html">
+        <source>Photon URL: </source>
+      </trans-unit>
+      <trans-unit id="1790677591266345344" datatype="html">
+        <source>No local version found.</source>
+        <target>ローカル版が見つかりません。</target>
+      </trans-unit>
+      <trans-unit id="3217999400450328473" datatype="html">
+        <source>Features:</source>
+        <target>フィーチャー:</target>
+      </trans-unit>
+      <trans-unit id="4252595398194117952" datatype="html">
+        <source>🌐️🧩️ Geo Features</source>
+        <target>🌐️🧩️ ジオフィーチャー</target>
+      </trans-unit>
+      <trans-unit id="5687525679226023005" datatype="html">
+        <source>🧩️</source>
+      </trans-unit>
+      <trans-unit id="5912063197730268987" datatype="html">
+        <source>A GeoJSON FeatureCollection. Each feature has its own style.</source>
+        <target>GeoJSON の FeatureCollection。各フィーチャーに独自のスタイルがあります。</target>
+      </trans-unit>
+      <trans-unit id="4222367315079343305" datatype="html">
+        <source>Stroke: </source>
+        <target>線: </target>
+      </trans-unit>
+      <trans-unit id="6123752432455528305" datatype="html">
+        <source>Fill: </source>
+        <target>塗りつぶし: </target>
+      </trans-unit>
+      <trans-unit id="332254895678879391" datatype="html">
+        <source>Stroke Color</source>
+        <target>線の色</target>
+      </trans-unit>
+      <trans-unit id="1170994406386405639" datatype="html">
+        <source>Stroke Width</source>
+        <target>線の太さ</target>
+      </trans-unit>
+      <trans-unit id="2852353597235991574" datatype="html">
+        <source>Stroke Width: <x id="PH" equiv-text="this.strokeWidths[this.strokeWidthIndex].label"/></source>
+        <target>線の太さ: <x id="PH" equiv-text="this.strokeWidths[this.strokeWidthIndex].label"/></target>
+      </trans-unit>
+      <trans-unit id="3692945389836981034" datatype="html">
+        <source>Stroke Style</source>
+        <target>線のスタイル</target>
+      </trans-unit>
+      <trans-unit id="2216982301028943639" datatype="html">
+        <source>Fill Color</source>
+        <target>塗りつぶしの色</target>
+      </trans-unit>
+      <trans-unit id="4294517421455131851" datatype="html">
+        <source>Fill Color (defaults to the stroke color)</source>
+        <target>塗りつぶしの色（既定は線の色）</target>
+      </trans-unit>
+      <trans-unit id="785414958423497037" datatype="html">
+        <source>Fill Style</source>
+        <target>塗りつぶしのスタイル</target>
+      </trans-unit>
+      <trans-unit id="271520503237124146" datatype="html">
+        <source>Clear Stroke</source>
+        <target>線をクリア</target>
+      </trans-unit>
+      <trans-unit id="4977469068067927566" datatype="html">
+        <source>Clear Fill</source>
+        <target>塗りつぶしをクリア</target>
+      </trans-unit>
+      <trans-unit id="7131377065256068978" datatype="html">
+        <source>Small</source>
+        <target>細</target>
+      </trans-unit>
+      <trans-unit id="5982496808088686844" datatype="html">
+        <source>Medium</source>
+        <target>中</target>
+      </trans-unit>
+      <trans-unit id="3905533329051691155" datatype="html">
+        <source>Large</source>
+        <target>太</target>
+      </trans-unit>
+      <trans-unit id="592980626739521579" datatype="html">
+        <source>Solid</source>
+        <target>実線</target>
+      </trans-unit>
+      <trans-unit id="6113179921997948226" datatype="html">
+        <source>Dashed</source>
+        <target>破線</target>
+      </trans-unit>
+      <trans-unit id="2812108764688288077" datatype="html">
+        <source>Dotted</source>
+        <target>点線</target>
+      </trans-unit>
+      <trans-unit id="1094776776877009619" datatype="html">
+        <source>Blinking</source>
+        <target>点滅</target>
+      </trans-unit>
+      <trans-unit id="45126133619544547" datatype="html">
+        <source>Default Fill</source>
+        <target>既定の塗りつぶし</target>
+      </trans-unit>
+      <trans-unit id="3561055861160191737" datatype="html">
+        <source>No Fill</source>
+        <target>塗りつぶしなし</target>
+      </trans-unit>
+      <trans-unit id="7842082155211851068" datatype="html">
+        <source>Solid Fill</source>
+        <target>べた塗り</target>
+      </trans-unit>
+      <trans-unit id="8456681868623174307" datatype="html">
+        <source>Hatched ↗️</source>
+        <target>斜線 ↗️</target>
+      </trans-unit>
+      <trans-unit id="7783889896272597967" datatype="html">
+        <source>Hatched ↖️</source>
+        <target>斜線 ↖️</target>
+      </trans-unit>
+      <trans-unit id="4304270076077370881" datatype="html">
+        <source>Crosshatch</source>
+        <target>クロスハッチ</target>
+      </trans-unit>
+      <trans-unit id="124082375765594276" datatype="html">
+        <source>Blinking Fill</source>
+        <target>点滅塗りつぶし</target>
+      </trans-unit>
+      <trans-unit id="8289071932526879418" datatype="html">
+        <source>+ Add Feature</source>
+        <target>+ フィーチャーを追加</target>
+      </trans-unit>
+      <trans-unit id="3374858599666683478" datatype="html">
+        <source>⚠️ Skipped <x id="PH" equiv-text="mod"/> mod: unable to merge local changes automatically. Use diff to update manually.</source>
+        <target>⚠️ <x id="PH" equiv-text="mod"/> MODをスキップしました: ローカルの変更を自動的にマージできません。差分を使用して手動で更新してください。</target>
+      </trans-unit>
+      <trans-unit id="2180343879821060413" datatype="html">
+        <source>Page background</source>
+        <target>ページの背景</target>
+      </trans-unit>
+      <trans-unit id="1848788423821826422" datatype="html">
+        <source>Subtle background for panels and tabs</source>
+        <target>パネルとタブの控えめな背景</target>
+      </trans-unit>
+      <trans-unit id="3484079160457165334" datatype="html">
+        <source>Background on hover and drop targets</source>
+        <target>ホバー時とドロップ先の背景</target>
+      </trans-unit>
+      <trans-unit id="6691191016350160807" datatype="html">
+        <source>Background while pressed or selected</source>
+        <target>押下中または選択中の背景</target>
+      </trans-unit>
+      <trans-unit id="1088326034441374678" datatype="html">
+        <source>Main text colour</source>
+        <target>メインのテキスト色</target>
+      </trans-unit>
+      <trans-unit id="6823827552471984360" datatype="html">
+        <source>Link colour</source>
+        <target>リンクの色</target>
+      </trans-unit>
+      <trans-unit id="1001902665715822882" datatype="html">
+        <source>Visited link colour</source>
+        <target>訪問済みリンクの色</target>
+      </trans-unit>
+      <trans-unit id="477820793827592489" datatype="html">
+        <source>Highlights such as the current page and new response counts</source>
+        <target>現在のページや新しい返信数などのハイライト</target>
+      </trans-unit>
+      <trans-unit id="3304758881123522444" datatype="html">
+        <source>Secondary text such as row info, quotes and timestamps</source>
+        <target>行の情報、引用、タイムスタンプなどの補助テキスト</target>
+      </trans-unit>
+      <trans-unit id="3340539540489255204" datatype="html">
+        <source>Inline tag links and accents</source>
+        <target>インラインのタグリンクとアクセント</target>
+      </trans-unit>
+      <trans-unit id="7093805717395284707" datatype="html">
+        <source>Inline tag link background (light theme)</source>
+        <target>インラインのタグリンクの背景（ライトテーマ）</target>
+      </trans-unit>
+      <trans-unit id="7242952314966916109" datatype="html">
+        <source>Tab bar background (light theme)</source>
+        <target>タブバーの背景（ライトテーマ）</target>
+      </trans-unit>
+      <trans-unit id="7665940442169044638" datatype="html">
+        <source>Toggle button background</source>
+        <target>トグルボタンの背景</target>
+      </trans-unit>
+      <trans-unit id="3973867441994270422" datatype="html">
+        <source>Toggle button background on hover</source>
+        <target>ホバー時のトグルボタンの背景</target>
+      </trans-unit>
+      <trans-unit id="5910026333631961944" datatype="html">
+        <source>Toggle button background while pressed</source>
+        <target>押下中のトグルボタンの背景</target>
+      </trans-unit>
+      <trans-unit id="4326740526093069667" datatype="html">
+        <source>Toggle button border</source>
+        <target>トグルボタンの枠線</target>
+      </trans-unit>
+      <trans-unit id="308107226385339772" datatype="html">
+        <source>Form input background</source>
+        <target>フォーム入力欄の背景</target>
+      </trans-unit>
+      <trans-unit id="1186418830405291674" datatype="html">
+        <source>Main border colour</source>
+        <target>メインの枠線の色</target>
+      </trans-unit>
+      <trans-unit id="6922013117648048603" datatype="html">
+        <source>Softer border for editors and cards</source>
+        <target>エディターとカード用の柔らかい枠線</target>
+      </trans-unit>
+      <trans-unit id="2319675836132242393" datatype="html">
+        <source>Faint border for cards</source>
+        <target>カード用の薄い枠線</target>
+      </trans-unit>
+      <trans-unit id="2393473681211397784" datatype="html">
+        <source>Background of inactive tabs</source>
+        <target>非アクティブなタブの背景</target>
+      </trans-unit>
+      <trans-unit id="1549271489840245870" datatype="html">
+        <source>Error text</source>
+        <target>エラーテキスト</target>
+      </trans-unit>
+      <trans-unit id="7003779204629001487" datatype="html">
+        <source>Error and login prompt background</source>
+        <target>エラーとログイン案内の背景</target>
+      </trans-unit>
+      <trans-unit id="5979849428926839768" datatype="html">
+        <source>Warning text and borders</source>
+        <target>警告のテキストと枠線</target>
+      </trans-unit>
+      <trans-unit id="2060859484922097947" datatype="html">
+        <source>Title colour of pinned refs</source>
+        <target>ピン留めされたRefのタイトル色</target>
+      </trans-unit>
+      <trans-unit id="8270186147962434724" datatype="html">
+        <source>Card background (kanban, todo, chat, notes, ...)</source>
+        <target>カードの背景（カンバン、ToDo、チャット、ノートなど）</target>
+      </trans-unit>
+      <trans-unit id="2028351303134348407" datatype="html">
+        <source>Card background while dragging</source>
+        <target>ドラッグ中のカードの背景</target>
+      </trans-unit>
+      <trans-unit id="1182369490837574216" datatype="html">
+        <source>Drop placeholder background</source>
+        <target>ドロップ位置のプレースホルダーの背景</target>
+      </trans-unit>
+      <trans-unit id="5059649595330498698" datatype="html">
+        <source>Background of items about to be deleted</source>
+        <target>削除予定の項目の背景</target>
+      </trans-unit>
+      <trans-unit id="5253033976705755151" datatype="html">
+        <source>Blockquote border in markdown</source>
+        <target>Markdownの引用ブロックの枠線</target>
+      </trans-unit>
+      <trans-unit id="6196592270609038399" datatype="html">
+        <source>(not set)</source>
+        <target>（未設定）</target>
+      </trans-unit>
+      <trans-unit id="5093220205467023095" datatype="html">
+        <source>Custom theme</source>
+        <target>カスタムテーマ</target>
+      </trans-unit>
+      <trans-unit id="2229617771577308263" datatype="html">
+        <source>Jasper adds .light-theme or .dark-theme to &lt;body&gt; depending on the colour scheme,</source>
+        <target>Jasperはカラースキームに応じて &lt;body&gt; に .light-theme または .dark-theme を追加します。</target>
+      </trans-unit>
+      <trans-unit id="4303275797181496743" datatype="html">
+        <source>so set colours for both. Every standard CSS variable is listed below with the</source>
+        <target>そのため両方の色を設定してください。以下にすべての標準CSS変数を</target>
+      </trans-unit>
+      <trans-unit id="8720295806661616443" datatype="html">
+        <source>value currently in use. Change what you want and delete the rest.</source>
+        <target>現在の値とともに記載しています。変更したいものを編集し、残りは削除してください。</target>
+      </trans-unit>
+      <trans-unit id="2091529450896286978" datatype="html">
+        <source>Row structure and reusable classes for theming:</source>
+        <target>テーマ用の行構造と再利用可能なクラス:</target>
+      </trans-unit>
+      <trans-unit id="2691014706193835883" datatype="html">
+        <source>Light theme</source>
+        <target>ライトテーマ</target>
+      </trans-unit>
+      <trans-unit id="7278213602149834905" datatype="html">
+        <source>Dark theme</source>
+        <target>ダークテーマ</target>
+      </trans-unit>
+      <trans-unit id="3991325437991703681" datatype="html">
+        <source>Add your own rules below. Use the row slots (.ref, .ext, .link, .info, .actions, ...)</source>
+        <target>独自のルールは以下に追加してください。行スロット（.ref、.ext、.link、.info、.actions など）を使うと、</target>
+      </trans-unit>
+      <trans-unit id="3376651329803832108" datatype="html">
+        <source>so your theme keeps working as Jasper changes. For example:</source>
+        <target>Jasperが変更されてもテーマが動作し続けます。例:</target>
+      </trans-unit>
+      <trans-unit id="3599138507718837516" datatype="html">
+        <source>Script:</source>
+        <target>スクリプト:</target>
+      </trans-unit>
+      <trans-unit id="5318176281357174014" datatype="html">
+        <source>🧱️ Masonry</source>
+        <target>🧱️ メイソンリー</target>
+      </trans-unit>
+      <trans-unit id="4792095523655247939" datatype="html">
+        <source>Overrides the built-in Image viewer with a masonry layout where images have a fixed width and variable height.</source>
+        <target>組み込みの画像ビューアを、画像の幅が固定で高さが可変のメイソンリーレイアウトで上書きします。</target>
+      </trans-unit>
+      <trans-unit id="1847047605496409443" datatype="html">
+        <source>Street</source>
+        <target>通り</target>
+      </trans-unit>
+      <trans-unit id="2314075913167237221" datatype="html">
+        <source>City</source>
+        <target>都市</target>
+      </trans-unit>
+      <trans-unit id="2702200797962830082" datatype="html">
+        <source>Region</source>
+        <target>地域</target>
+      </trans-unit>
+      <trans-unit id="516176798986294299" datatype="html">
+        <source>Country</source>
+        <target>国</target>
+      </trans-unit>
+      <trans-unit id="5782981899482871069" datatype="html">
+        <source>Building</source>
+        <target>建物</target>
+      </trans-unit>
+      <trans-unit id="7806416699195259046" datatype="html">
+        <source>World</source>
+        <target>世界</target>
       </trans-unit>
     </body>
   </file>

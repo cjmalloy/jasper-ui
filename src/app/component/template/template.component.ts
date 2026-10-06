@@ -1,11 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { templateForm, TemplateFormComponent } from '../../form/template/template.component';
+import { DiffComponent } from '../../form/diff/diff.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Template, writeTemplate } from '../../model/template';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
@@ -25,7 +26,7 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent]
+  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent, DiffComponent]
 })
 export class TemplateComponent implements OnChanges, HasChanges {
   css = 'template list-item';
@@ -34,13 +35,20 @@ export class TemplateComponent implements OnChanges, HasChanges {
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
 
+  @ViewChild('diffEditor')
+  diffEditor?: DiffComponent<Template>;
+
   @Input()
   template!: Template;
 
   editForm: UntypedFormGroup;
   submitted = false;
+  @HostBinding('class.editing')
   editing = false;
   viewSource = false;
+  diffing = false;
+  diffLocal?: Template;
+  diffRemote?: Template;
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
@@ -48,6 +56,7 @@ export class TemplateComponent implements OnChanges, HasChanges {
   defaultsErrors: string[] = [];
   schemaErrors: string[] = [];
   saving?: Subscription;
+  loadingDiff?: Subscription;
 
   constructor(
     public admin: AdminService,
@@ -64,6 +73,8 @@ export class TemplateComponent implements OnChanges, HasChanges {
 
   init(): void {
     this.actionComponents?.forEach(c => c.reset());
+    this.submitted = false;
+    this.editForm.reset();
     this.editForm.patchValue({
       ...this.template,
       config: this.template.config ? JSON.stringify(this.template.config, null, 2) : undefined,
@@ -100,6 +111,58 @@ export class TemplateComponent implements OnChanges, HasChanges {
 
   get local() {
     return this.origin === this.store.account.origin;
+  }
+
+  get canDiff() {
+    return !this.local && this.created && !!this.admin.getTemplate('config/diff');
+  }
+
+  toggleDiff() {
+    if (this.diffing || this.loadingDiff) {
+      this.loadingDiff?.unsubscribe();
+      delete this.loadingDiff;
+      this.diffing = false;
+      return;
+    }
+    this.serverError = [];
+    this.viewSource = false;
+    this.loadingDiff = this.templates.get(this.template.tag + this.store.account.origin).pipe(
+      catchError((err: HttpErrorResponse) => {
+        delete this.loadingDiff;
+        this.serverError = err.status === 404
+          ? [$localize`No local version found.`]
+          : printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(local => {
+      delete this.loadingDiff;
+      this.diffLocal = local;
+      this.diffRemote = this.template;
+      this.editing = false;
+      this.viewSource = false;
+      this.diffing = true;
+    });
+  }
+
+  saveDiff() {
+    const merged = this.diffEditor?.getModifiedContent();
+    if (!merged || !this.diffLocal) return;
+    this.saving = this.templates.update({
+      ...merged,
+      tag: this.diffLocal.tag,
+      origin: this.store.account.origin,
+      modifiedString: this.diffLocal.modifiedString,
+    }).pipe(
+      catchError((err: HttpErrorResponse) => {
+        delete this.saving;
+        this.serverError = printError(err);
+        return throwError(() => err);
+      }),
+    ).subscribe(() => {
+      delete this.saving;
+      this.serverError = [];
+      this.diffing = false;
+    });
   }
 
   save() {
@@ -144,10 +207,10 @@ export class TemplateComponent implements OnChanges, HasChanges {
       }),
     ).subscribe(template => {
       delete this.saving;
-      this.editForm.reset();
       this.serverError = [];
       this.editing = false;
       this.template = template;
+      this.init();
     });
   }
 

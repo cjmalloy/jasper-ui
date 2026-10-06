@@ -60,6 +60,7 @@ export class BackupComponent {
       user: [true],
       plugin: [false],
       template: [false],
+      tombstones: [false],
       newerThan: [''],
     });
   }
@@ -95,7 +96,16 @@ export class BackupComponent {
         overlayX: 'start',
         overlayY: 'top',
         offsetY: 4,
-      }]);
+      }, {
+        originX: 'start',
+        originY: 'top',
+        overlayX: 'start',
+        overlayY: 'bottom',
+        offsetY: -4,
+      }])
+      .withFlexibleDimensions(false)
+      .withPush(true)
+      .withViewportMargin(8);
     this.restoreOptionsRef = this.overlay.create({
       hasBackdrop: false,
       positionStrategy,
@@ -118,6 +128,7 @@ export class BackupComponent {
       user: this.restoreOptionsForm.value.user,
       plugin: this.restoreOptionsForm.value.plugin,
       template: this.restoreOptionsForm.value.template,
+      tombstones: this.restoreOptionsForm.value.tombstones,
       newerThan: this.restoreOptionsForm.value.newerThan || undefined,
     };
     this.closeRestoreOptions();

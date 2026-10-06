@@ -1,0 +1,138 @@
+@import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
+
+.maplibregl-map {
+  isolation: isolate;
+}
+
+@media (min-width: 949px) {
+  .sidebar.expanded ~ * {
+    --map-geocoder-width: calc(90cqw - var(--sidebar-width));
+  }
+}
+
+.location-map {
+  --map-geocoder-width: 80cqw;
+}
+
+// Undo the global input and button styles so the control keeps its own layout
+.maplibregl-map .maplibregl-ctrl-geocoder.maplibregl-ctrl {
+  // Rest at an explicit length so the width transition starts from the rendered size
+  // (upstream rests at a small percentage clamped by min-width: 240px, which flickers)
+  // 175px, or wider if the placeholder (measured in addGeocoder) plus the icon and clear button needs it
+  --map-geocoder-padding: 45px;
+  width: max(175px, calc(var(--map-geocoder-placeholder-width, 0px) + 2 * var(--map-geocoder-padding)));
+  min-width: 0;
+  max-width: calc(100cqw - 20px);
+  // Grow to fit a long placeholder without animating
+  transition: none;
+  &.measured {
+    transition: width 150ms ease;
+  }
+  @media screen and (min-width: 640px) {
+    --map-geocoder-padding: 35px;
+  }
+
+
+  // Expand when focused or when there is a query typed
+  // (cqw resolves against the mgl-map, which sets container-type: inline-size)
+  &:focus-within,
+  &:has(.maplibregl-ctrl-geocoder--input:not(:placeholder-shown)) {
+    width: max(0px, var(--map-geocoder-width, 80cqw));
+  }
+
+  input.maplibregl-ctrl-geocoder--input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 50px;
+    margin: 0;
+    padding: 6px var(--map-geocoder-padding, 45px);
+    border: 0;
+    border-radius: 4px;
+    outline: none;
+    font: inherit;
+    color: rgba(0, 0, 0, 0.75);
+    background-color: transparent;
+    appearance: none;
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-decoration {
+      display: none;
+      appearance: none;
+    }
+    @media screen and (min-width: 640px) {
+      height: 36px;
+    }
+  }
+
+  // The title and address are side by side
+  .maplibregl-ctrl-geocoder--result {
+    gap: 0.5em;
+  }
+
+  button.maplibregl-ctrl-geocoder--button {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: #fff;
+    line-height: 1;
+  }
+}
+
+// Sit to the right of the zoom controls in the same corner
+.maplibregl-map .maplibregl-ctrl-group + .maplibregl-ctrl-geocoder.maplibregl-ctrl {
+  clear: none;
+  max-width: calc(100cqw - 59px);
+}
+
+.maplibregl-map .maplibregl-ctrl-geocoder.maplibregl-ctrl[data-theme="dark"] {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+
+  &, .suggestions {
+    box-shadow: 0 0 10px 2px #ffffff1a;
+  }
+
+  input.maplibregl-ctrl-geocoder--input {
+    color: #e0e0e0;
+    &::placeholder {
+      color: #a0a0a0;
+    }
+  }
+
+  .maplibregl-ctrl-geocoder--icon {
+    fill: #a0a0a0;
+  }
+
+  button.maplibregl-ctrl-geocoder--button {
+    background: #2a2a2a;
+  }
+
+  .suggestions {
+    background-color: #2a2a2a;
+    > li > a {
+      color: #e0e0e0;
+    }
+    > .active > a,
+    > li > a:hover {
+      background-color: #3a3a3a;
+      color: #ffffff;
+    }
+  }
+
+  .maplibregl-ctrl-geocoder--suggestion-address,
+  .maplibregl-ctrl-geocoder--result-address {
+    color: #b0b0b0;
+  }
+}
+
+// Space between the result name and address
+.maplibregl-ctrl-geocoder--result {
+  gap: 0.5ch;
+}
+
+// Address search result marker
+.maplibregl-marker.geocode-marker {
+  cursor: pointer;
+}

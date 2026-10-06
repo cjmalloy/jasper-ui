@@ -6,32 +6,33 @@
     <span class="host">({{ origin }})</span>
   }
 </div>
-<div class="stack">
-  <div class="info">
-    <span [title]="plugin.modified?.toISO()" i18n>modified {{ plugin.modified?.toRelative() }}</span>
-    @if (!local) {
-      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a>
-    }
-  </div>
-  <div class="actions">
-    @if (!created && store.account.admin) {
-      <app-confirm-action #action [action]="copy$" i18n>install</app-confirm-action>
-    } @else if (!local) {
-      <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
-    }
-    @if (created && local && store.account.admin) {
-      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
-    } @else {
-      <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
-    }
-    <a class="fake-link" (click)="download()" i18n>download</a>
-    @if (plugin.config?.export) {
-      <a class="fake-link" (click)="export()" i18n>export</a>
-    }
-    @if (created && store.account.admin) {
-      <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
-    }
-  </div>
+<div class="info">
+  <span [title]="plugin.modified?.toISO()" i18n>modified {{ plugin.modified?.toRelative() }}</span>
+  @if (!local) {
+    &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a>
+  }
+</div>
+<div class="actions">
+  @if (!created && store.account.admin) {
+    <app-confirm-action #action [action]="copy$" i18n>install</app-confirm-action>
+  } @else if (!local) {
+    <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
+  }
+  @if (created && local && store.account.admin) {
+    <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+  } @else {
+    <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+  }
+  @if (canDiff) {
+    <a class="fake-link diff-link" (click)="toggleDiff()" i18n>diff</a>
+  }
+  <a class="fake-link" (click)="download()" i18n>download</a>
+  @if (plugin.config?.export) {
+    <a class="fake-link" (click)="export()" i18n>export</a>
+  }
+  @if (created && store.account.admin) {
+    <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
+  }
 </div>
 
 @if (editing) {
@@ -60,6 +61,30 @@
   <form class="form" [formGroup]="editForm">
     <app-plugin-form [group]="editForm"></app-plugin-form>
   </form>
+} @else if (diffing && diffLocal && diffRemote) {
+  <div class="diff-view form">
+    <app-diff #diffEditor
+              [original]="diffLocal"
+              [modified]="diffRemote"
+              [readOnly]="!store.account.admin">
+    </app-diff>
+
+    @for (e of serverError; track e) {
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    }
+
+    <span><!-- Buttons --></span>
+    <span class="buttons right">
+      @if (saving) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      @if (store.account.admin) {
+        <button type="button" class="save-diff" [disabled]="saving" (click)="saveDiff()" i18n>save</button>
+      }
+      <button type="button" (click)="diffing = false" i18n>cancel</button>
+    </span>
+  </div>
 } @else {
   @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>

@@ -1,3 +1,4 @@
+import JSZip from 'jszip';
 import { flatten, isArray, without } from 'lodash-es';
 import { action, autorun, makeAutoObservable, observableShallow } from 'mobx';
 import { RouterStore } from 'mobx-angular';
@@ -5,6 +6,7 @@ import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { DEFAULT_WIKI_PREFIX } from '../mods/org/wiki';
+import { refCacheIds } from '../util/cache';
 import { EventBus } from './bus';
 
 export type Saving = { url?: string, name: string, progress?: number };
@@ -15,9 +17,14 @@ export class SubmitStore {
   submitGenId: Plugin[] = [];
   submitDm: Plugin[] = [];
   files: File[] = [] as any;
+  embedFiles: File[] = [] as any;
   caching: Map<File, Saving> = new Map<File, Saving>();
   exts: Ext[] = [];
   refs: Ref[] = [];
+  /**
+   * Cache files from uploaded zips, keyed by their original cache ID.
+   */
+  cacheFiles = new Map<string, JSZip.JSZipObject>();
   overwrite = false;
   refLimitOverride = false;
 
@@ -29,7 +36,9 @@ export class SubmitStore {
       submitGenId: observableShallow,
       submitDm: observableShallow,
       files: observableShallow,
+      embedFiles: observableShallow,
       caching: observableShallow,
+      cacheFiles: false,
       setRef: action,
       setExt: action,
     });
@@ -102,6 +111,19 @@ export class SubmitStore {
   get pluginUpload() {
     if (!this.plugin) return '';
     return this.route.routeSnapshot?.queryParams['upload'] || '' as string;
+  }
+
+  /**
+   * Location from the "lng,lat" location query param.
+   */
+  get location(): [number, number] | undefined {
+    const value = this.route.routeSnapshot?.queryParams['location'];
+    if (typeof value !== 'string') return undefined;
+    const location = value.split(',').map(n => n.trim() ? Number(n) : NaN);
+    if (location.length !== 2 || !location.every(n => isFinite(n))) return undefined;
+    const [lng, lat] = location;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return undefined;
+    return [lng, lat];
   }
 
   get repost() {
@@ -181,6 +203,20 @@ export class SubmitStore {
   clearUpload(refs: Ref[] = [], exts: Ext[] = []) {
     this.exts = exts;
     this.refs = refs;
+    const keep = new Set(refs.flatMap(refCacheIds));
+    for (const id of [...this.cacheFiles.keys()]) {
+      if (!keep.has(id)) this.cacheFiles.delete(id);
+    }
+  }
+
+  addCacheFiles(files: Map<string, JSZip.JSZipObject>) {
+    for (const [id, file] of files) {
+      if (this.cacheFiles.has(id)) {
+        console.warn(`Skipping duplicate cache file in upload: ${id}`);
+        continue;
+      }
+      this.cacheFiles.set(id, file);
+    }
   }
 
   addFiles(files?: File[]) {
@@ -192,6 +228,10 @@ export class SubmitStore {
   clearFiles() {
     if (this.filesEmpty) return;
     this.files = [] as any;
+  }
+
+  setEmbedFiles(files: File[] = []) {
+    this.embedFiles = files;
   }
 
   foundRef(url: string) {
@@ -210,9 +250,9 @@ export class SubmitStore {
     }
   }
 
-  setRef(ref: Ref) {
+  setRef(ref: Ref, url = ref.url) {
     for (let i = 0; i < this.refs.length; i++) {
-      if (this.refs[i].url === ref.url) {
+      if (this.refs[i].url === url) {
         this.refs[i] = ref;
       }
     }

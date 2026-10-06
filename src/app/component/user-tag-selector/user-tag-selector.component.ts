@@ -70,7 +70,7 @@ export class UserTagSelectorComponent implements OnDestroy {
 
   clickPreview(input: HTMLInputElement) {
     if (this.store.hotkey) {
-      window.open(this.configs.base + 'tag/' + input.value);
+      this.configs.tag(input.value);
     } else {
       this.edit(input);
     }

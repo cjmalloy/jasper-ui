@@ -184,7 +184,8 @@ saved games, and score tracking.
 49. **Help Popups:** Enable contextual help popups that guide users through different parts of
 the application.
 50. **Map:** View Refs on an interactive map. Includes GeoJSON and GeoPackage support for point,
-line, polygon, and multi-geometry data.
+line, polygon, and multi-geometry data. Addresses can be searched with OpenStreetMap (Nominatim),
+Photon, or Google Maps geocoding. A self-hosted Photon URL must be added to `CSP_CONNECT_SRC`.
 51. **Drafts:** Save edits to a Ref before publishing, then commit or revert them later.
 52. **Duration:** Store media duration metadata in a tag and display it in the Ref info area.
 53. **Grid:** View query results in a configurable multi-column grid.
@@ -208,16 +209,15 @@ disputed, paid).
 7. **Table:** Create and edit spreadsheet-style tables with CSV data in Refs.
 8. **Poll:** Create multiple-choice polls and view results. Voting is done by adding a Ref
 response for each poll option.
-9. **Archive:** Generate and use external archive/unpaywalled links (e.g., archive.ph, 12ft.io) for Refs.
-10. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
-11. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
+9. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
+10. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
 applied to a Ref, add fields to define the chart type, labels, and data location. Adds an
 optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
 Ref will be used to point to a TSV file.
-12. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
+11. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
 tracking for that ref.
-13. **Clipboard:** Manage in-browser clipboard bubbles for copied Refs, tags, queries, bookmarks,
+12. **Clipboard:** Manage in-browser clipboard bubbles for copied Refs, tags, queries, bookmarks,
 and local-only images.
 
 ## Deployment
@@ -234,7 +234,13 @@ file will be generated from environment variables:
 | `title`          | `JASPER_TITLE`           | Name to display in the title bar.                                                                 | `Jasper`                                                                                                |
 | `version`        | `JASPER_VERSION`         | Version string to display as a tooltip in the footer.                                             | `v1.0.0`                                                                                                |
 | `api`            | `JASPER_API`             | URL of the API server (no trailing slash)                                                         | `//jasperkm.info`                                                                                       |
-|                  | `JASPER_API_PROXY`       | Backend host to proxy on `/api`. Sets `JASPER_API` to `.`                                         | `http://web:80`                                                                                         |
+|                  | `JASPER_API_PROXY`       | Backend host to proxy on `/api`. Sets `JASPER_API` to `.`. The `Authorization` header is forwarded unchanged. | `http://web:80`                                                                                         |
+|                  | `JASPER_PROXY_USER_TAG`  | Value for the `User-Tag` header sent to `JASPER_API_PROXY`. Blank (default) strips it.            |                                                                                                         |
+|                  | `JASPER_PROXY_USER_ROLE` | Value for the `User-Role` header sent to `JASPER_API_PROXY`. Blank (default) strips it.           |                                                                                                         |
+|                  | `JASPER_PROXY_READ_ACCESS` | Value for the `Read-Access` header sent to `JASPER_API_PROXY`. Blank (default) strips it.         |                                                                                                         |
+|                  | `JASPER_PROXY_WRITE_ACCESS` | Value for the `Write-Access` header sent to `JASPER_API_PROXY`. Blank (default) strips it.        |                                                                                                         |
+|                  | `JASPER_PROXY_TAG_READ_ACCESS` | Value for the `Tag-Read-Access` header sent to `JASPER_API_PROXY`. Blank (default) strips it.     |                                                                                                         |
+|                  | `JASPER_PROXY_TAG_WRITE_ACCESS` | Value for the `Tag-Write-Access` header sent to `JASPER_API_PROXY`. Blank (default) strips it.    |                                                                                                         |
 | `logout`         | `JASPER_LOGOUT`          | Optional URL to log out.                                                                          | `//jasperkm.info/oauth2/sign_out?rd=https%3A%2F%2Fauth.jasperkm.info%2Fauthn%2Fauthentication%2Flogout` |
 | `login`          | `JASPER_LOGIN`           | Optional URL to log in. A redirect (`?rd=`) will be appended with the current page.               | `//jasperkm.info/oauth2/sign_in`                                                                        |
 | `signup`         | `JASPER_SIGNUP`          | Optional URL to sign up.                                                                          | `https://auth.jasperkm.info/authn/registration/form`                                                    |

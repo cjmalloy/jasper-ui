@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, isDevMode } from '@angular/core';
+import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { tap } from 'rxjs/operators';
 import { memo } from '../util/memo';
@@ -50,6 +51,7 @@ export class ConfigService {
 
   constructor(
     private http: HttpClient,
+    private router: Router,
   ) {
     // @ts-ignore
     window.configService = this;
@@ -95,6 +97,22 @@ export class ConfigService {
     if (this.login) {
       // @ts-ignore
       window.location = this.loginLink;
+    }
+  }
+
+  ref(url: string) {
+    if (this.electron) {
+      this.router.navigate(['/ref', url]);
+    } else {
+      window.open(this.base + 'ref/' + url);
+    }
+  }
+
+  tag(tag: string) {
+    if (this.electron) {
+      this.router.navigate(['/tag', tag]);
+    } else {
+      window.open(this.base + 'tag/' + tag);
     }
   }
 }

@@ -39,6 +39,7 @@ import { durationMod } from '../mods/media/duration';
 import { embedMod } from '../mods/media/embed';
 import { fileMod } from '../mods/media/file';
 import { imageMod } from '../mods/media/image';
+import { masonryMod } from '../mods/media/masonry';
 import { pdfMod } from '../mods/media/pdf';
 import { playlistMod } from '../mods/media/playlist';
 import { tableMod } from '../mods/media/table';
@@ -198,6 +199,7 @@ export class AdminService {
     markitdownMod,
     voteMod,
     imageMod,
+    masonryMod,
     lensMod,
     pipMod,
     chessMod,
@@ -241,9 +243,13 @@ export class AdminService {
     });
   }
 
-  get init$() {
+  private clearCache() {
     this._cache.clear();
     MemoCache.clear(this);
+  }
+
+  get init$() {
+    this.clearCache();
     runInAction(() => {
       this.store.view.modChanges.clear();
       this.store.view.modUpdates.clear();
@@ -254,10 +260,12 @@ export class AdminService {
     this.status.disabledTemplates = {};
     this.status.receipts = {};
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
+      tap(() => this.clearCache()),
       switchMap(() => this.firstRun$),
       switchMap(() => this.loadReceipts$()),
       tap(() => this.checkMissingReceipts()),
       catchError(() => of(null)),
+      tap(() => this.clearCache()),
     );
   }
 
@@ -917,6 +925,14 @@ export class AdminService {
     return [];
   }
 
+  getPluginAdminForm(tag: string, field: 'adminForm' | 'advancedAdminForm' = 'adminForm'): FormlyFieldConfig[] {
+    return this.getPlugin(tag)?.config?.[field] || [];
+  }
+
+  getTemplateAdminForm(tag: string, field: 'adminForm' | 'advancedAdminForm' = 'adminForm'): FormlyFieldConfig[] {
+    return this.getTemplate(tag)?.config?.[field] || [];
+  }
+
   getDefaults(tag = ''): any {
     const template = this.getTemplate(tag);
     const defaults = template?.defaults;
@@ -1186,8 +1202,5 @@ export class AdminService {
 }
 
 function addParent(c: Config) {
-  return (a: any) => {
-    a._parent = c;
-    return a;
-  };
+  return <T>(a: T): T & { _parent: Config } => ({ ...a, _parent: c });
 }

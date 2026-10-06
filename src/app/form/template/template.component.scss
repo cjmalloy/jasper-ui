@@ -1,0 +1,10 @@
+details {
+  grid-column: 1 / 3;
+}
+
+details[open] {
+  margin-top: 8px;
+  summary {
+    margin-bottom: 8px;
+  }
+}

@@ -7,7 +7,7 @@ export const neoQueryPlugin: Plugin = {
   name: $localize`🍌️💭️ Ask Neo Banana`,
   config: {
     mod: $localize`🍌️ Neo Banana`,
-    version: 1,
+    version: 2,
     type: 'tool',
     default: false,
     add: true,
@@ -28,6 +28,15 @@ export const neoQueryPlugin: Plugin = {
     ],
     timeoutMs: 300_000,
     language: 'javascript',
+    subDiff: ['script'],
+    adminForm: [{
+      key: 'script',
+      type: 'code',
+      props: {
+        label: $localize`Script:`,
+        language: 'javascript',
+      },
+    }],
     // language=JavaScript
     script: `
       const axios = require('axios');
