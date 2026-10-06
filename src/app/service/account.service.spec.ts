@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
-import { of, Subject } from 'rxjs';
+import { catchError, EMPTY, of, Subject, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 
@@ -391,6 +391,234 @@ describe('AccountService', () => {
       expect(store.account.notifications).toBe(4);
       expect(store.account.alarmCount).toBe(0);
       expect(store.account.unreadCount).toBe(4);
+    });
+  });
+
+  it('merges notification pages from all streams', () => {
+    setAccount();
+    const store = (service as any).store;
+    store.account.ext.config.alarms = ['alarm'];
+    store.account.notificationCursors.set('', '2026-01-01T00:00:00.000Z');
+    store.account.notificationCursors.set('@city', '2026-02-01T00:00:00.000Z');
+    vi.spyOn(service, 'loadNotificationCursors$').mockReturnValue(of([
+      { origin: '', query: '@:inbox', settingsUrl: 'tag:/plugin/inbox' },
+      { origin: '@city', query: '@city:inbox', settingsUrl: 'tag:/plugin/outbox/city' },
+    ]));
+    const ref = (url: string, origin: string, modified: string): Ref =>
+      ({ url, origin, modified: DateTime.fromISO(modified) });
+    const pageOf = (total: number, ...refs: Ref[]) => {
+      const page = Page.of(refs);
+      page.page.totalElements = total;
+      return page;
+    };
+    const pages: Record<string, Page<Ref>> = {
+      '@:inbox': pageOf(4, ref('spec:local1', '', '2026-03-01T00:00:00.000Z'), ref('spec:local2', '', '2026-03-04T00:00:00.000Z')),
+      '@city:inbox': pageOf(2, ref('spec:city1', '@city', '2026-03-02T00:00:00.000Z'), ref('spec:city2', '@city', '2026-03-05T00:00:00.000Z')),
+      '!plugin/delete:(alarm):!@:!@city': pageOf(1, ref('spec:town1', '@town', '2026-03-03T00:00:00.000Z')),
+    };
+    const page = vi.spyOn((service as any).refs, 'page').mockImplementation((args: any) => of(pages[args.query]));
+
+    let result: Page<Ref> | undefined;
+    service.notificationPage$(3).subscribe(p => result = p);
+
+    expect(result!.content.map(ref => ref.url)).toEqual(['spec:local1', 'spec:city1', 'spec:town1']);
+    expect(result!.page.totalElements).toBe(7);
+    expect(result!.page.totalPages).toBe(3);
+    expect(result!.page.size).toBe(3);
+    expect(page).toHaveBeenCalledTimes(3);
+    expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: '@:inbox', modifiedAfter: '2026-01-01T00:00:00.000Z', size: 3 }));
+    expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: '@city:inbox', modifiedAfter: '2026-02-01T00:00:00.000Z', size: 3 }));
+    expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: '!plugin/delete:(alarm):!@:!@city', modifiedAfter: '2026-01-01T00:00:00.000Z', size: 3 }));
+  });
+
+  describe('writing cursors', () => {
+    const oldCursor = '2026-01-01T00:00:00.000Z';
+    const readDate = DateTime.fromISO('2026-02-01T00:00:00.000Z');
+    const cursor = readDate.plus({ millisecond: 1 }).toISO()!;
+    const cityUrl = 'tag:/+user/dad?url=tag:/plugin/outbox/city';
+    const cursorRef = (cursor: string, modifiedString: string): Ref => ({
+      url: cityUrl,
+      origin: '',
+      plugins: { 'plugin/user/cursor': { cursor } },
+      modifiedString,
+    });
+    let patch: any;
+
+    beforeEach(() => {
+      setAccount();
+      setOrigins([{
+        url: 'spec:city',
+        origin: '',
+        tags: ['+plugin/origin/pull', '+user/dad'],
+        plugins: { '+plugin/origin': { local: '@city', aliases: ['+user/chris'] } },
+      }]);
+      const store = (service as any).store;
+      (service as any).cursorAccount = store.account.tagWithOrigin;
+      store.account.notificationCursors.set('', oldCursor);
+      store.account.notificationCursors.set('@city', oldCursor);
+      (service as any).cursorRefs.set('@city', cursorRef(oldCursor, 'm1'));
+      vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({ tag: 'user' });
+      vi.spyOn(service, 'checkNotifications').mockImplementation(() => {});
+      patch = vi.spyOn((service as any).refs, 'patch');
+    });
+
+    it('patches an existing cursor and keeps the new modified cursor', async () => {
+      patch.mockReturnValueOnce(of('m2')).mockReturnValueOnce(of('m3'));
+
+      await service.clearNotifications(readDate, ['@city']);
+
+      expect(patch).toHaveBeenCalledWith(cityUrl, '', 'm1', [{
+        op: 'add',
+        path: '/plugins/plugin~1user~1cursor/cursor',
+        value: cursor,
+      }]);
+      expect((service as any).cursorRefs.get('@city').modifiedString).toEqual('m2');
+      expect((service as any).store.account.notificationCursors.get('@city')).toEqual(cursor);
+
+      const later = readDate.plus({ day: 1 });
+      await service.clearNotifications(later, ['@city']);
+      expect(patch).toHaveBeenLastCalledWith(cityUrl, '', 'm2', expect.anything());
+      expect((service as any).cursorRefs.get('@city').modifiedString).toEqual('m3');
+    });
+
+    it('adds the cursor plugin to an existing settings Ref', async () => {
+      (service as any).cursorRefs.set('@city', { url: cityUrl, origin: '', modifiedString: 'm1' });
+      const patchResponse = vi.spyOn((service as any).tags, 'patchResponse').mockReturnValue(of(undefined));
+
+      await service.clearNotifications(readDate, ['@city']);
+
+      expect(patch).not.toHaveBeenCalled();
+      expect(patchResponse).toHaveBeenCalledWith(['plugin/user/cursor'], 'tag:/plugin/outbox/city', [{
+        op: 'add',
+        path: '/plugins/plugin~1user~1cursor',
+        value: { cursor },
+      }]);
+      expect((service as any).store.account.notificationCursors.get('@city')).toEqual(cursor);
+    });
+
+    it('refetches the cursor Ref and retries once on a write conflict', async () => {
+      patch
+        .mockReturnValueOnce(throwError(() => ({ status: 409 })))
+        .mockReturnValueOnce(of('m3'));
+      const get = vi.spyOn((service as any).tags, 'getResponse').mockReturnValue(of(cursorRef(oldCursor, 'm2')));
+
+      await service.clearNotifications(readDate, ['@city']);
+
+      expect(get).toHaveBeenCalledWith('tag:/plugin/outbox/city');
+      expect(patch).toHaveBeenCalledTimes(2);
+      expect(patch).toHaveBeenLastCalledWith(cityUrl, '', 'm2', expect.anything());
+      expect((service as any).cursorRefs.get('@city').modifiedString).toEqual('m3');
+      expect((service as any).store.account.notificationCursors.get('@city')).toEqual(cursor);
+    });
+
+    it('keeps a newer cursor written elsewhere after a write conflict', async () => {
+      const newer = '2026-03-01T00:00:00.000Z';
+      patch.mockReturnValueOnce(throwError(() => ({ status: 409 })));
+      vi.spyOn((service as any).tags, 'getResponse').mockReturnValue(of(cursorRef(newer, 'm2')));
+
+      await service.clearNotifications(readDate, ['@city']);
+
+      expect(patch).toHaveBeenCalledOnce();
+      expect((service as any).cursorRefs.get('@city').modifiedString).toEqual('m2');
+      expect((service as any).store.account.notificationCursors.get('@city')).toEqual(newer);
+    });
+
+    it('rejects and keeps the old cursor when the retry also conflicts', async () => {
+      patch.mockReturnValue(throwError(() => ({ status: 409 })));
+      vi.spyOn((service as any).tags, 'getResponse').mockReturnValue(of(cursorRef(oldCursor, 'm2')));
+
+      await expect(service.clearNotifications(readDate, ['@city'])).rejects.toEqual({ status: 409 });
+
+      expect(patch).toHaveBeenCalledTimes(2);
+      expect((service as any).store.account.notificationCursors.get('@city')).toEqual(oldCursor);
+    });
+
+    it('never moves a cursor backwards', async () => {
+      const newer = '2026-03-01T00:00:00.000Z';
+      (service as any).store.account.notificationCursors.set('@city', newer);
+
+      await service.clearNotifications(readDate, ['@city']);
+
+      expect(patch).not.toHaveBeenCalled();
+      http.expectNone(req => req.method === 'PATCH');
+      expect((service as any).store.account.notificationCursors.get('@city')).toEqual(newer);
+    });
+  });
+
+  it('ignores the read date when notifications remain', () => {
+    setAccount();
+    vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({});
+    vi.spyOn(service, 'loadNotificationCursors$').mockReturnValue(of([
+      { origin: '@city', query: '@city:inbox', settingsUrl: 'tag:/plugin/outbox/city' },
+    ]));
+    vi.spyOn((service as any).refs, 'count').mockReturnValue(of(3));
+    const clear = vi.spyOn(service, 'clearNotifications').mockImplementation(() => Promise.resolve());
+    const readDate = DateTime.fromISO('2026-04-01T00:00:00.000Z');
+
+    service.clearNotificationsIfNone(readDate, '@city');
+
+    expect(clear).not.toHaveBeenCalled();
+    expect((service as any).store.account.ignoreNotifications).toContain(readDate.valueOf());
+  });
+
+  describe('loading cursors', () => {
+    const inboxGet = () => http.expectOne(req =>
+      req.method === 'GET' &&
+      req.url.endsWith('/api/v1/tags/response') &&
+      req.params.get('url') === 'tag:/plugin/inbox');
+    const inboxRef = (cursor: string) => ({
+      url: 'tag:/+user/dad?url=tag:/plugin/inbox',
+      origin: '',
+      plugins: { 'plugin/user/cursor': { cursor } },
+      modified: cursor,
+    });
+
+    it('resets cursor state when switching accounts', () => {
+      setAccount();
+      const store = (service as any).store;
+      service.loadNotificationCursors$().subscribe();
+      inboxGet().flush(inboxRef('2026-01-01T00:00:00.000Z'));
+      (service as any).alarmOrigins.set('@city', '2026-01-01T00:00:00.000Z');
+      expect(store.account.notificationCursors.get('')).toEqual('2026-01-01T00:00:00.000Z');
+      expect((service as any).cursorRefs.size).toBe(1);
+
+      store.account.tag = '+user/mom';
+      service.loadNotificationCursors$().subscribe();
+
+      expect(store.account.notificationCursors.size).toBe(0);
+      expect((service as any).cursorRefs.size).toBe(0);
+      expect((service as any).alarmOrigins.size).toBe(0);
+      inboxGet().flush(inboxRef('2026-02-01T00:00:00.000Z'));
+      expect(store.account.notificationCursors.get('')).toEqual('2026-02-01T00:00:00.000Z');
+    });
+
+    it('shares one request between concurrent loads', () => {
+      setAccount();
+      const results: any[] = [];
+      service.loadNotificationCursors$().subscribe(streams => results.push(streams));
+      service.loadNotificationCursors$().subscribe(streams => results.push(streams));
+      inboxGet().flush(inboxRef('2026-01-01T00:00:00.000Z'));
+
+      expect(results).toHaveLength(2);
+      expect((service as any).cursorLoads.size).toBe(0);
+    });
+
+    it('passes on errors other than 404 and retries later', () => {
+      setAccount();
+      const error = vi.fn();
+      service.loadNotificationCursors$().pipe(catchError(err => {
+        error(err);
+        return EMPTY;
+      })).subscribe();
+      inboxGet().flush({}, { status: 500, statusText: 'Server Error' });
+
+      expect(error).toHaveBeenCalledWith(expect.objectContaining({ status: 500 }));
+      expect((service as any).cursorLoads.size).toBe(0);
+      expect((service as any).store.account.notificationCursors.has('')).toBe(false);
+
+      service.loadNotificationCursors$().subscribe();
+      inboxGet().flush(inboxRef('2026-01-01T00:00:00.000Z'));
+      expect((service as any).store.account.notificationCursors.get('')).toEqual('2026-01-01T00:00:00.000Z');
     });
   });
 });
