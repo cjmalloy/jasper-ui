@@ -498,7 +498,7 @@ export class AccountService {
     return `!plugin/delete:(${alarms})${exclude}`;
   }
 
-  private writeNotificationCursor$(stream: NotificationStream, cursor: string): Observable<unknown> {
+  private writeNotificationCursor$(stream: NotificationStream, cursor: string, retry = true): Observable<unknown> {
     const ref = this.cursorRefs.get(stream.origin);
     let write$: Observable<unknown>;
     if (!ref) {
@@ -528,8 +528,23 @@ export class AccountService {
         write$ = this.tags.patchResponse(['plugin/user/cursor'], stream.settingsUrl, [...patch]);
       }
     }
-    return write$.pipe(tap(() => runInAction(() =>
-      this.store.account.notificationCursors.set(stream.origin, cursor))));
+    return write$.pipe(
+      tap(() => runInAction(() => this.store.account.notificationCursors.set(stream.origin, cursor))),
+      catchError(err => {
+        if (!retry || err?.status !== 409) return throwError(() => err);
+        return this.tags.getResponse(stream.settingsUrl).pipe(
+          switchMap(ref => {
+            this.cursorRefs.set(stream.origin, ref);
+            const existing = ref?.plugins?.['plugin/user/cursor']?.cursor;
+            if (existing && DateTime.fromISO(existing) >= DateTime.fromISO(cursor)) {
+              runInAction(() => this.store.account.notificationCursors.set(stream.origin, existing));
+              return of(undefined);
+            }
+            return this.writeNotificationCursor$(stream, cursor, false);
+          }),
+        );
+      }),
+    );
   }
 
   checkConsent(consent?: [string, string][]) {
