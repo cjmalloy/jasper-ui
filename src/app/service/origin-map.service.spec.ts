@@ -138,14 +138,82 @@ describe('OriginMapService', () => {
       ]);
     });
 
-    it('interprets a replicated relationship from the opposite side', () => {
+    it('rejects a one-sided alias claim from a replicating remote', () => {
       setOrigins([
         aliasRef('@home', '@city', '+user/dad', ['+user/chris'], 'spec:test'),
       ]);
       setApi('spec:test');
       setLocal('');
 
-      expect(service.aliasesFor('+user/chris')).toEqual(['+user/dad@home']);
+      expect(service.aliasesFor('+user/chris')).toEqual([]);
+      expect(service.isCurrentAccountRef({
+        url: 'spec:post',
+        origin: '@home',
+        tags: ['+user/dad'],
+      }, '+user/chris')).toBeFalsy();
+    });
+
+    it('accepts links between remotes declared on both sides', () => {
+      setOrigins([
+        aliasRef('', '@b', '+user/me', [], 'spec:b'),
+        aliasRef('', '@c', '+user/me', [], 'spec:c'),
+        aliasRef('@b', '@c', '+user/yukie', ['+user/yukie'], 'spec:c'),
+        aliasRef('@c', '@b', '+user/yukie', ['+user/yukie'], 'spec:b'),
+      ]);
+      setApi('spec:test');
+      setLocal('');
+
+      expect(service.aliasesFor('+user/yukie@b')).toEqual(['+user/yukie@c']);
+      expect(service.aliasesFor('+user/yukie/phone@c')).toEqual(['+user/yukie/phone@b']);
+      expect(service.aliasesFor('+user/yukie')).toEqual([]);
+    });
+
+    it('accepts links with a nested sub-origin declared on both sides', () => {
+      setOrigins([
+        aliasRef('', '@b', '+user/me', [], 'spec:b'),
+        aliasRef('@b', '@c', '+user/yukie', ['+user/yukie'], 'spec:c'),
+        aliasRef('@b.c', '@b', '+user/yukie', ['+user/yukie'], 'spec:b'),
+      ]);
+      setApi('spec:test');
+      setLocal('');
+
+      expect(service.aliasesFor('+user/yukie@b')).toEqual(['+user/yukie@b.c']);
+      expect(service.aliasesFor('+user/yukie@b.c')).toEqual(['+user/yukie@b']);
+    });
+
+    it('rejects links between remotes declared on only one side', () => {
+      setOrigins([
+        aliasRef('', '@b', '+user/me', [], 'spec:b'),
+        aliasRef('', '@c', '+user/me', [], 'spec:c'),
+        aliasRef('@b', '@c', '+user/yukie', ['+user/yukie'], 'spec:c'),
+        aliasRef('@c', '@b', '+user/yukie', ['+user/other'], 'spec:b'),
+      ]);
+      setApi('spec:test');
+      setLocal('');
+
+      expect(service.aliasesFor('+user/yukie@b')).toEqual([]);
+      expect(service.aliasesFor('+user/yukie@c')).toEqual([]);
+    });
+
+    it('ignores remote claims on local accounts that conflict with local declarations', () => {
+      setOrigins([
+        aliasRef('', '@home', '+user/chris', ['+user/bob'], 'spec:home'),
+        aliasRef('@home', '@city', '+user/dad', ['+user/chris'], 'spec:test'),
+      ]);
+      setApi('spec:test');
+      setLocal('');
+
+      expect(service.aliasesFor('+user/chris')).toEqual(['+user/bob@home']);
+      expect(service.isCurrentAccountRef({
+        url: 'spec:post',
+        origin: '@home',
+        tags: ['+user/dad'],
+      }, '+user/chris')).toBeFalsy();
+      expect(service.isCurrentAccountRef({
+        url: 'spec:post',
+        origin: '@home',
+        tags: ['+user/bob'],
+      }, '+user/chris')).toBeTruthy();
     });
 
     it('checks authors using hierarchical aliases', () => {

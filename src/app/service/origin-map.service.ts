@@ -8,7 +8,7 @@ import { isPushing, isReplicating } from '../mods/sync/origin';
 import { AccountAlias } from '../store/origin';
 import { Store } from '../store/store';
 import { userAuthors } from '../util/format';
-import { defaultOrigin, localTag, subOrigin } from '../util/tag';
+import { defaultOrigin, localTag, subOrigin, tagOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
@@ -164,34 +164,51 @@ export class OriginMapService {
 
   /**
    * Account selector relationships normalized from this origin's perspective.
+   * Aliases declared on local origin Refs are trusted. Aliases between remotes
+   * are only accepted when both remotes declare the same link.
    */
   private get accountAliases(): AccountAlias[] {
     const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
-    const result: AccountAlias[] = [];
-    const add = (origin: string, local: string, remote: string) => {
-      if (!local || !remote) return;
-      result.push({ origin, local: localTag(local), remote: localTag(remote) });
+    const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+    const me = this.store.account.origin || '';
+    const selfApis = this.selfApis;
+    const localRemotes = this.origins.filter(remote => (remote.origin || '') === me);
+    const target = (ref: Ref): string => {
+      const from = ref.origin || '';
+      if (from === me) return subOrigin(from, config(ref)?.local);
+      if (isReplicating(me, ref, selfApis)) return me;
+      const url = trimUrl(ref.url);
+      const known = localRemotes.find(remote => trimUrl(remote.url) === url);
+      if (known) return subOrigin(me, config(known)?.local);
+      return subOrigin(from, config(ref)?.local);
     };
+    const claims: Required<AccountAlias>[] = [];
     for (const ref of this.origins) {
+      const from = ref.origin || '';
+      const origin = target(ref);
       const aliases: string[] = uniq(config(ref)?.aliases || []);
-      const authors = userAuthors(ref);
-      if (ref.origin === this.store.account.origin) {
-        const origin = subOrigin(ref.origin, config(ref)?.local);
-        for (const author of authors) {
-          for (const alias of aliases) add(origin, author, alias);
-        }
-      } else if (isReplicating(this.store.account.origin || '', ref, this.selfApis)) {
+      for (const author of userAuthors(ref)) {
         for (const alias of aliases) {
-          for (const author of authors) add(ref.origin || '', alias, author);
+          if (!author || !alias) continue;
+          claims.push({ from, origin, local: localTag(author), remote: localTag(alias) });
         }
       }
     }
+    const result = claims.filter(c => {
+      if (c.from === me) return true;
+      if (c.origin === me) return false;
+      return claims.some(o =>
+        o.from === c.origin && o.origin === c.from &&
+        o.local === c.remote && o.remote === c.local);
+    });
     return uniq(result.map(alias => JSON.stringify(alias))).map(alias => JSON.parse(alias));
   }
 
   aliasesFor(selector: string, origin?: string): string[] {
     const local = localTag(selector);
+    const from = selector.includes('@') ? tagOrigin(selector) : this.store.account.origin || '';
     return uniq(this.store.origins.accountAliases
+      .filter(alias => (alias.from || '') === from)
       .filter(alias => origin === undefined || alias.origin === origin)
       .filter(alias => selectorMatches(alias.local, local))
       .map(alias => alias.remote + local.substring(alias.local.length) + alias.origin));

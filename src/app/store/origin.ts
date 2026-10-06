@@ -2,6 +2,7 @@ import { makeAutoObservable, observableRef, observableShallow } from 'mobx';
 import { Ref } from '../model/ref';
 
 export interface AccountAlias {
+  from?: string;
   origin: string;
   local: string;
   remote: string;
