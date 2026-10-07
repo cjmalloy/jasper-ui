@@ -104,6 +104,7 @@ export class NavComponent implements OnInit {
     if (this.url.startsWith('/tag/') || this.url.toLowerCase().startsWith('tag:/')) {
       if (this.text === '#' + this.url.substring(5)) return false;
     }
+    if (this.nav?.[0] === '/tag' && this.text === '#' + this.nav[1]) return false;
     return this.text != this.url;
   }
 
