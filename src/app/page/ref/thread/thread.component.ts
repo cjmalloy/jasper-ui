@@ -6,7 +6,7 @@ import {
   effect,
   inject,
   Injector,
-  signal,
+  linkedSignal,
   untracked,
   viewChild
 } from '@angular/core';
@@ -18,6 +18,7 @@ import { CommentReplyComponent } from '../../../component/comment/comment-reply/
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
+import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
@@ -50,7 +51,13 @@ export class RefThreadComponent implements HasChanges {
 
   private readonly injector = inject(Injector);
 
-  private readonly lastRef = signal<Ref | undefined>(this.store.view.ref());
+  private readonly lastRef = linkedSignal<Page<Ref> | undefined, Ref | undefined>({
+    source: () => this.query.page(),
+    computation: (page, previous) => {
+      if (!page) return previous ? previous.value : this.store.view.ref();
+      return page.content?.filter(ref => !hasTag('+plugin/placeholder', ref))?.[(page.content?.length || 0) - 1] || this.store.view.ref();
+    },
+  });
   readonly to = computed<Ref>(() => this.lastRef() || this.store.view.ref()!);
   private destroyRef = inject(DestroyRef);
 
@@ -117,11 +124,6 @@ export class RefThreadComponent implements HasChanges {
           }
         }
       });
-    }, { injector: this.injector });
-    effect(() => {
-      if (this.query.page()) {
-        this.lastRef.set(this.query.page()?.content?.filter(ref => !hasTag('+plugin/placeholder', ref))?.[(this.query.page()?.content?.length || 0) - 1] || this.store.view.ref());
-      }
     }, { injector: this.injector });
     this.newRefs$.subscribe(c => {
       if (c && this.store.view.ref()) {

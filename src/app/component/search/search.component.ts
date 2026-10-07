@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal, untracked } from '@angular/core';
+import { Component, inject, linkedSignal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
@@ -19,7 +19,7 @@ export class SearchComponent {
   store = inject(Store);
   admin = inject(AdminService);
 
-  readonly searchValue = signal('');
+  readonly searchValue = linkedSignal(() => this.store.view.search() || '');
 
   replace = false;
 
@@ -28,10 +28,6 @@ export class SearchComponent {
   constructor() {
     const router = this.router;
 
-    effect(() => {
-      const search = this.store.view.search();
-      untracked(() => this.searchValue.set(search || ''));
-    });
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);

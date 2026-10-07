@@ -155,10 +155,6 @@ export class SidebarComponent {
       }
     });
     effect(() => {
-      const value = this.ext();
-      this.store.view.floatingSidebar.set(!value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined);
-    });
-    effect(() => {
       const value = this.expanded();
       localStorage.setItem('sidebar-expanded', ''+value);
       this.store.view.sidebarExpanded.set(value);

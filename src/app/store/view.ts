@@ -39,7 +39,14 @@ export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
 export class ViewStore {
 
   readonly back = signal(false);
-  readonly floatingSidebar = signal(true);
+  /**
+   * Whether the sidebar floats over the content. Defaults from the Ext shown in
+   * the sidebar, and is overridden by the Kanban when it needs the space.
+   */
+  readonly floatingSidebar = linkedSignal(() => {
+    const ext = this.current() === 'home' ? this.homeExt() : this.viewExt();
+    return !ext?.config?.noFloatingSidebar && ext?.config?.defaultCols === undefined;
+  });
   readonly sidebarExpanded = signal(true);
   readonly defaultSort = signal<RefSort[] | TagSort[]>(['published']);
   readonly defaultSearchSort = signal<RefSort[] | TagSort[]>(['rank']);

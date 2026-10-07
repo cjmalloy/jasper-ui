@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -9,7 +10,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
-import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
 import { SettingsComponent } from '../../component/settings/settings.component';
@@ -80,22 +81,20 @@ export class ExtPage implements HasChanges {
     this.extForm = fb.group({
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],
     });
-    effect(() => {
-      this.store.view.tag();
-      this.store.view.localTag();
-      this.store.account.origin();
-      untracked(() => {
-        if (!this.store.view.tag()) {
-          this.template.set('');
-          this.tag.setValue('');
-          this.store.view.exts.set([]);
-        } else {
-          const tag = this.store.view.localTag() + this.store.account.origin();
-          this.exts.get(tag).pipe(
-            catchError(() => of(undefined)),
-          ).subscribe(ext => this.setExt(tag, ext));
-        }
-      });
+    toObservable(computed(() => this.store.view.tag() ? this.store.view.localTag() + this.store.account.origin() : undefined)).pipe(
+      switchMap(tag => tag === undefined ? of(undefined) : this.exts.get(tag).pipe(
+        catchError(() => of(undefined)),
+        map(ext => ({ tag, ext })),
+      )),
+      takeUntilDestroyed(),
+    ).subscribe(x => {
+      if (!x) {
+        this.template.set('');
+        this.tag.setValue('');
+        this.store.view.exts.set([]);
+      } else {
+        this.setExt(x.tag, x.ext);
+      }
     });
   }
 

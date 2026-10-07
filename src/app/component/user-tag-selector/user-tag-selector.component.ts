@@ -35,6 +35,7 @@ export class UserTagSelectorComponent {
   }
 
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
+    this.search.cancel();
     this.previewing?.unsubscribe();
     this.searching?.unsubscribe();
   });

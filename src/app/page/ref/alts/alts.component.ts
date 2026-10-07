@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, viewChild } from '@angular/core';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -25,14 +25,24 @@ export class RefAltsComponent implements HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
-  readonly page = signal<Page<Ref>>(Page.of([]));
+  readonly page = computed((): Page<Ref> => {
+    const alts = this.store.view.ref()?.alternateUrls || [];
+    const page = this.query.page();
+    if (!page) return Page.of(alts.map(url => ({ url })));
+    const refs = [...page.content];
+    for (const url of alts) {
+      if (refs.find(r => r.url === url)) continue;
+      refs.push({ url });
+    }
+    return {
+      ...page,
+      content: refs,
+    };
+  });
 
   constructor() {
     const store = this.store;
     store.view.defaultSort.set(['modified']);
-    effect(() => {
-      this.page.set(Page.of(this.store.view.ref()?.alternateUrls?.map(url => ({ url })) || []));
-    });
     this.query.watch(() => ({
       ...getArgs(
         '',
@@ -44,20 +54,6 @@ export class RefAltsComponent implements HasChanges {
       ),
       url: this.store.view.url(),
     }));
-    effect(() => {
-      const page = this.query.page();
-      if (!page) return;
-      const refs = [...page.content];
-      for (let i = 0; i < (this.store.view.ref()?.alternateUrls?.length || 0); i ++) {
-        const url = this.store.view.ref()!.alternateUrls![i];
-        if (refs.find(r => r.url === url)) continue;
-        refs.push({ url });
-      }
-      this.page.set({
-        ...page,
-        content: refs,
-      });
-    });
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Alternate URLs: ` + getTitle(this.store.view.ref())));
   }

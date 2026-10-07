@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, viewChild } from '@angular/core';
 import { uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -28,14 +28,19 @@ export class RefSourcesComponent implements HasChanges {
 
   readonly list = viewChild<RefListComponent>('list');
 
-  readonly page = signal<Page<Ref>>(Page.of([]));
+  readonly page = computed((): Page<Ref> => {
+    const page = Page.of<Ref>(this.sources().map(url => ({ url })));
+    const results = this.query.page();
+    if (!results) return page;
+    return {
+      ...page,
+      content: page.content.map(ref => results.content.find(r => r.url === ref.url) || ref),
+    };
+  });
 
   constructor() {
     const store = this.store;
     store.view.defaultSort.set(['published']);
-    effect(() => {
-      this.page.set(Page.of(this.sources().map(url => ({ url })) || []));
-    });
     this.query.watch(() => ({
       ...getArgs(
         '',
@@ -47,17 +52,6 @@ export class RefSourcesComponent implements HasChanges {
       ),
       sources: this.store.view.url(),
     }));
-    effect(() => {
-      if (!this.query.page()) return;
-      this.page.update(page => ({
-        ...page,
-        content: page.content.map((ref, i) => {
-          if (ref.created) return ref;
-          const url = this.sources()[i];
-          return this.query.page()!.content.find(r => r.url === url) || ref;
-        }),
-      }));
-    });
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Sources: ` + getTitle(this.store.view.ref())));
   }

@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, signal, viewChildren } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -28,16 +28,14 @@ export class UserListComponent implements HasChanges {
   readonly list = viewChildren(UserComponent);
 
   readonly page = input<Page<User> | undefined>(undefined);
-  private readonly fetched = signal<Record<string, Profile | undefined>>({});
-  private requested = new Set<string>();
-
-  constructor() {
-    effect(() => {
-      this.page();
-      this.requested.clear();
-      this.fetched.set({});
-    });
-  }
+  private readonly fetched = linkedSignal<Page<User> | undefined, Record<string, Profile | undefined>>({
+    source: this.page,
+    computation: () => ({}),
+  });
+  private readonly requested = computed(() => {
+    this.page();
+    return new Set<string>();
+  });
 
   saveChanges() {
     return !this.list()?.find(u => !u.saveChanges());
@@ -51,11 +49,15 @@ export class UserListComponent implements HasChanges {
     const tag = user.tag + user.origin;
     const profile = find(this.scim()?.content, p => p.tag === tag);
     if (profile) return profile;
-    if (!this.requested.has(tag)) {
-      this.requested.add(tag);
+    const requested = this.requested();
+    if (!requested.has(tag)) {
+      requested.add(tag);
       this.profiles.getProfile(tag).pipe(
         catchError(e => of(undefined))
-      ).subscribe(p => this.fetched.update(fetched => ({ ...fetched, [tag]: p as Profile })));
+      ).subscribe(p => {
+        if (requested !== this.requested()) return;
+        this.fetched.update(fetched => ({ ...fetched, [tag]: p as Profile }));
+      });
     }
     return this.fetched()[tag] || undefined;
   }
