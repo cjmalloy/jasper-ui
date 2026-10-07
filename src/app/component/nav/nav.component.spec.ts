@@ -34,4 +34,26 @@ describe('NavComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should not treat plain hashtag as custom text', () => {
+    component.url = '/tag/notes';
+    component.text = '#notes';
+    component.nav = component.getNav();
+    expect(component.hasText).toBe(false);
+  });
+
+  it('should not treat hashtag with bookmark params as custom text', () => {
+    component.url = '/tag/notes?filter=query/+user/chris&sort=created';
+    component.text = '#notes';
+    component.nav = component.getNav();
+    expect(component.nav).toEqual(['/tag', 'notes']);
+    expect(component.hasText).toBe(false);
+  });
+
+  it('should keep custom link text for tag urls with bookmark params', () => {
+    component.url = '/tag/notes?filter=query/+user/chris';
+    component.text = 'My Notes';
+    component.nav = component.getNav();
+    expect(component.hasText).toBe(true);
+  });
 });
