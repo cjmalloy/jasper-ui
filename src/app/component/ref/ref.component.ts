@@ -84,8 +84,11 @@ import {
   hasTag,
   hasUserUrlResponse,
   isAuthorTag,
+  localPluginResponses,
   localTag,
   pickPlugins,
+  pluginResponses,
+  remotePlugins,
   removeTag,
   repost,
   subOrigin,
@@ -406,7 +409,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       : this.ref.tags;
     return this.css + ' ' + [
       ...templates(tags, 'plugin'),
-      ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p),
+      ...Object.keys(remotePlugins(this.ref)).map(p => 'response-' + p),
       ...(this.ref.metadata?.userUrls || []).map(p => 'user-response-' + p)
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
   }
@@ -1040,7 +1043,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.ref, 'plugin/comment');
   }
 
   @memo
@@ -1053,13 +1056,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get errors() {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
-    return this.ref.metadata?.plugins?.['+plugin/log'] || 0;
+    return localPluginResponses(this.ref, '+plugin/log');
   }
 
   @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
+    return pluginResponses(this.ref, 'plugin/thread');
   }
 
   @memo

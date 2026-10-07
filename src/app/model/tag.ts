@@ -7,7 +7,7 @@ import { DateTime, Duration, DurationObjectUnits } from 'luxon';
 import { toJS } from 'mobx';
 import { v4 as uuid } from 'uuid';
 import { interestingTags } from '../util/format';
-import { hasAnyResponse, hasQuery, hasResponse, hasTag, hasPrefix, prefix, subOrigin } from '../util/tag';
+import { hasAnyResponse, hasQuery, hasResponse, hasTag, hasPrefix, prefix, remotePlugins, subOrigin } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Ext, extSchema } from './ext';
 import { Plugin, pluginSchema } from './plugin';
@@ -583,7 +583,7 @@ Handlebars.registerHelper('number', (value: any) => {
   const num = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(num) ? num.toLocaleString() : '';
 });
-Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => ref.metadata?.plugins?.[plugin]);
+Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => remotePlugins(ref)[plugin]);
 Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
 Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
 Handlebars.registerHelper('interestingTags', (tags: string[]) => interestingTags(tags));

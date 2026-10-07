@@ -52,7 +52,7 @@ import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin } from '../../util/tag';
+import { addPluginResponse, hasTag, hasUserUrlResponse, localTag, pluginResponses, removeTag, tagOrigin } from '../../util/tag';
 import { ActionListComponent } from '../action/action-list/action-list.component';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
@@ -153,10 +153,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
       this.replying = false;
       if (ref) {
         this.newComments++;
-        this.ref.metadata ||= {};
-        this.ref.metadata.plugins ||= {};
-        this.ref.metadata.plugins['plugin/comment'] ||= 0;
-        this.ref.metadata.plugins['plugin/comment']++;
+        addPluginResponse(this.ref, 'plugin/comment', (ref.origin || '') === (this.ref.origin || ''));
         if (this.depth === 0) this.depth = 1;
       }
     });
@@ -284,7 +281,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
 
   @memo
   get comments() {
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.ref, 'plugin/comment');
   }
 
   @memo

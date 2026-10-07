@@ -21,7 +21,7 @@ import { Store } from '../../../store/store';
 import { getTitle } from '../../../util/format';
 import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
-import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
+import { hasTag, pluginResponses, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-thread',
@@ -69,7 +69,7 @@ export class RefThreadComponent implements HasChanges {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       if (this.store.view.pageSize) {
-        runInAction(() => this.store.view.defaultPageNumber = Math.floor(((this.to.metadata?.plugins?.['plugin/thread'] || 1) - 1) / this.store.view.pageSize));
+        runInAction(() => this.store.view.defaultPageNumber = Math.floor(((pluginResponses(this.to, 'plugin/thread') || 1) - 1) / this.store.view.pageSize));
       }
     }));
     this.disposers.push(autorun(() => {
@@ -101,7 +101,7 @@ export class RefThreadComponent implements HasChanges {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       if (this.store.view.ref) {
-        const threadCount = this.store.view.ref.metadata?.plugins?.['plugin/thread'] || 0;
+        const threadCount = pluginResponses(this.store.view.ref, 'plugin/thread');
         this.store.local.setLastSeenCount(this.store.view.url, 'threads', threadCount);
       }
       if (this.store.view.ref && this.config.websockets) {
