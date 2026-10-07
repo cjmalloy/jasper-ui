@@ -107,8 +107,9 @@ export class ThreadStore {
   }
 
   loadAdHoc(source?: string) {
+    const current = this.args();
     const args: RefPageArgs = {
-      ...this.args(),
+      ...current,
       responses: source,
     };
     const existing = this.cache().get(source)?.length;
@@ -118,10 +119,11 @@ export class ThreadStore {
     }
     this.loading = this.refs.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
-        this.error.set(err);
+        if (this.args() === current) this.error.set(err);
         return EMPTY;
       }),
     ).subscribe(page => {
+      if (this.args() !== current) return;
       if (source) {
         this.add(...page.content);
         this.latest.set([...page.content]);
