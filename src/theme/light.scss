@@ -47,9 +47,7 @@ body.light-theme {
   }
 
   .parent-link {
-    &, &:link, &:visited {
-      color: var(--info);
-    }
+      color: var(--info) !important;
   }
 
   a:active {
