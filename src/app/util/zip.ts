@@ -73,10 +73,17 @@ export function isModelsJson(text?: string) {
   try {
     const json = JSON.parse(text);
     const models = isArray(json) ? json : [json];
-    return !!models.length && models.every(m => !!m && typeof m === 'object' && !isArray(m));
+    return !!models.length && models.every(isModel);
   } catch {
     return false;
   }
+}
+
+function isModel(m: any) {
+  if (!m || typeof m !== 'object' || isArray(m)) return false;
+  if ('tag' in m) return typeof m.tag === 'string';
+  if (m.url) return typeof m.url === 'string';
+  return typeof m.comment === 'string' && !!m.comment.trim();
 }
 
 export function parseModels(file: File): Promise<FilteredModels> {

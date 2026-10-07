@@ -46,4 +46,17 @@ describe('isModelsJson', () => {
     expect(isModelsJson('[]')).toBe(false);
     expect(isModelsJson('[{"url":"https://example.com"}, 1]')).toBe(false);
   });
+
+  it('accepts a ref comment without a URL', () => {
+    expect(isModelsJson('{"comment":"Uploaded comment"}')).toBe(true);
+  });
+
+  it('rejects objects without a ref or ext identity', () => {
+    expect(isModelsJson('{}')).toBe(false);
+    expect(isModelsJson('{"settings":true}')).toBe(false);
+    expect(isModelsJson('{"comment":""}')).toBe(false);
+    expect(isModelsJson('{"url":123}')).toBe(false);
+    expect(isModelsJson('{"tag":true}')).toBe(false);
+    expect(isModelsJson('[{"url":"https://example.com"},{}]')).toBe(false);
+  });
 });
