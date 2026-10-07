@@ -1194,6 +1194,22 @@ Please Reload.</source>
         <source>🧵️ new response</source>
         <target>🧵️ 新しいレスポンス</target>
       </trans-unit>
+      <trans-unit id="222383995525529492" datatype="html">
+        <source>Date of new reaction</source>
+        <target>新しいリアクションの日付</target>
+      </trans-unit>
+      <trans-unit id="3526392212941308686" datatype="html">
+        <source>😃️ new reaction</source>
+        <target>😃️ 新しいリアクション</target>
+      </trans-unit>
+      <trans-unit id="6317872943258377560" datatype="html">
+        <source>🗃️ metadata</source>
+        <target>🗃️ メタデータ</target>
+      </trans-unit>
+      <trans-unit id="9170356745028793454" datatype="html">
+        <source>Date metadata modified</source>
+        <target>メタデータの更新日</target>
+      </trans-unit>
       <trans-unit id="713523746868927245" datatype="html">
         <source>Date of new response</source>
         <target>新しいレスポンスの日付</target>
