@@ -79,6 +79,7 @@ import {
   hasUserUrlResponse,
   isAuthorTag,
   localTag,
+  pickPlugins,
   removeTag,
   subOrigin,
   tagOrigin,
@@ -1342,7 +1343,7 @@ export class RefComponent implements HasChanges {
           origin: this.store.account.origin(),
           tags: restored.tags?.filter(t => this.auth.canAddTag(t)),
         };
-        ref.plugins = pick(ref.plugins, ref.tags || []);
+        ref.plugins = pickPlugins(ref.plugins, ref.tags);
         return this.store.eventBus.runAndReload$(
           (this.store.submit.overwrite() || ref.url !== original.url
             ? this.refs.update(ref)

@@ -651,11 +651,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">79</context>
+          <context context-type="linenumber">80</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">216</context>
+          <context context-type="linenumber">217</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
@@ -2933,7 +2933,7 @@ Please Reload.</source>
         <source>Submit a Ref here</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/map/map.component.ts</context>
-          <context context-type="linenumber">220</context>
+          <context context-type="linenumber">221</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4217733100334209102" datatype="html">
@@ -3642,7 +3642,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">73</context>
+          <context context-type="linenumber">74</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6878271350668507024" datatype="html">
@@ -3664,7 +3664,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">210</context>
+          <context context-type="linenumber">211</context>
         </context-group>
       </trans-unit>
       <trans-unit id="935187492052582731" datatype="html">
@@ -4236,7 +4236,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">25</context>
+          <context context-type="linenumber">26</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5225143640003736241" datatype="html">
@@ -6307,7 +6307,7 @@ Private tags start with an underscore.
         <source>Move the location here</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location-map.component.ts</context>
-          <context context-type="linenumber">312</context>
+          <context context-type="linenumber">326</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5174359152122758396" datatype="html">
@@ -6922,19 +6922,23 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">14</context>
+          <context context-type="linenumber">15</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">65</context>
+          <context context-type="linenumber">66</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">204</context>
+          <context context-type="linenumber">205</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">273</context>
+          <context context-type="linenumber">274</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
+          <context context-type="linenumber">322</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
@@ -7205,6 +7209,10 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
           <context context-type="linenumber">404</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
+          <context context-type="linenumber">356</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
@@ -9597,7 +9605,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">97</context>
+          <context context-type="linenumber">98</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5824326675596379904" datatype="html">
@@ -13101,11 +13109,11 @@ F: Fullscreen toggle
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">15</context>
+          <context context-type="linenumber">16</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">24</context>
+          <context context-type="linenumber">25</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8138852734905091912" datatype="html">
@@ -13508,11 +13516,11 @@ F: Fullscreen toggle
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">74</context>
+          <context context-type="linenumber">75</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">211</context>
+          <context context-type="linenumber">212</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5828436403273669453" datatype="html">
@@ -13523,7 +13531,7 @@ F: Fullscreen toggle
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">74</context>
+          <context context-type="linenumber">75</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8782170079086386342" datatype="html">
@@ -13548,11 +13556,11 @@ F: Fullscreen toggle
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">78</context>
+          <context context-type="linenumber">79</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">215</context>
+          <context context-type="linenumber">216</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6578734339769388749" datatype="html">
@@ -13563,11 +13571,11 @@ F: Fullscreen toggle
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">78</context>
+          <context context-type="linenumber">79</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">215</context>
+          <context context-type="linenumber">216</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4015528600159019355" datatype="html">
@@ -13585,7 +13593,7 @@ F: Fullscreen toggle
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">82</context>
+          <context context-type="linenumber">83</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6274865016430943886" datatype="html">
@@ -13603,7 +13611,7 @@ F: Fullscreen toggle
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">82</context>
+          <context context-type="linenumber">83</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4232936038136526970" datatype="html">
@@ -13824,40 +13832,44 @@ F: Fullscreen toggle
         <source>🏛️ Remote Origin</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">9</context>
+          <context context-type="linenumber">10</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8451668304606853391" datatype="html">
         <source>🏛️ Origin</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">11</context>
+          <context context-type="linenumber">12</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">62</context>
+          <context context-type="linenumber">63</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">201</context>
+          <context context-type="linenumber">202</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">270</context>
+          <context context-type="linenumber">271</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
+          <context context-type="linenumber">319</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9014385209648521066" datatype="html">
         <source>origin</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">16</context>
+          <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3159974011053765910" datatype="html">
         <source>🏛️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">17</context>
+          <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1532069187580072934" datatype="html">
@@ -13868,53 +13880,53 @@ F: Fullscreen toggle
      You may configure if metadata is generated or plugins are validated. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">18,22</context>
+          <context context-type="linenumber">19,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7016533713297705274" datatype="html">
         <source>Local:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">31</context>
+          <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4191530985145872781" datatype="html">
         <source>Remote:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">37</context>
+          <context context-type="linenumber">38</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1049679342537490377" datatype="html">
         <source>Proxy:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">44</context>
+          <context context-type="linenumber">45</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">110</context>
+          <context context-type="linenumber">111</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8653636097053882325" datatype="html">
         <source>Fetch all resources directly from the origin, not the internet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">45</context>
+          <context context-type="linenumber">46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6187242013181542873" datatype="html">
         <source>🏛️📥️ Remote Origin Pull</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">60</context>
+          <context context-type="linenumber">61</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8278524935704128301" datatype="html">
         <source>📥️ pull</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">66</context>
+          <context context-type="linenumber">67</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8582876241785347267" datatype="html">
@@ -13925,127 +13937,127 @@ F: Fullscreen toggle
       You may configure if metadata is generated or plugins are validated. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">67,71</context>
+          <context context-type="linenumber">68,72</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4302739204316925532" datatype="html">
         <source>📶️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">75</context>
+          <context context-type="linenumber">76</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">212</context>
+          <context context-type="linenumber">213</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5814211969145948759" datatype="html">
         <source>Streaming updates</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">75</context>
+          <context context-type="linenumber">76</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2586644975697483138" datatype="html">
         <source>Cancel pulling.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">79</context>
+          <context context-type="linenumber">80</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4448865986110679482" datatype="html">
         <source>Pull a batch of updates from the remote.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">82</context>
+          <context context-type="linenumber">83</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9011317583858638540" datatype="html">
         <source>Stream Updates:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">104</context>
+          <context context-type="linenumber">105</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8902449270638276027" datatype="html">
         <source>Prefetch Proxy:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">116</context>
+          <context context-type="linenumber">117</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5031926927814339639" datatype="html">
         <source>Prefetch Files:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">126</context>
+          <context context-type="linenumber">127</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7872868249386771116" datatype="html">
         <source>Remove Tags:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">132</context>
+          <context context-type="linenumber">133</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6555766924471645097" datatype="html">
         <source>+ Remove another tag</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">133</context>
+          <context context-type="linenumber">134</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7544557774339620126" datatype="html">
         <source>Batch Size:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">140</context>
+          <context context-type="linenumber">141</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">248</context>
+          <context context-type="linenumber">249</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7235889866397809015" datatype="html">
         <source>Validate Plugins:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">146</context>
+          <context context-type="linenumber">147</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6223815764762891469" datatype="html">
         <source>Strip Invalid Plugins:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">152</context>
+          <context context-type="linenumber">153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9168090683466599861" datatype="html">
         <source>Validate Templates:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">161</context>
+          <context context-type="linenumber">162</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1419563948644655475" datatype="html">
         <source>Strip Invalid Templates:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">167</context>
+          <context context-type="linenumber">168</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7661695435438894103" datatype="html">
         <source>🏛️📤️ Remote Origin Push</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">199</context>
+          <context context-type="linenumber">200</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1333530390065485719" datatype="html">
         <source>📤️ push</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">205</context>
+          <context context-type="linenumber">206</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1916527912570296977" datatype="html">
@@ -14054,119 +14066,156 @@ F: Fullscreen toggle
       behind the local cursor. If &quot;Push on change&quot; is set changes are pushed immediately.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">206,208</context>
+          <context context-type="linenumber">207,209</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8508303646366969311" datatype="html">
         <source>Pushing disabled</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">211</context>
+          <context context-type="linenumber">212</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2445796180469153381" datatype="html">
         <source>Pushing on change</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">212</context>
+          <context context-type="linenumber">213</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8959890497370345633" datatype="html">
         <source>Cancel pushing</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">216</context>
+          <context context-type="linenumber">217</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8878638421749723537" datatype="html">
         <source>push</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">219</context>
+          <context context-type="linenumber">220</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3029640090697380922" datatype="html">
         <source>Push a batch of updates to the remote.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">219</context>
+          <context context-type="linenumber">220</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4519243547242571464" datatype="html">
         <source>Are you sure you want to push?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">219</context>
+          <context context-type="linenumber">220</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8108072645722912844" datatype="html">
         <source>Push on change</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">231</context>
+          <context context-type="linenumber">232</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2443743113819709191" datatype="html">
         <source>Push cache</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">237</context>
+          <context context-type="linenumber">238</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6651253067755245086" datatype="html">
         <source>🏛️🕳️️️ Origin Tunnel</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">268</context>
+          <context context-type="linenumber">269</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6733774678913203210" datatype="html">
         <source>🕳️️️ tunnel</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">274</context>
+          <context context-type="linenumber">275</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7129821305442497366" datatype="html">
         <source>🕳️️️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">275</context>
+          <context context-type="linenumber">276</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6941388904250718143" datatype="html">
         <source>Create an SSH tunnel</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">276</context>
+          <context context-type="linenumber">277</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1084166085595678671" datatype="html">
         <source>Remote User:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">281</context>
+          <context context-type="linenumber">282</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6798986489073898780" datatype="html">
         <source>SSH Host:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">287</context>
+          <context context-type="linenumber">288</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1344327302027926135" datatype="html">
         <source>SSH Port:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">293</context>
+          <context context-type="linenumber">294</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3833089498789579825" datatype="html">
         <source>Host Fingerprint:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">300</context>
+          <context context-type="linenumber">301</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2370410813163896164" datatype="html">
+        <source>🏛️🔑️ Init Sub-Origin</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
+          <context context-type="linenumber">317</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3414074061531423433" datatype="html">
+        <source>Initialize a sub-origin by granting admin permissions in the
+      sub-origin to all users who have signed the origin, and downloading a template
+      origin Ref set up to push to the sub-origin.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
+          <context context-type="linenumber">323,325</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5383104019191048440" datatype="html">
+        <source>init</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
+          <context context-type="linenumber">330</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="793596213163700451" datatype="html">
+        <source>Grant admin permissions in the sub-origin to all signing users.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
+          <context context-type="linenumber">331</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="210075778207659076" datatype="html">
+        <source>Are you sure you want to make all signing users admins in the sub-origin?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
+          <context context-type="linenumber">332</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1241581002965635507" datatype="html">

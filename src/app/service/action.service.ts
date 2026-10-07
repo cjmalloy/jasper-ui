@@ -1,13 +1,14 @@
 import { inject, Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, concat, defer, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { Action, EmitAction, emitModels } from '../model/tag';
+import { Action, DownloadAction, downloadModel, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { merge3 } from '../util/diff';
+import { downloadRef, downloadTag, file, saveAs } from '../util/download';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -42,6 +43,9 @@ export class ActionService {
       },
       emit: (a: EmitAction) => {
         this.emit(a, ref);
+      },
+      download: (a: DownloadAction) => {
+        this.download(a, ref);
       },
       tag: (tag: string) => {
         if (!ref) throw 'Error: No ref to tag';
@@ -78,6 +82,9 @@ export class ActionService {
       if ('emit' in a) {
         updates.push(this.emit$(a, ref));
       }
+      if ('download' in a) {
+        updates.push(this.download$(a, ref));
+      }
     }
     if (!updates.length) return of(null);
     return this.store.eventBus.runAndReload$(concat(...updates).pipe(last()), ref);
@@ -103,6 +110,24 @@ export class ActionService {
       ...models.ext.map(ext => this.exts.create(ext)),
     ];
     return concat(...uploads).pipe(last());
+  }
+
+  download(a: DownloadAction, ref?: Ref) {
+    this.download$(a, ref).subscribe();
+  }
+
+  download$(a: DownloadAction, ref?: Ref) {
+    return defer(() => {
+      const model = downloadModel(a, ref, this.store.account.localTag());
+      if (model?.url) {
+        downloadRef(model);
+      } else if (model?.tag) {
+        downloadTag(model);
+      } else {
+        saveAs(file(model), 'download.json');
+      }
+      return of(null);
+    });
   }
 
   comment(comment: string, ref: Ref) {

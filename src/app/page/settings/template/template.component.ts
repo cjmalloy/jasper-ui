@@ -9,7 +9,7 @@ import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { TemplateStore } from '../../../store/template';
 import { printError } from '../../../util/http';
-import { getTagFilter } from '../../../util/query';
+import { getTagFilter, getTagQueryFilter } from '../../../util/query';
 import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
@@ -36,7 +36,7 @@ export class SettingsTemplatePage implements HasChanges {
     mod.setTitle($localize`Settings: Templates`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     this.query.watch(() => ({
-      query: this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'),
+      query: getTagQueryFilter(this.store.view.showRemotes() ? '@*' : (this.store.account.origin() || '*'), this.store.view.filter()),
       search: this.store.view.search(),
       sort: [...this.store.view.sort()],
       page: this.store.view.pageNumber(),
