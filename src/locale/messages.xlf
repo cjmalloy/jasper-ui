@@ -7212,7 +7212,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">342</context>
+          <context context-type="linenumber">343</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
@@ -14188,33 +14188,34 @@ F: Fullscreen toggle
           <context context-type="linenumber">316</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1859490664999260998" datatype="html">
+      <trans-unit id="4192599063937133271" datatype="html">
         <source>Initialize a sub-origin by granting admin permissions in the
-      sub-origin to all users who have signed the origin.</source>
+      sub-origin to all users who have signed the origin, and creating a template
+      origin Ref in the sub-origin set up to push to it.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">322,323</context>
+          <context context-type="linenumber">322,324</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5383104019191048440" datatype="html">
         <source>init</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">328</context>
+          <context context-type="linenumber">329</context>
         </context-group>
       </trans-unit>
       <trans-unit id="793596213163700451" datatype="html">
         <source>Grant admin permissions in the sub-origin to all signing users.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">329</context>
+          <context context-type="linenumber">330</context>
         </context-group>
       </trans-unit>
       <trans-unit id="210075778207659076" datatype="html">
         <source>Are you sure you want to make all signing users admins in the sub-origin?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">330</context>
+          <context context-type="linenumber">331</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1241581002965635507" datatype="html">
