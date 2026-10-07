@@ -9,7 +9,7 @@ import { ModService } from '../../../service/mod.service';
 import { ProfileStore } from '../../../store/profile';
 import { Store } from '../../../store/store';
 import { UserStore } from '../../../store/user';
-import { getTagFilter } from '../../../util/query';
+import { getTagFilter, getTagQueryFilter } from '../../../util/query';
 
 @Component({
   selector: 'app-settings-user-page',
@@ -56,7 +56,7 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
     }
     this.disposers.push(autorun(() => {
       const args = {
-        query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
+        query: getTagQueryFilter(this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'), this.store.view.filter),
         search: this.store.view.search,
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,
