@@ -1,6 +1,19 @@
-import { removeTag, setPrivate, setProtected } from './tag';
+import { hasQuery, removeTag, setPrivate, setProtected } from './tag';
 
 describe('Tag Utils', () => {
+  it('hasQuery', () => {
+    const tags = ['+plugin/origin', '+user/chris', 'public'];
+    expect(hasQuery('+plugin/origin', tags)).toBe(true);
+    expect(hasQuery('+plugin', tags)).toBe(true);
+    expect(hasQuery('!+plugin/origin/push', tags)).toBe(true);
+    expect(hasQuery('+plugin/origin:!+plugin/origin/push:!+plugin/origin/pull:(+user|_user)', tags)).toBe(true);
+    expect(hasQuery('+plugin/origin:!+plugin/origin/push:!+plugin/origin/pull:(+user|_user)', [...tags, '+plugin/origin/pull'])).toBe(false);
+    expect(hasQuery('+plugin/origin:(+user|_user)', ['+plugin/origin', '_user/bob'])).toBe(true);
+    expect(hasQuery('+plugin/origin:(+user|_user)', ['+plugin/origin'])).toBe(false);
+    expect(hasQuery('missing|public', tags)).toBe(true);
+    expect(hasQuery('public:!(missing|+user)', tags)).toBe(false);
+  });
+
   describe('removeTag', () => {
     it('should remove a single tag from array', () => {
       const tags = ['science', 'funny', 'news'];
