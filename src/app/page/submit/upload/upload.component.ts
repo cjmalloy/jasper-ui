@@ -29,7 +29,7 @@ import { Store } from '../../../store/store';
 import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag } from '../../../util/tag';
+import { pickPlugins } from '../../../util/tag';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedCacheFiles, zippedFile } from '../../../util/zip';
 
 @Component({
@@ -368,9 +368,7 @@ export class UploadPage implements OnDestroy {
       switchMap(restored => {
         ref = restored;
         ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
-        ref.plugins = Object.fromEntries(
-          Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
-        );
+        ref.plugins = pickPlugins(ref.plugins, ref.tags);
         return this.saveRef$(ref).pipe(
           tap(() => this.uploadedUrls.push(ref.url)),
         );
