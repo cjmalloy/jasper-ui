@@ -1,4 +1,4 @@
-import { afterNextRender, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { LoadingComponent } from '../../component/loading/loading.component';
 
 @Component({
@@ -8,9 +8,8 @@ import { LoadingComponent } from '../../component/loading/loading.component';
   imports: [LoadingComponent]
 })
 export class LoginPage {
-
-  private readonly initialize = afterNextRender(() => {
+  constructor() {
     window.close();
-  });
+  }
 
 }

@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -26,13 +26,9 @@ export class SettingsPage {
   private auth = inject(AuthzService);
   store = inject(Store);
 
-
-  private readonly initialize = afterNextRender(() => {
+  constructor() {
     if (!this.store.view.settingsTabs().length) {
-      {
-        this.store.view.settingsTabs.set(this.admin.settings().filter(p => this.auth.tagReadAccess(p.tag)));
-      };
+      this.store.view.settingsTabs.set(this.admin.settings().filter(p => this.auth.tagReadAccess(p.tag)));
     }
-  });
-
+  }
 }

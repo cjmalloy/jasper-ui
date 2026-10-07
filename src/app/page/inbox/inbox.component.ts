@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -18,15 +18,11 @@ export class InboxPage {
   store = inject(Store);
   private auth = inject(AuthzService);
 
-
-  private readonly initialize = afterNextRender(() => {
+  constructor() {
     if (!this.store.view.inboxTabs().length) {
-      {
-        this.store.view.inboxTabs.set(this.admin.inbox().filter(p => this.auth.tagReadAccess(p.tag)));
-      };
+      this.store.view.inboxTabs.set(this.admin.inbox().filter(p => this.auth.tagReadAccess(p.tag)));
     }
-  });
-
+  }
 }
 
 export const getInbox = () => {
