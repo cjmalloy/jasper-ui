@@ -29,7 +29,7 @@ import { Store } from '../../../store/store';
 import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag } from '../../../util/tag';
+import { pickPlugins } from '../../../util/tag';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedCacheFiles, zippedFile } from '../../../util/zip';
 
 @Component({
@@ -135,7 +135,7 @@ export class UploadPage implements OnDestroy {
       }
     }
     // Refs and Exts
-    this.read(files);
+    this.read(files, this.store.account.localTag);
     this.readData(texts, this.store.account.localTag, ...this.store.submit.tags);
     this.readSheet(tables, 'plugin/table', this.store.account.localTag, ...this.store.submit.tags);
     this.readBookmarks(bookmarks, this.store.account.localTag, ...this.store.submit.tags);
@@ -160,7 +160,7 @@ export class UploadPage implements OnDestroy {
             return models;
           }
           models.ref?.forEach(ref => {
-            ref.tags = uniq([...ref.tags || [], ...extraTags]);
+            ref.tags = uniq([...ref.tags || [], ...extraTags.filter(t => !!t)]);
             this.refs.count({ url: ref.url }).subscribe(count  => {
               if (count) {
                 this.store.submit.foundRef(ref.url);
@@ -367,10 +367,11 @@ export class UploadPage implements OnDestroy {
     return this.uploadCache.restore$(ref, this.store.account.origin).pipe(
       switchMap(restored => {
         ref = restored;
-        ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
-        ref.plugins = Object.fromEntries(
-          Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
-        );
+        ref.tags = uniq([
+          ...ref.tags?.filter(t => this.auth.canAddTag(t)) || [],
+          ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+        ]);
+        ref.plugins = pickPlugins(ref.plugins, ref.tags);
         return this.saveRef$(ref).pipe(
           tap(() => this.uploadedUrls.push(ref.url)),
         );

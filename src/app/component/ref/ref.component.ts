@@ -85,6 +85,7 @@ import {
   hasUserUrlResponse,
   isAuthorTag,
   localTag,
+  pickPlugins,
   removeTag,
   repost,
   subOrigin,
@@ -1480,7 +1481,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           origin: this.store.account.origin,
           tags: restored.tags?.filter(t => this.auth.canAddTag(t)),
         };
-        ref.plugins = pick(ref.plugins, ref.tags || []);
+        ref.plugins = pickPlugins(ref.plugins, ref.tags);
         return this.store.eventBus.runAndReload$(
           (this.store.submit.overwrite || ref.url !== original.url
             ? this.refs.update(ref)
