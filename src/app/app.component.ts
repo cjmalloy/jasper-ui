@@ -5,6 +5,7 @@ import {
   HostBinding,
   HostListener,
   isDevMode,
+  NgZone,
   ViewContainerRef
 } from '@angular/core';
 import { NavigationStart, Router, RouterOutlet } from '@angular/router';
@@ -26,6 +27,7 @@ import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
 import { memo } from './util/memo';
+import { isModelsJson } from './util/zip';
 
 @Component({
   selector: 'app-root',
@@ -62,6 +64,7 @@ export class AppComponent implements AfterViewInit {
     private scrape: ScrapeService,
     private router: Router,
     private vc: ViewContainerRef,
+    private zone: NgZone,
   ) {
     document.body.style.height = '';
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
@@ -188,13 +191,26 @@ export class AppComponent implements AfterViewInit {
     if ((event.target as HTMLElement)?.tagName === 'TEXTAREA') return;
     event.preventDefault();
     const files = [] as any;
+    let text: DataTransferItem | undefined;
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
       if (d?.kind === 'file') {
         files.push(d.getAsFile());
+      } else if (d?.kind === 'string' && (d.type === 'application/json' || d.type === 'text/plain')) {
+        if (!text || d.type === 'application/json') text = d;
       }
     }
-    if (!files.length) return;
+    if (files.length) {
+      this.uploadFiles(files);
+    } else if (text) {
+      text.getAsString(value => {
+        if (!isModelsJson(value)) return;
+        this.zone.run(() => this.uploadFiles([new File([value], 'upload.json', { type: 'application/json' })]));
+      });
+    }
+  }
+
+  private uploadFiles(files: File[]) {
     this.store.submit.addFiles(files);
     if (!this.store.submit.upload) {
       this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.view.queryTags }});
