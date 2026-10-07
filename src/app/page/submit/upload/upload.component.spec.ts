@@ -59,4 +59,20 @@ describe('UploadPage', () => {
       },
     }));
   });
+
+  it('adds the user signature to uploaded refs', () => {
+    const refs = component['refs'];
+    component.store.account.tag = '+user/alice';
+    vi.spyOn(component['auth'], 'canAddTag').mockReturnValue(true);
+    const create = vi.spyOn(refs, 'create').mockReturnValue(of('cursor'));
+
+    component.uploadRef$({
+      url: 'https://example.com',
+      tags: ['_private'],
+    }).subscribe();
+
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      tags: ['_private', '+user/alice'],
+    }));
+  });
 });
