@@ -1,4 +1,4 @@
-import { hasQuery, removeTag, setPrivate, setProtected } from './tag';
+import { hasQuery, pickPlugins, removeTag, setPrivate, setProtected } from './tag';
 
 describe('Tag Utils', () => {
   it('hasQuery', () => {
@@ -247,6 +247,25 @@ describe('Tag Utils', () => {
     it('should handle nested tags', () => {
       const result = setProtected('a/b/c/d/e');
       expect(result).toEqual('+a/b/c/d/e');
+    });
+  });
+
+  describe('pickPlugins', () => {
+    it('keeps plugin data for parent tags', () => {
+      const plugins = {
+        'plugin/delta': { a: 1 },
+        'plugin/thumbnail': { url: 'x' },
+        'plugin/image': { url: 'y' },
+      };
+      expect(pickPlugins(plugins, ['plugin/delta/ai', 'plugin/thumbnail'])).toEqual({
+        'plugin/delta': { a: 1 },
+        'plugin/thumbnail': { url: 'x' },
+      });
+    });
+
+    it('handles missing plugins and tags', () => {
+      expect(pickPlugins(undefined, ['public'])).toEqual({});
+      expect(pickPlugins({ 'plugin/image': {} }, undefined)).toEqual({});
     });
   });
 });
