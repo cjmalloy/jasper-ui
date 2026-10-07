@@ -135,7 +135,7 @@ export class UploadPage implements OnDestroy {
       }
     }
     // Refs and Exts
-    this.read(files);
+    this.read(files, this.store.account.localTag);
     this.readData(texts, this.store.account.localTag, ...this.store.submit.tags);
     this.readSheet(tables, 'plugin/table', this.store.account.localTag, ...this.store.submit.tags);
     this.readBookmarks(bookmarks, this.store.account.localTag, ...this.store.submit.tags);
@@ -160,7 +160,7 @@ export class UploadPage implements OnDestroy {
             return models;
           }
           models.ref?.forEach(ref => {
-            ref.tags = uniq([...ref.tags || [], ...extraTags]);
+            ref.tags = uniq([...ref.tags || [], ...extraTags.filter(t => !!t)]);
             this.refs.count({ url: ref.url }).subscribe(count  => {
               if (count) {
                 this.store.submit.foundRef(ref.url);
@@ -367,7 +367,10 @@ export class UploadPage implements OnDestroy {
     return this.uploadCache.restore$(ref, this.store.account.origin).pipe(
       switchMap(restored => {
         ref = restored;
-        ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
+        ref.tags = uniq([
+          ...ref.tags?.filter(t => this.auth.canAddTag(t)) || [],
+          ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+        ]);
         ref.plugins = pickPlugins(ref.plugins, ref.tags);
         return this.saveRef$(ref).pipe(
           tap(() => this.uploadedUrls.push(ref.url)),
