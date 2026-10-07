@@ -32,7 +32,7 @@ export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
   ) {
     mod.setTitle($localize`Inbox: DMs`);
-    store.view.clear(['metadata->modified']);
+    store.view.clear(['metadata->newResponse']);
     query.clear();
   }
 

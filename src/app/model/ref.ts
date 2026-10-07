@@ -72,6 +72,8 @@ export interface RefNode extends Ref {
 
 export interface Metadata {
   modified?: string;
+  newResponse?: string;
+  newReaction?: string;
   responses?: number;
   internalResponses?: number;
   /**
@@ -94,6 +96,8 @@ export interface Metadata {
  */
 export interface MetadataUpdates {
   modified?: string;
+  newResponse?: string;
+  newReaction?: string;
   responses?: number;
   internalResponses?: number;
   plugins?: Record<string, number>;
