@@ -332,7 +332,7 @@ export function splitTop(query: string, separator: ':' | '|') {
 
 export function braces(query: string) {
   if (!query) return '';
-  if (splitTop(query, '|').length < 2) return query;
+  if (splitTop(fixClientQuery(query), '|').length < 2) return query;
   return `(${query})`;
 }
 
