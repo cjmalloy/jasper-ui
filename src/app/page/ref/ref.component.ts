@@ -29,7 +29,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { markRead } from '../../util/response';
-import { hasTag, privateTag, top } from '../../util/tag';
+import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '../../util/tag';
 
 @Component({
   selector: 'app-ref-page',
@@ -106,19 +106,19 @@ export class RefPage implements HasChanges {
 
   readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.store.view.ref()?.metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.store.view.ref(), 'plugin/comment');
   });
 
   readonly thread = computed(() => this.admin.getPlugin('plugin/thread') && (hasTag('plugin/thread', this.store.view.ref()) || this.store.view.current() === 'ref/thread'));
 
   readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return hasTag('plugin/thread', this.store.view.ref()) || this.store.view.ref()?.metadata?.plugins?.['plugin/thread'];
+    return hasTag('plugin/thread', this.store.view.ref()) || pluginResponses(this.store.view.ref(), 'plugin/thread');
   });
 
   readonly logs = computed(() => {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
-    return this.store.view.ref()?.metadata?.plugins?.['+plugin/log'];
+    return localPluginResponses(this.store.view.ref(), '+plugin/log');
   });
 
   readonly responses = computed(() => this.store.view.ref()?.metadata?.responses || 0);
@@ -175,7 +175,13 @@ export class RefPage implements HasChanges {
             plugins: {
               ...pickBy(current.metadata?.plugins, (v, k) => tags.includes(k)),
               ...ud.metadata?.plugins || {},
-            }
+            },
+            ...(current.metadata?.remotePlugins || ud.metadata?.remotePlugins) ? {
+              remotePlugins: {
+                ...pickBy(current.metadata?.remotePlugins, (v, k) => tags.includes(k)),
+                ...ud.metadata?.remotePlugins || {},
+              },
+            } : {},
           },
           plugins: {
             ...pickBy(current.plugins, (v, k) => tags.includes(k)),

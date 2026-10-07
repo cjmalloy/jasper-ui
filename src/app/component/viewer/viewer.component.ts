@@ -43,7 +43,7 @@ import { embedUrl, setIframeSrc } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
-import { hasPrefix, hasTag } from '../../util/tag';
+import { hasPrefix, hasTag, pluginResponses } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
 import { LensComponent } from '../lens/lens.component';
@@ -444,7 +444,7 @@ export class ViewerComponent {
 
   readonly thread = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return false;
-    return hasTag('plugin/thread', this.currentTags()) || this.ref()?.metadata?.plugins?.['plugin/thread'];
+    return hasTag('plugin/thread', this.currentTags()) || pluginResponses(this.ref(), 'plugin/thread');
   });
 
   readonly embed = computed(() => {

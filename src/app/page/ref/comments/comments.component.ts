@@ -13,7 +13,7 @@ import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { getTitle } from '../../../util/format';
-import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
+import { hasTag, pluginResponses, removeTag, updateMetadata } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-comments',
@@ -61,7 +61,7 @@ export class RefCommentsComponent implements HasChanges {
     effect(() => {
       const ref = this.store.view.ref();
       if (ref) {
-        const commentCount = ref.metadata?.plugins?.['plugin/comment'] || 0;
+        const commentCount = pluginResponses(ref, 'plugin/comment');
         this.store.local.setLastSeenCount(this.store.view.url(), 'comments', commentCount);
       }
     }, { injector: this.injector });

@@ -19,7 +19,7 @@ import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
-import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
+import { hasTag, pluginResponses, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-summary',
@@ -92,12 +92,12 @@ export class RefSummaryComponent implements HasChanges {
 
   readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.store.view.ref()?.metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.store.view.ref(), 'plugin/comment');
   });
 
   readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.store.view.ref()?.metadata?.plugins?.['plugin/thread'] || 0;
+    return pluginResponses(this.store.view.ref(), 'plugin/thread');
   });
 
   readonly responses = computed(() => this.store.view.ref()?.metadata?.responses || 0);

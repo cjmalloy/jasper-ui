@@ -33,7 +33,7 @@ export class SettingsRefPage implements HasChanges {
     const store = this.store;
 
     mod.setTitle($localize`Settings: `);
-    store.view.clear(['metadata->modified']);
+    store.view.clear(['metadata->newResponse']);
     // Sync the document title
     effect(() => this.mod.setTitle($localize`Settings: ${this.plugin()?.config?.settings || this.store.view.settingsTag()}`));
     this.query.watch(() => getArgs(

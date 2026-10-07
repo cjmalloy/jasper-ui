@@ -30,7 +30,7 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
-import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
+import { hasTag, pluginResponses, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-thread',
@@ -95,7 +95,7 @@ export class RefThreadComponent implements HasChanges {
   private readonly initialize = afterNextRender(() => {
     effect(() => {
       if (this.store.view.pageSize()) {
-        this.store.view.defaultPageNumber.set(Math.floor(((this.to()?.metadata?.plugins?.['plugin/thread'] || 1) - 1) / this.store.view.pageSize()));
+        this.store.view.defaultPageNumber.set(Math.floor(((pluginResponses(this.to(), 'plugin/thread') || 1) - 1) / this.store.view.pageSize()));
       }
     }, { injector: this.injector });
     // TODO: set title for bare reposts
@@ -106,7 +106,7 @@ export class RefThreadComponent implements HasChanges {
       untracked(() => {
         const ref = this.store.view.ref();
         if (ref) {
-          const threadCount = ref.metadata?.plugins?.['plugin/thread'] || 0;
+          const threadCount = pluginResponses(ref, 'plugin/thread');
           this.store.local.setLastSeenCount(this.store.view.url(), 'threads', threadCount);
         }
         if (this.store.view.ref() && this.config.websockets) {

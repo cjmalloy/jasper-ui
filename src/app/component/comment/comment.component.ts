@@ -47,7 +47,7 @@ import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/http';
-import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin } from '../../util/tag';
+import { addPluginResponse, hasTag, hasUserUrlResponse, localTag, pluginResponses, removeTag, tagOrigin } from '../../util/tag';
 import { ActionListComponent } from '../action/action-list/action-list.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
@@ -139,9 +139,13 @@ export class CommentComponent implements HasChanges {
       if (ref) {
         this.newComments.update(n => n + 1);
         this.ref.update(r => {
-          const plugins = { ...r.metadata?.plugins };
-          plugins['plugin/comment'] = (plugins['plugin/comment'] || 0) + 1;
-          return { ...r, metadata: { ...r.metadata, plugins } };
+          const copy: Ref = { ...r, metadata: {
+            ...r.metadata,
+            plugins: { ...r.metadata?.plugins },
+            ...r.metadata?.remotePlugins ? { remotePlugins: { ...r.metadata.remotePlugins } } : {},
+          } };
+          addPluginResponse(copy, 'plugin/comment', (ref.origin || '') === (r.origin || ''));
+          return copy;
         });
         if (this.depth() === 0) this.depth.set(1);
       }
@@ -245,7 +249,7 @@ export class CommentComponent implements HasChanges {
   });
 
   readonly comments = computed(() => {
-    return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.ref(), 'plugin/comment');
   });
 
   readonly moreComments = computed(() => {

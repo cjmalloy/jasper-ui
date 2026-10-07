@@ -41,7 +41,7 @@ import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
+import { expandedTagsInclude, hasTag, pluginResponses, repost } from '../../../util/tag';
 import { ChessComponent } from '../../chess/chess.component';
 import { LoadingComponent } from '../../loading/loading.component';
 import { MdComponent } from '../../md/md.component';
@@ -198,7 +198,7 @@ export class KanbanCardComponent {
   });
   readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.ref().metadata?.plugins?.['plugin/thread'] || 0;
+    return pluginResponses(this.ref(), 'plugin/thread');
   });
   readonly comment = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
@@ -206,7 +206,7 @@ export class KanbanCardComponent {
   });
   readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.ref(), 'plugin/comment');
   });
   readonly badges = computed(() => {
     const badges = intersection(this.ref().tags, this.ext()?.config?.badges || []);

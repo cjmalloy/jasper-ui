@@ -78,8 +78,11 @@ import {
   hasTag,
   hasUserUrlResponse,
   isAuthorTag,
+  localPluginResponses,
   localTag,
   pickPlugins,
+  pluginResponses,
+  remotePlugins,
   removeTag,
   subOrigin,
   tagOrigin,
@@ -376,7 +379,7 @@ export class RefComponent implements HasChanges {
       : this.ref().tags;
     return this.css + ' ' + [
       ...templates(tags, 'plugin'),
-      ...Object.keys(this.ref().metadata?.plugins || {}).map(p => 'response-' + p),
+      ...Object.keys(remotePlugins(this.ref())).map(p => 'response-' + p),
       ...(this.ref().metadata?.userUrls || []).map(p => 'user-response-' + p)
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
   }
@@ -906,7 +909,7 @@ export class RefComponent implements HasChanges {
 
   readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.ref(), 'plugin/comment');
   });
 
   readonly newCommentsCount = computed(() => {
@@ -917,12 +920,12 @@ export class RefComponent implements HasChanges {
 
   readonly errors = computed(() => {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
-    return this.ref().metadata?.plugins?.['+plugin/log'] || 0;
+    return localPluginResponses(this.ref(), '+plugin/log');
   });
 
   readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.ref().metadata?.plugins?.['plugin/thread'] || 0;
+    return pluginResponses(this.ref(), 'plugin/thread');
   });
 
   readonly newThreadsCount = computed(() => {

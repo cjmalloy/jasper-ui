@@ -20,7 +20,7 @@ import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 import { authors, clickableLink, formatAuthor, getNiceTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, localTag, tagOrigin } from '../../../util/tag';
+import { hasTag, localTag, pluginResponses, tagOrigin } from '../../../util/tag';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -149,7 +149,7 @@ export class ChatEntryComponent {
 
   readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.ref(), 'plugin/comment');
   });
 
   readonly chatroom = computed(() => {
@@ -164,7 +164,7 @@ export class ChatEntryComponent {
 
   readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.ref().metadata?.plugins?.['plugin/thread'] || 0;
+    return pluginResponses(this.ref(), 'plugin/thread');
   });
 
   formatAuthor(user: string) {

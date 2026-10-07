@@ -2,6 +2,12 @@
 
 Always reference these instructions first. Fall back to searching the repo only when something here does not match what you observe. Every command and timing below was verified on a 4-core / 16 GB Linux agent runner.
 
+## Read the Jasper spec first
+
+Before changing anything involving origins, users, access, tagging, or special URLs, read the server spec:
+https://github.com/cjmalloy/jasper/blob/master/README.md
+It is short, and the client depends on its rules. Do not guess server behaviour.
+
 ## What is Jasper?
 
 Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper stores links to content rather than the content itself, creating a fast overlay database that indexes content sources. This Angular client (jasper-ui) is the reference client for the Jasper server.
@@ -19,12 +25,16 @@ All entities use composite keys:
 ### Key concepts
 
 - **Tags**: hierarchical strings: `public`, `+protected`, `_private`. Regex: `[_+]?[a-z0-9]+([./][a-z0-9]+)*`
-- **Origins**: `@origin`, used for replication and multi-tenant setups. The local origin is the empty string. Regex: `@[a-z0-9]+([.][a-z0-9])*`
+- **Origins**: `@origin`, used for replication and multi-tenant setups. The local origin is the empty string. Regex: `@[a-z0-9]+([.][a-z0-9]+)*`
+  - Users can only read their own origin and its sub-origins (`@home` sees `@home` and `@home.*`, never a sibling like `@city`). Writing is only allowed to your own origin.
+  - Remotes are pulled into a sub-origin of the local origin, so every visible remote origin is `local + '.' + name`.
 - **Querying**: set-like operators: `:` (and), `|` (or), `!` (not), `()` (groups, which cannot be nested)
   - `science:funny`: has both tags. `science|funny`: has either tag. `science:!funny`: has `science` but not `funny`.
   - `(science|math):funny`. `music:people/murray` also matches child tags such as `people/murray/anne`.
   - Queries are origin-aware. `tag@origin` is fully qualified, the special origin `@` matches the default empty origin, and unqualified tags match any origin.
 - **Special URLs**: `cache:` points to the file cache. `tag:/...` Refs follow tag access rules; user settings Refs look like `tag:/+user/<name>`.
+  - User URLs (`tag:/+user/<name>` and `tag:/+user/<name>?url=...`) are always owned by that user. The server stores them without the `+`/`_` prefix (`tag:/user/<name>?url=...`).
+  - `plugin/user/*` plugins may only be added to user URL Refs.
 - **Access control**: hierarchical roles (Anonymous, Viewer, User, Editor, Mod, Admin) plus TBAC. Users can query protected tags but cannot freely add them. Private tags are stripped from responses unless the user has access.
 
 ### Gotchas

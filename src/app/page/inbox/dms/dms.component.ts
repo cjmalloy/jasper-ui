@@ -28,7 +28,7 @@ export class InboxDmsPage implements HasChanges {
     const store = this.store;
 
     mod.setTitle($localize`Inbox: DMs`);
-    store.view.clear(['metadata->modified']);
+    store.view.clear(['metadata->newResponse']);
     this.query.watch(() => getArgs(
       (this.store.view.search() ? 'dm:' : 'dm:!internal:') + `(${this.store.account.tagWithOrigin()}|${this.store.account.inboxQuery()})`,
       this.store.view.sort(),

@@ -114,7 +114,7 @@ export const lobbyPlugin: Plugin = {
       { user: 'plugin/user/lobby', label: $localize`👥️ active`, title: $localize`My meetings`, group: $localize`Lists ☰` },
     ],
     sorts: [
-      { sort: 'metadata->plugins->plugin/user/lobby', label: '👥️ participants', title: $localize`Number of people in lobby` },
+      { sort: 'metadata->remotePlugins->plugin/user/lobby', label: '👥️ participants', title: $localize`Number of people in lobby` },
     ],
   },
 };

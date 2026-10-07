@@ -54,7 +54,7 @@ import { downloadRef } from '../../../util/download';
 import { controlState, scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
-import { hasTag, isAuthorTag, localTag, removeTag, tagOrigin } from '../../../util/tag';
+import { hasTag, isAuthorTag, localTag, pluginResponses, removeTag, tagOrigin } from '../../../util/tag';
 import { ActionListComponent } from '../../action/action-list/action-list.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
@@ -282,7 +282,7 @@ export class BlogEntryComponent implements HasChanges {
 
   readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref().metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.ref(), 'plugin/comment');
   });
 
   readonly responses = computed(() => {

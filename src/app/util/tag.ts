@@ -140,9 +140,45 @@ export function test(query: string, ref: Ref | string[] | undefined) {
   return tags.find(t => captures(query, t));
 }
 
+/**
+ * Plugin response counts from all origins (local and remote).
+ * Falls back to local counts if the metadata was generated before remote counts were tracked.
+ */
+export function remotePlugins(ref: Ref | undefined): Record<string, number> {
+  return ref?.metadata?.remotePlugins || ref?.metadata?.plugins || {};
+}
+
+/**
+ * Number of responses with this plugin from all origins (local and remote).
+ */
+export function pluginResponses(ref: Ref | undefined, plugin: string): number {
+  return remotePlugins(ref)[plugin] || 0;
+}
+
+/**
+ * Number of responses with this plugin from the same origin as the Ref.
+ */
+export function localPluginResponses(ref: Ref | undefined, plugin: string): number {
+  return ref?.metadata?.plugins?.[plugin] || 0;
+}
+
+/**
+ * Optimistically count a new plugin response.
+ */
+export function addPluginResponse(parent: Ref, plugin: string, local = true) {
+  parent.metadata ||= {};
+  if (parent.metadata.remotePlugins) {
+    parent.metadata.remotePlugins[plugin] = (parent.metadata.remotePlugins[plugin] || 0) + 1;
+  }
+  if (local || !parent.metadata.remotePlugins) {
+    parent.metadata.plugins ||= {};
+    parent.metadata.plugins[plugin] = (parent.metadata.plugins[plugin] || 0) + 1;
+  }
+}
+
 export function hasAnyResponse(plugin: string | undefined, ref: Ref | undefined): boolean {
   if (!plugin) return false;
-  for (const p of Object.keys(ref?.metadata?.plugins || {})) {
+  for (const p of Object.keys(remotePlugins(ref))) {
     if (hasPrefix(p, plugin)) return true;
   }
   return false;
@@ -435,12 +471,9 @@ export function repost(ref?: Ref) {
 
 export function updateMetadata(parent: Ref, child: Ref) {
   parent.metadata ||= {};
-  parent.metadata.plugins ||= {} as any;
+  const local = (child.origin || '') === (parent.origin || '');
   for (const plugin of ['plugin/comment', 'plugin/thread', '+plugin/log']) {
-    if (hasTag(plugin, child)) {
-      parent.metadata.plugins![plugin] ||= 0;
-      parent.metadata.plugins![plugin]++;
-    }
+    if (hasTag(plugin, child)) addPluginResponse(parent, plugin, local);
   }
   if (hasTag('internal', child)) {
     parent.metadata.internalResponses ||= 0;
