@@ -40,7 +40,7 @@ export const originPlugin: Plugin = {
     }, {
       key: 'aliases',
       className: 'account-aliases',
-      type: 'tags',
+      type: 'users',
       props: {
         label: $localize`Account Aliases:`,
         addText: $localize`+ Add another account alias`,
