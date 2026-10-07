@@ -377,7 +377,9 @@ export class AccountService {
             return !current || readDate.plus({ millisecond: 1 }) > DateTime.fromISO(current);
           })
           .map(stream => this.writeNotificationCursor$(stream, cursor));
-        return writes.length ? forkJoin(writes) : of([]);
+        return writes.length
+          ? from(writes).pipe(mergeMap(write => write, CURSOR_CONCURRENCY), toArray())
+          : of([]);
       }),
       tap(() => this.checkNotifications()),
       map(() => undefined),
