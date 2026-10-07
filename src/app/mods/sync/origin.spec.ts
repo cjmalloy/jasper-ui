@@ -80,7 +80,7 @@ describe('originInitPlugin', () => {
     }, {
       tag: '_user/bob', origin: '@main.sub', role: 'ROLE_ADMIN', modified: '2030-01-01T00:00:00.001Z',
     }], {
-      headers: { 'Local-Origin': '@main', 'User-Role': 'ROLE_ADMIN' },
+      headers: { 'Local-Origin': '@main.sub', 'User-Role': 'ROLE_ADMIN' },
       params: { origin: '@main.sub' },
     });
     const bundle = JSON.parse(log.mock.calls[0][0]);

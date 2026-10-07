@@ -399,7 +399,10 @@ export const originInitPlugin: Plugin = {
         push.push(user);
       }
       if (push.length) {
-        await axios.post(api, push, { headers, params: { origin: subOrigin } }).catch(e => {
+        await axios.post(api, push, {
+          headers: { ...headers, 'Local-Origin': subOrigin },
+          params: { origin: subOrigin },
+        }).catch(e => {
           console.error(e.response?.data);
           throw new Error(e);
         });
