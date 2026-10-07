@@ -11,7 +11,7 @@ import { ModService } from '../../../service/mod.service';
 import { PluginStore } from '../../../store/plugin';
 import { Store } from '../../../store/store';
 import { printError } from '../../../util/http';
-import { getTagFilter } from '../../../util/query';
+import { getTagFilter, getTagQueryFilter } from '../../../util/query';
 import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
@@ -48,7 +48,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = {
-        query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
+        query: getTagQueryFilter(this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'), this.store.view.filter),
         search: this.store.view.search,
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,
