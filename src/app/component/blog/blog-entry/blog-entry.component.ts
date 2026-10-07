@@ -57,7 +57,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, isAuthorTag, localTag, removeTag, repost, tagOrigin } from '../../../util/tag';
+import { hasTag, isAuthorTag, localTag, pluginResponses, removeTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionListComponent } from '../../action/action-list/action-list.component';
 import { ActionComponent } from '../../action/action.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
@@ -328,7 +328,7 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
   @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.ref, 'plugin/comment');
   }
 
   @memo

@@ -74,7 +74,15 @@ export interface Metadata {
   modified?: string;
   responses?: number;
   internalResponses?: number;
+  /**
+   * Plugin response counts from the same origin as this Ref.
+   */
   plugins?: Record<string, number>;
+  /**
+   * Plugin response counts from all origins under the root origin.
+   * Missing if the metadata was generated before remote counts were tracked.
+   */
+  remotePlugins?: Record<string, number>;
   userUrls?: string[];
   obsolete?: boolean;
 }
@@ -89,6 +97,7 @@ export interface MetadataUpdates {
   responses?: number;
   internalResponses?: number;
   plugins?: Record<string, number>;
+  remotePlugins?: Record<string, number>;
   obsolete?: boolean;
 }
 
