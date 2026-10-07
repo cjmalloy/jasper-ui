@@ -610,6 +610,27 @@ describe('AccountService', () => {
       expect(store.account.notificationCursors.get('')).toEqual('2026-02-01T00:00:00.000Z');
     });
 
+    it('ignores in-flight loads from the previous account', () => {
+      setAccount();
+      const store = (service as any).store;
+      service.loadNotificationCursors$().subscribe();
+      const stale = inboxGet();
+
+      store.account.tag = '+user/mom';
+      service.loadNotificationCursors$().subscribe();
+      const current = inboxGet();
+      const currentLoad = (service as any).cursorLoads.get('');
+
+      stale.flush(inboxRef('2026-01-01T00:00:00.000Z'));
+      expect(store.account.notificationCursors.has('')).toBe(false);
+      expect((service as any).cursorRefs.size).toBe(0);
+      expect((service as any).cursorLoads.get('')).toBe(currentLoad);
+
+      current.flush(inboxRef('2026-02-01T00:00:00.000Z'));
+      expect(store.account.notificationCursors.get('')).toEqual('2026-02-01T00:00:00.000Z');
+      expect((service as any).cursorLoads.size).toBe(0);
+    });
+
     it('loads saved cursors for alarm-only origins after switching accounts', () => {
       setAccount();
       const store = (service as any).store;

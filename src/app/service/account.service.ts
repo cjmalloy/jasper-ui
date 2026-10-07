@@ -504,13 +504,15 @@ export class AccountService {
     const streams = this.notificationStreams;
     const missing = streams.filter(stream => !this.store.account.notificationCursors.has(stream.origin));
     if (!missing.length) return of(streams);
+    const account = this.cursorAccount;
     return from(missing).pipe(
       mergeMap(stream => {
         let load$ = this.cursorLoads.get(stream.origin);
         if (!load$) {
-          load$ = this.tags.getResponse(stream.settingsUrl).pipe(
+          const shared$: Observable<undefined> = this.tags.getResponse(stream.settingsUrl).pipe(
             catchError(err => err?.status === 404 ? of(undefined) : throwError(() => err)),
             switchMap(ref => {
+              if (this.cursorAccount !== account) return of(undefined);
               this.cursorRefs.set(stream.origin, ref);
               const existing = ref?.plugins?.['plugin/user/cursor']?.cursor;
               if (existing) {
@@ -520,9 +522,12 @@ export class AccountService {
               return this.writeNotificationCursor$(stream, this.alarmOrigins.get(stream.origin) || DateTime.now().toISO()!);
             }),
             map(() => undefined),
-            finalize(() => this.cursorLoads.delete(stream.origin)),
+            finalize(() => {
+              if (this.cursorLoads.get(stream.origin) === shared$) this.cursorLoads.delete(stream.origin);
+            }),
             shareReplay(1),
           );
+          load$ = shared$;
           this.cursorLoads.set(stream.origin, load$);
         }
         return load$;
@@ -544,6 +549,7 @@ export class AccountService {
   }
 
   private writeNotificationCursor$(stream: NotificationStream, cursor: string, retry = true): Observable<unknown> {
+    const account = this.cursorAccount;
     const ref = this.cursorRefs.get(stream.origin);
     const plugin = ref?.plugins?.['plugin/user/cursor'];
     let write$: Observable<unknown>;
@@ -551,7 +557,7 @@ export class AccountService {
       write$ = this.tags.mergeResponse(['plugin/user/cursor'], stream.settingsUrl, {
         'plugin/user/cursor': { cursor },
       }).pipe(
-        switchMap(() => this.tags.getResponse(stream.settingsUrl)),
+        switchMap(() => this.cursorAccount === account ? this.tags.getResponse(stream.settingsUrl) : EMPTY),
         tap(created => this.cursorRefs.set(stream.origin, created)),
       );
     } else {
@@ -562,22 +568,30 @@ export class AccountService {
       }] as const;
       if (ref!.modifiedString) {
         write$ = this.refs.patch(ref!.url, ref!.origin || this.store.account.origin, ref!.modifiedString, [...patch]).pipe(
-          tap(modified => this.cursorRefs.set(stream.origin, {
-            ...ref!,
-            modified: DateTime.fromISO(modified),
-            modifiedString: modified,
-          })),
+          tap(modified => {
+            if (this.cursorAccount !== account) return;
+            this.cursorRefs.set(stream.origin, {
+              ...ref!,
+              modified: DateTime.fromISO(modified),
+              modifiedString: modified,
+            });
+          }),
         );
       } else {
         write$ = this.tags.patchResponse(['plugin/user/cursor'], stream.settingsUrl, [...patch]);
       }
     }
     return write$.pipe(
-      tap(() => runInAction(() => this.store.account.notificationCursors.set(stream.origin, cursor))),
+      tap(() => {
+        if (this.cursorAccount !== account) return;
+        runInAction(() => this.store.account.notificationCursors.set(stream.origin, cursor));
+      }),
       catchError(err => {
         if (!retry || err?.status !== 409) return throwError(() => err);
+        if (this.cursorAccount !== account) return of(undefined);
         return this.tags.getResponse(stream.settingsUrl).pipe(
           switchMap(ref => {
+            if (this.cursorAccount !== account) return of(undefined);
             this.cursorRefs.set(stream.origin, ref);
             const existing = ref?.plugins?.['plugin/user/cursor']?.cursor;
             if (existing && DateTime.fromISO(existing) >= DateTime.fromISO(cursor)) {
