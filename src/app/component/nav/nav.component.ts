@@ -94,6 +94,8 @@ export class NavComponent {
     if (url.startsWith('/tag/') || url.toLowerCase().startsWith('tag:/')) {
       if (text === '#' + url.substring(5)) return false;
     }
+    const nav = this.localUrl() ? this.getNav() : undefined;
+    if (nav?.[0] === '/tag' && text === '#' + nav[1]) return false;
     return text != url;
   }
 
