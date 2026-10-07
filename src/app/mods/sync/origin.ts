@@ -361,31 +361,43 @@ export const originInitPlugin: Plugin = {
         'Local-Origin': origin || 'default',
         'User-Role': 'ROLE_ADMIN',
       };
+      const fetchUser = async qualifiedTag => (await axios.get(api, {
+        headers,
+        params: { tag: qualifiedTag },
+      }).catch(e => {
+        if (e.response?.status === 404) return { data: null };
+        console.error(e.response?.data);
+        throw new Error(e);
+      })).data;
       for (const tag of users) {
-        const qualifiedTag = tag + subOrigin;
-        const existing = (await axios.get(api, {
-          headers,
-          params: { tag: qualifiedTag },
-        }).catch(e => {
-          if (e.response?.status === 404) return { data: null };
-          console.error(e.response?.data);
-          throw new Error(e);
-        })).data;
+        const source = await fetchUser(tag + origin) || {};
+        const existing = await fetchUser(tag + subOrigin);
+        const user = {
+          ...source,
+          tag,
+          origin: subOrigin,
+          role: 'ROLE_ADMIN',
+        };
+        delete user.modified;
+        delete user.readAccess;
+        delete user.writeAccess;
+        delete user.tagReadAccess;
+        delete user.tagWriteAccess;
         if (!existing) {
-          await axios.post(api, { tag, origin: subOrigin, role: 'ROLE_ADMIN' }, { headers }).catch(e => {
+          await axios.post(api, user, { headers }).catch(e => {
             console.error(e.response?.data);
             throw new Error(e);
           });
-        } else if (existing.role !== 'ROLE_ADMIN') {
-          await axios.patch(api, { role: 'ROLE_ADMIN' }, {
-            headers: { ...headers, 'Content-Type': 'application/merge-patch+json' },
-            params: { tag: qualifiedTag, cursor: existing.modified },
-          }).catch(e => {
+        } else {
+          await axios.put(api, { ...user, modified: existing.modified }, { headers }).catch(e => {
             console.error(e.response?.data);
             throw new Error(e);
           });
         }
       }
+      ref.tags = ref.tags.filter(t => t !== '_plugin/delta/origin/init' && !t.startsWith('_plugin/delta/origin/init/'));
+      delete ref.metadata;
+      console.log(JSON.stringify({ ref: [ref] }));
     `,
   },
 };

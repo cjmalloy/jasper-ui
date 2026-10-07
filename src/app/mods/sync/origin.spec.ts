@@ -31,17 +31,18 @@ describe('originInitPlugin', () => {
         return { data: user };
       }),
       post: vi.fn(async () => ({ data: '' })),
-      patch: vi.fn(async () => ({ data: '' })),
+      put: vi.fn(async () => ({ data: '' })),
     };
     const exit = vi.fn(() => { throw new Error('exit'); });
+    const log = vi.fn();
     const require = (module: string) => ({
       'axios': axios,
       'fs': { readFileSync: () => JSON.stringify(ref) },
     } as any)[module];
     const fn = new Function('require', 'process', 'console', `return (async () => {${originInitPlugin.config?.script}})()`);
-    const error = await fn(require, { env: { JASPER_API: 'http://jasper.test' }, exit }, { log: vi.fn(), error: vi.fn() })
+    const error = await fn(require, { env: { JASPER_API: 'http://jasper.test' }, exit }, { log, error: vi.fn() })
       .then(() => null, (e: any) => e);
-    return { axios, exit, error };
+    return { axios, exit, log, error };
   };
 
   it('fails when local is blank', async () => {
@@ -50,24 +51,34 @@ describe('originInitPlugin', () => {
     expect(axios.post).not.toHaveBeenCalled();
   });
 
-  it('creates or updates admin users in the sub-origin', async () => {
-    const { axios, error } = await run({
+  it('copies users as admins in the sub-origin and removes the init tag', async () => {
+    const headers = { headers: { 'Local-Origin': '@main', 'User-Role': 'ROLE_ADMIN' } };
+    const { axios, log, error } = await run({
       url: 'spec:o',
       origin: '@main',
-      tags: ['+plugin/origin', '+user/chris', '_user/bob', '+user/admin', 'public'],
+      tags: ['+plugin/origin', '+user/chris', '_user/bob', 'public', '_plugin/delta/origin/init'],
       plugins: { '+plugin/origin': { local: '@sub' } },
+      metadata: { modified: 'x' },
     }, {
-      '_user/bob@main.sub': { tag: '_user/bob', origin: '@main.sub', role: 'ROLE_USER', modified: '2020-01-01T00:00:00Z' },
-      '+user/admin@main.sub': { tag: '+user/admin', origin: '@main.sub', role: 'ROLE_ADMIN', modified: '2020-01-01T00:00:00Z' },
+      '+user/chris@main': {
+        tag: '+user/chris', origin: '@main', name: 'Chris', role: 'ROLE_USER', modified: '2020-01-01T00:00:00Z',
+        readAccess: ['a'], writeAccess: ['b'], tagReadAccess: ['c'], tagWriteAccess: ['d'],
+        pubKey: 'key', authorizedKeys: 'ssh-rsa key', external: { ids: ['x'] },
+      },
+      '_user/bob@main.sub': { tag: '_user/bob', origin: '@main.sub', role: 'ROLE_USER', modified: '2021-01-01T00:00:00Z' },
     });
     expect(error).toBeNull();
     expect(axios.post).toHaveBeenCalledTimes(1);
-    expect(axios.post).toHaveBeenCalledWith('http://jasper.test/api/v1/user',
-      { tag: '+user/chris', origin: '@main.sub', role: 'ROLE_ADMIN' },
-      { headers: { 'Local-Origin': '@main', 'User-Role': 'ROLE_ADMIN' } });
-    expect(axios.patch).toHaveBeenCalledTimes(1);
-    expect(axios.patch).toHaveBeenCalledWith('http://jasper.test/api/v1/user', { role: 'ROLE_ADMIN' }, expect.objectContaining({
-      params: { tag: '_user/bob@main.sub', cursor: '2020-01-01T00:00:00Z' },
-    }));
+    expect(axios.post).toHaveBeenCalledWith('http://jasper.test/api/v1/user', {
+      tag: '+user/chris', origin: '@main.sub', name: 'Chris', role: 'ROLE_ADMIN',
+      pubKey: 'key', authorizedKeys: 'ssh-rsa key', external: { ids: ['x'] },
+    }, headers);
+    expect(axios.put).toHaveBeenCalledTimes(1);
+    expect(axios.put).toHaveBeenCalledWith('http://jasper.test/api/v1/user', {
+      tag: '_user/bob', origin: '@main.sub', role: 'ROLE_ADMIN', modified: '2021-01-01T00:00:00Z',
+    }, headers);
+    const bundle = JSON.parse(log.mock.calls[0][0]);
+    expect(bundle.ref[0].tags).toEqual(['+plugin/origin', '+user/chris', '_user/bob', 'public']);
+    expect(bundle.ref[0].metadata).toBeUndefined();
   });
 });
