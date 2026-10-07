@@ -30,7 +30,7 @@ import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
 import { mapRef, Ref, RefSort, RefUpdates } from '../../model/ref';
-import { EmitAction, hydrate } from '../../model/tag';
+import { DownloadAction, EmitAction, hydrate } from '../../model/tag';
 import { pdfUrl } from '../../mods/media/pdf';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -566,6 +566,9 @@ return '67vh';
       },
       emit: (a: EmitAction) => {
         actions.emit(a);
+      },
+      download: (a: DownloadAction) => {
+        actions.download(a);
       },
       tag: (tag: string) => {
         if (this.ref?.modified) actions.tag(tag);

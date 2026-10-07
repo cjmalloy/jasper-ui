@@ -4,7 +4,7 @@ import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
 import { Observable } from 'rxjs';
 import { Ref, RefSort, RefUpdates } from './ref';
-import { Config, EmitAction } from './tag';
+import { Config, DownloadAction, EmitAction } from './tag';
 
 export interface Plugin extends Config {
   config?: Config['config'] & {
@@ -153,6 +153,7 @@ export interface PluginApi {
   comment: (comment: string) => void;
   event: (event: string) => void;
   emit: (a: EmitAction) => void;
+  download: (a: DownloadAction) => void;
   patch?: (patch: Partial<Ref>) => void;
   tag: (tag: string) => void;
   respond: (response: string, clear?: string[]) => void;
