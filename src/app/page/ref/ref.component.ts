@@ -22,7 +22,7 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 import { markRead } from '../../util/response';
-import { hasTag, privateTag, top } from '../../util/tag';
+import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '../../util/tag';
 
 @Component({
   selector: 'app-ref-page',
@@ -113,7 +113,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.store.view.ref, 'plugin/comment');
   }
 
   @memo
@@ -124,13 +124,13 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return hasTag('plugin/thread', this.store.view.ref) || this.store.view.ref?.metadata?.plugins?.['plugin/thread'];
+    return hasTag('plugin/thread', this.store.view.ref) || pluginResponses(this.store.view.ref, 'plugin/thread');
   }
 
   @memo
   get logs() {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
-    return this.store.view.ref?.metadata?.plugins?.['+plugin/log'];
+    return localPluginResponses(this.store.view.ref, '+plugin/log');
   }
 
   @memo
@@ -195,7 +195,13 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
             plugins: {
               ...pickBy(this.store.view.ref.metadata?.plugins, (v, k) => tags.includes(k)),
               ...ud.metadata?.plugins || {},
-            }
+            },
+            ...(this.store.view.ref.metadata?.remotePlugins || ud.metadata?.remotePlugins) ? {
+              remotePlugins: {
+                ...pickBy(this.store.view.ref.metadata?.remotePlugins, (v, k) => tags.includes(k)),
+                ...ud.metadata?.remotePlugins || {},
+              },
+            } : {},
           },
           plugins: {
             ...pickBy(this.store.view.ref.plugins, (v, k) => tags.includes(k)),

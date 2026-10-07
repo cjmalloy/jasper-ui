@@ -44,7 +44,7 @@ import { Store } from '../../../store/store';
 import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
+import { expandedTagsInclude, hasTag, pluginResponses, repost } from '../../../util/tag';
 import { ChessComponent } from '../../chess/chess.component';
 import { LoadingComponent } from '../../loading/loading.component';
 import { MdComponent } from '../../md/md.component';
@@ -234,7 +234,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
   @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
+    return pluginResponses(this.ref, 'plugin/thread');
   }
 
   @memo
@@ -246,7 +246,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
   @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.ref, 'plugin/comment');
   }
 
   @memo

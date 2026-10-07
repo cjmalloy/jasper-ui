@@ -34,7 +34,7 @@ import { Store } from '../../../store/store';
 import { authors, clickableLink, formatAuthor, getNiceTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, localTag, repost, tagOrigin } from '../../../util/tag';
+import { hasTag, localTag, pluginResponses, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
@@ -263,7 +263,7 @@ export class ChatEntryComponent implements OnChanges {
   @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+    return pluginResponses(this.ref, 'plugin/comment');
   }
 
   @memo
@@ -281,7 +281,7 @@ export class ChatEntryComponent implements OnChanges {
   @memo
   get threads() {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
+    return pluginResponses(this.ref, 'plugin/thread');
   }
 
   @memo
