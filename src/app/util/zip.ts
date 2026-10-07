@@ -68,6 +68,17 @@ export function getModels<T extends Cursor>(json?: string): T[] {
   });
 }
 
+export function isModelsJson(text?: string) {
+  if (!text?.trim()) return false;
+  try {
+    const json = JSON.parse(text);
+    const models = isArray(json) ? json : [json];
+    return !!models.length && models.every(m => !!m && typeof m === 'object' && !isArray(m));
+  } catch {
+    return false;
+  }
+}
+
 export function parseModels(file: File): Promise<FilteredModels> {
   if (file.name.toLowerCase().endsWith('.zip')) {
     return unzip(file).then(zip => Promise.all([
