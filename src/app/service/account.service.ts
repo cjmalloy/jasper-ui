@@ -282,7 +282,10 @@ export class AccountService {
             modifiedAfter: this.store.account.notificationCursors.get(this.store.account.origin),
           }).pipe(map(count => [count, count])));
         }
-        return counts.length ? forkJoin(counts) : of([]);
+        return from(counts).pipe(
+          mergeMap(count => count, CURSOR_CONCURRENCY),
+          toArray(),
+        );
       }),
     ).subscribe(counts => runInAction(() => {
       this.store.account.notifications = counts.reduce((sum, [count]) => sum + count, 0);
@@ -304,11 +307,14 @@ export class AccountService {
             modifiedAfter: this.store.account.notificationCursors.get(this.store.account.origin),
           });
         }
-        return forkJoin(queries.map(query => this.refs.page({
-          ...query,
-          sort: ['modified,ASC'],
-          size,
-        })));
+        return from(queries).pipe(
+          mergeMap(query => this.refs.page({
+            ...query,
+            sort: ['modified,ASC'],
+            size,
+          }), CURSOR_CONCURRENCY),
+          toArray(),
+        );
       }),
       map(pages => {
         const content = pages
