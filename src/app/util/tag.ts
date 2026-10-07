@@ -79,6 +79,35 @@ export function hasTag(tag: string | undefined, ref: Ref | string[] | undefined)
   return !!find(tags, t => expandedTagsInclude(t, tag)) !== not;
 }
 
+/**
+ * Like hasTag, but supports simple queries using : (and), | (or),
+ * ! (not) and () (groups).
+ */
+export function hasQuery(query: string | undefined, ref: Ref | string[] | undefined): boolean {
+  if (!query) return false;
+  const split = (q: string, op: string) => {
+    const result: string[] = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < q.length; i++) {
+      if (q[i] === '(') depth++;
+      if (q[i] === ')') depth--;
+      if (!depth && q[i] === op) {
+        result.push(q.substring(start, i));
+        start = i + 1;
+      }
+    }
+    result.push(q.substring(start));
+    return result.map(s => s.trim());
+  };
+  const term = (t: string): boolean => {
+    if (t.startsWith('!(') && t.endsWith(')')) return !hasQuery(t.substring(2, t.length - 1), ref);
+    if (t.startsWith('(') && t.endsWith(')')) return hasQuery(t.substring(1, t.length - 1), ref);
+    return hasTag(t, ref);
+  };
+  return !!split(query, '|').find(or => !split(or, ':').find(and => !term(and)));
+}
+
 export function addTags(ref: Ref, ...tags: string[]) {
   ref.tags ||= [];
   ref.tags = uniq([...ref.tags, ...tags]);

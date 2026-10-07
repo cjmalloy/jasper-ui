@@ -7,7 +7,7 @@ import { DateTime, Duration, DurationObjectUnits } from 'luxon';
 import { toJS } from 'mobx';
 import { v4 as uuid } from 'uuid';
 import { interestingTags } from '../util/format';
-import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
+import { hasAnyResponse, hasQuery, hasResponse, hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Ext, extSchema } from './ext';
 import { Plugin, pluginSchema } from './plugin';
@@ -237,7 +237,8 @@ export interface Visibility {
    */
   title?: string;
   /**
-   * Tag to show / hide.
+   * Tag to show / hide. May be a simple query using : (and), | (or),
+   * ! (not) and () (groups).
    */
   if?: string;
   /**
@@ -271,7 +272,7 @@ export interface Visibility {
 }
 
 export function visible(ref: Ref, v: Visibility, isAuthor: boolean, isRecipient: boolean) {
-  if (('if' in v) && !hasTag(v.if, ref)) return false;
+  if (('if' in v) && !hasQuery(v.if, ref)) return false;
   if (!v.visible) return true;
   if (isAuthor) return v.visible === 'author' || v.visible === 'participant';
   if (isRecipient) return v.visible === 'recipient' || v.visible === 'participant';

@@ -7681,6 +7681,28 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>World</source>
         <target>世界</target>
       </trans-unit>
+      <trans-unit id="1859490664999260998" datatype="html">
+        <source>Initialize a sub-origin by granting admin permissions in the
+      sub-origin to all users who have signed the origin.</source>
+        <target>オリジンに署名したすべてのユーザーにサブオリジンの管理者権限を付与して、
+      サブオリジンを初期化します。</target>
+      </trans-unit>
+      <trans-unit id="210075778207659076" datatype="html">
+        <source>Are you sure you want to make all signing users admins in the sub-origin?</source>
+        <target>署名したすべてのユーザーをサブオリジンの管理者にしてもよろしいですか？</target>
+      </trans-unit>
+      <trans-unit id="2370410813163896164" datatype="html">
+        <source>🏛️🔑️ Init Sub-Origin</source>
+        <target>🏛️🔑️ サブオリジン初期化</target>
+      </trans-unit>
+      <trans-unit id="5383104019191048440" datatype="html">
+        <source>init</source>
+        <target>初期化</target>
+      </trans-unit>
+      <trans-unit id="793596213163700451" datatype="html">
+        <source>Grant admin permissions in the sub-origin to all signing users.</source>
+        <target>署名したすべてのユーザーにサブオリジンの管理者権限を付与します。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
