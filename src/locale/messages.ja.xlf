@@ -4910,6 +4910,10 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>👨️‍💻️ Snippet</source>
         <target>👨️‍💻️ スニペット</target>
       </trans-unit>
+      <trans-unit id="6449481533239104192" datatype="html">
+        <source>Snippet:</source>
+        <target>スニペット:</target>
+      </trans-unit>
       <trans-unit id="5576030930420434791" datatype="html">
         <source>📟️ System</source>
         <target>📟️ システム</target>
