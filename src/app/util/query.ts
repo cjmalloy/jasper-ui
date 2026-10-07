@@ -163,7 +163,7 @@ export function getFilter(filter: `query/${string}`) {
 export function negate(query: string): string {
   if (isNegatedGroup(query)) return query.substring(2, query.length - 1);
   if (isGroup(query)) return '!' + query;
-  if (!/[:|()]/.test(query)) {
+  if (!/[:|()]/.test(fixClientQuery(query))) {
     // Single tag
     if (query.startsWith('!')) return query.substring(1);
     return '!' + query;
