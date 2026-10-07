@@ -1,4 +1,4 @@
-import { filter, find, flatMap, isArray, uniq, without } from 'lodash-es';
+import { filter, find, flatMap, isArray, pickBy, uniq, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -77,6 +77,14 @@ export function hasTag(tag: string | undefined, ref: Ref | string[] | undefined)
   const not = tag.startsWith('!');
   if (not) tag = tag.substring(1);
   return !!find(tags, t => expandedTagsInclude(t, tag)) !== not;
+}
+
+/**
+ * Keep only plugin data for tags present on the Ref. Plugin data is kept
+ * when the Ref has the plugin tag or any of its child tags.
+ */
+export function pickPlugins(plugins: Record<string, any> | undefined, tags: string[] | undefined): Record<string, any> {
+  return pickBy(plugins, (_, tag) => hasTag(tag, tags || []));
 }
 
 /**
