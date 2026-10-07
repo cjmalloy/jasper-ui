@@ -7681,13 +7681,13 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>World</source>
         <target>世界</target>
       </trans-unit>
-      <trans-unit id="4192599063937133271" datatype="html">
+      <trans-unit id="3414074061531423433" datatype="html">
         <source>Initialize a sub-origin by granting admin permissions in the
-      sub-origin to all users who have signed the origin, and creating a template
-      origin Ref in the sub-origin set up to push to it.</source>
+      sub-origin to all users who have signed the origin, and downloading a template
+      origin Ref set up to push to the sub-origin.</source>
         <target>オリジンに署名したすべてのユーザーにサブオリジンの管理者権限を付与し、
       サブオリジンへプッシュするよう設定されたテンプレートのオリジンRefを
-      サブオリジン内に作成して、サブオリジンを初期化します。</target>
+      ダウンロードして、サブオリジンを初期化します。</target>
       </trans-unit>
       <trans-unit id="210075778207659076" datatype="html">
         <source>Are you sure you want to make all signing users admins in the sub-origin?</source>

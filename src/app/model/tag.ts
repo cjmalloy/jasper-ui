@@ -7,7 +7,7 @@ import { DateTime, Duration, DurationObjectUnits } from 'luxon';
 import { toJS } from 'mobx';
 import { v4 as uuid } from 'uuid';
 import { interestingTags } from '../util/format';
-import { hasAnyResponse, hasQuery, hasResponse, hasTag, prefix } from '../util/tag';
+import { hasAnyResponse, hasQuery, hasResponse, hasTag, hasPrefix, prefix, subOrigin } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Ext, extSchema } from './ext';
 import { Plugin, pluginSchema } from './plugin';
@@ -428,7 +428,7 @@ export interface EditorButton {
   _on?: boolean;
 }
 
-export type Action = (TagAction | ResponseAction | EmitAction | EventAction) & {
+export type Action = (TagAction | ResponseAction | EmitAction | DownloadAction | EventAction) & {
   /**
    * Display confirm message.
    */
@@ -491,6 +491,17 @@ export interface EmitAction extends Visibility {
    * Emit the templated json models.
    */
   emit: string;
+  /**
+   * Handlebars template label.
+   */
+  label?: string;
+}
+
+export interface DownloadAction extends Visibility {
+  /**
+   * Download the templated json as a file.
+   */
+  download: string;
   /**
    * Handlebars template label.
    */
@@ -577,6 +588,10 @@ Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?
 Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
 Handlebars.registerHelper('interestingTags', (tags: string[]) => interestingTags(tags));
 Handlebars.registerHelper('hasTag', (tag: string | undefined, ref: Ref | string[] | undefined) => hasTag(tag, ref));
+Handlebars.registerHelper('json', (value: any) => JSON.stringify(value ?? null));
+Handlebars.registerHelper('subOrigin', (local?: string, origin?: string) => subOrigin(local, origin));
+Handlebars.registerHelper('userTags', (tags: string[]) => tags?.filter(t => hasPrefix(t, '+user') || hasPrefix(t, '_user')) || []);
+Handlebars.registerHelper('first', (array: any[]) => array?.[0]);
 Handlebars.registerHelper('tail', (text: string) => text.split('\n').pop()!.trim());
 Handlebars.registerHelper('eq', (v1, v2) => v1 === v2);
 Handlebars.registerHelper('ne', (v1, v2) => v1 !== v2);
@@ -612,6 +627,14 @@ export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
     user: user,
   });
   return filterModels(JSON.parse(hydrated));
+}
+
+export function downloadModel(action: DownloadAction, ref?: Ref, user?: string) {
+  return JSON.parse(hydrate(action, 'download', {
+    action: toJS(action),
+    ref: toJS(ref),
+    user: user,
+  }));
 }
 
 export function clear<T extends Config>(c: T) {

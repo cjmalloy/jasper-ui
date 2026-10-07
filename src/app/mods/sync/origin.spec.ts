@@ -1,6 +1,8 @@
 /// <reference types="vitest/globals" />
 import { Ref } from '../../model/ref';
-import { isReplicating, originInitPlugin } from './origin';
+import { DownloadAction, downloadModel } from '../../model/tag';
+import { cronPlugin } from '../system/script';
+import { isReplicating, originInitPlugin, originPushPlugin } from './origin';
 
 describe('OriginPlugin', () => {
   const ref = (url: string, origin: string, target: string, source = ''): Ref => ({
@@ -23,12 +25,10 @@ describe('OriginPlugin', () => {
 });
 
 describe('originInitPlugin', () => {
-  const run = async (ref: any, users: Record<string, any> = {}, refs: Record<string, any> = {}) => {
+  const run = async (ref: any, users: Record<string, any> = {}) => {
     const axios = {
       get: vi.fn(async (url: string, options: any) => {
-        const entity = url.endsWith('/ref')
-          ? refs[options.params.url + options.params.origin]
-          : users[options.params.tag];
+        const entity = users[options.params.tag];
         if (!entity) throw { response: { status: 404 } };
         return { data: entity };
       }),
@@ -70,7 +70,7 @@ describe('originInitPlugin', () => {
       '_user/bob@main.sub': { tag: '_user/bob', origin: '@main.sub', role: 'ROLE_USER', modified: '2021-01-01T00:00:00Z' },
     });
     expect(error).toBeNull();
-    expect(axios.post).toHaveBeenCalledTimes(2);
+    expect(axios.post).toHaveBeenCalledTimes(1);
     expect(axios.post).toHaveBeenCalledWith('http://jasper.test/api/v1/user', {
       tag: '+user/chris', origin: '@main.sub', name: 'Chris', role: 'ROLE_ADMIN',
       pubKey: 'key', authorizedKeys: 'ssh-rsa key', external: { ids: ['x'] },
@@ -79,34 +79,28 @@ describe('originInitPlugin', () => {
     expect(axios.put).toHaveBeenCalledWith('http://jasper.test/api/v1/user', {
       tag: '_user/bob', origin: '@main.sub', role: 'ROLE_ADMIN', modified: '2021-01-01T00:00:00Z',
     }, headers);
-    expect(axios.post).toHaveBeenCalledWith('http://jasper.test/api/v1/ref', {
-      url: 'spec:o',
-      origin: '@main.sub',
-      title: '@main.sub',
-      tags: ['public', 'internal', '+plugin/origin', '+plugin/origin/push', '+plugin/origin/tunnel'],
-      plugins: {
-        '+plugin/origin': { remote: '@main.sub' },
-        '+plugin/origin/push': { pushOnChange: true, cache: true },
-        '+plugin/origin/tunnel': { remoteUser: '+user/chris@main.sub' },
-      },
-    }, headers);
     const bundle = JSON.parse(log.mock.calls[0][0]);
     expect(bundle.ref[0].tags).toEqual(['+plugin/origin', '+user/chris', '_user/bob', 'public']);
     expect(bundle.ref[0].metadata).toBeUndefined();
   });
 
-  it('does not overwrite an existing template ref in the sub-origin', async () => {
-    const { axios, error } = await run({
-      url: 'spec:o',
-      origin: '',
-      tags: ['+plugin/origin', '+user/chris', '_plugin/delta/origin/init'],
+  it('downloads a template origin ref that pushes to the sub-origin', () => {
+    const model = downloadModel(originInitPlugin.config!.advancedActions![0] as DownloadAction, {
+      url: 'https://jasper.test/',
+      origin: '@main',
+      tags: ['+plugin/origin', 'public', '+user/chris', '_user/bob'],
       plugins: { '+plugin/origin': { local: '@sub' } },
-    }, {
-      '+user/chris@sub': { tag: '+user/chris', origin: '@sub', role: 'ROLE_ADMIN', modified: '2021-01-01T00:00:00Z' },
-    }, {
-      'spec:o@sub': { url: 'spec:o', origin: '@sub' },
     });
-    expect(error).toBeNull();
-    expect(axios.post).not.toHaveBeenCalledWith('http://jasper.test/api/v1/ref', expect.anything(), expect.anything());
+    expect(model).toEqual({
+      url: 'https://jasper.test/',
+      title: '@main.sub',
+      tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/push', '+plugin/origin/tunnel'],
+      plugins: {
+        '+plugin/cron': cronPlugin.defaults,
+        '+plugin/origin': { remote: '@main.sub' },
+        '+plugin/origin/push': originPushPlugin.defaults,
+        '+plugin/origin/tunnel': { remoteUser: '+user/chris@main.sub' },
+      },
+    });
   });
 });
