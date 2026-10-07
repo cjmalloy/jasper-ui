@@ -408,6 +408,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private insertItems(target: HTMLElement, items: ClipboardItem[]) {
+    if (target.closest('.monaco-editor')) return this.insertMonacoItems(target, items);
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       if (this.insertListItems(target, items)) return true;
       if (this.insertQueryItems(target, items)) return true;
@@ -431,6 +432,23 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       return true;
     }
     return false;
+  }
+
+  private insertMonacoItems(target: HTMLElement, items: ClipboardItem[]) {
+    const editor = this.monacoEditor(target);
+    const selections = editor?.getSelections?.();
+    if (!editor || !selections?.length) return false;
+    const markdown = editor.getModel?.()?.getLanguageId?.() === 'markdown';
+    const text = items.map(item => markdown ? this.editorText(item, this.itemText(item)) : this.plainText(item, target)).join('');
+    editor.executeEdits('jasper-clipboard', selections.map((range: any) => ({ range, text, forceMoveMarkers: true })));
+    editor.pushUndoStop?.();
+    return true;
+  }
+
+  private monacoEditor(target: HTMLElement): any {
+    const editors: any[] = (window as any).monaco?.editor?.getEditors?.() || [];
+    return editors.find(editor => editor.getContainerDomNode?.()?.contains(target))
+      || editors.find(editor => editor.getDomNode?.()?.contains(target));
   }
 
   private insertListItems(target: HTMLInputElement | HTMLTextAreaElement, items: ClipboardItem[]) {
