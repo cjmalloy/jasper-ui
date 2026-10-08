@@ -16,6 +16,14 @@ export class CsrfInterceptor implements HttpInterceptor {
     return document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='))?.split('=')?.[1] || '';
   }
 
+  private isCsrfError(err: any): boolean {
+    if (err.status !== 403) return false;
+    // Older servers send error.http.403, newer servers send error.accessDenied
+    const code = err.error?.message;
+    if (code && code !== 'error.accessDenied' && code !== 'error.http.403') return false;
+    return /CSRF token/i.test(err.error?.detail || '');
+  }
+
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     if (request.method === 'GET' || request.method === 'HEAD' || request.method === 'OPTIONS') {
       return next.handle(request);
@@ -27,7 +35,7 @@ export class CsrfInterceptor implements HttpInterceptor {
     });
     return next.handle(modifiedReq).pipe(
       catchError(err => {
-        if (!err.status || err.status === 403 && /CSRF token/i.test(err.error?.detail || '')) {
+        if (!err.status || this.isCsrfError(err)) {
           // Sometimes the first request has an invalid CSRF token and fails
           // Retry one more time
           console.warn('Retrying forbidden request with fresh CSRF token');

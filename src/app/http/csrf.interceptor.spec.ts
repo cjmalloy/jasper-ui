@@ -26,17 +26,32 @@ describe('CsrfInterceptor', () => {
     `Invalid CSRF Token 'x' was found on the request parameter '_csrf' or header 'X-XSRF-TOKEN'.`,
     'Could not verify the provided CSRF token because no token was found to compare.',
   ]) {
-    it(`retries once on 403: ${detail}`, () => {
-      const http = TestBed.inject(HttpClient);
-      const ctrl = TestBed.inject(HttpTestingController);
-      let result: any;
-      http.post('/api/v1/proxy', 'data').subscribe(res => result = res);
-      ctrl.expectOne('/api/v1/proxy').flush({ detail }, { status: 403, statusText: 'OK' });
-      ctrl.expectOne('/api/v1/proxy').flush({ ok: true });
-      expect(result).toEqual({ ok: true });
-      ctrl.verify();
-    });
+    for (const message of [undefined, 'error.http.403', 'error.accessDenied']) {
+      it(`retries once on 403 (${message}): ${detail}`, () => {
+        const http = TestBed.inject(HttpClient);
+        const ctrl = TestBed.inject(HttpTestingController);
+        let result: any;
+        http.post('/api/v1/proxy', 'data').subscribe(res => result = res);
+        ctrl.expectOne('/api/v1/proxy').flush({ detail, message }, { status: 403, statusText: 'OK' });
+        ctrl.expectOne('/api/v1/proxy').flush({ ok: true });
+        expect(result).toEqual({ ok: true });
+        ctrl.verify();
+      });
+    }
   }
+
+  it('does not retry 403s with a different error code', () => {
+    const http = TestBed.inject(HttpClient);
+    const ctrl = TestBed.inject(HttpTestingController);
+    let error: any;
+    http.post('/api/v1/ref', 'data').pipe(catchError(err => { error = err; return EMPTY; })).subscribe();
+    ctrl.expectOne('/api/v1/ref').flush({
+      detail: 'Invalid CSRF token in script output',
+      message: 'error.originForbidden',
+    }, { status: 403, statusText: 'OK' });
+    expect(error.status).toBe(403);
+    ctrl.verify();
+  });
 
   it('does not retry other 403s', () => {
     const http = TestBed.inject(HttpClient);
