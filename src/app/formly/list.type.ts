@@ -266,6 +266,9 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
       if (index === 0) {
         this.remove(index);
         this.focus(index);
+      } else if (this.props.keepBlank) {
+        this.remove(index);
+        this.focus(index - 1, true);
       } else {
         this.focus(index - 1, true);
       }
@@ -275,6 +278,9 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
       if (index === len - 1) {
         this.remove(index);
         this.focus(index - 1);
+      } else if (this.props.keepBlank) {
+        this.remove(index);
+        this.focus(index, true);
       } else {
         this.focus(index + 1, true);
       }
