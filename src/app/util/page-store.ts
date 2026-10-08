@@ -11,6 +11,7 @@ import { Page } from '../model/page';
  */
 export abstract class PageStore<A, T> {
   private readonly source = signal<() => A | undefined>(() => undefined);
+  private readonly shown = signal<(() => Page<T> | undefined) | undefined>(undefined);
 
   readonly args = computed(() => this.source()(), { equal: isEqual });
 
@@ -19,7 +20,11 @@ export abstract class PageStore<A, T> {
     stream: ({ params }) => this.load(params),
   });
 
-  readonly page = computed(() => this.resource.hasValue() ? this.resource.value() : undefined);
+  readonly page = computed(() => {
+    const shown = this.shown();
+    if (shown) return shown();
+    return this.resource.hasValue() ? this.resource.value() : undefined;
+  });
   readonly error = computed(() => this.resource.error() as HttpErrorResponse | undefined);
 
   protected abstract load(args: A): Observable<Page<T>>;
@@ -32,6 +37,18 @@ export abstract class PageStore<A, T> {
     this.source.set(args);
     inject(DestroyRef).onDestroy(() => {
       if (this.source() === args) this.source.set(() => undefined);
+    });
+  }
+
+  /**
+   * Show a page loaded by the calling component instead of loading pages from args,
+   * until the calling component is destroyed.
+   * Must be called in an injection context.
+   */
+  show(page: () => Page<T> | undefined) {
+    this.shown.set(page);
+    inject(DestroyRef).onDestroy(() => {
+      if (this.shown() === page) this.shown.set(undefined);
     });
   }
 

@@ -321,7 +321,7 @@ export class KanbanColumnComponent implements HasChanges {
         this.failed.update(failed => [...failed, { text, error: printError(err).join('\n') }]);
         return throwError(err);
       }),
-      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), ref.origin)),
     ).subscribe(cursor => {
       this.mutated.set(true);
       this.adding.update(adding => adding.filter(u => u.id !== uploadId));

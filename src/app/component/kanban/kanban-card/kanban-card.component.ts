@@ -291,14 +291,14 @@ export class KanbanCardComponent {
   toggleBadge(tag: string, event?: MouseEvent) {
     if (hasTag(tag, this.ref().tags)) {
       this.tags.delete(tag, this.ref().url, this.ref().origin).pipe(
-        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref().origin)),
       ).subscribe(() => {
         this.ref.update(ref => ({ ...ref, tags: ref.tags!.filter(t => expandedTagsInclude(t, tag)) }));
         this.init();
       });
     } else {
       this.tags.create(tag, this.ref().url, this.ref().origin).pipe(
-        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref().origin)),
       ).subscribe(() => {
         this.ref.update(ref => ({ ...ref, tags: [...(ref.tags || []), tag] }));
         this.init();
@@ -339,7 +339,7 @@ export class KanbanCardComponent {
         console.error(printError(err));
         return throwError(() => err);
       }),
-      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), copied.origin)),
       switchMap(() => this.refs.get(copied.url, this.store.account.origin()).pipe(takeUntilDestroyed(this.destroyRef))),
     ).subscribe(ref => {
       this.ref.set(ref);

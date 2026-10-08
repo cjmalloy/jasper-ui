@@ -19,7 +19,7 @@ export const csrfInterceptor: HttpInterceptorFn = (request, next) => {
   });
   return next(withToken()).pipe(
     catchError(err => {
-      if (!err.status || err.status === 403 && err.error?.detail?.startsWith('Invalid CSRF Token')) {
+      if (!err.status || err.status === 403 && /CSRF token/i.test(err.error?.detail || '')) {
         // Sometimes the first request has an invalid CSRF token and fails
         // Retry one more time
         console.warn('Retrying forbidden request with fresh CSRF token');

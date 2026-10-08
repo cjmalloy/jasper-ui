@@ -38,7 +38,7 @@ import {
   visible
 } from '../../../model/tag';
 import { deleteNotice } from '../../../mods/delete';
-import { getMailbox, mailboxes } from '../../../mods/mailbox';
+import { getMailbox, mailboxes, mapRemoteOrigin } from '../../../mods/mailbox';
 import { findArchive } from '../../../mods/tools/archive';
 import { RelativePipe } from '../../../pipe/relative.pipe';
 import { AdminService } from '../../../service/admin.service';
@@ -54,7 +54,7 @@ import { downloadRef } from '../../../util/download';
 import { controlState, scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
-import { hasTag, isAuthorTag, localTag, pluginResponses, removeTag, tagOrigin } from '../../../util/tag';
+import { hasTag, isAuthorTag, pluginResponses, removeTag, tagOrigin } from '../../../util/tag';
 import { ActionListComponent } from '../../action/action-list/action-list.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
@@ -251,7 +251,7 @@ export class BlogEntryComponent implements HasChanges {
     const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     return uniq([
       ...this.ref().tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
-      ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
+      ...authors(this.ref()).map(a => mapRemoteOrigin(a, this.ref().origin || '', this.store.account.origin(), lookup)),
     ]);
   });
 

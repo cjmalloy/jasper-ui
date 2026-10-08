@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { Ref } from '../model/ref';
-import { getMailbox, isMailbox, mailboxes, notifications } from './mailbox';
+import { addressedTo, cursorSettingsUrl, getMailbox, isMailbox, mailboxes, mapRemoteOrigin, notifications } from './mailbox';
 
 describe('MailboxPlugin', () => {
   it('isMailbox', () => {
@@ -33,6 +33,12 @@ describe('MailboxPlugin', () => {
     expect(getMailbox('user/bob@test', '')).toEqual('plugin/outbox/test/user/bob');
     expect(getMailbox('+user/bob@test', '')).toEqual('plugin/outbox/test/user/bob');
     expect(getMailbox('_user/bob@test', '')).toEqual('plugin/outbox/test/user/bob');
+  });
+  it('uses reverse-origin cursor settings URLs', () => {
+    expect(cursorSettingsUrl('', '')).toEqual('tag:/plugin/inbox');
+    expect(cursorSettingsUrl('@city', '')).toEqual('tag:/plugin/outbox/city');
+    expect(cursorSettingsUrl('@city.home', '')).toEqual('tag:/plugin/outbox/city.home');
+    expect(cursorSettingsUrl('@home.city', '@home')).toEqual('tag:/plugin/outbox/city');
   });
   it('getLocalMailbox', () => {
     expect(getMailbox('plugin/inbox/user/bob', '')).toEqual('plugin/inbox/user/bob');
@@ -79,5 +85,37 @@ describe('MailboxPlugin', () => {
     expect(mailboxes(refAt('@test', 'plugin/outbox/a/user/alice'), '+user', lookup)).toEqual(['plugin/outbox/b/user/alice']);
     expect(mailboxes(refAt('@test', '+user/alice', 'plugin/inbox/user/bob'), '+user', lookup)).toEqual(['plugin/outbox/test/user/alice', 'plugin/outbox/test/user/bob']);
     expect(mailboxes(refAt('@test', 'plugin/outbox/a/user/alice', 'plugin/outbox/c/user/bob'), '+user', lookup)).toEqual(['plugin/outbox/b/user/alice', 'plugin/outbox/d/user/bob']);
+  });
+
+  describe('mapRemoteOrigin', () => {
+    const ref: Ref = {
+      url: 'comment:c',
+      origin: '@city.eggnog',
+      tags: ['+user/bob', 'plugin/outbox/city/user/chris', 'plugin/inbox/user/chris'],
+    };
+    const lookup = new Map([['@city', '@city'], ['@main', '']]);
+
+    it('maps outbox recipients using the remote origin names', () => {
+      expect(addressedTo(ref).map(t => mapRemoteOrigin(t, ref.origin!, '', lookup))).toEqual([
+        '+user/chris@city',
+        '+user/chris@city.eggnog',
+      ]);
+    });
+
+    it('maps remote aliases for this origin', () => {
+      expect(mapRemoteOrigin('+user/chris@city.eggnog.main', '@city.eggnog', '', lookup)).toBe('+user/chris');
+    });
+
+    it('resolves mapped origins under a multi-tenant root', () => {
+      expect(mapRemoteOrigin('+user/chris@mt.city.eggnog.city', '@mt.city.eggnog', '@mt', lookup)).toBe('+user/chris@mt.city');
+      expect(mapRemoteOrigin('+user/chris@mt.city.eggnog.main', '@mt.city.eggnog', '@mt', lookup)).toBe('+user/chris@mt');
+    });
+
+    it('keeps tags without a mapping', () => {
+      expect(mapRemoteOrigin('+user/chris@city.eggnog.other', '@city.eggnog', '', lookup)).toBe('+user/chris@city.eggnog.other');
+      expect(mapRemoteOrigin('+user/chris@city.eggnog', '@city.eggnog', '', lookup)).toBe('+user/chris@city.eggnog');
+      expect(mapRemoteOrigin('+user/chris@city', '', '', lookup)).toBe('+user/chris@city');
+      expect(mapRemoteOrigin('+user/chris@city.eggnog.city', '@city.eggnog', '')).toBe('+user/chris@city.eggnog.city');
+    });
   });
 });

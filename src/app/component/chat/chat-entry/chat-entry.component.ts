@@ -10,6 +10,7 @@ import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TitleDirective } from '../../../directive/title.directive';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
+import { mapRemoteOrigin } from '../../../mods/mailbox';
 import { RelativePipe } from '../../../pipe/relative.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
@@ -20,7 +21,7 @@ import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 import { authors, clickableLink, formatAuthor, getNiceTitle } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, localTag, pluginResponses, tagOrigin } from '../../../util/tag';
+import { hasTag, pluginResponses, tagOrigin } from '../../../util/tag';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -105,7 +106,7 @@ export class ChatEntryComponent {
     const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     return uniq([
       ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
-      ...authors(this.ref()).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
+      ...authors(this.ref()).map(a => mapRemoteOrigin(a, this.ref().origin || '', this.store.account.origin(), lookup)),
     ]);
   });
 

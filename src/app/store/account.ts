@@ -18,6 +18,11 @@ export class AccountStore {
   readonly defaultConfig = signal<UserConfig>({});
   readonly ignoreNotifications = signal<number[]>([]);
   /**
+   * Notification read cursors keyed by origin.
+   */
+  readonly notificationCursors = new Map<string, string>();
+
+  /**
    * Is admin.
    * Owns everything.
    * Limited to origin and sub origins.
@@ -170,6 +175,15 @@ export class AccountStore {
       .map(([remote, localAlias]) => setPublic(prefix('plugin/outbox', localAlias, this.localTag())) + remote);
   });
 
+  readonly aliasMailboxes = computed((): string[] => {
+    if (!this.signedIn()) return [];
+    const local = this.localTag();
+    return uniq(this.origins.accountAliases()
+      .filter(alias => (alias.from || '') === (this.origin() || ''))
+      .filter(alias => local === alias.local || local.startsWith(alias.local + '/'))
+      .map(alias => getMailbox(alias.remote + local.substring(alias.local.length), alias.origin) + alias.origin));
+  });
+
   readonly inboxQuery = computed(() => {
     if (!this.signedIn()) return '';
     let tags = [this.mailbox()];
@@ -178,6 +192,7 @@ export class AccountStore {
     }
     tags.push(...this.modmail() || []);
     tags.push(...this.outboxes() || []);
+    tags.push(...this.aliasMailboxes());
     return uniq(tags).join('|');
   });
 
