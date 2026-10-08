@@ -1,8 +1,12 @@
 import { Ref } from '../model/ref';
 import {
   addPluginResponse,
+  andQueries,
+  braces,
   hasAnyResponse,
   hasQuery,
+  isGroup,
+  isNegatedGroup,
   localPluginResponses,
   pickPlugins,
   pluginResponses,
@@ -24,6 +28,52 @@ describe('Tag Utils', () => {
     expect(hasQuery('+plugin/origin:(+user|_user)', ['+plugin/origin'])).toBe(false);
     expect(hasQuery('missing|public', tags)).toBe(true);
     expect(hasQuery('public:!(missing|+user)', tags)).toBe(false);
+  });
+
+  describe('isGroup', () => {
+    it('should detect groups covering the whole query', () => {
+      expect(isGroup('(a|b)')).toBe(true);
+      expect(isGroup('((a|b):c)')).toBe(true);
+      expect(isGroup('(a|b):(c|d)')).toBe(false);
+      expect(isGroup('a|b')).toBe(false);
+      expect(isGroup('!(a|b)')).toBe(false);
+    });
+
+    it('should detect negated groups covering the whole query', () => {
+      expect(isNegatedGroup('!(a|b)')).toBe(true);
+      expect(isNegatedGroup('!(a|b):(c)')).toBe(false);
+      expect(isNegatedGroup('!a')).toBe(false);
+    });
+  });
+
+  describe('braces', () => {
+    it('should wrap OR queries', () => {
+      expect(braces('a|b')).toBe('(a|b)');
+      expect(braces('a:b')).toBe('a:b');
+    });
+
+    it('should not wrap whole query groups', () => {
+      expect(braces('(a|b)')).toBe('(a|b)');
+      expect(braces('!(a|b)')).toBe('!(a|b)');
+      expect(braces('!(a|b):c|d')).toBe('(!(a|b):c|d)');
+    });
+
+    it('should only wrap top level OR queries', () => {
+      expect(braces('(a|b):c')).toBe('(a|b):c');
+      expect(braces('!(a|b):(c|d)')).toBe('!(a|b):(c|d)');
+    });
+  });
+
+  describe('andQueries', () => {
+    it('should join with braces', () => {
+      expect(andQueries(['a|b', '', 'c'])).toBe('(a|b):c');
+      expect(andQueries(['(a|b):c', 'd'])).toBe('(a|b):c:d');
+    });
+
+    it('should nest top level OR queries with groups', () => {
+      expect(andQueries(['!(a|b)|c', 'd'])).toBe('(!(a|b)|c):d');
+      expect(andQueries(['!(a|b)|c', 'd|e'])).toBe('(!(a|b)|c):(d|e)');
+    });
   });
 
   describe('removeTag', () => {

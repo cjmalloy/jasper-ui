@@ -335,11 +335,45 @@ export function getPrefixes(tag: string) {
   return [tag, '+' + tag, '_' + tag].map(t => not ? '!' + t : t);
 }
 
+export function isGroup(query: string) {
+  if (!query?.startsWith('(') || !query.endsWith(')')) return false;
+  let depth = 0;
+  for (let i = 0; i < query.length; i++) {
+    if (query[i] === '(') depth++;
+    else if (query[i] === ')') depth--;
+    if (!depth && i < query.length - 1) return false;
+  }
+  return !depth;
+}
+
+export function isNegatedGroup(query: string) {
+  return !!query?.startsWith('!') && isGroup(query.substring(1));
+}
+
+export function splitTop(query: string, separator: ':' | '|') {
+  const result: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < query.length; i++) {
+    if (query[i] === '(') depth++;
+    else if (query[i] === ')') depth--;
+    else if (!depth && query[i] === separator) {
+      result.push(query.substring(start, i));
+      start = i + 1;
+    }
+  }
+  result.push(query.substring(start));
+  return result;
+}
+
 export function braces(query: string) {
   if (!query) return '';
-  if (!query.includes('|')) return query;
-  if (query.startsWith('(') && query.endsWith(')') && !query.substring(1, query.length-2).includes('(')) return query;
+  if (splitTop(fixClientQuery(query), '|').length < 2) return query;
   return `(${query})`;
+}
+
+export function andQueries(queries: string[]) {
+  return queries.filter(q => !!q).map(braces).join(':');
 }
 
 export function fixClientQuery(query: string) {
