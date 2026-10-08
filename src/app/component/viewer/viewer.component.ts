@@ -323,7 +323,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (oembed?.url && oembed?.type === 'photo') {
       // Image embed
       this.tags = without(this.currentTags, 'plugin/embed');
-      this.image = embedUrl(oembed.url);
+      if (this.admin.getPlugin('plugin/image')) this.image = embedUrl(oembed.url);
       MemoCache.clear(this);
     } else if (this.iframe) {
       const i = this.iframe.nativeElement;
@@ -493,6 +493,7 @@ return '67vh';
 
   @memo
   get imageUrl() {
+    if (!this.admin.getPlugin('plugin/image')) return '';
     if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {

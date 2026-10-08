@@ -6,6 +6,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { MarkdownModule } from 'ngx-markdown';
 
+import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
 import { createEmbed, EMBED_NESTING } from '../../util/embed';
 import { EmbedPlaceholderComponent } from '../embed-placeholder/embed-placeholder.component';
@@ -35,6 +36,20 @@ describe('ViewerComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('does not show an image when the image mod is not installed', () => {
+    vi.spyOn(TestBed.inject(AdminService), 'getPlugin').mockReturnValue(undefined);
+    component.ref = { url: 'https://example.com/a.png', origin: '', tags: ['plugin/image'] };
+    component.init();
+    expect(component.imageUrl).toBe('');
+  });
+
+  it('shows an image when the image mod is installed', () => {
+    vi.spyOn(TestBed.inject(AdminService), 'getPlugin').mockImplementation((tag: string) => tag === 'plugin/image' ? { tag } as any : undefined);
+    component.ref = { url: 'https://example.com/a.png', origin: '', tags: ['plugin/image'] };
+    component.init();
+    expect(component.imageUrl).toBe('https://example.com/a.png');
   });
 
   it('scopes nesting to each embedded viewer and its descendants', () => {
