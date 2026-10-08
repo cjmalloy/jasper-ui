@@ -475,7 +475,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   private addMarkers(map: Map) {
-    this.mapData.forEach(entry => {
+    [...this.mapData].reverse().forEach(entry => {
       const [ref] = entry;
       const pointFeature = ref.plugins?.['plugin/geo/point'];
       if (pointFeature?.geometry?.type === 'Point' && hasLocation(pointFeature.geometry?.coordinates)) {
