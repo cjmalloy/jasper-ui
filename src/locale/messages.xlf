@@ -12863,34 +12863,6 @@ F: Fullscreen toggle
           <context context-type="linenumber">14,16</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="4085379302578068299" datatype="html">
-        <source>clear progress</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/progress.ts</context>
-          <context context-type="linenumber">18</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4121213111922941595" datatype="html">
-        <source>Remove stale progress from this Ref.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/progress.ts</context>
-          <context context-type="linenumber">18</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4461197992128768476" datatype="html">
-        <source>unseal</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/progress.ts</context>
-          <context context-type="linenumber">19</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="1700734768512893295" datatype="html">
-        <source>Allow delta scripts to run on this Ref again.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/progress.ts</context>
-          <context context-type="linenumber">19</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="8364769844938903404" datatype="html">
         <source>↪️ Repost</source>
         <context-group purpose="location">

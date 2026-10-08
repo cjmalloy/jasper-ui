@@ -7753,22 +7753,6 @@ Each response contains the converted Markdown from a specific source format.</so
       進捗を報告するスクリプトは、更新によってデルタスクリプトが再実行されないように
       _seal/delta タグも追加してください。</target>
       </trans-unit>
-      <trans-unit id="4085379302578068299" datatype="html">
-        <source>clear progress</source>
-        <target>進捗をクリア</target>
-      </trans-unit>
-      <trans-unit id="4121213111922941595" datatype="html">
-        <source>Remove stale progress from this Ref.</source>
-        <target>このRefから古い進捗を削除します。</target>
-      </trans-unit>
-      <trans-unit id="4461197992128768476" datatype="html">
-        <source>unseal</source>
-        <target>封印解除</target>
-      </trans-unit>
-      <trans-unit id="1700734768512893295" datatype="html">
-        <source>Allow delta scripts to run on this Ref again.</source>
-        <target>このRefでデルタスクリプトを再び実行できるようにします。</target>
-      </trans-unit>
     </body>
   </file>
 </xliff>

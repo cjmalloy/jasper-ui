@@ -14,10 +14,6 @@ export const progressPlugin: Plugin = {
     description: $localize`Stores progress in the tag itself (e.g., plugin/progress/37/100 is 37%).
       Scripts reporting progress should also add the _seal/delta tag to prevent the update from
       running delta scripts again.`,
-    advancedActions: [
-      { tag: 'plugin/progress', labelOn: $localize`clear progress`, title: $localize`Remove stale progress from this Ref.` },
-      { tag: '_seal/delta', labelOn: $localize`unseal`, title: $localize`Allow delta scripts to run on this Ref again.`, role: 'ROLE_MOD' },
-    ],
     // language=CSS
     css: `
       .info-progress progress {
