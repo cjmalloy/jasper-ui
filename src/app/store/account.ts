@@ -184,7 +184,13 @@ export class AccountStore {
     return uniq(this.origins.accountAliases
       .filter(alias => (alias.from || '') === (this.origin || ''))
       .filter(alias => local === alias.local || local.startsWith(alias.local + '/'))
-      .map(alias => getMailbox(alias.remote + local.substring(alias.local.length), alias.origin) + alias.origin));
+      .flatMap(alias => {
+        const remote = alias.remote + local.substring(alias.local.length);
+        return [
+          getMailbox(remote, alias.origin) + alias.origin,
+          getMailbox(remote + alias.origin, this.origin) + (this.origin || '@'),
+        ];
+      }));
   }
 
   get inboxQuery() {

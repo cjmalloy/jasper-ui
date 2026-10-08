@@ -170,6 +170,23 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
     await expectNotified(page, title);
   });
 
+  test('@\u{ff20}main : DM to alias charlie shows in Alice DMs', async ({ page }) => {
+    const title = `DM to charlie ${runId}`;
+    await page.goto(`/submit/dm?debug=USER&tag=bob&to=${encodeURIComponent('+user/charlie@repl')}`);
+    await expect(page.locator('.settings .author')).toHaveText('bob');
+    await page.locator('#title').fill(title);
+    const submitPromise = page.waitForResponse(isRefPost);
+    await page.locator('button', { hasText: 'Send' }).click({ force: true });
+    await submitPromise;
+    await page.goto('/inbox/dms?debug=ADMIN&tag=alice', { waitUntil: 'networkidle' });
+    await expect(page.locator('.ref-list .link', { hasText: title })).toBeVisible();
+    await pollNotifications(page, 'alice');
+    await page.locator('.settings .notification').click();
+    await expect(page.locator('.ref-list .link', { hasText: title })).toBeVisible();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await expectNoNotifications(page);
+  });
+
   test('@\u{ff20}main : remove alias dave', async ({ request }) => {
     const params = { url: replApi, origin: '' };
     const res = await request.get(`${mainApi}/api/v1/ref`, { headers: await headers(request), params });

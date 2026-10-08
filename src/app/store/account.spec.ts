@@ -52,7 +52,7 @@ describe('AccountStore notifications', () => {
       { from: '', origin: '@repl', local: '+user/alicia', remote: '+user/eve' },
       { from: '@b', origin: '@c', local: '+user/alice', remote: '+user/mallory' },
     ];
-    expect(store.aliasMailboxes).toEqual(['plugin/inbox/user/charlie@repl']);
-    expect(store.inboxQuery).toBe('plugin/inbox/user/alice@|plugin/inbox/user/charlie@repl');
+    expect(store.aliasMailboxes).toEqual(['plugin/inbox/user/charlie@repl', 'plugin/outbox/repl/user/charlie@']);
+    expect(store.inboxQuery).toBe('plugin/inbox/user/alice@|plugin/inbox/user/charlie@repl|plugin/outbox/repl/user/charlie@');
   });
 });
