@@ -4,6 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Ref } from '../model/ref';
+import { addressedTo, mapRemoteOrigin } from '../mods/mailbox';
 
 import { OriginMapService } from './origin-map.service';
 
@@ -184,6 +185,18 @@ describe('OriginMapService', () => {
 
         // eggnog (our mirror) pulls foo into @eggnog.foo, which pulls bar
         expect(originMap().get('@city.eggnog.foo')?.get('@bar')).toBe('@bar');
+      });
+
+      it('displays recipients of a comment mirrored through eggnog', () => {
+        setOrigins([desktopPullCity, desktopPushEggnog, cityPullEggnog]);
+        setApi('http://localhost:8081');
+        setLocal('');
+        const tags = ['+user/bob', 'internal', 'plugin/comment', 'public', 'plugin/outbox/city/user/chris', 'plugin/inbox/user/chris'];
+        const recipients = (ref: Ref) => addressedTo(ref)
+          .map(t => mapRemoteOrigin(t, ref.origin || '', '', originMap().get(ref.origin || '')));
+
+        expect(recipients({ url: 'comment:6cc', origin: '', tags })).toEqual(['+user/chris@city', '+user/chris']);
+        expect(recipients({ url: 'comment:6cc', origin: '@city.eggnog', tags })).toEqual(['+user/chris@city', '+user/chris@city.eggnog']);
       });
 
       it('works for a multi-tenant root origin', () => {
