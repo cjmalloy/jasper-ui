@@ -100,6 +100,24 @@ describe('OriginMapService', () => {
       expect(originMap().get('@remote.a')?.get('@remote.b')).toBe('@remote.b');
       expect(originMap().get('@remote.b')?.get('@remote.a')).toBe('@remote.a');
     });
+    it('should map remote aliases for nested origins and this origin', () => {
+      setOrigins([
+        // Main -> City
+        ref('spec:city', '', '@city'),
+        // City -> Eggnog, replicated through City
+        ref('spec:eggnog', '@city', '@eggnog'),
+        // Eggnog -> City
+        ref('spec:city', '@city.eggnog', '@city'),
+        // Eggnog -> Main
+        ref('spec:test', '@city.eggnog', '@main'),
+      ]);
+      setApi('spec:test');
+      setLocal('');
+
+      expect(originMap().get('@city.eggnog')?.get('@city')).toBe('@city');
+      expect(originMap().get('@city.eggnog')?.get('@main')).toBe('');
+      expect(originMap().get('@city.eggnog')?.has('@other')).toBe(false);
+    });
   });
 
   describe('account aliases', () => {

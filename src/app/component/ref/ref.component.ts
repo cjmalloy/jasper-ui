@@ -39,7 +39,7 @@ import { getPluginScope, Plugin } from '../../model/plugin';
 import { equalsRef, isRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
-import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
+import { addressedTo, getMailbox, mailboxes, mapRemoteOrigin } from '../../mods/mailbox';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { isInlineSvg, ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
@@ -85,14 +85,12 @@ import {
   hasUserUrlResponse,
   isAuthorTag,
   localPluginResponses,
-  localTag,
   pickPlugins,
   pluginResponses,
   remotePlugins,
   removeTag,
   repost,
   subOrigin,
-  tagOrigin,
   top
 } from '../../util/tag';
 import { ActionListComponent } from '../action/action-list/action-list.component';
@@ -895,7 +893,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return uniq([
       ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
-      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
+      ...authors(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', lookup)),
     ]);
   }
 
@@ -907,10 +905,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get recipients() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
-    const userRecipients = without(addressedTo(this.ref), ...this.authors).map(a => {
-      if (!tagOrigin(a)) return a;
-      return localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a));
-    });
+    const userRecipients = without(addressedTo(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', lookup)), ...this.authors);
     return [
       ...userRecipients,
       ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],

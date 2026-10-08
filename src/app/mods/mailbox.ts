@@ -115,6 +115,17 @@ export function reverseOrigin(tag: string, rootOrigin: string): string {
   return prefix + tag.substring(len + 1) + subOrigin(rootOrigin, tag.substring(0, len));
 }
 
+/**
+ * Translate a tag from the reverse origin syntax of a remote origin into a local alias
+ * using the origin map lookup for that remote.
+ */
+export function mapRemoteOrigin(tag: string, origin: string, lookup?: Map<string, string>): string {
+  const remote = tagOrigin(tag);
+  if (!remote || !origin || !lookup || !remote.startsWith(origin + '.')) return tag;
+  const mapped = lookup.get(removeParentOrigin(remote, origin));
+  return mapped === undefined ? tag : localTag(tag) + mapped;
+}
+
 export function getMailbox(tag: string, local: string): string {
   if (hasPrefix(tag, 'plugin/inbox') || hasPrefix(tag, 'plugin/outbox')) return localTag(tag);
   const origin = tagOrigin(tag);

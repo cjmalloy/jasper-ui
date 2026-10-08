@@ -139,27 +139,29 @@ export class OriginMapService {
 
   /**
    * Maps local-alias -> remote-alias -> local-alias.
+   * Includes nested origins and remote aliases that point back to this origin.
    */
   private get originMap(): Map<string, Map<string, string>> {
     const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
-    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    const me = this.store.account.origin || '';
+    const selfApis = this.selfApis;
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => (remote.origin || '') === origin);
     const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
-    const findLocalAlias = (url: string) => remotesForOrigin(this.store.account.origin)
-      .filter(remote => trimUrl(remote.url) === url)
-      [0] || undefined;
-    const originMapFor = (remote: Ref): Map<string, string> => new Map(
-      remotesForOrigin(subOrigin(this.store.account.origin, config(remote)?.local))
-        .filter(nested => findLocalAlias(trimUrl(nested.url)) !== undefined)
-        .map(nested => [
-          config(nested)?.local || '',
-          config(findLocalAlias(trimUrl(nested.url))!)?.local || ''
-        ]));
-    return new Map(
-      remotesForOrigin(this.store.account.origin || '')
-        .map(remote => [
-          subOrigin(this.store.account.origin, config(remote)?.local),
-          originMapFor(remote)
-        ]));
+    const findLocalAlias = (url: string) => remotesForOrigin(me).find(remote => trimUrl(remote.url) === url);
+    const resolve = (nested: Ref): string | undefined => {
+      if (isReplicating(me, nested, selfApis)) return me;
+      const alias = findLocalAlias(trimUrl(nested.url));
+      return alias ? config(alias)?.local || '' : undefined;
+    };
+    const originMapFor = (origin: string): Map<string, string> => new Map(
+      remotesForOrigin(origin)
+        .map(nested => [config(nested)?.local || '', resolve(nested)])
+        .filter(([, mapped]) => mapped !== undefined) as [string, string][]);
+    const isSubOrigin = (origin: string) => origin !== me && (!me || origin.startsWith(me + '.'));
+    return new Map(uniq([
+      ...remotesForOrigin(me).map(remote => subOrigin(me, config(remote)?.local)),
+      ...this.origins.map(remote => remote.origin || '').filter(isSubOrigin),
+    ]).map(origin => [origin, originMapFor(origin)]));
   }
 
   /**
