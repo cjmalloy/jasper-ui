@@ -7,7 +7,7 @@ export const dalleQueryPlugin: Plugin = {
   name: $localize`👨️‍🎨️💭️ Ask DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
-    version: 3,
+    version: 4,
     type: 'tool',
     default: false,
     add: true,
@@ -212,7 +212,7 @@ export const dalleQueryPlugin: Plugin = {
           }],
         }));
       }
-    `,
+    `.replace(/^ {6}/gm, ''),
     advancedForm: [{
       key: 'provider',
       type: 'select',

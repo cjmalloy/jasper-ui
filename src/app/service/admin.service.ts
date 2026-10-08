@@ -6,6 +6,7 @@ import { runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { aiInstructionsAdminField, configAdminFallback } from '../form/admin-config/config-admin-forms';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -926,11 +927,17 @@ export class AdminService {
   }
 
   getPluginAdminForm(tag: string, field: 'adminForm' | 'advancedAdminForm' = 'adminForm'): FormlyFieldConfig[] {
-    return this.getPlugin(tag)?.config?.[field] || [];
+    const config = this.getPlugin(tag)?.config;
+    const form = config?.[field] || [];
+    if (field !== 'adminForm') return form;
+    return withAiInstructions(form, config);
   }
 
   getTemplateAdminForm(tag: string, field: 'adminForm' | 'advancedAdminForm' = 'adminForm'): FormlyFieldConfig[] {
-    return this.getTemplate(tag)?.config?.[field] || [];
+    const config = this.getTemplate(tag)?.config;
+    const form = config?.[field] || [];
+    if (field !== 'adminForm') return form;
+    return withAiInstructions(form.length ? form : configAdminFallback(tag) || [], config);
   }
 
   getDefaults(tag = ''): any {
@@ -1203,4 +1210,10 @@ export class AdminService {
 
 function addParent(c: Config) {
   return <T>(a: T): T & { _parent: Config } => ({ ...a, _parent: c });
+}
+
+function withAiInstructions(form: FormlyFieldConfig[], config?: Config['config']): FormlyFieldConfig[] {
+  if (typeof config?.aiInstructions !== 'string') return form;
+  if (form.find(f => f.key === aiInstructionsAdminField.key)) return form;
+  return [...form, aiInstructionsAdminField];
 }

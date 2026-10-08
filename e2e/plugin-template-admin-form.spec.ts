@@ -31,6 +31,7 @@ test.describe.serial('Plugin/Template Admin Form', () => {
           config: {
             title: 'before',
             other: true,
+            aiInstructions: '# Admin Form Test',
             adminForm: [{ key: 'title', type: 'string', props: { label: 'Admin Title:' } }],
             advancedAdminForm: [{ key: 'script', type: 'code', props: { label: 'Script:' } }],
           },
@@ -47,8 +48,10 @@ test.describe.serial('Plugin/Template Admin Form', () => {
       await expect(item).toHaveCount(1);
       await item.locator('.actions .fake-link', { hasText: 'edit' }).click();
 
-      const title = item.locator('.admin-form input');
+      const title = item.locator('.admin-form input[name=title]');
       await expect(title).toHaveValue('before');
+      await expect(item.locator('.admin-form .editor-field')).toHaveCount(1);
+      await expect(item.locator('.admin-form .editor-field textarea')).toHaveValue('# Admin Form Test');
       const advanced = item.locator('details.admin-advanced');
       await expect(advanced).not.toHaveAttribute('open');
       await expect(advanced.locator('.json-editor')).toHaveCount(1);
@@ -67,6 +70,18 @@ test.describe.serial('Plugin/Template Admin Form', () => {
       expect(saved.config.title).toBe('after');
       expect(saved.config.other).toBe(true);
       expect(saved.config.adminForm).toHaveLength(1);
+      expect(saved.config.aiInstructions).toBe('# Admin Form Test');
     });
   }
+
+  test('fallback admin form for server config template', async ({ page }) => {
+    await page.goto('/settings/template?debug=ADMIN&search=_config/server', { waitUntil: 'networkidle' });
+    const item = page.locator('.template.list-item').filter({ hasText: '_config/server' }).first();
+    await expect(item).toBeVisible();
+    await item.locator('.actions .fake-link', { hasText: 'edit' }).click();
+
+    await expect(item.locator('.admin-form input[name=emailHost]')).toBeVisible();
+    await expect(item.locator('.admin-form input[name=maxSources]')).toHaveAttribute('type', 'number');
+    await expect(item.locator('details.admin-advanced .json-editor')).toHaveCount(1);
+  });
 });

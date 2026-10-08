@@ -8,7 +8,7 @@ export const naviQueryPlugin: Plugin = {
   name: $localize`👻️💭️ Ask Navi`,
   config: {
     mod: $localize`👻️ Navi Chat`,
-    version: 3,
+    version: 4,
     type: 'tool',
     default: false,
     add: true,
@@ -200,7 +200,7 @@ export const naviQueryPlugin: Plugin = {
         ].filter(uniq).filter(s => !sources.includes(s))
       ].filter(s => !!s);
       console.log(JSON.stringify(bundle));
-    `
+    `.replace(/^ {6}/gm, '')
   }
 };
 

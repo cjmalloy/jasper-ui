@@ -7,7 +7,7 @@ export const neoQueryPlugin: Plugin = {
   name: $localize`🍌️💭️ Ask Neo Banana`,
   config: {
     mod: $localize`🍌️ Neo Banana`,
-    version: 2,
+    version: 3,
     type: 'tool',
     default: false,
     add: true,
@@ -135,7 +135,7 @@ export const neoQueryPlugin: Plugin = {
         });
       }
       console.log(JSON.stringify({ ref: refs }));
-    `,
+    `.replace(/^ {6}/gm, ''),
     advancedForm: [{
       key: 'apiKeyTag',
       type: 'tag',

@@ -36,6 +36,27 @@ describe('AdminService', () => {
     expect(service.getTemplateAdminForm('parent', 'advancedAdminForm').map(f => f.key)).toEqual(['b']);
   });
 
+  it('should fall back to hard coded config admin forms', () => {
+    expect(service.getTemplateAdminForm('_config/index').map(f => f.key)).toContain('fulltext');
+    expect(service.getTemplateAdminForm('_config/security').map(f => f.key)).toContain('minRole');
+    expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toContain('scriptSelectors');
+    expect(service.getTemplateAdminForm('_config/server/worker').map(f => f.key)).toContain('scriptSelectors');
+    expect(service.getTemplateAdminForm('_config/server', 'advancedAdminForm')).toEqual([]);
+    expect(service.getTemplateAdminForm('_config/other')).toEqual([]);
+    service.status.templates['_config/server'] = { tag: '_config/server', config: { adminForm: [{ key: 'a' }] } };
+    expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toEqual(['a']);
+  });
+
+  it('should add a markdown editor for ai instructions', () => {
+    service.status.plugins['plugin/test'] = { tag: 'plugin/test', config: { aiInstructions: '# test' } } as any;
+    service.status.plugins['plugin/script'] = { tag: 'plugin/script', config: { aiInstructions: '# test', adminForm: [{ key: 'script' }] } } as any;
+    service.status.templates['test'] = { tag: 'test', config: { aiInstructions: '# test' } };
+    expect(service.getPluginAdminForm('plugin/test').map(f => [f.key, f.type])).toEqual([['aiInstructions', 'editor']]);
+    expect(service.getPluginAdminForm('plugin/script').map(f => f.key)).toEqual(['script', 'aiInstructions']);
+    expect(service.getPluginAdminForm('plugin/test', 'advancedAdminForm')).toEqual([]);
+    expect(service.getTemplateAdminForm('test').map(f => f.key)).toEqual(['aiInstructions']);
+  });
+
   it('should keep formly expressions serializable for built-in mods', () => {
     expect(userTemplate.config?.form?.find(f => f.key === 'subscriptions')?.expressions?.hide).toBe('!formState.admin.home');
     expect(blogTemplate.config?.form?.find(f => f.key === 'tags')?.expressions?.hide).toBe('!field.parent.model.filterTags');

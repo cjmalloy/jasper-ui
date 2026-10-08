@@ -8,7 +8,7 @@ export const summaryQueryPlugin: Plugin = {
   name: $localize`✂️️💭️ Summarize`,
   config: {
     mod: $localize`✂️ Summarize`,
-    version: 2,
+    version: 3,
     type: 'tool',
     default: false,
     add: true,
@@ -88,7 +88,7 @@ export const summaryQueryPlugin: Plugin = {
       }
       response.sources.push('system:summary-prompt');
       console.log(JSON.stringify(bundle));
-    `
+    `.replace(/^ {6}/gm, '')
   }
 };
 

@@ -34,7 +34,7 @@ export const commitPlugin: Plugin = {
   name: $localize`🐢️ Commit`,
   config: {
     mod: $localize`🎬️ Drafts`,
-    version: 2,
+    version: 3,
     type: 'plugin',
     default: true,
     actions: [
@@ -83,7 +83,7 @@ export const commitPlugin: Plugin = {
           throw new Error(e);
         });
       }
-    `,
+    `.replace(/^ {6}/gm, ''),
   }
 }
 

@@ -286,6 +286,7 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
    */
   maybeRemove(event: FocusEvent, i: number) {
     if (this.groupArray) return;
+    if (this.props.keepBlank) return;
     const input = event.target as HTMLInputElement;
     if (input.tagName !== 'INPUT') return;
     if (input.classList.contains('preview')) return;

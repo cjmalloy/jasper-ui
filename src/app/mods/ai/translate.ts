@@ -8,7 +8,7 @@ export const translateQueryPlugin: Plugin = {
   name: $localize`🔡️️💭️ Translate`,
   config: {
     mod: $localize`🔡️ Translate`,
-    version: 2,
+    version: 3,
     type: 'tool',
     default: false,
     add: true,
@@ -91,7 +91,7 @@ export const translateQueryPlugin: Plugin = {
         response.sources.push('system:translation-prompt');
       }
       console.log(JSON.stringify(bundle));
-    `,
+    `.replace(/^ {6}/gm, ''),
     form: [{
       key: 'language',
       type: 'select',
