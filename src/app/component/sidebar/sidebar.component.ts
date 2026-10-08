@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   AfterViewInit,
@@ -17,29 +18,33 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { uniq, uniqBy } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, filter, finalize, forkJoin, map, of, Subject } from 'rxjs';
+import { catchError, filter, finalize, forkJoin, map, of, Subject, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
-import { Plugin } from '../../model/plugin';
+import { mapPlugin, Plugin } from '../../model/plugin';
 import { hydrate } from '../../model/tag';
-import { getTemplateScope, Template } from '../../model/template';
+import { getTemplateScope, mapTemplate, Template } from '../../model/template';
 import { getMailbox } from '../../mods/mailbox';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
+import { PluginService } from '../../service/api/plugin.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { HelpService } from '../../service/help.service';
+import { PluginStore } from '../../store/plugin';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
+import { TemplateStore } from '../../store/template';
 import { getAddTags } from '../../util/add-tags';
 import { parseMapView } from '../../util/geo';
-import { encodeBookmarkParams } from '../../util/http';
+import { encodeBookmarkParams, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
+import { getModels, getZipOrTextFile } from '../../util/zip';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
@@ -110,6 +115,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   savingBookmark = false;
   savingSub = false;
   savingAlarm = false;
+  uploadErrors: string[] = [];
 
   private _expanded = false;
   private _ext?: Ext;
@@ -126,6 +132,9 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     public ts: TaggingService,
     private exts: ExtService,
     private templates: TemplateService,
+    private plugins: PluginService,
+    private pluginStore: PluginStore,
+    private templateStore: TemplateStore,
     private el: ElementRef,
     private help: HelpService,
   ) {
@@ -465,5 +474,49 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   startChat() {
     runInAction(() => this.store.view.ref?.tags?.push('plugin/chat'));
     this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe();
+  }
+
+  uploadPlugins(files?: FileList) {
+    this.uploadErrors = [];
+    if (!files || !files.length) return;
+    getZipOrTextFile(files[0]!, 'plugin.json')
+      .then(json => getModels<Plugin>(json))
+      .then(plugins => plugins.map(mapPlugin))
+      .then(plugins => plugins.map(p => this.uploadPlugin(p)))
+      .catch(err => this.uploadErrors = [err]);
+  }
+
+  uploadPlugin(plugin: Plugin) {
+    return this.plugins.delete(plugin.tag + this.store.account.origin).pipe(
+      switchMap(() => this.plugins.create({ ...plugin, origin: this.store.account.origin })),
+      catchError((res: HttpErrorResponse) => {
+        this.uploadErrors = printError(res);
+        return throwError(() => res);
+      }),
+    ).subscribe(() => {
+      if (this.store.view.current === 'settings/plugin') this.pluginStore.refresh();
+    });
+  }
+
+  uploadTemplates(files?: FileList) {
+    this.uploadErrors = [];
+    if (!files || !files.length) return;
+    getZipOrTextFile(files[0]!, 'template.json')
+      .then(json => getModels<Template>(json))
+      .then(templates => templates.map(mapTemplate))
+      .then(templates => templates.map(t => this.uploadTemplate(t)))
+      .catch(err => this.uploadErrors = [err]);
+  }
+
+  uploadTemplate(template: Template) {
+    return this.templates.delete(template.tag + this.store.account.origin).pipe(
+      switchMap(() => this.templates.create({ ...template, origin: this.store.account.origin })),
+      catchError((res: HttpErrorResponse) => {
+        this.uploadErrors = printError(res);
+        return throwError(() => res);
+      }),
+    ).subscribe(() => {
+      if (this.store.view.current === 'settings/template') this.templateStore.refresh();
+    });
   }
 }
