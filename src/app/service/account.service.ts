@@ -41,6 +41,18 @@ export const CACHE_MS = 15 * 1000;
 const CURSOR_CONCURRENCY = 6;
 const DISCOVER_PAGE_SIZE = 100;
 
+/**
+ * Compares two server cursors without losing sub-millisecond precision.
+ */
+export function compareCursors(a: string, b: string): number {
+  const normalize = (cursor: string) =>
+    DateTime.fromISO(cursor).toUTC().toFormat(`yyyy-MM-dd'T'HH:mm:ss`) + '.' +
+    (/T[\d:]+\.(\d+)/.exec(cursor)?.[1] || '').padEnd(9, '0');
+  const x = normalize(a);
+  const y = normalize(b);
+  return x < y ? -1 : x > y ? 1 : 0;
+}
+
 export interface NotificationStream {
   origin: string;
   query: string;
@@ -319,7 +331,9 @@ export class AccountService {
       map(pages => {
         const content = pages
           .flatMap(page => page.content)
-          .sort((a, b) => a.modified!.valueOf() - b.modified!.valueOf())
+          .sort((a, b) => a.modifiedString && b.modifiedString
+            ? compareCursors(a.modifiedString, b.modifiedString)
+            : a.modified!.valueOf() - b.modified!.valueOf())
           .slice(0, size);
         const page = Page.of(content);
         page.page.totalElements = pages.reduce((sum, result) => sum + result.page.totalElements, 0);
@@ -353,10 +367,15 @@ export class AccountService {
     });
   }
 
-  clearNotifications(readDate: DateTime = DateTime.now(), origins?: string[]): Promise<void> {
+  /**
+   * Advances notification cursors. A DateTime read date is rounded up by 1 ms,
+   * while a string read date is used as an exact server cursor.
+   */
+  clearNotifications(readDate: DateTime | string = DateTime.now(), origins?: string[]): Promise<void> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    const cursor = readDate.plus({ millisecond: 1 }).toISO()!;
+    const cursor = typeof readDate === 'string' ? readDate : readDate.plus({ millisecond: 1 }).toISO()!;
+    const local = this.store.account.origin || '';
     origins = origins?.map(origin => origin || '');
     if (this.store.account.alarmsQuery) {
       for (const origin of origins || []) {
@@ -364,8 +383,9 @@ export class AccountService {
         this.alarmOrigins.set(origin, cursor);
       }
     }
-    const discover$ = !origins && this.store.account.alarmsQuery
-      ? this.discoverAlarmOrigins$(readDate, cursor)
+    const discover$ = !this.store.account.alarmsQuery ? of(undefined)
+      : !origins ? this.discoverAlarmOrigins$(cursor, () => cursor)
+      : origins.includes(local) ? this.discoverAlarmOrigins$(cursor, () => this.store.account.notificationCursors.get(local) || cursor)
       : of(undefined);
     return firstValueFrom(discover$.pipe(
       switchMap(() => this.loadNotificationCursors$()),
@@ -374,7 +394,7 @@ export class AccountService {
           .filter(stream => !origins || origins.includes(stream.origin))
           .filter(stream => {
             const current = this.store.account.notificationCursors.get(stream.origin);
-            return !current || readDate.plus({ millisecond: 1 }) > DateTime.fromISO(current);
+            return !current || compareCursors(cursor, current) > 0;
           })
           .map(stream => this.writeNotificationCursor$(stream, cursor));
         return writes.length
@@ -387,10 +407,11 @@ export class AccountService {
   }
 
   /**
-   * Before clearing all origins, find origins with alarms that do not have a
-   * notification stream yet so they get their own cursor.
+   * Before clearing all origins or the local origin, find origins with alarms
+   * that do not have a notification stream yet so they get their own cursor.
+   * Otherwise advancing the local cursor would also hide their alarms.
    */
-  private discoverAlarmOrigins$(readDate: DateTime, cursor: string): Observable<unknown> {
+  private discoverAlarmOrigins$(readCursor: string, initial: () => string): Observable<unknown> {
     const page$ = () => this.loadNotificationCursors$().pipe(
       switchMap(streams => {
         const query = this.otherAlarmsQuery([
@@ -400,13 +421,14 @@ export class AccountService {
         return this.refs.page({
           query,
           modifiedAfter: this.store.account.notificationCursors.get(this.store.account.origin),
-          modifiedBefore: readDate.plus({ millisecond: 1 }),
+          modifiedBefore: DateTime.fromISO(readCursor).plus({ millisecond: 1 }),
           size: DISCOVER_PAGE_SIZE,
         });
       }),
       map(page => {
         const found = uniq(page.content.map(ref => ref.origin || ''))
           .filter(origin => !this.store.account.notificationCursors.has(origin) && !this.alarmOrigins.has(origin));
+        const cursor = initial();
         for (const origin of found) this.alarmOrigins.set(origin, cursor);
         return found.length > 0;
       }),
@@ -463,10 +485,27 @@ export class AccountService {
       this.savedCursors = undefined;
       runInAction(() => this.store.account.notificationCursors.clear());
     }
+    if (!this.cursorPluginInstalled) {
+      const streams = this.notificationStreams;
+      runInAction(() => {
+        for (const stream of streams) {
+          if (this.store.account.notificationCursors.has(stream.origin)) continue;
+          this.store.account.notificationCursors.set(stream.origin, this.alarmOrigins.get(stream.origin) || DateTime.now().toISO()!);
+        }
+      });
+      return of(streams);
+    }
     if (this.store.account.alarmsQuery) {
       return this.loadSavedCursors$().pipe(switchMap(() => this.loadStreamCursors$()));
     }
     return this.loadStreamCursors$();
+  }
+
+  /**
+   * Cursors are only kept in memory until the cursor plugin is installed.
+   */
+  private get cursorPluginInstalled() {
+    return !!this.admin.getPlugin('plugin/user/cursor');
   }
 
   /**
@@ -561,12 +600,16 @@ export class AccountService {
     const ref = this.cursorRefs.get(stream.origin);
     const plugin = ref?.plugins?.['plugin/user/cursor'];
     let write$: Observable<unknown>;
-    if (!plugin) {
+    if (!this.cursorPluginInstalled) {
+      write$ = of(undefined);
+    } else if (!plugin) {
       write$ = this.tags.mergeResponse(['plugin/user/cursor'], stream.settingsUrl, {
         'plugin/user/cursor': { cursor },
       }).pipe(
         switchMap(() => this.cursorAccount === account ? this.tags.getResponse(stream.settingsUrl) : EMPTY),
-        tap(created => this.cursorRefs.set(stream.origin, created)),
+        tap(created => {
+          if (this.cursorAccount === account) this.cursorRefs.set(stream.origin, created);
+        }),
       );
     } else {
       const patch = [{
@@ -602,7 +645,7 @@ export class AccountService {
             if (this.cursorAccount !== account) return of(undefined);
             this.cursorRefs.set(stream.origin, ref);
             const existing = ref?.plugins?.['plugin/user/cursor']?.cursor;
-            if (existing && DateTime.fromISO(existing) >= DateTime.fromISO(cursor)) {
+            if (existing && compareCursors(existing, cursor) >= 0) {
               runInAction(() => this.store.account.notificationCursors.set(stream.origin, existing));
               return of(undefined);
             }

@@ -8,7 +8,7 @@ import { catchError, EMPTY, of, Subject, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 
-import { AccountService } from './account.service';
+import { AccountService, compareCursors } from './account.service';
 
 describe('AccountService', () => {
   let service: AccountService;
@@ -25,6 +25,8 @@ describe('AccountService', () => {
 
     service = TestBed.inject(AccountService);
     http = TestBed.inject(HttpTestingController);
+    vi.spyOn((service as any).admin, 'getPlugin').mockImplementation((tag: any) =>
+      tag === 'plugin/user/cursor' ? { tag } : undefined);
   });
 
   afterEach(() => http.verify());
@@ -260,6 +262,81 @@ describe('AccountService', () => {
       expect((service as any).store.account.notificationCursors.get('@city')).toEqual(cursor);
       expect((service as any).store.account.notificationCursors.get('')).toEqual(cursor);
     });
+
+    it('keeps remote alarms unread when only the local origin is cleared', async () => {
+      const readDate = DateTime.fromISO('2026-02-01T00:00:00.000Z');
+      const cursor = readDate.plus({ millisecond: 1 }).toISO();
+      vi.spyOn(service, 'checkNotifications').mockImplementation(() => {});
+      const page = vi.spyOn((service as any).refs, 'page')
+        .mockReturnValueOnce(of(Page.of([{ url: 'spec:a', origin: '@city' }])))
+        .mockReturnValueOnce(of(Page.of([])));
+      const cleared = service.clearNotifications(readDate, ['']);
+      expect(page).toHaveBeenNthCalledWith(1, expect.objectContaining({ query: '!plugin/delete:(alarm):!@', modifiedAfter: localCursor }));
+      http.expectOne(req => req.method === 'GET' && req.params.get('url') === 'tag:/plugin/outbox/city')
+        .flush({}, { status: 404, statusText: 'Not Found' });
+      const create = http.expectOne(req => req.method === 'PATCH' && req.params.get('url') === 'tag:/plugin/outbox/city');
+      expect(create.request.body['plugin/user/cursor'].cursor).toEqual(localCursor);
+      create.flush(null);
+      http.expectOne(req => req.method === 'GET' && req.params.get('url') === 'tag:/plugin/outbox/city').flush({
+        url: 'tag:/+user/dad?url=tag:/plugin/outbox/city',
+        origin: '',
+        plugins: { 'plugin/user/cursor': { cursor: localCursor } },
+      });
+      http.expectOne(req => req.method === 'PATCH' && req.params.get('url') === 'tag:/plugin/inbox').flush(null);
+      http.expectOne(req => req.method === 'GET' && req.params.get('url') === 'tag:/plugin/inbox').flush({
+        url: 'tag:/+user/dad?url=tag:/plugin/inbox',
+        origin: '',
+        plugins: { 'plugin/user/cursor': { cursor } },
+      });
+      await cleared;
+
+      expect((service as any).store.account.notificationCursors.get('@city')).toEqual(localCursor);
+      expect((service as any).store.account.notificationCursors.get('')).toEqual(cursor);
+    });
+  });
+
+  it('compares cursors with sub-millisecond precision', () => {
+    expect(compareCursors('2026-01-01T00:00:00.0001Z', '2026-01-01T00:00:00.0002Z')).toBeLessThan(0);
+    expect(compareCursors('2026-01-01T00:00:00.000200Z', '2026-01-01T00:00:00.0002Z')).toBe(0);
+    expect(compareCursors('2026-01-01T00:00:00Z', '2026-01-01T00:00:00.5Z')).toBeLessThan(0);
+    expect(compareCursors('2026-01-01T01:00:00.001+01:00', '2026-01-01T00:00:00.000900Z')).toBeGreaterThan(0);
+  });
+
+  it('writes exact cursors without rounding', async () => {
+    setAccount();
+    const store = (service as any).store;
+    (service as any).cursorAccount = store.account.tagWithOrigin;
+    store.account.notificationCursors.set('', '2026-01-01T00:00:00.000100Z');
+    vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({ tag: 'user' });
+    vi.spyOn(service, 'checkNotifications').mockImplementation(() => {});
+    const cleared = service.clearNotifications('2026-01-01T00:00:00.000200Z', ['']);
+    const create = http.expectOne(req => req.method === 'PATCH' && req.params.get('url') === 'tag:/plugin/inbox');
+    expect(create.request.body['plugin/user/cursor'].cursor).toEqual('2026-01-01T00:00:00.000200Z');
+    create.flush(null);
+    http.expectOne(req => req.method === 'GET' && req.params.get('url') === 'tag:/plugin/inbox').flush({
+      url: 'tag:/+user/dad?url=tag:/plugin/inbox',
+      origin: '',
+      plugins: { 'plugin/user/cursor': { cursor: '2026-01-01T00:00:00.000200Z' } },
+    });
+    await cleared;
+
+    expect(store.account.notificationCursors.get('')).toEqual('2026-01-01T00:00:00.000200Z');
+  });
+
+  it('keeps cursors in memory when the cursor plugin is not installed', async () => {
+    setAccount();
+    const store = (service as any).store;
+    vi.spyOn((service as any).admin, 'getPlugin').mockReturnValue(undefined);
+    vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({ tag: 'user' });
+    vi.spyOn(service, 'checkNotifications').mockImplementation(() => {});
+    const before = DateTime.now();
+
+    service.loadNotificationCursors$().subscribe();
+    expect(DateTime.fromISO(store.account.notificationCursors.get('')) >= before).toBeTruthy();
+
+    await service.clearNotifications('2099-01-01T00:00:00.000Z', ['']);
+    expect(store.account.notificationCursors.get('')).toEqual('2099-01-01T00:00:00.000Z');
+    http.expectNone(() => true);
   });
 
   it('loads independent cursors for multiple origins', () => {
@@ -629,6 +706,24 @@ describe('AccountService', () => {
       current.flush(inboxRef('2026-02-01T00:00:00.000Z'));
       expect(store.account.notificationCursors.get('')).toEqual('2026-02-01T00:00:00.000Z');
       expect((service as any).cursorLoads.size).toBe(0);
+    });
+
+    it('does not cache a created cursor Ref from the previous account', () => {
+      setAccount();
+      const store = (service as any).store;
+      service.loadNotificationCursors$().subscribe();
+      inboxGet().flush({}, { status: 404, statusText: 'Not Found' });
+      http.expectOne(req => req.method === 'PATCH' && req.params.get('url') === 'tag:/plugin/inbox').flush(null);
+      const reload = inboxGet();
+
+      store.account.tag = '+user/mom';
+      service.loadNotificationCursors$().subscribe();
+      const current = inboxGet();
+
+      reload.flush(inboxRef('2026-01-01T00:00:00.000Z'));
+      expect((service as any).cursorRefs.size).toBe(0);
+      current.flush(inboxRef('2026-02-01T00:00:00.000Z'));
+      expect(store.account.notificationCursors.get('')).toEqual('2026-02-01T00:00:00.000Z');
     });
 
     it('loads saved cursors for alarm-only origins after switching accounts', () => {

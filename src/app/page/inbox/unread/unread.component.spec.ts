@@ -54,8 +54,8 @@ describe('InboxUnreadPage', () => {
   });
 
   it('loads notifications and clears each read origin', () => {
-    const modified = DateTime.fromISO('2026-07-23T12:00:00Z');
-    const page = Page.of<Ref>([{ url: 'spec:alarm', origin: '@remote', modified }]);
+    const modifiedString = '2026-07-23T12:00:00.000100Z';
+    const page = Page.of<Ref>([{ url: 'spec:alarm', origin: '@remote', modified: DateTime.fromISO(modifiedString), modifiedString }]);
 
     notifications.next(page);
 
@@ -64,15 +64,43 @@ describe('InboxUnreadPage', () => {
 
     fixture.destroy();
 
-    expect(account.clearNotifications).toHaveBeenCalledWith(modified, ['@remote']);
+    expect(account.clearNotifications).toHaveBeenCalledWith(modifiedString, ['@remote']);
+  });
+
+  it('keeps sub-millisecond read positions', () => {
+    notifications.next(Page.of<Ref>([
+      { url: 'spec:a', origin: '@remote', modified: DateTime.fromISO('2026-07-23T12:00:00.000Z'), modifiedString: '2026-07-23T12:00:00.000100Z' },
+      { url: 'spec:b', origin: '@remote', modified: DateTime.fromISO('2026-07-23T12:00:00.000Z'), modifiedString: '2026-07-23T12:00:00.000200Z' },
+    ]));
+
+    fixture.destroy();
+
+    expect(account.clearNotifications).toHaveBeenCalledWith('2026-07-23T12:00:00.000200Z', ['@remote']);
+  });
+
+  it('waits for cursor writes when the page number is reset', async () => {
+    let resolve!: () => void;
+    account.clearNotifications.mockImplementation(() => new Promise<void>(done => resolve = done));
+    notifications.next(Page.of<Ref>([
+      { url: 'spec:city', origin: '@city', modified: DateTime.fromISO('2026-07-23T12:00:00Z'), modifiedString: '2026-07-23T12:00:00Z' },
+    ]));
+
+    runInAction(() => component.store.view.defaultPageNumber = 1);
+    runInAction(() => component.store.view.defaultPageNumber = 0);
+    await vi.runAllTimersAsync();
+    expect(account.notificationPage$).toHaveBeenCalledTimes(1);
+
+    resolve();
+    await vi.runAllTimersAsync();
+    expect(account.notificationPage$).toHaveBeenCalledTimes(2);
   });
 
   it('reloads notifications after clearing every read origin', async () => {
     const resolvers: (() => void)[] = [];
     account.clearNotifications.mockImplementation(() => new Promise<void>(resolve => resolvers.push(() => resolve())));
     notifications.next(Page.of<Ref>([
-      { url: 'spec:city', origin: '@city', modified: DateTime.fromISO('2026-07-23T12:00:00Z') },
-      { url: 'spec:town', origin: '@town', modified: DateTime.fromISO('2026-07-23T12:01:00Z') },
+      { url: 'spec:city', origin: '@city', modified: DateTime.fromISO('2026-07-23T12:00:00Z'), modifiedString: '2026-07-23T12:00:00Z' },
+      { url: 'spec:town', origin: '@town', modified: DateTime.fromISO('2026-07-23T12:01:00Z'), modifiedString: '2026-07-23T12:01:00Z' },
     ]));
 
     runInAction(() => component.store.view.defaultPageNumber = 1);
@@ -94,7 +122,7 @@ describe('InboxUnreadPage', () => {
     let resolve!: () => void;
     account.clearNotifications.mockImplementation(() => new Promise<void>(done => resolve = done));
     notifications.next(Page.of<Ref>([
-      { url: 'spec:city', origin: '@city', modified: DateTime.fromISO('2026-07-23T12:00:00Z') },
+      { url: 'spec:city', origin: '@city', modified: DateTime.fromISO('2026-07-23T12:00:00Z'), modifiedString: '2026-07-23T12:00:00Z' },
     ]));
 
     runInAction(() => component.store.view.defaultPageNumber = 1);

@@ -437,6 +437,22 @@ describe('OriginMapService', () => {
       expect(service.aliasesFor('+user/bob@home')).toEqual([]);
     });
 
+    it('ignores aliases on push-only origin Refs', () => {
+      setOrigins([{
+        url: 'spec:eggnog',
+        origin: '',
+        tags: ['+plugin/origin/push', '+user/alice'],
+        plugins: { '+plugin/origin': { local: '', remote: '@eggnog', aliases: ['+user/bob'] } },
+      }]);
+      setLocal('');
+
+      expect(service.aliasesFor('+user/alice')).toEqual([]);
+      expect(service.isCurrentAccountRef({
+        url: 'spec:post',
+        tags: ['+user/bob'],
+      }, '+user/alice')).toBeFalsy();
+    });
+
     it('treats a Ref without an origin as local', () => {
       setOrigins([aliasRef('', '@city', '+user/dad', ['+user/chris'])]);
       setLocal('');

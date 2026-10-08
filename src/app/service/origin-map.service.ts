@@ -208,6 +208,8 @@ export class OriginMapService {
    * Account selector relationships normalized from this origin's perspective.
    * Aliases declared on local origin Refs are trusted. Aliases between remotes
    * are only accepted when both remotes declare the same link.
+   * Only pull configs identify the remote account's origin, so aliases on
+   * push-only origin Refs are ignored.
    */
   private get accountAliases(): AccountAlias[] {
     const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
@@ -220,6 +222,7 @@ export class OriginMapService {
     };
     const claims: Required<AccountAlias>[] = [];
     for (const ref of this.origins) {
+      if (!hasTag('+plugin/origin/pull', ref)) continue;
       const from = ref.origin || '';
       const origin = target(ref);
       const aliases: string[] = uniq(config(ref)?.aliases || []);

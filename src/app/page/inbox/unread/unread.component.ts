@@ -2,12 +2,11 @@ import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, DestroyRef } fro
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
-import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { from, Subscription } from 'rxjs';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
-import { AccountService } from '../../../service/account.service';
+import { AccountService, compareCursors } from '../../../service/account.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
@@ -23,7 +22,9 @@ import { Store } from '../../../store/store';
 export class InboxUnreadPage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
-  private readThrough = new Map<string, DateTime>();
+  private readThrough = new Map<string, string>();
+  private cleared = Promise.resolve();
+  private loads = 0;
   private load?: Subscription;
 
   constructor(
@@ -41,17 +42,19 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      let cleared = Promise.resolve();
       if (this.store.view.pageNumber) {
         this.router.navigate([], {
           queryParams: { pageNumber: null },
           queryParamsHandling: 'merge',
           replaceUrl: true
         });
-        cleared = this.clearNotifications();
+        this.cleared = this.clearNotifications();
       }
+      const cleared = this.cleared;
+      const load = ++this.loads;
       defer(() => {
         from(cleared).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+          if (load !== this.loads) return;
           this.load?.unsubscribe();
           this.load = this.account.notificationPage$(this.store.view.pageSize).subscribe(page =>
             runInAction(() => this.query.page = page));
@@ -62,8 +65,10 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
       if (this.query.page && this.query.page!.content.length) {
         for (const ref of this.query.page.content) {
           const origin = ref.origin || '';
-          if (!ref.modified || this.readThrough.get(origin) && ref.modified <= this.readThrough.get(origin)!) continue;
-          this.readThrough.set(origin, ref.modified);
+          const cursor = ref.modifiedString;
+          const current = this.readThrough.get(origin);
+          if (!cursor || current && compareCursors(cursor, current) <= 0) continue;
+          this.readThrough.set(origin, cursor);
         }
       }
     }));
@@ -81,6 +86,6 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     const cleared = Promise.all(Array.from(this.readThrough,
       ([origin, cursor]) => this.account.clearNotifications(cursor, [origin])));
     this.readThrough.clear();
-    return cleared.then(() => undefined);
+    return cleared.then(() => undefined, err => console.error(err));
   }
 }
