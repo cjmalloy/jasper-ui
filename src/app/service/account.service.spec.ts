@@ -547,6 +547,10 @@ describe('AccountService', () => {
 
       expect(patch).toHaveBeenCalledWith(cityUrl, '', 'm1', [{
         op: 'add',
+        path: '/sources',
+        value: ['tag:/plugin/outbox/city'],
+      }, {
+        op: 'add',
         path: '/plugins/plugin~1user~1cursor/cursor',
         value: cursor,
       }]);

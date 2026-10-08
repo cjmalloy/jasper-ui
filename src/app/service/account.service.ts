@@ -613,7 +613,10 @@ export class AccountService {
         value: cursor,
       }] as const;
       if (ref!.modifiedString) {
-        write$ = this.refs.patch(ref!.url, ref!.origin || this.store.account.origin(), ref!.modifiedString, [...patch]).pipe(
+        write$ = this.refs.patch(ref!.url, ref!.origin || this.store.account.origin(), ref!.modifiedString, [
+          { op: 'add', path: '/sources', value: [stream.settingsUrl] },
+          ...patch,
+        ]).pipe(
           tap(modified => {
             if (this.cursorAccount !== account) return;
             this.cursorRefs.set(stream.origin, {
