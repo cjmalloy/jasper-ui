@@ -34,15 +34,7 @@ describe('GridCellComponent', () => {
     expect(proxy.getFetch).not.toHaveBeenCalled();
   });
 
-  it('does not resolve inline SVG images without the image plugin', () => {
-    setImage(inlineSvg);
-
-    expect(component.imageUrl).toBe('');
-    expect(sanitizer.bypassSecurityTrustUrl).not.toHaveBeenCalled();
-  });
-
-  it('resolves inline SVG images with the image plugin', () => {
-    admin.getPlugin.mockReturnValue({ config: {} });
+  it('resolves inline SVG images without the image plugin', () => {
     setImage(inlineSvg);
 
     expect(component.imageUrl).toBe(inlineSvg);
@@ -51,7 +43,6 @@ describe('GridCellComponent', () => {
   });
 
   it('renders inline SVG images without an unsafe URL', async () => {
-    admin.getPlugin.mockReturnValue({ config: {} });
     await TestBed.configureTestingModule({
       imports: [GridCellComponent],
       providers: [
