@@ -349,6 +349,7 @@ export class EmbedService {
         t.href = t.getAttribute('href') + origin;
       }
     });
+    const imagesEnabled = !!this.admin.getPlugin('plugin/image');
     const pictures = el.querySelectorAll<HTMLPictureElement>('picture');
     pictures.forEach(t => {
       const source = t.querySelectorAll('source')[0];
@@ -356,13 +357,19 @@ export class EmbedService {
         const srcsets = source.srcset ? source.srcset.split(', ') : [source.src];
         let url = source.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : source.src;
         if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        const config = {} as any;
-        if (t.style.width) config.width = t.style.width;
-        if (t.style.height) config.height = t.style.height;
-        const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
-        c.location.nativeElement.title = t.title;
-        c.location.nativeElement.alt = t.querySelectorAll('img')[0]?.alt;
-        t.parentNode?.insertBefore(c.location.nativeElement, t);
+        const alt = t.querySelectorAll('img')[0]?.alt;
+        if (imagesEnabled) {
+          const config = {} as any;
+          if (t.style.width) config.width = t.style.width;
+          if (t.style.height) config.height = t.style.height;
+          const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
+          c.location.nativeElement.title = t.title;
+          c.location.nativeElement.alt = alt;
+          t.parentNode?.insertBefore(c.location.nativeElement, t);
+        } else {
+          const c = createLink(vc, url, alt || t.title || url, t.title);
+          t.parentNode?.insertBefore(c.location.nativeElement, t);
+        }
       }
       t.remove();
     });
@@ -372,13 +379,18 @@ export class EmbedService {
         const srcsets = t.srcset ? t.srcset.split(', ') : [t.src];
         let url = t.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : t.src;
         if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        const config = {} as any;
-        if (t.style.width) config.width = t.style.width;
-        if (t.style.height) config.height = t.style.height;
-        const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
-        c.location.nativeElement.title = t.title;
-        c.location.nativeElement.alt = t.alt;
-        t.parentNode?.insertBefore(c.location.nativeElement, t);
+        if (imagesEnabled) {
+          const config = {} as any;
+          if (t.style.width) config.width = t.style.width;
+          if (t.style.height) config.height = t.style.height;
+          const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
+          c.location.nativeElement.title = t.title;
+          c.location.nativeElement.alt = t.alt;
+          t.parentNode?.insertBefore(c.location.nativeElement, t);
+        } else {
+          const c = createLink(vc, url, t.alt || t.title || url, t.title);
+          t.parentNode?.insertBefore(c.location.nativeElement, t);
+        }
       }
       t.remove();
     });
@@ -466,6 +478,12 @@ export class EmbedService {
                 return this.oembeds.get(url, this.store.darkTheme() ? 'dark' : undefined).pipe(
                   catchError(() => of(null)),
                   map(oembed => {
+                    if (!oembed && !this.admin.getPlugin('plugin/image')) {
+                      const c = createLink(vc, url, title || url, title);
+                      t.parentNode?.insertBefore(c.location.nativeElement, t);
+                      t.remove();
+                      return;
+                    }
                     const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
                     const c = createEmbed(vc, { url, origin, tags: expandPlugins });
                     c.location.nativeElement.title = t.title;

@@ -491,6 +491,7 @@ export class ViewerComponent {
   });
 
   readonly imageUrl = computed(() => {
+    if (!this.admin.getPlugin('plugin/image')) return '';
     if (!this.image() && !hasTag('plugin/image', this.currentTags())) return '';
     const url = this.image() || this.ref()?.plugins?.['plugin/image']?.url || this.ref()?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {

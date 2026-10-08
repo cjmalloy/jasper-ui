@@ -12,7 +12,7 @@ import { ModService } from '../../service/mod.service';
 import { ExtStore } from '../../store/ext';
 import { Store } from '../../store/store';
 import { getTagFilter, getTagQueryFilter } from '../../util/query';
-import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
+import { andQueries, braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
 
 @Component({
   selector: 'app-tags-page',
@@ -65,7 +65,7 @@ export class TagsPage implements HasChanges {
               : this.store.view.template())
             : '@*';
       return {
-        query: getTagQueryFilter(braces(query), this.store.view.filter()) + (!this.store.view.showRemotes() ? ':' + (this.store.account.origin() || '*') : ''),
+        query: andQueries([getTagQueryFilter(braces(query), this.store.view.filter()), !this.store.view.showRemotes() ? this.store.account.origin() || '*' : '']),
         search: this.store.view.search(),
         sort: [...this.store.view.sort()],
         page: this.store.view.pageNumber(),

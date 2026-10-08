@@ -48,6 +48,18 @@ describe('ViewerComponent', () => {
     expect(component.lensQuery()).toBe('');
   });
 
+  it('does not show an image when the image mod is not installed', () => {
+    vi.spyOn(TestBed.inject(AdminService), 'getPlugin').mockReturnValue(undefined);
+    fixture.componentRef.setInput('ref', { url: 'https://example.com/a.png', origin: '', tags: ['plugin/image'] });
+    expect(component.imageUrl()).toBe('');
+  });
+
+  it('shows an image when the image mod is installed', () => {
+    vi.spyOn(TestBed.inject(AdminService), 'getPlugin').mockImplementation((tag: string) => tag === 'plugin/image' ? { tag } as any : undefined);
+    fixture.componentRef.setInput('ref', { url: 'https://example.com/a.png', origin: '', tags: ['plugin/image'] });
+    expect(component.imageUrl()).toBe('https://example.com/a.png');
+  });
+
   it('scopes nesting to each embedded viewer and its descendants', () => {
     const vc = fixture.debugElement.injector.get(ViewContainerRef);
     const ref = { url: 'wiki:Nesting', origin: '' };
