@@ -5,8 +5,8 @@ import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, Simp
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, concat, firstValueFrom, last, Observable, of, switchMap } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { catchError, concat, defer, firstValueFrom, last, Observable, of, switchMap } from 'rxjs';
+import { finalize, tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
 import { patchPlugins } from '../../form/plugins/plugins.component';
 import { Ext } from '../../model/ext';
@@ -45,7 +45,6 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { InlinePluginComponent } from '../action/inline-plugin/inline-plugin.component';
 import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
-import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
   selector: 'app-bulk',
@@ -53,7 +52,7 @@ import { LoadingComponent } from '../loading/loading.component';
   styleUrls: ['./bulk.component.scss'],
   host: { 'class': 'bulk actions' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FakeLinkDirective, LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
+  imports: [FakeLinkDirective, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
 
@@ -71,6 +70,8 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   actions: Action[] = [];
   groupedActions: { [key: string]: Action[] } = {};
   batchRunning = false;
+  batchProgress = 0;
+  batchTotal = 0;
   toggled = false;
   serverError: string[] = [];
 
@@ -135,7 +136,10 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
     if (this.batchRunning) return of(null);
     this.serverError = [];
     this.batchRunning = true;
-    return concat(...this.queryStore.page!.content.map(c => (fn(c as T) || of(null)).pipe(
+    const content = this.queryStore.page!.content;
+    this.batchProgress = 0;
+    this.batchTotal = content.length;
+    return concat(...content.map(c => defer(() => fn(c as T) || of(null)).pipe(
       catchError(err => {
         if (err instanceof HttpErrorResponse) {
           this.serverError.push(...printError(err));
@@ -144,6 +148,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
         }
         return of(null);
       }),
+      finalize(() => this.batchProgress++),
     ))).pipe(
       last(),
       tap(() => {
