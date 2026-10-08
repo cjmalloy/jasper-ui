@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { Ref } from '../../model/ref';
-import { ytdlpMetaDeltaPlugin } from './ytdlp';
+import { ytdlpDeltaPlugin, ytdlpMetaDeltaPlugin } from './ytdlp';
 
 function runMetadata(ref: Ref, info: Record<string, unknown>, error?: string) {
   return spawnSync('python3', ['-c', `
@@ -221,5 +221,107 @@ describe('ytdlpMetaDeltaPlugin', () => {
     expect(result.status).toBe(1);
     expect(result.stdout).toBe('');
     expect(JSON.parse(result.stderr)).toEqual({ error: 'Video unavailable' });
+  });
+});
+
+describe('ytdlpDeltaPlugin', () => {
+  function runDownload(ref: Ref, progressOk = true) {
+    return spawnSync('python3', ['-c', `
+import io
+import json
+import os
+import sys
+import types
+
+payload = json.load(sys.stdin)
+sys.stdin = io.StringIO(json.dumps(payload['ref']))
+os.environ['JASPER_NODE'] = '/test/bun'
+os.environ['JASPER_API'] = 'http://jasper.test'
+calls = []
+clock = [0]
+
+def monotonic():
+    clock[0] += 5
+    return clock[0]
+
+class Response:
+    def __init__(self, ok, body):
+        self.ok = ok
+        self.status_code = 200 if ok else 500
+        self.text = json.dumps(body)
+        self.body = body
+    def json(self):
+        return self.body
+
+def patch(url, headers, params, timeout):
+    calls.append({'url': url, 'headers': headers, 'params': params})
+    return Response(payload['progressOk'], '2026-01-01T00:00:0%dZ' % len(calls))
+
+def post(url, data, headers, params):
+    return Response(True, {'url': 'cache:test', 'origin': params['origin']})
+
+class YoutubeDL:
+    def __init__(self, opts):
+        self.opts = opts
+    def __enter__(self):
+        return self
+    def __exit__(self, *args):
+        pass
+    def extract_info(self, url, download):
+        for hook in self.opts['progress_hooks']:
+            hook({'status': 'downloading', 'downloaded_bytes': 37, 'total_bytes': 100})
+            hook({'status': 'downloading', 'downloaded_bytes': 37, 'total_bytes': 100})
+            hook({'status': 'downloading', 'downloaded_bytes': 50, 'total_bytes_estimate': 200})
+            hook({'status': 'downloading', 'downloaded_bytes': 100, 'total_bytes': 100})
+            hook({'status': 'finished'})
+        with open(self.opts['outtmpl'].replace('%(ext)s', 'mp4'), 'wb') as f:
+            f.write(b'video')
+        return {'ext': 'mp4'}
+
+sys.modules['yt_dlp'] = types.SimpleNamespace(YoutubeDL=YoutubeDL)
+sys.modules['requests'] = types.SimpleNamespace(patch=patch, post=post)
+sys.modules['time'] = types.SimpleNamespace(monotonic=monotonic)
+exec(payload['script'])
+print(json.dumps(calls), file=sys.stderr)
+  `], {
+      input: JSON.stringify({ ref, progressOk, script: ytdlpDeltaPlugin.config?.script }),
+      encoding: 'utf8',
+    });
+  }
+
+  const ref: Ref = {
+    url: 'https://example.test/video',
+    origin: '@local',
+    tags: ['public', 'plugin/embed', '_plugin/delta/ytdlp'],
+    plugins: { 'plugin/embed': { url: 'https://example.test/embedded-video' } },
+    modified: '2025-01-01T00:00:00Z' as any,
+  };
+
+  it('reports sealed progress and saves with the latest modified date', () => {
+    const result = runDownload(ref);
+    expect(result.status, result.stderr).toBe(0);
+    const calls = JSON.parse(result.stderr.trim().split('\n').pop()!);
+    expect(calls.map((c: any) => c.params.tags)).toEqual([
+      ['-plugin/progress', 'plugin/progress/37/100', '_seal/delta'],
+      ['-plugin/progress', 'plugin/progress/25/100', '_seal/delta'],
+      ['-plugin/progress', 'plugin/progress/99/100', '_seal/delta'],
+    ]);
+    expect(calls[0]).toMatchObject({
+      url: 'http://jasper.test/api/v1/tags',
+      headers: { 'Local-Origin': '@local', 'User-Role': 'ROLE_ADMIN' },
+      params: { url: ref.url, origin: '@local' },
+    });
+    const output = JSON.parse(result.stdout).ref;
+    expect(output).toHaveLength(1);
+    expect(output[0].modified).toBe('2026-01-01T00:00:03Z');
+    expect(output[0].tags).toEqual(['public', 'plugin/video']);
+    expect(output[0].plugins).toEqual({ 'plugin/video': { url: 'cache:test' } });
+  });
+
+  it('keeps the original modified date when progress reporting fails', () => {
+    const result = runDownload(ref, false);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stderr).toContain('Error reporting progress 500');
+    expect(JSON.parse(result.stdout).ref[0].modified).toBe('2025-01-01T00:00:00Z');
   });
 });
