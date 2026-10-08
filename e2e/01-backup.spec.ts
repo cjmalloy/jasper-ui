@@ -23,8 +23,9 @@ test.describe('Backup / Restore', () => {
   });
 
   test('creates backup', async ({ page }) => {
-    await page.goto('/settings/backup?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.goto('/settings/backup?debug=ADMIN');
     const completed = page.locator('.list-container .link a');
+    await expect(completed.first().or(page.locator('.no-results'))).toBeVisible();
     const before = await completed.count();
     await page.locator('.backup.buttons button', { hasText: '+ backup' }).click();
     // Wait for overlay to appear
