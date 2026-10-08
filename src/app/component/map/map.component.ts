@@ -511,7 +511,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     if (thumbnailPlugin.color) el.style.backgroundColor = thumbnailPlugin.color;
     if (thumbnailPlugin.radius) el.style.borderRadius = thumbnailPlugin.radius + 'px';
     if (thumbnailPlugin.emoji) el.textContent = thumbnailPlugin.emoji;
-    if (thumbnailPlugin.url && (this.admin.getPlugin('plugin/image') || isInlineSvg(thumbnailPlugin.url))) {
+    if (thumbnailPlugin.url && this.admin.getPlugin('plugin/image')) {
       const isProxy = this.admin.getPlugin('plugin/thumbnail')?.config?.proxy;
       const url = isProxy && !isInlineSvg(thumbnailPlugin.url)
         ? this.proxy.getFetch(thumbnailPlugin.url, ref.origin, 'thumbnail', true)

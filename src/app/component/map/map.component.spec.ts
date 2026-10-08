@@ -60,9 +60,18 @@ describe('MapComponent', () => {
       expect(proxy).not.toHaveBeenCalled();
     });
 
-    it('renders inline SVG marker images without the image plugin', () => {
+    it('does not render inline SVG marker images without the image plugin', () => {
       vi.spyOn((component as any).admin, 'getPlugin').mockImplementation(plugin =>
         plugin === 'plugin/thumbnail' ? { config: { proxy: true } } : undefined);
+      const proxy = vi.spyOn((component as any).proxy, 'getFetch');
+
+      expect(marker(inlineSvg).style.backgroundImage).toBe('');
+      expect(proxy).not.toHaveBeenCalled();
+    });
+
+    it('renders inline SVG marker images with the image plugin', () => {
+      vi.spyOn((component as any).admin, 'getPlugin').mockImplementation(plugin =>
+        plugin === 'plugin/thumbnail' ? { config: { proxy: true } } : plugin === 'plugin/image' ? {} : undefined);
       const proxy = vi.spyOn((component as any).proxy, 'getFetch');
 
       expect(marker(inlineSvg).style.backgroundImage).toContain('data:image/svg+xml');

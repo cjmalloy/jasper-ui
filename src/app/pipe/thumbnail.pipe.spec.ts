@@ -40,7 +40,19 @@ describe('ThumbnailPipe', () => {
     expect(proxy.getFetch).not.toHaveBeenCalled();
   });
 
-  it('resolves inline SVG thumbnail URLs without the image plugin', async () => {
+  it('does not resolve inline SVG thumbnail URLs without the image plugin', async () => {
+    const ref = {
+      url: 'comment:test',
+      origin: '',
+      tags: ['plugin/thumbnail'],
+      plugins: { 'plugin/thumbnail': { url: inlineSvg } },
+    };
+
+    await expect(firstValueFrom(pipe.transform([ref]))).resolves.toBe('');
+  });
+
+  it('resolves inline SVG thumbnail URLs with the image plugin', async () => {
+    admin.getPlugin.mockImplementation((plugin: string) => plugin === 'plugin/image' ? {} : undefined);
     const ref = {
       url: 'comment:test',
       origin: '',

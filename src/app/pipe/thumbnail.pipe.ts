@@ -21,14 +21,13 @@ export class ThumbnailPipe implements PipeTransform {
   ) { }
 
   transform(refs: (ThumbnailRef | undefined)[], force = false, prefetch = true): Observable<string> {
-    const imagesEnabled = !!this.admin.getPlugin('plugin/image');
+    if (!this.admin.getPlugin('plugin/image')) return of('');
     for (const ref of refs) {
       if (!ref) continue;
       const thumbnailUrl = refUrl(ref, 'plugin/thumbnail');
-      if (thumbnailUrl && (imagesEnabled || isInlineSvg(thumbnailUrl))) {
+      if (thumbnailUrl) {
         return of(this.fetchUrl(thumbnailUrl, ref.origin, 'plugin/thumbnail', prefetch));
       }
-      if (!imagesEnabled) continue;
       for (const plugin of ['plugin/image', 'plugin/video']) {
         if (refUrl(ref, plugin)) return of(this.fetchUrl(refUrl(ref, plugin), ref.origin, plugin, prefetch));
       }
@@ -48,7 +47,7 @@ export class ThumbnailPipe implements PipeTransform {
         if (embedPlugins.includes(plugin)) return of(this.fetchUrl(ref.url, ref.origin, plugin, prefetch));
       }
     }
-    if (imagesEnabled && force) {
+    if (force) {
       for (const ref of refs) {
         if (!this.validUrl(ref?.url)) continue;
         return of(this.fetchUrl(ref!.url, ref!.origin, 'plugin/image', prefetch));

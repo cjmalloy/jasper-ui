@@ -41,7 +41,7 @@ import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
-import { isInlineSvg, ThumbnailPipe } from '../../pipe/thumbnail.pipe';
+import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -785,7 +785,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   refThumbnailUrl() {
     const url = this.refThumbnailString('url');
-    if (!this.admin.getPlugin('plugin/image')) return isInlineSvg(url) ? url : '';
+    if (!this.admin.getPlugin('plugin/image')) return '';
     return url || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video');
   }
 

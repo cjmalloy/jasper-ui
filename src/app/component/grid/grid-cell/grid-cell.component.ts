@@ -62,8 +62,8 @@ export class GridCellComponent implements ICellRendererAngularComp {
   get imageUrl() {
     const url = this.textValue;
     if (!url) return '';
-    if (isInlineSvg(url)) return this.sanitizer.bypassSecurityTrustUrl(url);
     if (!this.admin.getPlugin('plugin/image')) return '';
+    if (isInlineSvg(url)) return this.sanitizer.bypassSecurityTrustUrl(url);
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
       return this.proxy.getFetch(url, this.data?.origin || '', this.data?.title || $localize`Untitled Image`);
     }
