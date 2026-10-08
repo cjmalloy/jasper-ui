@@ -8,7 +8,7 @@ import { isPushing, isReplicating } from '../mods/sync/origin';
 import { AccountAlias } from '../store/origin';
 import { Store } from '../store/store';
 import { userAuthors } from '../util/format';
-import { defaultOrigin, localTag, subOrigin, tagOrigin } from '../util/tag';
+import { defaultOrigin, hasTag, localTag, removeParentOrigin, subOrigin, tagOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
@@ -146,12 +146,10 @@ export class OriginMapService {
     const me = this.store.account.origin || '';
     const selfApis = this.selfApis;
     const remotesForOrigin = (origin: string) => this.origins.filter(remote => (remote.origin || '') === origin);
-    const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
-    const findLocalAlias = (url: string) => remotesForOrigin(me).find(remote => trimUrl(remote.url) === url);
     const resolve = (nested: Ref): string | undefined => {
-      if (isReplicating(me, nested, selfApis)) return me;
-      const alias = findLocalAlias(trimUrl(nested.url));
-      return alias ? config(alias)?.local || '' : undefined;
+      const target = this.remoteTarget(nested, selfApis);
+      if (target === undefined || target === me) return target;
+      return removeParentOrigin(target, me);
     };
     const originMapFor = (origin: string): Map<string, string> => new Map(
       remotesForOrigin(origin)
@@ -165,24 +163,47 @@ export class OriginMapService {
   }
 
   /**
+   * Finds which visible origin a remote origin Ref points to, from this origin's perspective.
+   * Remotes are matched by API URL first. Since remotes may reach each other through
+   * different URLs (proxies, SSH tunnels), a Ref pulling the same remote origin that its
+   * own origin was pulled from is also treated as pointing back to that origin.
+   */
+  private remoteTarget(ref: Ref, selfApis = this.selfApis): string | undefined {
+    const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
+    const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+    const me = this.store.account.origin || '';
+    if (isReplicating(me, ref, selfApis)) return me;
+    const url = trimUrl(ref.url);
+    const known = this.origins.find(remote => (remote.origin || '') === me && trimUrl(remote.url) === url);
+    if (known) return subOrigin(me, config(known)?.local);
+    if (!hasTag('+plugin/origin/pull', ref)) return undefined;
+    const from = ref.origin || '';
+    const remote = config(ref)?.remote || '';
+    const pulledBy = (origin: string) => this.origins.filter(puller =>
+      hasTag('+plugin/origin/pull', puller) &&
+      (puller.origin || '') !== origin &&
+      subOrigin(puller.origin || '', config(puller)?.local) === origin);
+    for (const puller of pulledBy(from)) {
+      const parent = puller.origin || '';
+      if (parent === me) continue;
+      if (pulledBy(parent).some(grandparent => (config(grandparent)?.remote || '') === remote)) return parent;
+    }
+    return undefined;
+  }
+
+  /**
    * Account selector relationships normalized from this origin's perspective.
    * Aliases declared on local origin Refs are trusted. Aliases between remotes
    * are only accepted when both remotes declare the same link.
    */
   private get accountAliases(): AccountAlias[] {
     const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
-    const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
     const me = this.store.account.origin || '';
     const selfApis = this.selfApis;
-    const localRemotes = this.origins.filter(remote => (remote.origin || '') === me);
     const target = (ref: Ref): string => {
       const from = ref.origin || '';
       if (from === me) return subOrigin(from, config(ref)?.local);
-      if (isReplicating(me, ref, selfApis)) return me;
-      const url = trimUrl(ref.url);
-      const known = localRemotes.find(remote => trimUrl(remote.url) === url);
-      if (known) return subOrigin(me, config(known)?.local);
-      return subOrigin(from, config(ref)?.local);
+      return this.remoteTarget(ref, selfApis) ?? subOrigin(from, config(ref)?.local);
     };
     const claims: Required<AccountAlias>[] = [];
     for (const ref of this.origins) {
