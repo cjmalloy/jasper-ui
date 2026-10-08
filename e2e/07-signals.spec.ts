@@ -147,6 +147,9 @@ test.describe.serial('Signal and Event Bus Sanity', () => {
   });
 
   test('account: inbox notification', async () => {
+    await page.goto('/?debug=ADMIN&tag=alice', { waitUntil: 'networkidle' });
+    await expect(page.locator('.settings .author')).toHaveText('alice');
+    await page.goto(listUrl, { waitUntil: 'networkidle' });
     await row().locator('.actions .fake-link', { hasText: 'tag' }).first().click();
     const reload = page.waitForResponse(resp => (
       resp.url().includes('/api/v1/ref?') && resp.request().method() === 'GET' && resp.ok()
