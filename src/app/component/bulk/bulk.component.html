@@ -2,7 +2,7 @@
   <summary>
     <span i18n>Bulk tools</span>
     @if (batchRunning()) {
-      <app-loading [batch]="true"></app-loading>
+      <progress class="bulk-progress" [value]="batchProgress()" [max]="batchTotal()"></progress>
     }
   </summary>
   @if (empty()) {

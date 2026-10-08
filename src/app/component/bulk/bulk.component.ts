@@ -4,8 +4,8 @@ import { afterNextRender, Component, computed, ElementRef, inject, input, signal
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, pick, uniq } from 'lodash-es';
-import { catchError, concat, firstValueFrom, last, Observable, of, switchMap } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { catchError, concat, defer, firstValueFrom, last, Observable, of, switchMap } from 'rxjs';
+import { finalize, tap } from 'rxjs/operators';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
 import { patchPlugins } from '../../form/plugins/plugins.component';
@@ -44,14 +44,13 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { InlinePluginComponent } from '../action/inline-plugin/inline-plugin.component';
 import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
-import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
   selector: 'app-bulk',
   templateUrl: './bulk.component.html',
   styleUrls: ['./bulk.component.scss'],
   host: { 'class': 'bulk actions' },
-  imports: [FakeLinkDirective, LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
+  imports: [FakeLinkDirective, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class BulkComponent {
   admin = inject(AdminService);
@@ -102,6 +101,8 @@ export class BulkComponent {
   });
   readonly groupedActions = computed(() => groupBy(this.actions(), a => this.label(a)));
   readonly batchRunning = signal(false);
+  readonly batchProgress = signal(0);
+  readonly batchTotal = signal(0);
   readonly serverError = signal<string[]>([]);
 
   toggled = false;
@@ -119,7 +120,10 @@ export class BulkComponent {
     if (this.batchRunning()) return of(null);
     this.serverError.set([]);
     this.batchRunning.set(true);
-    return concat(...this.queryStore().page()!.content.map(c => (fn(c as T) || of(null)).pipe(
+    const content = this.queryStore().page()!.content;
+    this.batchProgress.set(0);
+    this.batchTotal.set(content.length);
+    return concat(...content.map(c => defer(() => fn(c as T) || of(null)).pipe(
       catchError(err => {
         if (err instanceof HttpErrorResponse) {
           this.serverError.update(errors => [...errors, ...printError(err)]);
@@ -128,6 +132,7 @@ export class BulkComponent {
         }
         return of(null);
       }),
+      finalize(() => this.batchProgress.update(n => n + 1)),
     ))).pipe(
       last(),
       tap(() => {
