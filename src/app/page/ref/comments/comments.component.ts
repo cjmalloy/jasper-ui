@@ -16,7 +16,7 @@ import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
 import { getTitle } from '../../../util/format';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
+import { hasTag, pluginResponses, removeTag, updateMetadata } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-comments',
@@ -63,7 +63,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
       const search = this.store.view.search;
       runInAction(() => this.thread.setArgs(top, sort, filter, search));
       if (this.store.view.ref) {
-        const commentCount = this.store.view.ref.metadata?.plugins?.['plugin/comment'] || 0;
+        const commentCount = pluginResponses(this.store.view.ref, 'plugin/comment');
         this.store.local.setLastSeenCount(this.store.view.url, 'comments', commentCount);
       }
     }));

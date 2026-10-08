@@ -9,8 +9,11 @@ details {
   flex-direction: column;
 
   summary {
-    app-loading {
-      position: absolute;
+    .bulk-progress {
+      display: block;
+      box-sizing: border-box;
+      width: calc(100% - 16px);
+      margin: 4px 8px;
     }
   }
 

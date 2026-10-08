@@ -1,4 +1,20 @@
-import { andQueries, braces, hasQuery, isGroup, isNegatedGroup, pickPlugins, removeTag, setPrivate, setProtected } from './tag';
+import { Ref } from '../model/ref';
+import {
+  addPluginResponse,
+  andQueries,
+  braces,
+  hasAnyResponse,
+  hasQuery,
+  isGroup,
+  isNegatedGroup,
+  localPluginResponses,
+  pickPlugins,
+  pluginResponses,
+  removeTag,
+  setPrivate,
+  setProtected,
+  updateMetadata
+} from './tag';
 
 describe('Tag Utils', () => {
   it('hasQuery', () => {
@@ -312,6 +328,47 @@ describe('Tag Utils', () => {
     it('handles missing plugins and tags', () => {
       expect(pickPlugins(undefined, ['public'])).toEqual({});
       expect(pickPlugins({ 'plugin/image': {} }, undefined)).toEqual({});
+    });
+  });
+
+  describe('plugin responses', () => {
+    it('uses remote counts for responses and local counts for logs', () => {
+      const ref: Ref = { url: 'test:', metadata: {
+        plugins: { '+plugin/log': 1, 'plugin/comment': 1 },
+        remotePlugins: { '+plugin/log': 3, 'plugin/comment': 4, 'plugin/thread': 2 },
+      } };
+      expect(pluginResponses(ref, 'plugin/comment')).toBe(4);
+      expect(pluginResponses(ref, 'plugin/thread')).toBe(2);
+      expect(localPluginResponses(ref, '+plugin/log')).toBe(1);
+      expect(localPluginResponses(ref, 'plugin/thread')).toBe(0);
+      expect(hasAnyResponse('plugin/thread', ref)).toBe(true);
+    });
+
+    it('falls back to local counts without remote counts', () => {
+      const ref: Ref = { url: 'test:', metadata: { plugins: { 'plugin/comment': 2 } } };
+      expect(pluginResponses(ref, 'plugin/comment')).toBe(2);
+      expect(pluginResponses(undefined, 'plugin/comment')).toBe(0);
+    });
+
+    it('counts new responses', () => {
+      const ref: Ref = { url: 'test:', metadata: { plugins: {}, remotePlugins: {} } };
+      addPluginResponse(ref, 'plugin/comment');
+      addPluginResponse(ref, 'plugin/comment', false);
+      expect(ref.metadata!.plugins).toEqual({ 'plugin/comment': 1 });
+      expect(ref.metadata!.remotePlugins).toEqual({ 'plugin/comment': 2 });
+
+      const old: Ref = { url: 'test:' };
+      addPluginResponse(old, 'plugin/comment', false);
+      expect(old.metadata!.plugins).toEqual({ 'plugin/comment': 1 });
+      expect(old.metadata!.remotePlugins).toBeUndefined();
+    });
+
+    it('updateMetadata only counts local responses locally', () => {
+      const parent: Ref = { url: 'test:', origin: '@a', metadata: { plugins: {}, remotePlugins: {} } };
+      updateMetadata(parent, { url: 'comment:1', origin: '@a', tags: ['plugin/comment'] });
+      updateMetadata(parent, { url: 'comment:2', origin: '@b', tags: ['plugin/comment'] });
+      expect(localPluginResponses(parent, 'plugin/comment')).toBe(1);
+      expect(pluginResponses(parent, 'plugin/comment')).toBe(2);
     });
   });
 });

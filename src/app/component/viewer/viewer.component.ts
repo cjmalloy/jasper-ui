@@ -48,7 +48,7 @@ import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
-import { hasPrefix, hasTag } from '../../util/tag';
+import { hasPrefix, hasTag, pluginResponses } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
 import { MapComponent } from '../map/map.component';
@@ -323,7 +323,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (oembed?.url && oembed?.type === 'photo') {
       // Image embed
       this.tags = without(this.currentTags, 'plugin/embed');
-      this.image = embedUrl(oembed.url);
+      if (this.admin.getPlugin('plugin/image')) this.image = embedUrl(oembed.url);
       MemoCache.clear(this);
     } else if (this.iframe) {
       const i = this.iframe.nativeElement;
@@ -441,7 +441,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   @memo
   get thread() {
     if (!this.admin.getPlugin('plugin/thread')) return false;
-    return hasTag('plugin/thread', this.currentTags) || this.ref?.metadata?.plugins?.['plugin/thread'];
+    return hasTag('plugin/thread', this.currentTags) || pluginResponses(this.ref, 'plugin/thread');
   }
 
   @memo
@@ -493,6 +493,7 @@ return '67vh';
 
   @memo
   get imageUrl() {
+    if (!this.admin.getPlugin('plugin/image')) return '';
     if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
