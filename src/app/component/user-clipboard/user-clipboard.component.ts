@@ -891,7 +891,7 @@ export class UserClipboardComponent {
         id: item.id,
         text: item.text,
         html: item.html,
-        ref: this.preserveRefOrigin(mapRef(item.ref), localState.get(item.id)?.ref),
+        ref: this.preserveRefOrigin(item.ref ? mapRef(item.ref) : undefined, localState.get(item.id)?.ref),
         created: item.created || DateTime.now().toISO(),
         ...this.mergeItemState(item, localState.get(item.id), index, includeItemState),
       }));
