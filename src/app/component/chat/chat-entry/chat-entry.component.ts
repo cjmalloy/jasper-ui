@@ -174,7 +174,7 @@ export class ChatEntryComponent implements OnChanges {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return uniq([
       ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
-      ...authors(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', lookup)),
+      ...authors(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', this.store.account.origin, lookup)),
     ]);
   }
 

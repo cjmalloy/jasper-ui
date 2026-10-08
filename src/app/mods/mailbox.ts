@@ -116,14 +116,14 @@ export function reverseOrigin(tag: string, rootOrigin: string): string {
 }
 
 /**
- * Translate a tag from the reverse origin syntax of a remote origin into a local alias
+ * Translate a tag on a Ref from a remote origin into a local origin
  * using the origin map lookup for that remote.
  */
-export function mapRemoteOrigin(tag: string, origin: string, lookup?: Map<string, string>): string {
+export function mapRemoteOrigin(tag: string, origin: string, local: string, lookup?: Map<string, string>): string {
   const remote = tagOrigin(tag);
   if (!remote || !origin || !lookup || !remote.startsWith(origin + '.')) return tag;
   const mapped = lookup.get(removeParentOrigin(remote, origin));
-  return mapped === undefined ? tag : localTag(tag) + mapped;
+  return mapped === undefined ? tag : localTag(tag) + subOrigin(local, mapped);
 }
 
 export function getMailbox(tag: string, local: string): string {

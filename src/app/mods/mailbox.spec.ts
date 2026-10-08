@@ -96,21 +96,26 @@ describe('MailboxPlugin', () => {
     const lookup = new Map([['@city', '@city'], ['@main', '']]);
 
     it('maps outbox recipients using the remote origin names', () => {
-      expect(addressedTo(ref).map(t => mapRemoteOrigin(t, ref.origin!, lookup))).toEqual([
+      expect(addressedTo(ref).map(t => mapRemoteOrigin(t, ref.origin!, '', lookup))).toEqual([
         '+user/chris@city',
         '+user/chris@city.eggnog',
       ]);
     });
 
     it('maps remote aliases for this origin', () => {
-      expect(mapRemoteOrigin('+user/chris@city.eggnog.main', '@city.eggnog', lookup)).toBe('+user/chris');
+      expect(mapRemoteOrigin('+user/chris@city.eggnog.main', '@city.eggnog', '', lookup)).toBe('+user/chris');
+    });
+
+    it('resolves mapped origins under a multi-tenant root', () => {
+      expect(mapRemoteOrigin('+user/chris@mt.city.eggnog.city', '@mt.city.eggnog', '@mt', lookup)).toBe('+user/chris@mt.city');
+      expect(mapRemoteOrigin('+user/chris@mt.city.eggnog.main', '@mt.city.eggnog', '@mt', lookup)).toBe('+user/chris@mt');
     });
 
     it('keeps tags without a mapping', () => {
-      expect(mapRemoteOrigin('+user/chris@city.eggnog.other', '@city.eggnog', lookup)).toBe('+user/chris@city.eggnog.other');
-      expect(mapRemoteOrigin('+user/chris@city.eggnog', '@city.eggnog', lookup)).toBe('+user/chris@city.eggnog');
-      expect(mapRemoteOrigin('+user/chris@city', '', lookup)).toBe('+user/chris@city');
-      expect(mapRemoteOrigin('+user/chris@city.eggnog.city', '@city.eggnog')).toBe('+user/chris@city.eggnog.city');
+      expect(mapRemoteOrigin('+user/chris@city.eggnog.other', '@city.eggnog', '', lookup)).toBe('+user/chris@city.eggnog.other');
+      expect(mapRemoteOrigin('+user/chris@city.eggnog', '@city.eggnog', '', lookup)).toBe('+user/chris@city.eggnog');
+      expect(mapRemoteOrigin('+user/chris@city', '', '', lookup)).toBe('+user/chris@city');
+      expect(mapRemoteOrigin('+user/chris@city.eggnog.city', '@city.eggnog', '')).toBe('+user/chris@city.eggnog.city');
     });
   });
 });

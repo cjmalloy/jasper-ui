@@ -893,7 +893,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return uniq([
       ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
-      ...authors(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', lookup)),
+      ...authors(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', this.store.account.origin, lookup)),
     ]);
   }
 
@@ -905,7 +905,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get recipients() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
-    const userRecipients = without(addressedTo(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', lookup)), ...this.authors);
+    const userRecipients = without(addressedTo(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', this.store.account.origin, lookup)), ...this.authors);
     return [
       ...userRecipients,
       ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],

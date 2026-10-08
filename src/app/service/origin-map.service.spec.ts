@@ -100,28 +100,103 @@ describe('OriginMapService', () => {
       expect(originMap().get('@remote.a')?.get('@remote.b')).toBe('@remote.b');
       expect(originMap().get('@remote.b')?.get('@remote.a')).toBe('@remote.a');
     });
-    it('should map nested remotes reached through different URLs', () => {
-      const pull = (url: string, origin: string, local: string, remote = ''): Ref => ({
-        ...ref(url, origin, local, remote),
+    describe('desktop pushing to @eggnog and pulling @city, with @city pulling @eggnog', () => {
+      const pull = (url: string, origin: string, local: string, remote: string, proxy?: string): Ref => ({
+        url,
+        origin,
         tags: ['+plugin/origin/pull'],
+        plugins: { '+plugin/origin': { local, remote, proxy } },
       });
-      setOrigins([
-        // Desktop pulls @city from city through an SSH tunnel
-        pull('http://localhost:9001', '', '@city', '@city'),
-        // Desktop pushes to @eggnog
-        { url: 'http://localhost:9002', origin: '', tags: ['+plugin/origin/push'], plugins: { '+plugin/origin': { remote: '@eggnog' } } },
-        // City pulls @eggnog into @city.eggnog
-        pull('https://eggnog.example', '@city', '@eggnog', '@eggnog'),
-        // Eggnog pulls @city from city
-        pull('https://city.example', '@city.eggnog', '@city', '@city'),
-        // Eggnog pulls an unrelated origin
-        pull('https://other.example', '@city.eggnog', '@other', '@other'),
-      ]);
-      setApi('http://localhost:8081');
-      setLocal('');
+      const push = (url: string, origin: string, local: string, remote: string, proxy?: string): Ref => ({
+        url,
+        origin,
+        tags: ['+plugin/origin/push'],
+        plugins: { '+plugin/origin': { local, remote, proxy } },
+      });
+      const desktopPullCity = pull('https://city.example', '', '@city', '@city', 'http://localhost:9001');
+      const desktopPushEggnog = push('comment:eggnog', '', '', '@eggnog', 'http://localhost:9002');
+      const cityPullEggnog = pull('comment:eggnog', '@city', '@eggnog', '@eggnog');
 
-      expect(originMap().get('@city.eggnog')?.get('@city')).toBe('@city');
-      expect(originMap().get('@city.eggnog')?.has('@other')).toBe(false);
+      it('maps eggnog sub-origins using our pushed configs', () => {
+        setOrigins([desktopPullCity, desktopPushEggnog, cityPullEggnog]);
+        setApi('http://localhost:8081');
+        setLocal('');
+
+        expect(originMap().get('@city.eggnog')?.get('@city')).toBe('@city');
+      });
+
+      it('maps city mirrored inside eggnog back to this origin', () => {
+        setOrigins([desktopPullCity, desktopPushEggnog, cityPullEggnog]);
+        setApi('http://localhost:8081');
+        setLocal('');
+
+        expect(originMap().get('@city.eggnog.city')?.get('@eggnog')).toBe('');
+      });
+
+      it('does not map when url matches but remote differs', () => {
+        setOrigins([
+          desktopPullCity,
+          desktopPushEggnog,
+          pull('comment:eggnog', '@city', '@eggnog', '@other'),
+        ]);
+        setApi('http://localhost:8081');
+        setLocal('');
+
+        expect(originMap().get('@city.eggnog')?.has('@city')).toBeFalsy();
+      });
+
+      it('does not map when remote matches but url differs', () => {
+        setOrigins([
+          desktopPullCity,
+          desktopPushEggnog,
+          pull('comment:other', '@city', '@eggnog', '@eggnog'),
+        ]);
+        setApi('http://localhost:8081');
+        setLocal('');
+
+        expect(originMap().get('@city.eggnog')?.has('@city')).toBeFalsy();
+      });
+
+      it('does not match origins by name', () => {
+        setOrigins([
+          desktopPullCity,
+          cityPullEggnog,
+          pull('https://elsewhere.example', '@city.eggnog', '@city', '@city'),
+        ]);
+        setApi('http://localhost:8081');
+        setLocal('');
+
+        expect(originMap().get('@city.eggnog')?.has('@city')).toBeFalsy();
+      });
+
+      it('maps transitively through a pull of a pull', () => {
+        const desktopPullFoo = pull('https://foo.example', '', '@foo', '@foo');
+        setOrigins([
+          desktopPullCity,
+          desktopPullFoo,
+          desktopPushEggnog,
+          cityPullEggnog,
+          pull('https://bar.example', '@foo', '@bar', '@bar'),
+          pull('https://bar.example', '', '@bar', '@bar'),
+        ]);
+        setApi('http://localhost:8081');
+        setLocal('');
+
+        // eggnog (our mirror) pulls foo into @eggnog.foo, which pulls bar
+        expect(originMap().get('@city.eggnog.foo')?.get('@bar')).toBe('@bar');
+      });
+
+      it('works for a multi-tenant root origin', () => {
+        setOrigins([
+          pull('https://city.example', '@mt', '@city', '@city'),
+          push('comment:eggnog', '@mt', '', '@eggnog'),
+          pull('comment:eggnog', '@mt.city', '@eggnog', '@eggnog'),
+        ]);
+        setApi('http://localhost:8081');
+        setLocal('@mt');
+
+        expect(originMap().get('@mt.city.eggnog')?.get('@city')).toBe('@city');
+      });
     });
     it('should map remote aliases for nested origins and this origin', () => {
       setOrigins([

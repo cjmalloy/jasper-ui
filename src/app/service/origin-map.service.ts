@@ -139,55 +139,68 @@ export class OriginMapService {
 
   /**
    * Maps local-alias -> remote-alias -> local-alias.
-   * Includes nested origins and remote aliases that point back to this origin.
+   * Values are relative to this origin, with the empty string meaning this origin.
+   *
+   * Origin configs are interpreted in the context of the origin they were pulled into.
+   * When an origin mirrors one of our own origins (it was pulled from the same url + remote
+   * that we push to or pull from), our configs for that origin are used. Configs found
+   * directly in a sub-origin are only used as advice.
    */
   private get originMap(): Map<string, Map<string, string>> {
     const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
     const me = this.store.account.origin || '';
     const selfApis = this.selfApis;
     const remotesForOrigin = (origin: string) => this.origins.filter(remote => (remote.origin || '') === origin);
-    const resolve = (nested: Ref): string | undefined => {
-      const target = this.remoteTarget(nested, selfApis);
-      if (target === undefined || target === me) return target;
-      return removeParentOrigin(target, me);
-    };
-    const originMapFor = (origin: string): Map<string, string> => new Map(
-      remotesForOrigin(origin)
-        .map(nested => [config(nested)?.local || '', resolve(nested)])
-        .filter(([, mapped]) => mapped !== undefined) as [string, string][]);
     const isSubOrigin = (origin: string) => origin !== me && (!me || origin.startsWith(me + '.'));
-    return new Map(uniq([
-      ...remotesForOrigin(me).map(remote => subOrigin(me, config(remote)?.local)),
-      ...this.origins.map(remote => remote.origin || '').filter(isSubOrigin),
-    ]).map(origin => [origin, originMapFor(origin)]));
+    const ancestors = (origin: string) => {
+      const result = [me];
+      const rest = me ? origin.substring(me.length + 1) : origin.substring(1);
+      const parts = rest.split('.');
+      for (let i = 1; i < parts.length; i++) result.push(subOrigin(me, '@' + parts.slice(0, i).join('.')));
+      return result;
+    };
+    const cache = new Map<string, Ref[]>();
+    const configsFor = (origin: string): Ref[] => {
+      if (cache.has(origin)) return cache.get(origin)!;
+      const advice = remotesForOrigin(origin);
+      if (!isSubOrigin(origin)) return advice;
+      const mirrors = new Set<string>();
+      for (const parent of ancestors(origin)) {
+        for (const puller of configsFor(parent)) {
+          if (!hasTag('+plugin/origin/pull', puller)) continue;
+          if (subOrigin(parent, config(puller)?.local) !== origin) continue;
+          const mirror = this.mirrorOf(puller, selfApis);
+          if (mirror !== undefined && mirror !== origin) mirrors.add(mirror);
+        }
+      }
+      const result = uniq([...advice, ...[...mirrors].flatMap(remotesForOrigin)]);
+      cache.set(origin, result);
+      return result;
+    };
+    const relative = (origin: string) => origin === me ? '' : removeParentOrigin(origin, me);
+    return new LazyMap(origin => new Map(configsFor(origin)
+      .filter(remote => !hasTag('+plugin/origin/push', remote))
+      .map(remote => [config(remote)?.local || '', this.mirrorOf(remote, selfApis)])
+      .filter(([local, mirror]) => local && mirror !== undefined)
+      .map(([local, mirror]) => [local, relative(mirror!)]) as [string, string][]));
   }
 
   /**
-   * Finds which visible origin a remote origin Ref points to, from this origin's perspective.
-   * Remotes are matched by API URL first. Since remotes may reach each other through
-   * different URLs (proxies, SSH tunnels), a Ref pulling the same remote origin that its
-   * own origin was pulled from is also treated as pointing back to that origin.
+   * Finds which of our origins a remote origin Ref points to by matching url + remote
+   * against our own origin configs.
    */
-  private remoteTarget(ref: Ref, selfApis = this.selfApis): string | undefined {
+  private mirrorOf(ref: Ref, selfApis = this.selfApis): string | undefined {
     const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
     const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
     const me = this.store.account.origin || '';
     if (isReplicating(me, ref, selfApis)) return me;
     const url = trimUrl(ref.url);
-    const known = this.origins.find(remote => (remote.origin || '') === me && trimUrl(remote.url) === url);
-    if (known) return subOrigin(me, config(known)?.local);
-    if (!hasTag('+plugin/origin/pull', ref)) return undefined;
-    const from = ref.origin || '';
     const remote = config(ref)?.remote || '';
-    const pulledBy = (origin: string) => this.origins.filter(puller =>
-      hasTag('+plugin/origin/pull', puller) &&
-      (puller.origin || '') !== origin &&
-      subOrigin(puller.origin || '', config(puller)?.local) === origin);
-    for (const puller of pulledBy(from)) {
-      const parent = puller.origin || '';
-      if (parent === me) continue;
-      if (pulledBy(parent).some(grandparent => (config(grandparent)?.remote || '') === remote)) return parent;
-    }
+    const known = this.origins.find(r =>
+      (r.origin || '') === me &&
+      trimUrl(r.url) === url &&
+      (config(r)?.remote || '') === remote);
+    if (known) return subOrigin(me, config(known)?.local);
     return undefined;
   }
 
@@ -203,7 +216,7 @@ export class OriginMapService {
     const target = (ref: Ref): string => {
       const from = ref.origin || '';
       if (from === me) return subOrigin(from, config(ref)?.local);
-      return this.remoteTarget(ref, selfApis) ?? subOrigin(from, config(ref)?.local);
+      return this.mirrorOf(ref, selfApis) ?? subOrigin(from, config(ref)?.local);
     };
     const claims: Required<AccountAlias>[] = [];
     for (const ref of this.origins) {
@@ -249,4 +262,23 @@ export class OriginMapService {
 
 export function selectorMatches(selector: string, candidate: string): boolean {
   return candidate === selector || candidate.startsWith(selector + '/');
+}
+
+/**
+ * Map that computes and caches entries on first access.
+ */
+class LazyMap<V> extends Map<string, V> {
+  constructor(private compute: (key: string) => V) {
+    super();
+  }
+
+  override get(key: string): V | undefined {
+    if (!super.has(key)) super.set(key, this.compute(key));
+    return super.get(key);
+  }
+
+  override has(key: string): boolean {
+    const value: any = this.get(key);
+    return value !== undefined && (!(value instanceof Map) || value.size > 0);
+  }
 }

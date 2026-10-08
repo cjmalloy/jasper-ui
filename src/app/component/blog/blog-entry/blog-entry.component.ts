@@ -294,7 +294,7 @@ export class BlogEntryComponent implements OnChanges, HasChanges {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return uniq([
       ...this.ref.tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
-      ...authors(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', lookup)),
+      ...authors(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', this.store.account.origin, lookup)),
     ]);
   }
 
