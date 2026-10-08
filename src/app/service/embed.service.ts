@@ -344,39 +344,41 @@ export class EmbedService {
         t.href = t.getAttribute('href') + origin;
       }
     });
-    const pictures = el.querySelectorAll<HTMLPictureElement>('picture');
-    pictures.forEach(t => {
-      const source = t.querySelectorAll('source')[0];
-      if (source.src || source.srcset) {
-        const srcsets = source.srcset ? source.srcset.split(', ') : [source.src];
-        let url = source.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : source.src;
-        if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        const config = {} as any;
-        if (t.style.width) config.width = t.style.width;
-        if (t.style.height) config.height = t.style.height;
-        const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
-        c.location.nativeElement.title = t.title;
-        c.location.nativeElement.alt = t.querySelectorAll('img')[0]?.alt;
-        t.parentNode?.insertBefore(c.location.nativeElement, t);
-      }
-      t.remove();
-    });
-    const images = el.querySelectorAll<HTMLImageElement>('img');
-    images.forEach(t => {
-      if (t.src || t.srcset) {
-        const srcsets = t.srcset ? t.srcset.split(', ') : [t.src];
-        let url = t.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : t.src;
-        if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        const config = {} as any;
-        if (t.style.width) config.width = t.style.width;
-        if (t.style.height) config.height = t.style.height;
-        const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
-        c.location.nativeElement.title = t.title;
-        c.location.nativeElement.alt = t.alt;
-        t.parentNode?.insertBefore(c.location.nativeElement, t);
-      }
-      t.remove();
-    });
+    if (this.admin.getPlugin('plugin/image')) {
+      const pictures = el.querySelectorAll<HTMLPictureElement>('picture');
+      pictures.forEach(t => {
+        const source = t.querySelectorAll('source')[0];
+        if (source.src || source.srcset) {
+          const srcsets = source.srcset ? source.srcset.split(', ') : [source.src];
+          let url = source.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : source.src;
+          if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
+          const config = {} as any;
+          if (t.style.width) config.width = t.style.width;
+          if (t.style.height) config.height = t.style.height;
+          const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
+          c.location.nativeElement.title = t.title;
+          c.location.nativeElement.alt = t.querySelectorAll('img')[0]?.alt;
+          t.parentNode?.insertBefore(c.location.nativeElement, t);
+        }
+        t.remove();
+      });
+      const images = el.querySelectorAll<HTMLImageElement>('img');
+      images.forEach(t => {
+        if (t.src || t.srcset) {
+          const srcsets = t.srcset ? t.srcset.split(', ') : [t.src];
+          let url = t.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : t.src;
+          if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
+          const config = {} as any;
+          if (t.style.width) config.width = t.style.width;
+          if (t.style.height) config.height = t.style.height;
+          const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
+          c.location.nativeElement.title = t.title;
+          c.location.nativeElement.alt = t.alt;
+          t.parentNode?.insertBefore(c.location.nativeElement, t);
+        }
+        t.remove();
+      });
+    }
     const audio = el.querySelectorAll<HTMLAudioElement>('audio');
     audio.forEach(t => {
       const source = t.querySelectorAll('source')[0];
@@ -461,6 +463,7 @@ export class EmbedService {
                 return this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined).pipe(
                   catchError(() => of(null)),
                   map(oembed => {
+                    if (!oembed && !this.admin.getPlugin('plugin/image')) return;
                     const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
                     const c = createEmbed(vc, { url, origin, tags: expandPlugins });
                     c.location.nativeElement.title = t.title;

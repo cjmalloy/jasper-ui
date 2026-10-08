@@ -493,7 +493,7 @@ return '67vh';
 
   @memo
   get imageUrl() {
-    if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
+    if (!this.image && (!this.admin.getPlugin('plugin/image') || !hasTag('plugin/image', this.currentTags))) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
       return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Image`));
