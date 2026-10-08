@@ -217,6 +217,20 @@ describe('OriginMapService', () => {
           .toEqual(['+user/chris@city', '+user/chris@city.eggnog']);
       });
 
+      it('displays recipients on city when the pulled url has a trailing slash', () => {
+        setOrigins([
+          cityPullEggnog,
+          { ...desktopPullCity, url: 'https://city.example/', origin: '@city.eggnog' },
+          { ...desktopPushEggnog, origin: '@city.eggnog' },
+        ]);
+        setApi('https://city.example');
+        setLocal('@city');
+        const ref: Ref = { url: 'comment:6cc', origin: '@city.eggnog', tags: ['plugin/outbox/city/user/chris'] };
+
+        expect(addressedTo(ref).map(t => mapRemoteOrigin(t, ref.origin!, '@city', originMap().get(ref.origin!))))
+          .toEqual(['+user/chris@city']);
+      });
+
       it('works for a multi-tenant root origin', () => {
         setOrigins([
           pull('https://city.example', '@mt', '@city', '@city'),

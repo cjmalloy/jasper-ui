@@ -75,7 +75,7 @@ export class OriginMapService {
     const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
     const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
     return new Map([
-      [this.api, this.store.account.origin],
+      [trimUrl(this.api), this.store.account.origin],
       ...remotesForOrigin(this.store.account.origin)
         .filter(remote => isPushing(remote, ''))
         .map(remote => [trimUrl(remote.url), config(remote).remote]),
