@@ -199,6 +199,24 @@ describe('OriginMapService', () => {
         expect(recipients({ url: 'comment:6cc', origin: '@city.eggnog', tags })).toEqual(['+user/chris@city', '+user/chris@city.eggnog']);
       });
 
+      it('displays recipients on city when city declares its own url', () => {
+        setOrigins([
+          // City declares itself
+          { url: 'https://city.example', origin: '@city', tags: [], plugins: { '+plugin/origin': { local: '', remote: '@city' } } },
+          cityPullEggnog,
+          // Desktop configs pushed to eggnog, pulled into city
+          { ...desktopPullCity, origin: '@city.eggnog' },
+          { ...desktopPushEggnog, origin: '@city.eggnog' },
+        ]);
+        setApi('http://localhost:8081');
+        setLocal('@city');
+        const tags = ['+user/bob', 'internal', 'plugin/comment', 'public', 'plugin/outbox/city/user/chris', 'plugin/inbox/user/chris'];
+        const ref: Ref = { url: 'comment:6cc', origin: '@city.eggnog', tags };
+
+        expect(addressedTo(ref).map(t => mapRemoteOrigin(t, ref.origin!, '@city', originMap().get(ref.origin!))))
+          .toEqual(['+user/chris@city', '+user/chris@city.eggnog']);
+      });
+
       it('works for a multi-tenant root origin', () => {
         setOrigins([
           pull('https://city.example', '@mt', '@city', '@city'),
