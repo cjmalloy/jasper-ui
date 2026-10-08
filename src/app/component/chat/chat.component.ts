@@ -534,14 +534,20 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     });
   }
 
+  get publicUploads() {
+    return this.tags.includes('public') || !!this.store.view.ext?.config?.addTags?.includes('public');
+  }
+
   upload$(file: File, upload: ChatUpload): Observable<Ref | null> {
+    const visibility = this.publicUploads ? ['public'] : [];
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref: Ref = {
         origin: this.store.account.origin,
         url: 'internal:' + uuid(),
-        // Upload as private - only localTag and internal, no visibility tags
+        // Upload as private unless the chat is public
         tags: uniq([
+          ...visibility,
           this.store.account.localTag,
           'internal',
           ...file.type === 'text/markdown' ? [] : codeType
@@ -569,8 +575,8 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         }),
       );
     } else {
-      // Upload binary files as private - only plugin/file and type-specific tags
-      const tags: string[] = ['plugin/file'];
+      // Upload binary files as private unless the chat is public
+      const tags: string[] = [...visibility, 'plugin/file'];
       if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
         tags.push('plugin/audio');
       } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
