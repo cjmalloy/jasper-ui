@@ -115,6 +115,17 @@ export function reverseOrigin(tag: string, rootOrigin: string): string {
   return prefix + tag.substring(len + 1) + subOrigin(rootOrigin, tag.substring(0, len));
 }
 
+/**
+ * Translate a tag on a Ref from a remote origin into a local origin
+ * using the origin map lookup for that remote.
+ */
+export function mapRemoteOrigin(tag: string, origin: string, local: string, lookup?: Map<string, string>): string {
+  const remote = tagOrigin(tag);
+  if (!remote || !origin || !lookup || !remote.startsWith(origin + '.')) return tag;
+  const mapped = lookup.get(removeParentOrigin(remote, origin));
+  return mapped === undefined ? tag : localTag(tag) + subOrigin(local, mapped);
+}
+
 export function getMailbox(tag: string, local: string): string {
   if (hasPrefix(tag, 'plugin/inbox') || hasPrefix(tag, 'plugin/outbox')) return localTag(tag);
   const origin = tagOrigin(tag);
@@ -123,6 +134,11 @@ export function getMailbox(tag: string, local: string): string {
   } else {
     return setPublic(prefix(`plugin/outbox/${removeParentOrigin(origin, local).substring(1)}`, localTag(tag)));
   }
+}
+
+export function cursorSettingsUrl(origin: string, local: string): string {
+  if (!origin || origin === local) return 'tag:/plugin/inbox';
+  return `tag:/plugin/outbox/${removeParentOrigin(origin, local).substring(1)}`;
 }
 
 export function getLocalMailbox(mailbox: string, local: string, origin: string, lookup?: Map<string, Map<string, string>>) {

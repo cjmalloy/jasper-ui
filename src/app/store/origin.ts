@@ -1,6 +1,13 @@
 import { makeAutoObservable, observableRef, observableShallow } from 'mobx';
 import { Ref } from '../model/ref';
 
+export interface AccountAlias {
+  from?: string;
+  origin: string;
+  local: string;
+  remote: string;
+}
+
 export class OriginStore {
 
   origins: Ref[] = [];
@@ -9,6 +16,7 @@ export class OriginStore {
   tunnelLookup = new Map<string, string>();
   reverseLookup = new Map<string, string>();
   originMap = new Map<string, Map<string, string>>();
+  accountAliases: AccountAlias[] = [];
 
   constructor() {
     makeAutoObservable(this, {
@@ -18,6 +26,7 @@ export class OriginStore {
       tunnelLookup: observableRef,
       reverseLookup: observableRef,
       originMap: observableRef,
+      accountAliases: observableRef,
     });
   }
 

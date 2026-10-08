@@ -38,7 +38,7 @@ import {
   visible
 } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
-import { getMailbox, mailboxes } from '../../mods/mailbox';
+import { getMailbox, mailboxes, mapRemoteOrigin } from '../../mods/mailbox';
 import { score } from '../../mods/vote';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -52,7 +52,7 @@ import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { addPluginResponse, hasTag, hasUserUrlResponse, localTag, pluginResponses, removeTag, tagOrigin } from '../../util/tag';
+import { addPluginResponse, hasTag, hasUserUrlResponse, pluginResponses, removeTag, tagOrigin } from '../../util/tag';
 import { ActionListComponent } from '../action/action-list/action-list.component';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
@@ -241,7 +241,7 @@ export class CommentComponent implements AfterViewInit, OnChanges, OnDestroy, Ha
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
     return uniq([
       ...this.ref.tags?.filter(t => t.startsWith('+plugin/') && this.admin.getPlugin(t)?.config?.signature) || [],
-      ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
+      ...authors(this.ref).map(a => mapRemoteOrigin(a, this.ref.origin || '', this.store.account.origin, lookup)),
     ]);
   }
 
