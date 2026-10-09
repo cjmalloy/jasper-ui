@@ -5516,9 +5516,9 @@ Enter the origin to confirm:</source>
         <source>Upload Plugin</source>
         <target>プラグインをアップロード</target>
       </trans-unit>
-      <trans-unit id="8162805937861449789" datatype="html">
-        <source>+ upload dev plugin</source>
-        <target>+ 開発プラグインをアップロード</target>
+      <trans-unit id="1997402288136117161" datatype="html">
+        <source>Upload Dev Plugin</source>
+        <target>開発プラグインをアップロード</target>
       </trans-unit>
       <trans-unit id="4825319678291826215" datatype="html">
         <source>Settings: Plugins</source>
@@ -5640,9 +5640,9 @@ Enter the origin to confirm:</source>
         <source>Upload Template</source>
         <target>テンプレートをアップロード</target>
       </trans-unit>
-      <trans-unit id="7666610490036284503" datatype="html">
-        <source>+ upload dev template</source>
-        <target>+ 開発テンプレートをアップロード</target>
+      <trans-unit id="8605448348202273940" datatype="html">
+        <source>Upload Dev Template</source>
+        <target>開発テンプレートをアップロード</target>
       </trans-unit>
       <trans-unit id="9211072850644603743" datatype="html">
         <source>Settings: Templates</source>

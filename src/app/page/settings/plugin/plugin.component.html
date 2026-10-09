@@ -1,18 +1,3 @@
-@if (store.account.admin) {
-  <button type="button"
-          (click)="uploadFile.click()"
-          i18n-title
-          title="Upload Plugin"
-          class="upload" i18n>+ upload dev plugin</button>
-  <input #uploadFile
-         type="file"
-         class="upload"
-         (change)="upload(uploadFile.files!)">
-  @for (e of serverError; track e) {
-    <span><!-- Unexpected Error --></span>
-    <div class="error">{{ e }}</div>
-  }
-}
 @if (query.error?.status !== 403) {
   <app-plugin-list #list [page]="query.page"></app-plugin-list>
 } @else {
