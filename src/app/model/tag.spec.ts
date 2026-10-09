@@ -1,4 +1,8 @@
-import { clear, progress } from './tag';
+import * as Handlebars from 'handlebars/dist/cjs/handlebars';
+import { Ref } from './ref';
+import { clear } from './tag';
+
+const progress = (ref?: Ref) => (Handlebars as any).helpers['progress'](ref, 'plugin/progress');
 
 describe('Tag Model', () => {
   describe('clear', () => {
