@@ -36,6 +36,12 @@ The temporary URL and matching query reference will be rewritten together. Prese
         label: $localize`Script:`,
         language: 'javascript',
       },
+    }, {
+      key: 'aiInstructions',
+      type: 'editor',
+      props: {
+        label: $localize`AI Instructions:`,
+      },
     }],
     // language=JavaScript
     script: `

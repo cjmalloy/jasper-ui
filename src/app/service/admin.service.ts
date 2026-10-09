@@ -6,7 +6,7 @@ import { runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
-import { aiInstructionsAdminField, configAdminFallback } from '../form/admin-config/config-admin-forms';
+import { configAdminFallback } from '../form/admin-config/config-admin-forms';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -1214,6 +1214,12 @@ function addParent(c: Config) {
 
 function withAiInstructions(form: FormlyFieldConfig[], config?: Config['config']): FormlyFieldConfig[] {
   if (typeof config?.aiInstructions !== 'string') return form;
-  if (form.find(f => f.key === aiInstructionsAdminField.key)) return form;
-  return [...form, aiInstructionsAdminField];
+  if (form.find(f => f.key === 'aiInstructions')) return form;
+  return [...form, {
+    key: 'aiInstructions',
+    type: 'editor',
+    props: {
+      label: $localize`AI Instructions:`,
+    },
+  }];
 }

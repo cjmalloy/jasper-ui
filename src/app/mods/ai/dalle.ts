@@ -129,6 +129,12 @@ You could respond:
         label: $localize`Script:`,
         language: 'javascript',
       },
+    }, {
+      key: 'aiInstructions',
+      type: 'editor',
+      props: {
+        label: $localize`AI Instructions:`,
+      },
     }],
     // language=JavaScript
     script: `

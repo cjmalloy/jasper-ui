@@ -16,6 +16,13 @@ export const chatTemplate: Template = {
     submit: $localize`🗨️ chat/`,
     view: $localize`🗨️`,
     description: $localize`Activates built-in Chat mode for viewing Refs.`,
+    adminForm: [{
+      key: 'aiInstructions',
+      type: 'editor',
+      props: {
+        label: $localize`AI Instructions:`,
+      },
+    }],
     aiInstructions: `# chat
 The chat template creates chat rooms with real-time chat.
 When replying to a chat message, adding a notification to the user is optional, but not required.

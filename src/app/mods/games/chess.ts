@@ -16,6 +16,13 @@ export const chessPlugin: Plugin = {
     description: $localize`Activates built-in Chess game`,
     icons: [{ label: $localize`♟️`, order: 3 }],
     published: $localize`played`,
+    adminForm: [{
+      key: 'aiInstructions',
+      type: 'editor',
+      props: {
+        label: $localize`AI Instructions:`,
+      },
+    }],
     aiInstructions: ` # plugin/chess
 When replying to a plugin/chess Ref, include the full previous game before your response in the comment field.
 Chess games are only stored in the comment field. They are Portable Game Notation (PGN) or the first line Forsyth-Edwards Notation (FEN) followed by optional newline delimited PGN-like list of Standard Algebraic Notation (SAN) moves.

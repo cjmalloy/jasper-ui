@@ -15,6 +15,13 @@ export const kanbanTemplate: Template = {
     submit: $localize`📋️ kanban/`,
     view: $localize`📋️`,
     description: $localize`Activates built-in Kanban mode for viewing Refs.`,
+    adminForm: [{
+      key: 'aiInstructions',
+      type: 'editor',
+      props: {
+        label: $localize`AI Instructions:`,
+      },
+    }],
     aiInstructions: `# kanban
 The kanban Template is used to organize Refs on a kanban board. The kanban Ext
 will customize what tags are used for columns, swim lanes and, badges.

@@ -52,14 +52,6 @@ function role(key: string, label: string): FormlyFieldConfig {
   };
 }
 
-export const aiInstructionsAdminField: FormlyFieldConfig = {
-  key: 'aiInstructions',
-  type: 'editor',
-  props: {
-    label: $localize`AI Instructions:`,
-  },
-};
-
 export const indexConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'tags', type: 'boolean', props: { label: $localize`Tags:` } },
   { key: 'sources', type: 'boolean', props: { label: $localize`Sources:` } },
