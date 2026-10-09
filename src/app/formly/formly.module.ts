@@ -7,6 +7,7 @@ import { FormlySelectModule } from '@ngx-formly/core/select';
 import { v4 as uuid } from 'uuid';
 import {
   ORIGIN_REGEX,
+  ORIGIN_WILDCARD_REGEX,
   PLUGIN_REGEX,
   QUALIFIED_TAG_REGEX,
   QUALIFIED_USER_REGEX,
@@ -377,6 +378,25 @@ Private tags start with an underscore.
 The default origin is blank.
 Must not start with a period or contain two periods in a row.
 (i.e. "@origin", "@my.origin", or "").`,
+            }
+          },
+        },
+      }, {
+        name: 'originSelector',
+        extends: 'input',
+        defaultOptions: {
+          props: {
+            type: 'email',
+            label: $localize`@`,
+          },
+          validators: {
+            pattern: {
+              expression: (c: AbstractControl) => !c.value || ORIGIN_WILDCARD_REGEX.test(c.value),
+              message: $localize`Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+May end with a wildcard (i.e. "@*" or "@my.*").
+The default origin is blank.
+Must not start with a period or contain two periods in a row.
+(i.e. "@origin", "@my.origin", "@my.*", or "").`,
             }
           },
         },

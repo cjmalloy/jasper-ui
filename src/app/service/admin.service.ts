@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { AbstractControl } from '@angular/forms';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
@@ -93,7 +92,7 @@ import { userMod } from '../mods/user';
 import { voteMod } from '../mods/vote';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
-import { modId, ORIGIN_WILDCARD_REGEX } from '../util/format';
+import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
@@ -1244,19 +1243,7 @@ function origins(key: string, label: string, wildcard = false): FormlyFieldConfi
       keepBlank: true,
     },
     fieldArray: {
-      type: 'origin',
-      ...wildcard ? {
-        validators: {
-          pattern: {
-            expression: (c: AbstractControl) => !c.value || ORIGIN_WILDCARD_REGEX.test(c.value),
-            message: $localize`Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-May end with a wildcard (i.e. "@*" or "@my.*").
-The default origin is blank.
-Must not start with a period or contain two periods in a row.
-(i.e. "@origin", "@my.origin", "@my.*", or "").`,
-          },
-        },
-      } : {},
+      type: wildcard ? 'originSelector' : 'origin',
     },
   };
 }

@@ -3,10 +3,12 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { FormlyFieldConfig } from '@ngx-formly/core';
 import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
+import { ORIGIN_WILDCARD_REGEX } from '../util/format';
 import { AdminService } from './admin.service';
 
 describe('AdminService', () => {
@@ -49,12 +51,12 @@ describe('AdminService', () => {
 
   it('should allow wildcard web origins in the server config fallback form', () => {
     const webOrigins = service.getTemplateAdminForm('_config/server').find(f => f.key === 'webOrigins')!;
-    const pattern = (webOrigins.fieldArray as any).validators.pattern.expression;
+    expect((webOrigins.fieldArray as FormlyFieldConfig).type).toBe('originSelector');
     for (const value of ['', '@', '@*', '@company', '@company.*', '@a.b.*']) {
-      expect(pattern({ value })).toBe(true);
+      expect(ORIGIN_WILDCARD_REGEX.test(value)).toBe(true);
     }
     for (const value of ['*', '@.*', '@company.', '@company*', 'company']) {
-      expect(pattern({ value })).toBe(false);
+      expect(ORIGIN_WILDCARD_REGEX.test(value)).toBe(false);
     }
   });
 
