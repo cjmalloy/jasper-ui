@@ -3,6 +3,23 @@ import { describe, expect, it } from 'vitest';
 import { Ref } from '../../model/ref';
 import { ytdlpDeltaPlugin, ytdlpMetaDeltaPlugin } from './ytdlp';
 
+function applyPatch(ref: any, ops: any[]) {
+  const result = { ...ref };
+  for (const op of ops) {
+    const key = op.path.substring(1).replaceAll('~1', '/').replaceAll('~0', '~');
+    if (op.op === 'remove') {
+      delete result[key];
+    } else {
+      result[key] = op.value;
+    }
+  }
+  return result;
+}
+
+function lastLine(stderr: string) {
+  return JSON.parse(stderr.trim().split('\n').pop()!);
+}
+
 function runMetadata(ref: Ref, info: Record<string, unknown>, error?: string) {
   return spawnSync('python3', ['-c', `
 import io
@@ -14,6 +31,21 @@ import types
 payload = json.load(sys.stdin)
 sys.stdin = io.StringIO(json.dumps(payload['ref']))
 os.environ['JASPER_NODE'] = '/test/bun'
+os.environ['JASPER_API'] = 'http://jasper.test'
+calls = []
+
+class Response:
+    def __init__(self, ok, body):
+        self.ok = ok
+        self.status_code = 200 if ok else 409
+        self.text = json.dumps(body)
+        self.body = body
+    def json(self):
+        return self.body
+
+def patch(url, headers, params, data, timeout):
+    calls.append({'url': url, 'headers': headers, 'params': params, 'data': json.loads(data)})
+    return Response(True, '2026-01-01T00:00:00Z')
 
 class YoutubeDL:
     def __init__(self, opts):
@@ -31,7 +63,11 @@ class YoutubeDL:
         return payload['info']
 
 sys.modules['yt_dlp'] = types.SimpleNamespace(YoutubeDL=YoutubeDL)
-exec(payload['script'])
+sys.modules['requests'] = types.SimpleNamespace(patch=patch)
+try:
+    exec(payload['script'])
+finally:
+    print(json.dumps(calls), file=sys.stderr)
   `], {
     input: JSON.stringify({ ref, info, error, script: ytdlpMetaDeltaPlugin.config?.script }),
     encoding: 'utf8',
@@ -42,7 +78,17 @@ function getRefs(ref: Ref, info: Record<string, unknown>): Ref[] {
   const result = runMetadata(ref, info);
   expect(result.error).toBeUndefined();
   expect(result.status, result.stderr).toBe(0);
-  return JSON.parse(result.stdout).ref;
+  const calls = lastLine(result.stderr);
+  expect(calls.length).toBeLessThanOrEqual(1);
+  const parent = calls.length ? applyPatch(ref, calls[0].data) : ref;
+  if (calls.length) {
+    expect(calls[0]).toMatchObject({
+      url: 'http://jasper.test/api/v1/ref',
+      headers: { 'Content-Type': 'application/json-patch+json', 'User-Role': 'ROLE_ADMIN' },
+      params: { url: ref.url, origin: ref.origin || '', cursor: ref.modified ?? null },
+    });
+  }
+  return [parent, ...JSON.parse(result.stdout).ref];
 }
 
 describe('ytdlpMetaDeltaPlugin', () => {
@@ -87,12 +133,10 @@ describe('ytdlpMetaDeltaPlugin', () => {
     expect(refs).toHaveLength(3);
     expect(refs[0]).toEqual({
       ...ref,
-      metadata: undefined,
       tags: ['public', 'public/music', '_user/alice', '+user/alice', 'user/alice', 'music', 'plugin/playlist'],
       sources: ['https://example.test/watch/first', 'https://example.test/watch/second'],
       plugins: { 'plugin/other': { value: 'preserved' } },
     });
-    expect(refs[0]).not.toHaveProperty('metadata');
     expect(refs[1]).toEqual({
       url: 'https://example.test/watch/first',
       origin: '@local',
@@ -188,7 +232,6 @@ describe('ytdlpMetaDeltaPlugin', () => {
     expect(refs).toHaveLength(1);
     expect(refs[0]).toEqual({
       ...ref,
-      metadata: undefined,
       tags: ['plugin/embed', 'plugin/thumbnail/storyboard', 'plugin/duration/pt1h2m3s'],
       plugins: {
         ...ref.plugins,
@@ -198,7 +241,6 @@ describe('ytdlpMetaDeltaPlugin', () => {
         },
       },
     });
-    expect(refs[0]).not.toHaveProperty('metadata');
   });
 
   it('preserves existing metadata when no duration or storyboard is returned', () => {
@@ -220,12 +262,12 @@ describe('ytdlpMetaDeltaPlugin', () => {
     const result = runMetadata({ url: 'https://example.test/video' }, {}, 'Video unavailable');
     expect(result.status).toBe(1);
     expect(result.stdout).toBe('');
-    expect(JSON.parse(result.stderr)).toEqual({ error: 'Video unavailable' });
+    expect(JSON.parse(result.stderr.split('\n')[0])).toEqual({ error: 'Video unavailable' });
   });
 });
 
 describe('ytdlpDeltaPlugin', () => {
-  function runDownload(ref: Ref, progressOk = true, latest: Ref = ref) {
+  function runDownload(ref: Ref, options: { progressOk?: boolean, latest?: Ref, refPatchFailures?: number } = {}) {
     return spawnSync('python3', ['-c', `
 import io
 import json
@@ -239,6 +281,7 @@ os.environ['JASPER_NODE'] = '/test/bun'
 os.environ['JASPER_API'] = 'http://jasper.test'
 calls = []
 clock = [0]
+failures = [payload['refPatchFailures']]
 
 def monotonic():
     clock[0] += 5
@@ -247,18 +290,23 @@ def monotonic():
 class Response:
     def __init__(self, ok, body):
         self.ok = ok
-        self.status_code = 200 if ok else 500
+        self.status_code = 200 if ok else 409
         self.text = json.dumps(body)
         self.body = body
     def json(self):
         return self.body
 
-def patch(url, headers, params, timeout):
-    calls.append({'url': url, 'headers': headers, 'params': params})
-    return Response(payload['progressOk'], '2026-01-01T00:00:0%dZ' % len(calls))
+def patch(url, headers, params, timeout, data=None):
+    calls.append({'method': 'patch', 'url': url, 'headers': headers, 'params': params, 'data': data and json.loads(data)})
+    if url.endswith('/api/v1/tags'):
+        return Response(payload['progressOk'], '2026-01-01T00:00:%02dZ' % len(calls))
+    if failures[0]:
+        failures[0] -= 1
+        return Response(False, 'conflict')
+    return Response(True, '2026-03-01T00:00:00Z')
 
 def get(url, headers, params, timeout):
-    calls.append({'url': url, 'headers': headers, 'params': params})
+    calls.append({'method': 'get', 'url': url, 'params': params})
     return Response(True, payload['latest'])
 
 def post(url, data, headers, params):
@@ -284,11 +332,19 @@ class YoutubeDL:
 
 sys.modules['yt_dlp'] = types.SimpleNamespace(YoutubeDL=YoutubeDL)
 sys.modules['requests'] = types.SimpleNamespace(get=get, patch=patch, post=post)
-sys.modules['time'] = types.SimpleNamespace(monotonic=monotonic)
-exec(payload['script'])
-print(json.dumps(calls), file=sys.stderr)
+sys.modules['time'] = types.SimpleNamespace(monotonic=monotonic, sleep=lambda s: None)
+try:
+    exec(payload['script'])
+finally:
+    print(json.dumps(calls), file=sys.stderr)
   `], {
-      input: JSON.stringify({ ref, progressOk, latest, script: ytdlpDeltaPlugin.config?.script }),
+      input: JSON.stringify({
+        ref,
+        progressOk: options.progressOk ?? true,
+        latest: options.latest ?? ref,
+        refPatchFailures: options.refPatchFailures ?? 0,
+        script: ytdlpDeltaPlugin.config?.script,
+      }),
       encoding: 'utf8',
     });
   }
@@ -301,17 +357,20 @@ print(json.dumps(calls), file=sys.stderr)
     modified: '2025-01-01T00:00:00Z' as any,
   };
 
-  it('reports sealed progress and reloads the ref on a timestamp conflict', () => {
-    const latest: Ref = {
-      ...ref,
-      title: 'Edited',
-      tags: [...ref.tags!, 'plugin/progress/99/100', '_seal/delta'],
-      modified: '2026-01-01T00:00:05Z' as any,
-    };
-    const result = runDownload(ref, true, latest);
+  const latest: Ref = {
+    ...ref,
+    title: 'Edited',
+    tags: [...ref.tags!, 'music', 'plugin/progress/37/100', '_seal/delta'],
+    modified: '2026-02-01T00:00:00Z' as any,
+  };
+
+  it('reports sealed progress and saves a JSON patch with the latest progress cursor', () => {
+    const result = runDownload(ref);
     expect(result.status, result.stderr).toBe(0);
-    const calls = JSON.parse(result.stderr.trim().split('\n').pop()!);
-    expect(calls.slice(0, -1).map((c: any) => c.params.tags)).toEqual([
+    expect(JSON.parse(result.stdout)).toEqual({ ref: [] });
+    const calls = lastLine(result.stderr);
+    expect(calls.map((c: any) => c.method)).toEqual(['patch', 'patch', 'patch', 'patch', 'patch']);
+    expect(calls.slice(0, 4).map((c: any) => c.params.tags)).toEqual([
       ['-plugin/progress', 'plugin/progress/0/100', '_seal/delta'],
       ['-plugin/progress', 'plugin/progress/37/100', '_seal/delta'],
       ['-plugin/progress', 'plugin/progress/25/100', '_seal/delta'],
@@ -322,22 +381,48 @@ print(json.dumps(calls), file=sys.stderr)
       headers: { 'Local-Origin': '@local', 'User-Role': 'ROLE_ADMIN' },
       params: { url: ref.url, origin: '@local' },
     });
-    expect(calls[calls.length - 1]).toMatchObject({
+    expect(calls[4]).toMatchObject({
       url: 'http://jasper.test/api/v1/ref',
-      params: { url: ref.url, origin: '@local' },
+      headers: { 'Local-Origin': '@local', 'User-Role': 'ROLE_ADMIN', 'Content-Type': 'application/json-patch+json' },
+      params: { url: ref.url, origin: '@local', cursor: '2026-01-01T00:00:04Z' },
     });
-    const output = JSON.parse(result.stdout).ref;
-    expect(output).toHaveLength(1);
-    expect(output[0].modified).toBe('2026-01-01T00:00:05Z');
-    expect(output[0].title).toBe('Edited');
-    expect(output[0].tags).toEqual(['public', 'plugin/video']);
-    expect(output[0].plugins).toEqual({ 'plugin/video': { url: 'cache:test' } });
+    const saved = applyPatch(ref, calls[4].data);
+    expect(saved.tags).toEqual(['public', 'plugin/video']);
+    expect(saved.plugins).toEqual({ 'plugin/video': { url: 'cache:test' } });
   });
 
-  it('keeps the original modified date when progress reporting fails', () => {
-    const result = runDownload(ref, false);
+  it('reloads the Ref to recover the cursor when a progress update fails', () => {
+    const result = runDownload(ref, { progressOk: false, latest });
     expect(result.status, result.stderr).toBe(0);
-    expect(result.stderr).toContain('Error reporting progress 500');
-    expect(JSON.parse(result.stdout).ref[0].modified).toBe('2025-01-01T00:00:00Z');
+    expect(result.stderr).toContain('Error reporting progress 409');
+    const calls = lastLine(result.stderr);
+    expect(calls.map((c: any) => c.method)).toEqual(['patch', 'get', 'patch', 'get', 'patch', 'get', 'patch', 'get', 'patch']);
+    const save = calls[calls.length - 1];
+    expect(save.params.cursor).toBe('2026-02-01T00:00:00Z');
+    expect(save.data.map((op: any) => op.path)).toEqual(['/tags', '/plugins']);
+    const saved = applyPatch(latest, save.data);
+    expect(saved.title).toBe('Edited');
+    expect(saved.tags).toEqual(['public', 'music', 'plugin/video']);
+    expect(saved.plugins).toEqual({ 'plugin/video': { url: 'cache:test' } });
+  });
+
+  it('reloads the Ref and retries when the final JSON patch fails', () => {
+    const result = runDownload(ref, { latest, refPatchFailures: 1 });
+    expect(result.status, result.stderr).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual({ ref: [] });
+    const calls = lastLine(result.stderr);
+    expect(calls.slice(4).map((c: any) => [c.method, c.params.cursor])).toEqual([
+      ['patch', '2026-01-01T00:00:04Z'],
+      ['get', undefined],
+      ['patch', '2026-02-01T00:00:00Z'],
+    ]);
+    expect(applyPatch(latest, calls[6].data).tags).toEqual(['public', 'music', 'plugin/video']);
+  });
+
+  it('fails when the Ref can never be saved', () => {
+    const result = runDownload(ref, { refPatchFailures: 5 });
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('Could not save Ref @local https://example.test/video');
   });
 });

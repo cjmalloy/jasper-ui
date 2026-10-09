@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../../model/plugin';
 import { Mod } from '../../model/tag';
+import { pythonSaveRef } from '../system/save-ref';
 
 export const mp3DeltaPlugin: Plugin = {
   tag: '_plugin/delta/mp3',
@@ -33,6 +34,7 @@ export const mp3DeltaPlugin: Plugin = {
     }],
     // language=python
     script: `
+import copy
 import tempfile
 import glob
 import os
@@ -41,10 +43,11 @@ import time
 import requests
 import json
 import yt_dlp
+${pythonSaveRef}
 ref = json.load(sys.stdin)
 origin = ref.get('origin', '')
 url = ref.get('plugins', {}).get('plugin/embed', {}).get('url', ref.get('url', ''))
-progress_state = {'tag': None, 'time': 0}
+progress_state = {'tag': None, 'time': 0, 'ref': copy.deepcopy(ref)}
 def report_progress(value, max=100, force=False):
     tag = f'plugin/progress/{int(value)}/{int(max)}'
     now = time.monotonic()
@@ -66,11 +69,17 @@ def report_progress(value, max=100, force=False):
             timeout=10,
         )
         if response.ok:
-            ref['modified'] = response.json()
-        else:
-            print(f"Error reporting progress {response.status_code}: {response.text}", file=sys.stderr)
+            latest = progress_state['ref']
+            latest['tags'] = [t for t in latest.get('tags') or [] if not (t + '/').startswith('plugin/progress/') and t != '_seal/delta'] + [tag, '_seal/delta']
+            latest['modified'] = response.json()
+            return
+        print(f"Error reporting progress {response.status_code}: {response.text}", file=sys.stderr)
     except Exception as e:
         print(f"Error reporting progress: {e}", file=sys.stderr)
+    try:
+        progress_state['ref'] = fetch_ref(ref['url'], origin)
+    except Exception as e:
+        print(f"Error reloading Ref: {e}", file=sys.stderr)
 def on_progress(d):
     if d.get('status') != 'downloading': return
     total = d.get('total_bytes') or d.get('total_bytes_estimate')
@@ -187,22 +196,27 @@ if 'entries' in info:
         }
         output_refs.append(child_ref)
         source_urls.append(entry_url)
-    ref.pop('metadata', None)
-    ref.setdefault('tags', []).append('plugin/playlist')
-    ref['tags'] = [t for t in ref['tags'] if not (t + '/').startswith(('_plugin/delta/mp3/', 'plugin/embed/', 'plugin/progress/', '_seal/delta/'))]
-    ref.setdefault('plugins', {}).pop('plugin/embed', None)
-    ref['sources'] = source_urls
-    output_refs.insert(0, ref)
+    def finish(latest):
+        latest['tags'] = [t for t in latest.get('tags') or [] if not (t + '/').startswith(('_plugin/delta/mp3/', 'plugin/embed/', 'plugin/progress/', '_seal/delta/'))]
+        if 'plugin/playlist' not in latest['tags']: latest['tags'].append('plugin/playlist')
+        latest['plugins'] = latest.get('plugins') or {}
+        latest['plugins'].pop('plugin/embed', None)
+        latest['sources'] = source_urls
+        return latest
+    save_ref(progress_state['ref'], finish)
 else:
     track_title = info.get('title', ref.get('title', ''))
     cache_data = process_single_track(url, track_title, [on_progress])
     if cache_data:
-        ref.pop('metadata', None)
-        ref.setdefault('tags', []).append('plugin/audio')
-        ref['tags'] = [t for t in ref['tags'] if not (t + '/').startswith(('_plugin/delta/mp3/', 'plugin/embed/', 'plugin/progress/', '_seal/delta/'))]
-        ref.setdefault('plugins', {}).setdefault('plugin/audio', {})['url'] = cache_data['url']
-        ref.setdefault('plugins', {}).pop('plugin/embed', None)
-        output_refs.append(ref)
+        def finish(latest):
+            latest['tags'] = [t for t in latest.get('tags') or [] if not (t + '/').startswith(('_plugin/delta/mp3/', 'plugin/embed/', 'plugin/progress/', '_seal/delta/'))]
+            if 'plugin/audio' not in latest['tags']: latest['tags'].append('plugin/audio')
+            plugins = latest.get('plugins') or {}
+            plugins.pop('plugin/embed', None)
+            plugins['plugin/audio'] = {**(plugins.get('plugin/audio') or {}), 'url': cache_data['url']}
+            latest['plugins'] = plugins
+            return latest
+        save_ref(progress_state['ref'], finish)
 print(json.dumps({'ref': output_refs}))
     `,
   },
