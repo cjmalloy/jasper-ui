@@ -359,14 +359,6 @@ Please Reload.</source>
       <trans-unit id="3053227545305680611" datatype="html">
         <source>♟︎</source>
       </trans-unit>
-      <trans-unit id="7798956354099304791" datatype="html">
-        <source>Promote to Queen:</source>
-        <target>クイーンに昇格:</target>
-      </trans-unit>
-      <trans-unit id="2335593090473173311" datatype="html">
-        <source>Promotion:</source>
-        <target>昇格:</target>
-      </trans-unit>
       <trans-unit id="7050921390685083582" datatype="html">
         <source>Checkmate!</source>
         <target>チェックメイト！</target>
@@ -5492,17 +5484,9 @@ F: フルスクリーン切替
         <source>Are you sure you want totally regenerate metadata<x id="PH" equiv-text="this.origin ? ' in ' + this.origin : ''"/>?</source>
         <target><x id="PH" equiv-text="this.origin ? this.origin + 'で' : ''"/>メタデータを完全に再生成してもよろしいですか？</target>
       </trans-unit>
-      <trans-unit id="634947648499843911" datatype="html">
-        <source>Are you sure you want totally delete everything in <x id="PH" equiv-text="this.origin || 'default'"/>?
-
-Enter the origin to confirm:</source>
-        <target><x id="PH" equiv-text="this.origin || 'default'"/>内のすべてを完全に削除してもよろしいですか？
-
-確認のためにオリジンを入力してください:</target>
-      </trans-unit>
-      <trans-unit id="6858804327619005655" datatype="html">
-        <source>Origin did not match <x id="PH" equiv-text="this.origin || 'default'"/>, aborting.</source>
-        <target>オリジンが<x id="PH" equiv-text="this.origin || 'default'"/>と一致しませんでした、中止します。</target>
+      <trans-unit id="7257764669036559061" datatype="html">
+        <source>Are you sure you want totally delete everything in <x id="INTERPOLATION" equiv-text="{{ originLabel }}"/>?<x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/>Enter the origin to confirm:</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ originLabel }}"/>内のすべてを完全に削除してもよろしいですか？<x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/>確認のためにオリジンを入力してください:</target>
       </trans-unit>
       <trans-unit id="3688912811854720535" datatype="html">
         <source>Change User:</source>
