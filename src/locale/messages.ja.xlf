@@ -7725,6 +7725,18 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Grant admin permissions in the sub-origin to all signing users.</source>
         <target>署名したすべてのユーザーにサブオリジンの管理者権限を付与します。</target>
       </trans-unit>
+      <trans-unit id="8043921542836348988" datatype="html">
+        <source>⏳️ Progress</source>
+        <target>⏳️ 進捗</target>
+      </trans-unit>
+      <trans-unit id="8797854122499218390" datatype="html">
+        <source>Stores progress in the tag itself (e.g., plugin/progress/37/100 is 37%).
+      Scripts reporting progress should also add the _seal/delta tag to prevent the update from
+      running delta scripts again.</source>
+        <target>進捗をタグ自体に保存します（例：plugin/progress/37/100 は37%）。
+      進捗を報告するスクリプトは、更新によってデルタスクリプトが再実行されないように
+      _seal/delta タグも追加してください。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
