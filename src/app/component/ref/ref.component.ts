@@ -53,6 +53,7 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { ImageService } from '../../service/image.service';
+import { OriginMapService } from '../../service/origin-map.service';
 import { UploadCacheService } from '../../service/upload-cache.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
@@ -231,6 +232,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
     private imgs: ImageService,
+    private origins: OriginMapService,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -878,9 +880,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
-  @HostBinding('class.sent')
   get isAuthor() {
     return isAuthorTag(this.store.account.tag, this.ref);
+  }
+
+  @memo
+  @HostBinding('class.sent')
+  get sent() {
+    return this.origins.isCurrentAccountRef(this.ref);
   }
 
   @memo
