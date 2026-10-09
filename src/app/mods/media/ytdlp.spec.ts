@@ -225,7 +225,7 @@ describe('ytdlpMetaDeltaPlugin', () => {
 });
 
 describe('ytdlpDeltaPlugin', () => {
-  function runDownload(ref: Ref, progressOk = true) {
+  function runDownload(ref: Ref, progressOk = true, latest: Ref = ref) {
     return spawnSync('python3', ['-c', `
 import io
 import json
@@ -257,6 +257,10 @@ def patch(url, headers, params, timeout):
     calls.append({'url': url, 'headers': headers, 'params': params})
     return Response(payload['progressOk'], '2026-01-01T00:00:0%dZ' % len(calls))
 
+def get(url, headers, params, timeout):
+    calls.append({'url': url, 'headers': headers, 'params': params})
+    return Response(True, payload['latest'])
+
 def post(url, data, headers, params):
     return Response(True, {'url': 'cache:test', 'origin': params['origin']})
 
@@ -279,12 +283,12 @@ class YoutubeDL:
         return {'ext': 'mp4'}
 
 sys.modules['yt_dlp'] = types.SimpleNamespace(YoutubeDL=YoutubeDL)
-sys.modules['requests'] = types.SimpleNamespace(patch=patch, post=post)
+sys.modules['requests'] = types.SimpleNamespace(get=get, patch=patch, post=post)
 sys.modules['time'] = types.SimpleNamespace(monotonic=monotonic)
 exec(payload['script'])
 print(json.dumps(calls), file=sys.stderr)
   `], {
-      input: JSON.stringify({ ref, progressOk, script: ytdlpDeltaPlugin.config?.script }),
+      input: JSON.stringify({ ref, progressOk, latest, script: ytdlpDeltaPlugin.config?.script }),
       encoding: 'utf8',
     });
   }
@@ -297,11 +301,18 @@ print(json.dumps(calls), file=sys.stderr)
     modified: '2025-01-01T00:00:00Z' as any,
   };
 
-  it('reports sealed progress and saves with the latest modified date', () => {
-    const result = runDownload(ref);
+  it('reports sealed progress and reloads the ref on a timestamp conflict', () => {
+    const latest: Ref = {
+      ...ref,
+      title: 'Edited',
+      tags: [...ref.tags!, 'plugin/progress/99/100', '_seal/delta'],
+      modified: '2026-01-01T00:00:05Z' as any,
+    };
+    const result = runDownload(ref, true, latest);
     expect(result.status, result.stderr).toBe(0);
     const calls = JSON.parse(result.stderr.trim().split('\n').pop()!);
-    expect(calls.map((c: any) => c.params.tags)).toEqual([
+    expect(calls.slice(0, -1).map((c: any) => c.params.tags)).toEqual([
+      ['-plugin/progress', 'plugin/progress/0/100', '_seal/delta'],
       ['-plugin/progress', 'plugin/progress/37/100', '_seal/delta'],
       ['-plugin/progress', 'plugin/progress/25/100', '_seal/delta'],
       ['-plugin/progress', 'plugin/progress/99/100', '_seal/delta'],
@@ -311,9 +322,14 @@ print(json.dumps(calls), file=sys.stderr)
       headers: { 'Local-Origin': '@local', 'User-Role': 'ROLE_ADMIN' },
       params: { url: ref.url, origin: '@local' },
     });
+    expect(calls[calls.length - 1]).toMatchObject({
+      url: 'http://jasper.test/api/v1/ref',
+      params: { url: ref.url, origin: '@local' },
+    });
     const output = JSON.parse(result.stdout).ref;
     expect(output).toHaveLength(1);
-    expect(output[0].modified).toBe('2026-01-01T00:00:03Z');
+    expect(output[0].modified).toBe('2026-01-01T00:00:05Z');
+    expect(output[0].title).toBe('Edited');
     expect(output[0].tags).toEqual(['public', 'plugin/video']);
     expect(output[0].plugins).toEqual({ 'plugin/video': { url: 'cache:test' } });
   });

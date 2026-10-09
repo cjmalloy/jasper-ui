@@ -64,12 +64,32 @@ def report_progress(value, max=100):
       },
       timeout=10,
     )
-    if response.ok:
-      ref['modified'] = response.json()
-    else:
+    if not response.ok:
       print(f"Error reporting progress {response.status_code}: {response.text}", file=sys.stderr)
   except Exception as e:
     print(f"Error reporting progress: {e}", file=sys.stderr)
+def latest_ref():
+  try:
+    response = requests.get(
+      f"{os.environ['JASPER_API']}/api/v1/ref",
+      headers={
+        'Local-Origin': origin or 'default',
+        'User-Role': 'ROLE_ADMIN',
+      },
+      params={
+        'url': ref['url'],
+        'origin': origin,
+      },
+      timeout=10,
+    )
+    if response.ok:
+      latest = response.json()
+      if latest.get('modified') != ref.get('modified'): return latest
+    else:
+      print(f"Error reloading ref {response.status_code}: {response.text}", file=sys.stderr)
+  except Exception as e:
+    print(f"Error reloading ref: {e}", file=sys.stderr)
+  return ref
 def on_progress(d):
   if d.get('status') != 'downloading': return
   total = d.get('total_bytes') or d.get('total_bytes_estimate')
@@ -136,6 +156,7 @@ try:
     print(f"Error {response.status_code}: {response.text}", file=sys.stderr)
     sys.exit(1)
   cache = response.json()
+  ref = latest_ref()
   ref.pop('metadata', None)
   ref.setdefault('tags', []).append('plugin/video')
   ref['tags'] = [t for t in ref['tags'] if not (t + '/').startswith(('_plugin/delta/ytdlp/', 'plugin/embed/', 'plugin/progress/', '_seal/delta/'))]
