@@ -178,13 +178,22 @@ export class AccountStore {
       .map(([remote, localAlias]) => setPublic(prefix('plugin/outbox', localAlias, this.localTag)) + remote);
   }
 
-  get aliasMailboxes(): string[] {
+  get aliasTags(): string[] {
     if (!this.signedIn) return [];
     const local = this.localTag;
     return uniq(this.origins.accountAliases
       .filter(alias => (alias.from || '') === (this.origin || ''))
       .filter(alias => local === alias.local || local.startsWith(alias.local + '/'))
-      .map(alias => getMailbox(alias.remote + local.substring(alias.local.length), alias.origin) + alias.origin));
+      .map(alias => alias.remote + local.substring(alias.local.length) + alias.origin));
+  }
+
+  get aliasMailboxes(): string[] {
+    return uniq(this.aliasTags.map(tag => getMailbox(tag, tagOrigin(tag)) + tagOrigin(tag)));
+  }
+
+  get dmQuery() {
+    if (!this.signedIn) return '';
+    return uniq([this.tagWithOrigin, ...this.aliasTags, this.inboxQuery]).join('|');
   }
 
   get inboxQuery() {
