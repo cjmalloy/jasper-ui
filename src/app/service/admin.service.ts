@@ -59,6 +59,7 @@ import { readMod } from '../mods/org/read';
 import { saveMod } from '../mods/org/save';
 import { todoMod } from '../mods/org/todo';
 import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/org/wiki';
+import { progressMod } from '../mods/progress';
 import { repostMod } from '../mods/repost';
 import { rootMod } from '../mods/root';
 import { emailMod } from '../mods/sync/email';
@@ -172,6 +173,7 @@ export class AdminService {
     notesMod,
     emailMod,
     durationMod,
+    progressMod,
     fullscreenMod,
     seamlessMod,
     thumbnailMod,
