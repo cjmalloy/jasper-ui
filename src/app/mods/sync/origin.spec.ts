@@ -31,7 +31,6 @@ describe('originInitPlugin', () => {
         data: users.filter(u => u.origin === options.params.origin && (u.tag === options.params.query || u.tag.startsWith(options.params.query + '/'))),
       })),
       post: vi.fn(async () => ({ data: '' })),
-      patch: vi.fn(async () => ({ data: '2030-01-01T00:00:01.000Z' })),
     };
     const exit = vi.fn(() => { throw new Error('exit'); });
     const log = vi.fn();
@@ -59,7 +58,6 @@ describe('originInitPlugin', () => {
       tags: ['+plugin/origin', '+user/chris', '_user/bob', 'public', '_plugin/delta/origin/init'],
       plugins: { '+plugin/origin': { local: '@sub' } },
       metadata: { modified: 'x' },
-      modified: '2029-01-01T00:00:00.000Z',
     }, [{
       tag: '+user/chris', origin: '@main', name: 'Chris', role: 'ROLE_USER', modified: '2020-01-01T00:00:00Z',
       readAccess: ['a'], writeAccess: ['b'], tagReadAccess: ['c'], tagWriteAccess: ['d'],
@@ -85,42 +83,9 @@ describe('originInitPlugin', () => {
       headers: { 'Local-Origin': '@main.sub', 'User-Role': 'ROLE_ADMIN' },
       params: { origin: '@main.sub' },
     });
-    expect(axios.patch).toHaveBeenCalledWith('http://jasper.test/api/v1/ref', [
-      { op: 'add', path: '/tags', value: ['+plugin/origin', '+user/chris', '_user/bob', 'public'] },
-    ], {
-      headers: { 'Local-Origin': '@main', 'User-Role': 'ROLE_ADMIN', 'Content-Type': 'application/json-patch+json' },
-      params: { url: 'spec:o', origin: '@main', cursor: '2029-01-01T00:00:00.000Z' },
-    });
-    expect(JSON.parse(log.mock.calls[0][0])).toEqual({ ref: [] });
-  });
-
-  it('reloads the Ref and retries when the JSON patch fails', async () => {
-    const ref = {
-      url: 'spec:o',
-      origin: '@main',
-      tags: ['+plugin/origin', '_plugin/delta/origin/init'],
-      plugins: { '+plugin/origin': { local: '@sub' } },
-      modified: '2029-01-01T00:00:00.000Z',
-    };
-    const latest = { ...ref, tags: [...ref.tags, 'public'], modified: '2029-06-01T00:00:00.000Z' };
-    const axios = {
-      get: vi.fn(async (url: string) => ({ data: url.endsWith('/api/v1/ref') ? latest : [] })),
-      post: vi.fn(async () => ({ data: '' })),
-      patch: vi.fn()
-        .mockRejectedValueOnce({ response: { data: 'conflict' } })
-        .mockResolvedValueOnce({ data: '2030-01-01T00:00:00.000Z' }),
-    };
-    const log = vi.fn();
-    const require = (module: string) => ({
-      'axios': axios,
-      'fs': { readFileSync: () => JSON.stringify(ref) },
-    } as any)[module];
-    const fn = new Function('require', 'process', 'console', `return (async () => {${originInitPlugin.config?.script}})()`);
-    await fn(require, { env: { JASPER_API: 'http://jasper.test' }, exit: vi.fn() }, { log, error: vi.fn() });
-    expect(axios.patch).toHaveBeenCalledTimes(2);
-    expect((axios.patch.mock.calls[1] as any[])[1]).toEqual([{ op: 'add', path: '/tags', value: ['+plugin/origin', 'public'] }]);
-    expect((axios.patch.mock.calls[1] as any[])[2].params.cursor).toBe('2029-06-01T00:00:00.000Z');
-    expect(JSON.parse(log.mock.calls[0][0])).toEqual({ ref: [] });
+    const bundle = JSON.parse(log.mock.calls[0][0]);
+    expect(bundle.ref[0].tags).toEqual(['+plugin/origin', '+user/chris', '_user/bob', 'public']);
+    expect(bundle.ref[0].metadata).toBeUndefined();
   });
 
   it('downloads a template origin ref that pushes to the sub-origin', () => {
