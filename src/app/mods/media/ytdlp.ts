@@ -76,6 +76,7 @@ def on_progress(d):
   done = d.get('downloaded_bytes')
   if total and done is not None:
     report_progress(min(99, 100 * done // total))
+report_progress(0)
 with tempfile.NamedTemporaryFile(delete=False) as temp_file:
   base_name = temp_file.name
 downloaded_file = None
