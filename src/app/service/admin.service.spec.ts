@@ -47,6 +47,17 @@ describe('AdminService', () => {
     expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toEqual(['a']);
   });
 
+  it('should allow wildcard web origins in the server config fallback form', () => {
+    const webOrigins = service.getTemplateAdminForm('_config/server').find(f => f.key === 'webOrigins')!;
+    const pattern = (webOrigins.fieldArray as any).validators.pattern.expression;
+    for (const value of ['', '@', '@*', '@company', '@company.*', '@a.b.*']) {
+      expect(pattern({ value })).toBe(true);
+    }
+    for (const value of ['*', '@.*', '@company.', '@company*', 'company']) {
+      expect(pattern({ value })).toBe(false);
+    }
+  });
+
   it('should include a markdown editor for ai instructions in built-in mods', () => {
     expect(userTemplate.config?.adminForm?.find(f => f.key === 'aiInstructions')?.type).toBe('editor');
   });

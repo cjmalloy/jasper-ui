@@ -1834,6 +1834,18 @@ Private tags start with an underscore.
       <trans-unit id="466704681453006045" datatype="html">
         <source>@</source>
       </trans-unit>
+      <trans-unit id="2151296313495500477" datatype="html">
+        <source>Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+May end with a wildcard (i.e. "@*" or "@my.*").
+The default origin is blank.
+Must not start with a period or contain two periods in a row.
+(i.e. "@origin", "@my.origin", "@my.*", or "").</source>
+        <target>オリジンはアットマーク(@)で始まり、小文字の英字、数字、ピリオドのみを含める必要があります。
+ワイルドカードで終わることができます(例: "@*" または "@my.*")。
+デフォルトのオリジンは空白です。
+ピリオドで始まったり、連続して2つのピリオドを含んだりしてはなりません。
+(例: "@origin", "@my.origin", "@my.*", または "")。</target>
+      </trans-unit>
       <trans-unit id="2607251770369091122" datatype="html">
         <source>Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
 The default origin is blank.
