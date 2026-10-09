@@ -47,14 +47,8 @@ describe('AdminService', () => {
     expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toEqual(['a']);
   });
 
-  it('should add a markdown editor for ai instructions', () => {
-    service.status.plugins['plugin/test'] = { tag: 'plugin/test', config: { aiInstructions: '# test' } } as any;
-    service.status.plugins['plugin/script'] = { tag: 'plugin/script', config: { aiInstructions: '# test', adminForm: [{ key: 'script' }] } } as any;
-    service.status.templates['test'] = { tag: 'test', config: { aiInstructions: '# test' } };
-    expect(service.getPluginAdminForm('plugin/test').map(f => [f.key, f.type])).toEqual([['aiInstructions', 'editor']]);
-    expect(service.getPluginAdminForm('plugin/script').map(f => f.key)).toEqual(['script', 'aiInstructions']);
-    expect(service.getPluginAdminForm('plugin/test', 'advancedAdminForm')).toEqual([]);
-    expect(service.getTemplateAdminForm('test').map(f => f.key)).toEqual(['aiInstructions']);
+  it('should include a markdown editor for ai instructions in built-in mods', () => {
+    expect(userTemplate.config?.adminForm?.find(f => f.key === 'aiInstructions')?.type).toBe('editor');
   });
 
   it('should keep formly expressions serializable for built-in mods', () => {

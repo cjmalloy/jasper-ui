@@ -32,7 +32,10 @@ test.describe.serial('Plugin/Template Admin Form', () => {
             title: 'before',
             other: true,
             aiInstructions: '# Admin Form Test',
-            adminForm: [{ key: 'title', type: 'string', props: { label: 'Admin Title:' } }],
+            adminForm: [
+              { key: 'title', type: 'string', props: { label: 'Admin Title:' } },
+              { key: 'aiInstructions', type: 'editor', props: { label: 'AI Instructions:' } },
+            ],
             advancedAdminForm: [{ key: 'script', type: 'code', props: { label: 'Script:' } }],
           },
         },
@@ -69,7 +72,7 @@ test.describe.serial('Plugin/Template Admin Form', () => {
       const saved = await res.json();
       expect(saved.config.title).toBe('after');
       expect(saved.config.other).toBe(true);
-      expect(saved.config.adminForm).toHaveLength(1);
+      expect(saved.config.adminForm).toHaveLength(2);
       expect(saved.config.aiInstructions).toBe('# Admin Form Test');
     });
   }
