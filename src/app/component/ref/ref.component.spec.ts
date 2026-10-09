@@ -7,6 +7,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { SafePipe } from '../../pipe/safe.pipe';
+import { MemoCache } from '../../util/memo';
 
 import { RefComponent } from './ref.component';
 
@@ -44,6 +45,26 @@ describe('RefComponent', () => {
     (component as any)._editing = true;
 
     expect(component.thumbnailRefs[0]?.url).toBe('cache:image-id');
+  });
+
+  it('styles Refs from an account alias as sent', () => {
+    const store = component.store;
+    store.account.tag = '+user/dad';
+    store.account.origin = '';
+    store.origins.accountAliases = [{ from: '', origin: '@city', local: '+user/dad', remote: '+user/chris' }];
+
+    MemoCache.clear(component);
+    component.ref = { url: 'comment:1', origin: '@city', tags: ['+user/chris'] };
+    expect(component.sent).toBe(true);
+    expect(component.isAuthor).toBe(false);
+
+    MemoCache.clear(component);
+    component.ref = { url: 'comment:2', origin: '@city', tags: ['+user/bob'] };
+    expect(component.sent).toBe(false);
+
+    MemoCache.clear(component);
+    component.ref = { url: 'comment:3', origin: '', tags: ['+user/dad'] };
+    expect(component.sent).toBe(true);
   });
 
   it('preserves protected and private plugin tags when copying', () => {

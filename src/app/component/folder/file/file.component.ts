@@ -22,6 +22,7 @@ import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { AuthzService } from '../../../service/authz.service';
+import { OriginMapService } from '../../../service/origin-map.service';
 import { Store } from '../../../store/store';
 import { getTitle, templates } from '../../../util/format';
 import { getScheme } from '../../../util/http';
@@ -75,6 +76,7 @@ export class FileComponent implements OnChanges {
     private refs: RefService,
     public store: Store,
     private auth: AuthzService,
+    private origins: OriginMapService,
   ) { }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -179,9 +181,14 @@ export class FileComponent implements OnChanges {
   }
 
   @memo
-  @HostBinding('class.sent')
   get isAuthor() {
     return isAuthorTag(this.store.account.tag, this.ref);
+  }
+
+  @memo
+  @HostBinding('class.sent')
+  get sent() {
+    return this.origins.isCurrentAccountRef(this.ref);
   }
 
   @memo
