@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../../model/plugin';
 import { Mod } from '../../model/tag';
-import { pythonSaveRef } from '../system/save-ref';
+import { pythonSaveRef } from './ytdlp';
 
 export const mp3DeltaPlugin: Plugin = {
   tag: '_plugin/delta/mp3',
