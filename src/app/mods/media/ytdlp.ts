@@ -5,14 +5,15 @@ import { Mod } from '../../model/tag';
 /**
  * Python helpers for delta scripts that update the input Ref in-place.
  * Requires the requests package.
- * save_ref(ref, update) applies update to a copy of ref and sends the difference
- * as a JSON patch using the ref modified date as the cursor. If the patch fails
- * the Ref is reloaded and update is applied again. Return None from update to skip saving.
+ * save_ref(ref, update) reloads the latest Ref, applies update to a copy and pushes
+ * the result through the replicate endpoint (which does not require CSRF) with a new
+ * modified date. If saving fails it is retried. Return None from update to skip saving.
+ * Unless exit_on_failure is False, the script exits if the Ref can never be saved.
  */
 // language=python
 export const pythonSaveRef = `
 import copy as _copy
-import json as _json
+import datetime as _datetime
 import os as _os
 import sys as _sys
 import time as _time
@@ -33,49 +34,62 @@ def fetch_ref(url, origin):
     if not response.ok:
         raise Exception(f"{response.status_code}: {response.text}")
     return response.json()
-def ref_patch(old, new):
-    ignore = ('modified', 'metadata')
-    path = lambda key: '/' + key.replace('~', '~0').replace('/', '~1')
-    return ([{'op': 'add', 'path': path(k), 'value': v} for k, v in new.items() if k not in ignore and (k not in old or old[k] != v)] +
-            [{'op': 'remove', 'path': path(k)} for k in old if k not in ignore and k not in new])
-def save_ref(ref, update, attempts=5):
+def push_ref(ref):
+    origin = ref.get('origin') or ''
+    pushed = {k: v for k, v in ref.items() if k != 'metadata'}
+    pushed['origin'] = origin
+    pushed['modified'] = _datetime.datetime.now(_datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+    response = _requests.post(
+        f"{_os.environ['JASPER_API']}/pub/api/v1/repl/ref",
+        headers={
+            'Local-Origin': origin or 'default',
+            'User-Role': 'ROLE_ADMIN',
+        },
+        params={
+            'origin': origin,
+        },
+        json=[pushed],
+        timeout=30,
+    )
+    if not response.ok:
+        raise Exception(f"{response.status_code}: {response.text}")
+    return pushed
+def save_ref(ref, update, attempts=5, exit_on_failure=True):
     origin = ref.get('origin') or ''
     for attempt in range(attempts):
-        if attempt:
-            _time.sleep(attempt)
-            try:
-                ref = fetch_ref(ref['url'], origin)
-            except Exception as e:
-                print(f"Error reloading Ref: {e}", file=_sys.stderr)
-                continue
-        updated = update(_copy.deepcopy(ref))
-        if updated is None: return ref
-        ops = ref_patch(ref, updated)
-        if not ops: return ref
+        if attempt: _time.sleep(attempt)
         try:
-            response = _requests.patch(
-                f"{_os.environ['JASPER_API']}/api/v1/ref",
-                headers={
-                    'Local-Origin': origin or 'default',
-                    'User-Role': 'ROLE_ADMIN',
-                    'Content-Type': 'application/json-patch+json',
-                },
-                params={
-                    'url': ref['url'],
-                    'origin': origin,
-                    'cursor': ref.get('modified'),
-                },
-                data=_json.dumps(ops),
-                timeout=30,
-            )
-            if response.ok:
-                updated['modified'] = response.json()
-                return updated
-            print(f"Error saving Ref {response.status_code}: {response.text}", file=_sys.stderr)
+            latest = fetch_ref(ref['url'], origin)
+        except Exception as e:
+            print(f"Error reloading Ref: {e}", file=_sys.stderr)
+            continue
+        updated = update(_copy.deepcopy(latest))
+        if updated is None or updated == latest: return latest
+        try:
+            return push_ref(updated)
         except Exception as e:
             print(f"Error saving Ref: {e}", file=_sys.stderr)
     print(f"Could not save Ref {origin} {ref['url']}", file=_sys.stderr)
-    _sys.exit(1)
+    if exit_on_failure: _sys.exit(1)
+`;
+
+/**
+ * Python helper for delta scripts that report progress with the plugin/progress tag.
+ * Requires pythonSaveRef. The _seal/delta tag prevents the update from re-triggering the delta.
+ */
+// language=python
+export const pythonReportProgress = `
+_progress_state = {'tag': None, 'time': 0}
+def report_progress(ref, value, max=100, force=False):
+    tag = f'plugin/progress/{int(value)}/{int(max)}'
+    now = _time.monotonic()
+    if tag == _progress_state['tag'] or not force and now - _progress_state['time'] < 1: return
+    _progress_state['tag'] = tag
+    _progress_state['time'] = now
+    def update(latest):
+        latest['tags'] = [t for t in latest.get('tags') or [] if not (t + '/').startswith('plugin/progress/') and t != '_seal/delta'] + [tag, '_seal/delta']
+        return latest
+    save_ref(ref, update, attempts=1, exit_on_failure=False)
 `;
 
 export const ytdlpDeltaPlugin: Plugin = {
@@ -83,7 +97,7 @@ export const ytdlpDeltaPlugin: Plugin = {
   name: $localize`▶️ Get Video`,
   config: {
     mod: $localize`▶️ YT-DLP`,
-    version: 3,
+    version: 4,
     type: 'tool',
     default: false,
     generated: $localize`Generated by jasper-ui ${DateTime.now().toISO()}`,
@@ -109,58 +123,24 @@ export const ytdlpDeltaPlugin: Plugin = {
     }],
     // language=python
     script: `
-import copy
 import tempfile
 import os
 import sys
-import time
 import requests
 import json
 import yt_dlp
 ${pythonSaveRef}
+${pythonReportProgress}
 ref = json.load(sys.stdin)
 origin = ref.get('origin', '')
 url = ref.get('plugins', {}).get('plugin/embed', {}).get('url', ref.get('url', ''))
-progress_state = {'tag': None, 'time': 0, 'ref': copy.deepcopy(ref)}
-def report_progress(value, max=100):
-  tag = f'plugin/progress/{int(value)}/{int(max)}'
-  now = time.monotonic()
-  if tag == progress_state['tag'] or now - progress_state['time'] < 1: return
-  progress_state['tag'] = tag
-  progress_state['time'] = now
-  try:
-    response = requests.patch(
-      f"{os.environ['JASPER_API']}/api/v1/tags",
-      headers={
-        'Local-Origin': origin or 'default',
-        'User-Role': 'ROLE_ADMIN',
-      },
-      params={
-        'url': ref['url'],
-        'origin': origin,
-        'tags': ['-plugin/progress', tag, '_seal/delta'],
-      },
-      timeout=10,
-    )
-    if response.ok:
-      latest = progress_state['ref']
-      latest['tags'] = [t for t in latest.get('tags') or [] if not (t + '/').startswith('plugin/progress/') and t != '_seal/delta'] + [tag, '_seal/delta']
-      latest['modified'] = response.json()
-      return
-    print(f"Error reporting progress {response.status_code}: {response.text}", file=sys.stderr)
-  except Exception as e:
-    print(f"Error reporting progress: {e}", file=sys.stderr)
-  try:
-    progress_state['ref'] = fetch_ref(ref['url'], origin)
-  except Exception as e:
-    print(f"Error reloading Ref: {e}", file=sys.stderr)
 def on_progress(d):
   if d.get('status') != 'downloading': return
   total = d.get('total_bytes') or d.get('total_bytes_estimate')
   done = d.get('downloaded_bytes')
   if total and done is not None:
-    report_progress(min(99, 100 * done // total))
-report_progress(0)
+    report_progress(ref, min(99, 100 * done // total))
+report_progress(ref, 0)
 with tempfile.NamedTemporaryFile(delete=False) as temp_file:
   base_name = temp_file.name
 downloaded_file = None
@@ -228,7 +208,7 @@ try:
     plugins['plugin/video'] = {**(plugins.get('plugin/video') or {}), 'url': cache['url']}
     latest['plugins'] = plugins
     return latest
-  save_ref(progress_state['ref'], finish)
+  save_ref(ref, finish)
   print(json.dumps({'ref': []}))
 finally:
   # Clean up both the base temp file and the downloaded file
@@ -245,7 +225,7 @@ export const ytdlpMetaDeltaPlugin: Plugin = {
   name: $localize`🔍️ Get Metadata`,
   config: {
     mod: $localize`▶️ YT-DLP`,
-    version: 4,
+    version: 5,
     type: 'tool',
     default: false,
     generated: $localize`Generated by jasper-ui ${DateTime.now().toISO()}`,

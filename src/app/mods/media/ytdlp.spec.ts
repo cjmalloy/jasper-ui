@@ -3,19 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { Ref } from '../../model/ref';
 import { ytdlpDeltaPlugin, ytdlpMetaDeltaPlugin } from './ytdlp';
 
-function applyPatch(ref: any, ops: any[]) {
-  const result = { ...ref };
-  for (const op of ops) {
-    const key = op.path.substring(1).replaceAll('~1', '/').replaceAll('~0', '~');
-    if (op.op === 'remove') {
-      delete result[key];
-    } else {
-      result[key] = op.value;
-    }
-  }
-  return result;
-}
-
 function lastLine(stderr: string) {
   return JSON.parse(stderr.trim().split('\n').pop()!);
 }
@@ -43,9 +30,12 @@ class Response:
     def json(self):
         return self.body
 
-def patch(url, headers, params, data, timeout):
-    calls.append({'url': url, 'headers': headers, 'params': params, 'data': json.loads(data)})
-    return Response(True, '2026-01-01T00:00:00Z')
+def get(url, headers, params, timeout):
+    return Response(True, payload['ref'])
+
+def post(url, headers, params, json, timeout):
+    calls.append({'url': url, 'headers': headers, 'params': params, 'json': json})
+    return Response(True, None)
 
 class YoutubeDL:
     def __init__(self, opts):
@@ -63,7 +53,7 @@ class YoutubeDL:
         return payload['info']
 
 sys.modules['yt_dlp'] = types.SimpleNamespace(YoutubeDL=YoutubeDL)
-sys.modules['requests'] = types.SimpleNamespace(patch=patch)
+sys.modules['requests'] = types.SimpleNamespace(get=get, post=post)
 try:
     exec(payload['script'])
 finally:
@@ -80,13 +70,19 @@ function getRefs(ref: Ref, info: Record<string, unknown>): Ref[] {
   expect(result.status, result.stderr).toBe(0);
   const calls = lastLine(result.stderr);
   expect(calls.length).toBeLessThanOrEqual(1);
-  const parent = calls.length ? applyPatch(ref, calls[0].data) : ref;
+  let parent = ref;
   if (calls.length) {
     expect(calls[0]).toMatchObject({
-      url: 'http://jasper.test/api/v1/ref',
-      headers: { 'Content-Type': 'application/json-patch+json', 'User-Role': 'ROLE_ADMIN' },
-      params: { url: ref.url, origin: ref.origin || '', cursor: ref.modified ?? null },
+      url: 'http://jasper.test/pub/api/v1/repl/ref',
+      headers: { 'User-Role': 'ROLE_ADMIN' },
+      params: { origin: ref.origin || '' },
     });
+    expect(calls[0].json).toHaveLength(1);
+    const { modified, ...pushed } = calls[0].json[0];
+    expect(modified).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{6}Z$/);
+    expect(pushed.metadata).toBeUndefined();
+    parent = { ...ref, ...pushed };
+    if (ref.origin === undefined) delete parent.origin;
   }
   return [parent, ...JSON.parse(result.stdout).ref];
 }
@@ -267,8 +263,9 @@ describe('ytdlpMetaDeltaPlugin', () => {
 });
 
 describe('ytdlpDeltaPlugin', () => {
-  function runDownload(ref: Ref, options: { progressOk?: boolean, latest?: Ref, refPatchFailures?: number } = {}) {
+  function runDownload(ref: Ref, options: { latest?: Ref, pushFailures?: number } = {}) {
     return spawnSync('python3', ['-c', `
+import copy
 import io
 import json
 import os
@@ -281,7 +278,8 @@ os.environ['JASPER_NODE'] = '/test/bun'
 os.environ['JASPER_API'] = 'http://jasper.test'
 calls = []
 clock = [0]
-failures = [payload['refPatchFailures']]
+failures = [payload['pushFailures']]
+stored = [copy.deepcopy(payload['latest'])]
 
 def monotonic():
     clock[0] += 5
@@ -290,27 +288,25 @@ def monotonic():
 class Response:
     def __init__(self, ok, body):
         self.ok = ok
-        self.status_code = 200 if ok else 409
+        self.status_code = 200 if ok else 500
         self.text = json.dumps(body)
         self.body = body
     def json(self):
         return self.body
 
-def patch(url, headers, params, timeout, data=None):
-    calls.append({'method': 'patch', 'url': url, 'headers': headers, 'params': params, 'data': data and json.loads(data)})
-    if url.endswith('/api/v1/tags'):
-        return Response(payload['progressOk'], '2026-01-01T00:00:%02dZ' % len(calls))
-    if failures[0]:
-        failures[0] -= 1
-        return Response(False, 'conflict')
-    return Response(True, '2026-03-01T00:00:00Z')
-
 def get(url, headers, params, timeout):
     calls.append({'method': 'get', 'url': url, 'params': params})
-    return Response(True, payload['latest'])
+    return Response(True, copy.deepcopy(stored[0]))
 
-def post(url, data, headers, params):
-    return Response(True, {'url': 'cache:test', 'origin': params['origin']})
+def post(url, headers, params, data=None, json=None, timeout=None):
+    if url.endswith('/repl/cache'):
+        return Response(True, {'url': 'cache:test', 'origin': params['origin']})
+    calls.append({'method': 'post', 'url': url, 'headers': headers, 'params': params, 'json': json})
+    if failures[0]:
+        failures[0] -= 1
+        return Response(False, 'error')
+    stored[0] = {**json[0], 'metadata': stored[0].get('metadata')}
+    return Response(True, None)
 
 class YoutubeDL:
     def __init__(self, opts):
@@ -331,8 +327,10 @@ class YoutubeDL:
         return {'ext': 'mp4'}
 
 sys.modules['yt_dlp'] = types.SimpleNamespace(YoutubeDL=YoutubeDL)
-sys.modules['requests'] = types.SimpleNamespace(get=get, patch=patch, post=post)
-sys.modules['time'] = types.SimpleNamespace(monotonic=monotonic, sleep=lambda s: None)
+sys.modules['requests'] = types.SimpleNamespace(get=get, post=post)
+import time
+time.monotonic = monotonic
+time.sleep = lambda s: None
 try:
     exec(payload['script'])
 finally:
@@ -340,9 +338,8 @@ finally:
   `], {
       input: JSON.stringify({
         ref,
-        progressOk: options.progressOk ?? true,
         latest: options.latest ?? ref,
-        refPatchFailures: options.refPatchFailures ?? 0,
+        pushFailures: options.pushFailures ?? 0,
         script: ytdlpDeltaPlugin.config?.script,
       }),
       encoding: 'utf8',
@@ -354,73 +351,72 @@ finally:
     origin: '@local',
     tags: ['public', 'plugin/embed', '_plugin/delta/ytdlp'],
     plugins: { 'plugin/embed': { url: 'https://example.test/embedded-video' } },
+    metadata: {},
     modified: '2025-01-01T00:00:00Z' as any,
   };
 
   const latest: Ref = {
     ...ref,
     title: 'Edited',
-    tags: [...ref.tags!, 'music', 'plugin/progress/37/100', '_seal/delta'],
+    tags: [...ref.tags!, 'music'],
     modified: '2026-02-01T00:00:00Z' as any,
   };
 
-  it('reports sealed progress and saves a JSON patch with the latest progress cursor', () => {
+  it('reports sealed progress and saves the Ref through the replicate endpoint', () => {
     const result = runDownload(ref);
     expect(result.status, result.stderr).toBe(0);
     expect(JSON.parse(result.stdout)).toEqual({ ref: [] });
     const calls = lastLine(result.stderr);
-    expect(calls.map((c: any) => c.method)).toEqual(['patch', 'patch', 'patch', 'patch', 'patch']);
-    expect(calls.slice(0, 4).map((c: any) => c.params.tags)).toEqual([
-      ['-plugin/progress', 'plugin/progress/0/100', '_seal/delta'],
-      ['-plugin/progress', 'plugin/progress/37/100', '_seal/delta'],
-      ['-plugin/progress', 'plugin/progress/25/100', '_seal/delta'],
-      ['-plugin/progress', 'plugin/progress/99/100', '_seal/delta'],
+    expect(calls.map((c: any) => c.method)).toEqual(['get', 'post', 'get', 'post', 'get', 'post', 'get', 'post', 'get', 'post']);
+    const pushes = calls.filter((c: any) => c.method === 'post');
+    for (const push of pushes) {
+      expect(push).toMatchObject({
+        url: 'http://jasper.test/pub/api/v1/repl/ref',
+        headers: { 'Local-Origin': '@local', 'User-Role': 'ROLE_ADMIN' },
+        params: { origin: '@local' },
+      });
+      expect(push.json).toHaveLength(1);
+      expect(push.json[0].metadata).toBeUndefined();
+      expect(push.json[0].modified).not.toBe(ref.modified);
+    }
+    expect(pushes.slice(0, 4).map((c: any) => c.json[0].tags)).toEqual([
+      ['public', 'plugin/embed', '_plugin/delta/ytdlp', 'plugin/progress/0/100', '_seal/delta'],
+      ['public', 'plugin/embed', '_plugin/delta/ytdlp', 'plugin/progress/37/100', '_seal/delta'],
+      ['public', 'plugin/embed', '_plugin/delta/ytdlp', 'plugin/progress/25/100', '_seal/delta'],
+      ['public', 'plugin/embed', '_plugin/delta/ytdlp', 'plugin/progress/99/100', '_seal/delta'],
     ]);
-    expect(calls[0]).toMatchObject({
-      url: 'http://jasper.test/api/v1/tags',
-      headers: { 'Local-Origin': '@local', 'User-Role': 'ROLE_ADMIN' },
-      params: { url: ref.url, origin: '@local' },
-    });
-    expect(calls[4]).toMatchObject({
-      url: 'http://jasper.test/api/v1/ref',
-      headers: { 'Local-Origin': '@local', 'User-Role': 'ROLE_ADMIN', 'Content-Type': 'application/json-patch+json' },
-      params: { url: ref.url, origin: '@local', cursor: '2026-01-01T00:00:04Z' },
-    });
-    const saved = applyPatch(ref, calls[4].data);
+    const saved = pushes[4].json[0];
     expect(saved.tags).toEqual(['public', 'plugin/video']);
     expect(saved.plugins).toEqual({ 'plugin/video': { url: 'cache:test' } });
   });
 
-  it('reloads the Ref to recover the cursor when a progress update fails', () => {
-    const result = runDownload(ref, { progressOk: false, latest });
+  it('applies updates to the latest Ref', () => {
+    const result = runDownload(ref, { latest });
     expect(result.status, result.stderr).toBe(0);
-    expect(result.stderr).toContain('Error reporting progress 409');
     const calls = lastLine(result.stderr);
-    expect(calls.map((c: any) => c.method)).toEqual(['patch', 'get', 'patch', 'get', 'patch', 'get', 'patch', 'get', 'patch']);
-    const save = calls[calls.length - 1];
-    expect(save.params.cursor).toBe('2026-02-01T00:00:00Z');
-    expect(save.data.map((op: any) => op.path)).toEqual(['/tags', '/plugins']);
-    const saved = applyPatch(latest, save.data);
+    const saved = calls[calls.length - 1].json[0];
     expect(saved.title).toBe('Edited');
     expect(saved.tags).toEqual(['public', 'music', 'plugin/video']);
     expect(saved.plugins).toEqual({ 'plugin/video': { url: 'cache:test' } });
   });
 
-  it('reloads the Ref and retries when the final JSON patch fails', () => {
-    const result = runDownload(ref, { latest, refPatchFailures: 1 });
+  it('continues when a progress update fails', () => {
+    const result = runDownload(ref, { pushFailures: 1 });
     expect(result.status, result.stderr).toBe(0);
+    expect(result.stderr).toContain('Error saving Ref: 500');
     expect(JSON.parse(result.stdout)).toEqual({ ref: [] });
+  });
+
+  it('reloads the Ref and retries when the final save fails', () => {
+    const result = runDownload(ref, { latest, pushFailures: 6 });
+    expect(result.status, result.stderr).toBe(0);
     const calls = lastLine(result.stderr);
-    expect(calls.slice(4).map((c: any) => [c.method, c.params.cursor])).toEqual([
-      ['patch', '2026-01-01T00:00:04Z'],
-      ['get', undefined],
-      ['patch', '2026-02-01T00:00:00Z'],
-    ]);
-    expect(applyPatch(latest, calls[6].data).tags).toEqual(['public', 'music', 'plugin/video']);
+    expect(calls.slice(8).map((c: any) => c.method)).toEqual(['get', 'post', 'get', 'post', 'get', 'post']);
+    expect(calls[calls.length - 1].json[0].tags).toEqual(['public', 'music', 'plugin/video']);
   });
 
   it('fails when the Ref can never be saved', () => {
-    const result = runDownload(ref, { refPatchFailures: 5 });
+    const result = runDownload(ref, { pushFailures: 100 });
     expect(result.status).toBe(1);
     expect(result.stdout).toBe('');
     expect(result.stderr).toContain('Could not save Ref @local https://example.test/video');

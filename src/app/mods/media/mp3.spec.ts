@@ -3,21 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { Ref } from '../../model/ref';
 import { mp3DeltaPlugin } from './mp3';
 
-function applyPatch(ref: any, ops: any[]) {
-  const result = { ...ref };
-  for (const op of ops) {
-    const key = op.path.substring(1).replaceAll('~1', '/').replaceAll('~0', '~');
-    if (op.op === 'remove') {
-      delete result[key];
-    } else {
-      result[key] = op.value;
-    }
-  }
-  return result;
-}
-
-function runMp3(ref: Ref, info: any, options: { progressOk?: boolean, latest?: Ref } = {}) {
+function runMp3(ref: Ref, info: any, options: { latest?: Ref } = {}) {
   const result = spawnSync('python3', ['-c', `
+import copy
 import io
 import json
 import os
@@ -30,6 +18,7 @@ os.environ['JASPER_NODE'] = '/test/bun'
 os.environ['JASPER_API'] = 'http://jasper.test'
 calls = []
 clock = [0]
+stored = [copy.deepcopy(payload['latest'])]
 
 def monotonic():
     clock[0] += 5
@@ -44,18 +33,16 @@ class Response:
     def json(self):
         return self.body
 
-def patch(url, headers, params, timeout, data=None):
-    calls.append({'method': 'patch', 'url': url, 'params': params, 'data': data and json.loads(data)})
-    if url.endswith('/api/v1/tags'):
-        return Response(payload['progressOk'], '2026-01-01T00:00:%02dZ' % len(calls))
-    return Response(True, '2026-03-01T00:00:00Z')
-
 def get(url, headers, params, timeout):
     calls.append({'method': 'get', 'url': url, 'params': params})
-    return Response(True, payload['latest'])
+    return Response(True, copy.deepcopy(stored[0]))
 
-def post(url, data, headers, params):
-    return Response(True, {'url': 'cache:' + params['title'], 'origin': params['origin']})
+def post(url, headers, params, data=None, json=None, timeout=None):
+    if url.endswith('/repl/cache'):
+        return Response(True, {'url': 'cache:' + params['title'], 'origin': params['origin']})
+    calls.append({'method': 'post', 'url': url, 'params': params, 'json': json})
+    stored[0] = json[0]
+    return Response(True, None)
 
 class YoutubeDL:
     def __init__(self, opts):
@@ -74,8 +61,10 @@ class YoutubeDL:
         return {}
 
 sys.modules['yt_dlp'] = types.SimpleNamespace(YoutubeDL=YoutubeDL)
-sys.modules['requests'] = types.SimpleNamespace(get=get, patch=patch, post=post)
-sys.modules['time'] = types.SimpleNamespace(monotonic=monotonic, sleep=lambda s: None)
+sys.modules['requests'] = types.SimpleNamespace(get=get, post=post)
+import time
+time.monotonic = monotonic
+time.sleep = lambda s: None
 try:
     exec(payload['script'])
 finally:
@@ -84,7 +73,6 @@ finally:
     input: JSON.stringify({
       ref,
       info,
-      progressOk: options.progressOk ?? true,
       latest: options.latest ?? ref,
       script: mp3DeltaPlugin.config?.script,
     }),
@@ -107,33 +95,29 @@ describe('mp3DeltaPlugin', () => {
     modified: '2025-01-01T00:00:00Z' as any,
   };
 
-  it('saves a single track with a JSON patch and returns an empty bundle', () => {
+  it('saves a single track through the replicate endpoint and returns an empty bundle', () => {
     const { bundle, calls } = runMp3(ref, { title: 'Song' });
     expect(bundle).toEqual({ ref: [] });
-    expect(calls.map((c: any) => c.params.tags || c.params.cursor)).toEqual([
-      ['-plugin/progress', 'plugin/progress/37/100', '_seal/delta'],
-      '2026-01-01T00:00:01Z',
-    ]);
-    const save = calls[1];
-    expect(save.url).toBe('http://jasper.test/api/v1/ref');
-    const saved = applyPatch(ref, save.data);
+    expect(calls.map((c: any) => c.method)).toEqual(['get', 'post', 'get', 'post']);
+    expect(calls[1]).toMatchObject({ url: 'http://jasper.test/pub/api/v1/repl/ref', params: { origin: '@local' } });
+    expect(calls[1].json[0].tags).toEqual([...ref.tags!, 'plugin/progress/37/100', '_seal/delta']);
+    const saved = calls[3].json[0];
+    expect(saved.url).toBe(ref.url);
     expect(saved.tags).toEqual(['public', 'plugin/audio']);
     expect(saved.plugins).toEqual({ 'plugin/audio': { url: 'cache:Song.mp3' } });
   });
 
-  it('reloads the Ref when progress fails and saves playlist changes against it', () => {
+  it('reports playlist progress and saves playlist changes against the latest Ref', () => {
     const latest: Ref = { ...ref, tags: [...ref.tags!, 'music'], modified: '2026-02-01T00:00:00Z' as any };
     const { bundle, calls } = runMp3(ref, {
       title: 'Playlist',
       entries: [{ url: 'https://example.test/a', title: 'A' }, null, { url: 'https://example.test/c', title: 'C' }],
-    }, { progressOk: false, latest });
-    expect(calls.map((c: any) => c.method)).toEqual(['patch', 'get', 'patch', 'get', 'patch', 'get', 'patch']);
-    expect(calls.slice(0, 6).filter((c: any) => c.params.tags).map((c: any) => c.params.tags[1])).toEqual([
+    }, { latest });
+    expect(calls.map((c: any) => c.method)).toEqual(['get', 'post', 'get', 'post', 'get', 'post', 'get', 'post']);
+    expect(calls.slice(0, 6).filter((c: any) => c.method === 'post').map((c: any) => c.json[0].tags.at(-2))).toEqual([
       'plugin/progress/0/3', 'plugin/progress/1/3', 'plugin/progress/2/3',
     ]);
-    const save = calls[6];
-    expect(save.params.cursor).toBe('2026-02-01T00:00:00Z');
-    const saved = applyPatch(latest, save.data);
+    const saved = calls[7].json[0];
     expect(saved.tags).toEqual(['public', 'music', 'plugin/playlist']);
     expect(saved.plugins).toEqual({});
     expect(saved.sources).toEqual(['https://example.test/a', 'https://example.test/c']);
