@@ -490,7 +490,7 @@ export class AccountService {
       runInAction(() => {
         for (const stream of streams) {
           if (this.store.account.notificationCursors.has(stream.origin)) continue;
-          this.store.account.notificationCursors.set(stream.origin, this.initialCursor(stream.origin));
+          this.store.account.notificationCursors.set(stream.origin, this.alarmOrigins.get(stream.origin) || DateTime.now().toISO()!);
         }
       });
       return of(streams);
@@ -551,57 +551,37 @@ export class AccountService {
     const streams = this.notificationStreams;
     const missing = streams.filter(stream => !this.store.account.notificationCursors.has(stream.origin));
     if (!missing.length) return of(streams);
-    const local = this.store.account.origin || '';
-    const localStream = streams.find(stream => stream.origin === local);
-    const remotes = missing.filter(stream => stream !== localStream);
     const account = this.cursorAccount;
-    const local$ = localStream && missing.includes(localStream)
-      ? this.loadStreamCursor$(localStream, account)
-      : of(undefined);
-    return local$.pipe(
-      switchMap(() => remotes.length
-        ? from(remotes).pipe(mergeMap(stream => this.loadStreamCursor$(stream, account), CURSOR_CONCURRENCY), toArray())
-        : of([])),
+    return from(missing).pipe(
+      mergeMap(stream => {
+        let load$ = this.cursorLoads.get(stream.origin);
+        if (!load$) {
+          const shared$: Observable<undefined> = this.tags.getResponse(stream.settingsUrl).pipe(
+            catchError(err => err?.status === 404 ? of(undefined) : throwError(() => err)),
+            switchMap(ref => {
+              if (this.cursorAccount !== account) return of(undefined);
+              this.cursorRefs.set(stream.origin, ref);
+              const existing = ref?.plugins?.['plugin/user/cursor']?.cursor;
+              if (existing) {
+                runInAction(() => this.store.account.notificationCursors.set(stream.origin, existing));
+                return of(undefined);
+              }
+              return this.writeNotificationCursor$(stream, this.alarmOrigins.get(stream.origin) || DateTime.now().toISO()!);
+            }),
+            map(() => undefined),
+            finalize(() => {
+              if (this.cursorLoads.get(stream.origin) === shared$) this.cursorLoads.delete(stream.origin);
+            }),
+            shareReplay(1),
+          );
+          load$ = shared$;
+          this.cursorLoads.set(stream.origin, load$);
+        }
+        return load$;
+      }, CURSOR_CONCURRENCY),
+      toArray(),
       map(() => streams),
     );
-  }
-
-  private loadStreamCursor$(stream: NotificationStream, account: string): Observable<undefined> {
-    if (this.cursorAccount !== account) return of(undefined);
-    let load$ = this.cursorLoads.get(stream.origin);
-    if (load$) return load$;
-    const shared$: Observable<undefined> = this.tags.getResponse(stream.settingsUrl).pipe(
-      catchError(err => err?.status === 404 ? of(undefined) : throwError(() => err)),
-      switchMap(ref => {
-        if (this.cursorAccount !== account) return of(undefined);
-        this.cursorRefs.set(stream.origin, ref);
-        const existing = ref?.plugins?.['plugin/user/cursor']?.cursor;
-        if (existing) {
-          runInAction(() => this.store.account.notificationCursors.set(stream.origin, existing));
-          return of(undefined);
-        }
-        return this.writeNotificationCursor$(stream, this.initialCursor(stream.origin));
-      }),
-      map(() => undefined),
-      finalize(() => {
-        if (this.cursorLoads.get(stream.origin) === shared$) this.cursorLoads.delete(stream.origin);
-      }),
-      shareReplay(1),
-    );
-    load$ = shared$;
-    this.cursorLoads.set(stream.origin, load$);
-    return load$;
-  }
-
-  /**
-   * A new remote cursor starts at the local cursor, so notifications already
-   * received from that remote since the local inbox was last read stay unread.
-   */
-  private initialCursor(origin: string): string {
-    const local = this.store.account.origin || '';
-    return this.alarmOrigins.get(origin)
-      || (origin !== local ? this.store.account.notificationCursors.get(local) : undefined)
-      || DateTime.now().toISO()!;
   }
 
   /**
