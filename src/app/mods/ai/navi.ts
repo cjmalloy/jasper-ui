@@ -8,7 +8,7 @@ export const naviQueryPlugin: Plugin = {
   name: $localize`👻️💭️ Ask Navi`,
   config: {
     mod: $localize`👻️ Navi Chat`,
-    version: 3,
+    version: 4,
     type: 'tool',
     default: false,
     add: true,
@@ -39,167 +39,167 @@ export const naviQueryPlugin: Plugin = {
     }],
     // language=JavaScript
     script: `
-      const bundle = { ref: [] };
-      const uuid = require('uuid');
-      const axios = require('axios');
-      const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
-      const origin = ref.origin || ''
-      const config = ref.plugins?.['plugin/llm'] || {};
-      config.maxSources ||= 2000;
-      config.maxContext ||= 7;
-      const followup = ref.tags.includes('+plugin/delta/ai');
-      const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
-      const existingResponse = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-        headers: {
-          'Local-Origin': origin || 'default',
-          'User-Tag': authors[0] || '',
-        },
-        params: {
-          query: '+plugin/placeholder:!+plugin/delta:' + (authors.length ? authors.map(a => a.substring(1)).join(':') : '+plugin/followup') + ':' + (origin || '@'),
-          responses: ref.url,
-          size: 1,
-        },
-      }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        })).data.content[0];
-      if (existingResponse) process.exit(0);
-      const context = new Map();
-      const getSources = async (url, rel = 'sources') => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-        headers: {
-          'Local-Origin': origin || 'default',
-          'User-Tag': authors[0] || '',
-          'User-Role': followup ? 'ROLE_ADMIN' : '',
-        },
-        params: {
-          query: '!+plugin/log',
-          [rel]: url,
-          sort: 'published,desc',
-          size: config.maxSources,
-        },
-      }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        })).data.content.filter(p => !p.url.startsWith('tag:') || !p.url.includes('?'));
-      let parents = await getSources(ref.url);
-      parents.forEach(p => context.set(p.url, p));
-      for (let i = 0; i < config.maxContext; i++) {
-        if (!parents.length || context.size >= config.maxSources) break;
-        const grandParents = [];
-        for (const parent of parents) {
-          if (context.size >= config.maxSources) break;
-          const fetched = await getSources(parent.url);
-          for (const grandParent of fetched) {
-            if (grandParent?.url && !context.has(grandParent.url)) {
-              grandParents.push(grandParent);
-              context.set(grandParent.url, grandParent);
-              if (context.size >= config.maxSources) break;
-            }
-          }
-        }
-        parents = grandParents;
+const bundle = { ref: [] };
+const uuid = require('uuid');
+const axios = require('axios');
+const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
+const origin = ref.origin || ''
+const config = ref.plugins?.['plugin/llm'] || {};
+config.maxSources ||= 2000;
+config.maxContext ||= 7;
+const followup = ref.tags.includes('+plugin/delta/ai');
+const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
+const existingResponse = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+  headers: {
+    'Local-Origin': origin || 'default',
+    'User-Tag': authors[0] || '',
+  },
+  params: {
+    query: '+plugin/placeholder:!+plugin/delta:' + (authors.length ? authors.map(a => a.substring(1)).join(':') : '+plugin/followup') + ':' + (origin || '@'),
+    responses: ref.url,
+    size: 1,
+  },
+}).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  })).data.content[0];
+if (existingResponse) process.exit(0);
+const context = new Map();
+const getSources = async (url, rel = 'sources') => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+  headers: {
+    'Local-Origin': origin || 'default',
+    'User-Tag': authors[0] || '',
+    'User-Role': followup ? 'ROLE_ADMIN' : '',
+  },
+  params: {
+    query: '!+plugin/log',
+    [rel]: url,
+    sort: 'published,desc',
+    size: config.maxSources,
+  },
+}).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  })).data.content.filter(p => !p.url.startsWith('tag:') || !p.url.includes('?'));
+let parents = await getSources(ref.url);
+parents.forEach(p => context.set(p.url, p));
+for (let i = 0; i < config.maxContext; i++) {
+  if (!parents.length || context.size >= config.maxSources) break;
+  const grandParents = [];
+  for (const parent of parents) {
+    if (context.size >= config.maxSources) break;
+    const fetched = await getSources(parent.url);
+    for (const grandParent of fetched) {
+      if (grandParent?.url && !context.has(grandParent.url)) {
+        grandParents.push(grandParent);
+        context.set(grandParent.url, grandParent);
+        if (context.size >= config.maxSources) break;
       }
-      if (ref.sources?.length && context.size < config.maxSources && ref.tags.includes('plugin/thread')) {
-        const source =  ref.sources[ref.sources.length === 1 ? 0 : 1];
-        const thread = (await getSources(source, 'responses')).filter(t => !context.has(t.url));
-        if (context.size + thread.length > config.maxSources) {
-          thread.length = config.maxSources - context.size;
-        }
-        thread.forEach(t => context.set(t.url, t));
-      }
-      const tags = new Set(ref.tags);
-      for (const p of context.values()) {
-        for (const t of p?.tags || []) tags.add(t);
-      }
-      const pluginCursor = (await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/plugin/cursor', {
-        headers: {
-          'Local-Origin': origin || 'default',
-          'User-Role': 'ROLE_ADMIN',
-        },
-        params: { origin },
-      }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        })).data;
-      const templateCursor = (await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/template/cursor', {
-        headers: {
-          'Local-Origin': origin || 'default',
-          'User-Role': 'ROLE_ADMIN',
-        },
-        params: { origin },
-      }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        })).data;
-      const modPrompt = (await axios.get(process.env.JASPER_API + '/api/v1/ref', {
-        headers: {
-          'Local-Origin': origin || 'default',
-          'User-Role': 'ROLE_ADMIN',
-        },
-        params: { url: 'system:mod-prompt', origin },
-      }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        })).data;
-      if (modPrompt.modified < templateCursor || modPrompt.modified < pluginCursor) {
-        const getAll = async type => (await axios.get(process.env.JASPER_API + '/api/v1/' + type + '/page', {
-          headers: {
-            'Local-Origin': origin || 'default',
-            'User-Role': 'ROLE_ADMIN',
-          },
-          params: { query: origin || '*' },
-        }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        })).data.content;
-        delete modPrompt.metadata;
-        modPrompt.comment = [...await getAll('plugin'), ...await getAll('template')]
-          .filter(t => t.config?.aiInstructions)
-          .map(t => t.config?.aiInstructions)
-          .join('\\n\\n');
-        bundle.ref.push(modPrompt);
-      }
-      const response = {
-        origin,
-        url: 'ai:' + uuid.v4(),
-        comment: '${$localize`+plugin/delta/ai/navi is thinking...`}',
-        tags: ['+plugin/placeholder', 'plugin/llm'],
-        plugins: {
-          'plugin/llm': {
-            json: true,
-          }
-        }
-      };
-      bundle.ref.push(response);
-      response.tags.push(...(authors.length ? authors.map(a => a.startsWith('+') || a.startsWith('_') ? a.substring(1) : a) : ['+plugin/followup']));
-      if (ref.tags.includes('public')) response.tags.push('public');
-      if (ref.tags.includes('internal')) response.tags.push('internal');
-      if (ref.tags.includes('dm')) response.tags.push('dm', 'internal', 'plugin/thread');
-      if (ref.tags.includes('plugin/comment')) response.tags.push('plugin/comment', 'internal');
-      if (ref.tags.includes('plugin/thread')) response.tags.push('plugin/thread', 'internal');
-      const chatTags = ref.tags.filter(t => t === 'chat' || t.startsWith('chat/'));
-      if (chatTags.length) {
-        response.tags.push(...chatTags);
-      }
-      const uniq = (v, i, a) => a.indexOf(v) === i;
-      response.tags = response.tags.filter(uniq);
-      const sources = [ref.url];
-      if (ref.sources && (ref.tags.includes('plugin/thread') || ref.tags.includes('plugin/comment'))) {
-        sources.push(ref.sources[1] || ref.sources[0] || ref.url);
-      } else {
-        sources.push(ref.url);
-      }
-      response.sources = [...sources,
-        ...[
-          'system:prompt',
-          'system:app-prompt',
-          'system:mod-prompt',
-          'system:ext-prompt',
-          ...context.keys(),
-          ...[...tags].filter(t => t && !response.tags.includes(t)).map(t => 'tag:/' + t),
-        ].filter(uniq).filter(s => !sources.includes(s))
-      ].filter(s => !!s);
-      console.log(JSON.stringify(bundle));
+    }
+  }
+  parents = grandParents;
+}
+if (ref.sources?.length && context.size < config.maxSources && ref.tags.includes('plugin/thread')) {
+  const source =  ref.sources[ref.sources.length === 1 ? 0 : 1];
+  const thread = (await getSources(source, 'responses')).filter(t => !context.has(t.url));
+  if (context.size + thread.length > config.maxSources) {
+    thread.length = config.maxSources - context.size;
+  }
+  thread.forEach(t => context.set(t.url, t));
+}
+const tags = new Set(ref.tags);
+for (const p of context.values()) {
+  for (const t of p?.tags || []) tags.add(t);
+}
+const pluginCursor = (await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/plugin/cursor', {
+  headers: {
+    'Local-Origin': origin || 'default',
+    'User-Role': 'ROLE_ADMIN',
+  },
+  params: { origin },
+}).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  })).data;
+const templateCursor = (await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/template/cursor', {
+  headers: {
+    'Local-Origin': origin || 'default',
+    'User-Role': 'ROLE_ADMIN',
+  },
+  params: { origin },
+}).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  })).data;
+const modPrompt = (await axios.get(process.env.JASPER_API + '/api/v1/ref', {
+  headers: {
+    'Local-Origin': origin || 'default',
+    'User-Role': 'ROLE_ADMIN',
+  },
+  params: { url: 'system:mod-prompt', origin },
+}).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  })).data;
+if (modPrompt.modified < templateCursor || modPrompt.modified < pluginCursor) {
+  const getAll = async type => (await axios.get(process.env.JASPER_API + '/api/v1/' + type + '/page', {
+    headers: {
+      'Local-Origin': origin || 'default',
+      'User-Role': 'ROLE_ADMIN',
+    },
+    params: { query: origin || '*' },
+  }).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  })).data.content;
+  delete modPrompt.metadata;
+  modPrompt.comment = [...await getAll('plugin'), ...await getAll('template')]
+    .filter(t => t.config?.aiInstructions)
+    .map(t => t.config?.aiInstructions)
+    .join('\\n\\n');
+  bundle.ref.push(modPrompt);
+}
+const response = {
+  origin,
+  url: 'ai:' + uuid.v4(),
+  comment: '${$localize`+plugin/delta/ai/navi is thinking...`}',
+  tags: ['+plugin/placeholder', 'plugin/llm'],
+  plugins: {
+    'plugin/llm': {
+      json: true,
+    }
+  }
+};
+bundle.ref.push(response);
+response.tags.push(...(authors.length ? authors.map(a => a.startsWith('+') || a.startsWith('_') ? a.substring(1) : a) : ['+plugin/followup']));
+if (ref.tags.includes('public')) response.tags.push('public');
+if (ref.tags.includes('internal')) response.tags.push('internal');
+if (ref.tags.includes('dm')) response.tags.push('dm', 'internal', 'plugin/thread');
+if (ref.tags.includes('plugin/comment')) response.tags.push('plugin/comment', 'internal');
+if (ref.tags.includes('plugin/thread')) response.tags.push('plugin/thread', 'internal');
+const chatTags = ref.tags.filter(t => t === 'chat' || t.startsWith('chat/'));
+if (chatTags.length) {
+  response.tags.push(...chatTags);
+}
+const uniq = (v, i, a) => a.indexOf(v) === i;
+response.tags = response.tags.filter(uniq);
+const sources = [ref.url];
+if (ref.sources && (ref.tags.includes('plugin/thread') || ref.tags.includes('plugin/comment'))) {
+  sources.push(ref.sources[1] || ref.sources[0] || ref.url);
+} else {
+  sources.push(ref.url);
+}
+response.sources = [...sources,
+  ...[
+    'system:prompt',
+    'system:app-prompt',
+    'system:mod-prompt',
+    'system:ext-prompt',
+    ...context.keys(),
+    ...[...tags].filter(t => t && !response.tags.includes(t)).map(t => 'tag:/' + t),
+  ].filter(uniq).filter(s => !sources.includes(s))
+].filter(s => !!s);
+console.log(JSON.stringify(bundle));
     `
   }
 };
