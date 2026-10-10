@@ -78,8 +78,8 @@ function getRefs(ref: Ref, info: Record<string, unknown>): Ref[] {
       params: { origin: ref.origin || '' },
     });
     expect(calls[0].json).toHaveLength(1);
-    const { modified, ...pushed } = calls[0].json[0];
-    expect(modified).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{6}Z$/);
+    const pushed = calls[0].json[0];
+    expect(pushed.modified).toBe(ref.modified);
     expect(pushed.metadata).toBeUndefined();
     parent = { ...ref, ...pushed };
     if (ref.origin === undefined) delete parent.origin;
@@ -377,7 +377,7 @@ finally:
       });
       expect(push.json).toHaveLength(1);
       expect(push.json[0].metadata).toBeUndefined();
-      expect(push.json[0].modified).not.toBe(ref.modified);
+      expect(push.json[0].modified).toBe(ref.modified);
     }
     expect(pushes.slice(0, 4).map((c: any) => c.json[0].tags)).toEqual([
       ['public', 'plugin/embed', '_plugin/delta/ytdlp', 'plugin/progress/0/100', '_seal/delta'],
@@ -396,6 +396,7 @@ finally:
     const calls = lastLine(result.stderr);
     const saved = calls[calls.length - 1].json[0];
     expect(saved.title).toBe('Edited');
+    expect(saved.modified).toBe(latest.modified);
     expect(saved.tags).toEqual(['public', 'music', 'plugin/video']);
     expect(saved.plugins).toEqual({ 'plugin/video': { url: 'cache:test' } });
   });

@@ -6,14 +6,14 @@ import { Mod } from '../../model/tag';
  * Python helpers for delta scripts that update the input Ref in-place.
  * Requires the requests package.
  * save_ref(ref, update) reloads the latest Ref, applies update to a copy and pushes
- * the result through the replicate endpoint (which does not require CSRF) with a new
- * modified date. If saving fails it is retried. Return None from update to skip saving.
+ * the result through the replicate endpoint (which does not require CSRF). The reloaded
+ * modified date is kept for optimistic locking, the server assigns the new one.
+ * If saving fails it is retried. Return None from update to skip saving.
  * Unless exit_on_failure is False, the script exits if the Ref can never be saved.
  */
 // language=python
 export const pythonSaveRef = `
 import copy as _copy
-import datetime as _datetime
 import os as _os
 import sys as _sys
 import time as _time
@@ -38,7 +38,6 @@ def push_ref(ref):
     origin = ref.get('origin') or ''
     pushed = {k: v for k, v in ref.items() if k != 'metadata'}
     pushed['origin'] = origin
-    pushed['modified'] = _datetime.datetime.now(_datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
     response = _requests.post(
         f"{_os.environ['JASPER_API']}/pub/api/v1/repl/ref",
         headers={
