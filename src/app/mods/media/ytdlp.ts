@@ -5,10 +5,10 @@ import { Mod } from '../../model/tag';
 /**
  * Python helpers for delta scripts that update the input Ref in-place.
  * Requires the requests package.
- * save_ref(ref, update) reloads the latest Ref, applies update to a copy and pushes
- * the result through the replicate endpoint (which does not require CSRF). The reloaded
- * modified date is kept for optimistic locking, the server assigns the new one.
- * If saving fails it is retried. Return None from update to skip saving.
+ * save_ref(ref, update) reloads the latest Ref, applies update to a copy and saves it
+ * with the reloaded modified date for optimistic locking. A random double-submit CSRF
+ * token is sent as both cookie and header. If saving fails it is retried.
+ * Return None from update to skip saving.
  * Unless exit_on_failure is False, the script exits if the Ref can never be saved.
  */
 // language=python
@@ -17,7 +17,9 @@ import copy as _copy
 import os as _os
 import sys as _sys
 import time as _time
+import uuid as _uuid
 import requests as _requests
+_csrf_token = _uuid.uuid4().hex
 def fetch_ref(url, origin):
     response = _requests.get(
         f"{_os.environ['JASPER_API']}/api/v1/ref",
@@ -34,25 +36,25 @@ def fetch_ref(url, origin):
     if not response.ok:
         raise Exception(f"{response.status_code}: {response.text}")
     return response.json()
-def push_ref(ref):
+def put_ref(ref):
     origin = ref.get('origin') or ''
-    pushed = {k: v for k, v in ref.items() if k != 'metadata'}
-    pushed['origin'] = origin
-    response = _requests.post(
-        f"{_os.environ['JASPER_API']}/pub/api/v1/repl/ref",
+    updated = {k: v for k, v in ref.items() if k != 'metadata'}
+    updated['origin'] = origin
+    response = _requests.put(
+        f"{_os.environ['JASPER_API']}/api/v1/ref",
         headers={
             'Local-Origin': origin or 'default',
             'User-Role': 'ROLE_ADMIN',
+            'X-XSRF-TOKEN': _csrf_token,
         },
-        params={
-            'origin': origin,
-        },
-        json=[pushed],
+        cookies={'XSRF-TOKEN': _csrf_token},
+        json=updated,
         timeout=30,
     )
     if not response.ok:
         raise Exception(f"{response.status_code}: {response.text}")
-    return pushed
+    updated['modified'] = response.json()
+    return updated
 def save_ref(ref, update, attempts=5, exit_on_failure=True):
     origin = ref.get('origin') or ''
     for attempt in range(attempts):
@@ -65,7 +67,7 @@ def save_ref(ref, update, attempts=5, exit_on_failure=True):
         updated = update(_copy.deepcopy(latest))
         if updated is None or updated == latest: return latest
         try:
-            return push_ref(updated)
+            return put_ref(updated)
         except Exception as e:
             print(f"Error saving Ref: {e}", file=_sys.stderr)
     print(f"Could not save Ref {origin} {ref['url']}", file=_sys.stderr)

@@ -9,6 +9,7 @@ function lastLine(stderr: string) {
 
 function runMetadata(ref: Ref, info: Record<string, unknown>, error?: string) {
   return spawnSync('python3', ['-c', `
+import copy
 import io
 import json
 import os
@@ -33,9 +34,9 @@ class Response:
 def get(url, headers, params, timeout):
     return Response(True, payload['ref'])
 
-def post(url, headers, params, json, timeout):
-    calls.append({'url': url, 'headers': headers, 'params': params, 'json': json})
-    return Response(True, None)
+def put(url, headers, cookies, json, timeout):
+    calls.append({'url': url, 'headers': headers, 'cookies': cookies, 'json': copy.deepcopy(json)})
+    return Response(True, '2026-03-01T00:00:00Z')
 
 class YoutubeDL:
     def __init__(self, opts):
@@ -53,7 +54,7 @@ class YoutubeDL:
         return payload['info']
 
 sys.modules['yt_dlp'] = types.SimpleNamespace(YoutubeDL=YoutubeDL)
-sys.modules['requests'] = types.SimpleNamespace(get=get, post=post)
+sys.modules['requests'] = types.SimpleNamespace(get=get, put=put)
 try:
     exec(payload['script'])
 finally:
@@ -73,13 +74,13 @@ function getRefs(ref: Ref, info: Record<string, unknown>): Ref[] {
   let parent = ref;
   if (calls.length) {
     expect(calls[0]).toMatchObject({
-      url: 'http://jasper.test/pub/api/v1/repl/ref',
+      url: 'http://jasper.test/api/v1/ref',
       headers: { 'User-Role': 'ROLE_ADMIN' },
-      params: { origin: ref.origin || '' },
     });
-    expect(calls[0].json).toHaveLength(1);
-    const pushed = calls[0].json[0];
-    expect(pushed.modified).toBe(ref.modified);
+    expect(calls[0].headers['X-XSRF-TOKEN']).toBeTruthy();
+    expect(calls[0].cookies).toEqual({ 'XSRF-TOKEN': calls[0].headers['X-XSRF-TOKEN'] });
+    const { modified, ...pushed } = calls[0].json;
+    expect(modified).toBe(ref.modified);
     expect(pushed.metadata).toBeUndefined();
     parent = { ...ref, ...pushed };
     if (ref.origin === undefined) delete parent.origin;
@@ -301,12 +302,18 @@ def get(url, headers, params, timeout):
 def post(url, headers, params, data=None, json=None, timeout=None):
     if url.endswith('/repl/cache'):
         return Response(True, {'url': 'cache:test', 'origin': params['origin']})
-    calls.append({'method': 'post', 'url': url, 'headers': headers, 'params': params, 'json': json})
+    raise Exception(f"Unexpected post {url}")
+
+def put(url, headers, cookies, json, timeout):
+    calls.append({'method': 'put', 'url': url, 'headers': headers, 'cookies': cookies, 'json': copy.deepcopy(json)})
     if failures[0]:
         failures[0] -= 1
         return Response(False, 'error')
-    stored[0] = {**json[0], 'metadata': stored[0].get('metadata')}
-    return Response(True, None)
+    if json.get('modified') != stored[0].get('modified'):
+        return Response(False, 'modified')
+    modified = f"2026-03-01T00:00:{len(calls):02d}Z"
+    stored[0] = {**json, 'modified': modified, 'metadata': stored[0].get('metadata')}
+    return Response(True, modified)
 
 class YoutubeDL:
     def __init__(self, opts):
@@ -327,7 +334,7 @@ class YoutubeDL:
         return {'ext': 'mp4'}
 
 sys.modules['yt_dlp'] = types.SimpleNamespace(YoutubeDL=YoutubeDL)
-sys.modules['requests'] = types.SimpleNamespace(get=get, post=post)
+sys.modules['requests'] = types.SimpleNamespace(get=get, post=post, put=put)
 import time
 time.monotonic = monotonic
 time.sleep = lambda s: None
@@ -362,30 +369,33 @@ finally:
     modified: '2026-02-01T00:00:00Z' as any,
   };
 
-  it('reports sealed progress and saves the Ref through the replicate endpoint', () => {
+  it('reports sealed progress and saves the Ref with optimistic locking and a CSRF token', () => {
     const result = runDownload(ref);
     expect(result.status, result.stderr).toBe(0);
     expect(JSON.parse(result.stdout)).toEqual({ ref: [] });
     const calls = lastLine(result.stderr);
-    expect(calls.map((c: any) => c.method)).toEqual(['get', 'post', 'get', 'post', 'get', 'post', 'get', 'post', 'get', 'post']);
-    const pushes = calls.filter((c: any) => c.method === 'post');
+    expect(calls.map((c: any) => c.method)).toEqual(['get', 'put', 'get', 'put', 'get', 'put', 'get', 'put', 'get', 'put']);
+    const pushes = calls.filter((c: any) => c.method === 'put');
+    const token = pushes[0].headers['X-XSRF-TOKEN'];
+    expect(token).toBeTruthy();
+    expect(pushes[0].json.modified).toBe(ref.modified);
     for (const push of pushes) {
       expect(push).toMatchObject({
-        url: 'http://jasper.test/pub/api/v1/repl/ref',
-        headers: { 'Local-Origin': '@local', 'User-Role': 'ROLE_ADMIN' },
-        params: { origin: '@local' },
+        url: 'http://jasper.test/api/v1/ref',
+        headers: { 'Local-Origin': '@local', 'User-Role': 'ROLE_ADMIN', 'X-XSRF-TOKEN': token },
+        cookies: { 'XSRF-TOKEN': token },
       });
-      expect(push.json).toHaveLength(1);
-      expect(push.json[0].metadata).toBeUndefined();
-      expect(push.json[0].modified).toBe(ref.modified);
+      expect(push.json.origin).toBe('@local');
+      expect(push.json.metadata).toBeUndefined();
     }
-    expect(pushes.slice(0, 4).map((c: any) => c.json[0].tags)).toEqual([
+    expect(result.stderr).not.toContain('Error saving Ref');
+    expect(pushes.slice(0, 4).map((c: any) => c.json.tags)).toEqual([
       ['public', 'plugin/embed', '_plugin/delta/ytdlp', 'plugin/progress/0/100', '_seal/delta'],
       ['public', 'plugin/embed', '_plugin/delta/ytdlp', 'plugin/progress/37/100', '_seal/delta'],
       ['public', 'plugin/embed', '_plugin/delta/ytdlp', 'plugin/progress/25/100', '_seal/delta'],
       ['public', 'plugin/embed', '_plugin/delta/ytdlp', 'plugin/progress/99/100', '_seal/delta'],
     ]);
-    const saved = pushes[4].json[0];
+    const saved = pushes[4].json;
     expect(saved.tags).toEqual(['public', 'plugin/video']);
     expect(saved.plugins).toEqual({ 'plugin/video': { url: 'cache:test' } });
   });
@@ -394,9 +404,10 @@ finally:
     const result = runDownload(ref, { latest });
     expect(result.status, result.stderr).toBe(0);
     const calls = lastLine(result.stderr);
-    const saved = calls[calls.length - 1].json[0];
+    const saved = calls[calls.length - 1].json;
+    expect(calls[1].json.modified).toBe(latest.modified);
+    expect(result.stderr).not.toContain('Error saving Ref');
     expect(saved.title).toBe('Edited');
-    expect(saved.modified).toBe(latest.modified);
     expect(saved.tags).toEqual(['public', 'music', 'plugin/video']);
     expect(saved.plugins).toEqual({ 'plugin/video': { url: 'cache:test' } });
   });
@@ -412,8 +423,8 @@ finally:
     const result = runDownload(ref, { latest, pushFailures: 6 });
     expect(result.status, result.stderr).toBe(0);
     const calls = lastLine(result.stderr);
-    expect(calls.slice(8).map((c: any) => c.method)).toEqual(['get', 'post', 'get', 'post', 'get', 'post']);
-    expect(calls[calls.length - 1].json[0].tags).toEqual(['public', 'music', 'plugin/video']);
+    expect(calls.slice(8).map((c: any) => c.method)).toEqual(['get', 'put', 'get', 'put', 'get', 'put']);
+    expect(calls[calls.length - 1].json.tags).toEqual(['public', 'music', 'plugin/video']);
   });
 
   it('fails when the Ref can never be saved', () => {

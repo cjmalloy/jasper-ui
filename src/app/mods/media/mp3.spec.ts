@@ -19,6 +19,7 @@ os.environ['JASPER_API'] = 'http://jasper.test'
 calls = []
 clock = [0]
 stored = [copy.deepcopy(payload['latest'])]
+failures = [0]
 
 def monotonic():
     clock[0] += 5
@@ -40,9 +41,18 @@ def get(url, headers, params, timeout):
 def post(url, headers, params, data=None, json=None, timeout=None):
     if url.endswith('/repl/cache'):
         return Response(True, {'url': 'cache:' + params['title'], 'origin': params['origin']})
-    calls.append({'method': 'post', 'url': url, 'params': params, 'json': json})
-    stored[0] = json[0]
-    return Response(True, None)
+    raise Exception(f"Unexpected post {url}")
+
+def put(url, headers, cookies, json, timeout):
+    calls.append({'method': 'put', 'url': url, 'headers': headers, 'cookies': cookies, 'json': copy.deepcopy(json)})
+    if failures[0]:
+        failures[0] -= 1
+        return Response(False, 'error')
+    if json.get('modified') != stored[0].get('modified'):
+        return Response(False, 'modified')
+    modified = f"2026-03-01T00:00:{len(calls):02d}Z"
+    stored[0] = {**json, 'modified': modified, 'metadata': stored[0].get('metadata')}
+    return Response(True, modified)
 
 class YoutubeDL:
     def __init__(self, opts):
@@ -61,7 +71,7 @@ class YoutubeDL:
         return {}
 
 sys.modules['yt_dlp'] = types.SimpleNamespace(YoutubeDL=YoutubeDL)
-sys.modules['requests'] = types.SimpleNamespace(get=get, post=post)
+sys.modules['requests'] = types.SimpleNamespace(get=get, post=post, put=put)
 import time
 time.monotonic = monotonic
 time.sleep = lambda s: None
@@ -95,13 +105,14 @@ describe('mp3DeltaPlugin', () => {
     modified: '2025-01-01T00:00:00Z' as any,
   };
 
-  it('saves a single track through the replicate endpoint and returns an empty bundle', () => {
+  it('saves a single track with optimistic locking and returns an empty bundle', () => {
     const { bundle, calls } = runMp3(ref, { title: 'Song' });
     expect(bundle).toEqual({ ref: [] });
-    expect(calls.map((c: any) => c.method)).toEqual(['get', 'post', 'get', 'post']);
-    expect(calls[1]).toMatchObject({ url: 'http://jasper.test/pub/api/v1/repl/ref', params: { origin: '@local' } });
-    expect(calls[1].json[0].tags).toEqual([...ref.tags!, 'plugin/progress/37/100', '_seal/delta']);
-    const saved = calls[3].json[0];
+    expect(calls.map((c: any) => c.method)).toEqual(['get', 'put', 'get', 'put']);
+    expect(calls[1]).toMatchObject({ url: 'http://jasper.test/api/v1/ref', json: { origin: '@local', modified: ref.modified } });
+    expect(calls[1].cookies).toEqual({ 'XSRF-TOKEN': calls[1].headers['X-XSRF-TOKEN'] });
+    expect(calls[1].json.tags).toEqual([...ref.tags!, 'plugin/progress/37/100', '_seal/delta']);
+    const saved = calls[3].json;
     expect(saved.url).toBe(ref.url);
     expect(saved.tags).toEqual(['public', 'plugin/audio']);
     expect(saved.plugins).toEqual({ 'plugin/audio': { url: 'cache:Song.mp3' } });
@@ -113,11 +124,11 @@ describe('mp3DeltaPlugin', () => {
       title: 'Playlist',
       entries: [{ url: 'https://example.test/a', title: 'A' }, null, { url: 'https://example.test/c', title: 'C' }],
     }, { latest });
-    expect(calls.map((c: any) => c.method)).toEqual(['get', 'post', 'get', 'post', 'get', 'post', 'get', 'post']);
-    expect(calls.slice(0, 6).filter((c: any) => c.method === 'post').map((c: any) => c.json[0].tags.at(-2))).toEqual([
+    expect(calls.map((c: any) => c.method)).toEqual(['get', 'put', 'get', 'put', 'get', 'put', 'get', 'put']);
+    expect(calls.slice(0, 6).filter((c: any) => c.method === 'put').map((c: any) => c.json.tags.at(-2))).toEqual([
       'plugin/progress/0/3', 'plugin/progress/1/3', 'plugin/progress/2/3',
     ]);
-    const saved = calls[7].json[0];
+    const saved = calls[7].json;
     expect(saved.tags).toEqual(['public', 'music', 'plugin/playlist']);
     expect(saved.plugins).toEqual({});
     expect(saved.sources).toEqual(['https://example.test/a', 'https://example.test/c']);
