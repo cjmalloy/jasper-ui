@@ -8,6 +8,7 @@
   grid-template-columns: repeat(8, 1fr) !important;
   user-select: none;
   z-index: 1;
+  position: relative;
 
   @supports not (aspect-ratio: 1 / 1) {
     width: calc(8 * var(--dim));
@@ -81,6 +82,31 @@
       animation-fill-mode: backwards;
       pointer-events: none;
     }
+  }
+
+  .promotion {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  .promotion-pieces {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: var(--card);
+  }
+
+  .promotion-piece {
+    width: var(--dim);
+    height: var(--dim);
+    padding: 0;
+    cursor: pointer;
   }
 }
 

@@ -30,7 +30,9 @@
             [disabled]="!originForm.valid"
             (click)="showBackupOptions()"
             i18n-title title="Create Backup" i18n>+ backup</button>
-    <button type="button"
+    <button #deleteButton
+            type="button"
+            class="delete-origin"
             [disabled]="!originForm.valid"
             (click)="deleteOrigin()"
             i18n-title title="Delete all from origin" i18n>&ndash; delete</button>
@@ -116,6 +118,30 @@
 
     <div class="buttons right">
       <button type="button" (click)="confirmBackup()" i18n>+ backup</button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #deleteConfirm>
+  <div class="popup bubble delete-confirm" (click)="$event.stopPropagation()">
+    <label for="deleteConfirmation" i18n>Are you sure you want totally delete everything in {{ originLabel }}?<br>Enter the origin to confirm:</label>
+    <input #confirmInput
+           id="deleteConfirmation"
+           type="text"
+           class="delete-confirmation"
+           autocomplete="off"
+           appAutofocus
+           [value]="deleteConfirmation"
+           (input)="deleteConfirmation = confirmInput.value"
+           (keydown.enter)="confirmDeleteOrigin()"
+           (keydown.escape)="closeDeleteConfirm()">
+    <div class="buttons right">
+      <button type="button" (click)="closeDeleteConfirm()" i18n>cancel</button>
+      <button type="button"
+              class="confirm-delete"
+              (click)="confirmDeleteOrigin()"
+              [disabled]="deleteConfirmation !== originLabel"
+              i18n>&ndash; delete</button>
     </div>
   </div>
 </ng-template>
