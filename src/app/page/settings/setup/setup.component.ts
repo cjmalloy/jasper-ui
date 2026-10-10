@@ -165,7 +165,7 @@ export class SettingsSetupPage implements OnDestroy {
     if (!mods.length) return;
     concat(...uniq(mods).map(mod => {
       const receipt = this.admin.getMod(mod)!;
-      if (!this.admin.getTemplate('config/diff') || !this.hasCustomChangesMod(mod)) {
+      if (!this.hasCustomChangesMod(mod)) {
         return this.admin.updateMod$(mod, receipt, receipt, _);
       }
       const diff = this.getModDiff(mod);
@@ -198,7 +198,7 @@ export class SettingsSetupPage implements OnDestroy {
     const mod = modId(config);
     const receipt = this.admin.getMod(mod)!;
     const _ = (msg?: string) => this.installMessages.push(msg!);
-    if (!this.admin.getTemplate('config/diff') || !this.hasCustomChanges(config)) {
+    if (!this.hasCustomChanges(config)) {
       this.admin.updateMod$(mod, receipt, receipt, _).subscribe(() => {
         this.reset();
         _($localize`Success.`);
@@ -226,16 +226,24 @@ export class SettingsSetupPage implements OnDestroy {
     const current = this.admin.getInstalledMod(mod);
     if (!current) throw new Error(`Mod ${mod} not installed`);
     const target = this.admin.getMod(mod)!;
-    if (!this.admin.getPlugin('plugin/mod/receipt')) {
+    const base = this.admin.status.receipts[mod]?.plugins?.['plugin/mod'];
+    if (!base) {
+      if (equalBundle(current, target)) {
+        return {
+          mod,
+          proposed: target,
+          diffBase: current,
+          conflict: false,
+        };
+      }
       return {
         mod,
-        proposed: target,
-        diffBase: current,
-        conflict: false,
+        proposed: current,
+        diffBase: target,
+        conflict: true,
       };
     }
-    const base = this.admin.status.receipts[mod]?.plugins?.['plugin/mod'];
-    if (base && !equalBundle(current, base)) {
+    if (!equalBundle(current, base)) {
       const merged = mergeBundle(current, base, target);
       if (!merged.result || merged.conflict) {
         return {
