@@ -37,6 +37,5 @@ describe('ActionListComponent', () => {
     fixture.detectChanges();
     const actions = fixture.nativeElement.querySelectorAll('.list-action');
     expect(actions.length).toBe(3);
-    expect(actions.length).toBe(3);
   });
 });
