@@ -1979,6 +1979,34 @@ Private tags start with an underscore.
       <trans-unit id="6622743147699505349" datatype="html">
         <source>🔖️</source>
       </trans-unit>
+      <trans-unit id="7356383811096054810" datatype="html">
+        <source>Origins: </source>
+        <target>オリジン: </target>
+      </trans-unit>
+      <trans-unit id="8384797710281844984" datatype="html">
+        <source>Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Tags may be qualified with an origin.
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Use an origin without a tag to match all tags at that origin.
+Missing origins match the default origin.
+Wildcards (*) and negation (!) are not allowed.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "", "science", "science@origin", "@origin", or "_my/private/tag")</source>
+        <target>タグは小文字の英字、数字、ピリオド、スラッシュのみを使用してください。
+スラッシュまたはピリオドで始まってはなりません。
+連続して2つのスラッシュまたはピリオドを含んではなりません。
+タグはオリジンで修飾されることがあります。
+オリジンはアットマーク(@)で始まり、小文字の英字、数字、ピリオドのみを含める必要があります。
+タグなしのオリジンを使用して、そのオリジンのすべてのタグに一致させることができます。
+オリジンを省略するとデフォルトオリジンに一致します。
+ワイルドカード(*)と否定(!)は使用できません。
+保護されたタグはプラス記号で始まります。
+プライベートタグはアンダースコアで始まります。
+(例: "", "science", "science@origin", "@origin", または "_my/private/tag")</target>
+      </trans-unit>
       <trans-unit id="441268148003212172" datatype="html">
         <source>Query: </source>
         <target>検索条件: </target>

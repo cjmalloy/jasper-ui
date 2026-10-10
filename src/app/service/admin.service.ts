@@ -1235,7 +1235,7 @@ function strings(key: string, label: string, addText: string): FormlyFieldConfig
 /**
  * Blank entries are the root origin, so they must not be removed on blur.
  */
-function origins(key: string, label: string, wildcard = false): FormlyFieldConfig {
+function origins(key: string, label: string): FormlyFieldConfig {
   return {
     key,
     type: 'list',
@@ -1245,7 +1245,7 @@ function origins(key: string, label: string, wildcard = false): FormlyFieldConfi
       keepBlank: true,
     },
     fieldArray: {
-      type: wildcard ? 'originSelector' : 'origin',
+      type: 'origin',
     },
   };
 }
@@ -1321,9 +1321,9 @@ const serverConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'maxSources', type: 'integer', props: { label: $localize`Max Sources:` } },
   { key: 'modSeals', type: 'tags', props: { label: $localize`Mod Seals:` } },
   { key: 'editorSeals', type: 'tags', props: { label: $localize`Editor Seals:` } },
-  origins('webOrigins', $localize`Web Origins:`, true),
+  { key: 'webOrigins', type: 'originSelectorList', props: { label: $localize`Web Origins:` } },
   origins('sshOrigins', $localize`SSH Origins:`),
-  { key: 'scriptSelectors', type: 'selectors', props: { label: $localize`Script Selectors:`, keepBlank: true } },
+  { key: 'scriptSelectors', type: 'tagOriginSelectors', props: { label: $localize`Script Selectors:` } },
   strings('scriptWhitelist', $localize`Script Whitelist:`, $localize`+ Add another script hash`),
   strings('hostWhitelist', $localize`Host Whitelist:`, $localize`+ Add another host`),
   strings('hostBlacklist', $localize`Host Blacklist:`, $localize`+ Add another host`),

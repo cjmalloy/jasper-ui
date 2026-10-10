@@ -3,12 +3,11 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { FormlyFieldConfig } from '@ngx-formly/core';
 import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
-import { ORIGIN_WILDCARD_REGEX } from '../util/format';
+import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
 import { AdminService } from './admin.service';
 
 describe('AdminService', () => {
@@ -51,12 +50,23 @@ describe('AdminService', () => {
 
   it('should allow wildcard web origins in the server config fallback form', () => {
     const webOrigins = service.getTemplateAdminForm('_config/server').find(f => f.key === 'webOrigins')!;
-    expect((webOrigins.fieldArray as FormlyFieldConfig).type).toBe('originSelector');
+    expect(webOrigins.type).toBe('originSelectorList');
     for (const value of ['', '@', '@*', '@company', '@company.*', '@a.b.*']) {
       expect(ORIGIN_WILDCARD_REGEX.test(value)).toBe(true);
     }
     for (const value of ['*', '@.*', '@company.', '@company*', 'company']) {
       expect(ORIGIN_WILDCARD_REGEX.test(value)).toBe(false);
+    }
+  });
+
+  it('should not allow negation or wildcards in script selectors in the server config fallback form', () => {
+    const scriptSelectors = service.getTemplateAdminForm('_config/server').find(f => f.key === 'scriptSelectors')!;
+    expect(scriptSelectors.type).toBe('tagOriginSelectors');
+    for (const value of ['', '@', '@origin', 'plugin/script', 'plugin/script@', 'plugin/script@a.b', '+plugin/cron@origin']) {
+      expect(TAG_ORIGIN_SELECTOR_REGEX.test(value)).toBe(true);
+    }
+    for (const value of ['*', '@*', '@origin.*', '!plugin/script', 'plugin/script@*', '!@origin', '@.origin']) {
+      expect(TAG_ORIGIN_SELECTOR_REGEX.test(value)).toBe(false);
     }
   });
 
