@@ -29,7 +29,7 @@
     <span><!-- Tags --></span>
     <div class="tag-list form-array right">
       <span i18n>Tagging:</span>
-      @for (p of store.submit.tags() | tagPreview | async; track p.tag) {
+      @for (p of store.submit.tags() | tagPreview:store.account.origin() | async; track p.tag) {
         <a class="tag" [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
       }
     </div>
