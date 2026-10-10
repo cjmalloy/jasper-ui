@@ -188,7 +188,10 @@ export class AccountStore {
   }
 
   get aliasMailboxes(): string[] {
-    return uniq(this.aliasTags.map(tag => getMailbox(tag, tagOrigin(tag)) + tagOrigin(tag)));
+    return uniq(this.aliasTags.flatMap(tag => [
+      getMailbox(tag, tagOrigin(tag)) + tagOrigin(tag),
+      getMailbox(tag, this.origin) + (this.origin || '@'),
+    ]));
   }
 
   get dmQuery() {
