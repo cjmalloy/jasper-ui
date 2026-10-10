@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   afterNextRender,
   Component,
@@ -15,28 +16,33 @@ import {
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
-import { catchError, filter, finalize, forkJoin, map, of, Subject, switchMap } from 'rxjs';
+import { catchError, filter, finalize, forkJoin, map, of, Subject, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { Ext } from '../../model/ext';
+import { mapPlugin, Plugin } from '../../model/plugin';
 import { hydrate } from '../../model/tag';
-import { getTemplateScope } from '../../model/template';
+import { getTemplateScope, mapTemplate, Template } from '../../model/template';
 import { getMailbox } from '../../mods/mailbox';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
+import { PluginService } from '../../service/api/plugin.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { HelpService } from '../../service/help.service';
+import { PluginStore } from '../../store/plugin';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
+import { TemplateStore } from '../../store/template';
 import { getAddTags } from '../../util/add-tags';
 import { parseMapView } from '../../util/geo';
-import { encodeBookmarkParams } from '../../util/http';
+import { encodeBookmarkParams, printError } from '../../util/http';
+import { getModels, getZipOrTextFile } from '../../util/zip';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
@@ -87,6 +93,9 @@ export class SidebarComponent {
   ts = inject(TaggingService);
   private exts = inject(ExtService);
   private templates = inject(TemplateService);
+  private plugins = inject(PluginService);
+  private pluginStore = inject(PluginStore);
+  private templateStore = inject(TemplateStore);
   private el = inject(ElementRef);
   private help = inject(HelpService);
 
@@ -120,6 +129,7 @@ export class SidebarComponent {
   readonly savingBookmark = signal(false);
   readonly savingSub = signal(false);
   readonly savingAlarm = signal(false);
+  readonly uploadErrors = signal<string[]>([]);
 
   readonly ext = input<Ext | undefined>(undefined);
   readonly expandedInput = input(false, { alias: 'expanded' });
@@ -366,5 +376,49 @@ export class SidebarComponent {
   startChat() {
     this.store.view.ref.update(ref => ref ? { ...ref, tags: uniq([...ref.tags || [], 'plugin/chat']) } : ref);
     this.ts.create('plugin/chat', this.store.view.ref()!.url, this.store.account.origin()).subscribe();
+  }
+
+  uploadPlugins(files?: FileList) {
+    this.uploadErrors.set([]);
+    if (!files || !files.length) return;
+    getZipOrTextFile(files[0]!, 'plugin.json')
+      .then(json => getModels<Plugin>(json))
+      .then(plugins => plugins.map(mapPlugin))
+      .then(plugins => plugins.map(p => this.uploadPlugin(p)))
+      .catch(err => this.uploadErrors.set([err]));
+  }
+
+  uploadPlugin(plugin: Plugin) {
+    return this.plugins.delete(plugin.tag + this.store.account.origin()).pipe(
+      switchMap(() => this.plugins.create({ ...plugin, origin: this.store.account.origin() })),
+      catchError((res: HttpErrorResponse) => {
+        this.uploadErrors.set(printError(res));
+        return throwError(() => res);
+      }),
+    ).subscribe(() => {
+      if (this.store.view.current() === 'settings/plugin') this.pluginStore.refresh();
+    });
+  }
+
+  uploadTemplates(files?: FileList) {
+    this.uploadErrors.set([]);
+    if (!files || !files.length) return;
+    getZipOrTextFile(files[0]!, 'template.json')
+      .then(json => getModels<Template>(json))
+      .then(templates => templates.map(mapTemplate))
+      .then(templates => templates.map(t => this.uploadTemplate(t)))
+      .catch(err => this.uploadErrors.set([err]));
+  }
+
+  uploadTemplate(template: Template) {
+    return this.templates.delete(template.tag + this.store.account.origin()).pipe(
+      switchMap(() => this.templates.create({ ...template, origin: this.store.account.origin() })),
+      catchError((res: HttpErrorResponse) => {
+        this.uploadErrors.set(printError(res));
+        return throwError(() => res);
+      }),
+    ).subscribe(() => {
+      if (this.store.view.current() === 'settings/template') this.templateStore.refresh();
+    });
   }
 }

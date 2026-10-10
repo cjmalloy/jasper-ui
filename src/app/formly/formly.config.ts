@@ -3,11 +3,13 @@ import { FormlyExtension, FormlyFieldConfig, provideFormlyCore, withFormlyFieldE
 import { v4 as uuid } from 'uuid';
 import {
   ORIGIN_REGEX,
+  ORIGIN_WILDCARD_REGEX,
   PLUGIN_REGEX,
   QUALIFIED_TAG_REGEX,
   QUALIFIED_USER_REGEX,
   QUERY_REGEX,
   SELECTOR_REGEX,
+  TAG_ORIGIN_SELECTOR_REGEX,
   TAG_REGEX,
   URI_REGEX,
   USER_REGEX
@@ -334,6 +336,38 @@ Must not start with a period or contain two periods in a row.
         },
       },
     }, {
+      name: 'originSelector',
+      extends: 'input',
+      defaultOptions: {
+        props: {
+          type: 'email',
+          label: $localize`@`,
+        },
+        validators: {
+          pattern: {
+            expression: (c: AbstractControl) => !c.value || ORIGIN_WILDCARD_REGEX.test(c.value),
+            message: $localize`Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+May end with a wildcard (i.e. "@*" or "@my.*").
+The default origin is blank.
+Must not start with a period or contain two periods in a row.
+(i.e. "@origin", "@my.origin", "@my.*", or "").`,
+          }
+        },
+      },
+    }, {
+      name: 'originSelectorList',
+      extends: 'list',
+      defaultOptions: {
+        props: {
+          label: $localize`Origins: `,
+          addText: $localize`+ Add another origin`,
+          keepBlank: true,
+        },
+        fieldArray: {
+          type: 'originSelector',
+        },
+      },
+    }, {
       name: 'plugin',
       extends: 'tag',
       defaultOptions: {
@@ -506,6 +540,44 @@ Private tags start with an underscore.
       defaultOptions: {
         fieldArray: {
           type: 'selector',
+          props: {
+            label: $localize`🔖️`,
+          }
+        },
+      },
+    }, {
+      name: 'tagOriginSelector',
+      extends: 'tag',
+      defaultOptions: {
+        props: {
+          label: $localize`Tag: `,
+        },
+        validators: {
+          pattern: {
+            expression: (c: AbstractControl) => !c.value || TAG_ORIGIN_SELECTOR_REGEX.test(c.value),
+            message: $localize`Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Tags may be qualified with an origin.
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Use an origin without a tag to match all tags at that origin.
+Missing origins match the default origin.
+Wildcards (*) and negation (!) are not allowed.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "", "science", "science@origin", "@origin", or "_my/private/tag")`,
+          }
+        },
+      },
+    }, {
+      name: 'tagOriginSelectors',
+      extends: 'tags',
+      defaultOptions: {
+        props: {
+          keepBlank: true,
+        },
+        fieldArray: {
+          type: 'tagOriginSelector',
           props: {
             label: $localize`🔖️`,
           }

@@ -1,31 +1,20 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal, viewChild } from '@angular/core';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { Component, inject, viewChild } from '@angular/core';
 import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
-import { mapPlugin, Plugin } from '../../../model/plugin';
-import { PluginService } from '../../../service/api/plugin.service';
 import { ModService } from '../../../service/mod.service';
 import { PluginStore } from '../../../store/plugin';
 import { Store } from '../../../store/store';
-import { printError } from '../../../util/http';
 import { getTagFilter, getTagQueryFilter } from '../../../util/query';
-import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
-  styleUrls: ['./plugin.component.scss'],
   imports: [PluginListComponent],
 })
 export class SettingsPluginPage implements HasChanges {
   private mod = inject(ModService);
   store = inject(Store);
   query = inject(PluginStore);
-  private plugins = inject(PluginService);
-
-
-  readonly serverError = signal<string[]>([]);
 
   readonly list = viewChild<PluginListComponent>('list');
 
@@ -48,25 +37,5 @@ export class SettingsPluginPage implements HasChanges {
   saveChanges() {
     const list = this.list();
     return !list || list.saveChanges();
-  }
-
-  upload(files?: FileList) {
-    this.serverError.set([]);
-    if (!files || !files.length) return;
-    getZipOrTextFile(files[0]!, 'plugin.json')
-      .then(json => getModels<Plugin>(json))
-      .then(plugins => plugins.map(mapPlugin))
-      .then(plugins => plugins.map(p => this.uploadPlugin(p)))
-      .catch(err => this.serverError.set([err]));
-  }
-
-  uploadPlugin(plugin: Plugin) {
-    return this.plugins.delete(plugin.tag + this.store.account.origin()).pipe(
-      switchMap(() => this.plugins.create({ ...plugin, origin: this.store.account.origin() })),
-      catchError((res: HttpErrorResponse) => {
-        this.serverError.set(printError(res));
-        return throwError(() => res);
-      }),
-    ).subscribe(() => this.query.refresh());
   }
 }

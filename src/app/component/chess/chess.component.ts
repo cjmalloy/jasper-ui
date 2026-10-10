@@ -82,6 +82,8 @@ export class ChessComponent {
   animationQueue: AnimationState[] = [];
   readonly movingPiece = signal<{ piece: Piece; from: Square; to: Square } | undefined>(undefined);
   readonly capturedPiece = signal<{ piece: Piece; square: Square } | undefined>(undefined);
+  readonly promotion = signal<{ from: Square; to: Square } | undefined>(undefined);
+  readonly promotionPieces: Exclude<PieceType, 'p' | 'k'>[] = ['q', 'r', 'b', 'n'];
   readonly flip = signal(false);
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
@@ -288,10 +290,15 @@ export class ChessComponent {
     this.move(from, to);
   }
 
-  move(from: Square, to: Square) {
+  move(from: Square, to: Square, promotion?: Exclude<PieceType, 'p' | 'k'>) {
     if (from === to) return;
+    this.promotion.set(undefined);
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
-    const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
+    if (isPromotion && !promotion) {
+      this.promotion.set({ from, to });
+      return;
+    }
+    const move = this.chess.move({ from, to, promotion: isPromotion ? promotion : undefined });
     if (move) {
       this.render();
       this.check();
@@ -361,7 +368,18 @@ export class ChessComponent {
     }
   }
 
+  promote(type: Exclude<PieceType, 'p' | 'k'>) {
+    const promotion = this.promotion();
+    if (!promotion) return;
+    this.move(promotion.from, promotion.to, type);
+  }
+
+  cancelPromotion() {
+    this.promotion.set(undefined);
+  }
+
   clickSquare(index: number) {
+    if (this.promotion()) return;
     const square = this.getCoord(index);
     const p = this.chess.get(square);
     if (this.from() === square) {

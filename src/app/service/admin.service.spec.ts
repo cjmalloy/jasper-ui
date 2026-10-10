@@ -7,6 +7,7 @@ import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
+import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
 import { AdminService } from './admin.service';
 
 describe('AdminService', () => {
@@ -36,6 +37,45 @@ describe('AdminService', () => {
     expect(service.getTemplateAdminForm('parent/child').map(f => f.key)).toEqual(['c']);
     expect(service.getTemplateAdminForm('parent/child', 'advancedAdminForm')).toEqual([]);
     expect(service.getTemplateAdminForm('parent', 'advancedAdminForm').map(f => f.key)).toEqual(['b']);
+  });
+
+  it('should fall back to hard coded config admin forms', () => {
+    expect(service.getTemplateAdminForm('_config/index').map(f => f.key)).toContain('fulltext');
+    expect(service.getTemplateAdminForm('_config/security').map(f => f.key)).toContain('minRole');
+    expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toContain('scriptSelectors');
+    expect(service.getTemplateAdminForm('_config/server/worker').map(f => f.key)).toContain('scriptSelectors');
+    expect(service.getTemplateAdminForm('_config/server', 'advancedAdminForm')).toEqual([]);
+    expect(service.getTemplateAdminForm('_config/other')).toEqual([]);
+    (service as any).updateStatus((status: any) => {
+      status.templates['_config/server'] = { tag: '_config/server', config: { adminForm: [{ key: 'a' }] } };
+    });
+    expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toEqual(['a']);
+  });
+
+  it('should allow wildcard web origins in the server config fallback form', () => {
+    const webOrigins = service.getTemplateAdminForm('_config/server').find(f => f.key === 'webOrigins')!;
+    expect(webOrigins.type).toBe('originSelectorList');
+    for (const value of ['', '@', '@*', '@company', '@company.*', '@a.b.*']) {
+      expect(ORIGIN_WILDCARD_REGEX.test(value)).toBe(true);
+    }
+    for (const value of ['*', '@.*', '@company.', '@company*', 'company']) {
+      expect(ORIGIN_WILDCARD_REGEX.test(value)).toBe(false);
+    }
+  });
+
+  it('should not allow negation or wildcards in script selectors in the server config fallback form', () => {
+    const scriptSelectors = service.getTemplateAdminForm('_config/server').find(f => f.key === 'scriptSelectors')!;
+    expect(scriptSelectors.type).toBe('tagOriginSelectors');
+    for (const value of ['', '@', '@origin', 'plugin/script', 'plugin/script@', 'plugin/script@a.b', '+plugin/cron@origin']) {
+      expect(TAG_ORIGIN_SELECTOR_REGEX.test(value)).toBe(true);
+    }
+    for (const value of ['*', '@*', '@origin.*', '!plugin/script', 'plugin/script@*', '!@origin', '@.origin']) {
+      expect(TAG_ORIGIN_SELECTOR_REGEX.test(value)).toBe(false);
+    }
+  });
+
+  it('should include a markdown editor for ai instructions in built-in mods', () => {
+    expect(userTemplate.config?.adminForm?.find(f => f.key === 'aiInstructions')?.type).toBe('editor');
   });
 
   it('should keep formly expressions serializable for built-in mods', () => {

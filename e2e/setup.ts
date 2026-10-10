@@ -158,11 +158,12 @@ export async function clearOrigin(page: Page, base = '', origin = '') {
   ), { value: targetValue, label: targetLabel });
   if (!hasExactOrigin) return false;
   await select.selectOption(targetValue);
-  page.once('dialog', dialog => dialog.accept(targetLabel));
   const deletePromise = page.waitForResponse(resp => (
     resp.url().includes('/api/v1/origin') && resp.request().method() === 'DELETE' && resp.ok()
   ));
-  await page.locator('button', { hasText: '– delete' }).click();
+  await page.locator('button.delete-origin').click();
+  await page.locator('.delete-confirm input.delete-confirmation').fill(targetLabel);
+  await page.locator('.delete-confirm button.confirm-delete').click();
   await deletePromise;
   await page.reload();
   return true;

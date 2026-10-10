@@ -55,7 +55,7 @@ test.describe.serial('Wiki Plugin', () => {
     await page.locator('.tabs a', { hasText: 'template' }).first().click();
     const fileContent = JSON.stringify({ tag: 'config/wiki', config: { prefix: 'https://externalwiki/', external: true }});
     const buffer = Buffer.from(fileContent);
-    await page.locator('input.upload').setInputFiles({
+    await page.locator('input.upload-template').setInputFiles({
       name: 'config.json',
       mimeType: 'application/json',
       buffer,

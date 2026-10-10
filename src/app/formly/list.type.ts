@@ -260,6 +260,9 @@ export class ListTypeComponent extends FieldArrayType {
       if (index === 0) {
         this.remove(index);
         this.focus(index);
+      } else if (this.props.keepBlank) {
+        this.remove(index);
+        this.focus(index - 1, true);
       } else {
         this.focus(index - 1, true);
       }
@@ -269,6 +272,9 @@ export class ListTypeComponent extends FieldArrayType {
       if (index === len - 1) {
         this.remove(index);
         this.focus(index - 1);
+      } else if (this.props.keepBlank) {
+        this.remove(index);
+        this.focus(index, true);
       } else {
         this.focus(index + 1, true);
       }
@@ -280,6 +286,7 @@ export class ListTypeComponent extends FieldArrayType {
    */
   maybeRemove(event: FocusEvent, i: number) {
     if (this.groupArray) return;
+    if (this.props.keepBlank) return;
     const input = event.target as HTMLInputElement;
     if (input.tagName !== 'INPUT') return;
     if (input.classList.contains('preview')) return;

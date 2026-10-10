@@ -1,20 +1,3 @@
-@if (store.account.admin) {
-  <button type="button"
-          (click)="uploadFile.click()"
-          i18n-title
-          title="Upload Template"
-          class="upload" i18n>+ upload dev template</button>
-
-  <input #uploadFile
-         type="file"
-         class="upload"
-         (change)="upload(uploadFile.files!)">
-
-  @for (e of serverError(); track e) {
-    <span><!-- Unexpected Error --></span>
-    <div class="error">{{ e }}</div>
-  }
-}
 @if (query.error()?.status !== 403) {
   <app-template-list #list [page]="query.page()"></app-template-list>
 } @else {

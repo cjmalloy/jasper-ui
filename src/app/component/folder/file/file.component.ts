@@ -19,6 +19,7 @@ import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { AuthzService } from '../../../service/authz.service';
+import { OriginMapService } from '../../../service/origin-map.service';
 import { Store } from '../../../store/store';
 import { getTitle, templates } from '../../../util/format';
 import { getScheme } from '../../../util/http';
@@ -32,7 +33,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   host: {
     'tabindex': '0',
     '[class]': 'pluginClasses()',
-    '[class.sent]': 'isAuthor()',
+    '[class.sent]': 'sent()',
   },
   imports: [
     forwardRef(() => ViewerComponent),
@@ -47,6 +48,7 @@ export class FileComponent {
   private refs = inject(RefService);
   store = inject(Store);
   private auth = inject(AuthzService);
+  private origins = inject(OriginMapService);
 
   css = 'file ';
 
@@ -122,6 +124,9 @@ export class FileComponent {
   });
   readonly isAuthor = computed(() => {
     return isAuthorTag(this.store.account.tag(), this.ref());
+  });
+  readonly sent = computed(() => {
+    return this.origins.isCurrentAccountRef(this.ref());
   });
   readonly isRecipient = computed(() => {
     return hasTag(this.store.account.mailbox(), this.ref());

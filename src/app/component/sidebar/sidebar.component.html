@@ -119,6 +119,31 @@
         <span i18n-title title="Create User" i18n>🧑️</span> <label i18n>Create Permissions</label>
       </div>
     }
+    @if (store.account.admin && (store.view.current() === 'settings/plugin' || store.view.current() === 'settings/template')) {
+      <div class="submit-button upload-plugin-button"
+           (click)="uploadPluginFile.click()"
+           (keydown.enter)="uploadPluginFile.click()"
+           tabindex="0">
+        <span i18n-title title="Upload Plugin" i18n>🧰️</span> <label i18n>Upload Dev Plugin</label>
+      </div>
+      <input #uploadPluginFile
+             type="file"
+             class="upload-plugin"
+             (change)="uploadPlugins(uploadPluginFile.files!); uploadPluginFile.value = ''">
+      <div class="submit-button upload-template-button"
+           (click)="uploadTemplateFile.click()"
+           (keydown.enter)="uploadTemplateFile.click()"
+           tabindex="0">
+        <span i18n-title title="Upload Template" i18n>🎨️</span> <label i18n>Upload Dev Template</label>
+      </div>
+      <input #uploadTemplateFile
+             type="file"
+             class="upload-template"
+             (change)="uploadTemplates(uploadTemplateFile.files!); uploadTemplateFile.value = ''">
+      @for (e of uploadErrors(); track e) {
+        <div class="error">{{ e }}</div>
+      }
+    }
     @if (writeAccess() && user() && store.view.current() === 'tag') {
       <div class="submit-button" [routerLink]="['/user', tag()]" tabindex="0">
         <span i18n-title title="Edit User" i18n>🧑️</span> <label i18n>Edit Permissions</label>

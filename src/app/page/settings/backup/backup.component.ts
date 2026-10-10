@@ -17,6 +17,7 @@ import { DateTime } from 'luxon';
 import { catchError, filter, of, throwError } from 'rxjs';
 import { BackupListComponent } from '../../../component/backup/backup-list/backup-list.component';
 import { LoadingComponent } from '../../../component/loading/loading.component';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { BackupOptions } from '../../../model/backup';
 import { BackupRef, BackupService } from '../../../service/api/backup.service';
 import { OriginService } from '../../../service/api/origin.service';
@@ -32,7 +33,7 @@ import { printError } from '../../../util/http';
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
   host: { 'class': 'backup' },
-  imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
+  imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent, AutofocusDirective]
 })
 export class SettingsBackupPage {
   private mod = inject(ModService);
@@ -47,6 +48,8 @@ export class SettingsBackupPage {
 
   readonly backupButton = viewChild.required<ElementRef<HTMLButtonElement>>('backupButton');
   readonly backupOptionsTemplate = viewChild.required<TemplateRef<any>>('backupOptions');
+  readonly deleteButton = viewChild.required<ElementRef<HTMLButtonElement>>('deleteButton');
+  readonly deleteConfirmTemplate = viewChild.required<TemplateRef<any>>('deleteConfirm');
 
   originForm: UntypedFormGroup;
   protected readonly originFormValid = controlState(() => this.originForm, c => c.valid);
@@ -57,6 +60,8 @@ export class SettingsBackupPage {
   readonly serverError = signal<string[]>([]);
   readonly backupOrigins = signal<string[]>(this.store.origins.list());
   backupOptionsRef?: OverlayRef;
+  deleteConfirmRef?: OverlayRef;
+  readonly deleteConfirmation = signal('');
 
   constructor() {
     const mod = this.mod;
@@ -104,10 +109,20 @@ export class SettingsBackupPage {
     ).subscribe(list => this.list.set(sortBy(list, 'id').reverse()));
   }
 
+  readonly originLabel = computed(() => {
+    return this.origin() || 'default';
+  });
+
   showBackupOptions() {
     if (this.backupOptionsRef) return;
+    this.backupOptionsRef = this.createPopup(this.backupButton(), this.backupOptionsTemplate());
+    this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
+    this.backupOptionsRef.keydownEvents().pipe(filter(e => e.key === 'Escape')).subscribe(() => this.cancelBackup());
+  }
+
+  private createPopup(anchor: ElementRef<HTMLElement>, template: TemplateRef<any>) {
     const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(this.backupButton()!)
+      .flexibleConnectedTo(anchor)
       .withPositions([{
         originX: 'start',
         originY: 'bottom',
@@ -115,15 +130,14 @@ export class SettingsBackupPage {
         overlayY: 'top',
         offsetY: 4,
       }]);
-    this.backupOptionsRef = this.overlay.create({
+    const ref = this.overlay.create({
       hasBackdrop: true,
       backdropClass: 'hide',
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.reposition()
     });
-    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate(), this.viewContainerRef));
-    this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
-    this.backupOptionsRef.keydownEvents().pipe(filter(e => e.key === 'Escape')).subscribe(() => this.cancelBackup());
+    ref.attach(new TemplatePortal(template, this.viewContainerRef));
+    return ref;
   }
 
   confirmBackup() {
@@ -198,12 +212,22 @@ export class SettingsBackupPage {
       scrollToFirstInvalid();
       return;
     }
-    const confirmation = prompt($localize`Are you sure you want totally delete everything in ${this.origin() || 'default'}?\n\nEnter the origin to confirm:`);
-    if (confirmation === null) return;
-    if (confirmation !== (this.origin() || 'default')) {
-      alert($localize`Origin did not match ${this.origin() || 'default'}, aborting.`)
-      return;
-    }
+    if (this.deleteConfirmRef) return;
+    this.deleteConfirmation.set('');
+    this.deleteConfirmRef = this.createPopup(this.deleteButton(), this.deleteConfirmTemplate());
+    this.deleteConfirmRef.backdropClick().subscribe(() => this.closeDeleteConfirm());
+  }
+
+  closeDeleteConfirm() {
+    this.deleteConfirmRef?.detach();
+    this.deleteConfirmRef?.dispose();
+    this.deleteConfirmRef = undefined;
+    this.deleteConfirmation.set('');
+  }
+
+  confirmDeleteOrigin() {
+    if (this.deleteConfirmation() !== this.originLabel()) return;
+    this.closeDeleteConfirm();
     const olderThan = DateTime.fromISO(this.originForm.value.olderThan);
     this.origins.delete(this.origin(), olderThan).pipe(
       catchError((res: HttpErrorResponse) => {

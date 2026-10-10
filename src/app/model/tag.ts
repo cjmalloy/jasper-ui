@@ -544,6 +544,17 @@ Handlebars.registerHelper('duration', (ref: Ref, tag: string) => {
   const d = Duration.fromISO(value.toUpperCase());
   return d.isValid ? d : undefined;
 });
+Handlebars.registerHelper('progress', (ref: Ref, tag: string) => {
+  const p = tag + '/';
+  const t = ref?.tags?.find(t => t.startsWith(p));
+  if (!t) return undefined;
+  const [num, den = '100'] = t.substring(p.length).split('/');
+  if (!/^\d+$/.test(num) || !/^\d+$/.test(den)) return undefined;
+  const max = parseInt(den);
+  if (!max) return undefined;
+  const value = Math.min(parseInt(num), max);
+  return { value, max, percent: Math.floor(100 * value / max) };
+});
 Handlebars.registerHelper('human', (value: any) => {
   if (!value) return '';
   const formatDuration = (d: Duration) => {

@@ -48,6 +48,7 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { ImageService } from '../../service/image.service';
+import { OriginMapService } from '../../service/origin-map.service';
 import { UploadCacheService } from '../../service/upload-cache.service';
 import { Store } from '../../store/store';
 import { controlState, controlValue, scrollToFirstInvalid } from '../../util/form';
@@ -105,7 +106,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
     '[class.deleted]': 'deleted()',
     '[class.editing]': 'editing()',
     '[class.mobile-unlock]': 'mobileUnlock()',
-    '[class.storyboard-ready]': 'storyboardLoaded()',
+    '[class.storyboard-ready]': 'storyboardReady()',
     '[attr.data-ref-url]': "refUrlAttr()",
     '[attr.data-ref-origin]': "refOriginAttr()",
     '[attr.data-ref-title]': "refTitleAttr()",
@@ -117,7 +118,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
     '[class.upload]': "uploadedFile()",
     '[class.exists]': "existsFile()",
     '[class.outdated]': "modifiedFile()",
-    '[class.sent]': "isAuthor()",
+    '[class.sent]': "sent()",
     '[style.--storyboard-url]': "storyboardUrl()",
     '[style.--storyboard-size]': "storyboardSize()",
     '[style.--storyboard-margin]': "storyboardMargin()",
@@ -166,6 +167,7 @@ export class RefComponent implements HasChanges {
   private fb = inject(UntypedFormBuilder);
   private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
   private imgs = inject(ImageService);
+  private origins = inject(OriginMapService);
 
   private readonly controlState0 = controlValue(() => this.editForm);
 
@@ -436,11 +438,19 @@ export class RefComponent implements HasChanges {
     if (!this.admin.getPlugin('plugin/image')) return null;
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
     if (this.editing()) {
-      return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
+      const value = this.editForm.value;
+      if (!hasTag('plugin/thumbnail/storyboard', value)) return null;
+      return value?.plugins?.['plugin/thumbnail/storyboard']
+        || this.ref()?.plugins?.['plugin/thumbnail/storyboard']
+        || null;
     }
     return this.ref()?.plugins?.['plugin/thumbnail/storyboard']
       || this.repostRef()?.plugins?.['plugin/thumbnail/storyboard']
       || null;
+  });
+
+  readonly storyboardReady = computed(() => {
+    return this.storyboardLoaded() && !!this.storyboardUrl();
   });
 
   private readonly storyboardRawUrl = computed<string | null>(() => {
@@ -766,6 +776,10 @@ export class RefComponent implements HasChanges {
 
   readonly isAuthor = computed(() => {
     return isAuthorTag(this.store.account.tag(), this.ref());
+  });
+
+  readonly sent = computed(() => {
+    return this.origins.isCurrentAccountRef(this.ref());
   });
 
   readonly isRecipient = computed(() => {

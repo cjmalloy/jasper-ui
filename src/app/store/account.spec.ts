@@ -55,4 +55,17 @@ describe('AccountStore notifications', () => {
     expect(store.aliasMailboxes()).toEqual(['plugin/inbox/user/charlie@repl']);
     expect(store.inboxQuery()).toBe('plugin/inbox/user/alice@|plugin/inbox/user/charlie@repl');
   });
+
+  it('includes alias user tags in the dm query', () => {
+    const origins = new OriginStore();
+    const store = new AccountStore(origins);
+    store.tag.set('+user/alice');
+    store.ext.set({ tag: '+user/alice', origin: '', config: {} } as any);
+    origins.accountAliases.set([
+      { from: '', origin: '@repl', local: '+user/alice', remote: '+user/charlie' },
+      { from: '@b', origin: '@c', local: '+user/alice', remote: '+user/mallory' },
+    ]);
+    expect(store.aliasTags()).toEqual(['+user/charlie@repl']);
+    expect(store.dmQuery()).toBe('+user/alice@|+user/charlie@repl|plugin/inbox/user/alice@|plugin/inbox/user/charlie@repl');
+  });
 });
