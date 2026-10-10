@@ -382,6 +382,71 @@ describe('AccountService', () => {
     ]);
   });
 
+  it('initializes a missing remote cursor at the local cursor', () => {
+    setAccount();
+    setOrigins([{
+      url: 'spec:city',
+      origin: '',
+      tags: ['+plugin/origin/pull', '+user/dad'],
+      plugins: { '+plugin/origin': { local: '@city', aliases: ['+user/chris'] } },
+    }]);
+    const localCursor = '2026-01-01T00:00:00.000Z';
+
+    service.loadNotificationCursors$().subscribe();
+    http.expectNone(req => req.params.get('url') === 'tag:/plugin/outbox/city');
+    http.expectOne(req =>
+      req.method === 'GET' &&
+      req.url.endsWith('/api/v1/tags/response') &&
+      req.params.get('url') === 'tag:/plugin/inbox').flush({
+      url: 'tag:/+user/dad?url=tag:/plugin/inbox',
+      origin: '',
+      plugins: { 'plugin/user/cursor': { cursor: localCursor } },
+      modified: localCursor,
+    });
+    http.expectOne(req =>
+      req.method === 'GET' &&
+      req.url.endsWith('/api/v1/tags/response') &&
+      req.params.get('url') === 'tag:/plugin/outbox/city')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    const create = http.expectOne(req =>
+      req.method === 'PATCH' &&
+      req.url.endsWith('/api/v1/tags/response') &&
+      req.params.get('url') === 'tag:/plugin/outbox/city');
+    expect(create.request.body['plugin/user/cursor'].cursor).toEqual(localCursor);
+    create.flush(null);
+    http.expectOne(req =>
+      req.method === 'GET' &&
+      req.url.endsWith('/api/v1/tags/response') &&
+      req.params.get('url') === 'tag:/plugin/outbox/city').flush({
+      url: 'tag:/+user/dad?url=tag:/plugin/outbox/city',
+      origin: '',
+      plugins: { 'plugin/user/cursor': { cursor: localCursor } },
+      modified: localCursor,
+    });
+
+    expect((service as any).store.account.notificationCursors.get('@city')).toEqual(localCursor);
+  });
+
+  it('initializes an in-memory remote cursor at the local cursor', () => {
+    setAccount();
+    const store = (service as any).store;
+    vi.spyOn((service as any).admin, 'getPlugin').mockReturnValue(undefined);
+    const localCursor = '2026-01-01T00:00:00.000Z';
+    store.account.tag = '+user/dad';
+    service.loadNotificationCursors$().subscribe();
+    store.account.notificationCursors.set('', localCursor);
+    setOrigins([{
+      url: 'spec:city',
+      origin: '',
+      tags: ['+plugin/origin/pull', '+user/dad'],
+      plugins: { '+plugin/origin': { local: '@city', aliases: ['+user/chris'] } },
+    }]);
+
+    service.loadNotificationCursors$().subscribe();
+
+    expect(store.account.notificationCursors.get('@city')).toEqual(localCursor);
+  });
+
   it('only clears notifications for the read origin', () => {
     setAccount();
     const streams = [
