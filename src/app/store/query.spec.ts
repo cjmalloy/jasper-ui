@@ -1,9 +1,9 @@
 /// <reference types="vitest/globals" />
-import { signal } from '@angular/core';
+import { ApplicationRef, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { Page } from '../model/page';
-import { RefPageArgs } from '../model/ref';
+import { Ref, RefPageArgs } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
 import { QueryStore } from './query';
 
@@ -143,6 +143,33 @@ describe('QueryStore', () => {
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
     });
     expect(store.page()).toBe(offsetPage);
+  });
+
+  it('keeps the previous page while a search-only change loads', async () => {
+    const first = Page.of([{ url: 'https://example.com/first' }]);
+    const next = new Subject<Page<Ref>>();
+    const refs = {
+      page: vi.fn()
+        .mockReturnValueOnce(of(first))
+        .mockReturnValueOnce(next)
+        .mockReturnValueOnce(new Subject<Page<Ref>>()),
+      getCurrent: vi.fn(),
+    } as unknown as RefService;
+    const store = createStore(refs);
+
+    const args = watch(store, { query: 'test' });
+    expect(store.page()).toBe(first);
+
+    set(store, args, { query: 'test', search: 'abc' });
+    expect(store.page()).toBe(first);
+
+    const searched = Page.of([{ url: 'https://example.com/searched' }]);
+    next.next(searched);
+    await TestBed.inject(ApplicationRef).whenStable();
+    expect(store.page()).toBe(searched);
+
+    set(store, args, { query: 'other', search: 'abc' });
+    expect(store.page()).toBeUndefined();
   });
 
   it('stops loading when the watching injector is destroyed', () => {

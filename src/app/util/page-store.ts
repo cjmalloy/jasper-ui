@@ -1,9 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, DestroyRef, inject, signal } from '@angular/core';
+import { computed, DestroyRef, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { isEqual } from 'lodash-es';
+import { isEqual, omit } from 'lodash-es';
 import { Observable } from 'rxjs';
 import { Page } from '../model/page';
+
+interface LoadedPage<A, T> {
+  args?: A;
+  page?: Page<T>;
+  loading: boolean;
+}
 
 /**
  * A root store holding the page of entities for the current route.
@@ -20,10 +26,26 @@ export abstract class PageStore<A, T> {
     stream: ({ params }) => this.load(params),
   });
 
+  /**
+   * The loaded page, keeping the previous page visible while a search-only change reloads.
+   */
+  private readonly loaded = linkedSignal<LoadedPage<A, T>, LoadedPage<A, T>>({
+    source: () => ({
+      args: this.args(),
+      page: this.resource.hasValue() ? this.resource.value() : undefined,
+      loading: this.resource.isLoading(),
+    }),
+    computation: (current, previous) => {
+      if (current.page || !current.loading || !previous?.value.page) return current;
+      if (!isEqual(omit(current.args as object, 'search'), omit(previous.value.args as object, 'search'))) return current;
+      return { ...current, page: previous.value.page };
+    },
+  });
+
   readonly page = computed(() => {
     const shown = this.shown();
     if (shown) return shown();
-    return this.resource.hasValue() ? this.resource.value() : undefined;
+    return this.loaded().page;
   });
   readonly error = computed(() => this.resource.error() as HttpErrorResponse | undefined);
 
