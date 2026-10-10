@@ -189,7 +189,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   deleted = false;
   @HostBinding('class.mobile-unlock')
   mobileUnlock = false;
-  @HostBinding('class.storyboard-ready')
   storyboardLoaded = false;
   actionsExpanded?: boolean;
   replying = false;
@@ -250,6 +249,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardUrl');
       MemoCache.clear(this, 'storyboardSize');
       MemoCache.clear(this, 'storyboardMargin');
+      MemoCache.clear(this, 'storyboardWidth');
       MemoCache.clear(this, 'storyboardHeight');
       MemoCache.clear(this, 'storyboardAnimation');
       defer(() => {
@@ -478,11 +478,19 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (!this.admin.getPlugin('plugin/image')) return null;
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
     if (this.editing) {
-      return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
+      if (!hasTag('plugin/thumbnail/storyboard', this.editForm.value)) return null;
+      return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard']
+        || this.ref?.plugins?.['plugin/thumbnail/storyboard']
+        || null;
     }
     return this.ref?.plugins?.['plugin/thumbnail/storyboard']
       || this.repostRef?.plugins?.['plugin/thumbnail/storyboard']
       || null;
+  }
+
+  @HostBinding('class.storyboard-ready')
+  get storyboardReady() {
+    return this.storyboardLoaded && !!this.storyboardUrl;
   }
 
   private get storyboardRawUrl(): string | null {
@@ -631,6 +639,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardUrl');
       MemoCache.clear(this, 'storyboardSize');
       MemoCache.clear(this, 'storyboardMargin');
+      MemoCache.clear(this, 'storyboardWidth');
       MemoCache.clear(this, 'storyboardHeight');
       MemoCache.clear(this, 'storyboardAnimation');
     } else {
