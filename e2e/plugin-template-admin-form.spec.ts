@@ -7,6 +7,7 @@ test.describe.serial('Plugin/Template Admin Form', () => {
   const tags = {
     plugin: `plugin/adminform${runId}`,
     template: `adminform${runId}`,
+    config: `_config/server/fallback${runId}`,
   };
 
   async function headers(request: APIRequestContext) {
@@ -19,6 +20,7 @@ test.describe.serial('Plugin/Template Admin Form', () => {
   test.afterAll(async ({ request }) => {
     await request.delete(`${api}/plugin`, { headers: await headers(request), params: { tag: tags.plugin } });
     await request.delete(`${api}/template`, { headers: await headers(request), params: { tag: tags.template } });
+    await request.delete(`${api}/template`, { headers: await headers(request), params: { tag: tags.config } });
   });
 
   test('setup', async ({ request }) => {
@@ -42,6 +44,11 @@ test.describe.serial('Plugin/Template Admin Form', () => {
       });
       expect(res.ok()).toBeTruthy();
     }
+    const res = await request.post(`${api}/template`, {
+      headers: await headers(request),
+      data: { tag: tags.config, config: { emailHost: 'smtp.example.com', maxSources: 5 } },
+    });
+    expect(res.ok()).toBeTruthy();
   });
 
   for (const type of ['plugin', 'template'] as const) {
@@ -78,9 +85,9 @@ test.describe.serial('Plugin/Template Admin Form', () => {
   }
 
   test('fallback admin form for server config template', async ({ page }) => {
-    await page.goto('/settings/template?debug=ADMIN&search=_config/server', { waitUntil: 'networkidle' });
-    const item = page.locator('.template.list-item').filter({ hasText: '_config/server' }).first();
-    await expect(item).toBeVisible();
+    await page.goto(`/settings/template?debug=ADMIN&search=${tags.config}`, { waitUntil: 'networkidle' });
+    const item = page.locator('.template.list-item').filter({ hasText: tags.config });
+    await expect(item).toHaveCount(1);
     await item.locator('.actions .fake-link', { hasText: 'edit' }).click();
 
     await expect(item.locator('.admin-form input[name=emailHost]')).toBeVisible();
