@@ -54,6 +54,41 @@ describe('ListTypeComponent', () => {
     expect(removeSpy).toHaveBeenCalledWith(1);
   });
 
+  it('keeps blank inputs on blur when keepBlank is set', () => {
+    const { component } = createComponent();
+    component.field.props = { keepBlank: true };
+    const removeSpy = vi.spyOn(component, 'remove').mockImplementation(() => undefined);
+    const event = {
+      target: {
+        tagName: 'INPUT',
+        classList: { contains: () => false },
+        value: '',
+      },
+    } as any;
+
+    component.maybeRemove(event, 1);
+
+    expect(removeSpy).not.toHaveBeenCalled();
+  });
+
+  it('removes blank middle inputs on Backspace and Delete when keepBlank is set', () => {
+    const { component } = createComponent();
+    (component.field as any).model = ['alpha', '', 'gamma'];
+    component.field.fieldGroup = [{ id: 'field-0' }, { id: 'field-1' }, { id: 'field-2' }];
+    component.field.props = { keepBlank: true };
+    const removeSpy = vi.spyOn(component, 'remove').mockImplementation(() => undefined);
+    const focusSpy = vi.spyOn(component, 'focus').mockImplementation(() => undefined);
+    const key = (key: string) => ({ key, shiftKey: false, repeat: false, preventDefault: vi.fn() }) as any;
+
+    component.keydown(key('Backspace'), 1);
+    expect(removeSpy).toHaveBeenLastCalledWith(1);
+    expect(focusSpy).toHaveBeenLastCalledWith(0, true);
+
+    component.keydown(key('Delete'), 1);
+    expect(removeSpy).toHaveBeenCalledTimes(2);
+    expect(focusSpy).toHaveBeenLastCalledWith(1, true);
+  });
+
   describe('location seeding', () => {
     function createLocationList(values: any[], ring = false) {
       const component = new ListTypeComponent({ hotkey: false } as any);

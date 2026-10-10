@@ -34,7 +34,7 @@ export const commitPlugin: Plugin = {
   name: $localize`🐢️ Commit`,
   config: {
     mod: $localize`🎬️ Drafts`,
-    version: 2,
+    version: 3,
     type: 'plugin',
     default: true,
     actions: [
@@ -53,36 +53,36 @@ export const commitPlugin: Plugin = {
     }],
     // language=JavaScript
     script: `
-      const axios = require('axios');
-      const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
-      if (ref?.tags?.find(t => t === 'plugin/editing' || t?.startsWith('plugin/editing/'))) {
-        const editPlugin = ref.plugins['plugin/editing'];
-        delete ref.plugins['plugin/editing'];
-        delete ref.metadata;
-        ref.tags = ref.tags
-          .filter(t => t !== 'plugin/editing' && !t.startsWith('plugin/editing/'))
-          .filter(t => t !== 'plugin/delta/commit' && !t.startsWith('plugin/delta/commit/'));
-        const edit = {
-          ...ref,
-          ...editPlugin,
-          url: ref.url,
-        };
-        delete edit.metadata;
-        const author = ref.tags.find(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
-        if (!author) throw new Error('No author tag found');
-        await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/ref', [edit], {
-          headers: {
-            'Local-Origin': ref.origin || 'default',
-            'User-Tag': author,
-          },
-          params: {
-            origin: ref.origin,
-          }
-        }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        });
-      }
+const axios = require('axios');
+const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
+if (ref?.tags?.find(t => t === 'plugin/editing' || t?.startsWith('plugin/editing/'))) {
+  const editPlugin = ref.plugins['plugin/editing'];
+  delete ref.plugins['plugin/editing'];
+  delete ref.metadata;
+  ref.tags = ref.tags
+    .filter(t => t !== 'plugin/editing' && !t.startsWith('plugin/editing/'))
+    .filter(t => t !== 'plugin/delta/commit' && !t.startsWith('plugin/delta/commit/'));
+  const edit = {
+    ...ref,
+    ...editPlugin,
+    url: ref.url,
+  };
+  delete edit.metadata;
+  const author = ref.tags.find(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
+  if (!author) throw new Error('No author tag found');
+  await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/ref', [edit], {
+    headers: {
+      'Local-Origin': ref.origin || 'default',
+      'User-Tag': author,
+    },
+    params: {
+      origin: ref.origin,
+    }
+  }).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  });
+}
     `,
   }
 }

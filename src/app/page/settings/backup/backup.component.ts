@@ -8,6 +8,7 @@ import { DateTime } from 'luxon';
 import { catchError, throwError } from 'rxjs';
 import { BackupListComponent } from '../../../component/backup/backup-list/backup-list.component';
 import { LoadingComponent } from '../../../component/loading/loading.component';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { BackupOptions } from '../../../model/backup';
 import { BackupRef, BackupService } from '../../../service/api/backup.service';
 import { OriginService } from '../../../service/api/origin.service';
@@ -24,7 +25,7 @@ import { printError } from '../../../util/http';
   styleUrls: ['./backup.component.scss'],
   host: { 'class': 'backup' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
+  imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent, AutofocusDirective]
 })
 export class SettingsBackupPage {
 
@@ -32,6 +33,10 @@ export class SettingsBackupPage {
   backupButton!: ElementRef<HTMLButtonElement>;
   @ViewChild('backupOptions')
   backupOptionsTemplate!: TemplateRef<any>;
+  @ViewChild('deleteButton')
+  deleteButton!: ElementRef<HTMLButtonElement>;
+  @ViewChild('deleteConfirm')
+  deleteConfirmTemplate!: TemplateRef<any>;
 
   originForm: UntypedFormGroup;
   backupOptionsForm: UntypedFormGroup;
@@ -41,6 +46,8 @@ export class SettingsBackupPage {
   serverError: string[] = [];
   backupOrigins: string[] = this.store.origins.list;
   backupOptionsRef?: OverlayRef;
+  deleteConfirmRef?: OverlayRef;
+  deleteConfirmation = '';
 
   constructor(
     private mod: ModService,
@@ -92,10 +99,19 @@ export class SettingsBackupPage {
       .subscribe(list => this.list = sortBy(list, 'id').reverse());
   }
 
+  get originLabel() {
+    return this.origin || 'default';
+  }
+
   showBackupOptions() {
     if (this.backupOptionsRef) return;
+    this.backupOptionsRef = this.createPopup(this.backupButton, this.backupOptionsTemplate);
+    this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
+  }
+
+  private createPopup(anchor: ElementRef<HTMLElement>, template: TemplateRef<any>) {
     const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(this.backupButton!)
+      .flexibleConnectedTo(anchor)
       .withPositions([{
         originX: 'start',
         originY: 'bottom',
@@ -103,14 +119,14 @@ export class SettingsBackupPage {
         overlayY: 'top',
         offsetY: 4,
       }]);
-    this.backupOptionsRef = this.overlay.create({
+    const ref = this.overlay.create({
       hasBackdrop: true,
       backdropClass: 'hide',
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.reposition()
     });
-    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate, this.viewContainerRef));
-    this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
+    ref.attach(new TemplatePortal(template, this.viewContainerRef));
+    return ref;
   }
 
   confirmBackup() {
@@ -187,12 +203,22 @@ export class SettingsBackupPage {
       scrollToFirstInvalid();
       return;
     }
-    const confirmation = prompt($localize`Are you sure you want totally delete everything in ${this.origin || 'default'}?\n\nEnter the origin to confirm:`);
-    if (confirmation === null) return;
-    if (confirmation !== (this.origin || 'default')) {
-      alert($localize`Origin did not match ${this.origin || 'default'}, aborting.`)
-      return;
-    }
+    if (this.deleteConfirmRef) return;
+    this.deleteConfirmation = '';
+    this.deleteConfirmRef = this.createPopup(this.deleteButton, this.deleteConfirmTemplate);
+    this.deleteConfirmRef.backdropClick().subscribe(() => this.closeDeleteConfirm());
+  }
+
+  closeDeleteConfirm() {
+    this.deleteConfirmRef?.detach();
+    this.deleteConfirmRef?.dispose();
+    this.deleteConfirmRef = undefined;
+    this.deleteConfirmation = '';
+  }
+
+  confirmDeleteOrigin() {
+    if (this.deleteConfirmation !== this.originLabel) return;
+    this.closeDeleteConfirm();
     const olderThan = DateTime.fromISO(this.originForm.value.olderThan);
     this.origins.delete(this.origin, olderThan).pipe(
       catchError((res: HttpErrorResponse) => {

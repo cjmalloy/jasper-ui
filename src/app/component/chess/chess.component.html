@@ -22,3 +22,14 @@
     }
   </div>
 }
+@if (promotion) {
+  <div class="promotion" (click)="cancelPromotion()">
+    <div class="promotion-pieces" (click)="$event.stopPropagation()">
+      @for (type of promotionPieces; track type) {
+        <button type="button"
+                class="promotion-piece chess-piece {{ turn }}"
+                (click)="promote(type)">{{ drawPiece({ type, color: turn, square: promotion.to }) }}</button>
+      }
+    </div>
+  </div>
+}

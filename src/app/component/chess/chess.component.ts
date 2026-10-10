@@ -63,6 +63,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   animationQueue: AnimationState[] = [];
   movingPiece?: { piece: Piece; from: Square; to: Square };
   capturedPiece?: { piece: Piece; square: Square };
+  promotion?: { from: Square; to: Square };
+  promotionPieces: Exclude<PieceType, 'p' | 'k'>[] = ['q', 'r', 'b', 'n'];
   @HostBinding('class.flip')
   flip = false;
 
@@ -267,10 +269,15 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.move(from, to);
   }
 
-  move(from: Square, to: Square) {
+  move(from: Square, to: Square, promotion?: Exclude<PieceType, 'p' | 'k'>) {
     if (from === to) return;
+    delete this.promotion;
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
-    const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
+    if (isPromotion && !promotion) {
+      this.promotion = { from, to };
+      return;
+    }
+    const move = this.chess.move({ from, to, promotion: isPromotion ? promotion : undefined });
     if (move) {
       this.render();
       this.check();
@@ -341,7 +348,17 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  promote(type: Exclude<PieceType, 'p' | 'k'>) {
+    if (!this.promotion) return;
+    this.move(this.promotion.from, this.promotion.to, type);
+  }
+
+  cancelPromotion() {
+    delete this.promotion;
+  }
+
   clickSquare(index: number) {
+    if (this.promotion) return;
     const square = this.getCoord(index);
     const p = this.chess.get(square);
     if (this.from === square) {
