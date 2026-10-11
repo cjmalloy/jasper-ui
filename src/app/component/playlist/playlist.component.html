@@ -1,7 +1,7 @@
 @if (sources()) {
   <div class="playlist-container">
-    <h6>{{ title(current.get()?.url) }}</h6>
-    <app-viewer [ref]="current.get()"
+    <h6>{{ title(current()?.url) }}</h6>
+    <app-viewer [ref]="current()"
                 [autoplay]="autoplay()"
                 (playing)="autoplay.set(true)"
                 (pausing)="autoplay.set(false)"
@@ -18,7 +18,7 @@
       <ol class="playlist-menu">
         @for (s of ref()!.sources; track s; let i = $index) {
           <li tabindex="0"
-              [class.selected]="s === current.get()?.url"
+              [class.selected]="s === current()?.url"
               (keydown)="$event.key === 'Enter' && seek(i) || true"
               (click)="seek(i)">{{ title(s) }}</li>
         }

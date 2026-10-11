@@ -1,23 +1,26 @@
+import { computed, signal } from '@angular/core';
 import { intersection, uniq } from 'lodash-es';
-import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
 import { defaultSubs, UserConfig } from '../mods/user';
-import { parseBookmarkParams, parseParams } from '../util/http';
+import { parseBookmarkParams } from '../util/http';
 import { braces, defaultOrigin, hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
 export class AccountStore {
 
-  debug = false;
-  tag = '';
-  origin = '';
-  access?: User = {} as User;
-  ext?: Ext = {} as Ext;
-  defaultConfig: UserConfig = {};
-  ignoreNotifications: number[] = [];
-  notificationCursors = new Map<string, string>();
+  readonly debug = signal<boolean>(false);
+  readonly tag = signal<string>('');
+  readonly origin = signal<string>('');
+  readonly access = signal<User | undefined>(undefined);
+  readonly ext = signal<Ext | undefined>(undefined);
+  readonly defaultConfig = signal<UserConfig>({});
+  readonly ignoreNotifications = signal<number[]>([]);
+  /**
+   * Notification read cursors keyed by origin.
+   */
+  readonly notificationCursors = new Map<string, string>();
 
   /**
    * Is admin.
@@ -61,65 +64,59 @@ export class AccountStore {
   /**
    * Unread inbox and alarms total count.
    */
-  notifications = 0;
+  readonly notifications = signal<number>(0);
   /**
    * Unread alarms count.
    */
-  alarmCount = 0;
+  readonly alarmCount = signal<number>(0);
   /**
    * Flag indicating the interceptor detected an unauthorized request.
    */
-  authError = false;
+  readonly authError = signal<boolean>(false);
   /**
    * Flag indicating an unrecoverable error loading app from PWA cache.
    */
-  unrecoverable = false;
+  readonly unrecoverable = signal<boolean>(false);
 
   constructor(
     private origins: OriginStore,
-  ) {
-    makeAutoObservable(this);
-    // Initial observables may not be null for MobX
-    this.access = undefined;
-    this.ext = undefined;
-    this.defaultConfig = {};
-  }
+  ) { }
 
-  get signedIn() {
-    return !!this.tag;
-  }
+  readonly signedIn = computed(() => {
+    return !!this.tag();
+  });
 
-  get root() {
-    return !this.origin;
-  }
+  readonly root = computed(() => {
+    return !this.origin();
+  });
 
-  get localTag() {
-    return localTag(this.tag);
-  }
+  readonly localTag = computed(() => {
+    return localTag(this.tag());
+  });
 
-  get tagWithOrigin() {
-    return localTag(this.tag) + (this.origin || '@');
-  }
+  readonly tagWithOrigin = computed(() => {
+    return localTag(this.tag()) + (this.origin() || '@');
+  });
 
-  get userTag() {
-     if (hasPrefix(localTag(this.tag), 'user')) return this.localTag;
+  readonly userTag = computed(() => {
+     if (hasPrefix(localTag(this.tag()), 'user')) return this.localTag();
      return '';
-  }
+  });
 
-  get role() {
-    if (!this.signedIn) return '';
+  readonly role = computed(() => {
+    if (!this.signedIn()) return '';
     if (this.admin) return 'admin';
     if (this.mod) return 'mod';
     if (this.editor) return 'editor';
     if (this.user) return 'user';
     if (this.viewer) return 'viewer';
     return 'anon';
-  }
+  });
 
-  get roles(): Roles {
+  readonly roles = computed((): Roles => {
     return {
-      debug: this.debug,
-      tag: this.tag,
+      debug: this.debug(),
+      tag: this.tag(),
       admin: this.admin,
       mod: this.mod,
       editor: this.editor,
@@ -127,124 +124,117 @@ export class AccountStore {
       viewer: this.viewer,
       banned: this.banned,
     };
-  }
+  });
 
-  get config(): UserConfig {
+  readonly config = computed((): UserConfig => {
     return {
-      ...(this.defaultConfig || {}),
-      ...(this.ext?.config || {}),
+      ...(this.defaultConfig() || {}),
+      ...(this.ext()?.config || {}),
     };
-  }
+  });
 
-  get subs(): string[] {
-    return this.config.subscriptions || defaultSubs;
-  }
+  readonly subs = computed((): string[] => {
+    return this.config().subscriptions || defaultSubs;
+  });
 
-  get userSubs(): string[] {
-    return this.subs.filter(s => hasPrefix(s, 'user'));
-  }
+  readonly userSubs = computed((): string[] => {
+    return this.subs().filter(s => hasPrefix(s, 'user'));
+  });
 
-  get tagSubs(): string[] {
-    return this.subs.filter(s => !hasPrefix(s, 'user'));
-  }
+  readonly tagSubs = computed((): string[] => {
+    return this.subs().filter(s => !hasPrefix(s, 'user'));
+  });
 
-  get bookmarks() {
-    return this.config.bookmarks || [];
-  }
+  readonly bookmarks = computed(() => {
+    return this.config().bookmarks || [];
+  });
 
-  get bookmarkQueries() {
-    return this.bookmarks.map(b => b.includes('?') ? b.substring(0, b.indexOf('?')) : b);
-  }
+  readonly bookmarkQueries = computed(() => {
+    return this.bookmarks().map(b => b.includes('?') ? b.substring(0, b.indexOf('?')) : b);
+  });
 
-  get bookmarkParams() {
-    return this.bookmarks.map(b => parseBookmarkParams(b.includes('?') ? b.substring(b.indexOf('?')) : b));
-  }
+  readonly bookmarkParams = computed(() => {
+    return this.bookmarks().map(b => parseBookmarkParams(b.includes('?') ? b.substring(b.indexOf('?')) : b));
+  });
 
-  get alarms(): string[] {
-    return this.config.alarms || [];
-  }
+  readonly alarms = computed((): string[] => {
+    return this.config().alarms || [];
+  });
 
-  get mailbox() {
-    if (!this.signedIn) return undefined;
-    return getMailbox(this.tag, this.origin) + (this.origin || '@');
-  }
+  readonly mailbox = computed(() => {
+    if (!this.signedIn()) return undefined;
+    return getMailbox(this.tag(), this.origin()) + (this.origin() || '@');
+  });
 
-  get modmail() {
-    return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => defaultOrigin(t, this.origin || '@'));
-  }
+  readonly modmail = computed(() => {
+    return this.access()?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => defaultOrigin(t, this.origin() || '@'));
+  });
 
-  get outboxes() {
-    return Array.from(this.origins.reverseLookup)
-      .map(([remote, localAlias]) => setPublic(prefix('plugin/outbox', localAlias, this.localTag)) + remote);
-  }
+  readonly outboxes = computed(() => {
+    return Array.from(this.origins.reverseLookup())
+      .map(([remote, localAlias]) => setPublic(prefix('plugin/outbox', localAlias, this.localTag())) + remote);
+  });
 
-  get aliasTags(): string[] {
-    if (!this.signedIn) return [];
-    const local = this.localTag;
-    return uniq(this.origins.accountAliases
-      .filter(alias => (alias.from || '') === (this.origin || ''))
+  readonly aliasTags = computed((): string[] => {
+    if (!this.signedIn()) return [];
+    const local = this.localTag();
+    return uniq(this.origins.accountAliases()
+      .filter(alias => (alias.from || '') === (this.origin() || ''))
       .filter(alias => local === alias.local || local.startsWith(alias.local + '/'))
       .map(alias => alias.remote + local.substring(alias.local.length) + alias.origin));
-  }
+  });
 
-  get aliasMailboxes(): string[] {
-    return uniq(this.aliasTags.map(tag => getMailbox(tag, tagOrigin(tag)) + tagOrigin(tag)));
-  }
+  readonly aliasMailboxes = computed((): string[] => {
+    return uniq(this.aliasTags().map(tag => getMailbox(tag, tagOrigin(tag)) + tagOrigin(tag)));
+  });
 
-  get dmQuery() {
-    if (!this.signedIn) return '';
-    return uniq([this.tagWithOrigin, ...this.aliasTags, this.inboxQuery]).join('|');
-  }
+  readonly dmQuery = computed(() => {
+    if (!this.signedIn()) return '';
+    return uniq([this.tagWithOrigin(), ...this.aliasTags(), this.inboxQuery()]).join('|');
+  });
 
-  get inboxQuery() {
-    if (!this.signedIn) return '';
-    let tags = [this.mailbox];
-    if (this.origin) {
-      tags.push(setPublic(prefix('plugin/outbox', this.origin, this.tagWithOrigin)) + this.origin);
+  readonly inboxQuery = computed(() => {
+    if (!this.signedIn()) return '';
+    let tags = [this.mailbox()];
+    if (this.origin()) {
+      tags.push(setPublic(prefix('plugin/outbox', this.origin(), this.tagWithOrigin())) + this.origin());
     }
-    if (this.modmail?.length) {
-      tags.push(...this.modmail);
-    }
-    if (this.outboxes?.length) {
-      tags.push(...this.outboxes);
-    }
-    tags.push(...this.aliasMailboxes);
+    tags.push(...this.modmail() || []);
+    tags.push(...this.outboxes() || []);
+    tags.push(...this.aliasMailboxes());
     return uniq(tags).join('|');
-  }
+  });
 
-  get notificationsQuery() {
-    if (!this.signedIn) return undefined;
-    const alarms = this.alarmsQuery ? '|' + this.alarmsQuery : '';
-    return `!${this.tag}:!plugin/delete:` + braces(this.inboxQuery + alarms);
-  }
+  readonly notificationsQuery = computed(() => {
+    if (!this.signedIn()) return undefined;
+    const alarms = this.alarmsQuery() ? '|' + this.alarmsQuery() : '';
+    return `!${this.tag()}:!plugin/delete:` + braces(this.inboxQuery() + alarms);
+  });
 
-  get alarmNotificationsQuery() {
-    if (!this.signedIn) return undefined;
-    if (!this.alarmsQuery) return '';
-    return `!${this.tag}:!plugin/delete:` + braces(this.alarmsQuery);
-  }
+  readonly alarmNotificationsQuery = computed(() => {
+    if (!this.signedIn()) return undefined;
+    if (!this.alarmsQuery()) return '';
+    return `!${this.tag()}:!plugin/delete:` + braces(this.alarmsQuery()!);
+  });
 
   /**
    * Unread inbox count, not including alarms.
    */
-  get unreadCount() {
-    return Math.max(0, this.notifications - this.alarmCount);
-  }
+  readonly unreadCount = computed(() => Math.max(0, this.notifications() - this.alarmCount()));
 
-  get alarmsQuery() {
-    if (!this.signedIn) return undefined;
-    if (!this.config.alarms?.length) return '';
-    return this.config.alarms.join('|');
-  }
+  readonly alarmsQuery = computed(() => {
+    if (!this.signedIn()) return undefined;
+    return this.config().alarms?.join('|') || '';
+  });
 
-  get subscriptionQuery() {
-    if (!this.tagSubs.length) return 'none';
-    return '!internal:(' + this.tagSubs.join('|') + ')';
-  }
+  readonly subscriptionQuery = computed(() => {
+    if (!this.tagSubs().length) return 'none';
+    return '!internal:(' + this.tagSubs().join('|') + ')';
+  });
 
   querySymbol(...ops: ('/' | '{' | '}' | ',' | ':' | '|' | '(' | ')' | `!`)[]): string {
     return ops.map(op => {
-      if (this.config.queryStyle === 'set') {
+      if (this.config().queryStyle === 'set') {
         switch (op) {
           case '/': return $localize`\u00A0/ `;
           case ':': return $localize` ∩ `;
@@ -257,7 +247,7 @@ export class AccountStore {
           case `,`: return $localize`, `;
         }
       }
-      if (this.config.queryStyle === 'logic') {
+      if (this.config().queryStyle === 'logic') {
         switch (op) {
           case '/': return $localize`\u00A0/ `;
           case ':': return $localize` & `;
@@ -270,7 +260,7 @@ export class AccountStore {
           case `,`: return $localize` | `;
         }
       }
-      if (this.config.queryStyle === 'code') {
+      if (this.config().queryStyle === 'code') {
         switch (op) {
           case '/': return $localize`\u00A0/ `;
           case ':': return $localize` & `;
@@ -300,12 +290,12 @@ export class AccountStore {
   }
 
   setRoles(roles: Roles) {
-    this.debug = roles.debug;
-    this.origin = tagOrigin(roles.tag);
-    this.tag = roles.tag || '';
-    if (this.tag.startsWith('@')) {
+    this.debug.set(roles.debug);
+    this.origin.set(tagOrigin(roles.tag));
+    this.tag.set(roles.tag || '');
+    if (this.tag().startsWith('@')) {
       // Not logged in, only local origin is set
-      this.tag = '';
+      this.tag.set('');
     }
     this.admin = roles.admin;
     this.mod = roles.mod;
@@ -316,7 +306,7 @@ export class AccountStore {
   }
 
   defaultEditors(plugins: string[]) {
-    if (!this.config?.editors) return [];
-    return intersection(this.config.editors, plugins);
+    if (!this.config()?.editors) return [];
+    return intersection(this.config().editors, plugins);
   }
 }

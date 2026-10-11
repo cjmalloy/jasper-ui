@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
 import { catchAll } from '../../mods/sync/scrape';
@@ -13,14 +13,16 @@ import { RefService } from './ref.service';
   providedIn: 'root',
 })
 export class ScrapeService {
+  private http = inject(HttpClient);
+  private config = inject(ConfigService);
+  private store = inject(Store);
+  private refs = inject(RefService);
+  private login = inject(LoginService);
 
-  constructor(
-    private http: HttpClient,
-    private config: ConfigService,
-    private store: Store,
-    private refs: RefService,
-    private login: LoginService,
-  ) {
+
+  constructor() {
+    const store = this.store;
+
     store.eventBus.events.subscribe(event => {
       if (event.event === '+plugin/scrape:defaults' || event.event === '*:defaults') {
         this.defaults().subscribe();
@@ -57,9 +59,9 @@ export class ScrapeService {
   }
 
   defaults(): Observable<any> {
-    return this.refs.update({ ...catchAll, origin: this.store.account.origin }).pipe(
+    return this.refs.update({ ...catchAll, origin: this.store.account.origin() }).pipe(
       catchError(err => {
-        if (err.status === 404) return this.refs.create({ ...catchAll, origin: this.store.account.origin });
+        if (err.status === 404) return this.refs.create({ ...catchAll, origin: this.store.account.origin() });
         return throwError(() => err);
       })
     );

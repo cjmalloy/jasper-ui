@@ -1,16 +1,15 @@
 <div class="container"
-     *mobxAutorun
-     [class.debug]="debug"
-     [class.offline]="store.offline"
+     [class.debug]="debug()"
+     [class.offline]="store.offline()"
      (dragover)="dragOver($event)"
      (drop)="upload($event, $event.dataTransfer?.items)">
-  @if (store.offline) {
+  @if (store.offline()) {
     <div class="offline-banner">📴️ Offline</div>
   } @else {
     <app-login-popup></app-login-popup>
   }
   <app-subscription-bar></app-subscription-bar>
-  @if (store.account.signedIn && userClipboardPlugin) {
+  @if (store.account.signedIn() && userClipboardPlugin()) {
     <app-user-clipboard></app-user-clipboard>
   }
   <router-outlet></router-outlet>
@@ -24,14 +23,14 @@
     <hr>
     <div class="row">
       <p class="version stretch" i18n>
-        Powered by Jasper <a [href]="website">{{ config.version || '' }}</a>
+        Powered by Jasper <a [href]="website()">{{ config.version || '' }}</a>
       </p>
-      @if (store.eventBus.progressDen) {
+      @if (store.eventBus.progressDen()) {
         <div class="log stretch">
-          @if (store.eventBus.progressDen > 1) {
-            <progress [value]="store.eventBus.progressNum" [max]="store.eventBus.progressDen"></progress>
+          @if (store.eventBus.progressDen() > 1) {
+            <progress [value]="store.eventBus.progressNum()" [max]="store.eventBus.progressDen()"></progress>
           }
-          @for (msg of store.eventBus.progressMessages; track msg) {
+          @for (msg of store.eventBus.progressMessages(); track msg) {
             <div>{{ msg }}</div>
           }
           <button type="button" (click)="store.eventBus.clearProgress()">clear</button>

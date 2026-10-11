@@ -1,4 +1,4 @@
-import { Injectable, ViewContainerRef } from '@angular/core';
+import { computed, inject, Injectable, ViewContainerRef } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, Token, Tokens, TokensList } from 'marked';
@@ -26,17 +26,22 @@ import { EditorService } from './editor.service';
   providedIn: 'root'
 })
 export class EmbedService {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private markdownService = inject(MarkdownService);
+  private oembeds = inject(OembedStore);
+  private store = inject(Store);
 
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private markdownService: MarkdownService,
-    private oembeds: OembedStore,
-    private store: Store,
-  ) {
+
+  constructor() {
+    const config = this.config;
+    const admin = this.admin;
+    const editor = this.editor;
+    const markdownService = this.markdownService;
+
     markdownService.options = {
       gfm: true,
       breaks: false,
@@ -138,11 +143,11 @@ export class EmbedService {
           return out;
         }
       },
-      extensions: this.extensions,
+      extensions: this.extensions(),
     });
   }
 
-  private get extensions() {
+  private readonly extensions = computed(() => {
     const self = this;
     return [{
       name: 'userTag',
@@ -318,7 +323,7 @@ export class EmbedService {
         return `<sup>${this.parser.parseInline(token.tokens)}</sup>`;
       }
     }];
-  }
+  });
 
   /**
    * Post process a markdown render.
@@ -329,7 +334,7 @@ export class EmbedService {
   postProcess(vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
     const el = vc.element.nativeElement as HTMLDivElement;
     const subscriptions: Subscription[] = [];
-    const lookup = this.store.origins.originMap.get(origin || '');
+    const lookup = this.store.origins.originMap().get(origin || '');
     const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
     userTags.forEach(t => {
       const userOrigin = tagOrigin(t.innerText);
@@ -470,7 +475,7 @@ export class EmbedService {
                 t.parentNode?.insertBefore(warn, t);
                 t.remove();
               } else {
-                return this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined).pipe(
+                return this.oembeds.get(url, this.store.darkTheme() ? 'dark' : undefined).pipe(
                   catchError(() => of(null)),
                   map(oembed => {
                     if (!oembed && !this.admin.getPlugin('plugin/image')) {
@@ -731,7 +736,7 @@ export class EmbedService {
     }
     const ext = exts.find(x => x.modifiedString && x.tag === view);
     if (ext) return ext;
-    const t = this.admin.view.find(t => t.tag === view);
+    const t = this.admin.view().find(t => t.tag === view);
     if (t) {
       return { tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } };
     }

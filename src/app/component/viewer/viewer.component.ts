@@ -1,35 +1,32 @@
 import {
-  ChangeDetectionStrategy,
+  afterNextRender,
   Component,
+  computed,
   DestroyRef,
+  effect,
   ElementRef,
-  EventEmitter,
   forwardRef,
-  HostBinding,
-  HostListener,
   inject,
-  Input,
-  OnChanges,
-  OnDestroy,
-  Output,
-  SimpleChanges,
-  ViewChild
+  input,
+  linkedSignal,
+  output,
+  signal,
+  untracked,
+  viewChild
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
 import Hls from 'hls.js';
-import { defer, isEqual, some, without } from 'lodash-es';
-import { runInAction } from 'mobx';
-import { BehaviorSubject, catchError, of, Subject, throwError } from 'rxjs';
+import { isEqual, some, without } from 'lodash-es';
+import { BehaviorSubject, catchError, of, startWith, Subject, switchMap } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
-import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
-import { mapRef, Ref, RefSort, RefUpdates } from '../../model/ref';
+import { mapRef, Ref, RefUpdates } from '../../model/ref';
 import { DownloadAction, EmitAction, hydrate } from '../../model/tag';
 import { pdfUrl } from '../../mods/media/pdf';
 import { ActionService } from '../../service/action.service';
@@ -46,14 +43,12 @@ import { embedUrl, setIframeSrc } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
-import { memo, MemoCache } from '../../util/memo';
-import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag, pluginResponses } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
-import { MapComponent } from '../map/map.component';
 import { LensComponent } from '../lens/lens.component';
 import { LoadingComponent } from '../loading/loading.component';
+import { MapComponent } from '../map/map.component';
 import { MdComponent } from '../md/md.component';
 import { ModComponent } from '../mod/mod.component';
 import { PlaylistComponent } from '../playlist/playlist.component';
@@ -65,7 +60,14 @@ import { TodoComponent } from '../todo/todo.component';
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    '[class]': "pluginClasses()",
+    '[attr.tabindex]': 'tabIndex',
+    '[class.fullscreen]': 'fullscreen()',
+    '[attr.title]': "title()",
+    '(keydown)': 'onKeydown($event)',
+    '(window:resize)': 'measureLayout()',
+  },
   imports: [
     forwardRef(() => RefComponent),
     forwardRef(() => PlaylistComponent),
@@ -83,9 +85,21 @@ import { TodoComponent } from '../todo/todo.component';
     LoadingComponent,
   ],
 })
-export class ViewerComponent implements OnChanges, OnDestroy {
-  @HostBinding('class') css = 'embed print-images';
-  @HostBinding('tabindex') tabIndex = 0;
+export class ViewerComponent {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  private proxy = inject(ProxyService);
+  private oembeds = inject(OembedStore);
+  private actions = inject(ActionService);
+  private embeds = inject(EmbedService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  readonly store = inject(Store);
+  private auth = inject(AuthzService);
+  el = inject(ElementRef);
+
+  css = 'embed print-images';
+  tabIndex = 0;
   private destroyRef = inject(DestroyRef);
   private videoKeydownHandler?: (event: KeyboardEvent) => void;
   private audioKeydownHandler?: (event: KeyboardEvent) => void;
@@ -94,137 +108,155 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   private currentVideo?: HTMLVideoElement;
   private currentAudio?: HTMLAudioElement;
 
-  @ViewChild('iframe')
-  iframe!: ElementRef;
+  readonly iframe = viewChild<ElementRef>('iframe');
+  readonly videoEl = viewChild<ElementRef<HTMLVideoElement>>('video');
+  readonly audioEl = viewChild<ElementRef<HTMLAudioElement>>('audio');
+  readonly pdfIframeEl = viewChild<ElementRef<HTMLIFrameElement>>('pdfIframe');
 
-  @Input()
-  ref?: Ref;
-  @Input()
-  commentControl?: FormControl<string>;
-  @Input()
-  tags?: string[];
-  @Input()
-  expand = true;
-  @Input()
-  autoplay = false;
-  @Input()
-  text? = '';
-  @Input()
-  origin? = '';
-  @Input()
-  disableResize = false;
-  @Input()
-  @HostBinding('class.fullscreen')
-  fullscreen = false;
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
-  @Output()
-  playing = new EventEmitter<string>();
-  @Output()
-  pausing = new EventEmitter<string>();
-  @Output()
-  ended = new EventEmitter<string>();
+  readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
+  readonly ref = linkedSignal(() => this.refInput());
+  readonly commentControl = input<FormControl<string>>();
+  readonly tagsInput = input<string[] | undefined>(undefined, { alias: 'tags' });
+  readonly tags = linkedSignal(() => this.tagsInput());
+  readonly expand = input(true);
+  readonly autoplay = input(false);
+  readonly textInput = input<string | undefined>('', { alias: 'text' });
+  readonly text = linkedSignal(() => this.textInput() || '');
+  readonly origin = input<string | undefined>('');
+  readonly disableResize = input(false);
+  readonly fullscreenInput = input(false, { alias: 'fullscreen' });
+  readonly fullscreen = linkedSignal(() => this.fullscreenInput());
+  readonly comment = output<string>();
+  readonly copied = output<string>();
+  readonly playing = output<string>();
+  readonly pausing = output<string>();
+  readonly ended = output<string>();
 
-  repost?: Ref;
-  lens?: boolean;
-  lensPage?: Page<Ref>;
-  ext?: Ext;
-  lensQuery = '';
-  lensSize = 24;
-  lensCols = 0;
-  lensSort: RefSort[] = [];
-  lensFilter: UrlFilter[] = [];
-  lensSearch = '';
-  image? : string;
-  playlist = false;
-  todo = false;
-  backgammon = false;
-  chess = false;
-  map = false;
-  mapPage?: Page<Ref>;
-  chessWhite = true;
-  uis = this.admin.getPluginUi(this.currentTags);
-  embedReady = false;
+  readonly repost = toSignal(toObservable(computed(() =>
+    hasTag('plugin/repost', this.ref()) ? this.ref()?.sources?.[0] : undefined,
+  )).pipe(switchMap(url => url ? this.refs.getCurrent(url).pipe(
+    catchError(() => of(undefined)),
+    startWith(undefined),
+  ) : of(undefined))), { initialValue: undefined });
+  private readonly queryUrl = computed(() => hasTag('plugin/lens', this.ref())
+    ? this.ref()?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref()) ? this.ref()?.sources?.[0] : this.ref()?.url)
+    : undefined);
+  private readonly lensResult = toSignal(toObservable(this.queryUrl).pipe(
+    switchMap(url => url ? this.embeds.loadQuery$(url).pipe(
+      catchError(() => of(undefined)),
+      startWith(undefined),
+    ) : of(undefined)),
+  ), { initialValue: undefined });
+  readonly lens = computed(() => !!this.queryUrl());
+  readonly lensPage = computed(() => this.lensResult()?.page);
+  readonly ext = computed(() => this.lensResult()?.ext);
+  readonly lensQuery = computed(() => this.queryUrl() ? this.editor.getQuery(this.queryUrl()!) : '');
+  readonly lensSize = computed(() => this.lensResult()?.params.size ?? 24);
+  readonly lensCols = computed(() => this.lensResult()?.params.cols ?? 0);
+  readonly lensSort = computed(() => this.lensResult()?.params.sort ?? []);
+  readonly lensFilter = computed(() => this.lensResult()?.params.filter ?? []);
+  readonly lensSearch = computed(() => this.lensResult()?.params.search ?? '');
+  readonly image = computed(() => this.oembed()?.type === 'photo' && this.oembed()?.url
+    ? embedUrl(this.oembed()!.url) : undefined);
+  readonly playlist = computed(() => !!this.admin.getPlugin('plugin/playlist') && hasTag('plugin/playlist', this.currentTags()));
+  readonly todo = computed(() => !!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags()));
+  readonly backgammon = computed(() => !!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags()));
+  readonly chess = computed(() => !!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags()));
+  readonly chessWhite = computed(() => !!this.ref()?.tags?.includes(this.store.account.localTag()));
+  readonly uis = computed(() => this.admin.getPluginUi(this.currentTags()));
+  readonly embedReady = signal(false);
+  readonly map = computed(() => !!this.admin.getPlugin('plugin/geo') && !!this.ref() && hasTag('plugin/geo', this.currentTags()));
+  readonly mapPage = computed(() => this.map() ? Page.of([this.ref()!]) : undefined);
 
-  private _oembed?: Oembed;
-  private width = 0;
-  private height = 0;
-  private pdfIframeEl?: ElementRef<HTMLIFrameElement>;
+  private readonly layout = signal({ parentWidth: 0, height: window.innerHeight, landscape: false });
+  private readonly embedSize = signal<{ width: number, height: number } | undefined>(undefined, { equal: isEqual });
+  private readonly oembedRequest = computed(() => {
+    const url = this.ref()?.url;
+    const size = this.embedSize();
+    if (!url || !size || !hasTag('plugin/embed', this.tags() || this.ref()?.tags)) return undefined;
+    return { url, theme: this.theme(), ...size };
+  }, { equal: isEqual });
+  /** undefined while loading, null if there is no oEmbed. */
+  readonly oembed = toSignal(toObservable(this.oembedRequest).pipe(
+    switchMap(request => request ? this.oembeds.get(request.url, request.theme, request.width, request.height).pipe(
+      catchError(() => of(null)),
+      startWith(undefined),
+    ) : of(undefined)),
+  ), { initialValue: undefined as Oembed | null | undefined });
+  private prevRef?: Ref;
+  private prevTags?: string[];
+  private prevText?: string;
+  private initialized = false;
 
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    private proxy: ProxyService,
-    private oembeds: OembedStore,
-    private actions: ActionService,
-    private embeds: EmbedService,
-    private editor: EditorService,
-    private refs: RefService,
-    public store: Store,
-    private auth: AuthzService,
-    public el: ElementRef,
-  ) { }
+  constructor() {
+    // Syncs embedded media and oEmbed sizing to Ref changes
+    effect(() => {
+      const ref = this.refInput();
+      const tags = this.tagsInput();
+      const text = this.textInput();
+      untracked(() => {
+        const newRef = ref?.url !== this.prevRef?.url;
+        const changesRef = !this.initialized || ref?.modifiedString !== this.prevRef?.modifiedString || newRef;
+        const changesTags = !isEqual(tags, this.prevTags);
+        const changesText = text !== this.prevText;
+        this.initialized = true;
+        this.prevRef = ref;
+        this.prevTags = tags;
+        this.prevText = text;
+        if (!changesRef && !changesTags && !changesText) return;
+        if (this.editingViewer() && !newRef) return;
+        this.init();
+      });
+    });
+    effect(() => {
+      const value = this.videoEl();
+      untracked(() => this.setVideo(value));
+    });
+    effect(() => {
+      const value = this.audioEl();
+      untracked(() => this.setAudio(value));
+    });
+    effect(() => {
+      const value = this.pdfIframeEl();
+      untracked(() => this.setPdfIframe(value));
+    });
+    effect(() => {
+      const oembed = this.oembed();
+      this.iframe();
+      if (oembed === undefined || !this.embedIframe()) return;
+      untracked(() => this.setOembed(oembed));
+    });
+  }
 
   init() {
-    MemoCache.clear(this);
-    this.playlist = !!this.admin.getPlugin('plugin/playlist') && hasTag('plugin/playlist', this.currentTags);
-    this.todo = !!this.admin.getPlugin('plugin/todo') && hasTag('plugin/todo', this.currentTags);
-    this.backgammon = !!this.admin.getPlugin('plugin/backgammon') && hasTag('plugin/backgammon', this.currentTags);
-    this.chess = !!this.admin.getPlugin('plugin/chess') && hasTag('plugin/chess', this.currentTags);
-    this.map = !!this.admin.getPlugin('plugin/geo') && !!this.ref && hasTag('plugin/geo', this.currentTags);
-    this.mapPage = this.map ? Page.of([this.ref!]) : undefined;
-    this.chessWhite = !!this.ref?.tags?.includes(this.store.account.localTag);
-    this.uis = this.admin.getPluginUi(this.currentTags);
-    if (this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref)) {
-      this.refs.getCurrent(this.ref.sources[0]).pipe(
-        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => this.repost = ref);
-    }
-    const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref) ? this.ref?.sources?.[0] : this.ref?.url);
-    if (queryUrl && hasTag('plugin/lens', this.ref)) {
-      this.lens = true;
-      this.embeds.loadQuery$(queryUrl)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(({params, page, ext}) => {
-          this.lensPage = page;
-          this.ext = ext;
-          this.lensQuery = this.editor.getQuery(queryUrl);
-          this.lensSize = params.size;
-          this.lensCols = params.cols;
-          this.lensSort = params.sort;
-          this.lensFilter = params.filter;
-          this.lensSearch = params.search;
-        });
-    }
-    if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
-      const parentWidth = this.el.nativeElement.parentElement.offsetWidth;
-      this.width = this.embed?.width || ((this.thread || !this.config.mobile) ? Math.floor(parentWidth * 0.6) : parentWidth - 16);
-      this.height = this.embed?.height || (this.config.mobile ? window.innerHeight : Math.floor(window.innerHeight * 0.8));
-      if (hasTag('plugin/fullscreen', this.ref)) {
-        this.width = screen.width;
-        this.height = screen.height;
-      }
-      this.oembeds.get(this.ref.url, this.theme, this.width, this.height).subscribe(oembed => this.oembed = oembed);
+    this.measureLayout();
+    const ref = this.ref();
+    const layout = this.layout();
+    if (hasTag('plugin/fullscreen', ref)) {
+      this.embedSize.set({ width: screen.width, height: screen.height });
+    } else {
+      this.embedSize.set({
+        width: ref?.plugins?.['plugin/embed']?.width || ((hasTag('plugin/thread', this.tags() || ref?.tags) || !this.config.mobile()) ? Math.floor(layout.parentWidth * 0.6) : layout.parentWidth - 16),
+        height: ref?.plugins?.['plugin/embed']?.height || (this.config.mobile() ? layout.height : Math.floor(layout.height * 0.8)),
+      });
     }
     this.reload(this.currentAudio);
     this.reload(this.currentVideo);
-    this.pdfIframe = this.pdfIframeEl;
+    this.setPdfIframe(this.pdfIframeEl());
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    const newRef = changes.ref && changes.ref.currentValue?.url !== changes.ref.previousValue?.url;
-    const changesRef = changes.ref && changes.ref.currentValue?.modifiedString !== changes.ref.previousValue?.modifiedString;
-    const changesTags = changes.tags && !isEqual(changes.tags.previousValue, changes.tags.currentValue);
-    if (changesRef || changesTags || changes.text) {
-      if (this.editingViewer && !newRef) return;
-      this.init();
+  private readonly initializeLayout = afterNextRender(() => this.measureLayout());
+
+  measureLayout() {
+    const parentWidth = this.el.nativeElement.parentElement?.offsetWidth || 0;
+    const height = window.innerHeight;
+    const landscape = window.matchMedia?.('(orientation: landscape)').matches || false;
+    const layout = this.layout();
+    if (layout.parentWidth !== parentWidth || layout.height !== height || layout.landscape !== landscape) {
+      this.layout.set({ parentWidth, height, landscape });
     }
   }
 
-  @HostListener('keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {
     if (event.defaultPrevented) return;
     if (this.currentVideo) {
@@ -244,30 +276,25 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (audio) handleMediaKeydown(event, audio);
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.removeAudioListener();
     this.removeVideoListener();
-  }
+  });
 
-  @HostBinding('class')
-  @memo
-  get pluginClasses() {
-    return this.css + ' ' + templates(this.tags, 'plugin')
+  readonly pluginClasses = computed(() => {
+    return this.css + ' ' + templates(this.tags(), 'plugin')
       .map(t => t.replace(/\//g, '_').replace(/\./g, '-'))
       .join(' ');
-  }
+  });
 
-  @HostBinding('attr.title')
-  @memo
-  get title() {
-    if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) {
-      return this.text || this.ref?.comment;
+  readonly title = computed(() => {
+    if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) {
+      return this.text() || this.ref()?.comment;
     }
     return undefined;
-  }
+  });
 
-  @ViewChild('video')
-  set video(value: ElementRef<HTMLVideoElement>) {
+  private setVideo(value: ElementRef<HTMLVideoElement> | undefined) {
     this.removeVideoListener();
     if (!value) return;
     const video = value.nativeElement;
@@ -287,15 +314,14 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     };
     document.addEventListener('fullscreenchange', this.fullscreenChangeHandler);
     if (video.canPlayType('application/vnd.apple.mpegurl')) return;
-    if (Hls.isSupported() && this.hls) {
+    if (Hls.isSupported() && this.hls()) {
       const hls = new Hls();
-      hls.loadSource(this.videoUrl);
+      hls.loadSource(this.videoUrl());
       hls.attachMedia(video);
     }
   }
 
-  @ViewChild('audio')
-  set audio(value: ElementRef<HTMLAudioElement>) {
+  private setAudio(value: ElementRef<HTMLAudioElement> | undefined) {
     this.removeAudioListener();
     if (!value) return;
     const audio = value.nativeElement;
@@ -304,262 +330,228 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     audio.addEventListener('keydown', this.audioKeydownHandler, { capture: true });
   }
 
-  @ViewChild('pdfIframe')
-  set pdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
-    this.pdfIframeEl = value;
+  private setPdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
     if (!value) return;
     const iframe = value.nativeElement;
-    let url = this.pdfUrl;
+    let url = this.pdfUrl();
     if (!url) return;
     if (url.startsWith('//')) url = location.protocol + url;
     this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe, false);
-    iframe.style.width ||= this.embedWidth;
-    iframe.style.height ||= this.embedHeight;
+    iframe.style.width ||= this.embedWidth();
+    iframe.style.height ||= this.embedHeight();
   }
 
-  set oembed(oembed: Oembed | null) {
-    if (isEqual(this._oembed, oembed)) return;
-    this._oembed = oembed || undefined;
-    if (oembed?.url && oembed?.type === 'photo') {
-      // Image embed
-      this.tags = without(this.currentTags, 'plugin/embed');
-      if (this.admin.getPlugin('plugin/image')) this.image = embedUrl(oembed.url);
-      MemoCache.clear(this);
-    } else if (this.iframe) {
-      const i = this.iframe.nativeElement;
+  setOembed(oembed: Oembed | null) {
+    const iframe = this.iframe();
+    if (oembed?.type === 'photo') return;
+    if (iframe) {
+      const i = iframe.nativeElement;
+      this.embedReady.set(false);
       if (oembed) {
-        this.embeds.writeIframe(oembed, i, this.embedWidth, true)
+        this.embeds.writeIframe(oembed, i, this.embedWidth(), true)
           .then(() => {
-            if (oembed.width! > this.width) {
-              const s = this.width / oembed.width!;
-              const marginLeft = oembed.width! - this.width;
+            if (this.oembed() !== oembed || this.iframe()?.nativeElement !== i) return;
+            const width = this.embedSize()?.width || 0;
+            if (oembed.width! > width) {
+              const s = width / oembed.width!;
+              const marginLeft = oembed.width! - width;
               const marginTop = marginLeft * oembed.height! / oembed.width!;
               i.style.transform = `scale(${s}, ${s})`;
               i.style.transformOrigin = 'top left';
               i.style.marginRight = -1 * marginLeft + 'px';
               i.style.marginBottom = -1 * marginTop + 'px';
             }
-            this.embedReady = true;
-            MemoCache.clear(this);
-          });
+            this.embedReady.set(true);
+              });
       } else {
-        setIframeSrc(i, embedUrl(this.embed?.url || this.ref?.url));
-        if (!i.style.width) i.style.width = this.embedWidth;
-        if (!i.style.height) i.style.height = this.embedHeight;
-        this.embedReady = true;
+        setIframeSrc(i, embedUrl(this.embed()?.url || this.ref()?.url));
+        if (!i.style.width) i.style.width = this.embedWidth();
+        if (!i.style.height) i.style.height = this.embedHeight();
+        this.embedReady.set(true);
       }
-    } else {
-      delete this._oembed;
-      defer(() => this.oembed = oembed);
     }
   }
 
-  @memo
-  get oembed(): Oembed | undefined {
-    return this._oembed;
-  }
-
-  @memo
-  get mod() {
+  readonly mod = computed(() => {
     if (!this.admin.getPlugin('plugin/mod')) return false;
-    if (!hasTag('plugin/mod', this.currentTags))  return false;
-    return this.ref?.plugins?.['plugin/mod'];
-  }
+    if (!hasTag('plugin/mod', this.currentTags()))  return false;
+    return this.ref()?.plugins?.['plugin/mod'];
+  });
 
-  @memo
-  get hls() {
-    return getExtension(this.ref?.plugins?.['plugin/video']?.url || this.ref?.url) === '.m3u8' || this.tags?.includes('plugin/hls');
-  }
+  readonly hls = computed(() => {
+    return getExtension(this.ref()?.plugins?.['plugin/video']?.url || this.ref()?.url) === '.m3u8' || this.tags()?.includes('plugin/hls');
+  });
 
-  @memo
-  get twitter() {
-    return this.oembed?.provider_name === 'Twitter';
-  }
+  readonly twitter = computed(() => {
+    return this.oembed()?.provider_name === 'Twitter';
+  });
 
-  @memo
-  get zoom() {
-    return this.oembed?.html && !this.oembed.html.startsWith('<iframe');
-  }
+  readonly zoom = computed(() => {
+    const html = this.oembed()?.html;
+    return html && !html.startsWith('<iframe');
+  });
 
-  @memo
-  get resizable() {
-    if (this.config.mobile) return false;
-    if (this.ref?.plugins?.['plugin/embed']?.noResize) return false;
-    return !this.oembed || !this.oembed.html || this.oembed.html.startsWith('<iframe');
-  }
+  readonly resizable = computed(() => {
+    if (this.config.mobile()) return false;
+    if (this.ref()?.plugins?.['plugin/embed']?.noResize) return false;
+    const html = this.oembed()?.html;
+    return !html || html.startsWith('<iframe');
+  });
 
-  @memo
-  get editingViewer() {
-    return some(this.admin.editingViewer, t => hasTag(t.tag, this.currentTags));
-  }
+  readonly editingViewer = computed(() => {
+    return some(this.admin.editingViewer(), t => hasTag(t.tag, this.currentTags()));
+  });
 
-  @memo
-  get editingRef(): Ref | undefined {
-    if (!hasTag('plugin/editing', this.currentTags)) return undefined;
-    const data = this.ref?.plugins?.['plugin/editing'];
+  readonly editingRef = computed<Ref | undefined>(() => {
+    if (!hasTag('plugin/editing', this.currentTags())) return undefined;
+    const data = this.ref()?.plugins?.['plugin/editing'];
     if (!data) return undefined;
-    const result = mapRef({ ...data, url: this.ref?.url, origin: this.ref?.origin });
-    if (!result.created) result.created = this.ref?.created;
+    const result = mapRef({ ...data, url: this.ref()?.url, origin: this.ref()?.origin });
+    if (!result.created) result.created = this.ref()?.created;
     return result;
-  }
+  });
 
-  @memo
-  get hideComment() {
-    if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) return true;
-    if (this.admin.getPlugin('plugin/table') && hasTag('plugin/table', this.currentTags)) return false;
-    return this.editingViewer || (this.pdfUrl && !this.ref?.plugins?.['plugin/pdf']?.showAbstract);
-  }
+  readonly hideComment = computed(() => {
+    if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) return true;
+    if (this.admin.getPlugin('plugin/table') && hasTag('plugin/table', this.currentTags())) return false;
+    return this.editingViewer() || (this.pdfUrl() && !this.ref()?.plugins?.['plugin/pdf']?.showAbstract);
+  });
 
-  @memo
-  get currentOrigin() {
-    return this.origin || this.ref?.origin || this.store.account.origin;
-  }
+  readonly currentOrigin = computed(() => {
+    return this.origin() || this.ref()?.origin || this.store.account.origin();
+  });
 
-  @memo
-  get currentText() {
-    if (this.hideComment) return '';
-    const value = this.text || this.ref?.comment || '';
+  readonly currentText = computed(() => {
+    if (this.hideComment()) return '';
+    const value = this.text() || this.ref()?.comment || '';
     if (!value) return '';
-    if (this.ref?.title || this.text || hasTag('plugin/comment', this.ref) || hasTag('plugin/thread', this.ref) || this.store.view.current === 'ref/thread' || hasComment(this.ref?.comment)) {
+    if (this.ref()?.title || this.text() || hasTag('plugin/comment', this.ref()) || hasTag('plugin/thread', this.ref()) || this.store.view.current() === 'ref/thread' || hasComment(this.ref()?.comment)) {
       return value;
     }
     return '';
-  }
+  });
 
-  @memo
-  get currentCode() {
-    if (!this.code) return '';
-    const value = this.text || this.ref?.comment || '';
-    return '```' + this.codeLang + '\n' + value + '\n```';
-  }
+  readonly currentCode = computed(() => {
+    if (!this.code()) return '';
+    const value = this.text() || this.ref()?.comment || '';
+    return '```' + this.codeLang() + '\n' + value + '\n```';
+  });
 
-  @memo
-  get currentTags() {
-    return this.tags || this.ref?.tags || [];
-  }
+  readonly currentTags = computed(() => {
+    const tags = this.tags() || this.ref()?.tags || [];
+    return this.image() ? without(tags, 'plugin/embed') : tags;
+  });
 
-  @memo
-  get thread() {
+  readonly thread = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return false;
-    return hasTag('plugin/thread', this.currentTags) || pluginResponses(this.ref, 'plugin/thread');
-  }
+    return hasTag('plugin/thread', this.currentTags()) || pluginResponses(this.ref(), 'plugin/thread');
+  });
 
-  @memo
-  get embed() {
-    if (!hasTag('plugin/embed', this.currentTags)) return undefined;
-    return this.ref?.plugins?.['plugin/embed'];
-  }
+  readonly embed = computed(() => {
+    if (!hasTag('plugin/embed', this.currentTags())) return undefined;
+    return this.ref()?.plugins?.['plugin/embed'];
+  });
 
-  get embedWidth() {
-    if (this.embed?.width) return Math.min(this.embed.width, this.el.nativeElement.parentElement.offsetWidth - ((this.thread || !this.config.mobile) ? 32 : 12)) + 'px';
-    if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
-      return this.thread ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
+  readonly embedWidth = computed(() => {
+    if (this.embed()?.width) return Math.min(this.embed().width, this.layout().parentWidth - ((this.thread() || !this.config.mobile()) ? 32 : 12)) + 'px';
+    if (this.config.mobile() && this.layout().landscape) {
+      return this.thread() ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
-    return this.config.huge ? '67%' : '80%';
-  }
+    return this.config.huge() ? '67%' : '80%';
+  });
 
-  get embedHeight() {
-    if (this.embed?.height) return Math.min(this.embed.height, window.innerHeight) + 'px';
-    if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
+  readonly embedHeight = computed(() => {
+    if (this.embed()?.height) return Math.min(this.embed().height, this.layout().height) + 'px';
+    if (this.config.mobile() && this.layout().landscape) {
       return '100vh';
     }
-return '67vh';
-  }
+    return '67vh';
+  });
 
-  @memo
-  get embedIframe() {
-    return hasTag('plugin/embed', this.currentTags);
-  }
+  readonly embedIframe = computed(() => {
+    return hasTag('plugin/embed', this.currentTags());
+  });
 
-  @memo
-  get audioUrl() {
-    if (!hasTag('plugin/audio', this.currentTags)) return '';
-    const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
+  readonly audioUrl = computed(() => {
+    if (!hasTag('plugin/audio', this.currentTags())) return '';
+    const url = this.ref()?.plugins?.['plugin/audio']?.url || this.ref()?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Audio`));
+      return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename($localize`Untitled Audio`));
     }
     return url;
-  }
+  });
 
-  @memo
-  get videoUrl() {
-    if (!hasTag('plugin/video', this.currentTags)) return '';
-    const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
+  readonly videoUrl = computed(() => {
+    if (!hasTag('plugin/video', this.currentTags())) return '';
+    const url = this.ref()?.plugins?.['plugin/video']?.url || this.ref()?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Video`));
+      return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename($localize`Untitled Video`));
     }
     return url;
-  }
+  });
 
-  @memo
-  get imageUrl() {
+  readonly imageUrl = computed(() => {
     if (!this.admin.getPlugin('plugin/image')) return '';
-    if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
-    const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
+    if (!this.image() && !hasTag('plugin/image', this.currentTags())) return '';
+    const url = this.image() || this.ref()?.plugins?.['plugin/image']?.url || this.ref()?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Image`));
+      return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename($localize`Untitled Image`));
     }
     return url;
-  }
+  });
 
-  @memo
   getFilename(d = $localize`Untitled`) {
-    const ext = this.ref?.url ? getExtension(this.ref.url) || '' : '';
-    const filename = this.ref?.title || d;
+    const url = this.ref()?.url;
+    const ext = url ? getExtension(url) || '' : '';
+    const filename = this.ref()?.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
-  @memo
-  get code() {
-    return this.admin.getPlugin('plugin/code') && hasTag('plugin/code', this.currentTags);
-  }
+  readonly code = computed(() => {
+    return this.admin.getPlugin('plugin/code') && hasTag('plugin/code', this.currentTags());
+  });
 
-  @memo
-  get codeLang() {
-    if (!this.code) return '';
-    for (const t of this.currentTags) {
+  readonly codeLang = computed(() => {
+    if (!this.code()) return '';
+    for (const t of this.currentTags()) {
       if (hasPrefix(t, 'plugin/code')) {
         return t.split('/')[2];
       }
     }
     return '';
-  }
+  });
 
-  @memo
-  get qrUrl() {
-    if (!hasTag('plugin/qr', this.currentTags)) return '';
-    return this.ref?.plugins?.['plugin/qr']?.url || this.ref?.url;
-  }
+  readonly qrUrl = computed(() => {
+    if (!hasTag('plugin/qr', this.currentTags())) return '';
+    return this.ref()?.plugins?.['plugin/qr']?.url || this.ref()?.url;
+  });
 
-  private get theme() {
-    return this.store.darkTheme ? 'dark' : undefined;
-  }
+  private readonly theme = computed(() => {
+    return this.store.darkTheme() ? 'dark' : undefined;
+  });
 
-  @memo
-  get pdf(): string | undefined {
+  readonly pdf = computed<string | undefined>(() => {
     if (!this.admin.getPlugin('plugin/pdf')) return undefined;
-    return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref, this.repost)?.url;
-  }
+    return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref(), this.repost())?.url;
+  });
 
-  @memo
-  get pdfUrl() {
-    const url = this.pdf;
+  readonly pdfUrl = computed(() => {
+    const url = this.pdf();
     if (!url) return url;
     if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin, this.getFilename());
-  }
+    return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename());
+  });
 
-  @memo
-  get uiActions(): PluginApi {
-    const actions = this.actions.wrap(this.ref);
+  readonly uiActions = computed<PluginApi>(() => {
+    const actions = this.actions.wrap(this.ref());
     const api: PluginApi = {
       comment: (comment: string) => {
-        if (this.ref) {
-          runInAction(() => this.ref!.comment = comment);
+        if (this.ref()) {
+          this.ref.update(ref => ({ ...ref!, comment }));
         } else {
-          this.text = comment;
+          this.text.set(comment);
         }
-        if (this.ref?.modified) actions.comment(comment);
+        if (this.ref()?.modified) actions.comment(comment);
         this.comment.emit(comment);
       },
       event: (event: string) => {
@@ -572,74 +564,79 @@ return '67vh';
         actions.download(a);
       },
       tag: (tag: string) => {
-        if (this.ref?.modified) actions.tag(tag);
+        if (this.ref()?.modified) actions.tag(tag);
       },
       respond: (response: string, clear?: string[]) => {
-        if (this.ref?.modified) actions.respond(response, clear);
+        if (this.ref()?.modified) actions.respond(response, clear);
       },
       watch: () => {
-        if (this.ref?.modified) return actions.watch();
-        const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text } as RefUpdates);
+        if (this.ref()?.modified) return actions.watch();
+        const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text() } as RefUpdates);
         return {
           ref$: subject$,
           comment$: (comment: string) => {
-            this.text = comment;
-            subject$.next({ comment: this.text } as RefUpdates)
-            return of();
+            this.text.set(comment);
+            subject$.next({ comment: this.text() } as RefUpdates)
+                return of();
           },
         };
       },
       append: () => {
-        if (this.ref?.modified) return actions.append();
+        if (this.ref()?.modified) return actions.append();
         const subject$ = new Subject<string>();
         return {
           updates$: subject$,
           append$: (value: string) => {
-            this.text += value;
+            this.text.update(text => text + value);
             subject$.next(value);
-            return of();
+                return of();
           },
         };
       },
     };
-    if (!this.ref?.modified || this.auth.writeAccess(this.ref)) {
+    if (!this.ref()?.modified || this.auth.writeAccess(this.ref()!)) {
       api.patch = (patch: Partial<Ref>) => {
-        if (this.ref?.modified) {
+        if (this.ref()?.modified) {
           actions.patch!(patch);
-        } else if (this.ref) {
-          runInAction(() => {
-            const plugins = patch.plugins ? { ...this.ref!.plugins, ...patch.plugins } : this.ref!.plugins;
-            Object.assign(this.ref!, patch);
-            if (patch.plugins) {
-              this.ref!.plugins = plugins;
-              for (const updateTag of Object.keys(patch.plugins)) {
-                if (!hasTag(updateTag, this.ref!)) {
-                  this.ref!.tags = [...(this.ref!.tags || []), updateTag];
-                }
+        } else {
+          const ref = this.ref();
+          if (!ref) return;
+          const updated: Ref = { ...ref, ...patch };
+          if (patch.plugins) {
+            updated.plugins = { ...ref.plugins, ...patch.plugins };
+            for (const updateTag of Object.keys(patch.plugins)) {
+              if (!hasTag(updateTag, updated)) {
+                updated.tags = [...(updated.tags || []), updateTag];
               }
             }
-          });
+          }
+          this.ref.set(updated);
         }
       };
     }
     return api;
-  }
+  });
 
-  @memo
-  uiMarkdown(tag: string) {
-    const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.refOrDefault, this.el.nativeElement, this.uiActions));
-  }
+  /** Hydrated plugin UIs. Hydrating runs the template's deferred scripts, so only redo it when the inputs change. */
+  readonly uiMarkdowns = computed(() => {
+    const ref = this.refOrDefault();
+    const actions = this.uiActions();
+    return this.uis().map(ui => {
+      const plugin = this.admin.getPlugin(ui.tag)!;
+      return {
+        tag: ui.tag,
+        text: hydrate(plugin.config, 'ui', getPluginScope(plugin, ref, this.el.nativeElement, actions)),
+      };
+    });
+  });
 
-  @memo
   uiCss(tag: string) {
     return 'ui ' + tag.replace(/\//g, '_').replace(/\./g, '-');
   }
 
-  @memo
-  get refOrDefault() {
-    return this.ref || { url: '', comment: this.text, tags: this.tags };
-  }
+  readonly refOrDefault = computed(() => {
+    return this.ref() || { url: '', comment: this.text(), tags: this.tags() };
+  });
 
   private removeAudioListener() {
     if (this.currentAudio && this.audioKeydownHandler) {

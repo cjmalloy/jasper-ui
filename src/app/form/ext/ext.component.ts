@@ -1,19 +1,5 @@
-import {
-  CdkDropListGroup
-} from '@angular/cdk/drag-drop';
-import {
-  DestroyRef,
-  inject,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  EventEmitter,
-  forwardRef,
-  Input,
-  Output,
-  ViewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { Component, computed, DestroyRef, forwardRef, inject, input, output, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
@@ -37,6 +23,7 @@ import { getMailbox } from '../../mods/mailbox';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
+import { controlValue } from '../../util/form';
 import { TAG_REGEX } from '../../util/format';
 import { convertFilter, convertSort, defaultDesc, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
@@ -48,7 +35,6 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => RefComponent),
     ReactiveFormsModule,
@@ -60,9 +46,18 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   ],
 })
 export class ExtFormComponent  {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+
+  private readonly rootControlState = controlValue(() => this.group());
+
+  private readonly controlState0 = controlValue(() => this.group().get('tag')!);
+  private readonly controlState1 = controlValue(() => this.themes());
+
   private destroyRef = inject(DestroyRef);
-  allSorts = this.admin.refSorts.map(convertSort);
-  allFilters: FilterItem[] = [
+  readonly allSorts = signal(this.admin.refSorts().map(convertSort));
+  readonly allFilters = signal<FilterItem[]>([
     { filter: `modified/before/${DateTime.now().toISO()}`, label: $localize`🕓️ modified before` },
     { filter: `modified/after/${DateTime.now().toISO()}`, label: $localize`🕓️ modified after` },
     { filter: `response/before/${DateTime.now().toISO()}`, label: $localize`🧵️ response before` },
@@ -71,8 +66,8 @@ export class ExtFormComponent  {
     { filter: `published/after/${DateTime.now().toISO()}`, label: $localize`📅️ published after` },
     { filter: `created/before/${DateTime.now().toISO()}`, label: $localize`✨️ created before` },
     { filter: `created/after/${DateTime.now().toISO()}`, label: $localize`✨️ created after` },
-    ...this.admin.filters.map(convertFilter),
-  ];
+    ...this.admin.filters().map(convertFilter),
+  ]);
   datePresets = [
     'now',
     'PT1M',
@@ -92,23 +87,18 @@ export class ExtFormComponent  {
     'P100Y',
   ];
 
-  @Input()
-  group!: UntypedFormGroup;
-  @Input()
-  showClear = false;
-  @Output()
-  clear = new EventEmitter<void>();
+  readonly group = input.required<UntypedFormGroup>();
+  readonly showClear = input(false);
+  readonly clear = output<void>();
 
-  @ViewChild('mainFormlyForm')
-  mainFormlyForm?: FormlyForm;
-  @ViewChild('advancedFormlyForm')
-  advancedFormlyForm?: FormlyForm;
+  readonly mainFormlyForm = viewChild<FormlyForm>('mainFormlyForm');
+  readonly advancedFormlyForm = viewChild<FormlyForm>('advancedFormlyForm');
 
   id = 'ext-' + uuid();
-  form?: FormlyFieldConfig[];
-  advancedForm?: FormlyFieldConfig[];
-  loadingDefaults = false;
-  defaults?: Ref;
+  readonly form = signal<FormlyFieldConfig[] | undefined>(undefined);
+  readonly advancedForm = signal<FormlyFieldConfig[] | undefined>(undefined);
+  readonly loadingDefaults = signal(false);
+  readonly defaults = signal<Ref | undefined>(undefined);
 
   options: FormlyFormOptions = {
     formState: {
@@ -119,58 +109,54 @@ export class ExtFormComponent  {
 
   private tag?: string;
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private cd: ChangeDetectorRef,
-    private el: ElementRef<HTMLElement>,
-  ) { }
 
 
-  get user() {
+
+
+
+
+
+
+  readonly user = computed(() => {
+    this.rootControlState();
+    this.controlState0();
     if (!this.admin.getTemplate('user')) return false;
-    return hasPrefix(this.group.get('tag')!.value, 'user');
-  }
+    return hasPrefix(this.group().get('tag')!.value, 'user');
+  });
 
-  get config() {
-    return this.group.get('config') as UntypedFormGroup;
-  }
+  readonly config = computed(() => {
+    this.rootControlState();
+    return this.group().get('config') as UntypedFormGroup;
+  });
 
-  get fillPopover(): ElementRef<HTMLElement> | undefined {
-    return this.fillEditor('.popover-editor');
-  }
-
-  get fillSidebar(): ElementRef<HTMLElement> | undefined {
-    return this.fillEditor('.sidebar-editor');
-  }
-
-  private fillEditor(selector: string) {
-    const element = this.el.nativeElement.querySelector<HTMLElement>(selector + ' .fill-editor');
-    return element ? new ElementRef(element) : undefined;
-  }
-
-  get inbox() {
+  readonly inbox = computed(() => {
+    this.rootControlState();
+    this.controlState0();
     if (!this.admin.getPlugin('plugin/inbox')) return null;
-    return getMailbox(this.group.get('tag')!.value, this.store.account.origin);
-  }
+    return getMailbox(this.group().get('tag')!.value, this.store.account.origin());
+  });
 
-  get modmail() {
-    return this.config.get('modmail') as FormControl<boolean>;
-  }
+  readonly modmail = computed(() => {
+    this.rootControlState();
+    return this.config().get('modmail') as FormControl<boolean>;
+  });
 
-  get defaultSort() {
-    return this.config.get('defaultSort') as FormControl<string[]>;
-  }
+  readonly defaultSort = computed(() => {
+    this.rootControlState();
+    return this.config().get('defaultSort') as FormControl<string[]>;
+  });
 
-  get defaultFilter() {
-    return this.config.get('defaultFilter') as FormControl<UrlFilter[]>;
-  }
+  readonly defaultFilter = computed(() => {
+    this.rootControlState();
+    return this.config().get('defaultFilter') as FormControl<UrlFilter[]>;
+  });
+  protected readonly defaultSortValue = controlValue(this.defaultSort);
+  protected readonly defaultFilterValue = controlValue(this.defaultFilter);
 
   addSort(value: string, select: HTMLSelectElement) {
     if (!value) return;
-    this.defaultSort.setValue([
-      ...this.defaultSort.value || [],
+    this.defaultSort().setValue([
+      ...this.defaultSort().value || [],
       value + ',' + (defaultDesc(value) ? 'DESC' : 'ASC'),
     ]);
     select.selectedIndex = 0;
@@ -187,45 +173,45 @@ export class ExtFormComponent  {
   }
 
   setSortCol(index: number, value: string) {
-    const sorts = [...this.defaultSort.value];
+    const sorts = [...this.defaultSort().value];
     sorts[index] = value + ',' + this.sortDir(value);
-    this.defaultSort.setValue(sorts);
+    this.defaultSort().setValue(sorts);
   }
 
   setSortDir(index: number, value: string) {
-    const sorts = [...this.defaultSort.value];
+    const sorts = [...this.defaultSort().value];
     sorts[index] = this.sortCol(sorts[index]) + ',' + value;
-    this.defaultSort.setValue(sorts);
+    this.defaultSort().setValue(sorts);
   }
 
   removeSort(index: number) {
-    const sorts = [...this.defaultSort.value];
+    const sorts = [...this.defaultSort().value];
     sorts.splice(index, 1);
-    this.defaultSort.setValue(sorts);
+    this.defaultSort().setValue(sorts);
   }
 
   addFilter(value: UrlFilter, select: HTMLSelectElement) {
     if (!value) return;
-    this.defaultFilter.setValue([...this.defaultFilter.value || [], value]);
+    this.defaultFilter().setValue([...this.defaultFilter().value || [], value]);
     select.selectedIndex = 0;
   }
 
   setFilter(index: number, value: UrlFilter) {
-    const filters = [...this.defaultFilter.value];
+    const filters = [...this.defaultFilter().value];
     filters[index] = value;
-    this.defaultFilter.setValue(filters);
+    this.defaultFilter().setValue(filters);
   }
 
   removeFilter(index: number) {
-    const filters = [...this.defaultFilter.value];
+    const filters = [...this.defaultFilter().value];
     filters.splice(index, 1);
-    this.defaultFilter.setValue(filters);
+    this.defaultFilter().setValue(filters);
   }
 
   toggleFilter(index: number) {
-    const filters = [...this.defaultFilter.value];
+    const filters = [...this.defaultFilter().value];
     filters[index] = toggle(filters[index])!;
-    this.defaultFilter.setValue(filters);
+    this.defaultFilter().setValue(filters);
   }
 
   setFilterDate(index: number, filter: UrlFilter, date: string) {
@@ -236,17 +222,17 @@ export class ExtFormComponent  {
   filterOption(filter: UrlFilter) {
     if (!this.filterIsDate(filter)) return filter;
     const prefix = filter.substring(0, filter.lastIndexOf('/') + 1);
-    return this.allFilters.find(option => option.filter.startsWith(prefix))?.filter || filter;
+    return this.allFilters().find(option => option.filter.startsWith(prefix))?.filter || filter;
   }
 
   filterOptionLabel(filter: UrlFilter) {
-    const option = negatable(filter) && this.allFilters.find(item => item.filter === toggle(filter));
+    const option = negatable(filter) && this.allFilters().find(item => item.filter === toggle(filter));
     return option ? this.store.account.querySymbol('!') + (option.label || option.filter) : filter;
   }
 
   hasFilterOption(filter: UrlFilter) {
     const selected = this.filterOption(filter);
-    return this.allFilters.some(option => option.filter === selected);
+    return this.allFilters().some(option => option.filter === selected);
   }
 
   filterIsDate(filter: UrlFilter) {
@@ -292,25 +278,32 @@ export class ExtFormComponent  {
     return date.isValid ? date.toFormat("yyyy-MM-dd'T'T") : '';
   }
 
-  get themes() {
-    return this.config.get('themes') as UntypedFormGroup;
-  }
+  readonly themes = computed(() => {
+    this.rootControlState();
+    return this.config().get('themes') as UntypedFormGroup;
+  });
 
-  get userTheme() {
-    return this.config.get('userTheme') as UntypedFormGroup;
-  }
+  readonly userTheme = computed(() => {
+    this.rootControlState();
+    return this.config().get('userTheme') as UntypedFormGroup;
+  });
 
-  get themeValues() {
-    return uniq([...Object.keys(this.themes?.value || {}), ...this.admin.themes.flatMap(p => Object.keys(p.config?.themes || {}))]);
-  }
+  readonly themeValues = computed(() => {
+    this.rootControlState();
+    this.controlState1();
+    return uniq([...Object.keys(this.themes()?.value || {}), ...this.admin.themes().flatMap(p => Object.keys(p.config?.themes || {}))]);
+  });
 
-  get userThemeValues() {
-    return uniq([...Object.keys(this.themes?.value || {}), ...this.admin.themes.flatMap(p => Object.keys(p.config?.themes || {}))]);
-  }
+  readonly userThemeValues = computed(() => {
+    this.rootControlState();
+    this.controlState1();
+    return uniq([...Object.keys(this.themes()?.value || {}), ...this.admin.themes().flatMap(p => Object.keys(p.config?.themes || {}))]);
+  });
 
-  get pinned() {
-    return this.config.get('pinned') as UntypedFormControl;
-  }
+  readonly pinned = computed(() => {
+    this.rootControlState();
+    return this.config().get('pinned') as UntypedFormControl;
+  });
 
   negatable(filter: string) {
     return negatable(filter);
@@ -319,72 +312,74 @@ export class ExtFormComponent  {
   setValue(ext: Ext) {
     this.tag = ext.tag;
     if (ext.config?.defaults) {
-      this.loadingDefaults = true;
+      this.loadingDefaults.set(true);
       this.refs.getCurrent('tag:/' + ext.tag)
         .subscribe(ref => {
-          this.defaults = ref;
-          this.loadingDefaults = false;
+          this.defaults.set(ref);
+          this.loadingDefaults.set(false);
         });
     }
-    if (!this.form) {
-      this.form = cloneDeep(this.admin.getTemplateForm(ext.tag));
+    if (!this.form()) {
+      this.form.set(cloneDeep(this.admin.getTemplateForm(ext.tag)));
     }
-    if (!this.advancedForm) {
-      this.advancedForm = cloneDeep(this.admin.getTemplateAdvancedForm(ext.tag));
+    if (!this.advancedForm()) {
+      this.advancedForm.set(cloneDeep(this.admin.getTemplateAdvancedForm(ext.tag)));
     }
     this.setModel(ext);
   }
 
   private setModel(ext: Ext) {
-    if (!this.mainFormlyForm || !this.advancedFormlyForm) {
-      this.cd.markForCheck();
+    const mainFormlyForm = this.mainFormlyForm();
+    const advancedFormlyForm = this.advancedFormlyForm();
+    if (!mainFormlyForm || !advancedFormlyForm) {
       defer(() => this.setModel(ext));
       return;
     }
-    this.group!.patchValue(ext);
+    this.group()!.patchValue(ext);
     this.options.formState.config = ext.config;
-    this.mainFormlyForm!.model = ext.config;
+    mainFormlyForm!.model = ext.config;
     // TODO: Why aren't changed being detected?
     // @ts-ignore
-    this.mainFormlyForm.builder.build(this.mainFormlyForm.field);
-    if (this.advancedFormlyForm) {
-      this.advancedFormlyForm!.model = ext.config;
+    mainFormlyForm.builder.build(mainFormlyForm.field);
+    if (advancedFormlyForm) {
+      advancedFormlyForm!.model = ext.config;
       // TODO: Why aren't changed being detected?
       // @ts-ignore
-      this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
+      advancedFormlyForm.builder.build(advancedFormlyForm.field);
     }
-    this.config.valueChanges.pipe(
+    this.config().valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(value => {
       if (value.defaults) {
-        if (!this.defaults) this.createDefaults();
+        if (!this.defaults()) this.createDefaults();
       } else {
-        delete this.defaults;
-        this.loadingDefaults = false;
+        this.defaults.set(undefined);
+        this.loadingDefaults.set(false);
       }
     });
-    this.cd.markForCheck();
   }
 
   createDefaults() {
-    this.loadingDefaults = true;
+    this.loadingDefaults.set(true);
     this.refs.getCurrent('tag:/' + this.tag).pipe(
       catchError(err => {
-        this.defaults = {
-          origin: this.store.account.origin,
+        this.defaults.set({
+          origin: this.store.account.origin(),
           url: 'tag:/' + this.tag,
-          tags: ['internal', this.store.account.localTag],
+          tags: ['internal', this.store.account.localTag()],
           created: DateTime.now(),
           published: DateTime.now(),
           modified: DateTime.now(),
-        };
-        this.refs.create(this.defaults).subscribe(cursor => this.defaults!.modifiedString = cursor);
-        return of(this.defaults);
+        });
+        this.refs.create(this.defaults()!).subscribe(cursor => {
+          this.defaults.update(defaults => defaults && { ...defaults, modifiedString: cursor });
+        });
+        return of(this.defaults());
       })
     ).subscribe(ref => {
-      if (!this.loadingDefaults) return;
-      this.defaults = ref;
-      this.loadingDefaults = false;
+      if (!this.loadingDefaults()) return;
+      this.defaults.set(ref);
+      this.loadingDefaults.set(false);
     });
   }
 }
@@ -405,7 +400,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
       theme: [''],
     };
   }
-  if (admin.home && hasPrefix(ext?.tag, 'config/home')) {
+  if (admin.home() && hasPrefix(ext?.tag, 'config/home')) {
     configControls = {
       ...configControls,
       header: [''],

@@ -1,60 +1,60 @@
-@if (store.view.isVoteSorted && store.account.user && admin.getPlugin('plugin/user/vote/up')) {
+@if (store.view.isVoteSorted() && store.account.user && admin.getPlugin('plugin/user/vote/up')) {
   <div class="voting">
     <div class="vote-up"
-         [class.on]="upvote"
+         [class.on]="upvote()"
          (click)="voteUp()"></div>
     @if (admin.getPlugin('plugin/user/vote/down')) {
       <div class="vote-down"
-           [class.on]="downvote"
+           [class.on]="downvote()"
            (click)="voteDown()"></div>
     }
   </div>
 }
 @if (admin.getPlugin('plugin/thumbnail')) {
-  @if (thumbnailEmoji || thumbnailColor) {
+  @if (thumbnailEmoji() || thumbnailColor()) {
     <div class="thumbnail"
-         [style.background-image]="thumbnailRefs | thumbnail | async | cssUrl"
-         [style.background-color]="thumbnailColor"
-         [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
-         [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
-  } @else if (thumbnail) {
+         [style.background-image]="thumbnailRefs() | thumbnail | async | cssUrl"
+         [style.background-color]="thumbnailColor()"
+         [style.background-size]="thumbnailRadius() ? 'cover' : 'contain'"
+         [style.border-radius.px]="thumbnailRadius()">{{ thumbnailEmoji() }}</div>
+  } @else if (thumbnail()) {
     <div class="thumbnail"
-         [style.background-image]="thumbnailRefs | thumbnail: true | async | cssUrl"
-         [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
-         [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
-  } @else if (thumbnailEmojiDefaults) {
-    <div class="thumbnail">{{ thumbnailEmojiDefaults }}</div>
+         [style.background-image]="thumbnailRefs() | thumbnail: true | async | cssUrl"
+         [style.background-size]="thumbnailRadius() ? 'cover' : 'contain'"
+         [style.border-radius.px]="thumbnailRadius()">{{ thumbnailEmoji() }}</div>
+  } @else if (thumbnailEmojiDefaults()) {
+    <div class="thumbnail">{{ thumbnailEmojiDefaults() }}</div>
   } @else {
     <div class="thumbnail"
          [class.default-thumbnail]="true"
-         [class.has-storyboard-default]="storyboardData"></div>
+         [class.has-storyboard-default]="storyboardData()"></div>
   }
 }
 <div class="link"
-     [class.remote]="!local"
-     [class.comment-title]="!ref.title"
-     [class.redundant]="redundantLink"
-     [attr.title]="altText">
-  @if (tagLink) {
-    <app-nav [url]="url" [text]="title"></app-nav>
-  } @else if (editingLink) {
-    <a [routerLink]="editingLink.routerLink" [queryParams]="editingLink.queryParams">{{ title }}</a><wbr>
-  } @else if (clickableLink) {
-    <app-nav [url]="link" [text]="title" [external]="true"></app-nav>
+     [class.remote]="!local()"
+     [class.comment-title]="!ref().title"
+     [class.redundant]="redundantLink()"
+     [attr.title]="altText()">
+  @if (tagLink()) {
+    <app-nav [url]="url()" [text]="title()"></app-nav>
+  } @else if (editingLink()) {
+    <a [routerLink]="editingLink()!.routerLink" [queryParams]="editingLink()!.queryParams">{{ title() }}</a><wbr>
+  } @else if (clickableLink()) {
+    <app-nav [url]="link()" [text]="title()" [external]="true"></app-nav>
   } @else {
-    <a [routerLink]="defaultView ? ['/ref', url, defaultView] : ['/ref', url]"
-       [queryParams]="{ origin: obsoleteOrigin }"
-       (click)="saveRef()">{{ title }}</a><wbr>
+    <a [routerLink]="defaultView() ? ['/ref', url(), defaultView()] : ['/ref', url()]"
+       [queryParams]="{ origin: obsoleteOrigin() }"
+       (click)="saveRef()">{{ title() }}</a><wbr>
   }
-  <span class="host">({{ host }})</span>
+  <span class="host">({{ host() }})</span>
 </div>
-@if (showToggle && (thread || commentNoTitle || viewerEmbeds.length)) {
+@if (showToggle() && (thread() || commentNoTitle() || viewerEmbeds().length)) {
   <button type="button" class="toggle" (click)="toggle()" (contextmenu)="pip($event)">
-    @if (editing || viewSource || diffing) {
+    @if (editing() || viewSource() || diffing()) {
       <span class="toggle-x">✕</span>
-    } @else if (fullscreen || store.hotkey && admin.getPlugin('plugin/fullscreen')) {
+    } @else if (fullscreen() || store.hotkey() && admin.getPlugin('plugin/fullscreen')) {
       <span class="toggle-fullscreen">⛶</span>
-    } @else if (expanded) {
+    } @else if (expanded()) {
       <span class="toggle-x">✕</span>
     } @else {
       <span class="toggle-plus">＋</span>
@@ -62,27 +62,27 @@
   </button>
 }
 <div class="info"
-     [class.expanded]="!actionsExpanded"
-     [class.not-expanded]="actionsExpanded === true">
-  @if (!ref.created) {
+     [class.expanded]="!actionsExpanded()"
+     [class.not-expanded]="actionsExpanded() === true">
+  @if (!ref().created) {
     <span i18n>not found</span>
   } @else {
-    @if (publishedIsSubmitted) {
-      <span [title]="ref.created.toISO()" i18n>
-        @if (!config.mobile) { submitted }
-        {{ ref.created.toRelative() }}</span>
+    @if (publishedIsSubmitted()) {
+      <span [title]="ref().created!.toISO()" i18n>
+        @if (!config.mobile()) { submitted }
+        {{ ref().created | relative }}</span>
     } @else {
-      <span [title]="ref.published!.toISO()" i18n>
-        @if (!config.mobile) { published }
-        {{ ref.published!.toRelative() }}</span>
+      <span [title]="ref().published!.toISO()" i18n>
+        @if (!config.mobile()) { published }
+        {{ ref().published | relative }}</span>
     }
-    @if (!modifiedIsSubmitted) {
-      <span i18n-title title="last edited {{ ref.modified!.toRelative() }}">* </span>
+    @if (!modifiedIsSubmitted()) {
+      <span i18n-title title="last edited {{ ref().modified | relative }}">* </span>
     }
   }
-  @if (authors.length) {
+  @if (authors().length) {
     <span i18n> by
-      @if (authorExts$ | async; as xs) {
+      @if (authorExts(); as xs) {
         @for (x of xs; track x.tag + x.origin) {
           <a class="user tag"
              [title]="formatAuthor(x.tag + x.origin)"
@@ -90,7 +90,7 @@
              [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
         }
       } @else {
-        @for (t of authors; track t) {
+        @for (t of authors(); track t) {
           <a class="user tag"
              [title]="formatAuthor(t)"
              [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
@@ -98,25 +98,25 @@
       }
     </span>
   }
-  @if (tags.length) {
+  @if (tags().length) {
     <span i18n> tagged
-      @if (tagExts$ | async; as xs) {
+      @if (tagExts(); as xs) {
         @for (x of xs; track x) {
           <a class="tag"
              [routerLink]="['/tag', x.tag]"
              [appTitle]="'#' + x.tag">{{ x.name || '#' + x.tag }}</a>
         }
       } @else {
-        @for (t of tags; track t) {
+        @for (t of tags(); track t) {
           <a class="tag"
              [routerLink]="['/tag', t]">{{ t }}</a>
         }
       }
     </span>
   }
-  @if (recipients.length) {
+  @if (recipients().length) {
     <span i18n> to
-      @if (recipientExts$ | async; as xs) {
+      @if (recipientExts(); as xs) {
         @for (x of xs; track x.tag + x.origin) {
           <a class="user tag"
              [title]="formatAuthor(x.tag + x.origin)"
@@ -124,7 +124,7 @@
              [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
         }
       } @else {
-        @for (t of recipients; track t) {
+        @for (t of recipients(); track t) {
           <a class="user tag"
              [title]="formatAuthor(t)"
              [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
@@ -132,258 +132,258 @@
       }
     </span>
   }
-  @if (showObsolete && ref.metadata?.obsolete) {
-    <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Obsolete">⏮️</span>
+  @if (showObsolete() && ref().metadata?.obsolete) {
+    <span class="icon" [routerLink]="['/tag', alarm()]" i18n-title title="Obsolete">⏮️</span>
   }
-  @if (showAlarm && alarm) {
-    <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔️</span>
+  @if (showAlarm() && alarm()) {
+    <span class="icon" [routerLink]="['/tag', alarm()]" i18n-title title="Alarm ({{ alarm() }})">🔔️</span>
   }
-  @for (icon of icons; track icon) {
+  @for (icon of icons(); track icon) {
     @if (showIcon(icon)) {
       <span class="icon"
             [class.filter-toggle]="icon.tag"
-            (click)="clickIcon(icon, store.hotkey)"
+            (click)="clickIcon(icon, store.hotkey())"
             [appTitle]="icon"
-            [ref]="ref">{{ icon.label }}</span>
+            [ref]="ref()">{{ icon.label }}</span>
     }
   }
-  @for (ui of infoUis; track ui) {
+  @for (ui of infoUiMarkdowns(); track ui.tag) {
     <app-md class="inline-ui"
             [disableSanitizer]="true"
-            [origin]="ref.origin"
-            [text]="uiMarkdown(ui.tag)"></app-md>
+            [origin]="ref().origin"
+            [text]="ui.text"></app-md>
   }
-  @if (ref.created && !local) {
-    <span i18n> on <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a></span>
+  @if (ref().created && !local()) {
+    <span i18n> on <a class="origin tag" [routerLink]="['/tag', ref().origin || '*']">{{ ref().origin || 'default' }}</a></span>
   }
-  @if (local) {
-    @if (originPull) {
-      @if (remoteOrigin) {
-        <span i18n> from {{ remoteOrigin }}</span>
+  @if (local()) {
+    @if (originPull()) {
+      @if (remoteOrigin()) {
+        <span i18n> from {{ remoteOrigin() }}</span>
       }
-      @if (localOrigin) {
-        <span i18n> to <a class="origin tag" [routerLink]="['/tag', localOrigin]">{{ localOrigin }}</a></span>
+      @if (localOrigin()) {
+        <span i18n> to <a class="origin tag" [routerLink]="['/tag', localOrigin()]">{{ localOrigin() }}</a></span>
       }
     }
-    @if (originPush) {
-      @if (localOrigin) {
-        <span i18n> from <a class="origin tag" [routerLink]="['/tag', localOrigin]">{{ localOrigin }}</a></span>
+    @if (originPush()) {
+      @if (localOrigin()) {
+        <span i18n> from <a class="origin tag" [routerLink]="['/tag', localOrigin()]">{{ localOrigin() }}</a></span>
       }
-      @if (remoteOrigin) {
-        <span i18n> to {{ remoteOrigin }}</span>
+      @if (remoteOrigin()) {
+        <span i18n> to {{ remoteOrigin() }}</span>
       }
     }
   }
 </div>
-@if (expanded && expandInline && !editing && !viewSource) {
+@if (expanded() && expandInline() && !editing() && !viewSource()) {
   <app-viewer #viewer class="viewer-inline"
-              [ref]="bareRef"
-              [tags]="plugins || currentTags"
-              [disableResize]="disableResize"
-              [fullscreen]="fullscreen"
+              [ref]="bareRef()"
+              [tags]="plugins() || currentTags()"
+              [disableResize]="disableResize()"
+              [fullscreen]="fullscreen()"
               (contextmenu)="unlockViewer($event)"
               (copied)="copied.emit($event)"></app-viewer>
 }
 <div class="actions"
-     [class.expanded]="actionsExpanded"
-     [class.not-expanded]="actionsExpanded === false">
-  @if (store.account.user && !ref.created && !ref.upload) {
-    <a [routerLink]="submitRoute.routerLink" [queryParams]="submitRoute.queryParams" i18n>submit</a>
+     [class.expanded]="actionsExpanded()"
+     [class.not-expanded]="actionsExpanded() === false">
+  @if (store.account.user && !ref().created && !ref().upload) {
+    <a [routerLink]="submitRoute().routerLink" [queryParams]="submitRoute().queryParams" i18n>submit</a>
   }
-  @if (ref.created && !ref.upload) {
-    @if (thread) {
-      <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
-    } @else if (comment) {
-      <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
+  @if (ref().created && !ref().upload) {
+    @if (thread()) {
+      <a [routerLink]="['/ref', ref().url, 'thread']" [queryParams]="{ origin: obsoleteOrigin() }" (click)="saveRef()" i18n>permalink</a>
+    } @else if (comment()) {
+      <a [routerLink]="['/ref', ref().url, 'comments']" [queryParams]="{ origin: obsoleteOrigin() }" (click)="saveRef()" i18n>permalink</a>
     } @else {
-      <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
+      <a [routerLink]="['/ref', ref().url]" [queryParams]="{ origin: obsoleteOrigin() }" (click)="saveRef()" i18n>permalink</a>
     }
-    @if (parentCommentTop) {
-      <a [routerLink]="['/ref', parentCommentTop, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>top</a>
+    @if (parentCommentTop()) {
+      <a [routerLink]="['/ref', parentCommentTop(), 'comments']" [queryParams]="{ origin: obsoleteOrigin() }" (click)="saveRef()" i18n>top</a>
     }
-    @if (parentThreadTop) {
-      <a [routerLink]="['/ref', parentThreadTop, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>parent</a>
+    @if (parentThreadTop()) {
+      <a [routerLink]="['/ref', parentThreadTop(), 'thread']" [queryParams]="{ origin: obsoleteOrigin() }" (click)="saveRef()" i18n>parent</a>
     }
     @if (store.account.user) {
-      <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
+      <a class="fake-link" (click)="replying.set(!replying())" i18n>reply</a>
     }
-    @if (errors) {
-      <a [routerLink]="['/ref', ref.url, 'errors']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{errors, plural, =1 {1&thinsp;error} other {{{ errors }}&thinsp;errors}}</a>
+    @if (errors()) {
+      <a [routerLink]="['/ref', ref().url, 'errors']" [queryParams]="{ origin: obsoleteOrigin() }" (click)="saveRef()" i18n>{errors(), plural, =1 {1&thinsp;error} other {{{ errors() }}&thinsp;errors}}</a>
     }
-    @if (comments) {
-      <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}@if (newCommentsCount > 0) {<span class="new-resp">&nbsp;({{ newCommentsCount }} new)</span>}</a>
-    } @else if (threads) {
-      <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}@if (newThreadsCount > 0) {<span class="new-resp">&nbsp;({{ newThreadsCount }} new)</span>}</a>
+    @if (comments()) {
+      <a [routerLink]="['/ref', ref().url, 'comments']" [queryParams]="{ origin: obsoleteOrigin() }" (click)="saveRef()" i18n>{comments(), plural, =1 {1&thinsp;comment} other {{{ comments() }}&thinsp;comments}}@if (newCommentsCount() > 0) {<span class="new-resp">&nbsp;({{ newCommentsCount() }} new)</span>}</a>
+    } @else if (threads()) {
+      <a [routerLink]="['/ref', ref().url, 'thread']" [queryParams]="{ origin: obsoleteOrigin() }" (click)="saveRef()" i18n>{threads(), plural, =1 {1&thinsp;reply} other {{{ threads() }}&thinsp;replies}}@if (newThreadsCount() > 0) {<span class="new-resp">&nbsp;({{ newThreadsCount() }} new)</span>}</a>
     }
-    @if (responses) {
-      <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}@if (newResponsesCount > 0) {<span class="new-resp">&nbsp;({{ newResponsesCount }} new)</span>}</a>
+    @if (responses()) {
+      <a [routerLink]="['/ref', ref().url, 'responses']" [queryParams]="{ origin: obsoleteOrigin() }" (click)="saveRef()" i18n>{feed(), select, true {{{ responses() }}&thinsp;scraped} false {{responses(), plural, =1 {1&thinsp;citation} other {{{ responses() }}&thinsp;citations}}}}@if (newResponsesCount() > 0) {<span class="new-resp">&nbsp;({{ newResponsesCount() }} new)</span>}</a>
     }
-    @if (parentComment) {
-      <a [routerLink]="['/ref', parentComment, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
-    } @else if (!parentThreadTop) {
-      @if (parent) {
-        <a [routerLink]="['/ref', parent]" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
-      } @else if (sources) {
-        <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
+    @if (parentComment()) {
+      <a [routerLink]="['/ref', parentComment(), 'comments']" [queryParams]="{ origin: obsoleteOrigin() }" i18n>parent</a>
+    } @else if (!parentThreadTop()) {
+      @if (parent()) {
+        <a [routerLink]="['/ref', parent()]" [queryParams]="{ origin: obsoleteOrigin() }" i18n>parent</a>
+      } @else if (sources()) {
+        <a [routerLink]="['/ref', ref().url, 'sources']" [queryParams]="{ origin: obsoleteOrigin() }" (click)="saveRef()" i18n>{{ sources() }}&thinsp;sources</a>
       }
     }
-    @if (taggingAccess) {
-      <app-inline-tag [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
+    @if (taggingAccess()) {
+      <app-inline-tag [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>
     }
-    @if (store.account.user && !local) {
-      <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
+    @if (store.account.user && !local()) {
+      <app-inline-button [action]="copy$" i18n>copy</app-inline-button>
     }
-    @if (store.account.user && local) {
-      <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
+    @if (store.account.user && local()) {
+      <a routerLink="/submit/web" [queryParams]="{ url: url(), tag: 'plugin/repost' }" i18n>repost</a>
     }
   }
-  @if (!hideEdit) {
-    @if (ref.created && writeAccess) {
-      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+  @if (!hideEdit()) {
+    @if (ref().created && writeAccess()) {
+      <a class="fake-link" (click)="setEditing(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
     } @else {
-      <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+      <a class="fake-link" (click)="setViewSource(!viewSource())" i18n>source</a>
     }
-    @if (isView && store.view.versions) {
-      <a class="fake-link" (click)="diffing = !diffing" i18n>diff</a>
+    @if (isView() && store.view.versions()) {
+      <a class="fake-link" (click)="setDiffing(!diffing())" i18n>diff</a>
     }
   }
-  @if (ref.created && !ref.upload && (store.account.mod || taggingAccess)) {
-    <app-confirm-action #action
-                        [class.force-delete]="deleteAccess"
-                        [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
+  @if (ref().created && !ref().upload && (store.account.mod || taggingAccess())) {
+    <app-confirm-action
+                        [class.force-delete]="deleteAccess()"
+                        [action]="store.hotkey() ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
   }
-  @if (ref.upload) {
-    @if (ref.exists) {
-      <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: obsoleteOrigin }" i18n>permalink</a>
+  @if (ref().upload) {
+    @if (ref().exists) {
+      <a [routerLink]="['/ref', ref().url]" [queryParams]="{ origin: obsoleteOrigin() }" i18n>permalink</a>
     }
     @if (store.account.user) {
-      <app-inline-button #action [action]="upload$" i18n>upload</app-inline-button>
-      @if (store.account.user && !dm) {
-        <a routerLink="/submit/text" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
-      } @else if (store.account.user && dm) {
-        <a routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
+      <app-inline-button [action]="upload$" i18n>upload</app-inline-button>
+      @if (store.account.user && !dm()) {
+        <a routerLink="/submit/text" [queryParams]="{source: replySources(), sourceTitle: ref().title, tag: replyTags()}" i18n>reply</a>
+      } @else if (store.account.user && dm()) {
+        <a routerLink="/submit/dm" [queryParams]="{source: replySources(), sourceTitle: ref().title, tag: replyTags(), to: replyTo()}" i18n>reply</a>
       }
-      @if (taggingAccess) {
-        <app-inline-tag #action [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
+      @if (taggingAccess()) {
+        <app-inline-tag [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>
       }
-      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+      <a class="fake-link" (click)="setEditing(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
     }
-    <app-confirm-action #action [action]="remove$" i18n>remove</app-confirm-action>
+    <app-confirm-action [action]="remove$" i18n>remove</app-confirm-action>
   }
-  @if (canInvoice) {
+  @if (canInvoice()) {
     <a routerLink="/submit/invoice"
-       [queryParams]="{url: ref.url}" i18n>invoice</a>
+       [queryParams]="{url: ref().url}" i18n>invoice</a>
   }
-  <app-action-list [ref]="ref"
-                   [repostRef]="repostRef"
-                   [mediaAttachment]="mediaAttachment"
-                   [groupedActions]="groupedActions"
-                   [groupedAdvancedActions]="groupedAdvancedActions"></app-action-list>
+  <app-action-list [ref]="ref()"
+                   [repostRef]="repostRef()"
+                   [mediaAttachment]="mediaAttachment()"
+                   [groupedActions]="groupedActions()"
+                   [groupedAdvancedActions]="groupedAdvancedActions()"></app-action-list>
 </div>
 <div class="toggle actions-toggle"
-     (click)="actionsExpanded = !actionsExpanded">⚙️</div>
-@if (thread || threads) {
+     (click)="actionsExpanded.set(!actionsExpanded())">⚙️</div>
+@if (thread() || threads()) {
   <div class="toggle threads"
        (focus)="delayLastSelected()"
        (pointerdown)="delayLastSelected()"
-       [routerLink]="['/ref', top, 'thread']"
+       [routerLink]="['/ref', top(), 'thread']"
        (click)="saveRef()"
-       [queryParams]="{ origin: obsoleteOrigin }">🧵️</div>
-} @else if (comment || comments) {
+       [queryParams]="{ origin: obsoleteOrigin() }">🧵️</div>
+} @else if (comment() || comments()) {
   <div class="toggle comments"
-       [routerLink]="['/ref', ref.url, 'comments']"
-       [queryParams]="{ origin: obsoleteOrigin }"
+       [routerLink]="['/ref', ref().url, 'comments']"
+       [queryParams]="{ origin: obsoleteOrigin() }"
        (click)="saveRef()">💬️</div>
 } @else if (admin.getPlugin('plugin/comment')) {
   <div class="toggle comments"
-       [routerLink]="['/ref', ref.url]"
-       [queryParams]="{ origin: obsoleteOrigin }"
+       [routerLink]="['/ref', ref().url]"
+       [queryParams]="{ origin: obsoleteOrigin() }"
        (click)="saveRef()">💬️</div>
 } @else {
   <div class="toggle view"
-       [routerLink]="['/ref', ref.url]"
-       [queryParams]="{ origin: obsoleteOrigin }"
+       [routerLink]="['/ref', ref().url]"
+       [queryParams]="{ origin: obsoleteOrigin() }"
        (click)="saveRef()">🖇️️</div>
 }
 
-@if (replying) {
+@if (replying()) {
   <app-comment-reply #reply
                      [autofocus]="true"
-                     [to]="ref"
+                     [to]="ref()"
                      [showCancel]="true"
-                     [selectResponseType]="!thread && !comment && !dm"
-                     [tags]="replyTags"
+                     [selectResponseType]="!thread() && !comment() && !dm()"
+                     [tags]="replyTags()"
                      (save)="onReply($event)"></app-comment-reply>
 }
-@if (expanded && !expandInline && !editing && !viewSource) {
+@if (expanded() && !expandInline() && !editing() && !viewSource()) {
   <app-viewer #viewer class="viewer-below"
-              [ref]="bareRef"
-              [tags]="plugins || currentTags"
-              [disableResize]="disableResize"
-              [fullscreen]="fullscreen"
+              [ref]="bareRef()"
+              [tags]="plugins() || currentTags()"
+              [disableResize]="disableResize()"
+              [fullscreen]="fullscreen()"
               (contextmenu)="unlockViewer($event)"
               (copied)="copied.emit($event)"></app-viewer>
 }
 
-@if (editing) {
+@if (editing()) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
     <app-ref-form #refForm [group]="editForm"></app-ref-form>
 
-    @for (e of serverError; track e) {
+    @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
     }
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      @if (overwritten) {
+      @if (overwritten()) {
         <div class="overwrite warning">
-          <input id="overwrite" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
+          <input id="overwrite" type="checkbox" [checked]="overwrite()" (input)="overwrite.set(!overwrite())">
           <label for="overwrite" i18n>Overwrite</label>
         </div>
       }
-      @if (submitting) {
+      @if (submitting()) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="submitting || submitted && !editForm.valid" i18n>save</button>
-      <button type="button" [disabled]="submitting" (click)="editing = false" i18n>cancel</button>
+      <button type="submit" [disabled]="submitting() || submitted() && !editFormValid()" i18n>save</button>
+      <button type="button" [disabled]="submitting()" (click)="setEditing(false)" i18n>cancel</button>
     </span>
   </form>
-} @else if (viewSource) {
+} @else if (viewSource()) {
   <form class="form" [formGroup]="editForm">
-    <app-ref-form #refForm [group]="editForm" [origin]="origin"></app-ref-form>
+    <app-ref-form #refForm [group]="editForm" [origin]="origin()"></app-ref-form>
   </form>
-} @else if (diffing && diffOriginal && diffModified) {
+} @else if (diffing() && diffOriginal() && diffModified()) {
   <div class="diff-view form">
     <app-diff #diffEditor
-              [original]="diffOriginal"
-              [modified]="diffModified"
-              [readOnly]="!local && !!ref.metadata?.obsolete">
+              [original]="diffOriginal()!"
+              [modified]="diffModified()!"
+              [readOnly]="!local() && !!ref().metadata?.obsolete">
     </app-diff>
 
-    @if (local || !ref.metadata?.obsolete) {
+    @if (local() || !ref().metadata?.obsolete) {
       <span><!-- Buttons --></span>
       <span class="buttons right">
-        @if (overwritten) {
+        @if (overwritten()) {
           <div class="overwrite warning">
-            <input id="overwriteDiff" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
+            <input id="overwriteDiff" type="checkbox" [checked]="overwrite()" (input)="overwrite.set(!overwrite())">
             <label for="overwriteDiff" i18n>Overwrite</label>
           </div>
         }
-        @if (submitting) {
+        @if (submitting()) {
           <app-loading [inline]="true"></app-loading>
         }
-        <button type="button" [disabled]="submitting" (click)="saveDiff()" i18n>save</button>
-        <button type="button" [disabled]="submitting" (click)="diffing = false" i18n>cancel</button>
+        <button type="button" [disabled]="submitting()" (click)="saveDiff()" i18n>save</button>
+        <button type="button" [disabled]="submitting()" (click)="setDiffing(false)" i18n>cancel</button>
       </span>
     }
   </div>
 } @else {
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <div class="error">{{ e }}</div>
   }
-  @if (publishChanged) {
+  @if (publishChanged()) {
     <div class="warning" i18n>
       * Published date was changed to be after source published date.
     </div>

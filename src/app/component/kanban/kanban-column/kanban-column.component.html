@@ -1,20 +1,20 @@
-@if (page) {
+@if (page(); as page) {
   @for (ref of page.content; track ref.origin + '@' + ref.url) {
     <app-kanban-card cdkDrag
-                     [hideSwimLanes]="hideSwimLanes"
+                     [hideSwimLanes]="hideSwimLanes()"
                      [cdkDragData]="ref"
-                     [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
-                     [pressToUnlock]="pressToUnlock"
+                     [cdkDragStartDelay]="pressToUnlock() ? 251 : 0"
+                     [pressToUnlock]="pressToUnlock()"
                      [ref]="ref"
-                     [ext]="ext"
+                     [ext]="ext()"
                      (copied)="copy($event)"></app-kanban-card>
   }
-  @for (upload of adding; track upload.id) {
+  @for (upload of adding(); track upload.id) {
     <app-kanban-card [ref]="{ url: '', title: upload.name }"
-                     [ext]="ext"
+                     [ext]="ext()"
                      [progress]="upload.progress"></app-kanban-card>
   }
-  @for (failedItem of failed; track failedItem.text) {
+  @for (failedItem of failed(); track failedItem.text) {
     <div class="failed-item">
       <div class="failed-content">
         <div class="failed-text">{{ failedItem.text }}</div>
@@ -38,17 +38,17 @@
   <app-loading></app-loading>
 }
 <div class="spacer"></div>
-@if (hasMore) {
+@if (hasMore()) {
   <a class="fake-link no-select load-more"
-     (click)="loadMore()" i18n>load more @if (more) {<span class="more">({{ more }})</span>}</a>
+     (click)="loadMore()" i18n>load more @if (more()) {<span class="more">({{ more() }})</span>}</a>
 }
 <input type="text"
        enterkeyhint="send"
        i18n-placeholder
        placeholder="Add..."
-       [value]="addText"
-       (input)="addText = $any($event.target).value"
+       [value]="addText()"
+       (input)="addText.set($any($event.target).value)"
        (paste)="handlePaste($event)"
-       [style.display]="addText ? 'block' : 'none'"
+       [style.display]="addText() ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add() || true"
        (blur)="add()">

@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -7,7 +7,7 @@ import { ConfigService } from '../service/config.service';
 import { Store } from '../store/store';
 import { base64Bytes } from '../util/jwt';
 
-import { AuthInterceptor, JASPER_KEY_HEADER } from './auth.interceptor';
+import { authInterceptor, JASPER_KEY_HEADER } from './auth.interceptor';
 
 const SECRET = btoa('electron-secret');
 
@@ -22,7 +22,7 @@ async function verify(jwt: string, secret: string) {
   return crypto.subtle.verify('HMAC', key, signature, new TextEncoder().encode(header + '.' + body));
 }
 
-describe('AuthInterceptor', () => {
+describe('authInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
   let store: Store;
@@ -32,9 +32,7 @@ describe('AuthInterceptor', () => {
     localStorage.removeItem('selectedUserTag');
     await TestBed.configureTestingModule({
       providers: [
-        AuthInterceptor,
-        provideHttpClient(withXhr(), withInterceptorsFromDi()),
-        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+        provideHttpClient(withXhr(), withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
@@ -64,11 +62,6 @@ describe('AuthInterceptor', () => {
     const req = await nextRequest('config.json');
     req.flush({}, { headers: { [JASPER_KEY_HEADER]: secret } });
   }
-
-  it('should be created', () => {
-    const interceptor: AuthInterceptor = TestBed.inject(AuthInterceptor);
-    expect(interceptor).toBeTruthy();
-  });
 
   it('sends User-Tag header without the electron secret', async () => {
     store.local.selectedUserTag = '+user/alice';

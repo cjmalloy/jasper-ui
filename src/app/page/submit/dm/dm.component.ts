@@ -1,7 +1,17 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
-  HttpErrorResponse
-} from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  forwardRef,
+  inject,
+  Injector,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -12,18 +22,25 @@ import {
   Validators
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { debounce, defer, some, uniq, without } from 'lodash-es';
+import { debounce, defer, isEqual, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, firstValueFrom, forkJoin, interval, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import {
+  catchError,
+  firstValueFrom,
+  forkJoin,
+  interval,
+  map,
+  Observable,
+  of,
+  Subscription,
+  switchMap,
+  throwError
+} from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
-import { FillWidthDirective } from '../../../directive/fill-width.directive';
-import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
@@ -41,10 +58,9 @@ import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { controlState, controlValue, scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { memo, MemoCache } from '../../../util/memo';
 import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/tag';
 
 @Component({
@@ -52,67 +68,68 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   templateUrl: './dm.component.html',
   styleUrls: ['./dm.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => EditorComponent),
-    MobxAngularModule,
     ReactiveFormsModule,
-    LimitWidthDirective,
     AutofocusDirective,
     SelectPluginComponent,
     PluginsFormComponent,
     MonacoEditorModule,
     ResizeHandleDirective,
-    FillWidthDirective,
     TagsFormComponent,
     LoadingComponent,
   ]
 })
-export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+export class SubmitDmPage implements HasChanges {
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  private router = inject(Router);
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private editor = inject(EditorService);
+  private fb = inject(UntypedFormBuilder);
+
+  private readonly controlState0 = controlValue(() => this.to);
+  protected readonly toMissing = controlState(() => this.to, c => c.touched && !c.value);
+
+
+  private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
   private _url = 'comment:' + uuid();
 
-  submitted = false;
+  readonly submitted = signal<boolean>(false);
   dmForm: UntypedFormGroup;
-  serverError: string[] = [];
+  protected readonly dmFormValid = controlState(() => this.dmForm, c => c.valid);
+  protected readonly dmFormPristine = controlState(() => this.dmForm, c => c.pristine);
+  readonly serverError = signal<string[]>([]);
 
-  limitWidth?: HTMLElement;
+  readonly editorComponent = viewChild<EditorComponent>('ed');
 
-  @ViewChild('fill')
-  set fill(value: ElementRef | undefined) {
-    defer(() => this.limitWidth = value?.nativeElement);
-  }
+  readonly tagsFormComponent = viewChild<TagsFormComponent>('tagsFormComponent');
 
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
-
-  @ViewChild('tagsFormComponent')
-  tagsFormComponent?: TagsFormComponent;
-
-  preview = '';
-  editing = false;
-  autocomplete: { value: string, label: string }[] = [];
-  submitting?: Subscription;
-  saving?: Subscription;
-  completedUploads: Ref[] = [];
+  readonly preview = signal<string>('');
+  readonly previewTitle = signal('');
+  readonly editing = signal<boolean>(false);
+  readonly autocomplete = signal<{ value: string, label: string }[]>([]);
+  readonly submitting = signal(false);
+  private submittingSubscription?: Subscription;
+  readonly saving = signal(false);
+  private savingSubscription?: Subscription;
+  readonly completedUploads = signal<Ref[]>([]);
   private cursor?: string;
   private showedError = false;
   private addedMailboxes: string[] = [];
   private searching?: Subscription;
+  private readonly tagsValue = controlValue<string[]>(() => this.tags);
 
-  constructor(
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    private router: Router,
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private editor: EditorService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Direct Message`);
     this.dmForm = fb.group({
       to: ['', [Validators.pattern(QUALIFIED_TAGS_REGEX)]],
@@ -121,7 +138,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       comment: [''],
       tags: fb.array([]),
     });
-    if (this.admin.editing) {
+    if (this.admin.editing()) {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
@@ -130,37 +147,38 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     }
   }
 
+  addCompletedUpload(ref: Ref) {
+    this.completedUploads.update(uploads => [...uploads, ref]);
+  }
+
   async saveChanges() {
-    if (this.admin.editing && this.dmForm.dirty) {
+    if (this.admin.editing() && this.dmForm.dirty) {
       return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
         .pipe(map(() => true), catchError(() => of(false))));
     }
     return !this.dmForm?.dirty;
   }
 
-  ngAfterViewInit() {
-    defer(() => {
-      this.disposers.push(autorun(() => {
-        if (this.store.submit.dmPlugin) {
-          this.setTo(this.store.submit.dmPlugin);
-        } if (this.store.submit.to.length) {
-          this.setTo(this.store.submit.to.join(' '));
+  private readonly initializeView = afterNextRender(() => {
+    effect(() => {
+      this.store.submit.dmPlugin();
+      this.store.submit.to();
+      this.store.submit.tags();
+      this.store.account.localTag();
+      untracked(() => {
+        const dmPlugin = this.store.submit.dmPlugin();
+        if (dmPlugin) {
+          this.setTo(dmPlugin);
+        } if (this.store.submit.to().length) {
+          this.setTo(this.store.submit.to().join(' '));
         } else {
           this.setTo('');
         }
-        this.addTags([...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])]);
-      }));
-    });
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    MemoCache.clear(this);
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+        const tags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
+        if (tags.length) this.addTags(tags);
+      });
+    }, { injector: this.injector });
+  });
 
   get to() {
     return this.dmForm.get('to') as UntypedFormControl;
@@ -182,29 +200,32 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     return this.dmForm.get('tags') as UntypedFormArray;
   }
 
-  get notes() {
-    return !this.to.value || this.to.value === this.store.account.tag;
-  }
+  readonly notes = computed(() => {
+    this.controlState0();
+    return !this.to.value || this.to.value === this.store.account.tag();
+  });
 
   saveForLater(leave = false) {
     const savedValue = JSON.stringify(this.dmForm.value);
-    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+    this.saving.set(true);
+    this.savingSubscription = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
-        delete this.saving;
+        this.saving.set(false);
         return throwError(() => err);
       }))
       .subscribe(cursor => {
-        delete this.saving;
+        this.saving.set(false);
         this.cursor = cursor;
         if (JSON.stringify(this.dmForm.value) === savedValue) this.dmForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
       });
+    this.savingSubscription?.add(() => this.saving.set(false));
   }
 
   writeRef() {
     return <Ref> {
       url: this._url,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
       sources: this.dmForm.value.sources,
@@ -214,21 +235,25 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   addTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
-      defer(() => this.addTags(value));
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags()) {
+      defer(() => {
+        if (!this.destroyRef.destroyed) this.addTags(value);
+      });
       return;
     }
-    this.tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
-    MemoCache.clear(this);
+    tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
   }
 
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
-      defer(() => this.setTags(value));
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags()) {
+      defer(() => {
+        if (!this.destroyRef.destroyed) this.setTags(value);
+      });
       return;
     }
-    this.tagsFormComponent.setTags(value);
-    MemoCache.clear(this);
+    tagsFormComponent.setTags(value);
   }
 
   get showError() {
@@ -254,7 +279,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   changedTo(value: string) {
-    const notes = !value || value === this.store.account.tag;
+    const notes = !value || value === this.store.account.tag();
     if (notes && !hasTag('notes', this.tags.value)) {
       const newTags = uniq([...without(this.tags.value, ...['dm', 'plugin/thread', ...this.addedMailboxes]), 'notes']);
       this.setTags(newTags);
@@ -270,17 +295,17 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
-    return this.editor.getTagPreview(value, this.store.account.origin);
+    return this.editor.getTagPreview(value, this.store.account.origin());
   }
 
   edit(input: HTMLInputElement) {
-    this.editing = true;
-    this.preview = '';
+    this.editing.set(true);
+    this.preview.set('');
     input.focus();
   }
 
   clickPreview(input: HTMLInputElement) {
-    if (this.store.hotkey) {
+    if (this.store.hotkey()) {
       this.config.tag(input.value);
     } else {
       this.edit(input);
@@ -302,12 +327,12 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
-      this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
+      this.autocomplete.set(xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag })));
     });
   }, 400);
 
   blur(input: HTMLInputElement) {
-    this.editing = false;
+    this.editing.set(false);
     if (this.showError && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
@@ -321,39 +346,38 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   getPreview(value: string) {
     if (!value) return;
     if (this.showedError) return;
-    forkJoin(value.split(/[,\s]+/).filter(t => !!t).map( part => this.preview$(part))).subscribe(xs => {
-      this.preview = xs.map(x => x?.name || x?.tag || '').join(',  ');
+    forkJoin(value.split(/[,\s]+/).filter(t => !!t).map( part => this.preview$(part))).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(xs => {
+      this.preview.set(xs.map(x => x?.name || x?.tag || '').join(',  '));
+      this.previewTitle.set(value);
     });
   }
 
   getMailboxes(tag: string): string[] {
-    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin), ...hasPrefix(tag, '+user') ? [localTag(tag).substring(1)] : [] ];
+    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin()), ...hasPrefix(tag, '+user') ? [localTag(tag).substring(1)] : [] ];
   }
 
-  @memo
-  get codeLang() {
-    for (const t of this.tags.value) {
+  readonly codeLang = computed(() => {
+    for (const t of this.tagsValue() || []) {
       if (hasPrefix(t, 'plugin/code')) {
         return t.split('/')[2];
       }
     }
     return '';
-  }
+  });
 
-  @memo
-  get codeOptions() {
-    return {
-      language: this.codeLang,
-      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
-      automaticLayout: true,
-    };
-  }
+  readonly codeOptions = computed(() => ({
+    language: this.codeLang(),
+    theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
+    automaticLayout: true,
+  }), { equal: isEqual });
 
-  @memo
-  get customEditor() {
-    if (!this.tags?.value) return false;
-    return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
-  }
+  readonly customEditor = computed(() => {
+    const tags = this.tagsValue();
+    if (!tags) return false;
+    return some(this.admin.editor(), t => hasTag(t.tag, tags));
+  });
 
   get top() {
     return this.sources.value[1] || this.sources.value[0] || this._url;
@@ -364,7 +388,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       this.sources.push(this.fb.control(this.top, LinksFormComponent.validators));
     }
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
-    this.submitted = false;
+    this.submitted.set(false);
   }
 
   syncEditor() {
@@ -372,12 +396,12 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   submit() {
-    if (this.saving) {
-      this.saving.add(() => this.submit());
+    if (this.saving()) {
+      this.savingSubscription?.add(() => this.submit());
       return;
     }
-    this.serverError = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.submitted.set(true);
     this.dmForm.markAllAsTouched();
     if (!this.dmForm.valid) {
       scrollToFirstInvalid();
@@ -385,12 +409,12 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     }
     const url = this._url;
     const published = this.dmForm.value.published ? DateTime.fromISO(this.dmForm.value.published) : DateTime.now();
-    let sources = [url, ...uniq([url, ...this.store.submit.sources, ...this.dmForm.value.sources])];
+    let sources = [url, ...uniq([url, ...this.store.submit.sources(), ...this.dmForm.value.sources])];
     if (sources.length === 2) sources = [];
     const finalTags = this.dmForm.value.tags;
     const ref = {
       url,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
       sources,
@@ -398,26 +422,28 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       tags: finalTags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
     };
-    this.submitting = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
+    this.submitting.set(true);
+    this.submittingSubscription = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       switchMap(res => {
         const finalVisibilityTags = getVisibilityTags(finalTags);
         if (!finalVisibilityTags.length) return of(res);
-        const taggingOps = this.completedUploads
+        const taggingOps = this.completedUploads()
           .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
         if (!taggingOps.length) return of(res);
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        delete this.submitting;
-        this.serverError = printError(res);
+        this.submitting.set(false);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      delete this.submitting;
+      this.submitting.set(false);
       this.dmForm.markAsPristine();
-      this.completedUploads = [];
+      this.completedUploads.set([]);
 
       this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }, replaceUrl: true});
     });
+    this.submittingSubscription?.add(() => this.submitting.set(false));
   }
 }

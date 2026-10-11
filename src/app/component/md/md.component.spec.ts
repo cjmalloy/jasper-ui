@@ -3,7 +3,6 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 import { MarkdownModule } from 'ngx-markdown';
 
 import { MdComponent } from './md.component';
@@ -24,8 +23,8 @@ describe('MdComponent', () => {
 
     fixture = TestBed.createComponent(MdComponent);
     component = fixture.componentInstance;
-    component.mermaid = false;
-    component.clipboard = false;
+    fixture.componentRef.setInput('mermaid', false);
+    fixture.componentRef.setInput('clipboard', false);
     fixture.detectChanges();
   });
 
@@ -33,10 +32,19 @@ describe('MdComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  function postProcessReady() {
+    return new Promise<void>(resolve => {
+      const sub = component.postProcessMarkdown.subscribe(() => {
+        sub.unsubscribe();
+        resolve();
+      });
+    });
+  }
+
   it('should render KaTeX when the LaTeX plugin is enabled', async () => {
-    const ready = firstValueFrom(component.postProcessMarkdown);
-    component.plugins = ['plugin/latex'];
-    component.text = '$x^2$';
+    const ready = postProcessReady();
+    fixture.componentRef.setInput('plugins', ['plugin/latex']);
+    fixture.componentRef.setInput('text', '$x^2$');
     fixture.detectChanges();
     await ready;
 
@@ -45,7 +53,7 @@ describe('MdComponent', () => {
 
   it('should block object tags in markdown content', async () => {
     // Set markdown content with an object tag
-    component.text = '<object data="test.pdf" type="application/pdf"></object>';
+    fixture.componentRef.setInput('text', '<object data="test.pdf" type="application/pdf"></object>');
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -58,7 +66,7 @@ describe('MdComponent', () => {
 
   it('should block embed tags in markdown content', async () => {
     // Set markdown content with an embed tag
-    component.text = '<embed src="test.pdf" type="application/pdf">';
+    fixture.componentRef.setInput('text', '<embed src="test.pdf" type="application/pdf">');
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -71,8 +79,8 @@ describe('MdComponent', () => {
 
   it('should block object tags in mixed markdown content', async () => {
     // Set markdown content with text and an object tag
-    const ready = firstValueFrom(component.postProcessMarkdown);
-    component.text = 'This is some text\n\n<object data="malicious.swf" type="application/x-shockwave-flash"></object>\n\nMore text';
+    const ready = postProcessReady();
+    fixture.componentRef.setInput('text', 'This is some text\n\n<object data="malicious.swf" type="application/x-shockwave-flash"></object>\n\nMore text');
     fixture.detectChanges();
     await ready;
 
@@ -89,8 +97,8 @@ describe('MdComponent', () => {
 
   it('should block embed tags in mixed markdown content', async () => {
     // Set markdown content with text and an embed tag
-    const ready = firstValueFrom(component.postProcessMarkdown);
-    component.text = '# Heading\n\n<embed src="dangerous.swf" type="application/x-shockwave-flash">\n\nSafe paragraph';
+    const ready = postProcessReady();
+    fixture.componentRef.setInput('text', '# Heading\n\n<embed src="dangerous.swf" type="application/x-shockwave-flash">\n\nSafe paragraph');
     fixture.detectChanges();
     await ready;
 

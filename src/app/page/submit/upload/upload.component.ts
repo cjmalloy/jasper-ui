@@ -1,12 +1,10 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, concat, last, lastValueFrom, map, of, switchMap, tap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
@@ -30,18 +28,24 @@ import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { pickPlugins } from '../../../util/tag';
-import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedCacheFiles, zippedFile } from '../../../util/zip';
+import {
+  FilteredModels,
+  filterModels,
+  getModels,
+  getTextFile,
+  unzip,
+  zippedCacheFiles,
+  zippedFile
+} from '../../../util/zip';
 
 @Component({
   selector: 'app-upload',
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
   host: { 'class': 'full-page-upload' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ExtComponent,
     RefComponent,
-    MobxAngularModule,
     RouterLink,
     ReactiveFormsModule,
     AutofocusDirective,
@@ -50,40 +54,39 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedCach
     TagPreviewPipe,
   ]
 })
-export class UploadPage implements OnDestroy {
-  private disposers: IReactionDisposer[] = [];
-  tagRegex = TAGS_REGEX.source;
+export class UploadPage {
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private proxy = inject(ProxyService);
+  private uploadCache = inject(UploadCacheService);
+  private auth = inject(AuthzService);
+  private router = inject(Router);
 
-  erroredExts: Ext[] = [];
-  erroredRefs: Ref[] = [];
+
+  readonly erroredExts = signal<Ext[]>([]);
+  readonly erroredRefs = signal<Ref[]>([]);
   private uploadedUrls: string[] = [];
-  serverErrors: string[] = [];
-  processing = false;
+  readonly serverErrors = signal<string[]>([]);
+  readonly processing = signal<boolean>(false);
+  tagRegex = TAGS_REGEX.source;
   fileCache = this.admin.getPlugin('plugin/file');
 
-  constructor(
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private mod: ModService,
-    private admin: AdminService,
-    private refs: RefService,
-    private exts: ExtService,
-    private proxy: ProxyService,
-    private uploadCache: UploadCacheService,
-    private auth: AuthzService,
-    private router: Router,
-  ) {
-    mod.setTitle($localize`Submit: Upload`);
-    this.disposers.push(autorun(() => {
-      this.readUploads(this.store.submit.files);
-      runInAction(() => this.store.submit.clearFiles());
-    }));
-    this.store.submit.clearOverride();
-  }
+  constructor() {
+    const mod = this.mod;
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
+    mod.setTitle($localize`Submit: Upload`);
+    effect(() => {
+      this.store.submit.files();
+      untracked(() => {
+        this.readUploads(this.store.submit.files());
+        this.store.submit.clearFiles();
+      });
+    });
+    this.store.submit.clearOverride();
   }
 
   readUploads(uploads?: File[], forceCache = false) {
@@ -135,18 +138,18 @@ export class UploadPage implements OnDestroy {
       }
     }
     // Refs and Exts
-    this.read(files, this.store.account.localTag);
-    this.readData(texts, this.store.account.localTag, ...this.store.submit.tags);
-    this.readSheet(tables, 'plugin/table', this.store.account.localTag, ...this.store.submit.tags);
-    this.readBookmarks(bookmarks, this.store.account.localTag, ...this.store.submit.tags);
-    this.readSitemap(sitemap, this.store.account.localTag, ...this.store.submit.tags);
+    this.read(files, this.store.account.localTag());
+    this.readData(texts, this.store.account.localTag(), ...this.store.submit.tags());
+    this.readSheet(tables, 'plugin/table', this.store.account.localTag(), ...this.store.submit.tags());
+    this.readBookmarks(bookmarks, this.store.account.localTag(), ...this.store.submit.tags());
+    this.readSitemap(sitemap, this.store.account.localTag(), ...this.store.submit.tags());
 
     if (cacheWarning) alert('File Cache has not been enabled by the admin (plugin/file) so file uploads will likely fail.')
-    this.readCache(audio, 'plugin/audio', this.store.account.localTag, ...this.store.submit.tags);
-    this.readCache(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
-    this.readCache(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
-    this.readCache(pdfs, 'plugin/pdf', this.store.account.localTag, ...this.store.submit.tags);
-    this.readCache(cache, 'plugin/file', this.store.account.localTag, ...this.store.submit.tags);
+    this.readCache(audio, 'plugin/audio', this.store.account.localTag(), ...this.store.submit.tags());
+    this.readCache(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag(), ...this.store.submit.tags());
+    this.readCache(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag(), ...this.store.submit.tags());
+    this.readCache(pdfs, 'plugin/pdf', this.store.account.localTag(), ...this.store.submit.tags());
+    this.readCache(cache, 'plugin/file', this.store.account.localTag(), ...this.store.submit.tags());
   }
 
   read(files?: File[], ...extraTags: string[]) {
@@ -188,19 +191,15 @@ export class UploadPage implements OnDestroy {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
-      runInAction(() => {
-        this.store.submit.caching.set(file, { name: file.name, progress: 0 });
-      });
-      this.proxy.save(file, this.store.account.origin).pipe(
+      this.store.submit.setCaching(file, { name: file.name, progress: 0 });
+      this.proxy.save(file, this.store.account.origin()).pipe(
         map(event => {
           switch (event.type) {
             case HttpEventType.Response:
               return event.body;
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-              runInAction(() => {
-                this.store.submit.caching.set(file, { name: file.name, progress: percentDone });
-              });
+              this.store.submit.setCaching(file, { name: file.name, progress: percentDone });
               return null;
           }
           return null;
@@ -214,14 +213,14 @@ export class UploadPage implements OnDestroy {
           return ref!;
         }),
         catchError((res: HttpErrorResponse) => {
-          this.store.submit.caching.delete(file);
-          this.serverErrors.push(...printError(res));
+          this.store.submit.removeCaching(file);
+          this.serverErrors.update(errors => [...errors, ...printError(res)]);
           return throwError(() => res);
         }),
-      ).subscribe(ref => runInAction(() => {
-        this.store.submit.caching.delete(file);
+      ).subscribe(ref => {
+        this.store.submit.removeCaching(file);
         this.store.submit.addRefs({ ...ref, upload: true, exists: true });
-      }));
+      });
     }
   }
 
@@ -230,14 +229,14 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      reader.onload = () => runInAction(() => this.store.submit.addRefs({
+      reader.onload = () => this.store.submit.addRefs({
         upload: true,
         url: 'internal:' + uuid(),
         title: file.name,
         tags: uniq(['public', tag, ...extraTags.filter(t => !!t)]),
         plugins: { [tag]: { url: reader.result as string } },
         published: DateTime.now(),
-      }));
+      });
       reader.readAsDataURL(file);
     }
   }
@@ -247,14 +246,14 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      reader.onload = () => runInAction(() => this.store.submit.addRefs({
+      reader.onload = () => this.store.submit.addRefs({
         upload: true,
         url: 'internal:' + uuid(),
         title: file.name,
         tags: uniq(['public', ...extraTags.filter(t => !!t)]),
         comment: reader.result as string,
         published: DateTime.now(),
-      }));
+      });
       reader.readAsText(file);
     }
   }
@@ -264,7 +263,7 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      reader.onload = () => runInAction(() => {
+      reader.onload = () => {
         const html = reader.result as string;
         const links = new DOMParser().parseFromString(html, 'text/html').documentElement.getElementsByTagName('a');
         for (let i = 0; i < links.length; i++) {
@@ -277,7 +276,7 @@ export class UploadPage implements OnDestroy {
             published: DateTime.now(),
           });
         }
-      });
+      };
       reader.readAsText(file);
     }
   }
@@ -287,7 +286,7 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      reader.onload = () => runInAction(() => {
+      reader.onload = () => {
         const xml = reader.result as string;
         const locs = new DOMParser().parseFromString(xml, 'application/xml').documentElement.getElementsByTagName('loc');
         for (let i = 0; i < locs.length; i++) {
@@ -300,7 +299,7 @@ export class UploadPage implements OnDestroy {
             published: DateTime.now(),
           });
         }
-      });
+      };
       reader.readAsText(file);
     }
   }
@@ -310,7 +309,7 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      reader.onload = () => runInAction(() => {
+      reader.onload = () => {
         const wb = XLSX.read(reader.result);
         for (const sheet of wb.SheetNames) {
           const title = wb.SheetNames.length === 1 ? file.name : `${file.name} [${sheet}]`;
@@ -324,7 +323,7 @@ export class UploadPage implements OnDestroy {
             published: DateTime.now(),
           });
         }
-      });
+      };
       reader.readAsArrayBuffer(file);
     }
   }
@@ -335,41 +334,41 @@ export class UploadPage implements OnDestroy {
   }
 
   download() {
-    if (this.store.submit.empty) return;
-    return downloadSet(this.store.submit.refs, this.store.submit.exts, 'uploads', this.store.submit.cacheFiles);
+    if (this.store.submit.empty()) return;
+    return downloadSet(this.store.submit.refs(), this.store.submit.exts(), 'uploads', this.store.submit.cacheFiles);
   }
 
   push() {
-    if (this.processing || this.store.submit.empty) return;
-    this.processing = true;
+    if (this.processing() || this.store.submit.empty()) return;
+    this.processing.set(true);
     this.uploadedUrls = [];
     const uploads = [
-      ...this.store.submit.exts.map(ext => this.uploadExt$(ext)),
-      ...this.store.submit.refs.map(ref => this.uploadRef$(ref)),
+      ...this.store.submit.exts().map(ext => this.uploadExt$(ext)),
+      ...this.store.submit.refs().map(ref => this.uploadRef$(ref)),
     ];
     return lastValueFrom(concat(...uploads))
       .then(() => {
-        if (!this.erroredExts.length && !this.erroredRefs.length) {
+        if (!this.erroredExts().length && !this.erroredRefs().length) {
           this.postNavigate();
         }
-        this.store.submit.clearUpload(this.erroredRefs, this.erroredExts);
-        this.erroredRefs = [];
-        this.erroredExts = [];
-        this.processing = false;
+        this.store.submit.clearUpload(this.erroredRefs(), this.erroredExts());
+        this.erroredRefs.set([]);
+        this.erroredExts.set([]);
+        this.processing.set(false);
       });
   }
 
   uploadRef$(ref: Ref) {
-    ref = toJS(ref);
-    ref.origin = this.store.account.origin;
+    ref = ref;
+    ref.origin = this.store.account.origin();
     ref.published ||= DateTime.now();
     const original = ref;
-    return this.uploadCache.restore$(ref, this.store.account.origin).pipe(
+    return this.uploadCache.restore$(ref, this.store.account.origin()).pipe(
       switchMap(restored => {
         ref = restored;
         ref.tags = uniq([
           ...ref.tags?.filter(t => this.auth.canAddTag(t)) || [],
-          ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+          ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
         ]);
         ref.plugins = pickPlugins(ref.plugins, ref.tags);
         return this.saveRef$(ref).pipe(
@@ -378,8 +377,8 @@ export class UploadPage implements OnDestroy {
       }),
       catchError((res: HttpErrorResponse) => {
         original.outdated ||= ref.outdated;
-        this.erroredRefs.push(original);
-        this.serverErrors.push(...printError(res));
+        this.erroredRefs.update(refs => [...refs, original]);
+        this.serverErrors.update(errors => [...errors, ...printError(res)]);
         return of(null);
       }),
     );
@@ -399,8 +398,8 @@ export class UploadPage implements OnDestroy {
     ).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          if (this.store.submit.overwrite) {
-            return this.refs.get(ref.url, this.store.account.origin).pipe(
+          if (this.store.submit.overwrite()) {
+            return this.refs.get(ref.url, this.store.account.origin()).pipe(
               switchMap(existing => {
                 return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
               }),
@@ -415,15 +414,15 @@ export class UploadPage implements OnDestroy {
   }
 
   uploadExt$(ext: Ext) {
-    ext = toJS(ext);
-    ext.origin = this.store.account.origin;
+    ext = ext;
+    ext.origin = this.store.account.origin();
     return (ext.exists
       ? this.exts.update(ext)
       : this.exts.create(ext)).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          if (this.store.submit.overwrite) {
-            return this.exts.get(ext.tag + this.store.account.origin).pipe(
+          if (this.store.submit.overwrite()) {
+            return this.exts.get(ext.tag + this.store.account.origin()).pipe(
               switchMap(existing => {
                 return this.exts.update({ ...ext, modifiedString: existing.modifiedString });
               })
@@ -435,8 +434,8 @@ export class UploadPage implements OnDestroy {
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
-        this.erroredExts.push(ext);
-        this.serverErrors.push(...printError(res));
+        this.erroredExts.update(exts => [...exts, ext]);
+        this.serverErrors.update(errors => [...errors, ...printError(res)]);
         return of(null);
       }),
     );
@@ -454,9 +453,9 @@ export class UploadPage implements OnDestroy {
       return;
     }
     if (field.value) {
-      this.bookmarks.tags = field.value.startsWith('-')
-        ? without(this.bookmarks.tags, field.value.substring(1))
-        : uniq([...this.bookmarks.tags, field.value]);
+      this.bookmarks.setTags(field.value.startsWith('-')
+        ? without(this.bookmarks.tags(), field.value.substring(1))
+        : uniq([...this.bookmarks.tags(), field.value]));
       this.store.submit.tagRefs(field.value.toLowerCase().trim().split(/\s+/));
       this.store.eventBus.fire('refresh:uploads');
       field.value = '';
@@ -464,13 +463,13 @@ export class UploadPage implements OnDestroy {
   }
 
   set overwrite(value: boolean) {
-    runInAction(() => this.store.submit.overwrite = value);
+    this.store.submit.overwrite.set(value);
   }
 
   private getModels(file: File): Promise<FilteredModels> {
     if (file.name.toLowerCase().endsWith('.zip')) {
       return unzip(file).then(zip => {
-        runInAction(() => this.store.submit.addCacheFiles(zippedCacheFiles(zip)));
+        this.store.submit.addCacheFiles(zippedCacheFiles(zip));
         return zip;
       }).then(zip => Promise.all([
         zippedFile(zip, 'ext.json')
@@ -489,14 +488,14 @@ export class UploadPage implements OnDestroy {
   }
 
   private postNavigate() {
-    if (this.store.submit.exts.length) {
-      return this.router.navigate(['/tag', this.store.submit.exts[0].tag]);
+    if (this.store.submit.exts().length) {
+      return this.router.navigate(['/tag', this.store.submit.exts()[0].tag]);
     }
-    if (this.store.submit.refs.length === 1) {
-      return this.router.navigate(['/ref', this.uploadedUrls.length === 1 ? this.uploadedUrls[0] : this.store.submit.refs[0].url]);
+    if (this.store.submit.refs().length === 1) {
+      return this.router.navigate(['/ref', this.uploadedUrls.length === 1 ? this.uploadedUrls[0] : this.store.submit.refs()[0].url]);
     }
-    if (this.store.submit.refs.length) {
-      return this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/file' } });
+    if (this.store.submit.refs().length) {
+      return this.router.navigate(['/tag', this.store.account.tag()], { queryParams: { filter: 'query/plugin/file' } });
     }
     return null;
   }

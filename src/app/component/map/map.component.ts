@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
-import { Component, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, effect, inject, input, untracked, ViewEncapsulation } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import {
   ControlComponent,
@@ -10,9 +10,11 @@ import {
 } from '@maplibre/ngx-maplibre-gl';
 import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { FeatureCollection } from 'geojson';
+import { isEqual } from 'lodash-es';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
 import { LngLatBounds, Map, Marker } from 'maplibre-gl';
-import { BehaviorSubject, catchError, filter, forkJoin, map as rxMap, of, Subject, switchMap } from 'rxjs';
+import { catchError, filter, forkJoin, map as rxMap, of, switchMap } from 'rxjs';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -31,14 +33,12 @@ import { getTitle } from '../../util/format';
 import { formatMapView, geoFeatures, hasLocation, MapView, minimalLngInterval, parseMapView } from '../../util/geo';
 import { addGeoLayers } from '../../util/geo-style';
 import { GeocoderPosition, isConfigured } from '../../util/geocode';
-import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
+import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { addGeocoder } from './geocoder';
 import { preventSelectionDrag } from './selection-drag';
 import { DOUBLE_CLICK_DELAY, isRepeatClick, onSingleClick } from './single-click';
-import { PageControlsComponent } from '../page-controls/page-controls.component';
-import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
 
 export { formatMapView, minimalLngInterval, parseMapView };
 export type { MapView };
@@ -52,7 +52,6 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
   encapsulation: ViewEncapsulation.None,
   host: { 'class': 'map ext' },
   providers: [provideMaplibreWorker('assets/maplibre-gl-worker.mjs')],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MglComponent,
     ControlComponent,
@@ -63,42 +62,39 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
     ResizeHandleDirective,
   ]
 })
-export class MapComponent implements OnChanges, OnDestroy, HasChanges {
+export class MapComponent implements HasChanges {
+  private router = inject(Router);
+  private location = inject(Location);
+  private admin = inject(AdminService);
+  private proxy = inject(ProxyService);
+  private refs = inject(RefService);
+  private store = inject(Store);
+  private geocoder = inject(GeocodeService);
+  private auth = inject(AuthzService);
 
-  @Input()
-  tag = '';
-  @Input()
-  ext?: Ext;
-  @Input()
-  pageControls = true;
+  readonly tag = input('');
+  readonly ext = input<Ext>();
+  readonly pageControls = input(true);
   /**
    * Fit the map to this bounding box [west, south, east, north].
    * If empty, fits to the features on the map when fitFeatures is set.
    */
-  @Input()
-  bbox?: number[];
-  @Input()
-  fitFeatures = false;
+  readonly bbox = input<number[]>();
+  readonly fitFeatures = input(false);
   /**
    * Save the map center and zoom in the URL, replacing the current history
    * entry so pressing back returns to the same spot on the map.
    */
-  @Input()
-  set saveView(value: boolean) {
-    this._saveView = value;
-    this.view = value ? parseMapView(this.store.view.mapView) : undefined;
-  }
-  get saveView() {
-    return this._saveView;
-  }
+  readonly saveView = input(false);
+  readonly page = input<Page<Ref> | undefined>(undefined);
 
-  private _page?: Page<Ref>;
   private map?: Map;
   private geocoderMap?: Map;
   private markers: Marker[] = [];
-  private mapDataUpdates$ = new Subject<Ref[]>();
-  private ext$ = new BehaviorSubject<Ext | undefined>(undefined);
-  mapData: MapEntry[] = [];
+  readonly mapData = toSignal(toObservable(computed(() => this.page()?.content || [])).pipe(
+    switchMap(content => !content.some(ref => this.isBareRepost(ref))
+      ? of(content.map(ref => [ref] as MapEntry)) : forkJoin(content.map(ref => this.getBareRepost(ref)))),
+  ), { initialValue: [] as MapEntry[] });
   private geocoding = false;
   private geocoderPosition?: GeocoderPosition;
   private removeGeocoder?: () => void;
@@ -107,25 +103,14 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private searchActivation?: ReturnType<typeof setTimeout>;
   private reverseGeocode?: AbortController;
   private removeClick?: () => void;
-  private _saveView = false;
   /**
    * View the map is created with, restored from the URL.
    */
-  view?: MapView;
+  readonly view = computed(() => this.saveView() ? untracked(() => parseMapView(this.store.view.mapView())) : undefined);
 
-  constructor(
-    private router: Router,
-    private location: Location,
-    private admin: AdminService,
-    private proxy: ProxyService,
-    private refs: RefService,
-    private store: Store,
-    private geocoder: GeocodeService,
-    private auth: AuthzService,
-    private zone: NgZone,
-  ) {
-    this.ext$.pipe(
-      switchMap(ext => geocoder.configFor$(ext)),
+  constructor() {
+    toObservable(this.ext).pipe(
+      switchMap(ext => this.geocoder.configFor$(ext)),
       takeUntilDestroyed(),
     ).subscribe(config => {
       this.geocoding = isConfigured(config);
@@ -136,19 +121,32 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       this.geocoderPosition = config.geocoderPosition;
       this.updateGeocoder();
     });
-    this.mapDataUpdates$.pipe(
-      switchMap(content => {
-        if (!content.some(ref => this.isBareRepost(ref))) return of(content.map(ref => [ref] as MapEntry));
-        return forkJoin(content.map(ref => this.getBareRepost(ref)));
-      }),
-      takeUntilDestroyed(),
-    ).subscribe(mapData => {
-      this.mapData = mapData;
-      MemoCache.clear(this);
-      this.updateMapData();
-      if (this.fitFeatures) this.fit();
+    // Sync map data to maplibre
+    effect(() => {
+      this.mapData();
+      untracked(() => {
+        this.updateMapData();
+        if (this.fitFeatures()) this.fit();
+      });
     });
-    router.events.pipe(
+    // Sync bounding box to maplibre
+    effect(() => {
+      this.bbox();
+      untracked(() => this.fit());
+    });
+    // Sync out of range page number to the router
+    effect(() => {
+      const value = this.page();
+      if (value && value.page.number > 0 && value.page.number >= value.page.totalPages) {
+        this.router.navigate([], {
+          queryParams: {
+            pageNumber: value.page.totalPages - 1
+          },
+          queryParamsHandling: 'merge',
+        });
+      }
+    });
+    this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
       takeUntilDestroyed(),
     ).subscribe(() => this.restoreView());
@@ -158,8 +156,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
    * Back and forward within the same page move the map to the saved view.
    */
   private restoreView() {
-    if (!this.saveView || !this.map) return;
-    const view = parseMapView(this.store.view.mapView);
+    if (!this.saveView() || !this.map) return;
+    const view = parseMapView(this.store.view.mapView());
     if (!view) {
       this.writeView();
     } else if (formatMapView(view) !== formatMapView(this.currentView)) {
@@ -174,31 +172,30 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   private writeView = () => {
-    if (!this.saveView) return;
+    if (!this.saveView()) return;
     const view = this.currentView;
     if (!view) return;
     const url = this.router.parseUrl(this.location.path());
     const value = formatMapView(view);
-    this.store.view.setLiveMapView(value);
+    this.store.view.liveMapView.set(value);
     if (url.queryParams['map'] === value) return;
     url.queryParams = { ...url.queryParams, map: value };
     this.location.replaceState(this.router.serializeUrl(url), '', this.location.getState());
   };
 
-  @memo
-  get mapStyle() {
+  readonly mapStyle = computed(() => {
     return {
-      ...this.ext?.config?.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
+      ...this.ext()?.config?.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
       ...this.admin.getTemplate('map')?.config?.mapStyle || {},
     };
-  }
+  }, { equal: isEqual });
 
   private updateGeocoder() {
     if (this.geocoding && this.geocoderMap && !this.removeGeocoder) {
       this.removeGeocoder = addGeocoder(this.geocoderMap, this.geocoder, this.geocoderPosition,
         (location, name) => this.showSearchResult(location, name),
         () => this.clearSearchResult(),
-        () => this.ext);
+        () => this.ext());
     } else if (!this.geocoding && this.removeGeocoder) {
       this.removeGeocoder();
       this.removeGeocoder = undefined;
@@ -226,16 +223,13 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     el.setAttribute('role', 'button');
     el.tabIndex = 0;
     const activate = () => {
-      // Marker events run outside Angular
-      this.zone.run(() => {
-        this.clearSearchResult();
-        this.router.navigate(['/submit/text'], {
-          queryParams: {
-            tag: [...this.addTags.filter(t => t !== 'plugin/geo/point'), 'plugin/geo/point'],
-            location: location.join(','),
-            ...name ? { title: name } : {},
-          },
-        });
+      this.clearSearchResult();
+      this.router.navigate(['/submit/text'], {
+        queryParams: {
+          tag: [...this.addTags().filter(t => t !== 'plugin/geo/point'), 'plugin/geo/point'],
+          location: location.join(','),
+          ...name ? { title: name } : {},
+        },
       });
     };
     el.addEventListener('click', e => {
@@ -266,17 +260,17 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
    * Tags added to a Ref submitted from the map, the same as the sidebar
    * Submit button.
    */
-  get addTags(): string[] {
-    const tag = this.tag || undefined;
+  readonly addTags = computed((): string[] => {
+    const tag = this.tag() || undefined;
     const plugin = tag ? this.admin.getPlugin(tag) : undefined;
     const root = this.admin.getTemplate('');
-    const home = tag === 'config/home' || (!tag && this.store.view.current === 'home');
-    const submitExt = home ? this.store.view.homeExt : this.ext;
+    const home = tag === 'config/home' || (!tag && this.store.view.current() === 'home');
+    const submitExt = home ? this.store.view.homeExt() : this.ext();
     const rootConfig = root
       ? (submitExt?.config || (tag && this.admin.getTemplate(tag)?.defaults) || root.defaults) as RootConfig
       : undefined;
     return getAddTags(tag, plugin, rootConfig, home).filter(t => this.auth.canAddTag(t));
-  }
+  });
 
   private cancelSearchActivation() {
     clearTimeout(this.searchActivation);
@@ -301,7 +295,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     const setName = this.showSearchResult(location);
     if (!setName || !this.geocoding) return;
     const controller = this.reverseGeocode = new AbortController();
-    this.geocoder.reverse(location, controller.signal, this.ext)
+    this.geocoder.reverse(location, controller.signal, this.ext())
       .then(result => {
         if (!controller.signal.aborted && result?.name) setName(result.name);
       })
@@ -314,26 +308,13 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     return true;
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['ext']) {
-      MemoCache.clear(this);
-      if (this.ext$.value !== this.ext) this.ext$.next(this.ext);
-    }
-    if (changes['bbox'] && !changes['bbox'].firstChange) {
-      MemoCache.clear(this);
-      this.fit();
-    }
-  }
-
-  ngOnDestroy() {
-    this.mapDataUpdates$.complete();
-    this.ext$.complete();
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.clearMarkers();
     this.clearSearchResult();
     this.removeClick?.();
     this.removeClick = undefined;
     this.map?.off('moveend', this.writeView);
-    if (this.saveView) this.store.view.setLiveMapView();
+    if (this.saveView()) this.store.view.liveMapView.set('');
     this.removeGeocoder?.();
     this.removeGeocoder = undefined;
     this.geocoderMap = undefined;
@@ -343,39 +324,17 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       this.map?.remove();
     } catch (ignored) { }
     this.map = undefined;
-  }
+  });
 
-  get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    MemoCache.clear(this);
-    this._page = value;
-    this.mapDataUpdates$.next(value?.content || []);
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
-        this.router.navigate([], {
-          queryParams: {
-            pageNumber: this._page.page.totalPages - 1
-          },
-          queryParamsHandling: 'merge',
-        });
-      }
-    }
-  }
-
-  @memo
-  get geoData(): FeatureCollection {
+  readonly geoData = computed((): FeatureCollection => {
     return {
       type: 'FeatureCollection',
       // Geo points are shown as markers
-      features: this.mapData.flatMap(([ref]) => features(ref, 'plugin/geo/point'))
+      features: this.mapData().flatMap(([ref]) => features(ref, 'plugin/geo/point'))
         .filter(f => f?.type === 'Feature')
         .flatMap(f => geoFeatures(f, f.geometry?.type === 'Point' ? hasLocation : undefined)),
     };
-  }
+  });
   onMapError(event: any) {
     console.error('MapLibre Engine Error:', event.error);
   }
@@ -401,17 +360,17 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     this.styleLoaded(map);
     this.removeClick = onSingleClick(map, this.mapClick);
     preventSelectionDrag(map);
-    map.addSource('geo-features', { type: 'geojson', data: this.geoData });
-    this.removeGeoLayers = this.zone.runOutsideAngular(() => addGeoLayers(map, 'geo-features', 'geo', 8));
+    map.addSource('geo-features', { type: 'geojson', data: this.geoData() });
+    this.removeGeoLayers = addGeoLayers(map, 'geo-features', 'geo', 8);
     this.updateMapData();
-    if (!this.view) this.fit();
+    if (!this.view()) this.fit();
     map.on('moveend', this.writeView);
     this.writeView();
   }
 
   private fit() {
     if (!this.map) return;
-    const bounds = this.bounds;
+    const bounds = this.bounds();
     if (!bounds) return;
     this.map.fitBounds(bounds, { ...this.fitBoundsOptions, animate: false });
   }
@@ -422,9 +381,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
    * Bounds the map is created with, so it doesn't render the style's
    * default center first and then jump to the features.
    */
-  @memo
-  get bounds(): LngLatBounds | undefined {
-    const bbox = this.bbox;
+  readonly bounds = computed((): LngLatBounds | undefined => {
+    const bbox = this.bbox();
     if (bbox && (bbox.length === 4 || bbox.length === 6) && bbox.every(n => typeof n === 'number' && isFinite(n))) {
       const east = bbox.length === 6 ? bbox[3] : bbox[2];
       const north = bbox.length === 6 ? bbox[4] : bbox[3];
@@ -432,7 +390,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         return new LngLatBounds([bbox[0], bbox[1]], [east, north]);
       }
     }
-    if (!this.fitFeatures) return undefined;
+    if (!this.fitFeatures()) return undefined;
     const lngs: number[] = [];
     let south = Infinity;
     let north = -Infinity;
@@ -448,22 +406,23 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         c.forEach(extend);
       }
     };
-    (this.mapData.length
-      ? this.mapData.map(([ref]) => ref)
-      : (this.page?.content || []).filter(ref => hasTag('plugin/geo', ref)))
+    const mapData = this.mapData();
+    (mapData.length
+      ? mapData.map(([ref]) => ref)
+      : (this.page()?.content || []).filter(ref => hasTag('plugin/geo', ref)))
       .flatMap(ref => features(ref))
       .flatMap(f => geoFeatures(f, hasLocation))
       .forEach(f => extend((f.geometry as any).coordinates));
     if (!lngs.length) return undefined;
     const [west, east] = minimalLngInterval(lngs);
     return new LngLatBounds([west, south], [east, north]);
-  }
+  });
 
   private updateMapData() {
     if (!this.map) return;
     const source = this.map.getSource('geo-features') as GeoJSONSource | undefined;
     if (source) {
-      source.setData(this.geoData);
+      source.setData(this.geoData());
     }
     this.clearMarkers();
     this.addMarkers(this.map);
@@ -475,7 +434,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   private addMarkers(map: Map) {
-    [...this.mapData].reverse().forEach(entry => {
+    [...this.mapData()].reverse().forEach(entry => {
       const [ref] = entry;
       const pointFeature = ref.plugins?.['plugin/geo/point'];
       if (pointFeature?.geometry?.type === 'Point' && hasLocation(pointFeature.geometry?.coordinates)) {
@@ -489,7 +448,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         markerElement.setAttribute('role', 'link');
         markerElement.tabIndex = 0;
         marker.setLngLat(pointFeature.geometry.coordinates).addTo(map);
-        const openRef = () => this.zone.run(() => this.router.navigate(['/ref', ref.url]));
+        const openRef = () => this.router.navigate(['/ref', ref.url]);
         marker.on('click', openRef);
         markerElement.addEventListener('keydown', event => {
           if (event.key === 'Enter') {
@@ -525,8 +484,9 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private getBareRepost(ref: Ref) {
     if (!this.isBareRepost(ref)) return of([ref] as MapEntry);
     const source = repost(ref);
-    return (this.store.view.top?.url === source
-        ? of(this.store.view.top)
+    const top = this.store.view.top();
+    return (top?.url === source
+        ? of(top)
         : this.refs.getCurrent(source)
     ).pipe(
       rxMap(sourceRef => [this.withRepostGeo(ref, sourceRef), ref] as MapEntry),

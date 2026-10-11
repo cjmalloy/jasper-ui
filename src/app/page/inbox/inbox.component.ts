@@ -1,7 +1,5 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
 import { AdminService } from '../../service/admin.service';
@@ -13,27 +11,20 @@ import { Store } from '../../store/store';
   templateUrl: './inbox.component.html',
   styleUrls: ['./inbox.component.scss'],
   host: { 'class': 'inbox' },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
+  imports: [TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
 })
-export class InboxPage implements OnInit {
+export class InboxPage {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-  ) { }
-
-  ngOnInit(): void {
-    if (!this.store.view.inboxTabs.length) {
-      runInAction(() => {
-        this.store.view.inboxTabs = this.admin.inbox.filter(p => this.auth.tagReadAccess(p.tag));
-      });
+  constructor() {
+    if (!this.store.view.inboxTabs().length) {
+      this.store.view.inboxTabs.set(this.admin.inbox().filter(p => this.auth.tagReadAccess(p.tag)));
     }
   }
-
 }
 
 export const getInbox = () => {
-  return inject(AdminService).inbox[0]?.tag || '';
+  return inject(AdminService).inbox()[0]?.tag || '';
 };

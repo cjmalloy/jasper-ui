@@ -895,6 +895,7 @@ video.qr-preview {
 
 .tabs {
   display: flex;
+  box-sizing: border-box;
   user-select: none;
   flex-wrap: wrap;
   min-height: 60px;
@@ -1360,6 +1361,22 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   max-width: 600px;
 }
 
+.form:has(.fill-editor > :is(textarea, ngx-monaco-editor):is([style^="width"], [style*=" width"], [style*=";width"])) {
+  width: fit-content;
+  max-width: none;
+}
+
+.fill-editor {
+  & > textarea,
+  & > ngx-monaco-editor {
+    width: 100%;
+    min-width: min(504px, 100vw - 32px);
+  }
+  & > ngx-monaco-editor {
+    contain: inline-size;
+  }
+}
+
 .form,
 formly-list-section .form-array > formly-field > formly-group,
 formly-field-geometries .geometry-item > formly-field > formly-group {
@@ -1370,6 +1387,7 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   .shrink select {
     margin-top: 2px;
   }
+
   .nested-title {
     text-align: left;
     margin: 12px 4px 0;
@@ -1395,6 +1413,7 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
       line-height: 24px;
     }
   }
+
   & > * {
     margin: 4px;
   }
@@ -2032,10 +2051,13 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   padding: 2px 0;
-  height: 14px;
+  min-height: 14px;
   user-select: none;
-  white-space: nowrap;
+  white-space: normal;
 
   a, .fake-link {
     margin: 2px 6px 2px 0;

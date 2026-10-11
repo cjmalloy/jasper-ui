@@ -8,7 +8,7 @@ import { throwError } from 'rxjs';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
-import { JasperFormlyModule } from '../../../formly/formly.module';
+import { provideJasperFormly } from '../../../formly/formly.config';
 
 import { SubmitWebPage } from './web.component';
 
@@ -20,13 +20,13 @@ describe('SubmitWebPage', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         SubmitWebPage,
         RefFormComponent,
         TagsFormComponent,
         LinksFormComponent,
       ],
       providers: [
+        provideJasperFormly(),
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -55,18 +55,18 @@ describe('SubmitWebPage', () => {
 
     component.submit();
 
-    expect(component.alreadyExists).toBe(true);
-    expect(component.serverError).toEqual(['Already exists']);
+    expect(component.alreadyExists()).toBe(true);
+    expect(component.serverError()).toEqual(['Already exists']);
 
     const addTag = vi.spyOn(component, 'addTag');
-    const setLinks = vi.spyOn(component.refForm.sourcesFormComponent, 'setLinks');
+    const setLinks = vi.spyOn(component.refForm.sourcesFormComponent(), 'setLinks');
     component.prepareRepost();
     await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(component.url).toMatch(/^internal:/);
     expect(addTag).toHaveBeenCalledWith('plugin/repost');
     expect(setLinks).toHaveBeenCalledWith(['https://example.com']);
-    expect(component.alreadyExists).toBe(false);
-    expect(component.submitted).toBe(false);
+    expect(component.alreadyExists()).toBe(false);
+    expect(component.submitted()).toBe(false);
   });
 });

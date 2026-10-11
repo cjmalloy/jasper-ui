@@ -1,25 +1,23 @@
 import {
-  DestroyRef,
-  inject,
-  AfterViewInit,
+  afterNextRender,
   Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  Output,
-  QueryList,
-  SimpleChanges,
-  ViewChildren,
-  ChangeDetectionStrategy
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  output,
+  untracked,
+  viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
-import { toJS } from 'mobx';
 import { TitleDirective } from '../../directive/title.directive';
 import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
+import { controlValue } from '../../util/form';
 import { emptyObject, getScheme, patchObj, writeObj } from '../../util/http';
 import { addAllHierarchicalTags, hasTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
@@ -29,99 +27,109 @@ import { GenFormComponent } from './gen/gen.component';
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss'],
   host: { 'class': 'plugins-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
-export class PluginsFormComponent implements OnChanges, AfterViewInit {
+export class PluginsFormComponent {
+  admin = inject(AdminService);
+  private fb = inject(UntypedFormBuilder);
+
+  protected readonly rootControlState = controlValue(() => this.group());
+
+  private readonly controlState0 = controlValue(() => this.tags());
+
   private destroyRef = inject(DestroyRef);
 
-  @ViewChildren('gen')
-  gens?: QueryList<GenFormComponent>;
+  readonly gens = viewChildren<GenFormComponent>('gen');
 
-  @Input()
-  fieldName = 'plugins';
-  @Input()
-  group: UntypedFormGroup;
-  @Output()
-  togglePlugin = new EventEmitter<string>();
+  readonly fieldName = input('plugins');
+  readonly groupInput = input<UntypedFormGroup | undefined>(undefined, { alias: 'group' });
+  private readonly defaultGroup: UntypedFormGroup;
+  readonly togglePlugin = output<string>();
 
-  icons: Icon[] = [];
-  forms: Plugin[] = [];
+  readonly forms = computed(() => this.admin.getPluginForms(this.allTags()));
+  readonly icons = computed(() => {
+    this.rootControlState();
+    return sortOrder(this.admin.getIcons(this.allTags(), this.plugins()?.value || {}, getScheme(this.group().value.url))
+      .filter(icon => !this.forms().find(plugin => plugin.tag === icon.tag)))
+      .filter(icon => this.showIcon(icon));
+  });
   /**
    * Initial data for plugins about to be added.
    */
   pending: Record<string, any> = {};
 
-  constructor(
-    public admin: AdminService,
-    private fb: UntypedFormBuilder,
-  ) {
-    this.group = fb.group({
+  constructor() {
+    const admin = this.admin;
+    const fb = this.fb;
+
+    this.defaultGroup = fb.group({
       tags: fb.array([]),
-      [this.fieldName]: pluginsForm(fb, admin, []),
+      [this.fieldName()]: pluginsForm(fb, admin, []),
+    });
+    effect(() => {
+      this.groupInput();
+      this.fieldName();
+      untracked(() => this.init());
     });
   }
 
   init() {
-    if (this.plugins) {
-      for (const p in this.plugins.value) {
-        if (!this.allTags.includes(p)) {
-          this.plugins.removeControl(p);
+    if (this.plugins()) {
+      for (const p in this.plugins().value) {
+        if (!this.allTags().includes(p)) {
+          this.plugins().removeControl(p);
         }
       }
     }
-    if (!this.plugins) {
-      this.group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this.allTags));
-    } else if (this.allTags) {
-      for (const t of this.allTags) {
-        if (!this.plugins.contains(t)) {
+    if (!this.plugins()) {
+      this.group().addControl(this.fieldName(), pluginsForm(this.fb, this.admin, this.allTags()));
+    } else if (this.allTags()) {
+      for (const t of this.allTags()) {
+        if (!this.plugins().contains(t)) {
           const form = pluginForm(this.fb, this.admin, t);
           if (form) {
-            this.plugins.addControl(t, form);
+            this.plugins().addControl(t, form);
           }
         }
       }
     }
-    this.forms = this.admin.getPluginForms(this.allTags);
-    this.icons = sortOrder(this.admin.getIcons(this.allTags, this.plugins.value, getScheme(this.group.value.url))
-      .filter(i => !this.forms.find(p => p.tag === i.tag)))
-      .filter(i => this.showIcon(i));
   }
 
-  ngAfterViewInit() {
-    this.tags.valueChanges.pipe(
+  private readonly initializeView = afterNextRender(() => {
+    this.tags().valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => this.init());
-  }
+  });
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.group) {
-      this.init();
-    }
-  }
+  readonly group = computed<UntypedFormGroup>(() => {
+    return this.groupInput() || this.defaultGroup;
+  });
 
+  readonly tags = computed(() => {
+    this.rootControlState();
+    return this.group().get('tags') as UntypedFormArray;
+  });
 
-  get tags() {
-    return this.group.get('tags') as UntypedFormArray;
-  }
+  readonly allTags = computed(() => {
+    this.rootControlState();
+    this.controlState0();
+    return addAllHierarchicalTags(this.tags().value);
+  });
 
-  get allTags() {
-    return addAllHierarchicalTags(this.tags.value);
-  }
+  readonly plugins = computed(() => {
+    this.rootControlState();
+    return this.group().get(this.fieldName()) as UntypedFormGroup;
+  });
 
-  get plugins() {
-    return this.group.get(this.fieldName) as UntypedFormGroup;
-  }
-
-  get empty() {
-    return !this.icons.length && !Object.keys(this.plugins.controls).length;
-  }
+  readonly empty = computed(() => {
+    this.rootControlState();
+    return !this.icons().length && !Object.keys(this.plugins().controls).length;
+  });
 
   setValue(value: any) {
-    value = toJS(value);
     defer(() => {
-      this.plugins.patchValue(value);
-      this.gens!.forEach(g => g.setValue(value))
+      this.plugins().patchValue(value);
+      this.gens()!.forEach(g => g.setValue(value))
     });
   }
 
@@ -130,11 +138,11 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   visible(v: Visibility) {
-    return visible(this.group.value, v, true, false);
+    return visible(this.group().value, v, true, false);
   }
 
   active(a: TagAction | ResponseAction | Icon) {
-    return active(this.group.value, a);
+    return active(this.group().value, a);
   }
 
   showIcon(i: Icon) {

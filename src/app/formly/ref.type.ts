@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, inject, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, isString, uniqBy } from 'lodash-es';
@@ -27,19 +27,19 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   host: { 'class': 'field' },
   template: `
     <div class="form-array">
-      @if (uploading) {
-        <progress class="grow" max="100" [value]="progress"></progress>
+      @if (uploading()) {
+        <progress class="grow" max="100" [value]="progress()"></progress>
       } @else {
         <input class="preview grow"
                type="text"
-               [value]="preview"
-               [title]="input.value"
-               [style.display]="preview ? 'block' : 'none'"
+               [value]="preview()"
+               [title]="previewTitle()"
+               [style.display]="preview() ? 'block' : 'none'"
                (focus)="clickPreview(input)"
                (drop)="upload($event, $event.dataTransfer?.items)"
                (paste)="upload($event, $event.clipboardData?.items)">
         <datalist [id]="listId">
-          @for (o of autocomplete; track o.value) {
+          @for (o of autocomplete(); track o.value) {
             <option [value]="o.value">{{ o.label }}</option>
           }
         </datalist>
@@ -47,7 +47,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
                class="grow"
                type="url"
                [attr.list]="listId"
-               [class.hidden-without-removing]="preview"
+               [class.hidden-without-removing]="preview()"
                (input)="search(input.value)"
                (blur)="blur(input)"
                (focusin)="edit(input)"
@@ -68,7 +68,6 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     QrScannerComponent,
@@ -79,51 +78,47 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     FormlyAttributes,
   ],
 })
-export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
+export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> {
+  private configs = inject(ConfigService);
+  store = inject(Store);
+  private config = inject(FormlyConfig);
+  private refs = inject(RefService);
+  private editor = inject(EditorService);
+  private proxy = inject(ProxyService);
+  private admin = inject(AdminService);
+
 
   listId = 'list-' + uuid();
   previewUrl = '';
-  preview = '';
-  editing = false;
-  progress = 0;
-  uploading = false;
+  readonly preview = signal('');
+  readonly previewTitle = signal('');
+  readonly editing = signal(false);
+  readonly progress = signal(0);
+  readonly uploading = signal(false);
   files = !!this.admin.getPlugin('plugin/file');
-  autocomplete: { value: string, label: string }[] = [];
+  readonly autocomplete = signal<{ value: string, label: string }[]>([]);
 
   private showedError = false;
   private previewing?: Subscription;
   private searching?: Subscription;
   private formChanges?: Subscription;
 
-  constructor(
-    private configs: ConfigService,
-    public store: Store,
-    private config: FormlyConfig,
-    private refs: RefService,
-    private editor: EditorService,
-    private proxy: ProxyService,
-    private admin: AdminService,
-    private cd: ChangeDetectorRef,
-  ) {
-    super();
-  }
-
-  ngAfterViewInit() {
+  private readonly initializeView = afterNextRender(() => {
     if (this.model) this.getPreview(this.model[this.key as any]);
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
-      if (!this.editing && value) {
+      if (!this.editing() && value) {
         this.getPreview(value);
       } else {
-        this.preview = '';
+        this.preview.set('');
       }
     });
-  }
+  });
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.searching?.unsubscribe();
     this.formChanges?.unsubscribe();
-  }
+  });
 
   validate(input: HTMLInputElement) {
     if (this.showError) {
@@ -133,7 +128,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   }
 
   blur(input: HTMLInputElement) {
-    this.editing = false;
+    this.editing.set(false);
     if (this.showError && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
@@ -152,27 +147,26 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     this.previewing = this.refs.getCurrent(value).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
     ).subscribe(ref => {
+      this.previewTitle.set(value);
       if (ref) {
-        this.preview = getPageTitle(ref);
-        this.cd.detectChanges();
+        this.preview.set(getPageTitle(ref));
       } else if (value.toLowerCase().startsWith('tag:/')) {
         this.editor.getTagPreview(value.substring('tag:/'.length)).subscribe(x => {
-          this.preview = x?.name || x?.tag || '';
-          this.cd.detectChanges();
+          this.preview.set(x?.name || x?.tag || '');
         });
       }
     });
   }
 
   edit(input: HTMLInputElement) {
-    this.editing = true;
-    this.preview = '';
+    this.editing.set(true);
+    this.preview.set('');
     this.previewUrl = '';
     input.focus();
   }
 
   clickPreview(input: HTMLInputElement) {
-    if (this.store.hotkey) {
+    if (this.store.hotkey()) {
       this.configs.ref(input.value);
     } else {
       this.edit(input);
@@ -186,25 +180,24 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
       search: value,
       size: 3,
     }).subscribe(page => {
-      this.autocomplete = uniqBy(page.content, ref => ref.url).map(ref => ({ value: ref.url, label: getPageTitle(ref) }));
-      this.cd.detectChanges();
+      this.autocomplete.set(uniqBy(page.content, ref => ref.url).map(ref => ({ value: ref.url, label: getPageTitle(ref) })));
     })
   }, 400);
 
   onUpload(event?: Saving | string) {
     if (!event) {
-      this.uploading = false;
+      this.uploading.set(false);
     } else if (isString(event)) {
       // TODO set error
     } else if (event.url) {
-      this.uploading = false;
-      this.preview = event.name;
+      this.uploading.set(false);
+      this.preview.set(event.name);
+      this.previewTitle.set(event.url);
       this.field.formControl!.setValue(event.url);
     } else {
-      this.uploading = true;
-      this.progress = event.progress || 0;
+      this.uploading.set(true);
+      this.progress.set(event.progress || 0);
     }
-    this.cd.detectChanges();
   }
 
   upload(event: Event, items?: DataTransferItemList) {
@@ -223,7 +216,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     event.stopPropagation();
     const file = files[0]!;
     this.onUpload({ name: file.name });
-    this.proxy.save(file, this.store.account.origin).pipe(
+    this.proxy.save(file, this.store.account.origin()).pipe(
       map(event => {
         switch (event.type) {
           case HttpEventType.Response:

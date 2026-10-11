@@ -1,41 +1,29 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
+import { Component, input, signal } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { LoadingComponent } from '../../loading/loading.component';
-import { ActionComponent } from '../action.component';
 
 @Component({
   selector: 'app-inline-button',
   templateUrl: './inline-button.component.html',
   styleUrls: ['./inline-button.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FakeLinkDirective, LoadingComponent]
 })
-export class InlineButtonComponent extends ActionComponent {
+export class InlineButtonComponent {
 
-  @Input()
-  action: () => Observable<any|never> = () => of(null);
-  @Input()
-  minDelayMs = 1000;
+  readonly action = input<() => Observable<any | never>>(() => of(null));
+  readonly minDelayMs = input(1000);
 
-  acting = false;
-  minTimeout = false;
-
-  override reset() {
-    this.acting = false;
-  }
-
-  override active() {
-    return this.acting;
-  }
+  readonly acting = signal(false);
+  readonly minTimeout = signal(false);
 
   act() {
-    this.acting = true;
-    this.minTimeout = true;
-    setTimeout(() => this.minTimeout = false, this.minDelayMs);
-    this.action().pipe(
+    this.acting.set(true);
+    this.minTimeout.set(true);
+    setTimeout(() => this.minTimeout.set(false), this.minDelayMs());
+    this.action()().pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.acting = false);
+    ).subscribe(() => this.acting.set(false));
   }
 }

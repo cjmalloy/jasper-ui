@@ -1,43 +1,33 @@
-import {
-  Overlay,
-  OverlayRef
-} from '@angular/cdk/overlay';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
 import {
-  DestroyRef,
-  inject,
-  AfterViewInit,
-  ChangeDetectorRef,
+  afterNextRender,
   Component,
+  computed,
+  DestroyRef,
+  effect,
   ElementRef,
-  EventEmitter,
   forwardRef,
-  HostBinding,
-  HostListener,
-  Input,
-  OnChanges,
-  OnDestroy,
-  Output,
-  SimpleChanges,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef,
-  ChangeDetectionStrategy
+  viewChild,
+  ViewContainerRef
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, filter, last, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, filter, finalize, last, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { MdComponent } from '../../component/md/md.component';
 import { AutofocusDirective } from '../../directive/autofocus.directive';
-import { FillWidthDirective } from '../../directive/fill-width.directive';
-import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { mimeToCode } from '../../mods/media/code';
@@ -49,14 +39,13 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
-import { memo, MemoCache } from '../../util/memo';
+import { controlValue } from '../../util/form';
 import { expandedTagsInclude, hasTag, test } from '../../util/tag';
 
 export interface EditorUpload {
   id: string;
   name: string;
   progress: number;
-  subscription?: Subscription;
   completed?: boolean;
   error?: string;
   ref?: Ref | null;
@@ -66,96 +55,98 @@ export interface EditorUpload {
   selector: 'app-editor',
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
-  host: { 'class': 'editor' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    'class': 'editor',
+    '[class.stacked]': 'stacked()',
+    '[class.fullscreen]': 'fullscreen()',
+    '[class.help]': 'help()',
+    '[class.md-preview]': 'preview()',
+    '[class.add-button]': 'addButtonClass()',
+    '[class.editing]': 'editing()',
+    '[style.padding.px]': 'padding()',
+    '(window:scroll)': 'preventScroll()',
+  },
   imports: [
     forwardRef(() => MdComponent),
     LoadingComponent,
     ReactiveFormsModule,
-    FillWidthDirective,
     AutofocusDirective,
-    LimitWidthDirective,
   ],
 })
-export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
-  private destroyRef = inject(DestroyRef);
-  private disposers: IReactionDisposer[] = [];
+export class EditorComponent {
+  admin = inject(AdminService);
+  private accounts = inject(AccountService);
+  private auth = inject(AuthzService);
+  private proxy = inject(ProxyService);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  store = inject(Store);
+  private overlay = inject(Overlay);
+  private router = inject(Router);
+  private el = inject(ElementRef);
+  private vc = inject(ViewContainerRef);
+  private fb = inject(FormBuilder);
 
-  @Input()
-  id = 'editor-' + uuid();
+  private readonly controlState0 = controlValue(() => this.control());
 
-  @HostBinding('class.stacked')
-  stacked = true;
-  @HostBinding('class.fullscreen')
-  fullscreen = false;
-  @HostBinding('class.help')
-  help = false;
-  @HostBinding('class.md-preview')
-  preview = this.store.local.showPreview;
 
-  @ViewChild('helpButton')
-  helpButton?: ElementRef<HTMLButtonElement>;
-  @ViewChild('editor')
-  editor?: ElementRef<HTMLTextAreaElement>;
-  @ViewChild('md')
-  md?: MdComponent;
-  @ViewChild('hiddenMeasure')
-  hiddenMeasure?: ElementRef<HTMLTextAreaElement>;
+  readonly id = input('editor-' + uuid());
 
-  @ViewChild('help')
-  helpTemplate!: TemplateRef<any>;
-  @ViewChild('ref')
-  refTemplate!: TemplateRef<any>;
-  @ViewChild('fileUpload')
-  fileUpload!: ElementRef<HTMLInputElement>;
+  readonly stacked = signal(true);
+  readonly fullscreen = signal(false);
+  readonly help = signal(false);
+  readonly preview = signal(this.store.local.showPreview);
 
-  @Input()
-  hasTags = true;
-  @Input()
-  selectResponseType = false;
-  @Input()
-  tags?: UntypedFormArray;
-  @Input()
-  createdTags: string[] = [];
-  @Input()
-  control!: UntypedFormControl;
-  @Input()
-  autoFocus = false;
-  @Input()
-  addButton = false;
-  @Input()
-  url = '';
-  @Input()
-  addCommentTitle = $localize`Add comment`;
-  @Input()
-  addCommentLabel = $localize`+ Add comment`;
-  @Input()
-  fillWidth?: HTMLElement;
-  @Output()
-  syncEditor = new EventEmitter<string>();
-  @Output()
-  syncTags = new EventEmitter<string[]>();
-  @Output()
-  addSource = new EventEmitter<string>();
-  @Output()
-  scrape = new EventEmitter<void>();
-  @Output()
-  uploadCompleted = new EventEmitter<Ref>();
+  readonly helpButton = viewChild<ElementRef<HTMLButtonElement>>('helpButton');
+  readonly editor = viewChild<ElementRef<HTMLTextAreaElement>>('editor');
+  readonly md = viewChild<MdComponent>('md');
+  readonly hiddenMeasure = viewChild<ElementRef<HTMLTextAreaElement>>('hiddenMeasure');
 
-  dropping = false;
+  readonly helpTemplate = viewChild.required<TemplateRef<any>>('help');
+  readonly refTemplate = viewChild.required<TemplateRef<any>>('ref');
+  readonly fileUpload = viewChild.required<ElementRef<HTMLInputElement>>('fileUpload');
+
+  readonly hasTags = input(true);
+  readonly selectResponseType = input(false);
+  readonly tags = input<UntypedFormArray>();
+  readonly createdTagsInput = input<string[]>([], { alias: 'createdTags' });
+  readonly createdTags = linkedSignal(() => this.createdTagsInput());
+  readonly control = input.required<UntypedFormControl>();
+  readonly autoFocus = input(false);
+  readonly addButton = input(false);
+  readonly url = input('');
+  readonly addCommentTitle = input($localize `Add comment`);
+  readonly addCommentLabel = input($localize `+ Add comment`);
+  readonly syncEditor = output<string>();
+  readonly syncTags = output<string[]>();
+  readonly addSource = output<string>();
+  readonly scrape = output<void>();
+  readonly uploadCompleted = output<Ref>();
+
+  readonly dropping = signal(false);
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
-  toggleIndex = 0;
-  initialFullscreen = false;
-  focused?: boolean = false;
-  progress = 0;
-  uploads: EditorUpload[] = [];
-  files = !!this.admin.getPlugin('plugin/file');
-  loadingEvents: any = {};
+  readonly toggleIndex = linkedSignal(() => {
+    const buttons = this.responseButtons();
+    if (!this.selectResponseType() || !buttons.length) return 0;
+    const tags = this.tags() ? this.tagsValue() || [] : this.createdTags();
+    return buttons.reduce((index, button, current) => hasTag(button.tag, tags) ? current : index, 0);
+  });
+  readonly initialFullscreen = signal(false);
+  readonly focused = signal<boolean | undefined>(false);
+  readonly progress = signal(0);
+  readonly uploads = signal<EditorUpload[]>([]);
+  private readonly uploadSubscriptions = new Map<string, Subscription>();
+  readonly files = computed(() => !!this.admin.getPlugin('plugin/file'));
+  readonly loadingEvents = linkedSignal<boolean, Record<string, boolean>>({
+    source: () => this.scraping(),
+    computation: (scraping, previous) => ({ ...previous?.value, 'scrape-done': scraping }),
+  });
 
-  private _text? = '';
-  private _editing = false;
-  private _padding = 8;
+  private readonly tagsValue = controlValue<string[]>(() => this.tags());
+  private readonly _text = signal('');
+  readonly editing = signal(false);
+  private readonly basePadding = 8;
 
   private europa?: Europa;
   private scrollTop = 0;
@@ -167,83 +158,39 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private scrollMap = new Map<number, number>();
   private sourceMap: number[] = [];
 
-  constructor(
-    public admin: AdminService,
-    private accounts: AccountService,
-    private auth: AuthzService,
-    private proxy: ProxyService,
-    private refs: RefService,
-    private ts: TaggingService,
-    public store: Store,
-    private overlay: Overlay,
-    private router: Router,
-    private el: ElementRef,
-    private vc: ViewContainerRef,
-    private fb: FormBuilder,
-    private cd: ChangeDetectorRef,
-  ) {
+  constructor() {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
-      this.loadingEvents[event.event] = false;
+      this.loadingEvents.update(events => ({ ...events, [event.event]: false }));
     });
-  }
-
-  init() {
-    MemoCache.clear(this);
-    if (this.selectResponseType && this.responseButtons.length) {
-      this.toggleIndex = 0;
-      const tags = this.tags?.value || this.createdTags;
-      for (const p of this.responseButtons) {
-        if (hasTag(p.tag, tags)) {
-          this.toggleIndex = this.responseButtons.indexOf(p);
-        }
-      }
-    }
-  }
-
-  ngAfterViewInit(): void {
-    this.disposers.push(autorun(() => {
-      const height = this.store.viewportHeight - 4;
+    effect(() => {
+      const height = this.store.viewportHeight() - 4;
       if (this.overlayRef) {
         this.overlayRef.updateSize({ height });
         document.body.style.height = height + 'px';
         this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
       }
-    }));
-    if (this.tags) {
-      this.tags.valueChanges.pipe(
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(() => {
-        this.init();
-      });
-    } else {
-      this.init();
-      this.updateTags(this.editing ? this.initTags : this.allTags);
-    }
+    });
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.tags || changes.createdTags || changes.url) {
-      this.init();
+  private readonly initializeView = afterNextRender(() => {
+    if (!this.tags()) {
+      this.updateTags(this.editing() ? this.initTags() : this.allTags());
     }
-  }
+  });
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
+    this.uploadSubscriptions.forEach(subscription => subscription.unsubscribe());
+    this.uploadSubscriptions.clear();
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
-    this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
-  }
+    this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight() + 'px');
+  });
 
-  @Input()
-  set scraping(value: boolean) {
-    this.loadingEvents['scrape-done'] = value;
-  }
+  readonly scraping = input(false);
 
-  @HostListener('window:scroll')
   preventScroll() {
     if (this.overlayRef) {
       window.scrollTo(0, 0);
@@ -253,8 +200,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   onSelect(event?: MouseEvent) {
     if (event && !event.button) return;
     defer(() => {
-      this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
-      this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
+      this.selectionStart = this.editor()?.nativeElement.selectionStart || 0;
+      this.selectionEnd = this.editor()?.nativeElement.selectionEnd || 0;
       if (this.selectionEnd > this.selectionStart) {
         this.onSelectEditor();
       }
@@ -273,167 +220,130 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   onSelectEditor() {
-    if (!this.preview || !this.fullscreen || !this.md) return;
+    const md = this.md();
+    if (!this.preview() || !this.fullscreen() || !md) return;
     const start = this.sourceMap[Math.max(sortedLastIndex(this.sourceMap, this.selectionStart) - 1, 0)];
-    this.md.el.nativeElement.scrollTop = (this.scrollMap.get(start) ?? 0) - this.md.el.nativeElement.clientHeight / 2;
+    md.el.nativeElement.scrollTop = (this.scrollMap.get(start) ?? 0) - md.el.nativeElement.clientHeight / 2;
   }
 
   onSelectPreview() {
-    if (!this.preview || !this.fullscreen || !this.hiddenMeasure || !this.editor) return;
+    const editor = this.editor();
+    const hiddenMeasure = this.hiddenMeasure();
+    if (!this.preview() || !this.fullscreen() || !hiddenMeasure || !editor) return;
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed) return;
-    if (!this.md?.el.nativeElement?.contains(sel.anchorNode)) return;
+    if (!this.md()?.el.nativeElement?.contains(sel.anchorNode)) return;
     const anchorEl = (sel.anchorNode as Node).nodeType === Node.ELEMENT_NODE
       ? sel.anchorNode as HTMLElement
       : (sel.anchorNode as Node).parentElement;
     const sourceMap = anchorEl!.closest('[aria-posinset]');
     if (!sourceMap) return;
     const start = +sourceMap.getAttribute('aria-posinset')!;
-    this.hiddenMeasure.nativeElement.style.width = this.editor.nativeElement.clientWidth + 'px';
-    this.hiddenMeasure.nativeElement.value = this.currentText.slice(0, start);
-    this.editor.nativeElement.scrollTop = this.hiddenMeasure.nativeElement.scrollHeight - this.editor.nativeElement.clientHeight / 2;
+    hiddenMeasure.nativeElement.style.width = editor.nativeElement.clientWidth + 'px';
+    hiddenMeasure.nativeElement.value = this.currentText().slice(0, start);
+    editor.nativeElement.scrollTop = hiddenMeasure.nativeElement.scrollHeight - editor.nativeElement.clientHeight / 2;
   }
 
-  @HostBinding('class.add-button')
-  get addButtonClass() {
-    return this.addButton && !this.editing && !this.currentText;
-  }
+  readonly addButtonClass = computed(() => this.addButton() && !this.editing() && !this.currentText());
 
-  @HostBinding('style.padding.px')
-  get padding(): number {
-    if (this.fullscreen) return 0;
-    return this._padding + 8;
-  }
+  readonly padding = computed(() => this.fullscreen() ? 0 : this.basePadding + 8);
 
-  set padding(value: number) {
-    this._padding = value;
-  }
-
-  get editing(): boolean {
-    return this._editing;
-  }
-
-  @HostBinding('class.editing')
-  set editing(value: boolean) {
-    if (!this._editing && value) {
-      defer(() => {
-        this._editing = true;
-        this.updateTags(this.initTags);
-        this.cd.detectChanges();
-      });
+  setEditing(value: boolean) {
+    if (!this.editing() && value) {
+      this.editing.set(true);
+      this.updateTags(this.initTags());
     }
   }
 
-  @memo
-  get allTags() {
+  readonly allTags = computed(() => {
+    const tags = this.tags() ? this.tagsValue() || [] : this.createdTags();
     return uniq([
-      ...without(this.tags ? this.tags.value : this.createdTags, ...this.allResponseTags),
-      ...this.responseTags,
+      ...without(tags, ...this.allResponseTags()),
+      ...this.responseTags(),
     ]);
-  }
+  });
 
-  @memo
-  get initTags() {
-    return [
-      ...without(intersection(this.store.account.defaultEditors(this.editors), this.editorButtons.filter(b => this.visible(b)).map(b => b.toggle!)), ...this.allTags),
-      ...this.allTags,
-    ];
-  }
+  readonly initTags = computed(() => [
+    ...without(intersection(this.store.account.defaultEditors(this.editors()), this.editorButtons().filter(b => this.visible(b)).map(b => b.toggle!)), ...this.allTags()),
+    ...this.allTags(),
+  ]);
 
-  @memo
-  get editors() {
-    return this.editorButtons.map(p => p?.toggle as string).filter(p => !!p);
-  }
+  readonly editors = computed(() => this.editorButtons().map(p => p?.toggle as string).filter(p => !!p));
 
-  @memo
-  get editorButtons(): EditorButton[] {
-    return sortOrder(this.admin.getEditorButtons(this.allTags, this.scheme)).reverse();
-  }
+  readonly editorButtons = computed((): EditorButton[] => sortOrder(this.admin.getEditorButtons(this.allTags(), this.scheme())).reverse());
 
-  @memo
-  get responseButtons() {
-    return this.admin.responseButton;
-  }
+  readonly responseButtons = computed(() => this.admin.responseButton());
 
-  @memo
-  get editorRibbons() {
-    return sortOrder(this.editorButtons.filter(b => b.ribbon && this.visible(b)).map(b => this.setButtonOn(b)));
-  }
+  readonly editorRibbons = computed(() => sortOrder(this.editorButtons().filter(b => b.ribbon && this.visible(b)).map(b => this.setButtonOn(b))));
 
-  @memo
-  get editorPushButtons() {
-    return sortOrder(this.editorButtons.filter(b => !b.ribbon && this.visible(b)).map(b => this.setButtonOn(b)));
-  }
+  readonly editorPushButtons = computed(() => sortOrder(this.editorButtons().filter(b => !b.ribbon && this.visible(b)).map(b => this.setButtonOn(b))));
 
-  @memo
-  get responseTags() {
-    if (!this.selectResponseType || !this.responseButtons.length) return [];
-    const p = this.responseButtons[this.toggleIndex];
+  readonly responseTags = computed(() => {
+    if (!this.selectResponseType() || !this.responseButtons().length) return [];
+    const p = this.responseButtons()[this.toggleIndex()];
     return p.config?.reply || [p.tag];
-  }
+  });
 
-  @memo
-  get allResponseTags() {
-    if (!this.selectResponseType) return [];
-    return this.responseButtons.flatMap(p => p.config?.reply || [p.tag]);
-  }
+  readonly allResponseTags = computed(() => {
+    if (!this.selectResponseType()) return [];
+    return this.responseButtons().flatMap(p => p.config?.reply || [p.tag]);
+  });
 
-  @memo
-  get scheme() {
-    if (!this.url) return '';
-    if (!this.url.includes(':')) return '';
-    return this.url.substring(0, this.url.indexOf(':') + 1);
-  }
+  readonly scheme = computed(() => {
+    const url = this.url();
+    if (!url) return '';
+    if (!url.includes(':')) return '';
+    return url.substring(0, url.indexOf(':') + 1);
+  });
 
-  @memo
-  get helpLinks() {
+  readonly helpLinks = computed(() => {
     const helpConfig = this.admin.getTemplate('config/help');
     return helpConfig?.config?.editorHelpLinks || [];
-  }
+  });
 
-  get currentText() {
-    return this._text || this.control?.value || '';
-  }
+  readonly currentText = computed(() => {
+    this.controlState0();
+    return this._text() || this.control()?.value || '';
+  });
 
   updateTags(tags: string[]) {
-    if (!this.tags) {
-      this.createdTags = tags;
-      MemoCache.clear(this);
-    }
-    this.syncTags.next(tags);
+    if (!this.tags()) {
+      this.createdTags.set(tags);
+      }
+    this.syncTags.emit(tags);
   }
 
   toggleTag(button: EditorButton) {
     if (button.event) this.fireEvent(button);
     const toggle = button.toggle!;
-    if (hasTag(toggle, this.allTags)) {
-      this.updateTags(this.allTags.filter(t => !expandedTagsInclude(t, toggle)));
+    if (hasTag(toggle, this.allTags())) {
+      this.updateTags(this.allTags().filter(t => !expandedTagsInclude(t, toggle)));
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.removeConfigArray$('editors', toggle).subscribe();
       }
     } else if (toggle !== 'locked' || confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
-      this.updateTags([...this.allTags, toggle]);
+      this.updateTags([...this.allTags(), toggle]);
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.addConfigArray$('editors', toggle).subscribe();
       }
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   setResponse(tag: string) {
-    const tags = this.tags?.value || this.createdTags;
+    const tags = this.tags()?.value || this.createdTags();
     if (!hasTag(tag, tags)) {
-      const responses = this.responseButtons.map(p => p.tag);
-      this.toggleIndex = responses.indexOf(tag);
+      const responses = this.responseButtons().map(p => p.tag);
+      this.toggleIndex.set(responses.indexOf(tag));
       this.updateTags([...without(tags, ...responses), tag]);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   focusText() {
-    this.focused = true;
+    this.focused.set(true);
     if (this.blurTimeout) {
       clearTimeout(this.blurTimeout);
       this.blurTimeout = 0;
@@ -441,10 +351,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   blurText(value: string) {
-    if (this.focused) {
-      this.focused = undefined;
+    if (this.focused()) {
+      this.focused.set(undefined);
       this.blurTimeout = delay(() => {
-        if (this.focused === undefined) this.focused = false;
+        if (this.focused() === undefined) this.focused.set(false);
         this.blurTimeout = 0;
       }, 400);
     }
@@ -452,62 +362,69 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   setText = debounce((value: string) => {
-    if (this._text === value) return;
-    this._text = value;
+    if (this._text() === value) return;
+    this._text.set(value);
   }, 400, { leading: true, trailing: true, maxWait: 3000 });
 
   syncText(value: string) {
     if (!value) {
       // Do not throttle
-      this._text = value;
-      this.syncEditor.next(this._text);
+      this._text.set(value);
+      this.syncEditor.emit(this._text());
     }
     // Clear previous throttled values
     this.syncTextThrottled(value);
-    this.control.setValue(value);
+    this.control().setValue(value);
   }
 
   syncTextThrottled = debounce((value: string) => {
-    if (this._text === value) return;
-    this._text = value;
-    this.syncEditor.next(this._text);
+    if (this._text() === value) return;
+    this._text.set(value);
+    this.syncEditor.emit(this._text());
   }, 400);
 
   togglePreview() {
-    if (this.fullscreen) {
-      this.store.local.showFullscreenPreview = this.preview = !this.preview;
+    if (this.fullscreen()) {
+      this.preview.set(!this.preview());
+      this.store.local.showFullscreenPreview = this.preview();
     } else {
-      this.store.local.showPreview = this.preview = !this.preview;
+      this.preview.set(!this.preview());
+      this.store.local.showPreview = this.preview();
     }
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   toggleStacked() {
-    if (this.stacked) {
-      if (this.preview) {
-        this.store.local.showFullscreenPreview = this.preview = false;
+    if (this.stacked()) {
+      if (this.preview()) {
+        this.preview.set(false);
+        this.store.local.showFullscreenPreview = this.preview();
       } else {
-        this.store.local.showFullscreenPreview = this.preview = true;
-        this.store.local.editorStacked = this.stacked = false;
+        this.preview.set(true);
+        this.store.local.showFullscreenPreview = this.preview();
+        this.stacked.set(false);
+        this.store.local.editorStacked = this.stacked();
       }
     } else {
-      this.store.local.editorStacked = this.stacked = true;
+      this.stacked.set(true);
+      this.store.local.editorStacked = this.stacked();
     }
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   toggleFullscreen(override?: boolean) {
-    if (!this.editor) return;
-    if (override === this.fullscreen) return;
-    this.initialFullscreen = true;
-    this.fullscreen = override !== undefined ? override : !this.fullscreen;
-    this.focused ||= this.focused === undefined || this.fullscreen;
-    if (this.fullscreen) {
+    const editor = this.editor();
+    if (!editor) return;
+    if (override === this.fullscreen()) return;
+    this.initialFullscreen.set(true);
+    this.fullscreen.set(override !== undefined ? override : !this.fullscreen());
+    if (!this.focused()) this.focused.set(this.focused() === undefined || this.fullscreen());
+    if (this.fullscreen()) {
       document.documentElement.style.overflowY = 'auto';
-      this._text = this.currentText;
-      this.stacked = this.store.local.editorStacked;
-      this.preview = this.store.local.showFullscreenPreview;
-      this.scrollTop = this.editor.nativeElement.scrollTop;
+      this._text.set(this.currentText());
+      this.stacked.set(this.store.local.editorStacked);
+      this.preview.set(this.store.local.showFullscreenPreview);
+      this.scrollTop = editor.nativeElement.scrollTop;
       let height = 'calc(100vh - 4px)';
       if (window.visualViewport?.height) {
         height = (window.visualViewport.height - 4) + 'px';
@@ -528,35 +445,35 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.overlayRef.attach(new DomPortal(this.el));
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === 'Escape' && this.toggleFullscreen(false));
-      this.editor.nativeElement.scrollIntoView({ block: 'end' });
-      this.editor.nativeElement.focus();
-      this.editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
-      this.editor.nativeElement.scrollTop = this.scrollTopFullscreen;
+      editor.nativeElement.scrollIntoView({ block: 'end' });
+      editor.nativeElement.focus();
+      editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
+      editor.nativeElement.scrollTop = this.scrollTopFullscreen;
     } else {
       document.documentElement.style.overflowY = 'scroll';
-      this.stacked = true;
-      this.preview = this.store.local.showPreview;
-      this.scrollTopFullscreen = this.editor.nativeElement.scrollTop;
+      this.stacked.set(true);
+      this.preview.set(this.store.local.showPreview);
+      this.scrollTopFullscreen = editor.nativeElement.scrollTop;
       this.overlayRef?.detach();
       this.overlayRef?.dispose();
       delete this.overlayRef;
       document.body.style.height = '';
-      this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
+      this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight() + 'px');
       document.body.classList.remove('fullscreen');
-      this.editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
-      if (this.focused) {
-        this.editor.nativeElement.focus();
-        this.editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
-        this.editor.nativeElement.scrollTop = this.scrollTop;
+      editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
+      if (this.focused()) {
+        editor.nativeElement.focus();
+        editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
+        editor.nativeElement.scrollTop = this.scrollTop;
       }
     }
   }
 
   toggleHelp(override?: boolean) {
-    this.help = override !== undefined ? override : !this.help;
-    if (this.help) {
+    this.help.set(override !== undefined ? override : !this.help());
+    if (this.help()) {
       const positionStrategy = this.overlay.position()
-        .flexibleConnectedTo(this.helpButton!)
+        .flexibleConnectedTo(this.helpButton()!)
         .withPositions([{
           originX: 'start',
           originY: 'bottom',
@@ -569,7 +486,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         positionStrategy,
         scrollStrategy: this.overlay.scrollStrategies.close()
       });
-      this.helpRef.attach(new TemplatePortal(this.helpTemplate, this.vc));
+      this.helpRef.attach(new TemplatePortal(this.helpTemplate(), this.vc));
       this.helpRef.backdropClick().subscribe(() => this.toggleHelp(false));
     } else {
       this.helpRef?.detach();
@@ -578,45 +495,45 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   private visible(button: EditorButton) {
-    if (button.scheme && button.scheme !== this.scheme) return false;
+    if (button.scheme && button.scheme !== this.scheme()) return false;
     if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
     if (button.global) return true;
-    return test(button.query || button._parent!.tag, this.allTags);
+    return test(button.query || button._parent!.tag, this.allTags());
   }
 
   fireEvent(button: EditorButton) {
     const event = button.event!;
-    if (button.eventDone) this.loadingEvents[button.eventDone] = true;
+    if (button.eventDone) this.loadingEvents.update(events => ({ ...events, [button.eventDone!]: true }));
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
-        absolute: !!this.url,
-        baseUri: this.url,
+        absolute: !!this.url(),
+        baseUri: this.url(),
         inline: true,
       });
-      const md = this.europa.convert(this.editor!.nativeElement.value);
+      const md = this.europa.convert(this.editor()!.nativeElement.value);
       this.syncText(md);
     } else if (event === 'scrape') {
       this.scrape.emit();
     } else if (event === 'attach') {
-      this.fileUpload.nativeElement.click();
+      this.fileUpload().nativeElement.click();
     } else {
       this.store.eventBus.fire(event);
     }
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   addComment() {
-    this.editing = true;
-    defer(() => this.editor?.nativeElement?.focus());
+    this.setEditing(true);
+    defer(() => this.editor()?.nativeElement?.focus());
   }
 
   private setButtonOn(b: EditorButton) {
-    b._on = !!b.toggle && hasTag(b.toggle, this.allTags);
+    b._on = !!b.toggle && hasTag(b.toggle, this.allTags());
     return b;
   }
 
   drop(event: Event, items?: DataTransferItemList) {
-    this.dropping = false;
+    this.dropping.set(false);
     if (!this.admin.getPlugin('plugin/file')) return;
     if (!items) return;
     const files = [] as any;
@@ -634,59 +551,65 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   upload(files?: FileList | null) {
     if (!files) return;
-    const hasActiveUploads = this.uploads.some(upload => !upload.completed && !upload.error);
+    const hasActiveUploads = this.uploads().some(upload => !upload.completed && !upload.error);
     if (!hasActiveUploads) {
       // Only clear uploads if no active uploads exist
-      this.uploads = [];
+      this.uploads.set([]);
     }
-    this.control.disable();
+    this.control().disable();
     const fileArray = Array.from(files);
     const fileUploads: EditorUpload[] = fileArray.map(file => ({
       id: uuid(),
       name: file.name,
       progress: 0
     }));
-    this.uploads = [...this.uploads, ...fileUploads];
-    fileArray.map((file, index) => {
+    this.uploads.update(uploads => [...uploads, ...fileUploads]);
+    fileArray.forEach((file, index) => {
       const upload = fileUploads[index];
-      return upload.subscription = this.upload$(file, upload).subscribe(ref => {
+      const subscription = this.upload$(file, upload).pipe(
+        finalize(() => this.uploadSubscriptions.delete(upload.id)),
+      ).subscribe(ref => {
         if (ref && !ref.url.startsWith('data:')) {
-          upload.completed = true;
-          upload.progress = 100;
-          upload.ref = ref;
+          this.updateUpload(upload.id, { completed: true, progress: 100, ref });
           // Emit upload completion so parent can tag it
           this.uploadCompleted.emit(ref);
         }
         this.checkAllUploadsComplete();
       });
+      if (!subscription.closed) this.uploadSubscriptions.set(upload.id, subscription);
     });
+  }
+
+  private updateUpload(id: string, patch: Partial<EditorUpload>) {
+    this.uploads.update(uploads => uploads.map(upload => upload.id === id ? { ...upload, ...patch } : upload));
   }
 
   upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref = {
-        origin: this.store.account.origin,
+        origin: this.store.account.origin(),
         url: 'internal:' + uuid(),
         title: file.name,
         // Upload as private - only localTag and internal, no visibility tags
         tags: uniq([
-          this.store.account.localTag,
+          this.store.account.localTag(),
           'internal',
           ...file.type === 'text/markdown' ? [] : codeType
         ])
       };
-      upload.progress = 50; // Simulate progress for text files
+      this.updateUpload(upload.id, { progress: 50 });
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
           comment: contents,
         })),
         map(cursor => ref),
-        tap(() => upload.progress = 100),
+        tap(() => {
+          this.updateUpload(upload.id, { progress: 100 });
+        }),
         catchError(err => {
-          upload.error = err.message || 'Upload failed';
-          upload.progress = 0;
+          this.updateUpload(upload.id, { error: err.message || 'Upload failed', progress: 0 });
           return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
         }),
       );
@@ -702,15 +625,15 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
         tags.push('plugin/pdf');
       }
-      return this.proxy.save(file, this.store.account.origin).pipe(
+      return this.proxy.save(file, this.store.account.origin()).pipe(
         map(event => {
           switch (event.type) {
             case HttpEventType.Response:
               return event.body;
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-              this.progress = percentDone;
-              upload.progress = percentDone;
+              this.progress.set(percentDone);
+              this.updateUpload(upload.id, { progress: percentDone });
               return null;
           }
           return null;
@@ -720,8 +643,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
           map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
         )),
         catchError(err => {
-          upload.error = err.message || 'Upload failed';
-          upload.progress = 0;
+          this.updateUpload(upload.id, { error: err.message || 'Upload failed', progress: 0 });
           return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
         }),
       );
@@ -731,8 +653,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   attachUrls(...refs: (Ref | null)[]) {
     refs = refs.filter(u => !!u);
     if (!refs.length) return;
-    for (const ref of refs) this.addSource.next(ref!.url);
-    const text = this.currentText;
+    for (const ref of refs) this.addSource.emit(ref!.url);
+    const text = this.currentText();
     const embed = (ref: Ref) => hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
     if (refs.length === 1) {
       if (!refs[0]) return;
@@ -747,56 +669,50 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     } else {
       const encodedUrls = refs.map(ref => (embed(ref!) ? '![]' : '![=]') + '(' + ref!.url.replace(')', '\\)') + ')\n').join('');
       this.syncText(text.substring(0, this.selectionStart) + encodedUrls + text.substring(this.selectionStart));
-      if (!text) this.preview = true;
+      if (!text) this.preview.set(true);
     }
-    if (!text) this.preview = true;
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (!text) this.preview.set(true);
+    if (this.focused() !== false) this.editor()?.nativeElement.focus();
   }
 
   checkAllUploadsComplete() {
-    const allComplete = this.uploads.every(upload => upload.completed || upload.error);
-    if (allComplete && this.uploads.length > 0) {
-      this.control.enable();
-      const completedRefs = this.uploads
+    const allComplete = this.uploads().every(upload => upload.completed || upload.error);
+    if (allComplete && this.uploads().length > 0) {
+      this.control().enable();
+      const completedRefs = this.uploads()
         .filter(upload => upload.completed && upload.ref)
         .map(upload => upload.ref!);
       if (completedRefs.length > 0) {
         this.attachUrls(...completedRefs);
       }
-      this.uploads = [];
+      this.uploads.set([]);
     }
   }
 
   cancelUpload(upload: EditorUpload) {
-    if (upload.subscription) {
-      upload.subscription.unsubscribe();
-    }
-    this.uploads = this.uploads.filter(u => u.id !== upload.id);
-    if (this.uploads.length === 0) {
-      this.control.enable();
+    this.uploadSubscriptions.get(upload.id)?.unsubscribe();
+    this.uploadSubscriptions.delete(upload.id);
+    this.uploads.update(uploads => uploads.filter(u => u.id !== upload.id));
+    if (this.uploads().length === 0) {
+      this.control().enable();
     } else {
       this.checkAllUploadsComplete();
     }
   }
 
   cancelAllUploads() {
-    this.uploads.forEach(upload => {
-      if (upload.subscription) {
-        upload.subscription.unsubscribe();
-      }
-    });
-    this.uploads = [];
-    this.control.enable();
+    this.uploadSubscriptions.forEach(subscription => subscription.unsubscribe());
+    this.uploadSubscriptions.clear();
+    this.uploads.set([]);
+    this.control().enable();
   }
 
   dragLeave(parent: HTMLElement, target: HTMLElement) {
-    if (this.dropping && parent === target || !parent.contains(target)) {
-      this.dropping = false;
+    if (this.dropping() && parent === target || !parent.contains(target)) {
+      this.dropping.set(false);
     }
   }
 
-  hasActiveUploads(): boolean {
-    return this.uploads.some(upload => !upload.completed && !upload.error);
-  }
+  readonly hasActiveUploads = computed(() => this.uploads().some(upload => !upload.completed && !upload.error));
 
 }

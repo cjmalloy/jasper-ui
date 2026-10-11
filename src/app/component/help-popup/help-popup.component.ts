@@ -1,5 +1,4 @@
-import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
-import { MobxAngularModule } from 'mobx-angular';
+import { Component, inject, input, output } from '@angular/core';
 import { Store } from '../../store/store';
 
 @Component({
@@ -7,24 +6,15 @@ import { Store } from '../../store/store';
   templateUrl: './help-popup.component.html',
   styleUrls: ['./help-popup.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule]
 })
 export class HelpPopupComponent {
-  @Input()
-  text!: string;
+  store = inject(Store);
 
-  @Input()
-  arrowPosition: 'left' | 'right' | 'top' | 'bottom' = 'left';
+  readonly text = input.required<string>();
 
-  @Output()
-  nextClick = new EventEmitter<void>();
-  @Output()
-  previousClick = new EventEmitter<void>();
-  @Output()
-  doneClick = new EventEmitter<void>();
+  readonly arrowPosition = input<'left' | 'right' | 'top' | 'bottom'>('left');
 
-  constructor(
-    public store: Store,
-  ) { }
+  readonly nextClick = output<void>();
+  readonly previousClick = output<void>();
+  readonly doneClick = output<void>();
 }

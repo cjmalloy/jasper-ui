@@ -1,13 +1,21 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
-  HttpErrorResponse
-} from '@angular/common/http';
-import { DestroyRef, inject, AfterViewInit, Component, forwardRef, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  forwardRef,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+  viewChild
+} from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
-import { catchError, forkJoin, map, of, Subject, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, finalize, forkJoin, map, of, Subject, Subscription, switchMap } from 'rxjs';
 import { EditorComponent } from '../../../form/editor/editor.component';
-import { LinksFormComponent } from '../../../form/links/links.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
@@ -24,101 +32,100 @@ import { LoadingComponent } from '../../loading/loading.component';
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],
   host: { 'class': 'comment-edit' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => EditorComponent),
     LoadingComponent,
   ]
 })
-export class CommentEditComponent implements AfterViewInit, HasChanges {
+export class CommentEditComponent implements HasChanges {
+  private store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private fb = inject(FormBuilder);
+
   private destroyRef = inject(DestroyRef);
 
-  serverError: string[] = [];
+  readonly serverError = signal<string[]>([]);
 
-  @Input()
-  ref!: Ref;
-  @Input()
-  commentEdited$!: Subject<Ref>;
+  readonly refInput = input.required<Ref>({ alias: 'ref' });
+  readonly ref = linkedSignal(() => this.refInput());
+  readonly commentEdited$ = input.required<Subject<Ref>>();
 
-  @ViewChild('editor')
-  editor?: EditorComponent;
+  readonly editor = viewChild<EditorComponent>('editor');
 
-  editing?: Subscription;
+  readonly editing = signal(false);
+  private editingSubscription?: Subscription;
   commentForm: UntypedFormGroup;
-  editorTags: string[] = [];
-  sources: string[] = [];
-  completedUploads: Ref[] = [];
+  readonly editorTags = signal<string[]>([]);
+  readonly sources = signal<string[]>([]);
+  readonly completedUploads = signal<Ref[]>([]);
 
-  constructor(
-    private store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private fb: FormBuilder,
-  ) {
+
+  constructor() {
+    const fb = this.fb;
+
     this.commentForm = fb.group({
       comment: [''],
     });
+    this.commentValue = toSignal(this.comment().valueChanges, { initialValue: this.comment().value });
+    effect(() => this.comment().setValue(this.ref().comment));
   }
 
   saveChanges() {
     return !this.commentForm.dirty;
   }
 
-  ngAfterViewInit() {
-    this.comment.setValue(this.ref.comment);
-  }
-
-
-  get comment() {
+  readonly commentValue;
+  readonly comment = computed(() => {
     return this.commentForm.get('comment') as UntypedFormControl;
-  }
+  });
 
-  get newTags() {
+  readonly newTags = computed(() => {
     return getIfNew(uniq([
-      ...this.editorTags,
-      ...getMailboxes(this.comment.value, this.store.account.origin),
-    ]), this.ref.tags);
-  }
+      ...this.editorTags(),
+      ...getMailboxes(this.commentValue(), this.store.account.origin()),
+    ]), this.ref().tags);
+  });
 
-  get allTags() {
+  readonly allTags = computed(() => {
     return uniq([
-      ...this.editorTags,
-      ...getMailboxes(this.comment.value, this.store.account.origin),
+      ...this.editorTags(),
+      ...getMailboxes(this.commentValue(), this.store.account.origin()),
     ]);
-  }
+  });
 
-  get top() {
-    return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
-  }
+  readonly top = computed(() => {
+    return this.ref().sources?.[1] || this.ref().sources?.[0] || this.ref().url;
+  });
 
   addSource(value = '') {
-    if ((this.ref.sources?.length || 0) < 1) {
-      this.sources.push(this.top);
-    }
-    if ((this.ref.sources?.length || 0) < 2) {
-      this.sources.push(this.top);
-    }
-    this.sources.push(value);
+    const missing = Math.max(0, 2 - ((this.ref().sources?.length || 0) + this.sources().length));
+    this.sources.update(sources => [...sources, ...Array<string>(missing).fill(this.top()), value]);
+  }
+
+  uploadCompleted(ref: Ref) {
+    this.completedUploads.update(uploads => [...uploads, ref]);
   }
 
   save() {
+    if (this.editing()) return;
     const patches: OpPatch[] = [];
-    if (this.comment.dirty) {
+    if (this.comment().dirty) {
       patches.push({
         op: 'add',
         path: '/comment',
-        value: this.comment.value,
+        value: this.comment().value,
       });
     }
-    const finalTags = this.allTags;
-    for (const t of without(finalTags, ...this.ref.tags || [])) {
+    const finalTags = this.allTags();
+    for (const t of without(finalTags, ...this.ref().tags || [])) {
       patches.push({
         op: 'add',
         path: '/tags/-',
         value: t,
       });
     }
-    const removeIndices = (this.ref.tags || [])
+    const removeIndices = (this.ref().tags || [])
       .map((t, i) => finalTags.includes(t) ? -1 : i)
       .filter(i => i >= 0)
       .sort((a, b) => b - a);
@@ -128,39 +135,41 @@ export class CommentEditComponent implements AfterViewInit, HasChanges {
         path: '/tags/' + i,
       });
     }
-    for (const s of this.sources) {
+    for (const s of this.sources()) {
       patches.push({
         op: 'add',
         path: '/sources/-',
         value: s,
       });
     }
-    this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntilDestroyed(this.destroyRef))),
+    this.editing.set(true);
+    this.editingSubscription = this.refs.patch(this.ref().url, this.ref().origin!, this.ref().modifiedString!, patches).pipe(
+      switchMap(() => this.refs.get(this.ref().url, this.ref().origin!).pipe(takeUntilDestroyed(this.destroyRef))),
       switchMap(res => {
         const finalVisibilityTags = getVisibilityTags(finalTags);
         if (!finalVisibilityTags.length) return of(res);
-        const taggingOps = this.completedUploads
+        const taggingOps = this.completedUploads()
           .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
         if (!taggingOps.length) return of(res);
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((res: HttpErrorResponse) => {
-        delete this.editing;
-        this.serverError = printError(res);
-        return throwError(() => res);
+        this.serverError.set(printError(res));
+        return of(undefined);
       }),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.editing.set(false)),
     ).subscribe(res => {
-      delete this.editing;
-      this.ref = res;
-      this.completedUploads = [];
+      if (!res) return;
+      this.ref.set(res);
+      this.completedUploads.set([]);
 
-      this.commentEdited$.next(res);
+      this.commentEdited$().next(res);
     });
   }
 
   cancel() {
-    this.editing?.unsubscribe();
-    this.commentEdited$.next(this.ref);
+    this.editingSubscription?.unsubscribe();
+    this.commentEdited$().next(this.ref());
   }
 }

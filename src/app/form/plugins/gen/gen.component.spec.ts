@@ -2,10 +2,10 @@
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
+import { provideJasperFormly } from '../../../formly/formly.config';
 import { EditorComponent } from '../../editor/editor.component';
-import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { GenFormComponent } from './gen.component';
 
@@ -17,10 +17,10 @@ describe('GenComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         GenFormComponent,
       ],
       providers: [
+        provideJasperFormly(),
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -29,15 +29,15 @@ describe('GenComponent', () => {
 
     fixture = TestBed.createComponent(GenFormComponent);
     component = fixture.componentInstance;
-    component.plugin = {
+    fixture.componentRef.setInput('plugin', {
       tag: 'plugin/test',
       config: {
         form: [],
       }
-    };
-    component.plugins = new UntypedFormGroup({
-      'plugin/test': new UntypedFormGroup({}),
     });
+    fixture.componentRef.setInput('plugins', new UntypedFormGroup({
+      'plugin/test': new UntypedFormGroup({}),
+    }));
     fixture.detectChanges();
   });
 
@@ -46,7 +46,7 @@ describe('GenComponent', () => {
   });
 
   it('should create an editor input', () => {
-    component.plugin = {
+    fixture.componentRef.setInput('plugin', {
       tag: 'plugin/test',
       config: {
         form: [{
@@ -54,8 +54,7 @@ describe('GenComponent', () => {
           type: 'editor',
         }],
       },
-    };
-    component.ngOnChanges({});
+    });
 
     fixture.detectChanges();
 
@@ -64,12 +63,47 @@ describe('GenComponent', () => {
     );
     expect(editorElement).toBeTruthy();
     const editor = editorElement.componentInstance as EditorComponent;
-    expect(editor.control).toBe(component.group?.get('comment'));
-    expect(editor.hasTags).toBe(false);
-    expect(editor.addCommentTitle).toBe('Add comment');
-    expect(editor.addCommentLabel).toBe('+ Add comment');
-    expect(editor.fillWidth).toBe(
-      fixture.nativeElement.querySelector('.editor-field .fill-editor'),
-    );
+    expect(editor.control()).toBe(component.group()?.get('comment'));
+    expect(editor.hasTags()).toBe(false);
+    expect(editor.addCommentTitle()).toBe('Add comment');
+    expect(editor.addCommentLabel()).toBe('+ Add comment');
+  });
+
+  it('keeps Formly schemas stable when controls emit new values', () => {
+    fixture.componentRef.setInput('plugin', {
+      tag: 'plugin/test',
+      config: {
+        form: [{ key: 'comment', type: 'editor' }],
+        advancedForm: [{ key: 'extra', type: 'input' }],
+      },
+    });
+    fixture.detectChanges();
+    const form = component.form();
+    const advancedForm = component.advancedForm();
+    const comment = component.group()!.get('comment');
+
+    component.group()!.patchValue({ comment: 'Updated comment', extra: 'Updated extra' });
+    fixture.detectChanges();
+
+    expect(component.form()).toBe(form);
+    expect(component.advancedForm()).toBe(advancedForm);
+    expect(component.group()!.get('comment')).toBe(comment);
+    expect(comment!.value).toBe('Updated comment');
+  });
+
+  it('refreshes group and child selectors when parent controls change', () => {
+    const replacement = new UntypedFormGroup({ comment: new UntypedFormControl('replacement') });
+    expect(component.group()).not.toBe(replacement);
+    component.plugins().setControl('plugin/test', replacement);
+    expect(component.group()).toBe(replacement);
+
+    fixture.componentRef.setInput('children', [
+      { tag: 'plugin/first' }, { tag: 'plugin/second' },
+    ]);
+    expect(component.childrenOn()).toBe(0);
+    component.plugins().addControl('plugin/second', new UntypedFormGroup({}));
+    expect(component.childrenOn()).toBe(1);
+    component.plugins().removeControl('plugin/second');
+    expect(component.childrenOn()).toBe(0);
   });
 });

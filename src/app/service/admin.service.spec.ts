@@ -30,8 +30,10 @@ describe('AdminService', () => {
   });
 
   it('should not inherit template admin forms', () => {
-    service.status.templates['parent'] = { tag: 'parent', config: { adminForm: [{ key: 'a' }], advancedAdminForm: [{ key: 'b' }] } };
-    service.status.templates['parent/child'] = { tag: 'parent/child', config: { adminForm: [{ key: 'c' }] } };
+    (service as any).updateStatus((status: any) => {
+      status.templates['parent'] = { tag: 'parent', config: { adminForm: [{ key: 'a' }], advancedAdminForm: [{ key: 'b' }] } };
+      status.templates['parent/child'] = { tag: 'parent/child', config: { adminForm: [{ key: 'c' }] } };
+    });
     expect(service.getTemplateAdminForm('parent/child').map(f => f.key)).toEqual(['c']);
     expect(service.getTemplateAdminForm('parent/child', 'advancedAdminForm')).toEqual([]);
     expect(service.getTemplateAdminForm('parent', 'advancedAdminForm').map(f => f.key)).toEqual(['b']);
@@ -44,7 +46,9 @@ describe('AdminService', () => {
     expect(service.getTemplateAdminForm('_config/server/worker').map(f => f.key)).toContain('scriptSelectors');
     expect(service.getTemplateAdminForm('_config/server', 'advancedAdminForm')).toEqual([]);
     expect(service.getTemplateAdminForm('_config/other')).toEqual([]);
-    service.status.templates['_config/server'] = { tag: '_config/server', config: { adminForm: [{ key: 'a' }] } };
+    (service as any).updateStatus((status: any) => {
+      status.templates['_config/server'] = { tag: '_config/server', config: { adminForm: [{ key: 'a' }] } };
+    });
     expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toEqual(['a']);
   });
 
@@ -75,7 +79,7 @@ describe('AdminService', () => {
   });
 
   it('should keep formly expressions serializable for built-in mods', () => {
-    expect(userTemplate.config?.form?.find(f => f.key === 'subscriptions')?.expressions?.hide).toBe('!formState.admin.home');
+    expect(userTemplate.config?.form?.find(f => f.key === 'subscriptions')?.expressions?.hide).toBe('!formState.admin.home()');
     expect(blogTemplate.config?.form?.find(f => f.key === 'tags')?.expressions?.hide).toBe('!field.parent.model.filterTags');
     expect(llmPlugin.config?.advancedForm?.find(f => f.key === 'bundle')?.expressions?.hide).toBe('!model.json');
     expect(scrapePlugin.config?.form?.find(f => f.key === 'textSelectors')?.expressions?.hide).toBe('!field.parent.model.text');
@@ -84,11 +88,11 @@ describe('AdminService', () => {
   it('should not mutate installed plugin icons or buttons', () => {
     const icon = { label: '🧪️' };
     const button = { label: '🧪️', ribbon: true };
-    service.status.plugins['plugin/test'] = {
+    (service as any).updateStatus((status: any) => status.plugins['plugin/test'] = {
       tag: 'plugin/test',
       name: 'Test',
       config: { icons: [icon], editorButtons: [button] },
-    } as any;
+    });
     const icons = service.getIcons(['plugin/test']);
     expect(icons.length).toBe(1);
     expect(icons[0].tag).toBe('plugin/test');

@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyFieldProps } from '@ngx-formly/core';
-import { autorun, IReactionDisposer } from 'mobx';
+import { isEqual } from 'lodash-es';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../directive/resize-handle.directive';
 import { ConfigService } from '../service/config.service';
@@ -20,15 +20,14 @@ interface CodeProps extends FormlyFieldProps {
   template: `
     @defer {
       <ngx-monaco-editor [formControl]="formControl"
-                         [options]="editorOptions"
+                         [options]="editorOptions()"
                          [formlyAttributes]="field"
                          [style.width]="'min(900px, 50vw)'"
                          [style.height]="'min(300px, 90vh)'"
                          appResizeHandle
-                         [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+                         [hitArea]="config.mobile() ? 48 : 20" />
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FormlyAttributes,
@@ -36,39 +35,13 @@ interface CodeProps extends FormlyFieldProps {
     ResizeHandleDirective,
   ],
 })
-export class FormlyFieldCode extends FieldType<FieldTypeConfig<CodeProps>> implements OnDestroy {
+export class FormlyFieldCode extends FieldType<FieldTypeConfig<CodeProps>> {
+  config = inject(ConfigService);
+  private store = inject(Store);
 
-  private disposers: IReactionDisposer[] = [];
-  private dark = false;
-
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-    private cd: ChangeDetectorRef,
-  ) {
-    super();
-    this.disposers.push(autorun(() => {
-      this.dark = store.darkTheme;
-      this.cd.markForCheck();
-    }));
-  }
-
-  get editorOptions() {
-    const language = this.props.language || 'javascript';
-    const theme = this.dark ? 'vs-dark' : 'vs';
-    if (this._options?.language !== language || this._options?.theme !== theme) {
-      this._options = {
-        language,
-        theme,
-        automaticLayout: true,
-      };
-    }
-    return this._options;
-  }
-  private _options?: any;
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+  readonly editorOptions = computed(() => ({
+    language: this.props.language || 'javascript',
+    theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
+    automaticLayout: true,
+  }), { equal: isEqual });
 }

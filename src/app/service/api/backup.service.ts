@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { catchError, map, Observable, shareReplay } from 'rxjs';
 import { all, BackupOptions } from '../../model/backup';
@@ -14,15 +14,13 @@ export type BackupRef = {  id: string, size?: number };
   providedIn: 'root'
 })
 export class BackupService {
+  private http = inject(HttpClient);
+  private config = inject(ConfigService);
+  private login = inject(LoginService);
+
 
   private backupKey = '';
   private _backupKey$?: Observable<string>;
-
-  constructor(
-    private http: HttpClient,
-    private config: ConfigService,
-    private login: LoginService,
-  ) { }
 
   public get base() {
     return this.config.api + '/api/v1/backup';

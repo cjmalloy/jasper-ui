@@ -1,10 +1,18 @@
-import { DestroyRef, inject, Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  Injector,
+  signal,
+  viewChild
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../component/loading/loading.component';
@@ -20,7 +28,6 @@ import { StompService } from '../../service/api/stomp.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { memo, MemoCache } from '../../util/memo';
 import { markRead } from '../../util/response';
 import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '../../util/tag';
 
@@ -28,10 +35,8 @@ import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '
   selector: 'app-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RefComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     RouterLinkActive,
@@ -40,114 +45,90 @@ import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '
     LoadingComponent,
   ],
 })
-export class RefPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+export class RefPage implements HasChanges {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private router = inject(Router);
+  private stomp = inject(StompService);
+
+
+  private readonly injector = inject(Injector);
+
+  readonly newResponses = signal<number>(0);
   private destroyRef = inject(DestroyRef);
 
-  @ViewChild('ref')
-  ref?: RefComponent;
-
-  newResponses = 0;
+  readonly ref = viewChild<RefComponent>('ref');
   private url = '';
   private watchSelf?: Subscription;
   private watchUrl = '';
   private watchResponses?: Subscription;
   private seen = new Set<string>();
 
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private router: Router,
-    private stomp: StompService,
-  ) { }
-
   saveChanges() {
-    return !this.ref || this.ref.saveChanges();
+    const ref = this.ref();
+    return !ref || ref.saveChanges();
   }
 
-  ngOnInit(): void {
-    this.url = this.store.view.url;
+  private readonly initialize = afterNextRender(() => {
+    this.url = this.store.view.url();
     if (this.url) this.reload(this.url);
-    this.disposers.push(autorun(() => {
-      const url = this.store.view.url;
+    effect(() => {
+      const url = this.store.view.url();
       if (!url) return;
       if (url === this.url) return;
       this.url = url;
       this.reload(url);
-    }));
-  }
+    }, { injector: this.injector });
+  });
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.store.view.clearRef();
-  }
+  });
 
-  @memo
-  get refWarning() {
-    const warn = this.sources > 0 && this.store.view.published && +this.store.view.ref!.published! !== +DateTime.fromISO(this.store.view.published);
-    if (this.store.view.published) this.router.navigate([], { queryParams: { published: null }, queryParamsHandling: 'merge', replaceUrl: true });
+  readonly refWarning = computed(() => {
+    const warn = this.sources() > 0 && this.store.view.published() && +this.store.view.ref()!.published! !== +DateTime.fromISO(this.store.view.published());
+    if (this.store.view.published()) this.router.navigate([], { queryParams: { published: null }, queryParamsHandling: 'merge', replaceUrl: true });
     return warn;
-  }
+  });
 
-  @memo
-  get expandedOnLoad() {
-    return this.store.view.current === 'ref/thread' ||
-      this.store.local.isRefToggled(this.store.view.url, this.store.view.current === 'ref/summary' || this.fullscreen?.onload);
-  }
+  readonly expandedOnLoad = computed(() => this.store.view.current() === 'ref/thread' ||
+    this.store.local.isRefToggled(this.store.view.url(), this.store.view.current() === 'ref/summary' || this.fullscreen()?.onload));
 
-  @memo
-  get fullscreen() {
+  readonly fullscreen = computed(() => {
     if (!this.admin.getPlugin('plugin/fullscreen')) return undefined;
-    return this.store.view.ref?.plugins?.['plugin/fullscreen'];
-  }
+    return this.store.view.ref()?.plugins?.['plugin/fullscreen'];
+  });
 
-  @memo
-  get comment() {
-    return this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref);
-  }
+  readonly comment = computed(() => this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref()));
 
-  @memo
-  get comments() {
+  readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return pluginResponses(this.store.view.ref, 'plugin/comment');
-  }
+    return pluginResponses(this.store.view.ref(), 'plugin/comment');
+  });
 
-  @memo
-  get thread() {
-    return this.admin.getPlugin('plugin/thread') && (hasTag('plugin/thread', this.store.view.ref) || this.store.view.current === 'ref/thread');
-  }
+  readonly thread = computed(() => this.admin.getPlugin('plugin/thread') && (hasTag('plugin/thread', this.store.view.ref()) || this.store.view.current() === 'ref/thread'));
 
-  @memo
-  get threads() {
+  readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return hasTag('plugin/thread', this.store.view.ref) || pluginResponses(this.store.view.ref, 'plugin/thread');
-  }
+    return hasTag('plugin/thread', this.store.view.ref()) || pluginResponses(this.store.view.ref(), 'plugin/thread');
+  });
 
-  @memo
-  get logs() {
+  readonly logs = computed(() => {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
-    return localPluginResponses(this.store.view.ref, '+plugin/log');
-  }
+    return localPluginResponses(this.store.view.ref(), '+plugin/log');
+  });
 
-  @memo
-  get responses() {
-    return this.store.view.ref?.metadata?.responses || 0;
-  }
+  readonly responses = computed(() => this.store.view.ref()?.metadata?.responses || 0);
 
-  @memo
-  get sources() {
-    const sources = (this.store.view.ref?.sources || []).filter( s => s != this.store.view.url);
+  readonly sources = computed(() => {
+    const sources = (this.store.view.ref()?.sources || []).filter( s => s != this.store.view.url());
     return sources.length || 0;
-  }
+  });
 
-  @memo
-  get alts() {
-    return this.store.view.ref?.alternateUrls?.length || 0;
-  }
+  readonly alts = computed(() => this.store.view.ref()?.alternateUrls?.length || 0);
 
   reload(url?: string) {
     url ||= this.url || '';
@@ -155,12 +136,11 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.clear();
       return;
     }
-    this.newResponses = 0;
-    this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() =>
-      this.store.view.versions = count));
+    this.newResponses.set(0);
+    this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions.set(count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
-    (url === this.store.view.ref?.url
-        ? of(this.store.view.ref)
+    (url === this.store.view.ref()?.url
+        ? of(this.store.view.ref())
         : this.refs.getCurrent(url)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
@@ -168,24 +148,24 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       tap(ref => this.markRead(ref)),
       switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
-        : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
+        : top(ref) === this.store.view.top()?.url ? of([ref, this.store.view.top()])
         : this.refs.getCurrent(top(ref)).pipe(
           map(top => [ref, top]),
           catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
         )),
-      tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
+      tap(([ref, top]) => this.store.view.setRef(ref, top)),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(() => MemoCache.clear(this));
+    ).subscribe();
     if (this.config.websockets && this.watchUrl !== url) {
       this.watchUrl = url;
       this.watchSelf?.unsubscribe();
       this.watchSelf = this.stomp.watchRef(url).pipe(
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ud => {
-        if (!this.store.view.ref) return;
-        MemoCache.clear(this);
+        const current = this.store.view.ref();
+        if (!current) return;
         // Merge updates with existing Ref because updates do not contain any private tags
-        const tags = uniq([...this.store.view.ref.tags || [], ...ud.tags || []])
+        const tags = uniq([...current.tags || [], ...ud.tags || []])
           .filter(t => privateTag(t) || ud.tags?.includes(t));
         const merged: Ref = {
           ...ud,
@@ -193,48 +173,45 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           metadata: {
             ...ud.metadata,
             plugins: {
-              ...pickBy(this.store.view.ref.metadata?.plugins, (v, k) => tags.includes(k)),
+              ...pickBy(current.metadata?.plugins, (v, k) => tags.includes(k)),
               ...ud.metadata?.plugins || {},
             },
-            ...(this.store.view.ref.metadata?.remotePlugins || ud.metadata?.remotePlugins) ? {
+            ...(current.metadata?.remotePlugins || ud.metadata?.remotePlugins) ? {
               remotePlugins: {
-                ...pickBy(this.store.view.ref.metadata?.remotePlugins, (v, k) => tags.includes(k)),
+                ...pickBy(current.metadata?.remotePlugins, (v, k) => tags.includes(k)),
                 ...ud.metadata?.remotePlugins || {},
               },
             } : {},
           },
           plugins: {
-            ...pickBy(this.store.view.ref.plugins, (v, k) => tags.includes(k)),
+            ...pickBy(current.plugins, (v, k) => tags.includes(k)),
             ...ud.plugins || {},
           },
           // Don't allow editing an update Ref, as we cannot tell when a private
           // tag was deleted
           // TODO: mark Ref as modified remotely to warn user before editing
-          modified: this.store.view.ref.modified,
-          modifiedString: this.store.view.ref.modifiedString,
+          modified: current.modified,
+          modifiedString: current.modifiedString,
         };
-        runInAction(() => Object.assign(this.store.view.ref!, merged));
-        this.store.eventBus.refresh(this.store.view.ref);
+        this.store.view.setRef({ ...this.store.view.ref()!, ...merged }, this.store.view.top());
+        this.store.eventBus.refresh(this.store.view.ref());
       });
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
-        filter(url => url != this.store.view.url),
+        filter(url => url != this.store.view.url()),
         filter(url => !url.startsWith('tag:')),
         filter(url => !this.seen.has(url)),
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(url => {
         this.seen.add(url);
-        this.newResponses++;
+        this.newResponses.update(n => n + 1);
       });
     }
   }
 
-  @memo
-  isWiki(url: string) {
-    return !this.admin.isWikiExternal() && isWiki(url, this.admin.getWikiPrefix());
-  }
+  readonly isWiki = computed(() => !this.admin.isWikiExternal() && isWiki(this.store.view.url(), this.admin.getWikiPrefix()));
 
   markRead(ref: Ref) {
-    runInAction(() => markRead(this.admin, this.ts, ref));
+    markRead(this.admin, this.ts, ref);
   }
 }

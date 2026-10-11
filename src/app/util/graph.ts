@@ -8,6 +8,8 @@ export type GraphNode = RefNode & {
   pinned?: boolean,
   x?: number,
   y?: number,
+  vx?: number,
+  vy?: number,
   fx?: number,
   fy?: number,
 };

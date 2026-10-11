@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { inject, Pipe, PipeTransform } from '@angular/core';
 import { ProxyService } from '../service/api/proxy.service';
 
 @Pipe({
@@ -6,10 +6,8 @@ import { ProxyService } from '../service/api/proxy.service';
     pure: true
 })
 export class CssUrlPipe implements PipeTransform {
+  private proxy = inject(ProxyService);
 
-  constructor(
-    private proxy: ProxyService,
-  ) { }
 
   transform(url: string | null, skip = ''): string | null {
     if (!url) return '';

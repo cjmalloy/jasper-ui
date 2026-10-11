@@ -1,42 +1,39 @@
 <div #desktop class="desktop">
-  @if (parent) {
+  @if (parent()) {
     <app-subfolder cdkDrag
                    cdkDragBoundary=".desktop"
-                   [cdkDragDisabled]="!local"
-                   [dragging]="dragging"
-                   [style.transform]="subfolders[ext!.tag]"
-                   [style.position]="subfolders[ext!.tag] ? 'absolute' : 'relative'"
-                   (cdkDragStarted)="startMoving($any($event.event.target))"
-                   (cdkDragMoved)="moveFolder(ext!.tag, $any($event.event.target))"
-                   (cdkDragEnded)="dragging = false"
-                   [ext]="parent"
+                   [cdkDragDisabled]="!local()"
+                   [dragging]="dragging()"
+                   [style.transform]="subfolders()[ext()!.tag]"
+                   [style.position]="subfolders()[ext()!.tag] ? 'absolute' : 'relative'"
+                   (cdkDragStarted)="startMoving($event.source.element.nativeElement)"
+                   (cdkDragEnded)="moveFolder(ext()!.tag, $event.source.element.nativeElement)"
+                   [ext]="parent()"
                    [name]="'..'"></app-subfolder>
   }
-  @if (folderExts) {
-    @for (f of folderExts; track f.tag + f.origin) {
+  @if (folderExts()) {
+    @for (f of folderExts(); track f.tag + f.origin) {
       <app-subfolder cdkDrag
                      cdkDragBoundary=".desktop"
-                     [cdkDragDisabled]="!local"
-                     [dragging]="dragging"
-                     [style.transform]="subfolders[f.tag]"
-                     [style.position]="subfolders[f.tag] ? 'absolute' : 'relative'"
-                     (cdkDragStarted)="startMoving($any($event.event.target))"
-                     (cdkDragMoved)="moveFolder(f.tag, $any($event.event.target))"
-                     (cdkDragEnded)="dragging = false"
+                     [cdkDragDisabled]="!local()"
+                     [dragging]="dragging()"
+                     [style.transform]="subfolders()[f.tag]"
+                     [style.position]="subfolders()[f.tag] ? 'absolute' : 'relative'"
+                     (cdkDragStarted)="startMoving($event.source.element.nativeElement)"
+                     (cdkDragEnded)="moveFolder(f.tag, $event.source.element.nativeElement)"
                      [ext]="f"
                      [name]="f.name || '#' + f.tag"></app-subfolder>
     }
-    @for (ref of page?.content; track ref.origin + '@' + ref.url) {
-      @if (flatten || !inSubfolder(ref)) {
+    @for (ref of page()?.content; track ref.origin + '@' + ref.url) {
+      @if (flatten() || !inSubfolder(ref)) {
         <app-file cdkDrag
                   cdkDragBoundary=".desktop"
-                  [cdkDragDisabled]="!local"
-                  [dragging]="dragging"
-                  [style.transform]="files[ref.url]"
-                  [style.position]="files[ref.url] ? 'absolute' : 'relative'"
-                  (cdkDragStarted)="startMoving($any($event.event.target))"
-                  (cdkDragMoved)="moveFile(ref.url, $any($event.event.target))"
-                  (cdkDragEnded)="dragging = false"
+                  [cdkDragDisabled]="!local()"
+                  [dragging]="dragging()"
+                  [style.transform]="files()[ref.url]"
+                  [style.position]="files()[ref.url] ? 'absolute' : 'relative'"
+                  (cdkDragStarted)="startMoving($event.source.element.nativeElement)"
+                  (cdkDragEnded)="moveFile(ref.url, $event.source.element.nativeElement)"
                   [ref]="ref"></app-file>
       }
     }

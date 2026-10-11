@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { catchError, Observable, Subject, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -22,17 +22,9 @@ export class EventBus {
     den: 0,
   });
 
-  get progressMessages() {
-    return this.progressState().messages;
-  }
-
-  get progressNum() {
-    return this.progressState().num;
-  }
-
-  get progressDen() {
-    return this.progressState().den;
-  }
+  readonly progressMessages = computed(() => this.progressState().messages);
+  readonly progressNum = computed(() => this.progressState().num);
+  readonly progressDen = computed(() => this.progressState().den);
 
   private setState(event: string, ref?: Ref, repost?: Ref, errors: string[] = []) {
     this.events.next({ event, ref, repost, errors });
@@ -99,7 +91,7 @@ export class EventBus {
   }
 
   clearProgress(steps = 0) {
-    if (!steps || !this.progressDen || this.progressNum >= this.progressDen) {
+    if (!steps || !this.progressDen() || this.progressNum() >= this.progressDen()) {
       this.progressState.set({ messages: [], num: 0, den: steps });
     } else {
       this.progressState.update(progress => ({ ...progress, den: progress.den + steps }));

@@ -1,5 +1,4 @@
-import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
-import { MobxAngularModule } from 'mobx-angular';
+import { Component, computed, forwardRef, inject, input, viewChildren } from '@angular/core';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -26,9 +25,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-lens',
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    MobxAngularModule,
     LoadingComponent,
     forwardRef(() => RefComponent),
     forwardRef(() => ForceDirectedComponent),
@@ -43,66 +40,36 @@ import { ViewerComponent } from '../viewer/viewer.component';
     ViewerComponent,
   ],
 })
-export class LensComponent implements OnChanges, HasChanges {
+export class LensComponent implements HasChanges {
+  admin = inject(AdminService);
+  account = inject(AccountService);
+  query = inject(QueryStore);
 
-  @Input()
-  ext?: Ext;
-  @Input()
-  tag = '';
-  @Input()
-  fullPage = false;
-  @Input()
-  cols? = 0;
-  @Input()
-  size = 24;
-  @Input()
-  sort: RefSort[] = [];
-  @Input()
-  filter: UrlFilter[] = [];
-  @Input()
-  search = '';
-  @Input()
-  page?: Page<Ref>;
-  @Input()
-  pageControls = true;
-  @Input()
-  showAlarm = true;
-  @Input()
-  showVotes = false;
 
-  plugins?: string[];
-  header?: string;
+  readonly ext = input<Ext | undefined>();
+  readonly tag = input('');
+  readonly fullPage = input(false);
+  readonly cols = input(0);
+  readonly size = input(24);
+  readonly sort = input<RefSort[]>([]);
+  readonly filter = input<UrlFilter[]>([]);
+  readonly search = input('');
+  readonly page = input<Page<Ref> | undefined>();
+  readonly pageControls = input(true);
+  readonly showAlarm = input(true);
+  readonly showVotes = input(false);
 
-  @ViewChildren('lens')
-  list?: QueryList<HasChanges>;
+  readonly plugins = computed(() => hasPrefix(this.ext()?.tag, 'plugin') ? [this.ext()!.tag] : undefined);
+  readonly header = computed(() => this.ext()?.config?.header);
 
-  constructor(
-    public admin: AdminService,
-    public account: AccountService,
-    public query: QueryStore,
-  ) { }
+  readonly list = viewChildren<HasChanges>('lens');
 
   saveChanges() {
-    return !this.list?.find(t => !t.saveChanges());
-  }
-
-  init() {
-    this.header = this.ext?.config?.header;
-    if (hasPrefix(this.ext?.tag, 'plugin')) {
-      this.plugins = [this.ext!.tag];
-    } else {
-      this.plugins = undefined;
-    }
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ext) {
-      this.init();
-    }
+    return !this.list()?.find(t => !t.saveChanges());
   }
 
   isTemplate(template: string) {
-    return this.admin.getTemplate(template) && hasPrefix(this.ext?.tag, template);
+    return this.admin.getTemplate(template) && hasPrefix(this.ext()?.tag, template);
   }
 
   cssClass(tag?: string) {

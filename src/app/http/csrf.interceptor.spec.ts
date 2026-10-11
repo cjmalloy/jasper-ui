@@ -1,25 +1,40 @@
 /// <reference types="vitest/globals" />
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { catchError, EMPTY } from 'rxjs';
 
-import { CsrfInterceptor } from './csrf.interceptor';
+import { csrfInterceptor } from './csrf.interceptor';
 
-describe('CsrfInterceptor', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [],
-    providers: [
-        CsrfInterceptor,
-        { provide: HTTP_INTERCEPTORS, useExisting: CsrfInterceptor, multi: true },
-        provideHttpClient(withXhr(), withInterceptorsFromDi()),
-        provideHttpClientTesting()
-    ]
-}));
+describe('csrfInterceptor', () => {
+  let http: HttpClient;
+  let httpMock: HttpTestingController;
 
-  it('should be created', () => {
-    const interceptor: CsrfInterceptor = TestBed.inject(CsrfInterceptor);
-    expect(interceptor).toBeTruthy();
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withXhr(), withInterceptors([csrfInterceptor])),
+        provideHttpClientTesting(),
+      ],
+    });
+    http = TestBed.inject(HttpClient);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => httpMock.verify());
+
+  it('does not add a CSRF header to GET requests', () => {
+    http.get('/test').subscribe();
+    const req = httpMock.expectOne('/test');
+    expect(req.request.headers.has('X-XSRF-TOKEN')).toBe(false);
+    req.flush({});
+  });
+
+  it('adds a CSRF header to POST requests', () => {
+    http.post('/test', {}).subscribe();
+    const req = httpMock.expectOne('/test');
+    expect(req.request.headers.has('X-XSRF-TOKEN')).toBe(true);
+    req.flush({});
   });
 
   for (const detail of [
@@ -27,24 +42,18 @@ describe('CsrfInterceptor', () => {
     'Could not verify the provided CSRF token because no token was found to compare.',
   ]) {
     it(`retries once on 403: ${detail}`, () => {
-      const http = TestBed.inject(HttpClient);
-      const ctrl = TestBed.inject(HttpTestingController);
       let result: any;
       http.post('/api/v1/proxy', 'data').subscribe(res => result = res);
-      ctrl.expectOne('/api/v1/proxy').flush({ detail }, { status: 403, statusText: 'OK' });
-      ctrl.expectOne('/api/v1/proxy').flush({ ok: true });
+      httpMock.expectOne('/api/v1/proxy').flush({ detail }, { status: 403, statusText: 'OK' });
+      httpMock.expectOne('/api/v1/proxy').flush({ ok: true });
       expect(result).toEqual({ ok: true });
-      ctrl.verify();
     });
   }
 
   it('does not retry other 403s', () => {
-    const http = TestBed.inject(HttpClient);
-    const ctrl = TestBed.inject(HttpTestingController);
     let error: any;
     http.post('/api/v1/ref', 'data').pipe(catchError(err => { error = err; return EMPTY; })).subscribe();
-    ctrl.expectOne('/api/v1/ref').flush({ detail: 'Access is denied' }, { status: 403, statusText: 'OK' });
+    httpMock.expectOne('/api/v1/ref').flush({ detail: 'Access is denied' }, { status: 403, statusText: 'OK' });
     expect(error.status).toBe(403);
-    ctrl.verify();
   });
 });

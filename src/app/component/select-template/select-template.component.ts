@@ -1,7 +1,5 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { defer } from 'lodash-es';
-import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { access } from '../../util/tag';
@@ -11,45 +9,32 @@ import { access } from '../../util/tag';
   templateUrl: './select-template.component.html',
   styleUrls: ['./select-template.component.scss'],
   host: { 'class': 'select-template' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule]
 })
 export class SelectTemplateComponent {
+  private admin = inject(AdminService);
+  private auth = inject(AuthzService);
 
-  @Output()
-  templateChange = new EventEmitter<string>();
 
-  @ViewChild('select')
-  select?: ElementRef<HTMLSelectElement>;
+  readonly templateChange = output<string>();
+  readonly template = input('', { alias: 'template' });
 
-  submitTemplates = this.admin.tmplSubmit.filter(p => this.auth.canAddTag(p.tag));
+  readonly submitTemplates = computed(() => this.admin.tmplSubmit().filter(p => this.auth.canAddTag(p.tag)));
 
-  templates: Template[] = [...this.submitTemplates];
+  readonly templates = computed(() => {
+    const templates = this.submitTemplates();
+    const value = this.template();
+    if (templates.some(t => t.tag === value || t.tag === value.substring(access(value).length))) return templates;
+    const template = this.admin.getTemplate(value);
+    return template ? [template, ...templates] : templates;
+  });
 
-  constructor(
-    private admin: AdminService,
-    private auth: AuthzService,
-  ) {  }
-
-  @Input()
-  set template(value: string) {
-    if (!this.select) {
-      if (value) defer(() => this.template = value);
-    } else {
-      let hit = this.templates.map(t => t.tag).indexOf(value) + 1;
-      if (!hit) {
-        hit = this.templates.map(t => t.tag).indexOf(value.substring(access(value).length)) + 1;
-      }
-      if (!hit && value && !this.templates.find(p => (p?.tag) === value)) {
-        const template = this.admin.getTemplate(value);
-        if (template) {
-          this.templates.unshift(template);
-          defer(() => this.select!.nativeElement.selectedIndex = 1);
-          return;
-        }
-      }
-      defer(() => this.select!.nativeElement.selectedIndex = hit);
-    }
-  }
+  readonly selected = computed(() => {
+    const value = this.template();
+    const tags = this.templates().map(t => t.tag);
+    if (tags.includes(value)) return value;
+    const stripped = value.substring(access(value).length);
+    return tags.includes(stripped) ? stripped : '';
+  });
 
 }

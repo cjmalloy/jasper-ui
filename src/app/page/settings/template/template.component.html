@@ -1,5 +1,5 @@
-@if (query.error?.status !== 403) {
-  <app-template-list #list [page]="query.page"></app-template-list>
+@if (query.error()?.status !== 403) {
+  <app-template-list #list [page]="query.page()"></app-template-list>
 } @else {
   <div class="error-403" i18n>Access Denied</div>
 }

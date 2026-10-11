@@ -1,7 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
-import { defer, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+import { Component, effect, inject, viewChild } from '@angular/core';
+import { uniq } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -15,61 +13,50 @@ import { getArgs, UrlFilter } from '../../../util/query';
   selector: 'app-ref-responses',
   templateUrl: './responses.component.html',
   styleUrls: ['./responses.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    MobxAngularModule,
     RefListComponent,
   ],
 })
-export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
+export class RefResponsesComponent implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
 
-  private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
-    query.clear();
-    runInAction(() => store.view.defaultSort = ['published']);
+  constructor() {
+    const store = this.store;
+    store.view.defaultSort.set(['published']);
+    this.query.watch(() => {
+      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags()).length;
+      return {
+        ...getArgs(
+          '',
+          this.store.view.sort(),
+          uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'] : ['query/!plugin/delete', 'user/!plugin/user/hide'], ...this.store.view.filter() || []]) as UrlFilter[],
+          this.store.view.search(),
+          this.store.view.pageNumber(),
+          this.store.view.pageSize(),
+            ),
+        responses: this.store.view.url(),
+        };
+    });
+    // TODO: set title for bare reposts
+    effect(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref())));
+    effect(() => {
+      const ref = this.store.view.ref();
+      if (ref) {
+        const responsesCount = ref.metadata?.responses || 0;
+        this.store.local.setLastSeenCount(this.store.view.url(), 'replies', responsesCount);
+      }
+    });
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
-      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags).length;
-      const args = getArgs(
-        '',
-        this.store.view.sort,
-        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'] : ['query/!plugin/delete', 'user/!plugin/user/hide'], ...this.store.view.filter || []]) as UrlFilter[],
-        this.store.view.search,
-        this.store.view.pageNumber,
-        this.store.view.pageSize,
-      );
-      args.responses = this.store.view.url;
-      defer(() => this.query.setArgs(args));
-    }));
-    // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref))));
-    this.disposers.push(autorun(() => {
-      if (this.store.view.ref) {
-        const responsesCount = this.store.view.ref.metadata?.responses || 0;
-        this.store.local.setLastSeenCount(this.store.view.url, 'replies', responsesCount);
-      }
-    }));
-  }
-
-  ngOnDestroy() {
-    this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
 }

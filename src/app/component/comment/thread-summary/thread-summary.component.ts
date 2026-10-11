@@ -1,7 +1,6 @@
-import { DestroyRef, inject, Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MobxAngularModule } from 'mobx-angular';
-import { Observable } from 'rxjs';
+import { Component, computed, forwardRef, inject, input, linkedSignal } from '@angular/core';
+import { rxResource, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { EMPTY, Observable, switchMap } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
@@ -14,62 +13,46 @@ import { CommentComponent } from '../comment.component';
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
   host: { 'class': 'thread-summary' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => CommentComponent),
     forwardRef(() => RefComponent),
-    MobxAngularModule,
   ]
 })
-export class ThreadSummaryComponent implements OnInit, OnChanges {
-  private destroyRef = inject(DestroyRef);
+export class ThreadSummaryComponent {
+  private refs = inject(RefService);
+  private store = inject(Store);
 
-  @Input()
-  source = '';
-  @Input()
-  commentView = false;
-  @Input()
-  query = '';
-  @Input()
-  depth = 1;
-  @Input()
-  pageSize = 5;
-  @Input()
-  context = 0;
-  @Input()
-  showLoadMore = true;
-  @Input()
-  newRefs$?: Observable<Ref | undefined>;
 
-  newRefs: Ref[] = [];
-  list: Ref[] = [];
+  readonly source = input('');
+  readonly commentView = input(false);
+  readonly query = input('');
+  readonly depth = input(1);
+  readonly pageSize = input(5);
+  readonly context = input(0);
+  readonly showLoadMore = input(true);
+  readonly newRefs$ = input<Observable<Ref | undefined>>();
 
-  constructor(
-    private refs: RefService,
-    private store: Store,
-  ) { }
+  readonly newRefs = linkedSignal({
+    source: () => [this.source(), this.query(), this.pageSize()],
+    computation: () => [] as Ref[],
+  });
+  private readonly pageResource = rxResource({
+    params: () => ({
+      ...getArgs(this.query(), this.store.view.sort(), this.store.view.filter()),
+      responses: this.source(),
+      size: this.pageSize(),
+    }),
+    stream: ({ params }) => this.refs.page(params),
+  });
+  readonly list = computed(() => this.pageResource.hasValue() ? this.pageResource.value().content : []);
 
-  ngOnInit(): void {
-    this.newRefs$?.pipe(
-      takeUntilDestroyed(this.destroyRef),
+  constructor() {
+    toObservable(this.newRefs$).pipe(
+      switchMap(refs => refs ?? EMPTY),
+      takeUntilDestroyed(),
     ).subscribe(comment => {
-      if (comment) this.newRefs = [comment, ...this.newRefs];
+      if (comment) this.newRefs.update(refs => [comment, ...refs]);
     });
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.source) {
-      this.newRefs = [];
-      this.refs.page({
-        ...getArgs(this.query, this.store.view.sort, this.store.view.filter),
-        responses: this.source,
-        size: this.pageSize,
-      }).pipe(
-        takeUntilDestroyed(this.destroyRef)
-      ).subscribe(page => {
-        this.list = page.content;
-      });
-    }
   }
 
 

@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
-import { Subscription } from 'rxjs';
+import { controlValue } from '../util/form';
+import { parseLocation } from '../util/geo';
 import { getErrorMessage } from './errors';
 import { LocationMapComponent } from './location-map.component';
-import { parseLocation } from '../util/geo';
 import { LocationPicker, locationPicker } from './location-picker';
 
 @Component({
@@ -13,8 +13,8 @@ import { LocationPicker, locationPicker } from './location-picker';
   template: `
     <div class="location-input">
       @if (showMap) {
-        @defer {
-          <app-location-map [picker]="picker"></app-location-map>
+        @defer (on immediate) {
+          <app-location-map [picker]="picker" />
         }
       }
       <div class="form-array">
@@ -27,7 +27,7 @@ import { LocationPicker, locationPicker } from './location-picker';
                step="any"
                aria-label="Longitude"
                i18n-aria-label
-               [value]="lng"
+               [value]="lng()"
                [disabled]="formControl.disabled"
                (input)="setLng($any($event.target).value)"
                (paste)="paste($event)"
@@ -45,7 +45,7 @@ import { LocationPicker, locationPicker } from './location-picker';
                [name]="(field.name || field.id) + '-lat'"
                aria-label="Latitude"
                i18n-aria-label
-               [value]="lat"
+               [value]="lat()"
                [disabled]="formControl.disabled"
                (input)="setLat($any($event.target).value)"
                (paste)="paste($event)"
@@ -106,52 +106,41 @@ import { LocationPicker, locationPicker } from './location-picker';
       }
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FormlyAttributes,
     LocationMapComponent,
   ],
 })
-export class FormlyFieldLocation extends FieldType<FieldTypeConfig> implements OnInit, OnDestroy {
+export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
+  private config = inject(FormlyConfig);
 
-  picker!: LocationPicker;
 
   private showedError = false;
-  private subs = new Subscription();
+  private readonly coords = controlValue<number[]>(() => this.formControl);
+  private readonly cleanup = inject(DestroyRef).onDestroy(() => this.picker.removed(this.formControl));
 
-  constructor(
-    private config: FormlyConfig,
-    private cd: ChangeDetectorRef,
-  ) {
-    super();
-  }
+  readonly lng = computed<number>(() => {
+    return this.coords()?.[0] ?? 0;
+  });
 
-  ngOnInit() {
-    this.picker = locationPicker(this.field);
-    this.subs.add(this.picker.changes.subscribe(() => this.cd.markForCheck()));
-    this.subs.add(this.formControl.valueChanges.subscribe(() => this.cd.markForCheck()));
+  readonly lat = computed<number>(() => {
+    return this.coords()?.[1] ?? 0;
+  });
+
+  private readonly init = afterNextRender(() => {
     if (this.picker.open && !this.hasLocation) {
       // New point added while the map is open: select it so it can be placed by clicking the map
-      queueMicrotask(() => this.picker.select(this.formControl));
+      this.picker.select(this.formControl);
     }
-  }
+  });
 
-  ngOnDestroy() {
-    this.subs.unsubscribe();
-    this.picker?.removed(this.formControl);
+  get picker(): LocationPicker {
+    return locationPicker(this.field);
   }
 
   get showMap() {
-    return this.picker.owner === this.formControl;
-  }
-
-  get lng(): number {
-    return this.formControl.value?.[0] ?? 0;
-  }
-
-  get lat(): number {
-    return this.formControl.value?.[1] ?? 0;
+    return this.picker.owner() === this.formControl;
   }
 
   get hasLocation() {
@@ -162,14 +151,14 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> implements O
   setLng(value: string) {
     const lng = parseFloat(value);
     if (!isNaN(lng)) {
-      this.setLocation([lng, this.lat]);
+      this.setLocation([lng, this.lat()]);
     }
   }
 
   setLat(value: string) {
     const lat = parseFloat(value);
     if (!isNaN(lat)) {
-      this.setLocation([this.lng, lat]);
+      this.setLocation([this.lng(), lat]);
     }
   }
 
@@ -186,7 +175,6 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> implements O
   setLocation(value: [number, number]) {
     this.formControl.setValue(value);
     this.formControl.markAsDirty();
-    this.cd.markForCheck();
   }
 
   detectLocation(onlyIfUnset = false) {

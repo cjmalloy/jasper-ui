@@ -1,15 +1,13 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, isDevMode, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { UserTagSelectorComponent } from '../../../component/user-tag-selector/user-tag-selector.component';
-import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../../form/ext/ext.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AccountService } from '../../../service/account.service';
@@ -17,7 +15,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -25,33 +23,35 @@ import { printError } from '../../../util/http';
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
+  imports: [ReactiveFormsModule, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
 })
 export class SettingsMePage implements HasChanges {
+  config = inject(ConfigService);
+  store = inject(Store);
+  private exts = inject(ExtService);
+  private accounts = inject(AccountService);
+  private admin = inject(AdminService);
+  private fb = inject(FormBuilder);
+  private location = inject(Location);
 
-  @ViewChild('form')
-  form?: ExtFormComponent;
 
-  submitted = false;
+  readonly submitted = signal<boolean>(false);
+  readonly serverError = signal<string[]>([]);
+  readonly editing = signal(false);
+  private editingSubscription?: Subscription;
+
+  readonly form = viewChild<ExtFormComponent>('form');
   editForm!: UntypedFormGroup;
-  serverError: string[] = [];
+  protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
 
-  editing?: Subscription;
+  constructor() {
+    const store = this.store;
+    const fb = this.fb;
 
-  constructor(
-    public config: ConfigService,
-    public store: Store,
-    private exts: ExtService,
-    private accounts: AccountService,
-    private admin: AdminService,
-    private fb: FormBuilder,
-    private location: Location,
-  ) {
-    const ext = cloneDeep(store.account.ext!);
+    const ext = cloneDeep(store.account.ext()!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
-    if (ext) defer(() => this.form!.setValue(ext));
+    if (ext) defer(() => this.form()!.setValue(ext));
   }
 
   saveChanges() {
@@ -59,15 +59,16 @@ export class SettingsMePage implements HasChanges {
   }
 
   save() {
-    this.serverError = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.submitted.set(true);
     this.editForm.markAllAsTouched();
     if (!this.editForm.valid) {
       scrollToFirstInvalid();
       return;
     }
-    const ext = this.store.account.ext!;
-    this.editing = this.exts.update({
+    const ext = this.store.account.ext()!;
+    this.editing.set(true);
+    this.editingSubscription = this.exts.update({
       ...ext,
       ...this.editForm.value,
       tag: ext.tag, // Need to fetch because control is disabled
@@ -76,19 +77,20 @@ export class SettingsMePage implements HasChanges {
         ...this.editForm.value.config,
       },
     }).pipe(
-      tap(() => runInAction(() => this.accounts.clearCache())),
+      tap(() => this.accounts.clearCache()),
       switchMap(() => this.accounts.initExt$),
       catchError((res: HttpErrorResponse) => {
-        delete this.editing;
-        this.serverError = printError(res);
+        this.editing.set(false);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      delete this.editing;
+      this.editing.set(false);
       this.editForm.markAsPristine();
       this.location.back();
     });
+    this.editingSubscription?.add(() => this.editing.set(false));
   }
 
-  protected readonly isDevMode = isDevMode;
+  protected readonly isDevMode = () => environment.dev;
 }

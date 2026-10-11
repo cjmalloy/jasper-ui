@@ -1,5 +1,5 @@
-import { type APIRequestContext, expect, type Page, type Response, test } from '@playwright/test';
-import { adminHeaders, clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications } from './setup';
+import { type APIRequestContext, expect, type Page, type Response } from '@playwright/test';
+import { adminHeaders, clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, test } from './setup';
 
 test.describe.serial('Origin Plugin: Account Aliases', () => {
   test.setTimeout(120_000);

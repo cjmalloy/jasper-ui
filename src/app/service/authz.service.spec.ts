@@ -94,65 +94,65 @@ describe('AuthzService', () => {
     });
 
     it('should return true when tag is in tagWriteAccess array', () => {
-      store.account.access = {
+      store.account.access.set({
         tag: 'user/testuser',
         origin: '',
         tagWriteAccess: ['science'],
-      };
+      });
       expect(service.tagWriteAccess('science')).toBe(true);
     });
 
     it('should return true when tag is in writeAccess array', () => {
-      store.account.access = {
+      store.account.access.set({
         tag: 'user/testuser',
         origin: '',
         writeAccess: ['science'],
-      };
+      });
       expect(service.tagWriteAccess('science')).toBe(true);
     });
 
     it('should return true when parent tag is in writeAccess array', () => {
-      store.account.access = {
+      store.account.access.set({
         tag: 'user/testuser',
         origin: '',
         writeAccess: ['science'],
-      };
+      });
       expect(service.tagWriteAccess('science/physics')).toBe(true);
     });
 
     it('should return true when grandparent tag is in writeAccess array', () => {
-      store.account.access = {
+      store.account.access.set({
         tag: 'user/testuser',
         origin: '',
         writeAccess: ['science'],
-      };
+      });
       expect(service.tagWriteAccess('science/physics/quantum')).toBe(true);
     });
 
     it('should return true when parent tag is in tagWriteAccess array', () => {
-      store.account.access = {
+      store.account.access.set({
         tag: 'user/testuser',
         origin: '',
         tagWriteAccess: ['science'],
-      };
+      });
       expect(service.tagWriteAccess('science/physics')).toBe(true);
     });
 
     it('should return false when no access is granted', () => {
-      store.account.access = {
+      store.account.access.set({
         tag: 'user/testuser',
         origin: '',
         writeAccess: ['math'],
-      };
+      });
       expect(service.tagWriteAccess('science')).toBe(false);
     });
 
     it('should return false when access is to a different branch', () => {
-      store.account.access = {
+      store.account.access.set({
         tag: 'user/testuser',
         origin: '',
         writeAccess: ['science/biology'],
-      };
+      });
       expect(service.tagWriteAccess('science/physics')).toBe(false);
     });
   });

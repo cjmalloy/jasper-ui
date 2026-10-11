@@ -29,233 +29,162 @@ describe('BackgammonComponent', () => {
   });
 
   describe('Illegal Moves', () => {
-    beforeEach(() => {
-      component.reset();
-    });
-
     it('should reject moving to a spot blocked by opponent', () => {
-      // Setup: Red rolls, tries to move to a spot with 2+ black pieces
-      component.reset('r 3-2');
-
-      // Black has 5 pieces on spot 6 (index 5)
-      // Red has 2 pieces on spot 1 (index 0)
-      // Red tries to move from spot 1 to spot 6 (5 spaces) but spot 6 has black pieces
-      const from = 0;
-      const to = 5; // This spot has 5 black pieces, so it's blocked
-
-      // Moves should either not exist for this position or not include the blocked spot
-      const movesForSpot = component.state.moves[from];
-      if (movesForSpot) {
-        expect(movesForSpot.includes(to)).toBe(false);
-      } else {
-        // No moves available from this spot is also valid
-        expect(movesForSpot).toBeUndefined();
-      }
+      component.reset('r 3-0\nb 2-0');
+      expect(component.moves()[0] || []).not.toContain(5);
     });
 
     it('should reject moving opponent pieces', () => {
-      // Setup: Red's turn
-      component.reset('r 3-2');
-
-      // Spot 6 has black pieces (component.state.spots[5].pieces = 'bbbbb')
-      // Red shouldn't have any valid moves from spot 5 (0-indexed)
-      expect(component.state.moves[5]).toBeUndefined();
+      component.reset('r 3-0\nb 2-0');
+      expect(component.moves()[5]).toBeUndefined();
     });
 
     it('should reject moving when no dice are available', () => {
-      // Setup: Create a scenario where no dice are available
-      component.reset();
-      component.state.redDice = [3, 2];
-      component.state.turn = 'r';
-      component.state.diceUsed = [3, 2]; // Both dice already used
-
-      // Try to make a move via drop - should throw because no moves are valid
-      expect(() => {
-        const event = {
-          item: { data: 'r' },
-          previousContainer: { data: 0 },
-          container: { data: 2 }
-        } as any;
-        component.drop(event);
-      }).toThrow();
+      component.state.update(state => ({
+        ...state, redDice: [3, 2], turn: 'r', diceUsed: [3, 2], moves: [],
+      }));
+      expect(() => component.drop({
+        item: { data: 'r' }, previousContainer: { data: 0 }, container: { data: 2 },
+      } as any)).toThrow();
     });
 
     it('should reject moving from board when piece is on bar', () => {
-      // Setup: Red has a piece on the bar
-      component.reset();
-      component.state.bar.push('r');
-      component.state.spots[0].pieces = ['r']; // One piece left on board
-      component.state.redDice = [3, 2];
-      component.state.turn = 'r';
-      component.state.diceUsed = [];
-      component.state.moves = [];
-
-      // Calculate moves manually since getAllMoves is a standalone function
-      // When a piece is on the bar, only bar moves should be allowed
-      // Regular board spots should have no valid moves
-      const hasBarPiece = component.state.bar.find(p => p === 'r');
-      expect(hasBarPiece).toBe('r');
+      component.state.update(state => ({
+        ...state, bar: [...state.bar, 'r'], redDice: [3, 2], turn: 'r', diceUsed: [], moves: [],
+        spots: state.spots.map(spot => spot.index === 0 ? { ...spot, pieces: ['r'] } : spot),
+      }));
+      expect(component.redBar()).toEqual(['r']);
+      expect(() => component.drop({
+        item: { data: 'r' }, previousContainer: { data: 0 }, container: { data: 3 },
+      } as any)).toThrow();
     });
 
     it('should reject bearing off when not all pieces are in home board', () => {
-      // Setup: Red tries to bear off but still has pieces outside home
-      component.reset();
-      // Red's home board is spots 18-23
-      // Keep a piece on spot 0 (outside home)
-      component.state.spots[0].pieces = ['r'];
-      component.state.spots[18].pieces = ['r', 'r', 'r', 'r', 'r'];
-      component.state.redDice = [3, 2];
-      component.state.turn = 'r';
-      component.state.diceUsed = [];
-      component.state.moves = [];
-
-      // Bearing off (moving to -2) should not be available
-      // when pieces are still outside home board
-      const hasOffMove = component.state.moves.some(moves => moves?.includes(-2));
-      expect(hasOffMove).toBe(false);
+      component.state.update(state => ({
+        ...state, redDice: [3, 2], turn: 'r', diceUsed: [], moves: [],
+        spots: state.spots.map(spot => spot.index === 0 ? { ...spot, pieces: ['r'] } : spot),
+      }));
+      expect(() => component.drop({
+        item: { data: 'r' }, previousContainer: { data: 18 }, container: { data: -2 },
+      } as any)).toThrow();
     });
 
     it('should throw error when attempting illegal move via drop', () => {
-      // Setup: Create a scenario with specific dice
-      component.reset('r 3-2');
-
-      // Try to move to an illegal position
-      const from = 0;
-      const invalidTo = 10; // Not a valid move with dice 3 and 2 from spot 0
-
-      expect(() => {
-        const event = {
-          item: { data: 'r' },
-          previousContainer: { data: from },
-          container: { data: invalidTo }
-        } as any;
-        component.drop(event);
-      }).toThrow();
+      component.reset('r 3-0\nb 2-0');
+      expect(() => component.drop({
+        item: { data: 'r' }, previousContainer: { data: 0 }, container: { data: 10 },
+      } as any)).toThrow();
     });
   });
 
   describe('Combined Moves with Hits', () => {
     beforeEach(() => {
-      component.reset();
+      vi.spyOn(component, 'queueAnimation').mockImplementation(animation => component.state.set(animation.post));
+      vi.spyOn(component, 'save').mockImplementation(() => {});
     });
 
     it('should allow combined move that hits opponent on intermediate spot', () => {
-      // Setup: Create a scenario where red can hit black using both dice
-      component.reset();
-
-      // Clear default setup and create custom scenario
-      for (let i = 0; i < 24; i++) {
-        component.state.spots[i].pieces = [];
-      }
-
-      // Put a red piece at spot 0
-      component.state.spots[0].pieces = ['r'];
-
-      // Put a single black piece at spot 3 (can be hit)
-      component.state.spots[3].pieces = ['b'];
-
-      // Put another black piece at spot 5 to verify the move completes
-      component.state.spots[5].pieces = ['b'];
-
-      // Red rolls 3-2
-      component.state.redDice = [3, 2];
-      component.state.turn = 'r';
-      component.state.diceUsed = [];
-      component.state.moves = [];
-
-      // Re-calculate moves for this custom board
-      const board = component.state.board.join('\n');
-      component.reset(board + '\nr 3-2');
-
-      // Red should be able to move from 0 to 5 (using 3 then 2)
-      // This would hit the black piece at spot 3
-      const canMove = component.state.moves[0]?.includes(5);
-
-      if (canMove) {
-        // Perform the move
-        const initialBarLength = component.state.bar.length;
-
-        const event = {
-          item: { data: 'r' },
-          previousContainer: { data: 0 },
-          container: { data: 5 }
-        } as any;
-
-        component.drop(event);
-
-        // Check that a piece was sent to the bar
-        expect(component.state.bar.length).toBeGreaterThan(initialBarLength);
-        expect(component.state.bar).toContain('b');
-      }
+      component.state.update(state => ({
+        ...state, redDice: [3, 2], turn: 'r', diceUsed: [], moves: [[5]],
+        spots: state.spots.map(spot => ({
+          ...spot, pieces: spot.index === 0 ? ['r'] : [3, 5, 12].includes(spot.index) ? ['b'] : [],
+        })),
+      }));
+      const previous = component.state();
+      component.drop({
+        item: { data: 'r' }, previousContainer: { data: 0 }, container: { data: 5 },
+      } as any);
+      expect(component.blackBar()).toEqual(['b', 'b']);
+      expect(component.spots()[5].pieces).toEqual(['r']);
+      expect(previous.bar).toEqual([]);
+      expect(previous.spots[0].pieces).toEqual(['r']);
     });
 
     it('should handle combined move hitting piece at final destination', () => {
-      // Setup: Combined move where the hit happens at the final spot
-      component.reset();
-
-      // Clear default setup
-      for (let i = 0; i < 24; i++) {
-        component.state.spots[i].pieces = [];
-      }
-
-      // Put a red piece at spot 0
-      component.state.spots[0].pieces = ['r'];
-
-      // Put a single black piece at the destination (spot 5)
-      component.state.spots[5].pieces = ['b'];
-
-      // Red rolls 3-2 (can move to spot 5 using both dice)
-      const board = component.state.board.join('\n');
-      component.reset(board + '\nr 3-2');
-
-      // Check if the move is valid
-      const canMove = component.state.moves[0]?.includes(5);
-
-      if (canMove) {
-        const initialBarLength = component.state.bar.length;
-
-        const event = {
-          item: { data: 'r' },
-          previousContainer: { data: 0 },
-          container: { data: 5 }
-        } as any;
-
-        component.drop(event);
-
-        // The black piece should be on the bar
-        expect(component.state.bar.length).toBeGreaterThan(initialBarLength);
-        expect(component.state.bar).toContain('b');
-
-        // Red piece should be at spot 5
-        expect(component.state.spots[5].pieces).toContain('r');
-      }
+      component.state.update(state => ({
+        ...state, redDice: [3, 2], turn: 'r', diceUsed: [], moves: [[5]],
+        spots: state.spots.map(spot => ({
+          ...spot, pieces: spot.index === 0 ? ['r'] : [5, 12].includes(spot.index) ? ['b'] : [],
+        })),
+      }));
+      component.drop({
+        item: { data: 'r' }, previousContainer: { data: 0 }, container: { data: 5 },
+      } as any);
+      expect(component.blackBar()).toEqual(['b']);
+      expect(component.spots()[5].pieces).toEqual(['r']);
     });
 
     it('should correctly process combined move that hits multiple pieces', () => {
-      // Setup: A combined move that could hit at intermediate positions
-      component.reset();
-
-      // Clear default setup
-      for (let i = 0; i < 24; i++) {
-        component.state.spots[i].pieces = [];
-      }
-
-      // Red piece at spot 0
-      component.state.spots[0].pieces = ['r'];
-
-      // Single black pieces at spots 2 and 4 (vulnerable to hits)
-      component.state.spots[2].pieces = ['b'];
-      component.state.spots[4].pieces = ['b'];
-
-      // This tests whether the game properly handles the logic
-      // Red rolls 2-2 (doubles, can use four 2's)
-      const board = component.state.board.join('\n');
-      component.reset(board + '\nr 2-2');
-
-      // With doubles, red can make multiple moves
-      // Verify the piece can move and hit appropriately
-      const canMoveFrom0 = component.state.moves[0]?.length > 0;
-      expect(canMoveFrom0).toBeDefined();
+      component.state.update(state => ({
+        ...state, redDice: [2, 2], turn: 'r', diceUsed: [], moves: [[4]],
+        spots: state.spots.map(spot => ({
+          ...spot, pieces: spot.index === 0 ? ['r'] : [2, 4, 12].includes(spot.index) ? ['b'] : [],
+        })),
+      }));
+      component.drop({
+        item: { data: 'r' }, previousContainer: { data: 0 }, container: { data: 4 },
+      } as any);
+      expect(component.blackBar()).toEqual(['b', 'b']);
+      expect(component.spots()[4].pieces).toEqual(['r']);
+      expect(component.state().diceUsed).toEqual([2, 2]);
     });
+  });
+
+  it('updates computed board values and selection without mutating state', () => {
+    component.reset('r 3-0\nb 2-0');
+    const previous = component.state();
+    const spots = component.spots();
+    component.onClick(0);
+    expect(component.spots()).not.toBe(spots);
+    expect(component.spots().some(spot => spot.move)).toBe(true);
+    expect(previous.spots.every(spot => !spot.move)).toBe(true);
+    component.clearMoves();
+    expect(component.spots().every(spot => !spot.move)).toBe(true);
+    component.state.update(state => ({ ...state, bar: ['b'] }));
+    expect(component.blackBar()).toEqual(['b']);
+  });
+
+  it('updates replay event labels when animations change and preserves them during seeking', () => {
+    fixture.componentRef.setInput('text', 'r 6-6');
+    fixture.detectChanges();
+    component.precomputeReplayAnimations();
+    expect(component.importantEvents()).toEqual([0]);
+    expect(component.importantEventTypes().get(0)).toBe('Double 6s');
+    component.replayToPosition(0);
+    expect(component.importantEventTypes().get(0)).toBe('Double 6s');
+    component.replayAnimations.set([]);
+    expect(component.importantEvents()).toEqual([]);
+    expect(() => component.replayToPosition(0)).not.toThrow();
+  });
+
+  it('derives bearing-off highlights from the selected move', () => {
+    const moves: number[][] = [];
+    moves[23] = [-2];
+    component.state.update(state => ({ ...state, turn: 'r', moves }));
+    component.start.set(23);
+    expect(component.moveRedOff()).toBe(true);
+    expect(component.moveBlackOff()).toBe(false);
+    component.clearMoves();
+    expect(component.moveRedOff()).toBe(false);
+  });
+
+  it('uses a boolean resizing host class and debounces resize completion', () => {
+    vi.useFakeTimers();
+    try {
+      component.onResize();
+      fixture.detectChanges();
+      expect(component.resizing()).toBe(true);
+      expect(fixture.nativeElement.classList.contains('resizing')).toBe(true);
+      vi.advanceTimersByTime(500);
+      component.onResize();
+      vi.advanceTimersByTime(500);
+      expect(component.resizing()).toBe(true);
+      vi.advanceTimersByTime(500);
+      fixture.detectChanges();
+      expect(component.resizing()).toBe(false);
+      expect(fixture.nativeElement.classList.contains('resizing')).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

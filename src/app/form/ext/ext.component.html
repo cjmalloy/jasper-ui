@@ -1,31 +1,31 @@
-<ng-container [formGroup]="group"
+<ng-container [formGroup]="group()"
               cdkDropListGroup>
 
   <label [for]="id + '-tag'" i18n>Tag:</label>
   <div class="form-array">
     <input [id]="id + '-tag'" name="tag" type="text" formControlName="tag">
-    @if (showClear) {
-      <button type="button" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
+    @if (showClear()) {
+      <button type="button" (click)="clear.emit()" i18n-title title="New Ext" i18n>🆑️</button>
     }
   </div>
 
   <label [for]="id + '-name'" i18n>Name:</label>
   <input [id]="id + '-name'" name="name" type="text" formControlName="name">
 
-  <ng-container [formGroup]="config">
-    @if (userTheme && userThemeValues.length) {
+  <ng-container [formGroup]="config()">
+    @if (userTheme() && userThemeValues().length) {
       <!-- TODO: replace empty themes with instructions -->
       <label [for]="id + '-userTheme'" i18n>User Theme:</label>
       <div i18n-title title="This theme will be used on every page. Tag page themes will be ignored.">
         <select [id]="id + '-userTheme'" formControlName="userTheme">
           <option [ngValue]="undefined" i18n>default</option>
-          @for (t of userThemeValues; track t) {
+          @for (t of userThemeValues(); track t) {
             <option [ngValue]="t">{{ t }}</option>
           }
         </select>
       </div>
     }
-    @if (defaultSort && !user) {
+    @if (defaultSort() && !user()) {
       <label [for]="id + '-defaultSort'" i18n>Default Sort:</label>
       <div class="default-sort bubble">
         <select #defaultSortCreate
@@ -33,15 +33,15 @@
                 [id]="id + '-defaultSort'"
                 (input)="addSort($any($event.target).value, defaultSortCreate)">
           <option i18n>+ Add sort</option>
-          @for (opt of allSorts; track opt) {
+          @for (opt of allSorts(); track opt) {
             <option [value]="opt.value">{{ opt.label || opt.value }}</option>
           }
         </select>
-        @for (sort of defaultSort.value; track $index; let i = $index) {
+        @for (sort of defaultSortValue(); track $index; let i = $index) {
           <span class="controls default-sort-row">
             <select [id]="id + '-defaultSort-' + i"
                     (input)="setSortCol(i, $any($event.target).value)">
-              @for (opt of allSorts; track opt) {
+              @for (opt of allSorts(); track opt) {
                 <option [value]="opt.value" [selected]="opt.value === sortCol(sort)">{{ opt.label || opt.value }}</option>
               }
             </select>
@@ -55,7 +55,7 @@
         }
       </div>
     }
-    @if (defaultFilter && !user) {
+    @if (defaultFilter() && !user()) {
       <label [for]="id + '-defaultFilter'" i18n>Default Filter:</label>
       <div class="default-filter bubble">
         <select #defaultFilterCreate
@@ -63,11 +63,11 @@
                 [id]="id + '-defaultFilter'"
                 (input)="addFilter($any($event.target).value, defaultFilterCreate)">
           <option i18n>+ Add filter</option>
-          @for (opt of allFilters; track opt) {
+          @for (opt of allFilters(); track opt) {
             <option [value]="opt.filter">{{ opt.label || opt.filter }}</option>
           }
         </select>
-        @for (filter of defaultFilter.value; track $index; let i = $index) {
+        @for (filter of defaultFilterValue(); track $index; let i = $index) {
           <div class="default-filter-row">
             <span class="controls">
               <select [id]="id + '-defaultFilter-' + i"
@@ -75,7 +75,7 @@
                 @if (!hasFilterOption(filter)) {
                   <option [value]="filter" selected>{{ filterOptionLabel(filter) }}</option>
                 }
-                @for (opt of allFilters; track opt) {
+                @for (opt of allFilters(); track opt) {
                   <option [value]="opt.filter" [selected]="opt.filter === filterOption(filter)">{{ opt.label || opt.filter }}</option>
                 }
               </select>
@@ -85,7 +85,7 @@
               <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
             </span>
             @if (filterIsDate(filter)) {
-              @if (store.hotkey || filterSpecialDate(filter)) {
+              @if (store.hotkey() || filterSpecialDate(filter)) {
                 <span class="default-filter-date-range">
                   <input type="range"
                          min="0"
@@ -106,44 +106,44 @@
         }
       </div>
     }
-    @if (form) {
+    @if (form(); as form) {
       <formly-form #mainFormlyForm
                    class="nested-form"
-                   [form]="config"
+                   [form]="config()"
                    [fields]="form"
                    [options]="options"></formly-form>
     }
-    @if (modmail && inbox && !user) {
+    @if (modmail() && inbox() && !user()) {
       <label [for]="id + '-modmail'" i18n>Enable Modmail:</label>
       <div>
-        <input [id]="id + '-modmail'" type="checkbox" [formControl]="modmail">
-        <a class="tag" [routerLink]="['/tag', inbox]">{{ inbox }}</a>
+        <input [id]="id + '-modmail'" type="checkbox" [formControl]="modmail()">
+        <a class="tag" [routerLink]="['/tag', inbox()]">{{ inbox() }}</a>
       </div>
     }
-    @if (themes) {
+    @if (themes()) {
       <label [for]="id + '-theme'" i18n>Tag Page Theme:</label>
       <div>
         <select [id]="id + '-theme'" formControlName="theme">
           <option [ngValue]="undefined" i18n>default</option>
-          @for (t of themeValues; track t) {
+          @for (t of themeValues(); track t) {
             <option [ngValue]="t">{{ t }}</option>
           }
         </select>
         <details class="advanced mini">
           <summary i18n-title title="Custom Themes"><span><span class="summary-open" i18n>Custom Themes</span></span></summary>
           <app-themes id="themes"
-                      [group]="config"
+                      [group]="config()"
                       fieldName="themes"></app-themes>
         </details>
       </div>
     }
   </ng-container>
 
-  @if (advancedForm?.length) {
+  @if (advancedForm()?.length) {
     <details class="advanced">
       <summary><span i18n>Advanced</span></summary>
       <div class="form">
-        @if (defaultSort && user) {
+        @if (defaultSort() && user()) {
           <label [for]="id + '-defaultSortAdvanced'" i18n>Default Sort:</label>
           <div class="default-sort bubble">
             <select #defaultSortAdvancedCreate
@@ -151,14 +151,14 @@
                     [id]="id + '-defaultSortAdvanced'"
                     (input)="addSort($any($event.target).value, defaultSortAdvancedCreate)">
               <option i18n>+ Add sort</option>
-              @for (opt of allSorts; track opt) {
+              @for (opt of allSorts(); track opt) {
                 <option [value]="opt.value">{{ opt.label || opt.value }}</option>
               }
             </select>
-            @for (sort of defaultSort.value; track $index; let i = $index) {
+            @for (sort of defaultSortValue(); track $index; let i = $index) {
               <span class="controls default-sort-row">
                 <select (input)="setSortCol(i, $any($event.target).value)">
-                  @for (opt of allSorts; track opt) {
+                  @for (opt of allSorts(); track opt) {
                     <option [value]="opt.value" [selected]="opt.value === sortCol(sort)">{{ opt.label || opt.value }}</option>
                   }
                 </select>
@@ -174,13 +174,13 @@
         }
         <formly-form #advancedFormlyForm
                      class="nested-form"
-                     [form]="config"
-                     [fields]="advancedForm!"
+                     [form]="config()"
+                     [fields]="advancedForm()!"
                      [options]="options"></formly-form>
       </div>
-      @if (defaults) {
-        <app-ref class="bubble" [ref]="defaults"></app-ref>
-      } @else if (loadingDefaults) {
+      @if (defaults()) {
+        <app-ref class="bubble" [ref]="defaults()"></app-ref>
+      } @else if (loadingDefaults()) {
         <app-loading></app-loading>
       }
     </details>

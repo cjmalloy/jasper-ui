@@ -1,8 +1,20 @@
-import { DestroyRef, inject, Component, forwardRef, Input, OnInit, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  forwardRef,
+  inject,
+  input,
+  signal,
+  untracked,
+  viewChildren
+} from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
-import { catchError, forkJoin, Observable, of } from 'rxjs';
+import { catchError, forkJoin, Observable, of, startWith, switchMap } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
@@ -20,124 +32,86 @@ import { RefComponent } from '../ref.component';
   templateUrl: './ref-list.component.html',
   styleUrls: ['./ref-list.component.scss'],
   host: { 'class': 'ref-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => RefComponent),
     PageControlsComponent,
     LoadingComponent,
   ],
 })
-export class RefListComponent implements OnInit, HasChanges {
+export class RefListComponent implements HasChanges {
+  private accounts = inject(AccountService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private refs = inject(RefService);
+
   private destroyRef = inject(DestroyRef);
 
-  @Input()
-  hide?: number[];
-  @Input()
-  plugins?: string[];
-  @Input()
-  showPageLast = true;
-  @Input()
-  showAlarm = true;
-  @Input()
-  pageControls = true;
-  @Input()
-  emptyMessage = $localize`No results found`;
-  @Input()
-  showToggle = true;
-  @Input()
-  expandInline = false;
-  @Input()
-  showVotes = false;
-  @Input()
-  hideNewZeroVoteScores = true;
-  @Input()
-  newRefs$?: Observable<Ref | undefined>;
-  @Input()
-  insertNewAtTop = false;
-  @Input()
-  showPrev = true;
+  readonly hide = input<number[]>();
+  readonly plugins = input<string[]>();
+  readonly showPageLast = input(true);
+  readonly showAlarm = input(true);
+  readonly pageControls = input(true);
+  readonly emptyMessage = input($localize`No results found`);
+  readonly showToggle = input(true);
+  readonly expandInline = input(false);
+  readonly showVotes = input(false);
+  readonly hideNewZeroVoteScores = input(true);
+  readonly newRefs$ = input<Observable<Ref | undefined>>();
+  readonly insertNewAtTop = input(false);
+  readonly showPrev = input(true);
 
-  @ViewChildren(RefComponent)
-  list?: QueryList<RefComponent>;
+  readonly list = viewChildren(RefComponent);
 
-  pinned: Ref[] = [];
-  newRefs: Ref[] = [];
+  readonly pinned = toSignal(toObservable(computed(() => this.ext()?.config?.pinned as string[] | undefined)).pipe(
+    switchMap(pins => pins?.length ? forkJoin(pins.map(pin => this.refs.getCurrent(pin).pipe(
+      catchError(() => of({ url: pin } as Ref)),
+    ))).pipe(startWith([] as Ref[])) : of([] as Ref[])),
+  ), { initialValue: [] as Ref[] });
+  readonly newRefs = signal<Ref[]>([]);
 
-  private _page?: Page<Ref>;
-  private _ext?: Ext;
-  private _expanded?: boolean;
-  private _cols = 0;
+  readonly page = input<Page<Ref> | undefined>(undefined);
+  readonly ext = input<Ext | undefined>(undefined);
+  readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
+  readonly expandedInput = input<boolean | undefined>(undefined, { alias: 'expanded' });
 
-  constructor(
-    private accounts: AccountService,
-    private router: Router,
-    private store: Store,
-    private refs: RefService,
-  ) { }
+  constructor() {
+    effect(() => {
+      const page = this.page();
+      if (!page) return;
+      untracked(() => this.checkPage(page));
+    });
+  }
 
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
-  get ext() {
-    return this._ext;
-  }
 
-  @Input()
-  set ext(value: Ext | undefined) {
-    this._ext = value;
-    if (!value?.config?.pinned?.length) {
-      this.pinned = [];
-    } else {
-      forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({ url: pin })),
-          takeUntilDestroyed(this.destroyRef),
-        )))
-        .subscribe(pinned => this.pinned = pinned);
-    }
-  }
-
-  @Input()
-  set cols(value: number | undefined) {
-    this._cols = value || 0;
-  }
-
-  get colStyle() {
-    if (!this.cols) {
+  readonly colStyle = computed(() => {
+    if (!this.cols()) {
       return '';
     } else {
-      return ' 1fr'.repeat(this.cols);
+      return ' 1fr'.repeat(this.cols());
     }
-  }
+  });
 
-  get cols() {
-    if (this._cols) return this._cols;
-    return this.ext?.config?.defaultCols;
-  }
+  readonly cols = computed(() => {
+    if (this.colsInput()) return this.colsInput();
+    return this.ext()?.config?.defaultCols;
+  });
 
-  get expanded(): boolean {
-    if (this._expanded === undefined) return this._ext?.config?.defaultExpanded;
-    return this._expanded;
-  }
+  readonly expanded = computed<boolean>(() => {
+    if (this.expandedInput() === undefined) return !!this.ext()?.config?.defaultExpanded;
+    return this.expandedInput()!;
+  });
 
-  @Input()
-  set expanded(value: boolean) {
-    this._expanded = value;
-  }
 
-  get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
+  private checkPage(page: Page<Ref>) {
+    if (page) {
+      if (page.page.number > 0 && page.page.number >= page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.page.totalPages - 1,
+            pageNumber: page.page.totalPages - 1,
           },
           queryParamsHandling: 'merge',
           replaceUrl: true,
@@ -146,38 +120,40 @@ export class RefListComponent implements OnInit, HasChanges {
     }
   }
 
-  ngOnInit(): void {
-    this.newRefs$?.pipe(
+  private readonly initialize = afterNextRender(() => {
+    this.newRefs$()?.pipe(
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(ref => ref && this.addNewRef(ref));
-  }
+    ).subscribe(ref => {
+      if (ref) this.addNewRef(ref);
+    });
+  });
 
 
   getNumber(i: number) {
-    if (this.showVotes) {
-      const votes = score(this.page!.content[i]);
+    if (this.showVotes()) {
+      const votes = score(this.page()!.content[i]);
       if (votes < 100 &&
-        this.hideNewZeroVoteScores &&
-        DateTime.now().diff(this.page!.content[i].created!, 'minutes').minutes < 5) {
+        this.hideNewZeroVoteScores() &&
+        DateTime.now().diff(this.page()!.content[i].created!, 'minutes').minutes < 5) {
         return '•';
       }
       return votes;
     }
-    return i + this.page!.page.number * this.page!.page.size + 1;
+    return i + this.page()!.page.number * this.page()!.page.size + 1;
   }
 
   addNewRef(ref: Ref) {
     // TODO: verify read before clearing?
     this.accounts.clearNotificationsIfNone(ref.modified, ref.origin);
-    if (ref.url !== this.store.view.url && !this.page?.content.find(r => r.url === ref.url)) {
-      const index = this.newRefs.findIndex(r => r.url === ref.url);
+    if (ref.url !== this.store.view.url() && !this.page()?.content.find(r => r.url === ref.url)) {
+      const index = this.newRefs().findIndex(r => r.url === ref.url);
       if (index !== -1) {
-        this.newRefs[index] = ref;
-      } else if (this.insertNewAtTop) {
-        this.newRefs = [ref, ...this.newRefs];
+        this.newRefs.update(newRefs => newRefs.map((r, i) => i === index ? ref : r));
+      } else if (this.insertNewAtTop()) {
+        this.newRefs.set([ref, ...this.newRefs()]);
         return;
       } else {
-        this.newRefs = [...this.newRefs, ref];
+        this.newRefs.update(refs => [...refs, ref]);
         return;
       }
     }

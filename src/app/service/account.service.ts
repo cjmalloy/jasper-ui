@@ -1,7 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { delay, isArray, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
 import {
   catchError,
   EMPTY,
@@ -70,6 +69,13 @@ export interface NotificationStream {
   providedIn: 'root',
 })
 export class AccountService {
+  private store = inject(Store);
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private users = inject(UserService);
+  private exts = inject(ExtService);
+  private refs = inject(RefService);
+
 
   private _user$?: Observable<User | undefined>;
   private _userExt$?: Observable<Ext>;
@@ -80,17 +86,8 @@ export class AccountService {
   private savedCursors?: Observable<undefined>;
   private check?: Subscription;
 
-  constructor(
-    private store: Store,
-    private config: ConfigService,
-    private admin: AdminService,
-    private users: UserService,
-    private exts: ExtService,
-    private refs: RefService,
-    private tags: TaggingService,
-    private origins: OriginMapService,
-  ) { }
-
+  private tags = inject(TaggingService);
+  private origins = inject(OriginMapService);
   get whoAmI$() {
     return this.users.whoAmI().pipe(
       catchError(err => {
@@ -109,8 +106,8 @@ export class AccountService {
   }
 
   get init$() {
-    runInAction(() => this.store.account.defaultConfig = this.admin.defaultConfig('user'));
-    if (!this.store.account.signedIn) return this.subscriptions$.pipe(
+    this.store.account.defaultConfig.set(this.admin.defaultConfig('user'));
+    if (!this.store.account.signedIn()) return this.subscriptions$.pipe(
       switchMap(() => this.bookmarks$),
       switchMap(() => this.theme$),
     );
@@ -128,11 +125,11 @@ export class AccountService {
   }
 
   private get loadUserExt$() {
-    if (!this.store.account.signedIn) return of(undefined);
+    if (!this.store.account.signedIn()) return of(undefined);
     if (!this.admin.getTemplate('user')) return of(undefined);
     return this.userExt$.pipe(
       catchError(() => of(undefined)),
-      switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin })),
+      switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag(), origin: this.store.account.origin() })),
       map(() => {}),
     );
   }
@@ -143,10 +140,10 @@ export class AccountService {
   }
 
   private get user$(): Observable<User | undefined> {
-    if (!this.store.account.signedIn) return throwError(() => 'Not signed in');
+    if (!this.store.account.signedIn()) return throwError(() => 'Not signed in');
     if (!this._user$) {
-      this._user$ = this.users.get(this.store.account.tag).pipe(
-        tap(user => runInAction(() => this.store.account.access = user)),
+      this._user$ = this.users.get(this.store.account.tag()).pipe(
+        tap(user => this.store.account.access.set(user)),
         shareReplay(1),
         catchError(() => of(undefined)),
       );
@@ -156,10 +153,10 @@ export class AccountService {
   }
 
   private get userExt$(): Observable<Ext> {
-    if (!this.store.account.signedIn) return throwError(() => 'Not signed in');
+    if (!this.store.account.signedIn()) return throwError(() => 'Not signed in');
     if (!this._userExt$) {
-      this._userExt$ = this.exts.get(this.store.account.tag).pipe(
-        tap(ext => runInAction(() => this.store.account.ext = ext)),
+      this._userExt$ = this.exts.get(this.store.account.tag()).pipe(
+        tap(ext => this.store.account.ext.set(ext)),
         shareReplay(1),
       );
       delay(() => this._userExt$ = undefined, CACHE_MS);
@@ -168,11 +165,11 @@ export class AccountService {
   }
 
   get forYouQuery$(): Observable<string> {
-    const followers = this.store.account.userSubs
+    const followers = this.store.account.userSubs()
       .map(u => this.exts.getCachedExt(u));
     return (followers.length ? forkJoin(followers) : of([])).pipe(
       map(es => [
-          ...this.store.account.tagSubs,
+          ...this.store.account.tagSubs(),
         ...es
           .flatMap(e => e?.config?.subscriptions)
           .filter(s => !!s)
@@ -184,39 +181,39 @@ export class AccountService {
   }
 
   get subscriptions$(): Observable<string[]> {
-    if (!this.admin.getTemplate('user')) return of(this.store.account.subs);
+    if (!this.admin.getTemplate('user')) return of(this.store.account.subs());
     return this.userExt$.pipe(
       catchError(() => of(null)),
-      map(() => this.store.account.subs),
+      map(() => this.store.account.subs()),
     );
   }
 
   get bookmarks$(): Observable<string[]> {
-    if (!this.admin.getTemplate('user')) return of(this.store.account.bookmarks);
+    if (!this.admin.getTemplate('user')) return of(this.store.account.bookmarks());
     return this.userExt$.pipe(
       catchError(() => of(null)),
-      map(() => this.store.account.bookmarks),
+      map(() => this.store.account.bookmarks()),
     );
   }
 
   get alarms$(): Observable<string[]> {
-    if (!this.admin.getTemplate('user')) return of(this.store.account.alarms);
+    if (!this.admin.getTemplate('user')) return of(this.store.account.alarms());
     return this.userExt$.pipe(
       catchError(() => of(null)),
-      map(() => this.store.account.alarms),
+      map(() => this.store.account.alarms()),
     );
   }
 
   get theme$(): Observable<string | undefined> {
-    if (!this.admin.getTemplate('user')) return of(this.store.account.config.theme);
+    if (!this.admin.getTemplate('user')) return of(this.store.account.config().theme);
     return this.userExt$.pipe(
       catchError(() => of(null)),
-      map(() => this.store.account.config.theme),
+      map(() => this.store.account.config().theme),
     );
   }
 
   addSub$(tag: string): Observable<any> {
-    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.store.account.signedIn()) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.addConfigArray$('subscriptions', tag).pipe(
       tap(() => this.clearCache()),
@@ -225,7 +222,7 @@ export class AccountService {
   }
 
   removeSub$(tag: string): Observable<any> {
-    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.store.account.signedIn()) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.subscriptions$.pipe(
       switchMap(() => this.removeConfigArray$('subscriptions', tag)),
@@ -235,7 +232,7 @@ export class AccountService {
   }
 
   addBookmark$(tag: string): Observable<any> {
-    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.store.account.signedIn()) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.addConfigArray$('bookmarks', tag).pipe(
       tap(() => this.clearCache()),
@@ -244,7 +241,7 @@ export class AccountService {
   }
 
   removeBookmark$(tag: string): Observable<any> {
-    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.store.account.signedIn()) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.bookmarks$.pipe(
       switchMap(() => this.removeConfigArray$('bookmarks', tag)),
@@ -254,7 +251,7 @@ export class AccountService {
   }
 
   addAlarm$(tag: string): Observable<any> {
-    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.store.account.signedIn()) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.addConfigArray$('alarms', tag).pipe(
       tap(() => {
@@ -266,7 +263,7 @@ export class AccountService {
   }
 
   removeAlarm$(tag: string): Observable<any> {
-    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.store.account.signedIn()) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.alarms$.pipe(
       switchMap(() => this.removeConfigArray$('alarms', tag)),
@@ -279,7 +276,7 @@ export class AccountService {
   }
 
   checkNotifications() {
-    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.store.account.signedIn()) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.check?.unsubscribe();
     this.check = this.loadNotificationCursors$().pipe(
@@ -298,10 +295,10 @@ export class AccountService {
           toArray(),
         );
       }),
-    ).subscribe(counts => runInAction(() => {
-      this.store.account.notifications = counts.reduce((sum, [count]) => sum + count, 0);
-      this.store.account.alarmCount = counts.reduce((sum, [, count]) => sum + count, 0);
-    }));
+    ).subscribe(counts => {
+      this.store.account.notifications.set(counts.reduce((sum, [count]) => sum + count, 0));
+      this.store.account.alarmCount.set(counts.reduce((sum, [, count]) => sum + count, 0));
+    });
   }
 
   notificationPage$(size: number): Observable<Page<Ref>> {
@@ -339,7 +336,7 @@ export class AccountService {
   clearNotificationsIfNone(readDate: DateTime | undefined, origin?: string) {
     if (!readDate) return;
     origin = origin || '';
-    if (!this.store.account.signedIn) return;
+    if (!this.store.account.signedIn()) return;
     if (!this.admin.getTemplate('user')) return;
     this.loadNotificationCursors$().pipe(
       switchMap(streams => {
@@ -351,7 +348,7 @@ export class AccountService {
       if (count === 0) {
         this.clearNotifications(readDate, [origin]);
       } else {
-        runInAction(() => this.store.account.ignoreNotifications.push(readDate.valueOf()));
+        this.store.account.ignoreNotifications.update(dates => [...dates, readDate.valueOf()]);
       }
     });
   }
@@ -361,7 +358,7 @@ export class AccountService {
    * while a string read date is used as an exact server cursor.
    */
   clearNotifications(readDate: DateTime | string = DateTime.now(), origins?: string[]): Promise<void> {
-    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.store.account.signedIn()) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     const cursor = typeof readDate === 'string' ? readDate : readDate.plus({ millisecond: 1 }).toISO()!;
     origins = origins?.map(origin => origin || '');
@@ -412,10 +409,10 @@ export class AccountService {
 
   get notificationStreams(): NotificationStream[] {
     const mailboxes = [
-      this.store.account.mailbox,
-      ...(this.store.account.modmail || []),
-      ...(this.store.account.outboxes || []),
-      ...this.store.account.aliasMailboxes,
+      this.store.account.mailbox(),
+      ...(this.store.account.modmail() || []),
+      ...(this.store.account.outboxes() || []),
+      ...this.store.account.aliasMailboxes(),
     ].filter(mailbox => !!mailbox) as string[];
     const grouped = new Map<string, string[]>();
     for (const mailbox of uniq(mailboxes)) {
@@ -433,24 +430,24 @@ export class AccountService {
    */
   private get otherMailboxes(): string[] {
     return uniq([
-      this.store.account.mailbox,
-      ...(this.store.account.modmail || []),
-    ].filter(mailbox => !!mailbox).map(mailbox => localTag(mailbox)));
+      this.store.account.mailbox(),
+      ...(this.store.account.modmail() || []),
+    ].filter(mailbox => !!mailbox).map(mailbox => localTag(mailbox!)));
   }
 
   private notificationStream(origin: string, boxes: string[]): NotificationStream {
-    const selectors = origin === this.store.account.origin || !boxes.length
-      ? [this.store.account.tag]
-      : this.origins.aliasesFor(this.store.account.tag, origin);
+    const selectors = origin === this.store.account.origin() || !boxes.length
+      ? [this.store.account.tag()]
+      : this.origins.aliasesFor(this.store.account.tag(), origin);
     const excludeAuthors = selectors.map(selector => `!${selector}`).join(':');
-    const alarms = this.store.account.alarmsQuery;
+    const alarms = this.store.account.alarmsQuery();
     const notifications = [...(boxes.length ? boxes : this.otherMailboxes), ...(alarms ? [alarms] : [])];
     const filter = `${origin || '@'}:${excludeAuthors ? excludeAuthors + ':' : ''}!plugin/delete`;
     return {
       origin,
       query: `${filter}:(${notifications.join('|')})`,
       ...(alarms ? { alarmQuery: `${filter}:(${alarms})` } : {}),
-      settingsUrl: cursorSettingsUrl(origin, this.store.account.origin),
+      settingsUrl: cursorSettingsUrl(origin, this.store.account.origin()),
     };
   }
 
@@ -461,9 +458,9 @@ export class AccountService {
    */
   private otherNotifications(streams: NotificationStream[]): OtherNotifications {
     const exclude = uniq(streams.map(stream => stream.origin)).map(origin => `:!${origin || '@'}`).join('');
-    const alarms = this.store.account.alarmsQuery;
+    const alarms = this.store.account.alarmsQuery();
     const notifications = [...this.otherMailboxes, ...(alarms ? [alarms] : [])];
-    const filter = `!${this.store.account.localTag}:!plugin/delete${exclude}`;
+    const filter = `!${this.store.account.localTag()}:!plugin/delete${exclude}`;
     return {
       query: `${filter}:(${notifications.join('|')})`,
       ...(alarms ? { alarmQuery: `${filter}:(${alarms})` } : {}),
@@ -475,14 +472,14 @@ export class AccountService {
   }
 
   loadNotificationCursors$(): Observable<NotificationStream[]> {
-    const account = this.store.account.tagWithOrigin;
+    const account = this.store.account.tagWithOrigin();
     if (this.cursorAccount !== account) {
       this.cursorAccount = account;
       this.cursorRefs.clear();
       this.cursorLoads.clear();
       this.otherOrigins.clear();
       this.savedCursors = undefined;
-      runInAction(() => this.store.account.notificationCursors.clear());
+      this.store.account.notificationCursors.clear();
     }
     if (!this.cursorPluginInstalled) return of(this.notificationStreams);
     return this.loadSavedCursors$().pipe(switchMap(() => this.loadStreamCursors$()));
@@ -502,7 +499,7 @@ export class AccountService {
   private loadSavedCursors$(): Observable<undefined> {
     if (!this.savedCursors) {
       const account = this.cursorAccount;
-      const prefix = `tag:/${setPublic(this.store.account.localTag)}?url=tag:/plugin/outbox/`;
+      const prefix = `tag:/${setPublic(this.store.account.localTag())}?url=tag:/plugin/outbox/`;
       const page$ = (page: number) => this.refs.page({
         query: `plugin/user/cursor:${account}`,
         page,
@@ -510,18 +507,18 @@ export class AccountService {
       });
       this.savedCursors = page$(0).pipe(
         expand(result => result.page.number + 1 < result.page.totalPages ? page$(result.page.number + 1) : EMPTY),
-        tap(result => runInAction(() => {
+        tap(result => {
           if (this.cursorAccount !== account) return;
           for (const ref of result.content) {
             if (!ref.url.startsWith(prefix)) continue;
             const cursor = ref.plugins?.['plugin/user/cursor']?.cursor;
             if (!cursor) continue;
-            const origin = subOrigin(this.store.account.origin, ref.url.substring(prefix.length));
+            const origin = subOrigin(this.store.account.origin(), ref.url.substring(prefix.length));
             if (this.store.account.notificationCursors.has(origin)) continue;
             this.cursorRefs.set(origin, ref);
             this.store.account.notificationCursors.set(origin, cursor);
           }
-        })),
+        }),
         toArray(),
         map(() => undefined),
         catchError(err => {
@@ -554,7 +551,7 @@ export class AccountService {
               if (this.cursorAccount !== account) return undefined;
               this.cursorRefs.set(stream.origin, ref);
               const existing = ref?.plugins?.['plugin/user/cursor']?.cursor;
-              if (existing) runInAction(() => this.store.account.notificationCursors.set(stream.origin, existing));
+              if (existing) this.store.account.notificationCursors.set(stream.origin, existing);
               return undefined;
             }),
             finalize(() => {
@@ -595,7 +592,10 @@ export class AccountService {
         value: cursor,
       }] as const;
       if (ref!.modifiedString) {
-        write$ = this.refs.patch(ref!.url, ref!.origin || this.store.account.origin, ref!.modifiedString, [...patch]).pipe(
+        write$ = this.refs.patch(ref!.url, ref!.origin || this.store.account.origin(), ref!.modifiedString, [
+          { op: 'add', path: '/sources', value: [stream.settingsUrl] },
+          ...patch,
+        ]).pipe(
           tap(modified => {
             if (this.cursorAccount !== account) return;
             this.cursorRefs.set(stream.origin, {
@@ -612,7 +612,7 @@ export class AccountService {
     return write$.pipe(
       tap(() => {
         if (this.cursorAccount !== account) return;
-        runInAction(() => this.store.account.notificationCursors.set(stream.origin, cursor));
+        this.store.account.notificationCursors.set(stream.origin, cursor);
       }),
       catchError(err => {
         if (!retry || err?.status !== 409) return throwError(() => err);
@@ -623,7 +623,7 @@ export class AccountService {
             this.cursorRefs.set(stream.origin, ref);
             const existing = ref?.plugins?.['plugin/user/cursor']?.cursor;
             if (existing && compareCursors(existing, cursor) >= 0) {
-              runInAction(() => this.store.account.notificationCursors.set(stream.origin, existing));
+              this.store.account.notificationCursors.set(stream.origin, existing);
               return of(undefined);
             }
             return this.writeNotificationCursor$(stream, cursor, false);
@@ -635,7 +635,7 @@ export class AccountService {
 
   checkConsent(consent?: [string, string][]) {
     if (!consent?.length) return;
-    let status = this.store.account.ext?.config?.consent || {};
+    let status = this.store.account.ext()?.config?.consent || {};
     let result = null;
     for (const [key, disclosure] of consent) {
       if (!status?.[key] && confirm(disclosure)) {
@@ -652,69 +652,69 @@ export class AccountService {
 
   // TODO: move to ext, plugin, template service as  a mixin
   updateConfig$(name: keyof UserConfig, value: any) {
-    return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
+    return this.exts.patch(this.store.account.tag(), this.store.account.ext()!.modifiedString!, [{
         op: 'add',
         path: '/config/' + name,
         value: value,
-      }]).pipe(tap(cursor => runInAction(() => {
-        this.store.account.ext = <Ext> {
-          ...this.store.account.ext,
+      }]).pipe(tap(cursor => {
+        this.store.account.ext.set(<Ext> {
+          ...this.store.account.ext(),
           config: {
-            ...this.store.account.config,
+            ...this.store.account.config(),
             [name]: value,
           },
           modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
-        };
-      })));
+        });
+      }));
   }
 
   addConfigArray$(name: keyof UserConfig, value: any) {
     let path = name;
     let patchValue = value;
-    if (!this.store.account.config[name]) {
+    if (!this.store.account.config()[name]) {
       patchValue = [value];
     } else {
-      if ((this.store.account.config[name] as any[]).includes(value)) return of();
+      if ((this.store.account.config()[name] as any[]).includes(value)) return of();
       path += '/-';
     }
-    return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
+    return this.exts.patch(this.store.account.tag(), this.store.account.ext()!.modifiedString!, [{
         op: 'add',
         path: '/config/' + path,
         value: patchValue,
-      }]).pipe(tap(cursor => runInAction(() => {
-        this.store.account.ext = <Ext> {
-          ...this.store.account.ext,
+      }]).pipe(tap(cursor => {
+        this.store.account.ext.set(<Ext> {
+          ...this.store.account.ext(),
           config: {
-            ...this.store.account.config,
+            ...this.store.account.config(),
             [name]: [
-              ...(this.store.account.config[name] as any[] || []),
+              ...(this.store.account.config()[name] as any[] || []),
               value,
             ],
           },
           modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
-        };
-      })));
+        });
+      }));
   }
 
   removeConfigArray$(name: keyof UserConfig, value: any) {
-    if (!isArray(this.store.account.config[name])) return of();
-    const index = (this.store.account.config[name] as any[]).indexOf(value);
+    if (!isArray(this.store.account.config()[name])) return of();
+    const index = (this.store.account.config()[name] as any[]).indexOf(value);
     if (index === -1) return of();
-    return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
+    return this.exts.patch(this.store.account.tag(), this.store.account.ext()!.modifiedString!, [{
       op: 'remove',
       path: '/config/' + name + '/' + index,
-    }]).pipe(tap(cursor => runInAction(() => {
-        this.store.account.ext = <Ext> {
-          ...this.store.account.ext,
+    }]).pipe(tap(cursor => {
+        this.store.account.ext.set(<Ext> {
+          ...this.store.account.ext(),
           config: {
-            ...this.store.account.config,
-            [name]: without(this.store.account.config[name] as any[], value)
+            ...this.store.account.config(),
+            [name]: without(this.store.account.config()[name] as any[], value)
           },
           modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
-        };
-      })));
+        });
+      }));
   }
 }

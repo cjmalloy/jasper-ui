@@ -1,9 +1,9 @@
 <ng-content></ng-content>
-<div class="mobile-tab-select" [style.display]="hidden ? 'inline-block' : 'none'">
+<div class="mobile-tab-select" [style.display]="hidden() ? 'inline-block' : 'none'">
   <select #select (input)="nav(select)">
     <option i18n>🧭️</option>
-    @for (opt of options; track opt) {
-      <option>{{ opt }}</option>
+    @for (opt of options(); track opt) {
+      <option [value]="opt.index">{{ opt.label }}</option>
     }
   </select>
 </div>

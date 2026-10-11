@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding, Input } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
@@ -50,8 +50,10 @@ function isDateSortField(value: string | undefined): value is DateSortField {
   selector: 'app-page-controls',
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
-  host: { 'class': 'page-controls' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    'class': 'page-controls',
+    '[class.print-hide]': "fullResults()",
+  },
   imports: [
     RouterLink,
     RouterLinkActive,
@@ -60,69 +62,50 @@ function isDateSortField(value: string | undefined): value is DateSortField {
   ]
 })
 export class PageControlsComponent {
+  store = inject(Store);
+  private bookmarks = inject(BookmarkService);
+  private query = inject(QueryStore);
+  private refs = inject(RefService);
 
-  @Input()
-  page?: Page<any>;
-  @Input()
-  showPageLast = true;
-  @Input()
-  hideCols = false;
-  @Input()
-  showPrev = true;
+
+  readonly page = input<Page<any> | undefined>();
+  readonly showPageLast = input(true);
+  readonly hideCols = input(false);
+  readonly showPrev = input(true);
 
   pageSizes = [6, 24, 48, 96, 480];
   colSizes = [1, 2, 3, 4, 5, 6];
-  colsChanged = false;
+  readonly colsChanged = linkedSignal(() => this.defaultCols() !== undefined || !!this.store.view.cols());
 
-  constructor(
-    public store: Store,
-    private bookmarks: BookmarkService,
-    private query: QueryStore,
-    private refs: RefService,
-  ) { }
+  readonly fullResults = computed(() => {
+    return this.page()?.page.totalPages === 1;
+  });
 
-  @HostBinding('class.print-hide')
-  get fullResults() {
-    return this.page?.page.totalPages === 1;
+  readonly defaultCols = input<number | undefined>();
+
+  readonly hasQuery = computed(() => {
+    return this.store.view.pageNumber() !== undefined;
+  });
+
+  readonly prev = computed(() => {
+    return Math.max(0, this.page()!.page.number - 1);
+  });
+
+  readonly next = computed(() => {
+    return Math.max(0, Math.min(this.last(), this.page()!.page.number + 1));
+  });
+
+  readonly last = computed(() => {
+    return Math.max(0, this.page()!.page.totalPages - 1);
+  });
+
+  readonly pageSize = computed(() => this.store.view.pageSize());
+  setPageSize(value: number) {
+    this.bookmarks.setPageSize(value);
   }
 
-  @Input()
-  set defaultCols(value: number | undefined) {
-    this.colsChanged ||= value !== undefined;
-  }
-
-  get hasQuery() {
-    return this.store.view.pageNumber !== undefined;
-  }
-
-  get prev() {
-    return Math.max(0, this.page!.page.number - 1);
-  }
-
-  get next() {
-    return Math.max(0, Math.min(this.last, this.page!.page.number + 1));
-  }
-
-  get last() {
-    return Math.max(0, this.page!.page.totalPages - 1);
-  }
-
-  get pageSize() {
-    return this.store.view.pageSize;
-  }
-
-  set pageSize(value: number) {
-    this.bookmarks.pageSize = value;
-  }
-
-  get cols() {
-    if (this.store.view.cols) {
-      this.colsChanged = true;
-    }
-    return this.store.view.cols;
-  }
-
-  set cols(value: number) {
+  readonly cols = computed(() => this.store.view.cols());
+  setCols(value: number) {
     this.bookmarks.cols = value;
   }
 
@@ -134,7 +117,7 @@ export class PageControlsComponent {
     if (!this.plainClick(event)) return;
 
     const page = this.currentPage();
-    const args = this.query.args;
+    const args = this.query.args();
     if (!page || !args) return;
 
     const sort = this.dateSort(args);
@@ -158,8 +141,8 @@ export class PageControlsComponent {
   }
 
   private currentPage(): Page<Ref> | undefined {
-    const page = this.page as Page<Ref> | undefined;
-    if (!page || page !== this.query.page || page.content.length === 0) return undefined;
+    const page = this.page() as Page<Ref> | undefined;
+    if (!page || page !== this.query.page() || page.content.length === 0) return undefined;
     return page;
   }
 

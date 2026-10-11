@@ -1,13 +1,23 @@
 /// <reference types="vitest/globals" />
+import { TestBed } from '@angular/core/testing';
 import { FormArray, FormControl } from '@angular/forms';
 import { FieldArrayType } from '@ngx-formly/core';
 import { vi } from 'vitest';
+import { Store } from '../store/store';
 import { ListTypeComponent } from './list.type';
 import { closedRings } from './location-picker';
 
 describe('ListTypeComponent', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Store, useValue: { hotkey: () => false } },
+      ],
+    });
+  });
+
   function createComponent() {
-    const component = new ListTypeComponent({ hotkey: false } as any);
+    const component = TestBed.runInInjectionContext(() => new ListTypeComponent());
     const patchValue = vi.fn();
     component.field = {
       fieldArray: {},
@@ -91,7 +101,7 @@ describe('ListTypeComponent', () => {
 
   describe('location seeding', () => {
     function createLocationList(values: any[], ring = false) {
-      const component = new ListTypeComponent({ hotkey: false } as any);
+      const component = TestBed.runInInjectionContext(() => new ListTypeComponent());
       const formControl = { length: values.length, value: values } as any;
       component.field = {
         fieldArray: { type: 'location' },
@@ -133,7 +143,7 @@ describe('ListTypeComponent', () => {
 
   describe('ring closure', () => {
     function createRing(values: any[]) {
-      const component = new ListTypeComponent({ hotkey: false } as any);
+      const component = TestBed.runInInjectionContext(() => new ListTypeComponent());
       const formControl = new FormArray(values.map(v => new FormControl(v)));
       const model = [...values];
       component.field = {

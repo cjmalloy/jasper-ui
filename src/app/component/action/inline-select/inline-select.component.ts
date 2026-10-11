@@ -1,44 +1,30 @@
-import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
+import { Component, input, output, signal } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { LoadingComponent } from '../../loading/loading.component';
-import { ActionComponent } from '../action.component';
 
 @Component({
   selector: 'app-inline-select',
   templateUrl: './inline-select.component.html',
   styleUrls: ['./inline-select.component.scss'],
   host: { 'class': 'action' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FakeLinkDirective, LoadingComponent]
 })
-export class InlineSelectComponent extends ActionComponent {
+export class InlineSelectComponent {
 
-  @Input()
-  action: (value: any) => Observable<any|never> = () => of(null);
-  @Input()
-  value?: any;
-  @Output()
-  error = new EventEmitter<string>();
+  readonly action = input<(value: any) => Observable<any | never>>(() => of(null));
+  readonly value = input<any>();
+  readonly error = output<string>();
 
-  editing = false;
-  acting = false;
-
-  override reset() {
-    this.editing = false;
-    this.acting = false;
-  }
-
-  override active() {
-    return this.editing || this.acting;
-  }
+  readonly editing = signal(false);
+  readonly acting = signal(false);
 
   save(field: HTMLSelectElement) {
-    this.editing = false;
-    this.acting = true;
-    this.action((field.value || '').trim()).pipe(
+    this.editing.set(false);
+    this.acting.set(true);
+    this.action()((field.value || '').trim()).pipe(
       catchError(() => of(null)),
-    ).subscribe(() => this.acting = false);
+    ).subscribe(() => this.acting.set(false));
   }
 
 }

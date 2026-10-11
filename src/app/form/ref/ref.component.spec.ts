@@ -1,10 +1,10 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { JasperFormlyModule } from '../../formly/formly.module';
+import { provideJasperFormly } from '../../formly/formly.config';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 
 import { RefFormComponent } from './ref.component';
@@ -18,10 +18,10 @@ describe('RefFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         RefFormComponent
       ],
       providers: [
+        provideJasperFormly(),
         PluginsFormComponent,
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
@@ -32,7 +32,7 @@ describe('RefFormComponent', () => {
     fixture = TestBed.createComponent(RefFormComponent);
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
-    component.group = new UntypedFormGroup({
+    fixture.componentRef.setInput('group', new UntypedFormGroup({
       url: new UntypedFormControl(),
       published: new UntypedFormControl(),
       title: new UntypedFormControl(),
@@ -41,7 +41,7 @@ describe('RefFormComponent', () => {
       alternateUrls: new UntypedFormArray([]),
       tags: new UntypedFormArray([]),
       plugins: new UntypedFormGroup({}),
-    });
+    }));
     fixture.detectChanges();
   });
 
@@ -57,26 +57,26 @@ describe('RefFormComponent', () => {
     vi.spyOn(component.admin, 'getPlugin').mockImplementation(tag => {
       return tag === 'plugin/thumbnail' ? {} as any : undefined;
     });
-    component.tags.push(new UntypedFormControl('plugin/thumbnail'));
+    component.tags().push(new UntypedFormControl('plugin/thumbnail'));
 
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.thumbnail-preview')).toBeNull();
 
-    component.creating = true;
+    fixture.componentRef.setInput('creating', true);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.thumbnail-preview .thumbnail')).not.toBeNull();
   });
 
   it('includes the disabled URL in creation thumbnail data', () => {
-    component.url.setValue('cache:image-id');
-    component.url.disable();
+    component.url().setValue('cache:image-id');
+    component.url().disable();
 
-    expect(component.thumbnailRefs[0].url).toBe('cache:image-id');
+    expect(component.thumbnailRefs()[0].url).toBe('cache:image-id');
   });
 
   it('should extract title from filename when scrape returns no title', async () => {
     // Set a URL to a PDF file
-    component.url.setValue('https://example.com/my-document.pdf');
+    component.url().setValue('https://example.com/my-document.pdf');
 
     // Call scrapeTitle
     component.scrapeTitle();
@@ -93,11 +93,11 @@ describe('RefFormComponent', () => {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // Check that title was extracted from filename (with extension and separators preserved)
-    expect(component.title.value).toBe('my-document.pdf');
+    expect(component.title().value).toBe('my-document.pdf');
   });
 
   it('should use scraped title when available', async () => {
-    component.url.setValue('https://example.com/my-document.pdf');
+    component.url().setValue('https://example.com/my-document.pdf');
 
     component.scrapeTitle();
 
@@ -112,6 +112,6 @@ describe('RefFormComponent', () => {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // Check that scraped title was used instead of filename
-    expect(component.title.value).toBe('Scraped Title');
+    expect(component.title().value).toBe('Scraped Title');
   });
 });

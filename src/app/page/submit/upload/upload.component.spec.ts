@@ -62,7 +62,7 @@ describe('UploadPage', () => {
 
   it('adds the user signature to uploaded refs', () => {
     const refs = component['refs'];
-    component.store.account.tag = '+user/alice';
+    component.store.account.tag.set('+user/alice');
     vi.spyOn(component['auth'], 'canAddTag').mockReturnValue(true);
     const create = vi.spyOn(refs, 'create').mockReturnValue(of('cursor'));
 

@@ -24,8 +24,8 @@ describe('CommentEditComponent', () => {
 
     fixture = TestBed.createComponent(CommentEditComponent);
     component = fixture.componentInstance;
-    component.ref = { url: '' };
-    component.commentEdited$ = new Subject<Ref>();
+    fixture.componentRef.setInput('ref', { url: '' });
+    fixture.componentRef.setInput('commentEdited$', new Subject<Ref>());
     fixture.detectChanges();
   });
 
@@ -35,13 +35,13 @@ describe('CommentEditComponent', () => {
 
   it('should preserve existing tags when editing only comment text', () => {
     // Setup component with existing tags
-    component.ref = {
+    fixture.componentRef.setInput('ref', {
       url: 'test-url',
       tags: ['tag1', 'tag2', 'existing-tag'],
       comment: 'Original comment'
-    };
+    });
     // When editing only comment, editor doesn't change tags so editorTags should remain the same
-    component.editorTags = ['tag1', 'tag2', 'existing-tag']; // Editor preserves existing tags
+    component.editorTags.set(['tag1', 'tag2', 'existing-tag']); // Editor preserves existing tags
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
@@ -51,8 +51,8 @@ describe('CommentEditComponent', () => {
     });
 
     // Simulate changing only the comment
-    component.comment.setValue('Updated comment');
-    component.comment.markAsDirty();
+    component.comment().setValue('Updated comment');
+    component.comment().markAsDirty();
 
     // Call save
     component.save();
@@ -69,13 +69,13 @@ describe('CommentEditComponent', () => {
 
   it('should add new tags when provided through editor', () => {
     // Setup component with existing tags
-    component.ref = {
+    fixture.componentRef.setInput('ref', {
       url: 'test-url',
       tags: ['existing-tag'],
       comment: 'Original comment'
-    };
+    });
     // Editor adds a new tag while keeping existing ones
-    component.editorTags = ['existing-tag', 'new-tag']; // Editor now includes both existing and new
+    component.editorTags.set(['existing-tag', 'new-tag']); // Editor now includes both existing and new
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
@@ -99,13 +99,13 @@ describe('CommentEditComponent', () => {
 
   it('should remove tags when they are removed through editor', () => {
     // Setup component with existing tags including 'public'
-    component.ref = {
+    fixture.componentRef.setInput('ref', {
       url: 'test-url',
       tags: ['public', 'important', 'project'],
       comment: 'Original comment'
-    };
+    });
     // Editor removes 'public' tag (like public/private toggle)
-    component.editorTags = ['important', 'project']; // 'public' removed by editor
+    component.editorTags.set(['important', 'project']); // 'public' removed by editor
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
@@ -127,11 +127,11 @@ describe('CommentEditComponent', () => {
     expect(addPatches.length).toBe(0);
   });
   it('should remove multiple tags in descending index order', () => {
-    component.ref = {
+    fixture.componentRef.setInput('ref', {
       url: 'test-url',
       tags: ['public', 'plugin/comment', 'internal', 'plugin/latex'],
-    };
-    component.editorTags = ['plugin/comment', 'internal'];
+    });
+    component.editorTags.set(['plugin/comment', 'internal']);
 
     const patches: any[] = [];
     vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
@@ -143,5 +143,32 @@ describe('CommentEditComponent', () => {
 
     const removePatches = patches.filter(p => p.op === 'remove' && p.path.startsWith('/tags/'));
     expect(removePatches.map(p => p.path)).toEqual(['/tags/3', '/tags/0']);
+  });
+
+  it('adds missing source context only once across multiple additions', () => {
+    fixture.componentRef.setInput('ref', { url: 'comment:parent' });
+    component.addSource('https://example.com/first');
+    component.addSource('https://example.com/second');
+    expect(component.sources()).toEqual([
+      'comment:parent', 'comment:parent', 'https://example.com/first', 'https://example.com/second',
+    ]);
+  });
+
+  it('recomputes mailbox tags when only the comment changes', () => {
+    component.editorTags.set([]);
+    component.comment().setValue('+user/alice');
+    const first = component.allTags();
+    component.comment().setValue('+user/bob');
+    expect(component.allTags()).not.toEqual(first);
+  });
+
+  it('cancels a pending edit and clears its boolean state', () => {
+    const request = new Subject<string>();
+    vi.spyOn(component['refs'], 'patch').mockReturnValue(request);
+    component.save();
+    expect(component.editing()).toBe(true);
+    component.cancel();
+    expect(request.observed).toBe(false);
+    expect(component.editing()).toBe(false);
   });
 });

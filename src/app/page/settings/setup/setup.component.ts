@@ -1,23 +1,23 @@
-import { KeyValuePipe } from '@angular/common';
-import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
+import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, inject, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, uniq } from 'lodash-es';
 import { catchError, concat, last, of, Subscription, throwError } from 'rxjs';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
+import { DiffComponent } from '../../../form/diff/diff.component';
 import { Config, Mod } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { equalBundle, mergeBundle } from '../../../util/diff';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { DiffComponent } from '../../../form/diff/diff.component';
-import { LoadingComponent } from '../../../component/loading/loading.component';
-import { TemplatePortal } from '@angular/cdk/portal';
 
 interface ModUpdatePreview {
   mod: string;
@@ -30,7 +30,6 @@ interface ModUpdatePreview {
   selector: 'app-settings-setup-page',
   templateUrl: './setup.component.html',
   styleUrls: ['./setup.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FakeLinkDirective,
     ReactiveFormsModule,
@@ -41,35 +40,40 @@ interface ModUpdatePreview {
     LoadingComponent,
   ],
 })
-export class SettingsSetupPage implements OnDestroy {
+export class SettingsSetupPage {
+  admin = inject(AdminService);
+  private mod = inject(ModService);
+  store = inject(Store);
+  private fb = inject(UntypedFormBuilder);
+  private overlay = inject(Overlay);
+  private vc = inject(ViewContainerRef);
 
-  @ViewChild('mergePopup')
-  mergePopup?: TemplateRef<any>;
+
+  readonly submitted = signal<boolean>(false);
+  readonly serverError = signal<string[]>([]);
+  readonly installMessages = signal<string[]>([]);
+  readonly mergeState = signal<ModUpdatePreview | undefined>(undefined);
+  readonly mergeSaving = signal(false);
+  private mergeSavingSubscription?: Subscription;
+
+  readonly mergePopup = viewChild<TemplateRef<any>>('mergePopup');
 
   experiments = !!this.admin.getTemplate('config/experiments');
-  selectAllToggle = false;
-  submitted = false;
+  readonly selectAllToggle = signal<boolean>(false);
   adminForm: UntypedFormGroup;
-  serverError: string[] = [];
-  installMessages: string[] = [];
-  mergeState?: ModUpdatePreview;
-  mergeSaving?: Subscription;
+  protected readonly adminFormValid = controlState(() => this.adminForm, c => c.valid);
   mergePopupSub = new Subscription();
   modGroups = configGroups({
-    ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
-    ...this.admin.status.plugins, ...this.admin.status.templates,
+    ...this.admin.status().disabledPlugins, ...this.admin.status().disabledTemplates,
+    ...this.admin.status().plugins, ...this.admin.status().templates,
     ...this.admin.def.plugins, ...this.admin.def.templates });
 
   private mergePopupRef?: OverlayRef;
 
-  constructor(
-    public admin: AdminService,
-    private mod: ModService,
-    public store: Store,
-    private fb: UntypedFormBuilder,
-    private overlay: Overlay,
-    private vc: ViewContainerRef,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
@@ -77,14 +81,14 @@ export class SettingsSetupPage implements OnDestroy {
     this.clear();
   }
 
-  ngOnDestroy() {
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.cancelMerge();
-  }
+  });
 
   install() {
-    this.serverError = [];
-    this.installMessages = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.installMessages.set([]);
+    this.submitted.set(true);
     this.adminForm.markAllAsTouched();
     if (!this.adminForm.valid) {
       scrollToFirstInvalid();
@@ -95,7 +99,7 @@ export class SettingsSetupPage implements OnDestroy {
     for (const plugin in this.admin.def.plugins) {
       const formName = plugin.replace(/[.]/g, '-');
       const def = this.admin.def.plugins[plugin];
-      const status = this.admin.status.plugins[plugin] || this.admin.status.disabledPlugins[plugin];
+      const status = this.admin.status().plugins[plugin] || this.admin.status().disabledPlugins[plugin];
       if (!!status === !!this.adminForm.value.mods[formName]) continue;
       if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
@@ -106,7 +110,7 @@ export class SettingsSetupPage implements OnDestroy {
     for (const template in this.admin.def.templates) {
       const formName = template.replace(/[.]/g, '-');
       const def = this.admin.def.templates[template];
-      const status = this.admin.status.templates[template] || this.admin.status.disabledTemplates[template];
+      const status = this.admin.status().templates[template] || this.admin.status().disabledTemplates[template];
       if (!!status === !!this.adminForm.value.mods[formName]) continue;
       if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
@@ -114,9 +118,9 @@ export class SettingsSetupPage implements OnDestroy {
         deletes.push(modId(status));
       }
     }
-    const _ = (msg?: string) => this.installMessages.push(msg!);
+    const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
     if (!deletes.length && !installs.length) {
-      this.submitted = true;
+      this.submitted.set(true);
       _($localize`Success.`);
       return;
     }
@@ -125,12 +129,12 @@ export class SettingsSetupPage implements OnDestroy {
       ...uniq(installs).map(m => this.admin.installMod$(m, _))
     ).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
       last(),
     ).subscribe(() => {
-      this.submitted = true;
+      this.submitted.set(true);
       this.reset();
       _($localize`Success.`);
     });
@@ -143,24 +147,24 @@ export class SettingsSetupPage implements OnDestroy {
   clear() {
     this.adminForm.reset({
       mods: formSafeNames({
-        ...this.admin.status.plugins,
-        ...this.admin.status.disabledPlugins,
-        ...this.admin.status.templates,
-        ...this.admin.status.disabledTemplates,
+        ...this.admin.status().plugins,
+        ...this.admin.status().disabledPlugins,
+        ...this.admin.status().templates,
+        ...this.admin.status().disabledTemplates,
       }),
     });
   }
 
   updateAll() {
-    const _ = (msg?: string) => this.installMessages.push(msg!);
+    const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
     const mods: string[] = [];
-    for (const plugin in this.admin.status.plugins) {
-      const m = modId(this.admin.status.plugins[plugin]);
-      if (this.store.view.modUpdates.has(m)) mods.push(m);
+    for (const plugin in this.admin.status().plugins) {
+      const m = modId(this.admin.status().plugins[plugin]);
+      if (this.store.view.modUpdates().has(m)) mods.push(m);
     }
-    for (const template in this.admin.status.templates) {
-      const m = modId(this.admin.status.templates[template]);
-      if (this.store.view.modUpdates.has(m)) mods.push(m);
+    for (const template in this.admin.status().templates) {
+      const m = modId(this.admin.status().templates[template]);
+      if (this.store.view.modUpdates().has(m)) mods.push(m);
     }
     if (!mods.length) return;
     concat(...uniq(mods).map(mod => {
@@ -177,27 +181,27 @@ export class SettingsSetupPage implements OnDestroy {
       }
     })).pipe(
       catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).pipe(last()).subscribe(() => {
-      this.submitted = true;
+      this.submitted.set(true);
       this.reset();
       _($localize`Success.`);
     });
   }
 
   selectAll() {
-    this.selectAllToggle = !this.selectAllToggle;
+    this.selectAllToggle.set(!this.selectAllToggle());
     forOwn((this.adminForm.get('mods') as UntypedFormGroup).controls, c => {
-      c.setValue(this.selectAllToggle);
+      c.setValue(this.selectAllToggle());
     });
   }
 
   updateMod(config: Config) {
     const mod = modId(config);
     const receipt = this.admin.getMod(mod)!;
-    const _ = (msg?: string) => this.installMessages.push(msg!);
+    const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
     if (!this.admin.getTemplate('config/diff') || !this.hasCustomChanges(config)) {
       this.admin.updateMod$(mod, receipt, receipt, _).subscribe(() => {
         this.reset();
@@ -205,11 +209,11 @@ export class SettingsSetupPage implements OnDestroy {
       });
       return;
     }
-    this.mergeState = this.getModDiff(modId(config));
-    if (this.mergeState?.conflict) {
+    this.mergeState.set(this.getModDiff(modId(config)));
+    if (this.mergeState()?.conflict) {
       this.openMergePopup();
     } else {
-      this.admin.updateMod$(mod, this.mergeState.proposed, receipt, _).subscribe(() => {
+      this.admin.updateMod$(mod, this.mergeState()!.proposed, receipt, _).subscribe(() => {
         this.reset();
         _($localize`Success.`);
       });
@@ -217,8 +221,8 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   diffMod(config: Config) {
-    this.serverError = [];
-    this.mergeState = this.getModDiff(modId(config));
+    this.serverError.set([]);
+    this.mergeState.set(this.getModDiff(modId(config)));
     this.openMergePopup();
   }
 
@@ -234,7 +238,7 @@ export class SettingsSetupPage implements OnDestroy {
         conflict: false,
       };
     }
-    const base = this.admin.status.receipts[mod]?.plugins?.['plugin/mod'];
+    const base = this.admin.status().receipts[mod]?.plugins?.['plugin/mod'];
     if (base && !equalBundle(current, base)) {
       const merged = mergeBundle(current, base, target);
       if (!merged.result || merged.conflict) {
@@ -261,15 +265,15 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   needsModUpdate(config: Config) {
-    return this.store.view.modUpdates.has(modId(config));
+    return this.store.view.modUpdates().has(modId(config));
   }
 
   hasCustomChanges(config: Config) {
-    return this.store.view.modChanges.get(modId(config));
+    return this.store.view.modChanges().get(modId(config));
   }
 
   hasCustomChangesMod(mod: string) {
-    return this.store.view.modChanges.get(mod);
+    return this.store.view.modChanges().get(mod);
   }
 
   canDiffMod(config: Config) {
@@ -278,7 +282,8 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   private openMergePopup() {
-    if (!this.mergePopup || this.mergePopupRef?.hasAttached()) return;
+    const mergePopup = this.mergePopup();
+    if (!mergePopup || this.mergePopupRef?.hasAttached()) return;
     this.mergePopupRef = this.overlay.create({
       height: window.visualViewport?.height ? window.visualViewport.height + 'px' : '100vh',
       width: '100vw',
@@ -289,7 +294,7 @@ export class SettingsSetupPage implements OnDestroy {
         .top('0'),
       scrollStrategy: this.overlay.scrollStrategies.block(),
     });
-    this.mergePopupRef.attach(new TemplatePortal(this.mergePopup, this.vc));
+    this.mergePopupRef.attach(new TemplatePortal(mergePopup, this.vc));
     this.mergePopupSub.add(this.mergePopupRef.backdropClick().subscribe(() => this.cancelMerge()));
     this.mergePopupSub.add(this.mergePopupRef.keydownEvents().subscribe(event => {
       if (event.key === 'Escape') this.cancelMerge();
@@ -298,14 +303,14 @@ export class SettingsSetupPage implements OnDestroy {
 
   installed(config: Config) {
     const mod = modId(config);
-    return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p)) ||
-      Object.values(this.admin.status.templates).find(t => t && mod === modId(t));
+    return Object.values(this.admin.status().plugins).find(p => p && mod === modId(p)) ||
+      Object.values(this.admin.status().templates).find(t => t && mod === modId(t));
   }
 
   disabled(config: Config) {
     const mod = modId(config);
-    return Object.values(this.admin.status.disabledPlugins).find(p => p && mod === modId(p)) ||
-      Object.values(this.admin.status.disabledTemplates).find(t => t && mod === modId(t));
+    return Object.values(this.admin.status().disabledPlugins).find(p => p && mod === modId(p)) ||
+      Object.values(this.admin.status().disabledTemplates).find(t => t && mod === modId(t));
   }
 
   modLabel([tag, e]: [string, Config]) {
@@ -313,12 +318,13 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   applyMerge(bundle: Mod | null) {
-    if (!this.mergeState || !bundle) return;
-    this.serverError = [];
-    const _ = (msg?: string) => this.installMessages.push(msg!);
-    this.mergeSaving = this.admin.updateMod$(this.mergeState.mod, bundle, this.admin.getMod(this.mergeState.mod)!, _)
+    if (!this.mergeState() || !bundle) return;
+    this.serverError.set([]);
+    const _ = (msg?: string) => this.installMessages.update(messages => msg ? [...messages, msg] : messages);
+    this.mergeSaving.set(true);
+    this.mergeSavingSubscription = this.admin.updateMod$(this.mergeState()!.mod, bundle, this.admin.getMod(this.mergeState()!.mod)!, _)
       .pipe(catchError((res: HttpErrorResponse) => {
-        delete this.mergeSaving;
+        this.mergeSaving.set(false);
         return throwError(() => res);
       }))
       .subscribe(() => {
@@ -326,12 +332,13 @@ export class SettingsSetupPage implements OnDestroy {
         this.reset();
         _($localize`Success.`);
       });
+    this.mergeSavingSubscription?.add(() => this.mergeSaving.set(false));
   }
 
   cancelMerge() {
-    delete this.mergeState;
-    this.mergeSaving?.unsubscribe();
-    delete this.mergeSaving;
+    this.mergeState.set(undefined);
+    this.mergeSavingSubscription?.unsubscribe();
+    this.mergeSaving.set(false);
     this.mergePopupSub.unsubscribe();
     this.mergePopupSub = new Subscription();
     this.mergePopupRef?.dispose();

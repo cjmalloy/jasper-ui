@@ -24,7 +24,7 @@ describe('ThreadSummaryComponent', () => {
 
     fixture = TestBed.createComponent(ThreadSummaryComponent);
     component = fixture.componentInstance;
-    component.newRefs$ = new Subject();
+    fixture.componentRef.setInput('newRefs$', new Subject());
     fixture.detectChanges();
   });
 

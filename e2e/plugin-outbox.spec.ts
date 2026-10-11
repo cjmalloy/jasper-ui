@@ -1,5 +1,5 @@
-import { expect, type Page, type Response, test } from '@playwright/test';
-import { clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications } from './setup';
+import { expect, type Page, type Response } from '@playwright/test';
+import { clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, test } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test.setTimeout(90_000);
@@ -167,7 +167,8 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.comment-reply textarea').fill(replyText);
     await page.locator('.comment-reply textarea').blur();
     const submitPromise = page.waitForResponse(isRefPost);
-    await page.locator('.comment-reply button', { hasText: 'reply' }).click();
+    await expect(page.locator('.comment-reply-submit')).toBeEnabled();
+    await page.locator('.comment-reply-submit').click();
     await submitPromise;
   });
 

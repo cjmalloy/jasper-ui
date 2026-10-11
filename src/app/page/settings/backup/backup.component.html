@@ -5,12 +5,12 @@
   <label>Origin:</label>
   <select #originSelect
           formControlName="origin"
-          [value]="origin"
+          [value]="origin()"
           (input)="selectOrigin(originSelect.value)">
-    @if (!backupOrigins.includes(origin)) {
-      <option [value]="origin">{{ origin || 'default' }}</option>
+    @if (!backupOrigins().includes(origin())) {
+      <option [value]="origin()">{{ origin() || 'default' }}</option>
     }
-    @for (origin of backupOrigins; track origin) {
+    @for (origin of backupOrigins(); track origin) {
       <option [value]="origin">{{ origin || 'default' }}</option>
     }
   </select>
@@ -27,20 +27,20 @@
   @if (store.account.admin) {
     <button #backupButton
             type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="showBackupOptions()"
             i18n-title title="Create Backup" i18n>+ backup</button>
     <button #deleteButton
             type="button"
             class="delete-origin"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="deleteOrigin()"
             i18n-title title="Delete all from origin" i18n>&ndash; delete</button>
   }
 
-  @if (!uploading) {
+  @if (!uploading()) {
     <button type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="uploadFile.click()"
             i18n-title
             title="Upload Backup" i18n>+ upload</button>
@@ -54,20 +54,20 @@
 
   @if (store.account.mod) {
     <button type="button"
-            [disabled]="!originForm.valid"
+            [disabled]="!originFormValid()"
             (click)="regen()"
             i18n-title
             title="Regenerate Metadata" i18n>♻️ regen</button>
   }
 </div>
 
-@for (e of serverError; track e) {
+@for (e of serverError(); track e) {
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
 }
 
-<app-backup-list [list]="list"
-                 [origin]="origin"></app-backup-list>
+<app-backup-list [list]="list()"
+                 [origin]="origin()"></app-backup-list>
 
 <ng-template #backupOptions>
   <div class="popup bubble" (click)="$event.stopPropagation()" [formGroup]="backupOptionsForm">
@@ -124,15 +124,15 @@
 
 <ng-template #deleteConfirm>
   <div class="popup bubble delete-confirm" (click)="$event.stopPropagation()">
-    <label for="deleteConfirmation" i18n>Are you sure you want totally delete everything in {{ originLabel }}?<br>Enter the origin to confirm:</label>
+    <label for="deleteConfirmation" i18n>Are you sure you want totally delete everything in {{ originLabel() }}?<br>Enter the origin to confirm:</label>
     <input #confirmInput
            id="deleteConfirmation"
            type="text"
            class="delete-confirmation"
            autocomplete="off"
            appAutofocus
-           [value]="deleteConfirmation"
-           (input)="deleteConfirmation = confirmInput.value"
+           [value]="deleteConfirmation()"
+           (input)="deleteConfirmation.set(confirmInput.value)"
            (keydown.enter)="confirmDeleteOrigin()"
            (keydown.escape)="closeDeleteConfirm()">
     <div class="buttons right">
@@ -140,7 +140,7 @@
       <button type="button"
               class="confirm-delete"
               (click)="confirmDeleteOrigin()"
-              [disabled]="deleteConfirmation !== originLabel"
+              [disabled]="deleteConfirmation() !== originLabel()"
               i18n>&ndash; delete</button>
     </div>
   </div>

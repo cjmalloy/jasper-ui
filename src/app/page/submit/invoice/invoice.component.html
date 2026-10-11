@@ -1,13 +1,12 @@
-<form class="form" [formGroup]="invoiceForm" (ngSubmit)="submit()"
-      [appLimitWidth]="fill" [limitSibling]="true">
+<form class="form" [formGroup]="invoiceForm" (ngSubmit)="submit()">
 
   <label for="to" i18n>Queue:</label>
   <input id="to"
          type="email"
          autocorrect="off"
          autocapitalize="none"
-         [value]="queue || ''"
-         (change)="queue = $any($event.target).value">
+         [value]="queue() || ''"
+         (change)="queue.set($any($event.target).value)">
 
   <label for="qr" i18n>QR Code:</label>
   <div class="form-array">
@@ -25,7 +24,7 @@
          (blur)="validate($any($event.target))">
   <span><!-- Title Errors --></span>
   <div>
-    @if (title.touched && title.errors?.['required']) {
+    @if (titleRequired()) {
       <div class="error" i18n>
         Title must not be blank.
       </div>
@@ -33,30 +32,29 @@
   </div>
 
   <span><!-- Message --></span>
-  <div #fill class="fill-editor">
+  <div class="fill-editor">
     <app-editor #editor
                 class="bubble"
                 [control]="comment"
                 [addButton]="true"
                 i18n-addCommentTitle addCommentTitle="Add message"
                 i18n-addCommentLabel addCommentLabel="+ Add message"
-                [fillWidth]="fill"
                 (syncEditor)="syncEditor()"
-                [tags]="$any(invoiceForm.value).tags"
+                [tags]="invoiceFormValue()?.tags"
                 (syncTags)="editorTags = $event"
-                (uploadCompleted)="completedUploads.push($event)"></app-editor>
+                (uploadCompleted)="addCompletedUpload($event)"></app-editor>
   </div>
 
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
   }
 
   <span><!-- Buttons --></span>
   <span class="buttons right">
-      @if (submitting) {
+      @if (submitting()) {
         <app-loading [inline]="true"></app-loading>
       }
-    <button type="submit" [disabled]="submitting || submitted && !invoiceForm.valid" i18n>Send</button>
+    <button type="submit" [disabled]="submitting() || submitted() && !invoiceFormValid()" i18n>Send</button>
   </span>
 </form>

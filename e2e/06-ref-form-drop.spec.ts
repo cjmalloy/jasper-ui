@@ -1,4 +1,5 @@
-import { expect, type Locator, type Page, test } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { test } from './setup';
 
 const WEB_SUBMIT_URL = '/submit/web?url=https://www.jasper.example/ref-form-drop&tag=public&debug=ADMIN';
 

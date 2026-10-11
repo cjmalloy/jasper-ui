@@ -22,7 +22,7 @@ export const EMBED_NESTING = new InjectionToken<number>('embedNesting', {
 function createNestedComponent<T>(
   vc: ViewContainerRef,
   component: Type<T>,
-  init: (instance: T) => void,
+  init: (c: ComponentRef<T>) => void,
 ): ComponentRef<T> | ComponentRef<EmbedPlaceholderComponent> {
   const nesting = vc.injector.get(EMBED_NESTING) + 1;
   const create = (container: ViewContainerRef) => {
@@ -33,7 +33,7 @@ function createNestedComponent<T>(
         providers: [{ provide: EMBED_NESTING, useValue: nesting }],
       }),
     });
-    init(c.instance);
+    init(c);
     return c;
   };
   if (nesting > vc.injector.get(ConfigService).maxEmbedNesting) {
@@ -68,53 +68,49 @@ export function setIframeSrc(iframe: HTMLIFrameElement, url: string) {
 
 export function createLink(vc: ViewContainerRef, url: string, text: string, title = '', css = ''): ComponentRef<NavComponent> {
   const c = vc.createComponent(NavComponent);
-  c.instance.url = url;
-  c.instance.text = text;
-  c.instance.title = title;
-  c.instance.css = css;
+  c.setInput('url', url);
+  c.setInput('text', text);
+  c.setInput('title', title);
+  c.setInput('css', css);
   return c;
 }
 
 export function createEmbed(vc: ViewContainerRef, ref: Ref, pip = false) {
-  return createNestedComponent(vc, ViewerComponent, instance => {
+  return createNestedComponent(vc, ViewerComponent, c => {
     if (hasTag('plugin/seamless', ref)) {
       ref.tags = uniq([...ref.tags || [], 'plugin/seamless']);
     }
-    instance.ref = ref;
-    instance.fullscreen = pip;
-    instance.init();
+    c.setInput('ref', ref);
+    c.setInput('fullscreen', pip);
   });
 }
 
 export function createRef(vc: ViewContainerRef, ref: Ref, showToggle?: boolean) {
   if (hasTag('plugin/comment', ref)) {
-    return createNestedComponent(vc, CommentComponent, instance => {
-      instance.ref = ref;
-      instance.depth = 0;
-      instance.init();
+    return createNestedComponent(vc, CommentComponent, c => {
+      c.setInput('ref', ref);
+      c.setInput('depth', 0);
     });
   } else {
-    return createNestedComponent(vc, RefComponent, instance => {
-      instance.ref = ref;
-      instance.showToggle = !!showToggle;
-      instance.expandInline = hasTag('plugin/thread', ref);
-      instance.init();
+    return createNestedComponent(vc, RefComponent, c => {
+      c.setInput('ref', ref);
+      c.setInput('showToggle', !!showToggle);
+      c.setInput('expandInline', hasTag('plugin/thread', ref));
     });
   }
 }
 
 export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, tag: string, ext?: Ext) {
-  return createNestedComponent(vc, LensComponent, instance => {
-    instance.page = page;
-    instance.pageControls = false;
-    instance.tag = tag;
-    instance.ext = ext;
-    instance.size = params.size;
-    instance.cols = params.cols;
-    instance.sort = flatten([params.sort || []]);
-    instance.filter = flatten([params.filter || []]);
-    instance.search = params.search;
-    instance.init();
+  return createNestedComponent(vc, LensComponent, c => {
+    c.setInput('page', page);
+    c.setInput('pageControls', false);
+    c.setInput('tag', tag);
+    c.setInput('ext', ext);
+    c.setInput('size', params.size);
+    c.setInput('cols', params.cols);
+    c.setInput('sort', flatten([params.sort || []]));
+    c.setInput('filter', flatten([params.filter || []]));
+    c.setInput('search', params.search);
   });
 }
 

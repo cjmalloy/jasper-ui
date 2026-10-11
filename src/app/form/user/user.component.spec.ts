@@ -4,7 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { JasperFormlyModule } from '../../formly/formly.module';
+import { provideJasperFormly } from '../../formly/formly.config';
 
 import { UserFormComponent } from './user.component';
 
@@ -16,10 +16,10 @@ describe('UserFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         UserFormComponent,
       ],
       providers: [
+        provideJasperFormly(),
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -28,7 +28,7 @@ describe('UserFormComponent', () => {
 
     fixture = TestBed.createComponent(UserFormComponent);
     component = fixture.componentInstance;
-    component.group = new UntypedFormGroup({
+    fixture.componentRef.setInput('group', new UntypedFormGroup({
       tag: new UntypedFormControl(),
       name: new UntypedFormControl(),
       role: new UntypedFormControl(),
@@ -38,7 +38,7 @@ describe('UserFormComponent', () => {
       writeAccess: new UntypedFormArray([]),
       tagReadAccess: new UntypedFormArray([]),
       tagWriteAccess: new UntypedFormArray([]),
-    });
+    }));
     fixture.detectChanges();
   });
 

@@ -1,18 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  forwardRef,
-  HostBinding,
-  input,
-  model,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { computed } from 'mobx';
-import { catchError, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { Component, computed, effect, forwardRef, inject, input, linkedSignal, model, output } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, Observable, of, startWith, switchMap, throwError } from 'rxjs';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
@@ -30,17 +18,23 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: { 'class': 'playlist' },
   imports: [
     forwardRef(() => ViewerComponent),
     LoadingComponent,
   ],
 })
-export class PlaylistComponent implements OnChanges, OnDestroy {
-  @HostBinding('class') css = 'playlist';
+export class PlaylistComponent {
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private proxy = inject(ProxyService);
+  private store = inject(Store);
+
 
   ref = input<Ref | undefined>(undefined);
-  index = model(0);
+  readonly indexInput = input(0, { alias: 'index' });
+  readonly index = linkedSignal(() => { this.ref(); return this.indexInput(); });
+  readonly indexChange = output<number>();
   repeat = model(true);
   autoplay = model(false);
 
@@ -52,16 +46,18 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
     const url = ref.sources![index];
     return sources.content.find(ref => ref.url === url) || { url }
   });
-  sources = model<Page<Ref> | undefined>(undefined);
-  private loading?: Subscription;
+  private readonly loadedSources = toSignal(toObservable(computed(() => {
+    const ref = this.ref();
+    return ref?.sources?.length ? { url: ref.url, length: ref.sources.length } : undefined;
+  })).pipe(switchMap(ref => ref ? this.loadSources(ref.url, ref.length).pipe(
+    catchError(() => of(undefined)),
+    startWith(undefined),
+  ) : of(undefined))), { initialValue: undefined });
+  readonly sourcesInput = input<Page<Ref> | undefined>(undefined, { alias: 'sources' });
+  readonly sources = linkedSignal(() => this.sourcesInput() || this.loadedSources());
+  readonly sourcesChange = output<Page<Ref> | undefined>();
 
-  constructor(
-    private admin: AdminService,
-    private refs: RefService,
-    private proxy: ProxyService,
-    private store: Store,
-    private cd: ChangeDetectorRef,
-  ) {
+  constructor() {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'media' && this.ref() && this.store.eventBus.isRef(event, this.ref()!) && this.sources()?.content.length) {
         const mediaList = [];
@@ -83,6 +79,12 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
         downloadPlaylist(this.proxy, mediaList, this.ref()!.title || 'playlist');
       }
     });
+    effect(() => {
+      this.indexChange.emit(this.index());
+    });
+    effect(() => {
+      this.sourcesChange.emit(this.sources());
+    });
   }
 
   getTag(tag: string, ref: Ref) {
@@ -97,39 +99,21 @@ export class PlaylistComponent implements OnChanges, OnDestroy {
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (!changes.ref) return;
-    this.loading?.unsubscribe();
-    this.sources.set(undefined);
-    const ref = changes.ref.currentValue as Ref | undefined;
-    if (!ref?.sources?.length) return;
-    this.index.set(0);
-    this.loading = this.loadSources(ref.url, ref.sources.length)
-      .subscribe(page => this.sources.set(page));
-  }
-
-  ngOnDestroy() {
-    this.loading?.unsubscribe();
-  }
-
   title(url?: string) {
     return getTitle(this.sources()?.content.find(s => s.url === url) || (url ? { url } : undefined));
   }
 
   seek(index: number) {
     this.index.set(index);
-    this.cd.detectChanges();
   }
 
   back() {
     this.index.set((this.index() - 1 + this.ref()!.sources!.length) % this.ref()!.sources!.length);
-    this.cd.detectChanges();
   }
 
   next(loop = true) {
     if (!loop && this.index() + 1 >= this.ref()!.sources!.length) return;
     this.index.set((this.index() + 1) % this.ref()!.sources!.length);
-    this.cd.detectChanges();
   }
 
   private loadSources(

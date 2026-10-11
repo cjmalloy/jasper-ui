@@ -1,7 +1,8 @@
-import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 import { ListEditorComponent } from '../../component/list-editor/list-editor.component';
+import { controlValue } from '../../util/form';
 import { newTheme } from '../../util/theme';
 import { CodeComponent } from '../code/code.component';
 
@@ -10,48 +11,50 @@ import { CodeComponent } from '../code/code.component';
   templateUrl: './themes.component.html',
   styleUrls: ['./themes.component.scss'],
   host: { 'class': 'form-group' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ListEditorComponent, CodeComponent]
 })
-export class ThemesFormComponent implements OnChanges {
+export class ThemesFormComponent {
+  private fb = inject(UntypedFormBuilder);
 
-  @Input()
-  fieldName = 'themes';
-  @Input()
-  label = $localize`theme`;
-  @Input()
-  group!: UntypedFormGroup;
+  private readonly rootControlState = controlValue(() => this.group());
 
-  keys: string[] = [];
-  selectedTheme?: string;
 
-  constructor(
-    private fb: UntypedFormBuilder,
-  ) { }
+  readonly fieldName = input('themes');
+  readonly label = input($localize `theme`);
+  readonly group = input.required<UntypedFormGroup>();
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.group?.currentValue) {
-      this.keys = Object.keys(this.themes.value);
-    }
-  }
+  readonly keys = computed(() => {
+    this.rootControlState();
+    return Object.keys(this.themes()?.value || {});
+  });
+  readonly selectedTheme = signal<string | undefined>(undefined);
 
-  get themes() {
-    if (!this.group.contains(this.fieldName)) {
-      this.group.addControl(this.fieldName, this.fb.group({}));
-    }
-    return this.group.get(this.fieldName) as UntypedFormGroup;
+  readonly themes = computed(() => {
+    this.rootControlState();
+    return this.group().get(this.fieldName()) as UntypedFormGroup | null;
+  });
+
+  constructor() {
+    // Sync: add the missing themes control to the parent form
+    effect(() => {
+      const group = this.group();
+      const fieldName = this.fieldName();
+      if (!group.contains(fieldName)) {
+        group.addControl(fieldName, this.fb.group({}));
+      }
+    });
   }
 
   addTheme(name: string, value = newTheme()) {
-    this.themes.addControl(name, this.fb.control(value));
+    this.themes()?.addControl(name, this.fb.control(value));
   }
 
   removeTheme(name: string) {
-    this.themes.removeControl(name);
+    this.themes()?.removeControl(name);
   }
 
   edit(name?: string) {
-    this.selectedTheme = name;
+    this.selectedTheme.set(name);
   }
 }
 

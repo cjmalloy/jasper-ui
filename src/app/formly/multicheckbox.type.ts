@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyAttributes } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 
@@ -17,7 +17,6 @@ import { FormlySelectModule } from '@ngx-formly/core/select';
       <label [for]="id + '_' + i">{{ option.label }}</label>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
     FormlySelectModule,

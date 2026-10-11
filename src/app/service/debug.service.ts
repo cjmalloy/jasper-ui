@@ -1,5 +1,6 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { from, of } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { signJwt } from '../util/jwt';
 import { ConfigService } from './config.service';
 
@@ -7,11 +8,9 @@ import { ConfigService } from './config.service';
   providedIn: 'root'
 })
 export class DebugService {
-  loading?: Promise<string>;
+  private config = inject(ConfigService);
 
-  constructor(
-    private config: ConfigService,
-  ) { }
+  loading?: Promise<string>;
 
   get init$() {
     if (location.search.includes('debug=')) {
@@ -20,7 +19,7 @@ export class DebugService {
       if (debugRole.toLowerCase() === 'false') return of(null);
       return from(this.getDebugToken(debugTag, 'ROLE_' + debugRole.toUpperCase()).then(jwt => this.config.token = jwt));
     }
-    if (isDevMode() && !location.search.includes('anon=')) {
+    if (environment.dev && !location.search.includes('anon=')) {
       return from(this.getDebugToken('+user/chris', 'ROLE_ADMIN').then(jwt => this.config.token = jwt));
     }
     return of(null)

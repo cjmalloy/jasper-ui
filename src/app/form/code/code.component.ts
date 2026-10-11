@@ -1,55 +1,34 @@
-import { Component, Input, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { autorun, IReactionDisposer } from 'mobx';
+import { isEqual } from 'lodash-es';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
+import { controlValue } from '../../util/form';
 
 @Component({
   selector: 'app-code',
   templateUrl: './code.component.html',
   styleUrls: ['./code.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
-export class CodeComponent implements OnDestroy {
+export class CodeComponent {
+  config = inject(ConfigService);
+  private store = inject(Store);
 
-  private disposers: IReactionDisposer[] = [];
+  private readonly rootControlState = controlValue(() => this.group());
 
-  @Input()
-  group!: UntypedFormGroup;
-  @Input()
-  fieldName = 'source';
 
-  options: any = {
-    language: 'css',
+  readonly group = input.required<UntypedFormGroup>();
+  readonly fieldName = input('source');
+
+  readonly options = computed(() => ({
+    language: this.language(),
     automaticLayout: true,
-  };
+    theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
+  }), { equal: isEqual });
 
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-  ) {
-    this.disposers.push(autorun(() => {
-      this.options = {
-        ...this.options,
-        theme: store.darkTheme ? 'vs-dark' : 'vs',
-      }
-    }));
-  }
-
-  @Input()
-  set language(value: string) {
-    this.options = {
-      ...this.options,
-      language: value,
-    }
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
+  readonly language = input('css');
 
 }

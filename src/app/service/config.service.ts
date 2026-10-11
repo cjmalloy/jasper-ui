@@ -1,19 +1,31 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, isDevMode } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { tap } from 'rxjs/operators';
-import { memo } from '../util/memo';
+import { environment } from '../../environments/environment';
 
 export function config(): ConfigService {
   // @ts-ignore
   return window.configService;
 }
 
+function mediaSignal(query: string) {
+  const result = signal(false);
+  if (typeof window === 'undefined' || !window.matchMedia) return result;
+  const media = window.matchMedia(query);
+  result.set(media.matches);
+  media.addEventListener?.('change', event => result.set(event.matches));
+  return result;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ConfigService {
+  private http = inject(HttpClient);
+  private router = inject(Router);
+
   version = DateTime.now().toISO();
   title = 'Jasper';
   api = '//localhost:8081';
@@ -42,24 +54,21 @@ export class ConfigService {
   /**
    * Workaround for non-cookie based auth to scrape images before fetching.
    */
-  prefetch = isDevMode();
+  prefetch = environment.dev;
 
-  miniWidth = 380;
-  mobileWidth = 740;
-  tabletWidth = 948;
-  hugeWidth = 1500;
+  readonly mini = mediaSignal('(max-width: 380px)');
+  readonly mobile = mediaSignal('(max-width: 740px)');
+  readonly tablet = mediaSignal('(max-width: 948px)');
+  readonly huge = mediaSignal('(min-width: 1500px)');
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-  ) {
+  constructor() {
     // @ts-ignore
     window.configService = this;
   }
 
-  @memo
+  private _base?: string;
   get base() {
-    return document.getElementsByTagName('base')[0].href;
+    return this._base ??= document.getElementsByTagName('base')[0].href;
   }
 
   get loginLink() {
@@ -74,23 +83,6 @@ export class ConfigService {
         }
       }),
     );
-  }
-
-  get mini() {
-    return window.innerWidth <= this.miniWidth;
-  }
-
-  get mobile() {
-    return window.innerWidth <= this.mobileWidth;
-  }
-
-  get tablet() {
-    return window.innerWidth <= this.tabletWidth;
-  }
-
-
-  get huge() {
-    return window.innerWidth >= this.hugeWidth;
   }
 
   logIn() {

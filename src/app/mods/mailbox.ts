@@ -126,7 +126,7 @@ export function reverseOrigin(tag: string, rootOrigin: string): string {
  * Translate a tag on a Ref from a remote origin into a local origin
  * using the origin map lookup for that remote.
  */
-export function mapRemoteOrigin(tag: string, origin: string, local: string, lookup?: Map<string, string>): string {
+export function mapRemoteOrigin(tag: string, origin: string, local: string, lookup?: ReadonlyMap<string, string>): string {
   const remote = tagOrigin(tag);
   if (!remote || !origin || !lookup || !remote.startsWith(origin + '.')) return tag;
   const mapped = lookup.get(removeParentOrigin(remote, origin));
@@ -148,7 +148,7 @@ export function cursorSettingsUrl(origin: string, local: string): string {
   return `tag:/plugin/outbox/${removeParentOrigin(origin, local).substring(1)}`;
 }
 
-export function getLocalMailbox(mailbox: string, local: string, origin: string, lookup?: Map<string, Map<string, string>>) {
+export function getLocalMailbox(mailbox: string, local: string, origin: string, lookup?: ReadonlyMap<string, ReadonlyMap<string, string>>) {
   if (!origin || origin === local) return localTag(mailbox);
   if (hasPrefix(mailbox, 'plugin/outbox')) {
     if (!lookup?.has(origin)) {
@@ -172,7 +172,7 @@ export function getLocalMailbox(mailbox: string, local: string, origin: string, 
   throw 'not a mailbox';
 }
 
-export function mailboxes(ref: Ref, myUserTag: string, lookup?: Map<string, Map<string, string>>): string[] {
+export function mailboxes(ref: Ref, myUserTag: string, lookup?: ReadonlyMap<string, ReadonlyMap<string, string>>): string[] {
   const local = tagOrigin(myUserTag);
   return uniq([
     ...userAuthors(ref).filter(tag => tag !== myUserTag).map(tag => getMailbox(tag, local)),

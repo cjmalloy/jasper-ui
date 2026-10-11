@@ -1,20 +1,20 @@
 <div class="todo-item-container row">
-  <input #checkbox type="checkbox" [checked]="checked" (input)="toggle()">
-  @if (editing) {
-    <textarea [value]="text"
-              (focusin)="editing = true"
-              (input)="text = $any($event).target.value"
+  <input #checkbox type="checkbox" [checked]="checked()" (input)="toggle()">
+  @if (editing()) {
+    <textarea [value]="text()"
+              (focusin)="editing.set(true)"
+              (input)="text.set($any($event).target.value)"
               (keydown)="$event.key === 'Enter' && edit() || true"
               (blur)="edit()"
               [appAutofocus]="true"></textarea>
-  } @else if (text) {
-    <app-md [origin]="origin"
-            [plugins]="plugins"
-            [text]="text"
+  } @else if (text()) {
+    <app-md [origin]="origin()"
+            [plugins]="plugins()"
+            [text]="text()"
             tabindex="0"
-            (mouseover)="hovering = true"
-            (mouseout)="hovering = false"
-            (focus)="editing = !config.mobile && !hovering"
-            (click)="editing = true"></app-md>
+            (mouseover)="hovering.set(true)"
+            (mouseout)="hovering.set(false)"
+            (focus)="editing.set(!config.mobile() && !hovering())"
+            (click)="editing.set(true)"></app-md>
   }
 </div>

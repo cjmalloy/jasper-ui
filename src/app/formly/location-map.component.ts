@@ -1,18 +1,18 @@
-import { ChangeDetectionStrategy, Component, Input, NgZone, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
-import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
+import { Component, computed, DestroyRef, inject, input, untracked, viewChild, ViewEncapsulation } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
 import { MapComponent as MglComponent } from '@maplibre/ngx-maplibre-gl';
 import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { Feature, FeatureCollection } from 'geojson';
+import { isEqual } from 'lodash-es';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { LngLatBounds, Map as MapLibreMap, MapMouseEvent, Marker } from 'maplibre-gl';
-import { defer, isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { CollapsedAttributionControl } from '../component/map/collapsed-attribution';
 import { addGeocoder } from '../component/map/geocoder';
-import { ResizeHandleDirective } from '../directive/resize-handle.directive';
 import { preventSelectionDrag } from '../component/map/selection-drag';
 import { onSingleClick } from '../component/map/single-click';
+import { ResizeHandleDirective } from '../directive/resize-handle.directive';
 import { mapTemplate } from '../mods/map';
 import { AdminService } from '../service/admin.service';
 import { ConfigService } from '../service/config.service';
@@ -36,8 +36,8 @@ import { closedRings, LocationList, locationLists, LocationPicker } from './loca
     '(touchstart)': '$event.stopPropagation()',
   },
   template: `
-    <mgl-map [mapStyle]="mapStyle"
-             [bounds]="bounds"
+    <mgl-map [mapStyle]="mapStyle()"
+             [bounds]="bounds()"
              [fitBoundsOptions]="fitBoundsOptions"
              [attributionControl]="false"
              (styleData)="styleLoaded($event.target)"
@@ -46,26 +46,24 @@ import { closedRings, LocationList, locationLists, LocationPicker } from './loca
              (mapError)="onMapError($event)"
              (dragstart)="$event.preventDefault()"
              appResizeHandle
-             [hitArea]="config.mobile ? 48 : 20"></mgl-map>
+             [hitArea]="config.mobile() ? 48 : 20" />
   `,
   styleUrls: ['./location-map.component.scss'],
   encapsulation: ViewEncapsulation.None,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MglComponent, ResizeHandleDirective],
   providers: [provideMaplibreWorker('assets/maplibre-gl-worker.mjs')],
 })
-export class LocationMapComponent implements OnDestroy {
+export class LocationMapComponent {
+  readonly config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private geocoder = inject(GeocodeService);
 
-  @Input({ required: true })
-  picker!: LocationPicker;
+  readonly picker = input.required<LocationPicker>();
 
   readonly fitBoundsOptions = { padding: 40, maxZoom: 15 };
 
-  @ViewChild(ResizeHandleDirective)
-  resizeHandle?: ResizeHandleDirective;
+  readonly resizeHandle = viewChild(ResizeHandleDirective);
 
-  private _mapStyle: any;
-  private _bounds?: LngLatBounds | null;
   private map?: MapLibreMap;
   private geocoderMap?: MapLibreMap;
   private markers = new Map<AbstractControl, Marker>();
@@ -83,14 +81,10 @@ export class LocationMapComponent implements OnDestroy {
   private searchMarker?: Marker;
   private removeClick?: () => void;
   private releaseMouseUp?: () => void;
+  private redrawTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(
-    public config: ConfigService,
-    private admin: AdminService,
-    private geocoder: GeocodeService,
-    private zone: NgZone,
-  ) {
-    geocoder.config$.pipe(takeUntilDestroyed()).subscribe(config => {
+  constructor() {
+    this.geocoder.config$.pipe(takeUntilDestroyed()).subscribe(config => {
       this.geocoding = isConfigured(config);
       if (this.geocoderPosition !== config.geocoderPosition) {
         this.removeGeocoder?.();
@@ -101,8 +95,15 @@ export class LocationMapComponent implements OnDestroy {
     });
   }
 
-  get mapStyle() {
-    if (this._mapStyle) return this._mapStyle;
+  /**
+   * Style the map is created with, centred on the active location.
+   */
+  readonly mapStyle = computed(() => {
+    this.picker();
+    return untracked(() => this.initialStyle());
+  });
+
+  private initialStyle() {
     const style = {
       ...this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
       ...this.admin.getTemplate('map')?.config?.mapStyle || mapTemplate.config?.mapStyle || {},
@@ -112,30 +113,31 @@ export class LocationMapComponent implements OnDestroy {
       style.center = location;
       style.zoom = Math.max(style.zoom ?? 0, 10);
     }
-    return this._mapStyle = style;
+    return style;
   }
 
   /**
    * Fit the map to the locations being edited, or to the Ref's other geo
    * plugins when no location is set.
    */
-  get bounds(): LngLatBounds | undefined {
-    if (this._bounds !== undefined) return this._bounds || undefined;
-    const bbox = locationBounds(this.locations.map(c => c.value))
-      || locationBounds(this.contextData.features.map(f => (f.geometry as any).coordinates));
-    this._bounds = bbox ? new LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]) : null;
-    return this._bounds || undefined;
-  }
+  readonly bounds = computed((): LngLatBounds | undefined => {
+    this.picker();
+    return untracked(() => {
+      const bbox = locationBounds(this.locations.map(c => c.value))
+        || locationBounds(this.contextData.features.map(f => (f.geometry as any).coordinates));
+      return bbox ? new LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]) : undefined;
+    });
+  });
 
   get control(): AbstractControl {
-    return this.picker.host.formControl!;
+    return this.picker().host.formControl!;
   }
 
   /**
    * The active location, or the first location set when none is active.
    */
   get center(): [number, number] | undefined {
-    const active = this.picker.active?.value;
+    const active = this.picker().active?.value;
     if (hasLocation(active)) return [active[0], active[1]];
     const first = this.locations.map(c => c.value).find(hasLocation);
     return first && [first[0], first[1]];
@@ -154,14 +156,14 @@ export class LocationMapComponent implements OnDestroy {
     this.addAttribution(map);
     this.removeClick?.();
     const targets = new WeakMap<MapMouseEvent, AbstractControl>();
-    this.removeClick = onSingleClick(map, e => this.zone.run(() => {
+    this.removeClick = onSingleClick(map, e => {
       const target = targets.get(e);
-      if (!target || target !== this.picker.active || !this.locations.includes(target)) {
+      if (!target || target !== this.picker().active || !this.locations.includes(target)) {
         this.updateMarkers();
         return;
       }
       this.mapClick(e);
-    }), {
+    }, {
       // Move the marker right away, so placing it does not wait for the double click delay
       preview: e => {
         const target = this.clickTarget(e);
@@ -171,10 +173,10 @@ export class LocationMapComponent implements OnDestroy {
       cancel: () => this.updateMarkers(),
     });
     map.addSource('location-context', { type: 'geojson', data: this.contextData });
-    this.removeGeoLayers = this.zone.runOutsideAngular(() => addGeoLayers(map, 'location-context', 'location-context', 5));
+    this.removeGeoLayers = addGeoLayers(map, 'location-context', 'location-context', 5);
     this.watch?.unsubscribe();
     this.watch = this.contextRoot.valueChanges.subscribe(() => this.update());
-    this.watch.add(this.picker.changes.subscribe(() => this.update()));
+    this.watch.add(this.picker().changes.subscribe(() => this.update()));
     this.updateMarkers();
     this.styleLoaded(map);
     // The location may have changed while the map style was loading
@@ -219,9 +221,9 @@ export class LocationMapComponent implements OnDestroy {
    */
   private clickTarget(event: MapMouseEvent) {
     // Releasing the resize handle is not a click on the map
-    if (this.resizeHandle?.dragging) return undefined;
+    if (this.resizeHandle()?.dragging()) return undefined;
     if ((event.originalEvent?.target as Element | undefined)?.closest?.('.maplibregl-marker')) return undefined;
-    const active = this.picker.active;
+    const active = this.picker().active;
     if (!active || !this.locations.includes(active)) return undefined;
     return active;
   }
@@ -243,8 +245,9 @@ export class LocationMapComponent implements OnDestroy {
       list.add(undefined, model);
       if (list.depth > 1) {
         // Select the first point of the new list so further points are added to it
-        const added = this.picker.target && leaves(this.picker.target);
-        if (added?.length) this.picker.select(added[added.length - 1]);
+        const target = this.picker().target;
+        const added = target && leaves(target);
+        if (added?.length) this.picker().select(added[added.length - 1]);
       }
     } finally {
       this.picking = false;
@@ -257,10 +260,10 @@ export class LocationMapComponent implements OnDestroy {
    * plugins.
    */
   private get addTarget(): LocationList | undefined {
-    const target = this.picker.target;
+    const target = this.picker().target;
     const added = target && attached(target, this.control) && locationLists.get(target);
     if (added) return added;
-    const parent = this.picker.active?.parent;
+    const parent = this.picker().active?.parent;
     const active = parent && locationLists.get(parent);
     if (active) return active;
     for (const root of [this.control, this.contextRoot]) {
@@ -284,7 +287,8 @@ export class LocationMapComponent implements OnDestroy {
     console.error('MapLibre Engine Error:', event.error);
   }
 
-  ngOnDestroy() {
+  private readonly cleanup = inject(DestroyRef).onDestroy(() => {
+    clearTimeout(this.redrawTimer);
     this.watch?.unsubscribe();
     this.removeClick?.();
     this.removeClick = undefined;
@@ -298,13 +302,13 @@ export class LocationMapComponent implements OnDestroy {
     for (const marker of this.markers.values()) marker.remove();
     this.markers.clear();
     this.map = undefined;
-  }
+  });
 
   private updateGeocoder() {
     if (this.geocoding && this.geocoderMap && !this.removeGeocoder) {
       this.removeGeocoder = addGeocoder(this.geocoderMap, this.geocoder, this.geocoderPosition,
-        location => this.zone.run(() => this.showSearchResult(location)),
-        () => this.zone.run(() => this.clearSearchResult()));
+        location => this.showSearchResult(location),
+        () => this.clearSearchResult());
     } else if (!this.geocoding && this.removeGeocoder) {
       this.removeGeocoder();
       this.removeGeocoder = undefined;
@@ -330,13 +334,11 @@ export class LocationMapComponent implements OnDestroy {
     el.tabIndex = 0;
     const activate = (e: Event) => {
       e.stopPropagation();
-      this.zone.run(() => {
-        this.clearSearchResult();
-        const active = this.picker.active && this.locations.includes(this.picker.active)
-          ? this.picker.active
-          : this.locations[0];
-        if (active) this.pick(active, location);
-      });
+      this.clearSearchResult();
+      const active = this.picker().active && this.locations.includes(this.picker().active!)
+        ? this.picker().active
+        : this.locations[0];
+      if (active) this.pick(active, location);
     };
     el.addEventListener('click', activate);
     el.addEventListener('keydown', e => {
@@ -356,7 +358,7 @@ export class LocationMapComponent implements OnDestroy {
   private select(control: AbstractControl) {
     this.picking = true;
     try {
-      this.picker.select(control);
+      this.picker().select(control);
     } finally {
       this.picking = false;
     }
@@ -366,7 +368,7 @@ export class LocationMapComponent implements OnDestroy {
     if (control.disabled) return;
     this.picking = true;
     try {
-      this.picker.select(control);
+      this.picker().select(control);
       control.setValue(value);
       control.markAsDirty();
     } finally {
@@ -382,7 +384,7 @@ export class LocationMapComponent implements OnDestroy {
     // so redraw again once it has settled
     if (!this.redrawPending) {
       this.redrawPending = true;
-      defer(() => {
+      this.redrawTimer = setTimeout(() => {
         this.redrawPending = false;
         this.redraw();
       });
@@ -395,7 +397,7 @@ export class LocationMapComponent implements OnDestroy {
   }
 
   private panToActive() {
-    const active = this.picker.active;
+    const active = this.picker().active;
     const value = active?.value;
     const changed = active !== this.lastActive || !isEqual(value, this.lastActiveValue);
     this.lastActive = active;
@@ -420,7 +422,7 @@ export class LocationMapComponent implements OnDestroy {
       if (map.getCanvasContainer().contains(e.target as Node)) return;
       map.fire(new MapMouseEvent('mouseup', map, e));
     };
-    this.zone.runOutsideAngular(() => doc.addEventListener('mouseup', up, true));
+    doc.addEventListener('mouseup', up, true);
     this.releaseMouseUp = () => {
       doc.removeEventListener('mouseup', up, true);
       this.releaseMouseUp = undefined;
@@ -440,12 +442,12 @@ export class LocationMapComponent implements OnDestroy {
           .setLngLat([location[0], location[1]])
           .addTo(this.map);
         const m = marker;
-        m.on('dragstart', () => this.zone.run(() => this.select(control)));
-        m.on('dragend', () => this.zone.run(() => {
+        m.on('dragstart', () => this.select(control));
+        m.on('dragend', () => {
           const { lng, lat } = m.getLngLat().wrap();
           this.pick(control, [lng, lat]);
-        }));
-        m.getElement().addEventListener('click', () => this.zone.run(() => this.select(control)));
+        });
+        m.getElement().addEventListener('click', () => this.select(control));
         m.getElement().addEventListener('mousedown', e => {
           if (e.button === 0) this.captureMouseUp();
         });
@@ -454,7 +456,7 @@ export class LocationMapComponent implements OnDestroy {
         marker.setLngLat([location[0], location[1]]);
       }
       marker.setDraggable(!control.disabled);
-      if (control === this.picker.active) {
+      if (control === this.picker().active) {
         marker.addClassName('active');
       } else {
         marker.removeClassName('active');

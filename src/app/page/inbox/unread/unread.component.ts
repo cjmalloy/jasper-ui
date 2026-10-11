@@ -1,11 +1,11 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, inject } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
-import { from, Subscription } from 'rxjs';
+import { isEqual } from 'lodash-es';
+import { from, switchMap, tap } from 'rxjs';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { Page } from '../../../model/page';
+import { Ref } from '../../../model/ref';
 import { AccountService, compareCursors } from '../../../service/account.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
@@ -16,33 +16,25 @@ import { Store } from '../../../store/store';
   templateUrl: './unread.component.html',
   styleUrls: ['./unread.component.scss'],
   host: { 'class': 'unread' },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, RefListComponent]
+  imports: [RefListComponent]
 })
-export class InboxUnreadPage implements OnInit, OnDestroy {
+export class InboxUnreadPage {
+  private mod = inject(ModService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private account = inject(AccountService);
+  private router = inject(Router);
 
-  private disposers: IReactionDisposer[] = [];
   private readThrough = new Map<string, string>();
   private cleared = Promise.resolve();
-  private loads = 0;
-  private load?: Subscription;
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-    public query: QueryStore,
-    private account: AccountService,
-    private router: Router,
-    private destroyRef: DestroyRef,
-  ) {
-    mod.setTitle($localize`Inbox: Unread`);
-    store.view.clear(['modified']);
-    query.clear();
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
-      if (this.store.view.pageNumber) {
+  // Paging to the next page marks the current page as read on the server
+  private readonly page = toSignal(toObservable(computed(() => ({
+    pageNumber: this.store.view.pageNumber(),
+    size: this.store.view.pageSize(),
+  }), { equal: isEqual })).pipe(
+    switchMap(({ pageNumber, size }) => {
+      if (pageNumber) {
         this.router.navigate([], {
           queryParams: { pageNumber: null },
           queryParamsHandling: 'merge',
@@ -50,36 +42,28 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
         });
         this.cleared = this.clearNotifications();
       }
-      const cleared = this.cleared;
-      const load = ++this.loads;
-      defer(() => {
-        from(cleared).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-          if (load !== this.loads) return;
-          this.load?.unsubscribe();
-          this.load = this.account.notificationPage$(this.store.view.pageSize).subscribe(page =>
-            runInAction(() => this.query.page = page));
-        });
-      });
-    }));
-    this.disposers.push(autorun(() => {
-      if (this.query.page && this.query.page!.content.length) {
-        for (const ref of this.query.page.content) {
-          const origin = ref.origin || '';
-          const cursor = ref.modifiedString;
-          const current = this.readThrough.get(origin);
-          if (!cursor || current && compareCursors(cursor, current) <= 0) continue;
-          this.readThrough.set(origin, cursor);
-        }
-      }
-    }));
+      return from(this.cleared).pipe(
+        switchMap(() => this.account.notificationPage$(size)),
+        tap(page => this.readPage(page)),
+      );
+    }),
+  ));
+
+  constructor() {
+    this.mod.setTitle($localize`Inbox: Unread`);
+    this.store.view.clear(['modified']);
+    this.query.show(this.page);
+    inject(DestroyRef).onDestroy(() => this.clearNotifications());
   }
 
-  ngOnDestroy() {
-    this.query.close();
-    this.load?.unsubscribe();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-    this.clearNotifications();
+  private readPage(page: Page<Ref>) {
+    for (const ref of page.content) {
+      const origin = ref.origin || '';
+      const cursor = ref.modifiedString;
+      const current = this.readThrough.get(origin);
+      if (!cursor || current && compareCursors(cursor, current) <= 0) continue;
+      this.readThrough.set(origin, cursor);
+    }
   }
 
   private clearNotifications(): Promise<void> {

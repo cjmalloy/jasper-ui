@@ -1,107 +1,75 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, ElementRef, inject, input, linkedSignal, viewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
-import { convertSort, defaultDesc, SortItem } from '../../util/query';
+import { convertSort, defaultDesc } from '../../util/query';
 
 @Component({
   selector: 'app-sort',
   templateUrl: './sort.component.html',
   styleUrls: ['./sort.component.scss'],
   host: { 'class': 'sort form-group' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, FormsModule]
 })
-export class SortComponent implements OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+export class SortComponent {
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
 
-  @ViewChild('create')
-  create?: ElementRef<HTMLSelectElement>;
+  readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
-  @Input()
-  type?: Type;
+  readonly type = input<Type>('ref');
 
-  allRefSorts = this.admin.refSorts.map(convertSort);
-  allTagSorts = this.admin.tagSorts.map(convertSort);
-  allSorts: SortItem[] = [
-    { value: 'modified', label: $localize`🕓️ modified` },
-    { value: 'origin:len', label: $localize`🪆 nesting` },
-  ];
-  sorts: string[] = [];
+  readonly allRefSorts = computed(() => this.admin.refSorts().map(convertSort));
+  readonly allTagSorts = computed(() => this.admin.tagSorts().map(convertSort));
+  readonly allSorts = computed(() => this.type() === 'ref'
+    ? [...this.store.view.isSearch() ? [{ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` }] : [], ...this.allRefSorts()]
+    : this.allTagSorts());
+  readonly sorts = linkedSignal(() => {
+    const sort = this.store.view.sort();
+    return Array.isArray(sort) ? [...sort] : [sort];
+  });
+
   replace = false;
 
-  constructor(
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-  ) {
-    this.type = 'ref';
-    this.disposers.push(autorun(() => {
-      this.sorts = toJS(this.store.view.sort);
-      if (!Array.isArray(this.sorts)) this.sorts = [this.sorts];
-    }));
-    this.disposers.push(autorun(() => {
-      this.rebuildSorts(this.store.view.isSearch);
-    }));
+  constructor() {
+    const router = this.router;
+
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.type) {
-      this.rebuildSorts(this.store.view.isSearch);
-    }
-  }
-
-  private rebuildSorts(isSearch: boolean) {
-    if (this.type === 'ref') {
-      this.allSorts = [...this.allRefSorts];
-      if (isSearch) {
-        this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` });
-      }
-    } else {
-      this.allSorts = [...this.allTagSorts];
-    }
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
-
   addSort(value: string) {
     this.replace = false;
-    if (!this.sorts) this.sorts = [];
-    this.sorts.push('');
-    this.create!.nativeElement.selectedIndex = 0;
-    this.setSortCol(this.sorts.length - 1, value);
+    this.sorts.update(sorts => [...sorts || [], '']);
+    this.create()!.nativeElement.selectedIndex = 0;
+    this.setSortCol(this.sorts().length - 1, value);
   }
 
   setSortCol(index: number, value: string) {
     const dir = this.sortDir(value)
-    this.sorts[index] = value + ',' + dir;
+    this.sorts.update(sorts => sorts.map((s, i) => i === index ? value + ',' + dir : s));
     this.setSort();
   }
 
   setSortDir(index: number, value: string) {
-    const col = this.sortCol(this.sorts[index])
-    this.sorts[index] = col + ',' + value;
+    const col = this.sortCol(this.sorts()[index])
+    this.sorts.update(sorts => sorts.map((s, i) => i === index ? col + ',' + value : s));
     if (col) this.setSort();
   }
 
   removeSort(index: number) {
     this.replace = false;
-    this.sorts.splice(index, 1);
+    this.sorts.update(sorts => sorts.filter((s, i) => i !== index));
     this.setSort();
   }
 
   setSort() {
-    const sort = this.sorts.filter(f => !!f && !f.startsWith(','));
+    const sort = this.sorts().filter(f => !!f && !f.startsWith(','));
     this.router.navigate([], {
       queryParams: { sort: sort.length ? sort : null, pageNumber: null },
       queryParamsHandling: 'merge',
@@ -111,7 +79,7 @@ export class SortComponent implements OnChanges, OnDestroy {
   }
 
   title(value: string) {
-    for (const s of this.allSorts) {
+    for (const s of this.allSorts()) {
       if (s.value === value) return s.title || '';
     }
     return '';

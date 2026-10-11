@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
-import { Mod, modSchema } from '../model/tag';
+import { Mod } from '../model/tag';
 
 export const storePlugin: Plugin = {
   tag: 'plugin/mod/store',

@@ -1,49 +1,41 @@
-import { Directive, Inject, Input, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
-import { Subject } from 'rxjs';
+import { DestroyRef, Directive, inject, input, ViewContainerRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MarkdownComponent } from 'ngx-markdown';
 import { EmbedService } from '../service/embed.service';
 
-@Directive({ selector: '[appMdPost]' })
-export class MdPostDirective implements OnInit, OnDestroy {
+/**
+ * Post-processes the rendered markdown every time the host `markdown`
+ * component emits `ready`.
+ */
+@Directive({ selector: '[markdown][appMdPost]' })
+export class MdPostDirective {
+  private embeds = inject(EmbedService);
+  private viewContainerRef = inject(ViewContainerRef);
 
-  @Input('appMdPost')
-  load?: Subject<void> | string;
-  @Input()
-  data? = '';
-  @Input()
-  origin? = '';
+  readonly origin = input<string | undefined>('');
 
   private subscriptions: (() => void)[] = [];
-  private lastData = '';
 
-  constructor(
-    private embeds: EmbedService,
-    @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
-  ) { }
-
-  ngOnInit(): void {
-    if (this.load && typeof this.load !== 'string') {
-      this.load.subscribe(() => this.postProcess())
-    } else {
-      this.postProcess();
-    }
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.cleanup());
+    inject(MarkdownComponent).ready.pipe(takeUntilDestroyed()).subscribe(() => this.postProcess());
   }
 
-  ngOnDestroy() {
+  private cleanup() {
     this.subscriptions.forEach(fn => fn());
     this.subscriptions.length = 0;
   }
 
-  event(type: string, el: Element, fn: any) {
+  private event(type: string, el: Element, fn: any) {
     el.addEventListener(type, fn);
     this.subscriptions.push(() => el.removeEventListener(type, fn));
   }
 
-  postProcess() {
-    if (this.data === this.lastData) return;
-    this.ngOnDestroy();
+  private postProcess() {
+    this.cleanup();
     this.subscriptions.push(this.embeds.postProcess(
       this.viewContainerRef,
       (type, el, fn) => this.event(type, el, fn),
-      this.origin));
+      this.origin()));
   }
 }

@@ -108,7 +108,7 @@ If you receive such a message, simply respond 'ACK', so that we can silently hid
       key: 'subscriptions',
       type: 'queries',
       expressions: {
-        hide: '!formState.admin.home',
+        hide: '!formState.admin.home()',
       },
       props: {
         label: $localize`Subscriptions:`,

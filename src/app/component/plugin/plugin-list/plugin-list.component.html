@@ -1,12 +1,12 @@
-@if (page) {
+@if (page()) {
   <div class="list-container">
-    @for (p of page.content; track p.tag + p.origin; let i = $index) {
-      <div class="list-number">{{ i + page.page.number * page.page.size + 1 }}</div>
+    @for (p of page()!.content; track p.tag + p.origin; let i = $index) {
+      <div class="list-number">{{ i + page()!.page.number * page()!.page.size + 1 }}</div>
       <app-plugin [plugin]="p"></app-plugin>
     }
   </div>
-  @if (page.content.length) {
-    <app-page-controls [page]="page"></app-page-controls>
+  @if (page()!.content.length) {
+    <app-page-controls [page]="page()"></app-page-controls>
   } @else {
     <p class="no-results" i18n>No results found</p>
   }

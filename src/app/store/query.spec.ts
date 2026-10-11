@@ -1,39 +1,85 @@
 /// <reference types="vitest/globals" />
-import { of } from 'rxjs';
-
+import { ApplicationRef, signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { of, Subject } from 'rxjs';
 import { Page } from '../model/page';
+import { Ref, RefPageArgs } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
 import { QueryStore } from './query';
 
 describe('QueryStore', () => {
+  function createStore(refs: RefService) {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RefService, useValue: refs },
+      ],
+    });
+    return TestBed.inject(QueryStore);
+  }
+
+  function watch(store: QueryStore, initial?: RefPageArgs) {
+    const args = signal<RefPageArgs | undefined>(initial);
+    TestBed.runInInjectionContext(() => store.watch(args));
+    store.page();
+    TestBed.tick();
+    return args;
+  }
+
+  function set(store: QueryStore, args: ReturnType<typeof watch>, value: RefPageArgs) {
+    args.set(value);
+    store.page();
+    TestBed.tick();
+  }
+
+  it('does not re-fetch when the args are deep-equal', () => {
+    const refs = {
+      page: vi.fn(() => of(Page.of([]))),
+      getCurrent: vi.fn(() => of(undefined)),
+    } as unknown as RefService;
+    const store = createStore(refs);
+
+    const args = watch(store, { query: 'test', sort: ['published'] });
+    set(store, args, { query: 'test', sort: ['published'] });
+
+    expect(refs.page).toHaveBeenCalledOnce();
+
+    set(store, args, { query: 'test', sort: ['modified'] });
+
+    expect(refs.page).toHaveBeenCalledTimes(2);
+  });
+
   it('loads the page and related refs when sources are set', () => {
     const source = { url: 'https://example.com/source', title: 'Source' };
     const refs = {
       page: vi.fn(() => of(Page.of([]))),
       getCurrent: vi.fn(() => of(source)),
     } as unknown as RefService;
-    const store = new QueryStore(refs);
+    const store = createStore(refs);
 
-    store.setArgs({ query: 'test', sources: source.url });
+    watch(store, { query: 'test', sources: source.url });
+    store.sourcesOf();
+    TestBed.tick();
 
     expect(refs.page).toHaveBeenCalledOnce();
     expect(refs.getCurrent).toHaveBeenCalledWith(source.url);
-    expect(store.sourcesOf).toEqual(source);
+    expect(store.sourcesOf()).toEqual(source);
   });
 
-  it('loads related refs without triggering the page query via setRelatedArgs', () => {
+  it('loads related refs without loading a page', () => {
     const source = { url: 'https://example.com/source', title: 'Source' };
     const refs = {
       page: vi.fn(() => of(Page.of([]))),
       getCurrent: vi.fn(() => of(source)),
     } as unknown as RefService;
-    const store = new QueryStore(refs);
+    const store = createStore(refs);
 
-    store.setRelatedArgs({ query: 'kanban/test', sources: source.url });
+    TestBed.runInInjectionContext(() => store.watchRelated(() => ({ query: 'kanban/test', sources: source.url })));
+    store.sourcesOf();
+    TestBed.tick();
 
     expect(refs.page).not.toHaveBeenCalled();
     expect(refs.getCurrent).toHaveBeenCalledWith(source.url);
-    expect(store.sourcesOf).toEqual(source);
+    expect(store.sourcesOf()).toEqual(source);
   });
 
   it('uses hidden tie-breakers for ordinary date-sorted page requests', () => {
@@ -41,17 +87,17 @@ describe('QueryStore', () => {
       page: vi.fn(() => of(Page.of([]))),
       getCurrent: vi.fn(),
     } as unknown as RefService;
-    const store = new QueryStore(refs);
+    const store = createStore(refs);
     const args = { query: 'test', sort: ['published,DESC' as const] };
 
-    store.setArgs(args);
+    watch(store, args);
 
     expect(refs.page).toHaveBeenCalledOnce();
     expect(refs.page).toHaveBeenCalledWith({
       query: 'test',
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
     });
-    expect(store.args).toBe(args);
+    expect(store.args()).toBe(args);
   });
 
   it('uses a queued cursor request for its matching page navigation', () => {
@@ -62,16 +108,16 @@ describe('QueryStore', () => {
       page: loadOffsetPage,
       getCurrent: vi.fn(),
     } as unknown as RefService;
-    const store = new QueryStore(refs);
-    const args = { query: 'test', page: 0, size: 2, sort: ['published,DESC' as const] };
+    const store = createStore(refs);
+    const initial = { query: 'test', page: 0, size: 2, sort: ['published,DESC' as const] };
 
-    store.setArgs(args);
+    const args = watch(store, initial);
     loadOffsetPage.mockClear();
     store.queueCursorPage(1, of(cursorPage));
-    store.setArgs({ ...args, page: 1 });
+    set(store, args, { ...initial, page: 1 });
 
     expect(loadOffsetPage).not.toHaveBeenCalled();
-    expect(store.page).toBe(cursorPage);
+    expect(store.page()).toBe(cursorPage);
   });
 
   it('discards a queued cursor request when the navigation does not match', () => {
@@ -82,20 +128,60 @@ describe('QueryStore', () => {
       page: loadOffsetPage,
       getCurrent: vi.fn(),
     } as unknown as RefService;
-    const store = new QueryStore(refs);
-    const args = { query: 'test', page: 1, size: 2, sort: ['published,DESC' as const] };
+    const store = createStore(refs);
+    const initial = { query: 'test', page: 1, size: 2, sort: ['published,DESC' as const] };
 
-    store.setArgs(args);
+    const args = watch(store, initial);
     loadOffsetPage.mockClear();
     store.queueCursorPage(2, of(cursorPage));
-    const directArgs = { ...args, page: 3 };
-    store.setArgs(directArgs);
+    const directArgs = { ...initial, page: 3 };
+    set(store, args, directArgs);
 
     expect(loadOffsetPage).toHaveBeenCalledOnce();
     expect(loadOffsetPage).toHaveBeenCalledWith({
       ...directArgs,
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
     });
-    expect(store.page).toBe(offsetPage);
+    expect(store.page()).toBe(offsetPage);
+  });
+
+  it('keeps the previous page while a search-only change loads', async () => {
+    const first = Page.of([{ url: 'https://example.com/first' }]);
+    const next = new Subject<Page<Ref>>();
+    const refs = {
+      page: vi.fn()
+        .mockReturnValueOnce(of(first))
+        .mockReturnValueOnce(next)
+        .mockReturnValueOnce(new Subject<Page<Ref>>()),
+      getCurrent: vi.fn(),
+    } as unknown as RefService;
+    const store = createStore(refs);
+
+    const args = watch(store, { query: 'test' });
+    expect(store.page()).toBe(first);
+
+    set(store, args, { query: 'test', search: 'abc' });
+    expect(store.page()).toBe(first);
+
+    const searched = Page.of([{ url: 'https://example.com/searched' }]);
+    next.next(searched);
+    await TestBed.inject(ApplicationRef).whenStable();
+    expect(store.page()).toBe(searched);
+
+    set(store, args, { query: 'other', search: 'abc' });
+    expect(store.page()).toBeUndefined();
+  });
+
+  it('stops loading when the watching injector is destroyed', () => {
+    const refs = {
+      page: vi.fn(() => of(Page.of([]))),
+      getCurrent: vi.fn(),
+    } as unknown as RefService;
+    const store = createStore(refs);
+
+    watch(store, { query: 'test' });
+    TestBed.resetTestingModule();
+
+    expect(store.args()).toBeUndefined();
   });
 });

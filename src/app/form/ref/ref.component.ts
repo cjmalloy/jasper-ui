@@ -3,17 +3,14 @@ import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
+  computed,
   ElementRef,
-  EventEmitter,
   forwardRef,
-  HostBinding,
-  HostListener,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ViewChild,
-  ChangeDetectionStrategy
+  inject,
+  input,
+  output,
+  signal,
+  viewChild
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -22,14 +19,13 @@ import {
   UntypedFormControl,
   UntypedFormGroup
 } from '@angular/forms';
-import { defer, some } from 'lodash-es';
+import { defer, isEqual, some } from 'lodash-es';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
-import { FillWidthDirective } from '../../directive/fill-width.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
@@ -41,8 +37,8 @@ import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
+import { controlState, controlValue } from '../../util/form';
 import { getScheme, getTitleFromFilename } from '../../util/http';
-import { memo, MemoCache } from '../../util/memo';
 import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
 import { EditorComponent } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
@@ -53,8 +49,14 @@ import { TagsFormComponent } from '../tags/tags.component';
   selector: 'app-ref-form',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    'class': 'nested-form',
+    '[class.show-drops]': 'dropping()',
+    '(dragenter)': 'onDragEnter()',
+    '(window:dragend)': 'onDragEnd()',
+    '(jasper-drag-end)': 'onDragEnd()',
+    '(jasper-drag-start)': 'onCdkDragStart()',
+  },
   imports: [
     forwardRef(() => EditorComponent),
     CdkDropListGroup,
@@ -65,195 +67,203 @@ import { TagsFormComponent } from '../tags/tags.component';
     PluginsFormComponent,
     MonacoEditorModule,
     ResizeHandleDirective,
-    FillWidthDirective,
     TagsFormComponent,
     AsyncPipe,
     ThumbnailPipe,
     CssUrlPipe,
   ],
 })
-export class RefFormComponent implements OnChanges {
+export class RefFormComponent {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private scrape = inject(ScrapeService);
+  private oembeds = inject(OembedStore);
+  private store = inject(Store);
+  private fb = inject(UntypedFormBuilder);
+  private cd = inject(ChangeDetectorRef);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  @Input()
-  creating = false;
-  @Input()
-  origin? = '';
-  @Input()
-  group!: UntypedFormGroup;
-  @Output()
-  toggleTag = new EventEmitter<string>();
+  private readonly rootControlState = controlValue(() => this.group());
 
-  @ViewChild('tagsFormComponent')
-  tagsFormComponent!: TagsFormComponent;
-  @ViewChild('sources')
-  sourcesFormComponent!: LinksFormComponent;
-  @ViewChild('alts')
-  altsFormComponent!: LinksFormComponent;
-  @ViewChild('pluginsFormComponent')
-  pluginsFormComponent!: PluginsFormComponent;
-  @ViewChild('fill')
-  fill?: ElementRef;
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
+  protected readonly controlState0 = controlValue(() => this.url());
+  private readonly controlState1 = controlValue(() => this.group());
+  private readonly controlState2 = controlValue(() => this.sources());
+  private readonly controlState3 = controlValue(() => this.tags());
 
-  @HostBinding('class.show-drops')
-  dropping = false;
+
+  readonly origin = input<string | undefined>('');
+  readonly group = input.required<UntypedFormGroup>();
+  readonly creating = input(false);
+  private readonly tagsValue = controlValue<string[]>(() => this.tags());
+  readonly toggleTag = output<string>();
+
+  readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
+  readonly sourcesFormComponent = viewChild.required<LinksFormComponent>('sources');
+  readonly altsFormComponent = viewChild.required<LinksFormComponent>('alts');
+  readonly pluginsFormComponent = viewChild.required<PluginsFormComponent>('pluginsFormComponent');
+  readonly editorComponent = viewChild<EditorComponent>('ed');
+
+  readonly dropping = signal(false);
 
   id = 'ref-' + uuid();
-  oembed?: Oembed;
-  scraped?: Ref;
-  ref?: Ref;
-  scrapingTitle = false;
-  scrapingPublished = false;
-  scrapingAll = false;
-  completedUploads: Ref[] = [];
+  readonly oembed = signal<Oembed | undefined>(undefined);
+  readonly scraped = signal<Ref | undefined>(undefined);
+  readonly ref = signal<Ref | undefined>(undefined);
+  readonly scrapingTitle = signal(false);
+  readonly scrapingPublished = signal(false);
+  readonly scrapingAll = signal(false);
+  readonly completedUploads = signal<Ref[]>([]);
 
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    private editor: EditorService,
-    private scrape: ScrapeService,
-    private oembeds: OembedStore,
-    private store: Store,
-    private fb: UntypedFormBuilder,
-    private cd: ChangeDetectorRef,
-    private el: ElementRef<HTMLElement>,
-  ) { }
-
-  ngOnChanges(changes: SimpleChanges) {
-    MemoCache.clear(this);
-  }
-
-  get web() {
-    const scheme = getScheme(this.url.value);
+  readonly web = computed(() => {
+    this.rootControlState();
+    this.controlState0();
+    const scheme = getScheme(this.url().value);
     return scheme === 'http:' || scheme === 'https:';
-  }
+  });
 
-  get url() {
-    return this.group.get('url') as UntypedFormControl;
-  }
+  readonly url = computed(() => {
+    this.rootControlState();
+    return this.group().get('url') as UntypedFormControl;
+  });
 
-  get title() {
-    return this.group.get('title') as UntypedFormControl;
-  }
+  readonly title = computed(() => {
+    this.rootControlState();
+    return this.group().get('title') as UntypedFormControl;
+  });
 
-  get comment() {
-    return this.group.get('comment') as UntypedFormControl;
-  }
+  readonly comment = computed(() => {
+    this.rootControlState();
+    return this.group().get('comment') as UntypedFormControl;
+  });
 
-  get published() {
-    return this.group.get('published') as UntypedFormControl;
-  }
+  readonly published = computed(() => {
+    this.rootControlState();
+    return this.group().get('published') as UntypedFormControl;
+  });
+  protected readonly publishedRequired = controlState(this.published, c => c.touched && !!c.errors?.['required']);
 
-  get tags() {
-    return this.group.get('tags') as UntypedFormArray;
-  }
+  readonly tags = computed(() => {
+    this.rootControlState();
+    return this.group().get('tags') as UntypedFormArray;
+  });
 
-  get sources() {
-    return this.group.get('sources') as UntypedFormArray;
-  }
+  readonly sources = computed(() => {
+    this.rootControlState();
+    return this.group().get('sources') as UntypedFormArray;
+  });
 
-  get thumbnail() {
+  readonly thumbnail = computed(() => {
+    this.rootControlState();
+    this.controlState1();
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    if (hasTag('plugin/thumbnail', this.group.value)) return true;
-    return !!this.admin.getPlugin('plugin/image') && hasTag('plugin/image', this.group.value);
-  }
+    if (hasTag('plugin/thumbnail', this.group().value)) return true;
+    return !!this.admin.getPlugin('plugin/image') && hasTag('plugin/image', this.group().value);
+  });
 
-  get thumbnailRefs() {
-    return [{ ...this.group.getRawValue(), origin: this.creating ? this.store.account.origin : this.origin }];
-  }
+  readonly thumbnailRefs = computed(() => {
+    this.rootControlState();
+    this.controlState1();
+    return [{ ...this.group().getRawValue(), origin: this.creating() ? this.store.account.origin() : this.origin() }];
+  });
 
-  get thumbnailPlugin() {
-    const plugin = this.group.value.plugins?.['plugin/thumbnail'];
+  readonly thumbnailPlugin = computed(() => {
+    this.rootControlState();
+    this.controlState1();
+    const plugin = this.group().value.plugins?.['plugin/thumbnail'];
     return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
-  }
+  });
 
-  get thumbnailColor() {
-    return this.thumbnailPlugin?.color || '';
-  }
+  readonly thumbnailColor = computed(() => {
+    this.rootControlState();
+    return this.thumbnailPlugin()?.color || '';
+  });
 
-  get thumbnailEmoji() {
-    return this.thumbnailPlugin?.emoji || '';
-  }
+  readonly thumbnailEmoji = computed(() => {
+    this.rootControlState();
+    return this.thumbnailPlugin()?.emoji || '';
+  });
 
-  get thumbnailRadius() {
-    return this.thumbnailPlugin?.radius || 0;
-  }
+  readonly thumbnailRadius = computed(() => {
+    this.rootControlState();
+    return this.thumbnailPlugin()?.radius || 0;
+  });
 
-  get top() {
-    return this.sources.value[1] || this.sources.value[0] || this.ref?.url || this.url.value;
-  }
+  readonly top = computed(() => {
+    this.rootControlState();
+    this.controlState2();
+    this.controlState0();
+    return this.sources().value[1] || this.sources().value[0] || this.ref()?.url || this.url().value;
+  });
 
   addSource(value = '') {
-    while (this.sources.value.length < 2) {
-      this.sources.push(this.fb.control(this.top, LinksFormComponent.validators));
+    while (this.sources().value.length < 2) {
+      this.sources().push(this.fb.control(this.top(), LinksFormComponent.validators));
     }
-    this.sources.push(this.fb.control(value, LinksFormComponent.validators));
+    this.sources().push(this.fb.control(value, LinksFormComponent.validators));
   }
 
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags()) {
       defer(() => this.setTags(value));
       return;
     }
-    MemoCache.clear(this);
-    this.tagsFormComponent.setTags(value);
+    tagsFormComponent.setTags(value);
   }
 
-  get editorLabel() {
+  readonly editorLabel = computed(() => {
+    this.rootControlState();
+    this.controlState3();
     // TODO: Move to config
-    if (hasTag('+plugin/secret', this.tags.value)) return $localize`Secret Key`;
-    if (hasTag('plugin/alt', this.tags.value)) return $localize`Alt Text`;
+    if (hasTag('+plugin/secret', this.tags().value)) return $localize`Secret Key`;
+    if (hasTag('plugin/alt', this.tags().value)) return $localize`Alt Text`;
     return $localize`Abstract`;
-  }
+  });
 
-  get addEditorLabel() {
-    return $localize`+ Add ` + this.editorLabel.toLowerCase();
-  }
+  readonly addEditorLabel = computed(() => {
+    this.rootControlState();
+    return $localize`+ Add ` + this.editorLabel().toLowerCase();
+  });
 
-  get addEditorTitle() {
-    return $localize`Add ` + this.editorLabel.toLowerCase();
-  }
+  readonly addEditorTitle = computed(() => {
+    this.rootControlState();
+    return $localize`Add ` + this.editorLabel().toLowerCase();
+  });
 
-  @memo
-  get codeLang() {
-    for (const t of this.tags.value) {
+  readonly codeLang = computed(() => {
+    this.rootControlState();
+    for (const t of this.tagsValue() || []) {
       if (hasPrefix(t, 'plugin/code')) {
         return t.split('/')[2];
       }
     }
     return '';
-  }
+  });
 
-  @memo
-  get codeOptions() {
-    return {
-      language: this.codeLang,
-      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
-      automaticLayout: true,
-    };
-  }
+  readonly codeOptions = computed(() => ({
+    language: this.codeLang(),
+    theme: this.store.darkTheme() ? 'vs-dark' : 'vs',
+    automaticLayout: true,
+  }), { equal: isEqual });
 
-  @memo
-  get customEditor() {
-    if (!this.tags?.value) return false;
-    return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
-  }
+  readonly customEditor = computed(() => {
+    this.rootControlState();
+    const tags = this.tagsValue();
+    if (!tags) return false;
+    return some(this.admin.editor(), t => hasTag(t.tag, tags));
+  });
 
-  @HostListener('dragenter')
   onDragEnter() {
-    this.dropping = true;
+    this.dropping.set(true);
   }
 
-  @HostListener('window:dragend')
-  @HostListener('jasper-drag-end')
   onDragEnd() {
-    this.dropping = false;
+    this.dropping.set(false);
   }
 
-  @HostListener('jasper-drag-start')
   onCdkDragStart() {
-    this.dropping = true;
+    this.dropping.set(true);
     // Render empty drop lists synchronously so CDK caches their positions,
     // host bindings are not updated by detectChanges
     this.el.nativeElement.classList.add('show-drops');
@@ -261,8 +271,8 @@ export class RefFormComponent implements OnChanges {
   }
 
   validate(input: HTMLInputElement) {
-    if (this.title.touched) {
-      if (this.title.errors?.['required']) {
+    if (this.title().touched) {
+      if (this.title().errors?.['required']) {
         input.setCustomValidity($localize`Title must not be blank.`);
         input.reportValidity();
       }
@@ -270,52 +280,59 @@ export class RefFormComponent implements OnChanges {
   }
 
   setComment(value: string) {
-    this.comment.setValue(value);
+    this.comment().setValue(value);
     // Ignore tags and sources from new comment
-    this.editor.syncEditor(this.fb, this.group, value);
+    this.editor.syncEditor(this.fb, this.group(), value);
   }
 
   syncEditor() {
-    this.editor.syncEditor(this.fb, this.group);
+    this.editor.syncEditor(this.fb, this.group());
   }
 
   get scrape$() {
-    if (this.scraped) return of(this.scraped);
-    return this.scrape.webScrape(hasTag('plugin/repost', this.tags.value) ? this.sources.value?.[0] : this.url.value).pipe(
+    const scraped = this.scraped();
+    if (scraped) return of(scraped);
+    return this.scrape.webScrape(hasTag('plugin/repost', this.tags().value) ? this.sources().value?.[0] : this.url().value).pipe(
       tap(s => {
-        this.scraped = s;
-        if (s.modified && this.ref?.modified) {
-          this.ref!.modifiedString = s.modifiedString;
-          this.ref!.modified = s.modified;
+        this.scraped.set(s);
+        const current = this.ref();
+        if (s.modified && current?.modified) {
+          const ref: Ref = {
+            ...current,
+            modifiedString: s.modifiedString,
+            modified: s.modified,
+            tags: [...current.tags || []],
+            plugins: { ...current.plugins || {} },
+          };
           if (hasTag('_plugin/cache', s)) {
-            if (!hasTag('_plugin/cache', this.ref)) {
-              this.ref!.tags ||= [];
-              this.ref!.tags.push('_plugin/cache');
+            if (!hasTag('_plugin/cache', ref)) {
+              ref.tags ||= [];
+              ref.tags.push('_plugin/cache');
             }
-            this.ref!.plugins ||= {}
-            this.ref!.plugins['_plugin/cache'] = s.plugins?.['_plugin/cache'];
+            ref.plugins ||= {}
+            ref.plugins['_plugin/cache'] = s.plugins?.['_plugin/cache'];
           }
-          this.setRef(this.ref!);
+          this.setRef(ref);
         }
       }),
     );
   }
 
   scrapeTitle() {
-    this.scrapingTitle = true;
-    (this.web ? this.webTitle$ : of(undefined)).subscribe(title => {
-      this.scrapingTitle = false;
-      title ||= getTitleFromFilename(this.url.value) || undefined;
-      if (title) this.group.patchValue({ title });
+    this.scrapingTitle.set(true);
+    (this.web() ? this.webTitle$ : of(undefined)).subscribe(title => {
+      this.scrapingTitle.set(false);
+      title ||= getTitleFromFilename(this.url().value) || undefined;
+      if (title) this.group().patchValue({ title });
     });
   }
 
   private get webTitle$(): Observable<string | undefined> {
     return this.scrape$.pipe(
-      catchError(() => of(<Ref> { url: this.url.value })),
+      catchError(() => of(<Ref> { url: this.url().value })),
       switchMap(s => this.oembeds.get(s.url).pipe(
         map(oembed => {
-          this.oembed = oembed!;
+          this.oembed.set(oembed!);
           if (oembed) s.title ||= oembed.title || '';
           return s;
         }),
@@ -326,50 +343,50 @@ export class RefFormComponent implements OnChanges {
   }
 
   scrapePublished() {
-    this.scrapingPublished = true;
+    this.scrapingPublished.set(true);
     this.scrape$.pipe(
       catchError(err => {
-        this.scrapingPublished = false;
+        this.scrapingPublished.set(false);
         // TODO: Write error
         return throwError(() => err);
       })
     ).subscribe(ref => {
-      this.scrapingPublished = false;
-      this.published.setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
+      this.scrapingPublished.set(false);
+      this.published().setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
     });
   }
 
   scrapeAll() {
-    if (this.oembed) {
+    if (this.oembed()) {
       // TODO: oEmbed
     } else {
-      this.scrapingAll = true;
+      this.scrapingAll.set(true);
       this.scrape$.pipe(
         catchError(err => {
-          this.scrapingAll = false;
+          this.scrapingAll.set(false);
           return throwError(() => err);
         })
       ).subscribe(s => {
-        if (!hasMedia(s) || hasMedia(this.group.value)) {
+        if (!hasMedia(s) || hasMedia(this.group().value)) {
           this.scrapeComment();
         }
         this.scrapePlugins();
-        this.scrapingAll = false;
+        this.scrapingAll.set(false);
       });
     }
   }
 
   scrapePlugins() {
-    if (this.oembed) {
+    if (this.oembed()) {
       // TODO: oEmbed
     } else {
       this.scrape$.subscribe(s => {
         for (const t of s.tags || []) {
-          if (!hasTag(t, this.tags.value)) this.togglePlugin(t);
+          if (!hasTag(t, this.tags().value)) this.togglePlugin(t);
         }
         defer(() => {
-          this.pluginsFormComponent.setValue({
-            ...this.group.value.plugins || {},
+          this.pluginsFormComponent().setValue({
+            ...this.group().value.plugins || {},
             ...s.plugins || {},
           });
         });
@@ -378,37 +395,39 @@ export class RefFormComponent implements OnChanges {
   }
 
   scrapeComment() {
-    if (this.oembed) {
+    if (this.oembed()) {
       // TODO: oEmbed
     } else {
       this.scrape$.subscribe(s => this.setComment(s.comment || ''));
     }
   }
 
+  addCompletedUpload(ref: Ref) {
+    this.completedUploads.update(uploads => [...uploads, ref]);
+  }
+
   togglePlugin(tag: string) {
-    MemoCache.clear(this);
-    this.toggleTag.next(tag);
+    this.toggleTag.emit(tag);
     if (tag) {
-      if (hasTag(tag, this.tags.value)) {
-        this.tagsFormComponent.removeTagAndChildren(tag);
+      if (hasTag(tag, this.tags().value)) {
+        this.tagsFormComponent().removeTagAndChildren(tag);
       } else {
-        this.tagsFormComponent.addTag(tag);
+        this.tagsFormComponent().addTag(tag);
       }
     }
   }
 
   setRef(ref: Partial<Ref>) {
-    this.ref = ref as Ref;
-    this.group.patchValue({
+    this.ref.set(ref as Ref);
+    this.group().patchValue({
       ...ref,
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });
     defer(() => {
-      this.sourcesFormComponent.setLinks(ref.sources || []);
-      this.altsFormComponent.setLinks(ref.alternateUrls || []);
-      this.tagsFormComponent.setTags(ref.tags || []);
-      this.pluginsFormComponent.setValue(ref.plugins);
-      MemoCache.clear(this);
+      this.sourcesFormComponent().setLinks(ref.sources || []);
+      this.altsFormComponent().setLinks(ref.alternateUrls || []);
+      this.tagsFormComponent().setTags(ref.tags || []);
+      this.pluginsFormComponent().setValue(ref.plugins);
     });
   }
 }

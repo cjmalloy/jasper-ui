@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { isEqual } from 'lodash-es';
@@ -96,25 +96,20 @@ const MAX_NUMBERS = 12;
       font-weight: bold;
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FormlyAttributes,
   ],
 })
 export class FormlyFieldRange extends FieldType<FieldTypeConfig> {
+  private config = inject(FormlyConfig);
+
 
   private showedError = false;
   private _labels?: { value: number, label: string }[];
   private _labelsFor?: any;
   private _ticks?: { value: number, percent: number, numbered: boolean }[];
   private _ticksFor?: any;
-
-  constructor(
-    private config: FormlyConfig,
-  ) {
-    super();
-  }
 
   /**
    * Human readable labels from props.labels, a map of value to label.

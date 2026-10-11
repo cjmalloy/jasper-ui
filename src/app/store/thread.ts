@@ -1,120 +1,133 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { action, makeAutoObservable, observableRef, observableStruct, runInAction } from 'mobx';
+import { computed, DestroyRef, inject, Injectable, linkedSignal, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { isEqual } from 'lodash-es';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs, RefSort } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
 import { getArgs, UrlFilter } from '../util/query';
 
+export interface ThreadArgs {
+  top?: string;
+  sort?: RefSort | RefSort[];
+  filters?: UrlFilter[];
+  search?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ThreadStore {
+  private refs = inject(RefService);
 
   defaultBatchSize = 500;
-  args?: RefPageArgs = {} as any;
-  pages: Page<Ref>[] = [];
-  error?: HttpErrorResponse = {} as any;
-  cache = new Map<string | undefined, Ref[]>();
-  latest: Ref[] = [];
+
+  private readonly source = signal<() => ThreadArgs | undefined>(() => undefined);
+  readonly args = computed<RefPageArgs | undefined>(() => {
+    const thread = this.source()();
+    if (!thread) return undefined;
+    return {
+      ...getArgs('plugin/comment', thread.sort, thread.filters, thread.search),
+      responses: thread.top,
+      size: this.defaultBatchSize,
+      page: 0,
+    };
+  }, { equal: isEqual });
+
+  private readonly first = rxResource({
+    params: () => this.args(),
+    stream: ({ params }) => this.refs.page(params),
+  });
+
+  readonly error = linkedSignal<HttpErrorResponse | undefined>(() => this.first.error() as HttpErrorResponse | undefined);
+  /** Pages loaded so far. Reset when the args change. */
+  readonly pages = linkedSignal<Page<Ref>[]>(() => {
+    const page = this.first.hasValue() ? this.first.value() : undefined;
+    return page?.content.length ? [page] : [];
+  });
+  /** Comments loaded outside of {@link pages}, like ad hoc loads and new replies. */
+  private readonly extra = linkedSignal<readonly Ref[]>(() => {
+    this.args();
+    return [];
+  });
+  /**
+   * Map of source URL to loaded responses.
+   */
+  readonly cache = computed<ReadonlyMap<string | undefined, readonly Ref[]>>(() => {
+    const cache = new Map<string | undefined, readonly Ref[]>();
+    for (const ref of [...this.pages().flatMap(p => p.content), ...this.extra()]) {
+      const source = ref.sources?.[0];
+      if (!source) continue;
+      const existing = cache.get(source) || [];
+      if (!existing.some(x => x.url === ref.url)) cache.set(source, [...existing, ref]);
+    }
+    return cache;
+  });
+  /** The most recently loaded batch of comments. */
+  readonly latest = linkedSignal<Ref[]>(() => [...this.pages().at(-1)?.content || []]);
+  readonly hasMore = computed(() => {
+    if (!this.pages().length) return false;
+    return this.pages().length < this.pages()[0].page.totalPages;
+  });
 
   private loading?: Subscription;
 
-  constructor(
-    private refs: RefService,
-  ) {
-    makeAutoObservable(this, {
-      args: observableStruct,
-      cache: observableRef,
-      pages: observableRef,
-      latest: observableRef,
-      clear: action,
-      setArgs: action,
-      add: action,
-      addPage: action,
-      loadMore: action,
-    });
-    this.clear(); // Initial observables may not be null for MobX
-  }
-
-  clear() {
-    this.error = undefined;
-    this.args = {
-      size: this.defaultBatchSize,
-      page: 0,
-    };
-    this.pages = [];
-    this.cache.clear();
+  /**
+   * Load the comment thread for the given args until the calling component is destroyed.
+   * Must be called in an injection context.
+   */
+  watch(args: () => ThreadArgs | undefined) {
     this.loading?.unsubscribe();
+    this.source.set(args);
+    inject(DestroyRef).onDestroy(() => {
+      if (this.source() !== args) return;
+      this.loading?.unsubscribe();
+      this.source.set(() => undefined);
+    });
   }
 
-  setArgs(top?: string, sort?: RefSort | RefSort[], filters?: UrlFilter[], search?: string) {
-    this.clear();
-    this.args = {
-      ...getArgs('plugin/comment', sort, filters, search),
-      responses: top,
-      size: this.defaultBatchSize,
-      page: 0,
-    };
-    this.loadMore();
-  }
-
-  add(ref: Ref) {
-    if (!ref.sources?.[0]) return;
-    if (this.cache.has(ref.sources?.[0])) {
-      const arr = this.cache.get(ref.sources?.[0])!;
-      if (!arr.find(x => x.url === ref.url)) arr.push(ref);
-    } else {
-      this.cache.set(ref.sources?.[0], [ref]);
-    }
-  }
-
-  addPage(page: Page<Ref>) {
-    if (!page.content.length) return;
-    this.pages.push(page);
-    for (const r of page.content) this.add(r);
-    this.latest = page.content;
+  add(...refs: Ref[]) {
+    this.extra.update(extra => [...extra, ...refs]);
   }
 
   loadMore() {
-    this.args = {
-      ...this.args,
-      page: this.pages.length,
-    };
-    this.loading = this.refs.page(this.args).pipe(
+    const args = this.args();
+    if (!args) return;
+    this.loading = this.refs.page({ ...args, page: this.pages().length }).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        if (this.args() === args) this.error.set(err);
         return EMPTY;
       }),
-    ).subscribe(page => runInAction(() => this.addPage(page)));
+    ).subscribe(page => {
+      if (this.args() !== args) return;
+      if (!page.content.length) return;
+      this.pages.update(pages => [...pages, page]);
+    });
   }
 
   loadAdHoc(source?: string) {
-    const args = {
-      ...this.args,
+    const current = this.args();
+    const args: RefPageArgs = {
+      ...current,
       responses: source,
     };
-    const existing = this.cache.get(source)?.length;
+    const existing = this.cache().get(source)?.length;
     if (existing) {
       args.size = 20;
       args.page = Math.floor(existing / 20);
     }
     this.loading = this.refs.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        if (this.args() === current) this.error.set(err);
         return EMPTY;
       }),
-    ).subscribe(page => runInAction(() => {
+    ).subscribe(page => {
+      if (this.args() !== current) return;
       if (source) {
-        for (const ref of page.content) this.add(ref);
-        runInAction(() => this.latest = page.content);
+        this.add(...page.content);
+        this.latest.set([...page.content]);
       }
-    }));
-  }
-
-  get hasMore() {
-    if (!this.pages.length) return false;
-    return this.pages.length < this.pages[0].page.totalPages;
+    });
   }
 }

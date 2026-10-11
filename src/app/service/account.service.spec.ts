@@ -37,18 +37,18 @@ describe('AccountService', () => {
 
   const setAccount = () => {
     const store = (service as any).store;
-    store.account.tag = '+user/dad';
-    store.account.origin = '';
-    store.account.ext = {
+    store.account.tag.set('+user/dad');
+    store.account.origin.set('');
+    store.account.ext.set({
       tag: '+user/dad',
       origin: '',
       config: {},
-    };
+    });
   };
   const setOrigins = (refs: Ref[]) => {
     const origins = (service as any).origins;
-    origins.origins = refs;
-    (service as any).store.origins.accountAliases = origins.accountAliases;
+    origins.origins.set(refs);
+    (service as any).store.origins.accountAliases.set(origins.accountAliases());
   };
 
   const inbox = 'plugin/inbox/user/dad';
@@ -108,8 +108,8 @@ describe('AccountService', () => {
   it('only creates streams for other origins with a loaded cursor', () => {
     setAccount();
     const store = (service as any).store;
-    store.account.ext.config.alarms = ['alarm'];
-    store.origins.list = ['', '@city', '@town'];
+    store.account.ext.update((ext: any) => ({ ...ext, config: { ...ext.config, alarms: ['alarm'] } }));
+    store.origins.list.set(['', '@city', '@town']);
     store.account.notificationCursors.set('@city', '2026-01-01T00:00:00.000Z');
 
     const streams = service.notificationStreams;
@@ -126,9 +126,9 @@ describe('AccountService', () => {
     beforeEach(() => {
       setAccount();
       const store = (service as any).store;
-      store.account.ext.config.alarms = ['alarm'];
-      store.origins.list = ['', '@city', '@town'];
-      (service as any).cursorAccount = store.account.tagWithOrigin;
+      store.account.ext.update((ext: any) => ({ ...ext, config: { ...ext.config, alarms: ['alarm'] } }));
+      store.origins.list.set(['', '@city', '@town']);
+      (service as any).cursorAccount = store.account.tagWithOrigin();
       (service as any).savedCursors = of(undefined);
       store.account.notificationCursors.set('', localCursor);
       vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({ tag: 'user' });
@@ -144,14 +144,14 @@ describe('AccountService', () => {
       expect(otherAlarms.request.params.has('modifiedAfter')).toBe(false);
       for (const req of counts) req.flush(req === other ? 3 : req === otherAlarms ? 2 : 0);
 
-      expect(store.account.notifications).toBe(3);
-      expect(store.account.alarmCount).toBe(2);
+      expect(store.account.notifications()).toBe(3);
+      expect(store.account.alarmCount()).toBe(2);
       expect(Array.from(store.account.notificationCursors.keys())).toEqual(['']);
     });
 
     it('counts notifications from origins without a stream when there are no alarms', () => {
       const store = (service as any).store;
-      store.account.ext.config.alarms = [];
+      store.account.ext.update((ext: any) => ({ ...ext, config: { ...ext.config, alarms: [] } }));
       service.checkNotifications();
       const counts = http.match(req => req.method === 'GET' && req.url.endsWith('/api/v1/ref/count'));
       expect(counts.map(req => req.request.params.get('query'))).toEqual([
@@ -160,8 +160,8 @@ describe('AccountService', () => {
       ]);
       for (const req of counts) req.flush(1);
 
-      expect(store.account.notifications).toBe(2);
-      expect(store.account.alarmCount).toBe(0);
+      expect(store.account.notifications()).toBe(2);
+      expect(store.account.alarmCount()).toBe(0);
     });
 
     it('creates the cursor for an alarm origin when it is cleared', async () => {
@@ -296,7 +296,7 @@ describe('AccountService', () => {
   it('writes exact cursors without rounding', async () => {
     setAccount();
     const store = (service as any).store;
-    (service as any).cursorAccount = store.account.tagWithOrigin;
+    (service as any).cursorAccount = store.account.tagWithOrigin();
     (service as any).savedCursors = of(undefined);
     store.account.notificationCursors.set('', '2026-01-01T00:00:00.000100Z');
     vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({ tag: 'user' });
@@ -422,7 +422,7 @@ describe('AccountService', () => {
 
     beforeEach(() => {
       setAccount();
-      (service as any).store.account.ext.config.alarms = ['science'];
+      (service as any).store.account.ext.update((ext: any) => ({ ...ext, config: { ...ext.config, alarms: ['science'] } }));
       vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({ tag: 'user' });
       load = vi.spyOn(service, 'loadNotificationCursors$').mockReturnValue(of(streams));
       vi.spyOn((service as any).refs, 'page').mockReturnValue(of(Page.of([])));
@@ -433,9 +433,9 @@ describe('AccountService', () => {
       const store = (service as any).store;
       count.mockImplementation((args: any) => of(args.query.startsWith('!') ? 0 : args.query.endsWith(':(science)') ? 1 : 3));
       service.checkNotifications();
-      expect(store.account.notifications).toBe(6);
-      expect(store.account.alarmCount).toBe(2);
-      expect(store.account.unreadCount).toBe(4);
+      expect(store.account.notifications()).toBe(6);
+      expect(store.account.alarmCount()).toBe(2);
+      expect(store.account.unreadCount()).toBe(4);
     });
 
     it('cancels superseded notification checks', () => {
@@ -446,28 +446,28 @@ describe('AccountService', () => {
       service.checkNotifications();
       stale.next(9);
       stale.complete();
-      expect(store.account.notifications).toBe(3);
+      expect(store.account.notifications()).toBe(3);
     });
 
     it('resets alarm count when alarms are removed', () => {
       const store = (service as any).store;
       count.mockImplementation((args: any) => of(args.query.startsWith('!') ? 0 : args.query.endsWith(':(science)') ? 1 : 3));
       service.checkNotifications();
-      store.account.ext = { tag: '+user/dad', origin: '', config: { alarms: [] } };
+      store.account.ext.set({ tag: '+user/dad', origin: '', config: { alarms: [] } });
       load.mockReturnValue(of(streams.map(({ alarmQuery, ...stream }) => stream)));
       count.mockReturnValue(of(2));
       service.checkNotifications();
       expect(count).toHaveBeenCalledTimes(9);
-      expect(store.account.notifications).toBe(6);
-      expect(store.account.alarmCount).toBe(0);
-      expect(store.account.unreadCount).toBe(6);
+      expect(store.account.notifications()).toBe(6);
+      expect(store.account.alarmCount()).toBe(0);
+      expect(store.account.unreadCount()).toBe(6);
     });
   });
 
   it('merges notification pages from all streams', () => {
     setAccount();
     const store = (service as any).store;
-    store.account.ext.config.alarms = ['alarm'];
+    store.account.ext.update((ext: any) => ({ ...ext, config: { ...ext.config, alarms: ['alarm'] } }));
     store.account.notificationCursors.set('', '2026-01-01T00:00:00.000Z');
     store.account.notificationCursors.set('@city', '2026-02-01T00:00:00.000Z');
     vi.spyOn(service, 'loadNotificationCursors$').mockReturnValue(of([
@@ -523,7 +523,7 @@ describe('AccountService', () => {
         plugins: { '+plugin/origin': { local: '@city', aliases: ['+user/chris'] } },
       }]);
       const store = (service as any).store;
-      (service as any).cursorAccount = store.account.tagWithOrigin;
+      (service as any).cursorAccount = store.account.tagWithOrigin();
       (service as any).savedCursors = of(undefined);
       store.account.notificationCursors.set('', oldCursor);
       store.account.notificationCursors.set('@city', oldCursor);
@@ -539,6 +539,10 @@ describe('AccountService', () => {
       await service.clearNotifications(readDate, ['@city']);
 
       expect(patch).toHaveBeenCalledWith(cityUrl, '', 'm1', [{
+        op: 'add',
+        path: '/sources',
+        value: ['tag:/plugin/outbox/city'],
+      }, {
         op: 'add',
         path: '/plugins/plugin~1user~1cursor/cursor',
         value: cursor,
@@ -646,7 +650,7 @@ describe('AccountService', () => {
     service.clearNotificationsIfNone(readDate, '@city');
 
     expect(clear).not.toHaveBeenCalled();
-    expect((service as any).store.account.ignoreNotifications).toContain(readDate.valueOf());
+    expect((service as any).store.account.ignoreNotifications()).toContain(readDate.valueOf());
   });
 
   describe('loading cursors', () => {
@@ -671,7 +675,7 @@ describe('AccountService', () => {
       expect(store.account.notificationCursors.get('')).toEqual('2026-01-01T00:00:00.000Z');
       expect((service as any).cursorRefs.size).toBe(1);
 
-      store.account.tag = '+user/mom';
+      store.account.tag.set('+user/mom');
       service.loadNotificationCursors$().subscribe();
 
       expect(store.account.notificationCursors.size).toBe(0);
@@ -689,7 +693,7 @@ describe('AccountService', () => {
       expectSavedCursors();
       const stale = inboxGet();
 
-      store.account.tag = '+user/mom';
+      store.account.tag.set('+user/mom');
       service.loadNotificationCursors$().subscribe();
       expectSavedCursors([], '+user/mom@');
       const current = inboxGet();
