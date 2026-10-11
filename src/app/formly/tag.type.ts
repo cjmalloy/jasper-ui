@@ -119,6 +119,10 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     this.previewing?.unsubscribe();
     this.previewing = this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
       this.preview = x?.name || x?.tag || '';
+      if ((this.field.type === 'selector' || this.field.type === 'tagOriginSelector') && value.includes('@')) {
+        const originIndex = value.indexOf('@');
+        this.preview = ((this.preview || value.substring(0, originIndex)) + ' ' + value.substring(originIndex)).trim();
+      }
       this.cd.detectChanges();
     });
   }
