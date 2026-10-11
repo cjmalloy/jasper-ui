@@ -62,15 +62,28 @@ describe('SettingsSetupPage', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('updateMod', () => {
-    const custom = mapTemplate(1, 'black');
-    const target: Mod = { template: [mapTemplate(2, 'blue', 'New Map')] };
+  const custom = mapTemplate(1, 'black');
+  const target: Mod = { template: [mapTemplate(2, 'blue', 'New Map')] };
+  const receipt = { plugins: { 'plugin/mod': { template: [mapTemplate(1, 'blue')] } } };
 
-    beforeEach(() => {
-      admin.getInstalledMod = () => ({ template: [custom] });
-      admin.getMod = () => target;
-      runInAction(() => TestBed.inject(Store).view.modChanges.set('Map', true));
+  function customizeMap() {
+    admin.status.templates = { map: custom };
+    admin.getInstalledMod = () => ({ template: [custom] });
+    admin.getMod = () => target;
+    runInAction(() => {
+      TestBed.inject(Store).view.modUpdates.add('Map');
+      TestBed.inject(Store).view.modChanges.set('Map', true);
     });
+  }
+
+  function expectMerged(bundle: Mod) {
+    expect(bundle.template![0].config!.mapStyle).toEqual({ color: 'black' });
+    expect(bundle.template![0].config!.description).toBe('New Map');
+    expect(bundle.template![0].config!.version).toBe(2);
+  }
+
+  describe('updateMod', () => {
+    beforeEach(() => customizeMap());
 
     it('should not overwrite local changes when there is no receipt to merge with', () => {
       component.updateMod(custom);
@@ -80,13 +93,28 @@ describe('SettingsSetupPage', () => {
     });
 
     it('should merge local changes with the update even without config/diff', () => {
-      admin.status.receipts['Map'] = { plugins: { 'plugin/mod': { template: [mapTemplate(1, 'blue')] } } };
+      admin.status.receipts['Map'] = receipt;
       component.updateMod(custom);
       expect(admin.updateMod$).toHaveBeenCalledTimes(1);
-      const bundle: Mod = admin.updateMod$.mock.calls[0][1];
-      expect(bundle.template![0].config!.mapStyle).toEqual({ color: 'black' });
-      expect(bundle.template![0].config!.description).toBe('New Map');
-      expect(bundle.template![0].config!.version).toBe(2);
+      expectMerged(admin.updateMod$.mock.calls[0][1]);
+    });
+  });
+
+  describe('updateAll', () => {
+    beforeEach(() => customizeMap());
+
+    it('should skip customized mods when there is no receipt to merge with', () => {
+      component.updateAll();
+      expect(admin.updateMod$).not.toHaveBeenCalled();
+      expect(component.installMessages).toContainEqual(expect.stringContaining('Skipped Map mod'));
+    });
+
+    it('should merge local changes with the update', () => {
+      admin.status.receipts['Map'] = receipt;
+      component.updateAll();
+      expect(admin.updateMod$).toHaveBeenCalledTimes(1);
+      expectMerged(admin.updateMod$.mock.calls[0][1]);
+      expect(component.installMessages).not.toContainEqual(expect.stringContaining('Skipped'));
     });
   });
 });
