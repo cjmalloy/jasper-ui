@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
+import { FormControl } from '@angular/forms';
 import { FormlyConfig } from '@ngx-formly/core';
 import { of } from 'rxjs';
 import { AdminService } from '../service/admin.service';
@@ -24,7 +25,12 @@ describe('FormlyFieldTagInput', () => {
       ],
     });
     component = TestBed.runInInjectionContext(() => new FormlyFieldTagInput());
-    component.field = { type: 'selector' };
+    component.field = {
+      type: 'selector',
+      formControl: new FormControl(''),
+      props: {},
+      options: { showError: () => false },
+    };
   });
 
   it.each(['selector', 'tagOriginSelector'])('shows the origin after the %s preview', type => {
