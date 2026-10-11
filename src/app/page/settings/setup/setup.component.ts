@@ -198,7 +198,7 @@ export class SettingsSetupPage implements OnDestroy {
     const mod = modId(config);
     const receipt = this.admin.getMod(mod)!;
     const _ = (msg?: string) => this.installMessages.push(msg!);
-    if (!this.hasCustomChanges(config)) {
+    if (!this.admin.getTemplate('config/diff') || !this.hasCustomChangesMod(mod)) {
       this.admin.updateMod$(mod, receipt, receipt, _).subscribe(() => {
         this.reset();
         _($localize`Success.`);
