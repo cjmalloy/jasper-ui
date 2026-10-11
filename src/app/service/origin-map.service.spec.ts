@@ -264,11 +264,46 @@ describe('OriginMapService', () => {
   });
 
   describe('account aliases', () => {
-    const aliasRef = (origin: string, local: string, author: string, aliases: string[], url = 'spec:remote'): Ref => ({
+    const aliasRef = (origin: string, local: string, user: string, aliases: string[], url = 'spec:remote'): Ref => ({
       url,
       origin,
-      tags: ['+plugin/origin/pull', author],
-      plugins: { '+plugin/origin': { local, remote: '', aliases } },
+      tags: ['+plugin/origin/pull'],
+      plugins: { '+plugin/origin': { local, remote: '', aliases: aliases.length ? [{ local: [user], remote: aliases }] : [] } },
+    });
+
+    it('maps multiple different users from the alias table', () => {
+      setOrigins([{
+        url: 'spec:remote',
+        origin: '',
+        tags: ['+plugin/origin/pull', '+user/admin'],
+        plugins: { '+plugin/origin': { local: '@city', remote: '', aliases: [
+          { local: ['+user/dad'], remote: ['+user/chris', '+user/cj'] },
+          { local: ['+user/mom', '+user/mother'], remote: ['+user/yukie'] },
+        ] } },
+      }]);
+      setLocal('');
+
+      expect(service.aliasesFor('+user/dad')).toEqual(['+user/chris@city', '+user/cj@city']);
+      expect(service.aliasesFor('+user/mom')).toEqual(['+user/yukie@city']);
+      expect(service.aliasesFor('+user/mother')).toEqual(['+user/yukie@city']);
+      expect(service.aliasesFor('+user/admin')).toEqual([]);
+    });
+
+    it('ignores rows without users on both sides and legacy alias lists', () => {
+      setOrigins([{
+        url: 'spec:remote',
+        origin: '',
+        tags: ['+plugin/origin/pull', '+user/dad'],
+        plugins: { '+plugin/origin': { local: '@city', remote: '', aliases: [
+          '+user/chris',
+          { local: ['+user/dad'] },
+          { remote: ['+user/cj'] },
+          { local: ['+user/dad', ''], remote: [''] },
+        ] } },
+      }]);
+      setLocal('');
+
+      expect(service.aliasesFor('+user/dad')).toEqual([]);
     });
 
     it('matches exact and descendant selectors while preserving suffixes', () => {
@@ -441,8 +476,8 @@ describe('OriginMapService', () => {
       setOrigins([{
         url: 'spec:eggnog',
         origin: '',
-        tags: ['+plugin/origin/push', '+user/alice'],
-        plugins: { '+plugin/origin': { local: '', remote: '@eggnog', aliases: ['+user/bob'] } },
+        tags: ['+plugin/origin/push'],
+        plugins: { '+plugin/origin': { local: '', remote: '@eggnog', aliases: [{ local: ['+user/alice'], remote: ['+user/bob'] }] } },
       }]);
       setLocal('');
 

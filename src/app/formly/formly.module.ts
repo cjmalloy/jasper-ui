@@ -44,6 +44,7 @@ import { FormlyFieldRefInput } from './ref.type';
 import { FormlyFieldSelect } from './select.type';
 import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
+import { FormlyFieldUserMap } from './user-map.type';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 
 export class IdPrefixExtension implements FormlyExtension {
@@ -103,6 +104,7 @@ const formlyFieldExpressionConfig = withFormlyFieldExpression();
     AudioUploadComponent,
     PdfUploadComponent,
     ListTypeComponent,
+    FormlyFieldUserMap,
     FormlyModule.forRoot({
       extensions: [
         ...(formlyFieldExpressionConfig.extensions || []),
@@ -528,6 +530,30 @@ tags start with an underscore.
             props: {
               label: $localize`🏷️`,
             }
+          },
+        },
+      }, {
+        name: 'userMap',
+        component: FormlyFieldUserMap,
+        defaultOptions: {
+          props: {
+            label: $localize`Users: `,
+            addText: $localize`+ Add another user`,
+          },
+          fieldArray: {
+            fieldGroup: [{
+              key: 'local',
+              type: 'users',
+              props: {
+                showLabel: false,
+              },
+            }, {
+              key: 'remote',
+              type: 'users',
+              props: {
+                showLabel: false,
+              },
+            }],
           },
         },
       }, {
