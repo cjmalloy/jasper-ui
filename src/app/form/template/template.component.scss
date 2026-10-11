@@ -2,6 +2,14 @@ details {
   grid-column: 1 / 3;
 }
 
+details.admin-advanced {
+  overflow-x: visible;
+  overflow-y: clip;
+  & > .form {
+    max-width: none;
+  }
+}
+
 details[open] {
   margin-top: 8px;
   summary {
