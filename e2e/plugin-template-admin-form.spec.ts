@@ -67,6 +67,23 @@ test.describe.serial('Plugin/Template Admin Form', () => {
       await expect(advanced.locator('.json-editor')).toHaveCount(1);
       await expect(advanced.locator('.advanced-admin-form .code-editor')).toHaveCount(1);
 
+      await advanced.locator('summary').click();
+      await expect(advanced).toHaveAttribute('open');
+      const editor = advanced.locator('.json-editor ngx-monaco-editor');
+      await expect(editor).toBeVisible();
+      await expect.poll(async () => (await advanced.boundingBox())!.height).toBeGreaterThan(400);
+      await editor.scrollIntoViewIfNeeded();
+      const before = (await editor.boundingBox())!;
+      await page.mouse.move(before.x + before.width - 3, before.y + before.height - 3);
+      await page.mouse.down();
+      await page.mouse.move(before.x + before.width + 200, before.y + before.height + 50, { steps: 5 });
+      await page.mouse.up();
+      await expect.poll(async () => (await editor.boundingBox())!.width).toBeGreaterThan(before.width + 100);
+      const resized = (await editor.boundingBox())!;
+      const details = (await advanced.boundingBox())!;
+      expect(resized.x + resized.width).toBeLessThanOrEqual(details.x + details.width);
+      expect(resized.y + resized.height).toBeLessThanOrEqual(details.y + details.height);
+
       await title.fill('after');
       const savePromise = page.waitForResponse(resp => (
         resp.url().includes(`/api/v1/${type}`) && resp.request().method() === 'PUT' && resp.ok()
