@@ -113,7 +113,12 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> {
     if (this.showError) return;
     this.previewing?.unsubscribe();
     this.previewing = this.preview$(value).subscribe((x?: { name?: string, tag: string }) => {
-      this.preview.set(x?.name || x?.tag || '');
+      let preview = x?.name || x?.tag || '';
+      if ((this.field.type === 'selector' || this.field.type === 'tagOriginSelector') && value.includes('@')) {
+        const originIndex = value.indexOf('@');
+        preview = ((preview || value.substring(0, originIndex)) + ' ' + value.substring(originIndex)).trim();
+      }
+      this.preview.set(preview);
       this.previewTitle.set(value);
     });
   }
