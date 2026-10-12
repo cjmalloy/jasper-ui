@@ -83,7 +83,7 @@ describe('AccountService', () => {
         tags: ['+plugin/origin/pull', '+user/dad'],
         plugins: { '+plugin/origin': {
           local: '@city',
-          aliases: ['+user/chris', '+user/cj', '+user/chris'],
+          aliases: [{ local: '+user/dad', remote: '+user/chris' }, { local: '+user/dad', remote: '+user/cj' }, { local: '+user/dad', remote: '+user/chris' }],
         } },
       },
       {
@@ -92,7 +92,7 @@ describe('AccountService', () => {
         tags: ['+plugin/origin/pull', '+user/dad'],
         plugins: { '+plugin/origin': {
           local: '@town',
-          aliases: ['+user/dad'],
+          aliases: [{ local: '+user/dad', remote: '+user/dad' }],
         } },
       },
     ]);
@@ -337,13 +337,13 @@ describe('AccountService', () => {
         url: 'spec:city',
         origin: '',
         tags: ['+plugin/origin/pull', '+user/dad'],
-        plugins: { '+plugin/origin': { local: '@city', aliases: ['+user/chris', '+user/cj'] } },
+        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }, { local: '+user/dad', remote: '+user/cj' }] } },
       },
       {
         url: 'spec:town',
         origin: '',
         tags: ['+plugin/origin/pull', '+user/dad'],
-        plugins: { '+plugin/origin': { local: '@town', aliases: ['+user/dad'] } },
+        plugins: { '+plugin/origin': { local: '@town', aliases: [{ local: '+user/dad', remote: '+user/dad' }] } },
       },
     ]);
 
@@ -501,6 +501,125 @@ describe('AccountService', () => {
     expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: `!+user/dad:!plugin/delete:!@:!@city:(${inbox}|alarm)`, modifiedAfter: undefined, size: 3 }));
   });
 
+  describe('notifications cleared by an alias on its own origin', () => {
+    const localCursor = '2026-01-01T00:00:00.000Z';
+    const remoteCursor = '2026-02-01T00:00:00.000Z';
+    const filter = '@city:!+user/chris@city:!plugin/delete';
+    const chrisBox = 'plugin/inbox/user/chris@city';
+    const cursorQuery = 'plugin/user/cursor:(+user/chris@city)';
+    const remoteCursorRef = (cursor: string, url = 'tag:/user/chris?url=tag:/plugin/inbox', origin = '@city'): Ref => ({
+      url,
+      origin,
+      tags: ['+user/chris', 'plugin/user/cursor'],
+      plugins: { 'plugin/user/cursor': { cursor } },
+    });
+    let page: any;
+    let count: any;
+
+    beforeEach(() => {
+      setAccount();
+      setOrigins([{
+        url: 'spec:city',
+        origin: '',
+        tags: ['+plugin/origin/pull'],
+        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }] } },
+      }]);
+      const store = (service as any).store;
+      store.account.ext.config.alarms = ['alarm'];
+      (service as any).cursorAccount = store.account.tagWithOrigin;
+      (service as any).savedCursors = of(undefined);
+      store.account.notificationCursors.set('', localCursor);
+      store.account.notificationCursors.set('@city', localCursor);
+      vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({ tag: 'user' });
+      page = vi.spyOn((service as any).refs, 'page').mockImplementation((args: any) =>
+        of(Page.of(args.query === cursorQuery ? [remoteCursorRef(remoteCursor)] : [])));
+      count = vi.spyOn((service as any).refs, 'count').mockReturnValue(of(0));
+    });
+
+    it('splits alias mailboxes from other notifications and alarms', () => {
+      const stream = service.notificationStreams.find(stream => stream.origin === '@city')!;
+      expect(stream.query).toEqual(`${filter}:(${chrisBox}|alarm)`);
+      expect(stream.alarmQuery).toEqual(`${filter}:(alarm)`);
+      expect(stream.localQuery).toEqual(`${filter}:(alarm)`);
+      expect(stream.aliases).toEqual([{ tag: '+user/chris@city', query: `${filter}:${chrisBox}:!alarm` }]);
+      expect(service.notificationStreams.find(stream => stream.origin === '')?.aliases).toBeUndefined();
+    });
+
+    it('does not overlap queries for multiple aliases in the same origin', () => {
+      setOrigins([{
+        url: 'spec:city',
+        origin: '',
+        tags: ['+plugin/origin/pull'],
+        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }, { local: '+user/dad', remote: '+user/cj' }] } },
+      }]);
+      const stream = service.notificationStreams.find(stream => stream.origin === '@city')!;
+      const filter = '@city:!+user/chris@city:!+user/cj@city:!plugin/delete';
+      expect(stream.aliases).toEqual([
+        { tag: '+user/chris@city', query: `${filter}:${chrisBox}:!alarm` },
+        { tag: '+user/cj@city', query: `${filter}:plugin/inbox/user/cj@city:!${chrisBox}:!alarm` },
+      ]);
+    });
+
+    it('reads alias notifications up to the remote cursor but alarms up to the local cursor', () => {
+      const store = (service as any).store;
+      count.mockImplementation((args: any) => of(args.query === `${filter}:(alarm)` ? 2 : args.query.startsWith('@city') ? 1 : 0));
+      service.checkNotifications();
+
+      expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: cursorQuery }));
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:(alarm)`, modifiedAfter: localCursor });
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:${chrisBox}:!alarm`, modifiedAfter: remoteCursor });
+      expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:(${chrisBox}|alarm)` }));
+      expect(store.account.notifications).toBe(3);
+      expect(store.account.alarmCount).toBe(2);
+    });
+
+    it('ignores remote cursors older than the local cursor', () => {
+      (service as any).store.account.notificationCursors.set('@city', '2026-03-01T00:00:00.000Z');
+      service.checkNotifications();
+
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:(${chrisBox}|alarm)`, modifiedAfter: '2026-03-01T00:00:00.000Z' });
+      expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:${chrisBox}:!alarm` }));
+    });
+
+    it('only uses the inbox cursor of the alias in the alias origin', () => {
+      page.mockReturnValue(of(Page.of([
+        remoteCursorRef(remoteCursor, 'tag:/user/chris?url=tag:/plugin/outbox/main'),
+        remoteCursorRef(remoteCursor, 'tag:/user/chris?url=tag:/plugin/inbox', '@town'),
+      ])));
+      service.checkNotifications();
+
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:(${chrisBox}|alarm)`, modifiedAfter: localCursor });
+      expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:${chrisBox}:!alarm` }));
+    });
+
+    it('ignores remote cursors that cannot be loaded', () => {
+      page.mockReturnValue(throwError(() => ({ status: 403 })));
+      service.checkNotifications();
+
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:(${chrisBox}|alarm)`, modifiedAfter: localCursor });
+    });
+
+    it('lists alias notifications after the remote cursor', () => {
+      let result: Page<Ref> | undefined;
+      service.notificationPage$(5).subscribe(p => result = p);
+
+      expect(result).toBeDefined();
+      expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:(alarm)`, modifiedAfter: localCursor }));
+      expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:${chrisBox}:!alarm`, modifiedAfter: remoteCursor }));
+    });
+
+    it('checks the remote cursor before clearing an origin with no notifications', () => {
+      const clear = vi.spyOn(service, 'clearNotifications').mockImplementation(() => Promise.resolve());
+      const readDate = DateTime.fromISO('2026-04-01T00:00:00.000Z');
+
+      service.clearNotificationsIfNone(readDate, '@city');
+
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:(alarm)`, modifiedAfter: localCursor, modifiedBefore: readDate });
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:${chrisBox}:!alarm`, modifiedAfter: remoteCursor, modifiedBefore: readDate });
+      expect(clear).toHaveBeenCalledWith(readDate, ['@city']);
+    });
+  });
+
   describe('writing cursors', () => {
     const oldCursor = '2026-01-01T00:00:00.000Z';
     const readDate = DateTime.fromISO('2026-02-01T00:00:00.000Z');
@@ -520,7 +639,7 @@ describe('AccountService', () => {
         url: 'spec:city',
         origin: '',
         tags: ['+plugin/origin/pull', '+user/dad'],
-        plugins: { '+plugin/origin': { local: '@city', aliases: ['+user/chris'] } },
+        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }] } },
       }]);
       const store = (service as any).store;
       (service as any).cursorAccount = store.account.tagWithOrigin();

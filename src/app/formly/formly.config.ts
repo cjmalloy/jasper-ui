@@ -36,6 +36,7 @@ import { FormlyFieldRefInput } from './ref.type';
 import { FormlyFieldSelect } from './select.type';
 import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
+import { FormlyFieldUserMap } from './user-map.type';
 
 export class IdPrefixExtension implements FormlyExtension {
   prePopulate(field: FormlyFieldConfig) {
@@ -481,6 +482,26 @@ tags start with an underscore.
           props: {
             label: $localize`🏷️`,
           }
+        },
+      },
+    }, {
+      name: 'userMap',
+      component: FormlyFieldUserMap,
+      defaultOptions: {
+        props: {
+          label: $localize`Users: `,
+          addText: $localize`+ Add another user`,
+        },
+        fieldArray: {
+          fieldGroup: [{
+            key: 'local',
+            type: 'user',
+            wrappers: [],
+          }, {
+            key: 'remote',
+            type: 'user',
+            wrappers: [],
+          }],
         },
       },
     }, {

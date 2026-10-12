@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, viewChild } from '@angular/core';
-import { uniq } from 'lodash-es';
+import { without } from 'lodash-es';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -39,7 +39,7 @@ export class SettingsRefPage implements HasChanges {
     this.query.watch(() => getArgs(
       this.store.view.settingsTag() + (this.store.view.showRemotes() ? '' : (this.plugin()?.origin || '@')),
       this.store.view.sort(),
-      uniq(['!obsolete', ...this.store.view.filter()]),
+      [...without(this.store.view.filter(), 'obsolete', '!obsolete'), '!obsolete'],
       this.store.view.search(),
       this.store.view.pageNumber(),
       this.store.view.pageSize(),

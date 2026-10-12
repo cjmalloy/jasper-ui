@@ -62,8 +62,9 @@ export class RefPage implements HasChanges {
 
   readonly ref = viewChild<RefComponent>('ref');
   private url = '';
+  private origin?: string;
   private watchSelf?: Subscription;
-  private watchUrl = '';
+  private watchKey = '';
   private watchResponses?: Subscription;
   private seen = new Set<string>();
 
@@ -74,13 +75,16 @@ export class RefPage implements HasChanges {
 
   private readonly initialize = afterNextRender(() => {
     this.url = this.store.view.url();
-    if (this.url) this.reload(this.url);
+    this.origin = this.store.view.origin();
+    if (this.url) this.reload(this.url, this.origin);
     effect(() => {
       const url = this.store.view.url();
+      const origin = this.store.view.origin();
       if (!url) return;
-      if (url === this.url) return;
+      if (url === this.url && origin === this.origin) return;
       this.url = url;
-      this.reload(url);
+      this.origin = origin;
+      this.reload(url, origin);
     }, { injector: this.injector });
   });
 
@@ -130,7 +134,7 @@ export class RefPage implements HasChanges {
 
   readonly alts = computed(() => this.store.view.ref()?.alternateUrls?.length || 0);
 
-  reload(url?: string) {
+  reload(url?: string, origin = this.origin) {
     url ||= this.url || '';
     if (!url) {
       this.store.view.clear();
@@ -139,9 +143,12 @@ export class RefPage implements HasChanges {
     this.newResponses.set(0);
     this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions.set(count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
-    (url === this.store.view.ref()?.url
-        ? of(this.store.view.ref())
-        : this.refs.getCurrent(url)
+    const cached = this.store.view.ref();
+    (url === cached?.url && (origin === undefined || (cached.origin || '') === origin)
+        ? of(cached)
+        : origin === undefined
+        ? this.refs.getCurrent(url)
+        : this.refs.get(url, origin)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
@@ -156,10 +163,11 @@ export class RefPage implements HasChanges {
       tap(([ref, top]) => this.store.view.setRef(ref, top)),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe();
-    if (this.config.websockets && this.watchUrl !== url) {
-      this.watchUrl = url;
+    const watchKey = (origin ?? this.store.account.origin()) + ':' + url;
+    if (this.config.websockets && this.watchKey !== watchKey) {
+      this.watchKey = watchKey;
       this.watchSelf?.unsubscribe();
-      this.watchSelf = this.stomp.watchRef(url).pipe(
+      this.watchSelf = this.stomp.watchRef(url, origin).pipe(
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ud => {
         const current = this.store.view.ref();

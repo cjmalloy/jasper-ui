@@ -1,5 +1,5 @@
-import { type APIRequestContext, expect, type Page, type Response } from '@playwright/test';
-import { adminHeaders, clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, test } from './setup';
+import { type APIRequestContext, expect, type Locator, type Page, type Response } from '@playwright/test';
+import { adminHeaders, clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, pollRemoteNotifications, test } from './setup';
 
 test.describe.serial('Origin Plugin: Account Aliases', () => {
   test.setTimeout(120_000);
@@ -65,7 +65,13 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
     await expect(page.locator('.ref-list .link', { hasText: title })).toHaveCount(0);
   }
 
-  async function createOrigin(page: Page, base: string, user: string, url: string, proxy: string, local: string, remote: string, aliases: string[]) {
+  async function fillUser(cell: Locator, user: string) {
+    const input = cell.locator('.tag-field input.grow:not(.preview)');
+    await input.fill(user);
+    await input.blur();
+  }
+
+  async function createOrigin(page: Page, base: string, user: string, url: string, proxy: string, local: string, remote: string, aliases: [string, string][]) {
     await deleteRef(page, url, base);
     await page.goto(base + `/?debug=ADMIN&tag=${user}`);
     await page.locator('.settings a', { hasText: 'settings' }).click();
@@ -80,12 +86,15 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
     await page.locator('[name=local]').fill(local);
     if (remote) await page.locator('[name=remote]').fill(remote);
     const field = page.locator('.account-aliases');
-    for (const [i, alias] of aliases.entries()) {
-      await field.locator('button').first().click();
-      await expect(field.locator('.tag-field')).toHaveCount(i + 1);
-      const input = field.locator('.tag-field input.grow:not(.preview)').last();
-      await input.fill(alias);
-      await input.blur();
+    for (const [i, [localUser, remoteUser]] of aliases.entries()) {
+      await field.locator('.user-map-add').click();
+      await expect(field.locator('.user-map-row')).toHaveCount(i + 1);
+      const row = field.locator('.user-map-row').nth(i);
+      await fillUser(row.locator('.user-map-local'), localUser);
+      await fillUser(row.locator('.user-map-remote'), remoteUser);
+    }
+    if (aliases.length) {
+      await expect(field.locator('.user-map-remote-origin')).toHaveText(new RegExp(`${local.substring(1)}$`));
     }
     await page.locator('.plugins-form details.plugin_origin.advanced summary').click();
     await page.locator('[name=proxy]').fill(proxy);
@@ -116,11 +125,11 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
   });
 
   test('@\u{ff20}main : Alice aliases charlie and dave on \u{ff20}repl', async ({ page }) => {
-    await createOrigin(page, '', 'alice', replApi, replApiProxy, '@repl', '@repl', ['+user/charlie', '+user/dave']);
+    await createOrigin(page, '', 'alice', replApi, replApiProxy, '@repl', '@repl', [['+user/alice', '+user/charlie'], ['+user/alice', '+user/dave']]);
   });
 
   test('@\u{ff20}repl : mallory claims Alice with a one-sided alias', async ({ page }) => {
-    await createOrigin(page, replUrl, 'mallory', mainApi, mainApiProxy, '@main', '', ['+user/alice']);
+    await createOrigin(page, replUrl, 'mallory', mainApi, mainApiProxy, '@main', '', [['+user/mallory', '+user/alice']]);
   });
 
   test('@\u{ff20}main : initialize Alice cursors', async ({ page }) => {
@@ -175,11 +184,14 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
     const res = await request.get(`${mainApi}/api/v1/ref`, { headers: await headers(request), params });
     expect(res.ok()).toBeTruthy();
     const ref = await res.json();
-    expect(ref.plugins['+plugin/origin'].aliases).toEqual(['+user/charlie', '+user/dave']);
+    expect(ref.plugins['+plugin/origin'].aliases).toEqual([
+      { local: '+user/alice', remote: '+user/charlie' },
+      { local: '+user/alice', remote: '+user/dave' },
+    ]);
     const patch = await request.patch(`${mainApi}/api/v1/ref`, {
       headers: { ...await headers(request), 'Content-Type': 'application/merge-patch+json' },
       params: { ...params, cursor: ref.modified },
-      data: { plugins: { '+plugin/origin': { aliases: ['+user/charlie'] } } },
+      data: { plugins: { '+plugin/origin': { aliases: [{ local: '+user/alice', remote: '+user/charlie' }] } } },
     });
     expect(patch.ok(), await patch.text()).toBeTruthy();
   });
@@ -188,6 +200,24 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
     const title = `To dave again ${runId}`;
     await post(page, 'bob', title, 'Hi again +user/dave');
     await expectNotNotified(page, title);
+  });
+
+  test('@\u{ff20}repl : alias charlie clearing notifications clears them for Alice', async ({ page }) => {
+    const title = `Read by charlie ${runId}`;
+    await post(page, 'bob', title, 'Hi +user/charlie');
+    await pollNotifications(page, 'alice');
+    await pollRemoteNotifications(page, replUrl, 'charlie');
+    await page.locator('.settings .notification').click();
+    await expect(page.locator('.ref-list .link', { hasText: title })).toBeVisible();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await expect.poll(async () => {
+      await page.goto(replUrl + '/?debug=ADMIN&tag=charlie', { waitUntil: 'networkidle' });
+      return await page.locator('.settings .notification').isVisible();
+    }, { timeout: 30_000 }).toBe(false);
+    await expect.poll(async () => {
+      await page.goto(alice, { waitUntil: 'networkidle' });
+      return await page.locator('.settings .notification').isVisible();
+    }, { timeout: 60_000 }).toBe(false);
   });
 
   test('@\u{ff20}main : cleared cursors are saved', async ({ page }) => {
