@@ -83,7 +83,10 @@ describe('SettingsSetupPage', () => {
   }
 
   describe('updateMod', () => {
-    beforeEach(() => customizeMap());
+    beforeEach(() => {
+      customizeMap();
+      admin.getTemplate = (tag: string) => tag === 'config/diff' ? { tag } : undefined;
+    });
 
     it('should not overwrite local changes when there is no receipt to merge with', () => {
       component.updateMod(custom);
@@ -92,11 +95,18 @@ describe('SettingsSetupPage', () => {
       expect(component.mergeState?.proposed).toEqual({ template: [custom] });
     });
 
-    it('should merge local changes with the update even without config/diff', () => {
+    it('should merge local changes with the update', () => {
       admin.status.receipts['Map'] = receipt;
       component.updateMod(custom);
       expect(admin.updateMod$).toHaveBeenCalledTimes(1);
       expectMerged(admin.updateMod$.mock.calls[0][1]);
+    });
+
+    it('should install the stock mod without config/diff', () => {
+      admin.getTemplate = () => undefined;
+      component.updateMod(custom);
+      expect(admin.updateMod$).toHaveBeenCalledTimes(1);
+      expect(admin.updateMod$.mock.calls[0][1]).toBe(target);
     });
   });
 
