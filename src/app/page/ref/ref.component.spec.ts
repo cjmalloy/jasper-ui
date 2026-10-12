@@ -5,7 +5,8 @@ import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
-import { EMPTY, Subject } from 'rxjs';
+import { runInAction } from 'mobx';
+import { EMPTY, of, Subject } from 'rxjs';
 import { RefUpdates } from '../../model/ref';
 
 import { RefPage } from './ref.component';
@@ -60,5 +61,69 @@ describe('RefPage', () => {
       created,
       tags: ['plugin/thread', '+plugin/error'],
     }));
+  });
+
+  describe('origin query param', () => {
+    const url = 'internal:secret';
+    let get: ReturnType<typeof vi.spyOn>;
+    let getCurrent: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      component.store.view.setRef(undefined);
+      vi.spyOn(component['refs'], 'count').mockReturnValue(EMPTY);
+      get = vi.spyOn(component['refs'], 'get').mockImplementation((url: string, origin = '') => of({ url, origin }));
+      getCurrent = vi.spyOn(component['refs'], 'getCurrent').mockReturnValue(of({ url, origin: '@remote' }));
+    });
+
+    function route(queryParams: Record<string, string>) {
+      runInAction(() => component.store.view.route.routeSnapshot = {
+        queryParams,
+        firstChild: {
+          params: { url },
+          url: [{ path: 'ref' }, { path: url }],
+        },
+      } as any);
+    }
+
+    it('loads the exact version for an empty origin', () => {
+      route({ origin: '' });
+
+      expect(get).toHaveBeenCalledWith(url, '');
+      expect(getCurrent).not.toHaveBeenCalled();
+      expect(component.store.view.ref).toEqual({ url, origin: '' });
+    });
+
+    it('loads the exact version for a remote origin', () => {
+      route({ origin: '@other' });
+
+      expect(get).toHaveBeenCalledWith(url, '@other');
+      expect(getCurrent).not.toHaveBeenCalled();
+      expect(component.store.view.ref).toEqual({ url, origin: '@other' });
+    });
+
+    it('loads the newest version without an origin', () => {
+      route({});
+
+      expect(getCurrent).toHaveBeenCalledWith(url);
+      expect(get).not.toHaveBeenCalled();
+      expect(component.store.view.ref).toEqual({ url, origin: '@remote' });
+    });
+
+    it('reuses a preloaded Ref from the same origin', () => {
+      component.store.view.setRef({ url, origin: '' });
+      route({ origin: '' });
+
+      expect(get).not.toHaveBeenCalled();
+      expect(getCurrent).not.toHaveBeenCalled();
+    });
+
+    it('reloads when only the origin changes', () => {
+      route({ origin: '' });
+      route({ origin: '@other' });
+
+      expect(get).toHaveBeenNthCalledWith(1, url, '');
+      expect(get).toHaveBeenNthCalledWith(2, url, '@other');
+      expect(component.store.view.ref).toEqual({ url, origin: '@other' });
+    });
   });
 });

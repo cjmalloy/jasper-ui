@@ -1,5 +1,5 @@
 import { Component, inject, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
-import { defer, uniq } from 'lodash-es';
+import { defer, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -52,7 +52,7 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
       const args = getArgs(
         this.store.view.settingsTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
         this.store.view.sort,
-        uniq(['!obsolete', ...this.store.view.filter]),
+        [...without(this.store.view.filter, 'obsolete', '!obsolete'), '!obsolete'],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
