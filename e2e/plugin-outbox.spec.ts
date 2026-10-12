@@ -69,9 +69,13 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('[name=local]').fill('@repl');
     await page.locator('[name=remote]').fill('@repl');
     const aliases = page.locator('.account-aliases');
-    await aliases.locator('button').first().click();
-    await aliases.locator('.tag-field input.grow:not(.preview)').fill('+user/charlie');
-    await aliases.locator('.tag-field input.grow:not(.preview)').blur();
+    await aliases.locator('.user-map-add').click();
+    const localUser = aliases.locator('.user-map-row .user-map-local .tag-field input.grow:not(.preview)');
+    await localUser.fill('+user/alice');
+    await localUser.blur();
+    const remoteUser = aliases.locator('.user-map-row .user-map-remote .tag-field input.grow:not(.preview)');
+    await remoteUser.fill('+user/charlie');
+    await remoteUser.blur();
     await page.locator('.plugins-form details.plugin_origin.advanced summary').click();
     await page.locator('[name=proxy]').fill(replApiProxy);
     await page.locator('[name=proxy]').blur();

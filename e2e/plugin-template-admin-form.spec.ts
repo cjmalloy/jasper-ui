@@ -7,6 +7,7 @@ test.describe.serial('Plugin/Template Admin Form', () => {
   const tags = {
     plugin: `plugin/adminform${runId}`,
     template: `adminform${runId}`,
+    config: `_config/server/fallback${runId}`,
   };
 
   async function headers(request: APIRequestContext) {
@@ -19,6 +20,7 @@ test.describe.serial('Plugin/Template Admin Form', () => {
   test.afterAll(async ({ request }) => {
     await request.delete(`${api}/plugin`, { headers: await headers(request), params: { tag: tags.plugin } });
     await request.delete(`${api}/template`, { headers: await headers(request), params: { tag: tags.template } });
+    await request.delete(`${api}/template`, { headers: await headers(request), params: { tag: tags.config } });
   });
 
   test('setup', async ({ request }) => {
@@ -42,6 +44,11 @@ test.describe.serial('Plugin/Template Admin Form', () => {
       });
       expect(res.ok()).toBeTruthy();
     }
+    const res = await request.post(`${api}/template`, {
+      headers: await headers(request),
+      data: { tag: tags.config, config: { emailHost: 'smtp.example.com', maxSources: 5 } },
+    });
+    expect(res.ok()).toBeTruthy();
   });
 
   for (const type of ['plugin', 'template'] as const) {
@@ -59,6 +66,23 @@ test.describe.serial('Plugin/Template Admin Form', () => {
       await expect(advanced).not.toHaveAttribute('open');
       await expect(advanced.locator('.json-editor')).toHaveCount(1);
       await expect(advanced.locator('.advanced-admin-form .code-editor')).toHaveCount(1);
+
+      await advanced.locator('summary').click();
+      await expect(advanced).toHaveAttribute('open');
+      const editor = advanced.locator('.json-editor ngx-monaco-editor');
+      await expect(editor).toBeVisible();
+      await expect.poll(async () => (await advanced.boundingBox())!.height).toBeGreaterThan(400);
+      await editor.scrollIntoViewIfNeeded();
+      const before = (await editor.boundingBox())!;
+      await page.mouse.move(before.x + before.width - 3, before.y + before.height - 3);
+      await page.mouse.down();
+      await page.mouse.move(before.x + before.width + 200, before.y + before.height + 50, { steps: 5 });
+      await page.mouse.up();
+      await expect.poll(async () => (await editor.boundingBox())!.width).toBeGreaterThan(before.width + 100);
+      const resized = (await editor.boundingBox())!;
+      const details = (await advanced.boundingBox())!;
+      expect(resized.x + resized.width).toBeLessThanOrEqual(details.x + details.width);
+      expect(resized.y + resized.height).toBeLessThanOrEqual(details.y + details.height);
 
       await title.fill('after');
       const savePromise = page.waitForResponse(resp => (
@@ -78,9 +102,9 @@ test.describe.serial('Plugin/Template Admin Form', () => {
   }
 
   test('fallback admin form for server config template', async ({ page }) => {
-    await page.goto('/settings/template?debug=ADMIN&search=_config/server', { waitUntil: 'networkidle' });
-    const item = page.locator('.template.list-item').filter({ hasText: '_config/server' }).first();
-    await expect(item).toBeVisible();
+    await page.goto(`/settings/template?debug=ADMIN&search=${tags.config}`, { waitUntil: 'networkidle' });
+    const item = page.locator('.template.list-item').filter({ hasText: tags.config });
+    await expect(item).toHaveCount(1);
     await item.locator('.actions .fake-link', { hasText: 'edit' }).click();
 
     await expect(item.locator('.admin-form input[name=emailHost]')).toBeVisible();

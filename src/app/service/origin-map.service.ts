@@ -210,6 +210,8 @@ export class OriginMapService {
    * are only accepted when both remotes declare the same link.
    * Only pull configs identify the remote account's origin, so aliases on
    * push-only origin Refs are ignored.
+   * Each alias row maps one local user to one remote user. Repeat a user in
+   * multiple rows to map it to multiple users.
    */
   private get accountAliases(): AccountAlias[] {
     const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
@@ -225,12 +227,10 @@ export class OriginMapService {
       if (!hasTag('+plugin/origin/pull', ref)) continue;
       const from = ref.origin || '';
       const origin = target(ref);
-      const aliases: string[] = uniq(config(ref)?.aliases || []);
-      for (const author of userAuthors(ref)) {
-        for (const alias of aliases) {
-          if (!author || !alias) continue;
-          claims.push({ from, origin, local: localTag(author), remote: localTag(alias) });
-        }
+      for (const row of config(ref)?.aliases || []) {
+        if (typeof row?.local !== 'string' || typeof row?.remote !== 'string') continue;
+        if (!row.local || !row.remote) continue;
+        claims.push({ from, origin, local: localTag(row.local), remote: localTag(row.remote) });
       }
     }
     const result = claims.filter(c => {
