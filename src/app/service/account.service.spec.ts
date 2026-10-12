@@ -83,7 +83,7 @@ describe('AccountService', () => {
         tags: ['+plugin/origin/pull', '+user/dad'],
         plugins: { '+plugin/origin': {
           local: '@city',
-          aliases: [{ local: ['+user/dad'], remote: ['+user/chris', '+user/cj', '+user/chris'] }],
+          aliases: [{ local: '+user/dad', remote: '+user/chris' }, { local: '+user/dad', remote: '+user/cj' }, { local: '+user/dad', remote: '+user/chris' }],
         } },
       },
       {
@@ -92,7 +92,7 @@ describe('AccountService', () => {
         tags: ['+plugin/origin/pull', '+user/dad'],
         plugins: { '+plugin/origin': {
           local: '@town',
-          aliases: [{ local: ['+user/dad'], remote: ['+user/dad'] }],
+          aliases: [{ local: '+user/dad', remote: '+user/dad' }],
         } },
       },
     ]);
@@ -337,13 +337,13 @@ describe('AccountService', () => {
         url: 'spec:city',
         origin: '',
         tags: ['+plugin/origin/pull', '+user/dad'],
-        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: ['+user/dad'], remote: ['+user/chris', '+user/cj'] }] } },
+        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }, { local: '+user/dad', remote: '+user/cj' }] } },
       },
       {
         url: 'spec:town',
         origin: '',
         tags: ['+plugin/origin/pull', '+user/dad'],
-        plugins: { '+plugin/origin': { local: '@town', aliases: [{ local: ['+user/dad'], remote: ['+user/dad'] }] } },
+        plugins: { '+plugin/origin': { local: '@town', aliases: [{ local: '+user/dad', remote: '+user/dad' }] } },
       },
     ]);
 
@@ -522,7 +522,7 @@ describe('AccountService', () => {
         url: 'spec:city',
         origin: '',
         tags: ['+plugin/origin/pull'],
-        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: ['+user/dad'], remote: ['+user/chris'] }] } },
+        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }] } },
       }]);
       const store = (service as any).store;
       store.account.ext.config.alarms = ['alarm'];
@@ -550,7 +550,7 @@ describe('AccountService', () => {
         url: 'spec:city',
         origin: '',
         tags: ['+plugin/origin/pull'],
-        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: ['+user/dad'], remote: ['+user/chris', '+user/cj'] }] } },
+        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }, { local: '+user/dad', remote: '+user/cj' }] } },
       }]);
       const stream = service.notificationStreams.find(stream => stream.origin === '@city')!;
       const filter = '@city:!+user/chris@city:!+user/cj@city:!plugin/delete';
@@ -639,7 +639,7 @@ describe('AccountService', () => {
         url: 'spec:city',
         origin: '',
         tags: ['+plugin/origin/pull', '+user/dad'],
-        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: ['+user/dad'], remote: ['+user/chris'] }] } },
+        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }] } },
       }]);
       const store = (service as any).store;
       (service as any).cursorAccount = store.account.tagWithOrigin;

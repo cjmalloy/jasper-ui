@@ -61,8 +61,8 @@ export const originPlugin: Plugin = {
       remote: { type: 'string' },
       aliases: { elements: {
         optionalProperties: {
-          local: { elements: { type: 'string' } },
-          remote: { elements: { type: 'string' } },
+          local: { type: 'string' },
+          remote: { type: 'string' },
         },
       } },
       proxy: { type: 'string' },

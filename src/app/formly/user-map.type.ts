@@ -5,8 +5,8 @@ import { Store } from '../store/store';
 import { subOrigin } from '../util/tag';
 
 /**
- * Table of user mappings. Each row maps a list of local users to a list of
- * users in the remote origin.
+ * Table of user mappings. Each row maps a local user to a user in the
+ * remote origin. Repeat a user in multiple rows to map it to multiple users.
  */
 @Component({
   selector: 'formly-field-user-map',
@@ -105,13 +105,11 @@ export class FormlyFieldUserMap extends FieldArrayType implements DoCheck {
   ngDoCheck() {
     const origin = this.remoteOrigin;
     for (const row of this.field.fieldGroup || []) {
-      const remote = row.fieldGroup?.find(f => f.key === 'remote');
-      for (const user of remote?.fieldGroup || []) {
-        if (!user.props || user.props.origin === origin) continue;
-        const changed = user.props.origin !== undefined;
-        user.props.origin = origin;
-        if (changed) defer(() => user.formControl?.updateValueAndValidity());
-      }
+      const user = row.fieldGroup?.find(f => f.key === 'remote');
+      if (!user?.props || user.props.origin === origin) continue;
+      const changed = user.props.origin !== undefined;
+      user.props.origin = origin;
+      if (changed) defer(() => user.formControl?.updateValueAndValidity());
     }
   }
 }

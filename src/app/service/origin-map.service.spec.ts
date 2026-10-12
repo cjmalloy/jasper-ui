@@ -268,17 +268,19 @@ describe('OriginMapService', () => {
       url,
       origin,
       tags: ['+plugin/origin/pull'],
-      plugins: { '+plugin/origin': { local, remote: '', aliases: aliases.length ? [{ local: [user], remote: aliases }] : [] } },
+      plugins: { '+plugin/origin': { local, remote: '', aliases: aliases.map(remote => ({ local: user, remote })) } },
     });
 
-    it('maps multiple different users from the alias table', () => {
+    it('maps multiple different users from the alias table with duplicate rows', () => {
       setOrigins([{
         url: 'spec:remote',
         origin: '',
         tags: ['+plugin/origin/pull', '+user/admin'],
         plugins: { '+plugin/origin': { local: '@city', remote: '', aliases: [
-          { local: ['+user/dad'], remote: ['+user/chris', '+user/cj'] },
-          { local: ['+user/mom', '+user/mother'], remote: ['+user/yukie'] },
+          { local: '+user/dad', remote: '+user/chris' },
+          { local: '+user/dad', remote: '+user/cj' },
+          { local: '+user/mom', remote: '+user/yukie' },
+          { local: '+user/mother', remote: '+user/yukie' },
         ] } },
       }]);
       setLocal('');
@@ -296,9 +298,10 @@ describe('OriginMapService', () => {
         tags: ['+plugin/origin/pull', '+user/dad'],
         plugins: { '+plugin/origin': { local: '@city', remote: '', aliases: [
           '+user/chris',
-          { local: ['+user/dad'] },
-          { remote: ['+user/cj'] },
-          { local: ['+user/dad', ''], remote: [''] },
+          { local: '+user/dad' },
+          { remote: '+user/cj' },
+          { local: '+user/dad', remote: '' },
+          { local: ['+user/dad'], remote: ['+user/cj'] },
         ] } },
       }]);
       setLocal('');
@@ -477,7 +480,7 @@ describe('OriginMapService', () => {
         url: 'spec:eggnog',
         origin: '',
         tags: ['+plugin/origin/push'],
-        plugins: { '+plugin/origin': { local: '', remote: '@eggnog', aliases: [{ local: ['+user/alice'], remote: ['+user/bob'] }] } },
+        plugins: { '+plugin/origin': { local: '', remote: '@eggnog', aliases: [{ local: '+user/alice', remote: '+user/bob' }] } },
       }]);
       setLocal('');
 

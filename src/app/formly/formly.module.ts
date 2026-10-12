@@ -543,16 +543,12 @@ tags start with an underscore.
           fieldArray: {
             fieldGroup: [{
               key: 'local',
-              type: 'users',
-              props: {
-                showLabel: false,
-              },
+              type: 'user',
+              wrappers: [],
             }, {
               key: 'remote',
-              type: 'users',
-              props: {
-                showLabel: false,
-              },
+              type: 'user',
+              wrappers: [],
             }],
           },
         },

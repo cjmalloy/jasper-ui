@@ -65,17 +65,13 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
     await expect(page.locator('.ref-list .link', { hasText: title })).toHaveCount(0);
   }
 
-  async function fillUsers(cell: Locator, users: string[]) {
-    for (const [i, user] of users.entries()) {
-      await cell.locator('button').first().click();
-      await expect(cell.locator('.tag-field')).toHaveCount(i + 1);
-      const input = cell.locator('.tag-field input.grow:not(.preview)').last();
-      await input.fill(user);
-      await input.blur();
-    }
+  async function fillUser(cell: Locator, user: string) {
+    const input = cell.locator('.tag-field input.grow:not(.preview)');
+    await input.fill(user);
+    await input.blur();
   }
 
-  async function createOrigin(page: Page, base: string, user: string, url: string, proxy: string, local: string, remote: string, aliases: [string[], string[]][]) {
+  async function createOrigin(page: Page, base: string, user: string, url: string, proxy: string, local: string, remote: string, aliases: [string, string][]) {
     await deleteRef(page, url, base);
     await page.goto(base + `/?debug=ADMIN&tag=${user}`);
     await page.locator('.settings a', { hasText: 'settings' }).click();
@@ -90,12 +86,12 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
     await page.locator('[name=local]').fill(local);
     if (remote) await page.locator('[name=remote]').fill(remote);
     const field = page.locator('.account-aliases');
-    for (const [i, [locals, remotes]] of aliases.entries()) {
+    for (const [i, [localUser, remoteUser]] of aliases.entries()) {
       await field.locator('.user-map-add').click();
       await expect(field.locator('.user-map-row')).toHaveCount(i + 1);
       const row = field.locator('.user-map-row').nth(i);
-      await fillUsers(row.locator('.user-map-local'), locals);
-      await fillUsers(row.locator('.user-map-remote'), remotes);
+      await fillUser(row.locator('.user-map-local'), localUser);
+      await fillUser(row.locator('.user-map-remote'), remoteUser);
     }
     if (aliases.length) {
       await expect(field.locator('.user-map-remote-origin')).toHaveText(new RegExp(`${local.substring(1)}$`));
@@ -129,11 +125,11 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
   });
 
   test('@\u{ff20}main : Alice aliases charlie and dave on \u{ff20}repl', async ({ page }) => {
-    await createOrigin(page, '', 'alice', replApi, replApiProxy, '@repl', '@repl', [[['+user/alice'], ['+user/charlie', '+user/dave']]]);
+    await createOrigin(page, '', 'alice', replApi, replApiProxy, '@repl', '@repl', [['+user/alice', '+user/charlie'], ['+user/alice', '+user/dave']]);
   });
 
   test('@\u{ff20}repl : mallory claims Alice with a one-sided alias', async ({ page }) => {
-    await createOrigin(page, replUrl, 'mallory', mainApi, mainApiProxy, '@main', '', [[['+user/mallory'], ['+user/alice']]]);
+    await createOrigin(page, replUrl, 'mallory', mainApi, mainApiProxy, '@main', '', [['+user/mallory', '+user/alice']]);
   });
 
   test('@\u{ff20}main : initialize Alice cursors', async ({ page }) => {
@@ -188,11 +184,14 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
     const res = await request.get(`${mainApi}/api/v1/ref`, { headers: await headers(request), params });
     expect(res.ok()).toBeTruthy();
     const ref = await res.json();
-    expect(ref.plugins['+plugin/origin'].aliases).toEqual([{ local: ['+user/alice'], remote: ['+user/charlie', '+user/dave'] }]);
+    expect(ref.plugins['+plugin/origin'].aliases).toEqual([
+      { local: '+user/alice', remote: '+user/charlie' },
+      { local: '+user/alice', remote: '+user/dave' },
+    ]);
     const patch = await request.patch(`${mainApi}/api/v1/ref`, {
       headers: { ...await headers(request), 'Content-Type': 'application/merge-patch+json' },
       params: { ...params, cursor: ref.modified },
-      data: { plugins: { '+plugin/origin': { aliases: [{ local: ['+user/alice'], remote: ['+user/charlie'] }] } } },
+      data: { plugins: { '+plugin/origin': { aliases: [{ local: '+user/alice', remote: '+user/charlie' }] } } },
     });
     expect(patch.ok(), await patch.text()).toBeTruthy();
   });
