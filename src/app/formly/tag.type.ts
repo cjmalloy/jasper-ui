@@ -147,7 +147,8 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> {
   }
 
   search = debounce((value: string) => {
-    const siblings = (this.formControl.parent?.value as string[] || []).filter(t => t && t !== this.formControl.value);
+    const parent = this.formControl.parent?.value;
+    const siblings = (Array.isArray(parent) ? parent as string[] : []).filter(t => t && t !== this.formControl.value);
     const derank = (xs: { value: string, label: string }[]) =>
       [...xs.filter(x => !siblings.includes(x.value)), ...xs.filter(x => siblings.includes(x.value))];
     const toEntry = (p: Config) => ({ value: p.tag, label: p.name || p.tag });

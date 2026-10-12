@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
-import { FormControl } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { FormlyConfig } from '@ngx-formly/core';
 import { of } from 'rxjs';
 import { AdminService } from '../service/admin.service';
@@ -65,5 +65,18 @@ describe('FormlyFieldTagInput', () => {
     component.getPreview(value);
 
     expect(component.preview()).toBe('Science');
+  });
+
+  it('searches when the parent control is not a list', () => {
+    const admin = TestBed.inject(AdminService) as any;
+    admin.searchPlugins = () => [{ tag: 'plugin/test', name: 'Test' }];
+    admin.searchTemplates = () => [];
+    component.field.type = 'plugin';
+    new FormGroup({ local: component.formControl, remote: new FormControl('') });
+
+    component.search('test');
+    component.search.flush();
+
+    expect(component.autocomplete()).toEqual([{ value: 'plugin/test', label: 'Test' }]);
   });
 });
