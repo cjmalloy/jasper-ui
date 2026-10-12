@@ -26,11 +26,11 @@ import { subOrigin } from '../util/tag';
       @for (row of field.fieldGroup; track row.id; let i = $index) {
         <div class="user-map-row">
           <div class="user-map-local">
-            <formly-field [field]="row.fieldGroup![0]"></formly-field>
+            <formly-field [field]="row.fieldGroup![0]" />
           </div>
           <span class="user-map-arrow"></span>
           <div class="user-map-remote">
-            <formly-field [field]="row.fieldGroup![1]"></formly-field>
+            <formly-field [field]="row.fieldGroup![1]" />
           </div>
           <button type="button" class="user-map-remove" (click)="remove(i)" i18n>&ndash;</button>
         </div>

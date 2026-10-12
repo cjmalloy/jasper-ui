@@ -525,8 +525,8 @@ describe('AccountService', () => {
         plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }] } },
       }]);
       const store = (service as any).store;
-      store.account.ext.config.alarms = ['alarm'];
-      (service as any).cursorAccount = store.account.tagWithOrigin;
+      store.account.ext.update((ext: any) => ({ ...ext, config: { ...ext.config, alarms: ['alarm'] } }));
+      (service as any).cursorAccount = store.account.tagWithOrigin();
       (service as any).savedCursors = of(undefined);
       store.account.notificationCursors.set('', localCursor);
       store.account.notificationCursors.set('@city', localCursor);
@@ -569,8 +569,8 @@ describe('AccountService', () => {
       expect(count).toHaveBeenCalledWith({ query: `${filter}:(alarm)`, modifiedAfter: localCursor });
       expect(count).toHaveBeenCalledWith({ query: `${filter}:${chrisBox}:!alarm`, modifiedAfter: remoteCursor });
       expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:(${chrisBox}|alarm)` }));
-      expect(store.account.notifications).toBe(3);
-      expect(store.account.alarmCount).toBe(2);
+      expect(store.account.notifications()).toBe(3);
+      expect(store.account.alarmCount()).toBe(2);
     });
 
     it('ignores remote cursors older than the local cursor', () => {

@@ -1,6 +1,6 @@
-import { type APIRequestContext, expect, test } from '@playwright/test';
+import { type APIRequestContext, expect } from '@playwright/test';
 import JSZip from 'jszip';
-import { adminHeaders } from './setup';
+import { adminHeaders, test } from './setup';
 
 test.describe.serial('Ref page origin', () => {
   test.setTimeout(120_000);
