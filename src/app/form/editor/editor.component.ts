@@ -734,18 +734,26 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     for (const ref of refs) this.addSource.next(ref!.url);
     const text = this.currentText;
     const embed = (ref: Ref) => hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
+    const reference = (ref: Ref, label?: string) => {
+      if (hasTag('plugin/bb', this.allTags)) {
+        const url = ref.url.replace(/[\[\]\r\n"]/g, c => '%' + c.charCodeAt(0).toString(16));
+        return (label !== undefined ? `[url=${url}]${label}[/url]`
+          : hasTag('plugin/image', ref) ? `[img]${url}[/img]` : `[url]${url}[/url]`) + '\n';
+      }
+      return (label !== undefined ? '[' + label + ']' : embed(ref) ? '![]' : '![=]')
+        + '(' + ref.url.replace(')', '\\)') + ')\n';
+    };
     if (refs.length === 1) {
       if (!refs[0]) return;
-      const encodedUrl = (this.selectionStart !== this.selectionEnd ? '[' + text.substring(this.selectionStart, this.selectionEnd) + ']'
-          : embed(refs[0]) ? '![]' : '![=]'
-      ) + '(' + refs[0].url.replace(')', '\\)') + ')\n';
+      const encodedUrl = reference(refs[0], this.selectionStart !== this.selectionEnd
+        ? text.substring(this.selectionStart, this.selectionEnd) : undefined);
       if (this.selectionStart || this.selectionStart !== this.selectionEnd) {
         this.syncText(text.substring(0, this.selectionStart) + encodedUrl + text.substring(this.selectionEnd));
       } else {
         this.syncText(text + encodedUrl + '\n');
       }
     } else {
-      const encodedUrls = refs.map(ref => (embed(ref!) ? '![]' : '![=]') + '(' + ref!.url.replace(')', '\\)') + ')\n').join('');
+      const encodedUrls = refs.map(ref => reference(ref!)).join('');
       this.syncText(text.substring(0, this.selectionStart) + encodedUrls + text.substring(this.selectionStart));
       if (!text) this.preview = true;
     }
