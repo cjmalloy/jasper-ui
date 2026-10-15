@@ -3,7 +3,9 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { firstValueFrom, of } from 'rxjs';
+import { firstValueFrom, NEVER, of, throwError } from 'rxjs';
+import { Page } from '../model/page';
+import { Ref } from '../model/ref';
 
 import { ActionService } from './action.service';
 
@@ -116,6 +118,42 @@ describe('ActionService', () => {
         'plugin/a': { enabled: true },
         'plugin/b': 42,
       },
+    });
+  });
+
+  describe('websocket origins', () => {
+    const url = 'comment:game';
+    let watchRef: ReturnType<typeof vi.spyOn>;
+    let page: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      watchRef = vi.spyOn((service as any).stomp, 'watchRef').mockReturnValue(NEVER);
+      page = vi.spyOn((service as any).refs, 'page').mockReturnValue(of(Page.of<Ref>([
+        { url, origin: '@sub' },
+        { url, origin: '@other' },
+      ])));
+      (service as any).store.origins.list = ['', '@sub', '@other', '@missing'];
+    });
+
+    it('watch only subscribes to origins that have the Ref', () => {
+      service.watch({ url, origin: '@sub' }).ref$.subscribe(() => {});
+
+      expect(page).toHaveBeenCalledWith({ url, obsolete: null });
+      expect(watchRef.mock.calls).toEqual([[url, '@sub'], [url, '@other']]);
+    });
+
+    it('append only subscribes to origins that have the Ref', () => {
+      service.append({ url, origin: '@sub' }).updates$.subscribe(() => {});
+
+      expect(page).toHaveBeenCalledWith({ url, obsolete: null });
+      expect(watchRef.mock.calls).toEqual([[url, '@sub'], [url, '@other']]);
+    });
+
+    it('falls back to the Ref origin when copies cannot be loaded', () => {
+      page.mockReturnValue(throwError(() => ({ status: 500 })));
+      service.watch({ url, origin: '' }).ref$.subscribe(() => {});
+
+      expect(watchRef.mock.calls).toEqual([[url, '']]);
     });
   });
 });

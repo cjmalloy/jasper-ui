@@ -52,6 +52,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   private origin?: string;
   private watchSelf?: Subscription;
   private watchKey = '';
+  private watchResponsesKey = '';
   private watchResponses?: Subscription;
   private seen = new Set<string>();
 
@@ -164,6 +165,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.versions = count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     const cached = this.store.view.ref;
+    let found = false;
     (url === cached?.url && (origin === undefined || (cached.origin || '') === origin)
         ? of(cached)
         : origin === undefined
@@ -171,8 +173,10 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         : this.refs.get(url, origin)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+      tap(ref => found = !!ref),
       map(ref => ref || { url }),
       tap(ref => this.markRead(ref)),
+      tap(ref => found ? this.watch(ref) : this.unwatch()),
       switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
         : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
@@ -183,7 +187,31 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => MemoCache.clear(this));
-    const watchKey = (origin ?? this.store.account.origin) + ':' + url;
+    if (this.config.websockets && this.watchResponsesKey !== url) {
+      this.watchResponsesKey = url;
+      this.watchResponses?.unsubscribe();
+      this.watchResponses = this.stomp.watchResponse(url).pipe(
+        filter(url => url != this.store.view.url),
+        filter(url => !url.startsWith('tag:')),
+        filter(url => !this.seen.has(url)),
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe(url => {
+        this.seen.add(url);
+        this.newResponses++;
+      });
+    }
+  }
+
+  private unwatch() {
+    this.watchKey = '';
+    this.watchSelf?.unsubscribe();
+    this.watchSelf = undefined;
+  }
+
+  private watch(ref: Ref) {
+    const url = ref.url;
+    const origin = ref.origin || '';
+    const watchKey = origin + ':' + url;
     if (this.config.websockets && this.watchKey !== watchKey) {
       this.watchKey = watchKey;
       this.watchSelf?.unsubscribe();
@@ -223,16 +251,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         };
         runInAction(() => Object.assign(this.store.view.ref!, merged));
         this.store.eventBus.refresh(this.store.view.ref);
-      });
-      this.watchResponses?.unsubscribe();
-      this.watchResponses = this.stomp.watchResponse(url).pipe(
-        filter(url => url != this.store.view.url),
-        filter(url => !url.startsWith('tag:')),
-        filter(url => !this.seen.has(url)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(url => {
-        this.seen.add(url);
-        this.newResponses++;
       });
     }
   }
