@@ -21,15 +21,18 @@ export class CsrfInterceptor implements HttpInterceptor {
       return next.handle(request);
     }
 
+    const token = this.getCsrfToken();
     const modifiedReq = request.clone({
-      headers: request.headers.set('X-XSRF-TOKEN', this.getCsrfToken()),
+      headers: request.headers.set('X-XSRF-TOKEN', token),
       withCredentials: this.withCredentials,
     });
     return next.handle(modifiedReq).pipe(
       catchError(err => {
-        if (!err.status || err.status === 403 && /CSRF token/i.test(err.error?.detail || '')) {
-          // Sometimes the first request has an invalid CSRF token and fails
-          // Retry one more time
+        // Concurrent startup requests can each set a new XSRF-TOKEN cookie, so the
+        // cookie may change after the header was read. The 403 body is not always
+        // readable (e.g. large uploads), so also retry if the cookie changed.
+        const csrf = token !== this.getCsrfToken() || /CSRF token/i.test(err.error?.detail || '');
+        if (!err.status || err.status === 403 && csrf) {
           console.warn('Retrying forbidden request with fresh CSRF token');
           const retryReq = request.clone({
             headers: request.headers.set('X-XSRF-TOKEN', this.getCsrfToken()),
