@@ -53,6 +53,7 @@ import { gridMod } from '../mods/org/grid';
 import { hideMod } from '../mods/org/hide';
 import { kanbanMod } from '../mods/org/kanban';
 import { notesMod } from '../mods/org/notes';
+import { pinnedMod } from '../mods/org/pinned';
 import { personMod } from '../mods/org/person';
 import { queueMod } from '../mods/org/queue';
 import { readMod } from '../mods/org/read';
@@ -135,6 +136,7 @@ export class AdminService {
     mailboxMod,
     hideMod,
     saveMod,
+    pinnedMod,
     readMod,
     draftMod,
 

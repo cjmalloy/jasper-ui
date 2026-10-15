@@ -8038,6 +8038,38 @@ Each response contains the converted Markdown from a specific source format.</so
       進捗を報告するスクリプトは、更新によってデルタスクリプトが再実行されないように
       _seal/delta タグも追加してください。</target>
       </trans-unit>
+      <trans-unit id="229206628635316156" datatype="html">
+        <source>Pin a version of a Ref so it stays visible even when a newer copy exists in another origin. Pins in the root origin take priority over pins in other origins.</source>
+        <target>別のオリジンに新しいコピーがあっても表示され続けるように、Refのバージョンを固定します。ルートオリジンでの固定は他のオリジンでの固定より優先されます。</target>
+      </trans-unit>
+      <trans-unit id="2608131079155543603" datatype="html">
+        <source>📌️ pinned</source>
+        <target>📌️ 固定済み</target>
+      </trans-unit>
+      <trans-unit id="2801325632803457092" datatype="html">
+        <source>Pin this version of the Ref so it is preferred over newer copies.</source>
+        <target>このバージョンのRefを固定し、新しいコピーより優先させます。</target>
+      </trans-unit>
+      <trans-unit id="3406059137890525818" datatype="html">
+        <source>Pinned Refs</source>
+        <target>固定されたRef</target>
+      </trans-unit>
+      <trans-unit id="3779190388212566897" datatype="html">
+        <source>Pinned version</source>
+        <target>固定されたバージョン</target>
+      </trans-unit>
+      <trans-unit id="4282945801176727685" datatype="html">
+        <source>📌️ Pinned</source>
+        <target>📌️ 固定</target>
+      </trans-unit>
+      <trans-unit id="6727012992493682012" datatype="html">
+        <source>pin</source>
+        <target>固定</target>
+      </trans-unit>
+      <trans-unit id="8999562403584580505" datatype="html">
+        <source>unpin</source>
+        <target>固定解除</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
