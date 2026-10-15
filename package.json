@@ -30,7 +30,7 @@
     "@maplibre/ngx-maplibre-gl": "^22.2.0",
     "@ngx-formly/core": "10.0.1",
     "@stomp/rx-stomp": "^2.4.0",
-    "@stomp/stompjs": "^7.3.0",
+    "@stomp/stompjs": "^7.5.0",
     "ag-grid-angular": "^36.2.0",
     "ag-grid-community": "^36.1.0",
     "array.prototype.at": "^1.2.0",
