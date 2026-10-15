@@ -167,6 +167,20 @@ describe('RefPage', () => {
       expect(component.store.view.ref).toEqual({ url });
     });
 
+    it('does not reuse a 404 placeholder', () => {
+      const getCurrent = vi.spyOn(component['refs'], 'getCurrent').mockReturnValue(throwError(() => ({ status: 404 })));
+      const get = vi.spyOn(component['refs'], 'get').mockReturnValue(throwError(() => ({ status: 404 })));
+
+      component.reload(url, undefined);
+      component.reload(url, undefined);
+      component.reload(url, '');
+
+      expect(getCurrent).toHaveBeenCalledTimes(2);
+      expect(get).toHaveBeenCalledTimes(1);
+      expect(topics()).toEqual([]);
+      expect(component.store.view.ref).toEqual({ url });
+    });
+
     it('resubscribes when the displayed copy changes origin', () => {
       vi.spyOn(component['refs'], 'get').mockImplementation((url: string, origin = '') => of({ url, origin }));
 

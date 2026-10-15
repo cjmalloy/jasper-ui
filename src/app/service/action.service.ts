@@ -2,7 +2,22 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, concat, defer, last, map, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import {
+  catchError,
+  concat,
+  defer,
+  EMPTY,
+  expand,
+  last,
+  map,
+  merge,
+  Observable,
+  of,
+  Subscription,
+  switchMap,
+  throwError,
+  toArray,
+} from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref, RefUpdates } from '../model/ref';
@@ -231,8 +246,11 @@ export class ActionService {
    * without a copy is denied by the server.
    */
   private watchCopies(ref: Ref): Observable<RefUpdates> {
-    return this.refs.page({ url: ref.url, obsolete: null }).pipe(
-      map(page => page.content.map(r => r.origin || '')),
+    const page$ = (page: number) => this.refs.page({ url: ref.url, obsolete: null, page });
+    return page$(0).pipe(
+      expand(result => result.page.number + 1 < result.page.totalPages ? page$(result.page.number + 1) : EMPTY),
+      toArray(),
+      map(pages => pages.flatMap(page => page.content.map(r => r.origin || ''))),
       catchError(() => of([] as string[])),
       map(origins => uniq(ref.origin === undefined ? origins : [ref.origin || '', ...origins])),
       switchMap(origins => merge(...origins.map(origin => this.stomp.watchRef(ref.url, origin)))),

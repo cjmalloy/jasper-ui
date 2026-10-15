@@ -138,15 +138,26 @@ describe('ActionService', () => {
     it('watch only subscribes to origins that have the Ref', () => {
       service.watch({ url, origin: '@sub' }).ref$.subscribe(() => {});
 
-      expect(page).toHaveBeenCalledWith({ url, obsolete: null });
+      expect(page).toHaveBeenCalledWith({ url, obsolete: null, page: 0 });
       expect(watchRef.mock.calls).toEqual([[url, '@sub'], [url, '@other']]);
     });
 
     it('append only subscribes to origins that have the Ref', () => {
       service.append({ url, origin: '@sub' }).updates$.subscribe(() => {});
 
-      expect(page).toHaveBeenCalledWith({ url, obsolete: null });
+      expect(page).toHaveBeenCalledWith({ url, obsolete: null, page: 0 });
       expect(watchRef.mock.calls).toEqual([[url, '@sub'], [url, '@other']]);
+    });
+
+    it('subscribes to origins from every page of copies', () => {
+      page.mockImplementation((args: any) => of({
+        content: [{ url, origin: args.page ? '@second' : '@first' }],
+        page: { number: args.page, size: 1, totalElements: 2, totalPages: 2 },
+      }));
+      service.watch({ url, origin: '' }).ref$.subscribe(() => {});
+
+      expect(page.mock.calls).toEqual([[{ url, obsolete: null, page: 0 }], [{ url, obsolete: null, page: 1 }]]);
+      expect(watchRef.mock.calls).toEqual([[url, ''], [url, '@first'], [url, '@second']]);
     });
 
     it('falls back to the Ref origin when copies cannot be loaded', () => {

@@ -166,7 +166,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     const cached = this.store.view.ref;
     let found = false;
-    (url === cached?.url && (origin === undefined || (cached.origin || '') === origin)
+    (url === cached?.url && cached.origin !== undefined && (origin === undefined || cached.origin === origin)
         ? of(cached)
         : origin === undefined
         ? this.refs.getCurrent(url)
