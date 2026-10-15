@@ -57,12 +57,13 @@ describe('CsrfInterceptor', () => {
     });
   }
 
-  it('does not retry a network error if the cookie did not change', () => {
+  it('retries a network error once even if the cookie did not change', () => {
     const http = TestBed.inject(HttpClient);
     const ctrl = TestBed.inject(HttpTestingController);
     document.cookie = 'XSRF-TOKEN=same';
     let error: any;
     http.post('/api/v1/ref', 'data').pipe(catchError(err => { error = err; return EMPTY; })).subscribe();
+    ctrl.expectOne('/api/v1/ref').error(new ProgressEvent('error'));
     ctrl.expectOne('/api/v1/ref').error(new ProgressEvent('error'));
     expect(error.status).toBe(0);
     ctrl.verify();

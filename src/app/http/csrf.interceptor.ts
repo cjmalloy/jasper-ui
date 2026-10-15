@@ -32,7 +32,7 @@ export class CsrfInterceptor implements HttpInterceptor {
         // cookie may change after the header was read. The 403 body is not always
         // readable (e.g. large uploads), so also retry if the cookie changed.
         const csrf = token !== this.getCsrfToken() || /CSRF token/i.test(err.error?.detail || '');
-        if ((!err.status || err.status === 403) && csrf) {
+        if (!err.status || err.status === 403 && csrf) {
           console.warn('Retrying forbidden request with fresh CSRF token');
           const retryReq = request.clone({
             headers: request.headers.set('X-XSRF-TOKEN', this.getCsrfToken()),
