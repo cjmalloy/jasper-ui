@@ -8063,6 +8063,22 @@ Each response contains the converted Markdown from a specific source format.</so
       進捗を報告するスクリプトは、更新によってデルタスクリプトが再実行されないように
       _seal/delta タグも追加してください。</target>
       </trans-unit>
+      <trans-unit id="2608131079155543603" datatype="html">
+        <source>📌️ pinned</source>
+        <target>📌️ ピン留め</target>
+      </trans-unit>
+      <trans-unit id="3779190388212566897" datatype="html">
+        <source>Pinned version</source>
+        <target>ピン留めされたバージョン</target>
+      </trans-unit>
+      <trans-unit id="4282945801176727685" datatype="html">
+        <source>📌️ Pinned</source>
+        <target>📌️ ピン留め</target>
+      </trans-unit>
+      <trans-unit id="7101979787474383505" datatype="html">
+        <source>Pinned copies of a Ref take precedence over newer unpinned copies from other origins.</source>
+        <target>ピン留めされたRefのコピーは、他のオリジンにある新しいピン留めされていないコピーよりも優先されます。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

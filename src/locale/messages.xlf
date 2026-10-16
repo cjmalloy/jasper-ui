@@ -2308,6 +2308,10 @@ Please Reload.</source>
           <context context-type="linenumber">493</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/root.ts</context>
+          <context context-type="linenumber">534</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/email.ts</context>
           <context context-type="linenumber">20</context>
         </context-group>
@@ -7058,6 +7062,10 @@ Private tags start with an underscore.
           <context context-type="linenumber">507</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/root.ts</context>
+          <context context-type="linenumber">519</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/email.ts</context>
           <context context-type="linenumber">14</context>
         </context-group>
@@ -7839,6 +7847,10 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
           <context context-type="linenumber">486</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/root.ts</context>
+          <context context-type="linenumber">525</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/seamless.ts</context>
@@ -9865,6 +9877,10 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
           <context context-type="linenumber">145</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/root.ts</context>
+          <context context-type="linenumber">532</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/user.ts</context>
@@ -13252,6 +13268,10 @@ F: Fullscreen toggle
           <context context-type="linenumber">504</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/root.ts</context>
+          <context context-type="linenumber">516</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/editor.service.ts</context>
           <context context-type="linenumber">287</context>
         </context-group>
@@ -13799,6 +13819,34 @@ F: Fullscreen toggle
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
           <context context-type="linenumber">508</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4282945801176727685" datatype="html">
+        <source>📌️ Pinned</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/root.ts</context>
+          <context context-type="linenumber">514</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7101979787474383505" datatype="html">
+        <source>Pinned copies of a Ref take precedence over newer unpinned copies from other origins.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/root.ts</context>
+          <context context-type="linenumber">520</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2608131079155543603" datatype="html">
+        <source>📌️ pinned</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/root.ts</context>
+          <context context-type="linenumber">534</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3779190388212566897" datatype="html">
+        <source>Pinned version</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/root.ts</context>
+          <context context-type="linenumber">534</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6817971173758446472" datatype="html">
