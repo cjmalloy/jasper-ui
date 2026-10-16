@@ -5,6 +5,7 @@ import {
   ORIGIN_REGEX,
   ORIGIN_NOT_BLANK_REGEX,
   QUALIFIED_TAG_REGEX,
+  QUERY_REGEX,
   PLUGIN_REGEX,
   USER_REGEX,
   urlSummary,
@@ -25,6 +26,20 @@ import {
 import { Ref } from '../model/ref';
 
 describe('Format Utils', () => {
+  describe('QUERY_REGEX', () => {
+    it('should match multi-character sub-origins in every term position', () => {
+      for (const q of ['science@home.ab', '(science@home.ab)', 'a:science@home.ab', 'a:(b|c@x.yz)', '(a@x.yz|b):c@x.yz', '@home.ab|@*']) {
+        expect(QUERY_REGEX.test(q)).toBe(true);
+      }
+    });
+
+    it('should not match invalid origins', () => {
+      for (const q of ['a@.x', '(a@x.)', 'a:b@x..y', 'a@x.*', '(a@x.*)']) {
+        expect(QUERY_REGEX.test(q)).toBe(false);
+      }
+    });
+  });
+
   describe('URI_REGEX', () => {
     it('should match valid URIs', () => {
       expect(URI_REGEX.test('http://example.com')).toBe(true);
