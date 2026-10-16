@@ -264,4 +264,81 @@ describe('aiQueryPlugin', () => {
       tags: expect.arrayContaining(['internal', '+plugin/log']),
     }));
   });
+
+  it('generates with Muse Wonder through the Meta Model API', async () => {
+    const response = {
+      url: 'ai:response',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: ['https://example.test/image.png'],
+      plugins: { 'plugin/llm': { provider: 'meta' } },
+    };
+    const source = {
+      url: 'https://example.test/image.png',
+      title: 'Image',
+      comment: 'What is this?',
+      tags: ['public', 'plugin/image'],
+    };
+    const axios = {
+      get: vi.fn(async (url: string, options: { params: { query?: string } }) => {
+        const query = options.params.query;
+        if (url.endsWith('/repl/cache')) {
+          return { data: Buffer.from('image'), headers: { 'content-type': 'image/png' } };
+        }
+        if (query?.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query?.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'meta-key' }] } };
+        if (query === '!+system/prompt') return { data: { content: [source] } };
+        return { data: { content: [] } };
+      }),
+    };
+    const create = vi.fn(async () => ({
+      output_text: 'A test image',
+      usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+    }));
+    const clientOptions = vi.fn();
+    class OpenAi {
+      responses = { create };
+      constructor(options: unknown) {
+        clientOptions(options);
+      }
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
+      'openai': OpenAi,
+    })[module];
+    const output = vi.fn();
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+
+    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
+
+    expect(axios.get).toHaveBeenCalledWith('http://jasper.test/api/v1/ref/page', expect.objectContaining({
+      params: { query: '+plugin/secret/meta@' },
+    }));
+    expect(clientOptions).toHaveBeenCalledWith({ apiKey: 'meta-key', baseURL: 'https://api.meta.ai/v1' });
+    expect(create).toHaveBeenCalledTimes(1);
+    const request = (create.mock.calls[0] as unknown[])[0] as any;
+    expect(request.model).toBe('muse-wonder-1.0');
+    expect(request.input).toContainEqual(expect.objectContaining({
+      role: 'user',
+      content: expect.arrayContaining([expect.objectContaining({
+        type: 'input_image',
+        image_url: expect.stringMatching(/^data:image\/png;base64,/),
+      })]),
+    }));
+    const bundle = JSON.parse(output.mock.calls[0][0]);
+    expect(bundle.ref[0].comment).toBe('A test image');
+    expect(bundle.ref[0].plugins['plugin/llm']).toEqual(expect.objectContaining({
+      provider: 'meta',
+      model: 'muse-wonder-1.0',
+    }));
+  });
 });

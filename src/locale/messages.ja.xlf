@@ -2137,6 +2137,9 @@ Private tags start with an underscore.
       <trans-unit id="2431574352661739964" datatype="html">
         <source>Nous</source>
       </trans-unit>
+      <trans-unit id="8252591585673168867" datatype="html">
+        <source>Meta</source>
+      </trans-unit>
       <trans-unit id="347407180135731058" datatype="html">
         <source>Audio</source>
         <target>音声</target>
