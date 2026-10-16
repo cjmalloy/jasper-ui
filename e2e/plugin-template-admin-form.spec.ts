@@ -1,5 +1,5 @@
-import { type APIRequestContext, expect, test } from '@playwright/test';
-import { adminHeaders } from './setup';
+import { type APIRequestContext, expect } from '@playwright/test';
+import { adminHeaders, test } from './setup';
 
 test.describe.serial('Plugin/Template Admin Form', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';

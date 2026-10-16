@@ -61,6 +61,17 @@ export class RefThreadComponent implements HasChanges {
   readonly to = computed<Ref>(() => this.lastRef() || this.store.view.ref()!);
   private destroyRef = inject(DestroyRef);
 
+  /**
+   * The route page, or the last page of the thread by default.
+   */
+  private readonly pageNumber = computed(() => {
+    const pageNumber = this.store.view.route.routeSnapshot()?.queryParams['pageNumber'];
+    if (pageNumber) return pageNumber;
+    const pageSize = this.store.view.pageSize();
+    if (!pageSize) return this.store.view.pageNumber();
+    return Math.floor(((pluginResponses(this.store.view.ref(), 'plugin/thread') || 1) - 1) / pageSize);
+  });
+
   readonly reply = viewChild<CommentReplyComponent>('reply');
   readonly list = viewChild<RefListComponent>('list');
 
@@ -78,7 +89,7 @@ export class RefThreadComponent implements HasChanges {
         this.store.view.sort(),
         this.store.view.filter(),
         this.store.view.search(),
-        this.store.view.pageNumber(),
+        this.pageNumber(),
         this.store.view.pageSize(),
       ),
       responses: this.store.view.url(),
@@ -93,11 +104,6 @@ export class RefThreadComponent implements HasChanges {
   }
 
   private readonly initialize = afterNextRender(() => {
-    effect(() => {
-      if (this.store.view.pageSize()) {
-        this.store.view.defaultPageNumber.set(Math.floor(((pluginResponses(this.to(), 'plugin/thread') || 1) - 1) / this.store.view.pageSize()));
-      }
-    }, { injector: this.injector });
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref())), { injector: this.injector });
     effect(() => {

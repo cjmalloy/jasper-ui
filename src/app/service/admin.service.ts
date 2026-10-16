@@ -682,17 +682,13 @@ export class AdminService {
   });
 
   readonly embeddable = computed<string[]>(() => {
-    const status = this.status();
-    if (!this._cache.has('embeddable')) {
-      this._cache.set('embeddable', Object.values(status.plugins).filter(p => {
-        if (!p) return false;
-        if (p?.config?.embeddable) return true;
-        if (p?.config?.editingViewer) return true;
-        if (p?.config?.ui) return true;
-        return false;
-      }).map(p => p!.tag));
-    }
-    return this._cache.get('embeddable')!;
+    return Object.values(this.status().plugins).filter(p => {
+      if (!p) return false;
+      if (p?.config?.embeddable) return true;
+      if (p?.config?.editingViewer) return true;
+      if (p?.config?.ui) return true;
+      return false;
+    }).map(p => p!.tag);
   });
 
   readonly editor = computed(() => {

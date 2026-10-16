@@ -172,6 +172,28 @@ describe('QueryStore', () => {
     expect(store.page()).toBeUndefined();
   });
 
+  it('keeps the previous page when a search-only change fails', async () => {
+    const first = Page.of([{ url: 'https://example.com/first' }]);
+    const next = new Subject<Page<Ref>>();
+    const refs = {
+      page: vi.fn()
+        .mockReturnValueOnce(of(first))
+        .mockReturnValueOnce(next),
+      getCurrent: vi.fn(),
+    } as unknown as RefService;
+    const store = createStore(refs);
+
+    const args = watch(store, { query: 'test' });
+    expect(store.page()).toBe(first);
+
+    set(store, args, { query: 'test', search: 'abc' });
+    next.error(new Error('search failed'));
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(store.error()).toBeTruthy();
+    expect(store.page()).toBe(first);
+  });
+
   it('stops loading when the watching injector is destroyed', () => {
     const refs = {
       page: vi.fn(() => of(Page.of([]))),

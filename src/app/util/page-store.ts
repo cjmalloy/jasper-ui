@@ -36,7 +36,7 @@ export abstract class PageStore<A, T> {
       loading: this.resource.isLoading(),
     }),
     computation: (current, previous) => {
-      if (current.page || !current.loading || !previous?.value.page) return current;
+      if (current.page || !previous?.value.page) return current;
       if (!isEqual(omit(current.args as object, 'search'), omit(previous.value.args as object, 'search'))) return current;
       return { ...current, page: previous.value.page };
     },

@@ -1,6 +1,7 @@
 @for (a of groupedActions() | keyvalue; track a.key; let i = $index) {
-  @if (a.value[0].confirm) {
+  @if (a.value[0].confirm; as message) {
     <app-confirm-action class="list-action"
+                        [message]="message"
                         [action]="apply$(a.value)"
                         [appTitle]="a.value">{{ a.key }}</app-confirm-action>
   } @else {
