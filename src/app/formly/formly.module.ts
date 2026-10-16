@@ -631,7 +631,7 @@ Tags may be qualified with an origin.
 Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
 Use an origin without a tag to match all tags at that origin.
 Missing origins match the default origin.
-Use @* to match all non-default origins, or @origin.* to match all sub-origins.
+Use @* to match any top-level origin, or @origin.* to match direct sub-origins of @origin.
 Negation (!) is not allowed.
 Protected tags start with a plus sign.
 Private tags start with an underscore.

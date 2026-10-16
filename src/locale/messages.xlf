@@ -6094,7 +6094,7 @@ Private tags start with an underscore.
           <context context-type="linenumber">652</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6585660164412014628" datatype="html">
+      <trans-unit id="3444072210683622660" datatype="html">
         <source>Tags must be lower case letters, numbers, periods and forward slashes.
 Must not start with a forward slash or period.
 Must not or contain two forward slashes or periods in a row.
@@ -6102,7 +6102,7 @@ Tags may be qualified with an origin.
 Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
 Use an origin without a tag to match all tags at that origin.
 Missing origins match the default origin.
-Use @* to match all non-default origins, or @origin.* to match all sub-origins.
+Use @* to match any top-level origin, or @origin.* to match direct sub-origins of @origin.
 Negation (!) is not allowed.
 Protected tags start with a plus sign.
 Private tags start with an underscore.

@@ -1975,7 +1975,7 @@ Private tags start with an underscore.
         <source>Origins: </source>
         <target>オリジン: </target>
       </trans-unit>
-      <trans-unit id="6585660164412014628" datatype="html">
+      <trans-unit id="3444072210683622660" datatype="html">
         <source>Tags must be lower case letters, numbers, periods and forward slashes.
 Must not start with a forward slash or period.
 Must not or contain two forward slashes or periods in a row.
@@ -1983,7 +1983,7 @@ Tags may be qualified with an origin.
 Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
 Use an origin without a tag to match all tags at that origin.
 Missing origins match the default origin.
-Use @* to match all non-default origins, or @origin.* to match all sub-origins.
+Use @* to match any top-level origin, or @origin.* to match direct sub-origins of @origin.
 Negation (!) is not allowed.
 Protected tags start with a plus sign.
 Private tags start with an underscore.
@@ -1995,7 +1995,7 @@ Private tags start with an underscore.
 オリジンはアットマーク(@)で始まり、小文字の英字、数字、ピリオドのみを含める必要があります。
 タグなしのオリジンを使用して、そのオリジンのすべてのタグに一致させることができます。
 オリジンを省略するとデフォルトオリジンに一致します。
-@* を使用するとデフォルト以外のすべてのオリジンに、@origin.* を使用するとすべてのサブオリジンに一致します。
+@* を使用すると任意のトップレベルオリジンに、@origin.* を使用すると @origin の直下のサブオリジンに一致します。
 否定(!)は使用できません。
 保護されたタグはプラス記号で始まります。
 プライベートタグはアンダースコアで始まります。
