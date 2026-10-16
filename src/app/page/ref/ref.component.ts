@@ -165,7 +165,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.versions = count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     const cached = this.store.view.ref;
-    let found = false;
     (url === cached?.url && cached.origin !== undefined && (origin === undefined || cached.origin === origin)
         ? of(cached)
         : origin === undefined
@@ -173,10 +172,9 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         : this.refs.get(url, origin)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-      tap(ref => found = !!ref),
       map(ref => ref || { url }),
       tap(ref => this.markRead(ref)),
-      tap(ref => found ? this.watch(ref) : this.unwatch()),
+      tap(ref => this.watch(ref)),
       switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
         : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
@@ -202,20 +200,14 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     }
   }
 
-  private unwatch() {
-    this.watchKey = '';
-    this.watchSelf?.unsubscribe();
-    this.watchSelf = undefined;
-  }
-
   private watch(ref: Ref) {
-    const url = ref.url;
-    const origin = ref.origin || '';
-    const watchKey = origin + ':' + url;
+    // 404 placeholders have no origin
+    const watchKey = ref.origin === undefined ? '' : ref.origin + ':' + ref.url;
     if (this.config.websockets && this.watchKey !== watchKey) {
       this.watchKey = watchKey;
       this.watchSelf?.unsubscribe();
-      this.watchSelf = this.stomp.watchRef(url, origin).pipe(
+      if (!watchKey) return;
+      this.watchSelf = this.stomp.watchRef(ref.url, ref.origin).pipe(
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ud => {
         if (!this.store.view.ref) return;

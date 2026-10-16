@@ -3,9 +3,7 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { firstValueFrom, NEVER, of, throwError } from 'rxjs';
-import { Page } from '../model/page';
-import { Ref } from '../model/ref';
+import { firstValueFrom, of } from 'rxjs';
 
 import { ActionService } from './action.service';
 
@@ -118,61 +116,6 @@ describe('ActionService', () => {
         'plugin/a': { enabled: true },
         'plugin/b': 42,
       },
-    });
-  });
-
-  describe('websocket origins', () => {
-    const url = 'comment:game';
-    let watchRef: ReturnType<typeof vi.spyOn>;
-    let page: ReturnType<typeof vi.spyOn>;
-
-    beforeEach(() => {
-      watchRef = vi.spyOn((service as any).stomp, 'watchRef').mockReturnValue(NEVER);
-      page = vi.spyOn((service as any).refs, 'page').mockReturnValue(of(Page.of<Ref>([
-        { url, origin: '@sub' },
-        { url, origin: '@other' },
-      ])));
-      (service as any).store.origins.list = ['', '@sub', '@other', '@missing'];
-    });
-
-    it('watch subscribes to readable origins and existing copies', () => {
-      service.watch({ url, origin: '@sub' }).ref$.subscribe(() => {});
-
-      expect(page).toHaveBeenCalledWith({ url, obsolete: null, page: 0 });
-      expect(watchRef.mock.calls).toEqual([[url, '@sub'], [url, ''], [url, '@other'], [url, '@missing']]);
-    });
-
-    it('append subscribes to readable origins and existing copies', () => {
-      service.append({ url, origin: '@sub' }).updates$.subscribe(() => {});
-
-      expect(page).toHaveBeenCalledWith({ url, obsolete: null, page: 0 });
-      expect(watchRef.mock.calls).toEqual([[url, '@sub'], [url, ''], [url, '@other'], [url, '@missing']]);
-    });
-
-    it('subscribes to copies in origins outside the origin list', () => {
-      (service as any).store.origins.list = [''];
-      service.watch({ url, origin: '' }).ref$.subscribe(() => {});
-
-      expect(watchRef.mock.calls).toEqual([[url, ''], [url, '@sub'], [url, '@other']]);
-    });
-
-    it('subscribes to origins from every page of copies', () => {
-      (service as any).store.origins.list = [''];
-      page.mockImplementation((args: any) => of({
-        content: [{ url, origin: args.page ? '@second' : '@first' }],
-        page: { number: args.page, size: 1, totalElements: 2, totalPages: 2 },
-      }));
-      service.watch({ url, origin: '' }).ref$.subscribe(() => {});
-
-      expect(page.mock.calls).toEqual([[{ url, obsolete: null, page: 0 }], [{ url, obsolete: null, page: 1 }]]);
-      expect(watchRef.mock.calls).toEqual([[url, ''], [url, '@first'], [url, '@second']]);
-    });
-
-    it('still watches readable origins when copies cannot be loaded', () => {
-      page.mockReturnValue(throwError(() => ({ status: 500 })));
-      service.watch({ url, origin: '' }).ref$.subscribe(() => {});
-
-      expect(watchRef.mock.calls).toEqual([[url, ''], [url, '@sub'], [url, '@other'], [url, '@missing']]);
     });
   });
 });

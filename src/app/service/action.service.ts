@@ -1,26 +1,11 @@
 import { Injectable } from '@angular/core';
-import { debounce, isArray, uniq, without } from 'lodash-es';
+import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import {
-  catchError,
-  concat,
-  defer,
-  EMPTY,
-  expand,
-  last,
-  map,
-  merge,
-  Observable,
-  of,
-  Subscription,
-  switchMap,
-  throwError,
-  toArray,
-} from 'rxjs';
+import { catchError, concat, defer, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
-import { Ref, RefUpdates } from '../model/ref';
+import { Ref } from '../model/ref';
 import { Action, DownloadAction, downloadModel, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { merge3 } from '../util/diff';
@@ -241,32 +226,16 @@ export class ActionService {
     }
   }
 
-  /**
-   * Watch every readable origin for this Ref: existing copies plus the account
-   * origin and its pulled sub origins, so copies created later are seen too.
-   */
-  private watchCopies(ref: Ref): Observable<RefUpdates> {
-    const page$ = (page: number) => this.refs.page({ url: ref.url, obsolete: null, page });
-    return page$(0).pipe(
-      expand(result => result.page.number + 1 < result.page.totalPages ? page$(result.page.number + 1) : EMPTY),
-      toArray(),
-      map(pages => pages.flatMap(page => page.content.map(r => r.origin || ''))),
-      catchError(() => of([] as string[])),
-      map(origins => uniq([...ref.origin === undefined ? [] : [ref.origin || ''], ...this.store.origins.list, ...origins])),
-      switchMap(origins => merge(...origins.map(origin => this.stomp.watchRef(ref.url, origin)))),
-    );
-  }
-
   watch(ref: Ref, delimiter = '\n') {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let baseComment = ref.comment || '';
     const inner = {
-      ref$: this.watchCopies(ref).pipe(
+      ref$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
           if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
           baseComment = u.comment || '';
         }),
-      ),
+      ))),
       comment$: (comment: string): Observable<string> => {
         if (!cursor) {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
@@ -311,7 +280,7 @@ export class ActionService {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
     const inner = {
-      updates$: this.watchCopies(ref).pipe(
+      updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
           if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
         }),
@@ -325,7 +294,7 @@ export class ActionService {
           comment = comment ? `${comment}  \n${moves.join('  \n')}` : moves.join('  \n');
           return moves;
         })
-      ),
+      ))),
       append$: (value: string): Observable<string> => {
         if (!cursor) {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
