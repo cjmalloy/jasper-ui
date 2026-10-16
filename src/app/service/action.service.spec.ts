@@ -135,21 +135,29 @@ describe('ActionService', () => {
       (service as any).store.origins.list = ['', '@sub', '@other', '@missing'];
     });
 
-    it('watch only subscribes to origins that have the Ref', () => {
+    it('watch subscribes to readable origins and existing copies', () => {
       service.watch({ url, origin: '@sub' }).ref$.subscribe(() => {});
 
       expect(page).toHaveBeenCalledWith({ url, obsolete: null, page: 0 });
-      expect(watchRef.mock.calls).toEqual([[url, '@sub'], [url, '@other']]);
+      expect(watchRef.mock.calls).toEqual([[url, '@sub'], [url, ''], [url, '@other'], [url, '@missing']]);
     });
 
-    it('append only subscribes to origins that have the Ref', () => {
+    it('append subscribes to readable origins and existing copies', () => {
       service.append({ url, origin: '@sub' }).updates$.subscribe(() => {});
 
       expect(page).toHaveBeenCalledWith({ url, obsolete: null, page: 0 });
-      expect(watchRef.mock.calls).toEqual([[url, '@sub'], [url, '@other']]);
+      expect(watchRef.mock.calls).toEqual([[url, '@sub'], [url, ''], [url, '@other'], [url, '@missing']]);
+    });
+
+    it('subscribes to copies in origins outside the origin list', () => {
+      (service as any).store.origins.list = [''];
+      service.watch({ url, origin: '' }).ref$.subscribe(() => {});
+
+      expect(watchRef.mock.calls).toEqual([[url, ''], [url, '@sub'], [url, '@other']]);
     });
 
     it('subscribes to origins from every page of copies', () => {
+      (service as any).store.origins.list = [''];
       page.mockImplementation((args: any) => of({
         content: [{ url, origin: args.page ? '@second' : '@first' }],
         page: { number: args.page, size: 1, totalElements: 2, totalPages: 2 },
@@ -160,11 +168,11 @@ describe('ActionService', () => {
       expect(watchRef.mock.calls).toEqual([[url, ''], [url, '@first'], [url, '@second']]);
     });
 
-    it('falls back to the Ref origin when copies cannot be loaded', () => {
+    it('still watches readable origins when copies cannot be loaded', () => {
       page.mockReturnValue(throwError(() => ({ status: 500 })));
       service.watch({ url, origin: '' }).ref$.subscribe(() => {});
 
-      expect(watchRef.mock.calls).toEqual([[url, '']]);
+      expect(watchRef.mock.calls).toEqual([[url, ''], [url, '@sub'], [url, '@other'], [url, '@missing']]);
     });
   });
 });

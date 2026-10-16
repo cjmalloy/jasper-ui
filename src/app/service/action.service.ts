@@ -242,8 +242,8 @@ export class ActionService {
   }
 
   /**
-   * Watch every origin that has a copy of this Ref. Subscribing to an origin
-   * without a copy is denied by the server.
+   * Watch every readable origin for this Ref: existing copies plus the account
+   * origin and its pulled sub origins, so copies created later are seen too.
    */
   private watchCopies(ref: Ref): Observable<RefUpdates> {
     const page$ = (page: number) => this.refs.page({ url: ref.url, obsolete: null, page });
@@ -252,7 +252,7 @@ export class ActionService {
       toArray(),
       map(pages => pages.flatMap(page => page.content.map(r => r.origin || ''))),
       catchError(() => of([] as string[])),
-      map(origins => uniq(ref.origin === undefined ? origins : [ref.origin || '', ...origins])),
+      map(origins => uniq([...ref.origin === undefined ? [] : [ref.origin || ''], ...this.store.origins.list, ...origins])),
       switchMap(origins => merge(...origins.map(origin => this.stomp.watchRef(ref.url, origin)))),
     );
   }
