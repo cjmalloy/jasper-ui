@@ -1,37 +1,37 @@
 <div class="link">
-  <a [routerLink]="['/tag', qualifiedTag]" [appTitle]="user">{{ user?.name || ext?.name || localTag }}</a>
-  @if (user?.name) {
-    <span class="host">({{ qualifiedTag }})</span>
-  } @else if (origin) {
-    <span class="host">({{ origin }})</span>
+  <a [routerLink]="['/tag', qualifiedTag()]" [appTitle]="user()">{{ user()?.name || ext()?.name || localTag() }}</a>
+  @if (user()?.name) {
+    <span class="host">({{ qualifiedTag() }})</span>
+  } @else if (origin()) {
+    <span class="host">({{ origin() }})</span>
   }
 </div>
 <div class="info">
-  <span>{{ role.toLowerCase().replace('role_', '') }}</span>
+  <span>{{ role().toLowerCase().replace('role_', '') }}</span>
 </div>
 <div class="actions">
-  @if (!created && store.account.admin) {
-    <app-confirm-action #action [action]="copy$" i18n>install</app-confirm-action>
-  } @else if (!local) {
-    <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
+  @if (!created() && store.account.admin) {
+    <app-confirm-action [action]="copy$" i18n>install</app-confirm-action>
+  } @else if (!local()) {
+    <app-inline-button [action]="copy$" i18n>copy</app-inline-button>
   }
-  @if (created && local && store.account.admin) {
-    <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+  @if (created() && local() && store.account.admin) {
+    <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
   } @else {
-    <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+    <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
   }
   <a class="fake-link" (click)="download()" i18n>download</a>
   <a class="fake-link connect-action" (click)="connect()" i18n>connect</a>
-  @if (store.account.root && store.account.mod && config.scim && !profile) {
-    <app-inline-button #action [action]="activate$" i18n>sync</app-inline-button>
+  @if (store.account.root() && store.account.mod && config.scim && !profile()) {
+    <app-inline-button [action]="activate$" i18n>sync</app-inline-button>
   }
-  @if (profile && writeAccess) {
-    <app-inline-password #action [action]="setPassword$" i18n>password</app-inline-password>
+  @if (profile() && writeAccess()) {
+    <app-inline-password [action]="setPassword$" i18n>password</app-inline-password>
   }
-  @if (created || profile) {
-    @if (store.account.mod && writeAccess) {
-      <app-confirm-action #action [action]="ban$" i18n>ban</app-confirm-action>
-      <app-inline-select #action [action]="setRole$" [value]="role">
+  @if (created() || profile()) {
+    @if (store.account.mod && writeAccess()) {
+      <app-confirm-action [action]="ban$" i18n>ban</app-confirm-action>
+      <app-inline-select [action]="setRole$" [value]="role()">
         <span i18n>role</span>
         <option value="ROLE_ADMIN" i18n>admin</option>
         <option value="ROLE_MOD" i18n>mod</option>
@@ -40,52 +40,52 @@
         <option value="ROLE_VIEWER" i18n>viewer</option>
         <option value="ROLE_BANNED" i18n>banned</option>
       </app-inline-select>
-      @if (profile) {
-        @if (!profile.active) {
-          <app-inline-button #action [action]="activate$" i18n>activate</app-inline-button>
+      @if (profile()) {
+        @if (!profile()!.active) {
+          <app-inline-button [action]="activate$" i18n>activate</app-inline-button>
         } @else {
-          <app-inline-button #action [action]="deactivate$" i18n>deactivate</app-inline-button>
+          <app-inline-button [action]="deactivate$" i18n>deactivate</app-inline-button>
         }
       }
     }
-    @if ((!profile || store.account.root) && store.account.mod || writeAccess) {
-      <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
+    @if ((!profile() || store.account.root()) && store.account.mod || writeAccess()) {
+      <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
     }
   }
-  @if (created && (store.account.mod || writeAccess)) {
-    @if (user?.pubKey) {
-      <app-confirm-action #action [action]="keygen$"
+  @if (created() && (store.account.mod || writeAccess())) {
+    @if (user()?.pubKey) {
+      <app-confirm-action [action]="keygen$"
                           i18n-warning warning="This will overwrite existing key!"
                           i18n>keygen</app-confirm-action>
     } @else {
-      <app-confirm-action #action [action]="keygen$" i18n>keygen</app-confirm-action>
+      <app-confirm-action [action]="keygen$" i18n>keygen</app-confirm-action>
     }
   }
 </div>
 
-@if (editing) {
+@if (editing()) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
     <app-user-form #refForm [group]="editForm"
-                   [externalErrors]="externalErrors"></app-user-form>
+                   [externalErrors]="externalErrors()"></app-user-form>
 
-    @for (e of serverError; track e) {
+    @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
     }
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
-      <button type="button" (click)="editing = false" i18n>cancel</button>
+      <button type="submit" [disabled]="submitted() && !editFormValid()" i18n>save</button>
+      <button type="button" (click)="editing.set(false)" i18n>cancel</button>
     </span>
   </form>
-} @else if (viewSource) {
+} @else if (viewSource()) {
   <form class="form" [formGroup]="editForm">
     <app-user-form #refForm [group]="editForm"></app-user-form>
   </form>
 } @else {
-  @for (e of serverError; track e) {
+  @for (e of serverError(); track e) {
     <div class="error">{{ e }}</div>
   }
 }

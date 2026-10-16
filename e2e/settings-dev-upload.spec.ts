@@ -1,5 +1,5 @@
-import { type APIRequestContext, expect, test } from '@playwright/test';
-import { adminHeaders, openSidebar } from './setup';
+import { type APIRequestContext, expect } from '@playwright/test';
+import { adminHeaders, openSidebar, test } from './setup';
 
 test.describe.serial('Settings Dev Upload', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';

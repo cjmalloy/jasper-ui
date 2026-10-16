@@ -5,7 +5,6 @@ import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
 import { EMPTY, NEVER, of, Subject, throwError } from 'rxjs';
 import { RefUpdates } from '../../model/ref';
 
@@ -76,13 +75,14 @@ describe('RefPage', () => {
     });
 
     function route(queryParams: Record<string, string>) {
-      runInAction(() => component.store.view.route.routeSnapshot = {
+      component.store.view.route.routeSnapshot.set({
         queryParams,
         firstChild: {
           params: { url },
           url: [{ path: 'ref' }, { path: url }],
         },
       } as any);
+      TestBed.tick();
     }
 
     it('loads the exact version for an empty origin', () => {
@@ -90,7 +90,7 @@ describe('RefPage', () => {
 
       expect(get).toHaveBeenCalledWith(url, '');
       expect(getCurrent).not.toHaveBeenCalled();
-      expect(component.store.view.ref).toEqual({ url, origin: '' });
+      expect(component.store.view.ref()).toEqual({ url, origin: '' });
     });
 
     it('loads the exact version for a remote origin', () => {
@@ -98,7 +98,7 @@ describe('RefPage', () => {
 
       expect(get).toHaveBeenCalledWith(url, '@other');
       expect(getCurrent).not.toHaveBeenCalled();
-      expect(component.store.view.ref).toEqual({ url, origin: '@other' });
+      expect(component.store.view.ref()).toEqual({ url, origin: '@other' });
     });
 
     it('loads the newest version without an origin', () => {
@@ -106,7 +106,7 @@ describe('RefPage', () => {
 
       expect(getCurrent).toHaveBeenCalledWith(url);
       expect(get).not.toHaveBeenCalled();
-      expect(component.store.view.ref).toEqual({ url, origin: '@remote' });
+      expect(component.store.view.ref()).toEqual({ url, origin: '@remote' });
     });
 
     it('reuses a preloaded Ref from the same origin', () => {
@@ -123,7 +123,7 @@ describe('RefPage', () => {
 
       expect(get).toHaveBeenNthCalledWith(1, url, '');
       expect(get).toHaveBeenNthCalledWith(2, url, '@other');
-      expect(component.store.view.ref).toEqual({ url, origin: '@other' });
+      expect(component.store.view.ref()).toEqual({ url, origin: '@other' });
     });
   });
 
@@ -164,7 +164,7 @@ describe('RefPage', () => {
       component.reload(url, undefined);
 
       expect(topics()).toEqual([]);
-      expect(component.store.view.ref).toEqual({ url });
+      expect(component.store.view.ref()).toEqual({ url });
     });
 
     it('does not reuse a 404 placeholder', () => {
@@ -178,7 +178,7 @@ describe('RefPage', () => {
       expect(getCurrent).toHaveBeenCalledTimes(2);
       expect(get).toHaveBeenCalledTimes(1);
       expect(topics()).toEqual([]);
-      expect(component.store.view.ref).toEqual({ url });
+      expect(component.store.view.ref()).toEqual({ url });
     });
 
     it('resubscribes when the displayed copy changes origin', () => {

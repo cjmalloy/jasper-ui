@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { clearAll, mod, openSidebar } from './setup';
+import { expect } from '@playwright/test';
+import { clearAll, mod, openSidebar, test } from './setup';
 
 test.describe.serial('Map Template', () => {
 

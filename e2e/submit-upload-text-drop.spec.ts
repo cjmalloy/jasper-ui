@@ -1,4 +1,5 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
+import { test } from './setup';
 
 async function dropText(page: Page, text: string, type = 'text/plain') {
   await page.locator('.container').first().evaluate((el, { text, type }) => {

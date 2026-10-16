@@ -1,4 +1,7 @@
-import MaplibreGeocoder, { type CarmenGeojsonFeature, type MaplibreGeocoderSuggestion } from '@maplibre/maplibre-gl-geocoder';
+import MaplibreGeocoder, {
+  type CarmenGeojsonFeature,
+  type MaplibreGeocoderSuggestion
+} from '@maplibre/maplibre-gl-geocoder';
 import type { Map } from 'maplibre-gl';
 import { Ext } from '../../model/ext';
 import { GeocodeService } from '../../service/geocode.service';

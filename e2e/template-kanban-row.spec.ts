@@ -1,5 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
-import { clearAll, closeSidebar, mod, openSidebar } from './setup';
+import { expect, type Page } from '@playwright/test';
+import { clearAll, closeSidebar, mod, openSidebar, test } from './setup';
 import { addToBoard, dragCol } from './template-kanban';
 
 async function loadBoard(page: Page) {

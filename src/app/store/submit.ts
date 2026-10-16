@@ -1,48 +1,41 @@
+import { computed, signal, untracked } from '@angular/core';
 import JSZip from 'jszip';
-import { flatten, isArray, without } from 'lodash-es';
-import { action, autorun, makeAutoObservable, observableShallow } from 'mobx';
-import { RouterStore } from 'mobx-angular';
+import { flatten, isArray, isEqual, without } from 'lodash-es';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { DEFAULT_WIKI_PREFIX } from '../mods/org/wiki';
 import { refCacheIds } from '../util/cache';
 import { EventBus } from './bus';
+import { RouterStore } from './router';
 
 export type Saving = { url?: string, name: string, progress?: number };
 export class SubmitStore {
 
-  wikiPrefix = DEFAULT_WIKI_PREFIX;
+  readonly wikiPrefix = signal<string>(DEFAULT_WIKI_PREFIX);
+  readonly submitGenId = signal<Plugin[]>([]);
+  readonly submitDm = signal<Plugin[]>([]);
+  readonly files = signal<File[]>([]);
+  readonly embedFiles = signal<File[]>([]);
+  readonly exts = signal<Ext[]>([]);
+  readonly refs = signal<Ref[]>([]);
+  readonly overwrite = signal<boolean>(false);
+  readonly refLimitOverride = signal<boolean>(false);
+  /**
+   * Read only. Use setCaching() and removeCaching() to modify.
+   */
+  readonly caching = signal<ReadonlyMap<File, Saving>>(new Map());
+
   maxPreview = 300;
-  submitGenId: Plugin[] = [];
-  submitDm: Plugin[] = [];
-  files: File[] = [] as any;
-  embedFiles: File[] = [] as any;
-  caching: Map<File, Saving> = new Map<File, Saving>();
-  exts: Ext[] = [];
-  refs: Ref[] = [];
   /**
    * Cache files from uploaded zips, keyed by their original cache ID.
    */
   cacheFiles = new Map<string, JSZip.JSZipObject>();
-  overwrite = false;
-  refLimitOverride = false;
 
   constructor(
     public route: RouterStore,
     private eventBus: EventBus,
   ) {
-    makeAutoObservable(this, {
-      submitGenId: observableShallow,
-      submitDm: observableShallow,
-      files: observableShallow,
-      embedFiles: observableShallow,
-      caching: observableShallow,
-      cacheFiles: false,
-      setRef: action,
-      setExt: action,
-    });
-
     this.eventBus.events.subscribe(event => {
       if (event.event === 'refresh') {
         if (event.ref) {
@@ -52,157 +45,169 @@ export class SubmitStore {
     });
   }
 
-  get topRefs() {
-    return this.refs.slice(0, 5);
+  setCaching(file: File, saving: Saving) {
+    this.caching.update(m => new Map(m).set(file, saving));
   }
 
-  get topExts() {
-    return this.exts.slice(0, 5);
+  removeCaching(file: File) {
+    this.caching.update(m => {
+      const result = new Map(m);
+      result.delete(file);
+      return result;
+    });
   }
 
-  get subpage() {
-    return this.route.routeSnapshot?.firstChild?.firstChild?.routeConfig?.path;
-  }
+  readonly topRefs = computed(() => {
+    return this.refs().slice(0, 5);
+  });
 
-  get url() {
-    return this.route.routeSnapshot?.queryParams['url'];
-  }
+  readonly topExts = computed(() => {
+    return this.exts().slice(0, 5);
+  });
 
-  get linkTypeOverride() {
-    return this.route.routeSnapshot?.queryParams['linkTypeOverride'];
-  }
+  readonly subpage = computed(() => {
+    return this.route.routeSnapshot()?.firstChild?.firstChild?.routeConfig?.path;
+  });
 
-  get text() {
-    if (this.linkTypeOverride) return this.linkTypeOverride === 'text';
-    if (this.subpage != 'text') return false;
-    return this.url?.startsWith('comment:') || !this.url;
-  }
+  readonly url = computed(() => {
+    return this.route.routeSnapshot()?.queryParams['url'];
+  });
 
-  get wiki() {
-    if (this.linkTypeOverride) return this.linkTypeOverride === 'wiki';
-    return !!this.url?.startsWith(this.wikiPrefix);
-  }
+  readonly linkTypeOverride = computed(() => {
+    return this.route.routeSnapshot()?.queryParams['linkTypeOverride'];
+  });
 
-  get title(): string {
-    return this.route.routeSnapshot?.queryParams['title'] || '';
-  }
+  readonly text = computed(() => {
+    if (this.linkTypeOverride()) return this.linkTypeOverride() === 'text';
+    if (this.subpage() != 'text') return false;
+    return this.url()?.startsWith('comment:') || !this.url();
+  });
 
-  get to(): string[] {
-    const tag = this.route.routeSnapshot?.queryParams['to'];
+  readonly wiki = computed(() => {
+    if (this.linkTypeOverride()) return this.linkTypeOverride() === 'wiki';
+    return !!this.url()?.startsWith(this.wikiPrefix());
+  });
+
+  readonly title = computed((): string => {
+    return this.route.routeSnapshot()?.queryParams['title'] || '';
+  });
+
+  readonly to = computed((): string[] => {
+    const tag = this.route.routeSnapshot()?.queryParams['to'];
     if (!tag) return [];
     return isArray(tag) ? tag : [tag];
-  }
+  }, { equal: isEqual });
 
-  get tag() {
-    return this.route.routeSnapshot?.queryParams['tag'] as string;
-  }
+  readonly tag = computed(() => {
+    return this.route.routeSnapshot()?.queryParams['tag'] as string;
+  });
 
-  get tags(): string[] {
-    return flatten(this.tag ? [this.tag] : [])
+  readonly tags = computed((): string[] => {
+    return flatten(this.tag() ? [this.tag()] : [])
       .flatMap( t => t.split(/[:|!()]/))
       .map(t => t.includes('@') ? t.substring(0, t.indexOf('@')) : t)
       .filter(t => t && !t.includes('*'));
-  }
+  }, { equal: isEqual });
 
-  get plugin() {
-    return this.route.routeSnapshot?.queryParams['plugin'] || '' as string;
-  }
+  readonly plugin = computed(() => {
+    return this.route.routeSnapshot()?.queryParams['plugin'] || '' as string;
+  });
 
-  get pluginUpload() {
-    if (!this.plugin) return '';
-    return this.route.routeSnapshot?.queryParams['upload'] || '' as string;
-  }
+  readonly pluginUpload = computed(() => {
+    if (!this.plugin()) return '';
+    return this.route.routeSnapshot()?.queryParams['upload'] || '' as string;
+  });
 
   /**
    * Location from the "lng,lat" location query param.
    */
-  get location(): [number, number] | undefined {
-    const value = this.route.routeSnapshot?.queryParams['location'];
+  readonly location = computed((): [number, number] | undefined => {
+    const value = this.route.routeSnapshot()?.queryParams['location'];
     if (typeof value !== 'string') return undefined;
     const location = value.split(',').map(n => n.trim() ? Number(n) : NaN);
     if (location.length !== 2 || !location.every(n => isFinite(n))) return undefined;
     const [lng, lat] = location;
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return undefined;
     return [lng, lat];
-  }
+  }, { equal: isEqual });
 
-  get repost() {
-    return this.tags.includes('plugin/repost');
-  }
+  readonly repost = computed(() => {
+    return this.tags().includes('plugin/repost');
+  });
 
-  get source() {
-    return this.route.routeSnapshot?.queryParams['source'];
-  }
+  readonly source = computed(() => {
+    return this.route.routeSnapshot()?.queryParams['source'];
+  });
 
-  get sources(): string[] {
-    return flatten(this.source ? [this.source] : []);
-  }
+  readonly sources = computed((): string[] => {
+    return flatten(this.source() ? [this.source()] : []);
+  }, { equal: isEqual });
 
-  get web() {
-    return !this.wiki && (!this.subpage || this.subpage === 'web');
-  }
+  readonly web = computed(() => {
+    return !this.wiki() && (!this.subpage() || this.subpage() === 'web');
+  });
 
-  get upload() {
-    return this.subpage === 'upload';
-  }
+  readonly upload = computed(() => {
+    return this.subpage() === 'upload';
+  });
 
-  get filesEmpty() {
-    return !this.files.length;
-  }
+  readonly filesEmpty = computed(() => {
+    return !this.files().length;
+  });
 
-  get empty() {
-    return !this.exts.length && !this.refs.length;
-  }
+  readonly empty = computed(() => {
+    return !this.exts().length && !this.refs().length;
+  });
 
-  get genId() {
-    return this.tags.find(t => this.submitGenId.find(p => p.tag === t));
-  }
+  readonly genId = computed(() => {
+    return this.tags().find(t => this.submitGenId().find(p => p.tag === t));
+  });
 
-  get dmPlugin() {
-    return [...this.tags, ...this.to].find(t => this.submitDm.find(p => p.tag === t));
-  }
+  readonly dmPlugin = computed(() => {
+    return [...this.tags(), ...this.to()].find(t => this.submitDm().find(p => p.tag === t));
+  });
 
-  get withoutGenId() {
-    if (!this.submitGenId.length) return this.tags;
-    return without(this.tags, ...this.submitGenId.map(p => p.tag));
-  }
+  readonly withoutGenId = computed(() => {
+    if (!this.submitGenId().length) return this.tags();
+    return without(this.tags(), ...this.submitGenId().map(p => p.tag));
+  });
 
-  get huge() {
-    if (this.refLimitOverride) return false;
-    return this.refs.length > 100 || this.exts.length > 100;
-  }
+  readonly huge = computed(() => {
+    if (this.refLimitOverride()) return false;
+    return this.refs().length > 100 || this.exts().length > 100;
+  });
 
-  get uploads() {
-    return [...this.caching.values()];
-  }
+  readonly uploads = computed(() => {
+    return [...this.caching().values()];
+  });
 
   clearOverride() {
-    this.refLimitOverride = false;
+    this.refLimitOverride.set(false);
   }
 
   overrideHuge() {
-    this.refLimitOverride = true;
+    this.refLimitOverride.set(true);
   }
 
   addRefs(...refs: Ref[]) {
-    this.refs = [...this.refs, ...refs];
+    this.refs.update(r => [...r, ...refs]);
   }
 
   addExts(...exts: Ext[]) {
-    this.exts = [...this.exts, ...exts];
+    this.exts.update(x => [...x, ...exts]);
   }
 
   removeRef(ref: Ref) {
-    this.refs = this.refs.filter(r => r.url !== ref.url || r.modifiedString !== ref.modifiedString);
+    this.refs.update(refs => refs.filter(r => r.url !== ref.url || r.modifiedString !== ref.modifiedString));
   }
 
   removeExt(ext: Ext) {
-    this.exts = this.exts.filter(x => x.tag !== ext.tag || x.modifiedString !== ext.modifiedString);
+    this.exts.update(exts => exts.filter(x => x.tag !== ext.tag || x.modifiedString !== ext.modifiedString));
   }
 
   clearUpload(refs: Ref[] = [], exts: Ext[] = []) {
-    this.exts = exts;
-    this.refs = refs;
+    this.exts.set([...exts]);
+    this.refs.set([...refs]);
     const keep = new Set(refs.flatMap(refCacheIds));
     for (const id of [...this.cacheFiles.keys()]) {
       if (!keep.has(id)) this.cacheFiles.delete(id);
@@ -221,61 +226,46 @@ export class SubmitStore {
 
   addFiles(files?: File[]) {
     if (!files) return;
-    this.files ||= [];
-    this.files.push(...files);
+    this.files.update(f => [...f || [], ...files]);
   }
 
   clearFiles() {
-    if (this.filesEmpty) return;
-    this.files = [] as any;
+    if (untracked(() => this.filesEmpty())) return;
+    this.files.set([]);
   }
 
   setEmbedFiles(files: File[] = []) {
-    this.embedFiles = files;
+    this.embedFiles.set([...files]);
   }
 
   foundRef(url: string) {
-    for (const r of this.refs) {
-      if (r.url === url) {
-        r.exists = true;
-      }
-    }
+    this.refs.update(refs => refs.map(r => r.url === url ? { ...r, exists: true } : r));
   }
 
   foundExt(tag: string) {
-    for (const e of this.exts) {
-      if (e.tag === tag) {
-        e.exists = true;
-      }
-    }
+    this.exts.update(exts => exts.map(e => e.tag === tag ? { ...e, exists: true } : e));
   }
 
   setRef(ref: Ref, url = ref.url) {
-    for (let i = 0; i < this.refs.length; i++) {
-      if (this.refs[i].url === url) {
-        this.refs[i] = ref;
-      }
-    }
+    this.refs.update(refs => refs.map(r => r.url === url ? ref : r));
   }
 
   setExt(ext: Ext) {
-    for (let i = 0; i < this.exts.length; i++) {
-      if (this.exts[i].tag === ext.tag) {
-        this.exts[i] = ext;
-      }
-    }
+    this.exts.update(exts => exts.map(e => e.tag === ext.tag ? ext : e));
   }
 
   tagRefs(tags: string[]) {
-    for (const ref of this.refs)
-    for (const t of tags) {
-      if (t.startsWith('-')) {
-        const r = t.substring(1);
-        if (ref.tags?.includes(r)) ref.tags.splice(ref.tags.indexOf(r), 1);
-      } else if (!ref.tags?.includes(t)) {
-        ref.tags ||= [];
-        ref.tags.push(t)
+    this.refs.update(refs => refs.map(ref => {
+      let result = [...ref.tags || []];
+      for (const t of tags) {
+        if (t.startsWith('-')) {
+          result = result.filter(r => r !== t.substring(1));
+        } else if (!result.includes(t)) {
+          result.push(t);
+        }
       }
-    }
+      if (!ref.tags && !result.length) return ref;
+      return { ...ref, tags: result };
+    }));
   }
 }

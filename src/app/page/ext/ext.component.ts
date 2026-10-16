@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -9,13 +10,10 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
-import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
 import { SettingsComponent } from '../../component/settings/settings.component';
-import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -24,7 +22,7 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
-import { scrollToFirstInvalid } from '../../util/form';
+import { controlState, scrollToFirstInvalid } from '../../util/form';
 import { TAG_SUFFIX_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 import { access, hasPrefix, localTag, prefix } from '../../util/tag';
@@ -33,87 +31,89 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   selector: 'app-ext-page',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: { 'class': 'full-page-form' },
   imports: [
-    MobxAngularModule,
     RouterLink,
     SettingsComponent,
     ReactiveFormsModule,
     SelectTemplateComponent,
     LoadingComponent,
-    LimitWidthDirective,
     ExtFormComponent,
   ],
 })
-export class ExtPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
-  @HostBinding('class') css = 'full-page-form';
+export class ExtPage implements HasChanges {
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  router = inject(Router);
+  store = inject(Store);
+  private exts = inject(ExtService);
+  private fb = inject(UntypedFormBuilder);
 
-  @ViewChild('form')
-  form?: ExtFormComponent;
 
-  template = '';
+  readonly template = signal<string>('');
+  readonly submitted = signal<boolean>(false);
+  readonly invalid = signal<boolean>(false);
+  readonly overwritten = signal<boolean>(false);
+  readonly serverError = signal<string[]>([]);
+  readonly creating = signal(false);
+  private creatingSubscription?: Subscription;
+  readonly editing = signal(false);
+  private editingSubscription?: Subscription;
+  readonly deleting = signal(false);
+  private deletingSubscription?: Subscription;
+  readonly overwrittenModified = signal<string | undefined>('');
+
+  readonly form = viewChild<ExtFormComponent>('form');
   created = false;
-  submitted = false;
-  invalid = false;
-  overwritten = false;
   overwrite = false;
   extForm: UntypedFormGroup;
-  editForm!: UntypedFormGroup;
-  serverError: string[] = [];
+  protected readonly extFormValid = controlState(() => this.extForm, c => c.valid);
 
-  templates = this.admin.tmplSubmit;
+  templates = this.admin.tmplSubmit();
+  readonly editForm = signal<UntypedFormGroup | undefined>(undefined);
+  protected readonly editFormValid = controlState(() => this.editForm(), c => c.valid);
 
-  creating?: Subscription;
-  editing?: Subscription;
-  deleting?: Subscription;
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
 
-  private overwrittenModified? = '';
-
-  constructor(
-    private mod: ModService,
-    private admin: AdminService,
-    public router: Router,
-    public store: Store,
-    private exts: ExtService,
-    private fb: UntypedFormBuilder,
-  ) {
     mod.setTitle($localize`Edit Tag`);
     this.extForm = fb.group({
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],
     });
+    toObservable(computed(() => this.store.view.tag() ? this.store.view.localTag() + this.store.account.origin() : undefined)).pipe(
+      switchMap(tag => tag === undefined ? of(undefined) : this.exts.get(tag).pipe(
+        catchError(() => of(undefined)),
+        map(ext => ({ tag, ext })),
+      )),
+      takeUntilDestroyed(),
+    ).subscribe(x => {
+      if (!x) {
+        this.template.set('');
+        this.tag.setValue('');
+        this.store.view.exts.set([]);
+      } else {
+        this.setExt(x.tag, x.ext);
+      }
+    });
   }
 
   saveChanges() {
-    return !this.editForm?.dirty;
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
-      if (!this.store.view.tag) {
-        this.template = '';
-        this.tag.setValue('');
-        runInAction(() => this.store.view.exts = []);
-      } else {
-        const tag = this.store.view.localTag + this.store.account.origin;
-        this.exts.get(tag).pipe(
-          catchError(() => of(undefined)),
-        ).subscribe(ext => this.setExt(tag, ext));
-      }
-    }));
+    return !this.editForm()?.dirty;
   }
 
   setExt(tag: string, ext?: Ext) {
     tag = localTag(tag);
-    runInAction(() => this.store.view.exts = ext ? [ext] : []);
+    this.store.view.exts.set(ext ? [ext] : []);
     if (ext) {
-      this.editForm = extForm(this.fb, ext, this.admin, true);
-      this.editForm.patchValue(ext);
-      defer(() => this.form!.setValue(ext));
+      const editForm = extForm(this.fb, ext, this.admin, true);
+      editForm.patchValue(ext);
+      this.editForm.set(editForm);
+      defer(() => this.form()!.setValue(ext));
     } else {
       for (const t of this.templates) {
         if (hasPrefix(tag, t.tag)) {
-          this.template = t.tag;
+          this.template.set(t.tag);
           this.tag.setValue(access(tag) + tag.substring(t.tag.length + access(tag).length + 1))
           return;
         }
@@ -122,19 +122,14 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
         const template = this.admin.getTemplate(tag);
         if (template?.config?.submit) {
           this.templates.unshift(template);
-          this.template = tag;
+          this.template.set(tag);
           this.tag.setValue('')
           return;
         }
       }
-      this.template = '';
+      this.template.set('');
       this.tag.setValue(tag);
     }
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get tag() {
@@ -142,10 +137,10 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   }
 
   prefix(tag: string) {
-    if (!this.template) return tag;
-    if (!tag) return this.template;
-    if (access(this.template) && access(tag)) tag = tag.substring(access(tag).length);
-    return prefix(this.template, tag);
+    if (!this.template()) return tag;
+    if (!tag) return this.template();
+    if (access(this.template()) && access(tag)) tag = tag.substring(access(tag).length);
+    return prefix(this.template(), tag);
   }
 
   validate(input: HTMLInputElement) {
@@ -164,18 +159,19 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   }
 
   create() {
-    this.serverError = [];
-    this.submitted = true;
+    this.serverError.set([]);
+    this.submitted.set(true);
     this.extForm.markAllAsTouched();
     if (!this.extForm.valid) {
       scrollToFirstInvalid();
       return;
     }
     const prefixed = this.prefix(this.tag.value);
-    const tag = prefixed + this.store.account.origin;
-    this.creating = this.exts.create({
+    const tag = prefixed + this.store.account.origin();
+    this.creating.set(true);
+    this.creatingSubscription = this.exts.create({
       tag: prefixed,
-      origin: this.store.account.origin,
+      origin: this.store.account.origin(),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status === 409) {
@@ -186,84 +182,89 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       }),
       switchMap(() => this.exts.get(tag)),
       catchError((res: HttpErrorResponse) => {
-        delete this.creating;
-        this.serverError = printError(res);
+        this.creating.set(false);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(ext => {
-      delete this.creating;
-      this.serverError = [];
+      this.creating.set(false);
+      this.serverError.set([]);
       this.setExt(tag, ext);
       this.router.navigate(['/ext', ext.tag]);
     });
+    this.creatingSubscription?.add(() => this.creating.set(false));
   }
 
   save() {
-    this.serverError = [];
-    this.submitted = true;
-    this.editForm.markAllAsTouched();
-    if (!this.editForm.valid) {
+    this.serverError.set([]);
+    this.submitted.set(true);
+    this.editForm()!.markAllAsTouched();
+    if (!this.editForm()!.valid) {
       scrollToFirstInvalid();
       return;
     }
     let ext = {
-      ...this.editForm.value,
-      tag: this.store.view.ext!.tag, // Need to fetch because control is disabled
-      modifiedString: this.overwrite ? this.overwrittenModified : this.store.view.ext!.modifiedString,
+      ...this.editForm()!.value,
+      tag: this.store.view.ext()!.tag, // Need to fetch because control is disabled
+      modifiedString: this.overwrite ? this.overwrittenModified() : this.store.view.ext()!.modifiedString,
     };
-    const config = this.store.view.ext!.config;
+    const config = this.store.view.ext()!.config;
     ext = {
-      ...this.store.view.ext,
+      ...this.store.view.ext(),
       ...ext,
       config: {
         ...isObject(config) ? config : {},
         ...ext.config,
       },
     };
-    this.editing = this.exts.update(ext).pipe(
+    this.editing.set(true);
+    this.editingSubscription = this.exts.update(ext).pipe(
       catchError((res: HttpErrorResponse) => {
-        delete this.editing;
+        this.editing.set(false);
         if (res.status === 400) {
-          this.invalid = true;
+          this.invalid.set(true);
           console.log(res.message);
           // TODO: read res.message to find which fields to delete
         }
         if (res.status === 409) {
-          this.overwritten = true;
-          this.exts.get(ext.tag + ext.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
+          this.overwritten.set(true);
+          this.exts.get(ext.tag + ext.origin).subscribe(x => this.overwrittenModified.set(x.modifiedString));
         }
-        this.serverError = printError(res);
+        this.serverError.set(printError(res));
         return throwError(() => res);
       }),
     ).subscribe(() => {
-      delete this.editing;
-      this.editForm.markAsPristine();
-      if (ext.tag === 'config/home' && this.admin.home) {
+      this.editing.set(false);
+      this.editForm()!.markAsPristine();
+      if (ext.tag === 'config/home' && this.admin.home()) {
         this.router.navigate(['/home']);
       } else {
         this.router.navigate(['/tag', ext.tag]);
       }
     });
+    this.editingSubscription?.add(() => this.editing.set(false));
   }
 
   delete() {
-    const ext = this.store.view.ext!;
+    const ext = this.store.view.ext()!;
     // TODO: Better dialogs
     if (confirm($localize`Are you sure you want to delete this tag extension?`)) {
       const deleteNotice = !isDeletorTag(ext.tag) && this.admin.getPlugin('plugin/delete')
         ? this.exts.create(tagDeleteNotice(ext))
         : of(null);
-      this.deleting = this.exts.delete(ext.tag + ext.origin).pipe(
+      this.deleting.set(true);
+    this.deletingSubscription = this.exts.delete(ext.tag + ext.origin).pipe(
         switchMap(() => deleteNotice),
         catchError((err: HttpErrorResponse) => {
-          delete this.deleting;
-          this.serverError = printError(err);
+          this.deleting.set(false);
+          this.serverError.set(printError(err));
           return throwError(() => err);
         }),
       ).subscribe(() => {
-        delete this.deleting;
+        this.deleting.set(false);
         this.router.navigate(['/tag', ext.tag]);
       });
+    this.deletingSubscription?.add(() => this.deleting.set(false));
     }
   }
 

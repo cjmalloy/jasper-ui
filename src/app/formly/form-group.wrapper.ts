@@ -1,9 +1,11 @@
-import { Component, HostBinding, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 
 @Component({
   selector: 'formly-wrapper-form-field',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    '[title]': 'title',
+  },
   template: `
     <div>
       <!-- Label -->
@@ -27,7 +29,6 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
   `,
 })
 export class FormlyWrapperFormGroup extends FieldWrapper<FormlyFieldConfig> {
-  @HostBinding('title')
   get title() {
     return this.props.title || '';
   }

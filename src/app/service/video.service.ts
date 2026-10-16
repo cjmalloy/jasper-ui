@@ -1,7 +1,7 @@
-import { Injectable, isDevMode } from '@angular/core';
-import { runInAction } from 'mobx';
+import { computed, inject, Injectable } from '@angular/core';
 import { filter, interval, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
 import { escapePath, OpPatch } from '../util/json-patch';
@@ -26,6 +26,13 @@ interface VideoSignaling {
   providedIn: 'root',
 })
 export class VideoService {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private store = inject(Store);
+  private stomp = inject(StompService);
+  private ts = inject(TaggingService);
+  private refs = inject(RefService);
+
   private destroy$ = new Subject<void>();
   poll = 30_000;
   fastPoll = 4_000;
@@ -39,32 +46,25 @@ export class VideoService {
 
   private cleanupHandlers = new Map<string, (() => void)[]>();
 
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private store: Store,
-    private stomp: StompService,
-    private ts: TaggingService,
-    private refs: RefService,
-  ) {
-    if (isDevMode()) timer(3_000, 30_000).pipe(
-      mergeMap(() => this.store.video.peers.entries()),
+  constructor() {
+    if (environment.dev) timer(3_000, 30_000).pipe(
+      mergeMap(() => this.store.video.peers().entries()),
       map(([user, peer]) => ({ user, stats: peer.getStats?.() })),
     ).subscribe(({ user, stats }) => {
       stats?.then(s => s.forEach((v, k) => console.log(user, k, v)));
     });
   }
 
-  get connecting() {
-    return !this.store.video.peers.size || !!Array.from(this.store.video.peers.values()).find(p => p.connectionState !== 'connected');
-  }
+  readonly connecting = computed(() => {
+    return !this.store.video.peers().size || !!Array.from(this.store.video.peers().values()).find(p => p.connectionState !== 'connected');
+  });
 
   call(url: string, stream: MediaStream) {
     if (this.url === url) return;
     console.debug('Joining Lobby!');
     this.url = url;
     this.destroy$.next();
-    runInAction(() => this.store.video.stream = stream);
+    this.store.video.stream.set(stream);
     this.invite();
     this.answer();
   }
@@ -72,7 +72,7 @@ export class VideoService {
   hangup() {
     console.debug('Hung Up!');
     this.url = '';
-    for (const user of this.store.video.peers.keys()) {
+    for (const user of this.store.video.peers().keys()) {
       this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
         .subscribe();
     }
@@ -83,7 +83,7 @@ export class VideoService {
   }
 
   peer(user: string) {
-    if (this.store.video.peers.has(user)) return this.store.video.peers.get(user)!;
+    if (this.store.video.peers().has(user)) return this.store.video.peers().get(user)!;
     const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtcConfig);
     this.store.video.call(user, peer);
     this.seen.delete(user);
@@ -99,6 +99,7 @@ export class VideoService {
       console.error(event.errorCode, event.errorText);
     });
     this.addListener(user, peer, 'connectionstatechange', () => {
+      this.store.video.refreshPeer(user);
       if (peer.connectionState === 'connected') {
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
           .subscribe();
@@ -113,7 +114,17 @@ export class VideoService {
     this.addListener(user, peer, 'track', (event) => {
       console.debug('Track received:', event.streams[0]?.id, event.track.readyState);
       const [remoteStream] = event.streams;
+      if (!remoteStream) return;
       this.store.video.addStream(user, remoteStream);
+      const refresh = () => this.store.video.refreshStreams(user);
+      event.track.addEventListener('ended', refresh);
+      remoteStream.addEventListener('inactive', refresh);
+      remoteStream.addEventListener('removetrack', refresh);
+      this.cleanupHandlers.get(user)!.push(() => {
+        event.track.removeEventListener('ended', refresh);
+        remoteStream.removeEventListener('inactive', refresh);
+        remoteStream.removeEventListener('removetrack', refresh);
+      });
     });
     // TODO: negotiationneeded
     // this.addListener(user, peer, 'negotiationneeded', async (event) => {
@@ -134,14 +145,14 @@ export class VideoService {
     //     peer.restartIce();
     //   }
     // });
-    this.store.video.stream!.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream!));
+    this.store.video.stream()!.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream()!));
     return peer;
   }
 
   offers = new Map<string, number>();
   doInvite = async (user: string) => {
-    runInAction(() => this.store.video.hungup.set(user, false));
-    if (this.store.video.peers.has(user)) return;
+    this.store.video.setHungup(user, false);
+    if (this.store.video.peers().has(user)) return;
     const peer = this.peer(user);
     const offer = await peer.createOffer();
     if (peer.signalingState !== 'stable') {
@@ -159,7 +170,7 @@ export class VideoService {
     timer(this.stuck).pipe(
       takeUntil(this.destroy$),
     ).subscribe(() => {
-      const peer = this.store.video.peers.get(user);
+      const peer = this.store.video.peers().get(user);
       if (peer?.localDescription && !peer.remoteDescription) {
         console.error('Stuck!');
         this.resetUserConnection(user);
@@ -176,7 +187,7 @@ export class VideoService {
       mergeMap(page => page.content),
       map(ref => getUserUrl(ref)),
       filter(user => !!user),
-      filter(user => user !== setPublic(this.store.account.tag)),
+      filter(user => user !== setPublic(this.store.account.tag())),
       takeUntil(this.destroy$),
     ).subscribe(user => this.doInvite(user));
     if (this.config.websockets) {
@@ -187,16 +198,17 @@ export class VideoService {
         tap(res => {
           const user = getUserUrl(res);
           const hungup = !hasTag('plugin/user/lobby', res);
-          runInAction(() => this.store.video.hungup.set(user, hungup));
-          if (hungup && this.store.video.peers.has(user)) {
+          this.store.video.setHungup(user, hungup);
+          if (hungup && this.store.video.peers().has(user)) {
             console.debug('Hung Up!', user);
+            this.cleanupUserListeners(user);
             this.store.video.remove(user);
           }
         }),
         filter(res => hasTag('plugin/user/lobby', res)),
         map(res => getUserUrl(res)),
         filter(user => !!user),
-        filter(user => user !== setPublic(this.store.account.tag)),
+        filter(user => user !== setPublic(this.store.account.tag())),
         tap(user => this.peer(user)),
         takeUntil(this.destroy$)
       ).subscribe((user: any) => this.doInvite(user));
@@ -212,11 +224,11 @@ export class VideoService {
   answer() {
     const doAnswer = async (res: Ref, allowUnknown: boolean) => {
       const user = getUserUrl(res);
-      if (!user || user === setPublic(this.store.account.tag)) return;
+      if (!user || user === setPublic(this.store.account.tag())) return;
       const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
       if (!video) return;
-      if (this.store.video.hungup.get(user)) return;
-      let peer = this.store.video.peers.get(user);
+      if (this.store.video.hungup().get(user)) return;
+      let peer = this.store.video.peers().get(user);
       if (peer?.connectionState === 'connected' && video.offer && video.dial && !video.answer) {
         if (this.offers.get(user) !== video.dial) {
           console.warn('Peer reloaded - resetting connection', user);
@@ -235,7 +247,7 @@ export class VideoService {
           }
         } else if (video.offer) {
           console.debug('Double Offer!', user);
-          if (setPublic(this.store.account.tag) < user) {
+          if (setPublic(this.store.account.tag()) < user) {
             console.debug('Cancelled Offer! (will accept offer)', user);
             await peer.setLocalDescription({ type: 'rollback' });
           } else {
@@ -278,13 +290,13 @@ export class VideoService {
     };
     const pollPeer = () => this.refs.page({
       query: 'plugin/user/video',
-      responses: userResponse(this.store.account.localTag),
+      responses: userResponse(this.store.account.localTag()),
     }).pipe(
       mergeMap(page => page.content),
       takeUntil(this.destroy$),
     ).subscribe(res => doAnswer(res, false));
     if (this.config.websockets) {
-      this.stomp.watchResponse(userResponse(this.store.account.localTag)).pipe(
+      this.stomp.watchResponse(userResponse(this.store.account.localTag())).pipe(
         tap(() => this.peerWebsocket = true),
         switchMap(url => this.refs.getCurrent(url)),
         filter(res => hasTag('plugin/user/video', res)),
@@ -295,13 +307,13 @@ export class VideoService {
       takeWhile(() => !this.peerWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => {
-      if (!this.connecting) pollPeer();
+      if (!this.connecting()) pollPeer();
     });
     timer(0, this.fastPoll).pipe(
       takeWhile(() => !this.peerWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => {
-      if (this.connecting) pollPeer();
+      if (this.connecting()) pollPeer();
     });
   }
 
@@ -339,12 +351,16 @@ export class VideoService {
     });
   }
 
-  private resetUserConnection(user: string): void {
+  private cleanupUserListeners(user: string): void {
     const handlers = this.cleanupHandlers.get(user);
     if (handlers) {
       handlers.forEach(cleanup => cleanup());
       this.cleanupHandlers.delete(user);
     }
+  }
+
+  private resetUserConnection(user: string): void {
+    this.cleanupUserListeners(user);
     this.store.video.reset(user);
     this.offers.delete(user);
   }

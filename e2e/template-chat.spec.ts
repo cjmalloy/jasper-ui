@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { clearAll, mod } from './setup';
+import { expect } from '@playwright/test';
+import { clearAll, mod, test } from './setup';
 
 test.describe.serial('Chat Template', () => {
 
@@ -27,6 +27,7 @@ test.describe.serial('Chat Template', () => {
       );
       await chatInput.press('Enter');
       await sendPromise;
+      await expect(chatInput).toHaveValue('');
     }
 
     // Wait for messages to render in the virtual scroll viewport
@@ -35,7 +36,7 @@ test.describe.serial('Chat Template', () => {
 
     // Wait for messages to be fetched from server (component polls ~1s after last send)
     // and rendered in the virtual scroll viewport
-    await expect(page.locator('.chat .messages app-chat-entry', { hasText: `Message ${messageCount}` })).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('.chat .messages .chat-entry', { hasText: `Message ${messageCount}` })).toBeVisible({ timeout: 15_000 });
 
     // Ensure the viewport has scrollable content by waiting for enough messages
     await expect.poll(async () => await viewport.evaluate(el => {

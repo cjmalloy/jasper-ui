@@ -1,17 +1,7 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  HostBinding,
-  HostListener,
-  isDevMode,
-  NgZone,
-  ViewContainerRef
-} from '@angular/core';
+import { Component, computed, inject, ViewContainerRef } from '@angular/core';
 import { NavigationStart, Router, RouterOutlet } from '@angular/router';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { filter } from 'rxjs';
+import { environment } from '../environments/environment';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { UserClipboardComponent } from './component/user-clipboard/user-clipboard.component';
@@ -26,98 +16,104 @@ import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
-import { memo } from './util/memo';
 import { isModelsJson } from './util/zip';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    '[class.electron]': 'electron',
+    '(window:blur)': 'removeHotkey()',
+    '(window:offline)': 'offline()',
+    '(window:online)': 'online()',
+    '(window:paste)': 'paste($event)',
+  },
   imports: [
-    MobxAngularModule,
     LoginPopupComponent,
     SubscriptionBarComponent,
     UserClipboardComponent,
     RouterOutlet,
   ],
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent {
+  config = inject(ConfigService);
+  store = inject(Store);
+  private admin = inject(AdminService);
+  private proxy = inject(ProxyService);
+  private origins = inject(OriginService);
+  private scrape = inject(ScrapeService);
+  private router = inject(Router);
+  private vc = inject(ViewContainerRef);
 
-  @HostBinding('class.electron')
+
   electron = this.config.electron;
 
-  debug = !isDevMode() && this.store.account.debug;
-  website = 'https://github.com/cjmalloy/jasper-ui';
+  readonly debug = computed(() => !environment.dev && this.store.account.debug());
+  readonly website = computed(() => {
+    const base = 'https://github.com/cjmalloy/jasper-ui';
+    return !this.store.account.debug() && this.config.version
+      ? base + '/releases/tag/' + this.config.version
+      : base;
+  });
 
-  pdfPlugin = this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin || undefined;
-  archivePlugin = this.admin.getPlugin('plugin/archive') as typeof archivePlugin || undefined;
-  pipPlugin = this.admin.getPlugin('plugin/pip') as typeof pipPlugin || undefined;
-  userClipboardPlugin = this.admin.getPlugin('plugin/user/clipboard') as typeof userClipboardPlugin || undefined;
+  readonly pdfPlugin = computed(() => this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin | undefined);
+  readonly archivePlugin = computed(() => this.admin.getPlugin('plugin/archive') as typeof archivePlugin | undefined);
+  readonly pipPlugin = computed(() => this.admin.getPlugin('plugin/pip') as typeof pipPlugin | undefined);
+  readonly userClipboardPlugin = computed(() => this.admin.getPlugin('plugin/user/clipboard') as typeof userClipboardPlugin | undefined);
 
-  constructor(
-    public config: ConfigService,
-    public store: Store,
-    private admin: AdminService,
-    private proxy: ProxyService,
-    private origins: OriginService,
-    private scrape: ScrapeService,
-    private router: Router,
-    private vc: ViewContainerRef,
-    private zone: NgZone,
-  ) {
+  constructor() {
     document.body.style.height = '';
-    if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
     window.addEventListener('keyup', event => {
       const hotkey = !this.hotkeyActive(event) || this.hotkey(event.key);
-      if (this.store.hotkey && hotkey) {
-        runInAction(() => this.store.hotkey = false);
+      if (this.store.hotkey() && hotkey) {
+        this.store.hotkey.set(false);
         document.body.classList.remove('hotkey');
       }
     }, { capture: true });
     window.addEventListener('keydown', event => {
       const hotkey = this.hotkeyActive(event) || this.hotkey(event.key);
-      if (this.store.hotkey !== hotkey) {
-        runInAction(() => this.store.hotkey = hotkey);
+      if (this.store.hotkey() !== hotkey) {
+        this.store.hotkey.set(hotkey);
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
     window.addEventListener('pointerenter', event => {
       const hotkey = this.hotkeyActive(event);
-      if (this.store.hotkey !== hotkey) {
-        runInAction(() => this.store.hotkey = hotkey);
+      if (this.store.hotkey() !== hotkey) {
+        this.store.hotkey.set(hotkey);
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
     window.addEventListener('pointerout', event => {
       const hotkey = this.hotkeyActive(event);
-      if (this.store.hotkey !== hotkey) {
-        runInAction(() => this.store.hotkey = hotkey);
+      if (this.store.hotkey() !== hotkey) {
+        this.store.hotkey.set(hotkey);
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
-  }
-
-  ngAfterViewInit() {
     this.store.eventBus.events.subscribe(({ event, ref, repost }) => {
-      if (event === 'pdf' && this.pdfPlugin) {
-        let pdf = pdfUrl(this.pdfPlugin, ref, repost);
+      const pdfPlugin = this.pdfPlugin();
+      const archivePlugin = this.archivePlugin();
+      const pipPlugin = this.pipPlugin();
+      if (event === 'pdf' && pdfPlugin) {
+        let pdf = pdfUrl(pdfPlugin, ref, repost);
         if (!pdf) return;
-        if (pdf.url.startsWith('cache:') || this.pdfPlugin.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin, pdf.title + (pdf.title.toLowerCase().endsWith('.pdf') ? '' : '.pdf'));
+        if (pdf.url.startsWith('cache:') || pdfPlugin.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin, pdf.title + (pdf.title.toLowerCase().endsWith('.pdf') ? '' : '.pdf'));
         open(pdf.url, '_blank');
       }
-      if (event === 'archive' && this.archivePlugin) {
-        let url = archiveUrl(this.archivePlugin, ref, repost);
+      if (event === 'archive' && archivePlugin) {
+        let url = archiveUrl(archivePlugin, ref, repost);
         if (!url) return;
         open(url, '_blank');
       }
-      if (event === 'pip' && this.pipPlugin) {
-        createPip(this.vc, ref!, this.pipPlugin.config?.windowConfig);
+      if (event === 'pip' && pipPlugin) {
+        createPip(this.vc, ref!, pipPlugin.config?.windowConfig);
       }
     });
     window.visualViewport?.addEventListener('resize', event => {
       const vv = event?.target as VisualViewport;
-      runInAction(() => this.store.viewportHeight = vv.height);
+      this.store.viewportHeight.set(vv.height);
     });
     let currentNavigationId = 0;
     this.router.events.pipe(
@@ -127,15 +123,12 @@ export class AppComponent implements AfterViewInit {
       const isForwardButton = event.navigationTrigger === 'popstate' &&
         event.restoredState &&
         event.restoredState.navigationId > currentNavigationId;
-      runInAction(() => this.store.view.back = !isLinkClick && !isForwardButton);
+      this.store.view.back.set(!isLinkClick && !isForwardButton);
       currentNavigationId = event.restoredState?.navigationId ?? event.id;
     });
   }
 
-  @memo
-  get macos() {
-    return /Macintosh/i.test(navigator.userAgent);
-  }
+  readonly macos = /Macintosh/i.test(navigator.userAgent);
 
   hotkey(key: string) {
     return this.macos ? key === 'Meta' : key === 'Control';
@@ -145,29 +138,25 @@ export class AppComponent implements AfterViewInit {
     return this.macos ? event.metaKey : event.ctrlKey;
   }
 
-  @HostListener('window:blur')
   removeHotkey() {
-    if (this.store.hotkey) {
-      runInAction(() => this.store.hotkey = false);
+    if (this.store.hotkey()) {
+      this.store.hotkey.set(false);
       document.body.classList.remove('hotkey');
     }
   }
 
-  @HostListener('window:offline')
   offline() {
-    if (!this.store.offline) {
-      runInAction(() => this.store.offline = true);
+    if (!this.store.offline()) {
+      this.store.offline.set(true);
     }
   }
 
-  @HostListener('window:online')
   online() {
-    if (this.store.offline) {
-      runInAction(() => this.store.offline = false);
+    if (this.store.offline()) {
+      this.store.offline.set(false);
     }
   }
 
-  @HostListener('window:paste', ['$event'])
   paste(event: ClipboardEvent) {
     const items = event.clipboardData?.items;
     if (!items) return;
@@ -205,15 +194,15 @@ export class AppComponent implements AfterViewInit {
     } else if (text) {
       text.getAsString(value => {
         if (!isModelsJson(value)) return;
-        this.zone.run(() => this.uploadFiles([new File([value], 'upload.json', { type: 'application/json' })]));
+        this.uploadFiles([new File([value], 'upload.json', { type: 'application/json' })]);
       });
     }
   }
 
   private uploadFiles(files: File[]) {
     this.store.submit.addFiles(files);
-    if (!this.store.submit.upload) {
-      this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.view.queryTags }});
+    if (!this.store.submit.upload()) {
+      this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.view.queryTags() }});
     }
   }
 

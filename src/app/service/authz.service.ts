@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Ref } from '../model/ref';
 import { Role } from '../model/user';
 import { Store } from '../store/store';
@@ -9,37 +9,37 @@ import { ConfigService } from './config.service';
   providedIn: 'root'
 })
 export class AuthzService {
+  private store = inject(Store);
+  private config = inject(ConfigService);
 
-  constructor(
-    private store: Store,
-    private config: ConfigService,
-  ) { }
 
   writeAccess(ref: Ref): boolean {
-    if (!this.store.account.signedIn) return false;
-    if (ref.origin !== this.store.account.origin) return false;
+    if (!this.store.account.signedIn()) return false;
+    if (ref.origin !== this.store.account.origin()) return false;
     if (hasTag('locked', ref)) return false;
     if (this.store.account.mod) return true;
-    if (isOwnerTag(this.store.account.tag, ref)) return true;
-    if (!this.store.account.access) return false;
-    if (isOwner(this.store.account.access, ref)) return true;
-    return !!capturesAny(this.store.account.access.writeAccess, qualifyTags(ref.tags, ref.origin));
+    if (isOwnerTag(this.store.account.tag(), ref)) return true;
+    const access = this.store.account.access();
+    if (!access) return false;
+    if (isOwner(access, ref)) return true;
+    return !!capturesAny(access.writeAccess, qualifyTags(ref.tags, ref.origin));
   }
 
   taggingAccess(ref: Ref): boolean {
-    if (!this.store.account.signedIn) return false;
-    if (ref.origin !== this.store.account.origin) return false;
+    if (!this.store.account.signedIn()) return false;
+    if (ref.origin !== this.store.account.origin()) return false;
     if (this.store.account.editor) return true;
-    if (isOwnerTag(this.store.account.tag, ref)) return true;
-    if (!this.store.account.access) return false;
-    if (isOwner(this.store.account.access, ref)) return true;
-    return !!capturesAny(this.store.account.access.writeAccess, qualifyTags(ref.tags, ref.origin));
+    if (isOwnerTag(this.store.account.tag(), ref)) return true;
+    const access = this.store.account.access();
+    if (!access) return false;
+    if (isOwner(access, ref)) return true;
+    return !!capturesAny(access.writeAccess, qualifyTags(ref.tags, ref.origin));
   }
 
   deleteAccess(ref: Ref): boolean {
-    if (!this.store.account.signedIn) return false;
+    if (!this.store.account.signedIn()) return false;
     if (this.store.account.mod) return true;
-    if (ref.origin !== this.store.account.origin) return false;
+    if (ref.origin !== this.store.account.origin()) return false;
     return this.taggingAccess(ref);
   }
 
@@ -55,14 +55,15 @@ export class AuthzService {
     if (!tag) return false;
     tag = localTag(tag);
     if (publicTag(tag)) return true;
-    if (!this.store.account.signedIn) return false;
+    if (!this.store.account.signedIn()) return false;
     if (this.store.account.mod) return true;
-    if (this.store.account.localTag === tag) return true;
+    if (this.store.account.localTag() === tag) return true;
     if (hasTag(tag, this.config.modSeals)) return false;
     if (!this.store.account.editor && hasTag(tag, this.config.editorSeals)) return false;
-    if (!this.store.account.access) return false;
-    if (capturesAny(this.store.account.access.tagReadAccess, [tag])) return true;
-    return !!capturesAny(this.store.account.access.readAccess, [tag]);
+    const access = this.store.account.access();
+    if (!access) return false;
+    if (capturesAny(access.tagReadAccess, [tag])) return true;
+    return !!capturesAny(access.readAccess, [tag]);
   }
 
   tagReadAccess(tag?: string): boolean {
@@ -70,25 +71,27 @@ export class AuthzService {
     if (tag.startsWith('!')) tag = tag.substring(1);
     tag = localTag(tag);
     if (!privateTag(tag)) return true;
-    if (!this.store.account.signedIn) return false;
+    if (!this.store.account.signedIn()) return false;
     if (this.store.account.mod) return true;
-    if (this.store.account.localTag === tag) return true;
-    if (!this.store.account.access) return false;
-    if (capturesAny(this.store.account.access.tagReadAccess, [tag])) return true;
-    return !!capturesAny(this.store.account.access.readAccess, [tag]);
+    if (this.store.account.localTag() === tag) return true;
+    const access = this.store.account.access();
+    if (!access) return false;
+    if (capturesAny(access.tagReadAccess, [tag])) return true;
+    return !!capturesAny(access.readAccess, [tag]);
   }
 
   tagWriteAccess(tag?: string): boolean {
-    if (!this.store.account.signedIn) return false;
+    if (!this.store.account.signedIn()) return false;
     if (!tag) return false;
     tag = localTag(tag);
     if (tag === 'locked') return false;
     if (this.store.account.mod) return true;
     if (this.store.account.editor && publicTag(tag)) return true;
-    if (this.store.account.localTag === tag) return true;
-    if (!this.store.account.access) return false;
-    if (capturesAny(this.store.account.access.tagWriteAccess, [tag])) return true;
-    return !!capturesAny(this.store.account.access.writeAccess, [tag]);
+    if (this.store.account.localTag() === tag) return true;
+    const access = this.store.account.access();
+    if (!access) return false;
+    if (capturesAny(access.tagWriteAccess, [tag])) return true;
+    return !!capturesAny(access.writeAccess, [tag]);
   }
 
   hasRole(role: Role) {

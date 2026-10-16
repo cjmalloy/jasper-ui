@@ -1,31 +1,27 @@
 /// <reference types="@angular/localize" />
 
-import { DragDropModule } from '@angular/cdk/drag-drop';
-import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
-import { ScrollingModule } from '@angular/cdk/scrolling';
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { FullscreenOverlayContainer, OverlayContainer } from '@angular/cdk/overlay';
+import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import {
-  APP_INITIALIZER,
-  enableProdMode,
-  importProvidersFrom,
-  isDevMode,
-  provideZoneChangeDetection
+  inject,
+  provideAppInitializer,
+  provideCheckNoChangesConfig,
+  provideZonelessChangeDetection
 } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
-import { bootstrapApplication, BrowserModule } from '@angular/platform-browser';
-import { ServiceWorkerModule } from '@angular/service-worker';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideRouter, UrlSerializer, withRouterConfig } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import { Settings } from 'luxon';
-import { MobxAngularModule } from 'mobx-angular';
-import { MarkdownModule } from 'ngx-markdown';
-import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { provideMarkdown } from 'ngx-markdown';
+import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
 import { retry, switchMap, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { AppRoutingModule } from './app/app-routing.module';
 import { AppComponent } from './app/app.component';
-import { JasperFormlyModule } from './app/formly/formly.module';
-import { AuthInterceptor } from './app/http/auth.interceptor';
-import { CsrfInterceptor } from './app/http/csrf.interceptor';
-import { RateLimitInterceptor } from './app/http/rate-limit.interceptor';
+import { CustomUrlSerializer, routes } from './app/app.routes';
+import { provideJasperFormly } from './app/formly/formly.config';
+import { authInterceptor } from './app/http/auth.interceptor';
+import { csrfInterceptor } from './app/http/csrf.interceptor';
+import { rateLimitInterceptor } from './app/http/rate-limit.interceptor';
 import { AccountService } from './app/service/account.service';
 import { AdminService } from './app/service/admin.service';
 import { ExtService } from './app/service/api/ext.service';
@@ -34,12 +30,18 @@ import { config, ConfigService } from './app/service/config.service';
 import { DebugService } from './app/service/debug.service';
 import { ModService } from './app/service/mod.service';
 import { OriginMapService } from './app/service/origin-map.service';
-
-
 import { environment } from './environments/environment';
 
-const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, mods: ModService, exts: ExtService, stomp: StompService) => () =>
-  config.load$.pipe(
+function load() {
+  const config = inject(ConfigService);
+  const debug = inject(DebugService);
+  const admin = inject(AdminService);
+  const account = inject(AccountService);
+  const origins = inject(OriginMapService);
+  const mods = inject(ModService);
+  const exts = inject(ExtService);
+  const stomp = inject(StompService);
+  return config.load$.pipe(
     tap(() => stomp.initialize()),
     tap(() => console.log('-{1}- Loading Jasper')),
     tap(() => {
@@ -80,45 +82,32 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     switchMap(() => mods.init$),
     tap(() => console.log('-{9}- Ready')),
   );
-
-if (environment.production) {
-  enableProdMode();
 }
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
-    importProvidersFrom(
-      BrowserModule,
-      AppRoutingModule,
-      ReactiveFormsModule,
-      MobxAngularModule,
-      MarkdownModule.forRoot(),
-      MonacoEditorModule.forRoot(),
-      DragDropModule,
-      OverlayModule,
-      ScrollingModule,
-      JasperFormlyModule,
-      ServiceWorkerModule.register('ngsw-worker.js', {
-        scope: '.',
-        get enabled() {
-          return !isDevMode() && location.hostname != 'localhost' && config().pwa;
-        },
-        // Register the ServiceWorker as soon as the application is stable
-        // or after 30 seconds (whichever comes first).
-        registrationStrategy: 'registerWhenStable:30000'
-      })),
-    provideHttpClient(withXhr(), withInterceptorsFromDi()),
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: RateLimitInterceptor, multi: true },
+    provideZonelessChangeDetection(),
+    ...(environment.checkNoChanges ? [provideCheckNoChangesConfig({ exhaustive: true })] : []),
+    provideRouter(routes, withRouterConfig({
+      paramsInheritanceStrategy: 'always',
+      onSameUrlNavigation: 'reload',
+    })),
+    { provide: UrlSerializer, useClass: CustomUrlSerializer },
+    provideMarkdown(),
+    { provide: NGX_MONACO_EDITOR_CONFIG, useValue: {} },
+    provideJasperFormly(),
+    provideServiceWorker('ngsw-worker.js', {
+      scope: '.',
+      get enabled() {
+        return environment.production && location.hostname != 'localhost' && config().pwa;
+      },
+      // Register the ServiceWorker as soon as the application is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
+    }),
+    provideHttpClient(withXhr(), withInterceptors([authInterceptor, csrfInterceptor, rateLimitInterceptor])),
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: loadFactory,
-      deps: [ConfigService, DebugService, AdminService, AccountService, OriginMapService, ModService, ExtService, StompService],
-      multi: true,
-    },
+    provideAppInitializer(load),
   ]
 })
   .catch(err => console.error(err));

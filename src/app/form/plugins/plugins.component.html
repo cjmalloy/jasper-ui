@@ -1,25 +1,25 @@
-@if (icons.length) {
+@if (icons().length) {
   <div>
-    @for (icon of icons; track icon) {
+    @for (icon of icons(); track icon) {
       <span class="icon"
             [appTitle]="icon"
-            [ref]="group.value">{{ icon.label || icon.thumbnail }}</span>
+            [ref]="rootControlState()">{{ icon.label || icon.thumbnail }}</span>
     }
   </div>
 }
-@for (plugin of forms; track plugin) {
+@for (plugin of forms(); track plugin) {
   @if (hasForm(plugin)) {
     <app-form-gen #gen
-                  [plugins]="plugins"
+                  [plugins]="plugins()"
                   [plugin]="plugin"
                   [pending]="pending"
                   (pendingUsed)="usePending($event)"
-                  (togglePlugin)="togglePlugin.next($event)"
+                  (togglePlugin)="togglePlugin.emit($event)"
                   (setPlugin)="pending[$event.tag] = $event.value"
                   [children]="admin.getPluginSubForms(plugin.tag)"></app-form-gen>
   }
 }
-@if (empty) {
+@if (empty()) {
   <div class="empty-plugins">
     no plugins
   </div>

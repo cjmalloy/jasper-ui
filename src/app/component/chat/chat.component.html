@@ -1,37 +1,37 @@
-@if (!messages || loadingPrev) {
+@if (!messages() || loadingPrev()) {
   <app-loading></app-loading>
 }
-@if (messages && !loadingPrev) {
+@if (messages() && !loadingPrev()) {
   <a class="load-more fake-link" (click)="loadPrev()">load prev</a>
 }
 <cdk-virtual-scroll-viewport #viewport class="messages"
-                             [class.scroll-lock]="scrollLock"
+                             [class.scroll-lock]="scrollLock()"
                              [itemSize]="itemSize"
-                             [style.height.px]="containerHeight"
+                             [style.height.px]="containerHeight()"
                              (scrolledIndexChange)="onScroll($event)">
-  <app-chat-entry *cdkVirtualFor="let ref of messages; let index = index; let odd = odd"
+  <app-chat-entry *cdkVirtualFor="let ref of messages(); let index = index; let odd = odd"
                   [ref]="ref"
                   [class.odd]="odd"
-                  (click)="scrollLock = index"
-                  [focused]="scrollLock === index"></app-chat-entry>
+                  (click)="scrollLock.set(index)"
+                  [focused]="scrollLock() === index"></app-chat-entry>
 </cdk-virtual-scroll-viewport>
-@if (notAtBottom) {
+@if (notAtBottom()) {
   <div class="scroll-to-bottom" tabindex="0" (click)="scrollToBottom()" i18n>More messages below</div>
 }
 <div class="spacer"></div>
 <div class="input-box"
-     [class.dropping]="dropping"
-     (dragenter)="dropping = true"
+     [class.dropping]="dropping()"
+     (dragenter)="dropping.set(true)"
      (dragleave)="dragLeave($event)"
      (dragover)="$event.preventDefault()"
      (drop)="handleDrop($event)">
   @if (!config.websockets) {
     <button type="button"
             class="refresh"
-            [title]="'last polled ' + lastPoll.toRelative()"
+            [title]="'last polled ' + (lastPoll() | relative)"
             (click)="refresh()" i18n>🔄</button>
   }
-  @for (button of editorPushButtons; track button; let i = $index) {
+  @for (button of editorPushButtons(); track button; let i = $index) {
     @if (!button.event) {
       <button type="button"
               (click)="toggleTag(button)"
@@ -43,8 +43,8 @@
          placeholder="chat..."
          enterkeyhint="send"
          size="10"
-         [value]="addText"
-         (input)="addText = $any($event.target).value"
+         [value]="addText()"
+         (input)="addText.set($any($event.target).value)"
          (keydown)="$event.key === 'Enter' && add() || true"
          (paste)="handlePaste($event)"
          appAutofocus>
@@ -54,10 +54,10 @@
           title="Send"
           (click)="add()" i18n>⏎</button>
 </div>
-@if (uploads.length) {
+@if (uploads().length) {
   <div class="upload-progress">
     <div class="upload-list">
-      @for (upload of uploads; track upload.id) {
+      @for (upload of uploads(); track upload.id) {
         <div class="upload-item">
           <div class="upload-filename">{{ upload.name }}</div>
           <div class="upload-controls">
@@ -79,7 +79,7 @@
         </div>
       }
     </div>
-    @if (uploads.length > 1) {
+    @if (uploads().length > 1) {
       <div class="upload-actions">
         <button type="button"
                 class="upload-cancel-all"
@@ -94,7 +94,7 @@
 }
 <span class="hints">
   @if (admin.getPlugin('plugin/latex')) {
-    <input id="latex" type="checkbox" [checked]="latex" (input)="latex = !latex">
+    <input id="latex" type="checkbox" [checked]="latex()" (input)="latex.set(!latex())">
     <label for="latex" i18n>
       LaTeX plugin
       <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
@@ -102,11 +102,11 @@
   }
 </span>
 <div class="list-container">
-  @for (ref of errored; track ref.origin + ref.url) {
+  @for (ref of errored(); track ref.origin + ref.url) {
     <button type="button" class="retry" (click)="retry(ref)" i18n>retry</button>
     <app-chat-entry [ref]="ref" [loading]="false"></app-chat-entry>
   }
-  @for (ref of sending; track ref.url) {
+  @for (ref of sending(); track ref.url) {
     <app-chat-entry [ref]="ref"></app-chat-entry>
   }
 </div>

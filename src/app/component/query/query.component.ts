@@ -1,7 +1,20 @@
-import { Component, ElementRef, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+  untracked,
+  viewChild
+} from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
+import { combineLatest, of, startWith, switchMap } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
@@ -14,42 +27,52 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
   selector: 'app-query',
   templateUrl: './query.component.html',
   styleUrls: ['./query.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, RouterLink]
 })
 export class QueryComponent {
+  private router = inject(Router);
+  private exts = inject(ExtService);
+  private admin = inject(AdminService);
+  store = inject(Store);
 
-  editing = false;
-  replaceOnClipboardPaste = false;
+
+  readonly editing = linkedSignal(() => { this.query(); return false; });
+  readonly replaceOnClipboardPaste = signal(false);
   select: boolean | Crumb[] = false;
-  breadcrumbs: Crumb[] = [];
+  private readonly rawCrumbs = computed(() => this.queryCrumbs(this.query()));
+  private readonly crumbExts = toSignal(toObservable(this.rawCrumbs).pipe(
+    switchMap(crumbs => crumbs.length ? combineLatest(crumbs.map(crumb => {
+      const tag = crumb.tag?.replace(/^!/, '');
+      return tag && !tag.startsWith('@')
+        ? this.exts.getCachedExt(tag).pipe(startWith(undefined))
+        : of(undefined);
+    })) : of([])),
+  ), { initialValue: [] });
+  readonly breadcrumbs = computed(() => this.rawCrumbs().map((crumb, index) => {
+    const ext = this.crumbExts()[index];
+    if (!ext) return crumb;
+    const text = ext.modifiedString && ext.name ? ext.name
+      : ext.tag === 'plugin' ? '📦'
+      : ext.tag === '+plugin' ? '+📦'
+      : ext.tag === '_plugin' ? '_📦'
+      : this.admin.getTemplate(ext.tag)?.name || this.admin.getPlugin(ext.tag)?.name || crumb.text;
+    return { ...crumb, text };
+  }));
 
-  private _query = '';
+  readonly query = input('');
+  readonly editor = viewChild<ElementRef<HTMLInputElement>>('editor');
 
-  constructor(
-    private router: Router,
-    private exts: ExtService,
-    private admin: AdminService,
-    public store: Store,
-  ) { }
-
-  get query(): string {
-    return this._query;
+  constructor() {
+    effect(() => {
+      const value = this.editor();
+      untracked(() => this.focusEditor(value));
+    });
   }
 
-  @Input()
-  set query(value: string) {
-    if (this._query === value) return;
-    this.editing = false;
-    this._query = value;
-    this.breadcrumbs = this.queryCrumbs(this._query);
-  }
-
-  @ViewChild("editor")
-  set editor(ref: ElementRef<HTMLInputElement>) {
+  private focusEditor(ref: ElementRef<HTMLInputElement> | undefined) {
     const el = ref?.nativeElement;
     if (!el) return;
-    if (!this._query) return;
+    if (!this.query()) return;
     el.focus();
     if (!this.select) return;
     defer(() => {
@@ -62,7 +85,7 @@ export class QueryComponent {
   }
 
   click(event: MouseEvent, breadcrumb: Crumb): boolean {
-    if (!this.store.hotkey) return true;
+    if (!this.store.hotkey()) return true;
     event.preventDefault();
     event.stopImmediatePropagation();
     this.edit([breadcrumb, breadcrumb]);
@@ -70,8 +93,8 @@ export class QueryComponent {
   }
 
   edit(select: boolean | Crumb[]) {
-    if (!this.editing) this.replaceOnClipboardPaste = true;
-    this.editing = true;
+    if (!this.editing()) this.replaceOnClipboardPaste.set(true);
+    this.editing.set(true);
     if (select) {
       this.select = select;
     } else {
@@ -92,8 +115,8 @@ export class QueryComponent {
     while (el) {
       if (el.classList.contains('crumb')) {
         const index = Array.from(el.parentElement?.children || []).indexOf(el);
-        if (index >= 0 && index < this.breadcrumbs.length) {
-          return this.breadcrumbs[index];
+        if (index >= 0 && index < this.breadcrumbs().length) {
+          return this.breadcrumbs()[index];
         }
       }
       el = el.parentElement;
@@ -102,14 +125,14 @@ export class QueryComponent {
   }
 
   search(query: string) {
-    this.editing = false;
+    this.editing.set(false);
     query = query.toLowerCase()
       .replace(/\s+/g, ' ')
       .replace(/\|+/g, '|')
       .replace(/[\s|]*:[\s|]*/g, ':')
       .replace(/\s+/g, '+')
       .replace(/[^_+/a-z-0-9.:|!@*()]+/g, '');
-    if (this.store.view.current === 'tags') {
+    if (this.store.view.current() === 'tags') {
       this.router.navigate(['/tags', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
     } else {
       this.router.navigate(['/tag', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
@@ -202,38 +225,13 @@ export class QueryComponent {
         crumbs.push(notOp);
       }
     }
-    for (const t of crumbs) {
-      const tag = t.tag?.startsWith('!') ? t.tag.substring(1) : t.tag;
-      if (tag && !tag.startsWith('@')) {
-        this.exts.getCachedExt(tag).subscribe(ext => {
-          // TODO: possible delayed write
-          if (ext.modifiedString && ext.name) {
-            t.text = ext.name;
-          } else if (ext.tag === 'plugin') {
-            t.text = '📦';
-          } else if (ext.tag === '+plugin') {
-            t.text = '+📦';
-          } else if (ext.tag === '_plugin') {
-            t.text = '_📦';
-          } else {
-            const template = this.admin.getTemplate(ext.tag);
-            if (template?.name) {
-              t.text = template.name;
-            } else {
-              const plugin = this.admin.getPlugin(ext.tag);
-              if (plugin?.name) t.text = plugin.name;
-            }
-          }
-        });
-      }
-    }
     return crumbs;
   }
 
   blur(value: string) {
-    this.replaceOnClipboardPaste = false;
-    if (value === this.query) {
-      this.editing = false;
+    this.replaceOnClipboardPaste.set(false);
+    if (value === this.query()) {
+      this.editing.set(false);
     }
   }
 }

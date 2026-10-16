@@ -1,7 +1,17 @@
-import { DestroyRef, inject, Component, Input, OnInit, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  signal,
+  viewChildren
+} from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { catchError, forkJoin, Observable, of } from 'rxjs';
+import { catchError, forkJoin, Observable, of, startWith, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -19,145 +29,103 @@ import { NoteComponent } from './note/note.component';
   templateUrl: './notebook.component.html',
   styleUrl: './notebook.component.scss',
   host: { 'class': 'notebook ext' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NoteComponent,
     PageControlsComponent,
     LoadingComponent,
   ],
 })
-export class NotebookComponent implements OnInit, HasChanges {
+export class NotebookComponent implements HasChanges {
+  private accounts = inject(AccountService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private refs = inject(RefService);
+
   private destroyRef = inject(DestroyRef);
 
-  @Input()
-  hide?: number[];
-  @Input()
-  plugins?: string[];
-  @Input()
-  showPageLast = true;
-  @Input()
-  showAlarm = true;
-  @Input()
-  pageControls = true;
-  @Input()
-  emptyMessage = 'No results found';
-  @Input()
-  showToggle = true;
-  @Input()
-  expandInline = false;
-  @Input()
-  showVotes = false;
-  @Input()
-  hideNewZeroVoteScores = true;
-  @Input()
-  newRefs$?: Observable<Ref | undefined>;
-  @Input()
-  showPrev = true;
+  readonly hide = input<number[]>();
+  readonly plugins = input<string[]>();
+  readonly showPageLast = input(true);
+  readonly showAlarm = input(true);
+  readonly pageControls = input(true);
+  readonly emptyMessage = input('No results found');
+  readonly showToggle = input(true);
+  readonly expandInline = input(false);
+  readonly showVotes = input(false);
+  readonly hideNewZeroVoteScores = input(true);
+  readonly newRefs$ = input<Observable<Ref | undefined>>();
+  readonly showPrev = input(true);
 
-  @ViewChildren(RefComponent)
-  list?: QueryList<RefComponent>;
+  readonly list = viewChildren(RefComponent);
 
-  pinned: Ref[] = [];
-  newRefs: Ref[] = [];
+  readonly pinned = toSignal(toObservable(computed(() => this.ext()?.config?.pinned as string[] | undefined)).pipe(
+    switchMap(pins => pins?.length ? forkJoin(pins.map(pin => this.refs.getCurrent(pin).pipe(
+      catchError(() => of({ url: pin } as Ref)),
+    ))).pipe(startWith([] as Ref[])) : of([] as Ref[])),
+  ), { initialValue: [] as Ref[] });
+  readonly newRefs = signal<Ref[]>([]);
 
-  private _page?: Page<Ref>;
-  private _ext?: Ext;
-  private _expanded?: boolean;
-  private _cols = 0;
 
-  constructor(
-    private accounts: AccountService,
-    private router: Router,
-    private store: Store,
-    private refs: RefService,
-  ) { }
 
-  saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
-  }
+  readonly ext = input<Ext | undefined>(undefined);
+  readonly colsInput = input<number | undefined>(undefined, { alias: 'cols' });
+  readonly expandedInput = input<boolean | undefined>(undefined, { alias: 'expanded' });
+  readonly page = input<Page<Ref> | undefined>(undefined);
 
-  get ext() {
-    return this._ext;
-  }
-
-  @Input()
-  set ext(value: Ext | undefined) {
-    this._ext = value;
-    if (!value?.config?.pinned?.length) {
-      this.pinned = [];
-    } else {
-      forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({ url: pin })),
-          takeUntilDestroyed(this.destroyRef),
-        )))
-        .subscribe(pinned => this.pinned = pinned);
-    }
-  }
-
-  @Input()
-  set cols(value: number | undefined) {
-    this._cols = value || 0;
-  }
-
-  get colStyle() {
-    if (!this.cols) {
-      return '';
-    } else {
-      return ' 1fr'.repeat(this.cols);
-    }
-  }
-
-  get cols() {
-    if (this._cols) return this._cols;
-    return this.ext?.config?.defaultCols;
-  }
-
-  get expanded(): boolean {
-    if (this._expanded === undefined) return this._ext?.config?.defaultExpanded;
-    return this._expanded;
-  }
-
-  @Input()
-  set expanded(value: boolean) {
-    this._expanded = value;
-  }
-
-  get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Ref> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
+  constructor() {
+    effect(() => {
+      const page = this.page();
+      if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.page.totalPages - 1,
+            pageNumber: page.page.totalPages - 1,
           },
           queryParamsHandling: 'merge',
         });
       }
-    }
+    });
   }
 
-  ngOnInit(): void {
-    this.newRefs$?.pipe(
+  saveChanges() {
+    return !this.list()?.find(r => !r.saveChanges());
+  }
+
+
+  readonly colStyle = computed(() => {
+    if (!this.cols()) {
+      return '';
+    } else {
+      return ' 1fr'.repeat(this.cols());
+    }
+  });
+
+  readonly cols = computed(() => {
+    if (this.colsInput()) return this.colsInput();
+    return this.ext()?.config?.defaultCols;
+  });
+
+  readonly expanded = computed<boolean>(() => {
+    if (this.expandedInput() === undefined) return this.ext()?.config?.defaultExpanded;
+    return this.expandedInput()!;
+  });
+
+
+  private readonly initialize = afterNextRender(() => {
+    this.newRefs$()?.pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(ref => ref && this.addNewRef(ref));
-  }
+  });
 
 
   addNewRef(ref: Ref) {
     // TODO: verify read before clearing?
     this.accounts.clearNotificationsIfNone(ref.modified, ref.origin);
-    if (!this.page?.content.find(r => r.url === ref.url)) {
-      const index = this.newRefs.findIndex(r => r.url === ref.url);
+    if (!this.page()?.content.find(r => r.url === ref.url)) {
+      const index = this.newRefs().findIndex(r => r.url === ref.url);
       if (index !== -1) {
-        this.newRefs[index] = ref;
+        this.newRefs.update(newRefs => newRefs.map((r, i) => i === index ? ref : r));
       } else {
-        this.newRefs = [ref, ...this.newRefs];
+        this.newRefs.set([ref, ...this.newRefs()]);
         return;
       }
     }

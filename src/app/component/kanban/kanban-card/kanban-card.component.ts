@@ -1,31 +1,26 @@
-import {
-  Overlay,
-  OverlayRef
-} from '@angular/cdk/overlay';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  DestroyRef,
-  inject,
-  AfterViewInit,
+  afterNextRender,
   Component,
+  computed,
+  DestroyRef,
+  effect,
   ElementRef,
-  EventEmitter,
   forwardRef,
-  HostBinding,
-  HostListener,
-  Input,
-  NgZone,
-  OnChanges,
-  Output,
-  SimpleChanges,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef,
-  ChangeDetectionStrategy
+  untracked,
+  viewChild,
+  ViewContainerRef
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -46,7 +41,6 @@ import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { memo, MemoCache } from '../../../util/memo';
 import { expandedTagsInclude, hasTag, pluginResponses, repost } from '../../../util/tag';
 import { ChessComponent } from '../../chess/chess.component';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -57,8 +51,17 @@ import { TodoComponent } from '../../todo/todo.component';
   selector: 'app-kanban-card',
   templateUrl: './kanban-card.component.html',
   styleUrls: ['./kanban-card.component.scss'],
-  host: { 'class': 'kanban-card' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    'class': 'kanban-card',
+    '[class.unlocked]': 'unlocked()',
+    '[class.full-size]': 'todo()',
+    '[class.no-write]': 'noWrite()',
+    '[class.last-selected]': 'lastSelected()',
+    '(click)': 'onClick()',
+    '(touchend)': 'touchend($event)',
+    '(press)': 'unlock($event)',
+    '(contextmenu)': 'contextMenu($event)',
+  },
   imports: [
     forwardRef(() => MdComponent),
     LoadingComponent,
@@ -70,235 +73,177 @@ import { TodoComponent } from '../../todo/todo.component';
     CssUrlPipe,
   ],
 })
-export class KanbanCardComponent implements OnChanges, AfterViewInit {
+export class KanbanCardComponent {
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private admin = inject(AdminService);
+  private config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private tags = inject(TaggingService);
+  private editor = inject(EditorService);
+  private accounts = inject(AccountService);
+  private overlay = inject(Overlay);
+  private el = inject(ElementRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
   private destroyRef = inject(DestroyRef);
 
-  @HostBinding('class.unlocked')
-  unlocked = false;
+  readonly unlocked = signal(false);
 
-  @Input()
-  ref!: Ref;
-  @Input()
-  pressToUnlock = false;
-  @Input()
-  hideSwimLanes = true;
-  @Input()
-  ext?: Ext;
-  @Input()
-  progress?: number;
+  readonly refInput = input.required<Ref>({ alias: 'ref' });
+  readonly ref = linkedSignal(() => this.refInput());
+  readonly pressToUnlock = input(false);
+  readonly hideSwimLanes = input(true);
+  readonly ext = input<Ext>();
+  readonly progress = input<number>();
 
-  @Output()
-  copied = new EventEmitter<Ref>();
+  readonly copied = output<Ref>();
 
-  repostRef?: Ref;
-  @HostBinding('class.full-size')
-  todo = false;
-  chess = false;
-  chessWhite = true;
+  readonly repostRef = signal<Ref | undefined>(undefined);
+
+  readonly todo = computed(() => !!this.admin.getPlugin('plugin/todo') && !!this.ref().tags?.includes('plugin/todo'));
+  readonly chess = computed(() => !!this.admin.getPlugin('plugin/chess') && !!this.ref().tags?.includes('plugin/chess'));
+  readonly chessWhite = computed(() => !!this.ref().tags?.includes(this.store.account.localTag()));
   overlayRef?: OverlayRef;
-  autoClose = true;
+  readonly autoClose = signal(true);
 
-  @ViewChild('cardMenu')
-  cardMenu!: TemplateRef<any>;
+  readonly cardMenu = viewChild.required<TemplateRef<any>>('cardMenu');
 
   private overlayEvents?: Subscription;
 
-  constructor(
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private admin: AdminService,
-    private config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
-    private tags: TaggingService,
-    private editor: EditorService,
-    private accounts: AccountService,
-    private overlay: Overlay,
-    private el: ElementRef,
-    private viewContainerRef: ViewContainerRef,
-    private zone: NgZone,
-  ) { }
+  constructor() {
+    effect(() => {
+      this.refInput();
+      untracked(() => this.init());
+    });
+  }
 
   init() {
-    MemoCache.clear(this);
-    this.todo = !!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo');
-    this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
-    this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
-    if (this.repost && this.ref && this.repostRef?.url != repost(this.ref)) {
-      (this.store.view.top?.url === this.ref.sources![0]
-          ? of(this.store.view.top)
-          : this.refs.getCurrent(this.url)
+    if (this.repost() && this.ref() && this.repostRef()?.url != repost(this.ref())) {
+      (this.store.view.top()?.url === this.ref().sources![0]
+          ? of(this.store.view.top())
+          : this.refs.getCurrent(this.url())
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
         takeUntilDestroyed(this.destroyRef),
-      ).subscribe(ref => this.repostRef = ref);
-    }
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.ref) {
-      this.init();
+      ).subscribe(ref => this.repostRef.set(ref));
     }
   }
 
 
-  ngAfterViewInit(): void {
+  private readonly afterViewInit = afterNextRender(() => {
     delay(() => {
-      if (this.lastSelected) {
+      if (this.lastSelected()) {
         this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
       }
     }, 400);
-  }
+  });
 
-  @HostListener('click')
   onClick() {
-    if (!this.lastSelected && this.store.view.lastSelected) {
+    if (!this.lastSelected() && this.store.view.lastSelected()) {
       this.store.view.clearLastSelected();
     }
   }
-
-  @memo
-  get remote() {
-    return this.ref.modified && this.origin !== this.store.account.origin;
-  }
-
-  @memo
-  get origin() {
-    return this.repost ? this.repostRef?.origin : this.ref.origin;
-  }
-
-  @memo
-  @HostBinding('class.no-write')
-  get noWrite() {
-    return !this.auth.writeAccess(this.ref);
-  }
-
-  @memo
-  get repost() {
-    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
-  }
-
-  @memo
-  get bareRepost() {
-    return this.repost && !this.ref.title && !this.ref.comment;
-  }
-
-  @memo
-  get url() {
-    return this.repost ? this.ref.sources![0] : this.ref.url;
-  }
-
-  @memo
-  get currentText() {
-    if (this.chess || this.todo) return '';
-    const value = this.ref?.comment || this.repostRef?.comment || '';
-    if (this.ref?.title || hasComment(value)) return value;
+  readonly remote = computed(() => {
+    return this.ref().modified && this.origin() !== this.store.account.origin();
+  });
+  readonly origin = computed(() => {
+    return this.repost() ? this.repostRef()?.origin : this.ref().origin;
+  });
+  readonly noWrite = computed(() => {
+    return !this.auth.writeAccess(this.ref());
+  });
+  readonly repost = computed(() => {
+    return this.ref()?.sources?.[0] && hasTag('plugin/repost', this.ref());
+  });
+  readonly bareRepost = computed(() => {
+    return this.repost() && !this.ref().title && !this.ref().comment;
+  });
+  readonly url = computed(() => {
+    return this.repost() ? this.ref().sources![0] : this.ref().url;
+  });
+  readonly currentText = computed(() => {
+    if (this.chess() || this.todo()) return '';
+    const value = this.ref()?.comment || this.repostRef()?.comment || '';
+    if (this.ref()?.title || hasComment(value)) return value;
     return '';
-  }
-
-  @memo
-  get thumbnail() {
+  });
+  readonly thumbnail = computed(() => {
     return this.admin.getPlugin('plugin/thumbnail') &&
-      hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
-  }
-
-  @memo
-  get thumbnailColor() {
-    return this.thumbnail &&
-      (this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color);
-  }
-
-  @memo
-  get thumbnailEmoji() {
-    return this.thumbnail &&
-      (this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji) || '';
-  }
-
-  @memo
-  get thumbnailRadius() {
-    return this.thumbnail &&
-      (this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius) || 0;
-  }
-
-  @memo
-  get dependents() {
-    return !hasTag('plugin/comment', this.ref) && !hasTag('plugin/thread', this.ref) && this.ref.sources?.length || 0;
-  }
-
-  @memo
-  get dependencies() {
-    return this.ref.metadata?.responses || 0;
-  }
-
-  @memo
-  get thread() {
+      hasTag('plugin/thumbnail', this.ref()) || hasTag('plugin/thumbnail', this.repostRef());
+  });
+  readonly thumbnailColor = computed(() => {
+    return this.thumbnail() &&
+      (this.ref()?.plugins?.['plugin/thumbnail']?.color || this.repostRef()?.plugins?.['plugin/thumbnail']?.color);
+  });
+  readonly thumbnailEmoji = computed(() => {
+    return this.thumbnail() &&
+      (this.ref()?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef()?.plugins?.['plugin/thumbnail']?.emoji) || '';
+  });
+  readonly thumbnailRadius = computed(() => {
+    return this.thumbnail() &&
+      (this.ref()?.plugins?.['plugin/thumbnail']?.radius || this.repostRef()?.plugins?.['plugin/thumbnail']?.radius) || 0;
+  });
+  readonly dependents = computed(() => {
+    return !hasTag('plugin/comment', this.ref()) && !hasTag('plugin/thread', this.ref()) && this.ref().sources?.length || 0;
+  });
+  readonly dependencies = computed(() => {
+    return this.ref().metadata?.responses || 0;
+  });
+  readonly thread = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return '';
-    if (!hasTag('plugin/thread', this.ref) && !this.threads) return '';
-    return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
-  }
-
-  @memo
-  get threads() {
+    if (!hasTag('plugin/thread', this.ref()) && !this.threads()) return '';
+    return this.ref().sources?.[1] || this.ref().sources?.[0] || this.ref().url;
+  });
+  readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return pluginResponses(this.ref, 'plugin/thread');
-  }
-
-  @memo
-  get comment() {
+    return pluginResponses(this.ref(), 'plugin/thread');
+  });
+  readonly comment = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return hasTag('plugin/comment', this.ref) || this.comments;
-  }
-
-  @memo
-  get comments() {
+    return hasTag('plugin/comment', this.ref()) || this.comments();
+  });
+  readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return pluginResponses(this.ref, 'plugin/comment');
-  }
+    return pluginResponses(this.ref(), 'plugin/comment');
+  });
+  readonly badges = computed(() => {
+    const badges = intersection(this.ref().tags, this.ext()?.config?.badges || []);
+    if (this.hideSwimLanes()) return badges;
+    return difference(badges, this.ext()?.config?.swimLanes || []);
+  });
+  readonly badgeExts = rxResource({
+    params: () => ({ tags: this.badges(), origin: this.ref().origin || '' }),
+    stream: ({ params }) => params.tags.length ? this.editor.getTagsPreview(params.tags, params.origin) : of([]),
+    defaultValue: [],
+  });
+  readonly allBadges = rxResource({
+    params: () => ({ tags: this.ext()?.config?.badges as string[] || [], origin: this.ref().origin || '' }),
+    stream: ({ params }) => params.tags.length ? this.editor.getTagsPreview(params.tags, params.origin) : of([]),
+    defaultValue: [],
+  });
+  readonly lastSelected = computed(() => {
+    return this.store.view.lastSelected()?.url === this.ref().url;
+  });
 
-  @memo
-  get badges() {
-    const badges = intersection(this.ref.tags, this.ext?.config?.badges || []);
-    if (this.hideSwimLanes) return badges;
-    return difference(badges, this.ext?.config?.swimLanes || []);
-  }
-
-  @memo
-  get badgeExts$() {
-    return this.editor.getTagsPreview(this.badges, this.ref.origin || '');
-  }
-
-  @memo
-  get allBadges$() {
-    return this.editor.getTagsPreview(this.ext?.config?.badges || [], this.ref.origin || '');
-  }
-
-  @HostBinding('class.last-selected')
-  get lastSelected() {
-    return this.store.view.lastSelected?.url === this.ref.url;
-  }
-
-  @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
-    this.zone.run(() => this.unlocked = false);
+    this.unlocked.set(false);
   }
 
-  @HostListener('press', ['$event'])
   unlock(event: any) {
-    if (!this.config.mobile) return;
-    this.unlocked = true;
+    if (!this.config.mobile()) return;
+    this.unlocked.set(true);
     this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
   }
+  readonly title = computed(() => {
+    if (this.bareRepost()) return getTitle(this.repostRef()) || $localize`Repost`;
+    return getTitle(this.ref());
+  });
 
-  @memo
-  get title() {
-    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
-    return getTitle(this.ref);
-  }
-
-  @HostListener('contextmenu', ['$event'])
   contextMenu(event: MouseEvent) {
-    if (this.pressToUnlock) {
+    if (this.pressToUnlock()) {
       // no badge menu on mobile
       return;
     }
@@ -317,7 +262,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
         positionStrategy,
         scrollStrategy: this.overlay.scrollStrategies.close(),
       });
-      this.overlayRef.attach(new TemplatePortal(this.cardMenu, this.viewContainerRef));
+      this.overlayRef.attach(new TemplatePortal(this.cardMenu(), this.viewContainerRef));
       this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
         switch (event.type) {
           case 'click':
@@ -325,18 +270,18 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
           case 'touchstart':
           case 'mousedown':
           case 'contextmenu':
-            this.zone.run(() => this.close());
+            this.close();
         }
       });
     });
   }
 
   saveRef() {
-    this.store.view.preloadRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref(), this.repostRef());
   }
 
   close() {
-    this.autoClose = true;
+    this.autoClose.set(true);
     this.overlayRef?.dispose();
     this.overlayEvents?.unsubscribe();
     this.overlayRef = undefined;
@@ -344,23 +289,22 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   }
 
   toggleBadge(tag: string, event?: MouseEvent) {
-    if (hasTag(tag, this.ref.tags)) {
-      this.tags.delete(tag, this.ref.url, this.ref.origin).pipe(
-        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref.origin)),
+    if (hasTag(tag, this.ref().tags)) {
+      this.tags.delete(tag, this.ref().url, this.ref().origin).pipe(
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref().origin)),
       ).subscribe(() => {
-        this.ref.tags = this.ref.tags!.filter(t => expandedTagsInclude(t, tag));
+        this.ref.update(ref => ({ ...ref, tags: ref.tags!.filter(t => expandedTagsInclude(t, tag)) }));
         this.init();
       });
     } else {
-      this.tags.create(tag, this.ref.url, this.ref.origin).pipe(
-        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref.origin)),
+      this.tags.create(tag, this.ref().url, this.ref().origin).pipe(
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref().origin)),
       ).subscribe(() => {
-        this.ref.tags ||= [];
-        this.ref.tags.push(tag);
+        this.ref.update(ref => ({ ...ref, tags: [...(ref.tags || []), tag] }));
         this.init();
       });
     }
-    if (this.autoClose || !event?.button) {
+    if (this.autoClose() || !event?.button) {
       this.close();
     } else {
       event.preventDefault();
@@ -369,18 +313,18 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   copy() {
     const tags = uniq([
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...(this.ref.tags || []).filter(t => this.auth.canAddTag(t))
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
+      ...(this.ref().tags || []).filter(t => this.auth.canAddTag(t))
     ]);
     const copied = {
-      ...this.ref,
-      origin: this.store.account.origin,
+      ...this.ref(),
+      origin: this.store.account.origin(),
       tags,
     };
     this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          return this.refs.get(this.ref.url, this.store.account.origin).pipe(
+          return this.refs.get(this.ref().url, this.store.account.origin()).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
@@ -396,9 +340,9 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
         return throwError(() => err);
       }),
       tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), copied.origin)),
-      switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntilDestroyed(this.destroyRef))),
+      switchMap(() => this.refs.get(copied.url, this.store.account.origin()).pipe(takeUntilDestroyed(this.destroyRef))),
     ).subscribe(ref => {
-      this.ref = ref;
+      this.ref.set(ref);
       this.init();
       this.copied.emit(ref);
     });

@@ -1,9 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, forwardRef, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  forwardRef,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+  viewChild
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, finalize, forkJoin, map, of, Subscription, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { EditorComponent } from '../../../form/editor/editor.component';
@@ -26,7 +38,6 @@ import { LoadingComponent } from '../../loading/loading.component';
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
   host: { 'class': 'comment-reply' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => EditorComponent),
     ReactiveFormsModule,
@@ -34,39 +45,37 @@ import { LoadingComponent } from '../../loading/loading.component';
   ]
 })
 export class CommentReplyComponent implements HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private fb = inject(FormBuilder);
 
-  @Input()
-  to!: Ref;
-  @Input()
-  selectResponseType = false;
-  @Input()
-  tags: string[] = [];
-  @Input()
-  showCancel = false;
-  @Input()
-  autofocus = false;
-  @Output()
-  save = new EventEmitter<Ref|undefined>();
+  private readonly destroyRef = inject(DestroyRef);
 
-  @ViewChild('editor')
-  editor?: EditorComponent
+  readonly to = input.required<Ref>();
+  readonly selectResponseType = input(false);
+  readonly tagsInput = input<string[]>([], { alias: 'tags' });
+  readonly tags = linkedSignal(() => this.tagsInput());
+  readonly showCancel = input(false);
+  readonly autofocus = input(false);
+  readonly save = output<Ref | undefined>();
 
-  editorTags: string[] = [];
-  editorSources: string[] = [];
-  completedUploads: Ref[] = [];
+  readonly editor = viewChild<EditorComponent>('editor');
 
-  replying?: Subscription;
+  readonly editorTags = signal<string[]>([]);
+  readonly editorSources = signal<string[]>([]);
+  readonly completedUploads = signal<Ref[]>([]);
+
+  readonly replying = signal(false);
+  private replyingSubscription?: Subscription;
   commentForm: UntypedFormGroup;
-  serverError: string[] = [];
-  config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
+  readonly serverError = signal<string[]>([]);
+  readonly config = computed(() => this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!);
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.commentForm = fb.group({
       comment: [''],
     });
@@ -76,91 +85,98 @@ export class CommentReplyComponent implements HasChanges {
     return !this.commentForm.dirty;
   }
 
-  get comment() {
+  readonly comment = computed(() => {
     return this.commentForm.get('comment') as UntypedFormControl;
-  }
+  });
 
-  get inheritedPlugins() {
-    const plugins = this.admin.getPlugins(this.to.tags)
+  readonly inheritedPlugins = computed(() => {
+    const plugins = this.admin.getPlugins(this.to().tags)
       .filter(p => p.config?.inherit)
       .map(p => p.tag);
-    return pickBy(this.to.plugins, (data, tag) => hasTag(tag, plugins));
-  }
+    return pickBy(this.to().plugins, (data, tag) => hasTag(tag, plugins));
+  });
 
   addSource(add: any) {
-    this.editorSources.push(add);
+    this.editorSources.update(sources => [...sources, add]);
+  }
+
+  uploadCompleted(ref: Ref) {
+    this.completedUploads.update(uploads => [...uploads, ref]);
   }
 
   syncTags(tags: string[]) {
-    this.editorTags = tags;
+    this.editorTags.set(tags);
   }
 
   reply() {
-    if (!this.comment.value) return;
+    if (this.replying() || !this.comment().value) return;
     const url = 'comment:' + uuid();
-    const value = this.comment.value || '';
-    const inheritedPlugins = this.inheritedPlugins;
-    const tags = removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...this.editorTags,
-      ...getMailboxes(value, this.store.account.origin),
+    const value = this.comment().value || '';
+    const inheritedPlugins = this.inheritedPlugins();
+    const tags = removeTag(getMailbox(this.store.account.tag(), this.store.account.origin()), uniq([
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
+      ...this.editorTags(),
+      ...getMailboxes(value, this.store.account.origin()),
       ...Object.keys(inheritedPlugins),
     ]));
-    const sources = [this.to.url];
+    const sources = [this.to().url];
     if (hasTag('plugin/comment', tags) || hasTag('plugin/thread', tags)) {
-      if (hasTag('plugin/comment', this.to) || hasTag('plugin/thread', this.to)) {
+      if (hasTag('plugin/comment', this.to()) || hasTag('plugin/thread', this.to())) {
         // Parent may be the top
-        sources.push(this.to.sources?.[1] || this.to.url);
+        sources.push(this.to().sources?.[1] || this.to().url);
       } else {
         // Parent is the top
-        sources.push(this.to.url);
+        sources.push(this.to().url);
       }
     }
     const ref: Ref = {
       url,
-      origin: this.store.account.origin,
-      title: (hasTag('plugin/email', this.to) || hasTag('plugin/thread', this.to)) ? getRe(this.to.title) : '',
+      origin: this.store.account.origin(),
+      title: (hasTag('plugin/email', this.to()) || hasTag('plugin/thread', this.to())) ? getRe(this.to().title) : '',
       comment: value,
-      sources: [...sources, ...this.editorSources],
+      sources: [...sources, ...this.editorSources()],
       tags,
       plugins: inheritedPlugins,
       published: DateTime.now(),
     };
-    this.comment.disable();
-    this.replying = this.refs.create(ref).pipe(
+    this.comment().disable();
+    this.replying.set(true);
+    this.replyingSubscription = this.refs.create(ref).pipe(
       tap(cursor => {
-        ref.modifiedString = cursor;
-        ref.modified = DateTime.fromISO(cursor);
         if (this.admin.getPlugin('plugin/user/vote/up')) {
-          this.ts.createResponse('plugin/user/vote/up', url).subscribe();
+          this.ts.createResponse('plugin/user/vote/up', url).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
         }
       }),
       switchMap(res => {
         const finalVisibilityTags = getVisibilityTags(tags);
         if (!finalVisibilityTags.length) return of(res);
-        const taggingOps = this.completedUploads
+        const taggingOps = this.completedUploads()
           .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
         if (!taggingOps.length) return of(res);
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((err: HttpErrorResponse) => {
-        delete this.replying;
-        this.serverError = printError(err);
-        this.comment.enable();
-        return throwError(() => err);
+        this.serverError.set(printError(err));
+        return of(undefined);
       }),
-    ).subscribe(() => {
-      delete this.replying;
-      this.serverError = [];
-      this.comment.enable();
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => {
+        this.replying.set(false);
+        this.comment().enable();
+      }),
+    ).subscribe(cursor => {
+      if (!cursor) return;
+      this.serverError.set([]);
       this.commentForm.reset();
-      this.editorTags = [...this.tags];
-      this.tags = [...this.tags];
-      this.completedUploads = [];
+      this.editorTags.set(this.tags().slice());
+      this.tags.update(tags => [...tags]);
+      this.completedUploads.set([]);
 
-      this.editor?.syncText('');
+      this.editor()?.syncText('');
       const update = {
         ...ref,
+        modifiedString: cursor,
+        modified: DateTime.fromISO(cursor),
         created: DateTime.now(),
         metadata: {
           plugins: {
@@ -173,7 +189,7 @@ export class CommentReplyComponent implements HasChanges {
   }
 
   cancel() {
-    this.replying?.unsubscribe();
+    this.replyingSubscription?.unsubscribe();
     this.commentForm.reset();
     this.save.emit(undefined);
   }

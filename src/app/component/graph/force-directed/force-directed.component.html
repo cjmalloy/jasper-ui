@@ -35,39 +35,37 @@
     <div (click)="toggleUnloaded()">
       <input id="unloaded"
              type="checkbox"
-             [checked]="store.graph.showUnloaded">
+             [checked]="store.graph.showUnloaded()">
       <label for="unloaded" i18n>Show unloaded references</label>
     </div>
     <hr>
     <div (click)="toggleTimeline()">
       <input id="timeline"
              type="checkbox"
-             [checked]="store.graph.timeline">
+             [checked]="store.graph.timeline()">
       <label for="timeline" i18n>Timeline force on X-axis</label>
     </div>
     <hr>
     <div (click)="toggleArrows()">
       <input id="arrows"
              type="checkbox"
-             [checked]="store.graph.arrows">
+             [checked]="store.graph.arrows()">
       <label for="timeline" i18n>Show arrow from source to response</label>
     </div>
     <hr>
     <div (click)="fullscreen()" i18n>Fullscreen</div>
   </div>
 </ng-template>
-<ng-container *mobxAutorun>
-  @if (store.graph.unloaded.length) {
-    <a class="load-more fake-link no-select" (click)="drawMore()" i18n>load more</a>
+@if (store.graph.unloaded().length) {
+  <a class="load-more fake-link no-select" (click)="drawMore()" i18n>load more</a>
+}
+<div class="loading-container">
+  @if (store.graph.loading().length) {
+    <app-loading></app-loading>
   }
-  <div class="loading-container">
-    @if (store.graph.loading.length) {
-      <app-loading></app-loading>
-    }
-  </div>
-  <label class="graph-selected no-select" i18n>Selected:</label>
-  <app-ref-list #list [page]="store.graph.selectedPage"
-                i18n-emptyMessage
-                emptyMessage="Empty selection"
-                [pageControls]="false"></app-ref-list>
-</ng-container>
+</div>
+<label class="graph-selected no-select" i18n>Selected:</label>
+<app-ref-list #list [page]="store.graph.selectedPage()"
+              i18n-emptyMessage
+              emptyMessage="Empty selection"
+              [pageControls]="false"></app-ref-list>

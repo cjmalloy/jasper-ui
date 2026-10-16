@@ -1,7 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
 import { catchError, concat, defer, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
@@ -20,14 +19,12 @@ import { TaggingService } from './api/tagging.service';
   providedIn: 'root'
 })
 export class ActionService {
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private tags = inject(TaggingService);
+  private store = inject(Store);
+  private stomp = inject(StompService);
 
-  constructor(
-    private refs: RefService,
-    private exts: ExtService,
-    private tags: TaggingService,
-    private store: Store,
-    private stomp: StompService,
-  ) { }
 
   wrap(ref?: Ref): PluginApi {
     let o: Subscription | undefined = undefined;
@@ -107,7 +104,7 @@ export class ActionService {
   }
 
   emit$(a: EmitAction, ref?: Ref) {
-    const models = emitModels(a, ref, this.store.account.localTag);
+    const models = emitModels(a, ref, this.store.account.localTag());
     const uploads = [
       ...models.ref.map(ref => this.refs.create(ref)),
       ...models.ext.map(ext => this.exts.create(ext)),
@@ -121,7 +118,7 @@ export class ActionService {
 
   download$(a: DownloadAction, ref?: Ref) {
     return defer(() => {
-      const model = downloadModel(a, ref, this.store.account.localTag);
+      const model = downloadModel(a, ref, this.store.account.localTag());
       if (model?.url) {
         downloadRef(model);
       } else if (model?.tag) {
@@ -138,15 +135,15 @@ export class ActionService {
   }
 
   comment$(comment: string, ref: Ref) {
-    return this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
+    return this.refs.patch(ref.url, this.store.account.origin(), ref.modifiedString!, [{
       op: 'add',
       path: '/comment',
       value: comment,
     }]).pipe(
       catchError(err => {
         if (err.status === 409) {
-          return this.refs.get(ref.url, this.store.account.origin).pipe(
-            switchMap(ref => this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
+          return this.refs.get(ref.url, this.store.account.origin()).pipe(
+            switchMap(ref => this.refs.patch(ref.url, this.store.account.origin(), ref.modifiedString!, [{
               op: 'add',
               path: '/comment',
               value: comment,
@@ -155,11 +152,11 @@ export class ActionService {
         }
         return throwError(() => err);
       }),
-      tap(cursor => runInAction(() => {
+      tap(cursor => {
         ref.comment = comment;
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
-      })),
+      }),
     );
   }
 
@@ -173,16 +170,16 @@ export class ActionService {
       const tags = patch.tags || target.tags;
       const missingTags = pluginTags.filter(t => !hasTag(t, tags));
       const update = missingTags.length ? { ...patch, tags: [...(tags || []), ...missingTags] } : patch;
-      return this.refs.merge(target.url, this.store.account.origin, target.modifiedString!, update);
+      return this.refs.merge(target.url, this.store.account.origin(), target.modifiedString!, update);
     };
     return save(ref).pipe(
       catchError(err => {
         if (err.status === 409) {
-          return this.refs.get(ref.url, this.store.account.origin).pipe(switchMap(save));
+          return this.refs.get(ref.url, this.store.account.origin()).pipe(switchMap(save));
         }
         return throwError(() => err);
       }),
-      tap(cursor => runInAction(() => {
+      tap(cursor => {
         const plugins = patch.plugins ? { ...ref.plugins, ...patch.plugins } : ref.plugins;
         Object.assign(ref, patch);
         if (patch.plugins) ref.plugins = plugins;
@@ -190,7 +187,7 @@ export class ActionService {
         if (newTags.length) ref.tags = [...(ref.tags || []), ...newTags];
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
-      })),
+      }),
     );
   }
 
@@ -200,7 +197,7 @@ export class ActionService {
 
   tag$(tag: string, ref: Ref) {
     const patch = (hasTag(tag, ref) ? '-' : '') + tag;
-    return this.tags.create(patch, ref.url, this.store.account.origin);
+    return this.tags.create(patch, ref.url, this.store.account.origin());
   }
 
   respond(response: string, clear: string[], ref: Ref) {
@@ -227,18 +224,18 @@ export class ActionService {
   }
 
   watch(ref: Ref, delimiter = '\n') {
-    let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
+    let cursor = ref.origin === this.store.account.origin() ? ref.modifiedString! : '';
     let baseComment = ref.comment || '';
     const inner = {
-      ref$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
+      ref$: merge(...this.store.origins.list().map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
-          if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
+          if (u.origin === this.store.account.origin()) cursor = u.modifiedString!;
           baseComment = u.comment || '';
         }),
       ))),
       comment$: (comment: string): Observable<string> => {
         if (!cursor) {
-          return this.refs.get(ref.url, this.store.account.origin).pipe(
+          return this.refs.get(ref.url, this.store.account.origin()).pipe(
             tap(ref => {
               cursor = ref.modifiedString!;
               baseComment = ref.comment || '';
@@ -246,7 +243,7 @@ export class ActionService {
             switchMap(ref => inner.comment$(comment)),
           );
         }
-        return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+        return this.refs.patch(ref.url, this.store.account.origin(), cursor, [{
           op: 'add',
           path: '/comment',
           value: comment,
@@ -258,7 +255,7 @@ export class ActionService {
           catchError(err => {
             if (err.status === 409) {
               // Fetch the current version from server
-              return this.refs.get(ref.url, this.store.account.origin).pipe(
+              return this.refs.get(ref.url, this.store.account.origin()).pipe(
                 switchMap(remote => {
                   const { result, conflict } = merge3(comment, baseComment, remote.comment || '', delimiter);
                   cursor = remote.modifiedString!;
@@ -277,12 +274,12 @@ export class ActionService {
   }
 
   append(ref: Ref) {
-    let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
+    let cursor = ref.origin === this.store.account.origin() ? ref.modifiedString! : '';
     let comment = ref.comment || '';
     const inner = {
-      updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
+      updates$: merge(...this.store.origins.list().map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
-          if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
+          if (u.origin === this.store.account.origin()) cursor = u.modifiedString!;
         }),
         switchMap(u => {
           if (comment.startsWith(u?.comment || '')) return of()
@@ -297,13 +294,13 @@ export class ActionService {
       ))),
       append$: (value: string): Observable<string> => {
         if (!cursor) {
-          return this.refs.get(ref.url, this.store.account.origin).pipe(
+          return this.refs.get(ref.url, this.store.account.origin()).pipe(
             tap(ref => cursor = ref.modifiedString!),
             switchMap(ref => inner.append$(value)),
           );
         }
         comment = comment ? `${comment}  \n${value}` : value;
-        return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+        return this.refs.patch(ref.url, this.store.account.origin(), cursor, [{
           op: 'add',
           path: '/comment',
           value: comment,
@@ -313,13 +310,13 @@ export class ActionService {
       },
       reset$: (value: string[]): Observable<string> => {
         if (!cursor) {
-          return this.refs.get(ref.url, this.store.account.origin).pipe(
+          return this.refs.get(ref.url, this.store.account.origin()).pipe(
             tap(ref => cursor = ref.modifiedString!),
             switchMap(ref => inner.reset$(value)),
           );
         }
         comment = value.join('  \n');
-        return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+        return this.refs.patch(ref.url, this.store.account.origin(), cursor, [{
           op: 'add',
           path: '/comment',
           value: comment,

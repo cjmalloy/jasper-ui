@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { clearMods, deleteRef, openSidebar } from './setup';
+import { expect } from '@playwright/test';
+import { clearMods, deleteRef, openSidebar, test } from './setup';
 
 test.describe('Backup / Restore', () => {
 
@@ -24,6 +24,9 @@ test.describe('Backup / Restore', () => {
 
   test('creates backup', async ({ page }) => {
     await page.goto('/settings/backup?debug=ADMIN');
+    const completed = page.locator('.list-container .link a');
+    await expect(completed.first().or(page.locator('.no-results'))).toBeVisible();
+    const before = await completed.count();
     await page.locator('.backup.buttons button', { hasText: '+ backup' }).click();
     // Wait for overlay to appear
     await expect(page.locator('.popup button', { hasText: '+ backup' })).toBeVisible();
@@ -31,7 +34,11 @@ test.describe('Backup / Restore', () => {
     await expect(page.locator('#backupTombstones')).not.toBeChecked();
     // Click backup button to create backup with default options
     await page.locator('.popup button', { hasText: '+ backup' }).click();
-    await page.waitForTimeout(1000);
+    // The list does not poll, so reload until the new backup has finished
+    await expect(async () => {
+      await page.reload({ waitUntil: 'networkidle' });
+      expect(await completed.count()).toBeGreaterThan(before);
+    }).toPass({ timeout: 30_000 });
   });
 
   test('deletes ref', async ({ page }) => {

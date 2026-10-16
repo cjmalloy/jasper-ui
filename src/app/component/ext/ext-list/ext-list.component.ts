@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { Component, effect, inject, input, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
@@ -12,7 +12,6 @@ import { ExtComponent } from '../ext.component';
   templateUrl: './ext-list.component.html',
   styleUrls: ['./ext-list.component.scss'],
   host: { 'class': 'ext-list' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ExtComponent,
     PageControlsComponent,
@@ -20,35 +19,29 @@ import { ExtComponent } from '../ext.component';
   ],
 })
 export class ExtListComponent implements HasChanges {
+  private router = inject(Router);
 
-  @ViewChildren(ExtComponent)
-  list?: QueryList<ExtComponent>;
 
-  private _page?: Page<Ext>;
+  readonly list = viewChildren(ExtComponent);
 
-  constructor(private router: Router) { }
+  readonly page = input<Page<Ext> | undefined>(undefined);
 
-  saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
-  }
-
-  get page() {
-    return this._page;
-  }
-
-  @Input()
-  set page(value: Page<Ext> | undefined) {
-    this._page = value;
-    if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
+  constructor() {
+    effect(() => {
+      const page = this.page();
+      if (page && page.page.number !== undefined && page.page.number > 0 && page.page.number >= page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.page.totalPages - 1
+            pageNumber: page.page.totalPages - 1
           },
           queryParamsHandling: "merge",
         })
       }
-    }
+    });
+  }
+
+  saveChanges() {
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
 }

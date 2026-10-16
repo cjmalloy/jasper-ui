@@ -2,7 +2,6 @@ import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { refSchema } from '../model/ref';
 import { Mod } from '../model/tag';
-import { Template } from '../model/template';
 
 export const editingPlugin: Plugin = {
   tag: 'plugin/editing',
