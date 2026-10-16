@@ -583,10 +583,11 @@ Tags may be qualified with an origin.
 Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
 Use an origin without a tag to match all tags at that origin.
 Missing origins match the default origin.
-Wildcards (*) and negation (!) are not allowed.
+Use @* to match any top-level origin, or @origin.* to match direct sub-origins of @origin.
+Negation (!) is not allowed.
 Protected tags start with a plus sign.
 Private tags start with an underscore.
-(i.e. "", "science", "science@origin", "@origin", or "_my/private/tag")`,
+(i.e. "", "science", "science@origin", "@origin", "@origin.*", "@*", or "_my/private/tag")`,
           }
         },
       },

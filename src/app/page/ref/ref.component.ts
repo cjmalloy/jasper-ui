@@ -65,6 +65,7 @@ export class RefPage implements HasChanges {
   private origin?: string;
   private watchSelf?: Subscription;
   private watchKey = '';
+  private watchResponsesKey = '';
   private watchResponses?: Subscription;
   private seen = new Set<string>();
 
@@ -144,7 +145,7 @@ export class RefPage implements HasChanges {
     this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions.set(count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     const cached = this.store.view.ref();
-    (url === cached?.url && (origin === undefined || (cached.origin || '') === origin)
+    (url === cached?.url && cached.origin !== undefined && (origin === undefined || cached.origin === origin)
         ? of(cached)
         : origin === undefined
         ? this.refs.getCurrent(url)
@@ -153,6 +154,7 @@ export class RefPage implements HasChanges {
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
       tap(ref => this.markRead(ref)),
+      tap(ref => this.watch(ref)),
       switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
         : top(ref) === this.store.view.top()?.url ? of([ref, this.store.view.top()])
@@ -163,11 +165,29 @@ export class RefPage implements HasChanges {
       tap(([ref, top]) => this.store.view.setRef(ref, top)),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe();
-    const watchKey = (origin ?? this.store.account.origin()) + ':' + url;
+    if (this.config.websockets && this.watchResponsesKey !== url) {
+      this.watchResponsesKey = url;
+      this.watchResponses?.unsubscribe();
+      this.watchResponses = this.stomp.watchResponse(url).pipe(
+        filter(url => url != this.store.view.url()),
+        filter(url => !url.startsWith('tag:')),
+        filter(url => !this.seen.has(url)),
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe(url => {
+        this.seen.add(url);
+        this.newResponses.update(n => n + 1);
+      });
+    }
+  }
+
+  private watch(ref: Ref) {
+    // 404 placeholders have no origin
+    const watchKey = ref.origin === undefined ? '' : ref.origin + ':' + ref.url;
     if (this.config.websockets && this.watchKey !== watchKey) {
       this.watchKey = watchKey;
       this.watchSelf?.unsubscribe();
-      this.watchSelf = this.stomp.watchRef(url, origin).pipe(
+      if (!watchKey) return;
+      this.watchSelf = this.stomp.watchRef(ref.url, ref.origin).pipe(
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ud => {
         const current = this.store.view.ref();
@@ -203,16 +223,6 @@ export class RefPage implements HasChanges {
         };
         this.store.view.setRef({ ...this.store.view.ref()!, ...merged }, this.store.view.top());
         this.store.eventBus.refresh(this.store.view.ref());
-      });
-      this.watchResponses?.unsubscribe();
-      this.watchResponses = this.stomp.watchResponse(url).pipe(
-        filter(url => url != this.store.view.url()),
-        filter(url => !url.startsWith('tag:')),
-        filter(url => !this.seen.has(url)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(url => {
-        this.seen.add(url);
-        this.newResponses.update(n => n + 1);
       });
     }
   }
