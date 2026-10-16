@@ -62,13 +62,14 @@ describe('AdminService', () => {
     }
   });
 
-  it('should not allow negation or wildcards in script selectors in the server config fallback form', () => {
+  it('should allow wildcard origins but not negation in script selectors in the server config fallback form', () => {
     const scriptSelectors = service.getTemplateAdminForm('_config/server').find(f => f.key === 'scriptSelectors')!;
     expect(scriptSelectors.type).toBe('tagOriginSelectors');
-    for (const value of ['', '@', '@origin', 'plugin/script', 'plugin/script@', 'plugin/script@a.b', '+plugin/cron@origin']) {
+    for (const value of ['', '@', '@origin', 'plugin/script', 'plugin/script@', 'plugin/script@a.b', '+plugin/cron@origin',
+      '@*', '@origin.*', '@a.b.*', 'plugin/script@*', '_plugin/delta/scrape@navi.*']) {
       expect(TAG_ORIGIN_SELECTOR_REGEX.test(value)).toBe(true);
     }
-    for (const value of ['*', '@*', '@origin.*', '!plugin/script', 'plugin/script@*', '!@origin', '@.origin']) {
+    for (const value of ['*', 'plugin/*', '@.*', '@origin*', '@origin.', '@*.origin', '!plugin/script', '!@origin', '@.origin']) {
       expect(TAG_ORIGIN_SELECTOR_REGEX.test(value)).toBe(false);
     }
   });
