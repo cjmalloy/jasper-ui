@@ -1975,7 +1975,7 @@ Private tags start with an underscore.
         <source>Origins: </source>
         <target>オリジン: </target>
       </trans-unit>
-      <trans-unit id="8384797710281844984" datatype="html">
+      <trans-unit id="3444072210683622660" datatype="html">
         <source>Tags must be lower case letters, numbers, periods and forward slashes.
 Must not start with a forward slash or period.
 Must not or contain two forward slashes or periods in a row.
@@ -1983,10 +1983,11 @@ Tags may be qualified with an origin.
 Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
 Use an origin without a tag to match all tags at that origin.
 Missing origins match the default origin.
-Wildcards (*) and negation (!) are not allowed.
+Use @* to match any top-level origin, or @origin.* to match direct sub-origins of @origin.
+Negation (!) is not allowed.
 Protected tags start with a plus sign.
 Private tags start with an underscore.
-(i.e. "", "science", "science@origin", "@origin", or "_my/private/tag")</source>
+(i.e. "", "science", "science@origin", "@origin", "@origin.*", "@*", or "_my/private/tag")</source>
         <target>タグは小文字の英字、数字、ピリオド、スラッシュのみを使用してください。
 スラッシュまたはピリオドで始まってはなりません。
 連続して2つのスラッシュまたはピリオドを含んではなりません。
@@ -1994,10 +1995,11 @@ Private tags start with an underscore.
 オリジンはアットマーク(@)で始まり、小文字の英字、数字、ピリオドのみを含める必要があります。
 タグなしのオリジンを使用して、そのオリジンのすべてのタグに一致させることができます。
 オリジンを省略するとデフォルトオリジンに一致します。
-ワイルドカード(*)と否定(!)は使用できません。
+@* を使用すると任意のトップレベルオリジンに、@origin.* を使用すると @origin の直下のサブオリジンに一致します。
+否定(!)は使用できません。
 保護されたタグはプラス記号で始まります。
 プライベートタグはアンダースコアで始まります。
-(例: "", "science", "science@origin", "@origin", または "_my/private/tag")</target>
+(例: "", "science", "science@origin", "@origin", "@origin.*", "@*", または "_my/private/tag")</target>
       </trans-unit>
       <trans-unit id="441268148003212172" datatype="html">
         <source>Query: </source>
@@ -7771,6 +7773,26 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="1269111960920949095" datatype="html">
         <source>Modified:</source>
         <target>更新日時:</target>
+      </trans-unit>
+      <trans-unit id="6996821581668497894" datatype="html">
+        <source>Ignored:</source>
+        <target>無視:</target>
+      </trans-unit>
+      <trans-unit id="8285199640734786793" datatype="html">
+        <source>Cascade:</source>
+        <target>カスケード:</target>
+      </trans-unit>
+      <trans-unit id="6962491897313784482" datatype="html">
+        <source>Regen:</source>
+        <target>再生成:</target>
+      </trans-unit>
+      <trans-unit id="17858856723291247" datatype="html">
+        <source>Hot Tags:</source>
+        <target>ホットタグ:</target>
+      </trans-unit>
+      <trans-unit id="3254073718846303093" datatype="html">
+        <source>+ Add another hot tag</source>
+        <target>+ ホットタグを追加</target>
       </trans-unit>
       <trans-unit id="1294909756545406951" datatype="html">
         <source>JWT</source>

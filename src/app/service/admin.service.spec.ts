@@ -38,7 +38,10 @@ describe('AdminService', () => {
   });
 
   it('should fall back to hard coded config admin forms', () => {
-    expect(service.getTemplateAdminForm('_config/index').map(f => f.key)).toContain('fulltext');
+    expect(service.getTemplateAdminForm('_config/index').map(f => f.key)).toEqual([
+      'tags', 'sources', 'alts', 'responses', 'internalResponses', 'fulltext', 'published', 'modified',
+      'ignored', 'cascade', 'regen', 'hotTags',
+    ]);
     expect(service.getTemplateAdminForm('_config/security').map(f => f.key)).toContain('minRole');
     expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toContain('scriptSelectors');
     expect(service.getTemplateAdminForm('_config/server/worker').map(f => f.key)).toContain('scriptSelectors');
@@ -59,13 +62,14 @@ describe('AdminService', () => {
     }
   });
 
-  it('should not allow negation or wildcards in script selectors in the server config fallback form', () => {
+  it('should allow wildcard origins but not negation in script selectors in the server config fallback form', () => {
     const scriptSelectors = service.getTemplateAdminForm('_config/server').find(f => f.key === 'scriptSelectors')!;
     expect(scriptSelectors.type).toBe('tagOriginSelectors');
-    for (const value of ['', '@', '@origin', 'plugin/script', 'plugin/script@', 'plugin/script@a.b', '+plugin/cron@origin']) {
+    for (const value of ['', '@', '@origin', 'plugin/script', 'plugin/script@', 'plugin/script@a.b', '+plugin/cron@origin',
+      '@*', '@origin.*', '@a.b.*', 'plugin/script@*', '_plugin/delta/scrape@navi.*']) {
       expect(TAG_ORIGIN_SELECTOR_REGEX.test(value)).toBe(true);
     }
-    for (const value of ['*', '@*', '@origin.*', '!plugin/script', 'plugin/script@*', '!@origin', '@.origin']) {
+    for (const value of ['*', 'plugin/*', '@.*', '@origin*', '@origin.', '@*.origin', '!plugin/script', '!@origin', '@.origin']) {
       expect(TAG_ORIGIN_SELECTOR_REGEX.test(value)).toBe(false);
     }
   });
