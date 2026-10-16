@@ -13,17 +13,20 @@ export const csrfInterceptor: HttpInterceptorFn = (request, next) => {
     return next(request);
   }
   const withCredentials = environment.dev || inject(ConfigService).electron || location.hostname === 'localhost';
-  const withToken = () => request.clone({
-    headers: request.headers.set('X-XSRF-TOKEN', getCsrfToken()),
+  const withToken = (token: string) => request.clone({
+    headers: request.headers.set('X-XSRF-TOKEN', token),
     withCredentials,
   });
-  return next(withToken()).pipe(
+  const token = getCsrfToken();
+  return next(withToken(token)).pipe(
     catchError(err => {
-      if (!err.status || err.status === 403 && /CSRF token/i.test(err.error?.detail || '')) {
-        // Sometimes the first request has an invalid CSRF token and fails
-        // Retry one more time
+      // Concurrent startup requests can each set a new XSRF-TOKEN cookie, so the
+      // cookie may change after the header was read. The 403 body is not always
+      // readable (e.g. large uploads), so also retry if the cookie changed.
+      const csrf = token !== getCsrfToken() || /CSRF token/i.test(err.error?.detail || '');
+      if (!err.status || err.status === 403 && csrf) {
         console.warn('Retrying forbidden request with fresh CSRF token');
-        return next(withToken());
+        return next(withToken(getCsrfToken()));
       }
       return throwError(() => err);
     }),

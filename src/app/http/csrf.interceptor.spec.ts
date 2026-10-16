@@ -50,6 +50,37 @@ describe('csrfInterceptor', () => {
     });
   }
 
+  for (const status of [403, 0]) {
+    it(`retries once with the new cookie if it changed (status ${status})`, () => {
+      const http = TestBed.inject(HttpClient);
+      const ctrl = TestBed.inject(HttpTestingController);
+      document.cookie = 'XSRF-TOKEN=old';
+      let result: any;
+      http.post('/api/v1/proxy', 'data').subscribe(res => result = res);
+      const first = ctrl.expectOne('/api/v1/proxy');
+      expect(first.request.headers.get('X-XSRF-TOKEN')).toBe('old');
+      document.cookie = 'XSRF-TOKEN=new';
+      first.flush(null, { status, statusText: 'Forbidden' });
+      const retry = ctrl.expectOne('/api/v1/proxy');
+      expect(retry.request.headers.get('X-XSRF-TOKEN')).toBe('new');
+      retry.flush({ ok: true });
+      expect(result).toEqual({ ok: true });
+      ctrl.verify();
+    });
+  }
+
+  it('retries a network error once even if the cookie did not change', () => {
+    const http = TestBed.inject(HttpClient);
+    const ctrl = TestBed.inject(HttpTestingController);
+    document.cookie = 'XSRF-TOKEN=same';
+    let error: any;
+    http.post('/api/v1/ref', 'data').pipe(catchError(err => { error = err; return EMPTY; })).subscribe();
+    ctrl.expectOne('/api/v1/ref').error(new ProgressEvent('error'));
+    ctrl.expectOne('/api/v1/ref').error(new ProgressEvent('error'));
+    expect(error.status).toBe(0);
+    ctrl.verify();
+  });
+
   it('does not retry other 403s', () => {
     let error: any;
     http.post('/api/v1/ref', 'data').pipe(catchError(err => { error = err; return EMPTY; })).subscribe();
