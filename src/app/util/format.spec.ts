@@ -33,6 +33,18 @@ describe('Format Utils', () => {
       }
     });
 
+    it('should match negated and nested groups', () => {
+      for (const q of ['!(a|b)', '!(a:b)', '!!(a)', '!(!a)', '((a|b):c)|d', 'a:!(b|(c:!d))', '!(a|b@x.yz)']) {
+        expect(QUERY_REGEX.test(q)).toBe(true);
+      }
+    });
+
+    it('should not match malformed operators or groups', () => {
+      for (const q of ['', 'a::b', 'a:', '|a', '!', '()', 'a)(b', 'a!b', 'a(b)']) {
+        expect(QUERY_REGEX.test(q)).toBe(false);
+      }
+    });
+
     it('should not match invalid origins', () => {
       for (const q of ['a@.x', '(a@x.)', 'a:b@x..y', 'a@x.*', '(a@x.*)']) {
         expect(QUERY_REGEX.test(q)).toBe(false);
