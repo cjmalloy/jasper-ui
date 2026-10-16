@@ -7769,6 +7769,26 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Modified:</source>
         <target>更新日時:</target>
       </trans-unit>
+      <trans-unit id="6996821581668497894" datatype="html">
+        <source>Ignored:</source>
+        <target>無視:</target>
+      </trans-unit>
+      <trans-unit id="8285199640734786793" datatype="html">
+        <source>Cascade:</source>
+        <target>カスケード:</target>
+      </trans-unit>
+      <trans-unit id="6962491897313784482" datatype="html">
+        <source>Regen:</source>
+        <target>再生成:</target>
+      </trans-unit>
+      <trans-unit id="17858856723291247" datatype="html">
+        <source>Hot Tags:</source>
+        <target>ホットタグ:</target>
+      </trans-unit>
+      <trans-unit id="3254073718846303093" datatype="html">
+        <source>+ Add another hot tag</source>
+        <target>+ ホットタグを追加</target>
+      </trans-unit>
       <trans-unit id="1294909756545406951" datatype="html">
         <source>JWT</source>
       </trans-unit>

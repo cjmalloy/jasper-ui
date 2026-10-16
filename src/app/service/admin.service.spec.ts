@@ -38,7 +38,10 @@ describe('AdminService', () => {
   });
 
   it('should fall back to hard coded config admin forms', () => {
-    expect(service.getTemplateAdminForm('_config/index').map(f => f.key)).toContain('fulltext');
+    expect(service.getTemplateAdminForm('_config/index').map(f => f.key)).toEqual([
+      'tags', 'sources', 'alts', 'responses', 'internalResponses', 'fulltext', 'published', 'modified',
+      'ignored', 'cascade', 'regen', 'hotTags',
+    ]);
     expect(service.getTemplateAdminForm('_config/security').map(f => f.key)).toContain('minRole');
     expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toContain('scriptSelectors');
     expect(service.getTemplateAdminForm('_config/server/worker').map(f => f.key)).toContain('scriptSelectors');
