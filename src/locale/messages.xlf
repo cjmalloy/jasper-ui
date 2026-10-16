@@ -6087,14 +6087,14 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">651</context>
+          <context context-type="linenumber">652</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">651</context>
+          <context context-type="linenumber">652</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8384797710281844984" datatype="html">
+      <trans-unit id="6585660164412014628" datatype="html">
         <source>Tags must be lower case letters, numbers, periods and forward slashes.
 Must not start with a forward slash or period.
 Must not or contain two forward slashes or periods in a row.
@@ -6102,36 +6102,37 @@ Tags may be qualified with an origin.
 Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
 Use an origin without a tag to match all tags at that origin.
 Missing origins match the default origin.
-Wildcards (*) and negation (!) are not allowed.
+Use @* to match all non-default origins, or @origin.* to match all sub-origins.
+Negation (!) is not allowed.
 Protected tags start with a plus sign.
 Private tags start with an underscore.
-(i.e. &quot;&quot;, &quot;science&quot;, &quot;science@origin&quot;, &quot;@origin&quot;, or &quot;_my/private/tag&quot;)</source>
+(i.e. &quot;&quot;, &quot;science&quot;, &quot;science@origin&quot;, &quot;@origin&quot;, &quot;@origin.*&quot;, &quot;@*&quot;, or &quot;_my/private/tag&quot;)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">627,637</context>
+          <context context-type="linenumber">627,638</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">627,637</context>
+          <context context-type="linenumber">627,638</context>
         </context-group>
       </trans-unit>
       <trans-unit id="441268148003212172" datatype="html">
         <source>Query: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">661</context>
+          <context context-type="linenumber">662</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">661</context>
+          <context context-type="linenumber">662</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">716</context>
+          <context context-type="linenumber">717</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">716</context>
+          <context context-type="linenumber">717</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2610710556374993600" datatype="html">
@@ -6149,63 +6150,63 @@ Private tags start with an underscore.
 (i.e. &quot;science:news&quot;, &quot;science@origin science@other&quot; &quot;your/tag my/tag&quot;, &quot;!cool&quot;, or &quot;news:_my/private/tag&quot;)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">666,677</context>
+          <context context-type="linenumber">667,678</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">666,677</context>
+          <context context-type="linenumber">667,678</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">696,707</context>
+          <context context-type="linenumber">697,708</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">696,707</context>
+          <context context-type="linenumber">697,708</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6701554262923388914" datatype="html">
         <source>Bookmark: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">687</context>
+          <context context-type="linenumber">688</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">687</context>
+          <context context-type="linenumber">688</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5234310223743950460" datatype="html">
         <source>+ Add another query</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">717</context>
+          <context context-type="linenumber">718</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">717</context>
+          <context context-type="linenumber">718</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2454675159545031879" datatype="html">
         <source>Bookmarks: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">728</context>
+          <context context-type="linenumber">729</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">728</context>
+          <context context-type="linenumber">729</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4986839540903702373" datatype="html">
         <source>+ Add another bookmark</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">729</context>
+          <context context-type="linenumber">730</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">729</context>
+          <context context-type="linenumber">730</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/user.ts</context>
@@ -6216,22 +6217,22 @@ Private tags start with an underscore.
         <source>Location: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">776</context>
+          <context context-type="linenumber">777</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">776</context>
+          <context context-type="linenumber">777</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7847028519699724882" datatype="html">
         <source>Bounds: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">794</context>
+          <context context-type="linenumber">795</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.module.ts</context>
-          <context context-type="linenumber">794</context>
+          <context context-type="linenumber">795</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
