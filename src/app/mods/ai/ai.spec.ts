@@ -251,6 +251,7 @@ describe('aiQueryPlugin', () => {
 
     const bundle = JSON.parse(output.mock.calls[0][0]);
     const userTags = ['user/chris', 'user/bob', 'user/alice'];
+    expect(bundle.ref[0].tags).toEqual(expect.arrayContaining(userTags));
     expect(bundle.ref.find((r: any) => r.title === undefined && r.tags.includes('note') && !r.tags.includes('public')).tags)
       .toEqual(expect.arrayContaining(['note', ...userTags]));
     const publicRef = bundle.ref.find((r: any) => r.tags.includes('public'));

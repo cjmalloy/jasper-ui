@@ -1036,7 +1036,7 @@ for (let i = 0; i < bundle.ref.length; i++) {
   rewriteUrl(oldUrl, newUrl);
 }
 const userTags = (ref.tags || []).filter(t => capturesDownwards('_user', t)).map(publicTag);
-for (const r of [...bundle.ref.slice(1), ...generatedRefs]) {
+for (const r of [...bundle.ref, ...generatedRefs]) {
   if (r.tags?.includes('public')) continue;
   r.tags = [...r.tags || [], ...userTags].filter(uniq);
 }
