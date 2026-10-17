@@ -7,7 +7,7 @@ export const dalleQueryPlugin: Plugin = {
   name: $localize`👨️‍🎨️💭️ Ask DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
-    version: 4,
+    version: 5,
     type: 'tool',
     default: false,
     add: true,
@@ -175,6 +175,11 @@ const ai = ref.tags?.filter(tag => tag.startsWith('+plugin/delta/ai/')) || [];
 const mailboxes = ref.tags?.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) || [];
 tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)), ...ai.map(tag => tag.substring(1)));
 tags = tags.filter((v, i, a) => a.indexOf(v) === i);
+const userTags = (ref.tags || [])
+  .filter(t => ['user', '+user', '_user'].some(p => t === p || t.startsWith(p + '/')))
+  .map(t => t.replace(/^[_+]/, ''));
+const withUserTags = tags => tags.includes('public') ? tags : [...tags, ...userTags].filter((v, i, a) => a.indexOf(v) === i);
+tags = withUserTags(tags);
 const sources = [ref.url];
 if (ref.sources && (ref.tags.includes('plugin/thread') || ref.tags.includes('plugin/comment'))) {
   sources.push(ref.sources[1] || ref.sources[0] || ref.url);
@@ -190,7 +195,7 @@ if (config?.useUrl) {
   console.log(JSON.stringify({
     ref: [{
       url: gen.data[0].url,
-      tags: ['_plugin/delta/cache', 'internal'],
+      tags: withUserTags(['_plugin/delta/cache', 'internal']),
     }, {
       url: 'dalle:' + uuid.v4(),
       plugins: { 'plugin/image': { url: gen.data[0].url } },

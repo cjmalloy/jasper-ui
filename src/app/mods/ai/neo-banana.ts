@@ -7,7 +7,7 @@ export const neoQueryPlugin: Plugin = {
   name: $localize`🍌️💭️ Ask Neo Banana`,
   config: {
     mod: $localize`🍌️ Neo Banana`,
-    version: 3,
+    version: 4,
     type: 'tool',
     default: false,
     add: true,
@@ -103,6 +103,10 @@ const aiTags = ref.tags?.filter(tag => tag.startsWith('+plugin/delta/ai/')) || [
 const mailboxes = ref.tags?.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) || [];
 tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)), ...aiTags.map(tag => tag.substring(1)));
 tags = tags.filter(uniq);
+const userTags = (ref.tags || [])
+  .filter(t => ['user', '+user', '_user'].some(p => t === p || t.startsWith(p + '/')))
+  .map(t => t.replace(/^[_+]/, ''));
+if (!tags.includes('public')) tags = [...tags, ...userTags].filter(uniq);
 const sources = [ref.url];
 if (ref.sources && (ref.tags?.includes('plugin/thread') || ref.tags?.includes('plugin/comment'))) {
   sources.push(ref.sources[1] || ref.sources[0] || ref.url);

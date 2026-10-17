@@ -209,7 +209,7 @@ export class UploadPage {
         switchMap((ref: Ref | null) => this.refs.get(ref!.url, ref!.origin)),
         map((ref: Ref | null) => {
           ref!.title = file.name;
-          ref!.tags = uniq([...ref!.tags || [], tag, ...extraTags.filter(t => !!t)]);
+          ref!.tags = uniq([...without(ref!.tags || [], 'internal'), tag, ...extraTags.filter(t => !!t)]);
           return ref!;
         }),
         catchError((res: HttpErrorResponse) => {
