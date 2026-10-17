@@ -1065,7 +1065,7 @@ if (hasTag('+plugin/debug', ref)) {
     sources: [response.url],
     title: 'Debugging sources',
     comment: debugLogs(),
-    tags: ['internal', '+plugin/log'],
+    tags: ['internal', '+plugin/log', ...userTags].filter(uniq),
   });
 }
 console.log(JSON.stringify(bundle));

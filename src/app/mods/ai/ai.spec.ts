@@ -245,7 +245,7 @@ describe('aiQueryPlugin', () => {
       'buffer': { Buffer },
       'uuid': { v4: () => 'test-id' },
       'axios': axios,
-      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai', '+user/chris', '_user/bob', 'user/alice', 'users'] }) },
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai', '+plugin/debug', '+user/chris', '_user/bob', 'user/alice', 'users'] }) },
       '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
     })[module];
     const output = vi.fn();
@@ -272,6 +272,8 @@ describe('aiQueryPlugin', () => {
     expect(embedded.tags).toEqual(expect.arrayContaining(['_plugin/cache', ...userTags]));
     const log = bundle.ref.find((r: any) => r.tags.includes('+plugin/log'));
     expect(log.tags).toEqual(expect.arrayContaining(['internal', '+plugin/log', ...userTags]));
+    const debug = bundle.ref.find((r: any) => r.title === 'Debugging sources');
+    expect(debug.tags).toEqual(expect.arrayContaining(['internal', '+plugin/log', ...userTags]));
   });
 
   it('logs unavailable generated media parts', async () => {
