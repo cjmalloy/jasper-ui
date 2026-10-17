@@ -13,7 +13,7 @@ updates:
     interval: daily
     timezone: America/Halifax
 - package-ecosystem: npm
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 20
   directory: /
   schedule:
     interval: daily
