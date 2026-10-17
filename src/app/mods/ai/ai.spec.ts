@@ -341,4 +341,60 @@ describe('aiQueryPlugin', () => {
       model: 'muse-wonder-1.0',
     }));
   });
+
+  it('falls back to text when web search returns non-JSON', async () => {
+    const response = {
+      url: 'ai:response',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: ['spec:question'],
+      plugins: { 'plugin/llm': { provider: 'openai', json: true } },
+    };
+    const source = {
+      url: 'spec:question',
+      title: 'Question',
+      comment: 'What is the news?',
+      tags: ['public', 'plugin/llm/search'],
+    };
+    const axios = {
+      get: vi.fn(async (url: string, options: { params: { query?: string } }) => {
+        const query = options.params.query;
+        if (query?.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query?.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
+        if (query === '!+system/prompt') return { data: { content: [source] } };
+        return { data: { content: [] } };
+      }),
+    };
+    const create = vi.fn(async () => ({
+      output_text: 'Plain text answer with [citation](https://example.test)',
+      usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+    }));
+    class OpenAi {
+      responses = { create };
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai', 'plugin/llm/search'] }) },
+      'openai': OpenAi,
+    })[module];
+    const output = vi.fn();
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+
+    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
+
+    const request = (create.mock.calls[0] as unknown[])[0] as any;
+    expect(request.tools).toContainEqual({ type: 'web_search' });
+    const bundle = JSON.parse(output.mock.calls[0][0]);
+    expect(bundle.ref[0].title).toBe('Response');
+    expect(bundle.ref[0].comment).toBe('Plain text answer with [citation](https://example.test)');
+    expect(bundle.ref[0].tags).toContain('plugin/llm/search');
+  });
 });
