@@ -197,9 +197,9 @@ describe('aiQueryPlugin', () => {
         if (query.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
         return { data: { content: [] } };
       }),
-      post: vi.fn().mockResolvedValueOnce({
-        data: { url: 'cache:image', tags: ['_plugin/cache'] },
-      }),
+      post: vi.fn()
+        .mockResolvedValueOnce({ data: { url: 'cache:image', tags: ['_plugin/cache'] } })
+        .mockResolvedValueOnce({ data: { url: 'cache:embedded', tags: ['_plugin/cache'] } }),
     };
     class GoogleGenAI {
       models = {
@@ -218,9 +218,18 @@ describe('aiQueryPlugin', () => {
                   }, {
                     url: 'add:public',
                     tags: ['public', 'note'],
+                  }, {
+                    url: 'add:embedded',
+                    tags: ['plugin/image', 'embedded'],
+                    plugins: { 'plugin/image': { url: 'ai:part2' } },
+                  }, {
+                    url: 'add:missing',
+                    tags: ['plugin/image', 'missing'],
+                    plugins: { 'plugin/image': { url: 'ai:part' } },
                   }],
                 }) },
                 { inlineData: { mimeType: 'image/png', data: Buffer.from('image').toString('base64') } },
+                { inlineData: { mimeType: 'image/png', data: Buffer.from('embedded').toString('base64') } },
               ],
             },
           }],
@@ -259,6 +268,10 @@ describe('aiQueryPlugin', () => {
     const cache = bundle.ref.find((r: any) => r.url === 'cache:image');
     expect(cache.tags).toEqual(expect.arrayContaining(['_plugin/cache', ...userTags]));
     expect(cache.tags).not.toContain('users');
+    const embedded = bundle.ref.find((r: any) => r.url === 'cache:embedded');
+    expect(embedded.tags).toEqual(expect.arrayContaining(['_plugin/cache', ...userTags]));
+    const log = bundle.ref.find((r: any) => r.tags.includes('+plugin/log'));
+    expect(log.tags).toEqual(expect.arrayContaining(['internal', '+plugin/log', ...userTags]));
   });
 
   it('logs unavailable generated media parts', async () => {

@@ -1048,8 +1048,12 @@ for (let i = 0; i < bundle.ref.length; i++) {
   if (!oldUrl) continue;
   rewriteUrl(oldUrl, newUrl);
 }
+for (const cache of uploadedFiles.values()) {
+  if (generatedRefs.includes(cache) || bundle.ref.some(r => r.url === cache.url)) continue;
+  generatedRefs.push(cache);
+}
 const userTags = (ref.tags || []).filter(t => capturesDownwards('_user', t)).map(publicTag);
-for (const r of [...bundle.ref, ...generatedRefs]) {
+for (const r of [...bundle.ref, ...generatedRefs, ...logs]) {
   if (r.tags?.includes('public')) continue;
   r.tags = [...r.tags || [], ...userTags].filter(uniq);
 }
