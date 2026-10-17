@@ -841,8 +841,11 @@ if (!completion) {
   throw 'Error: No completion in response'
 }
 if (config.json) {
+  const fenced = completion.match(/^\\s*\`\`\`(?:json)?\\s*\\n([\\s\\S]*?)(?:\\n\`\`\`\\s*)?$/);
+  const json = fenced ? fenced[1] : completion;
+  const attemptedJson = /^\\s*[{[]/.test(json);
   try {
-    bundle = JSON.parse(completion);
+    bundle = JSON.parse(json);
     if (!bundle.ref) {
       // Model returned a bare Ref?
       bundle = {
@@ -850,7 +853,7 @@ if (config.json) {
       };
     }
   } catch (e) {
-    if (config.search) {
+    if (config.search && !attemptedJson) {
       // Web search tool calling may cause the model to ignore JSON mode, fallback to text
       bundle = {
         ref: [{

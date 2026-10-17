@@ -342,7 +342,7 @@ describe('aiQueryPlugin', () => {
     }));
   });
 
-  it('falls back to text when web search returns non-JSON', async () => {
+  const runSearch = async (outputText: string) => {
     const response = {
       url: 'ai:response',
       title: 'Response',
@@ -367,7 +367,7 @@ describe('aiQueryPlugin', () => {
       }),
     };
     const create = vi.fn(async () => ({
-      output_text: 'Plain text answer with [citation](https://example.test)',
+      output_text: outputText,
       usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
     }));
     class OpenAi {
@@ -387,14 +387,28 @@ describe('aiQueryPlugin', () => {
       'console',
       `return (async () => {${aiQueryPlugin.config?.script}})()`,
     );
-
     await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
+    return { create, output };
+  };
 
+  it('falls back to text when web search returns non-JSON', async () => {
+    const { create, output } = await runSearch('Plain text answer with [citation](https://example.test)');
     const request = (create.mock.calls[0] as unknown[])[0] as any;
     expect(request.tools).toContainEqual({ type: 'web_search' });
     const bundle = JSON.parse(output.mock.calls[0][0]);
     expect(bundle.ref[0].title).toBe('Response');
     expect(bundle.ref[0].comment).toBe('Plain text answer with [citation](https://example.test)');
     expect(bundle.ref[0].tags).toContain('plugin/llm/search');
+  });
+
+  it('parses JSON wrapped in a code fence when web search is enabled', async () => {
+    const { output } = await runSearch('```json\n{"ref":[{"title":"Fenced","comment":"From search"}]}\n```');
+    const bundle = JSON.parse(output.mock.calls[0][0]);
+    expect(bundle.ref[0].title).toBe('Fenced');
+    expect(bundle.ref[0].comment).toBe('From search');
+  });
+
+  it('does not fall back to text when web search returns truncated JSON', async () => {
+    await expect(runSearch('{"ref":[{"title":"Cut","comment":"This is cut o')).rejects.toThrow();
   });
 });
