@@ -181,6 +181,85 @@ describe('aiQueryPlugin', () => {
     expect(bundle.ref[0].plugins['plugin/image'].url).toBe(bundle.ref[2].url);
   });
 
+  it('adds public user tags from the parent ref to non-public assets', async () => {
+    const response = {
+      url: 'ai:response',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: [],
+      plugins: { 'plugin/llm': { provider: 'gemini', json: true } },
+    };
+    const axios = {
+      get: vi.fn(async (_url: string, options: { params: { query: string } }) => {
+        const query = options.params.query;
+        if (query.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
+        return { data: { content: [] } };
+      }),
+      post: vi.fn().mockResolvedValueOnce({
+        data: { url: 'cache:image', tags: ['_plugin/cache'] },
+      }),
+    };
+    class GoogleGenAI {
+      models = {
+        generateContent: async () => ({
+          candidates: [{
+            content: {
+              parts: [
+                { text: JSON.stringify({
+                  ref: [{
+                    url: 'ai:part1',
+                    title: 'Generated image',
+                    tags: ['plugin/image'],
+                  }, {
+                    url: 'add:private',
+                    tags: ['note'],
+                  }, {
+                    url: 'add:public',
+                    tags: ['public', 'note'],
+                  }],
+                }) },
+                { inlineData: { mimeType: 'image/png', data: Buffer.from('image').toString('base64') } },
+              ],
+            },
+          }],
+          usageMetadata: {
+            promptTokenCount: 2,
+            candidatesTokenCount: 3,
+            totalTokenCount: 5,
+          },
+        }),
+      };
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai', '+user/chris', '_user/bob', 'user/alice', 'users'] }) },
+      '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
+    })[module];
+    const output = vi.fn();
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+
+    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
+
+    const bundle = JSON.parse(output.mock.calls[0][0]);
+    const userTags = ['user/chris', 'user/bob', 'user/alice'];
+    expect(bundle.ref.find((r: any) => r.title === undefined && r.tags.includes('note') && !r.tags.includes('public')).tags)
+      .toEqual(expect.arrayContaining(['note', ...userTags]));
+    const publicRef = bundle.ref.find((r: any) => r.tags.includes('public'));
+    expect(publicRef.tags).toEqual(['public', 'note']);
+    const cache = bundle.ref.find((r: any) => r.url === 'cache:image');
+    expect(cache.tags).toEqual(expect.arrayContaining(['_plugin/cache', ...userTags]));
+    expect(cache.tags).not.toContain('users');
+  });
+
   it('logs unavailable generated media parts', async () => {
     const response = {
       url: 'ai:response',
