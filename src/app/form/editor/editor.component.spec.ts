@@ -187,4 +187,24 @@ describe('EditorComponent', () => {
     expect(component.control.disabled).toBeTruthy();
     expect(component.uploads.length).toBe(1);
   });
+
+  it('should scroll the fullscreen preview to the selected source position', () => {
+    component.preview = true;
+    component.control.setValue('# One\n\nTwo\n\nThree');
+    fixture.detectChanges();
+    component.fullscreen = true;
+
+    const md = fixture.nativeElement.querySelector('app-md') as HTMLElement;
+    const three = Array.from(md.querySelectorAll<HTMLElement>('[aria-posinset]'))
+      .find(el => el.textContent === 'Three')!;
+    expect(three).toBeTruthy();
+    vi.spyOn(md, 'getBoundingClientRect').mockReturnValue({ top: 100 } as DOMRect);
+    vi.spyOn(three, 'getBoundingClientRect').mockReturnValue({ top: 900 } as DOMRect);
+    Object.defineProperty(md, 'clientHeight', { value: 200 });
+
+    (component as any).selectionStart = '# One\n\nTwo\n\nTh'.length;
+    component.onSelectEditor();
+
+    expect(md.scrollTop).toBe(800 - 100);
+  });
 });

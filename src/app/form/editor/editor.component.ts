@@ -164,7 +164,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private selectionEnd = 0;
   private blurTimeout = 0;
 
-  private scrollMap = new Map<number, number>();
+  private scrollMap = new Map<number, HTMLElement>();
   private sourceMap: number[] = [];
 
   constructor(
@@ -264,9 +264,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   postProcessMarkdown() {
     this.sourceMap.length = 0;
     this.scrollMap.clear();
-    this.el.nativeElement.querySelectorAll('[aria-posinset]').forEach((el: HTMLElement) => {
+    const md: HTMLElement | undefined = this.md?.el.nativeElement || this.el.nativeElement.querySelector('app-md');
+    md?.querySelectorAll<HTMLElement>('[aria-posinset]').forEach(el => {
+      if (el.closest('app-md') !== md) return;
       const start = +el.getAttribute('aria-posinset')!;
-      this.scrollMap.set(start, el.offsetTop);
+      if (this.scrollMap.has(start)) return;
+      this.scrollMap.set(start, el);
       this.sourceMap.push(start);
     });
     this.sourceMap.sort((a, b) => a - b);
@@ -275,7 +278,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   onSelectEditor() {
     if (!this.preview || !this.fullscreen || !this.md) return;
     const start = this.sourceMap[Math.max(sortedLastIndex(this.sourceMap, this.selectionStart) - 1, 0)];
-    this.md.el.nativeElement.scrollTop = (this.scrollMap.get(start) ?? 0) - this.md.el.nativeElement.clientHeight / 2;
+    const el = this.scrollMap.get(start);
+    if (!el?.isConnected) return;
+    const container = this.md.el.nativeElement as HTMLElement;
+    const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+    container.scrollTop = top - container.clientHeight / 2;
   }
 
   onSelectPreview() {
