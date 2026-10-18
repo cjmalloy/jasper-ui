@@ -29,6 +29,8 @@ import {
   mermaidHydrator,
   prismHydrator,
   removeToggleLabels,
+  restrictedEmbed,
+  restrictedIframe,
   sanitizeMarkdown,
   trackViews,
   trimIndentation
@@ -487,7 +489,9 @@ export class EmbedService {
         t.remove();
         return;
       }
-      if (plugin === 'plugin/image' && !imagesEnabled) {
+      if (restrictedEmbed(t)) {
+        this.insert(t, restrictedIframe(t));
+      } else if (plugin === 'plugin/image' && !imagesEnabled) {
         const c = createLink(vc, url, alt || title || url, title);
         this.insert(t, c.location.nativeElement);
       } else {

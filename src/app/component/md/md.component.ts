@@ -66,7 +66,7 @@ export class MdComponent implements DoCheck, OnDestroy {
 
   private _text = '';
   private _value? = '';
-  private lastRender?: string;
+  private lastText?: string;
   private lastOptions?: string;
   private cleanup?: () => void;
   private blocks: MdBlockState[] = [];
@@ -110,9 +110,8 @@ export class MdComponent implements DoCheck, OnDestroy {
 
   ngDoCheck() {
     const options = JSON.stringify([this.plugins || [], this.origin || '', this.mermaid, this.clipboard, this.disableSanitizer, this.progressive]);
-    const key = JSON.stringify([this._text, options]);
-    if (key === this.lastRender) return;
-    this.lastRender = key;
+    if (this._text === this.lastText && options === this.lastOptions) return;
+    this.lastText = this._text;
     const textOnly = this.progressive && options === this.lastOptions;
     this.lastOptions = options;
     if (textOnly) {

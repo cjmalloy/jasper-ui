@@ -90,7 +90,6 @@ describe('download util', () => {
   describe('wiki embeds', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
-        
         providers: [
           provideHttpClient(withXhr(), withInterceptorsFromDi()),
           provideHttpClientTesting(),

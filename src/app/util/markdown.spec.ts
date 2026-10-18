@@ -37,6 +37,13 @@ describe('markdown util', () => {
       ]);
     });
 
+    it('rejects candidates with multiple or invalid descriptors', () => {
+      expect(parseSrcset('bad.png 999w 2x, a.png 1.5x, b.png 0w, c.png 2y, d.png 100w')).toEqual([
+        { url: 'a.png', descriptor: '1.5x' },
+        { url: 'd.png', descriptor: '100w' },
+      ]);
+    });
+
     it('handles empty input', () => {
       expect(parseSrcset('')).toEqual([]);
       expect(parseSrcset(null)).toEqual([]);
@@ -139,6 +146,16 @@ describe('markdown util', () => {
         ['b', 29],
       ]);
     });
+  });
+
+  it('ignores closing tags inside html comments when grouping blocks', () => {
+    const blocks = mdBlocks([
+      { type: 'html', raw: '<details>\n<!-- </details> -->\n', sourceMap: 0 },
+      { type: 'space', raw: '\n', sourceMap: 30 },
+      { type: 'paragraph', raw: 'hidden', sourceMap: 31 },
+      { type: 'html', raw: '</details>', sourceMap: 37 },
+    ]);
+    expect(blocks.length).toBe(1);
   });
 
   describe('matchBlocks', () => {

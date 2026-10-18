@@ -16,7 +16,6 @@ describe('MdComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      
       providers: [
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
@@ -144,6 +143,38 @@ describe('MdComponent', () => {
 
     expect(fixture.nativeElement.querySelector('.md-pre > pre')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('.markdown-clipboard-button')).toBeTruthy();
+  });
+
+  it('should add clipboard buttons to code blocks in existing md-pre wrappers', () => {
+    component.clipboard = true;
+    component.disableSanitizer = true;
+    component.text = '<div class="md-pre"><pre>x</pre></div>\n\n```\ncode\n```';
+    fixture.detectChanges();
+
+    const pres = fixture.nativeElement.querySelectorAll('.md-pre');
+    expect(pres.length).toBe(2);
+    pres.forEach((p: HTMLElement) => expect(p.querySelector(':scope > .markdown-clipboard-toolbar > .markdown-clipboard-button')).toBeTruthy());
+  });
+
+  it('should keep links with Jasper URI schemes', () => {
+    component.text = '[x](tag:/science) [c](comment:1) [w](wiki:Page) [b](isbn:123)';
+    fixture.detectChanges();
+
+    const links = Array.from(fixture.nativeElement.querySelectorAll('a[href]')).map((a: any) => a.getAttribute('href'));
+    expect(links).toEqual(['/tag/science', 'comment:1', 'wiki:Page', 'isbn:123']);
+  });
+
+  it('should hydrate restricted iframes with their original restrictions', () => {
+    component.disableSanitizer = true;
+    component.text = '<iframe sandbox="" allow="autoplay" src="https://example.com/embed"></iframe>';
+    fixture.detectChanges();
+
+    const iframe = fixture.nativeElement.querySelector('iframe') as HTMLIFrameElement;
+    expect(iframe.getAttribute('sandbox')).toBe('');
+    expect(iframe.getAttribute('allow')).toBe('autoplay');
+    expect(iframe.hasAttribute('allowfullscreen')).toBe(false);
+    expect(iframe.getAttribute('src')).toBe('https://example.com/embed');
+    expect(component.vc.length).toBe(0);
   });
 
   it('should re-render when mermaid, clipboard or sanitizer inputs change', () => {
@@ -500,6 +531,12 @@ describe('MdComponent', () => {
 
     it('should keep raw HTML blocks together', async () => {
       await type('<details>\n\nhidden\n\n</details>\n\nafter');
+      expect(host().querySelector('details p')?.textContent).toBe('hidden');
+      expect(children().at(-1)!.textContent).toBe('after');
+    });
+
+    it('should ignore closing tags in HTML comments', async () => {
+      await type('<details>\n<!-- </details> -->\n\nhidden\n\n</details>\n\nafter');
       expect(host().querySelector('details p')?.textContent).toBe('hidden');
       expect(children().at(-1)!.textContent).toBe('after');
     });

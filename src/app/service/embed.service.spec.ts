@@ -22,7 +22,6 @@ describe('EmbedService', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      
       providers: [
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
@@ -130,6 +129,30 @@ describe('EmbedService', () => {
       const doc = service.renderDocument('<iframe src="https://example.com/embed"></iframe>', '', false, true);
       expect(doc.querySelector('iframe')).toBeNull();
       expect(doc.querySelector<HTMLElement>('.md-embed')!.dataset.plugin).toBe('plugin/embed');
+    });
+
+    it('keeps iframe restrictions on placeholders', () => {
+      const doc = service.renderDocument('<iframe sandbox="allow-scripts" allow="fullscreen" allowfullscreen src="https://example.com/embed"></iframe>', '', false, true);
+      const p = doc.querySelector<HTMLElement>('.md-embed')!;
+      expect(p.dataset.sandbox).toBe('allow-scripts');
+      expect(p.dataset.allow).toBe('fullscreen');
+      expect(p.hasAttribute('data-allowfullscreen')).toBe(true);
+    });
+
+    it('ignores forged iframe restrictions', () => {
+      const doc = service.renderDocument('<span class="md-embed" data-url="https://x.com" data-plugin="plugin/embed" data-sandbox="">x</span>');
+      expect(doc.querySelector('[data-sandbox]')).toBeNull();
+    });
+
+    it('keeps Jasper URI schemes and blocks script URIs', () => {
+      const doc = service.renderDocument('[x](tag:/science) [j](javascript:alert(1)) <a href="vbscript:x">v</a> <a href="data:text/html,x">d</a>');
+      const links = Array.from(doc.querySelectorAll('a')).map(a => a.getAttribute('href'));
+      expect(links).toEqual(['tag:/science', null, null, null]);
+    });
+
+    it('falls back to src when no srcset candidates are valid', () => {
+      const doc = service.renderDocument('<img srcset="bad.png 999w 2x, worse.png 0x" src="https://example.com/ok.png">');
+      expect(doc.querySelector<HTMLElement>('.md-embed')!.dataset.url).toBe('https://example.com/ok.png');
     });
 
     it('strips scripts and event handlers', () => {
