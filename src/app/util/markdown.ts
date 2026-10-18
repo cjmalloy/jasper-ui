@@ -176,7 +176,7 @@ export function mediaToPlaceholders(doc: Document) {
   doc.body.querySelectorAll<HTMLIFrameElement>('iframe').forEach(t => {
     placeholder(doc, t, 'plugin/embed', mediaUrl(t, base));
   });
-  doc.body.querySelectorAll('source, track').forEach(t => t.remove());
+  doc.body.querySelectorAll('source, track, input[type="image" i]').forEach(t => t.remove());
   // SVG images load directly, bypassing the embed pipeline
   doc.body.querySelectorAll('svg *').forEach(t => {
     if (t.localName === 'image' || t.localName === 'feImage') t.remove();
