@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { bestSrcset, copyText, mediaToPlaceholders, parseSrcset, trimIndentation } from './markdown';
+import { bestSrcset, copyText, mediaToPlaceholders, parseSrcset, sanitizeMarkdown, trimIndentation } from './markdown';
 
 describe('markdown util', () => {
   describe('parseSrcset', () => {
@@ -56,11 +56,39 @@ describe('markdown util', () => {
       expect(span.hasAttribute('data-plugin')).toBe(false);
     });
 
+    it('removes svg images', () => {
+      const doc = new DOMParser().parseFromString(
+        '<svg><image href="https://x.com/a.png"></image><filter><feImage href="https://x.com/b.png"></feImage></filter><rect></rect></svg>', 'text/html');
+      mediaToPlaceholders(doc);
+      expect(Array.from(doc.body.querySelectorAll('svg *')).map(e => e.localName)).toEqual(['filter', 'rect']);
+    });
+
     it('drops media with script urls', () => {
       const doc = new DOMParser().parseFromString('<iframe src="javascript:alert(1)"></iframe><img src="https://x.com/a.png">', 'text/html');
       mediaToPlaceholders(doc);
       const embeds = Array.from(doc.body.querySelectorAll<HTMLElement>('.md-embed'));
       expect(embeds.map(e => e.dataset.url)).toEqual(['https://x.com/a.png']);
+    });
+  });
+
+  describe('sanitizeMarkdown', () => {
+    it('removes stylesheets and restricts inline css', () => {
+      const doc = new DOMParser().parseFromString(
+        '<div><style>body{display:none}</style><p style="position: fixed; z-index: 9; color: red; background-image: url(https://x.com/a.png)">a</p>' +
+        '<span style="position: relative; top: 1em; height: 2em; vertical-align: -0.5em">b</span><table background="https://x.com/b.png"></table></div>', 'text/html');
+      sanitizeMarkdown(doc);
+      expect(doc.body.querySelector('style')).toBeNull();
+      expect(doc.body.querySelector('[background]')).toBeNull();
+      const p = doc.body.querySelector('p')!;
+      expect(p.style.position).toBe('');
+      expect(p.style.zIndex).toBe('');
+      expect(p.style.backgroundImage).toBe('');
+      expect(p.style.color).toBe('red');
+      const span = doc.body.querySelector('span')!;
+      expect(span.style.position).toBe('relative');
+      expect(span.style.top).toBe('1em');
+      expect(span.style.height).toBe('2em');
+      expect(span.style.verticalAlign).toBe('-0.5em');
     });
   });
 

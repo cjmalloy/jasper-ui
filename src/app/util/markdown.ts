@@ -115,7 +115,33 @@ function placeholder(doc: Document, el: HTMLElement, plugin: string, url?: strin
  * Sanitize an inert parsed markdown document in place.
  */
 export function sanitizeMarkdown(doc: Document) {
-  DOMPurify.sanitize(doc.body, { IN_PLACE: true });
+  DOMPurify.sanitize(doc.body, { IN_PLACE: true, FORBID_TAGS: ['style'], FORBID_ATTR: ['background'] });
+  doc.body.querySelectorAll<HTMLElement>('[style]').forEach(sanitizeStyle);
+}
+
+/**
+ * Inline CSS properties allowed in untrusted markdown. Covers basic formatting,
+ * media dimensions and the properties KaTeX emits.
+ */
+const STYLE_PROPS = /^(color|background-color|opacity|font-(weight|style|size|family|variant)|line-height|letter-spacing|word-spacing|text-(align|decoration(-[a-z]+)*|transform|indent|shadow)|white-space|vertical-align|display|visibility|(min-|max-)?(width|height)|(margin|padding)(-(top|right|bottom|left))?|border(-(top|right|bottom|left))?(-(width|style|color))?|border-collapse|border-spacing|border(-[a-z]+)?-radius|top|right|bottom|left|list-style(-type|-position)?|float|clear|overflow(-[xy])?|box-sizing|word-break|overflow-wrap)$/;
+
+/**
+ * Restrict untrusted inline CSS to safe formatting properties.
+ * Positioning is limited to static or relative, and no property may load resources.
+ */
+export function sanitizeStyle(el: HTMLElement) {
+  const style = el.style;
+  for (const prop of Array.from({ length: style.length }, (_, i) => style.item(i))) {
+    const value = style.getPropertyValue(prop);
+    if (/url\(|image-set\(|image\(|expression\(|element\(/i.test(value)) {
+      style.removeProperty(prop);
+    } else if (prop === 'position') {
+      if (!['static', 'relative'].includes(value.trim().toLowerCase())) style.removeProperty(prop);
+    } else if (!STYLE_PROPS.test(prop)) {
+      style.removeProperty(prop);
+    }
+  }
+  if (!style.length) el.removeAttribute('style');
 }
 
 /**
@@ -151,6 +177,10 @@ export function mediaToPlaceholders(doc: Document) {
     placeholder(doc, t, 'plugin/embed', mediaUrl(t, base));
   });
   doc.body.querySelectorAll('source, track').forEach(t => t.remove());
+  // SVG images load directly, bypassing the embed pipeline
+  doc.body.querySelectorAll('svg *').forEach(t => {
+    if (t.localName === 'image' || t.localName === 'feImage') t.remove();
+  });
 }
 
 /**
