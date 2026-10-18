@@ -339,10 +339,11 @@ describe('MdComponent', () => {
       expect(positions()).toEqual(['0', ...shifted]);
     });
 
-    it('should only re-render blocks with iframes when reloading iframes', async () => {
-      await type('One\n\nTwo\n\nThree');
+    it('should only re-render islands with iframes when reloading iframes', async () => {
+      await type('One\n\n[two](https://a.com) and [x](https://b.com)\n\nThree');
       const [one, two, three] = children();
-      two.appendChild(document.createElement('iframe'));
+      const [a, b] = Array.from(two.querySelectorAll('app-nav'));
+      a.appendChild(document.createElement('iframe'));
       const ready = firstValueFrom(component.postProcessMarkdown);
 
       component.reloadIframes();
@@ -350,10 +351,85 @@ describe('MdComponent', () => {
 
       const after = children();
       expect(after[0]).toBe(one);
-      expect(after[1]).not.toBe(two);
-      expect(after[1].textContent).toBe('Two');
-      expect(after[1].querySelector('iframe')).toBeNull();
+      expect(after[1]).toBe(two);
       expect(after[2]).toBe(three);
+      const navs = Array.from(two.querySelectorAll('app-nav'));
+      expect(navs[0]).not.toBe(a);
+      expect(navs[0].isConnected).toBe(true);
+      expect(navs[1]).toBe(b);
+      expect(host().querySelector('iframe')).toBeNull();
+      expect(component.vc.length).toBe(2);
+    });
+
+    describe('in place updates', () => {
+      const strip = (html: string) => html.replace(/<!--[\s\S]*?-->/g, '');
+
+      it('should keep an embed when typing on the line after it', async () => {
+        const create = vi.spyOn(component.vc, 'createComponent');
+        await type('Text\n<img src="https://example.com/a.png">');
+        expect(create).toHaveBeenCalledTimes(1);
+        const embed = create.mock.results[0].value.location.nativeElement as HTMLElement;
+        expect(embed.isConnected).toBe(true);
+
+        await type('Text\n<img src="https://example.com/a.png">\nm');
+        await type('Text\n<img src="https://example.com/a.png">\nmore');
+
+        expect(create).toHaveBeenCalledTimes(1);
+        expect(embed.isConnected).toBe(true);
+        expect(host().contains(embed)).toBe(true);
+        expect(host().textContent).toContain('more');
+        expect(component.vc.length).toBe(1);
+      });
+
+      it('should recreate an embed when its URL changes', async () => {
+        const create = vi.spyOn(component.vc, 'createComponent');
+        await type('Text\n<img src="https://example.com/a.png">\nmore');
+        const embed = create.mock.results[0].value.location.nativeElement as HTMLElement;
+
+        await type('Text\n<img src="https://example.com/b.png">\nmore');
+
+        expect(create).toHaveBeenCalledTimes(2);
+        expect(embed.isConnected).toBe(false);
+        expect(host().contains(create.mock.results[1].value.location.nativeElement)).toBe(true);
+        expect(component.vc.length).toBe(1);
+      });
+
+      it('should match a full render', async () => {
+        const edits = [
+          'Intro [link](https://a.com) text <img src="https://example.com/i.png">\n![a](https://example.com/a.png)\nm\n\n```js\ncode\n```',
+          'Intro [link](https://a.com) text <img src="https://example.com/i.png">\n![a](https://example.com/a.png)\nmore *em*\n\n```js\ncode\n```',
+          'Intro! [link](https://a.com) text <img src="https://example.com/i.png">\n![a](https://example.com/a.png)\nmore *em* [b](https://b.com)\n\n```js\ncode\n```',
+          'Intro! [link](https://a.com)\n- ![a](https://example.com/a.png)\n\n| a |\n|---|\n| b |\n\n```js\ncode\n```',
+        ];
+        const full = TestBed.createComponent(MdComponent);
+        full.componentInstance.mermaid = false;
+        full.componentInstance.clipboard = false;
+        for (const text of edits) {
+          await type(text);
+          full.componentInstance.text = text;
+          full.detectChanges();
+          fixture.detectChanges();
+          expect(strip(host().innerHTML)).toBe(strip(full.componentInstance.md.nativeElement.innerHTML));
+        }
+      });
+
+      it('should never move existing iframes', async () => {
+        await type('Text [x](https://a.com)\nmore');
+        const nav = host().querySelector('app-nav')!;
+        const iframe = document.createElement('iframe');
+        nav.appendChild(iframe);
+        const insert = vi.spyOn(Node.prototype, 'insertBefore');
+        const append = vi.spyOn(Node.prototype, 'appendChild');
+
+        await type('Text [x](https://a.com)\nmore text');
+        await type('New [y](https://b.com)\n\nText [x](https://a.com)\nmore text');
+
+        const moved = [...insert.mock.calls, ...append.mock.calls].some(([n]) => n === iframe || (n as Node).contains?.(iframe));
+        expect(moved).toBe(false);
+        expect(iframe.parentNode).toBe(nav);
+        expect(host().contains(iframe)).toBe(true);
+        expect(host().textContent).toContain('more text');
+      });
     });
 
     it('should not re-render when reloading without iframes', async () => {

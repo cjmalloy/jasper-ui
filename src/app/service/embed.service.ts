@@ -22,10 +22,15 @@ import {
   MdBlock,
   MdContext,
   MdHydrator,
+  MdIsland,
+  MdIslands,
+  markIslands,
   mediaToPlaceholders,
   mermaidHydrator,
   prismHydrator,
+  removeToggleLabels,
   sanitizeMarkdown,
+  trackViews,
   trimIndentation
 } from '../util/markdown';
 import { getArgs, getFilters, UrlFilter } from '../util/query';
@@ -41,6 +46,14 @@ import { EditorService } from './editor.service';
  * being added and removed.
  */
 let katexEnabled = false;
+
+/**
+ * A rendered block in a detached root with its islands marked.
+ */
+export interface MdRoot {
+  root: HTMLElement;
+  islands: MdIslands;
+}
 
 function gatedKatex(): MarkedExtension {
   const ext = markedKatex({ throwOnError: false });
@@ -219,21 +232,38 @@ export class EmbedService {
   }
 
   /**
-   * Render a single block and hydrate it before it is attached.
-   * @return the hydrated nodes to attach and a cleanup function
+   * Render a single block into a detached root with its islands marked, but not hydrated.
    */
-  renderBlock(block: MdBlock, links: TokensList['links'], ctx: MdContext, disableSanitizer = false): { nodes: Node[], cleanup: () => void } {
-    const doc = this.renderBlockDocument(block, links, ctx.origin, disableSanitizer);
+  renderBlock(block: MdBlock, links: TokensList['links'], origin = '', disableSanitizer = false): MdRoot {
+    const doc = this.renderBlockDocument(block, links, origin, disableSanitizer);
     const root = document.createElement('div');
     root.append(...Array.from(document.adoptNode(doc.body).childNodes));
-    const cleanup = this.hydrate(root, ctx);
-    return { nodes: Array.from(root.childNodes), cleanup };
+    return { root, islands: markIslands(root) };
+  }
+
+  /**
+   * Hydrate a single detached island in place. Sets the island cleanup,
+   * which also destroys only the components created for this island.
+   */
+  hydrateIsland(start: Comment, island: MdIsland, ctx: MdContext) {
+    const parent = start.parentNode!;
+    const wrapper = start.ownerDocument.createElement('div');
+    while (start.nextSibling && start.nextSibling !== island.end) wrapper.appendChild(start.nextSibling);
+    parent.insertBefore(wrapper, island.end);
+    const views = trackViews(ctx.vc);
+    const cleanup = this.hydrate(wrapper, { ...ctx, vc: views.vc });
+    wrapper.replaceWith(...Array.from(wrapper.childNodes));
+    island.cleanup = () => {
+      cleanup();
+      views.destroy();
+    };
   }
 
   private toDocument(html: string, origin = '', disableSanitizer = false): Document {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     if (!disableSanitizer) sanitizeMarkdown(doc);
     mediaToPlaceholders(doc);
+    removeToggleLabels(doc);
     fixUserTags(doc, origin, this.store.origins.originMap.get(origin || ''));
     return doc;
   }
@@ -663,9 +693,6 @@ export class EmbedService {
     host.querySelectorAll<HTMLElement>('.toggle.embed').forEach(t => {
       // TODO: Don't use title to store url
       const url = t.title;
-      if (t.previousSibling?.textContent === 'toggle') {
-        t.previousSibling.parentNode?.removeChild(t.previousSibling);
-      }
       cleanup.push(this.toggle(t, done => {
         const embeds = this.admin.getPluginsForUrl(url);
         if (embeds.length) {

@@ -517,3 +517,280 @@ export function trimIndentation(markdown?: string) {
     })
     .join('\n');
 }
+
+/**
+ * Hydrated content in progressive markdown: the elements replaced or decorated by hydrators.
+ * Each is bounded by a pair of comments so it can be kept, destroyed or hydrated on its own.
+ */
+export const MD_ISLANDS = 'pre, a[href], .md-embed, .inline-embed, .inline-ref, .toggle.inline, .toggle.embed';
+
+export interface MdIsland {
+  /** Identity of the unhydrated element, or empty if it must not be reused. */
+  key: string;
+  end: Comment;
+  cleanup?: () => void;
+}
+
+/**
+ * Islands keyed by their start comment.
+ */
+export type MdIslands = Map<Comment, MdIsland>;
+
+/**
+ * Key of an unhydrated island, ignoring source map positions.
+ */
+export function islandKey(el: Element) {
+  const clone = el.cloneNode(true) as Element;
+  clone.removeAttribute('aria-posinset');
+  clone.querySelectorAll('[aria-posinset]').forEach(t => t.removeAttribute('aria-posinset'));
+  return clone.outerHTML;
+}
+
+/**
+ * Bound the outermost hydratable elements of a detached root with comments.
+ */
+export function markIslands(root: HTMLElement): MdIslands {
+  const islands: MdIslands = new Map();
+  root.querySelectorAll(MD_ISLANDS).forEach(el => {
+    const outer = el.parentElement?.closest(MD_ISLANDS);
+    if (outer && root.contains(outer)) return;
+    const start = el.ownerDocument.createComment('md-island');
+    const end = el.ownerDocument.createComment('/md-island');
+    el.before(start);
+    el.after(end);
+    islands.set(start, { key: islandKey(el), end });
+  });
+  return islands;
+}
+
+/**
+ * Remove the "toggle" link text in front of embed toggles.
+ */
+export function removeToggleLabels(doc: Document) {
+  doc.body.querySelectorAll('.toggle.embed').forEach(t => {
+    if (t.previousSibling?.textContent === 'toggle') t.previousSibling.remove();
+  });
+}
+
+export interface MdMorph {
+  /** Live markdown host (.md) */
+  host: HTMLElement;
+  /** Live islands, updated as islands are destroyed and hydrated */
+  live: MdIslands;
+  /** Unhydrated islands of the new tree */
+  next: MdIslands;
+  /** Hydrate a detached island in place */
+  hydrate(start: Comment, island: MdIsland): void;
+}
+
+interface MdItem {
+  first: Node;
+  last: Node;
+  island?: MdIsland;
+}
+
+function mdItems(first: Node | null, end: Node | null, islands: MdIslands): MdItem[] {
+  const result: MdItem[] = [];
+  for (let n = first; n && n !== end; n = n.nextSibling) {
+    const island = n.nodeType === Node.COMMENT_NODE ? islands.get(n as Comment) : undefined;
+    if (island) {
+      result.push({ first: n, last: island.end, island });
+      n = island.end;
+    } else {
+      result.push({ first: n, last: n });
+    }
+  }
+  return result;
+}
+
+function sameItem(a: MdItem, b: MdItem) {
+  if (a.island || b.island) return !!a.island?.key && a.island.key === b.island?.key;
+  if (a.first.nodeType !== b.first.nodeType) return false;
+  if (a.first.nodeType !== Node.ELEMENT_NODE) return true;
+  const x = a.first as Element, y = b.first as Element;
+  return x.localName === y.localName && x.namespaceURI === y.namespaceURI;
+}
+
+/**
+ * Match old items to new items, keeping order. Common prefix and suffix
+ * items are matched when compatible, the rest only when they are identical islands.
+ */
+function matchItems(old: MdItem[], next: MdItem[]): (MdItem | undefined)[] {
+  const result: (MdItem | undefined)[] = new Array(next.length).fill(undefined);
+  let start = 0;
+  while (start < old.length && start < next.length && sameItem(old[start], next[start])) {
+    result[start] = old[start];
+    start++;
+  }
+  let oldEnd = old.length;
+  let nextEnd = next.length;
+  while (oldEnd > start && nextEnd > start && sameItem(old[oldEnd - 1], next[nextEnd - 1])) {
+    result[--nextEnd] = old[--oldEnd];
+  }
+  let last = start;
+  for (let i = start; i < nextEnd; i++) {
+    if (!next[i].island) continue;
+    for (let j = last; j < oldEnd; j++) {
+      if (old[j].island && sameItem(old[j], next[i])) {
+        result[i] = old[j];
+        last = j + 1;
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+function itemNodes(item: MdItem) {
+  const nodes: Node[] = [];
+  for (let n: Node | null = item.first; n; n = n.nextSibling) {
+    nodes.push(n);
+    if (n === item.last) break;
+  }
+  return nodes;
+}
+
+function comments(node: Node) {
+  if (node.nodeType === Node.COMMENT_NODE) return [node as Comment];
+  if (node.nodeType !== Node.ELEMENT_NODE) return [];
+  const result: Comment[] = [];
+  const walker = node.ownerDocument!.createTreeWalker(node, NodeFilter.SHOW_COMMENT);
+  while (walker.nextNode()) result.push(walker.currentNode as Comment);
+  return result;
+}
+
+/**
+ * Destroy the live islands in a list of nodes.
+ */
+export function destroyIslands(nodes: Node[], islands: MdIslands) {
+  for (const n of nodes) {
+    for (const c of comments(n)) {
+      const island = islands.get(c);
+      if (!island) continue;
+      islands.delete(c);
+      island.cleanup?.();
+    }
+  }
+}
+
+function sourceMapped(nodes: Node[], host?: HTMLElement) {
+  const result: Element[] = [];
+  for (const n of nodes) {
+    if (n.nodeType !== Node.ELEMENT_NODE) continue;
+    const el = n as Element;
+    for (const t of [el, ...Array.from(el.querySelectorAll('[aria-posinset]'))]) {
+      if (!t.hasAttribute('aria-posinset')) continue;
+      if (host && t.parentElement?.closest('.md') !== host) continue;
+      result.push(t);
+    }
+  }
+  return result;
+}
+
+function syncAttributes(el: Element, from: Element) {
+  for (const a of Array.from(el.attributes)) {
+    if (!from.hasAttributeNS(a.namespaceURI, a.localName)) el.removeAttributeNS(a.namespaceURI, a.localName);
+  }
+  for (const a of Array.from(from.attributes)) {
+    if (el.getAttributeNS(a.namespaceURI, a.localName) !== a.value) el.setAttributeNS(a.namespaceURI, a.name, a.value);
+  }
+}
+
+/**
+ * Update a range of live sibling nodes to match the children of a new, unhydrated tree.
+ * Live nodes are only updated in place or removed, never moved, so iframes do not reload.
+ * Islands with the same key are kept as is, new islands are hydrated before they are inserted.
+ * @param parent live parent node
+ * @param first first live node of the range
+ * @param end live node after the range, or null for the end of the parent
+ * @param from detached parent of the new nodes
+ */
+export function morphRange(parent: Node, first: Node | null, end: Node | null, from: Node, m: MdMorph) {
+  const old = mdItems(first, end, m.live);
+  const next = mdItems(from.firstChild, null, m.next);
+  const matched = matchItems(old, next);
+  const kept = new Set(matched);
+  for (const o of old) {
+    if (kept.has(o)) continue;
+    const nodes = itemNodes(o);
+    destroyIslands(nodes, m.live);
+    for (const n of nodes) n.parentNode?.removeChild(n);
+  }
+  let ref = end;
+  for (let i = next.length - 1; i >= 0; i--) {
+    const n = next[i];
+    const o = matched[i];
+    if (!o) {
+      for (const c of comments(n.first)) {
+        const island = m.next.get(c);
+        if (!island) continue;
+        m.hydrate(c, island);
+        m.live.set(c, island);
+      }
+      const nodes = itemNodes(n);
+      for (let j = nodes.length - 1; j >= 0; j--) {
+        parent.insertBefore(nodes[j], ref);
+        ref = nodes[j];
+      }
+      continue;
+    }
+    if (o.island) {
+      const was = sourceMapped(itemNodes(o), m.host);
+      const pos = sourceMapped(itemNodes(n)).map(t => t.getAttribute('aria-posinset')!);
+      if (was.length === pos.length) {
+        was.forEach((t, j) => t.setAttribute('aria-posinset', pos[j]));
+      } else if (was.length && pos.length) {
+        const delta = parseInt(pos[0], 10) - parseInt(was[0].getAttribute('aria-posinset')!, 10);
+        if (!isNaN(delta)) {
+          for (const t of was) t.setAttribute('aria-posinset', '' + (parseInt(t.getAttribute('aria-posinset')!, 10) + delta));
+        }
+      }
+    } else if (o.first.nodeType === Node.ELEMENT_NODE) {
+      syncAttributes(o.first as Element, n.first as Element);
+      morphRange(o.first, o.first.firstChild, null, n.first, m);
+    } else if (o.first.nodeValue !== n.first.nodeValue) {
+      o.first.nodeValue = n.first.nodeValue;
+    }
+    ref = o.first;
+  }
+}
+
+/**
+ * Pair changed blocks with removed blocks in the same position that share an island,
+ * so they can be updated in place.
+ * @param old previous blocks
+ * @param matched for each new block, the identical old block if any
+ * @param islands unhydrated islands of each unmatched new block
+ * @return for each new block, the old block to update in place, if any
+ */
+export function pairBlocks<T extends { islands: MdIslands }>(
+  old: T[],
+  matched: (T | undefined)[],
+  islands: (i: number) => MdIslands | undefined,
+): (T | undefined)[] {
+  const result: (T | undefined)[] = new Array(matched.length).fill(undefined);
+  const index = new Map(old.map((b, i) => [b, i]));
+  let i = 0;
+  while (i < matched.length) {
+    if (matched[i]) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < matched.length && !matched[j]) j++;
+    let lo = i > 0 ? index.get(matched[i - 1]!)! + 1 : 0;
+    const hi = j < matched.length ? index.get(matched[j]!)! : old.length;
+    for (let k = i; k < j; k++) {
+      const keys = new Set(Array.from(islands(k)?.values() || [], v => v.key));
+      for (let q = lo; q < hi; q++) {
+        if (Array.from(old[q].islands.values()).some(v => v.key && keys.has(v.key))) {
+          result[k] = old[q];
+          lo = q + 1;
+          break;
+        }
+      }
+    }
+    i = j;
+  }
+  return result;
+}

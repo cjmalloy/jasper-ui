@@ -13,15 +13,24 @@ import {
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { AdminService } from '../../service/admin.service';
-import { EmbedService } from '../../service/embed.service';
+import { EmbedService, MdRoot } from '../../service/embed.service';
 import { Store } from '../../store/store';
-import { matchBlocks, MdBlock, mdBlocks, shiftSourceMap, trackViews } from '../../util/markdown';
+import {
+  destroyIslands,
+  matchBlocks,
+  MdBlock,
+  mdBlocks,
+  MdIslands,
+  morphRange,
+  pairBlocks,
+  shiftSourceMap
+} from '../../util/markdown';
 
 interface MdBlockState {
   key: string;
   offset: number;
   marker: Comment;
-  cleanup: () => void;
+  islands: MdIslands;
 }
 
 @Component({
@@ -132,23 +141,25 @@ export class MdComponent implements DoCheck, OnDestroy {
       return;
     }
     let stale = false;
-    this.blocks.forEach((b, i) => {
-      const end = this.blocks[i + 1]?.marker || null;
-      for (let n = b.marker.nextSibling; n && n !== end; n = n.nextSibling) {
-        if (n instanceof Element && (n.tagName === 'IFRAME' || n.querySelector('iframe'))) {
-          b.key = '';
-          stale = true;
-          break;
+    for (const b of this.blocks) {
+      for (const [start, island] of b.islands) {
+        for (let n = start.nextSibling; n && n !== island.end; n = n.nextSibling) {
+          if (n instanceof Element && (n.tagName === 'IFRAME' || n.querySelector('iframe'))) {
+            island.key = '';
+            b.key = '';
+            stale = true;
+            break;
+          }
         }
       }
-    });
+    }
     if (stale) this.reconcile();
   }
 
   private destroy() {
     this.cleanup?.();
     delete this.cleanup;
-    for (const b of this.blocks) b.cleanup();
+    for (const b of this.blocks) this.destroyBlock(b);
     this.blocks = [];
     delete this.links;
     this.vc.clear();
@@ -186,7 +197,9 @@ export class MdComponent implements DoCheck, OnDestroy {
 
   /**
    * Re-render only the top-level blocks that changed, keeping the DOM of the rest.
-   * Falls back to rendering every block if reference links changed or most blocks changed.
+   * Changed blocks that share hydrated content with a removed block in the same
+   * position are updated in place, keeping the shared embeds.
+   * Renders every block if reference links changed.
    */
   private reconcile(full = false) {
     this.cancel();
@@ -203,13 +216,18 @@ export class MdComponent implements DoCheck, OnDestroy {
     }
     const links = JSON.stringify(tokens.links);
     const next = mdBlocks(tokens);
-    let matched = full || links !== this.links ? [] : matchBlocks(this.blocks, next);
-    if (matched.filter(b => !b).length * 2 > next.length) matched = [];
-    if (!matched.length) {
+    const reuse = !full && links === this.links && !!this.blocks.length;
+    const matched = reuse ? matchBlocks(this.blocks, next) : new Array<MdBlockState | undefined>(next.length).fill(undefined);
+    const roots = new Map<number, MdRoot>();
+    next.forEach((b, i) => {
+      if (!matched[i]) roots.set(i, this.embeds.renderBlock(b, tokens.links, this.origin || '', this.disableSanitizer));
+    });
+    const paired = reuse ? pairBlocks(this.blocks, matched, i => roots.get(i)?.islands) : [];
+    if (!reuse) {
       this.destroy();
       host.replaceChildren();
     } else {
-      const kept = new Set(matched);
+      const kept = new Set([...matched, ...paired]);
       this.blocks.forEach((b, i) => {
         if (!kept.has(b)) this.removeBlock(b, this.blocks[i + 1]?.marker || null);
       });
@@ -222,8 +240,10 @@ export class MdComponent implements DoCheck, OnDestroy {
         shiftSourceMap(host, old.marker, ref, next[i].offset - old.offset);
         old.offset = next[i].offset;
         blocks[i] = old;
+      } else if (paired[i]) {
+        blocks[i] = this.updateBlock(paired[i]!, next[i], roots.get(i)!, tokens.links, ref);
       } else {
-        blocks[i] = this.renderBlock(next[i], tokens.links, ref);
+        blocks[i] = this.insertBlock(next[i], roots.get(i)!, ref);
       }
       ref = blocks[i].marker;
     }
@@ -232,27 +252,53 @@ export class MdComponent implements DoCheck, OnDestroy {
     this.postProcessMarkdown.next();
   }
 
-  private renderBlock(block: MdBlock, links: any, ref: Node | null): MdBlockState {
+  private insertBlock(block: MdBlock, { root, islands }: MdRoot, ref: Node | null): MdBlockState {
     const host = this.md.nativeElement;
-    const views = trackViews(this.vc);
-    const { nodes, cleanup } = this.embeds.renderBlock(block, links, { ...this.context, vc: views.vc }, this.disableSanitizer);
-    const marker = host.ownerDocument.createComment('md-block');
-    const fragment = host.ownerDocument.createDocumentFragment();
-    fragment.append(marker, ...nodes);
-    host.insertBefore(fragment, ref);
-    return {
+    const state: MdBlockState = {
       key: block.key,
       offset: block.offset,
-      marker,
-      cleanup: () => {
-        cleanup();
-        views.destroy();
-      },
+      marker: host.ownerDocument.createComment('md-block'),
+      islands: new Map(),
     };
+    for (const [start, island] of islands) {
+      this.embeds.hydrateIsland(start, island, this.context);
+      state.islands.set(start, island);
+    }
+    const fragment = host.ownerDocument.createDocumentFragment();
+    fragment.append(state.marker, ...Array.from(root.childNodes));
+    host.insertBefore(fragment, ref);
+    return state;
+  }
+
+  /**
+   * Update a block in place to match a new render, keeping islands that did not change.
+   * Falls back to replacing the block if the update fails.
+   */
+  private updateBlock(block: MdBlockState, next: MdBlock, root: MdRoot, links: any, ref: Node | null): MdBlockState {
+    const host = this.md.nativeElement;
+    try {
+      morphRange(host, block.marker.nextSibling, ref, root.root, {
+        host,
+        live: block.islands,
+        next: root.islands,
+        hydrate: (start, island) => this.embeds.hydrateIsland(start, island, this.context),
+      });
+    } catch (e) {
+      console.error(e);
+      this.removeBlock(block, ref);
+      return this.insertBlock(next, this.embeds.renderBlock(next, links, this.origin || '', this.disableSanitizer), ref);
+    }
+    block.key = next.key;
+    block.offset = next.offset;
+    return block;
+  }
+
+  private destroyBlock(block: MdBlockState) {
+    destroyIslands(Array.from(block.islands.keys()), block.islands);
   }
 
   private removeBlock(block: MdBlockState, end: Node | null) {
-    block.cleanup();
+    this.destroyBlock(block);
     let n: Node | null = block.marker;
     while (n && n !== end) {
       const next: Node | null = n.nextSibling;

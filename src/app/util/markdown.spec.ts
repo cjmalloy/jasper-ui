@@ -2,7 +2,11 @@
 import {
   bestSrcset,
   copyText,
+  markIslands,
   matchBlocks,
+  MdIsland,
+  morphRange,
+  pairBlocks,
   mdBlocks,
   mediaToPlaceholders,
   parseSrcset,
@@ -149,6 +153,68 @@ describe('markdown util', () => {
       const old = keys('a', 'b', 'a', 'c');
       expect(matchBlocks(old, keys('x', 'a', 'a', 'y'))).toEqual([undefined, old[0], old[2], undefined]);
       expect(matchBlocks(old, keys('c', 'b'))).toEqual([old[3], undefined]);
+    });
+  });
+
+  describe('islands', () => {
+    function root(html: string) {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      return div;
+    }
+
+    it('marks only the outermost islands and ignores source maps in keys', () => {
+      const a = root('<p aria-posinset="0">x <a href="/a"><span class="md-embed" data-url="u"></span></a></p><pre aria-posinset="5"><code>c</code></pre>');
+      const b = root('<p aria-posinset="1">y <a href="/a"><span class="md-embed" data-url="u"></span></a></p><pre aria-posinset="9"><code>c</code></pre>');
+      const ia = Array.from(markIslands(a).values());
+      const ib = Array.from(markIslands(b).values());
+      expect(ia.length).toBe(2);
+      expect(ia.map(i => i.key)).toEqual(ib.map(i => i.key));
+      expect(a.querySelector('p')!.innerHTML).toBe('x <!--md-island--><a href="/a"><span class="md-embed" data-url="u"></span></a><!--/md-island-->');
+    });
+
+    it('morphs in place, keeping identical islands and hydrating new ones', () => {
+      const host = root('');
+      host.className = 'md';
+      const live = root('<p aria-posinset="0">x <span class="md-embed" data-url="u"></span></p>');
+      const liveIslands = markIslands(live);
+      const hydrated: string[] = [];
+      const hydrate = (start: Comment, island: MdIsland) => {
+        const el = start.nextSibling as HTMLElement;
+        const out = document.createElement('b');
+        out.textContent = el.dataset.url!;
+        el.replaceWith(out);
+        hydrated.push(out.textContent);
+        island.cleanup = vi.fn();
+      };
+      for (const [s, i] of liveIslands) hydrate(s, i);
+      host.append(...Array.from(live.childNodes));
+      const p = host.firstElementChild!;
+      const kept = p.querySelector('b')!;
+      const [first] = liveIslands.values();
+
+      const next = root('<p aria-posinset="2">xy <span class="md-embed" data-url="u"></span> <span class="md-embed" data-url="v"></span></p>');
+      morphRange(host, host.firstChild, null, next, { host, live: liveIslands, next: markIslands(next), hydrate });
+
+      expect(host.firstElementChild).toBe(p);
+      expect(p.getAttribute('aria-posinset')).toBe('2');
+      expect(p.querySelector('b')).toBe(kept);
+      expect(hydrated).toEqual(['u', 'v']);
+      expect(p.textContent).toBe('xy u v');
+      expect(liveIslands.size).toBe(2);
+
+      morphRange(host, host.firstChild, null, root('<p>z</p>'), { host, live: liveIslands, next: new Map(), hydrate });
+      expect(first.cleanup).toHaveBeenCalled();
+      expect(liveIslands.size).toBe(0);
+      expect(host.innerHTML).toBe('<p>z</p>');
+    });
+
+    it('pairs changed blocks that share an island in the same position', () => {
+      const islands = (...keys: string[]) => new Map(keys.map(key => [document.createComment(''), { key, end: document.createComment('') }]));
+      const old = [{ islands: islands('a') }, { islands: islands('b') }, { islands: islands() }];
+      const next = [islands('a', 'x'), islands('y'), islands()];
+      expect(pairBlocks(old, [undefined, undefined, old[2]], i => next[i])).toEqual([old[0], undefined, undefined]);
+      expect(pairBlocks(old, [undefined, old[1], undefined], i => next[i])).toEqual([old[0], undefined, undefined]);
     });
   });
 });
