@@ -4672,7 +4672,7 @@ Please Reload.</source>
         <source>Locking is permanent once saved. Are you sure you want to lock?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/editor/editor.component.ts</context>
-          <context context-type="linenumber">414</context>
+          <context context-type="linenumber">421</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7978273686665519179" datatype="html">
@@ -19060,7 +19060,7 @@ Each response contains the converted Markdown from a specific source format.</so
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/markdown.ts</context>
-          <context context-type="linenumber">160</context>
+          <context context-type="linenumber">171</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1395659627208186922" datatype="html">
@@ -19303,32 +19303,39 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>render</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/markdown.ts</context>
-          <context context-type="linenumber">212</context>
+          <context context-type="linenumber">231</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6828004417956801185" datatype="html">
         <source>Render diagram</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/markdown.ts</context>
-          <context context-type="linenumber">213</context>
+          <context context-type="linenumber">232</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4323470180912194028" datatype="html">
         <source>Copy</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/markdown.ts</context>
-          <context context-type="linenumber">236</context>
+          <context context-type="linenumber">287</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/markdown.ts</context>
-          <context context-type="linenumber">246</context>
+          <context context-type="linenumber">296</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2115592966120408375" datatype="html">
         <source>Copied</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/markdown.ts</context>
-          <context context-type="linenumber">242</context>
+          <context context-type="linenumber">301</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3462619539465434942" datatype="html">
+        <source>Copy failed</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/util/markdown.ts</context>
+          <context context-type="linenumber">304</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2180343879821060413" datatype="html">

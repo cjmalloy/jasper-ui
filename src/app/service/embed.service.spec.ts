@@ -5,9 +5,11 @@ import { Component, inject, ViewContainerRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { marked } from 'marked';
+import { throwError } from 'rxjs';
 
 import { AdminService } from './admin.service';
 import { ConfigService } from './config.service';
+import { EditorService } from './editor.service';
 import { EmbedService } from './embed.service';
 
 @Component({ template: '' })
@@ -153,6 +155,27 @@ describe('EmbedService', () => {
       const doc = service.renderDocument('# Title\n\nParagraph');
       expect(doc.querySelector('h1')!.getAttribute('aria-posinset')).toBe('0');
       expect(doc.querySelector('p')!.getAttribute('aria-posinset')).toBe('9');
+    });
+  });
+
+  describe('toggles', () => {
+    it('recovers when expanding fails', () => {
+      vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
+      vi.spyOn(TestBed.inject(AdminService), 'getPluginsForUrl').mockReturnValue([]);
+      vi.spyOn(TestBed.inject(EditorService), 'getUrlType').mockReturnValue('tag');
+      const loadQuery = vi.spyOn(service, 'loadQuery$').mockReturnValue(throwError(() => new Error('fail')));
+      const fixture = TestBed.createComponent(HostComponent);
+      const el = fixture.nativeElement as HTMLElement;
+      service.render(el, '<span class="toggle embed" title="/tag/science">x</span>', { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false });
+      const toggle = el.querySelector<HTMLElement>('.toggle')!;
+      const plus = toggle.querySelector<HTMLElement>('.toggle-plus')!;
+      const x = toggle.querySelector<HTMLElement>('.toggle-x')!;
+
+      toggle.click();
+      expect(plus.style.display).toBe('block');
+      expect(x.style.display).toBe('none');
+      toggle.click();
+      expect(loadQuery).toHaveBeenCalledTimes(2);
     });
   });
 });

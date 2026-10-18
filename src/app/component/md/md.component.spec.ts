@@ -146,6 +146,50 @@ describe('MdComponent', () => {
     expect(fixture.nativeElement.querySelector('.markdown-clipboard-button')).toBeTruthy();
   });
 
+  it('should re-render when mermaid, clipboard or sanitizer inputs change', () => {
+    component.text = '```\ncode\n```';
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.markdown-clipboard-button')).toBeNull();
+
+    component.clipboard = true;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.markdown-clipboard-button')).toBeTruthy();
+
+    component.text = '<span onclick="x">a</span>';
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('span').hasAttribute('onclick')).toBe(false);
+    component.disableSanitizer = true;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('span').hasAttribute('onclick')).toBe(true);
+  });
+
+  it('should keep a stable source mapped container for mermaid diagrams', () => {
+    const mount = vi.spyOn(pele, 'mountAsync').mockReturnValue(new Promise(() => {}));
+    component.text = '# Title\n\n```mermaid\ngraph TB\n  A --> B\n```';
+    fixture.detectChanges();
+
+    const container = fixture.nativeElement.querySelector('.md-mermaid') as HTMLElement;
+    expect(container.getAttribute('aria-posinset')).toBe('9');
+    (fixture.nativeElement.querySelector('.mermaid-render') as HTMLButtonElement).click();
+    expect(container.isConnected).toBe(true);
+    expect(container.querySelector('.mermaid')).toBeTruthy();
+    expect(mount).toHaveBeenCalled();
+
+    component.mermaid = true;
+    fixture.detectChanges();
+    const rendered = fixture.nativeElement.querySelector('.md-mermaid') as HTMLElement;
+    expect(rendered.getAttribute('aria-posinset')).toBe('9');
+    expect(rendered.querySelector('.mermaid')).toBeTruthy();
+  });
+
+  it('should ignore forged embed placeholders', () => {
+    component.text = '<span class="md-embed" data-url="javascript:alert(1)" data-plugin="plugin/embed">x</span>';
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.md-embed')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-url]')).toBeNull();
+  });
+
   it('should render wiki links, hashtags and user tags as links', () => {
     component.text = '[[double bracket]] #science +user/alice';
     fixture.detectChanges();

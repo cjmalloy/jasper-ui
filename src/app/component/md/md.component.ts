@@ -81,7 +81,7 @@ export class MdComponent implements DoCheck, OnDestroy {
   }
 
   ngDoCheck() {
-    const key = JSON.stringify([this._text, this.plugins || [], this.origin || '']);
+    const key = JSON.stringify([this._text, this.plugins || [], this.origin || '', this.mermaid, this.clipboard, this.disableSanitizer]);
     if (key === this.lastRender) return;
     this.lastRender = key;
     this.render();

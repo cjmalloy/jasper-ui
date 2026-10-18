@@ -3,7 +3,7 @@ import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, MarkedExtension, Renderer, RendererObject, Token, Tokens, TokensList } from 'marked';
 import markedKatex from 'marked-katex-extension';
-import { catchError, forkJoin, map, Observable, of, retry, Subscription, switchMap } from 'rxjs';
+import { catchError, EMPTY, forkJoin, map, Observable, of, retry, Subscription, switchMap } from 'rxjs';
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
@@ -534,13 +534,16 @@ export class EmbedService {
     let expanded: Node | undefined;
     let pending = false;
     let loading: Subscription | void;
+    const collapse = () => {
+      plus.style.display = 'block';
+      x.style.display = 'none';
+    };
     const onClick = () => {
       if (pending) return;
       if (expanded) {
         expanded.parentNode?.removeChild(expanded);
         expanded = undefined;
-        plus.style.display = 'block';
-        x.style.display = 'none';
+        collapse();
       } else {
         plus.style.display = 'none';
         x.style.display = 'block';
@@ -548,12 +551,17 @@ export class EmbedService {
         loading = expand(el => {
           pending = false;
           if (!el) {
-            plus.style.display = 'block';
-            x.style.display = 'none';
+            collapse();
             return;
           }
           expanded = el;
           this.insert(t, el, true);
+        });
+        // Recover if the subscription errors or completes without an element
+        loading?.add(() => {
+          if (!pending) return;
+          pending = false;
+          collapse();
         });
         if (!pending) loading = undefined;
       }
@@ -604,7 +612,12 @@ export class EmbedService {
         if (type === 'ref') {
           return this.refOrWarning$(url, vc, false).subscribe(el => done(el));
         } else if (type === 'tag') {
-          return this.loadQuery$(url).subscribe(({params, page, ext}) =>
+          return this.loadQuery$(url).pipe(
+            catchError(err => {
+              console.error(err);
+              return EMPTY;
+            }),
+          ).subscribe(({params, page, ext}) =>
             done(createLens(vc, params, page, this.editor.getQuery(url), ext).location.nativeElement));
         }
         return done();
@@ -622,7 +635,12 @@ export class EmbedService {
           return done(createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) }).location.nativeElement);
         }
         if (this.editor.getUrlType(url) === 'tag') {
-          return this.loadQuery$(url).subscribe(({params, page, ext}) =>
+          return this.loadQuery$(url).pipe(
+            catchError(err => {
+              console.error(err);
+              return EMPTY;
+            }),
+          ).subscribe(({params, page, ext}) =>
             done(createLens(vc, params, page, this.editor.getQuery(url), ext).location.nativeElement));
         }
         return this.refOrWarning$(url, vc, true).subscribe(el => done(el));

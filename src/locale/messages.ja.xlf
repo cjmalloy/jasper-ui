@@ -8095,6 +8095,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Copied</source>
         <target>コピーしました</target>
       </trans-unit>
+      <trans-unit id="3462619539465434942" datatype="html">
+        <source>Copy failed</source>
+        <target>コピーに失敗しました</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

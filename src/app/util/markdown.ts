@@ -91,8 +91,12 @@ function mediaUrl(el: Element, base: string): string | undefined {
   return undefined;
 }
 
+function unsafeUrl(url: string) {
+  return /^\s*(javascript:|vbscript:|data:text\/html)/i.test(url);
+}
+
 function placeholder(doc: Document, el: HTMLElement, plugin: string, url?: string, alt?: string | null) {
-  if (!url) {
+  if (!url || unsafeUrl(url)) {
     el.remove();
     return;
   }
@@ -120,6 +124,13 @@ export function sanitizeMarkdown(doc: Document) {
  */
 export function mediaToPlaceholders(doc: Document) {
   const base = doc.baseURI || location.href;
+  // Placeholders are reserved, don't trust any already in the content
+  doc.body.querySelectorAll<HTMLElement>('.md-embed').forEach(t => {
+    t.classList.remove('md-embed');
+    for (const attr of ['data-url', 'data-plugin', 'data-title', 'data-alt', 'data-width', 'data-height']) {
+      t.removeAttribute(attr);
+    }
+  });
   doc.body.querySelectorAll<HTMLPictureElement>('picture').forEach(t => {
     const source = t.querySelector('source');
     const img = t.querySelector('img');
@@ -196,11 +207,19 @@ export const mermaidHydrator: MdHydrator = (host, ctx) => {
   host.querySelectorAll<HTMLElement>('pre > code.language-mermaid').forEach(code => {
     const pre = code.parentElement!;
     const text = code.textContent || '';
+    const container = host.ownerDocument.createElement('div');
+    container.className = 'md-mermaid';
+    const posinset = pre.getAttribute('aria-posinset');
+    if (posinset !== null) {
+      container.setAttribute('aria-posinset', posinset);
+      pre.removeAttribute('aria-posinset');
+    }
+    pre.replaceWith(container);
+    container.appendChild(pre);
     const render = () => {
       const div = host.ownerDocument.createElement('div');
       div.className = 'mermaid';
-      const target = pre.parentElement?.classList.contains('md-pre') ? pre.parentElement : pre;
-      target.replaceWith(div);
+      container.replaceChildren(div);
       cleanup.push(mountMermaid(div, text));
     };
     if (ctx.mermaid) {
@@ -226,6 +245,38 @@ export const prismHydrator: MdHydrator = host => {
   prism.highlightAllUnder(host);
 };
 
+function execCopy(doc: Document, text: string) {
+  const textarea = doc.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.top = '0';
+  textarea.style.left = '-9999px';
+  doc.body.appendChild(textarea);
+  try {
+    textarea.select();
+    if (!doc.execCommand('copy')) throw new Error('Copy command failed');
+  } finally {
+    textarea.remove();
+  }
+}
+
+/**
+ * Copy text to the clipboard, falling back to execCommand when the
+ * Clipboard API is unavailable (e.g. insecure contexts).
+ */
+export async function copyText(doc: Document, text: string) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Fall through to execCommand
+    }
+  }
+  execCopy(doc, text);
+}
+
 export const clipboardHydrator: MdHydrator = (host, ctx) => {
   if (!ctx.clipboard) return;
   const cleanup: (() => void)[] = [];
@@ -235,18 +286,23 @@ export const clipboardHydrator: MdHydrator = (host, ctx) => {
     button.className = 'markdown-clipboard-button';
     button.textContent = $localize`Copy`;
     let timeout: any;
+    const status = (className: string, text: string) => {
+      button.classList.remove('copied', 'copy-failed');
+      button.classList.add(className);
+      button.textContent = text;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        button.classList.remove(className);
+        button.textContent = $localize`Copy`;
+      }, 3000);
+    };
     const copy = () => {
-      navigator.clipboard?.writeText(pre.textContent || '')
-        .then(() => {
-          button.classList.add('copied');
-          button.textContent = $localize`Copied`;
-          clearTimeout(timeout);
-          timeout = setTimeout(() => {
-            button.classList.remove('copied');
-            button.textContent = $localize`Copy`;
-          }, 3000);
-        })
-        .catch(err => console.error(err));
+      copyText(host.ownerDocument, pre.textContent || '')
+        .then(() => status('copied', $localize`Copied`))
+        .catch(err => {
+          console.error(err);
+          status('copy-failed', $localize`Copy failed`);
+        });
     };
     button.addEventListener('click', copy);
     cleanup.push(() => {
