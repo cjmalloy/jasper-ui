@@ -1,11 +1,1 @@
-<div class="md"
-     markdown
-     [data]="value"
-     [origin]="origin"
-     [disableSanitizer]="disableSanitizer"
-     [appMdPost]="postProcessMarkdown"
-     (ready)="postProcessMarkdown.next()"
-     [katex]="!!plugins?.includes('plugin/latex')"
-     [katexOptions]="katexOptions"
-     [mermaid]="mermaid"
-     [clipboard]="clipboard"></div>
+<div #md class="md"></div>

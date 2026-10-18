@@ -1,8 +1,8 @@
 import { Injectable, ViewContainerRef } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { marked, Token, Tokens, TokensList } from 'marked';
-import { MarkdownService, MarkedRenderer } from 'ngx-markdown';
+import { marked, MarkedExtension, Renderer, RendererObject, Token, Tokens, TokensList } from 'marked';
+import markedKatex from 'marked-katex-extension';
 import { catchError, forkJoin, map, Observable, of, retry, Subscription, switchMap } from 'rxjs';
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
@@ -14,18 +14,65 @@ import { Store } from '../store/store';
 import { delay } from '../util/async';
 import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc, setIframeSrc } from '../util/embed';
 import { getArray, parseBookmarkParams } from '../util/http';
+import {
+  attachMarkdown,
+  clipboardHydrator,
+  fixUserTags,
+  MdContext,
+  MdHydrator,
+  mediaToPlaceholders,
+  mermaidHydrator,
+  prismHydrator,
+  sanitizeMarkdown,
+  trimIndentation
+} from '../util/markdown';
 import { getArgs, getFilters, UrlFilter } from '../util/query';
-import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
+import { isQuery, queryPrefix, topAnds } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
 import { EditorService } from './editor.service';
 
+/**
+ * marked is a global singleton, so KaTeX is gated per parse instead of
+ * being added and removed.
+ */
+let katexEnabled = false;
+
+function gatedKatex(): MarkedExtension {
+  const ext = markedKatex({ throwOnError: false });
+  return {
+    extensions: ext.extensions!.map((e: any) => ({
+      ...e,
+      start: e.start && function (this: any, src: string) {
+        return katexEnabled ? e.start.call(this, src) : undefined;
+      },
+      tokenizer(this: any, src: string, tokens: any) {
+        return katexEnabled ? e.tokenizer.call(this, src, tokens) : undefined;
+      },
+    })),
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class EmbedService {
+
+  /**
+   * Ordered registry of hydrators run on rendered markdown after it is attached.
+   */
+  readonly hydrators: MdHydrator[] = [
+    mermaidHydrator,
+    prismHydrator,
+    clipboardHydrator,
+    (host, ctx) => this.hydrateToggles(host, ctx),
+    (host, ctx) => this.hydrateLinks(host, ctx),
+    (host, ctx) => this.hydrateEmbeds(host, ctx),
+    (host, ctx) => this.hydrateInlineRefs(host, ctx),
+    (host, ctx) => this.hydrateInlineEmbeds(host, ctx),
+  ];
 
   constructor(
     private config: ConfigService,
@@ -33,15 +80,9 @@ export class EmbedService {
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
-    private markdownService: MarkdownService,
     private oembeds: OembedStore,
     private store: Store,
   ) {
-    markdownService.options = {
-      gfm: true,
-      breaks: false,
-      pedantic: false,
-    };
     function cleanUrl(href: string) {
       try {
         href = encodeURI(href).replace(/%25/g, '%');
@@ -50,14 +91,17 @@ export class EmbedService {
       }
       return href;
     }
-    function sourceMap<T extends keyof MarkedRenderer>(name: T) {
-      const orig = marked.Renderer.prototype[name] as any;
+    function sourceMap<T extends keyof Renderer>(name: T) {
+      const orig = Renderer.prototype[name] as any;
       return function (this: any, token: any, ...rest: any[]) {
         const html = orig.call(this, token, ...rest);
         return html.replace(/^(<\w+)/, `$1 aria-posinset="${token.sourceMap}"`);
       };
     }
     marked.use({
+      gfm: true,
+      breaks: false,
+      pedantic: false,
       hooks: {
         processAllTokens(tokens: Token[] | TokensList) {
           let pos = 0;
@@ -73,20 +117,6 @@ export class EmbedService {
           walk(tokens);
           return tokens;
         },
-        postprocess(html: string): string {
-          const parser = new DOMParser();
-          const htmlDoc = parser.parseFromString(html, 'text/html');
-          const media = htmlDoc.querySelectorAll<HTMLImageElement|HTMLSourceElement>('img, source');
-          media.forEach(t => {
-            if (t.src) {
-              t.src = 'unsafe:' + t.src;
-            }
-            if (t.srcset) {
-              t.srcset = t.srcset.split(', ').map(src => 'unsafe:' + src).join(', ');
-            }
-          });
-          return htmlDoc.body.innerHTML;
-        },
       },
       renderer: {
         paragraph : sourceMap('paragraph'),
@@ -97,9 +127,6 @@ export class EmbedService {
         blockquote: sourceMap('blockquote'),
         table     : sourceMap('table'),
         tablerow  : sourceMap('tablerow'),
-        html({text}: Tokens.HTML | Tokens.Tag): string {
-          return text.replace(/<img/g, '<img loading="lazy"');
-        },
         image({href, title, text}: Tokens.Image): string {
           const cleanHref = cleanUrl(href);
           if (cleanHref === null) {
@@ -137,9 +164,67 @@ export class EmbedService {
           }
           return out;
         }
-      },
+      } as RendererObject,
       extensions: this.extensions,
     });
+    marked.use(gatedKatex());
+  }
+
+  /**
+   * Parse markdown into an HTML string.
+   */
+  parse(markdown: string, katex = false): string {
+    katexEnabled = katex;
+    try {
+      return marked.parse(trimIndentation(markdown), { async: false });
+    } catch (e: any) {
+      console.error(e);
+      return `<p class="error">${escape(e.message)}</p>`;
+    } finally {
+      katexEnabled = false;
+    }
+  }
+
+  /**
+   * Render markdown into an inert document. Nothing in the returned document
+   * will load any resources: media is replaced by placeholders.
+   * @param markdown text to render
+   * @param origin origin to append to user links without existing origins
+   * @param katex render LaTeX
+   * @param disableSanitizer skip DOMPurify
+   */
+  renderDocument(markdown: string, origin = '', katex = false, disableSanitizer = false): Document {
+    const doc = new DOMParser().parseFromString(this.parse(markdown, katex), 'text/html');
+    if (!disableSanitizer) sanitizeMarkdown(doc);
+    mediaToPlaceholders(doc);
+    fixUserTags(doc, origin, this.store.origins.originMap.get(origin || ''));
+    return doc;
+  }
+
+  /**
+   * Render markdown, attach it to the live host and hydrate it.
+   * @return cleanup function
+   */
+  render(host: HTMLElement, markdown: string, ctx: MdContext, katex = false, disableSanitizer = false): () => void {
+    attachMarkdown(host, this.renderDocument(markdown, ctx.origin, katex, disableSanitizer));
+    return this.hydrate(host, ctx);
+  }
+
+  /**
+   * Run all hydrators on attached markdown.
+   * @return cleanup function
+   */
+  hydrate(host: HTMLElement, ctx: MdContext): () => void {
+    const cleanup: (() => void)[] = [];
+    for (const h of this.hydrators) {
+      try {
+        const fn = h(host, ctx);
+        if (fn) cleanup.push(fn);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return () => cleanup.forEach(fn => fn());
   }
 
   private get extensions() {
@@ -320,130 +405,72 @@ export class EmbedService {
     }];
   }
 
+  private insert(t: Node, el: Node, after = false) {
+    t.parentNode?.insertBefore(el, after ? t.nextSibling : t);
+  }
+
   /**
-   * Post process a markdown render.
-   * @param vc
-   * @param event callback to add event handlers without memory leaks
-   * @param origin origin to append to user links without existing origins
+   * Replace <span class="md-embed"> media placeholders with embeds.
    */
-  postProcess(vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
-    const el = vc.element.nativeElement as HTMLDivElement;
-    const subscriptions: Subscription[] = [];
-    const lookup = this.store.origins.originMap.get(origin || '');
-    const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
-    userTags.forEach(t => {
-      const userOrigin = tagOrigin(t.innerText);
-      if (userOrigin) {
-        if (lookup?.has(userOrigin)) {
-          const tag = localTag(t.innerText) + lookup?.get(userOrigin);
-          t.innerText = tag;
-          t.href = '/tag/' + escape(tag);
-          t.title = $localize`User ` + tag;
-        }
-      } else if (origin) {
-        t.href = t.getAttribute('href') + origin;
-      }
-    });
+  private hydrateEmbeds(host: HTMLElement, { vc, origin }: MdContext) {
     const imagesEnabled = !!this.admin.getPlugin('plugin/image');
-    const pictures = el.querySelectorAll<HTMLPictureElement>('picture');
-    pictures.forEach(t => {
-      const source = t.querySelectorAll('source')[0];
-      if (source.src || source.srcset) {
-        const srcsets = source.srcset ? source.srcset.split(', ') : [source.src];
-        let url = source.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : source.src;
-        if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        const alt = t.querySelectorAll('img')[0]?.alt;
-        if (imagesEnabled) {
+    host.querySelectorAll<HTMLElement>('.md-embed').forEach(t => {
+      const { url, plugin, title, alt, width, height } = t.dataset;
+      if (!url || !plugin) {
+        t.remove();
+        return;
+      }
+      if (plugin === 'plugin/image' && !imagesEnabled) {
+        const c = createLink(vc, url, alt || title || url, title);
+        this.insert(t, c.location.nativeElement);
+      } else {
+        const ref: Ref = { url, origin, tags: [plugin] };
+        if (plugin === 'plugin/image' || plugin === 'plugin/video') {
           const config = {} as any;
-          if (t.style.width) config.width = t.style.width;
-          if (t.style.height) config.height = t.style.height;
-          const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
-          c.location.nativeElement.title = t.title;
-          c.location.nativeElement.alt = alt;
-          t.parentNode?.insertBefore(c.location.nativeElement, t);
-        } else {
-          const c = createLink(vc, url, alt || t.title || url, t.title);
-          t.parentNode?.insertBefore(c.location.nativeElement, t);
+          if (width) config.width = width;
+          if (height) config.height = height;
+          ref.plugins = { [plugin]: config };
         }
+        const c = createEmbed(vc, ref);
+        if (title) c.location.nativeElement.title = title;
+        if (alt) c.location.nativeElement.alt = alt;
+        this.insert(t, c.location.nativeElement);
       }
       t.remove();
     });
-    const images = el.querySelectorAll<HTMLImageElement>('img');
-    images.forEach(t => {
-      if (t.src || t.srcset) {
-        const srcsets = t.srcset ? t.srcset.split(', ') : [t.src];
-        let url = t.srcset ? srcsets[srcsets.length - 1].trim().split(' ')[0] : t.src;
-        if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        if (imagesEnabled) {
-          const config = {} as any;
-          if (t.style.width) config.width = t.style.width;
-          if (t.style.height) config.height = t.style.height;
-          const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
-          c.location.nativeElement.title = t.title;
-          c.location.nativeElement.alt = t.alt;
-          t.parentNode?.insertBefore(c.location.nativeElement, t);
-        } else {
-          const c = createLink(vc, url, t.alt || t.title || url, t.title);
-          t.parentNode?.insertBefore(c.location.nativeElement, t);
-        }
-      }
-      t.remove();
-    });
-    const audio = el.querySelectorAll<HTMLAudioElement>('audio');
-    audio.forEach(t => {
-      const source = t.querySelectorAll('source')[0];
-      if (source) {
-        let url = source.src;
-        if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        const c = createEmbed(vc, { url, origin, tags: ['plugin/audio'] });
-        c.location.nativeElement.title = t.title;
-        t.parentNode?.insertBefore(c.location.nativeElement, t);
-      }
-      t.remove();
-    });
-    const videos = el.querySelectorAll<HTMLVideoElement>('video');
-    videos.forEach(t => {
-      const source = t.querySelectorAll('source')[0];
-      if (source) {
-        let url = source.src;
-        if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        const config = {} as any;
-        if (t.style.width) config.width = t.style.width;
-        if (t.style.height) config.height = t.style.height;
-        const c = createEmbed(vc, { url, origin, tags: ['plugin/video'], plugins: { 'plugin/video': config } });
-        c.location.nativeElement.title = t.title;
-        t.parentNode?.insertBefore(c.location.nativeElement, t);
-      }
-      t.remove();
-    });
-    const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
-    inlineRefs.forEach(t => {
-      const url = t.innerText;
+  }
+
+  private hydrateInlineRefs(host: HTMLElement, { vc }: MdContext) {
+    const subscriptions: Subscription[] = [];
+    host.querySelectorAll<HTMLElement>('.inline-ref').forEach(t => {
+      const url = t.textContent || '';
       subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
         retry(1),
         catchError(() => of(null)),
       ).subscribe(ref => {
         if (ref) {
           const c = createRef(vc, ref, true);
-          t.parentNode?.insertBefore(c.location.nativeElement, t);
+          this.insert(t, c.location.nativeElement);
         } else {
-          const warn = document.createElement('div');
-          warn.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
-          t.parentNode?.insertBefore(warn, t);
+          this.insert(t, this.warning(`Ref ${url} not found.`));
         }
         t.remove();
       }));
     });
-    const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-embed');
-    embedRefs.forEach(t => {
-      const url = t.innerText;
+    return () => subscriptions.forEach(s => s.unsubscribe());
+  }
+
+  private hydrateInlineEmbeds(host: HTMLElement, { vc, origin }: MdContext) {
+    const subscriptions: Subscription[] = [];
+    host.querySelectorAll<HTMLElement>('.inline-embed').forEach(t => {
+      const url = t.textContent || '';
       const title = t.title;
       const type = this.editor.getUrlType(url);
       if (type === 'tag') {
-        subscriptions.push(this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
-          const c = createLens(vc, params, page, this.editor.getQuery(t.innerText), ext);
+        subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
+          const c = createLens(vc, params, page, this.editor.getQuery(url), ext);
           if (title) c.location.nativeElement.title = title;
-          t.parentNode?.insertBefore(c.location.nativeElement, t);
+          this.insert(t, c.location.nativeElement);
           t.remove();
         }));
       } else {
@@ -455,19 +482,17 @@ export class EmbedService {
             if (ref?.comment || expandPlugins.length) {
               const c = createEmbed(vc, { ...ref!, tags: expandPlugins });
               if (title) c.location.nativeElement.title = title;
-              t.parentNode?.insertBefore(c.location.nativeElement, t);
+              this.insert(t, c.location.nativeElement);
               t.remove();
             } else {
               const embeds = this.admin.getPluginsForUrl(url);
               if (embeds.length) {
                 const c = createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) });
                 if (title) c.location.nativeElement.title = title;
-                t.parentNode?.insertBefore(c.location.nativeElement, t);
+                this.insert(t, c.location.nativeElement);
                 t.remove();
               } else if (url.startsWith('/ref/')) {
-                const warn = document.createElement('div');
-                warn.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-                t.parentNode?.insertBefore(warn, t);
+                this.insert(t, this.warning(`Ref ${url} not found and could not embed directly.`));
                 t.remove();
               } else {
                 return this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined).pipe(
@@ -475,14 +500,14 @@ export class EmbedService {
                   map(oembed => {
                     if (!oembed && !this.admin.getPlugin('plugin/image')) {
                       const c = createLink(vc, url, title || url, title);
-                      t.parentNode?.insertBefore(c.location.nativeElement, t);
+                      this.insert(t, c.location.nativeElement);
                       t.remove();
                       return;
                     }
                     const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
                     const c = createEmbed(vc, { url, origin, tags: expandPlugins });
-                    c.location.nativeElement.title = t.title;
-                    t.parentNode?.insertBefore(c.location.nativeElement, t);
+                    c.location.nativeElement.title = title;
+                    this.insert(t, c.location.nativeElement);
                     t.remove();
                   }),
                 );
@@ -493,143 +518,140 @@ export class EmbedService {
         ).subscribe());
       }
     });
-    const toggleFaces = '<span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span>';
-    const inlineToggle = el.querySelectorAll<HTMLDivElement>('.toggle.inline');
-    inlineToggle.forEach(t => {
-      // @ts-ignore
-      if (t.postProcessed) return;
-      // @ts-ignore
-      t.postProcessed = true;
-      t.innerHTML = toggleFaces;
-      // @ts-ignore
-      t.expanded = false;
-      // @ts-ignore
-      t.querySelector('.toggle-x').style.display = 'none';
-      event('click', t, () => {
-        // @ts-ignore
-        t.querySelector('.toggle-plus').style.display = t.expanded ? 'block' : 'none';
-        // @ts-ignore
-        t.querySelector('.toggle-x').style.display = !t.expanded ? 'block' : 'none';
-        // @ts-ignore
-        if (t.expanded) {
-          t.nextSibling?.remove();
-          // @ts-ignore
-          t.expanded = !t.expanded;
-        } else {
-          // TODO: Don't use title to store url
-          const url = t.title!;
-          const type = this.editor.getUrlType(url);
-          if (type === 'ref') {
-            subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
-              retry(1),
-              catchError(() => of(null)),
-            ).subscribe(ref => {
-              if (ref) {
-                const c = createRef(vc, ref, true);
-                t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
-              } else {
-                const warn = document.createElement('div');
-                warn.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
-                t.parentNode?.insertBefore(warn, t.nextSibling);
-              }
-              // @ts-ignore
-              t.expanded = !t.expanded;
-            }));
-          } else if (type === 'tag') {
-            subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
-              const c = createLens(vc, params, page, this.editor.getQuery(url), ext);
-              t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
-              // @ts-ignore
-              t.expanded = !t.expanded;
-            }));
+    return () => subscriptions.forEach(s => s.unsubscribe());
+  }
+
+  /**
+   * Wire up a toggle button with plus and x faces.
+   * @param t toggle element
+   * @param expand called to expand, must call done with the inserted element
+   * @return cleanup function
+   */
+  private toggle(t: HTMLElement, expand: (done: (el?: Node) => void) => Subscription | void) {
+    t.innerHTML = '<span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span>';
+    const plus = t.querySelector<HTMLElement>('.toggle-plus')!;
+    const x = t.querySelector<HTMLElement>('.toggle-x')!;
+    let expanded: Node | undefined;
+    let pending = false;
+    let loading: Subscription | void;
+    const onClick = () => {
+      if (pending) return;
+      if (expanded) {
+        expanded.parentNode?.removeChild(expanded);
+        expanded = undefined;
+        plus.style.display = 'block';
+        x.style.display = 'none';
+      } else {
+        plus.style.display = 'none';
+        x.style.display = 'block';
+        pending = true;
+        loading = expand(el => {
+          pending = false;
+          if (!el) {
+            plus.style.display = 'block';
+            x.style.display = 'none';
+            return;
           }
-        }
-      });
-    });
-    const embedToggle = el.querySelectorAll<HTMLDivElement>('.toggle.embed');
-    embedToggle.forEach(t => {
-      // @ts-ignore
-      if (t.postProcessed) return;
-      // @ts-ignore
-      t.postProcessed = true;
-      t.innerHTML = toggleFaces;
-      // @ts-ignore
-      if (t.previousSibling?.innerText === 'toggle') {
-        t.previousSibling?.remove();
+          expanded = el;
+          this.insert(t, el, true);
+        });
+        if (!pending) loading = undefined;
       }
-      // @ts-ignore
-      t.expanded = false;
-      // @ts-ignore
-      t.querySelector('.toggle-x').style.display = 'none';
-      event('click', t, () => {
-        // @ts-ignore
-        t.querySelector('.toggle-plus').style.display = t.expanded ? 'block' : 'none';
-        // @ts-ignore
-        t.querySelector('.toggle-x').style.display = !t.expanded ? 'block' : 'none';
-        // @ts-ignore
-        if (t.expanded) {
-          t.nextSibling?.remove();
-          // @ts-ignore
-          t.expanded = false;
-        } else {
-          // TODO: Don't use title to store url
-          const url = t.title!;
-          const embeds = this.admin.getPluginsForUrl(url);
-          if (embeds.length) {
-            const c = createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) }, );
-            t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
-            // @ts-ignore
-            t.expanded = !t.expanded;
-          } else {
-            const type = this.editor.getUrlType(url);
-            if (type === 'tag') {
-              subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
-                const c = createLens(vc, params, page, this.editor.getQuery(url), ext);
-                t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
-                // @ts-ignore
-                t.expanded = !t.expanded;
-              }));
-            } else {
-              subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
-                retry(1),
-                catchError(() => of(null)),
-              ).subscribe(ref => {
-                if (ref) {
-                  const expandPlugins = this.admin.getEmbeds(ref);
-                  if (ref.comment || expandPlugins.length) {
-                    const c = createEmbed(vc, { ...ref, tags: expandPlugins });
-                    t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
-                  } else {
-                    const warn = document.createElement('div');
-                    warn.innerHTML = `<span class="error">Ref ${escape(ref.title || ref.url)} does not contain any embeds.</span>`;
-                    t.parentNode?.insertBefore(warn, t.nextSibling);
-                  }
-                } else {
-                  const warn = document.createElement('div');
-                  warn.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-                  t.parentNode?.insertBefore(warn, t.nextSibling);
-                }
-                // @ts-ignore
-                t.expanded = !t.expanded;
-              }));
-            }
-          }
+    };
+    t.addEventListener('click', onClick);
+    return () => {
+      t.removeEventListener('click', onClick);
+      loading?.unsubscribe();
+    };
+  }
+
+  private refOrWarning$(url: string, vc: ViewContainerRef, embed: boolean) {
+    return this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+      retry(1),
+      catchError(() => of(null)),
+      map(ref => {
+        if (!ref) {
+          return this.warning(embed
+            ? `Ref ${url} not found and could not embed directly.`
+            : `Ref ${url} not found.`);
         }
-      });
+        if (!embed) return createRef(vc, ref, true).location.nativeElement as Node;
+        const expandPlugins = this.admin.getEmbeds(ref);
+        if (ref.comment || expandPlugins.length) {
+          return createEmbed(vc, { ...ref, tags: expandPlugins }).location.nativeElement as Node;
+        }
+        return this.warning(`Ref ${ref.title || ref.url} does not contain any embeds.`);
+      }),
+    );
+  }
+
+  private warning(message: string) {
+    const warn = document.createElement('div');
+    const span = document.createElement('span');
+    span.className = 'error';
+    span.textContent = message;
+    warn.appendChild(span);
+    return warn;
+  }
+
+  private hydrateToggles(host: HTMLElement, { vc, origin }: MdContext) {
+    const cleanup: (() => void)[] = [];
+    host.querySelectorAll<HTMLElement>('.toggle.inline').forEach(t => {
+      // TODO: Don't use title to store url
+      const url = t.title;
+      cleanup.push(this.toggle(t, done => {
+        const type = this.editor.getUrlType(url);
+        if (type === 'ref') {
+          return this.refOrWarning$(url, vc, false).subscribe(el => done(el));
+        } else if (type === 'tag') {
+          return this.loadQuery$(url).subscribe(({params, page, ext}) =>
+            done(createLens(vc, params, page, this.editor.getQuery(url), ext).location.nativeElement));
+        }
+        return done();
+      }));
     });
-    const links = el.querySelectorAll<HTMLAnchorElement>('a[href]');
-    links.forEach(t => {
-      if (t.querySelectorAll('app-viewer').length) {
-        // Don't allow linking images
-        while (t.firstChild) t.parentNode?.insertBefore(t.firstChild, t);
+    host.querySelectorAll<HTMLElement>('.toggle.embed').forEach(t => {
+      // TODO: Don't use title to store url
+      const url = t.title;
+      if (t.previousSibling?.textContent === 'toggle') {
+        t.previousSibling.parentNode?.removeChild(t.previousSibling);
+      }
+      cleanup.push(this.toggle(t, done => {
+        const embeds = this.admin.getPluginsForUrl(url);
+        if (embeds.length) {
+          return done(createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) }).location.nativeElement);
+        }
+        if (this.editor.getUrlType(url) === 'tag') {
+          return this.loadQuery$(url).subscribe(({params, page, ext}) =>
+            done(createLens(vc, params, page, this.editor.getQuery(url), ext).location.nativeElement));
+        }
+        return this.refOrWarning$(url, vc, true).subscribe(el => done(el));
+      }));
+    });
+    return () => cleanup.forEach(fn => fn());
+  }
+
+  private hydrateLinks(host: HTMLElement, { vc }: MdContext) {
+    const imagesEnabled = !!this.admin.getPlugin('plugin/image');
+    host.querySelectorAll<HTMLAnchorElement>('a[href]').forEach(t => {
+      const href = t.getAttribute('href') || '';
+      const embeds = t.querySelectorAll<HTMLElement>('.md-embed');
+      if (embeds.length) {
+        if (imagesEnabled || Array.from(embeds).some(e => e.dataset.plugin !== 'plugin/image')) {
+          // Don't allow linking images
+          t.replaceWith(...Array.from(t.childNodes));
+          return;
+        }
+        const e = embeds[0].dataset;
+        const c = createLink(vc, href, t.textContent?.trim() || e.alt || e.title || href, t.title, t.className);
+        this.insert(t, c.location.nativeElement);
         t.remove();
         return;
       }
-      const c = createLink(vc, t.getAttribute('href') || '', t.innerText, t.title, t.className);
-      t.parentNode?.insertBefore(c.location.nativeElement, t);
+      const c = createLink(vc, href, t.textContent || '', t.title, t.className);
+      this.insert(t, c.location.nativeElement);
       t.remove();
     });
-    return () => subscriptions.forEach(s => s.unsubscribe());
   }
 
   private get iframeBg() {

@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import JSZip from 'jszip';
-import { MarkdownModule } from 'ngx-markdown';
 import { Ref } from '../model/ref';
 import { EmbedService } from '../service/embed.service';
 import { embeddedCacheRefs, mapLimit, zipCache } from './download';
@@ -91,7 +90,7 @@ describe('download util', () => {
   describe('wiki embeds', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
-        imports: [MarkdownModule.forRoot()],
+        
         providers: [
           provideHttpClient(withXhr(), withInterceptorsFromDi()),
           provideHttpClientTesting(),

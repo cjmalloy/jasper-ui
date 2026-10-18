@@ -1,25 +1,27 @@
-import { Component, ElementRef, Input, Output, ChangeDetectionStrategy } from '@angular/core';
-import { MarkdownComponent } from 'ngx-markdown';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DoCheck,
+  ElementRef,
+  Input,
+  OnDestroy,
+  Output,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
-import { MdPostDirective } from '../../directive/md-post.directive';
 import { AdminService } from '../../service/admin.service';
+import { EmbedService } from '../../service/embed.service';
 import { Store } from '../../store/store';
-import { installMermaid } from '../../util/mermaid';
-
-installMermaid();
 
 @Component({
   selector: 'app-md',
   templateUrl: './md.component.html',
   styleUrls: ['./md.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [
-    MarkdownComponent,
-    MdPostDirective,
-  ]
 })
-export class MdComponent {
+export class MdComponent implements DoCheck, OnDestroy {
 
   @Input()
   origin? = '';
@@ -34,21 +36,21 @@ export class MdComponent {
   @Input()
   clipboard = true;
 
-  katexOptions = {
-    throwOnError: false,
-    delimiters: [
-      {left: "$$", right: "$$", display: true},
-      {left: "$", right: "$", display: false},
-    ],
-  };
+  @ViewChild('md', { static: true })
+  md!: ElementRef<HTMLDivElement>;
+  @ViewChild('md', { static: true, read: ViewContainerRef })
+  vc!: ViewContainerRef;
 
   private _text = '';
   private _value? = '';
+  private lastRender?: string;
+  private cleanup?: () => void;
 
   constructor(
     public admin: AdminService,
     public store: Store,
     public el: ElementRef,
+    private embeds: EmbedService,
   ) { }
 
   get text(): string {
@@ -74,4 +76,35 @@ export class MdComponent {
     return this._value = this._text;
   }
 
+  get katex() {
+    return !!this.plugins?.includes('plugin/latex');
+  }
+
+  ngDoCheck() {
+    const key = JSON.stringify([this._text, this.plugins || [], this.origin || '']);
+    if (key === this.lastRender) return;
+    this.lastRender = key;
+    this.render();
+  }
+
+  ngOnDestroy() {
+    this.destroy();
+  }
+
+  private destroy() {
+    this.cleanup?.();
+    delete this.cleanup;
+    this.vc.clear();
+  }
+
+  private render() {
+    this.destroy();
+    this.cleanup = this.embeds.render(this.md.nativeElement, this.value, {
+      vc: this.vc,
+      origin: this.origin || '',
+      mermaid: this.mermaid,
+      clipboard: this.clipboard,
+    }, this.katex, this.disableSanitizer);
+    this.postProcessMarkdown.next();
+  }
 }

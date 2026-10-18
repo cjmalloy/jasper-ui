@@ -16,7 +16,6 @@ import { bootstrapApplication, BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { Settings } from 'luxon';
 import { MobxAngularModule } from 'mobx-angular';
-import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { retry, switchMap, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -93,7 +92,6 @@ bootstrapApplication(AppComponent, {
       AppRoutingModule,
       ReactiveFormsModule,
       MobxAngularModule,
-      MarkdownModule.forRoot(),
       MonacoEditorModule.forRoot(),
       DragDropModule,
       OverlayModule,

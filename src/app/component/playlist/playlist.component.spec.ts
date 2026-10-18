@@ -4,7 +4,6 @@ import { HttpTestingController, provideHttpClientTesting, TestRequest } from '@a
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { MarkdownModule } from 'ngx-markdown';
 
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -19,7 +18,6 @@ describe('PlaylistComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         forwardRef(() => PlaylistComponent),
-        MarkdownModule.forRoot(),
       ],
       providers: [
         provideHttpClient(withXhr(), withInterceptorsFromDi()),

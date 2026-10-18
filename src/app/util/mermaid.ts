@@ -1,20 +1,24 @@
-import { mountAsync } from 'pele/lazy';
+import { Mounted, mountAsync } from 'pele/lazy';
 
-/**
- * Adapter exposing the subset of the mermaid global API used by ngx-markdown,
- * rendered with pele instead.
- */
-export const peleMermaid = {
-  initialize() { },
-  run({ nodes }: { nodes: ArrayLike<HTMLElement> }) {
-    for (const el of Array.from(nodes)) {
-      const text = el.textContent || '';
-      el.textContent = '';
-      mountAsync(el, text).catch(err => console.error(err));
-    }
-  },
+export const pele = {
+  mountAsync,
 };
 
-export function installMermaid() {
-  (globalThis as any).mermaid ||= peleMermaid;
+/**
+ * Render a mermaid diagram into an element with pele.
+ * @return cleanup function
+ */
+export function mountMermaid(el: HTMLElement, text: string): () => void {
+  let destroyed = false;
+  let mounted: Mounted | undefined;
+  pele.mountAsync(el, text)
+    .then(m => {
+      mounted = m;
+      if (destroyed) m.destroy();
+    })
+    .catch(err => console.error(err));
+  return () => {
+    destroyed = true;
+    mounted?.destroy();
+  };
 }
