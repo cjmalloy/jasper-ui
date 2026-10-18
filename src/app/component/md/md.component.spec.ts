@@ -362,7 +362,14 @@ describe('MdComponent', () => {
     });
 
     describe('in place updates', () => {
-      const strip = (html: string) => html.replace(/<!--[\s\S]*?-->/g, '');
+      const strip = (el: HTMLElement) => {
+        const clone = el.cloneNode(true) as HTMLElement;
+        const walker = document.createTreeWalker(clone, NodeFilter.SHOW_COMMENT);
+        const comments: Node[] = [];
+        while (walker.nextNode()) comments.push(walker.currentNode);
+        comments.forEach(c => c.parentNode!.removeChild(c));
+        return clone.innerHTML;
+      };
 
       it('should keep an embed when typing on the line after it', async () => {
         const create = vi.spyOn(component.vc, 'createComponent');
@@ -409,7 +416,7 @@ describe('MdComponent', () => {
           full.componentInstance.text = text;
           full.detectChanges();
           fixture.detectChanges();
-          expect(strip(host().innerHTML)).toBe(strip(full.componentInstance.md.nativeElement.innerHTML));
+          expect(strip(host())).toBe(strip(full.componentInstance.md.nativeElement));
         }
       });
 
