@@ -339,6 +339,34 @@ describe('MdComponent', () => {
       expect(positions()).toEqual(['0', ...shifted]);
     });
 
+    it('should only re-render blocks with iframes when reloading iframes', async () => {
+      await type('One\n\nTwo\n\nThree');
+      const [one, two, three] = children();
+      two.appendChild(document.createElement('iframe'));
+      const ready = firstValueFrom(component.postProcessMarkdown);
+
+      component.reloadIframes();
+      await ready;
+
+      const after = children();
+      expect(after[0]).toBe(one);
+      expect(after[1]).not.toBe(two);
+      expect(after[1].textContent).toBe('Two');
+      expect(after[1].querySelector('iframe')).toBeNull();
+      expect(after[2]).toBe(three);
+    });
+
+    it('should not re-render when reloading without iframes', async () => {
+      await type('One\n\nTwo');
+      const before = children();
+      const render = vi.spyOn(TestBed.inject(EmbedService), 'renderBlock');
+
+      component.reloadIframes();
+
+      expect(render).not.toHaveBeenCalled();
+      expect(children()).toEqual(before);
+    });
+
     it('should destroy views and subscriptions of removed blocks', async () => {
       const http = TestBed.inject(HttpTestingController);
       await type('Keep\n\n[link](https://example.com)\n\n![=](https://example.com/ref)');

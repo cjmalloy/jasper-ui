@@ -533,6 +533,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         scrollStrategy: this.overlay.scrollStrategies.block(),
       });
       this.overlayRef.attach(new DomPortal(this.el));
+      if (this.preview) this.md?.reloadIframes();
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === 'Escape' && this.toggleFullscreen(false));
       this.editor.nativeElement.scrollIntoView({ block: 'end' });
@@ -547,6 +548,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.overlayRef?.detach();
       this.overlayRef?.dispose();
       delete this.overlayRef;
+      if (this.preview) this.md?.reloadIframes();
       document.body.style.height = '';
       this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
       document.body.classList.remove('fullscreen');

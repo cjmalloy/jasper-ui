@@ -119,6 +119,32 @@ export class MdComponent implements DoCheck, OnDestroy {
     this.destroy();
   }
 
+  /**
+   * Re-render anything containing an iframe. Browsers reload iframes from their
+   * src attribute when they are moved in the DOM, which blanks embeds.
+   * Call after moving this component, for example into a fullscreen overlay.
+   */
+  reloadIframes() {
+    if (!this.progressive || !this.blocks.length) {
+      if (!this.md.nativeElement.querySelector('iframe')) return;
+      this.cancel();
+      this.render();
+      return;
+    }
+    let stale = false;
+    this.blocks.forEach((b, i) => {
+      const end = this.blocks[i + 1]?.marker || null;
+      for (let n = b.marker.nextSibling; n && n !== end; n = n.nextSibling) {
+        if (n instanceof Element && (n.tagName === 'IFRAME' || n.querySelector('iframe'))) {
+          b.key = '';
+          stale = true;
+          break;
+        }
+      }
+    });
+    if (stale) this.reconcile();
+  }
+
   private destroy() {
     this.cleanup?.();
     delete this.cleanup;

@@ -208,4 +208,21 @@ describe('EditorComponent', () => {
 
     expect(md.scrollTop).toBe(800 - 100);
   });
+
+  it('should reload preview iframes after moving into and out of fullscreen', () => {
+    component.preview = true;
+    component.control.setValue('One');
+    fixture.detectChanges();
+    const md = component.md!;
+    const reload = vi.spyOn(md, 'reloadIframes');
+    component.editor!.nativeElement.scrollIntoView = vi.fn();
+    localStorage.setItem('showFullscreenPreview', 'true');
+    localStorage.setItem('showPreview', 'true');
+
+    component.toggleFullscreen(true);
+    expect(reload).toHaveBeenCalledTimes(1);
+
+    component.toggleFullscreen(false);
+    expect(reload).toHaveBeenCalledTimes(2);
+  });
 });
