@@ -8079,6 +8079,22 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Pinned copies of a Ref take precedence over newer unpinned copies from other origins.</source>
         <target>ピン留めされたRefのコピーは、他のオリジンにある新しいピン留めされていないコピーよりも優先されます。</target>
       </trans-unit>
+      <trans-unit id="6597558255631425774" datatype="html">
+        <source>render</source>
+        <target>レンダリング</target>
+      </trans-unit>
+      <trans-unit id="6828004417956801185" datatype="html">
+        <source>Render diagram</source>
+        <target>図をレンダリング</target>
+      </trans-unit>
+      <trans-unit id="4323470180912194028" datatype="html">
+        <source>Copy</source>
+        <target>コピー</target>
+      </trans-unit>
+      <trans-unit id="2115592966120408375" datatype="html">
+        <source>Copied</source>
+        <target>コピーしました</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
