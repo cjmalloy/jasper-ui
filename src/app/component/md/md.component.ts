@@ -1,11 +1,13 @@
 import { Component, ElementRef, Input, Output, ChangeDetectionStrategy } from '@angular/core';
-import { MermaidConfig } from 'mermaid';
-import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
+import { MarkdownComponent } from 'ngx-markdown';
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { MdPostDirective } from '../../directive/md-post.directive';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
+import { installMermaid } from '../../util/mermaid';
+
+installMermaid();
 
 @Component({
   selector: 'app-md',
@@ -38,9 +40,6 @@ export class MdComponent {
       {left: "$$", right: "$$", display: true},
       {left: "$", right: "$", display: false},
     ],
-  };
-  mermaidOptions: MermaidConfig & MermaidAPI.MermaidConfig = {
-    theme: this.store.darkTheme ? 'dark' : 'default',
   };
 
   private _text = '';
