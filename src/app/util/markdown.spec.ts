@@ -1,5 +1,14 @@
 /// <reference types="vitest/globals" />
-import { bestSrcset, copyText, mediaToPlaceholders, parseSrcset, sanitizeMarkdown, trimIndentation } from './markdown';
+import {
+  bestSrcset,
+  copyText,
+  matchBlocks,
+  mdBlocks,
+  mediaToPlaceholders,
+  parseSrcset,
+  sanitizeMarkdown,
+  trimIndentation
+} from './markdown';
 
 describe('markdown util', () => {
   describe('parseSrcset', () => {
@@ -108,6 +117,38 @@ describe('markdown util', () => {
       (document as any).execCommand ||= () => false;
       vi.spyOn(document, 'execCommand').mockReturnValue(false);
       await expect(copyText(document, 'hello')).rejects.toThrow();
+    });
+  });
+
+  describe('mdBlocks', () => {
+    it('skips space tokens and groups unbalanced html', () => {
+      const blocks = mdBlocks([
+        { type: 'html', raw: '<details>', sourceMap: 0 },
+        { type: 'space', raw: '\n\n', sourceMap: 9 },
+        { type: 'paragraph', raw: 'a <br>', sourceMap: 11 },
+        { type: 'html', raw: '</details>', sourceMap: 17 },
+        { type: 'space', raw: '\n\n', sourceMap: 27 },
+        { type: 'paragraph', raw: 'b', sourceMap: 29 },
+      ]);
+      expect(blocks.map(b => [b.key, b.offset])).toEqual([
+        ['<details>\n\na <br></details>', 0],
+        ['b', 29],
+      ]);
+    });
+  });
+
+  describe('matchBlocks', () => {
+    const keys = (...k: string[]) => k.map(key => ({ key }));
+
+    it('keeps common prefix and suffix', () => {
+      const old = keys('a', 'b', 'c');
+      expect(matchBlocks(old, keys('a', 'x', 'c'))).toEqual([old[0], undefined, old[2]]);
+    });
+
+    it('matches duplicate keys in order without moving blocks', () => {
+      const old = keys('a', 'b', 'a', 'c');
+      expect(matchBlocks(old, keys('x', 'a', 'a', 'y'))).toEqual([undefined, old[0], old[2], undefined]);
+      expect(matchBlocks(old, keys('c', 'b'))).toEqual([old[3], undefined]);
     });
   });
 });

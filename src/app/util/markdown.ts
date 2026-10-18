@@ -1,4 +1,4 @@
-import { ViewContainerRef } from '@angular/core';
+import { ComponentRef, ViewContainerRef } from '@angular/core';
 import DOMPurify from 'dompurify';
 import { escape } from 'lodash-es';
 import { mountMermaid } from './mermaid';
@@ -343,6 +343,157 @@ export const clipboardHydrator: MdHydrator = (host, ctx) => {
   });
   return () => cleanup.forEach(fn => fn());
 };
+
+/**
+ * Assign absolute source offsets to a token tree as `token.sourceMap`.
+ */
+export function assignSourceMap<T extends any[]>(tokens: T): T {
+  let pos = 0;
+  const walk = (ts: any[]) => {
+    for (const t of ts) {
+      t.sourceMap = pos;
+      if (t.tokens?.length) walk(t.tokens);
+      else if (t.items?.length) walk(t.items);
+      else if (t.rows?.length) walk(t.rows);
+      pos = t.sourceMap + (t.raw?.length ?? 0);
+    }
+  };
+  walk(tokens);
+  return tokens;
+}
+
+/**
+ * A top-level markdown block that is rendered and hydrated on its own.
+ */
+export interface MdBlock {
+  key: string;
+  offset: number;
+  tokens: any[];
+}
+
+const VOID_TAGS = /^(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/i;
+
+function htmlDepth(html: string) {
+  let depth = 0;
+  for (const m of html.matchAll(/<(\/?)([a-zA-Z][\w-]*)[^>]*?(\/?)>/g)) {
+    if (m[3] || VOID_TAGS.test(m[2])) continue;
+    depth += m[1] ? -1 : 1;
+  }
+  return depth;
+}
+
+/**
+ * Group top-level tokens into independently renderable blocks.
+ * Unbalanced HTML blocks are grouped with the following tokens until closed,
+ * since the HTML parser would otherwise nest them differently.
+ */
+export function mdBlocks(tokens: any[]): MdBlock[] {
+  const result: MdBlock[] = [];
+  let current: MdBlock | undefined;
+  let depth = 0;
+  for (const t of tokens) {
+    if (t.type === 'space' && depth <= 0) continue;
+    if (!current || depth <= 0) {
+      depth = 0;
+      current = { key: '', offset: t.sourceMap ?? 0, tokens: [] };
+      result.push(current);
+    }
+    current.tokens.push(t);
+    current.key += t.raw ?? '';
+    if (t.type === 'html') depth += htmlDepth(t.raw || '');
+  }
+  return result;
+}
+
+/**
+ * Match old blocks to new blocks by key, keeping their order.
+ * @return for each new block, the matching old block or undefined if it must be rendered
+ */
+export function matchBlocks<T extends { key: string }>(old: T[], next: { key: string }[]): (T | undefined)[] {
+  const result: (T | undefined)[] = new Array(next.length).fill(undefined);
+  let start = 0;
+  while (start < old.length && start < next.length && old[start].key === next[start].key) {
+    result[start] = old[start];
+    start++;
+  }
+  let oldEnd = old.length;
+  let nextEnd = next.length;
+  while (oldEnd > start && nextEnd > start && old[oldEnd - 1].key === next[nextEnd - 1].key) {
+    result[--nextEnd] = old[--oldEnd];
+  }
+  const lookup = new Map<string, number[]>();
+  for (let i = start; i < oldEnd; i++) {
+    const list = lookup.get(old[i].key);
+    if (list) list.push(i);
+    else lookup.set(old[i].key, [i]);
+  }
+  let last = start - 1;
+  for (let i = start; i < nextEnd; i++) {
+    const list = lookup.get(next[i].key);
+    while (list?.length && list[0] <= last) list.shift();
+    if (list?.length) {
+      last = list.shift()!;
+      result[i] = old[last];
+    }
+  }
+  return result;
+}
+
+/**
+ * Shift the source map of the host's own elements between two sibling nodes.
+ * Elements in nested markdown hosts are left alone.
+ * @param host markdown host (.md)
+ * @param from first node of the range
+ * @param to node after the range, or null for the end of the host
+ * @param delta offset to add to aria-posinset
+ */
+export function shiftSourceMap(host: HTMLElement, from: Node | null, to: Node | null, delta: number) {
+  if (!delta) return;
+  for (let n = from; n && n !== to; n = n.nextSibling) {
+    if (n.nodeType !== Node.ELEMENT_NODE) continue;
+    const el = n as Element;
+    for (const t of [el, ...Array.from(el.querySelectorAll('[aria-posinset]'))]) {
+      if (!t.hasAttribute('aria-posinset')) continue;
+      if (t.parentElement?.closest('.md') !== host) continue;
+      const pos = parseInt(t.getAttribute('aria-posinset')!, 10);
+      if (!isNaN(pos)) t.setAttribute('aria-posinset', '' + (pos + delta));
+    }
+  }
+}
+
+/**
+ * Wrap a ViewContainerRef to track the components created through it.
+ * @return the wrapped container and a function to destroy only the tracked views
+ */
+export function trackViews(vc: ViewContainerRef): { vc: ViewContainerRef, destroy: () => void } {
+  const refs: ComponentRef<any>[] = [];
+  const tracked = new Proxy(vc, {
+    get(target, prop) {
+      if (prop === 'createComponent') {
+        return (...args: any[]) => {
+          const c = (target.createComponent as any)(...args);
+          refs.push(c);
+          return c;
+        };
+      }
+      const value = Reflect.get(target, prop, target);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+  return {
+    vc: tracked,
+    destroy() {
+      for (const c of refs.splice(0)) {
+        const index = vc.indexOf(c.hostView);
+        if (index >= 0) {
+          vc.remove(index);
+        } else {
+          c.destroy();
+        }
+      }
+    },
+  };
+}
 
 /**
  * Remove common leading indentation.

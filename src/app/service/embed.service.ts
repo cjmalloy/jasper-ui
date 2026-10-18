@@ -15,9 +15,11 @@ import { delay } from '../util/async';
 import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc, setIframeSrc } from '../util/embed';
 import { getArray, parseBookmarkParams } from '../util/http';
 import {
+  assignSourceMap,
   attachMarkdown,
   clipboardHydrator,
   fixUserTags,
+  MdBlock,
   MdContext,
   MdHydrator,
   mediaToPlaceholders,
@@ -104,18 +106,7 @@ export class EmbedService {
       pedantic: false,
       hooks: {
         processAllTokens(tokens: Token[] | TokensList) {
-          let pos = 0;
-          const walk = (ts: any[]) => {
-            for (const t of ts) {
-              t.sourceMap = pos;
-              if (t.tokens?.length) walk(t.tokens);
-              else if (t.items?.length) walk(t.items);
-              else if (t.rows?.length) walk(t.rows);
-              pos = t.sourceMap + (t.raw?.length ?? 0);
-            }
-          };
-          walk(tokens);
-          return tokens;
+          return assignSourceMap(tokens);
         },
       },
       renderer: {
@@ -194,7 +185,53 @@ export class EmbedService {
    * @param disableSanitizer skip DOMPurify
    */
   renderDocument(markdown: string, origin = '', katex = false, disableSanitizer = false): Document {
-    const doc = new DOMParser().parseFromString(this.parse(markdown, katex), 'text/html');
+    return this.toDocument(this.parse(markdown, katex), origin, disableSanitizer);
+  }
+
+  /**
+   * Lex markdown into top-level tokens with absolute source maps.
+   */
+  lex(markdown: string, katex = false): TokensList {
+    katexEnabled = katex;
+    try {
+      return assignSourceMap(marked.lexer(trimIndentation(markdown)));
+    } finally {
+      katexEnabled = false;
+    }
+  }
+
+  /**
+   * Render a single block of tokens into an inert document.
+   * @param block block from {@link mdBlocks}
+   * @param links reference link definitions from the full token list
+   * @param origin origin to append to user links without existing origins
+   * @param disableSanitizer skip DOMPurify
+   */
+  renderBlockDocument(block: MdBlock, links: TokensList['links'], origin = '', disableSanitizer = false): Document {
+    let html: string;
+    try {
+      html = marked.parser(Object.assign([...block.tokens], { links }) as TokensList);
+    } catch (e: any) {
+      console.error(e);
+      html = `<p class="error">${escape(e.message)}</p>`;
+    }
+    return this.toDocument(html, origin, disableSanitizer);
+  }
+
+  /**
+   * Render a single block and hydrate it before it is attached.
+   * @return the hydrated nodes to attach and a cleanup function
+   */
+  renderBlock(block: MdBlock, links: TokensList['links'], ctx: MdContext, disableSanitizer = false): { nodes: Node[], cleanup: () => void } {
+    const doc = this.renderBlockDocument(block, links, ctx.origin, disableSanitizer);
+    const root = document.createElement('div');
+    root.append(...Array.from(document.adoptNode(doc.body).childNodes));
+    const cleanup = this.hydrate(root, ctx);
+    return { nodes: Array.from(root.childNodes), cleanup };
+  }
+
+  private toDocument(html: string, origin = '', disableSanitizer = false): Document {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
     if (!disableSanitizer) sanitizeMarkdown(doc);
     mediaToPlaceholders(doc);
     fixUserTags(doc, origin, this.store.origins.originMap.get(origin || ''));

@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -261,5 +261,159 @@ describe('MdComponent', () => {
     // Verify that safe markdown is still rendered
     expect(element.textContent).toContain('Heading');
     expect(element.textContent).toContain('Safe paragraph');
+  });
+  describe('progressive', () => {
+    const host = () => fixture.nativeElement.querySelector('.md') as HTMLElement;
+    const children = () => Array.from(host().children) as HTMLElement[];
+    async function type(text: string) {
+      const ready = firstValueFrom(component.postProcessMarkdown);
+      component.text = text;
+      fixture.detectChanges();
+      await ready;
+    }
+
+    beforeEach(() => {
+      component.progressive = true;
+    });
+
+    it('should keep unchanged blocks when editing a paragraph', async () => {
+      const mount = vi.spyOn(pele, 'mountAsync').mockReturnValue(new Promise(() => {}));
+      const create = vi.spyOn(component.vc, 'createComponent');
+      component.mermaid = true;
+      const rest = '\n\n```mermaid\ngraph TB\n  A --> B\n```\n\n<img src="https://example.com/a.png">';
+      await type('Para one' + rest);
+      expect(mount).toHaveBeenCalledTimes(1);
+      expect(create).toHaveBeenCalledTimes(1);
+      const [para, mermaid, image] = children();
+      const diagram = host().querySelector('.mermaid');
+      expect(para.textContent).toBe('Para one');
+      expect(mermaid.classList).toContain('md-mermaid');
+
+      await type('Para two' + rest);
+
+      expect(mount).toHaveBeenCalledTimes(1);
+      expect(create).toHaveBeenCalledTimes(1);
+      const after = children();
+      expect(after[0]).not.toBe(para);
+      expect(after[0].textContent).toBe('Para two');
+      expect(after[1]).toBe(mermaid);
+      expect(after[2]).toBe(image);
+      expect(host().querySelector('.mermaid')).toBe(diagram);
+    });
+
+    it('should coalesce text changes until the next frame', async () => {
+      await type('One\n\nTwo');
+      const render = vi.spyOn(TestBed.inject(EmbedService), 'renderBlock');
+      const ready = firstValueFrom(component.postProcessMarkdown);
+      component.text = 'One\n\nTwo!';
+      fixture.detectChanges();
+      component.text = 'One\n\nTwo!!';
+      fixture.detectChanges();
+      expect(render).not.toHaveBeenCalled();
+      await ready;
+      expect(render).toHaveBeenCalledTimes(1);
+      expect(host().textContent).toContain('Two!!');
+    });
+
+    it('should shift the source map of kept blocks', async () => {
+      const rest = 'One\n\n| a |\n|---|\n| b |\n\n```mermaid\ngraph TB\n```';
+      await type(rest);
+      const table = host().querySelector('table')!;
+      const mermaid = host().querySelector('.md-mermaid')!;
+      const positions = () => Array.from(host().querySelectorAll('[aria-posinset]'))
+        .map(el => el.getAttribute('aria-posinset'));
+      const before = positions();
+      expect(table.getAttribute('aria-posinset')).toBe('5');
+      expect(mermaid.getAttribute('aria-posinset')).toBe('24');
+
+      await type('Zero\n\n' + rest);
+
+      expect(host().querySelector('table')).toBe(table);
+      expect(host().querySelector('.md-mermaid')).toBe(mermaid);
+      expect(table.getAttribute('aria-posinset')).toBe('11');
+      expect(mermaid.getAttribute('aria-posinset')).toBe('30');
+      const shifted = before.map(p => isNaN(+p!) ? p : '' + (+p! + 6));
+      expect(positions()).toEqual(['0', ...shifted]);
+      component.progressive = false;
+      fixture.detectChanges();
+      expect(positions()).toEqual(['0', ...shifted]);
+    });
+
+    it('should destroy views and subscriptions of removed blocks', async () => {
+      const http = TestBed.inject(HttpTestingController);
+      await type('Keep\n\n[link](https://example.com)\n\n![=](https://example.com/ref)');
+      expect(component.vc.length).toBe(1);
+      const [req] = http.match(r => r.url.endsWith('/ref/page'));
+      expect(req.request.params.get('url')).toBe('https://example.com/ref');
+      const keep = children()[0];
+
+      await type('Keep');
+
+      expect(children()[0]).toBe(keep);
+      expect(children().length).toBe(1);
+      expect(component.vc.length).toBe(0);
+      expect(req.cancelled).toBe(true);
+    });
+
+    it('should fully re-render when reference links change', async () => {
+      await type('Keep\n\nMore\n\nAnd more\n\n[a][x]\n\n[x]: https://a.com');
+      const keep = children()[0];
+
+      await type('Keep\n\nMore\n\nAnd more\n\n[a][x]\n\n[x]: https://b.com');
+
+      expect(children()[0]).not.toBe(keep);
+      expect(children()[0].textContent).toBe('Keep');
+    });
+
+    it('should fully re-render when other inputs change', () => {
+      component.text = 'Keep\n\n<span onclick="x">a</span>';
+      fixture.detectChanges();
+      let keep = children()[0];
+
+      component.plugins = ['plugin/latex'];
+      fixture.detectChanges();
+      expect(children()[0]).not.toBe(keep);
+      keep = children()[0];
+
+      component.origin = '@other';
+      fixture.detectChanges();
+      expect(children()[0]).not.toBe(keep);
+      keep = children()[0];
+
+      expect(host().querySelector('span')!.hasAttribute('onclick')).toBe(false);
+      component.disableSanitizer = true;
+      fixture.detectChanges();
+      expect(children()[0]).not.toBe(keep);
+      expect(host().querySelector('span')!.hasAttribute('onclick')).toBe(true);
+    });
+
+    it('should keep raw HTML blocks together', async () => {
+      await type('<details>\n\nhidden\n\n</details>\n\nafter');
+      expect(host().querySelector('details p')?.textContent).toBe('hidden');
+      expect(children().at(-1)!.textContent).toBe('after');
+    });
+
+    it('should never attach images to the live DOM before hydration', () => {
+      const embeds = TestBed.inject(EmbedService);
+      const imageSpy = vi.spyOn(window, 'Image');
+      const srcSpy = vi.spyOn(HTMLImageElement.prototype, 'src', 'set');
+      let images = 0;
+      let placeholders = 0;
+      vi.spyOn(embeds, 'hydrate').mockImplementation(root => {
+        expect(root.isConnected).toBe(false);
+        images += root.querySelectorAll('img, picture, source').length;
+        placeholders += root.querySelectorAll('.md-embed').length;
+        return () => {};
+      });
+      component.disableSanitizer = true;
+      component.text = '![a](https://example.com/a.png)\n\n<img src="https://example.com/b.png" onerror="alert(1)">\n\n<picture><source srcset="https://example.com/c.png"><img></picture>';
+      fixture.detectChanges();
+
+      expect(images).toBe(0);
+      expect(placeholders).toBe(2);
+      expect(host().querySelectorAll('img, picture, source').length).toBe(0);
+      expect(imageSpy).not.toHaveBeenCalled();
+      expect(srcSpy).not.toHaveBeenCalled();
+    });
   });
 });

@@ -193,6 +193,7 @@ describe('EditorComponent', () => {
     component.control.setValue('# One\n\nTwo\n\nThree');
     fixture.detectChanges();
     component.fullscreen = true;
+    expect(component.md?.progressive).toBe(true);
 
     const md = fixture.nativeElement.querySelector('app-md') as HTMLElement;
     const three = Array.from(md.querySelectorAll<HTMLElement>('[aria-posinset]'))
