@@ -203,6 +203,21 @@ export function mediaToPlaceholders(doc: Document) {
 }
 
 /**
+ * Wrap every table in a horizontally scrollable <div class="md-table"> container.
+ * The source map stays on the table.
+ */
+export function wrapTables(doc: Document) {
+  doc.body.querySelectorAll('table').forEach(t => {
+    const parent = t.parentElement;
+    if (parent?.classList.contains('md-table') && parent.childElementCount === 1) return;
+    const div = doc.createElement('div');
+    div.className = 'md-table';
+    t.replaceWith(div);
+    div.append(t);
+  });
+}
+
+/**
  * Add origins to user tag links.
  * @param doc inert parsed markdown document
  * @param origin origin to append to user links without existing origins
@@ -534,29 +549,6 @@ export function trackViews(vc: ViewContainerRef): { vc: ViewContainerRef, destro
       }
     },
   };
-}
-
-/**
- * Remove common leading indentation.
- */
-export function trimIndentation(markdown?: string) {
-  if (!markdown) return '';
-  let indentStart: number | undefined;
-  return markdown
-    .split('\n')
-    .map(line => {
-      let lineIndentStart = indentStart;
-      if (line.length > 0) {
-        lineIndentStart = lineIndentStart === undefined
-          ? line.search(/\S|$/)
-          : Math.min(line.search(/\S|$/), lineIndentStart);
-      }
-      if (indentStart === undefined) {
-        indentStart = lineIndentStart;
-      }
-      return lineIndentStart ? line.substring(lineIndentStart) : line;
-    })
-    .join('\n');
 }
 
 /**

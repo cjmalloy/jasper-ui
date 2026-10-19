@@ -11,7 +11,7 @@ import {
   mediaToPlaceholders,
   parseSrcset,
   sanitizeMarkdown,
-  trimIndentation
+  wrapTables
 } from './markdown';
 
 describe('markdown util', () => {
@@ -57,10 +57,29 @@ describe('markdown util', () => {
     });
   });
 
-  describe('trimIndentation', () => {
-    it('removes common indentation', () => {
-      expect(trimIndentation('  a\n    b')).toBe('a\n  b');
-      expect(trimIndentation('a\n  b')).toBe('a\n  b');
+  describe('wrapTables', () => {
+    it('wraps tables once and keeps the source map on the table', () => {
+      const doc = new DOMParser().parseFromString(
+        '<p>a</p><table aria-posinset="3"><tr><td>x</td></tr></table>', 'text/html');
+      wrapTables(doc);
+      wrapTables(doc);
+      const wrappers = doc.body.querySelectorAll('.md-table');
+      expect(wrappers.length).toBe(1);
+      expect(wrappers[0].tagName).toBe('DIV');
+      expect(wrappers[0].hasAttribute('aria-posinset')).toBe(false);
+      const table = wrappers[0].firstElementChild!;
+      expect(wrappers[0].childElementCount).toBe(1);
+      expect(table.tagName).toBe('TABLE');
+      expect(table.getAttribute('aria-posinset')).toBe('3');
+      expect(doc.body.firstElementChild!.tagName).toBe('P');
+    });
+
+    it('wraps tables in a wrapper with other content', () => {
+      const doc = new DOMParser().parseFromString(
+        '<div class="md-table"><p>x</p><table><tr><td>x</td></tr></table></div>', 'text/html');
+      wrapTables(doc);
+      expect(doc.body.querySelector('table')!.parentElement!.childElementCount).toBe(1);
+      expect(doc.body.querySelectorAll('.md-table').length).toBe(2);
     });
   });
 

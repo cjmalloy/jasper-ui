@@ -107,6 +107,29 @@ describe('MdComponent', () => {
     expect(fixture.nativeElement.querySelector('p').getAttribute('aria-posinset')).toBe('9');
   });
 
+  it('should not trim leading indentation', () => {
+    const text = '    code\n\ntext';
+    component.text = text;
+    fixture.detectChanges();
+
+    const code = fixture.nativeElement.querySelector('pre > code');
+    expect(code).toBeTruthy();
+    expect(code.textContent).toContain('code');
+    const p = fixture.nativeElement.querySelector('p');
+    expect(p.textContent).toBe('text');
+    expect(p.getAttribute('aria-posinset')).toBe('' + text.indexOf('text'));
+  });
+
+  it('should wrap tables in a scrollable container', () => {
+    component.text = 'One\n\n| a |\n|---|\n| b |';
+    fixture.detectChanges();
+
+    const table = fixture.nativeElement.querySelector('.md-table > table');
+    expect(table).toBeTruthy();
+    expect(table.getAttribute('aria-posinset')).toBe('5');
+    expect(table.parentElement.hasAttribute('aria-posinset')).toBe(false);
+  });
+
   it('should render mermaid diagrams', () => {
     const mount = vi.spyOn(pele, 'mountAsync').mockReturnValue(new Promise(() => {}));
     component.mermaid = true;

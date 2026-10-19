@@ -31,7 +31,7 @@ import {
   removeToggleLabels,
   sanitizeMarkdown,
   trackViews,
-  trimIndentation
+  wrapTables
 } from '../util/markdown';
 import { getArgs, getFilters, UrlFilter } from '../util/query';
 import { isQuery, queryPrefix, topAnds } from '../util/tag';
@@ -180,7 +180,7 @@ export class EmbedService {
   parse(markdown: string, katex = false): string {
     katexEnabled = katex;
     try {
-      return marked.parse(trimIndentation(markdown), { async: false });
+      return marked.parse(markdown || '', { async: false });
     } catch (e: any) {
       console.error(e);
       return `<p class="error">${escape(e.message)}</p>`;
@@ -207,7 +207,7 @@ export class EmbedService {
   lex(markdown: string, katex = false): TokensList {
     katexEnabled = katex;
     try {
-      return assignSourceMap(marked.lexer(trimIndentation(markdown)));
+      return assignSourceMap(marked.lexer(markdown || ''));
     } finally {
       katexEnabled = false;
     }
@@ -263,6 +263,7 @@ export class EmbedService {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     if (!disableSanitizer) sanitizeMarkdown(doc);
     mediaToPlaceholders(doc);
+    wrapTables(doc);
     removeToggleLabels(doc);
     fixUserTags(doc, origin, this.store.origins.originMap.get(origin || ''));
     return doc;
