@@ -67,17 +67,24 @@ export class EditorService {
         SECTION: paragraphConverter,
       },
     });
-    const blockTags = new Set(['ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'BODY', 'BR', 'DD', 'DETAILS', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FOOTER', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'OL', 'P', 'PRE', 'SECTION', 'SUMMARY', 'TABLE', 'TBODY', 'TD', 'TFOOT', 'TH', 'THEAD', 'TR', 'UL']);
+    const paragraphTags = new Set(['ADDRESS', 'ARTICLE', 'ASIDE', 'DIV', 'FIELDSET', 'FOOTER', 'HEADER', 'MAIN', 'NAV', 'P', 'SECTION']);
+    const blockTags = new Set(['BLOCKQUOTE', 'BR', 'DD', 'DETAILS', 'DT', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'LI', 'PRE']);
     const emphasisTags = new Set(['B', 'STRONG', 'CITE', 'DFN', 'EM', 'I', 'U', 'VAR']);
-    const delimiterTags = new Set(['AUDIO', 'CODE', 'IMG', 'KBD', 'Q', 'SAMP', 'SUP', 'VIDEO']);
+    const delimiterTags = new Set(['CODE', 'KBD', 'Q', 'SAMP', 'SUP']);
+    const emitsBlock = (el: Element, tag: string) =>
+      blockTags.has(tag) || paragraphTags.has(tag) && !el.parentElement?.closest('a[href]:not([href=""])');
+    const mediaSource = (el: Element, tag: string) => tag === 'IMG'
+      ? el.getAttribute('src')
+      : el.querySelector('source')?.getAttribute('src') || el.getAttribute('src');
     const firstMarkdownChar = (node: Node, skip: Set<string>): string => {
       if (node.nodeType === Node.TEXT_NODE) return (node.textContent || '').match(/^./su)?.[0] || '';
       if (node.nodeType !== Node.ELEMENT_NODE) return '';
       const el = node as HTMLElement;
       const tag = el.tagName.toUpperCase();
       if (skip.has(tag) || el.style?.display === 'none' || el.style?.visibility === 'hidden') return '';
-      if (blockTags.has(tag)) return '\n';
-      if (emphasisTags.has(tag) ? !!el.textContent?.trim() : delimiterTags.has(tag) || tag === 'A' && el.hasAttribute('href')) return '*';
+      if (emitsBlock(el, tag)) return '\n';
+      if (tag === 'IMG' || tag === 'AUDIO' || tag === 'VIDEO') return mediaSource(el, tag) ? '!' : '';
+      if (emphasisTags.has(tag) ? !!el.textContent?.trim() : delimiterTags.has(tag) || tag === 'A' && !!el.getAttribute('href')) return '*';
       for (const child of Array.from(el.childNodes)) {
         const c = firstMarkdownChar(child, skip);
         if (c) return c;
@@ -86,7 +93,7 @@ export class EditorService {
     };
     const nextMarkdownChar = (node: Node, skip: Set<string>): string => {
       for (let n: Node | null = node; n; n = n.parentNode) {
-        if (n !== node && (n.nodeType !== Node.ELEMENT_NODE || blockTags.has((n as Element).tagName.toUpperCase()))) return '';
+        if (n !== node && (n.nodeType !== Node.ELEMENT_NODE || emitsBlock(n as Element, (n as Element).tagName.toUpperCase()))) return '';
         for (let s = n.nextSibling; s; s = s.nextSibling) {
           const c = firstMarkdownChar(s, skip);
           if (c) return c;

@@ -94,6 +94,14 @@ static float clamp(float value)
       ['<p><em>foo</em><span></span>bar</p>', '*foo*bar'],
       ['<p><em>foo</em><span><b></b>bar</span></p>', '*foo*bar'],
       ['<p><em>foo</em></p><p>bar</p>', '_foo_\n\nbar'],
+      ['<div><em>foo</em><figure>bar</figure></div>', '*foo*bar'],
+      ['<table><tr><td><em>foo</em></td><td>bar</td></tr></table>', '*foo*bar'],
+      ['<p><em>foo</em><a href="">bar</a></p>', '*foo*bar'],
+      ['<p><em>foo</em><img>bar</p>', '*foo*bar'],
+      ['<p><em>foo</em><audio>x</audio>bar</p>', '*foo*bar'],
+      ['<p><em>foo</em><video></video>bar</p>', '*foo*bar'],
+      ['<p><em>foo</em><img src="i.png">bar</p>', '_foo_![](i.png)bar'],
+      ['<a href="http://x"><em>foo</em><div>bar</div></a>', '[*foo*bar](http://x)'],
     ])('should handle whitespace around emphasis for %s', (html, markdown) => {
       expect(europa.convert(html)).toBe(markdown);
     });
