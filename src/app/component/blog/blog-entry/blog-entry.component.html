@@ -130,8 +130,8 @@
     </span>
   </form>
 } @else if (viewSource) {
-  <form [formGroup]="editForm">
-    <app-ref-form #refForm [group]="editForm"></app-ref-form>
+  <form class="form" [formGroup]="editForm">
+    <app-ref-form #refForm [group]="editForm" [origin]="ref.origin"></app-ref-form>
   </form>
 } @else {
   <app-viewer class="blog-body" [ref]="ref"></app-viewer>
