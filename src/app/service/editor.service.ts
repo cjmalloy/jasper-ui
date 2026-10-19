@@ -67,6 +67,33 @@ export class EditorService {
         SECTION: paragraphConverter,
       },
     });
+    const blockTags = new Set(['ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'BODY', 'BR', 'DD', 'DETAILS', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FOOTER', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'OL', 'P', 'PRE', 'SECTION', 'SUMMARY', 'TABLE', 'TBODY', 'TD', 'TFOOT', 'TH', 'THEAD', 'TR', 'UL']);
+    const emphasisTags = new Set(['B', 'STRONG', 'CITE', 'DFN', 'EM', 'I', 'U', 'VAR']);
+    const delimiterTags = new Set(['AUDIO', 'CODE', 'IMG', 'KBD', 'Q', 'SAMP', 'SUP', 'VIDEO']);
+    const firstMarkdownChar = (node: Node, skip: Set<string>): string => {
+      if (node.nodeType === Node.TEXT_NODE) return (node.textContent || '').match(/^./su)?.[0] || '';
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+      const el = node as HTMLElement;
+      const tag = el.tagName.toUpperCase();
+      if (skip.has(tag) || el.style?.display === 'none' || el.style?.visibility === 'hidden') return '';
+      if (blockTags.has(tag)) return '\n';
+      if (emphasisTags.has(tag) ? !!el.textContent?.trim() : delimiterTags.has(tag) || tag === 'A' && el.hasAttribute('href')) return '*';
+      for (const child of Array.from(el.childNodes)) {
+        const c = firstMarkdownChar(child, skip);
+        if (c) return c;
+      }
+      return '';
+    };
+    const nextMarkdownChar = (node: Node, skip: Set<string>): string => {
+      for (let n: Node | null = node; n; n = n.parentNode) {
+        if (n !== node && (n.nodeType !== Node.ELEMENT_NODE || blockTags.has((n as Element).tagName.toUpperCase()))) return '';
+        for (let s = n.nextSibling; s; s = s.nextSibling) {
+          const c = firstMarkdownChar(s, skip);
+          if (c) return c;
+        }
+      }
+      return '';
+    };
     const emphasisConverter = (marker: string, intrawordMarker = marker): PluginConverter => ({
       startTag(conversion, context): boolean {
         const { element } = conversion;
@@ -74,7 +101,7 @@ export class EditorService {
         if (!text.trim()) return true;
         if (/^\s/.test(text) && !conversion.atNoWhitespace) conversion.output(' ');
         const before = /^\s/.test(text) ? '' : ((conversion.last || '').match(/.$/su)?.[0] || '');
-        const after = /\s$/.test(text) ? '' : ((element.node()?.nextSibling?.textContent || '').match(/^./su)?.[0] || '');
+        const after = /\s$/.test(text) ? '' : nextMarkdownChar(element.node(), conversion.skipTagNames);
         const m = /[\p{L}\p{N}]/u.test(before + after) ? intrawordMarker : marker;
         context.set('marker', m);
         conversion.output(m);

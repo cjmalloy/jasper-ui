@@ -88,6 +88,12 @@ static float clamp(float value)
       ['<p>x <em>a <a href="http://x">l</a> b</em> y</p>', 'x _a [l](http://x) b_ y'],
       ['<p><em>\n  multi\n  line\n</em></p>', '_multi\nline_'],
       ['<blockquote><p>a <em>b\n</em>c</p></blockquote>', '> a _b_\n> c\n> \n>'],
+      ['<p><em>hello!</em><strong>world</strong></p>', '_hello!_**world**'],
+      ['<p><em>foo</em><code>x</code></p>', '_foo_`x`'],
+      ['<p><span><em>foo</em></span>bar</p>', '*foo*bar'],
+      ['<p><em>foo</em><span></span>bar</p>', '*foo*bar'],
+      ['<p><em>foo</em><span><b></b>bar</span></p>', '*foo*bar'],
+      ['<p><em>foo</em></p><p>bar</p>', '_foo_\n\nbar'],
     ])('should handle whitespace around emphasis for %s', (html, markdown) => {
       expect(europa.convert(html)).toBe(markdown);
     });
