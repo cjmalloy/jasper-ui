@@ -93,7 +93,7 @@ export class MdComponent implements DoCheck, OnDestroy {
 
   get value() {
     if (this.plugins?.includes('plugin/table')) {
-      if (this._value) return this._value;
+      if (this._value !== undefined) return this._value;
       try {
         const wb = XLSX.read(this._text, {type: 'string'});
         return this._value = XLSX.utils.sheet_to_html(wb.Sheets[wb.SheetNames[0]], {header: ''});
@@ -101,7 +101,7 @@ export class MdComponent implements DoCheck, OnDestroy {
         return `<p class="error">${e.message}</p>`
       }
     }
-    return this._value = this._text;
+    return this._text;
   }
 
   get katex() {
