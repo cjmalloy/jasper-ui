@@ -114,6 +114,9 @@ export class ImageDirective {
         this.el.style.backgroundSize = this.config.mobile() ? 'cover' : 'contain';
         this.dim = dim;
         this.onResize();
+      })
+      .catch(() => {
+        // Stay loading so a refresh can retry
       });
   }
 

@@ -4,8 +4,8 @@ import { computed, Directive, ElementRef, inject, input, signal } from '@angular
   selector: '[appResize]',
   host: {
     '[style.z-index]': "zIndex()",
-    '[style.width]': 'width',
-    '[style.height]': 'height',
+    '[style.width]': 'width()',
+    '[style.height]': 'height()',
     '(mousedown)': 'onMousedown($event)',
     '(touchstart)': 'onTouchstart($event)',
     '(click)': 'onClick($event)',
@@ -27,17 +27,17 @@ export class ResizeDirective {
     return this.dirty() ? 1 : 0;
   });
 
-  get width() {
+  readonly width = computed(() => {
     const dim = this.dim();
-    if (!this.enabled() || !dim) return this.el.nativeElement.style.width;
-    return dim.x + 'px'
-  }
+    if (!this.enabled() || !dim) return null;
+    return dim.x + 'px';
+  });
 
-  get height() {
+  readonly height = computed(() => {
     const dim = this.dim();
-    if (!this.enabled() || !dim) return this.el.nativeElement.style.height;
+    if (!this.enabled() || !dim) return null;
     return dim.y + 'px';
-  }
+  });
 
   minPx = 2;
   zoom = 1;
