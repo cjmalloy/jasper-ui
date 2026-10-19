@@ -67,6 +67,87 @@ export class EditorService {
         SECTION: paragraphConverter,
       },
     });
+    const paragraphTags = new Set(['ADDRESS', 'ARTICLE', 'ASIDE', 'DIV', 'FIELDSET', 'FOOTER', 'HEADER', 'MAIN', 'NAV', 'P', 'SECTION']);
+    const blockTags = new Set(['BLOCKQUOTE', 'BR', 'DD', 'DETAILS', 'DT', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'LI', 'PRE']);
+    const emphasisTags = new Set(['B', 'STRONG', 'CITE', 'DFN', 'EM', 'I', 'U', 'VAR']);
+    const delimiterTags = new Set(['CODE', 'KBD', 'Q', 'SAMP', 'SUP']);
+    const emitsBlock = (el: Element, tag: string) =>
+      blockTags.has(tag) || paragraphTags.has(tag) && !el.parentElement?.closest('a[href]:not([href=""])');
+    const mediaSource = (el: Element, tag: string) => tag === 'IMG'
+      ? el.getAttribute('src')
+      : el.querySelector('source')?.getAttribute('src') || el.getAttribute('src');
+    const firstMarkdownChar = (node: Node, skip: Set<string>): string => {
+      if (node.nodeType === Node.TEXT_NODE) return (node.textContent || '').match(/^./su)?.[0] || '';
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+      const el = node as HTMLElement;
+      const tag = el.tagName.toUpperCase();
+      if (skip.has(tag) || el.style?.display === 'none' || el.style?.visibility === 'hidden') return '';
+      if (emitsBlock(el, tag)) return '\n';
+      if (tag === 'IMG' || tag === 'AUDIO' || tag === 'VIDEO') return mediaSource(el, tag) ? '!' : '';
+      if (emphasisTags.has(tag) ? !!el.textContent?.trim() : delimiterTags.has(tag) || tag === 'A' && !!el.getAttribute('href')) return '*';
+      for (const child of Array.from(el.childNodes)) {
+        const c = firstMarkdownChar(child, skip);
+        if (c) return c;
+      }
+      return '';
+    };
+    const nextMarkdownChar = (node: Node, skip: Set<string>): string => {
+      for (let n: Node | null = node; n; n = n.parentNode) {
+        if (n !== node && (n.nodeType !== Node.ELEMENT_NODE || emitsBlock(n as Element, (n as Element).tagName.toUpperCase()))) return '';
+        for (let s = n.nextSibling; s; s = s.nextSibling) {
+          const c = firstMarkdownChar(s, skip);
+          if (c) return c;
+        }
+      }
+      return '';
+    };
+    const emphasisConverter = (marker: string, intrawordMarker = marker): PluginConverter => ({
+      startTag(conversion, context): boolean {
+        const { element } = conversion;
+        const text = element.text() || '';
+        if (!text.trim()) return true;
+        if (/^\s/.test(text) && !conversion.atNoWhitespace) conversion.output(' ');
+        const before = /^\s/.test(text) ? '' : ((conversion.last || '').match(/.$/su)?.[0] || '');
+        const after = /\s$/.test(text) ? '' : nextMarkdownChar(element.node(), conversion.skipTagNames);
+        const m = /[\p{L}\p{N}]/u.test(before + after) ? intrawordMarker : marker;
+        context.set('marker', m);
+        conversion.output(m);
+        conversion.atNoWhitespace = true;
+        return true;
+      },
+      endTag(conversion, context) {
+        if (!context.has('marker')) return;
+        const left = conversion.left.replace(/[ \t]+$/, '');
+        let last = conversion.last || '';
+        let trimmed = '';
+        while (true) {
+          const ws = last.match(/[ \t]+$/)?.[0] || (left && last.endsWith(left) ? left : '');
+          if (!ws) break;
+          trimmed += ws;
+          last = last.substring(0, last.length - ws.length);
+        }
+        conversion.last = last;
+        conversion.atNoWhitespace = false;
+        conversion.output(context.get<string>('marker')!);
+        if (trimmed) conversion.output(trimmed.includes('\n') ? '\n' : ' ');
+      },
+    });
+    const emphasisProvider = (api: PluginApi): Plugin => {
+      const bold = emphasisConverter('**');
+      const italic = emphasisConverter('_', '*');
+      return {
+        converters: {
+          B: bold,
+          STRONG: bold,
+          CITE: italic,
+          DFN: italic,
+          EM: italic,
+          I: italic,
+          U: italic,
+          VAR: italic,
+        },
+      };
+    };
     const preformattedProvider = (api: PluginApi): Plugin => ({
       converters: {
         PRE: {
@@ -180,6 +261,7 @@ export class EditorService {
     });
     Europa.registerPlugin(superscriptProvider);
     Europa.registerPlugin(paragraphProvider);
+    Europa.registerPlugin(emphasisProvider);
     Europa.registerPlugin(preformattedProvider);
     Europa.registerPlugin(linkProvider);
     Europa.registerPlugin(audioProvider);
