@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ChangeDetectionStrategy, Component, NO_ERRORS_SCHEMA, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UntypedFormControl } from '@angular/forms';
 import { provideRouter } from '@angular/router';
@@ -224,5 +224,59 @@ describe('EditorComponent', () => {
 
     component.toggleFullscreen(false);
     expect(reload).toHaveBeenCalledTimes(2);
+  });
+
+});
+
+@Component({
+  selector: 'app-on-push-editor-host',
+  template: `<app-editor [control]="control"></app-editor>`,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [EditorComponent],
+})
+class OnPushEditorHost {
+  control = new UntypedFormControl();
+  @ViewChild(EditorComponent, { static: true })
+  editor!: EditorComponent;
+}
+
+describe('EditorComponent in an OnPush host', () => {
+  let fixture: ComponentFixture<OnPushEditorHost>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [OnPushEditorHost],
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(OnPushEditorHost);
+    fixture.autoDetectChanges();
+    await fixture.whenStable();
+  });
+
+  it('should re-render the preview after converting HTML to markdown', async () => {
+    vi.useFakeTimers();
+    try {
+      const editor = fixture.componentInstance.editor;
+      editor.preview = true;
+      const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
+      textarea.value = '<p>Hello <b>world</b></p>';
+      textarea.dispatchEvent(new Event('input'));
+      textarea.dispatchEvent(new Event('blur'));
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(editor.md?.text).toBe('<p>Hello <b>world</b></p>');
+
+      editor.fireEvent({ event: 'html-to-markdown' });
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(textarea.value).toBe('Hello **world**');
+      expect(editor.md?.text).toBe('Hello **world**');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
