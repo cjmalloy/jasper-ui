@@ -73,8 +73,8 @@ export class EditorService {
         const text = element.text() || '';
         if (!text.trim()) return true;
         if (/^\s/.test(text) && !conversion.atNoWhitespace) conversion.output(' ');
-        const before = /^\s/.test(text) ? '' : (conversion.last || '').slice(-1);
-        const after = /\s$/.test(text) ? '' : (element.node()?.nextSibling?.textContent || '').charAt(0);
+        const before = /^\s/.test(text) ? '' : ((conversion.last || '').match(/.$/su)?.[0] || '');
+        const after = /\s$/.test(text) ? '' : ((element.node()?.nextSibling?.textContent || '').match(/^./su)?.[0] || '');
         const m = /[\p{L}\p{N}]/u.test(before + after) ? intrawordMarker : marker;
         context.set('marker', m);
         conversion.output(m);
