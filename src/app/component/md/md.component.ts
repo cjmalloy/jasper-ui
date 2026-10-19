@@ -65,7 +65,7 @@ export class MdComponent implements DoCheck, OnDestroy {
   vc!: ViewContainerRef;
 
   private _text = '';
-  private _value? = '';
+  private _value?: string;
   private lastText?: string;
   private lastOptions?: string;
   private cleanup?: () => void;

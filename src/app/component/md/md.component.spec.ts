@@ -35,6 +35,22 @@ describe('MdComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should render a table when the table plugin is added after the text', () => {
+    component.text = 'a,b\n1,2';
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('table')).toBeNull();
+
+    component.plugins = ['plugin/table'];
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('table')).toBeTruthy();
+    expect(fixture.nativeElement.textContent).not.toContain('a,b');
+
+    component.plugins = [];
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('table')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('a,b');
+  });
+
   it('should render KaTeX when the LaTeX plugin is enabled', async () => {
     const ready = firstValueFrom(component.postProcessMarkdown);
     component.plugins = ['plugin/latex'];
