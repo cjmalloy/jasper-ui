@@ -580,6 +580,13 @@ export class AdminService {
     return this.getTemplate('config/home');
   });
 
+  /**
+   * Plain value of {@link home} for formly string expressions, which cannot call functions.
+   */
+  get hasHome() {
+    return !!this.home();
+  }
+
   get defaultPlugins() {
     return Object.values(this.def.plugins).filter(p => p?.config?.default) as Plugin[];
   }
