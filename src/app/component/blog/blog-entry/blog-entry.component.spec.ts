@@ -5,7 +5,6 @@ import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { MarkdownModule } from 'ngx-markdown';
 
 import { BlogEntryComponent } from './blog-entry.component';
 
@@ -17,7 +16,6 @@ describe('BlogEntryComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         forwardRef(() => BlogEntryComponent),
-        MarkdownModule.forRoot(),
         ReactiveFormsModule,
       ],
       providers: [

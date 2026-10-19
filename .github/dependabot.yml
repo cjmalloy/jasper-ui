@@ -37,7 +37,6 @@ updates:
         - "@ngx-formly/*"
     marked:
       patterns:
-        - "ngx-markdown"
         - "marked"
         - "marked-*"
     ag-grid:
@@ -92,7 +91,6 @@ updates:
         - "tslib"
         - "ngx-monaco-editor"
         - "@ngx-formly/*"
-        - "ngx-markdown"
         - "marked"
         - "marked-*"
         - "ag-grid-angular"

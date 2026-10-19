@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { MarkdownModule } from 'ngx-markdown';
 import { firstValueFrom, of } from 'rxjs';
 import { RefService } from '../../service/api/ref.service';
 
@@ -18,7 +17,6 @@ describe('ChatComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         forwardRef(() => ChatComponent),
-        MarkdownModule.forRoot(),
       ],
       providers: [
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
