@@ -215,26 +215,6 @@ There are a few other ways to embed:
 
 Normal links to things that can be embedded also get a ＋ button after them.
 
-## Math
-
-If your post has the **LaTeX** tag (`plugin/latex`), you can write math formulas. Put a formula
-between single dollar signs to keep it in the line of text, or double dollar signs to show it on its own line:
-
-~~~markdown
-The area of a circle is $\pi r^2$.
-
-$$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
-~~~
-
-Some common commands:
-
-- `x^2` for powers and `x_1` for subscripts. Use curly brackets for more than one character: `x^{10}`.
-- `\frac{a}{b}` for fractions and `\sqrt{x}` for square roots.
-- `\alpha`, `\beta`, `\pi` and so on for Greek letters.
-- `\sum`, `\int`, `\infty`, `\le`, `\ge` and `\ne` for sums, integrals, infinity, ≤, ≥ and ≠.
-
-Without the LaTeX tag, dollar signs are shown as normal text.
-
 ## Diagrams
 
 Write `mermaid` as the language of a code block to draw a diagram.
