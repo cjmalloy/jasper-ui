@@ -1,142 +1,269 @@
-# Markdown in Jasper
+# Writing in Jasper
 
-Jasper renders comments, wiki pages and other text with
-[GitHub Flavored Markdown](https://github.github.com/gfm/) (via [marked](https://marked.js.org/)).
-Everything in the [Markdown cheat sheet](https://www.markdownguide.org/cheat-sheet/) works,
-including tables, task lists, strikethrough and fenced code blocks.
+When you write a comment, a wiki page or any other text in Jasper, you can format it with
+**Markdown**. Markdown is plain text with a few symbols that change how it looks. You don't
+need any special buttons: type the symbols and Jasper does the rest.
 
-On top of that, Jasper adds its own syntax for tags, users, wikis and embeds.
+If you never use any of these symbols, that's fine too. Plain text always works.
 
-## Tags
+Each section below shows what to type, and then describes what you get.
 
-Write a hashtag to link to a tag page:
+## Paragraphs and line breaks
 
-```markdown
-Read more in #science or #people/murray.
-```
+Leave an empty line between paragraphs:
 
-- Tags follow the Jasper tag format: lowercase letters and numbers, separated by `/` or `.`.
-  Protected (`#+tag`) and private (`#_tag`) tags work too.
-- Plain numbers such as `#1` are not linked.
-- Add a query string to open the tag page with options, for example
-  `#science?view=list` or `#science?sort=published`.
-- When editing, hashtags are also added to the Ref's tags by default. You can remove them before saving.
+~~~markdown
+This is the first paragraph.
 
-## Users
+This is the second paragraph.
+~~~
 
-Mention a user with their user tag:
+A single line break without an empty line is joined into the same paragraph.
+To force a new line, end the line with two spaces or a backslash (`\`).
 
-```markdown
-Thanks +user/alice and _user/bob@other!
-```
+## Bold, italic and strikethrough
 
-- `+user/...`, `_user/...`, `+plugin/...` and `_plugin/...` become links to the tag page.
-- Users without an origin are linked in the origin of the Ref being viewed.
-- When editing, mentioning a user also adds their inbox tag by default, which notifies them.
+~~~markdown
+*italic* or _italic_
+**bold** or __bold__
+***bold and italic***
+~~strikethrough~~
+~~~
 
-## Wiki links
+## Headings
 
-Link to a wiki page with double brackets:
+Start a line with `#` followed by a space. More `#` signs make a smaller heading:
 
-```markdown
-See [[Double bracket]] for details.
-```
+~~~markdown
+# Big heading
+## Smaller heading
+### Even smaller heading
+~~~
 
-The text is converted into a wiki URL: whitespace becomes `_`, the first letter is capitalized
-and the rest is lowercased. So `[[double bracket]]` links to `wiki:Double_bracket`.
-The `wiki:` prefix can be changed in the Wiki config. If the wiki is external, the link opens the
-external site instead.
+## Links
 
-`[[1]]` and `[[alt1]]` are not wiki links, so they can be used with reference style links:
+Put the text in square brackets, and the address right after it in round brackets:
 
-```markdown
-As reported^[[1]].
+~~~markdown
+[Visit the example site](https://example.com)
+~~~
 
-[1]: https://example.com/source
-```
+You can also just paste an address such as `https://example.com`, and it becomes a link.
 
-## Embeds
+## Images
 
-Jasper can embed Refs, query results and media directly in the page.
-Any URL may be used, including Jasper Refs (`/ref/...`) and tag queries (`/tag/...` or `tag:/...`).
+Images look like links with an exclamation mark in front. The text in square brackets
+describes the image for people who can't see it:
 
-| Syntax                     | Result                                                                    |
-|----------------------------|---------------------------------------------------------------------------|
-| `![](url)`                 | Embed the content of the URL. Refs show their comment and plugin embeds.  |
-| `![alt](https://...)`      | A normal image.                                                           |
-| `![[Page title]]`          | Embed a wiki page, same as `![]()` for a wiki link.                       |
-| `![=](url)`                | Embed the Ref itself inline, with its title, tags and actions.            |
-| `![+](url)`                | A ＋ toggle button that shows or hides the embed.                          |
-| `[text](url)`              | A link. If the URL can be embedded, a ＋ toggle is added after the link.  |
+~~~markdown
+![A cat sleeping in the sun](https://example.com/cat.jpg)
+~~~
 
-For example:
+## Lists
 
-```markdown
-![](/tag/science?view=list)
-![=](/ref/https://example.com)
-![+](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
-```
+Start each line with `-` (or `*`) for bullet points, or with a number and a period for a numbered list.
+Indent a line to put it inside the item above it:
 
-- Embedding a tag query shows the query results. Use the query string to choose a
-  `view`, `filter`, `search` or `sort`.
-- URLs handled by an enabled plugin (images, videos, audio, YouTube, ...) are embedded with that plugin.
-- Other web URLs are embedded with [oEmbed](https://oembed.com/) when possible.
-- If the image plugin is disabled, images are shown as links instead.
+~~~markdown
+- Apples
+- Oranges
+  - Blood oranges
+- Pears
 
-## Superscript
+1. First step
+2. Second step
+3. Third step
+~~~
 
-Use a caret for superscript:
+Add `[ ]` or `[x]` after the dash to make a checklist:
 
-```markdown
-E = mc^2 and a footnote^[[1]]
-```
+~~~markdown
+- [x] Buy milk
+- [ ] Call the bank
+~~~
 
-## Math
+## Quotes
 
-When the **LaTeX** plugin (`plugin/latex`) is on the Ref, math is rendered with
-[KaTeX](https://katex.org/docs/supported.html):
+Start a line with `>` to quote someone:
 
-```markdown
-Inline math $f(x) = x^2$ and block math:
+~~~markdown
+> The best way to predict the future is to invent it.
+~~~
 
-$$\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}$$
-```
+## Horizontal line
 
-Without the plugin, dollar signs are left as plain text.
+Three dashes on their own line draw a line across the page:
+
+~~~markdown
+---
+~~~
 
 ## Code
 
-Fenced code blocks are syntax highlighted with [Prism](https://prismjs.com/).
-Add the language after the opening fence:
+Wrap a short piece of code in backticks (`` ` ``) to show it in a fixed-width font: `` `like this` ``.
 
-````markdown
-```typescript
+For longer code, put three backticks on the line before and the line after it.
+Write the name of the language after the first three backticks to color the code:
+
+~~~markdown
+```javascript
 const answer = 42;
 ```
-````
+~~~
 
-Code blocks also have a copy button.
-
-## Diagrams
-
-Fenced code blocks with the `mermaid` language are drawn as [Mermaid](https://mermaid.js.org/) diagrams:
-
-````markdown
-```mermaid
-graph TB
-  A --> B
-```
-````
-
-In some places, such as previews, the diagram is not drawn until you press the render button.
+Code blocks have a button to copy the code.
 
 ## Tables
 
-When the **Table** plugin (`plugin/table`) is on the Ref, the comment is read as CSV and shown as a table.
-Otherwise, use the normal Markdown table syntax.
+Separate columns with `|`. The second line of dashes separates the header from the rows:
+
+~~~markdown
+| Fruit  | Color  |
+|--------|--------|
+| Apple  | Red    |
+| Banana | Yellow |
+~~~
+
+The columns don't have to line up, but it makes the text easier to read.
+
+## Showing a symbol as-is
+
+If you want to show a symbol like `*` or `#` without it changing the formatting, put a
+backslash in front of it: `\*not italic\*`.
+
+---
+
+Everything above is standard Markdown. The rest of this page covers features that only Jasper has.
+
+## Tags
+
+Type `#` followed by a tag to link to that tag's page:
+
+~~~markdown
+Read more in #science or #people/murray.
+~~~
+
+- Tags use lowercase letters and numbers. Use `/` or `.` to make sub-tags, like `#people/murray`.
+- Protected tags start with `+` (`#+news`) and private tags start with `_` (`#_notes`).
+- Plain numbers such as `#1` are left alone.
+- To open the tag page with options, add them after a `?`. For example, `#science?sort=published`.
+- When you save, hashtags you used are also added to your post's tags. You can remove them before saving.
+
+## Mentioning users
+
+Type a user's tag to mention them:
+
+~~~markdown
+Thanks +user/alice and _user/bob!
+~~~
+
+- This links to the user's page.
+- When you save, the user is notified. You can remove the notification before saving.
+- To mention someone on another server, add `@` and the server name: `+user/bob@other`.
+
+## Wiki links
+
+Put a page title in double square brackets to link to a wiki page:
+
+~~~markdown
+See [[Double bracket]] for details.
+~~~
+
+Spaces become underscores, the first letter becomes uppercase and the rest becomes lowercase.
+So `[[double bracket]]` and `[[Double Bracket]]` both link to the same page.
+
+Numbers in double brackets, like `[[1]]`, are not wiki links. This lets you use them as footnotes:
+
+~~~markdown
+The sky is blue.^[[1]]
+
+[1]: https://example.com/why-is-the-sky-blue
+~~~
+
+## Superscript
+
+Put `^` in front of text to raise it up:
+
+~~~markdown
+E = mc^2
+~~~
+
+## Embedding
+
+Embedding shows something from another page right inside your text, such as a video,
+another post or a list of posts.
+
+Use the image format with an empty description, `![]()`, and put the address in the round brackets:
+
+~~~markdown
+![](https://example.com/video.mp4)
+~~~
+
+The address can be:
+
+- **Any web address.** Videos, sound and pictures are played or shown in place.
+  Many other sites, like video sites, also show a preview.
+- **A post in Jasper.** Its text and media are shown.
+- **A tag page.** The latest posts with that tag are listed. Use `/tag/` and the tag, for example
+  `![](/tag/science)`. You can add options after a `?`, like `![](/tag/science?sort=published)`.
+
+There are a few other ways to embed:
+
+- `![[Page title]]` embeds a wiki page.
+- `![=](address)` shows a post as a small card, with its title, tags and buttons.
+- `![+](address)` shows a ＋ button. Press it to show the embed, and press ✕ to hide it again.
+
+Normal links to things that can be embedded also get a ＋ button after them.
+
+## Math
+
+If your post has the **LaTeX** tag (`plugin/latex`), you can write math formulas. Put a formula
+between single dollar signs to keep it in the line of text, or double dollar signs to show it on its own line:
+
+~~~markdown
+The area of a circle is $\pi r^2$.
+
+$$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
+~~~
+
+Some common commands:
+
+- `x^2` for powers and `x_1` for subscripts. Use curly brackets for more than one character: `x^{10}`.
+- `\frac{a}{b}` for fractions and `\sqrt{x}` for square roots.
+- `\alpha`, `\beta`, `\pi` and so on for Greek letters.
+- `\sum`, `\int`, `\infty`, `\le`, `\ge` and `\ne` for sums, integrals, infinity, ≤, ≥ and ≠.
+
+Without the LaTeX tag, dollar signs are shown as normal text.
+
+## Diagrams
+
+Write `mermaid` as the language of a code block to draw a diagram.
+Each line connects two boxes with an arrow:
+
+~~~markdown
+```mermaid
+graph TB
+  Idea --> Draft
+  Draft --> Review
+  Review --> Published
+```
+~~~
+
+`graph TB` draws from top to bottom. Use `graph LR` to draw from left to right.
+In some places, such as previews, you press a button to draw the diagram.
+
+## Spreadsheets
+
+If your post has the **Table** tag (`plugin/table`), write the text as comma separated values
+and it is shown as a table:
+
+~~~markdown
+Fruit,Color
+Apple,Red
+Banana,Yellow
+~~~
 
 ## HTML
 
-Inline HTML is allowed, but it is sanitized: scripts, `<style>` tags and unsafe URLs are removed,
-and inline styles are limited to basic formatting such as color, font, size, margin and borders.
-Images, video and audio are loaded through Jasper's embeds, just like Markdown images.
+If you know HTML, you can use it too. For safety, scripts and anything that could change the rest
+of the page are removed, and pictures, video and sound are shown the same way as Markdown images.
