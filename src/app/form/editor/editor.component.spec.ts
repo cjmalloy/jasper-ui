@@ -267,6 +267,7 @@ describe('EditorComponent in an OnPush host', () => {
       textarea.value = '<p>Hello <b>world</b></p>';
       textarea.dispatchEvent(new Event('input'));
       textarea.dispatchEvent(new Event('blur'));
+      await vi.advanceTimersByTimeAsync(1000);
       expect(editor.md?.text).toBe('<p>Hello <b>world</b></p>');
 
       editor.fireEvent({ event: 'html-to-markdown' });
