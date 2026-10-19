@@ -70,5 +70,26 @@ static float clamp(float value)
     ])('should preserve code content and Markdown structure for %s', (html, markdown) => {
       expect(europa.convert(html)).toBe(markdown);
     });
+
+    it.each([
+      ['<p>This is <em>italic</em> text</p>', 'This is _italic_ text'],
+      ['<p>This is <em> italic </em> text</p>', 'This is _italic_ text'],
+      ['<p>This is<em> italic</em> text</p>', 'This is _italic_ text'],
+      ['<p>This is <em>italic </em>text</p>', 'This is _italic_ text'],
+      ['<p>This is <i>italic</i>, ok</p>', 'This is _italic_, ok'],
+      ['<p>This is <strong>bold </strong>text</p>', 'This is **bold** text'],
+      ['<p>This is<b> bold</b> text</p>', 'This is **bold** text'],
+      ['<p>foo<em>bar</em>baz</p>', 'foo*bar*baz'],
+      ['<p>foo<strong>bar</strong>baz</p>', 'foo**bar**baz'],
+      ['<p>a<em> </em>b</p>', 'a b'],
+      ['<p>a<em></em>b</p>', 'ab'],
+      ['<p>x <em><strong>bi</strong></em> y</p>', 'x _**bi**_ y'],
+      ['<p>x <em> <strong> bi </strong> </em> y</p>', 'x _**bi**_ y'],
+      ['<p>x <em>a <a href="http://x">l</a> b</em> y</p>', 'x _a [l](http://x) b_ y'],
+      ['<p><em>\n  multi\n  line\n</em></p>', '_multi\nline_'],
+      ['<blockquote><p>a <em>b\n</em>c</p></blockquote>', '> a _b_\n> c\n> \n>'],
+    ])('should handle whitespace around emphasis for %s', (html, markdown) => {
+      expect(europa.convert(html)).toBe(markdown);
+    });
   });
 });

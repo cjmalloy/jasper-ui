@@ -67,6 +67,53 @@ export class EditorService {
         SECTION: paragraphConverter,
       },
     });
+    const emphasisConverter = (marker: string, intrawordMarker = marker): PluginConverter => ({
+      startTag(conversion, context): boolean {
+        const { element } = conversion;
+        const text = element.text() || '';
+        if (!text.trim()) return true;
+        if (/^\s/.test(text) && !conversion.atNoWhitespace) conversion.output(' ');
+        const before = /^\s/.test(text) ? '' : (conversion.last || '').slice(-1);
+        const after = /\s$/.test(text) ? '' : (element.node()?.nextSibling?.textContent || '').charAt(0);
+        const m = /[\p{L}\p{N}]/u.test(before + after) ? intrawordMarker : marker;
+        context.set('marker', m);
+        conversion.output(m);
+        conversion.atNoWhitespace = true;
+        return true;
+      },
+      endTag(conversion, context) {
+        if (!context.has('marker')) return;
+        const left = conversion.left.replace(/[ \t]+$/, '');
+        let last = conversion.last || '';
+        let trimmed = '';
+        while (true) {
+          const ws = last.match(/[ \t]+$/)?.[0] || (left && last.endsWith(left) ? left : '');
+          if (!ws) break;
+          trimmed += ws;
+          last = last.substring(0, last.length - ws.length);
+        }
+        conversion.last = last;
+        conversion.atNoWhitespace = false;
+        conversion.output(context.get<string>('marker')!);
+        if (trimmed) conversion.output(trimmed.includes('\n') ? '\n' : ' ');
+      },
+    });
+    const emphasisProvider = (api: PluginApi): Plugin => {
+      const bold = emphasisConverter('**');
+      const italic = emphasisConverter('_', '*');
+      return {
+        converters: {
+          B: bold,
+          STRONG: bold,
+          CITE: italic,
+          DFN: italic,
+          EM: italic,
+          I: italic,
+          U: italic,
+          VAR: italic,
+        },
+      };
+    };
     const preformattedProvider = (api: PluginApi): Plugin => ({
       converters: {
         PRE: {
@@ -180,6 +227,7 @@ export class EditorService {
     });
     Europa.registerPlugin(superscriptProvider);
     Europa.registerPlugin(paragraphProvider);
+    Europa.registerPlugin(emphasisProvider);
     Europa.registerPlugin(preformattedProvider);
     Europa.registerPlugin(linkProvider);
     Europa.registerPlugin(audioProvider);
