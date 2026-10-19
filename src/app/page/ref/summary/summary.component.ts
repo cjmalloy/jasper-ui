@@ -56,7 +56,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   ) {
     query.clear();
     thread.clear();
-    runInAction(() => store.view.defaultSort = ['modified,DESC']);
+    runInAction(() => store.view.defaultSort = ['published,DESC']);
   }
 
   saveChanges() {
