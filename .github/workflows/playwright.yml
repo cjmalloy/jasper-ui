@@ -37,6 +37,10 @@ jobs:
       - name: Patch HTML Report (merge files by default)
         if: always()
         run: sudo sed -i 's/mergeFiles",!1/mergeFiles",!0/g' e2e/reports/html/index.html
+      - name: Patch HTML Report (reset unknown theme setting)
+        if: always()
+        # Reports share the GitHub Pages origin, so localStorage.theme may hold a value the report does not understand.
+        run: sudo sed -i "0,/<head>/s//<head><script>try{if(!['dark-mode','light-mode','system'].includes(localStorage.theme))localStorage.removeItem('theme')}catch(e){}<\/script>/" e2e/reports/html/index.html
       - name: Generate Test Summary
         if: always()
         uses: actions/github-script@v9
