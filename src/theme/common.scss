@@ -2309,6 +2309,30 @@ footer {
   }
 }
 
+.pele {
+  --pele-bg: var(--bg);
+  --pele-fg: var(--text);
+  --pele-muted: var(--info);
+  --pele-line: var(--text);
+  --pele-surface: var(--placeholder);
+  --pele-surface-alt: var(--card);
+  --pele-border: var(--border-accent);
+  --pele-error: var(--error);
+}
+
+.md-pre {
+  position: relative;
+
+  .markdown-clipboard-toolbar {
+    position: absolute;
+    top: .5em;
+    right: .5em;
+    z-index: 1;
+    display: flex;
+    gap: 4px;
+  }
+}
+
 .md, .md blockquote {
   max-width: 60em;
   overflow-wrap: break-word;

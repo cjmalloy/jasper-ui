@@ -155,7 +155,7 @@ export class EditorComponent {
   private selectionEnd = 0;
   private blurTimeout = 0;
 
-  private scrollMap = new Map<number, number>();
+  private scrollMap = new Map<number, HTMLElement>();
   private sourceMap: number[] = [];
 
   constructor() {
@@ -211,9 +211,12 @@ export class EditorComponent {
   postProcessMarkdown() {
     this.sourceMap.length = 0;
     this.scrollMap.clear();
-    this.el.nativeElement.querySelectorAll('[aria-posinset]').forEach((el: HTMLElement) => {
+    const md: HTMLElement | undefined = this.md()?.el.nativeElement || this.el.nativeElement.querySelector('app-md');
+    md?.querySelectorAll<HTMLElement>('[aria-posinset]').forEach(el => {
+      if (el.closest('app-md') !== md) return;
       const start = +el.getAttribute('aria-posinset')!;
-      this.scrollMap.set(start, el.offsetTop);
+      if (this.scrollMap.has(start)) return;
+      this.scrollMap.set(start, el);
       this.sourceMap.push(start);
     });
     this.sourceMap.sort((a, b) => a - b);
@@ -223,7 +226,11 @@ export class EditorComponent {
     const md = this.md();
     if (!this.preview() || !this.fullscreen() || !md) return;
     const start = this.sourceMap[Math.max(sortedLastIndex(this.sourceMap, this.selectionStart) - 1, 0)];
-    md.el.nativeElement.scrollTop = (this.scrollMap.get(start) ?? 0) - md.el.nativeElement.clientHeight / 2;
+    const el = this.scrollMap.get(start);
+    if (!el?.isConnected) return;
+    const container = md.el.nativeElement as HTMLElement;
+    const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+    container.scrollTop = top - container.clientHeight / 2;
   }
 
   onSelectPreview() {
@@ -443,6 +450,7 @@ export class EditorComponent {
         scrollStrategy: this.overlay.scrollStrategies.block(),
       });
       this.overlayRef.attach(new DomPortal(this.el));
+      if (this.preview()) this.md()?.reloadIframes();
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === 'Escape' && this.toggleFullscreen(false));
       editor.nativeElement.scrollIntoView({ block: 'end' });
@@ -457,6 +465,7 @@ export class EditorComponent {
       this.overlayRef?.detach();
       this.overlayRef?.dispose();
       delete this.overlayRef;
+      if (this.preview()) this.md()?.reloadIframes();
       document.body.style.height = '';
       this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight() + 'px');
       document.body.classList.remove('fullscreen');

@@ -1,7 +1,6 @@
 import { afterNextRender, computed, DestroyRef, Directive, ElementRef, inject, input, signal } from '@angular/core';
 import { defer } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
-import { relativeX, relativeY } from '../util/math';
 
 @Directive({
   selector: '[appResizeHandle]',
@@ -111,9 +110,8 @@ export class ResizeHandleDirective {
   }
 
   private hit(event: PointerEvent) {
-    const x = this.el.nativeElement.offsetWidth - relativeX(event.clientX, this.el.nativeElement);
-    const y = this.el.nativeElement.offsetHeight - relativeY(event.clientY, this.el.nativeElement);
-    return x + y < this.hitArea();
+    const rect = this.el.nativeElement.getBoundingClientRect();
+    return rect.right - event.clientX + rect.bottom - event.clientY < this.hitArea();
   }
 
   private setWidth(width: string) {

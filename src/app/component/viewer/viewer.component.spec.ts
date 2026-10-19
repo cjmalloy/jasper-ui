@@ -5,7 +5,6 @@ import { forwardRef, ViewContainerRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
-import { MarkdownModule } from 'ngx-markdown';
 
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
@@ -21,7 +20,6 @@ describe('ViewerComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         forwardRef(() => ViewerComponent),
-        MarkdownModule.forRoot(),
       ],
       providers: [
         provideHttpClient(withXhr(), withInterceptorsFromDi()),

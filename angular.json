@@ -66,9 +66,7 @@
               "node_modules/katex/dist/katex.min.css"
             ],
             "scripts": [
-              "node_modules/mermaid/dist/mermaid.min.js",
               "node_modules/prismjs/prism.js",
-              "node_modules/clipboard/dist/clipboard.min.js",
               "node_modules/prismjs/components/prism-aspnet.min.js",
               "node_modules/prismjs/components/prism-bash.min.js",
               "node_modules/prismjs/components/prism-c.min.js",

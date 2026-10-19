@@ -12,7 +12,6 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, UrlSerializer, withRouterConfig } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { Settings } from 'luxon';
-import { provideMarkdown } from 'ngx-markdown';
 import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
 import { retry, switchMap, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -93,7 +92,6 @@ bootstrapApplication(AppComponent, {
       onSameUrlNavigation: 'reload',
     })),
     { provide: UrlSerializer, useClass: CustomUrlSerializer },
-    provideMarkdown(),
     { provide: NGX_MONACO_EDITOR_CONFIG, useValue: {} },
     provideJasperFormly(),
     provideServiceWorker('ngsw-worker.js', {

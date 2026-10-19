@@ -133,6 +133,7 @@
             [origin]="store.account.origin()"
             [text]="currentText()"
             [plugins]="allTags()"
+            [progressive]="true"
             (postProcessMarkdown)="postProcessMarkdown()"
             (pointerup)="onSelectPreview()"></app-md>
     <textarea #hiddenMeasure

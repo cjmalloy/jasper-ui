@@ -48,7 +48,7 @@ export class RefSummaryComponent implements HasChanges {
 
   constructor() {
     const store = this.store;
-    store.view.defaultSort.set(['modified,DESC']);
+    store.view.defaultSort.set(['published,DESC']);
     // TODO: set title for bare reposts
     effect(() => this.mod.setTitle(getTitle(this.store.view.ref())));
     this.thread.watch(() => ({
