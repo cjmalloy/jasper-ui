@@ -1,4 +1,4 @@
-FROM node:26.11.1 AS builder
+FROM node:26.12.0 AS builder
 WORKDIR /app
 RUN npm i -g @angular/cli@20.3.15
 COPY package.json package-lock.json ./
@@ -8,7 +8,7 @@ COPY . ./
 ARG BUILD_SCRIPT=build
 RUN npm run $BUILD_SCRIPT
 
-FROM node:26.11.1 AS test
+FROM node:26.12.0 AS test
 WORKDIR /app
 RUN npm i -g @angular/cli@20.3.15
 COPY --from=builder /app ./
