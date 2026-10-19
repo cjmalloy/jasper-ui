@@ -76,15 +76,8 @@ describe('markdown util', () => {
       expect(span.hasAttribute('data-plugin')).toBe(false);
     });
 
-    it('removes svg images', () => {
-      const doc = new DOMParser().parseFromString(
-        '<svg><image href="https://x.com/a.png"></image><filter><feImage href="https://x.com/b.png"></feImage></filter><rect></rect></svg>', 'text/html');
-      mediaToPlaceholders(doc);
-      expect(Array.from(doc.body.querySelectorAll('svg *')).map(e => e.localName)).toEqual(['filter', 'rect']);
-    });
-
     it('drops media with script urls', () => {
-      const doc = new DOMParser().parseFromString('<iframe src="javascript:alert(1)"></iframe><img src="https://x.com/a.png">', 'text/html');
+      const doc = new DOMParser().parseFromString('<img src="javascript:alert(1)"><img src="https://x.com/a.png">', 'text/html');
       mediaToPlaceholders(doc);
       const embeds = Array.from(doc.body.querySelectorAll<HTMLElement>('.md-embed'));
       expect(embeds.map(e => e.dataset.url)).toEqual(['https://x.com/a.png']);
@@ -92,6 +85,14 @@ describe('markdown util', () => {
   });
 
   describe('sanitizeMarkdown', () => {
+    it('removes svg images and image inputs', () => {
+      const doc = new DOMParser().parseFromString(
+        '<svg><image href="https://x.com/a.png"></image><filter><feImage href="https://x.com/b.png"></feImage></filter><rect></rect></svg><input type="IMAGE" src="https://x.com/c.png">', 'text/html');
+      sanitizeMarkdown(doc);
+      expect(doc.body.querySelector('input')).toBeNull();
+      expect(Array.from(doc.body.querySelectorAll('svg *')).map(e => e.localName)).toEqual(['filter', 'rect']);
+    });
+
     it('removes stylesheets and restricts inline css', () => {
       const doc = new DOMParser().parseFromString(
         '<div><style>body{display:none}</style><p style="position: fixed; z-index: 9; color: red; background-image: url(https://x.com/a.png)">a</p>' +

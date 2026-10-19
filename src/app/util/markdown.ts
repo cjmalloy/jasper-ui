@@ -108,7 +108,7 @@ function unsafeUrl(url: string) {
 function placeholder(doc: Document, el: HTMLElement, plugin: string, url?: string, alt?: string | null) {
   if (!url || unsafeUrl(url)) {
     el.remove();
-    return undefined;
+    return;
   }
   const p = doc.createElement('span');
   p.className = 'md-embed';
@@ -119,7 +119,6 @@ function placeholder(doc: Document, el: HTMLElement, plugin: string, url?: strin
   if (el.style?.width) p.dataset.width = el.style.width;
   if (el.style?.height) p.dataset.height = el.style.height;
   el.replaceWith(p);
-  return p;
 }
 
 /**
@@ -139,6 +138,11 @@ export function sanitizeMarkdown(doc: Document) {
     ALLOWED_URI_REGEXP: SAFE_URI,
   });
   doc.body.querySelectorAll<HTMLElement>('[style]').forEach(sanitizeStyle);
+  // These load images directly, bypassing the embed pipeline
+  doc.body.querySelectorAll('input[type="image" i]').forEach(t => t.remove());
+  doc.body.querySelectorAll('svg *').forEach(t => {
+    if (t.localName === 'image' || t.localName === 'feImage') t.remove();
+  });
 }
 
 /**
@@ -175,7 +179,7 @@ export function mediaToPlaceholders(doc: Document) {
   // Placeholders are reserved, don't trust any already in the content
   doc.body.querySelectorAll<HTMLElement>('.md-embed').forEach(t => {
     t.classList.remove('md-embed');
-    for (const attr of ['data-url', 'data-plugin', 'data-title', 'data-alt', 'data-width', 'data-height', 'data-sandbox', 'data-allow', 'data-allowfullscreen']) {
+    for (const attr of ['data-url', 'data-plugin', 'data-title', 'data-alt', 'data-width', 'data-height']) {
       t.removeAttribute(attr);
     }
   });
@@ -195,45 +199,7 @@ export function mediaToPlaceholders(doc: Document) {
     const source = t.querySelector('source');
     placeholder(doc, t, 'plugin/video', (source && mediaUrl(source, base)) || mediaUrl(t, base));
   });
-  doc.body.querySelectorAll<HTMLIFrameElement>('iframe').forEach(t => {
-    const sandbox = t.getAttribute('sandbox');
-    const allow = t.getAttribute('allow');
-    const allowFullscreen = t.hasAttribute('allowfullscreen');
-    const p = placeholder(doc, t, 'plugin/embed', mediaUrl(t, base));
-    if (!p) return;
-    // Keep restrictions so hydration never grants more permissions than the author gave
-    if (sandbox !== null) p.dataset.sandbox = sandbox;
-    if (allow !== null) p.dataset.allow = allow;
-    if (allowFullscreen) p.dataset.allowfullscreen = '';
-  });
-  doc.body.querySelectorAll('source, track, input[type="image" i]').forEach(t => t.remove());
-  // SVG images load directly, bypassing the embed pipeline
-  doc.body.querySelectorAll('svg *').forEach(t => {
-    if (t.localName === 'image' || t.localName === 'feImage') t.remove();
-  });
-}
-
-/**
- * Whether an embed placeholder came from an iframe with sandbox or permission restrictions.
- */
-export function restrictedEmbed(p: HTMLElement) {
-  return p.dataset.plugin === 'plugin/embed' && (p.hasAttribute('data-sandbox') || p.hasAttribute('data-allow'));
-}
-
-/**
- * Create a plain iframe for a restricted embed placeholder, keeping its
- * sandbox and allow attributes exactly as the author wrote them.
- */
-export function restrictedIframe(p: HTMLElement) {
-  const iframe = p.ownerDocument.createElement('iframe');
-  if (p.hasAttribute('data-sandbox')) iframe.setAttribute('sandbox', p.dataset.sandbox || '');
-  if (p.hasAttribute('data-allow')) iframe.setAttribute('allow', p.dataset.allow || '');
-  if (p.hasAttribute('data-allowfullscreen')) iframe.setAttribute('allowfullscreen', '');
-  if (p.dataset.title) iframe.title = p.dataset.title;
-  if (p.dataset.width) iframe.style.width = p.dataset.width;
-  if (p.dataset.height) iframe.style.height = p.dataset.height;
-  iframe.src = p.dataset.url!;
-  return iframe;
+  doc.body.querySelectorAll('source, track').forEach(t => t.remove());
 }
 
 /**

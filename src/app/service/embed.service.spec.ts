@@ -125,23 +125,16 @@ describe('EmbedService', () => {
       expect(doc.querySelector<HTMLElement>('[data-url="https://example.com/p.png"]')!.dataset.width).toBe('10px');
     });
 
-    it('converts iframes into placeholders when the sanitizer is disabled', () => {
-      const doc = service.renderDocument('<iframe src="https://example.com/embed"></iframe>', '', false, true);
-      expect(doc.querySelector('iframe')).toBeNull();
-      expect(doc.querySelector<HTMLElement>('.md-embed')!.dataset.plugin).toBe('plugin/embed');
+    it('leaves iframes and svg images untouched when the sanitizer is disabled', () => {
+      const html = '<iframe sandbox="" src="https://example.com/embed"></iframe><svg><image href="https://example.com/a.png"></image></svg>';
+      const doc = service.renderDocument(html, '', false, true);
+      expect(doc.querySelector('iframe')!.getAttribute('sandbox')).toBe('');
+      expect(doc.querySelector('.md-embed')).toBeNull();
+      expect(doc.querySelector('svg image')).toBeTruthy();
     });
 
-    it('keeps iframe restrictions on placeholders', () => {
-      const doc = service.renderDocument('<iframe sandbox="allow-scripts" allow="fullscreen" allowfullscreen src="https://example.com/embed"></iframe>', '', false, true);
-      const p = doc.querySelector<HTMLElement>('.md-embed')!;
-      expect(p.dataset.sandbox).toBe('allow-scripts');
-      expect(p.dataset.allow).toBe('fullscreen');
-      expect(p.hasAttribute('data-allowfullscreen')).toBe(true);
-    });
-
-    it('ignores forged iframe restrictions', () => {
-      const doc = service.renderDocument('<span class="md-embed" data-url="https://x.com" data-plugin="plugin/embed" data-sandbox="">x</span>');
-      expect(doc.querySelector('[data-sandbox]')).toBeNull();
+    it('removes iframes when sanitizing', () => {
+      expect(service.renderDocument('<iframe src="https://example.com/embed"></iframe>').querySelector('iframe, .md-embed')).toBeNull();
     });
 
     it('keeps Jasper URI schemes and blocks script URIs', () => {

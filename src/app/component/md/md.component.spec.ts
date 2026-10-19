@@ -164,19 +164,6 @@ describe('MdComponent', () => {
     expect(links).toEqual(['/tag/science', 'comment:1', 'wiki:Page', 'isbn:123']);
   });
 
-  it('should hydrate restricted iframes with their original restrictions', () => {
-    component.disableSanitizer = true;
-    component.text = '<iframe sandbox="" allow="autoplay" src="https://example.com/embed"></iframe>';
-    fixture.detectChanges();
-
-    const iframe = fixture.nativeElement.querySelector('iframe') as HTMLIFrameElement;
-    expect(iframe.getAttribute('sandbox')).toBe('');
-    expect(iframe.getAttribute('allow')).toBe('autoplay');
-    expect(iframe.hasAttribute('allowfullscreen')).toBe(false);
-    expect(iframe.getAttribute('src')).toBe('https://example.com/embed');
-    expect(component.vc.length).toBe(0);
-  });
-
   it('should re-render when mermaid, clipboard or sanitizer inputs change', () => {
     component.text = '```\ncode\n```';
     fixture.detectChanges();
