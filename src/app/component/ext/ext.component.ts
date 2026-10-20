@@ -126,7 +126,7 @@ export class ExtComponent implements HasChanges {
   }
 
   saveChanges() {
-    return !this.editForm()?.dirty;
+    return !this.editing() || !this.editForm()?.dirty;
   }
 
   toggleEditing() {

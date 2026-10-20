@@ -114,6 +114,7 @@ describe('ExtComponent', () => {
     component.toggleEditing();
     fixture.detectChanges();
     expect(component.draft()).toBe(true);
+    expect(component.saveChanges()).toBe(true);
 
     fixture.componentRef.setInput('ext', { tag: 'ext', name: 'Original' });
     fixture.detectChanges();
