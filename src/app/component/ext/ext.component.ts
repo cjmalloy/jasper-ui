@@ -211,6 +211,7 @@ export class ExtComponent implements HasChanges {
     };
     if (this.ext().upload) {
       ext.upload = true;
+      this.editing.set(false);
       this.ext.set(ext);
       this.store.submit.setExt(this.ext());
     } else {
@@ -231,6 +232,7 @@ export class ExtComponent implements HasChanges {
         }),
       ).subscribe(ext => {
         this.editForm().reset();
+        this.editing.set(false);
         this.latestExt.set(ext);
         this.applyLatest();
         this.init();

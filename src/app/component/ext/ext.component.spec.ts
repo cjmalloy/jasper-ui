@@ -6,7 +6,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { FormlyModule } from '@ngx-formly/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 import { ExtService } from '../../service/api/ext.service';
 import { EditorService } from '../../service/editor.service';
@@ -134,5 +134,24 @@ describe('ExtComponent', () => {
     expect(component.ext().name).toBe('Remote');
     expect(component.editForm().get('name')!.value).toBe('Remote');
     expect(component.remoteEdits()).toBe(false);
+  });
+
+  it('closes the editor after saving', () => {
+    fixture.componentRef.setInput('ext', { tag: 'ext', name: 'Original' });
+    fixture.detectChanges();
+    component.toggleEditing();
+    fixture.detectChanges();
+    component.editForm().get('name')!.setValue('Saved');
+    component.editForm().markAsDirty();
+    const extService = TestBed.inject(ExtService);
+    vi.spyOn(extService, 'update').mockReturnValue(of('cursor'));
+    vi.spyOn(extService, 'get').mockReturnValue(of({ tag: 'ext', name: 'Saved' }));
+
+    component.save();
+    fixture.detectChanges();
+
+    expect(component.editing()).toBe(false);
+    expect(component.draft()).toBe(false);
+    expect(component.ext().name).toBe('Saved');
   });
 });

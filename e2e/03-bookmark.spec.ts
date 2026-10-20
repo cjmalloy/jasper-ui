@@ -169,9 +169,13 @@ test.describe.serial('Bookmark Formly Type', () => {
     await edit.click();
     await expect(ext.locator('[name=columnBacklogTitle]')).toHaveValue('todo');
     await expect(ext.locator('[name=name]')).toHaveValue('Remote Kanban');
-    await ext.locator('button', { hasText: 'cancel' }).click();
-
-    await renameExt('Bookmark Filter Kanban');
+    await ext.locator('[name=name]').fill('Bookmark Filter Kanban');
+    const saved = page.waitForResponse(response => response.url().includes('/api/v1/ext') && response.request().method() === 'PUT' && response.ok());
+    await ext.locator('button', { hasText: 'save' }).click();
+    await saved;
+    await expect(ext.locator('[name=name]')).toHaveCount(0);
+    await expect(ext.locator('.link a').first()).toContainText('Bookmark Filter Kanban');
+    await expect(ext.locator('.actions .fake-link', { hasText: '*edit*' })).toHaveCount(0);
   });
 
   test('clicking outside popup closes it', async ({ page }) => {
