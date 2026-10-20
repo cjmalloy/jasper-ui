@@ -77,7 +77,7 @@
     <span><!-- Buttons --></span>
     <span class="buttons right">
       <button type="submit" [disabled]="submitted() && !editFormValid()" i18n>save</button>
-      <button type="button" (click)="editing.set(false)" i18n>cancel</button>
+      <button type="button" (click)="cancelEdit()" i18n>cancel</button>
     </span>
   </form>
 } @else if (viewSource()) {

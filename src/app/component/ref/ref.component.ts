@@ -181,20 +181,23 @@ export class RefComponent implements HasChanges {
   readonly viewer = viewChild<ViewerComponent>('viewer');
 
   readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
+  /** Latest version of the Ref, including updates held back while editing. */
+  private readonly latestRef = linkedSignal(() => this.refInput());
   /**
-   * Updates to the same Ref (such as websocket updates) are ignored while
-   * editing or viewing source, so they don't cancel the edit.
+   * Updates to the same Ref (such as websocket updates) are held back while
+   * editing, viewing source or keeping a hidden draft, so they don't cancel the edit.
    */
   readonly ref = linkedSignal<Ref | undefined, Ref>({
     source: this.refInput,
-    computation: (ref, previous) => previous && untracked(() => this.editing() || this.viewSource())
+    computation: (ref, previous) => previous && sameRef(ref, previous.source) && untracked(() => this.holding())
       ? previous.value
       : ref!,
   });
   /** Set when an update to the Ref arrived while editing and was not applied. */
   readonly remoteEdits = linkedSignal<Ref | undefined, boolean>({
     source: this.refInput,
-    computation: (ref, previous) => !!previous && untracked(() => this.editing() || this.viewSource()),
+    computation: (ref, previous) => !!previous && sameRef(ref, previous.source)
+      && untracked(() => previous.value || this.holding()),
   });
   private readonly refKey = computed(() => {
     const ref = this.refInput();
@@ -225,6 +228,11 @@ export class RefComponent implements HasChanges {
   editForm: UntypedFormGroup;
   protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
   protected readonly editFormDirty = controlState(() => this.editForm, c => c.dirty);
+  /** Key of the Ref the edit form was filled from. */
+  private readonly formKey = signal('');
+  /** The edit form has unsaved changes for this Ref, even if the editor is hidden. */
+  readonly draft = computed(() => !!this.editFormDirty() && this.formKey() === this.refKey());
+  private readonly holding = computed(() => this.editing() || this.viewSource() || this.draft());
   readonly submitted = linkedSignal(() => { this.ref(); return false; });
   readonly invalid = linkedSignal(() => { this.ref(); return false; });
   readonly overwritten = linkedSignal(() => { this.ref(); return false; });
@@ -303,12 +311,12 @@ export class RefComponent implements HasChanges {
     });
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
-        if (this.editing() || this.viewSource()) {
-          // TODO: show somewhere
-          console.warn('Ignoring Ref edit.');
-          return;
-        }
         if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
+          if (event.ref) this.latestRef.set(event.ref);
+          if (this.holding()) {
+            this.remoteEdits.set(true);
+            return;
+          }
           this.ref.set(event.ref!);
           this.remoteEdits.set(false);
           this.init();
@@ -319,7 +327,7 @@ export class RefComponent implements HasChanges {
         }
       }
       if (this.ref()?.upload && event.event === 'refresh:uploads') {
-        if (this.editing() || this.viewSource()) {
+        if (this.holding()) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
           return;
@@ -580,10 +588,23 @@ export class RefComponent implements HasChanges {
     }
   }
 
+  /** Fills the edit form from the Ref, unless it holds a draft for this Ref. */
   syncEditor() {
     if (!this.editing() && !this.viewSource()) return;
+    if (this.draft()) return;
     setRefForm(this.fb, this.admin, this.editForm, this.ref());
     if (this.editing()) this.editor.syncEditor(this.fb, this.editForm, this.ref().comment);
+    this.editForm.markAsPristine();
+    this.formKey.set(this.refKey());
+  }
+
+  /** Discards the draft and applies any updates held back while editing. */
+  discard() {
+    this.editForm.markAsPristine();
+    const latest = this.latestRef();
+    if (latest) this.ref.set(latest);
+    this.remoteEdits.set(false);
+    this.setEditing(false);
   }
 
   /**
@@ -1465,4 +1486,8 @@ export class RefComponent implements HasChanges {
     if (!ref) return;
     this.store.eventBus.reload(this.ref());
   }
+}
+
+function sameRef(a?: Ref, b?: Ref) {
+  return !!a && !!b && a.url === b.url && (a.origin || '') === (b.origin || '');
 }

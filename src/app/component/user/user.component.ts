@@ -100,12 +100,18 @@ export class UserComponent implements HasChanges {
     effect(() => {
       const refForm = this.refForm();
       const user = untracked(() => this.user());
-      if (user) defer(() => refForm?.setUser(user));
+      if (user && !untracked(() => this.editForm.dirty)) defer(() => refForm?.setUser(user));
     });
   }
 
   saveChanges() {
     return !this.editing() || !this.editForm.dirty;
+  }
+
+  /** Discards the draft. */
+  cancelEdit() {
+    this.editForm.markAsPristine();
+    this.editing.set(false);
   }
 
   init() {

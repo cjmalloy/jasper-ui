@@ -87,7 +87,7 @@
             <app-inline-tag [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>
           }
           @if (writeAccess()) {
-            <a class="fake-link" (click)="toggleEditing()" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
+            <a class="fake-link" (click)="toggleEditing()" i18n>@if (draft()) {*edit*} @else {edit}</a>
           } @else {
             <a class="fake-link" (click)="toggleViewSource()" i18n>source</a>
           }

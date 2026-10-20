@@ -92,6 +92,47 @@ describe('RefComponent', () => {
     expect(component.remoteEdits()).toBe(false);
   });
 
+  it('keeps a hidden draft until it is discarded', () => {
+    fixture.componentRef.setInput('ref', { url: 'https://example.com', origin: '', title: 'First' });
+    fixture.detectChanges();
+    component.setEditing(true);
+    component.editForm.get('title')!.setValue('Edited');
+    component.editForm.markAsDirty();
+    component.setEditing(false);
+    expect(component.draft()).toBe(true);
+
+    fixture.componentRef.setInput('ref', { url: 'https://example.com', origin: '', title: 'Updated' });
+    expect(component.ref().title).toBe('First');
+    expect(component.remoteEdits()).toBe(true);
+
+    component.setEditing(true);
+    expect(component.editForm.get('title')!.value).toBe('Edited');
+
+    component.discard();
+    expect(component.editing()).toBe(false);
+    expect(component.draft()).toBe(false);
+    expect(component.remoteEdits()).toBe(false);
+    expect(component.ref().title).toBe('Updated');
+
+    component.setEditing(true);
+    expect(component.editForm.get('title')!.value).toBe('Updated');
+  });
+
+  it('drops the draft for a different Ref', () => {
+    fixture.componentRef.setInput('ref', { url: 'https://example.com', origin: '', title: 'First' });
+    fixture.detectChanges();
+    component.setEditing(true);
+    component.editForm.get('title')!.setValue('Edited');
+    component.editForm.markAsDirty();
+    component.setEditing(false);
+
+    fixture.componentRef.setInput('ref', { url: 'https://example.org', origin: '', title: 'Other' });
+    expect(component.draft()).toBe(false);
+    expect(component.remoteEdits()).toBe(false);
+    component.setEditing(true);
+    expect(component.editForm.get('title')!.value).toBe('Other');
+  });
+
   it('fills the edit form from the Ref when editing starts', () => {
     vi.spyOn(component.admin, 'getPlugin').mockImplementation(tag =>
       tag === 'plugin/thumbnail' ? { tag, config: { form: [{ key: 'url' }] } } as any : undefined);

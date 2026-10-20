@@ -111,6 +111,12 @@ export class ExtComponent implements HasChanges {
     return !this.editForm()?.dirty;
   }
 
+  /** Discards the draft. */
+  cancelEdit() {
+    this.init();
+    this.editing.set(false);
+  }
+
   init() {
     if (this.ext()) {
       this.editForm.set(extForm(this.fb, this.ext(), this.admin, true));

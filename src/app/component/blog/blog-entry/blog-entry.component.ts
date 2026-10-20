@@ -117,12 +117,17 @@ export class BlogEntryComponent implements HasChanges {
   editForm: UntypedFormGroup;
   protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
   protected readonly editFormDirty = controlState(() => this.editForm, c => c.dirty);
+  private readonly refKey = computed(() => (this.ref().origin || '') + ':' + this.ref().url);
+  /** Key of the Ref the edit form was filled from. */
+  private readonly formKey = signal('');
+  /** The edit form has unsaved changes for this Ref, even if the editor is hidden. */
+  readonly draft = computed(() => !!this.editFormDirty() && this.formKey() === this.refKey());
   readonly submitted = linkedSignal({ source: this.ref, computation: () => false });
   readonly icons = computed(() => uniqueConfigs(sortOrder(this.admin.getIcons(this.ref().tags, this.ref().plugins, getScheme(this.ref().url)))));
   readonly actions = computed(() => uniqueConfigs(sortOrder(this.admin.getActions(this.ref().tags, this.ref().plugins))));
   readonly groupedActions = computed(() => groupBy(this.actions().filter(a => this.showAction(a)), a => (a as any)[this.label(a)]));
-  readonly editing = linkedSignal({ source: this.ref, computation: () => false });
-  readonly viewSource = linkedSignal({ source: this.ref, computation: () => false });
+  readonly editing = linkedSignal({ source: this.refKey, computation: () => false });
+  readonly viewSource = linkedSignal({ source: this.refKey, computation: () => false });
   readonly deleted = linkedSignal({ source: this.ref, computation: () => false });
   readonly writeAccess = computed(() => this.auth.writeAccess(this.ref()));
   readonly taggingAccess = computed(() => this.auth.taggingAccess(this.ref()));
@@ -400,14 +405,17 @@ export class BlogEntryComponent implements HasChanges {
     });
   }
 
+  /** Discards the draft. */
   cancelEdit() {
     this.submittingSubscription?.unsubscribe();
+    this.editForm.markAsPristine();
     this.editing.set(false);
   }
 
   toggleEditing() {
     if (this.editing()) {
-      this.cancelEdit();
+      this.submittingSubscription?.unsubscribe();
+      this.editing.set(false);
     } else {
       this.syncEditor();
       this.editing.set(true);
@@ -419,9 +427,13 @@ export class BlogEntryComponent implements HasChanges {
     this.viewSource.set(!this.viewSource());
   }
 
+  /** Fills the edit form from the Ref, unless it holds a draft for this Ref. */
   private syncEditor() {
+    if (this.draft()) return;
     setRefForm(this.fb, this.admin, this.editForm, this.ref());
     this.editor.syncEditor(this.fb, this.editForm, this.ref().comment);
+    this.editForm.markAsPristine();
+    this.formKey.set(this.refKey());
   }
 
   forceDelete$ = () => {

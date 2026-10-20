@@ -82,6 +82,12 @@ export class PluginComponent implements HasChanges {
     return !this.editing() || !this.editForm.dirty;
   }
 
+  /** Discards the draft. */
+  cancelEdit() {
+    this.init();
+    this.editing.set(false);
+  }
+
   init(): void {
     this.editForm.reset();
     this.editForm.patchValue({

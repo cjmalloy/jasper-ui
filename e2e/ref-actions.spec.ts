@@ -152,8 +152,23 @@ test.describe.serial('Ref Actions', () => {
 
     await expect(page.locator('.full-page.ref .info .remote-edits')).toBeVisible();
     await expect(page.locator('.full-page.ref [name=title]')).toHaveValue('Edited Title');
+
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'edit' }).first().click();
+    await expect(page.locator('.full-page.ref [name=title]')).toHaveCount(0);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: '*edit*' })).toBeVisible();
+    await expect(page.locator('.full-page.ref .info .remote-edits')).toBeVisible();
+
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: '*edit*' }).click();
+    await expect(page.locator('.full-page.ref [name=title]')).toHaveValue('Edited Title');
+
     await page.locator('.full-page.ref form.form button', { hasText: 'cancel' }).click();
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
+    await expect(page.locator('.full-page.ref .info .remote-edits')).toHaveCount(0);
+    await expect(page.locator('.full-page.ref .tag', { hasText: 'websocket' })).toBeVisible();
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: '*edit*' })).toHaveCount(0);
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'edit' }).first().click();
+    await expect(page.locator('.full-page.ref [name=title]')).toHaveValue('Title');
+    await page.locator('.full-page.ref form.form button', { hasText: 'cancel' }).click();
   });
 
   test.describe('New Comments/Threads/Replies Indicators', () => {

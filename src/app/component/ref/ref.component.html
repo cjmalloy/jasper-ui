@@ -80,9 +80,6 @@
       <span i18n-title title="last edited {{ ref().modified | relative }}">* </span>
     }
   }
-  @if (remoteEdits()) {
-    <span class="remote-edits" i18n-title title="Modified remotely while editing">✏️ </span>
-  }
   @if (authors().length) {
     <span i18n> by
       @if (authorExts(); as xs) {
@@ -177,6 +174,9 @@
       }
     }
   }
+  @if (remoteEdits()) {
+    <span class="remote-edits" i18n-title title="Modified remotely while editing"> ✏️</span>
+  }
 </div>
 @if (expanded() && expandInline() && !editing() && !viewSource()) {
   <app-viewer #viewer class="viewer-inline"
@@ -242,7 +242,7 @@
   }
   @if (!hideEdit()) {
     @if (ref().created && writeAccess()) {
-      <a class="fake-link" (click)="setEditing(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
+      <a class="fake-link" (click)="setEditing(!editing())" i18n>@if (draft()) {*edit*} @else {edit}</a>
     } @else {
       <a class="fake-link" (click)="setViewSource(!viewSource())" i18n>source</a>
     }
@@ -269,7 +269,7 @@
       @if (taggingAccess()) {
         <app-inline-tag [action]="tag$" [tags]="ref().tags" i18n>tag</app-inline-tag>
       }
-      <a class="fake-link" (click)="setEditing(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
+      <a class="fake-link" (click)="setEditing(!editing())" i18n>@if (draft()) {*edit*} @else {edit}</a>
     }
     <app-confirm-action [action]="remove$" i18n>remove</app-confirm-action>
   }
@@ -350,7 +350,7 @@
         <app-loading [inline]="true"></app-loading>
       }
       <button type="submit" [disabled]="submitting() || submitted() && !editFormValid()" i18n>save</button>
-      <button type="button" [disabled]="submitting()" (click)="setEditing(false)" i18n>cancel</button>
+      <button type="button" [disabled]="submitting()" (click)="discard()" i18n>cancel</button>
     </span>
   </form>
 } @else if (viewSource()) {
