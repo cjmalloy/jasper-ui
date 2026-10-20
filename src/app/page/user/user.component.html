@@ -6,7 +6,7 @@
 
 <form class="form" [formGroup]="profileForm" (ngSubmit)="save()">
 
-  <app-user-form #form
+  <app-user-form
                  [group]="user"
                  (tagChanges)="setTag($event)"
                  [showClear]="!!store.view.selectedUser()"

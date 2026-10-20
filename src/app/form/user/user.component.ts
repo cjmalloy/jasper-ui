@@ -1,6 +1,7 @@
-import { afterNextRender, Component, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { afterNextRender, Component, computed, inject, input, output, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
+  UntypedFormArray,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
@@ -42,12 +43,6 @@ export class UserFormComponent {
   readonly showClear = input(false);
   readonly clear = output<void>();
   readonly externalErrors = input<string[]>([]);
-
-  readonly notifications = viewChild.required<TagsFormComponent>('notifications');
-  readonly readAccess = viewChild.required<TagsFormComponent>('readAccess');
-  readonly writeAccess = viewChild.required<TagsFormComponent>('writeAccess');
-  readonly tagReadAccess = viewChild.required<TagsFormComponent>('tagReadAccess');
-  readonly tagWriteAccess = viewChild.required<TagsFormComponent>('tagWriteAccess');
 
   id = 'user-' + uuid();
   readonly editingExternal = signal<any>(false);
@@ -107,18 +102,25 @@ export class UserFormComponent {
     }
   }
 
-  setUser(user: User) {
-    this.notifications().setTags((user.readAccess || []).filter(isMailbox));
-    this.readAccess().setTags((user.readAccess || []).filter(t => !isMailbox(t)));
-    this.writeAccess().setTags([...user.writeAccess || []]);
-    this.tagReadAccess().setTags([...user.tagReadAccess || []]);
-    this.tagWriteAccess().setTags([...user.tagWriteAccess || []]);
-    this.group().patchValue({
-      ...user,
-      external: user.external ? JSON.stringify(user.external, null, 2) : undefined,
-    });
-  }
+}
 
+/** Fills a {@link userForm} from a User in one step. */
+export function setUserForm(fb: UntypedFormBuilder, group: UntypedFormGroup, user: Partial<User>) {
+  setTagArray(fb, group.get('notifications') as UntypedFormArray, (user.readAccess || []).filter(isMailbox));
+  setTagArray(fb, group.get('readAccess') as UntypedFormArray, (user.readAccess || []).filter(t => !isMailbox(t)));
+  setTagArray(fb, group.get('writeAccess') as UntypedFormArray, user.writeAccess || []);
+  setTagArray(fb, group.get('tagReadAccess') as UntypedFormArray, user.tagReadAccess || []);
+  setTagArray(fb, group.get('tagWriteAccess') as UntypedFormArray, user.tagWriteAccess || []);
+  group.patchValue({
+    ...user,
+    external: user.external ? JSON.stringify(user.external, null, 2) : undefined,
+  });
+}
+
+function setTagArray(fb: UntypedFormBuilder, array: UntypedFormArray, values: string[]) {
+  while (array.length > values.length) array.removeAt(array.length - 1, { emitEvent: false });
+  while (array.length < values.length) array.push(fb.control('', TagsFormComponent.validators), { emitEvent: false });
+  array.setValue(values);
 }
 
 export function userForm(fb: UntypedFormBuilder, locked = false) {

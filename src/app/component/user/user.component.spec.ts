@@ -120,4 +120,43 @@ describe('UserComponent', () => {
     expect(() => component.connectionRef()).not.toThrow();
     expect(component.connectionRef().plugins?.['+plugin/origin/tunnel']).toEqual({ remoteUser: '+user' });
   });
+
+  it('fills the edit form from the User when editing starts', () => {
+    fixture.componentRef.setInput('user', {
+      tag: '+user/test',
+      origin: '',
+      name: 'Test',
+      readAccess: ['public', 'plugin/inbox/test'],
+      writeAccess: ['+custom'],
+      external: { ids: ['a'] },
+    });
+    component.toggleEditing();
+
+    expect(component.editForm.getRawValue()).toMatchObject({
+      name: 'Test',
+      notifications: ['plugin/inbox/test'],
+      readAccess: ['public'],
+      writeAccess: ['+custom'],
+      tagReadAccess: [],
+      tagWriteAccess: [],
+      external: JSON.stringify({ ids: ['a'] }, null, 2),
+    });
+  });
+
+  it('keeps a hidden draft until it is cancelled', () => {
+    fixture.componentRef.setInput('user', { tag: '+user/test', origin: '', name: 'Test' });
+    component.toggleEditing();
+    component.editForm.get('name')!.setValue('Edited');
+    component.editForm.markAsDirty();
+    component.toggleEditing();
+    expect(component.draft()).toBe(true);
+
+    component.toggleEditing();
+    expect(component.editForm.get('name')!.value).toBe('Edited');
+
+    component.cancelEdit();
+    expect(component.draft()).toBe(false);
+    component.toggleEditing();
+    expect(component.editForm.get('name')!.value).toBe('Test');
+  });
 });

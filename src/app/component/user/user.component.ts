@@ -1,15 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, input, linkedSignal, untracked, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, signal, untracked } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { defer, uniq } from 'lodash-es';
+import { uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, forkJoin, of, startWith, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
-import { userForm, UserFormComponent } from '../../form/user/user.component';
+import { setUserForm, userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { getRole, Profile } from '../../model/profile';
 import { Ref } from '../../model/ref';
@@ -79,11 +79,14 @@ export class UserComponent implements HasChanges {
   readonly externalErrors = linkedSignal<string[]>(() => { this.user(); this.profileInput(); return []; });
   readonly genKey = linkedSignal(() => { this.user(); this.profileInput(); return false; });
 
-  readonly refForm = viewChild<UserFormComponent>('refForm');
-
   editForm: UntypedFormGroup;
   protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
   protected readonly editFormDirty = controlState(() => this.editForm, c => c.dirty);
+  private readonly userKey = computed(() => this.qualifiedTag());
+  /** Key of the User the edit form was filled from. */
+  private readonly formKey = signal('');
+  /** The edit form has unsaved changes for this User, even if the editor is hidden. */
+  readonly draft = computed(() => !!this.editFormDirty() && this.formKey() === this.userKey());
   readonly submitted = linkedSignal(() => { this.user(); this.profileInput(); return false; });
   readonly editing = linkedSignal(() => { this.user(); this.profileInput(); return false; });
   readonly viewSource = linkedSignal(() => { this.user(); this.profileInput(); return false; });
@@ -97,15 +100,30 @@ export class UserComponent implements HasChanges {
       untracked(() => this.init());
     });
     this.editForm = userForm(fb, true);
-    effect(() => {
-      const refForm = this.refForm();
-      const user = untracked(() => this.user());
-      if (user && !untracked(() => this.editForm.dirty)) defer(() => refForm?.setUser(user));
-    });
   }
 
   saveChanges() {
     return !this.editing() || !this.editForm.dirty;
+  }
+
+  toggleEditing() {
+    if (!this.editing()) this.syncEditor();
+    this.editing.set(!this.editing());
+  }
+
+  toggleViewSource() {
+    if (!this.viewSource()) this.syncEditor();
+    this.viewSource.set(!this.viewSource());
+  }
+
+  /** Fills the edit form from the User, unless it holds a draft for this User. */
+  private syncEditor() {
+    if (this.draft()) return;
+    const user = this.user();
+    if (!user) return;
+    setUserForm(this.fb, this.editForm, user);
+    this.editForm.markAsPristine();
+    this.formKey.set(this.userKey());
   }
 
   /** Discards the draft. */

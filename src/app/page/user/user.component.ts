@@ -1,12 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { defer, uniq } from 'lodash-es';
+import { uniq } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { SettingsComponent } from '../../component/settings/settings.component';
-import { userForm, UserFormComponent } from '../../form/user/user.component';
+import { setUserForm, userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
@@ -41,7 +41,6 @@ export class UserPage implements HasChanges {
   readonly serverError = signal<string[]>([]);
   readonly externalErrors = signal<string[]>([]);
 
-  readonly userForm = viewChild.required<UserFormComponent>('form');
   profileForm: UntypedFormGroup;
   protected readonly profileFormValid = controlState(() => this.profileForm, c => c.valid);
 
@@ -70,16 +69,18 @@ export class UserPage implements HasChanges {
       const user = x.user;
       this.store.view.selectedUser.set(user);
       if (user) {
-        this.profileForm.setControl('user', userForm(this.fb, true));
-        defer(() => this.userForm().setUser(user));
+        const form = userForm(this.fb, true);
+        setUserForm(this.fb, form, user);
+        this.profileForm.setControl('user', form);
       } else {
-        this.profileForm.setControl('user', userForm(this.fb, false));
-        defer(() => this.userForm().setUser({
+        const form = userForm(this.fb, false);
+        setUserForm(this.fb, form, {
           tag: this.store.view.localTag(),
           origin: this.store.view.origin(),
           readAccess: this.admin.readAccess().map(t => setPublic(prefix(t, this.store.view.localTag()))),
           writeAccess: this.admin.writeAccess().map(t => setPublic(prefix(t, this.store.view.localTag()))),
-        }));
+        });
+        this.profileForm.setControl('user', form);
       }
     });
   }
