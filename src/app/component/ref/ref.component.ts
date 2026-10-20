@@ -252,6 +252,13 @@ export class RefComponent implements HasChanges {
   private refreshTap?: () => void;
   readonly editing = linkedSignal(() => { this.ref(); return false; });
   readonly viewSource = linkedSignal(() => { this.ref(); return false; });
+  /**
+   * Set once the edit form has been filled from the Ref. Until then the
+   * thumbnail is drawn from the Ref, not the partially filled form.
+   */
+  private readonly editFormSynced = linkedSignal(() => { this.editing(); return false; });
+  private readonly editingThumbnail = computed(() => this.editing() && this.editFormSynced());
+  private editFormSync = 0;
   readonly diffing = signal(false);
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
@@ -437,7 +444,7 @@ export class RefComponent implements HasChanges {
     this.controlState0();
     if (!this.admin.getPlugin('plugin/image')) return null;
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
-    if (this.editing()) {
+    if (this.editingThumbnail()) {
       const value = this.editForm.value;
       if (!hasTag('plugin/thumbnail/storyboard', value)) return null;
       return value?.plugins?.['plugin/thumbnail/storyboard']
@@ -566,7 +573,10 @@ export class RefComponent implements HasChanges {
     if (!this.editing() && !this.viewSource()) return;
     const refFormValue = this.refForm();
     if (refFormValue) {
-      refFormValue.setRef(cloneDeep(this.ref()));
+      const sync = ++this.editFormSync;
+      refFormValue.setRef(cloneDeep(this.ref()), () => {
+        if (sync === this.editFormSync && this.editing()) this.editFormSynced.set(true);
+      });
       if (this.editing()) this.editor.syncEditor(this.fb, this.editForm, this.ref().comment);
     } else {
       defer(() => this.syncEditor());
@@ -661,7 +671,7 @@ export class RefComponent implements HasChanges {
   readonly thumbnail = computed(() => {
     this.controlState0();
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    if (this.editing()) {
+    if (this.editingThumbnail()) {
       if (hasTag('plugin/thumbnail', this.editForm.value)) return true;
       if (!this.admin.getPlugin('plugin/image')) return false;
       return hasTag('plugin/image', this.editForm.value);
@@ -673,7 +683,7 @@ export class RefComponent implements HasChanges {
 
   readonly thumbnailRefs = computed(() => {
     this.controlState0();
-    return this.editing() ? [{ ...this.editForm.getRawValue(), origin: this.ref().origin }] : [this.repostRef(), this.ref()];
+    return this.editingThumbnail() ? [{ ...this.editForm.getRawValue(), origin: this.ref().origin }] : [this.repostRef(), this.ref()];
   });
 
   readonly refThumbnailPlugin = computed(() => {
@@ -700,14 +710,14 @@ export class RefComponent implements HasChanges {
   readonly thumbnailColor = computed(() => {
     this.controlState0();
     if (!this.thumbnail()) return '';
-    if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
+    if (this.editingThumbnail()) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
     return this.ref()?.plugins?.['plugin/thumbnail']?.color || this.repostRef()?.plugins?.['plugin/thumbnail']?.color || '';
   });
 
   readonly thumbnailEmoji = computed(() => {
     this.controlState0();
     if (!this.thumbnail()) return '';
-    if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
+    if (this.editingThumbnail()) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
     return this.ref()?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef()?.plugins?.['plugin/thumbnail']?.emoji || '';
   });
 
@@ -718,7 +728,7 @@ export class RefComponent implements HasChanges {
 
   readonly thumbnailRadius = computed(() => {
     this.controlState0();
-    if (this.editing()) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
+    if (this.editingThumbnail()) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
     return this.ref()?.plugins?.['plugin/thumbnail']?.radius || this.repostRef()?.plugins?.['plugin/thumbnail']?.radius || 0;
   });
 

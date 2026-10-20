@@ -71,8 +71,23 @@ describe('RefComponent', () => {
     fixture.detectChanges();
     component.editForm.get('url')!.setValue(component.ref().url);
     component.setEditing(true);
+    component['editFormSynced'].set(true);
 
     expect(component.thumbnailRefs()[0]?.url).toBe('cache:image-id');
+  });
+
+  it('draws the thumbnail from the Ref until the edit form is filled', () => {
+    const ref = {
+      url: 'https://example.com/page',
+      origin: '',
+      tags: ['plugin/thumbnail'],
+      plugins: { 'plugin/thumbnail': { url: 'https://example.com/thumb.png' } },
+    };
+    fixture.componentRef.setInput('ref', ref);
+    fixture.detectChanges();
+    component.setEditing(true);
+
+    expect(component.thumbnailRefs()).toEqual([undefined, ref]);
   });
 
   it('keeps storyboard data from the Ref while editing', () => {

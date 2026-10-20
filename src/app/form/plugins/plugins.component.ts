@@ -126,10 +126,11 @@ export class PluginsFormComponent {
     return !this.icons().length && !Object.keys(this.plugins().controls).length;
   });
 
-  setValue(value: any) {
+  setValue(value: any, done?: () => void) {
     defer(() => {
       this.plugins().patchValue(value);
       this.gens()!.forEach(g => g.setValue(value))
+      done?.();
     });
   }
 

@@ -417,7 +417,10 @@ export class RefFormComponent {
     }
   }
 
-  setRef(ref: Partial<Ref>) {
+  /**
+   * @param done called once the plugin values have been set
+   */
+  setRef(ref: Partial<Ref>, done?: () => void) {
     this.ref.set(ref as Ref);
     this.group().patchValue({
       ...ref,
@@ -427,7 +430,7 @@ export class RefFormComponent {
       this.sourcesFormComponent().setLinks(ref.sources || []);
       this.altsFormComponent().setLinks(ref.alternateUrls || []);
       this.tagsFormComponent().setTags(ref.tags || []);
-      this.pluginsFormComponent().setValue(ref.plugins);
+      this.pluginsFormComponent().setValue(ref.plugins, done);
     });
   }
 }
