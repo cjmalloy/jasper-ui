@@ -22,6 +22,7 @@ import {
   templates,
   userAuthors,
   authors,
+  dedent,
 } from './format';
 import { Ref } from '../model/ref';
 
@@ -426,6 +427,21 @@ describe('Format Utils', () => {
       const ref: Ref = { url: 'test', origin: '@origin', tags: ['+user/name', '+user/name'] };
       const result = authors(ref);
       expect(result.filter(a => a === '+user/name@origin').length).toBe(1);
+    });
+  });
+
+  describe('dedent', () => {
+    it('should remove common leading indentation', () => {
+      expect(dedent('\n      a\n        b\n      c')).toBe('\na\n  b\nc');
+    });
+
+    it('should ignore blank lines when finding indentation', () => {
+      expect(dedent('  a\n\n    \n  b')).toBe('a\n\n\nb');
+    });
+
+    it('should leave unindented text unchanged', () => {
+      expect(dedent('a\n    b')).toBe('a\n    b');
+      expect(dedent('')).toBe('');
     });
   });
 });

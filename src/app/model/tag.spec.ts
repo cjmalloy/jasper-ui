@@ -1,6 +1,6 @@
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Ref } from './ref';
-import { clear } from './tag';
+import { clear, hydrate } from './tag';
 
 const progress = (ref?: Ref) => (Handlebars as any).helpers['progress'](ref, 'plugin/progress');
 
@@ -51,6 +51,25 @@ describe('Tag Model', () => {
       expect(progress({ url: '', tags: ['plugin/progress/abc/100'] })).toBeUndefined();
       expect(progress({ url: '', tags: ['plugin/progress/1/0'] })).toBeUndefined();
       expect(progress(undefined)).toBeUndefined();
+    });
+  });
+
+  describe('hydrate', () => {
+    it('should not render indented templates as markdown code blocks', () => {
+      const config = {
+        infoUi: `
+          {{#if (interestingTags addTags)}} tagging refs {{/if}}
+          {{#each (interestingTags addTags)}}
+            #{{.}}
+          {{/each}}`,
+      };
+      const result = hydrate(config, 'infoUi', { addTags: ['science', 'funny'] });
+      for (const line of result.split('\n')) {
+        expect(line).not.toMatch(/^ {4}/);
+      }
+      expect(result).toContain('tagging refs');
+      expect(result).toContain('#science');
+      expect(result).toContain('#funny');
     });
   });
 });
