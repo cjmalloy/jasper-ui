@@ -37,8 +37,8 @@
   <form class="form"
         [formGroup]="editForm"
         (ngSubmit)="save()">
-    <app-ext-form #form
-                  [group]="editForm"
+    <app-ext-form [group]="editForm"
+                  [ext]="ext()"
                   [showClear]="true"
                   (clear)="clear()"></app-ext-form>
 

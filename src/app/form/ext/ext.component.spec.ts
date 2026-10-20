@@ -247,4 +247,29 @@ describe('ExtFormComponent', () => {
     expect(component.filterDateLabel(component.defaultFilter().value[0])).toBe('15 minutes');
     expect(fixture.nativeElement.querySelector('.default-filter-date-range output').textContent).toBe('15 minutes');
   });
+
+  it('builds the formly model from the ext input in one step', () => {
+    const config = { sidebar: 'Sidebar content' };
+    fixture.componentRef.setInput('ext', { tag: 'science', config });
+    detectInputChanges();
+
+    expect(component.model()).toEqual(config);
+    expect(component.model()).not.toBe(config);
+    expect(component.options.formState.config).toBe(config);
+  });
+
+  it('rebuilds the formly model for a new form group', () => {
+    fixture.componentRef.setInput('ext', { tag: 'science', config: { sidebar: 'Sidebar content' } });
+    detectInputChanges();
+    component.model().sidebar = 'Draft';
+
+    fixture.componentRef.setInput('group', new UntypedFormGroup({
+      tag: new UntypedFormControl(),
+      name: new UntypedFormControl(),
+      config: new UntypedFormGroup({}),
+    }));
+    detectInputChanges();
+
+    expect(component.model()).toEqual({ sidebar: 'Sidebar content' });
+  });
 });

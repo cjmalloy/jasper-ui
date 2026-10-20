@@ -107,9 +107,9 @@
       </div>
     }
     @if (form(); as form) {
-      <formly-form #mainFormlyForm
-                   class="nested-form"
+      <formly-form class="nested-form"
                    [form]="config()"
+                   [model]="model()"
                    [fields]="form"
                    [options]="options"></formly-form>
     }
@@ -172,9 +172,9 @@
             }
           </div>
         }
-        <formly-form #advancedFormlyForm
-                     class="nested-form"
+        <formly-form class="nested-form"
                      [form]="config()"
+                     [model]="model()"
                      [fields]="advancedForm()!"
                      [options]="options"></formly-form>
       </div>

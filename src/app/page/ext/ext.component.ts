@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
@@ -9,7 +9,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { defer, isObject } from 'lodash-es';
+import { isObject } from 'lodash-es';
 import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
@@ -63,7 +63,10 @@ export class ExtPage implements HasChanges {
   private deletingSubscription?: Subscription;
   readonly overwrittenModified = signal<string | undefined>('');
 
-  readonly form = viewChild<ExtFormComponent>('form');
+  /**
+   * The Ext the edit form was filled from.
+   */
+  readonly ext = signal<Ext | undefined>(undefined);
   created = false;
   overwrite = false;
   extForm: UntypedFormGroup;
@@ -108,8 +111,8 @@ export class ExtPage implements HasChanges {
     if (ext) {
       const editForm = extForm(this.fb, ext, this.admin, true);
       editForm.patchValue(ext);
+      this.ext.set(ext);
       this.editForm.set(editForm);
-      defer(() => this.form()!.setValue(ext));
     } else {
       for (const t of this.templates) {
         if (hasPrefix(tag, t.tag)) {

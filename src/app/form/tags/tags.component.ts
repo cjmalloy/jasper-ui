@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, input } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { controlValue } from '../../util/form';
@@ -77,9 +77,7 @@ export class TagsFormComponent {
 
   setTags(values: string[]) {
     if (!this.tags()) throw 'Not ready yet!';
-    while (this.tags().length > values.length) this.tags().removeAt(this.tags().length - 1, { emitEvent: false });
-    while (this.tags().length < values.length) this.tags().push(this.fb.control(''), { emitEvent: false });
-    this.tags().setValue(values);
+    fillTags(this.fb, this.tags(), values);
   }
 
   addTag(...values: string[]) {
@@ -92,10 +90,7 @@ export class TagsFormComponent {
         break;
       }
     }
-    values = values.filter(t => t === 'placeholder' || !hasTag(t, this.tags().value));
-    if (values.length) {
-      this.setTags([...this.tags().value, ...values]);
-    }
+    addTags(this.fb, this.tags(), ...values);
   }
 
   update() {
@@ -127,4 +122,21 @@ export class TagsFormComponent {
     }
     if (removed) this.update();
   }
+}
+
+/**
+ * Sets the tags in a tags form array in one step.
+ */
+export function fillTags(fb: FormBuilder | UntypedFormBuilder, tags: UntypedFormArray, values: string[]) {
+  while (tags.length > values.length) tags.removeAt(tags.length - 1, { emitEvent: false });
+  while (tags.length < values.length) tags.push(fb.control(''), { emitEvent: false });
+  tags.setValue(values);
+}
+
+/**
+ * Adds the tags missing from a tags form array.
+ */
+export function addTags(fb: FormBuilder | UntypedFormBuilder, tags: UntypedFormArray, ...values: string[]) {
+  values = values.filter(t => t === 'placeholder' || !hasTag(t, tags.value));
+  if (values.length) fillTags(fb, tags, [...tags.value, ...values]);
 }

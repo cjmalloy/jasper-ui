@@ -13,7 +13,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, uniq, without } from 'lodash-es';
+import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import {
   catchError,
@@ -281,11 +281,7 @@ export class SubmitWebPage implements HasChanges {
     if (plugins.length) {
       this.addTag(...plugins.map(p => p.tag));
     }
-    this.webForm.get('url')?.enable();
-    defer(() => {
-      this.webForm.get('url')?.setValue(value);
-      this.webForm.get('url')?.disable();
-    });
+    this.webForm.get('url')?.setValue(value);
   }
 
   get url() {

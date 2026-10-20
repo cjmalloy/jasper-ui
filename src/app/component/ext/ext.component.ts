@@ -9,7 +9,6 @@ import {
   linkedSignal,
   signal,
   untracked,
-  viewChild
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -72,7 +71,6 @@ export class ExtComponent implements HasChanges {
 
   readonly extInput = input.required<Ext>({ alias: 'ext' });
   readonly ext = linkedSignal(() => this.extInput());
-  readonly extFormComponent = viewChild<ExtFormComponent>('extForm');
   readonly useEditPage = input(false);
 
   readonly editForm = signal<UntypedFormGroup>(undefined as unknown as UntypedFormGroup);
@@ -101,10 +99,6 @@ export class ExtComponent implements HasChanges {
       this.extInput();
       untracked(() => this.init());
     });
-    effect(() => {
-      const extForm = this.extFormComponent();
-      untracked(() => extForm?.setValue(this.ext()));
-    });
   }
 
   saveChanges() {
@@ -119,7 +113,9 @@ export class ExtComponent implements HasChanges {
 
   init() {
     if (this.ext()) {
-      this.editForm.set(extForm(this.fb, this.ext(), this.admin, true));
+      const editForm = extForm(this.fb, this.ext(), this.admin, true);
+      editForm.patchValue(this.ext());
+      this.editForm.set(editForm);
     }
   }
 

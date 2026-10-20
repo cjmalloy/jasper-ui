@@ -20,7 +20,7 @@ import {
   UntypedFormControl,
   UntypedFormGroup
 } from '@angular/forms';
-import { defer, isEqual, some } from 'lodash-es';
+import { isEqual, some } from 'lodash-es';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -44,7 +44,7 @@ import { addAllHierarchicalTags, hasMedia, hasPrefix, hasTag } from '../../util/
 import { EditorComponent } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
 import { pluginsForm, PluginsFormComponent, syncPluginsForm } from '../plugins/plugins.component';
-import { TagsFormComponent } from '../tags/tags.component';
+import { fillTags, TagsFormComponent } from '../tags/tags.component';
 
 @Component({
   selector: 'app-ref-form',
@@ -209,12 +209,7 @@ export class RefFormComponent {
   }
 
   setTags(value: string[]) {
-    const tagsFormComponent = this.tagsFormComponent();
-    if (!tagsFormComponent?.tags()) {
-      defer(() => this.setTags(value));
-      return;
-    }
-    tagsFormComponent.setTags(value);
+    fillTags(this.fb, this.tags(), value);
   }
 
   readonly editorLabel = computed(() => {
@@ -389,12 +384,13 @@ export class RefFormComponent {
         for (const t of s.tags || []) {
           if (!hasTag(t, this.tags().value)) this.togglePlugin(t);
         }
-        defer(() => {
-          this.pluginsFormComponent().setValue({
+        this.ref.update(ref => ({
+          ...ref,
+          plugins: {
             ...this.group().value.plugins || {},
             ...s.plugins || {},
-          });
-        });
+          },
+        } as Ref));
       });
     }
   }

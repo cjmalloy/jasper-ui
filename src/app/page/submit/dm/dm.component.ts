@@ -1,13 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  afterNextRender,
   Component,
   computed,
   DestroyRef,
   effect,
   forwardRef,
   inject,
-  Injector,
   signal,
   untracked,
   viewChild
@@ -45,7 +43,7 @@ import { ResizeHandleDirective } from '../../../directive/resize-handle.directiv
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
-import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { fillTags, TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { getMailbox } from '../../../mods/mailbox';
@@ -97,7 +95,6 @@ export class SubmitDmPage implements HasChanges {
   protected readonly toMissing = controlState(() => this.to, c => c.touched && !c.value);
 
 
-  private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private _url = 'comment:' + uuid();
 
@@ -109,7 +106,6 @@ export class SubmitDmPage implements HasChanges {
 
   readonly editorComponent = viewChild<EditorComponent>('ed');
 
-  readonly tagsFormComponent = viewChild<TagsFormComponent>('tagsFormComponent');
 
   readonly preview = signal<string>('');
   readonly previewTitle = signal('');
@@ -159,25 +155,24 @@ export class SubmitDmPage implements HasChanges {
     return !this.dmForm?.dirty;
   }
 
-  private readonly initializeView = afterNextRender(() => {
-    effect(() => {
-      this.store.submit.dmPlugin();
-      this.store.submit.to();
-      this.store.submit.tags();
-      this.store.account.localTag();
-      untracked(() => {
-        const dmPlugin = this.store.submit.dmPlugin();
-        if (dmPlugin) {
-          this.setTo(dmPlugin);
-        } if (this.store.submit.to().length) {
-          this.setTo(this.store.submit.to().join(' '));
-        } else {
-          this.setTo('');
-        }
-        const tags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
-        if (tags.length) this.addTags(tags);
-      });
-    }, { injector: this.injector });
+  // Sync the submit params into the form
+  private readonly initialize = effect(() => {
+    this.store.submit.dmPlugin();
+    this.store.submit.to();
+    this.store.submit.tags();
+    this.store.account.localTag();
+    untracked(() => {
+      const dmPlugin = this.store.submit.dmPlugin();
+      if (dmPlugin) {
+        this.setTo(dmPlugin);
+      } if (this.store.submit.to().length) {
+        this.setTo(this.store.submit.to().join(' '));
+      } else {
+        this.setTo('');
+      }
+      const tags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
+      if (tags.length) this.addTags(tags);
+    });
   });
 
   get to() {
@@ -235,25 +230,11 @@ export class SubmitDmPage implements HasChanges {
   }
 
   addTags(value: string[]) {
-    const tagsFormComponent = this.tagsFormComponent();
-    if (!tagsFormComponent?.tags()) {
-      defer(() => {
-        if (!this.destroyRef.destroyed) this.addTags(value);
-      });
-      return;
-    }
-    tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
+    fillTags(this.fb, this.tags, uniq([...this.tags.value, ...value]));
   }
 
   setTags(value: string[]) {
-    const tagsFormComponent = this.tagsFormComponent();
-    if (!tagsFormComponent?.tags()) {
-      defer(() => {
-        if (!this.destroyRef.destroyed) this.setTags(value);
-      });
-      return;
-    }
-    tagsFormComponent.setTags(value);
+    fillTags(this.fb, this.tags, value);
   }
 
   get showError() {

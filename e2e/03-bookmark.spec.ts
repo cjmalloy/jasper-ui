@@ -95,6 +95,14 @@ test.describe.serial('Bookmark Formly Type', () => {
     if (originsIndex !== -1) expect(kanbanIndex).toBeLessThan(originsIndex);
   });
 
+  test('fills the ext form with template config in one step', async ({ page }) => {
+    await page.goto('/ext/kanban/bookmark/filter?debug=MOD', { waitUntil: 'networkidle' });
+    await expect(page.locator('[name=name]')).toHaveValue('Bookmark Filter Kanban');
+    await expect(page.locator('[name=showColumnBacklog]')).toBeChecked();
+    await expect(page.locator('[name=columnBacklogTitle]')).toHaveValue('todo');
+    await expect(page.locator('.columns input.grow.preview')).toHaveCount(2);
+  });
+
   test('clicking outside popup closes it', async ({ page }) => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     const bookmarkField = await addBookmark(page);

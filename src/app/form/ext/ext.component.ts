@@ -1,6 +1,6 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, computed, DestroyRef, forwardRef, inject, input, output, signal, viewChild } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, effect, forwardRef, inject, input, linkedSignal, output, signal } from '@angular/core';
+import { rxResource, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   ReactiveFormsModule,
@@ -11,9 +11,9 @@ import {
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
-import { cloneDeep, defer, uniq } from 'lodash-es';
+import { cloneDeep, uniq } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
-import { catchError, of } from 'rxjs';
+import { catchError, of, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
@@ -55,7 +55,6 @@ export class ExtFormComponent  {
   private readonly controlState0 = controlValue(() => this.group().get('tag')!);
   private readonly controlState1 = controlValue(() => this.themes());
 
-  private destroyRef = inject(DestroyRef);
   readonly allSorts = signal(this.admin.refSorts().map(convertSort));
   readonly allFilters = signal<FilterItem[]>([
     { filter: `modified/before/${DateTime.now().toISO()}`, label: $localize`🕓️ modified before` },
@@ -88,17 +87,40 @@ export class ExtFormComponent  {
   ];
 
   readonly group = input.required<UntypedFormGroup>();
+  /**
+   * The Ext the form was filled from. Formly fields are built from its config.
+   */
+  readonly ext = input<Ext | undefined>(undefined);
   readonly showClear = input(false);
   readonly clear = output<void>();
 
-  readonly mainFormlyForm = viewChild<FormlyForm>('mainFormlyForm');
-  readonly advancedFormlyForm = viewChild<FormlyForm>('advancedFormlyForm');
-
   id = 'ext-' + uuid();
-  readonly form = signal<FormlyFieldConfig[] | undefined>(undefined);
-  readonly advancedForm = signal<FormlyFieldConfig[] | undefined>(undefined);
-  readonly loadingDefaults = signal(false);
-  readonly defaults = signal<Ref | undefined>(undefined);
+  readonly form = linkedSignal(() => {
+    const tag = this.ext()?.tag;
+    this.group();
+    return tag === undefined ? undefined : cloneDeep(this.admin.getTemplateForm(tag));
+  });
+  readonly advancedForm = linkedSignal(() => {
+    const tag = this.ext()?.tag;
+    this.group();
+    return tag === undefined ? undefined : cloneDeep(this.admin.getTemplateAdvancedForm(tag));
+  });
+  /**
+   * Formly model for the template fields, rebuilt for each new form group so
+   * discarded edits are not kept.
+   */
+  readonly model = computed(() => {
+    this.group();
+    return cloneDeep(this.ext()?.config) || {};
+  });
+  private readonly defaultsResource = rxResource({
+    params: () => this.ext()?.config?.defaults ? this.ext()!.tag : undefined,
+    stream: ({ params: tag }) => this.refs.getCurrent('tag:/' + tag).pipe(
+      catchError(() => of(undefined)),
+    ),
+  });
+  readonly loadingDefaults = linkedSignal(() => this.defaultsResource.isLoading());
+  readonly defaults = linkedSignal<Ref | undefined>(() => this.defaultsResource.hasValue() ? this.defaultsResource.value() : undefined);
 
   options: FormlyFormOptions = {
     formState: {
@@ -107,15 +129,23 @@ export class ExtFormComponent  {
     }
   };
 
-  private tag?: string;
-
-
-
-
-
-
-
-
+  constructor() {
+    // Sync the Ext config into the formly form state
+    effect(() => {
+      this.options.formState.config = this.ext()?.config;
+    });
+    toObservable(this.config).pipe(
+      switchMap(config => config.valueChanges),
+      takeUntilDestroyed(),
+    ).subscribe(value => {
+      if (value.defaults) {
+        if (!this.defaults()) this.createDefaults();
+      } else {
+        this.defaults.set(undefined);
+        this.loadingDefaults.set(false);
+      }
+    });
+  }
 
   readonly user = computed(() => {
     this.rootControlState();
@@ -309,63 +339,13 @@ export class ExtFormComponent  {
     return negatable(filter);
   }
 
-  setValue(ext: Ext) {
-    this.tag = ext.tag;
-    if (ext.config?.defaults) {
-      this.loadingDefaults.set(true);
-      this.refs.getCurrent('tag:/' + ext.tag)
-        .subscribe(ref => {
-          this.defaults.set(ref);
-          this.loadingDefaults.set(false);
-        });
-    }
-    if (!this.form()) {
-      this.form.set(cloneDeep(this.admin.getTemplateForm(ext.tag)));
-    }
-    if (!this.advancedForm()) {
-      this.advancedForm.set(cloneDeep(this.admin.getTemplateAdvancedForm(ext.tag)));
-    }
-    this.setModel(ext);
-  }
-
-  private setModel(ext: Ext) {
-    const mainFormlyForm = this.mainFormlyForm();
-    const advancedFormlyForm = this.advancedFormlyForm();
-    if (!mainFormlyForm || !advancedFormlyForm) {
-      defer(() => this.setModel(ext));
-      return;
-    }
-    this.group()!.patchValue(ext);
-    this.options.formState.config = ext.config;
-    mainFormlyForm!.model = ext.config;
-    // TODO: Why aren't changed being detected?
-    // @ts-ignore
-    mainFormlyForm.builder.build(mainFormlyForm.field);
-    if (advancedFormlyForm) {
-      advancedFormlyForm!.model = ext.config;
-      // TODO: Why aren't changed being detected?
-      // @ts-ignore
-      advancedFormlyForm.builder.build(advancedFormlyForm.field);
-    }
-    this.config().valueChanges.pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(value => {
-      if (value.defaults) {
-        if (!this.defaults()) this.createDefaults();
-      } else {
-        this.defaults.set(undefined);
-        this.loadingDefaults.set(false);
-      }
-    });
-  }
-
   createDefaults() {
     this.loadingDefaults.set(true);
-    this.refs.getCurrent('tag:/' + this.tag).pipe(
+    this.refs.getCurrent('tag:/' + this.ext()?.tag).pipe(
       catchError(err => {
         this.defaults.set({
           origin: this.store.account.origin(),
-          url: 'tag:/' + this.tag,
+          url: 'tag:/' + this.ext()?.tag,
           tags: ['internal', this.store.account.localTag()],
           created: DateTime.now(),
           published: DateTime.now(),

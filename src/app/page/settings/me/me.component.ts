@@ -1,8 +1,8 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal, viewChild } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { cloneDeep, defer } from 'lodash-es';
+import { cloneDeep } from 'lodash-es';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
@@ -40,18 +40,15 @@ export class SettingsMePage implements HasChanges {
   readonly editing = signal(false);
   private editingSubscription?: Subscription;
 
-  readonly form = viewChild<ExtFormComponent>('form');
+  readonly ext = cloneDeep(this.store.account.ext());
   editForm!: UntypedFormGroup;
   protected readonly editFormValid = controlState(() => this.editForm, c => c.valid);
 
   constructor() {
-    const store = this.store;
     const fb = this.fb;
 
-    const ext = cloneDeep(store.account.ext()!);
-    this.editForm = extForm(fb, ext, this.admin, true);
-    this.editForm.patchValue(ext);
-    if (ext) defer(() => this.form()!.setValue(ext));
+    this.editForm = extForm(fb, this.ext, this.admin, true);
+    this.editForm.patchValue(this.ext || {});
   }
 
   saveChanges() {

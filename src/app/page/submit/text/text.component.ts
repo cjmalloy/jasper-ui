@@ -19,7 +19,7 @@ import {
   UntypedFormGroup
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, isEqual, some, uniq, without } from 'lodash-es';
+import { isEqual, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, firstValueFrom, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -33,8 +33,8 @@ import { ResizeHandleDirective } from '../../../directive/resize-handle.directiv
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
-import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
-import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { refForm, RefFormComponent, setRefForm } from '../../../form/ref/ref.component';
+import { addTags, fillTags, TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Ref } from '../../../model/ref';
@@ -100,7 +100,10 @@ export class SubmitTextPage implements HasChanges {
   readonly editorComponent = viewChild<EditorComponent>('ed');
 
   readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
-  readonly plugins = viewChild.required<PluginsFormComponent>('plugins');
+  /**
+   * Plugin data the plugin forms are built from.
+   */
+  readonly pluginValues = signal<Record<string, any> | undefined>(undefined);
 
   readonly submitting = signal(false);
   private submittingSubscription?: Subscription;
@@ -111,7 +114,10 @@ export class SubmitTextPage implements HasChanges {
   readonly loadingDefaults = signal<Ext[]>([]);
   readonly completedUploads = signal<Ref[]>([]);
   private oldSubmit: string[] = [];
-  private savedRef?: Ref;
+  /**
+   * The Ref the advanced form is filled from.
+   */
+  readonly savedRef = signal<Ref | undefined>(undefined);
   private cursor?: string;
   private readonly tagsValue = controlValue<string[]>(() => this.tags);
 
@@ -125,10 +131,7 @@ export class SubmitTextPage implements HasChanges {
     this.textForm = refForm(fb);
     this.ensureUrl();
     store.submit.wikiPrefix.set(admin.getWikiPrefix());
-    effect(() => {
-      const value = this.advancedForm();
-      untracked(() => this.setAdvancedForm(value));
-    });
+    this.initialize();
   }
 
   addCompletedUpload(ref: Ref) {
@@ -143,7 +146,7 @@ export class SubmitTextPage implements HasChanges {
     return !this.textForm?.dirty;
   }
 
-  private readonly initializeView = afterNextRender(() => {
+  private initialize() {
     if (this.admin.editing() && this.store.submit.url()) {
       this.refs.getEditing(this.store.submit.url()).subscribe(draft => {
         if (!draft) return;
@@ -166,7 +169,7 @@ export class SubmitTextPage implements HasChanges {
       if (d) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         this.addTag(...this.oldSubmit);
-        this.plugins().setValue(d.ref.plugins);
+        this.pluginValues.set(d.ref.plugins);
         this.textForm.patchValue({
           ...d.ref,
           tags: this.oldSubmit,
@@ -198,14 +201,13 @@ export class SubmitTextPage implements HasChanges {
             this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
             // Only apply changes so tags edited in the form are kept
             if (removed.length) {
-              this.tagsFormComponent().setTags(without(this.tags.value, ...removed));
-              this.tagsFormComponent().update();
+              fillTags(this.fb, this.tags, without(this.tags.value, ...removed));
             }
             if (added.length) this.addTag(...added);
           }
           if (this.store.submit.pluginUpload()) {
             this.addTag(this.store.submit.plugin());
-            this.plugins().setValue({
+            this.pluginValues.set({
               ...this.textForm.value.plugins || {},
               [this.store.submit.plugin()]: { url: this.store.submit.pluginUpload() },
             });
@@ -222,14 +224,15 @@ export class SubmitTextPage implements HasChanges {
       const location = this.store.submit.location();
       if (location) {
         this.addTag('plugin/geo/point');
-        this.plugins().setValue({
+        this.pluginValues.set({
           ...this.textForm.value.plugins || {},
           'plugin/geo/point': { type: 'Feature', geometry: { type: 'Point', coordinates: location } },
         });
       }
       if (this.store.submit.embedFiles().length) {
         const files = [...this.store.submit.embedFiles()];
-        defer(() => {
+        // The editor uploads the files once it has rendered
+        afterNextRender(() => {
           const editorComponent = this.editorComponent();
           if (this.customEditor()) {
             this.store.submit.setEmbedFiles();
@@ -241,10 +244,10 @@ export class SubmitTextPage implements HasChanges {
             this.store.submit.setEmbedFiles();
             editorComponent.upload(files as any);
           }
-        });
+        }, { injector: this.injector });
       }
     });
-  });
+  }
 
   readonly randomURL = computed(() => {
     return !this.store.submit.url() && (this.admin.isWikiExternal() || !this.store.submit.wiki()) ;
@@ -270,7 +273,7 @@ export class SubmitTextPage implements HasChanges {
   showAdvanced() {
     const tags = uniq(this.textForm.value.tags);
     const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
-    this.savedRef = {
+    const ref: Ref = {
       ...this.textForm.value,
       url: this.url.value, // Need to pull separately since control is locked
       title: this.title.value, // Need to pull separately if disabled by wiki mode
@@ -279,16 +282,9 @@ export class SubmitTextPage implements HasChanges {
       tags,
       plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
     };
+    setRefForm(this.fb, this.admin, this.textForm, ref);
+    this.savedRef.set(ref);
     this.advanced.set(true);
-  }
-
-  readonly advancedForm = viewChild<RefFormComponent>('advancedForm');
-
-  private setAdvancedForm(value: RefFormComponent | undefined) {
-    if (this.savedRef && value) {
-      value.setRef(this.savedRef);
-      delete this.savedRef;
-    }
   }
 
   get url() {
@@ -342,12 +338,7 @@ export class SubmitTextPage implements HasChanges {
   }
 
   setTags(value: string[]) {
-    const tagsFormComponent = this.tagsFormComponent();
-    if (!tagsFormComponent?.tags()) {
-      defer(() => this.setTags(value));
-      return;
-    }
-    tagsFormComponent.setTags(value);
+    fillTags(this.fb, this.tags, value);
   }
 
   validate(input: HTMLInputElement) {
@@ -360,12 +351,7 @@ export class SubmitTextPage implements HasChanges {
   }
 
   addTag(...values: string[]) {
-    const tagsFormComponent = this.tagsFormComponent();
-    if (!tagsFormComponent?.tags()) {
-      defer(() => this.addTag(...values));
-      return;
-    }
-    tagsFormComponent.addTag(...values);
+    addTags(this.fb, this.tags, ...values);
     this.submitted.set(false);
   }
 
