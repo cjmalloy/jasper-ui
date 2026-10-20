@@ -171,6 +171,32 @@ test.describe.serial('Ref Actions', () => {
     await page.locator('.full-page.ref form.form button', { hasText: 'cancel' }).click();
   });
 
+  test('keeps the actions row collapsed and on one line on mobile', async ({ browser }) => {
+    const mobile = await browser.newPage({ viewport: { width: 390, height: 800 } });
+    try {
+      await mobile.goto('/tag/@*?search=Title&debug=MOD', { waitUntil: 'networkidle' });
+      const ref = mobile.locator('.ref-list .ref').filter({ has: mobile.locator('.link a', { hasText: /^Title$/ }) }).first();
+      const actions = ref.locator(':scope > .actions');
+      const height = () => actions.evaluate(e => e.getBoundingClientRect().height);
+      await expect.poll(height).toBe(0);
+      await ref.locator('.actions-toggle').click();
+      await expect(actions).toHaveClass(/\bexpanded\b/);
+      await actions.evaluate(e => Promise.all(e.getAnimations().map(a => a.finished)));
+      const rowHeight = await height();
+      expect(rowHeight).toBeGreaterThan(0);
+      await actions.locator('.fake-link', { hasText: /^tag$/ }).first().click();
+      await expect(actions.locator('.inline-tagging input')).toBeVisible();
+      const tops = await actions.locator(':scope > *').evaluateAll(es => es
+        .map(e => e.getBoundingClientRect())
+        .filter(r => r.height > 0)
+        .map(r => Math.round(r.top)));
+      expect(new Set(tops).size).toBe(1);
+      expect(await height()).toBe(rowHeight);
+    } finally {
+      await mobile.close();
+    }
+  });
+
   test.describe('New Comments/Threads/Replies Indicators', () => {
     test('should clear localStorage for clean test', async () => {
       await page.evaluate(() => localStorage.clear());
