@@ -231,7 +231,7 @@ export const naviPlugin: Plugin = {
 export const systemPrompt: Ref = {
   url: 'system:prompt',
   title: $localize`System Prompt`,
-  tags: ['public', 'internal', '+system/prompt', 'plugin/code/md'],
+  tags: ['public', 'internal', '+system/prompt', 'plugin/code/md', 'plugin/pinned'],
   // language=Markdown
   comment: `
 Your name is Navi. You are a helpful assistant for a knowledge management database codenamed Jasper.
@@ -285,6 +285,7 @@ plugins and templates and ensure data shape with [JTD](https://jsontypedef.com/d
 schemas. Fork [the reference client](https://github.com/cjmalloy/jasper-ui) or use the
 [OpenApi docs](https://editor.swagger.io/?url=https://raw.githubusercontent.com/cjmalloy/jasper/refs/heads/master/src/main/resources/swagger/api.yml)
 to generate API stubs.
+See [Errors](./docs/errors.md) for the error codes returned by the API.
 
 ## Standards
 
@@ -304,8 +305,7 @@ is the URL field which can be a link to a web page, or a reference to any arbitr
 by the URL scheme. Web content will of course use the http or https scheme. To reference a book,
 one could use the [ISBN](https://en.wikipedia.org/wiki/ISBN) scheme (i.e. \`isbn:978-3-16-148410-0\`).
 For comments, [Jasper-UI](https://github.com/cjmalloy/jasper-ui) uses a \`comment\` scheme followed by an arbitrary ID,
-usually a UUID
-(i.e. \`comment:75b36465-4236-4d64-8c78-027d87f3c072\`). For hosting internal wikis,
+usually a UUID (i.e. \`comment:75b36465-4236-4d64-8c78-027d87f3c072\`). For hosting internal wikis,
 [Jasper-UI](https://github.com/cjmalloy/jasper-ui) uses a \`wiki\` scheme followed by the
 [Wiki Page Name](https://en.wikipedia.org/wiki/Wikipedia:Page_name) (i.e. \`wiki:John_Cena\`).
 
@@ -350,7 +350,10 @@ Valid operators in a query are:
 3. \`!\` not
 4. \`()\` groups
 
-Note: In the current implementation, groups may not be nested.
+Groups may be nested up to 64 levels deep, and may be negated with \`!\`. A negated group
+matches anything the group does not match, so \`!(a|b)\` is the same as \`!a:!b\`, and
+\`!(a:b)\` is the same as \`!a|!b\`. Double negations cancel out, so \`!!(a)\` and \`!(!a)\`
+are the same as \`a\`.
 
 Example queries:
 
@@ -362,6 +365,8 @@ Example queries:
   also the \`funny\` tag. This would match a ref with \`['science', 'funny']\`, \`['math', 'funny']\`,
   but would not match \`['science', 'math']\`
 * \`science:funny|math:funny\`: Extended form of previous query. Would produce the exact same results.
+* \`science:!(funny|politics)\`: All Refs that have the \`science\` tag but have neither the \`funny\`
+  tag nor the \`politics\` tag. Same as \`science:!funny:!politics\`.
 * \`music:people/murray\`: All Refs that have the \`music\` tag and \`people/murray\` tag. It would also
   match Refs with \`['music', 'people/murray/anne']\` or \`['music', 'people/murray/bill']\`
 
@@ -380,6 +385,29 @@ database schema changes.
 
 The \`:num\` and \`:len\` suffixes are automatically applied to metadata fields, so you can use
 \`metadata->responses\` instead of \`metadata->responses:len\`.
+
+Refs can also be sorted by the value of a tag using \`tags->{tag}\`. The value is the first
+sub-tag after the prefix of the first tag that has one. For example, \`tags->plugin/title\`
+sorts on \`hello\` for the tag \`plugin/title/hello\`, and \`tags->plugin/progress:num\`
+sorts numerically on \`37\` for the tag \`plugin/progress/37/100\` (ignoring \`100\` and any further sub-tags).
+Append \`:dur\` to sort ISO-8601 durations (case-insensitive) by length, so
+\`tags->plugin/duration:dur\` sorts \`plugin/duration/pt90m\` after \`plugin/duration/pt1h\`.
+A bare \`plugin/progress\` tag is skipped. Refs without a matching tag, or with a value
+that cannot be parsed, sort as \`''\` or \`0\`.
+
+To index a tag value sort on PostgreSQL, add it to \`hotTags\` in the \`_config/index\` template config,
+for example \`{"hotTags": ["plugin/progress:num", "plugin/duration:dur"]}\`. Hot tag indexes that are
+removed from the list are dropped. Hot tags are ignored on SQLite.
+
+Metadata dates useful for sorting:
+
+- \`metadata->modified\`: updated whenever the responses, internal responses or plugin counts change.
+- \`metadata->newResponse\`: updated only when a new response is created (not updated), ignoring
+  user urls (\`tag:/user?url=...\`).
+- \`metadata->newReaction\`: updated whenever any response is created or updated, including user urls.
+
+\`newResponse\` and \`newReaction\` are always written with 9 fractional digits so that sorting them
+as text gives chronological order.
 
 ## Modding
 
@@ -404,6 +432,13 @@ See [Jasper-UI](https://github.com/cjmalloy/jasper-ui) for examples of Plugins a
 
 * \`plugin/thumbnail\`: [This plugin](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/mods/thumbnail.ts)
   allows a Ref to include a URL to a thumbnail image.
+* \`plugin/progress\`: Shows a progress bar for a tag like \`plugin/progress/3/5\`. If this plugin is
+  installed in an origin, the server tags origin push/pull Refs and RSS feed Refs with their progress while
+  long-running jobs are running, and removes the tag when they finish. Push/pull progress is estimated
+  from where the modified cursor is between its starting position and the latest modified date on the
+  source. These updates are silent: they do
+  not change the Ref's modified date. Updates are sent at most once every 5 seconds, so jobs that finish in
+  under 5 seconds add no tag.
 * \`user\` Template:
   [This template](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/mods/user.ts)
   allows a user tag to customize their experience, such as subscribing to a list of tags to show
@@ -441,7 +476,9 @@ Refs are the main data model in Jasper. A Ref defines a URL to a remote resource
     "responses": 0,
     "internalResponses": 0,
     "plugins": {},
-    "modified": "2022-06-18T12:07:04.404272Z"
+    "modified": "2022-06-18T12:07:04.404272Z",
+    "newResponse": "2022-06-18T12:07:04.404272000Z",
+    "newReaction": "2022-06-18T12:07:04.404272000Z"
   },
   "published": "2022-06-18T12:00:07Z",
   "created": "2022-06-18T12:07:04.404272Z",
@@ -461,7 +498,7 @@ Implementations may also make the modified date part of the composite primary ke
 **Tags:** A list of tags used to categorise this Ref. All tags must match the regex \`[_+]?[a-z0-9]+([./][a-z0-9]+)*\`
 **Sources:** A list of URLs which are sources for this Ref. These may or may not have a corresponding Ref
 entity. If a source URL does correspond to a Ref, the published date of the source must predate the
-published date of this Ref.
+published date of this Ref. This only applies when both Refs are non-internal. Internal Refs may cite any source.
 **Alternate URLs:** Alternate URLs which should be considered synonymous with the URL of this Ref. This
 should be used as part of a uniqueness check when ingesting Refs.
 **Plugins:** A JSON object with plugin tags as fields and arbitrary JSON data defined by each respective
@@ -469,7 +506,8 @@ plugin. Must be valid according to each plugin's schema.
 **Metadata:** Optional data generated by the server for this resource. Includes response links (inverse
 source lookup).
 **Published:** The published date of this resource. Default to create date if not known. This date must
-be later than the published date of all sources.
+be later than the published date of all sources. Internal Refs, and internal sources or responses, are
+not checked.
 **Created:** Created date of this Ref.
 **Modified:** Last modified date of this Ref. If this is the same as the created date no modification
 has occurred. Does not update if Metadata is modified.
@@ -499,10 +537,9 @@ The combination of Tag and Origin for a Ext must be unique and may be used as a 
 Implementations may also make the modified date part of the composite primary key for version history.
 
 **Tag:** The tag of this Ext. Must match the regex \`[_+]?[a-z0-9]+([./][a-z0-9]+)*\`
-**Origin:** The Origin this Ext was replicated from, or the empty string for local.
-**Name:** The display name of this Ext. Used to customise the page title for the Tag page.
-**Config:** Arbitrary JSON data defined by Templates. Must be valid according to each template's schema.
-**Modified:** Last modified date of this Ext
+**Origin:** The Origin this Ext was replicated from, or the empty string for local. **Name:** The display name of this
+Ext. Used to customise the page title for the Tag page. **Config:** Arbitrary JSON data defined by Templates. Must be
+valid according to each template's schema. **Modified:** Last modified date of this Ext
 
 ### User
 
@@ -814,6 +851,7 @@ It supports the following configuration options:
 | \`JASPER_BACKUP_BUFFER_SIZE\`                         | Size of buffer in bytes used to cache JSON in RAM before flushing to disk during backup.                                       | \`1000000\`                                                                                                                                                                                                     |
 | \`JASPER_RESTORE_BATCH_SIZE\`                         | Number of entities to restore in each transaction.                                                                             | \`500\`                                                                                                                                                                                                         |
 | \`JASPER_BACKFILL_BATCH_SIZE\`                        | Number of entities to generate Metadata for in each transaction when backfilling.                                              | \`100\`                                                                                                                                                                                                         |
+| \`JASPER_CASCADE_BATCH_SIZE\`                         | Number of Refs marked for cascade to update source Metadata for in each run.                                                   | \`100\`                                                                                                                                                                                                         |
 | \`JASPER_CLEAR_CACHE_COOLDOWN_SEC\`                   | Number of seconds to throttle clearing the config cache.                                                                       | \`2\`                                                                                                                                                                                                           |
 | \`JASPER_PUSH_COOLDOWN_SEC\`                          | Number of seconds to throttle pushing after modification.                                                                      | \`1\`                                                                                                                                                                                                           |
 | \`JASPER_STORAGE\`                                    | Path to the folder to use for storage. Used by the backup system.                                                              | \`/var/lib/jasper\`                                                                                                                                                                                             |
@@ -834,7 +872,7 @@ It supports the following configuration options:
 | \`JASPER_OVERRIDE_SERVER_SSH_ORIGINS\`                | Override the server origins with SSH access.                                                                                   |                                                                                                                                                                                                               |
 | \`JASPER_OVERRIDE_SERVER_MAX_PUSH_ENTITY_BATCH\`      | Override the server maximum batch size for push replicate.                                                                     |                                                                                                                                                                                                               |
 | \`JASPER_OVERRIDE_SERVER_MAX_PULL_ENTITY_BATCH\`      | Override the server maximum batch size for pull replicate.                                                                     |                                                                                                                                                                                                               |
-| \`JASPER_OVERRIDE_SERVER_SCRIPT_SELECTORS\`           | Override the server tags and origins that can run scripts. No wildcard origins.                                                |                                                                                                                                                                                                               |
+| \`JASPER_OVERRIDE_SERVER_SCRIPT_SELECTORS\`           | Override the server tags and origins that can run scripts. Supports \`@*\`, \`@origin.*\` (one level).                             |                                                                                                                                                                                                               |
 | \`JASPER_OVERRIDE_SERVER_SCRIPT_WHITELIST\`           | Override the server list of whitelisted script SHA-256 hashes.                                                                 |                                                                                                                                                                                                               |
 | \`JASPER_OVERRIDE_SERVER_HOST_WHITELIST\`             | Override the server list of whitelisted hosts.                                                                                 |                                                                                                                                                                                                               |
 | \`JASPER_OVERRIDE_SERVER_HOST_BLACKLIST\`             | Override the server list of blacklisted hosts.                                                                                 |                                                                                                                                                                                                               |
@@ -843,6 +881,9 @@ It supports the following configuration options:
 | \`JASPER_OVERRIDE_SERVER_MAX_CONCURRENT_SCRIPTS\`     | Override the server maximum concurrent script executions.                                                                      | \`100_000\`                                                                                                                                                                                                     |
 | \`JASPER_OVERRIDE_SERVER_MAX_CONCURRENT_REPLICATION\` | Override the server maximum concurrent replication push/pull operations.                                                       | \`3\`                                                                                                                                                                                                           |
 | \`JASPER_OVERRIDE_SERVER_MAX_CONCURRENT_FETCH\`       | Override the server maximum concurrent fetch operations (scraping).                                                            | \`10\`                                                                                                                                                                                                          |
+| \`JASPER_OVERRIDE_SERVER_STORAGE\`                    | Override the server default storage provider (\`local\`, \`gcs\` or \`s3\`). Setting \`local\` clears the default bucket.                |                                                                                                                                                                                                               |
+| \`JASPER_OVERRIDE_SERVER_STORAGE_BUCKET\`             | Override the server default storage bucket. An empty value clears it.                                                              |                                                                                                                                                                                                               |
+| \`JASPER_OVERRIDE_SERVER_STORAGE_ROUTES_0_BUCKET\`    | Override the server storage routes. Set \`_STORAGE\`, \`_NAMESPACES\`, \`_TENANTS\` and \`_CDN_BASE_URL\` the same way. Any set value replaces all template routes, an empty list clears them. |                                                                                                                                                                                                               |
 | \`JASPER_OVERRIDE_SECURITY_MODE\`                     | Override the security mode for all origins.                                                                                    |                                                                                                                                                                                                               |
 | \`JASPER_OVERRIDE_SECURITY_CLIENT_ID\`                | Override the security clientId for all origins.                                                                                |                                                                                                                                                                                                               |
 | \`JASPER_OVERRIDE_SECURITY_BASE64_SECRET\`            | Override the security base64Secret for all origins.                                                                            |                                                                                                                                                                                                               |
@@ -855,6 +896,8 @@ It supports the following configuration options:
 | \`JASPER_OVERRIDE_SECURITY_SCIM_ENDPOINT\`            | Override the security scimEndpoint for all origins.                                                                            |                                                                                                                                                                                                               |
 | \`JASPER_OVERRIDE_SECURITY_MAX_REQUESTS\`             | Override the security maximum HTTP requests per origin every 500 nanoseconds for all origins.                                  | \`50\`                                                                                                                                                                                                          |
 | \`JASPER_OVERRIDE_SECURITY_MAX_CONCURRENT_SCRIPTS\`   | Override the security maximum concurrent script executions per origin for all origins.                                         | \`5\`                                                                                                                                                                                                           |
+| \`JASPER_CORES\`                                      | Set the number of processors available to the JVM. Only applies to the docker container.                                      |                                                                                                                                                                                                               |
+| \`JASPER_GC\`                                         | Select the JVM garbage collector (\`g1gc\`, \`parallel\`, or \`zgc\`). Only applies to the docker container.                         | \`g1gc\`                                                                                                                                                                                                        |
 | \`JASPER_HEAP\`                                       | Set both max and initial heap size for the JVM. Only applies to the docker container.                                          | \`512m\`                                                                                                                                                                                                        |
 
 ### Configuration Templates
@@ -882,7 +925,7 @@ different nodes to run different workloads.
 | \`sshOrigins\`               | Whitelist of origins allowed to open SSH tunnels.                                               | \`[""]\` (root origin only)                  |
 | \`maxPushEntityBatch\`       | Maximum batch size for push replication.                                                        | \`5000\`                                     |
 | \`maxPullEntityBatch\`       | Maximum batch size for pull replication.                                                        | \`5000\`                                     |
-| \`scriptSelectors\`          | Whitelist of selectors (tag + origin) allowed to run scripts. No origin wildcards.              | \`[""]\` (root origin only)                  |
+| \`scriptSelectors\`          | Whitelist of selectors (tag + origin) to run scripts. Supports \`@*\`, \`@origin.*\` (one level).   | \`[""]\` (root origin only)                  |
 | \`scriptWhitelist\`          | Whitelist of script SHA-256 hashes allowed to run. If empty, all scripts are allowed.           | \`null\` (all allowed)                       |
 | \`hostWhitelist\`            | Whitelist of domains allowed to fetch from. If empty, all hosts are allowed (except blacklist). | \`null\` (all allowed)                       |
 | \`hostBlacklist\`            | Blacklist of domains not allowed to fetch from. Takes precedence over whitelist.                | \`["*.local"]\`                              |
@@ -891,6 +934,9 @@ different nodes to run different workloads.
 | \`maxRequests\`              | Maximum HTTP requests per origin every 500 nanoseconds.                                         | \`50\`                                       |
 | \`maxConcurrentRequests\`    | Global maximum concurrent HTTP requests across all origins.                                     | \`500\`                                      |
 | \`maxConcurrentFetch\`       | Maximum concurrent fetch operations (scraping).                                                 | \`10\`                                       |
+| \`storage\`                  | Default storage provider: \`local\`, \`gcs\` or \`s3\`.                                               | \`"local"\`                                  |
+| \`storageBucket\`            | Default storage bucket. Never served by a CDN.                                                  | \`""\`                                       |
+| \`storageRoutes\`            | Storage routes by tenant and namespace. The first match wins.                                   | \`[]\`                                       |
 
 #### Security Config (\`_config/security\` Template)
 
@@ -931,6 +977,26 @@ values if it does not exist. Security settings are inherited from parent origins
 | \`maxRequests\`            | Maximum HTTP requests per origin every 500 nanoseconds for this origin.                          | \`50\`                                      |
 | \`maxConcurrentScripts\`   | Maximum concurrent script executions per origin.                                                 | \`5\`                                       |
 | \`scriptLimits\`           | Per-origin script execution limits. Map of selector patterns to max concurrent value.            | \`{}\` (empty)                              |
+
+#### DB Indices (\`_config/index\` Template)
+
+The \`_config/index\` template is installed in the root origin and selects which \`ref\` table indices
+exist. On startup, and whenever the template changes, each enabled index is created if it is missing
+and each disabled index is dropped.
+
+| Field               | Description                                                                      | Default Value |
+|---------------------|----------------------------------------------------------------------------------|---------------|
+| \`tags\`              | GIN indices on tags and expanded tags (PostgreSQL only).                         | \`true\`        |
+| \`sources\`           | GIN index on sources (PostgreSQL only).                                          | \`true\`        |
+| \`alts\`              | GIN index on alternate URLs (PostgreSQL only).                                   | \`true\`        |
+| \`responses\`         | GIN index on responses metadata (PostgreSQL only).                               | \`true\`        |
+| \`internalResponses\` | GIN index on internal responses metadata (PostgreSQL only).                      | \`true\`        |
+| \`fulltext\`          | Full text search index.                                                          | \`true\`        |
+| \`published\`         | Index on the published date.                                                     | \`true\`        |
+| \`modified\`          | Index on the modified date.                                                      | \`true\`        |
+| \`ignored\`           | Partial index on Refs marked \`ignored\` during replication, used by pull batches. | \`true\`        |
+| \`cascade\`           | Partial index on Refs waiting for a metadata cascade.                            | \`true\`        |
+| \`regen\`             | Partial index on Refs waiting for metadata regeneration (background backfill).   | \`true\`        |
 
 ### Profiles
 
@@ -974,11 +1040,106 @@ The \`storage\` profile is required for backups, caches, or preloading static fi
 environment
 variable to change the location of the storage folder.
 
+The \`gcs\` profile enables storing files in Google Cloud Storage buckets, and the \`s3\` profile enables storing files
+in
+AWS S3 (or an S3-compatible service such as MinIO or Cloudflare R2) buckets, allowing multiple pods to share storage.
+Both profiles may be active at the same time. The \`storage\` profile is the master switch: the \`gcs\` and \`s3\`
+profiles
+do nothing unless the \`storage\` profile is also active. Objects are keyed as \`tenant/namespace/id\`. Storage
+providers
+and buckets are set in the \`_config/server\` template and can be changed at runtime. Each tenant and namespace is
+stored by the first matching route in \`storageRoutes\`, or by the default \`storage\` provider and \`storageBucket\`.
+The storage provider is one of \`local\` (the local storage folder), \`gcs\` or \`s3\`. A route with no \`storage\` uses
+the
+default storage provider. The \`gcs\` and \`s3\` storage providers require a bucket and their profile, and \`local\`
+does not
+use a bucket. These can be overridden with the \`JASPER_OVERRIDE_SERVER_STORAGE\`,
+\`JASPER_OVERRIDE_SERVER_STORAGE_BUCKET\`
+and \`JASPER_OVERRIDE_SERVER_STORAGE_ROUTES_*\` environment variables. A route with no \`namespaces\` matches every
+namespace,
+and a route with no \`tenants\` matches every tenant (use \`default\` for the default tenant). Set \`cdnBaseUrl\` on a
+route to the CDN host serving its bucket. Cached M3U8 manifests for those routes then link their segments to the CDN
+instead of the proxy, and the segments are cached in the background. Objects in S3 buckets served by a CDN are stored
+with a content type and \`Content-Disposition: inline\`. To keep private files out of public buckets, CDN
+routes must list their namespaces, and a bucket used by a CDN route can't be the default bucket or be used by a route
+without a CDN. Segments cached before their route had a CDN stay behind the proxy. If the config is invalid at
+startup, the server still starts so the config can be fixed, but storage is unavailable until it is. Later invalid
+configs are logged and ignored, keeping the previous routes:
+
+\`\`\`json
+{
+  "storage": "gcs",
+  "storageBucket": "jasper-private",
+  "storageRoutes": [
+    { "bucket": "jasper-public", "namespaces": ["cache"], "cdnBaseUrl": "https://cdn.example.com" },
+    { "storage": "s3", "bucket": "jasper-tenant-private", "tenants": ["@tenant"] }
+  ]
+}
+\`\`\`
+
+For example, to keep the cache in S3 and everything else, such as backups, in local storage:
+
+\`\`\`json
+{
+  "storage": "local",
+  "storageRoutes": [
+    { "storage": "s3", "bucket": "jasper-public", "namespaces": ["cache"], "cdnBaseUrl": "https://cdn.example.com" }
+  ]
+}
+\`\`\`
+
+GCS credentials are resolved with Application Default Credentials, such as GKE Workload Identity Federation.
+S3 credentials are resolved with the default AWS credentials provider chain, such as environment variables or EKS IAM
+roles for service accounts. Set the S3 region with \`APPLICATION_STORAGE_S3_REGION\` (defaults to \`us-east-1\`). Set
+\`APPLICATION_STORAGE_S3_ENDPOINT\` only for S3-compatible services; leave it blank for AWS S3.
+Zip archives are staged in a temporary file while they are read or written, so each pod needs enough local disk for
+the largest backup stored in a bucket. Set the staging folder with the \`APPLICATION_STORAGE_TMP_DIR\` environment
+variable (defaults to \`java.io.tmpdir\`).
+
 The \`preload\` profile lets you preload static files. Zip files in the preload folder
 \`$JASPER_STORAGE/default/preload\`. If \`$JASPER_LOCAL_ORIGIN\` is set,
 \`$JASPER_STORAGE/$JASPER_LOCAL_ORIGIN/preload\` is used.
 
 The \`scripts\` profile enables server side scripting through the \`plugin/delta\` Plugin.
+
+The \`no-metadata\` profile skips response metadata (sources/responses) for relay-only servers.
+See [Metadata](#metadata).
+
+The \`archive\` profile keeps previous versions of Refs, Exts, Users, Plugins and Templates by adding the
+modified date to the primary key. It is intended for backup/replication and investigations, not for direct
+use. Only PostgreSQL is supported, and enabling the \`archive\` profile is a one-way migration: going back to
+non-archive mode requires manually deleting old versions and restoring the original primary keys.
+
+* Replication works the same as a regular server: pulling from a regular server stores each new modified
+  date as a new version, and a regular server pulling from an archive receives every version in modified
+  order, keeping the latest.
+* Older versions of Refs are marked obsolete, the same as obsolete copies of a Ref from other origins.
+  Lookups by URL and origin return the latest version. Only the latest version in each origin is ranked by
+  \`plugin/pinned\`, so an older pinned version never outranks a newer one.
+* Template schemas and defaults only use the newest version of each template.
+* Every write adds a new version. Pushes and pulls are stored exactly as received, including deletor tags
+  and \`plugin/delete\` Refs, and never remove rows.
+* Local writes are dated after the newest version in their origin, even if a pushed version is dated later
+  than the local clock, so they always become the current version. Silent Ref writes add a version dated
+  1µs after the Ref's newest version.
+* A blank version (only the key and dates set) is a tombstone. A Ref tagged \`plugin/delete\` is also a
+  tombstone. If the current version is a tombstone, single lookups treat the item as deleted. This includes
+  items that were created blank.
+* A deletor tag (\`<tag>/deleted\`) received for an Ext, User, Plugin or Template is stored as its own item and
+  does not hide the tag it deletes. Only a blank current version does.
+* Deleting adds a blank version and sends the regular delete notice. Re-creating a deleted item adds another
+  version, and the tombstone stays in the history.
+* Deleting a tombstone, or a deletor tag, prunes every version of the item and its deletor tag in that
+  origin. Only versions modified at or before the start of the prune are removed. This is a local action
+  using the existing delete permissions: no delete notice is sent and it is not replicated.
+* Once a Ref is deleted, only moderators and admins can re-create or prune it, since its tombstone has no tags.
+  Replication is not affected.
+* Writing to pulled origins is not supported, including silent writes, which can move the pull cursor.
+* Concurrent local creates or updates of the same item are not serialized. Both may succeed; no data is lost.
+* Page and count results for Exts, Users, Plugins and Templates include older and deleted versions.
+* A regular server pulling from an archive stores blank versions as normal, empty items.
+* Do not serve SSH (tunnels) or user logins from an archive server, since older user versions, including
+  old authorized keys and roles, may be returned.
 
 ## Access Control
 
@@ -1060,6 +1221,21 @@ Users only have read-access to their own origin and sub-origins.
 For example, if a tenant has origin \`@test\`, they can also read \`@test.other\`. As usual, writing to
 origins other than your own is never allowed.
 
+### Access Tokens
+
+When running the system with JWT authentication, roles may be added as claims.
+For example:
+
+\`\`\`json
+{
+  "sub": "username",
+  "auth": "ROLE_USER"
+}
+\`\`\`
+
+Note: The claim names may be changed with the \`JASPER_USERNAME_CLAIM\`
+and \`JASPER_AUTHORITIES_CLAIM\` properties.
+
 ## Backup / Restore
 
 Jasper has a built-in backup system for mods and/or admins. Regular users should instead replicate to a separate jasper
@@ -1084,6 +1260,9 @@ We always want to err on the side of accepting well-shaped data rather than reje
 errors rejecting valid user input are infuriating and very common. Error correction can happen as a follow-up step
 if the client validation was somehow circumvented.
 
+Validation failures return an error code in the \`message\` field. See [Errors](./docs/errors.md) for every
+error code, category and HTTP status.
+
 ## Metadata
 
 Jasper uses metadata generation to pre-compute graph connections. This allows us to store derived data outside
@@ -1099,11 +1278,36 @@ Jasper generates the following metadata in Refs:
   root origin. Use these to include replicated responses (e.g. comments).
 * List of user plugin responses: User URLs of responses with that plugin. User URLs are qualified with the
   origin of the response (e.g. \`tag:/user/alice@remote?url=...\`), so users only see their own.
-* Obsolete: flag set if another origin contains the newest version of this Ref
+  The current user is always matched in the origin they are logged in to, so the \`userResponse\` and
+  \`noUserResponse\` filters (which take plugin tags) only match responses from that user in that origin.
+  Protected and private user URLs (\`tag:/+user/alice\` and \`tag:/_user/alice\`) are recorded as \`tag:/user/alice\`.
+  Regenerating metadata for an origin only rebuilds the user URLs of that origin, user URLs from other
+  origins are kept.
+* Obsolete: flag set if another origin contains a higher ranked version of this Ref. Only one version of each
+  Ref is not obsolete: the newest one, unless the \`plugin/pinned\` plugin is installed in the root origin. Then
+  versions tagged \`plugin/pinned\` in the root origin rank highest, followed by versions tagged \`plugin/pinned\` in
+  other origins, followed by everything else. The newest version wins within a rank. Use the Add Tags of a
+  \`+plugin/origin/pull\` or \`plugin/script/feed\` to pin everything from a remote origin or RSS feed.
+  Installing or removing \`plugin/pinned\` marks every Ref with a pinned version for regen, so existing versions
+  are ranked again by the backfill.
 
 Metadata is never transferred during replication. A simplified version is sent over the client API, with
 counts for each response type, total plugin response counts from all origins (\`remotePlugins\`), and user plugin
 responses for the current user.
+
+When a Ref is created or updated, the metadata of the first two entries in its sources list is updated immediately,
+along with any of the first two entries in its previous sources list that were removed. If the Ref has more than two
+sources, or more removed sources remain, the Ref itself is marked with the \`cascade\` flag, and the cascade updates the
+remaining sources in the background and sends the metadata updates over websockets. When a Ref is deleted without
+revealing a shadowed version,
+all of its sources are updated immediately; otherwise the revealed version uses the same two-source/cascade process.
+Like backfill, the cascade
+runs for origins selected by \`+plugin/cascade\` in the \`scriptSelectors\` of the server config, and can be
+disabled on a node with the \`no-cascade\` profile, so these updates can be delegated to a separate node.
+
+Relay-only servers that just store and forward Refs can skip response metadata with the \`no-metadata\` profile.
+Lists of responses, plugin responses and user plugin responses are not generated, the metadata of sources is not
+updated, and the cascade is disabled. Expanded tags and the obsolete flag are still tracked.
 
 ## Server Scripting
 
@@ -1241,6 +1445,150 @@ const timePlugin = {
 };
 \`\`\`
 
+## Remote Origin
+
+The \`+plugin/origin\` tag marks a Ref as a Remote Origin and associates it with a local alias. These may be either
+pulled from or pushed to.
+
+\`\`\`json
+{
+  "optionalProperties": {
+    "local": { "type": "string" },
+    "remote": { "type": "string" },
+    "proxy": { "type": "string" }
+  }
+}
+\`\`\`
+
+**Local:** Local alias for the remote origin.
+**Remote:** Remote origin to query, or blank for the default.
+**Proxy:** Alternate URL to replicate from.
+
+## Replicating Remote Origin
+
+The \`+plugin/origin/pull\` tag can be used to replicate remote origins. Since this plugin
+extends \`+plugin/origin\`, we already have the \`local\` and \`remote\`
+fields set.
+
+\`\`\`json
+{
+  "optionalProperties": {
+    "query": { "type": "string" },
+    "batchSize": { "type": "int32" },
+    "websocket": { "type": "boolean" },
+    "cachePrefetch": { "type": "boolean" },
+    "cacheProxy": { "type": "boolean" },
+    "cacheProxyPrefetch": { "type": "boolean" },
+    "validatePlugins": { "type": "boolean" },
+    "stripInvalidPlugins": { "type": "boolean" },
+    "validateTemplates": { "type": "boolean" },
+    "stripInvalidTemplates": { "type": "boolean" },
+    "addTags": { "elements": { "type": "string" } },
+    "removeTags": { "elements": { "type": "string" } }
+  }
+}
+\`\`\`
+
+**Query:** Restrict results using a query. Can not use qualified tags as replication only works on a single origin at
+a time. If you want to combine multiple origins into one, create multiple \`+plugin/origin\` Refs. **Batch Size:** The
+max page size to pull each request.
+**Websocket:** Listen to websocket cursor updates to pull.
+**Cache Prefetch:** Attempt to pull cached files while pulling Refs.
+**Cache Proxy:** Proxy all resources files through this origin's cache, not just cached files. **Cache Proxy Prefetch:**
+Attempt to pull all resources files through this origin's cache while pulling Refs. **Validate Plugins:** Flag to
+enable, disable plugin validation.
+**Strip Invalid Plugins:** If plugin validation is enabled, strip invalid plugins instead of skipping invalid Refs.
+**Validate Templates:** Flag to enable, disable template validation.
+**Strip Invalid Template:** If template validation is enabled, strip invalid templates instead of skipping invalid Exts.
+**Add Tags:** Tags to apply to any Refs replicated from this origin.
+**Remove Tags:** Tags to remove from any Refs replicated from this origin.
+
+## Pushing to a Remote Origin
+
+The \`+plugin/origin/push\` tag can be used to replicate remote origins. Since this plugin
+extends \`+plugin/origin\`, we already have the \`local\` and \`remote\`
+fields set.
+
+\`\`\`json
+{
+  "optionalProperties": {
+    "query": { "type": "string" },
+    "batchSize": { "type": "int32" },
+    "pushOnChange": { "type": "boolean" },
+    "cache": { "type": "boolean" }
+  }
+}
+\`\`\`
+
+**Query:** Restrict push using a query. Can not use qualified tags as replication only works on a single origin at
+a time. If you want to combine multiple origins into one, create multiple \`+plugin/origin\` Refs. **Batch Size:** The
+max page size of entities to push.
+**Push On Change:** Push entities immediately after modification. **Cache:** Also push cached files.
+
+Only entities that the signing users of the \`+plugin/origin/push\` Ref (its \`+user\` or \`_user\` tags) can read are
+pushed. Each signing user is given the default roles and the role on their local user entity. If there are several
+signing users, anything one of them can read is pushed. An unsigned Ref pushes only what the default (logged out) user
+can read. If no signing user can read the local origin, nothing is pushed and the Ref is tagged \`+plugin/error\`.
+The data in pushed entities is filtered the same way as API responses: tags and plugins that no signing user can read
+are removed from Refs, and hidden read/write access tags and external IDs are removed from Users. Only signing users
+that can read the Ref or User itself are considered when filtering its data.
+
+### Logs and errors on replicated origins
+
+A pulled origin is a copy of a remote server. Its users and user tags (\`_user/*\`, \`+user/*\`) belong to the remote
+server and mean nothing locally. The local users that matter are the owners of the \`+plugin/origin\` Ref, which lives
+in the owning origin (usually \`""\`).
+
+There are two kinds of writes:
+
+* **Plugin data** on a Ref in a pulled origin, such as the \`_plugin/cache\` ban/error marker written after a failed
+  cache
+  fetch. It is written silently into the pulled origin (\`Tagger.silentPlugin\`). A new Ref is marked \`ignored\` in its
+  metadata, so it is not counted in the pull cursor (\`modifiedAfter\`) and is never sent during replication (pull or
+  push). Pulled Refs are also marked \`ignored\` while a batch is ingested. Once the whole batch is ingested, the flag
+  is
+  cleared in one update on every ignored Ref up to the newest pulled Ref. A failed batch therefore never moves the
+  cursor, and the retry starts again from the last complete batch. Ignored Refs do not publish a cursor update; the
+  cursor update for the batch is published after the flag is cleared, so chained replication sees it. An existing
+  Ref keeps its \`modified\`, so the pull cursor never moves past remote entries.
+* **Logs** (\`+plugin/log\` Refs with an \`error:<uuid>\` URL). They are stamped with \`modified = now\`, so they are
+  never
+  written into a pulled origin. They are redirected to the origin that owns the \`+plugin/origin\` Ref.
+
+Rule: pulled origins only get silent writes that do not move the pull cursor; logs go to the owning origin. This depends
+on whether the origin is a pull target, not on whether it is a sub origin. Local (non-replicated) sub origins keep their
+own logs.
+
+Redirected logs are tagged with the local owners of the \`+plugin/origin\` Ref, so they can read them (as can admins and
+mods, and everyone if the parent Ref is \`public\`). User tags from the pulled Ref belong to the remote server and are
+never copied. \`+plugin/error\` is never added to a Ref in a pulled origin.
+
+Push errors (including a \`403\` from the remote) are logged on the \`+plugin/origin\` Ref and tag it \`+plugin/error\`,
+which disables push on change until the tag is removed. They never fail the request that saved the Ref.
+
+### Replication batches
+
+Entities are replicated in batches sorted by \`modified\`, starting after the cursor, until a batch is not full.
+On a \`413 Payload Too Large\` the batch size is halved (logged on the \`+plugin/origin\` Ref) and doubled again after
+each successful batch. A push skips an entity that is too large on its own. A pull cannot skip entities on the
+remote, so it stops with \`+plugin/error\`. Errors that would fail the same way on every run (client errors other than
+\`408\` and \`429\`, unreadable responses, or a batch that does not advance the cursor) also add \`+plugin/error\`
+instead of being retried forever. Connection errors and \`5xx\` are retried on the next run.
+
+## Random Number Generator
+
+The \`plugin/rng\` tag can be used to generate random numbers. Random numbers are generated whenever editing, creating,
+or
+pushing a Ref replaces an existing Ref of a different origin. When a new random number is generated it is represented in
+hex
+in the tag \`+plugin/rng/6d7eb8ebb38a47d29c6a6cbc9156a1a3\`, for example. When replicated, random numbers will not be
+overwritten so that spectators may verify the results. Editing of a Ref that is already the latest
+version across all origins will preserve the existing random number or lack thereof. This ensures random numbers can't
+be farmed, as you cannot generate a new number without cooperation from another origin.
+
+When delegating rng to a trusted server, users push their updates to that server and replicate the results.
+When playing on mutually replicating servers, each server is trusted to generate their own rng.
+
 End of GitHub Readme.
 
 You will reply when a notification is sent to you via your inbox tag, plugin/delta/ai/navi.
@@ -1370,8 +1718,9 @@ All date times are ISO format Zulu time like: "2023-04-22T20:38:19.480464Z"
 Always add the "+plugin/delta/ai/navi" tag, as that is your signature.
 Never include a tag like "+user/chris", as that is impersonation.
 You may only use public tags (starting with a lowercase letter or number) and your protected signature tag: +plugin/delta/ai/navi
-Only add the "plugin/delta/ai/navi" tag to trigger an AI response to your comment as well (spawn an new
-agent with your Ref as the prompt).
+Do not add the unprefixed plugin/delta/ai/navi tag to an ordinary or final response. It triggers another AI pass.
+Add it only when deliberately requesting the one permitted context-loading follow-up; otherwise include only the
++plugin/delta/ai/navi signature tag.
 Include your response as the comment field of a Ref.
 Do not add metadata to a response, that is generated by Jasper.
 Only reply with valid JSON.
@@ -1383,18 +1732,18 @@ Your reply should always start with {"ref":[{
 export const modPrompt: Ref = {
   url: 'system:mod-prompt',
   title: $localize`Mod List`,
-  tags: ['public', 'internal', '+system/prompt', 'plugin/code/md'],
+  tags: ['public', 'internal', '+system/prompt', 'plugin/code/md', 'plugin/pinned'],
 };
 export const extPrompt: Ref = {
   url: 'system:ext-prompt',
   title: $localize`Ext List`,
-  tags: ['public', 'internal', '+system/prompt/placeholder', 'plugin/code/md'],
+  tags: ['public', 'internal', '+system/prompt/placeholder', 'plugin/code/md', 'plugin/pinned'],
   comment: $localize`Placeholder for dynamic prompt context of all Exts mentioned.`
 };
 export const appPrompt: Ref = {
   url: 'system:app-prompt',
   title: $localize`Application Prompt`,
-  tags: ['public', 'internal', '+system/prompt', 'plugin/code/md'],
+  tags: ['public', 'internal', '+system/prompt', 'plugin/code/md', 'plugin/pinned'],
   // language=Markdown
   comment: `
 Your inbox is tag plugin/delta/ai/navi.
@@ -1436,14 +1785,10 @@ However, markdown is more portable so it is strongly preferred.
  - Emoji shortcodes are not supported. If you need to use an emoji, just use the actual character.
 Never create lists with a bullet character, always use * to be valid markdown.
 
-You can reply with multiple Refs and request help from another assistant by tagging with plugin/delta/ai/navi.
-You may only request further ai responses once. If you are already responding to yourself, adding plugin/delta/ai/navi
-won't work.
-To get further context, you can reply with extra sources or tags pointing to additional context to load as well
-as your own inbox, plugin/delta/ai/navi. This will cause you to also reply to yourself, the second time with
-the additional context also loaded. You should use a message like "Reading the link..." or "Checking the tag...".
-When in chat mode, you will only have access to the single Ref you are replying to, so being able to load extra
-context is especially useful.
+Normally, include only the +plugin/delta/ai/navi signature tag. The unprefixed plugin/delta/ai/navi tag triggers
+another AI pass and must not be added to an ordinary or final response. Add it only when deliberately requesting
+more context, together with the extra sources or tag:/... sources to load. Use a temporary comment such as
+"Reading the link..." or "Checking the tag...". Only one additional pass is allowed.
 When replying with multiple Refs, the first Ref will be considered the main response addressed to the user.
 Choose the embed style based on what the user should see:
 * Use \`![](ai:url)\` to display the Ref’s content directly, such as a generated image, video, audio file, document,
