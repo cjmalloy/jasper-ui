@@ -430,6 +430,8 @@ $tablet-width: 948px;
     font-size: 16px;
     line-height: 28px;
     height: 28px;
+    min-height: 0;
+    flex-wrap: nowrap;
     padding-top: 0;
     padding-bottom: 0;
     overflow-y: hidden;
