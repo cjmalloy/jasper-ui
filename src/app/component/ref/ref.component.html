@@ -80,6 +80,9 @@
       <span i18n-title title="last edited {{ ref().modified | relative }}">* </span>
     }
   }
+  @if (remoteEdits()) {
+    <span class="remote-edits" i18n-title title="Modified remotely while editing">✏️ </span>
+  }
   @if (authors().length) {
     <span i18n> by
       @if (authorExts(); as xs) {

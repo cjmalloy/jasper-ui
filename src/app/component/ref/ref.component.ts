@@ -181,7 +181,25 @@ export class RefComponent implements HasChanges {
   readonly viewer = viewChild<ViewerComponent>('viewer');
 
   readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
-  readonly ref = linkedSignal(() => this.refInput()!);
+  /**
+   * Updates to the same Ref (such as websocket updates) are ignored while
+   * editing or viewing source, so they don't cancel the edit.
+   */
+  readonly ref = linkedSignal<Ref | undefined, Ref>({
+    source: this.refInput,
+    computation: (ref, previous) => previous && untracked(() => this.editing() || this.viewSource())
+      ? previous.value
+      : ref!,
+  });
+  /** Set when an update to the Ref arrived while editing and was not applied. */
+  readonly remoteEdits = linkedSignal<Ref | undefined, boolean>({
+    source: this.refInput,
+    computation: (ref, previous) => !!previous && untracked(() => this.editing() || this.viewSource()),
+  });
+  private readonly refKey = computed(() => {
+    const ref = this.refInput();
+    return ref ? (ref.origin || '') + ':' + ref.url : '';
+  });
   readonly expandedInput = input(false, { alias: 'expanded' });
   readonly expanded = linkedSignal(() => this.expandedInput());
   readonly plugins = input<string[]>();
@@ -249,8 +267,8 @@ export class RefComponent implements HasChanges {
   readonly submitting = signal(false);
   private submittingSubscription?: Subscription;
   private refreshTap?: () => void;
-  readonly editing = linkedSignal(() => { this.ref(); return false; });
-  readonly viewSource = linkedSignal(() => { this.ref(); return false; });
+  readonly editing = linkedSignal(() => { this.refKey(); return false; });
+  readonly viewSource = linkedSignal(() => { this.refKey(); return false; });
   readonly diffing = signal(false);
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
@@ -292,6 +310,7 @@ export class RefComponent implements HasChanges {
         }
         if (this.ref()?.url && this.store.eventBus.isRef(event, this.ref())) {
           this.ref.set(event.ref!);
+          this.remoteEdits.set(false);
           this.init();
           if (this.refreshTap) {
             this.refreshTap();

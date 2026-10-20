@@ -74,6 +74,24 @@ describe('RefComponent', () => {
     expect(component.thumbnailRefs()[0]?.url).toBe('cache:image-id');
   });
 
+  it('keeps editing when the same Ref is updated', () => {
+    fixture.componentRef.setInput('ref', { url: 'https://example.com', origin: '', title: 'First' });
+    fixture.detectChanges();
+    component.setEditing(true);
+    component.editForm.get('title')!.setValue('Edited');
+
+    fixture.componentRef.setInput('ref', { url: 'https://example.com', origin: '', title: 'Updated', tags: ['plugin/cache'] });
+    expect(component.editing()).toBe(true);
+    expect(component.ref().title).toBe('First');
+    expect(component.editForm.get('title')!.value).toBe('Edited');
+    expect(component.remoteEdits()).toBe(true);
+
+    fixture.componentRef.setInput('ref', { url: 'https://example.org', origin: '', title: 'Other' });
+    expect(component.editing()).toBe(false);
+    expect(component.ref().title).toBe('Other');
+    expect(component.remoteEdits()).toBe(false);
+  });
+
   it('fills the edit form from the Ref when editing starts', () => {
     vi.spyOn(component.admin, 'getPlugin').mockImplementation(tag =>
       tag === 'plugin/thumbnail' ? { tag, config: { form: [{ key: 'url' }] } } as any : undefined);

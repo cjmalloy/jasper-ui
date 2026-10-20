@@ -127,6 +127,35 @@ test.describe.serial('Ref Actions', () => {
     }
   });
 
+  test('keeps editing after a websocket update', async ({ browser }) => {
+    const refUrl = await page.locator('.full-page.ref').getAttribute('data-ref-url');
+    expect(refUrl).toBeTruthy();
+    const origin = new URL(page.url()).origin;
+    await page.goto(`${origin}/ref/e/${encodeURIComponent(refUrl!)}?debug=MOD`, { waitUntil: 'networkidle' });
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'edit' }).first().click();
+    await page.locator('.full-page.ref [name=title]').fill('Edited Title');
+
+    const updaterContext = await browser.newContext();
+    const updater = await updaterContext.newPage();
+    try {
+      await updater.goto(`${origin}/ref/e/${encodeURIComponent(refUrl!)}?debug=ADMIN`, { waitUntil: 'networkidle' });
+      const tagUpdate = updater.waitForResponse(response =>
+        response.url().includes('/api/v1/tags')
+        && response.ok());
+      await updater.locator('.full-page.ref .actions .fake-link', { hasText: 'tag' }).first().click();
+      await updater.locator('.inline-tagging input').fill('websocket');
+      await updater.locator('.inline-tagging input').press('Enter');
+      await tagUpdate;
+    } finally {
+      await updaterContext.close();
+    }
+
+    await expect(page.locator('.full-page.ref .info .remote-edits')).toBeVisible();
+    await expect(page.locator('.full-page.ref [name=title]')).toHaveValue('Edited Title');
+    await page.locator('.full-page.ref form.form button', { hasText: 'cancel' }).click();
+    await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
+  });
+
   test.describe('New Comments/Threads/Replies Indicators', () => {
     test('should clear localStorage for clean test', async () => {
       await page.evaluate(() => localStorage.clear());
