@@ -13,13 +13,13 @@
 @if (admin.getPlugin('plugin/thumbnail')) {
   @if (thumbnailEmoji() || thumbnailColor()) {
     <div class="thumbnail"
-         [style.background-image]="thumbnailRefs() | thumbnail | async | cssUrl"
+         [style.background-image]="thumbnailRefs() | thumbnail: false : !editing() | async | cssUrl"
          [style.background-color]="thumbnailColor()"
          [style.background-size]="thumbnailRadius() ? 'cover' : 'contain'"
          [style.border-radius.px]="thumbnailRadius()">{{ thumbnailEmoji() }}</div>
   } @else if (thumbnail()) {
     <div class="thumbnail"
-         [style.background-image]="thumbnailRefs() | thumbnail: true | async | cssUrl"
+         [style.background-image]="thumbnailRefs() | thumbnail: !editing() : !editing() | async | cssUrl"
          [style.background-size]="thumbnailRadius() ? 'cover' : 'contain'"
          [style.border-radius.px]="thumbnailRadius()">{{ thumbnailEmoji() }}</div>
   } @else if (thumbnailEmojiDefaults()) {
