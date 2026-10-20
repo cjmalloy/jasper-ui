@@ -62,6 +62,35 @@ describe('RefPage', () => {
     }));
   });
 
+  it('clears fields left out of websocket updates', () => {
+    const url = 'comment:thread';
+    const updates = new Subject<RefUpdates>();
+    component.store.view.setRef({
+      url,
+      origin: '',
+      title: 'Top',
+      comment: 'Comment',
+      sources: [url],
+      tags: ['plugin/thread'],
+    });
+    vi.spyOn(component['refs'], 'count').mockReturnValue(EMPTY);
+    vi.spyOn(component['stomp'], 'watchRef').mockReturnValue(updates);
+    vi.spyOn(component['stomp'], 'watchResponse').mockReturnValue(EMPTY);
+
+    component.reload(url);
+    updates.next({
+      url,
+      tags: ['plugin/delete', 'internal'],
+    });
+
+    const ref = component.store.view.ref()!;
+    expect(ref.origin).toBe('');
+    expect(ref.title).toBeUndefined();
+    expect(ref.comment).toBeUndefined();
+    expect(ref.sources).toBeUndefined();
+    expect(ref.tags).toEqual(['plugin/delete', 'internal']);
+  });
+
   describe('origin query param', () => {
     const url = 'internal:secret';
     let get: ReturnType<typeof vi.spyOn>;

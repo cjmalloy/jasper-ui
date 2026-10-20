@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { pickBy, uniq } from 'lodash-es';
+import { omit, pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, filter, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -196,6 +196,8 @@ export class RefPage implements HasChanges {
         const tags = uniq([...current.tags || [], ...ud.tags || []])
           .filter(t => privateTag(t) || ud.tags?.includes(t));
         const merged: Ref = {
+          // Empty fields are left out of updates, so a missing field has been cleared
+          ...omit(current, 'title', 'comment', 'sources', 'alternateUrls'),
           ...ud,
           tags,
           metadata: {
@@ -221,7 +223,7 @@ export class RefPage implements HasChanges {
           modified: current.modified,
           modifiedString: current.modifiedString,
         };
-        this.store.view.setRef({ ...this.store.view.ref()!, ...merged }, this.store.view.top());
+        this.store.view.setRef(merged, this.store.view.top());
         this.store.eventBus.refresh(this.store.view.ref());
       });
     }
