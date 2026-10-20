@@ -41,7 +41,7 @@
     @if (plugins().contains(child.tag)) {
       <hr>
       <div>
-        <app-form-gen [plugins]="plugins()" [plugin]="child"></app-form-gen>
+        <app-form-gen [plugins]="plugins()" [plugin]="child" [values]="values()"></app-form-gen>
       </div>
     }
   }

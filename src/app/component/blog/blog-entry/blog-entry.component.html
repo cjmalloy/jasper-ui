@@ -89,7 +89,7 @@
           @if (writeAccess()) {
             <a class="fake-link" (click)="toggleEditing()" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
           } @else {
-            <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
+            <a class="fake-link" (click)="toggleViewSource()" i18n>source</a>
           }
           @if (canInvoice()) {
             <a [routerLink]="['/submit/invoice']" [queryParams]="{url: ref().url}" i18n>invoice</a>
@@ -113,7 +113,7 @@
 @if (editing()) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-ref-form #refForm [group]="editForm"></app-ref-form>
+    <app-ref-form [group]="editForm" [ref]="ref()"></app-ref-form>
 
     @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
@@ -131,7 +131,7 @@
   </form>
 } @else if (viewSource()) {
   <form class="form" [formGroup]="editForm">
-    <app-ref-form #refForm [group]="editForm" [origin]="ref().origin"></app-ref-form>
+    <app-ref-form [group]="editForm" [ref]="ref()" [origin]="ref().origin"></app-ref-form>
   </form>
 } @else {
   <app-viewer class="blog-body" [ref]="ref()"></app-viewer>

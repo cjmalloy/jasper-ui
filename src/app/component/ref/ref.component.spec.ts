@@ -69,25 +69,32 @@ describe('RefComponent', () => {
   it('keeps the disabled Ref URL in thumbnail data while editing', () => {
     fixture.componentRef.setInput('ref', { url: 'cache:image-id', origin: '' });
     fixture.detectChanges();
-    component.editForm.get('url')!.setValue(component.ref().url);
     component.setEditing(true);
-    component['editFormSynced'].set(true);
 
     expect(component.thumbnailRefs()[0]?.url).toBe('cache:image-id');
   });
 
-  it('draws the thumbnail from the Ref until the edit form is filled', () => {
-    const ref = {
+  it('fills the edit form from the Ref when editing starts', () => {
+    vi.spyOn(component.admin, 'getPlugin').mockImplementation(tag =>
+      tag === 'plugin/thumbnail' ? { tag, config: { form: [{ key: 'url' }] } } as any : undefined);
+    fixture.componentRef.setInput('ref', {
       url: 'https://example.com/page',
       origin: '',
-      tags: ['plugin/thumbnail'],
+      title: 'Page',
+      sources: ['https://example.com/source'],
+      tags: ['public', 'plugin/thumbnail'],
       plugins: { 'plugin/thumbnail': { url: 'https://example.com/thumb.png' } },
-    };
-    fixture.componentRef.setInput('ref', ref);
+    });
     fixture.detectChanges();
     component.setEditing(true);
 
-    expect(component.thumbnailRefs()).toEqual([undefined, ref]);
+    expect(component.editForm.getRawValue()).toMatchObject({
+      url: 'https://example.com/page',
+      title: 'Page',
+      sources: ['https://example.com/source'],
+      tags: ['public', 'plugin/thumbnail'],
+    });
+    expect(component.thumbnailRefs()[0]?.plugins?.['plugin/thumbnail']?.url).toBe('https://example.com/thumb.png');
   });
 
   it('keeps storyboard data from the Ref while editing', () => {

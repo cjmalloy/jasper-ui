@@ -1,17 +1,5 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  linkedSignal,
-  output,
-  signal,
-  untracked,
-  viewChild
-} from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { defer } from 'lodash-es';
 import { catchError, Observable, of } from 'rxjs';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { GenFormComponent } from '../../../form/plugins/gen/gen.component';
@@ -35,7 +23,6 @@ export class InlinePluginComponent {
   readonly plugin = input.required<Plugin>();
   readonly value = input<Partial<Ref>>();
   readonly error = output<string>();
-  readonly gen = viewChild<GenFormComponent>('gen');
 
   readonly editing = linkedSignal(() => { this.plugin(); this.value(); return false; });
   readonly acting = signal(false);
@@ -43,18 +30,6 @@ export class InlinePluginComponent {
   readonly group = computed(() => this.fb.group({
     [this.plugin().tag]: this.fb.group({}),
   }));
-
-  constructor() {
-    effect(() => {
-      const gen = this.gen();
-      const plugins = this.value()?.plugins || {};
-      this.group();
-      if (!gen) return;
-      untracked(() => {
-        defer(() => gen.setValue(plugins));
-      });
-    });
-  }
 
   save() {
     this.editing.set(false);

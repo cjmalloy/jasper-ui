@@ -10,19 +10,18 @@ import {
   linkedSignal,
   signal,
   untracked,
-  viewChild,
 } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { defer, groupBy, intersection, uniq } from 'lodash-es';
+import { groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, finalize, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TitleDirective } from '../../../directive/title.directive';
 import { writePlugins } from '../../../form/plugins/plugins.component';
-import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
+import { refForm, RefFormComponent, setRefForm } from '../../../form/ref/ref.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Ref, writeRef } from '../../../model/ref';
@@ -101,8 +100,6 @@ export class BlogEntryComponent implements HasChanges {
 
   private destroyRef = inject(DestroyRef);
 
-  readonly refForm = viewChild<RefFormComponent>('refForm');
-
   readonly blog = input<Ext>();
   readonly refInput = input.required<Ref>({ alias: 'ref' });
   readonly ref = linkedSignal(() => this.refInput());
@@ -149,14 +146,6 @@ export class BlogEntryComponent implements HasChanges {
     effect(() => {
       this.refInput();
       untracked(() => this.submittingSubscription?.unsubscribe());
-    });
-    effect(() => {
-      const value = this.refForm();
-      const ref = untracked(() => this.ref());
-      defer(() => {
-        value?.setRef(ref);
-        this.editor.syncEditor(this.fb, this.editForm, ref.comment);
-      });
     });
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
       if (event.event === 'refresh') {
@@ -417,8 +406,22 @@ export class BlogEntryComponent implements HasChanges {
   }
 
   toggleEditing() {
-    if (this.editing()) this.cancelEdit();
-    else this.editing.set(true);
+    if (this.editing()) {
+      this.cancelEdit();
+    } else {
+      this.syncEditor();
+      this.editing.set(true);
+    }
+  }
+
+  toggleViewSource() {
+    if (!this.viewSource()) this.syncEditor();
+    this.viewSource.set(!this.viewSource());
+  }
+
+  private syncEditor() {
+    setRefForm(this.fb, this.admin, this.editForm, this.ref());
+    this.editor.syncEditor(this.fb, this.editForm, this.ref().comment);
   }
 
   forceDelete$ = () => {

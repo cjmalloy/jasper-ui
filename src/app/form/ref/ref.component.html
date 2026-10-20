@@ -90,7 +90,8 @@
   </div>
   <app-form-plugins #pluginsFormComponent id="plugins"
                     (togglePlugin)="togglePlugin($event)"
-                    [group]="group()"></app-form-plugins>
+                    [group]="group()"
+                    [values]="ref()?.plugins"></app-form-plugins>
 
   @if (customEditor()) {
     <span><!-- Editor --></span>

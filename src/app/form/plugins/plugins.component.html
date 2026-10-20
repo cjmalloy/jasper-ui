@@ -9,10 +9,10 @@
 }
 @for (plugin of forms(); track plugin) {
   @if (hasForm(plugin)) {
-    <app-form-gen #gen
-                  [plugins]="plugins()"
+    <app-form-gen [plugins]="plugins()"
                   [plugin]="plugin"
                   [pending]="pending"
+                  [values]="values()"
                   (pendingUsed)="usePending($event)"
                   (togglePlugin)="togglePlugin.emit($event)"
                   (setPlugin)="pending[$event.tag] = $event.value"

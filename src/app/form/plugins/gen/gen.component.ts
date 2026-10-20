@@ -1,4 +1,4 @@
-import { afterNextRender, Component, computed, inject, input, output, signal } from '@angular/core';
+import { afterNextRender, Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
@@ -28,11 +28,20 @@ export class GenFormComponent {
    * is added. Read when the plugin form is created, which emits pendingUsed.
    */
   readonly pending = input<Record<string, any>>();
+  /**
+   * Plugin data by tag, such as the plugins of the Ref being edited.
+   * The form fields are built from this value.
+   */
+  readonly values = input<Record<string, any>>();
   readonly pendingUsed = output<string>();
   readonly togglePlugin = output<string>();
   readonly setPlugin = output<{ tag: string, value: any }>();
 
-  readonly model = signal<any>(undefined);
+  readonly model = linkedSignal(() => {
+    const tag = this.plugin().tag;
+    const value = this.values()?.[tag] ?? this.pending()?.[tag] ?? this.plugin().defaults;
+    return value === undefined ? undefined : cloneDeep(value);
+  });
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
@@ -85,19 +94,12 @@ export class GenFormComponent {
   });
 
   private readonly initialize = afterNextRender(() => {
-    const pending = this.pending()?.[this.plugin().tag];
-    if (pending) {
-      this.model.set(cloneDeep(pending));
-      this.pendingUsed.emit(this.plugin().tag);
-    } else {
-      this.group()?.patchValue(this.plugin().defaults);
+    const tag = this.plugin().tag;
+    if (this.values()?.[tag] === undefined && this.pending()?.[tag] !== undefined) {
+      this.pendingUsed.emit(tag);
     }
     this.options.formState.config = this.plugin().defaults;
   });
-
-  setValue(value: any) {
-    this.model.set(value[this.plugin().tag]);
-  }
 
   cssClass(tag: string) {
     return tag.replace(/\//g, '_')

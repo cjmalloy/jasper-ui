@@ -8,6 +8,7 @@ import {
   forwardRef,
   inject,
   input,
+  linkedSignal,
   output,
   signal,
   viewChild
@@ -39,10 +40,10 @@ import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { controlState, controlValue } from '../../util/form';
 import { getScheme, getTitleFromFilename } from '../../util/http';
-import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
+import { addAllHierarchicalTags, hasMedia, hasPrefix, hasTag } from '../../util/tag';
 import { EditorComponent } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
-import { PluginsFormComponent } from '../plugins/plugins.component';
+import { pluginsForm, PluginsFormComponent, syncPluginsForm } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
@@ -109,7 +110,11 @@ export class RefFormComponent {
   id = 'ref-' + uuid();
   readonly oembed = signal<Oembed | undefined>(undefined);
   readonly scraped = signal<Ref | undefined>(undefined);
-  readonly ref = signal<Ref | undefined>(undefined);
+  readonly refInput = input<Partial<Ref> | undefined>(undefined, { alias: 'ref' });
+  /**
+   * The Ref the form was filled from. Plugin forms are built from its plugin data.
+   */
+  readonly ref = linkedSignal(() => this.refInput() as Ref | undefined);
   readonly scrapingTitle = signal(false);
   readonly scrapingPublished = signal(false);
   readonly scrapingAll = signal(false);
@@ -417,22 +422,41 @@ export class RefFormComponent {
     }
   }
 
-  /**
-   * @param done called once the plugin values have been set
-   */
-  setRef(ref: Partial<Ref>, done?: () => void) {
+  setRef(ref: Partial<Ref>) {
     this.ref.set(ref as Ref);
-    this.group().patchValue({
-      ...ref,
-      published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
-    });
-    defer(() => {
-      this.sourcesFormComponent().setLinks(ref.sources || []);
-      this.altsFormComponent().setLinks(ref.alternateUrls || []);
-      this.tagsFormComponent().setTags(ref.tags || []);
-      this.pluginsFormComponent().setValue(ref.plugins, done);
-    });
+    setRefForm(this.fb, this.admin, this.group(), ref);
+    this.sourcesFormComponent().setLinks(ref.sources || []);
+    this.altsFormComponent().setLinks(ref.alternateUrls || []);
   }
+}
+
+/**
+ * Fills a Ref form from a Ref. Plugin form groups are added for the Ref's tags,
+ * and their fields are built from the Ref's plugin data when the form renders.
+ */
+export function setRefForm(fb: UntypedFormBuilder, admin: AdminService, group: UntypedFormGroup, ref: Partial<Ref>) {
+  setArray(fb, group.get('sources') as UntypedFormArray, ref.sources || []);
+  setArray(fb, group.get('alternateUrls') as UntypedFormArray, ref.alternateUrls || []);
+  setArray(fb, group.get('tags') as UntypedFormArray, ref.tags || []);
+  const tags = addAllHierarchicalTags(ref.tags || []);
+  const plugins = group.get('plugins') as UntypedFormGroup | null;
+  if (plugins) {
+    syncPluginsForm(fb, admin, plugins, tags);
+    for (const tag in plugins.controls) plugins.controls[tag].reset(ref.plugins?.[tag]);
+  } else {
+    group.addControl('plugins', pluginsForm(fb, admin, tags));
+  }
+  group.patchValue({
+    ...ref,
+    published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
+  });
+}
+
+function setArray(fb: UntypedFormBuilder, array: UntypedFormArray | null, values: string[]) {
+  if (!array) return;
+  while (array.length > values.length) array.removeAt(array.length - 1, { emitEvent: false });
+  while (array.length < values.length) array.push(fb.control(''), { emitEvent: false });
+  array.setValue(values);
 }
 
 export function refForm(fb: UntypedFormBuilder) {

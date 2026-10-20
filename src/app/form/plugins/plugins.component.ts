@@ -6,13 +6,12 @@ import {
   effect,
   inject,
   input,
+  linkedSignal,
   output,
-  untracked,
-  viewChildren
+  untracked
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { defer } from 'lodash-es';
 import { TitleDirective } from '../../directive/title.directive';
 import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
@@ -39,12 +38,15 @@ export class PluginsFormComponent {
 
   private destroyRef = inject(DestroyRef);
 
-  readonly gens = viewChildren<GenFormComponent>('gen');
-
   readonly fieldName = input('plugins');
   readonly groupInput = input<UntypedFormGroup | undefined>(undefined, { alias: 'group' });
   private readonly defaultGroup: UntypedFormGroup;
   readonly togglePlugin = output<string>();
+  readonly valuesInput = input<Record<string, any> | undefined>(undefined, { alias: 'values' });
+  /**
+   * Plugin data by tag that the plugin forms are built from.
+   */
+  readonly values = linkedSignal(() => this.valuesInput());
 
   readonly forms = computed(() => this.admin.getPluginForms(this.allTags()));
   readonly icons = computed(() => {
@@ -74,24 +76,10 @@ export class PluginsFormComponent {
   }
 
   init() {
-    if (this.plugins()) {
-      for (const p in this.plugins().value) {
-        if (!this.allTags().includes(p)) {
-          this.plugins().removeControl(p);
-        }
-      }
-    }
     if (!this.plugins()) {
       this.group().addControl(this.fieldName(), pluginsForm(this.fb, this.admin, this.allTags()));
-    } else if (this.allTags()) {
-      for (const t of this.allTags()) {
-        if (!this.plugins().contains(t)) {
-          const form = pluginForm(this.fb, this.admin, t);
-          if (form) {
-            this.plugins().addControl(t, form);
-          }
-        }
-      }
+    } else {
+      syncPluginsForm(this.fb, this.admin, this.plugins(), this.allTags());
     }
   }
 
@@ -126,12 +114,10 @@ export class PluginsFormComponent {
     return !this.icons().length && !Object.keys(this.plugins().controls).length;
   });
 
-  setValue(value: any, done?: () => void) {
-    defer(() => {
-      this.plugins().patchValue(value);
-      this.gens()!.forEach(g => g.setValue(value))
-      done?.();
-    });
+  setValue(value: any) {
+    this.init();
+    this.values.set(value);
+    this.plugins().patchValue(value || {});
   }
 
   usePending(tag: string) {
@@ -168,6 +154,21 @@ export function pluginsForm(fb: UntypedFormBuilder, admin: AdminService, tags: s
     }
     return plugins;
   }, {}));
+}
+
+/**
+ * Adds a plugin form group for each tag with a plugin form, and removes the rest.
+ */
+export function syncPluginsForm(fb: UntypedFormBuilder, admin: AdminService, plugins: UntypedFormGroup, tags: string[]) {
+  for (const p in plugins.controls) {
+    if (!tags.includes(p)) plugins.removeControl(p);
+  }
+  for (const t of tags) {
+    if (!plugins.contains(t)) {
+      const form = pluginForm(fb, admin, t);
+      if (form) plugins.addControl(t, form);
+    }
+  }
 }
 
 function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {

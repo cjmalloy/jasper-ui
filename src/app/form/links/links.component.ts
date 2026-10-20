@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, untracked } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -29,7 +29,6 @@ export class LinksFormComponent {
   readonly group = input<UntypedFormGroup | undefined>(undefined);
   readonly fieldName = input('links');
 
-  readonly model = signal<string[]>([]);
   field = {
     type: 'refs',
     props: {
@@ -70,6 +69,14 @@ export class LinksFormComponent {
   readonly links = computed(() => {
     this.rootControlState();
     return this.group()?.get(this.fieldName()) as UntypedFormArray | undefined;
+  });
+
+  /**
+   * Formly model, seeded from the links already in the form.
+   */
+  readonly model = linkedSignal<string[]>(() => {
+    const links = this.links();
+    return untracked(() => links?.value || []);
   });
 
   setLinks(values: string[]) {

@@ -328,7 +328,7 @@
 @if (editing()) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-ref-form #refForm [group]="editForm"></app-ref-form>
+    <app-ref-form [group]="editForm" [ref]="ref()"></app-ref-form>
 
     @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
@@ -352,7 +352,7 @@
   </form>
 } @else if (viewSource()) {
   <form class="form" [formGroup]="editForm">
-    <app-ref-form #refForm [group]="editForm" [origin]="origin()"></app-ref-form>
+    <app-ref-form [group]="editForm" [ref]="ref()" [origin]="origin()"></app-ref-form>
   </form>
 } @else if (diffing() && diffOriginal() && diffModified()) {
   <div class="diff-view form">

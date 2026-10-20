@@ -19,7 +19,7 @@ import {
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { cloneDeep, defer, delay, groupBy, pick, uniq, without } from 'lodash-es';
+import { defer, delay, groupBy, pick, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Observable, of, startWith, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -27,7 +27,7 @@ import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { TitleDirective } from '../../directive/title.directive';
 import { DiffComponent } from '../../form/diff/diff.component';
 import { writePlugins } from '../../form/plugins/plugins.component';
-import { refForm, RefFormComponent } from '../../form/ref/ref.component';
+import { refForm, RefFormComponent, setRefForm } from '../../form/ref/ref.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { getPluginScope } from '../../model/plugin';
 import { equalsRef, isRef, Ref } from '../../model/ref';
@@ -62,7 +62,7 @@ import {
   templates,
   urlSummary
 } from '../../util/format';
-import { getExtension, getScheme, printError } from '../../util/http';
+import { emptyObject, getExtension, getScheme, printError } from '../../util/http';
 import { markRead } from '../../util/response';
 import {
   storyboardAnimation,
@@ -176,7 +176,6 @@ export class RefComponent implements HasChanges {
   readonly allCss = computed(() => this.getPluginClasses());
   private destroyRef = inject(DestroyRef);
 
-  readonly refForm = viewChild<RefFormComponent>('refForm');
   readonly reply = viewChild<CommentReplyComponent>('reply');
   readonly diffEditor = viewChild<any>('diffEditor');
   readonly viewer = viewChild<ViewerComponent>('viewer');
@@ -252,13 +251,6 @@ export class RefComponent implements HasChanges {
   private refreshTap?: () => void;
   readonly editing = linkedSignal(() => { this.ref(); return false; });
   readonly viewSource = linkedSignal(() => { this.ref(); return false; });
-  /**
-   * Set once the edit form has been filled from the Ref. Until then the
-   * thumbnail is drawn from the Ref, not the partially filled form.
-   */
-  private readonly editFormSynced = linkedSignal(() => { this.editing(); return false; });
-  private readonly editingThumbnail = computed(() => this.editing() && this.editFormSynced());
-  private editFormSync = 0;
   readonly diffing = signal(false);
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
@@ -444,8 +436,8 @@ export class RefComponent implements HasChanges {
     this.controlState0();
     if (!this.admin.getPlugin('plugin/image')) return null;
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
-    if (this.editingThumbnail()) {
-      const value = this.editForm.value;
+    if (this.editing()) {
+      const value = this.editedRef();
       if (!hasTag('plugin/thumbnail/storyboard', value)) return null;
       return value?.plugins?.['plugin/thumbnail/storyboard']
         || this.ref()?.plugins?.['plugin/thumbnail/storyboard']
@@ -571,17 +563,26 @@ export class RefComponent implements HasChanges {
 
   syncEditor() {
     if (!this.editing() && !this.viewSource()) return;
-    const refFormValue = this.refForm();
-    if (refFormValue) {
-      const sync = ++this.editFormSync;
-      refFormValue.setRef(cloneDeep(this.ref()), () => {
-        if (sync === this.editFormSync && this.editing()) this.editFormSynced.set(true);
-      });
-      if (this.editing()) this.editor.syncEditor(this.fb, this.editForm, this.ref().comment);
-    } else {
-      defer(() => this.syncEditor());
-    }
+    setRefForm(this.fb, this.admin, this.editForm, this.ref());
+    if (this.editing()) this.editor.syncEditor(this.fb, this.editForm, this.ref().comment);
   }
+
+  /**
+   * The Ref as edited. Plugin fields are built from the Ref's plugin data when
+   * the form renders, so a plugin without fields yet still has the Ref's data.
+   */
+  private readonly editedRef = computed(() => {
+    this.controlState0();
+    const value = this.editForm.getRawValue();
+    const plugins = this.editForm.get('plugins') as UntypedFormGroup;
+    value.plugins ||= {};
+    for (const tag in plugins.controls) {
+      if (emptyObject((plugins.controls[tag] as UntypedFormGroup).controls)) {
+        value.plugins[tag] = this.ref().plugins?.[tag];
+      }
+    }
+    return { ...value, origin: this.ref().origin };
+  });
 
   readonly local = computed(() => {
     return this.ref().origin === this.store.account.origin();
@@ -671,10 +672,10 @@ export class RefComponent implements HasChanges {
   readonly thumbnail = computed(() => {
     this.controlState0();
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    if (this.editingThumbnail()) {
-      if (hasTag('plugin/thumbnail', this.editForm.value)) return true;
+    if (this.editing()) {
+      if (hasTag('plugin/thumbnail', this.editedRef())) return true;
       if (!this.admin.getPlugin('plugin/image')) return false;
-      return hasTag('plugin/image', this.editForm.value);
+      return hasTag('plugin/image', this.editedRef());
     }
     if (hasTag('plugin/thumbnail', this.ref()) || hasTag('plugin/thumbnail', this.repostRef())) return true;
     if (!this.admin.getPlugin('plugin/image')) return false;
@@ -683,7 +684,7 @@ export class RefComponent implements HasChanges {
 
   readonly thumbnailRefs = computed(() => {
     this.controlState0();
-    return this.editingThumbnail() ? [{ ...this.editForm.getRawValue(), origin: this.ref().origin }] : [this.repostRef(), this.ref()];
+    return this.editing() ? [this.editedRef()] : [this.repostRef(), this.ref()];
   });
 
   readonly refThumbnailPlugin = computed(() => {
@@ -710,14 +711,14 @@ export class RefComponent implements HasChanges {
   readonly thumbnailColor = computed(() => {
     this.controlState0();
     if (!this.thumbnail()) return '';
-    if (this.editingThumbnail()) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
+    if (this.editing()) return this.editedRef().plugins?.['plugin/thumbnail']?.color || '';
     return this.ref()?.plugins?.['plugin/thumbnail']?.color || this.repostRef()?.plugins?.['plugin/thumbnail']?.color || '';
   });
 
   readonly thumbnailEmoji = computed(() => {
     this.controlState0();
     if (!this.thumbnail()) return '';
-    if (this.editingThumbnail()) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
+    if (this.editing()) return this.editedRef().plugins?.['plugin/thumbnail']?.emoji || '';
     return this.ref()?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef()?.plugins?.['plugin/thumbnail']?.emoji || '';
   });
 
@@ -728,7 +729,7 @@ export class RefComponent implements HasChanges {
 
   readonly thumbnailRadius = computed(() => {
     this.controlState0();
-    if (this.editingThumbnail()) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
+    if (this.editing()) return this.editedRef().plugins?.['plugin/thumbnail']?.radius || 0;
     return this.ref()?.plugins?.['plugin/thumbnail']?.radius || this.repostRef()?.plugins?.['plugin/thumbnail']?.radius || 0;
   });
 
