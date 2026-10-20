@@ -1,5 +1,5 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, computed, effect, forwardRef, inject, input, linkedSignal, output, signal } from '@angular/core';
+import { Component, computed, effect, forwardRef, inject, input, linkedSignal, output, signal, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
   FormControl,
@@ -106,12 +106,17 @@ export class ExtFormComponent  {
     return tag === undefined ? undefined : cloneDeep(this.admin.getTemplateAdvancedForm(tag));
   });
   /**
-   * Formly model for the template fields, rebuilt for each new form group so
-   * discarded edits are not kept.
+   * Formly model for the template fields. Formly writes the model into the
+   * form, so values already in the form group (a hidden draft) take precedence
+   * over the Ext.
    */
   readonly model = computed(() => {
-    this.group();
-    return cloneDeep(this.ext()?.config) || {};
+    const group = this.group();
+    const config = this.ext()?.config;
+    return untracked(() => ({
+      ...cloneDeep(config),
+      ...cloneDeep(group.get('config')?.getRawValue()),
+    }));
   });
   private readonly defaultsResource = rxResource({
     params: () => this.ext()?.config?.defaults ? this.ext()!.tag : undefined,

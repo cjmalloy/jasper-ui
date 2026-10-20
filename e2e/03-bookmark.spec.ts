@@ -103,6 +103,24 @@ test.describe.serial('Bookmark Formly Type', () => {
     await expect(page.locator('.columns input.grow.preview')).toHaveCount(2);
   });
 
+  test('keeps a hidden ext draft in a list', async ({ page }) => {
+    await page.goto('/tags/kanban?debug=MOD', { waitUntil: 'networkidle' });
+    const ext = page.locator('.ext', { has: page.getByRole('link', { name: 'Bookmark Filter Kanban' }) });
+    const edit = ext.locator('.actions .fake-link', { hasText: /^\*?edit\*?$/ });
+    await edit.click();
+    await expect(ext.locator('[name=columnBacklogTitle]')).toHaveValue('todo');
+    await ext.locator('[name=columnBacklogTitle]').fill('backlog');
+    await ext.locator('[name=name]').fill('Draft Kanban');
+    await edit.click();
+    await expect(ext.locator('[name=columnBacklogTitle]')).toHaveCount(0);
+    await expect(ext.locator('.actions .fake-link', { hasText: '*edit*' })).toBeVisible();
+    await edit.click();
+    await expect(ext.locator('[name=columnBacklogTitle]')).toHaveValue('backlog');
+    await expect(ext.locator('[name=name]')).toHaveValue('Draft Kanban');
+    await ext.locator('button', { hasText: 'cancel' }).click();
+    await expect(ext.locator('.actions .fake-link', { hasText: '*edit*' })).toHaveCount(0);
+  });
+
   test('clicking outside popup closes it', async ({ page }) => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     const bookmarkField = await addBookmark(page);

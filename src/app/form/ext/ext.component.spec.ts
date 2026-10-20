@@ -272,4 +272,29 @@ describe('ExtFormComponent', () => {
 
     expect(component.model()).toEqual({ sidebar: 'Sidebar content' });
   });
+
+  it('keeps draft values from the form group when the form is recreated', () => {
+    const group = new UntypedFormGroup({
+      tag: new UntypedFormControl(),
+      name: new UntypedFormControl(),
+      config: new UntypedFormGroup({}),
+    });
+    const ext = { tag: 'science', config: { sidebar: 'Sidebar content' } };
+    fixture.componentRef.setInput('group', group);
+    fixture.componentRef.setInput('ext', ext);
+    component.form.set([{ key: 'sidebar', type: 'editor', className: 'sidebar-editor' }]);
+    detectInputChanges();
+    expect(group.get('config.sidebar')!.value).toBe('Sidebar content');
+    group.get('config.sidebar')!.setValue('Draft');
+    fixture.destroy();
+
+    const recreated = TestBed.createComponent(ExtFormComponent);
+    recreated.componentRef.setInput('group', group);
+    recreated.componentRef.setInput('ext', ext);
+    recreated.componentInstance.form.set([{ key: 'sidebar', type: 'editor', className: 'sidebar-editor' }]);
+    recreated.detectChanges();
+
+    expect(recreated.componentInstance.model().sidebar).toBe('Draft');
+    expect(group.get('config.sidebar')!.value).toBe('Draft');
+  });
 });
