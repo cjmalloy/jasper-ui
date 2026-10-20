@@ -3,6 +3,8 @@
 import { FullscreenOverlayContainer, OverlayContainer } from '@angular/cdk/overlay';
 import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import {
+  ApplicationInitStatus,
+  ApplicationRef,
   inject,
   provideAppInitializer,
   provideCheckNoChangesConfig,
@@ -10,10 +12,10 @@ import {
 } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, UrlSerializer, withRouterConfig } from '@angular/router';
-import { provideServiceWorker } from '@angular/service-worker';
+import { provideServiceWorker, SwRegistrationOptions } from '@angular/service-worker';
 import { Settings } from 'luxon';
 import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
-import { retry, switchMap, timer } from 'rxjs';
+import { filter, from, race, retry, switchMap, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AppComponent } from './app/app.component';
 import { CustomUrlSerializer, routes } from './app/app.routes';
@@ -25,7 +27,7 @@ import { AccountService } from './app/service/account.service';
 import { AdminService } from './app/service/admin.service';
 import { ExtService } from './app/service/api/ext.service';
 import { StompService } from './app/service/api/stomp.service';
-import { config, ConfigService } from './app/service/config.service';
+import { ConfigService } from './app/service/config.service';
 import { DebugService } from './app/service/debug.service';
 import { ModService } from './app/service/mod.service';
 import { OriginMapService } from './app/service/origin-map.service';
@@ -94,15 +96,25 @@ bootstrapApplication(AppComponent, {
     { provide: UrlSerializer, useClass: CustomUrlSerializer },
     { provide: NGX_MONACO_EDITOR_CONFIG, useValue: {} },
     provideJasperFormly(),
-    provideServiceWorker('ngsw-worker.js', {
-      scope: '.',
-      get enabled() {
-        return environment.production && location.hostname != 'localhost' && config().pwa;
+    provideServiceWorker('ngsw-worker.js'),
+    {
+      provide: SwRegistrationOptions,
+      useFactory: (): SwRegistrationOptions => {
+        const config = inject(ConfigService);
+        const init = inject(ApplicationInitStatus);
+        const app = inject(ApplicationRef);
+        return {
+          scope: '.',
+          enabled: environment.production && location.hostname != 'localhost',
+          // Wait for config.json to load, then register the ServiceWorker if enabled
+          // as soon as the application is stable or after 30 seconds (whichever comes first).
+          registrationStrategy: () => from(init.donePromise).pipe(
+            filter(() => config.pwa),
+            switchMap(() => race(from(app.whenStable()), timer(30_000))),
+          ),
+        };
       },
-      // Register the ServiceWorker as soon as the application is stable
-      // or after 30 seconds (whichever comes first).
-      registrationStrategy: 'registerWhenStable:30000'
-    }),
+    },
     provideHttpClient(withXhr(), withInterceptors([authInterceptor, csrfInterceptor, rateLimitInterceptor])),
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
     provideAppInitializer(load),
