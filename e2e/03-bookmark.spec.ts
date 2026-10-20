@@ -128,6 +128,48 @@ test.describe.serial('Bookmark Formly Type', () => {
     await expect(ext.locator('.actions .fake-link', { hasText: '*edit*' })).toHaveCount(0);
   });
 
+  test('keeps an ext edit open when the list reloads with remote edits', async ({ page, browser }) => {
+    await page.goto('/tags/kanban?debug=MOD', { waitUntil: 'networkidle' });
+    const ext = page.locator('.ext').filter({ has: page.locator('.link a[href$="/tag/kanban/bookmark/filter"]') });
+    const edit = ext.locator('.actions .fake-link', { hasText: /^\*?edit\*?$/ });
+    await edit.click();
+    await ext.locator('[name=columnBacklogTitle]').fill('backlog');
+
+    const origin = new URL(page.url()).origin;
+    const renameExt = async (name: string) => {
+      const updaterContext = await browser.newContext();
+      const updater = await updaterContext.newPage();
+      try {
+        await updater.goto(`${origin}/ext/kanban/bookmark/filter?debug=MOD`, { waitUntil: 'networkidle' });
+        await updater.locator('[name=name]').fill(name);
+        const saved = updater.waitForResponse(response => response.url().includes('/api/v1/ext') && response.request().method() === 'PUT' && response.ok());
+        await updater.locator('button', { hasText: 'save' }).click();
+        await saved;
+      } finally {
+        await updaterContext.close();
+      }
+    };
+    await renameExt('Remote Kanban');
+
+    const search = page.locator('.search input[type=search]');
+    await search.fill('Kanban');
+    await search.press('Enter');
+    await expect(page).toHaveURL(/search=Kanban/);
+    await expect(ext.locator('.info .remote-edits')).toBeVisible();
+    await expect(ext.locator('[name=columnBacklogTitle]')).toHaveValue('backlog');
+    await expect(ext.locator('.link a').first()).toHaveText('Bookmark Filter Kanban');
+
+    await ext.locator('button', { hasText: 'cancel' }).click();
+    await expect(ext.locator('.link a').first()).toHaveText('Remote Kanban');
+    await expect(ext.locator('.info .remote-edits')).toHaveCount(0);
+    await edit.click();
+    await expect(ext.locator('[name=columnBacklogTitle]')).toHaveValue('todo');
+    await expect(ext.locator('[name=name]')).toHaveValue('Remote Kanban');
+    await ext.locator('button', { hasText: 'cancel' }).click();
+
+    await renameExt('Bookmark Filter Kanban');
+  });
+
   test('clicking outside popup closes it', async ({ page }) => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     const bookmarkField = await addBookmark(page);

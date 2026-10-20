@@ -1,5 +1,5 @@
 <div class="list-container">
-  @for (ext of page()?.content; track ext; let i = $index) {
+  @for (ext of page()?.content; track ext.tag + ext.origin; let i = $index) {
     <div class="list-number">{{ i + page()!.page.number * page()!.page.size + 1 }}</div>
     <app-ext [ext]="ext"></app-ext>
   }

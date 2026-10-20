@@ -70,12 +70,35 @@ export class ExtComponent implements HasChanges {
 
 
   readonly extInput = input.required<Ext>({ alias: 'ext' });
-  readonly ext = linkedSignal(() => this.extInput());
+  /** Latest version of the Ext, including updates held back while editing. */
+  private readonly latestExt = linkedSignal(() => this.extInput());
+  /**
+   * Updates to the same Ext (such as list reloads) are held back while
+   * editing, viewing source or keeping a hidden draft, so they don't cancel the edit.
+   */
+  readonly ext = linkedSignal<Ext, Ext>({
+    source: this.extInput,
+    computation: (ext, previous) => previous && sameExt(ext, previous.source) && untracked(() => this.holding())
+      ? previous.value
+      : ext,
+  });
+  /** Set when an update to the Ext arrived while editing and was not applied. */
+  readonly remoteEdits = linkedSignal<Ext, boolean>({
+    source: this.extInput,
+    computation: (ext, previous) => !!previous && sameExt(ext, previous.source)
+      && untracked(() => previous.value || (this.holding() && !equalsExt(ext, this.ext()))),
+  });
+  private readonly extKey = computed(() => this.extInput().tag + this.extInput().origin);
   readonly useEditPage = input(false);
 
   readonly editForm = signal<UntypedFormGroup>(undefined as unknown as UntypedFormGroup);
   protected readonly editFormValid = controlState(() => this.editForm(), c => c.valid);
   protected readonly editFormDirty = controlState(() => this.editForm(), c => c.dirty);
+  /** Key of the Ext the edit form was filled from. */
+  private readonly formKey = signal('');
+  /** The edit form has unsaved changes for this Ext, even if the editor is hidden. */
+  readonly draft = computed(() => !!this.editFormDirty() && this.formKey() === this.extKey());
+  private readonly holding = computed(() => this.editing() || this.viewSource() || this.draft());
   readonly submitted = linkedSignal(() => { this.ext(); return false; });
   readonly invalid = linkedSignal(() => { this.ext(); return false; });
   readonly overwritten = linkedSignal(() => { this.ext(); return false; });
@@ -86,8 +109,8 @@ export class ExtComponent implements HasChanges {
   ]);
   readonly template = computed(() => this.admin.getTemplate(this.ext().tag));
   readonly plugin = computed(() => this.admin.getPlugin(this.ext().tag));
-  readonly editing = linkedSignal(() => { this.ext(); return false; });
-  readonly viewSource = linkedSignal(() => { this.ext(); return false; });
+  readonly editing = linkedSignal(() => { this.extKey(); return false; });
+  readonly viewSource = linkedSignal(() => { this.extKey(); return false; });
   readonly deleted = linkedSignal(() => { this.ext(); return false; });
   readonly writeAccess = computed(() => this.auth.tagWriteAccess(this.qualifiedTag()));
   readonly serverError = linkedSignal<string[]>(() => { this.ext(); return []; });
@@ -95,8 +118,9 @@ export class ExtComponent implements HasChanges {
   private overwrittenModified? = '';
 
   constructor() {
+    // Rebuild the edit form when the displayed Ext changes
     effect(() => {
-      this.extInput();
+      this.ext();
       untracked(() => this.init());
     });
   }
@@ -105,10 +129,27 @@ export class ExtComponent implements HasChanges {
     return !this.editForm()?.dirty;
   }
 
-  /** Discards the draft. */
+  toggleEditing() {
+    if (!this.editing() && !this.draft()) this.applyLatest();
+    this.editing.set(!this.editing());
+  }
+
+  toggleViewSource() {
+    if (!this.viewSource() && !this.draft()) this.applyLatest();
+    this.viewSource.set(!this.viewSource());
+  }
+
+  /** Discards the draft and applies any updates held back while editing. */
   cancelEdit() {
-    this.init();
     this.editing.set(false);
+    this.applyLatest();
+    this.init();
+  }
+
+  /** Shows the latest Ext, including updates held back while editing. */
+  private applyLatest() {
+    this.ext.set(this.latestExt());
+    this.remoteEdits.set(false);
   }
 
   init() {
@@ -116,6 +157,7 @@ export class ExtComponent implements HasChanges {
       const editForm = extForm(this.fb, this.ext(), this.admin, true);
       editForm.patchValue(this.ext());
       this.editForm.set(editForm);
+      this.formKey.set(this.extKey());
     }
   }
 
@@ -189,7 +231,8 @@ export class ExtComponent implements HasChanges {
         }),
       ).subscribe(ext => {
         this.editForm().reset();
-        this.ext.set(ext);
+        this.latestExt.set(ext);
+        this.applyLatest();
         this.init();
       });
     }
@@ -268,4 +311,8 @@ export class ExtComponent implements HasChanges {
   download() {
     downloadTag(writeExt(this.ext()));
   }
+}
+
+function sameExt(a?: Ext, b?: Ext) {
+  return !!a && !!b && a.tag === b.tag && (a.origin || '') === (b.origin || '');
 }

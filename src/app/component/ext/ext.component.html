@@ -22,6 +22,9 @@
   @if (!local()) {
     &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', ext().origin]">{{ ext().origin || 'default' }}</a>
   }
+  @if (remoteEdits()) {
+    <span class="remote-edits" i18n-title title="Modified remotely while editing"> ✏️</span>
+  }
 </div>
 <div class="actions">
   @if (!ext().upload) {
@@ -36,12 +39,12 @@
       @if (useEditPage()) {
         <a [routerLink]="['/ext/', ext().tag]" i18n>edit</a>
       } @else {
-        <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
+        <a class="fake-link" (click)="toggleEditing()" i18n>@if (draft()) {*edit*} @else {edit}</a>
       }
     } @else if (useEditPage()) {
       <a [routerLink]="['/ext/', ext().tag]" i18n>source</a>
     } @else {
-      <a class="fake-link" (click)="viewSource.set(!viewSource())" i18n>source</a>
+      <a class="fake-link" (click)="toggleViewSource()" i18n>source</a>
     }
     <a class="fake-link" (click)="download()" i18n>download</a>
     @if (store.account.mod || writeAccess()) {
@@ -54,7 +57,7 @@
       <a [routerLink]="['/tags', parent()]" i18n>parent</a>
     }
     <a [routerLink]="['/tags', ext().tag]" i18n>tags</a>
-    <a class="fake-link" (click)="editing.set(!editing())" i18n>@if (editFormDirty()) {*edit*} @else {edit}</a>
+    <a class="fake-link" (click)="toggleEditing()" i18n>@if (draft()) {*edit*} @else {edit}</a>
     <a class="fake-link" (click)="download()" i18n>download</a>
     <app-confirm-action [action]="delete$" i18n>delete</app-confirm-action>
   }
