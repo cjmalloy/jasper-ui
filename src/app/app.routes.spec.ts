@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { DefaultUrlSerializer } from '@angular/router';
 
-import { CustomUrlSerializer } from './app-routing.module';
+import { CustomUrlSerializer } from './app.routes';
 
 describe('CustomUrlSerializer', () => {
   const serializer = new CustomUrlSerializer();

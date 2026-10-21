@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { runInAction } from 'mobx';
 import { of } from 'rxjs';
 import { Mod } from '../../../model/tag';
 import { Template } from '../../../model/template';
@@ -21,6 +20,7 @@ describe('SettingsSetupPage', () => {
   let component: SettingsSetupPage;
   let fixture: ComponentFixture<SettingsSetupPage>;
   let admin: any;
+  let status: any;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -31,7 +31,7 @@ describe('SettingsSetupPage', () => {
       providers: [
         {
           provide: AdminService,
-          useFactory: () => admin = {
+          useFactory: () => (status = { plugins: {}, templates: {}, disabledPlugins: {}, disabledTemplates: {}, receipts: {} }, admin = {
                 init$: of(null),
                 getPlugin() { },
                 getTemplate() { },
@@ -39,8 +39,9 @@ describe('SettingsSetupPage', () => {
                 getInstalledMod() { },
                 updateMod$: vi.fn(() => of(null)),
                 def: { plugins: {}, templates: {} },
-                status: { plugins: {}, templates: {}, receipts: {} }
-            }
+                status: () => status,
+                themes: () => [],
+            })
         },
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
@@ -67,13 +68,11 @@ describe('SettingsSetupPage', () => {
   const receipt = { plugins: { 'plugin/mod': { template: [mapTemplate(1, 'blue')] } } };
 
   function customizeMap() {
-    admin.status.templates = { map: custom };
+    status.templates = { map: custom };
     admin.getInstalledMod = () => ({ template: [custom] });
     admin.getMod = () => target;
-    runInAction(() => {
-      TestBed.inject(Store).view.modUpdates.add('Map');
-      TestBed.inject(Store).view.modChanges.set('Map', true);
-    });
+    TestBed.inject(Store).view.addModUpdate('Map');
+    TestBed.inject(Store).view.setModChange('Map', true);
   }
 
   function expectMerged(bundle: Mod) {
@@ -91,12 +90,12 @@ describe('SettingsSetupPage', () => {
     it('should not overwrite local changes when there is no receipt to merge with', () => {
       component.updateMod(custom);
       expect(admin.updateMod$).not.toHaveBeenCalled();
-      expect(component.mergeState?.conflict).toBe(true);
-      expect(component.mergeState?.proposed).toEqual({ template: [custom] });
+      expect(component.mergeState()?.conflict).toBe(true);
+      expect(component.mergeState()?.proposed).toEqual({ template: [custom] });
     });
 
     it('should merge local changes with the update', () => {
-      admin.status.receipts['Map'] = receipt;
+      status.receipts['Map'] = receipt;
       component.updateMod(custom);
       expect(admin.updateMod$).toHaveBeenCalledTimes(1);
       expectMerged(admin.updateMod$.mock.calls[0][1]);
@@ -116,15 +115,15 @@ describe('SettingsSetupPage', () => {
     it('should skip customized mods when there is no receipt to merge with', () => {
       component.updateAll();
       expect(admin.updateMod$).not.toHaveBeenCalled();
-      expect(component.installMessages).toContainEqual(expect.stringContaining('Skipped Map mod'));
+      expect(component.installMessages()).toContainEqual(expect.stringContaining('Skipped Map mod'));
     });
 
     it('should merge local changes with the update', () => {
-      admin.status.receipts['Map'] = receipt;
+      status.receipts['Map'] = receipt;
       component.updateAll();
       expect(admin.updateMod$).toHaveBeenCalledTimes(1);
       expectMerged(admin.updateMod$.mock.calls[0][1]);
-      expect(component.installMessages).not.toContainEqual(expect.stringContaining('Skipped'));
+      expect(component.installMessages()).not.toContainEqual(expect.stringContaining('Skipped'));
     });
   });
 });

@@ -1,5 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
-import { mod, openTextSubmit } from './setup';
+import { expect, type Page } from '@playwright/test';
+import { mod, openTextSubmit, test } from './setup';
 
 test.describe.serial('Ref Actions', () => {
   let page: Page;
@@ -124,6 +124,76 @@ test.describe.serial('Ref Actions', () => {
       await expect(page.locator('.full-page.ref .info .icon', { hasText: '⚠️' })).toHaveCount(0);
     } finally {
       await updaterContext.close();
+    }
+  });
+
+  test('keeps editing after a websocket update', async ({ browser }) => {
+    const refUrl = await page.locator('.full-page.ref').getAttribute('data-ref-url');
+    expect(refUrl).toBeTruthy();
+    const origin = new URL(page.url()).origin;
+    await page.goto(`${origin}/ref/e/${encodeURIComponent(refUrl!)}?debug=MOD`, { waitUntil: 'networkidle' });
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'edit' }).first().click();
+    await page.locator('.full-page.ref [name=title]').fill('Edited Title');
+
+    const updaterContext = await browser.newContext();
+    const updater = await updaterContext.newPage();
+    try {
+      await updater.goto(`${origin}/ref/e/${encodeURIComponent(refUrl!)}?debug=ADMIN`, { waitUntil: 'networkidle' });
+      const tagUpdate = updater.waitForResponse(response =>
+        response.url().includes('/api/v1/tags')
+        && response.ok());
+      await updater.locator('.full-page.ref .actions .fake-link', { hasText: 'tag' }).first().click();
+      await updater.locator('.inline-tagging input').fill('websocket');
+      await updater.locator('.inline-tagging input').press('Enter');
+      await tagUpdate;
+    } finally {
+      await updaterContext.close();
+    }
+
+    await expect(page.locator('.full-page.ref .info .remote-edits')).toBeVisible();
+    await expect(page.locator('.full-page.ref [name=title]')).toHaveValue('Edited Title');
+
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'edit' }).first().click();
+    await expect(page.locator('.full-page.ref [name=title]')).toHaveCount(0);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: '*edit*' })).toBeVisible();
+    await expect(page.locator('.full-page.ref .info .remote-edits')).toBeVisible();
+
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: '*edit*' }).click();
+    await expect(page.locator('.full-page.ref [name=title]')).toHaveValue('Edited Title');
+
+    await page.locator('.full-page.ref form.form button', { hasText: 'cancel' }).click();
+    await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
+    await expect(page.locator('.full-page.ref .info .remote-edits')).toHaveCount(0);
+    await expect(page.locator('.full-page.ref .tag', { hasText: 'websocket' })).toBeVisible();
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: '*edit*' })).toHaveCount(0);
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'edit' }).first().click();
+    await expect(page.locator('.full-page.ref [name=title]')).toHaveValue('Title');
+    await page.locator('.full-page.ref form.form button', { hasText: 'cancel' }).click();
+  });
+
+  test('keeps the actions row collapsed and on one line on mobile', async ({ browser }) => {
+    const mobile = await browser.newPage({ viewport: { width: 390, height: 800 } });
+    try {
+      await mobile.goto('/tag/@*?search=Title&debug=MOD', { waitUntil: 'networkidle' });
+      const ref = mobile.locator('.ref-list .ref').filter({ has: mobile.locator('.link a', { hasText: /^Title$/ }) }).first();
+      const actions = ref.locator(':scope > .actions');
+      const height = () => actions.evaluate(e => e.getBoundingClientRect().height);
+      await expect.poll(height).toBe(0);
+      await ref.locator('.actions-toggle').click();
+      await expect(actions).toHaveClass(/\bexpanded\b/);
+      await actions.evaluate(e => Promise.all(e.getAnimations().map(a => a.finished)));
+      const rowHeight = await height();
+      expect(rowHeight).toBeGreaterThan(0);
+      await actions.locator('.fake-link', { hasText: /^tag$/ }).first().click();
+      await expect(actions.locator('.inline-tagging input')).toBeVisible();
+      const tops = await actions.locator(':scope > *').evaluateAll(es => es
+        .map(e => e.getBoundingClientRect())
+        .filter(r => r.height > 0)
+        .map(r => Math.round(r.top)));
+      expect(new Set(tops).size).toBe(1);
+      expect(await height()).toBe(rowHeight);
+    } finally {
+      await mobile.close();
     }
   });
 

@@ -1,7 +1,23 @@
-import { expect, test } from '@playwright/test';
-import { clearAll, mod, openSidebar } from './setup';
+import { expect } from '@playwright/test';
+import { clearAll, mod, openSidebar, test } from './setup';
 
 test.describe.serial('Map Template', () => {
+
+  test.beforeEach(async ({ page }) => {
+    // Serve an empty basemap so the strict console fixture doesn't depend on the external demotiles server
+    await page.route('https://demotiles.maplibre.org/**', route => {
+      const headers = { 'Access-Control-Allow-Origin': '*' };
+      if (route.request().url().endsWith('/tiles.json')) {
+        return route.fulfill({ headers, json: {
+          tilejson: '2.2.0',
+          tiles: ['https://demotiles.maplibre.org/tiles/{z}/{x}/{y}.pbf'],
+          minzoom: 0,
+          maxzoom: 6,
+        } });
+      }
+      return route.fulfill({ headers, contentType: 'application/x-protobuf', body: '' });
+    });
+  });
 
   test('clear all', async ({ page }) => {
     await clearAll(page);

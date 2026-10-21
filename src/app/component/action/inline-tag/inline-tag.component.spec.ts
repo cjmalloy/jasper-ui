@@ -47,7 +47,7 @@ describe('InlineTagComponent', () => {
     component.search({ value: 'same' } as HTMLInputElement);
     vi.advanceTimersByTime(400);
 
-    expect(component.autocomplete).toEqual([{
+    expect(component.autocomplete()).toEqual([{
       value: 'same',
       label: 'Plugin',
     }]);

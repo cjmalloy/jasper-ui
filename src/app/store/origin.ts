@@ -1,4 +1,4 @@
-import { makeAutoObservable, observableRef, observableShallow } from 'mobx';
+import { signal } from '@angular/core';
 import { Ref } from '../model/ref';
 
 export interface AccountAlias {
@@ -10,24 +10,12 @@ export interface AccountAlias {
 
 export class OriginStore {
 
-  origins: Ref[] = [];
-  list: string[] = [];
-  lookup = new Map<string, string>();
-  tunnelLookup = new Map<string, string>();
-  reverseLookup = new Map<string, string>();
-  originMap = new Map<string, Map<string, string>>();
-  accountAliases: AccountAlias[] = [];
-
-  constructor() {
-    makeAutoObservable(this, {
-      origins: observableShallow,
-      list: observableRef,
-      lookup: observableRef,
-      tunnelLookup: observableRef,
-      reverseLookup: observableRef,
-      originMap: observableRef,
-      accountAliases: observableRef,
-    });
-  }
+  readonly origins = signal<Ref[]>([]);
+  readonly list = signal<string[]>([]);
+  readonly lookup = signal<ReadonlyMap<string, string>>(new Map());
+  readonly tunnelLookup = signal<ReadonlyMap<string, string>>(new Map());
+  readonly reverseLookup = signal<ReadonlyMap<string, string>>(new Map());
+  readonly originMap = signal<ReadonlyMap<string, ReadonlyMap<string, string>>>(new Map());
+  readonly accountAliases = signal<AccountAlias[]>([]);
 
 }

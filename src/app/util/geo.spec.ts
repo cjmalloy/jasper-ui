@@ -1,4 +1,12 @@
-import { convertFeature, convertGeometry, geoCenter, geoFeatures, isLinearRing, locationBounds, parseLocation } from './geo';
+import {
+  convertFeature,
+  convertGeometry,
+  geoCenter,
+  geoFeatures,
+  isLinearRing,
+  locationBounds,
+  parseLocation
+} from './geo';
 
 describe('geo', () => {
   describe('locationBounds', () => {

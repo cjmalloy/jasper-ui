@@ -1,19 +1,20 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { ChangeDetectionStrategy, Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { cloneDeep, defer, isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { Store } from '../store/store';
 import { clipboardPasteValues } from '../util/clipboard';
-import { getPath } from '../util/http';
 import { hasLocation } from '../util/geo';
+import { getPath } from '../util/http';
 import { closedRings, locationLists, locationPicker } from './location-picker';
 
 @Component({
   selector: 'formly-list-section',
   host: {
     '(jasper-clipboard-paste)': 'clipboardPaste($any($event))',
+    '[title]': 'title',
   },
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
@@ -23,9 +24,9 @@ import { closedRings, locationLists, locationPicker } from './location-picker';
          cdkScrollable
          [cdkDropListData]="this"
          (cdkDropListDropped)="drop($any($event))"
-         [class.dropping]="dropping"
+         [class.dropping]="dropping()"
          (drop)="dnd($event)"
-         (dragenter)="dropping = true"
+         (dragenter)="dropping.set(true)"
          (dragleave)="dragLeave(fg, $any($event.target))">
       @if (props.showAdd !== false) {
         <button type="button" (click)="add()">{{ props.addText }}</button>
@@ -51,7 +52,6 @@ import { closedRings, locationLists, locationPicker } from './location-picker';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CdkDropList,
     CdkScrollable,
@@ -60,20 +60,14 @@ import { closedRings, locationLists, locationPicker } from './location-picker';
     FormlyField,
   ],
 })
-export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestroy {
+export class ListTypeComponent extends FieldArrayType {
+  private store = inject(Store);
 
-  dropping = false;
 
+  readonly dropping = signal(false);
   private ringWatch?: Subscription;
   private closing?: any;
 
-  constructor(
-    private store: Store,
-  ) {
-    super();
-  }
-
-  @HostBinding('title')
   get title() {
     return this.props.title || '';
   }
@@ -339,7 +333,7 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
   }
 
   drop(event: CdkDragDrop<ListTypeComponent>) {
-    if (!this.store.hotkey || event.previousContainer === event.container) {
+    if (!this.store.hotkey() || event.previousContainer === event.container) {
       event.previousContainer.data.remove(event.previousIndex);
     }
     let value = event.item.data;
@@ -364,7 +358,7 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
   }
 
   dnd(event: DragEvent) {
-    this.dropping = false;
+    this.dropping.set(false);
     event.preventDefault();
     event.stopPropagation();
     const items = event.dataTransfer?.items;
@@ -408,8 +402,8 @@ export class ListTypeComponent extends FieldArrayType implements OnInit, OnDestr
   }
 
   dragLeave(parent: HTMLElement, target: HTMLElement) {
-    if (this.dropping && parent === target || !parent.contains(target)) {
-      this.dropping = false;
+    if (this.dropping() && parent === target || !parent.contains(target)) {
+      this.dropping.set(false);
     }
   }
 }

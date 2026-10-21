@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { test as base, type BrowserContext, type ConsoleMessage, expect, type Page, type WebError } from '@playwright/test';
 import { Client, type IMessage } from '@stomp/stompjs';
 import { createHmac } from 'node:crypto';
 
@@ -14,6 +14,60 @@ const jwtBody = [
 export const adminHeaders = {
   jwt: `${jwtBody}.${createHmac('sha256', debugSecret).update(jwtBody).digest('base64url')}`,
 };
+
+/**
+ * Console errors that are expected noise from the backend rather than app bugs.
+ * Keep this list short, and document why each entry is expected.
+ * Never add Angular errors (NG0100, NG0600, ...) here: fix them instead.
+ */
+const allowedConsoleErrors: RegExp[] = [
+  // Chrome logs every 4xx/5xx response as a console error, e.g. the 404 for a user without a User entity
+  // on startup. Tests assert on API results and UI state directly.
+  /^Failed to load resource: the server responded with a status of \d+/,
+];
+
+/**
+ * Playwright `test` that fails when any page logs a `console.error` or throws an uncaught exception.
+ * Every spec must import `test` from here instead of from '@playwright/test'.
+ * Covers the test's own `page`/`context`, pages shared across tests (created in `beforeAll`) and
+ * contexts created during the test.
+ */
+export const test = base.extend<{ failOnConsoleErrors: void }>({
+  failOnConsoleErrors: [async ({ browser, context }, use) => {
+    const errors: string[] = [];
+    const onConsole = (msg: ConsoleMessage) => {
+      if (msg.type() !== 'error') return;
+      const text = msg.text();
+      if (allowedConsoleErrors.some(r => r.test(text))) return;
+      errors.push(`console.error: ${text} (${msg.location().url})`);
+    };
+    const onWebError = (e: WebError) => errors.push(`pageerror: ${e.error().stack || e.error().message}`);
+    const tracked = new Set<BrowserContext>();
+    const track = (ctx: BrowserContext) => {
+      if (tracked.has(ctx)) return;
+      tracked.add(ctx);
+      ctx.on('console', onConsole);
+      ctx.on('weberror', onWebError);
+    };
+    [context, ...browser.contexts()].forEach(track);
+    const newContext = browser.newContext;
+    browser.newContext = async (...args) => {
+      const ctx = await newContext.apply(browser, args);
+      track(ctx);
+      return ctx;
+    };
+    try {
+      await use();
+    } finally {
+      browser.newContext = newContext;
+      for (const ctx of tracked) {
+        ctx.off('console', onConsole);
+        ctx.off('weberror', onWebError);
+      }
+    }
+    expect(errors, 'console errors and uncaught page errors').toEqual([]);
+  }, { auto: true }],
+});
 
 export interface StompEventSubscription {
   message: Promise<IMessage>;

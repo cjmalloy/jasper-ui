@@ -11,13 +11,13 @@
   <span></span>
   <div class="buttons">
     <button type="button"
-            [disabled]="!refEntries.length"
+            [disabled]="!refEntries().length"
             (click)="clearAllRefs()"
             i18n-title title="Clear all Ref data from local storage"
             i18n>🗑️ clear all refs</button>
   </div>
 
-  @if (refEntries.length) {
+  @if (refEntries().length) {
     <span></span>
     <table class="local-storage-table">
       <thead>
@@ -29,7 +29,7 @@
       </tr>
       </thead>
       <tbody>
-        @for (entry of refEntries; track entry.key) {
+        @for (entry of refEntries(); track entry.key) {
           <tr>
             <td class="url-cell">
               <a [routerLink]="['/ref', entry.url]">{{ entry.url }}</a>
@@ -56,14 +56,14 @@
   <span></span>
   <div class="buttons">
     <button type="button"
-            [disabled]="!extEntries.length"
+            [disabled]="!extEntries().length"
             (click)="clearAllExts()"
             i18n-title title="Clear all Ext data from local storage"
             i18n>🗑️ clear all exts</button>
   </div>
 
 
-  @if (extEntries.length) {
+  @if (extEntries().length) {
     <span></span>
     <table class="local-storage-table">
       <thead>
@@ -74,7 +74,7 @@
       </tr>
       </thead>
       <tbody>
-        @for (entry of extEntries; track entry.key) {
+        @for (entry of extEntries(); track entry.key) {
           <tr>
             <td class="tag-cell">
               <a [routerLink]="['/tag', entry.tag]">{{ entry.tag }}</a>
@@ -100,13 +100,13 @@
   <span></span>
   <div class="buttons">
     <button type="button"
-            [disabled]="!helpEntries.length"
+            [disabled]="!helpEntries().length"
             (click)="clearAllHelp()"
             i18n-title title="Clear all help message history from local storage"
             i18n>🗑️ clear all help</button>
   </div>
 
-  @if (helpEntries.length) {
+  @if (helpEntries().length) {
     <span></span>
     <table class="local-storage-table">
       <thead>
@@ -116,7 +116,7 @@
       </tr>
       </thead>
       <tbody>
-        @for (entry of helpEntries; track entry.key) {
+        @for (entry of helpEntries(); track entry.key) {
           <tr>
             <td class="id-cell">{{ entry.id }}</td>
             <td>

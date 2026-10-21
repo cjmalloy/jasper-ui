@@ -223,7 +223,7 @@ export function wrapTables(doc: Document) {
  * @param origin origin to append to user links without existing origins
  * @param lookup origin map for the given origin
  */
-export function fixUserTags(doc: Document, origin = '', lookup?: Map<string, string>) {
+export function fixUserTags(doc: Document, origin = '', lookup?: ReadonlyMap<string, string>) {
   doc.body.querySelectorAll<HTMLAnchorElement>('.user.tag').forEach(t => {
     const text = t.textContent || '';
     const userOrigin = tagOrigin(text);

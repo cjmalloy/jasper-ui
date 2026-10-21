@@ -1,4 +1,4 @@
-import { Injectable, ViewContainerRef } from '@angular/core';
+import { inject, Injectable, ViewContainerRef } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, MarkedExtension, Renderer, RendererObject, Token, Tokens, TokensList } from 'marked';
@@ -74,6 +74,13 @@ function gatedKatex(): MarkedExtension {
   providedIn: 'root'
 })
 export class EmbedService {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private oembeds = inject(OembedStore);
+  private store = inject(Store);
 
   /**
    * Ordered registry of hydrators run on rendered markdown after it is attached.
@@ -89,15 +96,10 @@ export class EmbedService {
     (host, ctx) => this.hydrateInlineEmbeds(host, ctx),
   ];
 
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private oembeds: OembedStore,
-    private store: Store,
-  ) {
+  constructor() {
+    const config = this.config;
+    const admin = this.admin;
+    const editor = this.editor;
     function cleanUrl(href: string) {
       try {
         href = encodeURI(href).replace(/%25/g, '%');
@@ -265,7 +267,7 @@ export class EmbedService {
     mediaToPlaceholders(doc);
     wrapTables(doc);
     removeToggleLabels(doc);
-    fixUserTags(doc, origin, this.store.origins.originMap.get(origin || ''));
+    fixUserTags(doc, origin, this.store.origins.originMap().get(origin || ''));
     return doc;
   }
 
@@ -563,7 +565,7 @@ export class EmbedService {
                 this.insert(t, this.warning(`Ref ${url} not found and could not embed directly.`));
                 t.remove();
               } else {
-                return this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined).pipe(
+                return this.oembeds.get(url, this.store.darkTheme() ? 'dark' : undefined).pipe(
                   catchError(() => of(null)),
                   map(oembed => {
                     if (!oembed && !this.admin.getPlugin('plugin/image')) {
@@ -836,7 +838,7 @@ export class EmbedService {
     }
     const ext = exts.find(x => x.modifiedString && x.tag === view);
     if (ext) return ext;
-    const t = this.admin.view.find(t => t.tag === view);
+    const t = this.admin.view().find(t => t.tag === view);
     if (t) {
       return { tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } };
     }

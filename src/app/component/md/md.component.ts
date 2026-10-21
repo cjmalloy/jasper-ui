@@ -1,16 +1,16 @@
 import {
-  ChangeDetectionStrategy,
+  afterRenderEffect,
   Component,
-  DoCheck,
+  computed,
+  DestroyRef,
   ElementRef,
-  Input,
-  NgZone,
-  OnDestroy,
-  Output,
-  ViewChild,
+  inject,
+  input,
+  output,
+  untracked,
+  viewChild,
   ViewContainerRef
 } from '@angular/core';
-import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { AdminService } from '../../service/admin.service';
 import { EmbedService, MdRoot } from '../../service/embed.service';
@@ -37,35 +37,52 @@ interface MdBlockState {
   selector: 'app-md',
   templateUrl: './md.component.html',
   styleUrls: ['./md.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
 })
-export class MdComponent implements DoCheck, OnDestroy {
+export class MdComponent {
+  admin = inject(AdminService);
+  store = inject(Store);
+  el = inject(ElementRef);
+  private embeds = inject(EmbedService);
 
-  @Input()
-  origin? = '';
-  @Input()
-  plugins?: string[];
-  @Input()
-  disableSanitizer = false;
-  @Output()
-  postProcessMarkdown: Subject<void> = new Subject();
-  @Input()
-  mermaid = true;
-  @Input()
-  clipboard = true;
+  readonly origin = input<string | undefined>('');
+  readonly plugins = input<string[] | undefined>();
+  readonly disableSanitizer = input(false);
+  readonly postProcessMarkdown = output<void>();
+  readonly mermaid = input(true);
+  readonly clipboard = input(true);
   /**
    * Only re-render and re-hydrate the top-level blocks that changed when the text changes.
    */
-  @Input()
-  progressive = false;
+  readonly progressive = input(false);
+  readonly text = input<string | undefined>('');
 
-  @ViewChild('md', { static: true })
-  md!: ElementRef<HTMLDivElement>;
-  @ViewChild('md', { static: true, read: ViewContainerRef })
-  vc!: ViewContainerRef;
+  readonly md = viewChild.required<ElementRef<HTMLDivElement>>('md');
+  readonly vc = viewChild.required('md', { read: ViewContainerRef });
 
-  private _text = '';
-  private _value?: string;
+  readonly value = computed(() => {
+    const text = this.text() || '';
+    if (this.plugins()?.includes('plugin/table')) {
+      try {
+        const wb = XLSX.read(text, {type: 'string'});
+        return XLSX.utils.sheet_to_html(wb.Sheets[wb.SheetNames[0]], {header: ''});
+      } catch (e: any) {
+        return `<p class="error">${e.message}</p>`
+      }
+    }
+    return text;
+  });
+
+  readonly katex = computed(() => !!this.plugins()?.includes('plugin/latex'));
+
+  private readonly options = computed(() => JSON.stringify([
+    this.plugins() || [],
+    this.origin() || '',
+    this.mermaid(),
+    this.clipboard(),
+    this.disableSanitizer(),
+    this.progressive(),
+  ]));
+
   private lastText?: string;
   private lastOptions?: string;
   private cleanup?: () => void;
@@ -73,46 +90,25 @@ export class MdComponent implements DoCheck, OnDestroy {
   private links?: string;
   private frame?: () => void;
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    public el: ElementRef,
-    private embeds: EmbedService,
-    private zone: NgZone,
-  ) { }
-
-  get text(): string {
-    return this._text;
+  constructor() {
+    // Renders the markdown into the host element
+    afterRenderEffect({
+      write: () => {
+        const text = this.text() || '';
+        const options = this.options();
+        untracked(() => this.update(text, options));
+      },
+    });
+    inject(DestroyRef).onDestroy(() => {
+      this.cancel();
+      this.destroy();
+    });
   }
 
-  @Input()
-  set text(value: string | undefined) {
-    this._text = value || '';
-    delete this._value;
-  }
-
-  get value() {
-    if (this.plugins?.includes('plugin/table')) {
-      if (this._value !== undefined) return this._value;
-      try {
-        const wb = XLSX.read(this._text, {type: 'string'});
-        return this._value = XLSX.utils.sheet_to_html(wb.Sheets[wb.SheetNames[0]], {header: ''});
-      } catch (e: any) {
-        return `<p class="error">${e.message}</p>`
-      }
-    }
-    return this._text;
-  }
-
-  get katex() {
-    return !!this.plugins?.includes('plugin/latex');
-  }
-
-  ngDoCheck() {
-    const options = JSON.stringify([this.plugins || [], this.origin || '', this.mermaid, this.clipboard, this.disableSanitizer, this.progressive]);
-    if (this._text === this.lastText && options === this.lastOptions) return;
-    this.lastText = this._text;
-    const textOnly = this.progressive && options === this.lastOptions;
+  private update(text: string, options: string) {
+    if (text === this.lastText && options === this.lastOptions) return;
+    this.lastText = text;
+    const textOnly = this.progressive() && options === this.lastOptions;
     this.lastOptions = options;
     if (textOnly) {
       this.schedule();
@@ -122,19 +118,14 @@ export class MdComponent implements DoCheck, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    this.cancel();
-    this.destroy();
-  }
-
   /**
    * Re-render anything containing an iframe. Browsers reload iframes from their
    * src attribute when they are moved in the DOM, which blanks embeds.
    * Call after moving this component, for example into a fullscreen overlay.
    */
   reloadIframes() {
-    if (!this.progressive || !this.blocks.length) {
-      if (!this.md.nativeElement.querySelector('iframe')) return;
+    if (!this.progressive() || !this.blocks.length) {
+      if (!this.md().nativeElement.querySelector('iframe')) return;
       this.cancel();
       this.render();
       return;
@@ -161,7 +152,7 @@ export class MdComponent implements DoCheck, OnDestroy {
     for (const b of this.blocks) this.destroyBlock(b);
     this.blocks = [];
     delete this.links;
-    this.vc.clear();
+    this.vc().clear();
   }
 
   /**
@@ -169,15 +160,13 @@ export class MdComponent implements DoCheck, OnDestroy {
    */
   private schedule() {
     if (this.frame) return;
-    this.zone.runOutsideAngular(() => {
-      if (typeof requestAnimationFrame === 'function') {
-        const id = requestAnimationFrame(() => this.reconcile());
-        this.frame = () => cancelAnimationFrame(id);
-      } else {
-        const id = setTimeout(() => this.reconcile(), 100);
-        this.frame = () => clearTimeout(id);
-      }
-    });
+    if (typeof requestAnimationFrame === 'function') {
+      const id = requestAnimationFrame(() => this.reconcile());
+      this.frame = () => cancelAnimationFrame(id);
+    } else {
+      const id = setTimeout(() => this.reconcile(), 100);
+      this.frame = () => clearTimeout(id);
+    }
   }
 
   private cancel() {
@@ -187,10 +176,10 @@ export class MdComponent implements DoCheck, OnDestroy {
 
   private get context() {
     return {
-      vc: this.vc,
-      origin: this.origin || '',
-      mermaid: this.mermaid,
-      clipboard: this.clipboard,
+      vc: this.vc(),
+      origin: this.origin() || '',
+      mermaid: this.mermaid(),
+      clipboard: this.clipboard(),
     };
   }
 
@@ -202,15 +191,15 @@ export class MdComponent implements DoCheck, OnDestroy {
    */
   private reconcile(full = false) {
     this.cancel();
-    const host = this.md.nativeElement;
+    const host = this.md().nativeElement;
     let tokens: ReturnType<EmbedService['lex']>;
     try {
-      tokens = this.embeds.lex(this.value, this.katex);
+      tokens = this.embeds.lex(this.value(), this.katex());
     } catch (e) {
       console.error(e);
       this.destroy();
-      this.cleanup = this.embeds.render(host, this.value, this.context, this.katex, this.disableSanitizer);
-      this.postProcessMarkdown.next();
+      this.cleanup = this.embeds.render(host, this.value(), this.context, this.katex(), this.disableSanitizer());
+      this.postProcessMarkdown.emit();
       return;
     }
     const links = JSON.stringify(tokens.links);
@@ -219,7 +208,7 @@ export class MdComponent implements DoCheck, OnDestroy {
     const matched = reuse ? matchBlocks(this.blocks, next) : new Array<MdBlockState | undefined>(next.length).fill(undefined);
     const roots = new Map<number, MdRoot>();
     next.forEach((b, i) => {
-      if (!matched[i]) roots.set(i, this.embeds.renderBlock(b, tokens.links, this.origin || '', this.disableSanitizer));
+      if (!matched[i]) roots.set(i, this.embeds.renderBlock(b, tokens.links, this.origin() || '', this.disableSanitizer()));
     });
     const paired = reuse ? pairBlocks(this.blocks, matched, i => roots.get(i)?.islands) : [];
     if (!reuse) {
@@ -248,11 +237,11 @@ export class MdComponent implements DoCheck, OnDestroy {
     }
     this.blocks = blocks;
     this.links = links;
-    this.postProcessMarkdown.next();
+    this.postProcessMarkdown.emit();
   }
 
   private insertBlock(block: MdBlock, { root, islands }: MdRoot, ref: Node | null): MdBlockState {
-    const host = this.md.nativeElement;
+    const host = this.md().nativeElement;
     const state: MdBlockState = {
       key: block.key,
       offset: block.offset,
@@ -274,7 +263,7 @@ export class MdComponent implements DoCheck, OnDestroy {
    * Falls back to replacing the block if the update fails.
    */
   private updateBlock(block: MdBlockState, next: MdBlock, root: MdRoot, links: any, ref: Node | null): MdBlockState {
-    const host = this.md.nativeElement;
+    const host = this.md().nativeElement;
     try {
       morphRange(host, block.marker.nextSibling, ref, root.root, {
         host,
@@ -285,7 +274,7 @@ export class MdComponent implements DoCheck, OnDestroy {
     } catch (e) {
       console.error(e);
       this.removeBlock(block, ref);
-      return this.insertBlock(next, this.embeds.renderBlock(next, links, this.origin || '', this.disableSanitizer), ref);
+      return this.insertBlock(next, this.embeds.renderBlock(next, links, this.origin() || '', this.disableSanitizer()), ref);
     }
     block.key = next.key;
     block.offset = next.offset;
@@ -307,12 +296,12 @@ export class MdComponent implements DoCheck, OnDestroy {
   }
 
   private render() {
-    if (this.progressive) {
+    if (this.progressive()) {
       this.reconcile(true);
       return;
     }
     this.destroy();
-    this.cleanup = this.embeds.render(this.md.nativeElement, this.value, this.context, this.katex, this.disableSanitizer);
-    this.postProcessMarkdown.next();
+    this.cleanup = this.embeds.render(this.md().nativeElement, this.value(), this.context, this.katex(), this.disableSanitizer());
+    this.postProcessMarkdown.emit();
   }
 }

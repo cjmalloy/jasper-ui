@@ -1,10 +1,18 @@
-import { DestroyRef, inject, Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  Injector,
+  signal,
+  viewChild
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { pickBy, uniq } from 'lodash-es';
+import { omit, pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../component/loading/loading.component';
@@ -20,7 +28,6 @@ import { StompService } from '../../service/api/stomp.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { memo, MemoCache } from '../../util/memo';
 import { markRead } from '../../util/response';
 import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '../../util/tag';
 
@@ -28,10 +35,8 @@ import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '
   selector: 'app-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RefComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     RouterLinkActive,
@@ -40,14 +45,22 @@ import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '
     LoadingComponent,
   ],
 })
-export class RefPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+export class RefPage implements HasChanges {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private router = inject(Router);
+  private stomp = inject(StompService);
+
+
+  private readonly injector = inject(Injector);
+
+  readonly newResponses = signal<number>(0);
   private destroyRef = inject(DestroyRef);
 
-  @ViewChild('ref')
-  ref?: RefComponent;
-
-  newResponses = 0;
+  readonly ref = viewChild<RefComponent>('ref');
   private url = '';
   private origin?: string;
   private watchSelf?: Subscription;
@@ -56,103 +69,71 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   private watchResponses?: Subscription;
   private seen = new Set<string>();
 
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private router: Router,
-    private stomp: StompService,
-  ) { }
-
   saveChanges() {
-    return !this.ref || this.ref.saveChanges();
+    const ref = this.ref();
+    return !ref || ref.saveChanges();
   }
 
-  ngOnInit(): void {
-    this.url = this.store.view.url;
-    this.origin = this.store.view.origin;
+  private readonly initialize = afterNextRender(() => {
+    this.url = this.store.view.url();
+    this.origin = this.store.view.origin();
     if (this.url) this.reload(this.url, this.origin);
-    this.disposers.push(autorun(() => {
-      const url = this.store.view.url;
-      const origin = this.store.view.origin;
+    effect(() => {
+      const url = this.store.view.url();
+      const origin = this.store.view.origin();
       if (!url) return;
       if (url === this.url && origin === this.origin) return;
       this.url = url;
       this.origin = origin;
       this.reload(url, origin);
-    }));
-  }
+    }, { injector: this.injector });
+  });
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
+  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.store.view.clearRef();
-  }
+  });
 
-  @memo
-  get refWarning() {
-    const warn = this.sources > 0 && this.store.view.published && +this.store.view.ref!.published! !== +DateTime.fromISO(this.store.view.published);
-    if (this.store.view.published) this.router.navigate([], { queryParams: { published: null }, queryParamsHandling: 'merge', replaceUrl: true });
+  readonly refWarning = computed(() => {
+    const warn = this.sources() > 0 && this.store.view.published() && +this.store.view.ref()!.published! !== +DateTime.fromISO(this.store.view.published());
+    if (this.store.view.published()) this.router.navigate([], { queryParams: { published: null }, queryParamsHandling: 'merge', replaceUrl: true });
     return warn;
-  }
+  });
 
-  @memo
-  get expandedOnLoad() {
-    return this.store.view.current === 'ref/thread' ||
-      this.store.local.isRefToggled(this.store.view.url, this.store.view.current === 'ref/summary' || this.fullscreen?.onload);
-  }
+  readonly expandedOnLoad = computed(() => this.store.view.current() === 'ref/thread' ||
+    this.store.local.isRefToggled(this.store.view.url(), this.store.view.current() === 'ref/summary' || this.fullscreen()?.onload));
 
-  @memo
-  get fullscreen() {
+  readonly fullscreen = computed(() => {
     if (!this.admin.getPlugin('plugin/fullscreen')) return undefined;
-    return this.store.view.ref?.plugins?.['plugin/fullscreen'];
-  }
+    return this.store.view.ref()?.plugins?.['plugin/fullscreen'];
+  });
 
-  @memo
-  get comment() {
-    return this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref);
-  }
+  readonly comment = computed(() => this.admin.getPlugin('plugin/comment') && hasTag('plugin/comment', this.store.view.ref()));
 
-  @memo
-  get comments() {
+  readonly comments = computed(() => {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return pluginResponses(this.store.view.ref, 'plugin/comment');
-  }
+    return pluginResponses(this.store.view.ref(), 'plugin/comment');
+  });
 
-  @memo
-  get thread() {
-    return this.admin.getPlugin('plugin/thread') && (hasTag('plugin/thread', this.store.view.ref) || this.store.view.current === 'ref/thread');
-  }
+  readonly thread = computed(() => this.admin.getPlugin('plugin/thread') && (hasTag('plugin/thread', this.store.view.ref()) || this.store.view.current() === 'ref/thread'));
 
-  @memo
-  get threads() {
+  readonly threads = computed(() => {
     if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return hasTag('plugin/thread', this.store.view.ref) || pluginResponses(this.store.view.ref, 'plugin/thread');
-  }
+    return hasTag('plugin/thread', this.store.view.ref()) || pluginResponses(this.store.view.ref(), 'plugin/thread');
+  });
 
-  @memo
-  get logs() {
+  readonly logs = computed(() => {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
-    return localPluginResponses(this.store.view.ref, '+plugin/log');
-  }
+    return localPluginResponses(this.store.view.ref(), '+plugin/log');
+  });
 
-  @memo
-  get responses() {
-    return this.store.view.ref?.metadata?.responses || 0;
-  }
+  readonly responses = computed(() => this.store.view.ref()?.metadata?.responses || 0);
 
-  @memo
-  get sources() {
-    const sources = (this.store.view.ref?.sources || []).filter( s => s != this.store.view.url);
+  readonly sources = computed(() => {
+    const sources = (this.store.view.ref()?.sources || []).filter( s => s != this.store.view.url());
     return sources.length || 0;
-  }
+  });
 
-  @memo
-  get alts() {
-    return this.store.view.ref?.alternateUrls?.length || 0;
-  }
+  readonly alts = computed(() => this.store.view.ref()?.alternateUrls?.length || 0);
 
   reload(url?: string, origin = this.origin) {
     url ||= this.url || '';
@@ -160,11 +141,10 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.clear();
       return;
     }
-    this.newResponses = 0;
-    this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() =>
-      this.store.view.versions = count));
+    this.newResponses.set(0);
+    this.refs.count({ url, obsolete: true }).subscribe(count => this.store.view.versions.set(count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
-    const cached = this.store.view.ref;
+    const cached = this.store.view.ref();
     (url === cached?.url && cached.origin !== undefined && (origin === undefined || cached.origin === origin)
         ? of(cached)
         : origin === undefined
@@ -177,25 +157,25 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       tap(ref => this.watch(ref)),
       switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
-        : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
+        : top(ref) === this.store.view.top()?.url ? of([ref, this.store.view.top()])
         : this.refs.getCurrent(top(ref)).pipe(
           map(top => [ref, top]),
           catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
         )),
-      tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
+      tap(([ref, top]) => this.store.view.setRef(ref, top)),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(() => MemoCache.clear(this));
+    ).subscribe();
     if (this.config.websockets && this.watchResponsesKey !== url) {
       this.watchResponsesKey = url;
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
-        filter(url => url != this.store.view.url),
+        filter(url => url != this.store.view.url()),
         filter(url => !url.startsWith('tag:')),
         filter(url => !this.seen.has(url)),
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(url => {
         this.seen.add(url);
-        this.newResponses++;
+        this.newResponses.update(n => n + 1);
       });
     }
   }
@@ -210,49 +190,48 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.watchSelf = this.stomp.watchRef(ref.url, ref.origin).pipe(
         takeUntilDestroyed(this.destroyRef),
       ).subscribe(ud => {
-        if (!this.store.view.ref) return;
-        MemoCache.clear(this);
+        const current = this.store.view.ref();
+        if (!current) return;
         // Merge updates with existing Ref because updates do not contain any private tags
-        const tags = uniq([...this.store.view.ref.tags || [], ...ud.tags || []])
+        const tags = uniq([...current.tags || [], ...ud.tags || []])
           .filter(t => privateTag(t) || ud.tags?.includes(t));
         const merged: Ref = {
+          // Empty fields are left out of updates, so a missing field has been cleared
+          ...omit(current, 'title', 'comment', 'sources', 'alternateUrls'),
           ...ud,
           tags,
           metadata: {
             ...ud.metadata,
             plugins: {
-              ...pickBy(this.store.view.ref.metadata?.plugins, (v, k) => tags.includes(k)),
+              ...pickBy(current.metadata?.plugins, (v, k) => tags.includes(k)),
               ...ud.metadata?.plugins || {},
             },
-            ...(this.store.view.ref.metadata?.remotePlugins || ud.metadata?.remotePlugins) ? {
+            ...(current.metadata?.remotePlugins || ud.metadata?.remotePlugins) ? {
               remotePlugins: {
-                ...pickBy(this.store.view.ref.metadata?.remotePlugins, (v, k) => tags.includes(k)),
+                ...pickBy(current.metadata?.remotePlugins, (v, k) => tags.includes(k)),
                 ...ud.metadata?.remotePlugins || {},
               },
             } : {},
           },
           plugins: {
-            ...pickBy(this.store.view.ref.plugins, (v, k) => tags.includes(k)),
+            ...pickBy(current.plugins, (v, k) => tags.includes(k)),
             ...ud.plugins || {},
           },
           // Don't allow editing an update Ref, as we cannot tell when a private
           // tag was deleted
           // TODO: mark Ref as modified remotely to warn user before editing
-          modified: this.store.view.ref.modified,
-          modifiedString: this.store.view.ref.modifiedString,
+          modified: current.modified,
+          modifiedString: current.modifiedString,
         };
-        runInAction(() => Object.assign(this.store.view.ref!, merged));
-        this.store.eventBus.refresh(this.store.view.ref);
+        this.store.view.setRef(merged, this.store.view.top());
+        this.store.eventBus.refresh(this.store.view.ref());
       });
     }
   }
 
-  @memo
-  isWiki(url: string) {
-    return !this.admin.isWikiExternal() && isWiki(url, this.admin.getWikiPrefix());
-  }
+  readonly isWiki = computed(() => !this.admin.isWikiExternal() && isWiki(this.store.view.url(), this.admin.getWikiPrefix()));
 
   markRead(ref: Ref) {
-    runInAction(() => markRead(this.admin, this.ts, ref));
+    markRead(this.admin, this.ts, ref);
   }
 }

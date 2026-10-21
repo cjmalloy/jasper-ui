@@ -5,7 +5,6 @@ import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
 import { BehaviorSubject } from 'rxjs';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
@@ -59,8 +58,8 @@ describe('InboxUnreadPage', () => {
 
     notifications.next(page);
 
-    expect(account.notificationPage$).toHaveBeenCalledWith(component.store.view.pageSize);
-    expect(component.query.page).toBe(page);
+    expect(account.notificationPage$).toHaveBeenCalledWith(component.store.view.pageSize());
+    expect(component.query.page()).toBe(page);
 
     fixture.destroy();
 
@@ -85,8 +84,10 @@ describe('InboxUnreadPage', () => {
       { url: 'spec:city', origin: '@city', modified: DateTime.fromISO('2026-07-23T12:00:00Z'), modifiedString: '2026-07-23T12:00:00Z' },
     ]));
 
-    runInAction(() => component.store.view.defaultPageNumber = 1);
-    runInAction(() => component.store.view.defaultPageNumber = 0);
+    component.store.view.defaultPageNumber.set(1);
+    TestBed.tick();
+    component.store.view.defaultPageNumber.set(0);
+    TestBed.tick();
     await vi.runAllTimersAsync();
     expect(account.notificationPage$).toHaveBeenCalledTimes(1);
 
@@ -103,7 +104,8 @@ describe('InboxUnreadPage', () => {
       { url: 'spec:town', origin: '@town', modified: DateTime.fromISO('2026-07-23T12:01:00Z'), modifiedString: '2026-07-23T12:01:00Z' },
     ]));
 
-    runInAction(() => component.store.view.defaultPageNumber = 1);
+    component.store.view.defaultPageNumber.set(1);
+    TestBed.tick();
     vi.runAllTimers();
 
     expect(account.clearNotifications).toHaveBeenCalledTimes(2);
@@ -125,7 +127,8 @@ describe('InboxUnreadPage', () => {
       { url: 'spec:city', origin: '@city', modified: DateTime.fromISO('2026-07-23T12:00:00Z'), modifiedString: '2026-07-23T12:00:00Z' },
     ]));
 
-    runInAction(() => component.store.view.defaultPageNumber = 1);
+    component.store.view.defaultPageNumber.set(1);
+    TestBed.tick();
     vi.runAllTimers();
     fixture.destroy();
     resolve();

@@ -1,5 +1,5 @@
-import { expect, type Locator, test } from '@playwright/test';
-import { mod } from './setup';
+import { expect, type Locator } from '@playwright/test';
+import { mod, test } from './setup';
 
 async function dispatchFileEvent(target: Locator, type: 'drop' | 'paste', name: string) {
   await target.evaluate((element, [eventType, fileName]) => {

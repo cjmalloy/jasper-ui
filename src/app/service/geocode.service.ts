@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { catchError, firstValueFrom, map, Observable, of, timeout } from 'rxjs';
 import { Ext } from '../model/ext';
 import { mapTemplate } from '../mods/map';
@@ -13,11 +13,9 @@ import { ExtService } from './api/ext.service';
 })
 export class GeocodeService {
 
-  constructor(
-    private admin: AdminService,
-    private exts: ExtService,
-    private store: Store,
-  ) { }
+  private admin = inject(AdminService);
+  private exts = inject(ExtService);
+  private store = inject(Store);
 
   /**
    * The active geocoding config: built-in defaults, then the map template
@@ -29,7 +27,7 @@ export class GeocodeService {
       ...this.admin.getTemplate('map')?.defaults,
     });
     if (!this.admin.getTemplate('map')) return of(defaults);
-    return this.exts.getCachedExt('map', this.store.account.origin).pipe(
+    return this.exts.getCachedExt('map', this.store.account.origin()).pipe(
       timeout(5_000),
       map(ext => ({ ...defaults, ...config(ext?.config) })),
       catchError(() => of(defaults)),

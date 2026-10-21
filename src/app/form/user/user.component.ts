@@ -1,6 +1,7 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { afterNextRender, Component, computed, inject, input, output, signal } from '@angular/core';
 import {
   ReactiveFormsModule,
+  UntypedFormArray,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
@@ -8,10 +9,10 @@ import {
 } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
-import { FillWidthDirective } from '../../directive/fill-width.directive';
 import { User } from '../../model/user';
 import { isMailbox } from '../../mods/mailbox';
 import { Store } from '../../store/store';
+import { controlValue } from '../../util/form';
 import { USER_REGEX } from '../../util/format';
 import { JsonComponent } from '../json/json.component';
 import { TagsFormComponent } from '../tags/tags.component';
@@ -21,81 +22,66 @@ import { TagsFormComponent } from '../tags/tags.component';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   host: { 'class': 'nested-form' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ReactiveFormsModule,
     TagsFormComponent,
-    FillWidthDirective,
     JsonComponent,
   ]
 })
-export class UserFormComponent implements OnInit {
+export class UserFormComponent {
+  store = inject(Store);
 
-  @Input()
-  group!: UntypedFormGroup;
-  @Input()
-  showPubKey = true;
-  @Input()
-  fillWidth?: HTMLElement;
-  @Output()
-  tagChanges = new EventEmitter<string>();
-  @Input()
-  showClear = false;
-  @Output()
-  clear = new EventEmitter<void>();
-  @Input()
-  externalErrors: string[] = [];
+  private readonly rootControlState = controlValue(() => this.group());
 
-  @ViewChild('fill')
-  fill?: ElementRef;
+  private readonly controlState0 = controlValue(() => this.group().get('external'));
+  private readonly controlState1 = controlValue(() => this.tag());
 
-  @ViewChild('notifications')
-  notifications!: TagsFormComponent;
-  @ViewChild('readAccess')
-  readAccess!: TagsFormComponent;
-  @ViewChild('writeAccess')
-  writeAccess!: TagsFormComponent;
-  @ViewChild('tagReadAccess')
-  tagReadAccess!: TagsFormComponent;
-  @ViewChild('tagWriteAccess')
-  tagWriteAccess!: TagsFormComponent;
+
+  readonly group = input.required<UntypedFormGroup>();
+  readonly showPubKey = input(true);
+  readonly tagChanges = output<string>();
+  readonly showClear = input(false);
+  readonly clear = output<void>();
+  readonly externalErrors = input<string[]>([]);
 
   id = 'user-' + uuid();
-  editingExternal = false;
+  readonly editingExternal = signal<any>(false);
 
   private showedError = false;
 
-  constructor(
-    public store: Store,
-  ) { }
+  private readonly initialize = afterNextRender(() => {
+    this.pubKey().disable();
+  });
 
-  ngOnInit(): void {
-    this.pubKey.disable();
-  }
+  readonly tag = computed(() => {
+    this.rootControlState();
+    return this.group().get('tag') as UntypedFormControl;
+  });
 
-  get tag() {
-    return this.group.get('tag') as UntypedFormControl;
-  }
+  readonly pubKey = computed(() => {
+    this.rootControlState();
+    return this.group().get('pubKey') as UntypedFormControl;
+  });
 
-  get pubKey() {
-    return this.group.get('pubKey') as UntypedFormControl;
-  }
+  readonly external = computed(() => {
+    this.rootControlState();
+    this.controlState0();
+    return this.editingExternal() || this.group().get('external')?.value;
+  });
 
-  get external() {
-    return this.editingExternal ||= this.group.get('external')?.value;
-  }
-
-  get showError() {
-    return this.tag.touched && this.tag.errors;
-  }
+  readonly showError = computed(() => {
+    this.rootControlState();
+    this.controlState1();
+    return this.tag().touched && this.tag().errors;
+  });
 
   validate(input: HTMLInputElement) {
-    if (this.showError) {
-      if (this.tag.errors?.['required']) {
+    if (this.showError()) {
+      if (this.tag().errors?.['required']) {
         input.setCustomValidity($localize`Tag must not be blank.`);
         input.reportValidity();
       }
-      if (this.tag.errors?.['pattern']) {
+      if (this.tag().errors?.['pattern']) {
         input.setCustomValidity($localize`
           User tags must start with the "+user/" or "_user/" prefix.
           Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
@@ -107,27 +93,34 @@ export class UserFormComponent implements OnInit {
   }
 
   blur(input: HTMLInputElement) {
-    if (this.showError && !this.showedError) {
+    if (this.showError() && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
     } else {
       this.showedError = false;
-      this.tagChanges.next(input.value)
+      this.tagChanges.emit(input.value)
     }
   }
 
-  setUser(user: User) {
-    this.notifications.setTags((user.readAccess || []).filter(isMailbox));
-    this.readAccess.setTags((user.readAccess || []).filter(t => !isMailbox(t)));
-    this.writeAccess.setTags([...user.writeAccess || []]);
-    this.tagReadAccess.setTags([...user.tagReadAccess || []]);
-    this.tagWriteAccess.setTags([...user.tagWriteAccess || []]);
-    this.group.patchValue({
-      ...user,
-      external: user.external ? JSON.stringify(user.external, null, 2) : undefined,
-    });
-  }
+}
 
+/** Fills a {@link userForm} from a User in one step. */
+export function setUserForm(fb: UntypedFormBuilder, group: UntypedFormGroup, user: Partial<User>) {
+  setTagArray(fb, group.get('notifications') as UntypedFormArray, (user.readAccess || []).filter(isMailbox));
+  setTagArray(fb, group.get('readAccess') as UntypedFormArray, (user.readAccess || []).filter(t => !isMailbox(t)));
+  setTagArray(fb, group.get('writeAccess') as UntypedFormArray, user.writeAccess || []);
+  setTagArray(fb, group.get('tagReadAccess') as UntypedFormArray, user.tagReadAccess || []);
+  setTagArray(fb, group.get('tagWriteAccess') as UntypedFormArray, user.tagWriteAccess || []);
+  group.patchValue({
+    ...user,
+    external: user.external ? JSON.stringify(user.external, null, 2) : undefined,
+  });
+}
+
+function setTagArray(fb: UntypedFormBuilder, array: UntypedFormArray, values: string[]) {
+  while (array.length > values.length) array.removeAt(array.length - 1, { emitEvent: false });
+  while (array.length < values.length) array.push(fb.control('', TagsFormComponent.validators), { emitEvent: false });
+  array.setValue(values);
 }
 
 export function userForm(fb: UntypedFormBuilder, locked = false) {

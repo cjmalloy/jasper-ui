@@ -1,4 +1,4 @@
-import { expect, type Page, type Response, test } from '@playwright/test';
+import { expect, type Page, type Response } from '@playwright/test';
 import {
   clearAll,
   clearOrigin,
@@ -9,6 +9,7 @@ import {
   subscribeMain,
   waitForCronToggleResponse,
   waitForUserActionResponse,
+  test,
 } from './setup';
 
 test.describe.serial('Origin Push Plugin', () => {

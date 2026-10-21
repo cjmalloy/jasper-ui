@@ -1,7 +1,15 @@
 /// <reference types="vitest/globals" />
 import type { Map } from 'maplibre-gl';
 import { GeocodeService } from '../../service/geocode.service';
-import { addGeocoder, currentView, isDarkBasemap, measurePlaceholder, renderResult, toFeatureCollection, viewBbox } from './geocoder';
+import {
+  addGeocoder,
+  currentView,
+  isDarkBasemap,
+  measurePlaceholder,
+  renderResult,
+  toFeatureCollection,
+  viewBbox
+} from './geocoder';
 
 describe('geocoder', () => {
 

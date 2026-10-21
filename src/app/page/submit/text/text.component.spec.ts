@@ -5,8 +5,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
-import { JasperFormlyModule } from '../../../formly/formly.module';
-import { SubmitStore } from '../../../store/submit';
+import { provideJasperFormly } from '../../../formly/formly.config';
+import { Store } from '../../../store/store';
 
 import { SubmitTextPage } from './text.component';
 
@@ -18,11 +18,11 @@ describe('SubmitTextPage', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         SubmitTextPage,
         TagsFormComponent
       ],
       providers: [
+        provideJasperFormly(),
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -36,6 +36,17 @@ describe('SubmitTextPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('adds completed uploads without mutating the previous snapshot', () => {
+    const previous = component.completedUploads();
+    const ref = { url: 'cache:uploaded' };
+
+    component.addCompletedUpload(ref);
+
+    expect(previous).toEqual([]);
+    expect(component.completedUploads()).toEqual([ref]);
+    expect(component.completedUploads()).not.toBe(previous);
   });
 
   it('should initialize a generated url for text posts', () => {
@@ -54,7 +65,7 @@ describe('SubmitTextPage', () => {
 
   it('should prefer the route url over the existing control value', () => {
     component.url.setValue('comment:local');
-    vi.spyOn(SubmitStore.prototype, 'url', 'get').mockReturnValue('comment:route');
+    vi.spyOn(TestBed.inject(Store).submit, 'url').mockReturnValue('comment:route');
 
     const ref = component.writeRef();
 
@@ -64,8 +75,8 @@ describe('SubmitTextPage', () => {
 
   it('should not keep a bare wiki prefix as the url', () => {
     component.url.setValue('');
-    vi.spyOn(SubmitStore.prototype, 'url', 'get').mockReturnValue('wiki:');
-    vi.spyOn(SubmitStore.prototype, 'wiki', 'get').mockReturnValue(true);
+    vi.spyOn(TestBed.inject(Store).submit, 'url').mockReturnValue('wiki:');
+    vi.spyOn(TestBed.inject(Store).submit, 'wiki').mockReturnValue(true);
     vi.spyOn(component.admin, 'getWikiPrefix').mockReturnValue('wiki:');
 
     const ref = component.writeRef();

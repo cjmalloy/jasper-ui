@@ -3,7 +3,7 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { AuthInterceptor } from '../../http/auth.interceptor';
+import { AuthTokenService } from '../../http/auth.interceptor';
 
 import { UserTagSelectorComponent } from './user-tag-selector.component';
 
@@ -15,7 +15,7 @@ describe('UserTagSelectorComponent', () => {
     await TestBed.configureTestingModule({
       imports: [UserTagSelectorComponent],
       providers: [
-        AuthInterceptor,
+        AuthTokenService,
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),

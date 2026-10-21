@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
+import { controlValue } from '../util/form';
 import { GEO_FILL_STYLES, GEO_STROKE_STYLES, GEO_STROKE_WIDTHS, GeoStyle } from '../util/geo-style';
 
 const DEFAULTS: GeoStyle = {
@@ -120,9 +121,10 @@ const DEFAULTS: GeoStyle = {
       flex: 0 0 auto;
     }
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class FormlyFieldGeoStyle extends FieldType<FieldTypeConfig> {
+
+  private readonly value = controlValue<GeoStyle | undefined>(() => this.formControl);
 
   defaults = DEFAULTS;
 
@@ -162,7 +164,7 @@ export class FormlyFieldGeoStyle extends FieldType<FieldTypeConfig> {
   }
 
   get style(): GeoStyle {
-    const v = this.formControl.value;
+    const v = this.value();
     return v && typeof v === 'object' ? v : {};
   }
 

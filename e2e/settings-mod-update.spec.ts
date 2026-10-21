@@ -1,5 +1,5 @@
-import { type APIRequestContext, expect, type Page, test } from '@playwright/test';
-import { adminHeaders, mod } from './setup';
+import { type APIRequestContext, expect, type Page } from '@playwright/test';
+import { adminHeaders, mod, test } from './setup';
 
 test.describe.serial('Mod Update', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';

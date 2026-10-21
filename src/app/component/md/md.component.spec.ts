@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { outputToObservable } from '@angular/core/rxjs-interop';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -26,8 +27,8 @@ describe('MdComponent', () => {
     vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
     fixture = TestBed.createComponent(MdComponent);
     component = fixture.componentInstance;
-    component.mermaid = false;
-    component.clipboard = false;
+    fixture.componentRef.setInput('mermaid', false);
+    fixture.componentRef.setInput('clipboard', false);
     fixture.detectChanges();
   });
 
@@ -36,25 +37,25 @@ describe('MdComponent', () => {
   });
 
   it('should render a table when the table plugin is added after the text', () => {
-    component.text = 'a,b\n1,2';
+    fixture.componentRef.setInput('text', 'a,b\n1,2');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('table')).toBeNull();
 
-    component.plugins = ['plugin/table'];
+    fixture.componentRef.setInput('plugins', ['plugin/table']);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('table')).toBeTruthy();
     expect(fixture.nativeElement.textContent).not.toContain('a,b');
 
-    component.plugins = [];
+    fixture.componentRef.setInput('plugins', []);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('table')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('a,b');
   });
 
   it('should render KaTeX when the LaTeX plugin is enabled', async () => {
-    const ready = firstValueFrom(component.postProcessMarkdown);
-    component.plugins = ['plugin/latex'];
-    component.text = '$x^2$';
+    const ready = firstValueFrom(outputToObservable(component.postProcessMarkdown));
+    fixture.componentRef.setInput('plugins', ['plugin/latex']);
+    fixture.componentRef.setInput('text', '$x^2$');
     fixture.detectChanges();
     await ready;
 
@@ -62,7 +63,7 @@ describe('MdComponent', () => {
   });
 
   it('should not render KaTeX without the LaTeX plugin', () => {
-    component.text = '$x^2$';
+    fixture.componentRef.setInput('text', '$x^2$');
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.katex')).toBeNull();
@@ -70,8 +71,8 @@ describe('MdComponent', () => {
   });
 
   it('should emit postProcessMarkdown after rendering', async () => {
-    const ready = firstValueFrom(component.postProcessMarkdown);
-    component.text = 'Hello';
+    const ready = firstValueFrom(outputToObservable(component.postProcessMarkdown));
+    fixture.componentRef.setInput('text', 'Hello');
     fixture.detectChanges();
     await ready;
 
@@ -81,15 +82,15 @@ describe('MdComponent', () => {
   it('should only re-render when text, plugins or origin change', () => {
     const embeds = TestBed.inject(EmbedService);
     const render = vi.spyOn(embeds, 'render');
-    component.text = 'Hello';
-    component.plugins = ['plugin/latex'];
+    fixture.componentRef.setInput('text', 'Hello');
+    fixture.componentRef.setInput('plugins', ['plugin/latex']);
     fixture.detectChanges();
     fixture.detectChanges();
-    component.plugins = ['plugin/latex'];
+    fixture.componentRef.setInput('plugins', ['plugin/latex']);
     fixture.detectChanges();
     expect(render).toHaveBeenCalledTimes(1);
 
-    component.origin = '@other';
+    fixture.componentRef.setInput('origin', '@other');
     fixture.detectChanges();
     expect(render).toHaveBeenCalledTimes(2);
   });
@@ -105,8 +106,8 @@ describe('MdComponent', () => {
       placeholdersAtAttach = host.querySelectorAll('.md-embed').length;
       return () => {};
     });
-    component.disableSanitizer = true;
-    component.text = '![a](https://example.com/a.png)\n\n<img src="https://example.com/b.png" onerror="alert(1)">\n\n<picture><source srcset="https://example.com/c.png"><img></picture>';
+    fixture.componentRef.setInput('disableSanitizer', true);
+    fixture.componentRef.setInput('text', '![a](https://example.com/a.png)\n\n<img src="https://example.com/b.png" onerror="alert(1)">\n\n<picture><source srcset="https://example.com/c.png"><img></picture>');
     fixture.detectChanges();
 
     expect(imagesAtAttach).toBe(0);
@@ -116,7 +117,7 @@ describe('MdComponent', () => {
   });
 
   it('should preserve the source map', () => {
-    component.text = '# Title\n\nParagraph';
+    fixture.componentRef.setInput('text', '# Title\n\nParagraph');
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('h1').getAttribute('aria-posinset')).toBe('0');
@@ -125,7 +126,7 @@ describe('MdComponent', () => {
 
   it('should not trim leading indentation', () => {
     const text = '    code\n\ntext';
-    component.text = text;
+    fixture.componentRef.setInput('text', text);
     fixture.detectChanges();
 
     const code = fixture.nativeElement.querySelector('pre > code');
@@ -137,7 +138,7 @@ describe('MdComponent', () => {
   });
 
   it('should wrap tables in a scrollable container', () => {
-    component.text = 'One\n\n| a |\n|---|\n| b |';
+    fixture.componentRef.setInput('text', 'One\n\n| a |\n|---|\n| b |');
     fixture.detectChanges();
 
     const table = fixture.nativeElement.querySelector('.md-table > table');
@@ -148,8 +149,8 @@ describe('MdComponent', () => {
 
   it('should render mermaid diagrams', () => {
     const mount = vi.spyOn(pele, 'mountAsync').mockReturnValue(new Promise(() => {}));
-    component.mermaid = true;
-    component.text = '```mermaid\ngraph TB\n  A --> B\n```';
+    fixture.componentRef.setInput('mermaid', true);
+    fixture.componentRef.setInput('text', '```mermaid\ngraph TB\n  A --> B\n```');
     fixture.detectChanges();
 
     const diagram = fixture.nativeElement.querySelector('.mermaid');
@@ -160,7 +161,7 @@ describe('MdComponent', () => {
 
   it('should show a render button for mermaid when disabled', () => {
     const mount = vi.spyOn(pele, 'mountAsync').mockReturnValue(new Promise(() => {}));
-    component.text = '```mermaid\ngraph TB\n  A --> B\n```';
+    fixture.componentRef.setInput('text', '```mermaid\ngraph TB\n  A --> B\n```');
     fixture.detectChanges();
 
     expect(mount).not.toHaveBeenCalled();
@@ -176,8 +177,8 @@ describe('MdComponent', () => {
   });
 
   it('should add clipboard buttons to code blocks', () => {
-    component.clipboard = true;
-    component.text = '```\ncode\n```';
+    fixture.componentRef.setInput('clipboard', true);
+    fixture.componentRef.setInput('text', '```\ncode\n```');
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.md-pre > pre')).toBeTruthy();
@@ -185,9 +186,9 @@ describe('MdComponent', () => {
   });
 
   it('should add clipboard buttons to code blocks in existing md-pre wrappers', () => {
-    component.clipboard = true;
-    component.disableSanitizer = true;
-    component.text = '<div class="md-pre"><pre>x</pre></div>\n\n```\ncode\n```';
+    fixture.componentRef.setInput('clipboard', true);
+    fixture.componentRef.setInput('disableSanitizer', true);
+    fixture.componentRef.setInput('text', '<div class="md-pre"><pre>x</pre></div>\n\n```\ncode\n```');
     fixture.detectChanges();
 
     const pres = fixture.nativeElement.querySelectorAll('.md-pre');
@@ -196,7 +197,7 @@ describe('MdComponent', () => {
   });
 
   it('should keep links with Jasper URI schemes', () => {
-    component.text = '[x](tag:/science) [c](comment:1) [w](wiki:Page) [b](isbn:123)';
+    fixture.componentRef.setInput('text', '[x](tag:/science) [c](comment:1) [w](wiki:Page) [b](isbn:123)');
     fixture.detectChanges();
 
     const links = Array.from(fixture.nativeElement.querySelectorAll('a[href]')).map((a: any) => a.getAttribute('href'));
@@ -204,25 +205,25 @@ describe('MdComponent', () => {
   });
 
   it('should re-render when mermaid, clipboard or sanitizer inputs change', () => {
-    component.text = '```\ncode\n```';
+    fixture.componentRef.setInput('text', '```\ncode\n```');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.markdown-clipboard-button')).toBeNull();
 
-    component.clipboard = true;
+    fixture.componentRef.setInput('clipboard', true);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.markdown-clipboard-button')).toBeTruthy();
 
-    component.text = '<span onclick="x">a</span>';
+    fixture.componentRef.setInput('text', '<span onclick="x">a</span>');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('span').hasAttribute('onclick')).toBe(false);
-    component.disableSanitizer = true;
+    fixture.componentRef.setInput('disableSanitizer', true);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('span').hasAttribute('onclick')).toBe(true);
   });
 
   it('should keep a stable source mapped container for mermaid diagrams', () => {
     const mount = vi.spyOn(pele, 'mountAsync').mockReturnValue(new Promise(() => {}));
-    component.text = '# Title\n\n```mermaid\ngraph TB\n  A --> B\n```';
+    fixture.componentRef.setInput('text', '# Title\n\n```mermaid\ngraph TB\n  A --> B\n```');
     fixture.detectChanges();
 
     const container = fixture.nativeElement.querySelector('.md-mermaid') as HTMLElement;
@@ -232,7 +233,7 @@ describe('MdComponent', () => {
     expect(container.querySelector('.mermaid')).toBeTruthy();
     expect(mount).toHaveBeenCalled();
 
-    component.mermaid = true;
+    fixture.componentRef.setInput('mermaid', true);
     fixture.detectChanges();
     const rendered = fixture.nativeElement.querySelector('.md-mermaid') as HTMLElement;
     expect(rendered.getAttribute('aria-posinset')).toBe('9');
@@ -240,7 +241,7 @@ describe('MdComponent', () => {
   });
 
   it('should ignore forged embed placeholders', () => {
-    component.text = '<span class="md-embed" data-url="javascript:alert(1)" data-plugin="plugin/embed">x</span>';
+    fixture.componentRef.setInput('text', '<span class="md-embed" data-url="javascript:alert(1)" data-plugin="plugin/embed">x</span>');
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.md-embed')).toBeNull();
@@ -248,7 +249,7 @@ describe('MdComponent', () => {
   });
 
   it('should render wiki links, hashtags and user tags as links', () => {
-    component.text = '[[double bracket]] #science +user/alice';
+    fixture.componentRef.setInput('text', '[[double bracket]] #science +user/alice');
     fixture.detectChanges();
 
     const links = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
@@ -260,7 +261,7 @@ describe('MdComponent', () => {
 
   it('should block object tags in markdown content', async () => {
     // Set markdown content with an object tag
-    component.text = '<object data="test.pdf" type="application/pdf"></object>';
+    fixture.componentRef.setInput('text', '<object data="test.pdf" type="application/pdf"></object>');
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -273,7 +274,7 @@ describe('MdComponent', () => {
 
   it('should block embed tags in markdown content', async () => {
     // Set markdown content with an embed tag
-    component.text = '<embed src="test.pdf" type="application/pdf">';
+    fixture.componentRef.setInput('text', '<embed src="test.pdf" type="application/pdf">');
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -286,8 +287,8 @@ describe('MdComponent', () => {
 
   it('should block object tags in mixed markdown content', async () => {
     // Set markdown content with text and an object tag
-    const ready = firstValueFrom(component.postProcessMarkdown);
-    component.text = 'This is some text\n\n<object data="malicious.swf" type="application/x-shockwave-flash"></object>\n\nMore text';
+    const ready = firstValueFrom(outputToObservable(component.postProcessMarkdown));
+    fixture.componentRef.setInput('text', 'This is some text\n\n<object data="malicious.swf" type="application/x-shockwave-flash"></object>\n\nMore text');
     fixture.detectChanges();
     await ready;
 
@@ -304,8 +305,8 @@ describe('MdComponent', () => {
 
   it('should block embed tags in mixed markdown content', async () => {
     // Set markdown content with text and an embed tag
-    const ready = firstValueFrom(component.postProcessMarkdown);
-    component.text = '# Heading\n\n<embed src="dangerous.swf" type="application/x-shockwave-flash">\n\nSafe paragraph';
+    const ready = firstValueFrom(outputToObservable(component.postProcessMarkdown));
+    fixture.componentRef.setInput('text', '# Heading\n\n<embed src="dangerous.swf" type="application/x-shockwave-flash">\n\nSafe paragraph');
     fixture.detectChanges();
     await ready;
 
@@ -323,20 +324,20 @@ describe('MdComponent', () => {
     const host = () => fixture.nativeElement.querySelector('.md') as HTMLElement;
     const children = () => Array.from(host().children) as HTMLElement[];
     async function type(text: string) {
-      const ready = firstValueFrom(component.postProcessMarkdown);
-      component.text = text;
+      const ready = firstValueFrom(outputToObservable(component.postProcessMarkdown));
+      fixture.componentRef.setInput('text', text);
       fixture.detectChanges();
       await ready;
     }
 
     beforeEach(() => {
-      component.progressive = true;
+      fixture.componentRef.setInput('progressive', true);
     });
 
     it('should keep unchanged blocks when editing a paragraph', async () => {
       const mount = vi.spyOn(pele, 'mountAsync').mockReturnValue(new Promise(() => {}));
-      const create = vi.spyOn(component.vc, 'createComponent');
-      component.mermaid = true;
+      const create = vi.spyOn(component.vc(), 'createComponent');
+      fixture.componentRef.setInput('mermaid', true);
       const rest = '\n\n```mermaid\ngraph TB\n  A --> B\n```\n\n<img src="https://example.com/a.png">';
       await type('Para one' + rest);
       expect(mount).toHaveBeenCalledTimes(1);
@@ -361,10 +362,10 @@ describe('MdComponent', () => {
     it('should coalesce text changes until the next frame', async () => {
       await type('One\n\nTwo');
       const render = vi.spyOn(TestBed.inject(EmbedService), 'renderBlock');
-      const ready = firstValueFrom(component.postProcessMarkdown);
-      component.text = 'One\n\nTwo!';
+      const ready = firstValueFrom(outputToObservable(component.postProcessMarkdown));
+      fixture.componentRef.setInput('text', 'One\n\nTwo!');
       fixture.detectChanges();
-      component.text = 'One\n\nTwo!!';
+      fixture.componentRef.setInput('text', 'One\n\nTwo!!');
       fixture.detectChanges();
       expect(render).not.toHaveBeenCalled();
       await ready;
@@ -391,7 +392,7 @@ describe('MdComponent', () => {
       expect(mermaid.getAttribute('aria-posinset')).toBe('30');
       const shifted = before.map(p => isNaN(+p!) ? p : '' + (+p! + 6));
       expect(positions()).toEqual(['0', ...shifted]);
-      component.progressive = false;
+      fixture.componentRef.setInput('progressive', false);
       fixture.detectChanges();
       expect(positions()).toEqual(['0', ...shifted]);
     });
@@ -401,7 +402,7 @@ describe('MdComponent', () => {
       const [one, two, three] = children();
       const [a, b] = Array.from(two.querySelectorAll('app-nav'));
       a.appendChild(document.createElement('iframe'));
-      const ready = firstValueFrom(component.postProcessMarkdown);
+      const ready = firstValueFrom(outputToObservable(component.postProcessMarkdown));
 
       component.reloadIframes();
       await ready;
@@ -415,7 +416,7 @@ describe('MdComponent', () => {
       expect(navs[0].isConnected).toBe(true);
       expect(navs[1]).toBe(b);
       expect(host().querySelector('iframe')).toBeNull();
-      expect(component.vc.length).toBe(2);
+      expect(component.vc().length).toBe(2);
     });
 
     describe('in place updates', () => {
@@ -429,7 +430,7 @@ describe('MdComponent', () => {
       };
 
       it('should keep an embed when typing on the line after it', async () => {
-        const create = vi.spyOn(component.vc, 'createComponent');
+        const create = vi.spyOn(component.vc(), 'createComponent');
         await type('Text\n<img src="https://example.com/a.png">');
         expect(create).toHaveBeenCalledTimes(1);
         const embed = create.mock.results[0].value.location.nativeElement as HTMLElement;
@@ -442,11 +443,11 @@ describe('MdComponent', () => {
         expect(embed.isConnected).toBe(true);
         expect(host().contains(embed)).toBe(true);
         expect(host().textContent).toContain('more');
-        expect(component.vc.length).toBe(1);
+        expect(component.vc().length).toBe(1);
       });
 
       it('should recreate an embed when its URL changes', async () => {
-        const create = vi.spyOn(component.vc, 'createComponent');
+        const create = vi.spyOn(component.vc(), 'createComponent');
         await type('Text\n<img src="https://example.com/a.png">\nmore');
         const embed = create.mock.results[0].value.location.nativeElement as HTMLElement;
 
@@ -455,7 +456,7 @@ describe('MdComponent', () => {
         expect(create).toHaveBeenCalledTimes(2);
         expect(embed.isConnected).toBe(false);
         expect(host().contains(create.mock.results[1].value.location.nativeElement)).toBe(true);
-        expect(component.vc.length).toBe(1);
+        expect(component.vc().length).toBe(1);
       });
 
       it('should match a full render', async () => {
@@ -466,14 +467,14 @@ describe('MdComponent', () => {
           'Intro! [link](https://a.com)\n- ![a](https://example.com/a.png)\n\n| a |\n|---|\n| b |\n\n```js\ncode\n```',
         ];
         const full = TestBed.createComponent(MdComponent);
-        full.componentInstance.mermaid = false;
-        full.componentInstance.clipboard = false;
+        full.componentRef.setInput('mermaid', false);
+        full.componentRef.setInput('clipboard', false);
         for (const text of edits) {
           await type(text);
-          full.componentInstance.text = text;
+          full.componentRef.setInput('text', text);
           full.detectChanges();
           fixture.detectChanges();
-          expect(strip(host())).toBe(strip(full.componentInstance.md.nativeElement));
+          expect(strip(host())).toBe(strip(full.componentInstance.md().nativeElement));
         }
       });
 
@@ -510,7 +511,7 @@ describe('MdComponent', () => {
     it('should destroy views and subscriptions of removed blocks', async () => {
       const http = TestBed.inject(HttpTestingController);
       await type('Keep\n\n[link](https://example.com)\n\n![=](https://example.com/ref)');
-      expect(component.vc.length).toBe(1);
+      expect(component.vc().length).toBe(1);
       const [req] = http.match(r => r.url.endsWith('/ref/page'));
       expect(req.request.params.get('url')).toBe('https://example.com/ref');
       const keep = children()[0];
@@ -519,7 +520,7 @@ describe('MdComponent', () => {
 
       expect(children()[0]).toBe(keep);
       expect(children().length).toBe(1);
-      expect(component.vc.length).toBe(0);
+      expect(component.vc().length).toBe(0);
       expect(req.cancelled).toBe(true);
     });
 
@@ -534,22 +535,22 @@ describe('MdComponent', () => {
     });
 
     it('should fully re-render when other inputs change', () => {
-      component.text = 'Keep\n\n<span onclick="x">a</span>';
+      fixture.componentRef.setInput('text', 'Keep\n\n<span onclick="x">a</span>');
       fixture.detectChanges();
       let keep = children()[0];
 
-      component.plugins = ['plugin/latex'];
+      fixture.componentRef.setInput('plugins', ['plugin/latex']);
       fixture.detectChanges();
       expect(children()[0]).not.toBe(keep);
       keep = children()[0];
 
-      component.origin = '@other';
+      fixture.componentRef.setInput('origin', '@other');
       fixture.detectChanges();
       expect(children()[0]).not.toBe(keep);
       keep = children()[0];
 
       expect(host().querySelector('span')!.hasAttribute('onclick')).toBe(false);
-      component.disableSanitizer = true;
+      fixture.componentRef.setInput('disableSanitizer', true);
       fixture.detectChanges();
       expect(children()[0]).not.toBe(keep);
       expect(host().querySelector('span')!.hasAttribute('onclick')).toBe(true);
@@ -579,8 +580,8 @@ describe('MdComponent', () => {
         placeholders += root.querySelectorAll('.md-embed').length;
         return () => {};
       });
-      component.disableSanitizer = true;
-      component.text = '![a](https://example.com/a.png)\n\n<img src="https://example.com/b.png" onerror="alert(1)">\n\n<picture><source srcset="https://example.com/c.png"><img></picture>';
+      fixture.componentRef.setInput('disableSanitizer', true);
+      fixture.componentRef.setInput('text', '![a](https://example.com/a.png)\n\n<img src="https://example.com/b.png" onerror="alert(1)">\n\n<picture><source srcset="https://example.com/c.png"><img></picture>');
       fixture.detectChanges();
 
       expect(images).toBe(0);

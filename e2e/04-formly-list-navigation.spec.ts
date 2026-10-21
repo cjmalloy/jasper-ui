@@ -1,5 +1,5 @@
-import { expect, type Locator, type Page, test } from '@playwright/test';
-import { clearAll, mod, openSidebar } from './setup';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { clearAll, mod, openSidebar, test } from './setup';
 
 const TEXT_SUBMIT_URL = '/submit/text?tag=public&debug=ADMIN';
 

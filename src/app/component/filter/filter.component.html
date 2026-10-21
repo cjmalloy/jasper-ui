@@ -3,7 +3,7 @@
         (input)="addFilter($any(create.value))"
         i18n-title title="Filter">
   <option class="unselected" i18n>{{ emoji }} filter</option>
-  @for (g of allFilters; track g.label) {
+  @for (g of allFilters(); track g.label) {
     @if (g.filters.length) {
       <optgroup [label]="g.label">
         @for (f of g.filters; track f.filter) {
@@ -13,10 +13,10 @@
     }
   }
 </select>
-@for (filter of filters; track filter; let i = $index) {
+@for (filter of filters(); track filter; let i = $index) {
   <div class="controls" [title]="filter">
     <select id="filter-{{ i }}" [ngModel]="filter" (ngModelChange)="setFilter(i, $event)" [title]="title(filter)">
-      @for (g of allFilters; track g.label) {
+      @for (g of allFilters(); track g.label) {
         @if (g.filters.length) {
           <optgroup [label]="g.label">
             @for (f of g.filters; track f.filter) {

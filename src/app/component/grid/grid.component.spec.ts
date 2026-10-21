@@ -152,7 +152,7 @@ describe('GridComponent', () => {
 
   describe('columnDefs', () => {
     it('should return formatted column defs from defaultCols', () => {
-      const defs = component.columnDefs;
+      const defs = component.columnDefs();
       const published = defs.find(c => c.field === 'published');
       expect(published).toBeTruthy();
       expect(published?.filter).toBe('agDateColumnFilter');
@@ -160,8 +160,9 @@ describe('GridComponent', () => {
     });
 
     it('should apply formatters to ext config columnDefs when provided', () => {
-      component.ext = { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published', type: 'dateTime' }] } } as any;
-      const defs = component.columnDefs;
+      fixture.componentRef.setInput('ext', { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published', type: 'dateTime' }] } } as any);
+      fixture.detectChanges();
+      const defs = component.columnDefs();
       expect(typeof defs[0].valueFormatter).toBe('function');
     });
   });
@@ -181,7 +182,8 @@ describe('GridComponent', () => {
         title: 'Original title',
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       const req = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
@@ -190,7 +192,7 @@ describe('GridComponent', () => {
       );
       req.flush(Page.of([sourceRef]));
 
-      expect(component.rowData).toEqual([expect.objectContaining({
+      expect(component.rowData()).toEqual([expect.objectContaining({
         url: sourceRef.url,
         title: sourceRef.title,
       })]);
@@ -205,10 +207,11 @@ describe('GridComponent', () => {
         title: 'Repost title',
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       http.expectNone(request => request.url.endsWith('/api/v1/ref/page'));
-      expect(component.rowData).toEqual([repostRef]);
+      expect(component.rowData()).toEqual([repostRef]);
     });
 
     it('should keep bare repost rows when source refs fail to load', () => {
@@ -219,7 +222,8 @@ describe('GridComponent', () => {
         sources: ['https://example.com/original'],
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       const req = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
@@ -227,7 +231,7 @@ describe('GridComponent', () => {
       );
       req.flush('server error', { status: 500, statusText: 'Server Error' });
 
-      expect(component.rowData).toEqual([repostRef]);
+      expect(component.rowData()).toEqual([repostRef]);
     });
 
     it('should cancel previous bare repost source fetches when page changes', () => {
@@ -250,13 +254,15 @@ describe('GridComponent', () => {
         title: 'Second original',
       };
 
-      component.page = Page.of([firstRepost]);
+      fixture.componentRef.setInput('page', Page.of([firstRepost]));
+      fixture.detectChanges();
       const firstReq = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
         && request.params.get('url') === firstRepost.sources![0]
       );
 
-      component.page = Page.of([secondRepost]);
+      fixture.componentRef.setInput('page', Page.of([secondRepost]));
+      fixture.detectChanges();
 
       expect(firstReq.cancelled).toBe(true);
       const secondReq = http.expectOne(request =>
@@ -265,11 +271,11 @@ describe('GridComponent', () => {
       );
       secondReq.flush(Page.of([secondSource]));
 
-      expect(component.rowData).toEqual([expect.objectContaining({
+      expect(component.rowData()).toEqual([expect.objectContaining({
         url: secondSource.url,
         title: secondSource.title,
       })]);
-      expect(component.rowData.some(ref => ref.url === firstRepost.sources![0])).toBe(false);
+      expect(component.rowData().some(ref => ref.url === firstRepost.sources![0])).toBe(false);
     });
   });
 });

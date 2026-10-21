@@ -9,18 +9,9 @@
   },
   "files": [
     "src/main.ts",
-    "src/zone-flags.ts",
     "src/polyfills.ts"
   ],
   "include": [
     "src/**/*.d.ts"
-  ],
-  "angularCompilerOptions": {
-    "extendedDiagnostics": {
-      "checks": {
-        "nullishCoalescingNotNullable": "suppress",
-        "optionalChainNotNullable": "suppress"
-      }
-    }
-  }
+  ]
 }
