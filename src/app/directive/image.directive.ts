@@ -1,7 +1,6 @@
 import {
   afterNextRender,
   computed,
-  DestroyRef,
   Directive,
   effect,
   ElementRef,
@@ -38,7 +37,6 @@ export class ImageDirective {
   readonly loading = signal(true);
 
   private dim: Dim = { width: 0, height: 0 };
-  private resizeObserver?: ResizeObserver;
   private loadingUrl = '';
 
   constructor() {
@@ -59,22 +57,14 @@ export class ImageDirective {
   }
 
   private readonly initialize = afterNextRender(() => {
-    if (this.grid()) {
-      this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize());
-      this.resizeObserver?.observe(this.el);
+    if (this.grid()) return;
+    if (this.config.mobile()) {
+      this.el.style.width = this.defaultWidthPx || null;
+      this.el.style.height = this.defaultHeightPx() || this.el.clientWidth + 'px';
     } else {
-      if (this.config.mobile()) {
-        this.el.style.width = this.defaultWidthPx || null;
-        this.el.style.height = this.defaultHeightPx() || this.el.clientWidth + 'px';
-      } else {
-        this.el.style.width = this.defaultWidthPx || '600px';
-        this.el.style.height = this.defaultHeightPx() || '600px';
-      }
+      this.el.style.width = this.defaultWidthPx || '600px';
+      this.el.style.height = this.defaultHeightPx() || '600px';
     }
-  });
-
-  private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
-    this.resizeObserver?.disconnect();
   });
 
   get el() {
@@ -129,12 +119,18 @@ export class ImageDirective {
       this.el.style.backgroundSize = '100% 100%';
       return;
     }
-    const grid = this.grid();
-    const parentWidth = this.parentWidth - (grid ? 0 : this.padding());
-    if (this.config.mobile() && !grid && (!defaultWidth || defaultWidth >= window.innerWidth)) {
+    if (this.grid()) {
+      // Size with CSS so the image follows its grid column as it grows or shrinks
+      this.el.style.width = '100%';
+      this.el.style.height = this.defaultHeightPx() || 'auto';
+      this.el.style.aspectRatio = this.defaultHeightPx() || !this.dim.width || !this.dim.height ? '' : `${this.dim.width} / ${this.dim.height}`;
+      return;
+    }
+    const parentWidth = this.parentWidth - this.padding();
+    if (this.config.mobile() && (!defaultWidth || defaultWidth >= window.innerWidth)) {
       this.el.style.width = parentWidth + 'px';
       this.el.style.height = this.defaultHeightPx() || height(parentWidth, this.dim) + 'px';
-    } else if (grid || this.dim.width > parentWidth && (!defaultWidth || defaultWidth >= parentWidth)) {
+    } else if (this.dim.width > parentWidth && (!defaultWidth || defaultWidth >= parentWidth)) {
       this.el.style.width = parentWidth + 'px';
       this.el.style.height = this.defaultHeightPx() || height(parentWidth, this.dim) + 'px';
     } else if (defaultWidth) {
