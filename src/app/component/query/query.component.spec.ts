@@ -38,8 +38,22 @@ describe('QueryComponent', () => {
     // Check that navigation was called with a cleaned query
     expect(router.navigate).toHaveBeenCalled();
     const navigateCall = vi.mocked(router.navigate).mock.calls[0];
-    // The actual cleaning keeps ! and @ characters, removes # and spaces become +
-    expect(navigateCall[0]).toEqual(['/tag', 'test+query!+withspecial@characters']);
+    // The actual cleaning keeps ! and @ characters, removes # and spaces become |
+    expect(navigateCall[0]).toEqual(['/tag', 'test|query!|withspecial@characters']);
+  });
+
+  it('should not turn spaces around operators into +', () => {
+    component.search('science | math');
+
+    const navigateCall = vi.mocked(router.navigate).mock.calls[0];
+    expect(navigateCall[0]).toEqual(['/tag', 'science|math']);
+  });
+
+  it('should convert spaces to OR without creating protected tags', () => {
+    component.search(' ( science  +user/bob ) : funny ');
+
+    const navigateCall = vi.mocked(router.navigate).mock.calls[0];
+    expect(navigateCall[0]).toEqual(['/tag', '(science|+user/bob):funny']);
   });
 
   it('marks input to replace on clipboard paste when entering edit mode', () => {
