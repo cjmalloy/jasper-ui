@@ -42,6 +42,13 @@ describe('QueryComponent', () => {
     expect(navigateCall[0]).toEqual(['/tag', 'test|query!|withspecial@characters']);
   });
 
+  it('should not turn spaces around operators into +', () => {
+    component.search('science | math');
+
+    const navigateCall = vi.mocked(router.navigate).mock.calls[0];
+    expect(navigateCall[0]).toEqual(['/tag', 'science|math']);
+  });
+
   it('should convert spaces to OR without creating protected tags', () => {
     component.search(' ( science  +user/bob ) : funny ');
 
