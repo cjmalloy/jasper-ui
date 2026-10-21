@@ -153,6 +153,9 @@ export class SidebarComponent {
     } else {
       this.expanded.set(window.matchMedia && !!window.matchMedia('(min-width: 1024px)').matches);
     }
+    // The host is attached before the first change detection binds [class.expanded],
+    // so set the initial state now to avoid animating the width from collapsed
+    this.el.nativeElement.classList.toggle('expanded', this.expanded());
 
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
