@@ -71,6 +71,14 @@ export function urlSummary(url: string) {
   return 'unknown';
 }
 
+export function dedent(text: string): string {
+  if (typeof text !== 'string') return text;
+  const lines = text.split('\n');
+  const indent = Math.min(...lines.filter(l => l.trim()).map(l => l.search(/\S/)));
+  if (!indent || !isFinite(indent)) return text;
+  return lines.map(l => l.trim() ? l.substring(indent) : '').join('\n');
+}
+
 export function interestingTags(tags?: string[]): string[] {
   return filter(tags, interestingTag);
 }

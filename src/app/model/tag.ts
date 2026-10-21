@@ -5,7 +5,7 @@ import { Schema } from 'jtd';
 import { cloneDeep, defer, isEqual, omitBy, uniqWith } from 'lodash-es';
 import { DateTime, Duration, DurationObjectUnits } from 'luxon';
 import { v4 as uuid } from 'uuid';
-import { interestingTags } from '../util/format';
+import { dedent, interestingTags } from '../util/format';
 import { hasAnyResponse, hasQuery, hasResponse, hasTag, hasPrefix, prefix, remotePlugins, subOrigin } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Ext, extSchema } from './ext';
@@ -620,7 +620,7 @@ let hydrateError = false;
 export function hydrate(config: any, field: string, model: any): string {
   if (!config[field]) return '';
   config._cache ||= {};
-  config._cache[field] ||= Handlebars.compile(config[field]);
+  config._cache[field] ||= Handlebars.compile(dedent(config[field]));
   try {
     return config._cache[field](model);
   } catch (e) {
