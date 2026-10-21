@@ -104,11 +104,12 @@ export class QueryComponent {
   search(query: string) {
     this.editing = false;
     query = query.toLowerCase()
-      .replace(/\s+/g, ' ')
-      .replace(/\|+/g, '|')
-      .replace(/[\s|]*:[\s|]*/g, ':')
-      .replace(/\s+/g, '+')
-      .replace(/[^_+/a-z-0-9.:|!@*()]+/g, '');
+      .replace(/[^_+/a-z-0-9.:|!@*(),\s]+/g, '')
+      .replace(/[\s,|]+/g, '|')
+      .replace(/\|*:\|*/g, ':')
+      .replace(/\(\|+/g, '(')
+      .replace(/\|+\)/g, ')')
+      .replace(/^\|+|\|+$/g, '');
     if (this.store.view.current === 'tags') {
       this.router.navigate(['/tags', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
     } else {
