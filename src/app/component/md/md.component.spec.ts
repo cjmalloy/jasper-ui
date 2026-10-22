@@ -156,7 +156,7 @@ describe('MdComponent', () => {
     const diagram = fixture.nativeElement.querySelector('.mermaid');
     expect(diagram).toBeTruthy();
     expect(fixture.nativeElement.querySelector('pre')).toBeNull();
-    expect(mount).toHaveBeenCalledWith(diagram, 'graph TB\n  A --> B\n');
+    expect(mount).toHaveBeenCalledWith(diagram, 'graph TB\n  A --> B\n', { math: expect.any(Function) });
   });
 
   it('should show a render button for mermaid when disabled', () => {
@@ -173,7 +173,7 @@ describe('MdComponent', () => {
     const diagram = fixture.nativeElement.querySelector('.mermaid');
     expect(diagram).toBeTruthy();
     expect(fixture.nativeElement.querySelector('pre')).toBeNull();
-    expect(mount).toHaveBeenCalledWith(diagram, 'graph TB\n  A --> B\n');
+    expect(mount).toHaveBeenCalledWith(diagram, 'graph TB\n  A --> B\n', { math: expect.any(Function) });
   });
 
   it('should add clipboard buttons to code blocks', () => {
