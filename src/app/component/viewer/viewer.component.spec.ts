@@ -5,8 +5,10 @@ import { forwardRef, ViewContainerRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
+import { of } from 'rxjs';
 
 import { AdminService } from '../../service/admin.service';
+import { ProxyService } from '../../service/api/proxy.service';
 import { ConfigService } from '../../service/config.service';
 import { createEmbed, EMBED_NESTING } from '../../util/embed';
 import { EmbedPlaceholderComponent } from '../embed-placeholder/embed-placeholder.component';
@@ -98,6 +100,22 @@ describe('ViewerComponent', () => {
     placeholder.destroy();
     expect(view.destroyed).toBe(true);
     expect(destroy).toHaveBeenCalledOnce();
+  });
+
+  it('loads code from the file cache when a code Ref has no comment', async () => {
+    vi.spyOn(TestBed.inject(AdminService), 'getPlugin').mockImplementation((tag: string) => tag === 'plugin/code' ? { tag } as any : undefined);
+    const fetch = vi.spyOn(TestBed.inject(ProxyService), 'fetch').mockReturnValue(of({
+      url: '',
+      mimeType: 'application/yaml',
+      data: new TextEncoder().encode('a: 1').buffer,
+    }));
+    fixture = TestBed.createComponent(ViewerComponent);
+    component = fixture.componentInstance;
+    fixture.componentRef.setInput('ref', { url: 'cache:abc', origin: '', title: 'a.yaml', tags: ['plugin/file', 'plugin/code/yaml'] });
+    TestBed.tick();
+    await fixture.whenStable();
+    expect(fetch).toHaveBeenCalledWith('cache:abc', '', 'a.yaml');
+    expect(component.currentCode()).toBe('```yaml\na: 1\n```');
   });
 
   it('hydrates plugin UIs once until the Ref changes', () => {

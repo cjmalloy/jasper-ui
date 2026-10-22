@@ -560,7 +560,7 @@ export class ChatComponent implements HasChanges {
 
   upload$(file: File, upload: ChatUpload): Observable<Ref | null> {
     const visibility = this.publicUploads() ? ['public'] : [];
-    const codeType = mimeToCode(file.type);
+    const codeType = mimeToCode(file.type, file.name);
     if (codeType.length) {
       const ref: Ref = {
         origin: this.store.account.origin(),

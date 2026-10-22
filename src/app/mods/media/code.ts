@@ -38,13 +38,41 @@ to it. Markdown fences and explanations belong only in the first response Ref.`,
   },
 };
 
-export function mimeToCode(mime: string) {
+const CODE_EXTENSIONS: Record<string, string> = {
+  yaml: 'yaml',
+  yml: 'yaml',
+};
+
+function extensionToCode(filename?: string) {
+  const dot = filename?.lastIndexOf('.') ?? -1;
+  if (dot < 0) return [];
+  const lang = CODE_EXTENSIONS[filename!.substring(dot + 1).toLowerCase()];
+  return lang ? ['plugin/code/' + lang] : [];
+}
+
+/**
+ * Code tags for a file that will be stored in the file cache.
+ * Unlike mimeToCode, unknown files are not tagged as code.
+ */
+export function fileToCode(file: { name?: string, type?: string }) {
+  const ext = extensionToCode(file.name);
+  if (ext.length) return ext;
+  if (!file.type || file.type === 'text/markdown') return [];
+  return mimeToCode(file.type);
+}
+
+export function mimeToCode(mime: string, filename?: string) {
+  const ext = extensionToCode(filename);
+  if (ext.length) return ext;
   if (!mime) return ['plugin/code'];
   switch (mime) {
     case 'text/markdown':
     case 'text/plain': return ['plugin/code/md'];
     case 'text/vnd.qt.linguist': return ['plugin/code/typescript'];
     case 'text/x-patch': return ['plugin/code/diff'];
+    case 'text/yaml':
+    case 'text/x-yaml':
+    case 'application/yaml':
     case 'application/x-yaml': return ['plugin/code/yaml'];
     case 'application/x-shellscript': return ['plugin/code/shell'];
     case 'application/x-httpd-php': return ['plugin/code/php'];

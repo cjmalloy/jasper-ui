@@ -594,7 +594,7 @@ export class EditorComponent {
   }
 
   upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
-    const codeType = mimeToCode(file.type);
+    const codeType = mimeToCode(file.type, file.name);
     if (codeType.length) {
       const ref = {
         origin: this.store.account.origin(),

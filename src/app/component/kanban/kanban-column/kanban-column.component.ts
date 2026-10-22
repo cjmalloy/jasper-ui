@@ -434,7 +434,7 @@ export class KanbanColumnComponent implements HasChanges {
   uploadFile$(file: File, uploadId: string): Observable<Ref | null> {
     const tagsWithAuthor = this.getTagsWithAuthor();
 
-    const codeType = mimeToCode(file.type);
+    const codeType = mimeToCode(file.type, file.name);
     if (codeType.length) {
       const ref: Ref = {
         origin: this.store.account.origin(),
