@@ -46,7 +46,9 @@ const CODE_EXTENSIONS: Record<string, string> = {
 function extensionToCode(filename?: string) {
   const dot = filename?.lastIndexOf('.') ?? -1;
   if (dot < 0) return [];
-  const lang = CODE_EXTENSIONS[filename!.substring(dot + 1).toLowerCase()];
+  const extension = filename!.substring(dot + 1).toLowerCase();
+  const lang = Object.prototype.hasOwnProperty.call(CODE_EXTENSIONS, extension)
+    ? CODE_EXTENSIONS[extension] : undefined;
   return lang ? ['plugin/code/' + lang] : [];
 }
 
