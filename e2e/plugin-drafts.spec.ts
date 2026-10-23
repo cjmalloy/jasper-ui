@@ -48,4 +48,24 @@ test.describe.serial('Drafts Plugin', () => {
     await expect(page).toHaveURL(/\/inbox\/ref\/plugin(%2F|\/)editing/);
     await expect(page.locator('.ref .link a', { hasText: webTitle })).toBeVisible();
   });
+
+  test('restores a DM draft with its recipient and tags', async () => {
+    const dmTitle = 'DM Draft ' + Date.now();
+    await page.goto('/submit/dm?debug=USER&to=' + encodeURIComponent('+user/alice'), { waitUntil: 'networkidle' });
+    await expect(page.locator('.tag-field input.preview[title="plugin/inbox/user/alice"]')).toBeAttached();
+    await page.locator('#title').fill(dmTitle);
+    const saved = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await page.locator('button', { hasText: 'Save for later' }).click();
+    await saved;
+    await expect(page).toHaveURL(/\/inbox\/ref\/plugin(%2F|\/)editing/);
+    await page.locator('.ref .link a', { hasText: dmTitle }).click();
+    await expect(page).toHaveURL(/\/submit\/dm/);
+    await expect(page.locator('#title')).toHaveValue(dmTitle);
+    await expect(page.locator('#to')).toHaveValue('+user/alice');
+    for (const tag of ['dm', 'plugin/thread', 'plugin/inbox/user/alice', 'user/alice']) {
+      await expect(page.locator(`.tag-field input.preview[title="${tag}"]`)).toBeAttached();
+    }
+    await expect(page.locator('.tag-field input.preview[title="notes"]')).toHaveCount(0);
+  });
 });

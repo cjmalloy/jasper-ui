@@ -936,6 +936,10 @@ export class RefComponent implements HasChanges {
 
   readonly editingLink = computed(() => {
     if (!hasTag('plugin/editing', this.ref())) return undefined;
+    const edit = this.ref().plugins?.['plugin/editing'];
+    if (hasTag('dm', edit) || hasTag('notes', edit)) {
+      return { routerLink: ['/submit/dm'], queryParams: { url: this.url() } };
+    }
     if (this.url().startsWith('comment:')) {
       return { routerLink: ['/submit/text'], queryParams: { url: this.url() } };
     }

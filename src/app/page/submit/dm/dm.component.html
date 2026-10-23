@@ -46,7 +46,7 @@
                      [text]="true"
                      i18n-title title="Add Plugin"
                      (picked)="bookmarks.toggleTag($event)"></app-select-plugin>
-  <app-form-plugins id="plugins"[group]="dmForm"></app-form-plugins>
+  <app-form-plugins id="plugins" [group]="dmForm" [values]="pluginValues()"></app-form-plugins>
 
   @if (customEditor()) {
     <span><!-- Editor --></span>

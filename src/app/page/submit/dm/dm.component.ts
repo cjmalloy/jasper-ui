@@ -46,7 +46,7 @@ import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugin
 import { fillTags, TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
-import { getMailbox } from '../../../mods/mailbox';
+import { addressedTo, getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -116,6 +116,10 @@ export class SubmitDmPage implements HasChanges {
   readonly saving = signal(false);
   private savingSubscription?: Subscription;
   readonly completedUploads = signal<Ref[]>([]);
+  /**
+   * Plugin data the plugin forms are built from.
+   */
+  readonly pluginValues = signal<Record<string, any> | undefined>(undefined);
   private cursor?: string;
   private showedError = false;
   private addedMailboxes: string[] = [];
@@ -140,6 +144,23 @@ export class SubmitDmPage implements HasChanges {
       ).subscribe(() => {
         if (this.dmForm.dirty) this.saveForLater();
       });
+      if (this.store.submit.url()) {
+        this.refs.getEditing(this.store.submit.url()).subscribe(draft => {
+          if (!draft) return;
+          this._url = draft.url;
+          this.cursor = draft.modifiedString;
+          const edit: Ref = { ...draft.plugins?.['plugin/editing'], url: draft.url, origin: draft.origin };
+          this.setTags(edit.tags || []);
+          this.pluginValues.set(edit.plugins);
+          this.title.setValue(edit.title || '');
+          this.comment.setValue(edit.comment || '');
+          for (const s of edit.sources || []) this.sources.push(this.fb.control(s, LinksFormComponent.validators));
+          this.setTo(uniq([
+            ...addressedTo(edit),
+            ...edit.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
+          ]).join(' '));
+        });
+      }
     }
   }
 
