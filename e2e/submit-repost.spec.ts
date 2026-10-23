@@ -27,6 +27,19 @@ test.describe.serial('Submit Repost and DM', () => {
     expect(commentUrl).toMatch(/^comment:/);
   });
 
+  test('ignores Next without a link instead of throwing', async () => {
+    await page.goto('/submit/text?debug=USER', { waitUntil: 'networkidle' });
+    await page.goto('/submit?debug=USER', { waitUntil: 'networkidle' });
+    await page.goBack({ waitUntil: 'networkidle' });
+    await page.goForward({ waitUntil: 'networkidle' });
+    await expect(page.locator('#url')).toHaveValue('');
+    await page.locator('button[type=submit]', { hasText: 'Next' }).click();
+    await expect(page).toHaveURL(/\/submit\?/);
+    await page.locator('#url').fill('https://www.jasper.example/after-back-' + Date.now());
+    await page.locator('button[type=submit]', { hasText: 'Next' }).click();
+    await expect(page).toHaveURL(/\/submit\/web/);
+  });
+
   test('reposts a comment URL pasted into the submit page', async () => {
     await page.goto('/submit?debug=USER', { waitUntil: 'networkidle' });
     await page.locator('#url').fill(commentUrl);
