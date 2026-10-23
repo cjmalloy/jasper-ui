@@ -14,7 +14,7 @@ test.describe.serial('Submit Repost and DM', () => {
   });
 
   test('enable mods', async () => {
-    await mod(page, '#mod-todolist');
+    await mod(page, '#mod-todolist', '#mod-plugin\\/embed');
   });
 
   test('creates a comment to repost', async () => {
@@ -44,6 +44,43 @@ test.describe.serial('Submit Repost and DM', () => {
     expect(res.request().postDataJSON().url).not.toBe(commentUrl);
     expect(res.request().postDataJSON().sources).toContain(commentUrl);
     await expect(page).toHaveURL(/\/ref\/internal/);
+  });
+
+  test('reposts an embed with a title without an empty embed of the repost', async () => {
+    const source = 'https://www.jasper.example/embed-' + Date.now();
+    // The debug login reads ?tag= as the user tag, so pick the plugin on the submit page instead
+    await page.goto('/submit?debug=USER', { waitUntil: 'networkidle' });
+    await page.locator('select:has(option[value="plugin/embed"])').selectOption('plugin/embed');
+    await page.locator('#url').fill(source);
+    await page.locator('button[type=submit]', { hasText: 'Next' }).click();
+    await expect(page).toHaveURL(/\/submit\/web/);
+    await expect(page.locator('.tag-field input.preview[title="plugin/embed"]')).toBeAttached();
+    const source$ = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST');
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click();
+    expect((await source$).ok()).toBe(true);
+    await expect(page).toHaveURL(/\/ref\/https/);
+
+    await page.goto('/submit?debug=USER', { waitUntil: 'networkidle' });
+    await page.locator('#url').fill(source);
+    await page.locator('#url').dispatchEvent('paste');
+    const repost = page.locator('button[type=submit]', { hasText: 'Repost' });
+    await expect(repost).toBeVisible();
+    await repost.click();
+    await expect(page).toHaveURL(/\/submit\/web/);
+    await expect(page.locator('.tag-field input.preview[title="plugin/repost"]')).toBeAttached();
+    await page.locator('[name=title]').fill('Titled Embed Repost');
+    const created = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST');
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click();
+    const req = (await created).request().postDataJSON();
+    expect(req.tags).toContain('plugin/repost');
+    expect(req.tags).not.toContain('plugin/embed');
+    await expect(page).toHaveURL(/\/ref\/internal/);
+
+    const viewer = page.locator('.full-page.ref > .viewer-below, .full-page.ref > .viewer-inline').first();
+    await expect(viewer.locator('.ref.expand .link a', { hasText: 'embed-' })).toBeVisible();
+    await expect(viewer.locator(':scope > .embed-container')).toHaveCount(0);
   });
 
   test('keeps a typed DM recipient after picking a plugin', async () => {

@@ -648,6 +648,14 @@ export class RefComponent implements HasChanges {
     return uniq([...(this.repost() ? this.repostRef()?.tags : this.ref().tags) || [], ...this.expandPlugins()]);
   });
 
+  /**
+   * A titled repost shows the source in its own preview, so only the repost's own embeds apply to it.
+   */
+  readonly viewerTags = computed(() => {
+    if (this.repost() && !this.bareRepost()) return this.expandPlugins();
+    return this.currentTags();
+  });
+
   readonly viewerEmbeds = computed(() => {
     const plugins = this.plugins();
     if (!plugins) return this.expandPlugins();
