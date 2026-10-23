@@ -138,7 +138,7 @@ export class SubmitDmPage implements HasChanges {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
-        if (this.dmForm.dirty) this.saveForLater();
+        if (this.dmForm.dirty && !this.saving() && !this.submitting()) this.saveForLater();
       });
     }
   }

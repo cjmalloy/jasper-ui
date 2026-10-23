@@ -11,6 +11,7 @@ import {
   untracked,
   viewChild
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -22,7 +23,7 @@ import { Router } from '@angular/router';
 import { isEqual, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, firstValueFrom, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, interval, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -132,6 +133,13 @@ export class SubmitTextPage implements HasChanges {
     this.ensureUrl();
     store.submit.wikiPrefix.set(admin.getWikiPrefix());
     this.initialize();
+    if (admin.editing()) {
+      interval(5_000).pipe(
+        takeUntilDestroyed(),
+      ).subscribe(() => {
+        if (this.textForm.dirty && !this.saving() && !this.submitting()) this.saveForLater();
+      });
+    }
   }
 
   addCompletedUpload(ref: Ref) {
