@@ -38,8 +38,8 @@ describe('ResizeHandleDirective hit test', () => {
     const event = { button: 0, clientX: 495, clientY: 695, preventDefault: vi.fn(), stopPropagation: vi.fn(), stopImmediatePropagation: vi.fn() } as any;
     directive.onPointerDown(event);
     expect(directive.dragging()).toBe(true);
-    expect(directive.width).toBe(400);
-    expect(directive.height).toBe(300);
+    expect(directive.start?.width).toBe(400);
+    expect(directive.start?.height).toBe(300);
   });
 
   it('should ignore pointer down away from the corner', () => {

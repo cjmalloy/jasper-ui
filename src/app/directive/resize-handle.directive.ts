@@ -1,6 +1,7 @@
 import { afterNextRender, computed, DestroyRef, Directive, ElementRef, inject, input, signal } from '@angular/core';
 import { defer } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
+import { ResizeStart, resizeStart, resizeToPointer } from '../util/resize';
 
 @Directive({
   selector: '[appResizeHandle]',
@@ -25,10 +26,7 @@ export class ResizeHandleDirective {
   readonly child = input<HTMLElement | undefined>();
   readonly initChild = input(false);
 
-  x = 0;
-  y = 0;
-  width = 0;
-  height = 0;
+  start?: ResizeStart;
 
   resizeObserver?: ResizeObserver;
 
@@ -70,10 +68,7 @@ export class ResizeHandleDirective {
     if (this.hit(event)) {
       this.dragging.set(true);
       this.cursor.set('grabbing');
-      this.x = event.clientX;
-      this.y = event.clientY;
-      this.width = this.el.nativeElement.offsetWidth;
-      this.height = this.el.nativeElement.offsetHeight;
+      this.start = resizeStart(this.el.nativeElement, event);
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
@@ -82,11 +77,10 @@ export class ResizeHandleDirective {
 
   onPointerMove(event: PointerEvent) {
     if (!this.enabled()) return;
-    if (this.dragging()) {
-      const dx = event.clientX - this.x;
-      const dy = event.clientY - this.y;
-      this.setWidth((this.width + dx) + 'px');
-      this.setHeight((this.height + dy) + 'px');
+    if (this.dragging() && this.start) {
+      resizeToPointer(this.el.nativeElement, this.start, event,
+        width => this.setWidth(width + 'px'),
+        height => this.setHeight(height + 'px'));
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();

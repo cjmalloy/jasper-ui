@@ -209,6 +209,13 @@ hr {
   }
 }
 
+body.textarea-resizing {
+  &, * {
+    cursor: nwse-resize !important;
+    user-select: none !important;
+  }
+}
+
 .nowrap {
   white-space: nowrap;
 }
@@ -1359,6 +1366,10 @@ progress.grow {
 formly-list-section .form-array > formly-field > formly-group,
 formly-field-geometries .geometry-item > formly-field > formly-group {
   max-width: 600px;
+}
+
+.form:has(.fill-editor > :is(textarea, ngx-monaco-editor)) {
+  min-width: min-content;
 }
 
 .form:has(.fill-editor > :is(textarea, ngx-monaco-editor):is([style^="width"], [style*=" width"], [style*=";width"])) {
