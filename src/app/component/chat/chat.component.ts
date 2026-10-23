@@ -37,7 +37,7 @@ import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
-import { mimeToCode } from '../../mods/media/code';
+import { mimeToCode, yamlCode } from '../../mods/media/code';
 import { RelativePipe } from '../../pipe/relative.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -560,7 +560,8 @@ export class ChatComponent implements HasChanges {
 
   upload$(file: File, upload: ChatUpload): Observable<Ref | null> {
     const visibility = this.publicUploads() ? ['public'] : [];
-    const codeType = mimeToCode(file.type);
+    const yamlType = yamlCode(file);
+    const codeType = yamlType.length ? yamlType : mimeToCode(file.type);
     if (codeType.length) {
       const ref: Ref = {
         origin: this.store.account.origin(),

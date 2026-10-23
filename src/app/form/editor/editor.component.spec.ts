@@ -5,10 +5,9 @@ import { ChangeDetectionStrategy, Component, NO_ERRORS_SCHEMA, viewChild } from 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { Observable, of, Subject } from 'rxjs';
-import { AdminService } from '../../service/admin.service';
+import { firstValueFrom, Observable, of, Subject } from 'rxjs';
 import { ProxyService } from '../../service/api/proxy.service';
-import { TaggingService } from '../../service/api/tagging.service';
+import { RefService } from '../../service/api/ref.service';
 
 import { EditorComponent } from './editor.component';
 
@@ -201,20 +200,15 @@ describe('EditorComponent', () => {
     component.cancelAllUploads();
   });
 
-  it('uploads YAML files to the file cache tagged for the code viewer', () => {
-    vi.spyOn(TestBed.inject(AdminService), 'getPlugin').mockImplementation((tag: string) => tag === 'plugin/code' ? { tag } as any : undefined);
-    const save = vi.spyOn(TestBed.inject(ProxyService), 'save').mockReturnValue(of({
-      type: HttpEventType.Response,
-      body: { url: 'cache:abc', origin: '', tags: ['internal'] },
-    } as any));
-    const patch = vi.spyOn(TestBed.inject(TaggingService), 'patch').mockReturnValue(of('' as any));
-    const refs: any[] = [];
-    const file = new File(['a: 1'], 'config.yaml', { type: 'application/yaml' });
-    component.upload$(file, { id: '1', name: file.name, progress: 0 }).subscribe(ref => refs.push(ref));
-    expect(save).toHaveBeenCalledWith(file, expect.anything());
-    expect(patch).toHaveBeenCalledWith(['plugin/file', 'plugin/code/yaml'], 'cache:abc', '');
-    expect(refs[0].url).toBe('cache:abc');
-    expect(refs[0].tags).toEqual(['internal', 'plugin/file', 'plugin/code/yaml']);
+  it('uploads YAML files as inline code', async () => {
+    const save = vi.spyOn(TestBed.inject(ProxyService), 'save');
+    const create = vi.spyOn(TestBed.inject(RefService), 'create').mockReturnValue(of('' as any));
+    const file = new File(['a: 1'], 'config.yml', { type: '' });
+    const ref = await firstValueFrom(component.upload$(file, { id: '1', name: file.name, progress: 0 }));
+    expect(save).not.toHaveBeenCalled();
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ comment: 'a: 1' }));
+    expect(ref!.url).toMatch(/^internal:/);
+    expect(ref!.tags).toContain('plugin/code/yaml');
   });
 
   it('records upload failures without mutating previous snapshots', () => {

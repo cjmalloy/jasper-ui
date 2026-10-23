@@ -41,10 +41,9 @@ to it. Markdown fences and explanations belong only in the first response Ref.`,
 const YAML_MIME_TYPES = ['application/yaml', 'application/x-yaml', 'text/yaml', 'text/x-yaml'];
 
 /**
- * Code tags for a file that should keep its file cache backing while being
- * presented in the code viewer.
+ * Code tags for YAML files, detected by filename or MIME type.
  */
-export function cacheCode(file: { name?: string, type?: string }): string[] {
+export function yamlCode(file: { name?: string, type?: string }): string[] {
   const name = file.name?.toLowerCase() || '';
   if (name.endsWith('.yaml') || name.endsWith('.yml') || YAML_MIME_TYPES.includes(file.type || '')) {
     return ['plugin/code/yaml'];

@@ -54,6 +54,17 @@ describe('ChatComponent', () => {
     subscription.unsubscribe();
   });
 
+  it('uploads YAML files as inline code', async () => {
+    const save = vi.spyOn(TestBed.inject(ProxyService), 'save');
+    const create = vi.spyOn(TestBed.inject(RefService), 'create').mockReturnValue(of('' as any));
+    const file = new File(['a: 1'], 'config.yml', { type: '' });
+    const ref = await firstValueFrom(component.upload$(file, { id: '1', name: file.name, progress: 0 }));
+    expect(save).not.toHaveBeenCalled();
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ comment: 'a: 1' }));
+    expect(ref!.url).toMatch(/^internal:/);
+    expect(ref!.tags).toContain('plugin/code/yaml');
+  });
+
   it('cancels uploads using the current id even after immutable progress updates', () => {
     const events = new Subject<any>();
     vi.spyOn(TestBed.inject(ProxyService), 'save').mockReturnValue(events);
