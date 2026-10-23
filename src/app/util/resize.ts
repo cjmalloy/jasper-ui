@@ -62,7 +62,9 @@ export function trackTextareaResize() {
   let start: ResizeStart | undefined;
   let setWidth: ((width: number) => void) | undefined;
   let setHeight: ((height: number) => void) | undefined;
+  let pointerId: number | undefined;
   const down = (event: PointerEvent) => {
+    if (el) return;
     if (event.button || event.pointerType === 'touch') return;
     if (!(event.target instanceof HTMLTextAreaElement)) return;
     const target = event.target;
@@ -74,6 +76,7 @@ export function trackTextareaResize() {
     event.preventDefault();
     event.stopPropagation();
     el = target;
+    pointerId = event.pointerId;
     start = resizeStart(el, event);
     const extraWidth = start.width - parseFloat(style.width);
     const extraHeight = start.height - parseFloat(style.height);
@@ -87,14 +90,14 @@ export function trackTextareaResize() {
     document.body.classList.add('textarea-resizing');
   };
   const move = (event: PointerEvent) => {
-    if (!el || !start) return;
+    if (!el || !start || event.pointerId !== pointerId) return;
     event.preventDefault();
     resizeToPointer(el, start, event, setWidth, setHeight);
   };
   const up = (event: PointerEvent) => {
-    if (!el) return;
+    if (!el || event.pointerId !== pointerId) return;
     el.releasePointerCapture?.(event.pointerId);
-    el = start = setWidth = setHeight = undefined;
+    el = start = setWidth = setHeight = pointerId = undefined;
     document.body.classList.remove('textarea-resizing');
   };
   window.addEventListener('pointerdown', down, { capture: true });

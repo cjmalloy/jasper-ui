@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { resizeStart, resizeToPointer } from './resize';
+import { resizeStart, resizeToPointer, trackTextareaResize } from './resize';
 
 describe('resizeToPointer', () => {
   function centered(container: number, width: number, height: number) {
@@ -41,5 +41,45 @@ describe('resizeToPointer', () => {
     const start = resizeStart(el, { clientX: 400, clientY: 100 } as PointerEvent);
     resizeToPointer(el, start, { clientX: 450, clientY: 100 } as PointerEvent, w => size.width = w);
     expect(size.width).toBe(450);
+  });
+});
+
+describe('trackTextareaResize', () => {
+  function pointer(type: string, target: EventTarget, pointerId: number, clientX: number, clientY: number, pointerType = 'mouse') {
+    const event = new MouseEvent(type, { bubbles: true, cancelable: true, clientX, clientY, button: 0 });
+    Object.defineProperty(event, 'pointerId', { value: pointerId });
+    Object.defineProperty(event, 'pointerType', { value: pointerType });
+    target.dispatchEvent(event);
+  }
+
+  it('should ignore other pointers during a resize', () => {
+    const el = document.createElement('textarea');
+    document.body.appendChild(el);
+    const width = () => parseFloat(el.style.width) || 400;
+    const height = () => parseFloat(el.style.height) || 100;
+    el.getBoundingClientRect = () => ({ left: 0, top: 0, right: width(), bottom: height(), width: width(), height: height() } as DOMRect);
+    Object.defineProperty(el, 'offsetWidth', { get: width });
+    Object.defineProperty(el, 'offsetHeight', { get: height });
+    const spy = vi.spyOn(window, 'getComputedStyle').mockReturnValue({ resize: 'both', width: '400px', height: '100px' } as CSSStyleDeclaration);
+    const teardown = trackTextareaResize();
+    try {
+      pointer('pointerdown', el, 1, 395, 95);
+      pointer('pointerdown', el, 2, 390, 90, 'pen');
+      pointer('pointermove', document, 2, 600, 300, 'touch');
+      expect(width()).toBe(400);
+      expect(height()).toBe(100);
+      pointer('pointerup', document, 2, 600, 300, 'touch');
+      pointer('pointermove', document, 1, 445, 115);
+      expect(width()).toBe(450);
+      expect(height()).toBe(120);
+      pointer('pointerup', document, 1, 445, 115);
+      pointer('pointermove', document, 1, 500, 200);
+      expect(width()).toBe(450);
+      expect(height()).toBe(120);
+    } finally {
+      teardown();
+      spy.mockRestore();
+      el.remove();
+    }
   });
 });
