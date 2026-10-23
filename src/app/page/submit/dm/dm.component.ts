@@ -145,7 +145,9 @@ export class SubmitDmPage implements HasChanges {
         if (this.dmForm.dirty) this.saveForLater();
       });
       if (this.store.submit.url()) {
-        this.refs.getEditing(this.store.submit.url()).subscribe(draft => {
+        this.refs.getEditing(this.store.submit.url()).pipe(
+          takeUntilDestroyed(),
+        ).subscribe(draft => {
           if (!draft) return;
           this._url = draft.url;
           this.cursor = draft.modifiedString;
@@ -155,6 +157,7 @@ export class SubmitDmPage implements HasChanges {
           this.title.setValue(edit.title || '');
           this.comment.setValue(edit.comment || '');
           for (const s of edit.sources || []) this.sources.push(this.fb.control(s, LinksFormComponent.validators));
+          if (hasTag('notes', edit)) return;
           const to = uniq([
             ...addressedTo(edit),
             ...edit.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
@@ -246,10 +249,16 @@ export class SubmitDmPage implements HasChanges {
       origin: this.store.account.origin(),
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
-      sources: this.dmForm.value.sources,
+      sources: this.writeSources(),
       tags: this.dmForm.value.tags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
     };
+  }
+
+  writeSources() {
+    const url = this._url;
+    const sources = [url, ...uniq([url, ...this.store.submit.sources(), ...this.dmForm.value.sources])];
+    return sources.length === 2 ? [] : sources;
   }
 
   addTags(value: string[]) {
@@ -414,8 +423,7 @@ export class SubmitDmPage implements HasChanges {
     }
     const url = this._url;
     const published = this.dmForm.value.published ? DateTime.fromISO(this.dmForm.value.published) : DateTime.now();
-    let sources = [url, ...uniq([url, ...this.store.submit.sources(), ...this.dmForm.value.sources])];
-    if (sources.length === 2) sources = [];
+    const sources = this.writeSources();
     const finalTags = this.dmForm.value.tags;
     const ref = {
       url,
