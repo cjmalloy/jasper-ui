@@ -35,4 +35,27 @@ test.describe.serial('Submit Text', () => {
       page.off('dialog', onDialog);
     }
   });
+
+  test('resizing the centered comment textarea keeps the grip under the pointer', async () => {
+    await page.goto('/submit/text?debug=USER', { waitUntil: 'networkidle' });
+    const textarea = page.locator('.fill-editor .editor textarea').first();
+    await textarea.click();
+    const before = (await textarea.boundingBox())!;
+    const x = before.x + before.width - 3;
+    const y = before.y + before.height - 3;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 10, y + 5);
+    const first = (await textarea.boundingBox())!;
+    expect(Math.abs(first.x + first.width - 3 - (x + 10))).toBeLessThan(1);
+    await page.mouse.move(x + 150, y + 60, { steps: 5 });
+    const during = (await textarea.boundingBox())!;
+    expect(Math.abs(during.x + during.width - 3 - (x + 150))).toBeLessThan(3);
+    expect(Math.abs(during.y + during.height - 3 - (y + 60))).toBeLessThan(3);
+    const edge = page.viewportSize()!.width - 1;
+    await page.mouse.move(edge, y + 60, { steps: 5 });
+    await page.mouse.up();
+    const after = (await textarea.boundingBox())!;
+    expect(after.x + after.width).toBeGreaterThan(edge - 6);
+  });
 });

@@ -1,4 +1,4 @@
-import { Component, computed, inject, ViewContainerRef } from '@angular/core';
+import { Component, computed, DestroyRef, inject, ViewContainerRef } from '@angular/core';
 import { NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { environment } from '../environments/environment';
@@ -16,6 +16,7 @@ import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
+import { trackTextareaResize } from './util/resize';
 import { isModelsJson } from './util/zip';
 
 @Component({
@@ -64,6 +65,7 @@ export class AppComponent {
 
   constructor() {
     document.body.style.height = '';
+    inject(DestroyRef).onDestroy(trackTextareaResize());
     window.addEventListener('keyup', event => {
       const hotkey = !this.hotkeyActive(event) || this.hotkey(event.key);
       if (this.store.hotkey() && hotkey) {
