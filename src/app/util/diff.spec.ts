@@ -322,6 +322,25 @@ describe('Diff Utils', () => {
       expect(mergeBundle(scripts('a\nB\nc'), scripts('a\nb\nc'), scripts('a\nX\nc')).conflict).toBe(true);
     });
 
+    it('should conflict when an edited indexed subDiff element is deleted', () => {
+      const steps = (...steps: any[]) => ({ plugin: [{ tag: 'plugin/test', config: { subDiff: ['steps[0].script'], steps } }] } as any);
+      expect(mergeBundle(
+        steps({ name: 'a', script: 'x\nY' }, { name: 'b', script: 'x\ny' }),
+        steps({ name: 'a', script: 'x\ny' }, { name: 'b', script: 'x\ny' }),
+        steps({ name: 'b', script: 'x\ny' })).conflict).toBe(true);
+      expect(mergeBundle(
+        steps({ script: 'a\nB' }, { script: 'c\nd' }),
+        steps({ script: 'a\nb' }, { script: 'c\nd' }),
+        steps({ script: 'c\nd' })).conflict).toBe(true);
+    });
+
+    it('should preserve refs without a URL', () => {
+      const refs = (...titles: string[]) => ({ ref: titles.map(title => ({ title })) } as any);
+      expect(mergeBundle(refs('a', 'b'), refs('a', 'b'), refs('a', 'b')).result!.ref!.map(r => r.title)).toEqual(['a', 'b']);
+      expect(mergeBundle(refs('a', 'b'), refs('a', 'b'), refs('a', 'c')).result!.ref!.map(r => r.title)).toEqual(['a', 'c']);
+      expect(mergeBundle(refs('a', 'x'), refs('a', 'b'), refs('a', 'c')).conflict).toBe(true);
+    });
+
     it('should take one-sided subDiff changes', () => {
       const base = bundle('a\nb');
       const ours = bundle('a\nb');

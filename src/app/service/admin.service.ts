@@ -340,7 +340,7 @@ export class AdminService {
     const modIds = uniq([
       ...this.defaultPlugins.map(p => modId(p)),
       ...this.defaultTemplates.map(t => modId(t)),
-    ]).filter(Boolean);
+    ]).filter(m => m && !this.status().receipts[m]);
     const receipts = modIds
       .map(m => ({ mod: m, bundle: this.getMod(m) }))
       .filter((entry): entry is { mod: string; bundle: Mod } => !!entry.bundle)

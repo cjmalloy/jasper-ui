@@ -147,6 +147,13 @@ export function mergeBundle(ours: Mod, base: Mod, theirs: Mod): BundleMerge {
   const result: Mod = {};
   for (const type of ['ref', 'ext', 'user', 'plugin', 'template'] as const) {
     const key = type === 'ref' ? 'url' : 'tag';
+    if (type === 'ref' && [ours, base, theirs].some(m => m.ref?.some(r => !r.url))) {
+      // Refs without a URL can't be matched, so only merge the list as a whole
+      const value = mergeList(ours.ref, base.ref, theirs.ref);
+      if (value === CONFLICT) return { conflict: true };
+      if (value?.length) result.ref = value;
+      continue;
+    }
     const find = (m: Mod, k: string) => (m[type] as any[] | undefined)?.find(e => e[key] === k);
     const keys = uniq([...ours[type] || [], ...base[type] || [], ...theirs[type] || []].map((e: any) => e[key] as string));
     const merged: any[] = [];
@@ -166,6 +173,13 @@ export function mergeBundle(ours: Mod, base: Mod, theirs: Mod): BundleMerge {
     if (merged.length) result[type] = sortBy(merged, key) as any;
   }
   return { result };
+}
+
+function mergeList<T>(o: T, b: T, t: T): T | typeof CONFLICT {
+  if (isEqual(o, t)) return cloneDeep(o);
+  if (isEqual(o, b)) return cloneDeep(t);
+  if (isEqual(t, b)) return cloneDeep(o);
+  return CONFLICT;
 }
 
 function normalizeBundle(mod: Mod): Mod {
@@ -199,14 +213,19 @@ function mergeValue(o: any, b: any, t: any, lines: string[][], path: string[] = 
  * Arrays are merged as text. Declared subDiff strings inside array elements
  * are merged line-by-line first and swapped for placeholders, so the array
  * merge only sees structural changes.
+ * An index is only trusted when the element can be matched across versions:
+ * every element up to it is unchanged apart from subDiff strings, and it is
+ * unique in each version. Otherwise the subDiff string is merged as text.
  */
 function mergeArray(o: any[], b: any[] | undefined, t: any[], lines: string[][], path: string[]): any {
   [o, b, t] = [cloneDeep(o), cloneDeep(b), cloneDeep(t)];
   const subs: { rel: string[], placeholder: string, value?: string }[] = [];
   if (b) {
+    let rels: string[][] = [];
     for (const line of lines) {
       if (line.length <= path.length || !isEqual(line.slice(0, path.length), path)) continue;
       const rel = line.slice(path.length);
+      if (!/^\d+$/.test(rel[0])) continue;
       const parents = [o, b, t].map(v => rel.length === 1 ? v : get(v, rel.slice(0, -1)));
       const values = [o, b, t].map(v => get(v, rel));
       if (parents.every(p => isPlainObject(p))) {
@@ -216,10 +235,20 @@ function mergeArray(o: any[], b: any[] | undefined, t: any[], lines: string[][],
       } else {
         continue;
       }
-      const value = mergeValue(values[0], values[1], values[2], lines, line);
+      rels.push(rel);
+    }
+    while (rels.length) {
+      const [mo, mb, mt] = [o, b, t].map(v => maskArray(v!, rels));
+      const kept = rels.filter(rel => matchedIndex(mo, mb, mt, Number(rel[0])));
+      if (kept.length === rels.length) break;
+      rels = kept;
+    }
+    for (const rel of rels) {
+      const values = [o, b, t].map(v => get(v, rel));
+      const value = mergeValue(values[0], values[1], values[2], lines, [...path, ...rel]);
       if (value === CONFLICT) return CONFLICT;
       const placeholder = `\u0000subDiff:${rel.join('.')}`;
-      for (const v of [o, b, t]) set(v, rel, placeholder);
+      for (const v of [o, b, t]) set(v!, rel, placeholder);
       subs.push({ rel, placeholder, value });
     }
   }
@@ -241,4 +270,16 @@ function mergeArray(o: any[], b: any[] | undefined, t: any[], lines: string[][],
     }
   }
   return result;
+}
+
+function maskArray(v: any[], rels: string[][]): any[] {
+  const result = cloneDeep(v);
+  for (const rel of rels) set(result, rel, '\u0000subDiff');
+  return result;
+}
+
+function matchedIndex(o: any[], b: any[], t: any[], i: number): boolean {
+  const unique = (v: any[]) => v.filter(e => isEqual(e, v[i])).length === 1;
+  if (!unique(b)) return false;
+  return [o, t].every(v => i < v.length && unique(v) && isEqual(v.slice(0, i + 1), b.slice(0, i + 1)));
 }
