@@ -109,7 +109,7 @@ export class SubmitTextPage implements HasChanges {
   readonly submitting = signal(false);
   private submittingSubscription?: Subscription;
   readonly saving = signal(false);
-  private savingSubscription?: Subscription;
+  private pendingSave?: Promise<string>;
   addAnother = false;
   readonly defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
   readonly loadingDefaults = signal<Ext[]>([]);
@@ -147,11 +147,41 @@ export class SubmitTextPage implements HasChanges {
   }
 
   async saveChanges() {
-    if (this.admin.editing() && this.textForm.dirty) {
-      return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
-        .pipe(map(() => true), catchError(() => of(false))));
+    if (!this.admin.editing()) return !this.textForm?.dirty;
+    try {
+      await this.flushDraft();
+      return true;
+    } catch {
+      return false;
     }
-    return !this.textForm?.dirty;
+  }
+
+  /**
+   * Shares the save in flight so only one write uses each cursor.
+   */
+  private saveDraft() {
+    if (!this.pendingSave) {
+      const savedValue = JSON.stringify(this.textForm.value);
+      this.saving.set(true);
+      this.pendingSave = firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor))
+        .then(cursor => {
+          this.cursor = cursor;
+          if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
+          return cursor;
+        })
+        .finally(() => {
+          this.saving.set(false);
+          this.pendingSave = undefined;
+        });
+    }
+    return this.pendingSave;
+  }
+
+  /**
+   * Waits for any save in flight, then saves edits made since its snapshot.
+   */
+  private async flushDraft() {
+    while (this.pendingSave || this.textForm.dirty) await this.saveDraft();
   }
 
   private initialize() {
@@ -262,20 +292,10 @@ export class SubmitTextPage implements HasChanges {
   });
 
   saveForLater(leave = false) {
-    const savedValue = JSON.stringify(this.textForm.value);
-    this.saving.set(true);
-    this.savingSubscription = this.refs.saveEdit(this.writeRef(), this.cursor)
-      .pipe(catchError(err => {
-        this.saving.set(false);
-        return throwError(() => err);
-      }))
-      .subscribe(cursor => {
-        this.saving.set(false);
-        this.cursor = cursor;
-        if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
-        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      });
-    this.savingSubscription?.add(() => this.saving.set(false));
+    this.flushDraft().then(
+      () => leave && this.router.navigate(['/inbox/ref', 'plugin/editing']),
+      (err: HttpErrorResponse) => this.serverError.set(printError(err)),
+    );
   }
 
   showAdvanced() {
@@ -408,8 +428,8 @@ export class SubmitTextPage implements HasChanges {
   }
 
   submit() {
-    if (this.saving()) {
-      this.savingSubscription?.add(() => this.submit());
+    if (this.pendingSave) {
+      this.pendingSave.then(() => this.submit(), () => this.submit());
       return;
     }
     this.serverError.set([]);

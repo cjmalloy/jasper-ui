@@ -4,7 +4,9 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
+import { Subject } from 'rxjs';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { RefService } from '../../../service/api/ref.service';
 import { provideJasperFormly } from '../../../formly/formly.config';
 import { Store } from '../../../store/store';
 
@@ -84,5 +86,33 @@ describe('SubmitTextPage', () => {
     expect(ref.url).toMatch(/^wiki:.+/);
     expect(ref.url).not.toBe('wiki:');
     expect(component.url.value).toBe(ref.url);
+  });
+
+  it('should share an in-flight draft save with the navigation guard', async () => {
+    vi.spyOn(component.admin, 'editing').mockReturnValue({ tag: 'plugin/editing' });
+    const first = new Subject<string>();
+    const second = new Subject<string>();
+    const saveEdit = vi.spyOn(TestBed.inject(RefService), 'saveEdit')
+      .mockReturnValueOnce(first)
+      .mockReturnValueOnce(second);
+    component.title.setValue('first');
+    component.textForm.markAsDirty();
+
+    component.saveForLater();
+    const guard = component.saveChanges();
+    component.title.setValue('second');
+    first.next('cursor1');
+    first.complete();
+
+    await vi.waitFor(() => expect(saveEdit).toHaveBeenCalledTimes(2));
+    expect(saveEdit.mock.calls[0][1]).toBeUndefined();
+    expect(saveEdit.mock.calls[1][0].title).toBe('second');
+    expect(saveEdit.mock.calls[1][1]).toBe('cursor1');
+    second.next('cursor2');
+    second.complete();
+
+    expect(await guard).toBe(true);
+    expect(component.saving()).toBe(false);
+    expect(component.textForm.dirty).toBe(false);
   });
 });
