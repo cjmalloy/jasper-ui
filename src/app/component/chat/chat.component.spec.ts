@@ -111,6 +111,34 @@ describe('ChatComponent', () => {
       expect(create).not.toHaveBeenCalled();
       expect(component.uploads()[0].error).toBe('File uploads not enabled');
     });
+
+    const items = (file: File) => [{ kind: 'file', getAsFile: () => file }];
+
+    it('uploads pasted code when only plugin/code is installed', async () => {
+      plugins('plugin/code');
+      const event = { clipboardData: { items: items(yaml()) }, preventDefault: vi.fn(), stopPropagation: vi.fn() } as any;
+      component.handlePaste(event);
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(save).not.toHaveBeenCalled();
+      await vi.waitFor(() => expect(create).toHaveBeenCalledWith(expect.objectContaining({ comment: 'a: 1', tags: expect.arrayContaining(['plugin/code/yaml']) })));
+    });
+
+    it('uploads dropped code when only plugin/code is installed', async () => {
+      plugins('plugin/code');
+      const event = { dataTransfer: { items: items(yaml()), getData: () => '' }, preventDefault: vi.fn(), stopPropagation: vi.fn() } as any;
+      component.handleDrop(event);
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(save).not.toHaveBeenCalled();
+      await vi.waitFor(() => expect(create).toHaveBeenCalledWith(expect.objectContaining({ comment: 'a: 1', tags: expect.arrayContaining(['plugin/code/yaml']) })));
+    });
+
+    it('ignores pasted files when neither plugin is installed', () => {
+      plugins();
+      const event = { clipboardData: { items: items(yaml()) }, preventDefault: vi.fn(), stopPropagation: vi.fn() } as any;
+      component.handlePaste(event);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+      expect(component.uploads()).toEqual([]);
+    });
   });
 
   it('cancels uploads using the current id even after immutable progress updates', () => {

@@ -477,8 +477,8 @@ export class ChatComponent implements HasChanges {
       }
     }
 
-    // If files found and plugin/file is enabled, upload them
-    if (files.length && this.admin.getPlugin('plugin/file')) {
+    // If files found and plugin/code or plugin/file is enabled, upload them
+    if (files.length && (this.admin.getPlugin('plugin/code') || this.admin.getPlugin('plugin/file'))) {
       event.preventDefault();
       event.stopPropagation();
       this.upload(files);
@@ -501,8 +501,8 @@ export class ChatComponent implements HasChanges {
       }
     }
 
-    // If files found and plugin/file is enabled, upload them
-    if (files.length && this.admin.getPlugin('plugin/file')) {
+    // If files found and plugin/code or plugin/file is enabled, upload them
+    if (files.length && (this.admin.getPlugin('plugin/code') || this.admin.getPlugin('plugin/file'))) {
       event.preventDefault();
       event.stopPropagation();
       this.upload(files);
