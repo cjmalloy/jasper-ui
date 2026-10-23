@@ -917,15 +917,7 @@ export class RefComponent implements HasChanges {
     this.controlState0();
     if (this.editing()) return getTitle(this.editForm.value);
     if (this.bareRepost()) return getTitle(this.repostRef()) || $localize`Repost`;
-    const draft = this.editingDraft();
-    if (draft) return getTitle({ ...draft, url: this.url() });
     return getTitle(this.ref());
-  });
-
-  /** Pending edits saved in the Drafts plugin. */
-  readonly editingDraft = computed<Ref | undefined>(() => {
-    if (!hasTag('plugin/editing', this.ref())) return undefined;
-    return this.ref().plugins?.['plugin/editing'];
   });
 
   readonly defaultView = computed(() => {

@@ -36,4 +36,16 @@ test.describe.serial('Drafts Plugin', () => {
     await expect(page).toHaveURL(/\/submit\/text/);
     await expect(page.locator('[name=title]')).toHaveValue(title);
   });
+
+  test('shows the title of a web link draft in the drafts list', async () => {
+    const webTitle = 'Web Draft ' + Date.now();
+    await page.goto('/submit/web?debug=USER&url=' + encodeURIComponent('https://www.jasper.example/draft-' + Date.now()), { waitUntil: 'networkidle' });
+    await page.locator('[name=title]').fill(webTitle);
+    const saved = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await page.locator('button', { hasText: 'Save for later' }).click();
+    await saved;
+    await expect(page).toHaveURL(/\/inbox\/ref\/plugin(%2F|\/)editing/);
+    await expect(page.locator('.ref .link a', { hasText: webTitle })).toBeVisible();
+  });
 });

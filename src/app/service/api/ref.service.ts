@@ -144,6 +144,7 @@ export class RefService {
     return this.create({
       url: ref.url,
       origin: this.store.account.origin(),
+      title: ref.title,
       tags: [this.store.account.localTag(), 'plugin/editing'],
       plugins: { 'plugin/editing': writeEdit(ref) }
     });
@@ -152,6 +153,10 @@ export class RefService {
   saveEdit(ref: Ref, cursor?: string): Observable<string> {
     if (!cursor) return this.startEditing(ref);
     return this.patch(ref.url, this.store.account.origin(), cursor, [{
+      op: 'add',
+      path: '/title',
+      value: ref.title || '',
+    }, {
       op: 'add',
       path: '/plugins/' + escapePath('plugin/editing'),
       value: writeEdit(ref),

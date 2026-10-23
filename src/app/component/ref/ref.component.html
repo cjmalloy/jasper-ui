@@ -32,7 +32,7 @@
 }
 <div class="link"
      [class.remote]="!local()"
-     [class.comment-title]="!(editingDraft() || ref()).title"
+     [class.comment-title]="!ref().title"
      [class.redundant]="redundantLink()"
      [attr.title]="altText()">
   @if (tagLink()) {
