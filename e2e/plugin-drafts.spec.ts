@@ -116,4 +116,41 @@ test.describe.serial('Drafts Plugin', () => {
     await expect(page.locator('.tag-field input.preview[title="plugin/inbox/user/alice"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title="notes"]')).toHaveCount(0);
   });
+
+  test('reopening a DM reply draft keeps its sources', async () => {
+    const replyTitle = 'Reply Draft ' + Date.now();
+    const parent = 'comment:parent-' + Date.now();
+    await page.goto('/submit/dm?debug=USER&to=' + encodeURIComponent('+user/alice') + '&source=' + encodeURIComponent(parent), { waitUntil: 'networkidle' });
+    await expect(page.locator('.tag-field input.preview[title="plugin/inbox/user/alice"]')).toBeAttached();
+    await page.locator('#title').fill(replyTitle);
+    const saved = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await page.locator('button', { hasText: 'Save for later' }).click();
+    await saved;
+    await expect(page).toHaveURL(/\/inbox\/ref\/plugin(%2F|\/)editing/);
+    await page.locator('.ref .link a', { hasText: replyTitle }).click();
+    await expect(page).toHaveURL(/\/submit\/dm/);
+    await expect(page.locator('#title')).toHaveValue(replyTitle);
+    await expect(page.locator('#to')).toHaveValue('+user/alice');
+    const published = page.waitForRequest(req =>
+      req.url().includes('/api/v1/ref') && req.method() === 'PUT');
+    await page.locator('button[type=submit]', { hasText: 'Send' }).click();
+    expect((await published).postDataJSON().sources).toContain(parent);
+  });
+
+  test('reopening a web link draft tagged notes opens the web editor', async () => {
+    const webTitle = 'Web Notes Draft ' + Date.now();
+    await page.goto('/submit/web?debug=USER&tag=notes&url=' + encodeURIComponent('https://www.jasper.example/notes-draft-' + Date.now()), { waitUntil: 'networkidle' });
+    await expect(page.locator('.tag-field input.preview[title="notes"]')).toBeAttached();
+    await page.locator('[name=title]').fill(webTitle);
+    const saved = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await page.locator('button', { hasText: 'Save for later' }).click();
+    await saved;
+    await expect(page).toHaveURL(/\/inbox\/ref\/plugin(%2F|\/)editing/);
+    await page.locator('.ref .link a', { hasText: webTitle }).click();
+    await expect(page).toHaveURL(/\/submit\/web/);
+    await expect(page.locator('[name=title]')).toHaveValue(webTitle);
+  });
 });
+
