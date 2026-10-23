@@ -1,12 +1,12 @@
-import { cloneDeep, get, isArray, isEmpty, isObject, isString, set, sortBy, toPath, uniq, unset } from 'lodash-es';
+import { cloneDeep, get, isArray, isEmpty, isEqual, isObject, isPlainObject, isString, set, sortBy, toPath, uniq, unset } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { diff3Merge, MergeRegion } from 'node-diff3';
-import { Ext, writeExt } from '../model/ext';
+import { Ext } from '../model/ext';
 import { Plugin, writePlugin } from '../model/plugin';
-import { Ref, writeRef } from '../model/ref';
+import { Ref } from '../model/ref';
 import { clear, Config, Mod } from '../model/tag';
 import { Template, writeTemplate } from '../model/template';
-import { User, writeUser } from '../model/user';
+import { User } from '../model/user';
 
 export function sortEntity(entity: Record<string, any>): Record<string, any> {
   const { origin, modified, metadata, created, modifiedString, ...rest } = entity as any;
@@ -61,9 +61,6 @@ export function equalBundle(a?: Mod, b?: Mod) {
 export function clearMod<T extends Mod | undefined>(mod: T, strict = true): T {
   if (!mod) return mod;
   const result = { } as any;
-  if (!isEmpty(mod.ref)) result.ref = sortBy(mod.ref!.map((r: Ref) => clearInternalFields(writeRef(r))), 'url');
-  if (!isEmpty(mod.ext)) result.ext = sortBy(mod.ext!.map((e: Ext) => clearInternalFields(writeExt(copyConfig(e)))), 'tag');
-  if (!isEmpty(mod.user)) result.user = sortBy(mod.user!.map((u: User) => clearInternalFields(writeUser(u))), 'tag');
   if (!isEmpty(mod.plugin)) result.plugin = sortBy(mod.plugin!.map((p: Plugin) => clearConfig(writePlugin(copyConfig(p)), strict)), 'tag');
   if (!isEmpty(mod.template)) result.template = sortBy(mod.template!.map((t: Template) => clearConfig(writeTemplate(copyConfig(t)), strict)), 'tag');
   return result;
@@ -105,9 +102,6 @@ function clearInternalFields<T>(value: T): T {
 export function formatBundleDiff(mod: Mod, strict = true): string {
   mod = clearMod(mod, strict);
   return JSON.stringify({
-    ref: isEmpty(mod.ref) ? undefined : sortBy(mod.ref!, 'url').map(sortEntity),
-    ext: isEmpty(mod.ext) ? undefined : sortBy(mod.ext!, 'tag').map(sortEntity),
-    user: isEmpty(mod.user) ? undefined : sortBy(mod.user!, 'tag').map(sortEntity),
     plugin: isEmpty(mod.plugin) ? undefined : sortBy(mod.plugin!, 'tag').map(sortEntity),
     template: isEmpty(mod.template) ? undefined : sortBy(mod.template!, 'tag').map(sortEntity),
   }, (key, value) => key === '_parent' ? undefined : value, 2);
@@ -130,80 +124,140 @@ export function merge3(ours: string, base: string, theirs: string, delimiter = '
 
 export type BundleMerge = { result?: Mod, conflict?: boolean };
 
-type SubDiff = { type: 'plugin' | 'template', tag: string, path: string, value?: string, prune: string[][] };
+const CONFLICT = Symbol('conflict');
 
 /**
- * Three-way merge of mod bundles.
+ * Three-way merge of the Plugins and Templates in mod bundles.
+ * Refs, Exts and Users are only installed once and never merged.
+ * Entities are matched by key and merged field by field, so independent
+ * changes to different fields never conflict.
  * String config fields listed in a Plugin or Template config.subDiff are
- * merged line-by-line separately, so independent changes to different lines
+ * merged line-by-line, so independent changes to different lines
  * of the same script do not conflict.
  */
 export function mergeBundle(ours: Mod, base: Mod, theirs: Mod): BundleMerge {
-  ours = cloneDeep(clearMod(ours));
-  base = cloneDeep(clearMod(base));
-  theirs = cloneDeep(clearMod(theirs));
-  const subDiffs: SubDiff[] = [];
+  ours = normalizeBundle(ours);
+  base = normalizeBundle(base);
+  theirs = normalizeBundle(theirs);
+  const result: Mod = {};
   for (const type of ['plugin', 'template'] as const) {
-    const tags = uniq([...ours[type] || [], ...base[type] || [], ...theirs[type] || []].map(c => c.tag));
+    const find = (m: Mod, tag: string) => (m[type] as Config[] | undefined)?.find(e => e.tag === tag);
+    const tags = uniq([...ours[type] || [], ...base[type] || [], ...theirs[type] || []].map(e => e.tag));
+    const merged: any[] = [];
     for (const tag of tags) {
-      const o = ours[type]?.find(c => c.tag === tag);
-      const b = base[type]?.find(c => c.tag === tag);
-      const t = theirs[type]?.find(c => c.tag === tag);
-      if (!o || !b || !t) continue;
-      const paths = uniq([...o.config?.subDiff || [], ...b.config?.subDiff || [], ...t.config?.subDiff || []]);
-      for (const path of paths) {
-        if (!isString(path) || !path) continue;
-        const ov = get(o.config, path);
-        const bv = get(b.config, path);
-        const tv = get(t.config, path);
-        if (ov === undefined && bv === undefined && tv === undefined) continue;
-        if ([ov, bv, tv].some(v => v !== undefined && !isString(v))) continue;
-        let value: string | undefined;
-        if (ov === tv) {
-          value = ov;
-        } else if (ov === bv) {
-          value = tv;
-        } else if (tv === bv) {
-          value = ov;
-        } else {
-          const merged = merge3(ov || '', bv || '', tv || '');
-          if (merged.conflict || merged.result === undefined) return { conflict: true };
-          value = merged.result;
-        }
-        const segments = toPath(path);
-        const prune: string[][] = [];
-        for (let i = segments.length - 1; i >= 0; i--) {
-          const container = ['config', ...segments.slice(0, i)];
-          const [oh, bh, th] = [o, b, t].map(c => get(c, container) !== undefined);
-          if (!(oh === th ? oh : oh === bh ? th : oh)) prune.push(container);
-        }
-        const placeholder = `subDiff:${type}:${tag}:${path}`;
-        const parents = segments.slice(0, -1).map((_, i) => ['config', ...segments.slice(0, i + 1)]);
-        if ([o, b, t].some(c => parents.some(parent => {
-          const value = get(c, parent);
-          return value !== undefined && !isObject(value);
-        }))) continue;
-        for (const c of [o, b, t]) set(c.config ||= {}, path, placeholder);
-        subDiffs.push({ type, tag, path, value, prune });
-      }
+      const o = find(ours, tag);
+      const b = find(base, tag);
+      const t = find(theirs, tag);
+      const subDiff = uniq([o, b, t].flatMap(e => isArray(e?.config?.subDiff) ? e.config.subDiff : [])
+        .filter(p => isString(p) && p))
+        .map(p => ['config', ...toPath(p)]);
+      const value = mergeValue(o, b, t, subDiff);
+      if (value === CONFLICT) return { conflict: true };
+      if (value !== undefined) merged.push(value);
     }
-  }
-  const merged = merge3(formatBundleDiff(ours), formatBundleDiff(base), formatBundleDiff(theirs));
-  if (merged.conflict || !merged.result) return { conflict: true };
-  const result: Mod = JSON.parse(merged.result);
-  for (const d of subDiffs) {
-    const c = result[d.type]?.find(c => c.tag === d.tag);
-    if (!c) continue;
-    if (d.value === undefined) {
-      unset(c.config, d.path);
-      for (const container of d.prune) {
-        const v = get(c, container);
-        if (!isObject(v) || !isEmpty(v)) break;
-        unset(c, container);
-      }
-    } else {
-      set(c.config ||= {}, d.path, d.value);
-    }
+    if (merged.length) result[type] = sortBy(merged, 'tag') as any;
   }
   return { result };
+}
+
+function normalizeBundle(mod: Mod): Mod {
+  return JSON.parse(formatBundleDiff(mod));
+}
+
+function mergeValue(o: any, b: any, t: any, lines: string[][], path: string[] = []): any {
+  if (isEqual(o, t)) return cloneDeep(o);
+  if (isEqual(o, b)) return cloneDeep(t);
+  if (isEqual(t, b)) return cloneDeep(o);
+  if (lines.some(l => isEqual(l, path)) && [o, b, t].every(v => v === undefined || isString(v))) {
+    const merged = merge3(o ?? '', b ?? '', t ?? '');
+    return merged.conflict || merged.result === undefined ? CONFLICT : merged.result;
+  }
+  if (isPlainObject(o) && isPlainObject(t) && (b === undefined || isPlainObject(b))) {
+    const result: any = {};
+    for (const k of uniq([...Object.keys(o), ...Object.keys(t), ...Object.keys(b || {})])) {
+      const value = mergeValue(o[k], b?.[k], t[k], lines, [...path, k]);
+      if (value === CONFLICT) return CONFLICT;
+      if (value !== undefined) result[k] = value;
+    }
+    return result;
+  }
+  if (isArray(o) && isArray(t) && (b === undefined || isArray(b))) {
+    return mergeArray(o, b, t, lines, path);
+  }
+  return CONFLICT;
+}
+
+/**
+ * Arrays are merged as text. Declared subDiff strings inside array elements
+ * are merged line-by-line first and swapped for placeholders, so the array
+ * merge only sees structural changes.
+ * An index is only trusted when the element can be matched across versions:
+ * every element up to it is unchanged apart from subDiff strings, and it is
+ * unique in each version. Otherwise the subDiff string is merged as text.
+ */
+function mergeArray(o: any[], b: any[] | undefined, t: any[], lines: string[][], path: string[]): any {
+  [o, b, t] = [cloneDeep(o), cloneDeep(b), cloneDeep(t)];
+  const subs: { rel: string[], placeholder: string, value?: string }[] = [];
+  if (b) {
+    let rels: string[][] = [];
+    for (const line of lines) {
+      if (line.length <= path.length || !isEqual(line.slice(0, path.length), path)) continue;
+      const rel = line.slice(path.length);
+      if (!/^\d+$/.test(rel[0])) continue;
+      const parents = [o, b, t].map(v => rel.length === 1 ? v : get(v, rel.slice(0, -1)));
+      const values = [o, b, t].map(v => get(v, rel));
+      if (parents.every(p => isPlainObject(p))) {
+        if (!values.every(v => v === undefined || isString(v))) continue;
+      } else if (parents.every(p => isArray(p))) {
+        if (!values.every(v => isString(v))) continue;
+      } else {
+        continue;
+      }
+      rels.push(rel);
+    }
+    while (rels.length) {
+      const [mo, mb, mt] = [o, b, t].map(v => maskArray(v!, rels));
+      const kept = rels.filter(rel => matchedIndex(mo, mb, mt, Number(rel[0])));
+      if (kept.length === rels.length) break;
+      rels = kept;
+    }
+    for (const rel of rels) {
+      const values = [o, b, t].map(v => get(v, rel));
+      const value = mergeValue(values[0], values[1], values[2], lines, [...path, ...rel]);
+      if (value === CONFLICT) return CONFLICT;
+      const placeholder = `\u0000subDiff:${rel.join('.')}`;
+      for (const v of [o, b, t]) set(v!, rel, placeholder);
+      subs.push({ rel, placeholder, value });
+    }
+  }
+  const json = (v: any) => v === undefined ? '' : JSON.stringify(v, null, 2);
+  const merged = merge3(json(o), json(b), json(t));
+  if (merged.conflict || merged.result === undefined) return CONFLICT;
+  let result: any[];
+  try {
+    result = JSON.parse(merged.result);
+  } catch {
+    return CONFLICT;
+  }
+  for (const s of subs) {
+    if (get(result, s.rel) !== s.placeholder) continue;
+    if (s.value === undefined) {
+      unset(result, s.rel);
+    } else {
+      set(result, s.rel, s.value);
+    }
+  }
+  return result;
+}
+
+function maskArray(v: any[], rels: string[][]): any[] {
+  const result = cloneDeep(v);
+  for (const rel of rels) set(result, rel, '\u0000subDiff');
+  return result;
+}
+
+function matchedIndex(o: any[], b: any[], t: any[], i: number): boolean {
+  const unique = (v: any[]) => v.filter(e => isEqual(e, v[i])).length === 1;
+  if (!unique(b)) return false;
+  return [o, t].every(v => i < v.length && unique(v) && isEqual(v.slice(0, i + 1), b.slice(0, i + 1)));
 }
