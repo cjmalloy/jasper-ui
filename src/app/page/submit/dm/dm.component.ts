@@ -343,6 +343,7 @@ export class SubmitDmPage implements HasChanges {
     } else {
       this.showedError = false;
       this.setTo(input.value);
+      if (this.to.valid) this.bookmarks.setTo(input.value.split(/[,\s]+/).filter(t => !!t));
       this.getPreview(input.value) ;
     }
   }

@@ -235,7 +235,7 @@ export class SubmitPage {
       tags.push(this.plugin());
     }
     const url = this.fixed(this.url.value);
-    this.router.navigate(['./submit', this.editor(this.linkType(url))], {
+    this.router.navigate(['./submit', this.repost() ? 'web' : this.editor(this.linkType(url))], {
       queryParams: {
         url,
         tag: uniq(tags),
