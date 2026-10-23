@@ -14,7 +14,6 @@ import { RefComponent } from '../../../component/ref/ref.component';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
-import { fileToCode } from '../../../mods/media/code';
 import { TagPreviewPipe } from '../../../pipe/tag-preview.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
@@ -210,8 +209,7 @@ export class UploadPage {
         switchMap((ref: Ref | null) => this.refs.get(ref!.url, ref!.origin)),
         map((ref: Ref | null) => {
           ref!.title = file.name;
-          const code = tag === 'plugin/file' && this.admin.getPlugin('plugin/code') ? fileToCode(file) : [];
-          ref!.tags = uniq([...without(ref!.tags || [], 'internal'), tag, ...code, ...extraTags.filter(t => !!t)]);
+          ref!.tags = uniq([...without(ref!.tags || [], 'internal'), tag, ...extraTags.filter(t => !!t)]);
           return ref!;
         }),
         catchError((res: HttpErrorResponse) => {

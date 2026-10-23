@@ -30,7 +30,7 @@ import { MdComponent } from '../../component/md/md.component';
 import { AutofocusDirective } from '../../directive/autofocus.directive';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
-import { mimeToCode } from '../../mods/media/code';
+import { cacheCode, mimeToCode } from '../../mods/media/code';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -594,7 +594,8 @@ export class EditorComponent {
   }
 
   upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
-    const codeType = mimeToCode(file.type, file.name);
+    const cacheCodeType = this.admin.getPlugin('plugin/code') ? cacheCode(file) : [];
+    const codeType = cacheCodeType.length ? [] : mimeToCode(file.type);
     if (codeType.length) {
       const ref = {
         origin: this.store.account.origin(),
@@ -633,6 +634,8 @@ export class EditorComponent {
         tags.push('plugin/image', 'plugin/thumbnail');
       } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
         tags.push('plugin/pdf');
+      } else {
+        tags.push(...cacheCodeType);
       }
       return this.proxy.save(file, this.store.account.origin()).pipe(
         map(event => {

@@ -38,43 +38,27 @@ to it. Markdown fences and explanations belong only in the first response Ref.`,
   },
 };
 
-const CODE_EXTENSIONS: Record<string, string> = {
-  yaml: 'yaml',
-  yml: 'yaml',
-};
-
-function extensionToCode(filename?: string) {
-  const dot = filename?.lastIndexOf('.') ?? -1;
-  if (dot < 0) return [];
-  const extension = filename!.substring(dot + 1).toLowerCase();
-  const lang = Object.prototype.hasOwnProperty.call(CODE_EXTENSIONS, extension)
-    ? CODE_EXTENSIONS[extension] : undefined;
-  return lang ? ['plugin/code/' + lang] : [];
-}
+const YAML_MIME_TYPES = ['application/yaml', 'application/x-yaml', 'text/yaml', 'text/x-yaml'];
 
 /**
- * Code tags for a file that will be stored in the file cache.
- * Unlike mimeToCode, unknown files are not tagged as code.
+ * Code tags for a file that should keep its file cache backing while being
+ * presented in the code viewer.
  */
-export function fileToCode(file: { name?: string, type?: string }) {
-  const ext = extensionToCode(file.name);
-  if (ext.length) return ext;
-  if (!file.type || file.type === 'text/markdown') return [];
-  return mimeToCode(file.type);
+export function cacheCode(file: { name?: string, type?: string }): string[] {
+  const name = file.name?.toLowerCase() || '';
+  if (name.endsWith('.yaml') || name.endsWith('.yml') || YAML_MIME_TYPES.includes(file.type || '')) {
+    return ['plugin/code/yaml'];
+  }
+  return [];
 }
 
-export function mimeToCode(mime: string, filename?: string) {
-  const ext = extensionToCode(filename);
-  if (ext.length) return ext;
+export function mimeToCode(mime: string) {
   if (!mime) return ['plugin/code'];
   switch (mime) {
     case 'text/markdown':
     case 'text/plain': return ['plugin/code/md'];
     case 'text/vnd.qt.linguist': return ['plugin/code/typescript'];
     case 'text/x-patch': return ['plugin/code/diff'];
-    case 'text/yaml':
-    case 'text/x-yaml':
-    case 'application/yaml':
     case 'application/x-yaml': return ['plugin/code/yaml'];
     case 'application/x-shellscript': return ['plugin/code/shell'];
     case 'application/x-httpd-php': return ['plugin/code/php'];
