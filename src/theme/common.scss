@@ -2158,6 +2158,10 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
+.ref.list-item.expand {
+  display: grid;
+}
+
 .image-expand {
   height: 600px;
   background-size: contain;

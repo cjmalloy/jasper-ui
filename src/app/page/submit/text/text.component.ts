@@ -137,7 +137,7 @@ export class SubmitTextPage implements HasChanges {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
-        if (this.textForm.dirty) this.saveForLater();
+        if (this.textForm.dirty && !this.saving() && !this.submitting()) this.saveForLater();
       });
     }
   }
@@ -449,6 +449,7 @@ export class SubmitTextPage implements HasChanges {
       this.completedUploads.set([]);
 
       if (this.addAnother) {
+        this.cursor = undefined;
         this.url.enable();
         this.url.setValue('comment:' + uuid());
         this.url.disable();

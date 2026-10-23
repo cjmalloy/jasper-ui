@@ -155,10 +155,12 @@ export class SubmitDmPage implements HasChanges {
           this.title.setValue(edit.title || '');
           this.comment.setValue(edit.comment || '');
           for (const s of edit.sources || []) this.sources.push(this.fb.control(s, LinksFormComponent.validators));
-          this.setTo(uniq([
+          const to = uniq([
             ...addressedTo(edit),
             ...edit.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
-          ]).join(' '));
+          ]);
+          this.setTo(to.join(' '));
+          this.bookmarks.setTo(to);
         });
       }
     }

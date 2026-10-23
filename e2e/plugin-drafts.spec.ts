@@ -14,7 +14,7 @@ test.describe.serial('Drafts Plugin', () => {
   });
 
   test('enable mods', async () => {
-    await mod(page, '#mod-drafts');
+    await mod(page, '#mod-drafts', '#mod-todolist');
   });
 
   test('auto-saves a text post draft', async () => {
@@ -23,6 +23,7 @@ test.describe.serial('Drafts Plugin', () => {
     const saved = page.waitForResponse(res =>
       res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
     await page.locator('[name=title]').fill(title);
+    await page.locator('.editor textarea:not(.measurer)').fill('Draft body');
     await saved;
   });
 
@@ -35,6 +36,47 @@ test.describe.serial('Drafts Plugin', () => {
     await page.locator('.ref .link a', { hasText: title }).click();
     await expect(page).toHaveURL(/\/submit\/text/);
     await expect(page.locator('[name=title]')).toHaveValue(title);
+  });
+
+  test('shows the draft preview with standard ref layout', async () => {
+    await page.goto('/inbox/ref/plugin/editing?debug=USER', { waitUntil: 'networkidle' });
+    const row = page.locator('.ref.list-item', { hasText: title }).first();
+    await row.locator(':scope > button.toggle').click();
+    const preview = row.locator('.ref.list-item.expand');
+    await expect(preview.locator('.link a', { hasText: title })).toBeVisible();
+    await expect(preview).toHaveCSS('display', 'grid');
+    const toggle = await preview.locator(':scope > button.toggle').boundingBox();
+    const info = await preview.locator(':scope > .info').boundingBox();
+    expect(info!.x).toBeGreaterThan(toggle!.x + toggle!.width);
+  });
+
+  test('autosaves and publishes another post after adding another', async () => {
+    const first = 'First Post ' + Date.now();
+    const second = 'Second Post ' + Date.now();
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
+    await openTextSubmit(page, '+user/debug');
+    await page.keyboard.down('Control');
+    await page.locator('#addAnother').check();
+    await page.keyboard.up('Control');
+    const firstDraft = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await page.locator('[name=title]').fill(first);
+    await firstDraft;
+    const firstPublished = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'PUT');
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click();
+    expect((await firstPublished).ok()).toBe(true);
+    await expect(page).toHaveURL(/\/submit\/text/);
+    const secondDraft = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && ['POST', 'PATCH'].includes(res.request().method()));
+    await page.locator('[name=title]').fill(second);
+    const draft = await secondDraft;
+    expect(draft.request().method()).toBe('POST');
+    expect(draft.ok()).toBe(true);
+    const secondPublished = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'PUT');
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click();
+    expect((await secondPublished).ok()).toBe(true);
   });
 
   test('shows the title of a web link draft in the drafts list', async () => {
@@ -66,6 +108,12 @@ test.describe.serial('Drafts Plugin', () => {
     for (const tag of ['dm', 'plugin/thread', 'plugin/inbox/user/alice', 'user/alice']) {
       await expect(page.locator(`.tag-field input.preview[title="${tag}"]`)).toBeAttached();
     }
+    await expect(page.locator('.tag-field input.preview[title="notes"]')).toHaveCount(0);
+    const picker = page.locator('[title="Add Plugin"] select');
+    await picker.selectOption('plugin/todo');
+    await expect(page).toHaveURL(/tag=plugin(%2F|\/)todo/);
+    await expect(page.locator('#to')).toHaveValue('+user/alice');
+    await expect(page.locator('.tag-field input.preview[title="plugin/inbox/user/alice"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title="notes"]')).toHaveCount(0);
   });
 });
