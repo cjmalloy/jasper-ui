@@ -1,12 +1,12 @@
 import { cloneDeep, get, isArray, isEmpty, isEqual, isObject, isPlainObject, isString, set, sortBy, toPath, uniq, unset } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { diff3Merge, MergeRegion } from 'node-diff3';
-import { Ext, writeExt } from '../model/ext';
+import { Ext } from '../model/ext';
 import { Plugin, writePlugin } from '../model/plugin';
-import { Ref, writeRef } from '../model/ref';
+import { Ref } from '../model/ref';
 import { clear, Config, Mod } from '../model/tag';
 import { Template, writeTemplate } from '../model/template';
-import { User, writeUser } from '../model/user';
+import { User } from '../model/user';
 
 export function sortEntity(entity: Record<string, any>): Record<string, any> {
   const { origin, modified, metadata, created, modifiedString, ...rest } = entity as any;
@@ -61,9 +61,6 @@ export function equalBundle(a?: Mod, b?: Mod) {
 export function clearMod<T extends Mod | undefined>(mod: T, strict = true): T {
   if (!mod) return mod;
   const result = { } as any;
-  if (!isEmpty(mod.ref)) result.ref = sortBy(mod.ref!.map((r: Ref) => clearInternalFields(writeRef(r))), 'url');
-  if (!isEmpty(mod.ext)) result.ext = sortBy(mod.ext!.map((e: Ext) => clearInternalFields(writeExt(copyConfig(e)))), 'tag');
-  if (!isEmpty(mod.user)) result.user = sortBy(mod.user!.map((u: User) => clearInternalFields(writeUser(u))), 'tag');
   if (!isEmpty(mod.plugin)) result.plugin = sortBy(mod.plugin!.map((p: Plugin) => clearConfig(writePlugin(copyConfig(p)), strict)), 'tag');
   if (!isEmpty(mod.template)) result.template = sortBy(mod.template!.map((t: Template) => clearConfig(writeTemplate(copyConfig(t)), strict)), 'tag');
   return result;
@@ -105,9 +102,6 @@ function clearInternalFields<T>(value: T): T {
 export function formatBundleDiff(mod: Mod, strict = true): string {
   mod = clearMod(mod, strict);
   return JSON.stringify({
-    ref: isEmpty(mod.ref) ? undefined : sortBy(mod.ref!, 'url').map(sortEntity),
-    ext: isEmpty(mod.ext) ? undefined : sortBy(mod.ext!, 'tag').map(sortEntity),
-    user: isEmpty(mod.user) ? undefined : sortBy(mod.user!, 'tag').map(sortEntity),
     plugin: isEmpty(mod.plugin) ? undefined : sortBy(mod.plugin!, 'tag').map(sortEntity),
     template: isEmpty(mod.template) ? undefined : sortBy(mod.template!, 'tag').map(sortEntity),
   }, (key, value) => key === '_parent' ? undefined : value, 2);
@@ -133,7 +127,8 @@ export type BundleMerge = { result?: Mod, conflict?: boolean };
 const CONFLICT = Symbol('conflict');
 
 /**
- * Three-way merge of mod bundles.
+ * Three-way merge of the Plugins and Templates in mod bundles.
+ * Refs, Exts and Users are only installed once and never merged.
  * Entities are matched by key and merged field by field, so independent
  * changes to different fields never conflict.
  * String config fields listed in a Plugin or Template config.subDiff are
@@ -145,41 +140,24 @@ export function mergeBundle(ours: Mod, base: Mod, theirs: Mod): BundleMerge {
   base = normalizeBundle(base);
   theirs = normalizeBundle(theirs);
   const result: Mod = {};
-  for (const type of ['ref', 'ext', 'user', 'plugin', 'template'] as const) {
-    const key = type === 'ref' ? 'url' : 'tag';
-    if (type === 'ref' && [ours, base, theirs].some(m => m.ref?.some(r => !r.url))) {
-      // Refs without a URL can't be matched, so only merge the list as a whole
-      const value = mergeList(ours.ref, base.ref, theirs.ref);
-      if (value === CONFLICT) return { conflict: true };
-      if (value?.length) result.ref = value;
-      continue;
-    }
-    const find = (m: Mod, k: string) => (m[type] as any[] | undefined)?.find(e => e[key] === k);
-    const keys = uniq([...ours[type] || [], ...base[type] || [], ...theirs[type] || []].map((e: any) => e[key] as string));
+  for (const type of ['plugin', 'template'] as const) {
+    const find = (m: Mod, tag: string) => (m[type] as Config[] | undefined)?.find(e => e.tag === tag);
+    const tags = uniq([...ours[type] || [], ...base[type] || [], ...theirs[type] || []].map(e => e.tag));
     const merged: any[] = [];
-    for (const k of keys) {
-      const o = find(ours, k);
-      const b = find(base, k);
-      const t = find(theirs, k);
-      const subDiff = type === 'plugin' || type === 'template'
-        ? uniq([o, b, t].flatMap(e => isArray(e?.config?.subDiff) ? e.config.subDiff : [])
-          .filter(p => isString(p) && p))
-          .map(p => ['config', ...toPath(p)])
-        : [];
+    for (const tag of tags) {
+      const o = find(ours, tag);
+      const b = find(base, tag);
+      const t = find(theirs, tag);
+      const subDiff = uniq([o, b, t].flatMap(e => isArray(e?.config?.subDiff) ? e.config.subDiff : [])
+        .filter(p => isString(p) && p))
+        .map(p => ['config', ...toPath(p)]);
       const value = mergeValue(o, b, t, subDiff);
       if (value === CONFLICT) return { conflict: true };
       if (value !== undefined) merged.push(value);
     }
-    if (merged.length) result[type] = sortBy(merged, key) as any;
+    if (merged.length) result[type] = sortBy(merged, 'tag') as any;
   }
   return { result };
-}
-
-function mergeList<T>(o: T, b: T, t: T): T | typeof CONFLICT {
-  if (isEqual(o, t)) return cloneDeep(o);
-  if (isEqual(o, b)) return cloneDeep(t);
-  if (isEqual(t, b)) return cloneDeep(o);
-  return CONFLICT;
 }
 
 function normalizeBundle(mod: Mod): Mod {

@@ -1035,20 +1035,13 @@ export class AdminService {
     );
   }
 
-  getInstalledMod(mod: string) {
+  getInstalledMod(mod: string): Mod | undefined {
     const result =  {
       plugin: Object.values(this.status().plugins).filter(p => modId(p) === mod),
       template: Object.values(this.status().templates).filter(t => modId(t) === mod),
     };
     if (!result.plugin.length && !result.template.length) return undefined;
-    // Refs, Exts and Users are only installed once, so use the installed versions from the receipt
-    const installed: Mod = this.status().receipts[mod]?.plugins?.['plugin/mod'] || this.getMod(mod) || {};
-    return {
-      ref: installed.ref,
-      ext: installed.ext,
-      user: installed.user,
-      ...result
-    };
+    return result;
   }
 
   installRef$(def: Ref, _: progress) {

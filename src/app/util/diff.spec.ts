@@ -334,13 +334,6 @@ describe('Diff Utils', () => {
         steps({ script: 'c\nd' })).conflict).toBe(true);
     });
 
-    it('should preserve refs without a URL', () => {
-      const refs = (...titles: string[]) => ({ ref: titles.map(title => ({ title })) } as any);
-      expect(mergeBundle(refs('a', 'b'), refs('a', 'b'), refs('a', 'b')).result!.ref!.map(r => r.title)).toEqual(['a', 'b']);
-      expect(mergeBundle(refs('a', 'b'), refs('a', 'b'), refs('a', 'c')).result!.ref!.map(r => r.title)).toEqual(['a', 'c']);
-      expect(mergeBundle(refs('a', 'x'), refs('a', 'b'), refs('a', 'c')).conflict).toBe(true);
-    });
-
     it('should take one-sided subDiff changes', () => {
       const base = bundle('a\nb');
       const ours = bundle('a\nb');
