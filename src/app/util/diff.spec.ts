@@ -311,6 +311,17 @@ describe('Diff Utils', () => {
       expect(mergeBundle(indexed('a\nB\nc'), indexed('a\nb\nc'), indexed('a\nX\nc')).conflict).toBe(true);
     });
 
+    it('should merge subDiff paths that are array elements line-by-line', () => {
+      const scripts = (s: string, ...rest: string[]) => ({ plugin: [{ tag: 'plugin/test', config: { subDiff: ['scripts[0]'], scripts: [s, ...rest] } }] } as any);
+      const { result, conflict } = mergeBundle(
+        scripts('a\nB\nc\nd\ne'),
+        scripts('a\nb\nc\nd\ne'),
+        scripts('a\nb\nc\nD\ne', 'added'));
+      expect(conflict).toBeFalsy();
+      expect(result!.plugin![0].config!.scripts).toEqual(['a\nB\nc\nD\ne', 'added']);
+      expect(mergeBundle(scripts('a\nB\nc'), scripts('a\nb\nc'), scripts('a\nX\nc')).conflict).toBe(true);
+    });
+
     it('should take one-sided subDiff changes', () => {
       const base = bundle('a\nb');
       const ours = bundle('a\nb');

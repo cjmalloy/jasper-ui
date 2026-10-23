@@ -205,12 +205,17 @@ function mergeArray(o: any[], b: any[] | undefined, t: any[], lines: string[][],
   const subs: { rel: string[], placeholder: string, value?: string }[] = [];
   if (b) {
     for (const line of lines) {
-      if (line.length <= path.length + 1 || !isEqual(line.slice(0, path.length), path)) continue;
+      if (line.length <= path.length || !isEqual(line.slice(0, path.length), path)) continue;
       const rel = line.slice(path.length);
-      const parent = rel.slice(0, -1);
-      if (![o, b, t].every(v => isPlainObject(get(v, parent)))) continue;
+      const parents = [o, b, t].map(v => rel.length === 1 ? v : get(v, rel.slice(0, -1)));
       const values = [o, b, t].map(v => get(v, rel));
-      if (!values.every(v => v === undefined || isString(v))) continue;
+      if (parents.every(p => isPlainObject(p))) {
+        if (!values.every(v => v === undefined || isString(v))) continue;
+      } else if (parents.every(p => isArray(p))) {
+        if (!values.every(v => isString(v))) continue;
+      } else {
+        continue;
+      }
       const value = mergeValue(values[0], values[1], values[2], lines, line);
       if (value === CONFLICT) return CONFLICT;
       const placeholder = `\u0000subDiff:${rel.join('.')}`;
