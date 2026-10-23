@@ -209,6 +209,13 @@ hr {
   }
 }
 
+body.textarea-resizing {
+  &, * {
+    cursor: nwse-resize !important;
+    user-select: none !important;
+  }
+}
+
 .nowrap {
   white-space: nowrap;
 }
