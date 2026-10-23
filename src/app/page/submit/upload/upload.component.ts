@@ -14,7 +14,7 @@ import { RefComponent } from '../../../component/ref/ref.component';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
-import { yamlCode } from '../../../mods/media/code';
+import { mimeToCode } from '../../../mods/media/code';
 import { TagPreviewPipe } from '../../../pipe/tag-preview.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
@@ -111,7 +111,7 @@ export class UploadPage {
       const file = uploads[i];
       if (!forceCache && (file.type === 'application/json' || file.type === 'application/zip')) {
         files.push(file);
-      } else if (!forceCache && yamlCode(file).length) {
+      } else if (!forceCache && this.admin.getPlugin('plugin/code') && mimeToCode(file.type, file.name).includes('plugin/code/yaml')) {
         yamls.push(file);
       } else if (!forceCache && file.type.startsWith('text/plain')) {
         texts.push(file);

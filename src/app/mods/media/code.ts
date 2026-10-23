@@ -38,26 +38,20 @@ to it. Markdown fences and explanations belong only in the first response Ref.`,
   },
 };
 
-const YAML_MIME_TYPES = ['application/yaml', 'application/x-yaml', 'text/yaml', 'text/x-yaml'];
+const EXTENSION_TO_CODE: Record<string, string> = { yaml: 'yaml', yml: 'yaml' };
 
-/**
- * Code tags for YAML files, detected by filename or MIME type.
- */
-export function yamlCode(file: { name?: string, type?: string }): string[] {
-  const name = file.name?.toLowerCase() || '';
-  if (name.endsWith('.yaml') || name.endsWith('.yml') || YAML_MIME_TYPES.includes(file.type || '')) {
-    return ['plugin/code/yaml'];
+export function mimeToCode(mime: string, filename?: string) {
+  if (!mime || mime === 'application/octet-stream') {
+    const ext = filename?.includes('.') ? filename.substring(filename.lastIndexOf('.') + 1).toLowerCase() : '';
+    if (Object.hasOwn(EXTENSION_TO_CODE, ext)) return ['plugin/code/' + EXTENSION_TO_CODE[ext]];
   }
-  return [];
-}
-
-export function mimeToCode(mime: string) {
   if (!mime) return ['plugin/code'];
   switch (mime) {
     case 'text/markdown':
     case 'text/plain': return ['plugin/code/md'];
     case 'text/vnd.qt.linguist': return ['plugin/code/typescript'];
     case 'text/x-patch': return ['plugin/code/diff'];
+    case 'application/yaml':
     case 'application/x-yaml': return ['plugin/code/yaml'];
     case 'application/x-shellscript': return ['plugin/code/shell'];
     case 'application/x-httpd-php': return ['plugin/code/php'];

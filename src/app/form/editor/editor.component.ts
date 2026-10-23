@@ -30,7 +30,7 @@ import { MdComponent } from '../../component/md/md.component';
 import { AutofocusDirective } from '../../directive/autofocus.directive';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
-import { mimeToCode, yamlCode } from '../../mods/media/code';
+import { mimeToCode } from '../../mods/media/code';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -543,7 +543,7 @@ export class EditorComponent {
 
   drop(event: Event, items?: DataTransferItemList) {
     this.dropping.set(false);
-    if (!this.admin.getPlugin('plugin/file')) return;
+    if (!this.admin.getPlugin('plugin/code') && !this.admin.getPlugin('plugin/file')) return;
     if (!items) return;
     const files = [] as any;
     for (let i = 0; i < items.length; i++) {
@@ -594,8 +594,7 @@ export class EditorComponent {
   }
 
   upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
-    const yamlType = yamlCode(file);
-    const codeType = yamlType.length ? yamlType : mimeToCode(file.type);
+    const codeType = this.admin.getPlugin('plugin/code') ? mimeToCode(file.type, file.name) : [];
     if (codeType.length) {
       const ref = {
         origin: this.store.account.origin(),
@@ -623,7 +622,7 @@ export class EditorComponent {
           return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
         }),
       );
-    } else {
+    } else if (this.admin.getPlugin('plugin/file')) {
       // Upload binary files as private - only plugin/file and type-specific tags
       const tags: string[] = ['plugin/file'];
       if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
@@ -657,6 +656,9 @@ export class EditorComponent {
           return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
         }),
       );
+    } else {
+      this.updateUpload(upload.id, { error: $localize`File uploads not enabled`, progress: 0 });
+      return of(null);
     }
   }
 
