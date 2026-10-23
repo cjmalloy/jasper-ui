@@ -1,4 +1,4 @@
-import { cloneDeep, get, isArray, isEmpty, isObject, isString, set, sortBy, toPath, uniq, unset } from 'lodash-es';
+import { cloneDeep, isArray, isEmpty, isEqual, isObject, isPlainObject, isString, sortBy, toPath, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { diff3Merge, MergeRegion } from 'node-diff3';
 import { Ext, writeExt } from '../model/ext';
@@ -130,80 +130,74 @@ export function merge3(ours: string, base: string, theirs: string, delimiter = '
 
 export type BundleMerge = { result?: Mod, conflict?: boolean };
 
-type SubDiff = { type: 'plugin' | 'template', tag: string, path: string, value?: string, prune: string[][] };
+const CONFLICT = Symbol('conflict');
 
 /**
  * Three-way merge of mod bundles.
+ * Entities are matched by key and merged field by field, so independent
+ * changes to different fields never conflict.
  * String config fields listed in a Plugin or Template config.subDiff are
- * merged line-by-line separately, so independent changes to different lines
+ * merged line-by-line, so independent changes to different lines
  * of the same script do not conflict.
  */
 export function mergeBundle(ours: Mod, base: Mod, theirs: Mod): BundleMerge {
-  ours = cloneDeep(clearMod(ours));
-  base = cloneDeep(clearMod(base));
-  theirs = cloneDeep(clearMod(theirs));
-  const subDiffs: SubDiff[] = [];
-  for (const type of ['plugin', 'template'] as const) {
-    const tags = uniq([...ours[type] || [], ...base[type] || [], ...theirs[type] || []].map(c => c.tag));
-    for (const tag of tags) {
-      const o = ours[type]?.find(c => c.tag === tag);
-      const b = base[type]?.find(c => c.tag === tag);
-      const t = theirs[type]?.find(c => c.tag === tag);
-      if (!o || !b || !t) continue;
-      const paths = uniq([...o.config?.subDiff || [], ...b.config?.subDiff || [], ...t.config?.subDiff || []]);
-      for (const path of paths) {
-        if (!isString(path) || !path) continue;
-        const ov = get(o.config, path);
-        const bv = get(b.config, path);
-        const tv = get(t.config, path);
-        if (ov === undefined && bv === undefined && tv === undefined) continue;
-        if ([ov, bv, tv].some(v => v !== undefined && !isString(v))) continue;
-        let value: string | undefined;
-        if (ov === tv) {
-          value = ov;
-        } else if (ov === bv) {
-          value = tv;
-        } else if (tv === bv) {
-          value = ov;
-        } else {
-          const merged = merge3(ov || '', bv || '', tv || '');
-          if (merged.conflict || merged.result === undefined) return { conflict: true };
-          value = merged.result;
-        }
-        const segments = toPath(path);
-        const prune: string[][] = [];
-        for (let i = segments.length - 1; i >= 0; i--) {
-          const container = ['config', ...segments.slice(0, i)];
-          const [oh, bh, th] = [o, b, t].map(c => get(c, container) !== undefined);
-          if (!(oh === th ? oh : oh === bh ? th : oh)) prune.push(container);
-        }
-        const placeholder = `subDiff:${type}:${tag}:${path}`;
-        const parents = segments.slice(0, -1).map((_, i) => ['config', ...segments.slice(0, i + 1)]);
-        if ([o, b, t].some(c => parents.some(parent => {
-          const value = get(c, parent);
-          return value !== undefined && !isObject(value);
-        }))) continue;
-        for (const c of [o, b, t]) set(c.config ||= {}, path, placeholder);
-        subDiffs.push({ type, tag, path, value, prune });
-      }
+  ours = normalizeBundle(ours);
+  base = normalizeBundle(base);
+  theirs = normalizeBundle(theirs);
+  const result: Mod = {};
+  for (const type of ['ref', 'ext', 'user', 'plugin', 'template'] as const) {
+    const key = type === 'ref' ? 'url' : 'tag';
+    const find = (m: Mod, k: string) => (m[type] as any[] | undefined)?.find(e => e[key] === k);
+    const keys = uniq([...ours[type] || [], ...base[type] || [], ...theirs[type] || []].map((e: any) => e[key] as string));
+    const merged: any[] = [];
+    for (const k of keys) {
+      const o = find(ours, k);
+      const b = find(base, k);
+      const t = find(theirs, k);
+      const subDiff = new Set(type === 'plugin' || type === 'template'
+        ? [o, b, t].flatMap(e => isArray(e?.config?.subDiff) ? e.config.subDiff : [])
+          .filter(p => isString(p) && p)
+          .map(p => toPath(p).join('.'))
+        : []);
+      const value = mergeValue(o, b, t, path => path[0] === 'config' && subDiff.has(path.slice(1).join('.')));
+      if (value === CONFLICT) return { conflict: true };
+      if (value !== undefined) merged.push(value);
     }
-  }
-  const merged = merge3(formatBundleDiff(ours), formatBundleDiff(base), formatBundleDiff(theirs));
-  if (merged.conflict || !merged.result) return { conflict: true };
-  const result: Mod = JSON.parse(merged.result);
-  for (const d of subDiffs) {
-    const c = result[d.type]?.find(c => c.tag === d.tag);
-    if (!c) continue;
-    if (d.value === undefined) {
-      unset(c.config, d.path);
-      for (const container of d.prune) {
-        const v = get(c, container);
-        if (!isObject(v) || !isEmpty(v)) break;
-        unset(c, container);
-      }
-    } else {
-      set(c.config ||= {}, d.path, d.value);
-    }
+    if (merged.length) result[type] = sortBy(merged, key) as any;
   }
   return { result };
+}
+
+function normalizeBundle(mod: Mod): Mod {
+  return JSON.parse(formatBundleDiff(mod));
+}
+
+function mergeValue(o: any, b: any, t: any, lines: (path: string[]) => boolean, path: string[] = []): any {
+  if (isEqual(o, t)) return cloneDeep(o);
+  if (isEqual(o, b)) return cloneDeep(t);
+  if (isEqual(t, b)) return cloneDeep(o);
+  if (lines(path) && [o, b, t].every(v => v === undefined || isString(v))) {
+    const merged = merge3(o ?? '', b ?? '', t ?? '');
+    return merged.conflict || merged.result === undefined ? CONFLICT : merged.result;
+  }
+  if (isPlainObject(o) && isPlainObject(t) && (b === undefined || isPlainObject(b))) {
+    const result: any = {};
+    for (const k of uniq([...Object.keys(o), ...Object.keys(t), ...Object.keys(b || {})])) {
+      const value = mergeValue(o[k], b?.[k], t[k], lines, [...path, k]);
+      if (value === CONFLICT) return CONFLICT;
+      if (value !== undefined) result[k] = value;
+    }
+    return result;
+  }
+  if (isArray(o) && isArray(t) && (b === undefined || isArray(b))) {
+    const json = (v: any) => v === undefined ? '' : JSON.stringify(v, null, 2);
+    const merged = merge3(json(o), json(b), json(t));
+    if (merged.conflict || merged.result === undefined) return CONFLICT;
+    try {
+      return JSON.parse(merged.result);
+    } catch {
+      return CONFLICT;
+    }
+  }
+  return CONFLICT;
 }

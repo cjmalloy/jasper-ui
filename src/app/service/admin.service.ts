@@ -287,7 +287,7 @@ export class AdminService {
       tap(() => this.clearCache()),
       switchMap(() => this.firstRun$),
       switchMap(() => this.loadReceipts$()),
-      tap(() => this.checkMissingReceipts()),
+      switchMap(() => this.checkMissingReceipts$()),
       catchError(() => of(null)),
       tap(() => this.clearCache()),
     );
@@ -435,14 +435,15 @@ export class AdminService {
     for (const r of list) {
       const mod = r.title!
       if (this.store.view.modChanges().has(mod)) continue;
+      this.updateStatus(status => status.receipts[mod] = r);
       const current = this.getInstalledMod(mod);
       if (!current) continue;
-      this.updateStatus(status => status.receipts[mod] = r);
       this.store.view.setModChange(mod, !equalBundle(current, r.plugins?.['plugin/mod']));
     }
   }
 
-  private checkMissingReceipts() {
+  private checkMissingReceipts$(): Observable<any> {
+    const receipts: Observable<any>[] = [];
     for (const mod of uniq([
       ...Object.values(this.status().plugins).map(p => modId(p)),
       ...Object.values(this.status().templates).map(t => modId(t)),
@@ -452,8 +453,15 @@ export class AdminService {
       if (!current) continue;
       const target = this.getMod(mod);
       if (!target) continue;
-      this.store.view.setModChange(mod, !equalBundle(current, target));
+      const changed = !equalBundle(current, target);
+      this.store.view.setModChange(mod, changed);
+      if (!changed && this.store.account.admin && this.getPlugin('plugin/mod/receipt')) {
+        // Record a merge base for unmodified mods so future updates can be merged
+        receipts.push(this.logModReceipt$(mod, target, () => {}).pipe(catchError(() => of(null))));
+      }
     }
+    if (!receipts.length) return of(null);
+    return concat(...receipts).pipe(toArray());
   }
 
   private get _extFallback() {
@@ -1033,8 +1041,12 @@ export class AdminService {
       template: Object.values(this.status().templates).filter(t => modId(t) === mod),
     };
     if (!result.plugin.length && !result.template.length) return undefined;
+    // Refs, Exts and Users are only installed once, so use the installed versions from the receipt
+    const installed: Mod = this.status().receipts[mod]?.plugins?.['plugin/mod'] || this.getMod(mod) || {};
     return {
-      ...this.getMod(mod) || {}, // Refs, Exts, Users
+      ref: installed.ref,
+      ext: installed.ext,
+      user: installed.user,
       ...result
     };
   }
@@ -1150,7 +1162,7 @@ export class AdminService {
     ]).pipe(
       toArray(),
       switchMap(() => {
-        if (!this.getPlugin('plugin/mod/receipt')) return of(null);
+        if (!this.receiptsEnabled(bundle)) return of(null);
         return this.logModReceipt$(mod, bundle, _);
       }),
     );
@@ -1169,10 +1181,17 @@ export class AdminService {
     ]).pipe(
       toArray(),
       switchMap(() => {
-        if (!this.getPlugin('plugin/mod/receipt')) return of(null);
+        if (!this.receiptsEnabled(bundle)) return of(null);
         return this.logModReceipt$(mod, receipt, _);
       }),
     );
+  }
+
+  /**
+   * Receipts are enabled if plugin/mod/receipt is installed, or is being installed by this bundle.
+   */
+  private receiptsEnabled(bundle: Mod) {
+    return !!this.getPlugin('plugin/mod/receipt') || !!bundle.plugin?.some(p => p.tag === 'plugin/mod/receipt');
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
