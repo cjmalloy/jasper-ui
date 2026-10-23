@@ -94,7 +94,7 @@ import { userMod } from '../mods/user';
 import { voteMod } from '../mods/vote';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
-import { equalBundle } from '../util/diff';
+import { clearMod, equalBundle } from '../util/diff';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
@@ -457,7 +457,7 @@ export class AdminService {
       this.store.view.setModChange(mod, changed);
       if (!changed && this.store.account.admin && this.getPlugin('plugin/mod/receipt')) {
         // Record a merge base for unmodified mods so future updates can be merged
-        receipts.push(this.logModReceipt$(mod, target, () => {}).pipe(catchError(() => of(null))));
+        receipts.push(this.logModReceipt$(mod, clearMod(current), () => {}).pipe(catchError(() => of(null))));
       }
     }
     if (!receipts.length) return of(null);
@@ -1188,10 +1188,15 @@ export class AdminService {
   }
 
   /**
-   * Receipts are enabled if plugin/mod/receipt is installed, or is being installed by this bundle.
+   * Receipts are enabled if plugin/mod/receipt is installed, or was just installed by this bundle.
+   * Record a newly installed receipt plugin in status so later mods in the same batch also log receipts.
    */
   private receiptsEnabled(bundle: Mod) {
-    return !!this.getPlugin('plugin/mod/receipt') || !!bundle.plugin?.some(p => p.tag === 'plugin/mod/receipt');
+    if (this.getPlugin('plugin/mod/receipt')) return true;
+    const receipt = bundle.plugin?.find(p => p.tag === 'plugin/mod/receipt');
+    if (!receipt) return false;
+    this.updateStatus(status => status.plugins[receipt.tag] = { ...receipt, origin: this.store.account.origin() });
+    return true;
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {

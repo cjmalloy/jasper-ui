@@ -296,6 +296,21 @@ describe('Diff Utils', () => {
       expect(result!.plugin![0].config!.a.script).toBe('a\nB\nc\nD\ne');
     });
 
+    it('should merge indexed subDiff paths inside arrays line-by-line', () => {
+      const indexed = (s: string, steps: any[] = []) => ({ plugin: [{ tag: 'plugin/test', config: { subDiff: ['steps[0].script'], steps: [{ name: 'run', script: s }, ...steps] } }] } as any);
+      const { result, conflict } = mergeBundle(
+        indexed('a\nB\nc\nd\ne'),
+        indexed('a\nb\nc\nd\ne'),
+        indexed('a\nb\nc\nD\ne', [{ name: 'added' }]));
+      expect(conflict).toBeFalsy();
+      expect(result!.plugin![0].config!.steps).toEqual([{ name: 'run', script: 'a\nB\nc\nD\ne' }, { name: 'added' }]);
+    });
+
+    it('should conflict on the same line of an indexed subDiff path', () => {
+      const indexed = (s: string) => ({ plugin: [{ tag: 'plugin/test', config: { subDiff: ['steps[0].script'], steps: [{ script: s }] } }] } as any);
+      expect(mergeBundle(indexed('a\nB\nc'), indexed('a\nb\nc'), indexed('a\nX\nc')).conflict).toBe(true);
+    });
+
     it('should take one-sided subDiff changes', () => {
       const base = bundle('a\nb');
       const ours = bundle('a\nb');

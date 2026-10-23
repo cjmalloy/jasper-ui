@@ -1,4 +1,4 @@
-import { cloneDeep, isArray, isEmpty, isEqual, isObject, isPlainObject, isString, sortBy, toPath, uniq } from 'lodash-es';
+import { cloneDeep, get, isArray, isEmpty, isEqual, isObject, isPlainObject, isString, set, sortBy, toPath, uniq, unset } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { diff3Merge, MergeRegion } from 'node-diff3';
 import { Ext, writeExt } from '../model/ext';
@@ -154,12 +154,12 @@ export function mergeBundle(ours: Mod, base: Mod, theirs: Mod): BundleMerge {
       const o = find(ours, k);
       const b = find(base, k);
       const t = find(theirs, k);
-      const subDiff = new Set(type === 'plugin' || type === 'template'
-        ? [o, b, t].flatMap(e => isArray(e?.config?.subDiff) ? e.config.subDiff : [])
-          .filter(p => isString(p) && p)
-          .map(p => toPath(p).join('.'))
-        : []);
-      const value = mergeValue(o, b, t, path => path[0] === 'config' && subDiff.has(path.slice(1).join('.')));
+      const subDiff = type === 'plugin' || type === 'template'
+        ? uniq([o, b, t].flatMap(e => isArray(e?.config?.subDiff) ? e.config.subDiff : [])
+          .filter(p => isString(p) && p))
+          .map(p => ['config', ...toPath(p)])
+        : [];
+      const value = mergeValue(o, b, t, subDiff);
       if (value === CONFLICT) return { conflict: true };
       if (value !== undefined) merged.push(value);
     }
@@ -172,11 +172,11 @@ function normalizeBundle(mod: Mod): Mod {
   return JSON.parse(formatBundleDiff(mod));
 }
 
-function mergeValue(o: any, b: any, t: any, lines: (path: string[]) => boolean, path: string[] = []): any {
+function mergeValue(o: any, b: any, t: any, lines: string[][], path: string[] = []): any {
   if (isEqual(o, t)) return cloneDeep(o);
   if (isEqual(o, b)) return cloneDeep(t);
   if (isEqual(t, b)) return cloneDeep(o);
-  if (lines(path) && [o, b, t].every(v => v === undefined || isString(v))) {
+  if (lines.some(l => isEqual(l, path)) && [o, b, t].every(v => v === undefined || isString(v))) {
     const merged = merge3(o ?? '', b ?? '', t ?? '');
     return merged.conflict || merged.result === undefined ? CONFLICT : merged.result;
   }
@@ -190,14 +190,50 @@ function mergeValue(o: any, b: any, t: any, lines: (path: string[]) => boolean, 
     return result;
   }
   if (isArray(o) && isArray(t) && (b === undefined || isArray(b))) {
-    const json = (v: any) => v === undefined ? '' : JSON.stringify(v, null, 2);
-    const merged = merge3(json(o), json(b), json(t));
-    if (merged.conflict || merged.result === undefined) return CONFLICT;
-    try {
-      return JSON.parse(merged.result);
-    } catch {
-      return CONFLICT;
-    }
+    return mergeArray(o, b, t, lines, path);
   }
   return CONFLICT;
+}
+
+/**
+ * Arrays are merged as text. Declared subDiff strings inside array elements
+ * are merged line-by-line first and swapped for placeholders, so the array
+ * merge only sees structural changes.
+ */
+function mergeArray(o: any[], b: any[] | undefined, t: any[], lines: string[][], path: string[]): any {
+  [o, b, t] = [cloneDeep(o), cloneDeep(b), cloneDeep(t)];
+  const subs: { rel: string[], placeholder: string, value?: string }[] = [];
+  if (b) {
+    for (const line of lines) {
+      if (line.length <= path.length + 1 || !isEqual(line.slice(0, path.length), path)) continue;
+      const rel = line.slice(path.length);
+      const parent = rel.slice(0, -1);
+      if (![o, b, t].every(v => isPlainObject(get(v, parent)))) continue;
+      const values = [o, b, t].map(v => get(v, rel));
+      if (!values.every(v => v === undefined || isString(v))) continue;
+      const value = mergeValue(values[0], values[1], values[2], lines, line);
+      if (value === CONFLICT) return CONFLICT;
+      const placeholder = `\u0000subDiff:${rel.join('.')}`;
+      for (const v of [o, b, t]) set(v, rel, placeholder);
+      subs.push({ rel, placeholder, value });
+    }
+  }
+  const json = (v: any) => v === undefined ? '' : JSON.stringify(v, null, 2);
+  const merged = merge3(json(o), json(b), json(t));
+  if (merged.conflict || merged.result === undefined) return CONFLICT;
+  let result: any[];
+  try {
+    result = JSON.parse(merged.result);
+  } catch {
+    return CONFLICT;
+  }
+  for (const s of subs) {
+    if (get(result, s.rel) !== s.placeholder) continue;
+    if (s.value === undefined) {
+      unset(result, s.rel);
+    } else {
+      set(result, s.rel, s.value);
+    }
+  }
+  return result;
 }
