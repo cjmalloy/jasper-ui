@@ -382,6 +382,7 @@ export class EditorComponent {
     // Clear previous throttled values
     this.syncTextThrottled(value);
     this.control().setValue(value);
+    this.control().markAsDirty();
   }
 
   syncTextThrottled = debounce((value: string) => {

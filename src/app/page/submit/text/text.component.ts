@@ -110,6 +110,8 @@ export class SubmitTextPage implements HasChanges {
   private submittingSubscription?: Subscription;
   readonly saving = signal(false);
   private pendingSave?: Promise<string>;
+  private lastSaved?: string;
+  private autosaveFailed = false;
   addAnother = false;
   readonly defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
   readonly loadingDefaults = signal<Ext[]>([]);
@@ -137,13 +139,28 @@ export class SubmitTextPage implements HasChanges {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
-        if (this.textForm.dirty && !this.saving() && !this.submitting()) this.saveForLater();
+        if (this.textForm.dirty && !this.pendingSave && !this.submitting()) this.autosave();
       });
     }
   }
 
   addCompletedUpload(ref: Ref) {
     this.completedUploads.update(uploads => [...uploads, ref]);
+    this.textForm.markAsDirty();
+  }
+
+  /**
+   * Saves once per tick and shows a failure only once until a save succeeds.
+   */
+  private autosave() {
+    this.saveDraft().then(
+      () => this.autosaveFailed = false,
+      (err: HttpErrorResponse) => {
+        if (this.autosaveFailed) return;
+        this.autosaveFailed = true;
+        this.serverError.set(printError(err));
+      },
+    );
   }
 
   async saveChanges() {
@@ -166,6 +183,7 @@ export class SubmitTextPage implements HasChanges {
       this.pendingSave = firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor))
         .then(cursor => {
           this.cursor = cursor;
+          this.lastSaved = savedValue;
           if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
           return cursor;
         })
@@ -181,7 +199,10 @@ export class SubmitTextPage implements HasChanges {
    * Waits for any save in flight, then saves edits made since its snapshot.
    */
   private async flushDraft() {
-    while (this.pendingSave || this.textForm.dirty) await this.saveDraft();
+    for (let round = 0; round < 5 && (this.pendingSave || this.textForm.dirty); round++) {
+      await this.saveDraft();
+      if (!this.pendingSave && JSON.stringify(this.textForm.value) === this.lastSaved) break;
+    }
   }
 
   private initialize() {
@@ -214,6 +235,7 @@ export class SubmitTextPage implements HasChanges {
         });
       }
       if (this.store.account.localTag()) this.addTag(this.store.account.localTag());
+      let initialRun = true;
       effect(() => {
         this.store.submit.url();
         this.store.submit.wiki();
@@ -256,6 +278,9 @@ export class SubmitTextPage implements HasChanges {
           for (const s of this.store.submit.sources()) {
             this.addSource(s)
           }
+          // Later runs come from the user picking plugins or tags
+          if (!initialRun) this.textForm.markAsDirty();
+          initialRun = false;
         });
       }, { injector: this.injector });
       // Seed the location once so later tag changes keep any edits
@@ -363,6 +388,7 @@ export class SubmitTextPage implements HasChanges {
     } else {
       this.addTag(tag);
     }
+    this.textForm.markAsDirty();
   }
 
   setTags(value: string[]) {
