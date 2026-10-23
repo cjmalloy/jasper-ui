@@ -45,6 +45,9 @@ test.describe.serial('Submit Text', () => {
     const y = before.y + before.height - 3;
     await page.mouse.move(x, y);
     await page.mouse.down();
+    await page.mouse.move(x + 10, y + 5);
+    const first = (await textarea.boundingBox())!;
+    expect(Math.abs(first.x + first.width - 3 - (x + 10))).toBeLessThan(1);
     await page.mouse.move(x + 150, y + 60, { steps: 5 });
     const during = (await textarea.boundingBox())!;
     expect(Math.abs(during.x + during.width - 3 - (x + 150))).toBeLessThan(3);
