@@ -14,12 +14,12 @@ import {
   untracked,
   viewChild
 } from '@angular/core';
-import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
 import Hls from 'hls.js';
 import { isEqual, some, without } from 'lodash-es';
-import { BehaviorSubject, catchError, map, of, startWith, Subject, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, of, startWith, Subject, switchMap } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
@@ -433,21 +433,8 @@ export class ViewerComponent {
 
   readonly currentCode = computed(() => {
     if (!this.code()) return '';
-    const value = this.text() || this.ref()?.comment || (this.cacheCode.hasValue() ? this.cacheCode.value() : '') || '';
+    const value = this.text() || this.ref()?.comment || '';
     return '```' + this.codeLang() + '\n' + value + '\n```';
-  });
-
-  private readonly cacheCode = rxResource({
-    params: () => {
-      if (!this.code() || this.text() || this.ref()?.comment) return undefined;
-      const url = this.ref()?.url;
-      if (!url?.startsWith('cache:')) return undefined;
-      return { url, origin: this.currentOrigin() };
-    },
-    stream: ({ params }) => this.proxy.fetch(params.url, params.origin, this.getFilename()).pipe(
-      map(res => res.data ? new TextDecoder().decode(res.data) : ''),
-      catchError(() => of('')),
-    ),
   });
 
   readonly currentTags = computed(() => {
