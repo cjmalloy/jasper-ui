@@ -137,7 +137,7 @@ export class SubmitTextPage implements HasChanges {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
-        if (this.textForm.dirty && !this.saving() && !this.submitting()) this.saveForLater();
+        if (this.textForm.dirty) this.saveForLater();
       });
     }
   }

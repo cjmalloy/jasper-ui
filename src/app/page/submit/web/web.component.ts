@@ -107,7 +107,7 @@ export class SubmitWebPage implements HasChanges {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
-        if (this.webForm.dirty && !this.saving() && !this.submitting()) this.saveForLater();
+        if (this.webForm.dirty) this.saveForLater();
       });
     }
   }

@@ -92,7 +92,7 @@ export class SubmitInvoicePage implements HasChanges {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
-        if (this.invoiceForm.dirty && !this.saving() && !this.submitting()) this.saveForLater();
+        if (this.invoiceForm.dirty) this.saveForLater();
       });
     }
     this.ref$.pipe(
