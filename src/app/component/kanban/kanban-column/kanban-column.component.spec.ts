@@ -4,7 +4,9 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Subject } from 'rxjs';
+import { firstValueFrom, of, Subject } from 'rxjs';
+import { ProxyService } from '../../../service/api/proxy.service';
+import { RefService } from '../../../service/api/ref.service';
 import { KanbanDrag } from '../kanban.component';
 
 import { KanbanColumnComponent } from './kanban-column.component';
@@ -30,6 +32,17 @@ describe('KanbanColumnComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('uploads YAML files as inline code', async () => {
+    const save = vi.spyOn(TestBed.inject(ProxyService), 'save');
+    const create = vi.spyOn(TestBed.inject(RefService), 'create').mockReturnValue(of('' as any));
+    const file = new File(['a: 1'], 'config.yml', { type: '' });
+    const ref = await firstValueFrom(component.uploadFile$(file, '1'));
+    expect(save).not.toHaveBeenCalled();
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ comment: 'a: 1' }));
+    expect(ref!.url).toMatch(/^internal:/);
+    expect(ref!.tags).toContain('plugin/code/yaml');
   });
 
   it('reloads on request changes, preserves cards for search and ignores equal sort arrays', () => {

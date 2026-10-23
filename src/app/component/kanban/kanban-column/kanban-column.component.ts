@@ -13,7 +13,7 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref, RefSort } from '../../../model/ref';
-import { mimeToCode } from '../../../mods/media/code';
+import { mimeToCode, yamlCode } from '../../../mods/media/code';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ProxyService } from '../../../service/api/proxy.service';
@@ -434,7 +434,8 @@ export class KanbanColumnComponent implements HasChanges {
   uploadFile$(file: File, uploadId: string): Observable<Ref | null> {
     const tagsWithAuthor = this.getTagsWithAuthor();
 
-    const codeType = mimeToCode(file.type);
+    const yamlType = yamlCode(file);
+    const codeType = yamlType.length ? yamlType : mimeToCode(file.type);
     if (codeType.length) {
       const ref: Ref = {
         origin: this.store.account.origin(),
