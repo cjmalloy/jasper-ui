@@ -136,6 +136,7 @@ export class EditorComponent {
   readonly focused = signal<boolean | undefined>(false);
   readonly progress = signal(0);
   readonly uploads = signal<EditorUpload[]>([]);
+  readonly uploadErrors = signal<EditorUpload[]>([]);
   private readonly uploadSubscriptions = new Map<string, Subscription>();
   readonly files = computed(() => !!this.admin.getPlugin('plugin/file'));
   readonly loadingEvents = linkedSignal<boolean, Record<string, boolean>>({
@@ -544,7 +545,7 @@ export class EditorComponent {
 
   drop(event: Event, items?: DataTransferItemList) {
     this.dropping.set(false);
-    if (!this.admin.getPlugin('plugin/file')) return;
+    if (!this.admin.getPlugin('plugin/code') && !this.admin.getPlugin('plugin/file')) return;
     if (!items) return;
     const files = [] as any;
     for (let i = 0; i < items.length; i++) {
@@ -561,6 +562,7 @@ export class EditorComponent {
 
   upload(files?: FileList | null) {
     if (!files) return;
+    this.uploadErrors.set([]);
     const hasActiveUploads = this.uploads().some(upload => !upload.completed && !upload.error);
     if (!hasActiveUploads) {
       // Only clear uploads if no active uploads exist
@@ -595,7 +597,7 @@ export class EditorComponent {
   }
 
   upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
-    const codeType = mimeToCode(file.type);
+    const codeType = this.admin.getPlugin('plugin/code') ? mimeToCode(file.type, file.name) : [];
     if (codeType.length) {
       const ref = {
         origin: this.store.account.origin(),
@@ -623,7 +625,7 @@ export class EditorComponent {
           return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
         }),
       );
-    } else {
+    } else if (this.admin.getPlugin('plugin/file')) {
       // Upload binary files as private - only plugin/file and type-specific tags
       const tags: string[] = ['plugin/file'];
       if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
@@ -657,6 +659,9 @@ export class EditorComponent {
           return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
         }),
       );
+    } else {
+      this.updateUpload(upload.id, { error: $localize`File uploads not enabled`, progress: 0 });
+      return of(null);
     }
   }
 
@@ -695,6 +700,7 @@ export class EditorComponent {
       if (completedRefs.length > 0) {
         this.attachUrls(...completedRefs);
       }
+      this.uploadErrors.set(this.uploads().filter(upload => upload.error));
       this.uploads.set([]);
     }
   }

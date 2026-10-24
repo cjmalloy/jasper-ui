@@ -477,8 +477,8 @@ export class ChatComponent implements HasChanges {
       }
     }
 
-    // If files found and plugin/file is enabled, upload them
-    if (files.length && this.admin.getPlugin('plugin/file')) {
+    // If files found and plugin/code or plugin/file is enabled, upload them
+    if (files.length && (this.admin.getPlugin('plugin/code') || this.admin.getPlugin('plugin/file'))) {
       event.preventDefault();
       event.stopPropagation();
       this.upload(files);
@@ -501,8 +501,8 @@ export class ChatComponent implements HasChanges {
       }
     }
 
-    // If files found and plugin/file is enabled, upload them
-    if (files.length && this.admin.getPlugin('plugin/file')) {
+    // If files found and plugin/code or plugin/file is enabled, upload them
+    if (files.length && (this.admin.getPlugin('plugin/code') || this.admin.getPlugin('plugin/file'))) {
       event.preventDefault();
       event.stopPropagation();
       this.upload(files);
@@ -560,7 +560,7 @@ export class ChatComponent implements HasChanges {
 
   upload$(file: File, upload: ChatUpload): Observable<Ref | null> {
     const visibility = this.publicUploads() ? ['public'] : [];
-    const codeType = mimeToCode(file.type);
+    const codeType = this.admin.getPlugin('plugin/code') ? mimeToCode(file.type, file.name) : [];
     if (codeType.length) {
       const ref: Ref = {
         origin: this.store.account.origin(),
@@ -589,7 +589,7 @@ export class ChatComponent implements HasChanges {
           } as Ref)));
         }),
       );
-    } else {
+    } else if (this.admin.getPlugin('plugin/file')) {
       // Upload binary files as private unless the chat is public
       const tags: string[] = [...visibility, 'plugin/file'];
       if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
@@ -631,6 +631,9 @@ export class ChatComponent implements HasChanges {
           } as Ref)));
         }),
       );
+    } else {
+      this.updateUpload(upload.id, { error: $localize`File uploads not enabled`, progress: 0 });
+      return of(null);
     }
   }
 

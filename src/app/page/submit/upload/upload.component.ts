@@ -14,6 +14,7 @@ import { RefComponent } from '../../../component/ref/ref.component';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
+import { mimeToCode } from '../../../mods/media/code';
 import { TagPreviewPipe } from '../../../pipe/tag-preview.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
@@ -104,11 +105,14 @@ export class UploadPage {
     const bookmarks: File[] = [];
     const sitemap: File[] = [];
     const texts: File[] = [];
+    const yamls: File[] = [];
     const cache: File[] = [];
     for (let i = 0; i < uploads.length; i++) {
       const file = uploads[i];
       if (!forceCache && (file.type === 'application/json' || file.type === 'application/zip')) {
         files.push(file);
+      } else if (!forceCache && this.admin.getPlugin('plugin/code') && mimeToCode(file.type, file.name).includes('plugin/code/yaml')) {
+        yamls.push(file);
       } else if (!forceCache && file.type.startsWith('text/plain')) {
         texts.push(file);
       }  else if (!forceCache && [
@@ -140,6 +144,7 @@ export class UploadPage {
     // Refs and Exts
     this.read(files, this.store.account.localTag());
     this.readData(texts, this.store.account.localTag(), ...this.store.submit.tags());
+    this.readData(yamls, 'plugin/code/yaml', this.store.account.localTag(), ...this.store.submit.tags());
     this.readSheet(tables, 'plugin/table', this.store.account.localTag(), ...this.store.submit.tags());
     this.readBookmarks(bookmarks, this.store.account.localTag(), ...this.store.submit.tags());
     this.readSitemap(sitemap, this.store.account.localTag(), ...this.store.submit.tags());

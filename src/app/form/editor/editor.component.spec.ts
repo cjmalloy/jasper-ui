@@ -5,8 +5,10 @@ import { ChangeDetectionStrategy, Component, NO_ERRORS_SCHEMA, viewChild } from 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { Observable, of, Subject } from 'rxjs';
+import { firstValueFrom, Observable, of, Subject } from 'rxjs';
+import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
+import { RefService } from '../../service/api/ref.service';
 
 import { EditorComponent } from './editor.component';
 
@@ -27,9 +29,14 @@ describe('EditorComponent', () => {
 
     fixture = TestBed.createComponent(EditorComponent);
     component = fixture.componentInstance;
+    plugins('plugin/code', 'plugin/file');
     fixture.componentRef.setInput('control', new UntypedFormControl());
     fixture.detectChanges();
   });
+
+  function plugins(...tags: string[]) {
+    vi.spyOn(TestBed.inject(AdminService), 'getPlugin').mockImplementation(tag => tags.includes(tag) ? { tag } as any : undefined);
+  }
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -197,6 +204,72 @@ describe('EditorComponent', () => {
     expect(component.uploads()[0].progress).toBe(75);
     expect(component.uploads()[0]).not.toBe(previous[0]);
     component.cancelAllUploads();
+  });
+
+  describe('plugin gating', () => {
+    let save: any;
+    let create: any;
+    const yaml = () => new File(['a: 1'], 'config.yml', { type: '' });
+    const bin = () => new File(['x'], 'a.bin', { type: 'application/octet-stream' });
+    const start = (file: File) => {
+      const upload = { id: file.name, name: file.name, progress: 0 };
+      component.uploads.set([upload]);
+      return component.upload$(file, upload);
+    };
+
+    beforeEach(() => {
+      save = vi.spyOn(TestBed.inject(ProxyService), 'save').mockReturnValue(new Subject());
+      create = vi.spyOn(TestBed.inject(RefService), 'create').mockReturnValue(of('2024-01-01T00:00:00.000Z'));
+    });
+
+    it('uploads code inline when only plugin/code is installed', async () => {
+      plugins('plugin/code');
+      const ref = await firstValueFrom(start(yaml()));
+      expect(save).not.toHaveBeenCalled();
+      expect(create).toHaveBeenCalledWith(expect.objectContaining({ comment: 'a: 1' }));
+      expect(ref!.url).toMatch(/^internal:/);
+      expect(ref!.tags).toContain('plugin/code/yaml');
+      expect(await firstValueFrom(start(bin()))).toBeNull();
+      expect(save).not.toHaveBeenCalled();
+      expect(component.uploads()[0].error).toBe('File uploads not enabled');
+    });
+
+    it('caches code when only plugin/file is installed', () => {
+      plugins('plugin/file');
+      start(yaml()).subscribe();
+      expect(save).toHaveBeenCalled();
+      expect(create).not.toHaveBeenCalled();
+    });
+
+    it('uploads code inline and caches binaries when both plugins are installed', async () => {
+      plugins('plugin/code', 'plugin/file');
+      const ref = await firstValueFrom(start(yaml()));
+      expect(ref!.tags).toContain('plugin/code/yaml');
+      expect(save).not.toHaveBeenCalled();
+      start(bin()).subscribe();
+      expect(save).toHaveBeenCalled();
+    });
+
+    it('does not upload when neither plugin is installed', async () => {
+      plugins();
+      expect(await firstValueFrom(start(yaml()))).toBeNull();
+      expect(save).not.toHaveBeenCalled();
+      expect(create).not.toHaveBeenCalled();
+      expect(component.uploads()[0].error).toBe('File uploads not enabled');
+    });
+
+    it('shows the error and re-enables editing when a dropped binary cannot be uploaded', () => {
+      plugins('plugin/code');
+      const event = new Event('drop');
+      component.drop(event, [{ kind: 'file', getAsFile: () => bin() }] as any);
+      fixture.detectChanges();
+
+      expect(save).not.toHaveBeenCalled();
+      expect(component.control().enabled).toBe(true);
+      expect(component.uploads()).toEqual([]);
+      expect(component.uploadErrors().map(u => u.error)).toEqual(['File uploads not enabled']);
+      expect(fixture.nativeElement.querySelector('.upload-errors .upload-error').textContent).toContain('File uploads not enabled');
+    });
   });
 
   it('records upload failures without mutating previous snapshots', () => {

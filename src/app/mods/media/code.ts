@@ -38,13 +38,20 @@ to it. Markdown fences and explanations belong only in the first response Ref.`,
   },
 };
 
-export function mimeToCode(mime: string) {
+const EXTENSION_TO_CODE: Record<string, string> = { yaml: 'yaml', yml: 'yaml' };
+
+export function mimeToCode(mime: string, filename?: string) {
+  if (!mime || mime === 'application/octet-stream') {
+    const ext = filename?.includes('.') ? filename.substring(filename.lastIndexOf('.') + 1).toLowerCase() : '';
+    if (Object.hasOwn(EXTENSION_TO_CODE, ext)) return ['plugin/code/' + EXTENSION_TO_CODE[ext]];
+  }
   if (!mime) return ['plugin/code'];
   switch (mime) {
     case 'text/markdown':
     case 'text/plain': return ['plugin/code/md'];
     case 'text/vnd.qt.linguist': return ['plugin/code/typescript'];
     case 'text/x-patch': return ['plugin/code/diff'];
+    case 'application/yaml':
     case 'application/x-yaml': return ['plugin/code/yaml'];
     case 'application/x-shellscript': return ['plugin/code/shell'];
     case 'application/x-httpd-php': return ['plugin/code/php'];

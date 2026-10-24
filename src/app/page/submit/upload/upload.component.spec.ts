@@ -75,4 +75,33 @@ describe('UploadPage', () => {
       tags: ['_private', '+user/alice'],
     }));
   });
+
+  it('reads dropped YAML files as inline code when plugin/code is installed', () => {
+    vi.spyOn(component['admin'], 'getPlugin').mockImplementation(tag => tag === 'plugin/code' ? { tag } as any : undefined);
+    const readData = vi.spyOn(component, 'readData');
+    const readCache = vi.spyOn(component, 'readCache').mockImplementation(() => {});
+    const file = new File(['a: 1'], 'config.yml', { type: '' });
+    component.readUploads([file]);
+    expect(readData).toHaveBeenCalledWith([file], 'plugin/code/yaml', expect.anything());
+    expect(readCache).toHaveBeenCalledWith([], 'plugin/file', expect.anything());
+  });
+
+  it('caches YAML files when plugin/code is not installed', () => {
+    vi.spyOn(component['admin'], 'getPlugin').mockImplementation(tag => tag === 'plugin/file' ? { tag } as any : undefined);
+    const readData = vi.spyOn(component, 'readData');
+    const readCache = vi.spyOn(component, 'readCache').mockImplementation(() => {});
+    const file = new File(['a: 1'], 'config.yml', { type: '' });
+    component.readUploads([file]);
+    expect(readData).toHaveBeenCalledWith([], 'plugin/code/yaml', expect.anything());
+    expect(readCache).toHaveBeenCalledWith([file], 'plugin/file', expect.anything());
+  });
+
+  it('caches YAML files when the cache button is used', () => {
+    const readData = vi.spyOn(component, 'readData');
+    const readCache = vi.spyOn(component, 'readCache').mockImplementation(() => {});
+    const file = new File(['a: 1'], 'config.yml', { type: '' });
+    component.readUploads([file], true);
+    expect(readData).toHaveBeenCalledWith([], 'plugin/code/yaml', expect.anything());
+    expect(readCache).toHaveBeenCalledWith([file], 'plugin/file', expect.anything());
+  });
 });
