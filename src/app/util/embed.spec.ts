@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { embedUrl } from './embed';
+import { dataUrl, embedUrl, iframeUrl } from './embed';
 
 describe('embedUrl', () => {
   const embed = 'https://www.youtube-nocookie.com/embed/abc123';
@@ -33,5 +33,27 @@ describe('embedUrl', () => {
     expect(embedUrl('https://example.com/watch?v=abc123')).toBe('https://example.com/watch?v=abc123');
     expect(embedUrl('blob:https://example.com/123')).toBe('blob:https://example.com/123');
     expect(embedUrl('')).toBe('');
+  });
+});
+
+describe('iframeUrl', () => {
+  it('should allow web pages and data: URLs', () => {
+    expect(iframeUrl('https://example.com/page')).toBe('https://example.com/page');
+    expect(iframeUrl('http://example.com/')).toBe('http://example.com/');
+    expect(iframeUrl('data:text/html,hi')).toBe('data:text/html,hi');
+  });
+
+  it('should block URLs that run with the app origin', () => {
+    expect(iframeUrl('javascript:alert(1)')).toBe('about:blank');
+    expect(iframeUrl(' JavaScript:alert(1)')).toBe('about:blank');
+    expect(iframeUrl('blob:https://example.com/123')).toBe('about:blank');
+    expect(iframeUrl('about:srcdoc')).toBe('about:blank');
+    expect(iframeUrl('cache:123')).toBe('about:blank');
+  });
+});
+
+describe('dataUrl', () => {
+  it('should encode HTML', () => {
+    expect(dataUrl('<p>#1 & 100%</p>')).toBe('data:text/html;charset=utf-8,%3Cp%3E%231%20%26%20100%25%3C%2Fp%3E');
   });
 });

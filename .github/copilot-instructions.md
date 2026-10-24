@@ -43,6 +43,7 @@ All entities use composite keys:
 - Tags are plain strings, not entities. A tag can be used on a Ref without a matching Ext, User, Plugin, or Template.
 - The model has four layers: identity (storage/replication), indexing (tags/query/sort), validation (full entity + schema), and modding (client only).
 - Plugins *stack* on Refs. Templates *merge down* the tag hierarchy onto Exts and config.
+- Every embed iframe is a security boundary, without the `sandbox` attribute (it breaks normal sites). `blob:` URLs keep the app origin, so HTML written by the client (oEmbed) uses opaque-origin `data:` URLs (`dataUrl`, `iframeUrl` in `util/embed.ts`), and the client `/api/` proxy sends `Content-Security-Policy: sandbox` so our own cache is opaque too. `e2e/embed-origin.spec.ts` proves it.
 - Modding is client-side on purpose. New plugins and templates should not need server changes or restarts.
 - Replication is pull-based and eventually consistent. It polls for entities modified after the last stored cursor `(origin, modified)`, so modified timestamps must be unique.
 
@@ -190,7 +191,7 @@ Files that the container writes to `e2e/reports` and `test-results` may be owned
 - File naming: numbered core suites (`00-smoke.spec.ts`, `01-backup.spec.ts`, ...), `plugin-<name>.spec.ts`, `template-<name>.spec.ts`.
 - Tests run serially in one worker (`workers: 1`), so state carries over between tests. Reset it with the helpers.
 - Viewport is 1280x720 to avoid the mobile layout.
-- To test real cross-domain behaviour, see `e2e/embed-origin.spec.ts`: it maps `*.test` to 127.0.0.1 with `--host-resolver-rules`, opens the proxied client as `http://jasper.test:8084`, and uses `channel: 'chromium'` with `--unsafely-treat-insecure-origin-as-secure` so debug login (`crypto.subtle`) works over http.
+- To test real cross-domain behaviour, see `e2e/embed-origin.spec.ts`: it maps `*.test` to 127.0.0.1 with `--host-resolver-rules`, opens the proxied client as `http://jasper.test:8084`, and uses `channel: 'chromium'` with `--unsafely-treat-insecure-origin-as-secure` so debug login (`crypto.subtle`) works over http. It also disables Chrome's local network access checks, because routed `other.test` pages count as public while `jasper.test` is loopback.
 
 ```typescript
 import { expect } from '@playwright/test';

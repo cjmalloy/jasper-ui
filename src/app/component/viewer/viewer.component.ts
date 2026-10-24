@@ -16,7 +16,6 @@ import {
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
-import * as he from 'he';
 import Hls from 'hls.js';
 import { isEqual, some, without } from 'lodash-es';
 import { BehaviorSubject, catchError, of, startWith, Subject, switchMap } from 'rxjs';
@@ -333,10 +332,12 @@ export class ViewerComponent {
   private setPdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
     if (!value) return;
     const iframe = value.nativeElement;
-    let url = this.pdfUrl();
+    const url = this.pdfUrl();
     if (!url) return;
-    if (url.startsWith('//')) url = location.protocol + url;
-    this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe, false);
+    // Frame the PDF directly: PDFs from other origins are isolated by their origin, and the client
+    // proxy sandboxes our own cache. An opaque data: URL wrapper would be blocked by X-Frame-Options
+    // from our own server, and by the app CSP (object-src) for other servers.
+    setIframeSrc(iframe, url);
     iframe.style.width ||= this.embedWidth();
     iframe.style.height ||= this.embedHeight();
   }
