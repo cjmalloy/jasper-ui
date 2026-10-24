@@ -9,7 +9,7 @@ import {
 } from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
 import { map } from 'lodash-es';
-import { controlValue } from '../../util/form';
+import { controlState, controlValue } from '../../util/form';
 import { URI_REGEX } from '../../util/format';
 
 @Component({
@@ -70,6 +70,8 @@ export class LinksFormComponent {
     this.rootControlState();
     return this.group()?.get(this.fieldName()) as UntypedFormArray | undefined;
   });
+
+  readonly count = controlState(() => this.links(), c => (c as UntypedFormArray).length);
 
   /**
    * Formly model, seeded from the links already in the form.

@@ -4,7 +4,10 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Subject } from 'rxjs';
+import { firstValueFrom, of, Subject } from 'rxjs';
+import { AdminService } from '../../../service/admin.service';
+import { ProxyService } from '../../../service/api/proxy.service';
+import { RefService } from '../../../service/api/ref.service';
 import { KanbanDrag } from '../kanban.component';
 
 import { KanbanColumnComponent } from './kanban-column.component';
@@ -28,8 +31,63 @@ describe('KanbanColumnComponent', () => {
     fixture.detectChanges();
   });
 
+  function plugins(...tags: string[]) {
+    vi.spyOn(TestBed.inject(AdminService), 'getPlugin').mockImplementation(tag => tags.includes(tag) ? { tag } as any : undefined);
+  }
+
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('plugin gating', () => {
+    let save: any;
+    let create: any;
+    const yaml = () => new File(['a: 1'], 'config.yml', { type: '' });
+    const bin = () => new File(['x'], 'a.bin', { type: 'application/octet-stream' });
+
+    beforeEach(() => {
+      save = vi.spyOn(TestBed.inject(ProxyService), 'save').mockReturnValue(new Subject());
+      create = vi.spyOn(TestBed.inject(RefService), 'create').mockReturnValue(of('2024-01-01T00:00:00.000Z'));
+    });
+
+    it('uploads code inline when only plugin/code is installed', async () => {
+      plugins('plugin/code');
+      const ref = await firstValueFrom(component.uploadFile$(yaml(), '1'));
+      expect(save).not.toHaveBeenCalled();
+      expect(create).toHaveBeenCalledWith(expect.objectContaining({ comment: 'a: 1' }));
+      expect(ref!.url).toMatch(/^internal:/);
+      expect(ref!.tags).toContain('plugin/code/yaml');
+      expect(ref!.comment).toBe('a: 1');
+      expect(ref!.modifiedString).toBe('2024-01-01T00:00:00.000Z');
+      expect(ref!.modified?.isValid).toBe(true);
+      expect(await firstValueFrom(component.uploadFile$(bin(), '2'))).toBeNull();
+      expect(save).not.toHaveBeenCalled();
+      expect(component.failed()).toEqual([{ text: 'a.bin', error: 'File uploads not enabled' }]);
+    });
+
+    it('caches code when only plugin/file is installed', () => {
+      plugins('plugin/file');
+      component.uploadFile$(yaml(), '1').subscribe();
+      expect(save).toHaveBeenCalled();
+      expect(create).not.toHaveBeenCalled();
+    });
+
+    it('uploads code inline and caches binaries when both plugins are installed', async () => {
+      plugins('plugin/code', 'plugin/file');
+      const ref = await firstValueFrom(component.uploadFile$(yaml(), '1'));
+      expect(ref!.tags).toContain('plugin/code/yaml');
+      expect(save).not.toHaveBeenCalled();
+      component.uploadFile$(bin(), '2').subscribe();
+      expect(save).toHaveBeenCalled();
+    });
+
+    it('does not upload when neither plugin is installed', () => {
+      plugins();
+      component.uploadFiles([yaml()]);
+      expect(save).not.toHaveBeenCalled();
+      expect(create).not.toHaveBeenCalled();
+      expect(component.adding()).toEqual([]);
+    });
   });
 
   it('reloads on request changes, preserves cards for search and ignores equal sort arrays', () => {

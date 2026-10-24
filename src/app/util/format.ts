@@ -136,6 +136,9 @@ export function getTitle(ref: Ref | undefined): string {
   const comment = (ref.comment || '').trim();
   if (title) return title;
   if (comment) return trimCommentForTitle(comment);
+  if (hasTag('plugin/editing', ref) && ref.plugins?.['plugin/editing']) {
+    return getTitle({ ...ref.plugins['plugin/editing'], url: ref.url });
+  }
   if (ref.url?.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
   return ref.url;
 }

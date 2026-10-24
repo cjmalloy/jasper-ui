@@ -412,7 +412,7 @@ export class KanbanColumnComponent implements HasChanges {
 
   uploadFiles(files: File[]) {
     if (!files.length) return;
-    if (!this.admin.getPlugin('plugin/file')) return;
+    if (!this.admin.getPlugin('plugin/code') && !this.admin.getPlugin('plugin/file')) return;
 
     files.forEach(file => {
       const uploadId = uuid();
@@ -434,7 +434,7 @@ export class KanbanColumnComponent implements HasChanges {
   uploadFile$(file: File, uploadId: string): Observable<Ref | null> {
     const tagsWithAuthor = this.getTagsWithAuthor();
 
-    const codeType = mimeToCode(file.type);
+    const codeType = this.admin.getPlugin('plugin/code') ? mimeToCode(file.type, file.name) : [];
     if (codeType.length) {
       const ref: Ref = {
         origin: this.store.account.origin(),
@@ -447,8 +447,9 @@ export class KanbanColumnComponent implements HasChanges {
         switchMap(contents => this.refs.create({
           ...ref,
           comment: contents,
-        })),
-        map(() => ref),
+        }).pipe(
+          map(cursor => ({ ...ref, comment: contents, modified: DateTime.fromISO(cursor), modifiedString: cursor })),
+        )),
         tap(() => {
           this.setProgress(uploadId, 100);
         }),
@@ -457,7 +458,7 @@ export class KanbanColumnComponent implements HasChanges {
           return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
         }),
       );
-    } else {
+    } else if (this.admin.getPlugin('plugin/file')) {
       const tags: string[] = [...tagsWithAuthor, 'plugin/file'];
       if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
         tags.push('plugin/audio');
@@ -490,6 +491,10 @@ export class KanbanColumnComponent implements HasChanges {
           return readFileAsDataURL(file).pipe(map(url => ({ url, tags }))); // base64
         }),
       );
+    } else {
+      this.adding.update(adding => adding.filter(u => u.id !== uploadId));
+      this.failed.update(failed => [...failed, { text: file.name, error: $localize`File uploads not enabled` }]);
+      return of(null);
     }
   }
 

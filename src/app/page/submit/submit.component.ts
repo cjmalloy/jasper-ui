@@ -123,7 +123,7 @@ export class SubmitPage {
           validations.push({ name: $localize`Valid title`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
           validations.push({ name: $localize`Not created yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
         } else {
-          this.url.setValue(this.store.submit.url());
+          this.url.setValue(this.store.submit.url() || '');
           validations.push({ name: $localize`Valid link`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
           validations.push({ name: $localize`Not submitted yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
           validations.push({ name: $localize`No link shorteners`, passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
@@ -189,7 +189,10 @@ export class SubmitPage {
   }
 
   exists(url: string) {
-    if (!this.linkType(url)) return of(false);
+    if (!this.linkType(url)) {
+      this.existingRef.set(undefined);
+      return of(false);
+    }
     if (this.existingRef()?.url === url && this.existingRef()!.origin === this.store.account.origin()) return of(true);
     if (this.responsesToUrlFor() === url) return of(false);
     return timer(400).pipe(
@@ -224,18 +227,22 @@ export class SubmitPage {
   });
 
   submit() {
-    let tags = this.store.submit.tags();
+    const url = this.fixed(this.url.value || '');
+    if (!this.repost() && !this.linkType(url)) {
+      this.url.markAsTouched();
+      return;
+    }
+    const tags = [...this.store.submit.tags()];
     if (this.repost()) {
       tags.push('plugin/repost')
     }
-    if (this.url.value.trim().toLowerCase().startsWith('<iframe')) {
+    if ((this.url.value || '').trim().toLowerCase().startsWith('<iframe')) {
       tags.push('plugin/embed');
     }
     if (this.store.submit.web() && this.plugin()) {
       tags.push(this.plugin());
     }
-    const url = this.fixed(this.url.value);
-    this.router.navigate(['./submit', this.editor(this.linkType(url))], {
+    this.router.navigate(['./submit', this.repost() ? 'web' : this.editor(this.linkType(url))], {
       queryParams: {
         url,
         tag: uniq(tags),
@@ -252,7 +259,7 @@ export class SubmitPage {
       // TODO set error
     } else if (event.url) {
       this.uploading.set(false);
-      const tags = this.store.submit.tags();
+      const tags = [...this.store.submit.tags()];
       if (this.store.submit.web() && this.plugin()) {
         tags.push(this.plugin());
       }

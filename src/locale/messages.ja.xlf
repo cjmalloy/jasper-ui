@@ -6147,6 +6147,10 @@ F: フルスクリーン切替
         <source>Upload failed</source>
         <target>アップロード失敗</target>
       </trans-unit>
+      <trans-unit id="9044473253449241037" datatype="html">
+        <source>File uploads not enabled</source>
+        <target>ファイルアップロードは有効になっていません</target>
+      </trans-unit>
       <trans-unit id="8465388462838343511" datatype="html">
         <source>Obsolete</source>
         <target>廃止</target>

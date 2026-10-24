@@ -46,7 +46,7 @@ import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugin
 import { fillTags, TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
-import { getMailbox } from '../../../mods/mailbox';
+import { addressedTo, getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -116,6 +116,10 @@ export class SubmitDmPage implements HasChanges {
   readonly saving = signal(false);
   private savingSubscription?: Subscription;
   readonly completedUploads = signal<Ref[]>([]);
+  /**
+   * Plugin data the plugin forms are built from.
+   */
+  readonly pluginValues = signal<Record<string, any> | undefined>(undefined);
   private cursor?: string;
   private showedError = false;
   private addedMailboxes: string[] = [];
@@ -140,6 +144,28 @@ export class SubmitDmPage implements HasChanges {
       ).subscribe(() => {
         if (this.dmForm.dirty) this.saveForLater();
       });
+      if (this.store.submit.url()) {
+        this.refs.getEditing(this.store.submit.url()).pipe(
+          takeUntilDestroyed(),
+        ).subscribe(draft => {
+          if (!draft) return;
+          this._url = draft.url;
+          this.cursor = draft.modifiedString;
+          const edit: Ref = { ...draft.plugins?.['plugin/editing'], url: draft.url, origin: draft.origin };
+          this.setTags(edit.tags || []);
+          this.pluginValues.set(edit.plugins);
+          this.title.setValue(edit.title || '');
+          this.comment.setValue(edit.comment || '');
+          for (const s of edit.sources || []) this.sources.push(this.fb.control(s, LinksFormComponent.validators));
+          if (hasTag('notes', edit)) return;
+          const to = uniq([
+            ...addressedTo(edit),
+            ...edit.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
+          ]);
+          this.setTo(to.join(' '));
+          this.bookmarks.setTo(to);
+        });
+      }
     }
   }
 
@@ -223,10 +249,16 @@ export class SubmitDmPage implements HasChanges {
       origin: this.store.account.origin(),
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
-      sources: this.dmForm.value.sources,
+      sources: this.writeSources(),
       tags: this.dmForm.value.tags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
     };
+  }
+
+  writeSources() {
+    const url = this._url;
+    const sources = [url, ...uniq([url, ...this.store.submit.sources(), ...this.dmForm.value.sources])];
+    return sources.length === 2 ? [] : sources;
   }
 
   addTags(value: string[]) {
@@ -320,6 +352,7 @@ export class SubmitDmPage implements HasChanges {
     } else {
       this.showedError = false;
       this.setTo(input.value);
+      if (this.to.valid) this.bookmarks.setTo(input.value.split(/[,\s]+/).filter(t => !!t));
       this.getPreview(input.value) ;
     }
   }
@@ -390,8 +423,7 @@ export class SubmitDmPage implements HasChanges {
     }
     const url = this._url;
     const published = this.dmForm.value.published ? DateTime.fromISO(this.dmForm.value.published) : DateTime.now();
-    let sources = [url, ...uniq([url, ...this.store.submit.sources(), ...this.dmForm.value.sources])];
-    if (sources.length === 2) sources = [];
+    const sources = this.writeSources();
     const finalTags = this.dmForm.value.tags;
     const ref = {
       url,
