@@ -257,6 +257,19 @@ describe('EditorComponent', () => {
       expect(create).not.toHaveBeenCalled();
       expect(component.uploads()[0].error).toBe('File uploads not enabled');
     });
+
+    it('shows the error and re-enables editing when a dropped binary cannot be uploaded', () => {
+      plugins('plugin/code');
+      const event = new Event('drop');
+      component.drop(event, [{ kind: 'file', getAsFile: () => bin() }] as any);
+      fixture.detectChanges();
+
+      expect(save).not.toHaveBeenCalled();
+      expect(component.control().enabled).toBe(true);
+      expect(component.uploads()).toEqual([]);
+      expect(component.uploadErrors().map(u => u.error)).toEqual(['File uploads not enabled']);
+      expect(fixture.nativeElement.querySelector('.upload-errors .upload-error').textContent).toContain('File uploads not enabled');
+    });
   });
 
   it('records upload failures without mutating previous snapshots', () => {

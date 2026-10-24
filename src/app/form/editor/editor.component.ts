@@ -136,6 +136,7 @@ export class EditorComponent {
   readonly focused = signal<boolean | undefined>(false);
   readonly progress = signal(0);
   readonly uploads = signal<EditorUpload[]>([]);
+  readonly uploadErrors = signal<EditorUpload[]>([]);
   private readonly uploadSubscriptions = new Map<string, Subscription>();
   readonly files = computed(() => !!this.admin.getPlugin('plugin/file'));
   readonly loadingEvents = linkedSignal<boolean, Record<string, boolean>>({
@@ -560,6 +561,7 @@ export class EditorComponent {
 
   upload(files?: FileList | null) {
     if (!files) return;
+    this.uploadErrors.set([]);
     const hasActiveUploads = this.uploads().some(upload => !upload.completed && !upload.error);
     if (!hasActiveUploads) {
       // Only clear uploads if no active uploads exist
@@ -697,6 +699,7 @@ export class EditorComponent {
       if (completedRefs.length > 0) {
         this.attachUrls(...completedRefs);
       }
+      this.uploadErrors.set(this.uploads().filter(upload => upload.error));
       this.uploads.set([]);
     }
   }

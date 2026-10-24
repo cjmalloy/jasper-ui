@@ -106,6 +106,19 @@
         }
       </div>
       <app-loading class="upload-loading" [batch]="true"></app-loading>
+    } @else if (uploadErrors().length) {
+      <div class="upload-progress upload-errors">
+        <div class="upload-list">
+          @for (upload of uploadErrors(); track upload.id) {
+            <div class="upload-item">
+              <div class="upload-filename">{{ upload.name }}</div>
+              <div class="upload-controls">
+                <span class="upload-error">{{ upload.error }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
     }
     <textarea #editor
               [disabled]="!!uploads().length"
