@@ -51,10 +51,88 @@ export function parseSrc(html: string) {
 }
 
 /**
+ * Only allow URLs that cannot run with the app origin in an embed iframe:
+ * http(s) pages get the origin of their server, and data: URLs get an opaque origin.
+ * javascript:, blob: and about: URLs would run with the origin of the app.
+ */
+export function iframeUrl(url: string) {
+  try {
+    const u = new URL(url, document.baseURI);
+    if (['http:', 'https:', 'data:'].includes(u.protocol)) return u.href;
+  } catch (e) {
+    // Invalid URL
+  }
+  return 'about:blank';
+}
+
+/**
+ * Wrap HTML in a data: URL. Unlike blob: URLs, which keep the origin of the app that
+ * created them, data: URLs get an opaque origin, so the content cannot reach the app.
+ */
+export function dataUrl(html: string) {
+  return 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+}
+
+/**
+ * Show a PDF in an opaque data: URL iframe.
+ * PDF bytes are turned into a blob: URL by the opaque document, so the PDF viewer does not
+ * run with the origin of the app either. Bytes are always shown as a PDF, never as HTML.
+ * @return cleanup function
+ */
+export function setPdfSrc(iframe: HTMLIFrameElement, pdf: ArrayBuffer | string) {
+  const listener = (event: MessageEvent) => {
+    if (event.source !== iframe.contentWindow || !event.data?.jasperPdfReady) return;
+    removeEventListener('message', listener);
+    if (typeof pdf === 'string') {
+      iframe.contentWindow!.postMessage({ jasperPdf: iframeUrl(pdf) }, '*');
+    } else {
+      iframe.contentWindow!.postMessage({ jasperPdf: pdf }, '*', [pdf]);
+    }
+  };
+  addEventListener('message', listener);
+  setIframeSrc(iframe, dataUrl(pdfWrapper()));
+  return () => removeEventListener('message', listener);
+}
+
+function pdfWrapper() {
+  return `
+  <html>
+  <head>
+    <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    </style>
+  </head>
+    <body><script>
+      addEventListener('message', event => {
+        if (event.source !== parent || !event.data?.jasperPdf) return;
+        const pdf = event.data.jasperPdf;
+        const iframe = document.createElement('iframe');
+        iframe.allow = 'fullscreen';
+        iframe.src = typeof pdf === 'string' ? pdf : URL.createObjectURL(new Blob([pdf], { type: 'application/pdf' }));
+        document.body.replaceChildren(iframe);
+      });
+      parent.postMessage({ jasperPdfReady: true }, ${JSON.stringify(location.origin)});
+    </script></body>
+  </html>
+  `;
+}
+
+/**
  * Navigate an iframe without adding an entry to the browser history.
  * Setting iframe.src on an already loaded iframe pushes to the joint session history.
  */
 export function setIframeSrc(iframe: HTMLIFrameElement, url: string) {
+  url = iframeUrl(url);
   if (url && iframe.isConnected && iframe.contentWindow) {
     try {
       iframe.contentWindow.location.replace(url);

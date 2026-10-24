@@ -1,6 +1,5 @@
 import { inject, Injectable, ViewContainerRef } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
-import { DateTime } from 'luxon';
 import { marked, MarkedExtension, Renderer, RendererObject, Token, Tokens, TokensList } from 'marked';
 import markedKatex from 'marked-katex-extension';
 import { catchError, EMPTY, forkJoin, map, Observable, of, retry, Subscription, switchMap } from 'rxjs';
@@ -11,8 +10,7 @@ import { Ref, RefSort } from '../model/ref';
 import { wikiUriFormat } from '../mods/org/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
-import { delay } from '../util/async';
-import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc, setIframeSrc } from '../util/embed';
+import { createEmbed, createLens, createLink, createRef, dataUrl, embedUrl, parseSrc, setIframeSrc } from '../util/embed';
 import { getArray, parseBookmarkParams } from '../util/http';
 import {
   assignSourceMap,
@@ -746,6 +744,7 @@ export class EmbedService {
   async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement, width = '100px', scroll = true) {
     if (!iframe.style.width) iframe.style.width = (oembed.width ? oembed.width + 'px' : width);
     if (!iframe.style.height && oembed.height) iframe.style.height = oembed.height + 'px';
+    const html = oembed.html && !oembed.html.startsWith('<iframe');
     if (oembed.html) {
       if (oembed.html.startsWith('<iframe')) {
         setIframeSrc(iframe, embedUrl(parseSrc(oembed.html)));
@@ -757,61 +756,12 @@ export class EmbedService {
     }
     if (!iframe.style.height && !oembed.height) {
       iframe.style.height = (oembed.width ? oembed.width + 'px' : width);
-      const doCheck = async () => {
-        let doc: Document | undefined;
-        try {
-          doc = iframe.contentWindow?.document;
-        } catch (e) {
-          // Cross origin
-          return;
-        }
-        if (!doc) {
-          await delay(100);
-          await doCheck();
-          return;
-        }
-        let start = DateTime.now();
-        let oldHeight = doc.body.scrollHeight;
-        let newHeight = false;
-        const f = async () => {
-          let doc: Document;
-          try {
-            doc = iframe.contentWindow!.document;
-          } catch (e) {
-            // Cross origin
-            return;
-          }
-          if (document.fullscreenElement) return;
-          const h = doc.body.scrollHeight;
-          if (h !== oldHeight) {
-            newHeight = true;
-            start = DateTime.now();
-            oldHeight = h;
-            iframe.style.height = h + 'px';
-          }
-          await delay(100);
-          if ((!newHeight || h < 300) && start > DateTime.now().minus({ seconds: 5 })) {
-            // Keep checking height
-            await f();
-          } else if (start > DateTime.now().minus({ seconds: 30 })) {
-            // Timeout checking height less than 5 seconds since the last change
-            f(); // Keep checking height until 30 seconds timeout but let promise resolve
-          }
-        };
-        await f();
-
-      };
-      await doCheck();
+      if (html) await followHeight(iframe);
     }
   }
 
   writeIframeHtml(html: string, iframe: HTMLIFrameElement, scroll = true) {
-    const blob = new Blob([transparentIframe(html, this.iframeBg, scroll ? 'auto' : 'hidden')], {type: 'text/html'});
-    const blobUrl = URL.createObjectURL(blob);
-    iframe.addEventListener('load', () => {
-      URL.revokeObjectURL(blobUrl);
-    }, { once: true });
-    setIframeSrc(iframe, blobUrl);
+    setIframeSrc(iframe, dataUrl(transparentIframe(html, this.iframeBg, scroll ? 'auto' : 'hidden')));
   }
 
   loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
@@ -846,6 +796,34 @@ export class EmbedService {
   }
 }
 
+/**
+ * Resize the iframe to the height reported by {@link transparentIframe}.
+ * Resolves once the content is at least 300px high, or has not changed for 5 seconds.
+ * Keeps following the height until it has not changed for 30 seconds.
+ */
+function followHeight(iframe: HTMLIFrameElement) {
+  return new Promise<void>(resolve => {
+    let settled = setTimeout(resolve, 5_000);
+    let stop = setTimeout(() => removeEventListener('message', listener), 30_000);
+    const listener = (event: MessageEvent) => {
+      if (event.source !== iframe.contentWindow) return;
+      const h = event.data?.jasperIframeHeight;
+      if (typeof h !== 'number' || !Number.isFinite(h) || h <= 0) return;
+      clearTimeout(stop);
+      stop = setTimeout(() => removeEventListener('message', listener), 30_000);
+      if (document.fullscreenElement) return;
+      iframe.style.height = h + 'px';
+      clearTimeout(settled);
+      if (h >= 300) {
+        resolve();
+      } else {
+        settled = setTimeout(resolve, 5_000);
+      }
+    };
+    addEventListener('message', listener);
+  });
+}
+
 export function transparentIframe(content: string, bgColor: string, overflow = 'auto') {
   return `
   <html>
@@ -863,7 +841,20 @@ export function transparentIframe(content: string, bgColor: string, overflow = '
     }
     </style>
   </head>
-    <body>${content}</body>
+    <body>${content}<script>
+      (() => {
+        // The opaque origin of a data: URL cannot be read by the app, so report the height
+        let height = 0;
+        const report = () => {
+          if (document.body.scrollHeight === height) return;
+          height = document.body.scrollHeight;
+          parent.postMessage({ jasperIframeHeight: height }, ${JSON.stringify(location.origin)});
+        };
+        report();
+        const timer = setInterval(report, 100);
+        setTimeout(() => clearInterval(timer), 30_000);
+      })();
+    </script></body>
   </html>
   `;
 }
