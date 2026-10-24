@@ -11,6 +11,7 @@ import {
   untracked,
   viewChild
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -22,7 +23,7 @@ import { Router } from '@angular/router';
 import { isEqual, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, firstValueFrom, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, interval, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -108,7 +109,9 @@ export class SubmitTextPage implements HasChanges {
   readonly submitting = signal(false);
   private submittingSubscription?: Subscription;
   readonly saving = signal(false);
-  private savingSubscription?: Subscription;
+  private pendingSave?: Promise<string>;
+  private lastSaved?: string;
+  private autosaveFailed = false;
   addAnother = false;
   readonly defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
   readonly loadingDefaults = signal<Ext[]>([]);
@@ -132,18 +135,74 @@ export class SubmitTextPage implements HasChanges {
     this.ensureUrl();
     store.submit.wikiPrefix.set(admin.getWikiPrefix());
     this.initialize();
+    if (admin.editing()) {
+      interval(5_000).pipe(
+        takeUntilDestroyed(),
+      ).subscribe(() => {
+        if (this.textForm.dirty && this.comment.enabled && !this.pendingSave && !this.submitting()) this.autosave();
+      });
+    }
   }
 
   addCompletedUpload(ref: Ref) {
     this.completedUploads.update(uploads => [...uploads, ref]);
+    this.textForm.markAsDirty();
+  }
+
+  /**
+   * Saves once per tick and shows a failure only once until a save succeeds.
+   */
+  private autosave() {
+    this.saveDraft().then(
+      () => this.autosaveFailed = false,
+      (err: HttpErrorResponse) => {
+        if (this.autosaveFailed) return;
+        this.autosaveFailed = true;
+        this.serverError.set(printError(err));
+      },
+    );
   }
 
   async saveChanges() {
-    if (this.admin.editing() && this.textForm.dirty) {
-      return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
-        .pipe(map(() => true), catchError(() => of(false))));
+    if (!this.admin.editing()) return !this.textForm?.dirty;
+    try {
+      await this.flushDraft();
+      return true;
+    } catch {
+      return false;
     }
-    return !this.textForm?.dirty;
+  }
+
+  /**
+   * Shares the save in flight so only one write uses each cursor.
+   */
+  private saveDraft() {
+    if (!this.pendingSave) {
+      const savedValue = JSON.stringify(this.textForm.value);
+      this.saving.set(true);
+      this.pendingSave = firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor))
+        .then(cursor => {
+          this.cursor = cursor;
+          this.lastSaved = savedValue;
+          if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
+          return cursor;
+        })
+        .finally(() => {
+          this.saving.set(false);
+          this.pendingSave = undefined;
+        });
+    }
+    return this.pendingSave;
+  }
+
+  /**
+   * Waits for any save in flight, then saves edits made since its snapshot.
+   */
+  private async flushDraft() {
+    for (let round = 0; round < 5 && (this.pendingSave || this.textForm.dirty); round++) {
+      await this.saveDraft();
+      if (!this.pendingSave && JSON.stringify(this.textForm.value) === this.lastSaved) break;
+    }
   }
 
   private initialize() {
@@ -176,6 +235,7 @@ export class SubmitTextPage implements HasChanges {
         });
       }
       if (this.store.account.localTag()) this.addTag(this.store.account.localTag());
+      let initialRun = true;
       effect(() => {
         this.store.submit.url();
         this.store.submit.wiki();
@@ -218,6 +278,9 @@ export class SubmitTextPage implements HasChanges {
           for (const s of this.store.submit.sources()) {
             this.addSource(s)
           }
+          // Later runs come from the user picking plugins or tags
+          if (!initialRun) this.textForm.markAsDirty();
+          initialRun = false;
         });
       }, { injector: this.injector });
       // Seed the location once so later tag changes keep any edits
@@ -254,20 +317,10 @@ export class SubmitTextPage implements HasChanges {
   });
 
   saveForLater(leave = false) {
-    const savedValue = JSON.stringify(this.textForm.value);
-    this.saving.set(true);
-    this.savingSubscription = this.refs.saveEdit(this.writeRef(), this.cursor)
-      .pipe(catchError(err => {
-        this.saving.set(false);
-        return throwError(() => err);
-      }))
-      .subscribe(cursor => {
-        this.saving.set(false);
-        this.cursor = cursor;
-        if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
-        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      });
-    this.savingSubscription?.add(() => this.saving.set(false));
+    this.flushDraft().then(
+      () => leave && this.router.navigate(['/inbox/ref', 'plugin/editing']),
+      (err: HttpErrorResponse) => this.serverError.set(printError(err)),
+    );
   }
 
   showAdvanced() {
@@ -335,6 +388,7 @@ export class SubmitTextPage implements HasChanges {
     } else {
       this.addTag(tag);
     }
+    this.textForm.markAsDirty();
   }
 
   setTags(value: string[]) {
@@ -400,8 +454,8 @@ export class SubmitTextPage implements HasChanges {
   }
 
   submit() {
-    if (this.saving()) {
-      this.savingSubscription?.add(() => this.submit());
+    if (this.pendingSave) {
+      this.pendingSave.then(() => this.submit(), () => this.submit());
       return;
     }
     this.serverError.set([]);
@@ -441,6 +495,7 @@ export class SubmitTextPage implements HasChanges {
       this.completedUploads.set([]);
 
       if (this.addAnother) {
+        this.cursor = undefined;
         this.url.enable();
         this.url.setValue('comment:' + uuid());
         this.url.disable();

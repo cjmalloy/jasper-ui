@@ -9,11 +9,11 @@
              [id]="id + '-alts'"
              fieldName="alternateUrls"
              i18n-label label="Alts:"
-             [showLabel]="dropping() || !!alts.links?.length"
+             [showLabel]="dropping() || !!alts.count()"
              i18n-emoji emoji="📎️"
              [showAdd]="false"
              [group]="group()"
-             [class.no-margin]="!dropping() && !alts.links?.length"></app-links>
+             [class.no-margin]="!dropping() && !alts.count()"></app-links>
 
   <label [for]="id + '-title'" i18n>Title:</label>
   <div class="form-array">
@@ -64,11 +64,11 @@
              [id]="id + '-sources'"
              fieldName="sources"
              i18n-label label="Sources:"
-             [showLabel]="dropping() || !!sources.links()?.length"
+             [showLabel]="dropping() || !!sources.count()"
              i18n-emoji emoji="🔗️"
              [showAdd]="false"
              [group]="group()"
-             [class.no-margin]="!dropping() && !sources.links()?.length"></app-links>
+             [class.no-margin]="!dropping() && !sources.count()"></app-links>
 
   <div class="add-plugins-label">
     <label [for]="id + '-plugins'" class="mobile-inline" i18n>Add Plugin:</label>

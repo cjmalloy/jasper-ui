@@ -648,6 +648,14 @@ export class RefComponent implements HasChanges {
     return uniq([...(this.repost() ? this.repostRef()?.tags : this.ref().tags) || [], ...this.expandPlugins()]);
   });
 
+  /**
+   * A titled repost shows the source in its own preview, so only the repost's own tags and embeds apply to it.
+   */
+  readonly viewerTags = computed(() => {
+    if (this.repost() && !this.bareRepost()) return uniq([...this.ref().tags || [], ...this.expandPlugins()]);
+    return this.currentTags();
+  });
+
   readonly viewerEmbeds = computed(() => {
     const plugins = this.plugins();
     if (!plugins) return this.expandPlugins();
@@ -936,7 +944,11 @@ export class RefComponent implements HasChanges {
 
   readonly editingLink = computed(() => {
     if (!hasTag('plugin/editing', this.ref())) return undefined;
+    const edit = this.ref().plugins?.['plugin/editing'];
     if (this.url().startsWith('comment:')) {
+      if (hasTag('dm', edit) || hasTag('notes', edit)) {
+        return { routerLink: ['/submit/dm'], queryParams: { url: this.url() } };
+      }
       return { routerLink: ['/submit/text'], queryParams: { url: this.url() } };
     }
     return { routerLink: ['/submit/web'], queryParams: { url: this.url() } };
