@@ -51,4 +51,17 @@ describe('CommentReplyComponent', () => {
     expect(component.replying()).toBe(false);
     expect(component.comment().enabled).toBe(true);
   });
+
+  it('has no pending changes after a reply is sent', () => {
+    const request = new Subject<string>();
+    vi.spyOn(component['refs'], 'create').mockReturnValue(request);
+    component.comment().setValue('Reply text');
+    component.comment().markAsDirty();
+    expect(component.saveChanges()).toBe(false);
+    component.reply();
+    request.next('2026-01-01T00:00:00Z');
+    request.complete();
+    expect(component.comment().value).toBeFalsy();
+    expect(component.saveChanges()).toBe(true);
+  });
 });
