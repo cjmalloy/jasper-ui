@@ -65,12 +65,18 @@ import { subOrigin } from '../util/tag';
     .user-map-arrow::after {
       content: '→';
     }
+    .user-map-row .user-map-arrow, .user-map-remove {
+      margin-top: 4px;
+    }
     .user-map-header .user-map-arrow {
       line-height: unset;
     }
     .user-map-spacer, .user-map-remove {
       width: 32px;
       min-width: 32px;
+    }
+    .user-map-remove {
+      min-height: 24px !important;
     }
   `,
   imports: [
