@@ -167,12 +167,12 @@ export class CommentReplyComponent implements HasChanges {
     ).subscribe(cursor => {
       if (!cursor) return;
       this.serverError.set([]);
+      this.editor()?.syncText('');
       this.commentForm.reset();
       this.editorTags.set(this.tags().slice());
       this.tags.update(tags => [...tags]);
       this.completedUploads.set([]);
 
-      this.editor()?.syncText('');
       const update = {
         ...ref,
         modifiedString: cursor,
