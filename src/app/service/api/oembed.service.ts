@@ -34,7 +34,7 @@ export class OEmbedService {
   get(url: string, theme?: string, maxwidth?: number, maxheight?: number): Observable<Oembed> {
     return this.http.get(this.base, {
       params: params({
-        url: oembedUrl(url),
+        url,
         theme,
         maxwidth,
         maxheight,
@@ -50,11 +50,4 @@ export class OEmbedService {
       catchError(err => this.login.handleHttpError(err)),
     );
   }
-}
-
-/**
- * oEmbed provider schemes only match twitter.com, so look up x.com links as twitter.com.
- */
-export function oembedUrl(url: string) {
-  return url.replace(/^https?:\/\/(?:www\.|mobile\.)?x\.com\//i, 'https://twitter.com/');
 }
