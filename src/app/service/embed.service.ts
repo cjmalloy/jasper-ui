@@ -750,7 +750,7 @@ export class EmbedService {
       if (oembed.html.startsWith('<iframe')) {
         setIframeSrc(iframe, embedUrl(parseSrc(oembed.html)));
       } else {
-        this.writeIframeHtml(oembed.html || '', iframe, scroll);
+        await this.writeIframeDoc(oembed.html, iframe, scroll);
       }
     } else {
       setIframeSrc(iframe, embedUrl(oembed.url));
@@ -812,6 +812,25 @@ export class EmbedService {
       URL.revokeObjectURL(blobUrl);
     }, { once: true });
     setIframeSrc(iframe, blobUrl);
+  }
+
+  /**
+   * Write HTML directly into the iframe document so scripts see the app's http(s) location.
+   * Embed scripts such as Twitter's widgets.js do not render in a blob: document.
+   */
+  async writeIframeDoc(html: string, iframe: HTMLIFrameElement, scroll = true) {
+    let doc = iframe.contentDocument;
+    if (!doc) {
+      // Cross origin, reset to a blank same origin document first
+      const loaded = new Promise(r => iframe.addEventListener('load', r, { once: true }));
+      setIframeSrc(iframe, 'about:blank');
+      await loaded;
+      doc = iframe.contentDocument;
+      if (!doc) return;
+    }
+    doc.open();
+    doc.write(transparentIframe(html, this.iframeBg, scroll ? 'auto' : 'hidden'));
+    doc.close();
   }
 
   loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
