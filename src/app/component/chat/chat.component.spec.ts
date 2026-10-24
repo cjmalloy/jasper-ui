@@ -8,6 +8,7 @@ import { firstValueFrom, of, Subject } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
+import { ConfigService } from '../../service/config.service';
 
 import { ChatComponent } from './chat.component';
 
@@ -74,6 +75,7 @@ describe('ChatComponent', () => {
     beforeEach(() => {
       save = vi.spyOn(TestBed.inject(ProxyService), 'save').mockReturnValue(new Subject());
       create = vi.spyOn(TestBed.inject(RefService), 'create').mockReturnValue(of('2024-01-01T00:00:00.000Z'));
+      vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
     });
 
     it('uploads code inline when only plugin/code is installed', async () => {
