@@ -6,7 +6,7 @@ import { Component, DestroyRef, inject, signal, TemplateRef, viewChild, ViewCont
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, sortBy, uniq } from 'lodash-es';
-import { catchError, concat, last, of, Subscription, throwError } from 'rxjs';
+import { catchError, concat, last, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { DiffComponent } from '../../../form/diff/diff.component';
@@ -54,6 +54,7 @@ export class SettingsSetupPage {
   readonly installMessages = signal<string[]>([]);
   readonly mergeState = signal<ModUpdatePreview | undefined>(undefined);
   readonly mergeSaving = signal(false);
+  readonly modChangesLoaded = signal(false);
   private mergeSavingSubscription?: Subscription;
 
   readonly mergePopup = viewChild<TemplateRef<any>>('mergePopup');
@@ -79,6 +80,7 @@ export class SettingsSetupPage {
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
+    this.admin.loadModChanges$().subscribe(() => this.modChangesLoaded.set(true));
   }
 
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
@@ -141,7 +143,11 @@ export class SettingsSetupPage {
   }
 
   reset() {
-    this.admin.init$.subscribe(() => this.clear());
+    this.modChangesLoaded.set(false);
+    this.admin.init$.pipe(
+      tap(() => this.clear()),
+      switchMap(() => this.admin.loadModChanges$()),
+    ).subscribe(() => this.modChangesLoaded.set(true));
   }
 
   clear() {

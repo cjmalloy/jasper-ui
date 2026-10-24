@@ -33,6 +33,7 @@ describe('SettingsSetupPage', () => {
           provide: AdminService,
           useFactory: () => (status = { plugins: {}, templates: {}, disabledPlugins: {}, disabledTemplates: {}, receipts: {} }, admin = {
                 init$: of(null),
+                loadModChanges$: () => of(null),
                 getPlugin() { },
                 getTemplate() { },
                 getMod() { },

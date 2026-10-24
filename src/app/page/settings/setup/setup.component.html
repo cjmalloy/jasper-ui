@@ -12,7 +12,7 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      @if (store.view.modUpdates().size) {
+      @if (modChangesLoaded() && store.view.modUpdates().size) {
         <button type="button" (click)="updateAll()" i18n>🌟️ Update All</button>
       }
       @if (selectAllToggle()) {
@@ -48,7 +48,7 @@
               @if (c.config?.experimental) {
                 <span>🧪️</span>
               }
-              @if (needsModUpdate(c) || canDiffMod(c)) {
+              @if (modChangesLoaded() && (needsModUpdate(c) || canDiffMod(c))) {
                 <span class="update">
                   @if (needsModUpdate(c)) {
                     <span class="fake-link no-select mod-update-link" (click)="updateMod(c)" i18n>🌟️ update</span>
