@@ -18,7 +18,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import Hls from 'hls.js';
 import { isEqual, some, without } from 'lodash-es';
-import { BehaviorSubject, catchError, of, startWith, Subject, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of, startWith, Subject, Subscription, switchMap } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
@@ -38,7 +38,7 @@ import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
-import { embedUrl, setIframeSrc } from '../../util/embed';
+import { embedUrl, setIframeSrc, setPdfSrc } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
@@ -278,6 +278,7 @@ export class ViewerComponent {
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.removeAudioListener();
     this.removeVideoListener();
+    this.stopPdf();
   });
 
   readonly pluginClasses = computed(() => {
@@ -329,17 +330,32 @@ export class ViewerComponent {
     audio.addEventListener('keydown', this.audioKeydownHandler, { capture: true });
   }
 
+  private pdfLoad?: Subscription;
+  private pdfCleanup?: () => void;
+
+  private stopPdf() {
+    this.pdfLoad?.unsubscribe();
+    this.pdfCleanup?.();
+  }
+
   private setPdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
     if (!value) return;
     const iframe = value.nativeElement;
-    const url = this.pdfUrl();
+    const url = this.pdf();
     if (!url) return;
-    // Frame the PDF directly: PDFs from other origins are isolated by their origin, and the client
-    // proxy sandboxes our own cache. An opaque data: URL wrapper would be blocked by X-Frame-Options
-    // from our own server, and by the app CSP (object-src) for other servers.
-    setIframeSrc(iframe, url);
     iframe.style.width ||= this.embedWidth();
     iframe.style.height ||= this.embedHeight();
+    this.stopPdf();
+    // Proxied PDFs come from our own cache, so load the bytes and show them in an opaque iframe
+    const pdf$: Observable<ArrayBuffer | string | null> = this.admin.getPlugin('plugin/pdf')?.config?.proxy
+      ? this.proxy.fetch(url, this.currentOrigin(), this.getFilename()).pipe(
+        map(res => res.data),
+        catchError(() => of(null)),
+      )
+      : of(url);
+    this.pdfLoad = pdf$.subscribe(pdf => {
+      if (pdf) this.pdfCleanup = setPdfSrc(iframe, pdf);
+    });
   }
 
   setOembed(oembed: Oembed | null) {
@@ -384,7 +400,7 @@ export class ViewerComponent {
   });
 
   readonly twitter = computed(() => {
-    return this.oembed()?.provider_name === 'Twitter';
+    return ['Twitter', 'X'].includes(this.oembed()?.provider_name!);
   });
 
   readonly zoom = computed(() => {
@@ -415,7 +431,7 @@ export class ViewerComponent {
   readonly hideComment = computed(() => {
     if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) return true;
     if (this.admin.getPlugin('plugin/table') && hasTag('plugin/table', this.currentTags())) return false;
-    return this.editingViewer() || (this.pdfUrl() && !this.ref()?.plugins?.['plugin/pdf']?.showAbstract);
+    return this.editingViewer() || (this.pdf() && !this.ref()?.plugins?.['plugin/pdf']?.showAbstract);
   });
 
   readonly currentOrigin = computed(() => {
@@ -534,13 +550,6 @@ export class ViewerComponent {
   readonly pdf = computed<string | undefined>(() => {
     if (!this.admin.getPlugin('plugin/pdf')) return undefined;
     return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref(), this.repost())?.url;
-  });
-
-  readonly pdfUrl = computed(() => {
-    const url = this.pdf();
-    if (!url) return url;
-    if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename());
   });
 
   readonly uiActions = computed<PluginApi>(() => {

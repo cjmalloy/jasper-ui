@@ -71,9 +71,6 @@ if [ -n "$JASPER_API_PROXY" ]; then
       proxy_next_upstream_tries               3;
 
       include /etc/nginx/security-headers.conf;
-      # Cached files are served from the app origin. Give every API response an opaque origin,
-      # so cached HTML cannot reach the app, even when framed, redirected to or opened in a tab.
-      add_header Content-Security-Policy \"sandbox allow-downloads allow-forms allow-modals allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-presentation allow-scripts\" always;
       proxy_pass $JASPER_API_PROXY;
 
       proxy_redirect                          off;

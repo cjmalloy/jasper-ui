@@ -43,7 +43,7 @@ All entities use composite keys:
 - Tags are plain strings, not entities. A tag can be used on a Ref without a matching Ext, User, Plugin, or Template.
 - The model has four layers: identity (storage/replication), indexing (tags/query/sort), validation (full entity + schema), and modding (client only).
 - Plugins *stack* on Refs. Templates *merge down* the tag hierarchy onto Exts and config.
-- Every embed iframe is a security boundary, without the `sandbox` attribute (it breaks normal sites). `blob:` URLs keep the app origin, so HTML written by the client (oEmbed) uses opaque-origin `data:` URLs (`dataUrl`, `iframeUrl` in `util/embed.ts`), and the client `/api/` proxy sends `Content-Security-Policy: sandbox` so our own cache is opaque too. `e2e/embed-origin.spec.ts` proves it.
+- Every embed iframe is a security boundary. `blob:` URLs keep the app origin, so HTML written by the client (oEmbed) uses opaque-origin `data:` URLs (`dataUrl`, `iframeUrl` in `util/embed.ts`). The embed iframe has one `sandbox` that allows everything except top navigation (`allow-same-origin` keeps sites working). PDFs can't be sandboxed (Chrome won't render them), so `setPdfSrc` shows the fetched bytes as a `blob:` URL created inside an opaque `data:` iframe. Our own cache needs the server to send `Content-Security-Policy: sandbox`. `e2e/embed-origin.spec.ts` proves it.
 - Modding is client-side on purpose. New plugins and templates should not need server changes or restarts.
 - Replication is pull-based and eventually consistent. It polls for entities modified after the last stored cursor `(origin, modified)`, so modified timestamps must be unique.
 
