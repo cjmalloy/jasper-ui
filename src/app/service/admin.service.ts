@@ -94,7 +94,7 @@ import { userMod } from '../mods/user';
 import { voteMod } from '../mods/vote';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
-import { equalBundle } from '../util/diff';
+import { clearMod, equalBundle } from '../util/diff';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
@@ -287,7 +287,7 @@ export class AdminService {
       tap(() => this.clearCache()),
       switchMap(() => this.firstRun$),
       switchMap(() => this.loadReceipts$()),
-      tap(() => this.checkMissingReceipts()),
+      switchMap(() => this.checkMissingReceipts$()),
       catchError(() => of(null)),
       tap(() => this.clearCache()),
     );
@@ -340,7 +340,7 @@ export class AdminService {
     const modIds = uniq([
       ...this.defaultPlugins.map(p => modId(p)),
       ...this.defaultTemplates.map(t => modId(t)),
-    ]).filter(Boolean);
+    ]).filter(m => m && !this.status().receipts[m]);
     const receipts = modIds
       .map(m => ({ mod: m, bundle: this.getMod(m) }))
       .filter((entry): entry is { mod: string; bundle: Mod } => !!entry.bundle)
@@ -435,14 +435,15 @@ export class AdminService {
     for (const r of list) {
       const mod = r.title!
       if (this.store.view.modChanges().has(mod)) continue;
+      this.updateStatus(status => status.receipts[mod] = r);
       const current = this.getInstalledMod(mod);
       if (!current) continue;
-      this.updateStatus(status => status.receipts[mod] = r);
       this.store.view.setModChange(mod, !equalBundle(current, r.plugins?.['plugin/mod']));
     }
   }
 
-  private checkMissingReceipts() {
+  private checkMissingReceipts$(): Observable<any> {
+    const receipts: Observable<any>[] = [];
     for (const mod of uniq([
       ...Object.values(this.status().plugins).map(p => modId(p)),
       ...Object.values(this.status().templates).map(t => modId(t)),
@@ -452,8 +453,15 @@ export class AdminService {
       if (!current) continue;
       const target = this.getMod(mod);
       if (!target) continue;
-      this.store.view.setModChange(mod, !equalBundle(current, target));
+      const changed = !equalBundle(current, target);
+      this.store.view.setModChange(mod, changed);
+      if (!changed && this.store.account.admin && this.getPlugin('plugin/mod/receipt')) {
+        // Record a merge base for unmodified mods so future updates can be merged
+        receipts.push(this.logModReceipt$(mod, clearMod(current), () => {}).pipe(catchError(() => of(null))));
+      }
     }
+    if (!receipts.length) return of(null);
+    return concat(...receipts).pipe(toArray());
   }
 
   private get _extFallback() {
@@ -1027,16 +1035,13 @@ export class AdminService {
     );
   }
 
-  getInstalledMod(mod: string) {
+  getInstalledMod(mod: string): Mod | undefined {
     const result =  {
       plugin: Object.values(this.status().plugins).filter(p => modId(p) === mod),
       template: Object.values(this.status().templates).filter(t => modId(t) === mod),
     };
     if (!result.plugin.length && !result.template.length) return undefined;
-    return {
-      ...this.getMod(mod) || {}, // Refs, Exts, Users
-      ...result
-    };
+    return result;
   }
 
   installRef$(def: Ref, _: progress) {
@@ -1150,7 +1155,7 @@ export class AdminService {
     ]).pipe(
       toArray(),
       switchMap(() => {
-        if (!this.getPlugin('plugin/mod/receipt')) return of(null);
+        if (!this.receiptsEnabled(bundle)) return of(null);
         return this.logModReceipt$(mod, bundle, _);
       }),
     );
@@ -1169,10 +1174,22 @@ export class AdminService {
     ]).pipe(
       toArray(),
       switchMap(() => {
-        if (!this.getPlugin('plugin/mod/receipt')) return of(null);
+        if (!this.receiptsEnabled(bundle)) return of(null);
         return this.logModReceipt$(mod, receipt, _);
       }),
     );
+  }
+
+  /**
+   * Receipts are enabled if plugin/mod/receipt is installed, or was just installed by this bundle.
+   * Record a newly installed receipt plugin in status so later mods in the same batch also log receipts.
+   */
+  private receiptsEnabled(bundle: Mod) {
+    if (this.getPlugin('plugin/mod/receipt')) return true;
+    const receipt = bundle.plugin?.find(p => p.tag === 'plugin/mod/receipt');
+    if (!receipt) return false;
+    this.updateStatus(status => status.plugins[receipt.tag] = { ...receipt, origin: this.store.account.origin() });
+    return true;
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {

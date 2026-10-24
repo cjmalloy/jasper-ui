@@ -5,7 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { forOwn, uniq } from 'lodash-es';
+import { forOwn, sortBy, uniq } from 'lodash-es';
 import { catchError, concat, last, of, Subscription, throwError } from 'rxjs';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
@@ -126,7 +126,7 @@ export class SettingsSetupPage {
     }
     concat(
       ...uniq(deletes).map(m => this.admin.deleteMod$(m, _)),
-      ...uniq(installs).map(m => this.admin.installMod$(m, _))
+      ...this.receiptsFirst(uniq(installs)).map(m => this.admin.installMod$(m, _))
     ).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError.set(printError(res));
@@ -167,7 +167,7 @@ export class SettingsSetupPage {
       if (this.store.view.modUpdates().has(m)) mods.push(m);
     }
     if (!mods.length) return;
-    concat(...uniq(mods).map(mod => {
+    concat(...this.receiptsFirst(uniq(mods)).map(mod => {
       const receipt = this.admin.getMod(mod)!;
       if (!this.hasCustomChangesMod(mod)) {
         return this.admin.updateMod$(mod, receipt, receipt, _);
@@ -189,6 +189,13 @@ export class SettingsSetupPage {
       this.reset();
       _($localize`Success.`);
     });
+  }
+
+  /**
+   * Install the mod providing plugin/mod/receipt first, so every other mod in the batch logs a receipt.
+   */
+  private receiptsFirst(mods: string[]) {
+    return sortBy(mods, m => this.admin.getMod(m)?.plugin?.some(p => p.tag === 'plugin/mod/receipt') ? 0 : 1);
   }
 
   selectAll() {
