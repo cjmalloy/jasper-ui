@@ -1312,8 +1312,13 @@ export class RefComponent implements HasChanges {
     };
     copied.plugins = pick(copied.plugins, tags || []);
     if (hasTag('+plugin/origin', copied)) {
-      copied.plugins['+plugin/origin'].local = copied.plugins['+plugin/origin'].remote = subOrigin(this.ref().origin, copied.plugins['+plugin/origin'].local);
-      copied.plugins['+plugin/origin'].proxy = this.store.origins.lookup().get(this.ref().origin || '');
+      const origin = subOrigin(this.ref().origin, copied.plugins['+plugin/origin']?.local);
+      copied.plugins['+plugin/origin'] = {
+        ...copied.plugins['+plugin/origin'],
+        local: origin,
+        remote: origin,
+        proxy: this.store.origins.lookup().get(this.ref().origin || ''),
+      };
     }
     if (hasTag('+plugin/origin/tunnel', copied)) {
       copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup().get(this.ref().origin || '');

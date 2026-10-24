@@ -319,7 +319,7 @@ export class BulkComponent {
       };
       copied.plugins = pick(copied.plugins, tags || []);
       if (hasTag('+plugin/origin', copied)) {
-        const origin = subOrigin(ref.origin, copied.plugins['+plugin/origin'].local);
+        const origin = subOrigin(ref.origin, copied.plugins['+plugin/origin']?.local);
         copied.plugins['+plugin/origin'] = {
           ...copied.plugins['+plugin/origin'],
           local: origin,
