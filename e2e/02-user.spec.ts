@@ -1,5 +1,10 @@
 import { expect } from '@playwright/test';
-import { mod, test } from './setup';
+import { adminHeaders, mod, test } from './setup';
+
+// Connection refs and user tags are checked against the default origin
+test.use({ isolated: false });
+
+const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
 
 test.describe.serial('User Page', () => {
 
@@ -47,7 +52,15 @@ test.describe.serial('User Page', () => {
     await expect(page).toHaveURL(/\/tag\/\+user\/bob/);
   });
 
-  test('downloads a pre-filled connection ref', async ({ page }) => {
+  test('downloads a pre-filled connection ref', async ({ request, page }) => {
+    await request.get(`${api}/user/page`);
+    const { cookies } = await request.storageState();
+    const xsrf = cookies.find(c => c.name === 'XSRF-TOKEN')?.value || '';
+    const created = await request.post(`${api}/user`, {
+      headers: { Authorization: 'Bearer ' + adminHeaders.jwt, 'X-XSRF-TOKEN': xsrf },
+      data: { tag: '+user', origin: '' },
+    });
+    expect([201, 409]).toContain(created.status());
     await page.goto('/settings/user?debug=ADMIN', { waitUntil: 'networkidle' });
     const profile = page.locator('.profile', {
       has: page.getByRole('link', { name: '+user', exact: true }),

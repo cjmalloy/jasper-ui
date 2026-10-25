@@ -1,6 +1,9 @@
 import { type APIRequestContext, expect } from '@playwright/test';
 import { adminHeaders, test } from './setup';
 
+// _config templates only exist in the default origin
+test.use({ isolated: false });
+
 test.describe.serial('Plugin/Template Admin Form', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
   const runId = Date.now().toString(36);

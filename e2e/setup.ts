@@ -264,11 +264,13 @@ export async function mod(page: Page, ...mods: string[]) {
 export async function modRemote(page: Page, base = '', ...mods: string[]) {
   // A fresh isolated origin has no mods, so only clear when mods were already installed
   const origin = base ? base : localOrigin();
-  if (base || !isolatedWorker || moddedOrigins.has(origin)) await clearMods(page, base);
+  if (base || !isolatedWorker || moddedOrigins.has(origin)) {
+    // Leaves the page on the setup tab
+    await clearMods(page, base);
+  } else {
+    await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
+  }
   moddedOrigins.add(origin);
-  await page.goto(base + '/?debug=ADMIN', { waitUntil: 'networkidle' });
-  await page.locator('.settings a', { hasText: 'settings' }).click();
-  await page.locator('.tabs a', { hasText: 'setup' }).first().click();
   if (mods.includes('#mod-experiments')) {
     await expect(page.locator('#mod-experiments')).toBeChecked({ checked: false });
     await page.locator('#mod-experiments').check();

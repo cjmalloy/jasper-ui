@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { mod, openTextSubmit, test } from './setup';
+import { localOrigin, mod, openTextSubmit, test } from './setup';
 
 test.describe.serial('Thread Plugin', () => {
   let page: Page;
@@ -27,7 +27,7 @@ test.describe.serial('Thread Plugin', () => {
     expect(topUrl).toBeTruthy();
 
     const topUpdates: string[] = [];
-    const topDestination = '/topic/ref/default/' + encodeURIComponent(topUrl!);
+    const topDestination = '/topic/ref/' + (localOrigin() || 'default') + '/' + encodeURIComponent(topUrl!);
     page.on('websocket', ws => ws.on('framereceived', frame => {
       if (String(frame.payload).includes('destination:' + topDestination + '\n')) topUpdates.push(String(frame.payload));
     }));

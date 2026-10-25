@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { mod, openTextSubmit, test } from './setup';
+import { localOrigin, mod, openTextSubmit, test } from './setup';
 
 test.describe.serial('Drafts Plugin', () => {
   let page: Page;
@@ -104,7 +104,7 @@ test.describe.serial('Drafts Plugin', () => {
     await page.locator('.ref .link a', { hasText: dmTitle }).click();
     await expect(page).toHaveURL(/\/submit\/dm/);
     await expect(page.locator('#title')).toHaveValue(dmTitle);
-    await expect(page.locator('#to')).toHaveValue('+user/alice');
+    await expect(page.locator('#to')).toHaveValue('+user/alice' + localOrigin());
     for (const tag of ['dm', 'plugin/thread', 'plugin/inbox/user/alice', 'user/alice']) {
       await expect(page.locator(`.tag-field input.preview[title="${tag}"]`)).toBeAttached();
     }
@@ -112,7 +112,7 @@ test.describe.serial('Drafts Plugin', () => {
     const picker = page.locator('[title="Add Plugin"] select');
     await picker.selectOption('plugin/todo');
     await expect(page).toHaveURL(/tag=plugin(%2F|\/)todo/);
-    await expect(page.locator('#to')).toHaveValue('+user/alice');
+    await expect(page.locator('#to')).toHaveValue('+user/alice' + localOrigin());
     await expect(page.locator('.tag-field input.preview[title="plugin/inbox/user/alice"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title="notes"]')).toHaveCount(0);
   });
@@ -131,7 +131,7 @@ test.describe.serial('Drafts Plugin', () => {
     await page.locator('.ref .link a', { hasText: replyTitle }).click();
     await expect(page).toHaveURL(/\/submit\/dm/);
     await expect(page.locator('#title')).toHaveValue(replyTitle);
-    await expect(page.locator('#to')).toHaveValue('+user/alice');
+    await expect(page.locator('#to')).toHaveValue('+user/alice' + localOrigin());
     const published = page.waitForRequest(req =>
       req.url().includes('/api/v1/ref') && req.method() === 'PUT');
     await page.locator('button[type=submit]', { hasText: 'Send' }).click();

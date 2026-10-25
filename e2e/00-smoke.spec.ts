@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { deleteRef, openSidebar, test } from './setup';
+import { deleteRef, localOrigin, openSidebar, test } from './setup';
 
 test.describe.serial('Smoke Tests', () => {
   test('loads the page', async ({ page }) => {
@@ -54,7 +54,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: true,
       mod: true,
       editor: true,
@@ -70,7 +70,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: false,
       mod: true,
       editor: true,
@@ -86,7 +86,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: false,
       mod: false,
       editor: true,
@@ -102,7 +102,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: false,
       mod: false,
       editor: false,
@@ -118,7 +118,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: false,
       mod: false,
       editor: false,
@@ -134,7 +134,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: false,
       mod: false,
       editor: false,
