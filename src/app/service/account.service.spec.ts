@@ -49,6 +49,7 @@ describe('AccountService', () => {
     const origins = (service as any).origins;
     origins.origins.set(refs);
     (service as any).store.origins.accountAliases.set(origins.accountAliases());
+    (service as any).store.origins.originMap.set(origins.originMap());
   };
 
   const inbox = 'plugin/inbox/user/dad';
@@ -541,11 +542,11 @@ describe('AccountService', () => {
       expect(stream.query).toEqual(`${filter}:(${chrisBox}|alarm)`);
       expect(stream.alarmQuery).toEqual(`${filter}:(alarm)`);
       expect(stream.localQuery).toEqual(`${filter}:(alarm)`);
-      expect(stream.aliases).toEqual([{ tag: '+user/chris@city', query: `${filter}:${chrisBox}:!alarm` }]);
-      expect(service.notificationStreams.find(stream => stream.origin === '')?.aliases).toBeUndefined();
+      expect(stream.aliasQuery).toEqual(`${filter}:(${chrisBox}):!alarm`);
+      expect(service.notificationStreams.find(stream => stream.origin === '')?.aliasQuery).toBeUndefined();
     });
 
-    it('does not overlap queries for multiple aliases in the same origin', () => {
+    it('queries all alias mailboxes in the same origin together', () => {
       setOrigins([{
         url: 'spec:city',
         origin: '',
@@ -554,10 +555,7 @@ describe('AccountService', () => {
       }]);
       const stream = service.notificationStreams.find(stream => stream.origin === '@city')!;
       const filter = '@city:!+user/chris@city:!+user/cj@city:!plugin/delete';
-      expect(stream.aliases).toEqual([
-        { tag: '+user/chris@city', query: `${filter}:${chrisBox}:!alarm` },
-        { tag: '+user/cj@city', query: `${filter}:plugin/inbox/user/cj@city:!${chrisBox}:!alarm` },
-      ]);
+      expect(stream.aliasQuery).toEqual(`${filter}:(${chrisBox}|plugin/inbox/user/cj@city):!alarm`);
     });
 
     it('reads alias notifications up to the remote cursor but alarms up to the local cursor', () => {
@@ -567,7 +565,7 @@ describe('AccountService', () => {
 
       expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: cursorQuery }));
       expect(count).toHaveBeenCalledWith({ query: `${filter}:(alarm)`, modifiedAfter: localCursor });
-      expect(count).toHaveBeenCalledWith({ query: `${filter}:${chrisBox}:!alarm`, modifiedAfter: remoteCursor });
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:(${chrisBox}):!alarm`, modifiedAfter: remoteCursor });
       expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:(${chrisBox}|alarm)` }));
       expect(store.account.notifications()).toBe(3);
       expect(store.account.alarmCount()).toBe(2);
@@ -578,7 +576,7 @@ describe('AccountService', () => {
       service.checkNotifications();
 
       expect(count).toHaveBeenCalledWith({ query: `${filter}:(${chrisBox}|alarm)`, modifiedAfter: '2026-03-01T00:00:00.000Z' });
-      expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:${chrisBox}:!alarm` }));
+      expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:(${chrisBox}):!alarm` }));
     });
 
     it('only uses the inbox cursor of the alias in the alias origin', () => {
@@ -589,16 +587,38 @@ describe('AccountService', () => {
       service.checkNotifications();
 
       expect(count).toHaveBeenCalledWith({ query: `${filter}:(${chrisBox}|alarm)`, modifiedAfter: localCursor });
-      expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:${chrisBox}:!alarm` }));
+      expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:(${chrisBox}):!alarm` }));
     });
 
-    it('reads notifications for every alias up to the latest remote cursor of any alias', () => {
-      setOrigins([
+    it('takes the latest cursor of several aliases in one origin', () => {
+      setOrigins([{
+        url: 'spec:city',
+        origin: '',
+        tags: ['+plugin/origin/pull'],
+        plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }, { local: '+user/dad', remote: '+user/cj' }] } },
+      }]);
+      const cursors = 'plugin/user/cursor:(+user/chris@city|+user/cj@city)';
+      page.mockImplementation((args: any) => of(Page.of(args.query === cursors ? [
+        { ...remoteCursorRef('2026-01-15T00:00:00.000Z', 'tag:/user/cj?url=tag:/plugin/inbox'), tags: ['+user/cj', 'plugin/user/cursor'] },
+        remoteCursorRef(remoteCursor),
+      ] : [])));
+      service.checkNotifications();
+
+      const filter = '@city:!+user/chris@city:!+user/cj@city:!plugin/delete';
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:(${chrisBox}|plugin/inbox/user/cj@city):!alarm`, modifiedAfter: remoteCursor });
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:(alarm)`, modifiedAfter: localCursor });
+    });
+
+    describe('cursors an alias saved for other origins', () => {
+      const townFilter = '@town:!+user/dad@town:!plugin/delete';
+      const townBox = 'plugin/inbox/user/dad@town';
+      const cursors = 'plugin/user/cursor:(+user/chris@city|+user/dad@town)';
+      const setTown = (cityTownUrl: string) => setOrigins([
         {
           url: 'spec:city',
           origin: '',
           tags: ['+plugin/origin/pull'],
-          plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }, { local: '+user/dad', remote: '+user/cj' }] } },
+          plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }] } },
         },
         {
           url: 'spec:town',
@@ -606,23 +626,50 @@ describe('AccountService', () => {
           tags: ['+plugin/origin/pull'],
           plugins: { '+plugin/origin': { local: '@town', aliases: [{ local: '+user/dad', remote: '+user/dad' }] } },
         },
+        {
+          url: cityTownUrl,
+          origin: '@city',
+          tags: ['+plugin/origin/pull'],
+          plugins: { '+plugin/origin': { local: '@town' } },
+        },
       ]);
-      const store = (service as any).store;
-      store.account.notificationCursors.set('@town', localCursor);
-      const allCursors = 'plugin/user/cursor:(+user/chris@city|+user/cj@city|+user/dad@town)';
-      const olderCursor = '2026-01-15T00:00:00.000Z';
-      page.mockImplementation((args: any) => of(Page.of(args.query === allCursors ? [
-        remoteCursorRef(remoteCursor),
-        { ...remoteCursorRef(olderCursor, 'tag:/user/dad?url=tag:/plugin/inbox', '@town'), tags: ['+user/dad', 'plugin/user/cursor'] },
-      ] : [])));
-      service.checkNotifications();
 
-      const cityFilter = '@city:!+user/chris@city:!+user/cj@city:!plugin/delete';
-      expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: allCursors }));
-      expect(count).toHaveBeenCalledWith({ query: `${cityFilter}:${chrisBox}:!alarm`, modifiedAfter: remoteCursor });
-      expect(count).toHaveBeenCalledWith({ query: `${cityFilter}:plugin/inbox/user/cj@city:!${chrisBox}:!alarm`, modifiedAfter: remoteCursor });
-      expect(count).toHaveBeenCalledWith({ query: '@town:!+user/dad@town:!plugin/delete:plugin/inbox/user/dad@town:!alarm', modifiedAfter: remoteCursor });
-      expect(count).toHaveBeenCalledWith({ query: '@town:!+user/dad@town:!plugin/delete:(alarm)', modifiedAfter: localCursor });
+      beforeEach(() => {
+        (service as any).store.account.notificationCursors.set('@town', localCursor);
+      });
+
+      it('applies an outbox cursor to our mirror of that origin', () => {
+        setTown('spec:town');
+        page.mockImplementation((args: any) => of(Page.of(args.query === cursors
+          ? [remoteCursorRef(remoteCursor, 'tag:/user/chris?url=tag:/plugin/outbox/town')]
+          : [])));
+        service.checkNotifications();
+
+        expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: cursors }));
+        expect(count).toHaveBeenCalledWith({ query: `${townFilter}:(${townBox}):!alarm`, modifiedAfter: remoteCursor });
+        expect(count).toHaveBeenCalledWith({ query: `${townFilter}:(alarm)`, modifiedAfter: localCursor });
+        expect(count).toHaveBeenCalledWith({ query: `${filter}:(${chrisBox}|alarm)`, modifiedAfter: localCursor });
+      });
+
+      it('ignores an outbox cursor for an origin that is not the same source', () => {
+        setTown('spec:othertown');
+        page.mockImplementation((args: any) => of(Page.of(args.query === cursors
+          ? [remoteCursorRef(remoteCursor, 'tag:/user/chris?url=tag:/plugin/outbox/town')]
+          : [])));
+        service.checkNotifications();
+
+        expect(count).toHaveBeenCalledWith({ query: `${townFilter}:(${townBox}|alarm)`, modifiedAfter: localCursor });
+        expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ modifiedAfter: remoteCursor }));
+      });
+
+      it('never applies a cursor from one origin to another', () => {
+        setTown('spec:town');
+        page.mockImplementation((args: any) => of(Page.of(args.query === cursors ? [remoteCursorRef(remoteCursor)] : [])));
+        service.checkNotifications();
+
+        expect(count).toHaveBeenCalledWith({ query: `${filter}:(${chrisBox}):!alarm`, modifiedAfter: remoteCursor });
+        expect(count).toHaveBeenCalledWith({ query: `${townFilter}:(${townBox}|alarm)`, modifiedAfter: localCursor });
+      });
     });
 
     it('ignores remote cursors that cannot be loaded', () => {
@@ -638,7 +685,7 @@ describe('AccountService', () => {
 
       expect(result).toBeDefined();
       expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:(alarm)`, modifiedAfter: localCursor }));
-      expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:${chrisBox}:!alarm`, modifiedAfter: remoteCursor }));
+      expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:(${chrisBox}):!alarm`, modifiedAfter: remoteCursor }));
     });
 
     it('checks the remote cursor before clearing an origin with no notifications', () => {
@@ -648,7 +695,7 @@ describe('AccountService', () => {
       service.clearNotificationsIfNone(readDate, '@city');
 
       expect(count).toHaveBeenCalledWith({ query: `${filter}:(alarm)`, modifiedAfter: localCursor, modifiedBefore: readDate });
-      expect(count).toHaveBeenCalledWith({ query: `${filter}:${chrisBox}:!alarm`, modifiedAfter: remoteCursor, modifiedBefore: readDate });
+      expect(count).toHaveBeenCalledWith({ query: `${filter}:(${chrisBox}):!alarm`, modifiedAfter: remoteCursor, modifiedBefore: readDate });
       expect(clear).toHaveBeenCalledWith(readDate, ['@city']);
     });
   });
