@@ -21,6 +21,8 @@ services:
       REPL_API: http://localhost:8083
       REPL_API_PROXY: http://repl-web
       CI: true
+      PW_VIDEO: ${PW_VIDEO:-}
+      PW_SHARD: ${PW_SHARD:-}
     working_dir: /e2e
     volumes:
       - ../:/e2e
