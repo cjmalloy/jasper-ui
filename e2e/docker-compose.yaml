@@ -40,6 +40,7 @@ services:
       CSP_DEFAULT_SRC: http://localhost:8081 ws://localhost:8081
       CSP_CONNECT_SRC: http://localhost:8081 ws://localhost:8081
       JASPER_TITLE: PLAYWRIGHT
+      JASPER_INSTALL_DEFAULTS: false
     depends_on:
       - web
   web:
@@ -89,6 +90,7 @@ services:
       CSP_DEFAULT_SRC: http://localhost:8083 ws://localhost:8083
       CSP_CONNECT_SRC: http://localhost:8083 ws://localhost:8083
       JASPER_TITLE: REPL
+      JASPER_INSTALL_DEFAULTS: false
     depends_on:
       - repl-web
   repl-web:

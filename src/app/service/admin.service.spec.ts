@@ -8,7 +8,11 @@ import { blogTemplate } from '../mods/blog';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
+import { firstValueFrom, of } from 'rxjs';
+import { Store } from '../store/store';
 import { AdminService } from './admin.service';
+import { PluginService } from './api/plugin.service';
+import { ConfigService } from './config.service';
 
 describe('AdminService', () => {
   let service: AdminService;
@@ -27,6 +31,21 @@ describe('AdminService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('should not install default mods when installDefaults is disabled', async () => {
+    TestBed.inject(ConfigService).installDefaults = false;
+    TestBed.inject(Store).account.admin = true;
+    const create = vi.spyOn(TestBed.inject(PluginService), 'create');
+    await firstValueFrom(service.firstRun$);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('should install default mods for an admin on an empty origin', () => {
+    TestBed.inject(Store).account.admin = true;
+    const create = vi.spyOn(TestBed.inject(PluginService), 'create').mockReturnValue(of(null as any));
+    service.firstRun$;
+    expect(create).toHaveBeenCalled();
   });
 
   it('should not inherit template admin forms', () => {

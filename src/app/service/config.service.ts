@@ -36,6 +36,10 @@ export class ConfigService {
   pwa = false;
   scim = false;
   websockets = true;
+  /**
+   * Install the default mods the first time an admin loads an empty origin.
+   */
+  installDefaults = true;
   support = '+support';
   allowedSchemes = ['http:', 'https:', 'ftp:', 'tel:', 'mailto:', 'magnet:'];
   modSeals = ['seal', '+seal', 'seal', '_moderated'];
@@ -79,7 +83,7 @@ export class ConfigService {
     return this.http.get(this.base + 'assets/config.json').pipe(
       tap((result: any) => {
         for (const k in this) {
-          this[k] = result[k] || this[k];
+          this[k] = typeof result[k] === 'boolean' ? result[k] : result[k] || this[k];
         }
       }),
     );
