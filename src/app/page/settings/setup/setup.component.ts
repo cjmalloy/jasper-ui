@@ -6,7 +6,7 @@ import { Component, DestroyRef, inject, signal, TemplateRef, viewChild, ViewCont
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, sortBy, uniq } from 'lodash-es';
-import { catchError, concat, EMPTY, last, Observable, of, shareReplay, Subscription, switchMap, tap, throwError } from 'rxjs';
+import { catchError, concat, EMPTY, last, Observable, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { DiffComponent } from '../../../form/diff/diff.component';
@@ -82,7 +82,7 @@ export class SettingsSetupPage {
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
-    this.loadModChanges();
+    this.loadModChanges(this.admin.ready$.pipe(tap(() => this.clear())));
   }
 
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
@@ -90,19 +90,10 @@ export class SettingsSetupPage {
     this.modChangesSubscription?.unsubscribe();
   });
 
-  loadModChanges(init = false) {
+  loadModChanges(ready$: Observable<any> = this.admin.ready$) {
     this.modChangesSubscription?.unsubscribe();
     this.modChangesLoaded.set(false);
     this.modChangesError.set([]);
-    let ready$: Observable<any> = of(null);
-    if (init) {
-      const init$ = this.admin.init$.pipe(shareReplay(1));
-      init$.subscribe();
-      ready$ = init$.pipe(tap(() => {
-        this.clear();
-        this.installMessages.update(messages => [...messages, $localize`Reload the page to finish loading mod changes.`]);
-      }));
-    }
     this.modChangesSubscription = ready$.pipe(
       switchMap(() => this.admin.loadModChanges$()),
       catchError((res: HttpErrorResponse) => {
@@ -168,7 +159,10 @@ export class SettingsSetupPage {
   }
 
   reset() {
-    this.loadModChanges(true);
+    this.loadModChanges(this.admin.reload$().pipe(tap(() => {
+      this.clear();
+      this.installMessages.update(messages => [...messages, $localize`Reload the page to finish loading mod changes.`]);
+    })));
   }
 
   clear() {
