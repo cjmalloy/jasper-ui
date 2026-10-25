@@ -2,6 +2,9 @@ import { type APIRequestContext, expect } from '@playwright/test';
 import JSZip from 'jszip';
 import { adminHeaders, test } from './setup';
 
+// Uses fixed origins (replication between servers or explicit remote origins), so it shares the default origin
+test.use({ isolated: false });
+
 test.describe.serial('Ref page origin', () => {
   test.setTimeout(120_000);
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';

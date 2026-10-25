@@ -2,6 +2,9 @@ import { type APIRequestContext, expect } from '@playwright/test';
 import JSZip from 'jszip';
 import { adminHeaders, mod, test } from './setup';
 
+// Uses fixed origins (replication between servers or explicit remote origins), so it shares the default origin
+test.use({ isolated: false });
+
 test.describe.serial('Remote Plugin/Template Diff', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
   const runId = Date.now().toString(36);

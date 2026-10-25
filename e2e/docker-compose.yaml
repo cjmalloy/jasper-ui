@@ -68,6 +68,9 @@ services:
       JASPER_OVERRIDE_SECURITY_BASE64_SECRET: 'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM='
       JASPER_HEAP: 512m
       JASPER_CACHE_API: http://web
+      # Each spec file runs in its own sub origin (Local-Origin header), see e2e/setup.ts
+      JASPER_OVERRIDE_SERVER_WEB_ORIGINS: '@,@*'
+      JASPER_OVERRIDE_SERVER_SCRIPT_SELECTORS: '@,@*'
     depends_on:
       - db
   db:

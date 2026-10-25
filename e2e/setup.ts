@@ -1,6 +1,7 @@
 import { test as base, type BrowserContext, type ConsoleMessage, expect, type Page, type WebError } from '@playwright/test';
 import { Client, type IMessage } from '@stomp/stompjs';
 import { createHmac } from 'node:crypto';
+import { basename } from 'node:path';
 
 const debugSecret = Buffer.from(
   'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM=',
@@ -26,13 +27,63 @@ const allowedConsoleErrors: RegExp[] = [
   /^Failed to load resource: the server responded with a status of \d+/,
 ];
 
+const runId = process.env.PW_RUN_ID ||= Date.now().toString(36);
+let isolatedWorker = true;
+const moddedOrigins = new Set<string>();
+
+/**
+ * Origin that isolates the current spec file from every other spec file.
+ * Sent as the `Local-Origin` header, so the server treats it as the local origin for every request.
+ * Retries get a new origin so they start from a clean state.
+ */
+export function isolatedOrigin(info = test.info()) {
+  const slug = basename(info.file).replace(/(\.spec)?\.ts$/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  // Single level: the server only runs scripts in origins one level below the local origin
+  return `@${slug}r${info.retry}t${runId}`;
+}
+
+/**
+ * Local origin of the main server for the current test: the isolated origin, or the
+ * default origin for specs that opt out with `test.use({ isolated: false })`.
+ */
+export function localOrigin() {
+  return isolatedWorker ? isolatedOrigin() : '';
+}
+
 /**
  * Playwright `test` that fails when any page logs a `console.error` or throws an uncaught exception.
  * Every spec must import `test` from here instead of from '@playwright/test'.
  * Covers the test's own `page`/`context`, pages shared across tests (created in `beforeAll`) and
  * contexts created during the test.
  */
-export const test = base.extend<{ failOnConsoleErrors: void }>({
+export const test = base.extend<{ failOnConsoleErrors: void, origin: string }, { isolated: boolean, isolateContexts: void }>({
+  /**
+   * Run each spec file in its own origin. Specs that replicate between servers need fixed origins
+   * on both servers and opt out with `test.use({ isolated: false })`.
+   */
+  isolated: [true, { scope: 'worker', option: true }],
+  isolateContexts: [async ({ browser, isolated }, use) => {
+    isolatedWorker = isolated;
+    if (!isolated) return use();
+    // Covers contexts and pages created in beforeAll. Chromium also sends extra headers on the
+    // websocket upgrade, so STOMP subscriptions use the same origin.
+    const newContext = browser.newContext;
+    browser.newContext = async (options = {}) => newContext.call(browser, {
+      ...options,
+      extraHTTPHeaders: { 'Local-Origin': isolatedOrigin(), ...options.extraHTTPHeaders },
+    });
+    try {
+      await use();
+    } finally {
+      browser.newContext = newContext;
+    }
+  }, { scope: 'worker', auto: true }],
+  extraHTTPHeaders: async ({ extraHTTPHeaders, isolated }, use) => {
+    await use(isolated ? { 'Local-Origin': isolatedOrigin(), ...extraHTTPHeaders } : extraHTTPHeaders);
+  },
+  origin: async ({ isolated }, use) => {
+    await use(isolated ? isolatedOrigin() : '');
+  },
   failOnConsoleErrors: [async ({ browser, context }, use) => {
     const errors: string[] = [];
     const onConsole = (msg: ConsoleMessage) => {
@@ -211,7 +262,10 @@ export async function mod(page: Page, ...mods: string[]) {
 }
 
 export async function modRemote(page: Page, base = '', ...mods: string[]) {
-  await clearMods(page, base);
+  // A fresh isolated origin has no mods, so only clear when mods were already installed
+  const origin = base ? base : localOrigin();
+  if (base || !isolatedWorker || moddedOrigins.has(origin)) await clearMods(page, base);
+  moddedOrigins.add(origin);
   await page.goto(base + '/?debug=ADMIN', { waitUntil: 'networkidle' });
   await page.locator('.settings a', { hasText: 'settings' }).click();
   await page.locator('.tabs a', { hasText: 'setup' }).first().click();

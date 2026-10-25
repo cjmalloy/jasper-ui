@@ -1,6 +1,9 @@
 import { type APIRequestContext, expect, type Locator, type Page, type Response } from '@playwright/test';
 import { adminHeaders, clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, pollRemoteNotifications, test } from './setup';
 
+// Uses fixed origins (replication between servers or explicit remote origins), so it shares the default origin
+test.use({ isolated: false });
+
 test.describe.serial('Origin Plugin: Account Aliases', () => {
   test.setTimeout(120_000);
   const mainApi = process.env.MAIN_API || 'http://localhost:8081';

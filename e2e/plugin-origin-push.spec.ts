@@ -12,6 +12,9 @@ import {
   test,
 } from './setup';
 
+// Uses fixed origins (replication between servers or explicit remote origins), so it shares the default origin
+test.use({ isolated: false });
+
 test.describe.serial('Origin Push Plugin', () => {
   test.setTimeout(90_000);
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';

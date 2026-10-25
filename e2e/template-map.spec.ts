@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { clearAll, mod, openSidebar, test } from './setup';
+import { mod, openSidebar, test } from './setup';
 
 test.describe.serial('Map Template', () => {
 
@@ -17,10 +17,6 @@ test.describe.serial('Map Template', () => {
       }
       return route.fulfill({ headers, contentType: 'application/x-protobuf', body: '' });
     });
-  });
-
-  test('clear all', async ({ page }) => {
-    await clearAll(page);
   });
 
   test('enable map mod', async ({ page }) => {

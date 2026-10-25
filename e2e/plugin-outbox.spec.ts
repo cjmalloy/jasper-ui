@@ -1,6 +1,9 @@
 import { expect, type Page, type Response } from '@playwright/test';
 import { clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, test } from './setup';
 
+// Uses fixed origins (replication between servers or explicit remote origins), so it shares the default origin
+test.use({ isolated: false });
+
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test.setTimeout(90_000);
   const mainApi = process.env.MAIN_API || 'http://localhost:8081';

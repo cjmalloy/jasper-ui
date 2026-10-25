@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { clearMods, deleteRef, openSidebar, test } from './setup';
+import { deleteRef, openSidebar, test } from './setup';
 
 test.describe.serial('Smoke Tests', () => {
   test('loads the page', async ({ page }) => {
@@ -18,14 +18,6 @@ test.describe.serial('Smoke Tests', () => {
     await expect(page).not.toHaveURL(initialUrl);
     await page.locator('.back-button').click();
     await expect(page).toHaveURL(initialUrl);
-  });
-
-  test('@\u{ff20}main : clear mods', async ({ page }) => {
-    await clearMods(page);
-  });
-
-  test('@\u{ff20}repl : clear mods', async ({ page }) => {
-    await clearMods(page, process.env.REPL_URL || 'http://localhost:8082');
   });
 
   test('creates a ref', async ({ page }) => {
