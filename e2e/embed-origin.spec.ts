@@ -315,9 +315,9 @@ test.describe.serial('Embed iframe origin', () => {
     const frame = (await (await iframe.elementHandle())!.contentFrame())!;
     // Framed by URL, not fetched as bytes first, so the viewer can stream large PDFs
     expect(frame.url()).toContain(`${app}/api/v1/proxy/`);
-    const headers = await (await document).allHeaders();
-    expect(headers['accept-ranges']).toBe('bytes');
-    expect(headers['content-security-policy']).toContain('sandbox');
+    const pdfHeaders = await (await document).allHeaders();
+    expect(pdfHeaders['accept-ranges']).toBe('bytes');
+    expect(pdfHeaders['content-security-policy']).toContain('sandbox');
   });
 
   test('HTML disguised as a PDF in our own cache cannot reach the app', async ({ page, request }) => {
