@@ -29,6 +29,20 @@ describe('AdminService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('should only list PDF embeds that will embed', () => {
+    (service as any).updateStatus((status: any) => {
+      status.plugins['plugin/pdf'] = { tag: 'plugin/pdf', config: { embeddable: true, proxy: false } };
+    });
+    const external = { url: 'https://example.com/paper.pdf', tags: ['plugin/pdf/scanned'] };
+    const cached = { url: 'cache:abc', tags: ['plugin/pdf/scanned'] };
+    expect(service.getEmbeds(external)).toEqual([]);
+    expect(service.getEmbeds(cached)).toEqual(['plugin/pdf/scanned']);
+    (service as any).updateStatus((status: any) => {
+      status.plugins['plugin/pdf'] = { tag: 'plugin/pdf', config: { embeddable: true, proxy: true } };
+    });
+    expect(service.getEmbeds(external)).toEqual(['plugin/pdf/scanned']);
+  });
+
   it('should not inherit template admin forms', () => {
     (service as any).updateStatus((status: any) => {
       status.templates['parent'] = { tag: 'parent', config: { adminForm: [{ key: 'a' }], advancedAdminForm: [{ key: 'b' }] } };

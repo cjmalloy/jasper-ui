@@ -779,7 +779,7 @@ export class AdminService {
       ...this.getPluginsForCache(ref),
       ...(ref.alternateUrls || []).flatMap(url => this.getPluginsForUrl(url).map(p => p.tag)),
     ], this.embeddable()) as string[])
-      .filter(tag => tag !== 'plugin/pdf' || pdfEmbedUrl(this.getPlugin('plugin/pdf'), ref));
+      .filter(tag => !hasTag('plugin/pdf', [tag]) || pdfEmbedUrl(this.getPlugin('plugin/pdf'), ref));
   }
 
   getPluginsForUrl(url: string) {
