@@ -336,17 +336,20 @@ test.describe.serial('Embed iframe origin', () => {
     await expect(page.locator('body')).not.toHaveAttribute('data-pdf-probe');
   });
 
-  test('PDF from another domain renders with its own origin', async ({ page, request }) => {
+  test('PDF from another domain is not embedded without the proxy', async ({ page, request }) => {
     await setPdfProxy(request, false);
     try {
       const url = `${other}/paper-${id}.pdf`;
-      await page.route(`${other}/**`, route => route.fulfill({ contentType: 'application/pdf', body: pdf }));
+      let fetched = false;
+      await page.route(`${other}/**`, route => {
+        fetched = true;
+        return route.fulfill({ contentType: 'application/pdf', body: pdf });
+      });
       await createRef(request, url, ['public', 'plugin/pdf']);
       await open(page, url);
-      await expectPdfViewer(page);
-      const frame = page.frames().find(f => f.url() === url)!;
-      expect(frame.parentFrame()!.url()).toMatch(/^data:/);
-      expect(await frame.evaluate(() => self.origin)).toBe(other);
+      await expect(page.locator('.full-page.ref .link a').first()).toBeVisible();
+      await expect(page.locator('.full-page.ref .embed-container iframe')).toHaveCount(0);
+      expect(fetched).toBe(false);
     } finally {
       await setPdfProxy(request, true);
     }

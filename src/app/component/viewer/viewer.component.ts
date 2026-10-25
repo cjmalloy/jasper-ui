@@ -38,7 +38,7 @@ import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
-import { embedUrl, setIframeSrc, setPdfSrc } from '../../util/embed';
+import { embedUrl, setIframeSrc } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
@@ -278,7 +278,6 @@ export class ViewerComponent {
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.removeAudioListener();
     this.removeVideoListener();
-    this.stopPdf();
   });
 
   readonly pluginClasses = computed(() => {
@@ -330,13 +329,6 @@ export class ViewerComponent {
     audio.addEventListener('keydown', this.audioKeydownHandler, { capture: true });
   }
 
-  private pdfCleanup?: () => void;
-
-  private stopPdf() {
-    this.pdfCleanup?.();
-    this.pdfCleanup = undefined;
-  }
-
   private setPdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
     if (!value) return;
     const iframe = value.nativeElement;
@@ -344,15 +336,9 @@ export class ViewerComponent {
     if (!url) return;
     iframe.style.width ||= this.embedWidth();
     iframe.style.height ||= this.embedHeight();
-    this.stopPdf();
-    if (this.admin.getPlugin('plugin/pdf')?.config?.proxy) {
-      // Frame our own cache directly so the PDF viewer can stream it with range requests.
-      // The server sandboxes cache responses (opaque origin), and its X-Frame-Options: SAMEORIGIN
-      // would block an opaque data: URL wrapper.
-      setIframeSrc(iframe, this.proxy.getFetch(url, this.currentOrigin(), this.getFilename()));
-    } else {
-      this.pdfCleanup = setPdfSrc(iframe, url);
-    }
+    // Frame our own cache directly so the PDF viewer can stream it with range requests.
+    // The server sandboxes cache responses (opaque origin).
+    setIframeSrc(iframe, this.proxy.getFetch(url, this.currentOrigin(), this.getFilename()));
   }
 
   setOembed(oembed: Oembed | null) {
@@ -545,8 +531,12 @@ export class ViewerComponent {
   });
 
   readonly pdf = computed<string | undefined>(() => {
-    if (!this.admin.getPlugin('plugin/pdf')) return undefined;
-    return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref(), this.repost())?.url;
+    const plugin = this.admin.getPlugin('plugin/pdf');
+    if (!plugin) return undefined;
+    const url = pdfUrl(plugin, this.ref(), this.repost())?.url;
+    // A PDF viewer can't be sandboxed, so only embed PDFs served from our sandboxed cache
+    if (!url || !plugin.config?.proxy && !url.startsWith('cache:')) return undefined;
+    return url;
   });
 
   readonly uiActions = computed<PluginApi>(() => {

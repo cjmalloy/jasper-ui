@@ -75,21 +75,6 @@ export function dataUrl(html: string) {
 }
 
 /**
- * Show a PDF from another server inside an opaque data: URL iframe, so the PDF viewer
- * cannot run with the origin of the app, while still streaming the PDF from its URL.
- * @return cleanup function
- */
-export function setPdfSrc(iframe: HTMLIFrameElement, url: string) {
-  // Answer every ready message: moving the iframe (e.g. into picture-in-picture) reloads the wrapper
-  const stop = listenToIframe(iframe, event => {
-    if (!event.data?.jasperPdfReady) return;
-    iframe.contentWindow!.postMessage({ jasperPdf: iframeUrl(url) }, '*');
-  });
-  setIframeSrc(iframe, dataUrl(pdfWrapper()));
-  return stop;
-}
-
-/**
  * Listen for messages posted by an iframe to its parent window.
  * The parent is the window the iframe lives in, which is not the app window
  * when the iframe has been moved into a picture-in-picture window.
@@ -106,38 +91,6 @@ export function listenToIframe(iframe: HTMLIFrameElement, listener: (event: Mess
   return () => {
     windows.forEach(w => w.removeEventListener('message', handler));
   };
-}
-
-function pdfWrapper() {
-  return `
-  <html>
-  <head>
-    <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-    }
-    iframe {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-    </style>
-  </head>
-    <body><script>
-      addEventListener('message', event => {
-        if (event.source !== parent || typeof event.data?.jasperPdf !== 'string') return;
-        const iframe = document.createElement('iframe');
-        iframe.allow = 'fullscreen';
-        iframe.src = event.data.jasperPdf;
-        document.body.replaceChildren(iframe);
-      });
-      parent.postMessage({ jasperPdfReady: true }, ${JSON.stringify(location.origin)});
-    </script></body>
-  </html>
-  `;
 }
 
 /**
