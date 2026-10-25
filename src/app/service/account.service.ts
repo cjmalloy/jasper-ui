@@ -508,12 +508,15 @@ export class AccountService {
    * Loads the cursors alias accounts saved for each origin they see, mapped
    * to our origin. Cursors for origins that are not mirrors of one of our
    * origins are dropped. The latest cursor for each origin is kept.
+   * Obsolete Refs are included, since an alias with the same name as us
+   * saves its cursors with the same urls.
    */
   private aliasCursors$(): Observable<Map<string, string>> {
     const tags = this.store.account.aliasTags();
     if (!tags.length) return of(new Map<string, string>());
     const page$ = (page: number) => this.refs.page({
       query: `plugin/user/cursor:(${tags.join('|')})`,
+      obsolete: null,
       page,
       size: DISCOVER_PAGE_SIZE,
     });
@@ -589,6 +592,8 @@ export class AccountService {
   /**
    * Origins without a mailbox do not have a stream, so their saved cursors
    * must be found by searching for cursor Refs instead of loading each stream.
+   * A newer Ref with the same url in another origin makes ours obsolete, so
+   * obsolete Refs are included.
    */
   private loadSavedCursors$(): Observable<undefined> {
     if (!this.savedCursors) {
@@ -596,6 +601,7 @@ export class AccountService {
       const prefix = `tag:/${setPublic(this.store.account.localTag())}?url=tag:/plugin/outbox/`;
       const page$ = (page: number) => this.refs.page({
         query: `plugin/user/cursor:${account}`,
+        obsolete: null,
         page,
         size: DISCOVER_PAGE_SIZE,
       });
