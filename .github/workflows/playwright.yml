@@ -227,8 +227,9 @@ jobs:
               });
             }
       - name: Fail if any shard failed
-        if: needs.playwright-run.result != 'success'
-        run: exit 1
+        run: |
+          test "$(ls e2e/reports/blob/*.zip | wc -l)" -eq 4
+          jq -e '.stats.unexpected == 0 and (.errors | length) == 0' e2e/reports/results.json > /dev/null
 
   clean:
     needs: playwright-report
