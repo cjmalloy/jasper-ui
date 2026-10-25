@@ -127,6 +127,9 @@ body.ios {
       min-width: 56px !important;
     }
   }
+  .toolbar .toolbar-toggle button {
+    min-height: unset !important;
+  }
   .controls {
     line-height: 30px;
   }

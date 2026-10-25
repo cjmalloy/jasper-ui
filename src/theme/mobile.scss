@@ -201,7 +201,8 @@ $tablet-width: 948px;
   }
 
   .toolbar {
-    overflow-x: scroll;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   .ref, .comment-edit, .comment-reply, .full-page-form {
