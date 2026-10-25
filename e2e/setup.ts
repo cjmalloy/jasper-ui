@@ -331,6 +331,23 @@ export async function upload(page: Page, file: string) {
   return page.url().replace('/ref/', '/ref/e/');
 }
 
+/**
+ * Opens the app as the given user and marks the inbox read so later notifications start from a clean cursor.
+ * Specs in the default origin also see mail sent by isolated specs in sub-origins.
+ */
+export async function markInboxRead(page: Page, url: string) {
+  const notification = page.locator('.settings .notification');
+  await expect(async () => {
+    await page.goto(url, { waitUntil: 'networkidle' });
+    if (await notification.isVisible()) {
+      await notification.click();
+      await page.locator('.tabs a', { hasText: 'all' }).first().click();
+      await page.goto(url, { waitUntil: 'networkidle' });
+    }
+    await expect(notification).toBeHidden({ timeout: 5_000 });
+  }).toPass({ timeout: 60_000 });
+}
+
 export async function pollNotifications(page: Page, user = 'debug') {
   await pollRemoteNotifications(page, '', user);
 }

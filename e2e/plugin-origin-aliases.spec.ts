@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect, type Locator, type Page, type Response } from '@playwright/test';
-import { adminHeaders, clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, pollRemoteNotifications, test } from './setup';
+import { adminHeaders, clearAll, deleteRef, markInboxRead, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, pollRemoteNotifications, test } from './setup';
 
 // Uses fixed origins (replication between servers or explicit remote origins), so it shares the default origin
 test.use({ isolated: false });
@@ -136,8 +136,7 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
   });
 
   test('@\u{ff20}main : initialize Alice cursors', async ({ page }) => {
-    await page.goto(alice, { waitUntil: 'networkidle' });
-    await expect(page.locator('.settings .notification')).toBeHidden();
+    await markInboxRead(page, alice);
   });
 
   test('@\u{ff20}repl : alias charlie notifies Alice', async ({ page }) => {

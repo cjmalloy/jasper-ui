@@ -1,5 +1,5 @@
 import { expect, type Page, type Response } from '@playwright/test';
-import { clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, test } from './setup';
+import { clearAll, deleteRef, markInboxRead, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, test } from './setup';
 
 // Uses fixed origins (replication between servers or explicit remote origins), so it shares the default origin
 test.use({ isolated: false });
@@ -120,13 +120,11 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}main : initialize Alice remote cursor', async ({ page }) => {
-    await page.goto('/?debug=USER&tag=alice', { waitUntil: 'networkidle' });
-    await expect(page.locator('.settings .notification')).toBeHidden();
+    await markInboxRead(page, '/?debug=USER&tag=alice');
   });
 
   test('@\u{ff20}repl : initialize Charlie local cursor', async ({ page }) => {
-    await page.goto(replUrl + '/?debug=USER&tag=charlie', { waitUntil: 'networkidle' });
-    await expect(page.locator('.settings .notification')).toBeHidden();
+    await markInboxRead(page, replUrl + '/?debug=USER&tag=charlie');
   });
 
   test('@\u{ff20}repl : creates ref', async ({ page }) => {
