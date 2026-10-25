@@ -4,7 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { NEVER, of, throwError } from 'rxjs';
 import { Mod } from '../../../model/tag';
 import { Template } from '../../../model/template';
 import { AdminService } from '../../../service/admin.service';
@@ -33,7 +33,7 @@ describe('SettingsSetupPage', () => {
           provide: AdminService,
           useFactory: () => (status = { plugins: {}, templates: {}, disabledPlugins: {}, disabledTemplates: {}, receipts: {} }, admin = {
                 init$: of(null),
-                loadModChanges$: () => of(null),
+                loadModChanges$: vi.fn(() => of(null)),
                 getPlugin() { },
                 getTemplate() { },
                 getMod() { },
@@ -62,6 +62,39 @@ describe('SettingsSetupPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('loadModChanges', () => {
+    const el = () => fixture.nativeElement as HTMLElement;
+
+    it('should show a loading placeholder until mod changes load', () => {
+      admin.loadModChanges$.mockReturnValue(NEVER);
+      component.loadModChanges();
+      fixture.detectChanges();
+      expect(el().querySelector('.mod-changes-loading')).toBeTruthy();
+      expect(el().querySelector('.mod-changes-error')).toBeNull();
+    });
+
+    it('should hide the placeholder once mod changes load', () => {
+      expect(component.modChangesLoaded()).toBe(true);
+      expect(el().querySelector('.mod-changes-loading')).toBeNull();
+      expect(el().querySelector('.mod-changes-error')).toBeNull();
+    });
+
+    it('should show an error with retry if mod changes fail to load', () => {
+      admin.loadModChanges$.mockReturnValue(throwError(() => new Error('Network down')));
+      component.loadModChanges();
+      fixture.detectChanges();
+      expect(component.modChangesLoaded()).toBe(false);
+      expect(el().querySelector('.mod-changes-loading')).toBeNull();
+      expect(el().querySelector('.mod-changes-error')?.textContent).toContain('Network down');
+
+      admin.loadModChanges$.mockReturnValue(of(null));
+      (el().querySelector('.mod-changes-retry') as HTMLElement).click();
+      fixture.detectChanges();
+      expect(component.modChangesLoaded()).toBe(true);
+      expect(el().querySelector('.mod-changes-error')).toBeNull();
+    });
   });
 
   const custom = mapTemplate(1, 'black');

@@ -297,7 +297,6 @@ export class AdminService {
   loadModChanges$(): Observable<any> {
     return this.loadReceipts$().pipe(
       tap(() => this.checkMissingReceipts()),
-      catchError(() => of(null)),
     );
   }
 

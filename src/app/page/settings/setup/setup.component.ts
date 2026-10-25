@@ -6,7 +6,7 @@ import { Component, DestroyRef, inject, signal, TemplateRef, viewChild, ViewCont
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, sortBy, uniq } from 'lodash-es';
-import { catchError, concat, last, of, Subscription, switchMap, tap, throwError } from 'rxjs';
+import { catchError, concat, EMPTY, last, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { DiffComponent } from '../../../form/diff/diff.component';
@@ -55,7 +55,9 @@ export class SettingsSetupPage {
   readonly mergeState = signal<ModUpdatePreview | undefined>(undefined);
   readonly mergeSaving = signal(false);
   readonly modChangesLoaded = signal(false);
+  readonly modChangesError = signal<string[]>([]);
   private mergeSavingSubscription?: Subscription;
+  private modChangesSubscription?: Subscription;
 
   readonly mergePopup = viewChild<TemplateRef<any>>('mergePopup');
 
@@ -80,12 +82,26 @@ export class SettingsSetupPage {
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
-    this.admin.loadModChanges$().subscribe(() => this.modChangesLoaded.set(true));
+    this.loadModChanges();
   }
 
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.cancelMerge();
+    this.modChangesSubscription?.unsubscribe();
   });
+
+  loadModChanges(init = false) {
+    this.modChangesSubscription?.unsubscribe();
+    this.modChangesLoaded.set(false);
+    this.modChangesError.set([]);
+    this.modChangesSubscription = (init ? this.admin.init$.pipe(tap(() => this.clear())) : of(null)).pipe(
+      switchMap(() => this.admin.loadModChanges$()),
+      catchError((res: HttpErrorResponse) => {
+        this.modChangesError.set(printError(res));
+        return EMPTY;
+      }),
+    ).subscribe(() => this.modChangesLoaded.set(true));
+  }
 
   install() {
     this.serverError.set([]);
@@ -143,11 +159,7 @@ export class SettingsSetupPage {
   }
 
   reset() {
-    this.modChangesLoaded.set(false);
-    this.admin.init$.pipe(
-      tap(() => this.clear()),
-      switchMap(() => this.admin.loadModChanges$()),
-    ).subscribe(() => this.modChangesLoaded.set(true));
+    this.loadModChanges(true);
   }
 
   clear() {
