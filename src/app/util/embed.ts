@@ -74,20 +74,15 @@ export function dataUrl(html: string) {
 }
 
 /**
- * Show a PDF in an opaque data: URL iframe.
- * PDF bytes are turned into a blob: URL by the opaque document, so the PDF viewer does not
- * run with the origin of the app either. Bytes are always shown as a PDF, never as HTML.
+ * Show a PDF from another server inside an opaque data: URL iframe, so the PDF viewer
+ * cannot run with the origin of the app, while still streaming the PDF from its URL.
  * @return cleanup function
  */
-export function setPdfSrc(iframe: HTMLIFrameElement, pdf: ArrayBuffer | string) {
+export function setPdfSrc(iframe: HTMLIFrameElement, url: string) {
   const listener = (event: MessageEvent) => {
     if (event.source !== iframe.contentWindow || !event.data?.jasperPdfReady) return;
     removeEventListener('message', listener);
-    if (typeof pdf === 'string') {
-      iframe.contentWindow!.postMessage({ jasperPdf: iframeUrl(pdf) }, '*');
-    } else {
-      iframe.contentWindow!.postMessage({ jasperPdf: pdf }, '*', [pdf]);
-    }
+    iframe.contentWindow!.postMessage({ jasperPdf: iframeUrl(url) }, '*');
   };
   addEventListener('message', listener);
   setIframeSrc(iframe, dataUrl(pdfWrapper()));
@@ -114,11 +109,10 @@ function pdfWrapper() {
   </head>
     <body><script>
       addEventListener('message', event => {
-        if (event.source !== parent || !event.data?.jasperPdf) return;
-        const pdf = event.data.jasperPdf;
+        if (event.source !== parent || typeof event.data?.jasperPdf !== 'string') return;
         const iframe = document.createElement('iframe');
         iframe.allow = 'fullscreen';
-        iframe.src = typeof pdf === 'string' ? pdf : URL.createObjectURL(new Blob([pdf], { type: 'application/pdf' }));
+        iframe.src = event.data.jasperPdf;
         document.body.replaceChildren(iframe);
       });
       parent.postMessage({ jasperPdfReady: true }, ${JSON.stringify(location.origin)});

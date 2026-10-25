@@ -18,7 +18,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import Hls from 'hls.js';
 import { isEqual, some, without } from 'lodash-es';
-import { BehaviorSubject, catchError, map, Observable, of, startWith, Subject, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, of, startWith, Subject, switchMap } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
@@ -330,12 +330,11 @@ export class ViewerComponent {
     audio.addEventListener('keydown', this.audioKeydownHandler, { capture: true });
   }
 
-  private pdfLoad?: Subscription;
   private pdfCleanup?: () => void;
 
   private stopPdf() {
-    this.pdfLoad?.unsubscribe();
     this.pdfCleanup?.();
+    this.pdfCleanup = undefined;
   }
 
   private setPdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
@@ -346,16 +345,14 @@ export class ViewerComponent {
     iframe.style.width ||= this.embedWidth();
     iframe.style.height ||= this.embedHeight();
     this.stopPdf();
-    // Proxied PDFs come from our own cache, so load the bytes and show them in an opaque iframe
-    const pdf$: Observable<ArrayBuffer | string | null> = this.admin.getPlugin('plugin/pdf')?.config?.proxy
-      ? this.proxy.fetch(url, this.currentOrigin(), this.getFilename()).pipe(
-        map(res => res.data),
-        catchError(() => of(null)),
-      )
-      : of(url);
-    this.pdfLoad = pdf$.subscribe(pdf => {
-      if (pdf) this.pdfCleanup = setPdfSrc(iframe, pdf);
-    });
+    if (this.admin.getPlugin('plugin/pdf')?.config?.proxy) {
+      // Frame our own cache directly so the PDF viewer can stream it with range requests.
+      // The server sandboxes cache responses (opaque origin), and its X-Frame-Options: SAMEORIGIN
+      // would block an opaque data: URL wrapper.
+      setIframeSrc(iframe, this.proxy.getFetch(url, this.currentOrigin(), this.getFilename()));
+    } else {
+      this.pdfCleanup = setPdfSrc(iframe, url);
+    }
   }
 
   setOembed(oembed: Oembed | null) {

@@ -314,18 +314,21 @@ test.describe.serial('Embed iframe origin', () => {
     await expect(page.locator('body')).not.toHaveAttribute('data-redirect-probe');
   });
 
-  test('PDF from our own cache renders with an opaque origin', async ({ page, request }) => {
+  test('PDF from our own cache streams with range requests', async ({ page, request }) => {
     const url = await cache(request, `paper-${id}.pdf`, 'application/pdf', pdf);
     const res = await request.post(`${api}/tags`, { headers: await headers(request), params: { url, tag: 'plugin/pdf' } });
     expect(res.ok()).toBe(true);
+    const document = page.waitForResponse(res => res.url().startsWith(`${app}/api/v1/proxy/`) && res.request().resourceType() === 'document');
     await open(page, url);
     await expectPdfViewer(page);
     const iframe = page.locator('.full-page.ref .embed-container .embed-expand');
     await expect(iframe).not.toHaveAttribute('sandbox');
-    const wrapper = (await (await iframe.elementHandle())!.contentFrame())!;
-    expect(wrapper.url()).toMatch(/^data:/);
-    // The PDF is a blob: URL created by the opaque wrapper, not by the app
-    expect(wrapper.childFrames().map(f => f.url())).toEqual([expect.stringMatching(/^blob:null\//)]);
+    const frame = (await (await iframe.elementHandle())!.contentFrame())!;
+    // Framed by URL, not fetched as bytes first, so the viewer can stream large PDFs
+    expect(frame.url()).toContain(`${app}/api/v1/proxy/`);
+    const headers = await (await document).allHeaders();
+    expect(headers['accept-ranges']).toBe('bytes');
+    expect(headers['content-security-policy']).toContain('sandbox');
   });
 
   test('HTML disguised as a PDF in our own cache cannot reach the app', async ({ page, request }) => {
@@ -333,11 +336,9 @@ test.describe.serial('Embed iframe origin', () => {
     const res = await request.post(`${api}/tags`, { headers: await headers(request), params: { url, tag: 'plugin/pdf' } });
     expect(res.ok()).toBe(true);
     await open(page, url);
-    // Only ever shown as a PDF, so the HTML never runs
-    await expect.poll(() => page.frames().some(f => f.url().startsWith('blob:null/'))).toBe(true);
-    await expectPdfViewer(page);
-    await page.waitForTimeout(1000);
-    expect(page.frames().filter(f => f !== page.mainFrame() && f.url().startsWith('http'))).toEqual([]);
+    const result = await probe(page.frameLocator('.full-page.ref .embed-container .embed-expand'));
+    expect(result.origin).toBe('null');
+    expectIsolated(result);
     await expect(page.locator('body')).not.toHaveAttribute('data-pdf-probe');
   });
 
