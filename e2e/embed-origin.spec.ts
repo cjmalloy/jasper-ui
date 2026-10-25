@@ -346,6 +346,15 @@ test.describe.serial('Embed iframe origin', () => {
         return route.fulfill({ contentType: 'application/pdf', body: pdf });
       });
       await createRef(request, url, ['public', 'plugin/pdf']);
+      const cached = await cache(request, `local-${id}.pdf`, 'application/pdf', pdf);
+      const tagged = await request.post(`${api}/tags`, { headers: await headers(request), params: { url: cached, tag: 'plugin/pdf' } });
+      expect(tagged.ok()).toBe(true);
+      await page.goto('/tag/plugin/pdf?debug=USER', { waitUntil: 'networkidle' });
+      // Nothing to expand, so no toggle, but PDFs in our own cache still embed
+      const row = (url: string) => page.locator('.ref-list .ref', { has: page.locator(`.actions a[href="/ref/${url}"]`) });
+      await expect(row(cached).locator('button.toggle')).toHaveCount(1);
+      await expect(row(url)).toHaveCount(1);
+      await expect(row(url).locator('button.toggle')).toHaveCount(0);
       await open(page, url);
       await expect(page.locator('.full-page.ref .link a').first()).toBeVisible();
       await expect(page.locator('.full-page.ref .embed-container iframe')).toHaveCount(0);

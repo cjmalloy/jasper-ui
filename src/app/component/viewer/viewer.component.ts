@@ -27,7 +27,7 @@ import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
 import { mapRef, Ref, RefUpdates } from '../../model/ref';
 import { DownloadAction, EmitAction, hydrate } from '../../model/tag';
-import { pdfUrl } from '../../mods/media/pdf';
+import { pdfEmbedUrl } from '../../mods/media/pdf';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -531,12 +531,7 @@ export class ViewerComponent {
   });
 
   readonly pdf = computed<string | undefined>(() => {
-    const plugin = this.admin.getPlugin('plugin/pdf');
-    if (!plugin) return undefined;
-    const url = pdfUrl(plugin, this.ref(), this.repost())?.url;
-    // A PDF viewer can't be sandboxed, so only embed PDFs served from our sandboxed cache
-    if (!url || !plugin.config?.proxy && !url.startsWith('cache:')) return undefined;
-    return url;
+    return pdfEmbedUrl(this.admin.getPlugin('plugin/pdf'), this.ref(), this.repost());
   });
 
   readonly uiActions = computed<PluginApi>(() => {

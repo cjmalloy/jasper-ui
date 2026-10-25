@@ -72,6 +72,16 @@ export function pdfUrl(plugin?: typeof pdfPlugin, ref?: Ref, repost?: Ref) {
     || hasTag('plugin/pdf', ref) && findCache(ref, repost);
 }
 
+/**
+ * A PDF viewer can't be sandboxed, so only embed PDFs served from our sandboxed cache.
+ */
+export function pdfEmbedUrl(plugin?: typeof pdfPlugin, ref?: Ref, repost?: Ref) {
+  if (!plugin) return undefined;
+  const url = pdfUrl(plugin, ref, repost)?.url;
+  if (!url || !plugin.config?.proxy && !url.startsWith('cache:')) return undefined;
+  return url;
+}
+
 export const pdfMod: Mod = {
   plugin: [
     pdfPlugin,
