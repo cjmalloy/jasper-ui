@@ -28,13 +28,6 @@ test.use({
   },
 });
 
-/**
- * Our own cache is served from the API. When the client proxies the API onto the app origin,
- * cached HTML runs with the app origin unless the server sends Content-Security-Policy: sandbox
- * on /api/v1/proxy. Remove test.fail() once the server does.
- */
-const SERVER_SANDBOX = 'Needs the jasper server to sandbox /api/v1/proxy responses';
-
 test.describe.serial('Embed iframe origin', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
   const id = Date.now();
@@ -260,7 +253,6 @@ test.describe.serial('Embed iframe origin', () => {
   });
 
   test('cached HTML from our own cache gets an opaque origin in an iframe', async ({ page, request }) => {
-    test.fail(true, SERVER_SANDBOX);
     const url = `${app}/api/v1/proxy/probe.html?url=${encodeURIComponent(await cache(request, 'probe.html', 'text/html', probeHtml('cacheProbe')))}&origin=`;
     await createRef(request, url);
     await open(page, url);
@@ -273,7 +265,6 @@ test.describe.serial('Embed iframe origin', () => {
   });
 
   test('cached HTML from our own cache gets an opaque origin in a tab', async ({ page, request }) => {
-    test.fail(true, SERVER_SANDBOX);
     const url = `${app}/api/v1/proxy/tab.html?url=${encodeURIComponent(await cache(request, 'tab.html', 'text/html', probeHtml('tabProbe')))}&origin=`;
     await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
     await expect(page.locator('body:not(.init-theme)')).toBeVisible();
@@ -286,7 +277,6 @@ test.describe.serial('Embed iframe origin', () => {
   });
 
   test('external page cannot navigate its iframe into our cache to reach the app', async ({ page, request }) => {
-    test.fail(true, SERVER_SANDBOX);
     const cached = `${app}/api/v1/proxy/nav.html?url=${encodeURIComponent(await cache(request, 'nav.html', 'text/html', probeHtml('navProbe')))}&origin=`;
     const url = `${other}/nav-${id}`;
     await page.route(`${other}/**`, route => route.fulfill({
@@ -302,7 +292,6 @@ test.describe.serial('Embed iframe origin', () => {
   });
 
   test('external page cannot redirect its iframe into our cache to reach the app', async ({ page, request }) => {
-    test.fail(true, SERVER_SANDBOX);
     const cached = `${app}/api/v1/proxy/redirect.html?url=${encodeURIComponent(await cache(request, 'redirect.html', 'text/html', probeHtml('redirectProbe')))}&origin=`;
     const url = `${other}/redirect-${id}`;
     await page.route(`${other}/**`, route => route.fulfill({ status: 302, headers: { Location: cached } }));
