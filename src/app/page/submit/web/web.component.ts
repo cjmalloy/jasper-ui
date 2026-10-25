@@ -93,6 +93,7 @@ export class SubmitWebPage implements HasChanges {
   private savingSubscription?: Subscription;
   readonly defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
   readonly loadingDefaults = signal<Ext[]>([]);
+  readonly defaultsLoaded = signal(false);
   readonly alreadyExists = signal<boolean>(false);
 
   private oldSubmit: string[] = [];
@@ -156,6 +157,7 @@ export class SubmitWebPage implements HasChanges {
       }
       if (this.store.account.localTag()) this.addTag(this.store.account.localTag());
       if (point && !d) this.addPlugin('plugin/geo/point', point);
+      this.defaultsLoaded.set(true);
       effect(() => {
         this.store.submit.tags();
         this.store.account.localTag();
@@ -362,7 +364,7 @@ export class SubmitWebPage implements HasChanges {
       this.savingSubscription?.add(() => this.submit());
       return;
     }
-    if (this.alreadyExists()) {
+    if (!this.defaultsLoaded() || this.alreadyExists()) {
       return;
     }
     this.serverError.set([]);
