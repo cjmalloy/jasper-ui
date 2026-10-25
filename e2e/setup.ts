@@ -24,6 +24,9 @@ const allowedConsoleErrors: RegExp[] = [
   // Chrome logs every 4xx/5xx response as a console error, e.g. the 404 for a user without a User entity
   // on startup. Tests assert on API results and UI state directly.
   /^Failed to load resource: the server responded with a status of \d+/,
+  // Chrome logs when the embed iframe sandbox stops an embedded page from navigating the app.
+  // The page in the iframe caused it, and the navigation was blocked as intended.
+  /^Unsafe attempt to initiate navigation for frame with origin .* The frame attempting navigation of the top-level window is sandboxed/s,
 ];
 
 /**

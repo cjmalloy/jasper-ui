@@ -59,7 +59,8 @@ export class ResizeHandleDirective {
     const child = this.child();
     if (!child) return;
     this.el.nativeElement.style.width = child.style.width;
-    this.el.nativeElement.style.height = child.style.height;
+    // When not resizable, let the height follow the child so its margins still apply
+    this.el.nativeElement.style.height = this.enabled() ? child.style.height : '';
   }
 
   onPointerDown(event: PointerEvent) {

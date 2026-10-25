@@ -51,10 +51,54 @@ export function parseSrc(html: string) {
 }
 
 /**
+ * Only allow URLs that cannot run with the app origin in an embed iframe:
+ * http(s) pages get the origin of their server, and data: URLs get an opaque origin.
+ * javascript:, blob: and about: URLs would run with the origin of the app.
+ */
+export function iframeUrl(url: string) {
+  if (!url?.trim()) return 'about:blank';
+  try {
+    const u = new URL(url, document.baseURI);
+    if (['http:', 'https:', 'data:'].includes(u.protocol)) return u.href;
+  } catch (e) {
+    // Invalid URL
+  }
+  return 'about:blank';
+}
+
+/**
+ * Wrap HTML in a data: URL. Unlike blob: URLs, which keep the origin of the app that
+ * created them, data: URLs get an opaque origin, so the content cannot reach the app.
+ */
+export function dataUrl(html: string) {
+  return 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+}
+
+/**
+ * Listen for messages posted by an iframe to its parent window.
+ * The parent is the window the iframe lives in, which is not the app window
+ * when the iframe has been moved into a picture-in-picture window.
+ * @return cleanup function
+ */
+export function listenToIframe(iframe: HTMLIFrameElement, listener: (event: MessageEvent) => void) {
+  const handler = (event: MessageEvent) => {
+    if (event.source !== iframe.contentWindow) return;
+    listener(event);
+  };
+  const windows = new Set<Window>([window]);
+  if (iframe.ownerDocument.defaultView) windows.add(iframe.ownerDocument.defaultView);
+  windows.forEach(w => w.addEventListener('message', handler));
+  return () => {
+    windows.forEach(w => w.removeEventListener('message', handler));
+  };
+}
+
+/**
  * Navigate an iframe without adding an entry to the browser history.
  * Setting iframe.src on an already loaded iframe pushes to the joint session history.
  */
 export function setIframeSrc(iframe: HTMLIFrameElement, url: string) {
+  url = iframeUrl(url);
   if (url && iframe.isConnected && iframe.contentWindow) {
     try {
       iframe.contentWindow.location.replace(url);

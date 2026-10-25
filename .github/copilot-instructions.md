@@ -43,6 +43,7 @@ All entities use composite keys:
 - Tags are plain strings, not entities. A tag can be used on a Ref without a matching Ext, User, Plugin, or Template.
 - The model has four layers: identity (storage/replication), indexing (tags/query/sort), validation (full entity + schema), and modding (client only).
 - Plugins *stack* on Refs. Templates *merge down* the tag hierarchy onto Exts and config.
+- Every embed iframe is a security boundary. `blob:` URLs keep the app origin, so HTML written by the client (oEmbed) uses opaque-origin `data:` URLs (`dataUrl`, `iframeUrl` in `util/embed.ts`). The embed iframe has one `sandbox` that allows everything except top navigation (`allow-same-origin` keeps sites working). PDFs can't use the `sandbox` attribute (Chrome won't render them) and are only embedded from our own cache, framed by URL so the viewer can stream them (the server sends `Content-Security-Policy: sandbox` and `X-Frame-Options: SAMEORIGIN`). With the `plugin/pdf` `proxy` setting off, only `cache:` PDFs embed. `e2e/embed-origin.spec.ts` proves it.
 - Modding is client-side on purpose. New plugins and templates should not need server changes or restarts.
 - Replication is pull-based and eventually consistent. It polls for entities modified after the last stored cursor `(origin, modified)`, so modified timestamps must be unique.
 
@@ -112,7 +113,7 @@ Builds write `dist/`, `.angular/`, and `.vitest/`, which are all gitignored.
 |---|---|---|---|
 | Dev server | `npm start` | 4200 | expects `//localhost:8081` (hard-coded default in `ConfigService`) |
 | Root compose (`docker-compose.yaml`) | `docker compose --profile server up --build -d` | 8082 | 8081 (Spring `dev` profile, Postgres) |
-| E2E compose (`e2e/docker-compose.yaml`) | `cd e2e && docker compose up --build -d` | 8080 (main), 8082 (replica) | 8081 (main), 8083 (replica) |
+| E2E compose (`e2e/docker-compose.yaml`) | `cd e2e && docker compose up --build -d` | 8080 (main), 8082 (replica), 8084 (main through the client's `/api/` proxy) | 8081 (main), 8083 (replica) |
 
 ⚠️ The root and E2E stacks **both bind 8081 and 8082**, so only one can run at a time. Run `docker compose down -v` on one before starting the other.
 
@@ -155,7 +156,7 @@ Attach light **and** dark mode screenshots for UI changes. If the Playwright MCP
 
 ## E2E Tests (Playwright)
 
-E2E tests live in `e2e/`. They need the E2E compose stack (main 8080/8081 + replica 8082/8083, Postgres, `ghcr.io/cjmalloy/jasper:master`). The `client` images are built from this repo's `Dockerfile`, so **rebuild the stack (`up --build`) after changing app code**. Otherwise the tests run against the old UI.
+E2E tests live in `e2e/`. They need the E2E compose stack (main 8080/8081 + replica 8082/8083 + same-origin proxied main client 8084, Postgres, `ghcr.io/cjmalloy/jasper:master`). The `client` images are built from this repo's `Dockerfile`, so **rebuild the stack (`up --build`) after changing app code**. Otherwise the tests run against the old UI.
 
 ### From the host (best for iterating)
 
@@ -190,6 +191,7 @@ Files that the container writes to `e2e/reports` and `test-results` may be owned
 - File naming: numbered core suites (`00-smoke.spec.ts`, `01-backup.spec.ts`, ...), `plugin-<name>.spec.ts`, `template-<name>.spec.ts`.
 - Tests run serially in one worker (`workers: 1`), so state carries over between tests. Reset it with the helpers.
 - Viewport is 1280x720 to avoid the mobile layout.
+- To test real cross-domain behaviour, see `e2e/embed-origin.spec.ts`: it maps `*.test` to 127.0.0.1 with `--host-resolver-rules`, opens the proxied client as `http://jasper.test:8084`, and uses `channel: 'chromium'` with `--unsafely-treat-insecure-origin-as-secure` so debug login (`crypto.subtle`) works over http. It also disables Chrome's local network access checks, because routed `other.test` pages count as public while `jasper.test` is loopback.
 
 ```typescript
 import { expect } from '@playwright/test';

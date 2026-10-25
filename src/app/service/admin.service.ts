@@ -41,7 +41,7 @@ import { fileMod } from '../mods/media/file';
 import { imageMod } from '../mods/media/image';
 import { masonryMod } from '../mods/media/masonry';
 import { mp3Mod } from '../mods/media/mp3';
-import { pdfMod } from '../mods/media/pdf';
+import { pdfEmbedUrl, pdfMod } from '../mods/media/pdf';
 import { playlistMod } from '../mods/media/playlist';
 import { tableMod } from '../mods/media/table';
 import { videoMod } from '../mods/media/video';
@@ -778,7 +778,8 @@ export class AdminService {
       ...this.getPluginsForUrl(ref.url).map(p => p.tag),
       ...this.getPluginsForCache(ref),
       ...(ref.alternateUrls || []).flatMap(url => this.getPluginsForUrl(url).map(p => p.tag)),
-    ], this.embeddable()) as string[]);
+    ], this.embeddable()) as string[])
+      .filter(tag => !hasTag('plugin/pdf', [tag]) || pdfEmbedUrl(this.getPlugin('plugin/pdf'), ref));
   }
 
   getPluginsForUrl(url: string) {
