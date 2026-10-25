@@ -10,7 +10,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { isObject } from 'lodash-es';
-import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
 import { SettingsComponent } from '../../component/settings/settings.component';
@@ -62,6 +62,10 @@ export class ExtPage implements HasChanges {
   readonly deleting = signal(false);
   private deletingSubscription?: Subscription;
   readonly overwrittenModified = signal<string | undefined>('');
+  /**
+   * The Ext lookup for the current route has finished.
+   */
+  readonly loaded = signal(false);
 
   /**
    * The Ext the edit form was filled from.
@@ -85,12 +89,14 @@ export class ExtPage implements HasChanges {
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],
     });
     toObservable(computed(() => this.store.view.tag() ? this.store.view.localTag() + this.store.account.origin() : undefined)).pipe(
+      tap(() => this.loaded.set(false)),
       switchMap(tag => tag === undefined ? of(undefined) : this.exts.get(tag).pipe(
         catchError(() => of(undefined)),
         map(ext => ({ tag, ext })),
       )),
       takeUntilDestroyed(),
     ).subscribe(x => {
+      this.loaded.set(true);
       if (!x) {
         this.template.set('');
         this.tag.setValue('');
@@ -162,6 +168,7 @@ export class ExtPage implements HasChanges {
   }
 
   create() {
+    if (!this.loaded()) return;
     this.serverError.set([]);
     this.submitted.set(true);
     this.extForm.markAllAsTouched();

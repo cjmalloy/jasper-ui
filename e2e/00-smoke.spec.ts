@@ -43,7 +43,9 @@ test.describe.serial('Smoke Tests', () => {
     await deleteLink.press('Enter');
     const confirmLink = page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first();
     await confirmLink.focus();
+    const deleted = page.waitForResponse(res => res.request().method() === 'DELETE' && res.url().includes('/api/v1/ref'));
     await confirmLink.press('Space');
+    expect((await deleted).ok()).toBe(true);
     await page.goto(`/ref/e/${encodeURIComponent('https://jasperkm.info/')}?debug=USER`);
     await expect(page.locator('.error-404', { hasText: 'Not Found' })).toBeVisible();
   });
