@@ -592,6 +592,39 @@ describe('AccountService', () => {
       expect(count).not.toHaveBeenCalledWith(expect.objectContaining({ query: `${filter}:${chrisBox}:!alarm` }));
     });
 
+    it('reads notifications for every alias up to the latest remote cursor of any alias', () => {
+      setOrigins([
+        {
+          url: 'spec:city',
+          origin: '',
+          tags: ['+plugin/origin/pull'],
+          plugins: { '+plugin/origin': { local: '@city', aliases: [{ local: '+user/dad', remote: '+user/chris' }, { local: '+user/dad', remote: '+user/cj' }] } },
+        },
+        {
+          url: 'spec:town',
+          origin: '',
+          tags: ['+plugin/origin/pull'],
+          plugins: { '+plugin/origin': { local: '@town', aliases: [{ local: '+user/dad', remote: '+user/dad' }] } },
+        },
+      ]);
+      const store = (service as any).store;
+      store.account.notificationCursors.set('@town', localCursor);
+      const allCursors = 'plugin/user/cursor:(+user/chris@city|+user/cj@city|+user/dad@town)';
+      const olderCursor = '2026-01-15T00:00:00.000Z';
+      page.mockImplementation((args: any) => of(Page.of(args.query === allCursors ? [
+        remoteCursorRef(remoteCursor),
+        { ...remoteCursorRef(olderCursor, 'tag:/user/dad?url=tag:/plugin/inbox', '@town'), tags: ['+user/dad', 'plugin/user/cursor'] },
+      ] : [])));
+      service.checkNotifications();
+
+      const cityFilter = '@city:!+user/chris@city:!+user/cj@city:!plugin/delete';
+      expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: allCursors }));
+      expect(count).toHaveBeenCalledWith({ query: `${cityFilter}:${chrisBox}:!alarm`, modifiedAfter: remoteCursor });
+      expect(count).toHaveBeenCalledWith({ query: `${cityFilter}:plugin/inbox/user/cj@city:!${chrisBox}:!alarm`, modifiedAfter: remoteCursor });
+      expect(count).toHaveBeenCalledWith({ query: '@town:!+user/dad@town:!plugin/delete:plugin/inbox/user/dad@town:!alarm', modifiedAfter: remoteCursor });
+      expect(count).toHaveBeenCalledWith({ query: '@town:!+user/dad@town:!plugin/delete:(alarm)', modifiedAfter: localCursor });
+    });
+
     it('ignores remote cursors that cannot be loaded', () => {
       page.mockReturnValue(throwError(() => ({ status: 403 })));
       service.checkNotifications();

@@ -359,7 +359,7 @@ export class AccountService {
     this.loadNotificationCursors$().pipe(
       switchMap(streams => {
         const stream = streams.find(stream => stream.origin === origin) || this.notificationStream(origin!, []);
-        return this.remoteCursors$([stream]).pipe(
+        return this.remoteCursors$(streams).pipe(
           switchMap(remote => this.countNotifications$(this.notificationQueries(stream, remote), readDate)),
         );
       }),
@@ -487,21 +487,20 @@ export class AccountService {
   /**
    * Queries for unread notifications in a stream. Notifications addressed to
    * an alias account are read up to the later of the local cursor and the
-   * cursor the alias account saved on its own origin. Alarms are only
+   * latest cursor any alias account saved on its own origin, so clearing
+   * notifications on one alias clears them for all aliases. Alarms are only
    * read up to the local cursor, so they must be cleared on each origin.
    */
   private notificationQueries(stream: NotificationStream | OtherNotifications, remoteCursors?: Map<string, string>): NotificationQuery[] {
     const modifiedAfter = this.notificationCursor(stream.origin);
-    const after = (tag: string) => {
-      const remote = remoteCursors?.get(tag);
-      return remote && (!modifiedAfter || compareCursors(remote, modifiedAfter) > 0) ? remote : modifiedAfter;
-    };
-    if (!stream.aliases?.some(alias => after(alias.tag) !== modifiedAfter)) {
+    const remote = [...remoteCursors?.values() || []]
+      .reduce<string | undefined>((max, cursor) => !max || compareCursors(cursor, max) > 0 ? cursor : max, undefined);
+    if (!stream.aliases?.length || !remote || (modifiedAfter && compareCursors(remote, modifiedAfter) <= 0)) {
       return [{ query: stream.query, modifiedAfter }];
     }
     return [
       ...(stream.localQuery ? [{ query: stream.localQuery, modifiedAfter }] : []),
-      ...stream.aliases.map(alias => ({ query: alias.query, modifiedAfter: after(alias.tag) })),
+      ...stream.aliases.map(alias => ({ query: alias.query, modifiedAfter: remote })),
     ];
   }
 
@@ -513,7 +512,8 @@ export class AccountService {
 
   /**
    * Loads the inbox cursors alias accounts saved on their own origins,
-   * mapped by qualified alias tag.
+   * mapped by qualified alias tag. Loads cursors for the aliases in all
+   * streams, since the latest one applies to every alias.
    */
   private remoteCursors$(streams: NotificationStream[]): Observable<Map<string, string>> {
     const tags = uniq(streams.flatMap(stream => stream.aliases?.map(alias => alias.tag) || []));
