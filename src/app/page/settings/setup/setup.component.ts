@@ -6,7 +6,7 @@ import { Component, DestroyRef, inject, signal, TemplateRef, viewChild, ViewCont
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, sortBy, uniq } from 'lodash-es';
-import { catchError, concat, EMPTY, last, of, Subscription, switchMap, tap, throwError } from 'rxjs';
+import { catchError, concat, EMPTY, last, Observable, of, shareReplay, Subscription, switchMap, tap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { DiffComponent } from '../../../form/diff/diff.component';
@@ -94,7 +94,16 @@ export class SettingsSetupPage {
     this.modChangesSubscription?.unsubscribe();
     this.modChangesLoaded.set(false);
     this.modChangesError.set([]);
-    this.modChangesSubscription = (init ? this.admin.init$.pipe(tap(() => this.clear())) : of(null)).pipe(
+    let ready$: Observable<any> = of(null);
+    if (init) {
+      const init$ = this.admin.init$.pipe(shareReplay(1));
+      init$.subscribe();
+      ready$ = init$.pipe(tap(() => {
+        this.clear();
+        this.installMessages.update(messages => [...messages, $localize`Reload the page to finish loading mod changes.`]);
+      }));
+    }
+    this.modChangesSubscription = ready$.pipe(
       switchMap(() => this.admin.loadModChanges$()),
       catchError((res: HttpErrorResponse) => {
         this.modChangesError.set(printError(res));
