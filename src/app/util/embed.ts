@@ -56,6 +56,7 @@ export function parseSrc(html: string) {
  * javascript:, blob: and about: URLs would run with the origin of the app.
  */
 export function iframeUrl(url: string) {
+  if (!url?.trim()) return 'about:blank';
   try {
     const u = new URL(url, document.baseURI);
     if (['http:', 'https:', 'data:'].includes(u.protocol)) return u.href;

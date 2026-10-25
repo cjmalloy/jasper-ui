@@ -202,18 +202,23 @@ test.describe.serial('Embed iframe origin', () => {
     await expect(page.locator('.full-page.ref')).toBeVisible();
   });
 
-  test('X oEmbed gets the twitter styles', async ({ page, request }) => {
+  test('X oEmbed gets the twitter styles and shrinks to fit the post', async ({ page, request }) => {
     const url = `${other}/x-${id}`;
     await createRef(request, url);
+    // widgets.js renders a tall placeholder first, then resizes the post: the 10px margins are cropped
+    const tweet = '<div style="display: flex; max-width: 550px; width: 100%; margin: 10px auto"><div class="tweet" style="width: 100%; height: 700px"></div></div>'
+      + `<script>setTimeout(() => document.querySelector('.tweet').style.height = '400px', 500)</script>`;
     await page.route('**/api/v1/oembed?**', route => route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({
         type: 'rich', version: '1.0', provider_name: 'X', provider_url: 'https://x.com',
-        html: '<blockquote class="twitter-tweet"><p>Post</p></blockquote>',
+        html: tweet,
       }),
     }));
     await open(page, url);
-    await expect(page.locator('.full-page.ref .embed-container.twitter')).toBeVisible();
+    const container = page.locator('.full-page.ref .embed-container.twitter');
+    await expect(container).toBeVisible();
+    await expect.poll(async () => (await container.boundingBox())?.height).toBe(400);
   });
 
   test('oEmbed widget scripts allowed by the CSP still load', async ({ page, request }) => {

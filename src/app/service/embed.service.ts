@@ -845,9 +845,19 @@ export function transparentIframe(content: string, bgColor: string, overflow = '
       (() => {
         // The opaque origin of a data: URL cannot be read by the app, so report the height
         let height = 0;
+        // body.scrollHeight never drops below the iframe height, so measure the content to let it shrink
+        const measure = () => {
+          let bottom = 0;
+          for (const el of document.body.children) {
+            if (el.tagName === 'SCRIPT') continue;
+            bottom = Math.max(bottom, el.getBoundingClientRect().bottom + parseFloat(getComputedStyle(el).marginBottom) + scrollY);
+          }
+          return Math.ceil(bottom) || document.body.scrollHeight;
+        };
         const report = () => {
-          if (document.body.scrollHeight === height) return;
-          height = document.body.scrollHeight;
+          const h = measure();
+          if (h === height) return;
+          height = h;
           parent.postMessage({ jasperIframeHeight: height }, ${JSON.stringify(location.origin)});
         };
         report();

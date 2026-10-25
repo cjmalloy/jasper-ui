@@ -50,6 +50,11 @@ describe('iframeUrl', () => {
     expect(iframeUrl('about:srcdoc')).toBe('about:blank');
     expect(iframeUrl('cache:123')).toBe('about:blank');
   });
+
+  it('should not resolve an empty URL to the app', () => {
+    expect(iframeUrl('')).toBe('about:blank');
+    expect(iframeUrl(' ')).toBe('about:blank');
+  });
 });
 
 describe('dataUrl', () => {
