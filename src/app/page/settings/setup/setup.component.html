@@ -12,7 +12,7 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      @if (store.view.modUpdates().size) {
+      @if (modChangesLoaded() && store.view.modUpdates().size) {
         <button type="button" (click)="updateAll()" i18n>🌟️ Update All</button>
       }
       @if (selectAllToggle()) {
@@ -22,6 +22,23 @@
       }
       <button type="button" (click)="install()" [disabled]="submitted() && !adminFormValid()" i18n>Save</button>
     </span>
+
+    @if (modChangesError().length) {
+      <span><!-- Mod Changes Error --></span>
+      <div class="mod-changes-error">
+        @for (e of modChangesError(); track $index) {
+          <div class="error">{{ e }}</div>
+        }
+        <div class="error" i18n>Unable to check mods for local changes. Updates and diffs are unavailable.</div>
+        <span class="fake-link mod-changes-retry" (click)="loadModChanges()" i18n>retry</span>
+      </div>
+    } @else if (!modChangesLoaded()) {
+      <span><!-- Mod Changes Loading --></span>
+      <div class="mod-changes-loading">
+        <app-loading [inline]="true" />
+        <span i18n>Checking mods for local changes...</span>
+      </div>
+    }
 
     @if (serverError().length || installMessages().length) {
       <span class="mobile-block"><!-- Log --></span>
@@ -48,7 +65,7 @@
               @if (c.config?.experimental) {
                 <span>🧪️</span>
               }
-              @if (needsModUpdate(c) || canDiffMod(c)) {
+              @if (modChangesLoaded() && (needsModUpdate(c) || canDiffMod(c))) {
                 <span class="update">
                   @if (needsModUpdate(c)) {
                     <span class="fake-link no-select mod-update-link" (click)="updateMod(c)" i18n>🌟️ update</span>

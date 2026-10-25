@@ -2,7 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
-import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, forkJoin, map, Observable, of, retry, shareReplay, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
@@ -94,7 +94,7 @@ import { userMod } from '../mods/user';
 import { voteMod } from '../mods/vote';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
-import { clearMod, equalBundle } from '../util/diff';
+import { equalBundle } from '../util/diff';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
@@ -240,6 +240,10 @@ export class AdminService {
 
   _cache = new Map<string, any>();
   private firstRun = false;
+  /**
+   * Emits once the latest mod reload has finished.
+   */
+  ready$: Observable<any> = of(null);
 
   readonly status = computed<AdminStatus>(() => {
     return this._status();
@@ -286,10 +290,26 @@ export class AdminService {
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.firstRun$),
-      switchMap(() => this.loadReceipts$()),
-      switchMap(() => this.checkMissingReceipts$()),
       catchError(() => of(null)),
       tap(() => this.clearCache()),
+    );
+  }
+
+  /**
+   * Reload mods in the background. Unsubscribing does not cancel the reload.
+   */
+  reload$(): Observable<any> {
+    const init$ = this.init$.pipe(shareReplay(1));
+    init$.subscribe();
+    return this.ready$ = init$;
+  }
+
+  /**
+   * Load mod receipts and flag mods with local changes. Only needed for 3-way merges on the setup page.
+   */
+  loadModChanges$(): Observable<any> {
+    return this.loadReceipts$().pipe(
+      tap(() => this.checkMissingReceipts()),
     );
   }
 
@@ -442,8 +462,7 @@ export class AdminService {
     }
   }
 
-  private checkMissingReceipts$(): Observable<any> {
-    const receipts: Observable<any>[] = [];
+  private checkMissingReceipts() {
     for (const mod of uniq([
       ...Object.values(this.status().plugins).map(p => modId(p)),
       ...Object.values(this.status().templates).map(t => modId(t)),
@@ -453,15 +472,8 @@ export class AdminService {
       if (!current) continue;
       const target = this.getMod(mod);
       if (!target) continue;
-      const changed = !equalBundle(current, target);
-      this.store.view.setModChange(mod, changed);
-      if (!changed && this.store.account.admin && this.getPlugin('plugin/mod/receipt')) {
-        // Record a merge base for unmodified mods so future updates can be merged
-        receipts.push(this.logModReceipt$(mod, clearMod(current), () => {}).pipe(catchError(() => of(null))));
-      }
+      this.store.view.setModChange(mod, !equalBundle(current, target));
     }
-    if (!receipts.length) return of(null);
-    return concat(...receipts).pipe(toArray());
   }
 
   private get _extFallback() {

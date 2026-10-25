@@ -189,4 +189,23 @@ test.describe.serial('Mod Update', () => {
     await expect(page.locator('.log div', { hasText: `Skipped ${pristine.name} mod` }).first()).toBeAttached();
     await expectAborted(page, request, { description: 'Custom description' });
   });
+
+  test('shows an error with retry when receipts fail to load', async ({ page, request }) => {
+    await installOld(request, {});
+    await setReceipt(request);
+    let fail = true;
+    await page.route(/\/api\/v1\/ref\/page\?.*receipt/, route => fail
+      ? route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ detail: 'Receipts unavailable' }) })
+      : route.continue());
+    await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
+    const row = page.locator('.mod-row', { has: page.locator('#mod-blog') });
+    await expect(page.locator('.mod-changes-error')).toContainText('Receipts unavailable');
+    await expect(page.locator('.mod-changes-loading')).toHaveCount(0);
+    await expect(row.locator('.mod-update-link')).toHaveCount(0);
+    fail = false;
+    await page.locator('.mod-changes-retry').click();
+    await expect(page.locator('.mod-changes-error')).toHaveCount(0);
+    await expect(page.locator('.mod-changes-loading')).toHaveCount(0);
+    await expect(row.locator('.mod-update-link')).toBeVisible();
+  });
 });
