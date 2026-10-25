@@ -74,11 +74,13 @@ export function pdfUrl(plugin?: typeof pdfPlugin, ref?: Ref, repost?: Ref) {
 
 /**
  * A PDF viewer can't be sandboxed, so only embed PDFs served from our sandboxed cache.
+ * data: URLs are not proxied, so they would be framed without the sandbox.
  */
 export function pdfEmbedUrl(plugin?: typeof pdfPlugin, ref?: Ref, repost?: Ref) {
   if (!plugin) return undefined;
   const url = pdfUrl(plugin, ref, repost)?.url;
-  if (!url || !plugin.config?.proxy && !url.startsWith('cache:')) return undefined;
+  if (!url || /^\s*data:/i.test(url)) return undefined;
+  if (!plugin.config?.proxy && !url.startsWith('cache:')) return undefined;
   return url;
 }
 

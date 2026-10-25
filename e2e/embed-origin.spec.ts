@@ -336,6 +336,20 @@ test.describe.serial('Embed iframe origin', () => {
     await expect(page.locator('body')).not.toHaveAttribute('data-pdf-probe');
   });
 
+  test('HTML in a PDF data: URL is not embedded', async ({ page, request }) => {
+    const url = `comment:pdf-data-${id}`;
+    const res = await request.post(`${api}/ref`, {
+      headers: await headers(request),
+      data: { url, title: 'Embed origin', tags: ['public', 'plugin/pdf'], plugins: { 'plugin/pdf': { url: `data:text/html,${encodeURIComponent(probeHtml('dataPdfProbe'))}` } } },
+    });
+    expect(res.ok(), await res.text()).toBe(true);
+    await open(page, url);
+    await expect(page.locator('.full-page.ref .link a').first()).toBeVisible();
+    await expect(page.locator('.full-page.ref .embed-container iframe')).toHaveCount(0);
+    expect(page.frames().some(f => f.url().startsWith('data:'))).toBe(false);
+    await expect(page.locator('body')).not.toHaveAttribute('data-data-pdf-probe');
+  });
+
   test('PDF from another domain is not embedded without the proxy', async ({ page, request }) => {
     await setPdfProxy(request, false);
     try {
