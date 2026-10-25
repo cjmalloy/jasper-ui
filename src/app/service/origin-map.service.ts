@@ -184,6 +184,17 @@ export class OriginMapService {
   });
 
   /**
+   * Maps an origin, as named from inside a remote origin, to our origin.
+   * The empty name is the remote origin itself.
+   * Returns undefined when the name is not a mirror of one of our origins.
+   */
+  localOrigin(remote: string, name = ''): string | undefined {
+    if (!name) return remote;
+    const mapped = this.store.origins.originMap().get(remote)?.get(name);
+    return mapped === undefined ? undefined : subOrigin(this.store.account.origin(), mapped);
+  }
+
+  /**
    * Finds which of our origins a remote origin Ref points to by matching url + remote
    * against our own origin configs.
    */

@@ -57,7 +57,7 @@ interface OtherNotifications {
   query: string;
   alarmQuery?: string;
   localQuery?: undefined;
-  aliases?: undefined;
+  aliasQuery?: undefined;
 }
 
 export interface NotificationStream {
@@ -70,12 +70,11 @@ export interface NotificationStream {
    */
   localQuery?: string;
   /**
-   * Notifications addressed to each alias account in this origin.
-   * These are also read when the alias account clears its notifications
-   * on its own origin. Queries do not overlap with each other or with
-   * the local query.
+   * Notifications addressed to alias accounts in this origin, not
+   * overlapping the local query. These are also read when any alias
+   * account clears its notifications for its copy of this origin.
    */
-  aliases?: { tag: string, query: string }[];
+  aliasQuery?: string;
 }
 
 interface NotificationQuery {
@@ -298,12 +297,12 @@ export class AccountService {
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     this.check?.unsubscribe();
     this.check = this.loadNotificationCursors$().pipe(
-      switchMap(streams => this.remoteCursors$(streams).pipe(map(remote => ({ streams, remote })))),
-      switchMap(({ streams, remote }) => {
+      switchMap(streams => this.aliasCursors$().pipe(map(borrowed => ({ streams, borrowed })))),
+      switchMap(({ streams, borrowed }) => {
         const counts = [...streams, this.otherNotifications(streams)].map(stream => {
           const modifiedAfter = this.notificationCursor(stream.origin);
           return forkJoin([
-            this.countNotifications$(this.notificationQueries(stream, remote)),
+            this.countNotifications$(this.notificationQueries(stream, borrowed)),
             stream.alarmQuery
               ? this.refs.count({ query: stream.alarmQuery, modifiedAfter })
               : of(0),
@@ -322,10 +321,10 @@ export class AccountService {
 
   notificationPage$(size: number): Observable<Page<Ref>> {
     return this.loadNotificationCursors$().pipe(
-      switchMap(streams => this.remoteCursors$(streams).pipe(map(remote => ({ streams, remote })))),
-      switchMap(({ streams, remote }) => {
+      switchMap(streams => this.aliasCursors$().pipe(map(borrowed => ({ streams, borrowed })))),
+      switchMap(({ streams, borrowed }) => {
         const queries = [...streams, this.otherNotifications(streams)]
-          .flatMap(stream => this.notificationQueries(stream, remote));
+          .flatMap(stream => this.notificationQueries(stream, borrowed));
         return from(queries).pipe(
           mergeMap(query => this.refs.page({
             ...query,
@@ -359,8 +358,8 @@ export class AccountService {
     this.loadNotificationCursors$().pipe(
       switchMap(streams => {
         const stream = streams.find(stream => stream.origin === origin) || this.notificationStream(origin!, []);
-        return this.remoteCursors$([stream]).pipe(
-          switchMap(remote => this.countNotifications$(this.notificationQueries(stream, remote), readDate)),
+        return this.aliasCursors$().pipe(
+          switchMap(borrowed => this.countNotifications$(this.notificationQueries(stream, borrowed), readDate)),
         );
       }),
     ).subscribe(count => {
@@ -462,46 +461,40 @@ export class AccountService {
     const alarms = this.store.account.alarmsQuery();
     const notifications = [...(boxes.length ? boxes : this.otherMailboxes), ...(alarms ? [alarms] : [])];
     const filter = `${origin || '@'}:${excludeAuthors ? excludeAuthors + ':' : ''}!plugin/delete`;
-    const aliasBoxes = new Map<string, string>();
-    for (const tag of aliasTags) {
-      const box = getMailbox(tag, tagOrigin(tag)) + tagOrigin(tag);
-      if (boxes.includes(box) && !aliasBoxes.has(box)) aliasBoxes.set(box, tag);
-    }
-    const local = [...boxes.filter(box => !aliasBoxes.has(box)), ...this.store.account.alarms()];
-    const exclude = (tags: string[]) => tags.map(tag => `:!${tag}`).join('');
+    const aliasBoxes = uniq(aliasTags.map(tag => getMailbox(tag, tagOrigin(tag)) + tagOrigin(tag)))
+      .filter(box => boxes.includes(box));
+    const local = [...boxes.filter(box => !aliasBoxes.includes(box)), ...this.store.account.alarms()];
+    const exclude = local.map(tag => `:!${tag}`).join('');
     return {
       origin,
       query: `${filter}:(${notifications.join('|')})`,
       ...(alarms ? { alarmQuery: `${filter}:(${alarms})` } : {}),
       settingsUrl: cursorSettingsUrl(origin, this.store.account.origin()),
-      ...(aliasBoxes.size ? {
+      ...(aliasBoxes.length ? {
         ...(local.length ? { localQuery: `${filter}:(${local.join('|')})` } : {}),
-        aliases: [...aliasBoxes].map(([box, tag], i) => ({
-          tag,
-          query: `${filter}:${box}${exclude([...aliasBoxes.keys()].slice(0, i))}${exclude(local)}`,
-        })),
+        aliasQuery: `${filter}:(${aliasBoxes.join('|')})${exclude}`,
       } : {}),
     };
   }
 
   /**
    * Queries for unread notifications in a stream. Notifications addressed to
-   * an alias account are read up to the later of the local cursor and the
-   * cursor the alias account saved on its own origin. Alarms are only
-   * read up to the local cursor, so they must be cleared on each origin.
+   * alias accounts are read up to the later of the local cursor and the
+   * latest cursor any alias account saved for its copy of this origin.
+   * Cursors are only compared within one origin, since each origin owns its
+   * clock. This assumes aliases see the same notifications in each origin.
+   * Alarms and other notifications are only read up to the local cursor, so
+   * they must be cleared on each origin.
    */
-  private notificationQueries(stream: NotificationStream | OtherNotifications, remoteCursors?: Map<string, string>): NotificationQuery[] {
+  private notificationQueries(stream: NotificationStream | OtherNotifications, borrowed?: Map<string, string>): NotificationQuery[] {
     const modifiedAfter = this.notificationCursor(stream.origin);
-    const after = (tag: string) => {
-      const remote = remoteCursors?.get(tag);
-      return remote && (!modifiedAfter || compareCursors(remote, modifiedAfter) > 0) ? remote : modifiedAfter;
-    };
-    if (!stream.aliases?.some(alias => after(alias.tag) !== modifiedAfter)) {
+    const alias = stream.origin === undefined ? undefined : borrowed?.get(stream.origin);
+    if (!stream.aliasQuery || !alias || (modifiedAfter && compareCursors(alias, modifiedAfter) <= 0)) {
       return [{ query: stream.query, modifiedAfter }];
     }
     return [
       ...(stream.localQuery ? [{ query: stream.localQuery, modifiedAfter }] : []),
-      ...stream.aliases.map(alias => ({ query: alias.query, modifiedAfter: after(alias.tag) })),
+      { query: stream.aliasQuery, modifiedAfter: alias },
     ];
   }
 
@@ -512,14 +505,18 @@ export class AccountService {
   }
 
   /**
-   * Loads the inbox cursors alias accounts saved on their own origins,
-   * mapped by qualified alias tag.
+   * Loads the cursors alias accounts saved for each origin they see, mapped
+   * to our origin. Cursors for origins that are not mirrors of one of our
+   * origins are dropped. The latest cursor for each origin is kept.
+   * Obsolete Refs are included, since an alias with the same name as us
+   * saves its cursors with the same urls.
    */
-  private remoteCursors$(streams: NotificationStream[]): Observable<Map<string, string>> {
-    const tags = uniq(streams.flatMap(stream => stream.aliases?.map(alias => alias.tag) || []));
+  private aliasCursors$(): Observable<Map<string, string>> {
+    const tags = this.store.account.aliasTags();
     if (!tags.length) return of(new Map<string, string>());
     const page$ = (page: number) => this.refs.page({
       query: `plugin/user/cursor:(${tags.join('|')})`,
+      obsolete: null,
       page,
       size: DISCOVER_PAGE_SIZE,
     });
@@ -531,10 +528,19 @@ export class AccountService {
         for (const ref of pages.flatMap(page => page.content)) {
           const cursor = ref.plugins?.['plugin/user/cursor']?.cursor;
           if (!cursor) continue;
-          const tag = tags.find(tag =>
-            tagOrigin(tag) === (ref.origin || '') &&
-            ref.url === `tag:/${setPublic(localTag(tag))}?url=tag:/plugin/inbox`);
-          if (tag) cursors.set(tag, cursor);
+          const remote = ref.origin || '';
+          const prefix = tags
+            .filter(tag => tagOrigin(tag) === remote)
+            .map(tag => `tag:/${setPublic(localTag(tag))}?url=tag:/plugin/`)
+            .find(prefix => ref.url.startsWith(prefix));
+          if (!prefix) continue;
+          const box = ref.url.substring(prefix.length);
+          const origin = box === 'inbox' ? this.origins.localOrigin(remote)
+            : box.startsWith('outbox/') ? this.origins.localOrigin(remote, '@' + box.substring('outbox/'.length))
+            : undefined;
+          if (origin === undefined) continue;
+          const current = cursors.get(origin);
+          if (!current || compareCursors(cursor, current) > 0) cursors.set(origin, cursor);
         }
         return cursors;
       }),
@@ -586,6 +592,8 @@ export class AccountService {
   /**
    * Origins without a mailbox do not have a stream, so their saved cursors
    * must be found by searching for cursor Refs instead of loading each stream.
+   * A newer Ref with the same url in another origin makes ours obsolete, so
+   * obsolete Refs are included.
    */
   private loadSavedCursors$(): Observable<undefined> {
     if (!this.savedCursors) {
@@ -593,6 +601,7 @@ export class AccountService {
       const prefix = `tag:/${setPublic(this.store.account.localTag())}?url=tag:/plugin/outbox/`;
       const page$ = (page: number) => this.refs.page({
         query: `plugin/user/cursor:${account}`,
+        obsolete: null,
         page,
         size: DISCOVER_PAGE_SIZE,
       });
