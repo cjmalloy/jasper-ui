@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dataUrl, embedUrl, iframeUrl } from './embed';
+import { dataUrl, embedUrl, iframeUrl, listenToIframe } from './embed';
 
 describe('embedUrl', () => {
   const embed = 'https://www.youtube-nocookie.com/embed/abc123';
@@ -60,5 +60,39 @@ describe('iframeUrl', () => {
 describe('dataUrl', () => {
   it('should encode HTML', () => {
     expect(dataUrl('<p>#1 & 100%</p>')).toBe('data:text/html;charset=utf-8,%3Cp%3E%231%20%26%20100%25%3C%2Fp%3E');
+  });
+});
+
+describe('listenToIframe', () => {
+  function post(target: Window, source: Window | null, data: any) {
+    target.dispatchEvent(new MessageEvent('message', { source, data }));
+  }
+
+  it('only hears messages from the iframe', () => {
+    const iframe = document.createElement('iframe');
+    document.body.append(iframe);
+    const heard: any[] = [];
+    const stop = listenToIframe(iframe, e => heard.push(e.data));
+    post(window, window, 'app');
+    post(window, iframe.contentWindow, 'iframe');
+    stop();
+    post(window, iframe.contentWindow, 'stopped');
+    expect(heard).toEqual(['iframe']);
+    iframe.remove();
+  });
+
+  it('hears messages posted to a picture-in-picture window', () => {
+    const host = document.createElement('iframe');
+    document.body.append(host);
+    const pip = host.contentWindow!;
+    const iframe = pip.document.createElement('iframe');
+    pip.document.body.append(iframe);
+    const heard: any[] = [];
+    const stop = listenToIframe(iframe, e => heard.push(e.data));
+    post(pip, iframe.contentWindow, 'pip');
+    stop();
+    post(pip, iframe.contentWindow, 'stopped');
+    expect(heard).toEqual(['pip']);
+    host.remove();
   });
 });

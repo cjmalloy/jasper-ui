@@ -80,14 +80,32 @@ export function dataUrl(html: string) {
  * @return cleanup function
  */
 export function setPdfSrc(iframe: HTMLIFrameElement, url: string) {
-  const listener = (event: MessageEvent) => {
-    if (event.source !== iframe.contentWindow || !event.data?.jasperPdfReady) return;
-    removeEventListener('message', listener);
+  // Answer every ready message: moving the iframe (e.g. into picture-in-picture) reloads the wrapper
+  const stop = listenToIframe(iframe, event => {
+    if (!event.data?.jasperPdfReady) return;
     iframe.contentWindow!.postMessage({ jasperPdf: iframeUrl(url) }, '*');
-  };
-  addEventListener('message', listener);
+  });
   setIframeSrc(iframe, dataUrl(pdfWrapper()));
-  return () => removeEventListener('message', listener);
+  return stop;
+}
+
+/**
+ * Listen for messages posted by an iframe to its parent window.
+ * The parent is the window the iframe lives in, which is not the app window
+ * when the iframe has been moved into a picture-in-picture window.
+ * @return cleanup function
+ */
+export function listenToIframe(iframe: HTMLIFrameElement, listener: (event: MessageEvent) => void) {
+  const handler = (event: MessageEvent) => {
+    if (event.source !== iframe.contentWindow) return;
+    listener(event);
+  };
+  const windows = new Set<Window>([window]);
+  if (iframe.ownerDocument.defaultView) windows.add(iframe.ownerDocument.defaultView);
+  windows.forEach(w => w.addEventListener('message', handler));
+  return () => {
+    windows.forEach(w => w.removeEventListener('message', handler));
+  };
 }
 
 function pdfWrapper() {

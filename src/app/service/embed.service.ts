@@ -10,7 +10,7 @@ import { Ref, RefSort } from '../model/ref';
 import { wikiUriFormat } from '../mods/org/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
-import { createEmbed, createLens, createLink, createRef, dataUrl, embedUrl, parseSrc, setIframeSrc } from '../util/embed';
+import { createEmbed, createLens, createLink, createRef, dataUrl, embedUrl, listenToIframe, parseSrc, setIframeSrc } from '../util/embed';
 import { getArray, parseBookmarkParams } from '../util/http';
 import {
   assignSourceMap,
@@ -804,14 +804,13 @@ export class EmbedService {
 function followHeight(iframe: HTMLIFrameElement) {
   return new Promise<void>(resolve => {
     let settled = setTimeout(resolve, 5_000);
-    let stop = setTimeout(() => removeEventListener('message', listener), 30_000);
-    const listener = (event: MessageEvent) => {
-      if (event.source !== iframe.contentWindow) return;
+    let stop = setTimeout(() => unlisten(), 30_000);
+    const unlisten = listenToIframe(iframe, event => {
       const h = event.data?.jasperIframeHeight;
       if (typeof h !== 'number' || !Number.isFinite(h) || h <= 0) return;
       clearTimeout(stop);
-      stop = setTimeout(() => removeEventListener('message', listener), 30_000);
-      if (document.fullscreenElement) return;
+      stop = setTimeout(() => unlisten(), 30_000);
+      if (iframe.ownerDocument.fullscreenElement) return;
       iframe.style.height = h + 'px';
       clearTimeout(settled);
       if (h >= 300) {
@@ -819,8 +818,7 @@ function followHeight(iframe: HTMLIFrameElement) {
       } else {
         settled = setTimeout(resolve, 5_000);
       }
-    };
-    addEventListener('message', listener);
+    });
   });
 }
 
@@ -860,9 +858,15 @@ export function transparentIframe(content: string, bgColor: string, overflow = '
           height = h;
           parent.postMessage({ jasperIframeHeight: height }, ${JSON.stringify(location.origin)});
         };
+        // Keep reporting until the height has not changed for 30 seconds
+        let last = Date.now();
+        const timer = setInterval(() => {
+          const old = height;
+          report();
+          if (height !== old) last = Date.now();
+          if (Date.now() - last > 30_000) clearInterval(timer);
+        }, 100);
         report();
-        const timer = setInterval(report, 100);
-        setTimeout(() => clearInterval(timer), 30_000);
       })();
     </script></body>
   </html>
