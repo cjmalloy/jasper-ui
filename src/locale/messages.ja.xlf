@@ -8107,6 +8107,18 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Modified remotely while editing</source>
         <target>編集中にリモートで変更されました</target>
       </trans-unit>
+      <trans-unit id="2047384804297137102" datatype="html">
+        <source>Checking mods for local changes...</source>
+        <target>MODのローカル変更を確認中...</target>
+      </trans-unit>
+      <trans-unit id="7867778808310576533" datatype="html">
+        <source>Reload the page to finish loading mod changes.</source>
+        <target>MODの変更の読み込みを完了するには、ページを再読み込みしてください。</target>
+      </trans-unit>
+      <trans-unit id="600030360233898153" datatype="html">
+        <source>Unable to check mods for local changes. Updates and diffs are unavailable.</source>
+        <target>MODのローカル変更を確認できません。更新と差分は利用できません。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
