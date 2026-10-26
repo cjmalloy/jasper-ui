@@ -7,7 +7,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.PW_WORKERS ? +process.env.PW_WORKERS : process.env.CI ? 3 : 1,
+  workers: process.env.PW_WORKERS ? +process.env.PW_WORKERS : process.env.CI ? 4 : 1,
   expect: { timeout: 15_000 },
   reporter: process.env.CI ? [
       ['list'],

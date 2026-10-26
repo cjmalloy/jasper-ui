@@ -19,7 +19,7 @@ jobs:
       matrix:
         database: [postgres, sqlite]
     env:
-      PW_WORKERS: 3
+      PW_WORKERS: 4
       # Record every test on master, only failures on PRs
       PW_VIDEO: ${{ github.ref == 'refs/heads/master' && 'on' || 'failure' }}
     steps:
