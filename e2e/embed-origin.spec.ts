@@ -72,7 +72,7 @@ test.describe.serial('Embed iframe origin', () => {
   async function cache(request: APIRequestContext, title: string, mime: string, data: string | Buffer) {
     const res = await request.post(`${api}/proxy`, {
       headers: { ...await headers(request), 'Content-Type': mime },
-      params: { title, mime },
+      params: { title, mime, origin: localOrigin() },
       data,
     });
     expect(res.ok()).toBe(true);
