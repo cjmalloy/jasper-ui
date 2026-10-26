@@ -16,7 +16,6 @@ import {
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
-import * as he from 'he';
 import Hls from 'hls.js';
 import { isEqual, some, without } from 'lodash-es';
 import { BehaviorSubject, catchError, of, startWith, Subject, switchMap } from 'rxjs';
@@ -28,7 +27,7 @@ import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
 import { mapRef, Ref, RefUpdates } from '../../model/ref';
 import { DownloadAction, EmitAction, hydrate } from '../../model/tag';
-import { pdfUrl } from '../../mods/media/pdf';
+import { pdfEmbedUrl } from '../../mods/media/pdf';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -333,12 +332,13 @@ export class ViewerComponent {
   private setPdfIframe(value: ElementRef<HTMLIFrameElement> | undefined) {
     if (!value) return;
     const iframe = value.nativeElement;
-    let url = this.pdfUrl();
+    const url = this.pdf();
     if (!url) return;
-    if (url.startsWith('//')) url = location.protocol + url;
-    this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe, false);
     iframe.style.width ||= this.embedWidth();
     iframe.style.height ||= this.embedHeight();
+    // Frame our own cache directly so the PDF viewer can stream it with range requests.
+    // The server sandboxes cache responses (opaque origin).
+    setIframeSrc(iframe, this.proxy.getFetch(url, this.currentOrigin(), this.getFilename()));
   }
 
   setOembed(oembed: Oembed | null) {
@@ -383,7 +383,7 @@ export class ViewerComponent {
   });
 
   readonly twitter = computed(() => {
-    return this.oembed()?.provider_name === 'Twitter';
+    return ['Twitter', 'X'].includes(this.oembed()?.provider_name!);
   });
 
   readonly zoom = computed(() => {
@@ -414,7 +414,7 @@ export class ViewerComponent {
   readonly hideComment = computed(() => {
     if (this.ref()?.tags?.includes('plugin/alt') || this.tags()?.includes('plugin/alt')) return true;
     if (this.admin.getPlugin('plugin/table') && hasTag('plugin/table', this.currentTags())) return false;
-    return this.editingViewer() || (this.pdfUrl() && !this.ref()?.plugins?.['plugin/pdf']?.showAbstract);
+    return this.editingViewer() || (this.pdf() && !this.ref()?.plugins?.['plugin/pdf']?.showAbstract);
   });
 
   readonly currentOrigin = computed(() => {
@@ -531,15 +531,7 @@ export class ViewerComponent {
   });
 
   readonly pdf = computed<string | undefined>(() => {
-    if (!this.admin.getPlugin('plugin/pdf')) return undefined;
-    return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref(), this.repost())?.url;
-  });
-
-  readonly pdfUrl = computed(() => {
-    const url = this.pdf();
-    if (!url) return url;
-    if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename());
+    return pdfEmbedUrl(this.admin.getPlugin('plugin/pdf'), this.ref(), this.repost());
   });
 
   readonly uiActions = computed<PluginApi>(() => {

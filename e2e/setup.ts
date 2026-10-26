@@ -28,6 +28,9 @@ const allowedConsoleErrors: RegExp[] = [
   // The map spec loads its basemap from an external tile server, which may be unreachable from the runner.
   /^MapLibre Engine Error: .*AJAXError: Failed to fetch \(0\): https:\/\/demotiles\.maplibre\.org\//,
   /^Failed to load resource: net::ERR_[A-Z_]+ \(https:\/\/demotiles\.maplibre\.org\//,
+  // Chrome logs when the embed iframe sandbox stops an embedded page from navigating the app.
+  // The page in the iframe caused it, and the navigation was blocked as intended.
+  /^Unsafe attempt to initiate navigation for frame with origin .* The frame attempting navigation of the top-level window is sandboxed/s,
 ];
 
 const runId = process.env.PW_RUN_ID ||= Date.now().toString(36);

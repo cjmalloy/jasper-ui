@@ -8,6 +8,8 @@ services:
         condition: service_started
       repl-client:
         condition: service_started
+      proxy-client:
+        condition: service_started
       web:
         condition: service_healthy
       repl-web:
@@ -20,6 +22,7 @@ services:
       REPL_URL: http://localhost:8082
       REPL_API: http://localhost:8083
       REPL_API_PROXY: http://repl-web
+      PROXY_URL: http://jasper.test:8084
       CI: true
       PW_VIDEO: ${PW_VIDEO:-}
       PW_WORKERS: ${PW_WORKERS:-}
@@ -40,6 +43,22 @@ services:
       CSP_DEFAULT_SRC: http://localhost:8081 ws://localhost:8081
       CSP_CONNECT_SRC: http://localhost:8081 ws://localhost:8081
       JASPER_TITLE: PLAYWRIGHT
+      JASPER_INSTALL_DEFAULTS: false
+    depends_on:
+      - web
+  proxy-client:
+    build:
+      context: ..
+      args:
+        BUILD_SCRIPT: build:e2e
+    # Same origin API through the client proxy, opened as http://jasper.test:8084
+    ports:
+      - 8084:80
+    environment:
+      NGINX_ENTRYPOINT_QUIET_LOGS: 1
+      JASPER_API: .
+      JASPER_API_PROXY: http://web
+      JASPER_TITLE: PROXY
       JASPER_INSTALL_DEFAULTS: false
     depends_on:
       - web
