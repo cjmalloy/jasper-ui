@@ -19,14 +19,13 @@ test.describe.serial('Origin Push Plugin', () => {
   const pushTestTitle = `Push Test ${runId}`;
   const manualPushTestTitle = `Manual Push Test ${runId}`;
   const replApi = process.env.REPL_API || 'http://localhost:8083';
-  // The replica only accepts pushes into the requester's local origin, and the server doesn't send a
-  // Local-Origin header when pushing, so this is the one spec that writes to the replica's default origin.
-  // Titles are unique per run and nothing else reads @repl itself.
-  const remote = '@repl';
   let origin = '';
+  // Origin on the replica that main pushes to
+  let remote = '';
 
   test.beforeAll(({}, info) => {
     origin = isolatedOrigin(info);
+    remote = '@repl.' + origin.substring(1);
   });
 
   function isRefPost(resp: Response) {
@@ -69,7 +68,7 @@ test.describe.serial('Origin Push Plugin', () => {
   async function expectPushed(request: APIRequestContext, title: string) {
     await expect.poll(async () => {
       const res = await request.get(replApi + '/api/v1/ref/page', {
-        headers: { 'Local-Origin': 'default' },
+        headers: { 'Local-Origin': remote },
         params: { query: remote, search: title },
       });
       const page = await res.json();

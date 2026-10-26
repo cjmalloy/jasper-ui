@@ -51,12 +51,13 @@ test.describe.serial('Wiki Plugin', () => {
     await page.locator('.tabs a', { hasText: 'template' }).first().click();
     const fileContent = JSON.stringify({ tag: 'config/wiki', config: { prefix: 'https://externalwiki/', external: true }});
     const buffer = Buffer.from(fileContent);
+    const created = page.waitForResponse(resp => resp.url().includes('/api/v1/template') && resp.request().method() === 'POST');
     await page.locator('input.upload-template').setInputFiles({
       name: 'config.json',
       mimeType: 'application/json',
       buffer,
     });
-    await page.waitForLoadState('networkidle');
+    expect((await created).ok()).toBe(true);
   });
 
   test('submit wiki button removed', async ({ page }) => {
