@@ -1,15 +1,13 @@
 import { type APIRequestContext, expect } from '@playwright/test';
 import JSZip from 'jszip';
-import { adminHeaders, test } from './setup';
-
-// Uses fixed origins (replication between servers or explicit remote origins), so it shares the default origin
-test.use({ isolated: false });
+import { adminHeaders, isolatedOrigin, test } from './setup';
 
 test.describe.serial('Ref page origin', () => {
   test.setTimeout(120_000);
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
   const runId = Date.now().toString(36);
-  const remote = '@reforigin';
+  let origin = '';
+  let remote = '';
   const backupId = `reforigin-${runId}`;
   const url = `comment:ref-origin-${runId}`;
   const refPage = `/ref/e/${encodeURIComponent(url)}`;
@@ -21,16 +19,15 @@ test.describe.serial('Ref page origin', () => {
     return { Authorization: 'Bearer ' + adminHeaders.jwt, 'X-XSRF-TOKEN': xsrf };
   }
 
-  test.afterAll(async ({ request }) => {
-    await request.delete(`${api}/ref`, { headers: await headers(request), params: { url, origin: '' } });
-    await request.delete(`${api}/backup/${backupId}`, { headers: await headers(request), params: { origin: remote } });
-    await request.delete(`${api}/origin`, { headers: await headers(request), params: { origin: remote } });
+  test.beforeAll(({}, info) => {
+    origin = isolatedOrigin(info);
+    remote = origin + '.reforigin';
   });
 
   test('setup obsolete local version', async ({ request }) => {
     const res = await request.post(`${api}/ref`, {
       headers: await headers(request),
-      data: { url, title: 'Origin Test', comment: 'local version', tags: ['public'] },
+      data: { url, origin, title: 'Origin Test', comment: 'local version', tags: ['public'] },
     });
     expect(res.ok(), await res.text()).toBeTruthy();
     // Remote origins cannot be written directly, so restore a newer version from a backup into the remote origin
@@ -62,8 +59,8 @@ test.describe.serial('Ref page origin', () => {
     })).text(), { timeout: 100_000 }).toBe('1');
   });
 
-  test('loads the obsolete local version for an empty origin', async ({ page }) => {
-    await page.goto(`${refPage}?debug=USER&origin=`, { waitUntil: 'networkidle' });
+  test('loads the obsolete local version for the local origin', async ({ page }) => {
+    await page.goto(`${refPage}?debug=USER&origin=${encodeURIComponent(origin)}`, { waitUntil: 'networkidle' });
     await expect(page.locator('.full-page.ref')).toContainText('local version');
     await expect(page.locator('.full-page.ref')).not.toContainText('remote version');
   });

@@ -1,8 +1,5 @@
 import { expect, type Page, type Response } from '@playwright/test';
-import { clearAll, deleteRef, markInboxRead, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, test } from './setup';
-
-// Uses fixed origins (replication between servers or explicit remote origins), so it shares the default origin
-test.use({ isolated: false });
+import { clearFixedOrigins, deleteRef, isolatedOrigin, markInboxRead, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, test } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test.setTimeout(90_000);
@@ -16,6 +13,13 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   const replyText = `Doing well, thanks! ${runId}`;
   const secondRemoteTitle = `Second ref from other ${runId}`;
   const localTitle = `Local ref for Alice ${runId}`;
+  let origin = '';
+  let remote = '';
+
+  test.beforeAll(({}, info) => {
+    origin = isolatedOrigin(info);
+    remote = '@repl.' + origin.substring(1);
+  });
 
   function isRefPost(resp: Response) {
     return resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST' && resp.ok();
@@ -32,14 +36,8 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     return page.locator('.ref-list .ref', { has: page.locator(`:scope > ${link}`, { hasText: title }) });
   }
 
-  test('@\u{ff20}main : clear all', async ({ page }) => {
-    await clearAll(page);
-    await clearAll(page, '', '@repl');
-  });
-
-  test('@\u{ff20}repl : clear all', async ({ page }) => {
-    await clearAll(page, replUrl, '@repl');
-    await clearAll(page, replUrl, '@repl.main');
+  test('clear previous runs', async ({ page }) => {
+    await clearFixedOrigins(page);
   });
 
   test('@\u{ff20}main : turn on outbox and remote origins', async ({ page }) => {
@@ -70,7 +68,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('[name=title]').fill('Testing Remote @repl');
     await page.locator('.floating-ribbons .plugin_origin_pull').click();
     await page.locator('[name=local]').fill('@repl');
-    await page.locator('[name=remote]').fill('@repl');
+    await page.locator('[name=remote]').fill(remote);
     const aliases = page.locator('.account-aliases');
     await aliases.locator('.user-map-add').click();
     const localUser = aliases.locator('.user-map-row .user-map-local .tag-field input.grow:not(.preview)');
@@ -108,6 +106,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.getByText('Next').click();
     await page.locator('.floating-ribbons .plugin_origin_pull').click();
     await page.locator('[name=local]').fill('@main');
+    await page.locator('[name=remote]').fill(origin);
     await page.locator('.plugins-form details.plugin_origin.advanced summary').click();
     await page.locator('[name=proxy]').fill(mainApiProxy);
     await page.locator('[name=proxy]').blur();

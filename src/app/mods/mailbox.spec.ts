@@ -68,6 +68,7 @@ describe('MailboxPlugin', () => {
     expect(mailboxes(refAt('@test', 'plugin/inbox/user/alice'), '+user')).toEqual(['plugin/outbox/test/user/alice']);
     expect(mailboxes(refAt('@test', '+user/alice', 'plugin/inbox/user/bob'), '+user')).toEqual(['plugin/outbox/test/user/alice', 'plugin/outbox/test/user/bob']);
     expect(mailboxes(refAt('@test', '+user/alice', 'plugin/inbox/user/bob', 'public'), '+user@test')).toEqual(['plugin/inbox/user/alice', 'plugin/inbox/user/bob']);
+    expect(mailboxes(refAt('@home.test', '+user/alice', 'plugin/inbox/user/bob', 'public'), '+user@home')).toEqual(['plugin/outbox/test/user/alice', 'plugin/outbox/test/user/bob']);
   });
   it('mailboxes multi-tenant with lookup', () => {
     const lookup = new Map([

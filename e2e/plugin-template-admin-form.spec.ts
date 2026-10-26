@@ -1,9 +1,6 @@
 import { type APIRequestContext, expect } from '@playwright/test';
 import { adminHeaders, test } from './setup';
 
-// _config templates only exist in the default origin
-test.use({ isolated: false });
-
 test.describe.serial('Plugin/Template Admin Form', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
   const runId = Date.now().toString(36);
@@ -20,18 +17,13 @@ test.describe.serial('Plugin/Template Admin Form', () => {
     return { Authorization: 'Bearer ' + adminHeaders.jwt, 'X-XSRF-TOKEN': xsrf };
   }
 
-  test.afterAll(async ({ request }) => {
-    await request.delete(`${api}/plugin`, { headers: await headers(request), params: { tag: tags.plugin } });
-    await request.delete(`${api}/template`, { headers: await headers(request), params: { tag: tags.template } });
-    await request.delete(`${api}/template`, { headers: await headers(request), params: { tag: tags.config } });
-  });
-
-  test('setup', async ({ request }) => {
+  test('setup', async ({ request, origin }) => {
     for (const type of ['plugin', 'template'] as const) {
       const res = await request.post(`${api}/${type}`, {
         headers: await headers(request),
         data: {
           tag: tags[type],
+          origin,
           name: 'Admin Form Test',
           config: {
             title: 'before',
@@ -49,13 +41,13 @@ test.describe.serial('Plugin/Template Admin Form', () => {
     }
     const res = await request.post(`${api}/template`, {
       headers: await headers(request),
-      data: { tag: tags.config, config: { emailHost: 'smtp.example.com', maxSources: 5 } },
+      data: { tag: tags.config, origin, config: { emailHost: 'smtp.example.com', maxSources: 5 } },
     });
     expect(res.ok()).toBeTruthy();
   });
 
   for (const type of ['plugin', 'template'] as const) {
-    test(`edit ${type} config with admin form`, async ({ page, request }) => {
+    test(`edit ${type} config with admin form`, async ({ page, request, origin }) => {
       await page.goto(`/settings/${type}?debug=ADMIN&search=adminform${runId}`, { waitUntil: 'networkidle' });
       const item = page.locator(`.${type}.list-item`);
       await expect(item).toHaveCount(1);
@@ -94,7 +86,7 @@ test.describe.serial('Plugin/Template Admin Form', () => {
       await item.locator('button[type=submit]').click();
       await savePromise;
 
-      const res = await request.get(`${api}/${type}`, { headers: await headers(request), params: { tag: tags[type] } });
+      const res = await request.get(`${api}/${type}`, { headers: await headers(request), params: { tag: tags[type] + origin } });
       expect(res.ok()).toBeTruthy();
       const saved = await res.json();
       expect(saved.config.title).toBe('after');

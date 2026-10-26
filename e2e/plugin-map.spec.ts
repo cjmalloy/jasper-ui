@@ -1,5 +1,5 @@
-import { expect, type Locator, test } from '@playwright/test';
-import { closeSidebar, deleteRef, mod, openSidebar } from './setup';
+import { expect, type Locator } from '@playwright/test';
+import { closeSidebar, deleteRef, mod, openSidebar, test } from './setup';
 
 const URL = 'https://jasperkm.info/plugin-map-test';
 const POLYGON_URL = 'https://jasperkm.info/plugin-map-polygon-test';

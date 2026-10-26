@@ -28,26 +28,51 @@ const allowedConsoleErrors: RegExp[] = [
 ];
 
 const runId = process.env.PW_RUN_ID ||= Date.now().toString(36);
-let isolatedWorker = true;
 const moddedOrigins = new Set<string>();
+const replHosts = [process.env.REPL_URL || 'http://localhost:8082', process.env.REPL_API || 'http://localhost:8083']
+  .map(url => new URL(url).host);
 
 /**
- * Origin that isolates the current spec file from every other spec file.
+ * Specs that need the server's cron, user run or websocket pull watchers. The server only registers those
+ * for origins listed explicitly in its script selectors (wildcards don't start watchers), so these specs
+ * use fixed origins that are listed in e2e/docker-compose.yaml. They must clear them with
+ * {@link clearFixedOrigins} in case the stack was used by an earlier run.
+ */
+const fixedOriginSpecs = ['pluginoriginaliases', 'pluginoriginpull', 'pluginoriginpush', 'pluginoutbox'];
+
+/**
+ * Origin that isolates the current spec file from every other spec file on the main server.
  * Sent as the `Local-Origin` header, so the server treats it as the local origin for every request.
  * Retries get a new origin so they start from a clean state.
+ * Specs never use the default origin, so any number of workers can share the servers.
  */
 export function isolatedOrigin(info = test.info()) {
   const slug = basename(info.file).replace(/(\.spec)?\.ts$/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
   // Single level: the server only runs scripts in origins one level below the local origin
+  if (fixedOriginSpecs.includes(slug)) return `@${slug}r${info.retry}`;
   return `@${slug}r${info.retry}t${runId}`;
 }
 
 /**
- * Local origin of the main server for the current test: the isolated origin, or the
- * default origin for specs that opt out with `test.use({ isolated: false })`.
+ * Local origin of the main server for the current test.
  */
 export function localOrigin() {
-  return isolatedWorker ? isolatedOrigin() : '';
+  return isolatedOrigin();
+}
+
+/**
+ * Local origin of the replica server for the current test: a sub origin of the replica's `@repl`.
+ */
+export function replOrigin() {
+  return '@repl.' + isolatedOrigin().substring(1);
+}
+
+async function isolate(ctx: BrowserContext) {
+  // The replica only accepts sub origins of @repl. Chromium sends the context's extra headers
+  // on websocket upgrades too, but routes can't change those, so replica websockets fall back to @repl.
+  await ctx.route(url => replHosts.includes(url.host), route => route.continue({
+    headers: { ...route.request().headers(), 'local-origin': replOrigin() },
+  }));
 }
 
 /**
@@ -56,33 +81,36 @@ export function localOrigin() {
  * Covers the test's own `page`/`context`, pages shared across tests (created in `beforeAll`) and
  * contexts created during the test.
  */
-export const test = base.extend<{ failOnConsoleErrors: void, origin: string }, { isolated: boolean, isolateContexts: void }>({
+export const test = base.extend<{ failOnConsoleErrors: void, origin: string, replOrigin: string }, { isolateContexts: void }>({
   /**
-   * Run each spec file in its own origin. Specs that replicate between servers need fixed origins
-   * on both servers and opt out with `test.use({ isolated: false })`.
+   * Run each spec file in its own origin on both servers.
    */
-  isolated: [true, { scope: 'worker', option: true }],
-  isolateContexts: [async ({ browser, isolated }, use) => {
-    isolatedWorker = isolated;
-    if (!isolated) return use();
+  isolateContexts: [async ({ browser }, use) => {
     // Covers contexts and pages created in beforeAll. Chromium also sends extra headers on the
     // websocket upgrade, so STOMP subscriptions use the same origin.
     const newContext = browser.newContext;
-    browser.newContext = async (options = {}) => newContext.call(browser, {
-      ...options,
-      extraHTTPHeaders: { 'Local-Origin': isolatedOrigin(), ...options.extraHTTPHeaders },
-    });
+    browser.newContext = async (options = {}) => {
+      const ctx = await newContext.call(browser, {
+        ...options,
+        extraHTTPHeaders: { 'Local-Origin': isolatedOrigin(), ...options.extraHTTPHeaders },
+      });
+      await isolate(ctx);
+      return ctx;
+    };
     try {
       await use();
     } finally {
       browser.newContext = newContext;
     }
   }, { scope: 'worker', auto: true }],
-  extraHTTPHeaders: async ({ extraHTTPHeaders, isolated }, use) => {
-    await use(isolated ? { 'Local-Origin': isolatedOrigin(), ...extraHTTPHeaders } : extraHTTPHeaders);
+  extraHTTPHeaders: async ({ extraHTTPHeaders }, use) => {
+    await use({ 'Local-Origin': isolatedOrigin(), ...extraHTTPHeaders });
   },
-  origin: async ({ isolated }, use) => {
-    await use(isolated ? isolatedOrigin() : '');
+  origin: async ({}, use) => {
+    await use(isolatedOrigin());
+  },
+  replOrigin: async ({}, use) => {
+    await use(replOrigin());
   },
   failOnConsoleErrors: [async ({ browser, context }, use) => {
     const errors: string[] = [];
@@ -220,6 +248,17 @@ export async function clearOrigin(page: Page, base = '', origin = '') {
   return true;
 }
 
+/**
+ * Clears the fixed origins of a spec (see {@link fixedOriginSpecs}) and their replicated sub origins on
+ * both servers, in case an earlier run used the same stack.
+ */
+export async function clearFixedOrigins(page: Page) {
+  const replUrl = process.env.REPL_URL || 'http://localhost:8082';
+  for (const origin of [localOrigin() + '.repl', localOrigin()]) await clearOrigin(page, '', origin);
+  for (const origin of [replOrigin() + '.main', replOrigin()]) await clearOrigin(page, replUrl, origin);
+  moddedOrigins.clear();
+}
+
 export async function clearAll(page: Page, base = '', origin = '') {
   if (!await clearOrigin(page, base, origin)) return;
   await clearMods(page, base);
@@ -263,12 +302,12 @@ export async function mod(page: Page, ...mods: string[]) {
 
 export async function modRemote(page: Page, base = '', ...mods: string[]) {
   // A fresh isolated origin has no mods, so only clear when mods were already installed
-  const origin = base ? base : localOrigin();
-  if (base || !isolatedWorker || moddedOrigins.has(origin)) {
+  const origin = base + localOrigin();
+  if (moddedOrigins.has(origin)) {
     // Leaves the page on the setup tab
     await clearMods(page, base);
   } else {
-    await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
   }
   moddedOrigins.add(origin);
   if (mods.includes('#mod-experiments')) {
@@ -333,7 +372,7 @@ export async function upload(page: Page, file: string) {
 
 /**
  * Opens the app as the given user and marks the inbox read so later notifications start from a clean cursor.
- * Specs in the default origin also see mail sent by isolated specs in sub-origins.
+ * Specs with fixed origins keep mail from previous runs.
  */
 export async function markInboxRead(page: Page, url: string) {
   const notification = page.locator('.settings .notification');

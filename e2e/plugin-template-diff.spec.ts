@@ -1,14 +1,12 @@
 import { type APIRequestContext, expect } from '@playwright/test';
 import JSZip from 'jszip';
-import { adminHeaders, mod, test } from './setup';
-
-// Uses fixed origins (replication between servers or explicit remote origins), so it shares the default origin
-test.use({ isolated: false });
+import { adminHeaders, isolatedOrigin, mod, test } from './setup';
 
 test.describe.serial('Remote Plugin/Template Diff', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
   const runId = Date.now().toString(36);
-  const remote = '@difftest';
+  let origin = '';
+  let remote = '';
   const backupId = `difftest-${runId}`;
   const tags = {
     plugin: `plugin/difftest${runId}`,
@@ -22,11 +20,9 @@ test.describe.serial('Remote Plugin/Template Diff', () => {
     return { Authorization: 'Bearer ' + adminHeaders.jwt, 'X-XSRF-TOKEN': xsrf };
   }
 
-  test.afterAll(async ({ request }) => {
-    await request.delete(`${api}/plugin`, { headers: await headers(request), params: { tag: tags.plugin } });
-    await request.delete(`${api}/template`, { headers: await headers(request), params: { tag: tags.template } });
-    await request.delete(`${api}/backup/${backupId}`, { headers: await headers(request), params: { origin: remote } });
-    await request.delete(`${api}/origin`, { headers: await headers(request), params: { origin: remote } });
+  test.beforeAll(({}, info) => {
+    origin = isolatedOrigin(info);
+    remote = origin + '.difftest';
   });
 
   test('setup', async ({ page, request }) => {
@@ -34,7 +30,7 @@ test.describe.serial('Remote Plugin/Template Diff', () => {
     for (const type of ['plugin', 'template'] as const) {
       const res = await request.post(`${api}/${type}`, {
         headers: await headers(request),
-        data: { tag: tags[type], name: 'Diff Test', config: { local: true } },
+        data: { tag: tags[type], origin, name: 'Diff Test', config: { local: true } },
       });
       expect(res.ok()).toBeTruthy();
     }
@@ -82,10 +78,10 @@ test.describe.serial('Remote Plugin/Template Diff', () => {
       await item.locator('button.save-diff').click();
       await savePromise;
       await expect(item.locator('.diff-editor')).toHaveCount(0);
-      const res = await request.get(`${api}/${type}`, { headers: await headers(request), params: { tag: tags[type] } });
+      const res = await request.get(`${api}/${type}`, { headers: await headers(request), params: { tag: tags[type] + origin } });
       expect(res.ok()).toBeTruthy();
       const local = await res.json();
-      expect(local.origin || '').toBe('');
+      expect(local.origin).toBe(origin);
       expect(local.config.remote).toBe(true);
       expect(local.config.local).toBeUndefined();
     });

@@ -12,15 +12,14 @@ permissions:
   pull-requests: write
 
 jobs:
-  playwright-run:
+  playwright:
     runs-on: ubuntu-24.04-arm
     strategy:
       fail-fast: false
       matrix:
         database: [postgres, sqlite]
-        shard: [1, 2, 3, 4]
     env:
-      PW_SHARD: ${{ matrix.shard }}/4
+      PW_WORKERS: 3
       # Record every test on master, only failures on PRs
       PW_VIDEO: ${{ github.ref == 'refs/heads/master' && 'on' || 'failure' }}
     steps:
@@ -39,42 +38,6 @@ jobs:
           else
             npm run pw:ci
           fi
-      - name: Upload Blob Report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-blob-${{ matrix.database }}-${{ matrix.shard }}
-          path: e2e/reports/blob
-          retention-days: 1
-
-  playwright-report:
-    needs: playwright-run
-    if: always()
-    runs-on: ubuntu-24.04-arm
-    strategy:
-      fail-fast: false
-      matrix:
-        database: [postgres, sqlite]
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: 'npm'
-      - name: Install lockfile
-        run: npm ci
-      - name: Download Blob Reports
-        uses: actions/download-artifact@v8
-        with:
-          pattern: playwright-blob-${{ matrix.database }}-*
-          path: e2e/reports/blob
-          merge-multiple: true
-      - name: Merge Reports
-        env:
-          PLAYWRIGHT_HTML_OUTPUT_DIR: e2e/reports/html
-          PLAYWRIGHT_HTML_OPEN: never
-          PLAYWRIGHT_JSON_OUTPUT_FILE: e2e/reports/results.json
-        run: npx playwright merge-reports --reporter html,json e2e/reports/blob
       - name: Patch HTML Report (translate shared theme setting)
         if: always()
         # Reports share the GitHub Pages origin with the Gatling reports, which store localStorage.theme as dark/light.
@@ -226,13 +189,9 @@ jobs:
                 body: body
               });
             }
-      - name: Fail if any shard failed
-        run: |
-          test "$(ls e2e/reports/blob/*.zip | wc -l)" -eq 4
-          jq -e '.stats.unexpected == 0 and (.errors | length) == 0' e2e/reports/results.json > /dev/null
 
   clean:
-    needs: playwright-report
+    needs: playwright
     if: always()
     runs-on: ubuntu-24.04-arm
     permissions:
