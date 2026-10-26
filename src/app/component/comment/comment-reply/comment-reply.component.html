@@ -11,9 +11,11 @@
   <div class="error">{{ e }}</div>
 }
 
-<button class="comment-reply-submit" type="button" [disabled]="replying()" (click)="reply()" i18n>reply</button>
-@if (replying()) {
-  <app-loading [inline]="true"></app-loading>
-} @else if (showCancel()) {
-  <button class="comment-reply-cancel" type="button" (click)="cancel()" i18n>cancel</button>
-}
+<span class="buttons floating">
+  <button class="comment-reply-submit" type="button" [disabled]="replying()" (click)="reply()" i18n>reply</button>
+  @if (replying()) {
+    <app-loading [inline]="true"></app-loading>
+  } @else if (showCancel()) {
+    <button class="comment-reply-cancel" type="button" (click)="cancel()" i18n>cancel</button>
+  }
+</span>

@@ -35,7 +35,7 @@ html, body {
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
   font-size: 16px;
 }
 
@@ -1509,6 +1509,29 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   }
   select {
     margin-left: 0;
+  }
+}
+
+.buttons.floating {
+  position: sticky;
+  bottom: 8px;
+  z-index: 10;
+  flex: none;
+  align-items: center;
+  width: fit-content;
+  box-sizing: border-box;
+  padding: 4px;
+  border: 1px solid var(--border-accent);
+  border-radius: 8px;
+  background-color: var(--bg);
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.2);
+  &.right {
+    margin-left: auto;
+    justify-self: end;
+  }
+  &.top {
+    top: 8px;
+    bottom: auto;
   }
 }
 
