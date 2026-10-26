@@ -1037,6 +1037,8 @@ test.describe.serial('Map Plugin', () => {
     await expect(list.locator('.location-marker')).toHaveCount(2, { timeout: 15_000 });
 
     const handle = list.locator('.location-map .resize-handle');
+    // Keep the resize corner clear of the floating form buttons
+    await handle.evaluate(el => el.scrollIntoView({ block: 'center' }));
     const box = (await handle.boundingBox())!;
     expect(Math.round(box.height)).toBe(300);
     const before = (await canvas.boundingBox())!;
