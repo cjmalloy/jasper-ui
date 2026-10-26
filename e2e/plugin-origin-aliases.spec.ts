@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect, type Locator, type Page, type Response } from '@playwright/test';
-import { adminHeaders, clearAll, deleteRef, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, pollRemoteNotifications, test } from './setup';
+import { adminHeaders, clearFixedOrigins, deleteRef, isolatedOrigin, markInboxRead, mod, modRemote, openSidebar, openTextSubmit, pollNotifications, pollRemoteNotifications, test } from './setup';
 
 test.describe.serial('Origin Plugin: Account Aliases', () => {
   test.setTimeout(120_000);
@@ -10,6 +10,13 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
   const runId = Date.now().toString(36);
   const alice = '/?debug=ADMIN&tag=alice';
+  let origin = '';
+  let remote = '';
+
+  test.beforeAll(({}, info) => {
+    origin = isolatedOrigin(info);
+    remote = '@repl.' + origin.substring(1);
+  });
 
   function isRefPost(resp: Response) {
     return resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST' && resp.ok();
@@ -37,7 +44,7 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
 
   async function expectPulled(page: Page, title: string) {
     await expect.poll(async () => {
-      await page.goto(`/tag/@repl?debug=ADMIN&search=${encodeURIComponent(title)}`, { waitUntil: 'networkidle' });
+      await page.goto(`/tag/${origin}.repl?debug=ADMIN&search=${encodeURIComponent(title)}`, { waitUntil: 'networkidle' });
       return await page.locator('.ref-list .link.remote', { hasText: title }).count();
     }, { timeout: 60_000 }).toBeGreaterThan(0);
   }
@@ -106,14 +113,8 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
   }
 
-  test('@\u{ff20}main : clear all', async ({ page }) => {
-    await clearAll(page);
-    await clearAll(page, '', '@repl');
-  });
-
-  test('@\u{ff20}repl : clear all', async ({ page }) => {
-    await clearAll(page, replUrl, '@repl');
-    await clearAll(page, replUrl, '@repl.main');
+  test('clear previous runs', async ({ page }) => {
+    await clearFixedOrigins(page);
   });
 
   test('@\u{ff20}main : install mods', async ({ page }) => {
@@ -125,16 +126,15 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
   });
 
   test('@\u{ff20}main : Alice aliases charlie and dave on \u{ff20}repl', async ({ page }) => {
-    await createOrigin(page, '', 'alice', replApi, replApiProxy, '@repl', '@repl', [['+user/alice', '+user/charlie'], ['+user/alice', '+user/dave']]);
+    await createOrigin(page, '', 'alice', replApi, replApiProxy, '@repl', remote, [['+user/alice', '+user/charlie'], ['+user/alice', '+user/dave']]);
   });
 
   test('@\u{ff20}repl : mallory claims Alice with a one-sided alias', async ({ page }) => {
-    await createOrigin(page, replUrl, 'mallory', mainApi, mainApiProxy, '@main', '', [['+user/mallory', '+user/alice']]);
+    await createOrigin(page, replUrl, 'mallory', mainApi, mainApiProxy, '@main', origin, [['+user/mallory', '+user/alice']]);
   });
 
   test('@\u{ff20}main : initialize Alice cursors', async ({ page }) => {
-    await page.goto(alice, { waitUntil: 'networkidle' });
-    await expect(page.locator('.settings .notification')).toBeHidden();
+    await markInboxRead(page, alice);
   });
 
   test('@\u{ff20}repl : alias charlie notifies Alice', async ({ page }) => {
@@ -180,7 +180,7 @@ test.describe.serial('Origin Plugin: Account Aliases', () => {
   });
 
   test('@\u{ff20}main : remove alias dave', async ({ request }) => {
-    const params = { url: replApi, origin: '' };
+    const params = { url: replApi, origin };
     const res = await request.get(`${mainApi}/api/v1/ref`, { headers: await headers(request), params });
     expect(res.ok()).toBeTruthy();
     const ref = await res.json();

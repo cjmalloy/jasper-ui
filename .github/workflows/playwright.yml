@@ -12,12 +12,16 @@ permissions:
   pull-requests: write
 
 jobs:
-  playwright-run:
+  playwright:
     runs-on: ubuntu-24.04-arm
     strategy:
       fail-fast: false
       matrix:
         database: [postgres, sqlite]
+    env:
+      PW_WORKERS: 4
+      # Record every test on master, only failures on PRs
+      PW_VIDEO: ${{ github.ref == 'refs/heads/master' && 'on' || 'failure' }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -187,7 +191,7 @@ jobs:
             }
 
   clean:
-    needs: playwright-run
+    needs: playwright
     if: always()
     runs-on: ubuntu-24.04-arm
     permissions:

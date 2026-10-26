@@ -114,4 +114,55 @@ describe('RefFormComponent', () => {
     // Check that scraped title was used instead of filename
     expect(component.title().value).toBe('Scraped Title');
   });
+
+  it('should not replace an edited title when scraping automatically', async () => {
+    component.url().setValue('https://example.com/page');
+    component.title().setValue('My Title');
+    component.title().markAsDirty();
+
+    component.scrapeTitle();
+
+    httpMock.expectOne(request => request.url.includes('/api/v1/scrape/web'))
+      .flush({ url: 'https://example.com/page', title: 'Scraped Title' });
+    httpMock.expectOne(request => request.url.includes('/api/v1/oembed'))
+      .flush(null, { status: 404, statusText: 'Not Found' });
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(component.title().value).toBe('My Title');
+  });
+
+  it('should replace an edited title when scraping explicitly', async () => {
+    component.url().setValue('https://example.com/page');
+    component.title().setValue('My Title');
+    component.title().markAsDirty();
+
+    component.scrapeTitle(true);
+
+    httpMock.expectOne(request => request.url.includes('/api/v1/scrape/web'))
+      .flush({ url: 'https://example.com/page', title: 'Scraped Title' });
+    httpMock.expectOne(request => request.url.includes('/api/v1/oembed'))
+      .flush(null, { status: 404, statusText: 'Not Found' });
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(component.title().value).toBe('Scraped Title');
+  });
+
+  it('should not replace a title edited while an explicit scrape is pending', async () => {
+    component.url().setValue('https://example.com/page');
+
+    component.scrapeTitle(true);
+    component.title().setValue('Typed While Pending');
+    component.title().markAsDirty();
+
+    httpMock.expectOne(request => request.url.includes('/api/v1/scrape/web'))
+      .flush({ url: 'https://example.com/page', title: 'Scraped Title' });
+    httpMock.expectOne(request => request.url.includes('/api/v1/oembed'))
+      .flush(null, { status: 404, statusText: 'Not Found' });
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(component.title().value).toBe('Typed While Pending');
+  });
 });

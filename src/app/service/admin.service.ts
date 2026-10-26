@@ -316,6 +316,7 @@ export class AdminService {
   get firstRun$(): Observable<any> {
     if (this.firstRun) return of(null);
     this.firstRun = true;
+    if (!this.config.installDefaults) return of(null);
     if (!this.store.account.admin || this.store.account.ext()) return of(null);
     if (Object.values(this.status().plugins).filter(p => !!p).length > 0) return of(null);
     if (Object.values(this.status().templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return of(null);

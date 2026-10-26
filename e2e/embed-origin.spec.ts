@@ -1,6 +1,6 @@
 import { type APIRequestContext, expect, type FrameLocator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { adminHeaders, mod, test } from './setup';
+import { adminHeaders, localOrigin, mod, test } from './setup';
 
 /**
  * Every embed iframe is a security boundary: nothing embedded can reach the app window,
@@ -64,7 +64,7 @@ test.describe.serial('Embed iframe origin', () => {
   async function createRef(request: APIRequestContext, url: string, tags = ['public', 'plugin/embed']) {
     const res = await request.post(`${api}/ref`, {
       headers: await headers(request),
-      data: { url, title: 'Embed origin', tags },
+      data: { url, title: 'Embed origin', tags, origin: localOrigin() },
     });
     expect(res.ok()).toBe(true);
   }
@@ -72,7 +72,7 @@ test.describe.serial('Embed iframe origin', () => {
   async function cache(request: APIRequestContext, title: string, mime: string, data: string | Buffer) {
     const res = await request.post(`${api}/proxy`, {
       headers: { ...await headers(request), 'Content-Type': mime },
-      params: { title, mime },
+      params: { title, mime, origin: localOrigin() },
       data,
     });
     expect(res.ok()).toBe(true);
@@ -80,7 +80,7 @@ test.describe.serial('Embed iframe origin', () => {
   }
 
   async function setPdfProxy(request: APIRequestContext, proxy: boolean) {
-    const plugin = await (await request.get(`${api}/plugin`, { headers: await headers(request), params: { tag: 'plugin/pdf' } })).json();
+    const plugin = await (await request.get(`${api}/plugin`, { headers: await headers(request), params: { tag: 'plugin/pdf' + localOrigin() } })).json();
     const res = await request.put(`${api}/plugin`, { headers: await headers(request), data: { ...plugin, config: { ...plugin.config, proxy } } });
     expect(res.ok(), await res.text()).toBe(true);
   }
@@ -258,7 +258,7 @@ test.describe.serial('Embed iframe origin', () => {
   });
 
   test('cached HTML from our own cache gets an opaque origin in an iframe', async ({ page, request }) => {
-    const url = `${app}/api/v1/proxy/probe.html?url=${encodeURIComponent(await cache(request, 'probe.html', 'text/html', probeHtml('cacheProbe')))}&origin=`;
+    const url = `${app}/api/v1/proxy/probe.html?url=${encodeURIComponent(await cache(request, 'probe.html', 'text/html', probeHtml('cacheProbe')))}&origin=${encodeURIComponent(localOrigin())}`;
     await createRef(request, url);
     await open(page, url);
     await expectSandbox(page);
@@ -270,7 +270,7 @@ test.describe.serial('Embed iframe origin', () => {
   });
 
   test('cached HTML from our own cache gets an opaque origin in a tab', async ({ page, request }) => {
-    const url = `${app}/api/v1/proxy/tab.html?url=${encodeURIComponent(await cache(request, 'tab.html', 'text/html', probeHtml('tabProbe')))}&origin=`;
+    const url = `${app}/api/v1/proxy/tab.html?url=${encodeURIComponent(await cache(request, 'tab.html', 'text/html', probeHtml('tabProbe')))}&origin=${encodeURIComponent(localOrigin())}`;
     await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
     await expect(page.locator('body:not(.init-theme)')).toBeVisible();
     await page.goto(url);
@@ -282,7 +282,7 @@ test.describe.serial('Embed iframe origin', () => {
   });
 
   test('external page cannot navigate its iframe into our cache to reach the app', async ({ page, request }) => {
-    const cached = `${app}/api/v1/proxy/nav.html?url=${encodeURIComponent(await cache(request, 'nav.html', 'text/html', probeHtml('navProbe')))}&origin=`;
+    const cached = `${app}/api/v1/proxy/nav.html?url=${encodeURIComponent(await cache(request, 'nav.html', 'text/html', probeHtml('navProbe')))}&origin=${encodeURIComponent(localOrigin())}`;
     const url = `${other}/nav-${id}`;
     await page.route(`${other}/**`, route => route.fulfill({
       contentType: 'text/html',
@@ -297,7 +297,7 @@ test.describe.serial('Embed iframe origin', () => {
   });
 
   test('external page cannot redirect its iframe into our cache to reach the app', async ({ page, request }) => {
-    const cached = `${app}/api/v1/proxy/redirect.html?url=${encodeURIComponent(await cache(request, 'redirect.html', 'text/html', probeHtml('redirectProbe')))}&origin=`;
+    const cached = `${app}/api/v1/proxy/redirect.html?url=${encodeURIComponent(await cache(request, 'redirect.html', 'text/html', probeHtml('redirectProbe')))}&origin=${encodeURIComponent(localOrigin())}`;
     const url = `${other}/redirect-${id}`;
     await page.route(`${other}/**`, route => route.fulfill({ status: 302, headers: { Location: cached } }));
     await createRef(request, url);
@@ -310,7 +310,7 @@ test.describe.serial('Embed iframe origin', () => {
 
   test('PDF from our own cache streams with range requests', async ({ page, request }) => {
     const url = await cache(request, `paper-${id}.pdf`, 'application/pdf', pdf);
-    const res = await request.post(`${api}/tags`, { headers: await headers(request), params: { url, tag: 'plugin/pdf' } });
+    const res = await request.post(`${api}/tags`, { headers: await headers(request), params: { url, tag: 'plugin/pdf', origin: localOrigin() } });
     expect(res.ok()).toBe(true);
     const document = page.waitForResponse(res => res.url().startsWith(`${app}/api/v1/proxy/`) && res.request().resourceType() === 'document');
     await open(page, url);
@@ -327,7 +327,7 @@ test.describe.serial('Embed iframe origin', () => {
 
   test('HTML disguised as a PDF in our own cache cannot reach the app', async ({ page, request }) => {
     const url = await cache(request, `fake-${id}.pdf`, 'text/html', probeHtml('pdfProbe'));
-    const res = await request.post(`${api}/tags`, { headers: await headers(request), params: { url, tag: 'plugin/pdf' } });
+    const res = await request.post(`${api}/tags`, { headers: await headers(request), params: { url, tag: 'plugin/pdf', origin: localOrigin() } });
     expect(res.ok()).toBe(true);
     await open(page, url);
     const result = await probe(page.frameLocator('.full-page.ref .embed-container .embed-expand'));
@@ -340,7 +340,7 @@ test.describe.serial('Embed iframe origin', () => {
     const url = `comment:pdf-data-${id}`;
     const res = await request.post(`${api}/ref`, {
       headers: await headers(request),
-      data: { url, title: 'Embed origin', tags: ['public', 'plugin/pdf'], plugins: { 'plugin/pdf': { url: `data:text/html,${encodeURIComponent(probeHtml('dataPdfProbe'))}` } } },
+      data: { url, title: 'Embed origin', tags: ['public', 'plugin/pdf'], plugins: { 'plugin/pdf': { url: `data:text/html,${encodeURIComponent(probeHtml('dataPdfProbe'))}` } }, origin: localOrigin() },
     });
     expect(res.ok(), await res.text()).toBe(true);
     await open(page, url);
@@ -361,7 +361,7 @@ test.describe.serial('Embed iframe origin', () => {
       });
       await createRef(request, url, ['public', 'plugin/pdf']);
       const cached = await cache(request, `local-${id}.pdf`, 'application/pdf', pdf);
-      const tagged = await request.post(`${api}/tags`, { headers: await headers(request), params: { url: cached, tag: 'plugin/pdf' } });
+      const tagged = await request.post(`${api}/tags`, { headers: await headers(request), params: { url: cached, tag: 'plugin/pdf', origin: localOrigin() } });
       expect(tagged.ok()).toBe(true);
       await page.goto('/tag/plugin/pdf?debug=USER', { waitUntil: 'networkidle' });
       // Nothing to expand, so no toggle, but PDFs in our own cache still embed

@@ -189,7 +189,8 @@ Files that the container writes to `e2e/reports` and `test-results` may be owned
 - **Update the E2E tests whenever you change user interactions** (buttons, overlays, dialogs, forms).
 - New tests that are not meant to expose a known bug **must be run and pass** before you submit them.
 - File naming: numbered core suites (`00-smoke.spec.ts`, `01-backup.spec.ts`, ...), `plugin-<name>.spec.ts`, `template-<name>.spec.ts`.
-- Tests run serially in one worker (`workers: 1`), so state carries over between tests. Reset it with the helpers.
+- Spec files run in parallel workers (`PW_WORKERS`, default 4 in CI) against one server stack. Tests in a file run in order, so state carries over between them.
+- Every context sends a `Local-Origin` header for a sub-origin unique to the spec (`isolatedOrigin()`, `@repl.*` on the replica). Never use the default origin: post with `origin`, and qualify tags in GETs and DELETEs (`tag + origin`). Specs that need server watchers (cron, pull, push) use fixed origins listed in `fixedOriginSpecs` and in the compose script selectors.
 - Viewport is 1280x720 to avoid the mobile layout.
 - To test real cross-domain behaviour, see `e2e/embed-origin.spec.ts`: it maps `*.test` to 127.0.0.1 with `--host-resolver-rules`, opens the proxied client as `http://jasper.test:8084`, and uses `channel: 'chromium'` with `--unsafely-treat-insecure-origin-as-secure` so debug login (`crypto.subtle`) works over http. It also disables Chrome's local network access checks, because routed `other.test` pages count as public while `jasper.test` is loopback.
 

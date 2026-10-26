@@ -184,7 +184,7 @@ export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
           if (onlyIfUnset && (!this.showMap || this.hasLocation)) return;
           this.setLocation([pos.coords.longitude, pos.coords.latitude]);
         },
-        err => console.error('Geolocation error:', err.message),
+        err => console.warn('Geolocation error:', err.message),
       );
     }
   }

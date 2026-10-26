@@ -3,7 +3,9 @@
   <h5 routerLink="." i18n>Edit Tag</h5>
   <app-settings></app-settings>
 </div>
-@if (!store.view.ext()) {
+@if (!loaded()) {
+  <app-loading></app-loading>
+} @else if (!store.view.ext()) {
   <form class="form" [formGroup]="extForm" (ngSubmit)="create()">
     <label for="tag"></label>
     <div class="form-array">
@@ -17,6 +19,7 @@
              autocorrect="off"
              autocapitalize="none"
              formControlName="tag"
+             [readonly]="!loaded()"
              (blur)="validate($any($event.target))">
     </div>
 
@@ -30,7 +33,7 @@
       @if (creating()) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="creating() || submitted() && !extFormValid()" i18n>Extend</button>
+      <button type="submit" [disabled]="!loaded() || creating() || submitted() && !extFormValid()" i18n>Extend</button>
     </span>
   </form>
 } @else if (editForm(); as editForm) {

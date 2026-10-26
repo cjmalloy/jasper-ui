@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect, type Page } from '@playwright/test';
-import { adminHeaders, mod, test } from './setup';
+import { adminHeaders, localOrigin, mod, test } from './setup';
 
 test.describe.serial('Mod Update', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
@@ -13,8 +13,8 @@ test.describe.serial('Mod Update', () => {
   }
 
   async function getBlog(request: APIRequestContext) {
-    const res = await request.get(`${api}/template`, { headers: await headers(request), params: { tag: 'blog' } });
-    expect(res.ok()).toBeTruthy();
+    const res = await request.get(`${api}/template`, { headers: await headers(request), params: { tag: 'blog' + localOrigin() } });
+    expect(res.ok(), await res.text()).toBeTruthy();
     return res.json();
   }
 
@@ -40,12 +40,13 @@ test.describe.serial('Mod Update', () => {
   }
 
   async function setReceipt(request: APIRequestContext, config?: Record<string, any>) {
-    await request.delete(`${api}/ref`, { headers: await headers(request), params: { url: receiptUrl() } });
+    await request.delete(`${api}/ref`, { headers: await headers(request), params: { url: receiptUrl(), origin: localOrigin() } });
     if (!config) return;
     const res = await request.post(`${api}/ref`, {
       headers: await headers(request),
       data: {
         url: receiptUrl(),
+        origin: localOrigin(),
         title: pristine.name,
         tags: ['internal', 'plugin/mod/receipt'],
         plugins: { 'plugin/mod': { template: [bundle({ version: 1, ...config })] } },
@@ -82,7 +83,7 @@ test.describe.serial('Mod Update', () => {
     expect(blog.config.version).toBe(pristine.config.version);
     expect(blog.config.view).toBe(pristine.config.view);
     expect(blog.config.description).toBe(config.description ?? pristine.config.description);
-    const receipt = await request.get(`${api}/ref`, { headers: await headers(request), params: { url: receiptUrl() } });
+    const receipt = await request.get(`${api}/ref`, { headers: await headers(request), params: { url: receiptUrl(), origin: localOrigin() } });
     expect(receipt.ok()).toBeTruthy();
     const logged = (await receipt.json()).plugins['plugin/mod'].template[0];
     expect(logged.config.version).toBe(pristine.config.version);

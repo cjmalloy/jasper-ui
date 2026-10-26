@@ -1,5 +1,5 @@
-import { expect, type Locator, test } from '@playwright/test';
-import { closeSidebar, deleteRef, mod, openSidebar } from './setup';
+import { expect, type Locator } from '@playwright/test';
+import { closeSidebar, deleteRef, mod, openSidebar, test } from './setup';
 
 const URL = 'https://jasperkm.info/plugin-map-test';
 const POLYGON_URL = 'https://jasperkm.info/plugin-map-polygon-test';
@@ -988,8 +988,11 @@ test.describe.serial('Map Plugin', () => {
       useStyle(json);
       await route.fulfill({ response, json });
     });
-    // MapTiler is not reachable, so its tiles never load
-    await page.route(/api\.maptiler\.com/, route => route.abort());
+    // Stand in for MapTiler with blank tiles: an empty vector tile and a 1x1 transparent PNG
+    const blankPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+    await page.route(/api\.maptiler\.com/, route => route.fulfill(route.request().url().includes('.pbf')
+      ? { headers: CORS, contentType: 'application/x-protobuf', body: Buffer.alloc(0) }
+      : { headers: CORS, contentType: 'image/png', body: blankPng }));
     await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(URL)
       + '&tag=plugin/geo/point', { waitUntil: 'domcontentloaded' });
     const point = page.locator('.location-field').first();

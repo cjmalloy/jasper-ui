@@ -167,7 +167,7 @@ export function getLocalMailbox(mailbox: string, local: string, origin: string, 
     return `plugin/outbox/${mapped.substring(1)}/${removePrefix(mailbox, 3)}`;
   }
   if (hasPrefix(mailbox, 'plugin/inbox')) {
-    return `plugin/outbox/${origin.substring(1)}/${removePrefix(mailbox, 2)}`;
+    return `plugin/outbox/${removeParentOrigin(origin, local).substring(1)}/${removePrefix(mailbox, 2)}`;
   }
   throw 'not a mailbox';
 }

@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { clearMods, closeSidebar, mod, openSidebar, openTextSubmit, pollNotifications, test } from './setup';
+import { closeSidebar, mod, openSidebar, openTextSubmit, pollNotifications, test } from './setup';
 
 const title = 'Signals Sanity';
 const listUrl = `/tag/@*?search=${encodeURIComponent(title)}&debug=ADMIN`;
@@ -174,9 +174,5 @@ test.describe.serial('Signal and Event Bus Sanity', () => {
     await row().locator('.actions .fake-link', { hasText: 'yes' }).first().click();
     await page.reload({ waitUntil: 'networkidle' });
     await expect(page.locator('.ref-list .ref .link a', { hasText: title })).toHaveCount(0);
-  });
-
-  test('clear mods', async () => {
-    await clearMods(page);
   });
 });

@@ -1,11 +1,7 @@
 import { expect } from '@playwright/test';
-import { clearAll, mod, test } from './setup';
+import { mod, test } from './setup';
 
 test.describe.serial('Chat Template', () => {
-
-  test('clear all', async ({ page }) => {
-    await clearAll(page);
-  });
 
   test('enable chat mod', async ({ page }) => {
     await mod(page, '#mod-chat');

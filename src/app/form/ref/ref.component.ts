@@ -318,12 +318,14 @@ export class RefFormComponent {
     );
   }
 
-  scrapeTitle() {
+  scrapeTitle(force = false) {
     this.scrapingTitle.set(true);
+    const before = this.title().value;
     (this.web() ? this.webTitle$ : of(undefined)).subscribe(title => {
       this.scrapingTitle.set(false);
       title ||= getTitleFromFilename(this.url().value) || undefined;
-      if (title) this.group().patchValue({ title });
+      const edited = force ? this.title().value !== before : this.title().dirty;
+      if (title && !edited) this.group().patchValue({ title });
     });
   }
 

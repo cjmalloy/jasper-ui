@@ -1,11 +1,7 @@
 import { expect } from '@playwright/test';
-import { clearMods, deleteRef, openSidebar, test } from './setup';
+import { deleteRef, openSidebar, test } from './setup';
 
 test.describe('Backup / Restore', () => {
-
-  test('clear mods', async ({ page }) => {
-    await clearMods(page);
-  });
 
   test('creates a ref', async ({ page }) => {
     // Clean up any existing ref from a previous failed run/retry
@@ -44,7 +40,9 @@ test.describe('Backup / Restore', () => {
   test('deletes ref', async ({ page }) => {
     await page.goto(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' }).first().click();
+    const deleted = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'DELETE');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();
+    expect((await deleted).ok()).toBe(true);
     await page.goto(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
     await expect(page.locator('.error-404', { hasText: 'Not Found' })).toBeVisible();
   });
@@ -60,8 +58,9 @@ test.describe('Backup / Restore', () => {
     await expect(page.locator('#restoreTombstones')).toBeVisible();
     await expect(page.locator('#restoreTombstones')).not.toBeChecked();
     // Click restore to restore with default options
+    const restored = page.waitForResponse(resp => resp.url().includes('/api/v1/backup/restore/') && resp.request().method() === 'POST');
     await page.locator('.popup button', { hasText: 'restore' }).click();
-    await page.waitForTimeout(1000);
+    expect((await restored).ok()).toBe(true);
     await page.goto(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Backup Test');
   });
@@ -69,7 +68,9 @@ test.describe('Backup / Restore', () => {
   test('deletes ref after restore', async ({ page }) => {
     await page.goto(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' }).first().click();
+    const deleted = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'DELETE');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();
+    expect((await deleted).ok()).toBe(true);
     await page.goto(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
     await expect(page.locator('.error-404', { hasText: 'Not Found' })).toBeVisible();
   });

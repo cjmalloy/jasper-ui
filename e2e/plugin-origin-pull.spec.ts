@@ -1,8 +1,8 @@
 import { expect, type Page, type Response } from '@playwright/test';
 import {
-  clearAll,
-  clearOrigin,
+  clearFixedOrigins,
   deleteRef,
+  isolatedOrigin,
   mod,
   openSidebar,
   openTextSubmit,
@@ -19,6 +19,15 @@ test.describe.serial('Origin Pull Plugin', () => {
   const runId = Date.now().toString(36);
   const pullTestTitle = `Pull Test ${runId}`;
   const manualPullTestTitle = `Manual Pull Test ${runId}`;
+  // Remote origin on the replica, and where it is pulled to on main
+  let remote = '';
+  let pulled = '';
+
+  test.beforeAll(({}, info) => {
+    const origin = isolatedOrigin(info);
+    remote = '@repl.' + origin.substring(1);
+    pulled = origin + '.repl';
+  });
 
   function isRefPost(resp: Response) {
     return resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST' && resp.ok();
@@ -40,7 +49,7 @@ test.describe.serial('Origin Pull Plugin', () => {
       await page.locator('[name=websocket]').uncheck();
     }
     await page.locator('[name=local]').fill('@repl');
-    await page.locator('[name=remote]').fill('@repl');
+    await page.locator('[name=remote]').fill(remote);
     await page.locator('[name=title]').fill(title);
     const submitPromise = page.waitForResponse(isRefPost);
     await page.locator('button', { hasText: 'Submit' }).click();
@@ -59,7 +68,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   }
 
   async function expectPulled(page: Page, title: string) {
-    const path = '/tag/@repl?debug=USER';
+    const path = `/tag/${pulled}?debug=USER`;
     await expect.poll(async () => {
       await page.goto(path, { waitUntil: 'networkidle' });
       return await page.locator('.ref-list .link.remote', { hasText: title }).count();
@@ -69,7 +78,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   }
 
   async function runManualPull(page: Page) {
-    const cursor = await subscribeMain('/topic/cursor/@repl');
+    const cursor = await subscribeMain('/topic/cursor/' + pulled);
     try {
       await page.goto(`/ref/e/${encodeURIComponent(replApiProxy)}?debug=ADMIN`);
       await page.locator('.full-page.ref .actions .show-more').click();
@@ -84,30 +93,15 @@ test.describe.serial('Origin Pull Plugin', () => {
     }
   }
 
-  async function clearReplicatedOrigin(page: Page) {
-    await test.step('clear local replicated origin', async () => {
-      await clearOrigin(page, '', '@repl');
-    });
-    await test.step('clear remote source origin', async () => {
-      await clearOrigin(page, replUrl, '@repl');
-    });
-  }
-
-  test('@\u{ff20}main : clear all', async ({ page }) => {
-    await clearAll(page);
-    await clearAll(page, '', '@repl');
+  test('clear previous runs', async ({ page }) => {
+    await clearFixedOrigins(page);
   });
 
   test('@\u{ff20}main : turn on pull', async ({ page }) => {
     await mod(page, '#mod-root', '#mod-origin');
   });
 
-  test('@\u{ff20}repl : clear all', async ({ page }) => {
-    await clearAll(page, replUrl, '@repl');
-  });
-
   test('@\u{ff20}main : creates a remote origin', async ({ page }) => {
-    await clearReplicatedOrigin(page);
     await createRemoteOrigin(page, 'Testing Remote @repl', true);
     const enablePromise = waitForCronToggleResponse(page);
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
@@ -116,7 +110,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}repl : creates ref and streams pull', async ({ page }) => {
-    const cursor = await subscribeMain('/topic/cursor/@repl');
+    const cursor = await subscribeMain('/topic/cursor/' + pulled);
     try {
       await test.step('create remote source ref', async () => {
         await createRemoteTextRef(page, pullTestTitle);
@@ -143,12 +137,10 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}main : creates a remote origin without streaming updates', async ({ page }) => {
-    await clearReplicatedOrigin(page);
     await createRemoteOrigin(page, 'Testing Manual Remote @repl', false);
   });
 
   test('@\u{ff20}repl : creates ref and manually pulls', async ({ page }) => {
-    await clearReplicatedOrigin(page);
     await test.step('create remote source ref', async () => {
       await createRemoteTextRef(page, manualPullTestTitle);
     });

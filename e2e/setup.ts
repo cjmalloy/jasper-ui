@@ -1,6 +1,7 @@
 import { test as base, type BrowserContext, type ConsoleMessage, expect, type Page, type WebError } from '@playwright/test';
 import { Client, type IMessage } from '@stomp/stompjs';
 import { createHmac } from 'node:crypto';
+import { basename } from 'node:path';
 
 const debugSecret = Buffer.from(
   'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM=',
@@ -24,10 +25,61 @@ const allowedConsoleErrors: RegExp[] = [
   // Chrome logs every 4xx/5xx response as a console error, e.g. the 404 for a user without a User entity
   // on startup. Tests assert on API results and UI state directly.
   /^Failed to load resource: the server responded with a status of \d+/,
+  // The map spec loads its basemap from an external tile server, which may be unreachable from the runner.
+  /^MapLibre Engine Error: .*AJAXError: Failed to fetch \(0\): https:\/\/demotiles\.maplibre\.org\//,
+  /^Failed to load resource: net::ERR_[A-Z_]+ \(https:\/\/demotiles\.maplibre\.org\//,
   // Chrome logs when the embed iframe sandbox stops an embedded page from navigating the app.
   // The page in the iframe caused it, and the navigation was blocked as intended.
   /^Unsafe attempt to initiate navigation for frame with origin .* The frame attempting navigation of the top-level window is sandboxed/s,
 ];
+
+const runId = process.env.PW_RUN_ID ||= Date.now().toString(36);
+const moddedOrigins = new Set<string>();
+const replHosts = [process.env.REPL_URL || 'http://localhost:8082', process.env.REPL_API || 'http://localhost:8083']
+  .map(url => new URL(url).host);
+
+/**
+ * Specs that need the server's cron, user run or websocket pull watchers. The server only registers those
+ * for origins listed explicitly in its script selectors (wildcards don't start watchers), so these specs
+ * use fixed origins that are listed in e2e/docker-compose.yaml. They must clear them with
+ * {@link clearFixedOrigins} in case the stack was used by an earlier run.
+ */
+const fixedOriginSpecs = ['pluginoriginaliases', 'pluginoriginpull', 'pluginoriginpush', 'pluginoutbox'];
+
+/**
+ * Origin that isolates the current spec file from every other spec file on the main server.
+ * Sent as the `Local-Origin` header, so the server treats it as the local origin for every request.
+ * Retries get a new origin so they start from a clean state.
+ * Specs never use the default origin, so any number of workers can share the servers.
+ */
+export function isolatedOrigin(info = test.info()) {
+  const slug = basename(info.file).replace(/(\.spec)?\.ts$/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  // Single level: the server only runs scripts in origins one level below the local origin
+  if (fixedOriginSpecs.includes(slug)) return `@${slug}r${info.retry}`;
+  return `@${slug}r${info.retry}t${runId}`;
+}
+
+/**
+ * Local origin of the main server for the current test.
+ */
+export function localOrigin() {
+  return isolatedOrigin();
+}
+
+/**
+ * Local origin of the replica server for the current test: a sub origin of the replica's `@repl`.
+ */
+export function replOrigin() {
+  return '@repl.' + isolatedOrigin().substring(1);
+}
+
+async function isolate(ctx: BrowserContext) {
+  // The replica only accepts sub origins of @repl. Chromium sends the context's extra headers
+  // on websocket upgrades too, but routes can't change those, so replica websockets fall back to @repl.
+  await ctx.route(url => replHosts.includes(url.host), route => route.continue({
+    headers: { ...route.request().headers(), 'local-origin': replOrigin() },
+  }));
+}
 
 /**
  * Playwright `test` that fails when any page logs a `console.error` or throws an uncaught exception.
@@ -35,14 +87,44 @@ const allowedConsoleErrors: RegExp[] = [
  * Covers the test's own `page`/`context`, pages shared across tests (created in `beforeAll`) and
  * contexts created during the test.
  */
-export const test = base.extend<{ failOnConsoleErrors: void }>({
+export const test = base.extend<{ failOnConsoleErrors: void, origin: string, replOrigin: string }, { isolateContexts: void }>({
+  /**
+   * Run each spec file in its own origin on both servers.
+   */
+  isolateContexts: [async ({ browser }, use) => {
+    // Covers contexts and pages created in beforeAll. Chromium also sends extra headers on the
+    // websocket upgrade, so STOMP subscriptions use the same origin.
+    const newContext = browser.newContext;
+    browser.newContext = async (options = {}) => {
+      const ctx = await newContext.call(browser, {
+        ...options,
+        extraHTTPHeaders: { 'Local-Origin': isolatedOrigin(), ...options.extraHTTPHeaders },
+      });
+      await isolate(ctx);
+      return ctx;
+    };
+    try {
+      await use();
+    } finally {
+      browser.newContext = newContext;
+    }
+  }, { scope: 'worker', auto: true }],
+  extraHTTPHeaders: async ({ extraHTTPHeaders }, use) => {
+    await use({ 'Local-Origin': isolatedOrigin(), ...extraHTTPHeaders });
+  },
+  origin: async ({}, use) => {
+    await use(isolatedOrigin());
+  },
+  replOrigin: async ({}, use) => {
+    await use(replOrigin());
+  },
   failOnConsoleErrors: [async ({ browser, context }, use) => {
     const errors: string[] = [];
     const onConsole = (msg: ConsoleMessage) => {
       if (msg.type() !== 'error') return;
-      const text = msg.text();
+      const text = `${msg.text()} (${msg.location().url})`;
       if (allowedConsoleErrors.some(r => r.test(text))) return;
-      errors.push(`console.error: ${text} (${msg.location().url})`);
+      errors.push(`console.error: ${text}`);
     };
     const onWebError = (e: WebError) => errors.push(`pageerror: ${e.error().stack || e.error().message}`);
     const tracked = new Set<BrowserContext>();
@@ -172,6 +254,17 @@ export async function clearOrigin(page: Page, base = '', origin = '') {
   return true;
 }
 
+/**
+ * Clears the fixed origins of a spec (see {@link fixedOriginSpecs}) and their replicated sub origins on
+ * both servers, in case an earlier run used the same stack.
+ */
+export async function clearFixedOrigins(page: Page) {
+  const replUrl = process.env.REPL_URL || 'http://localhost:8082';
+  for (const origin of [localOrigin() + '.repl', localOrigin()]) await clearOrigin(page, '', origin);
+  for (const origin of [replOrigin() + '.main', replOrigin()]) await clearOrigin(page, replUrl, origin);
+  moddedOrigins.clear();
+}
+
 export async function clearAll(page: Page, base = '', origin = '') {
   if (!await clearOrigin(page, base, origin)) return;
   await clearMods(page, base);
@@ -214,10 +307,15 @@ export async function mod(page: Page, ...mods: string[]) {
 }
 
 export async function modRemote(page: Page, base = '', ...mods: string[]) {
-  await clearMods(page, base);
-  await page.goto(base + '/?debug=ADMIN', { waitUntil: 'networkidle' });
-  await page.locator('.settings a', { hasText: 'settings' }).click();
-  await page.locator('.tabs a', { hasText: 'setup' }).first().click();
+  // A fresh isolated origin has no mods, so only clear when mods were already installed
+  const origin = base + localOrigin();
+  if (moddedOrigins.has(origin)) {
+    // Leaves the page on the setup tab
+    await clearMods(page, base);
+  } else {
+    await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
+  }
+  moddedOrigins.add(origin);
   if (mods.includes('#mod-experiments')) {
     await expect(page.locator('#mod-experiments')).toBeChecked({ checked: false });
     await page.locator('#mod-experiments').check();
@@ -276,6 +374,23 @@ export async function upload(page: Page, file: string) {
     { timeout: 10_000 },
   );
   return page.url().replace('/ref/', '/ref/e/');
+}
+
+/**
+ * Opens the app as the given user and marks the inbox read so later notifications start from a clean cursor.
+ * Specs with fixed origins keep mail from previous runs.
+ */
+export async function markInboxRead(page: Page, url: string) {
+  const notification = page.locator('.settings .notification');
+  await expect(async () => {
+    await page.goto(url, { waitUntil: 'networkidle' });
+    if (await notification.isVisible()) {
+      await notification.click();
+      await page.locator('.tabs a', { hasText: 'all' }).first().click();
+      await page.goto(url, { waitUntil: 'networkidle' });
+    }
+    await expect(notification).toBeHidden({ timeout: 5_000 });
+  }).toPass({ timeout: 60_000 });
 }
 
 export async function pollNotifications(page: Page, user = 'debug') {

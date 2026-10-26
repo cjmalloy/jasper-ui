@@ -1,5 +1,7 @@
 import { expect } from '@playwright/test';
-import { mod, test } from './setup';
+import { adminHeaders, mod, test } from './setup';
+
+const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
 
 test.describe.serial('User Page', () => {
 
@@ -47,7 +49,15 @@ test.describe.serial('User Page', () => {
     await expect(page).toHaveURL(/\/tag\/\+user\/bob/);
   });
 
-  test('downloads a pre-filled connection ref', async ({ page }) => {
+  test('downloads a pre-filled connection ref', async ({ request, page, origin }) => {
+    await request.get(`${api}/user/page`);
+    const { cookies } = await request.storageState();
+    const xsrf = cookies.find(c => c.name === 'XSRF-TOKEN')?.value || '';
+    const created = await request.post(`${api}/user`, {
+      headers: { Authorization: 'Bearer ' + adminHeaders.jwt, 'X-XSRF-TOKEN': xsrf },
+      data: { tag: '+user', origin },
+    });
+    expect([201, 409]).toContain(created.status());
     await page.goto('/settings/user?debug=ADMIN', { waitUntil: 'networkidle' });
     const profile = page.locator('.profile', {
       has: page.getByRole('link', { name: '+user', exact: true }),
@@ -55,19 +65,19 @@ test.describe.serial('User Page', () => {
     const downloadPromise = page.waitForEvent('download');
     await profile.locator('.connect-action').click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe('@localhost.json');
+    expect(download.suggestedFilename()).toBe(`${origin}.json`);
     const stream = await download.createReadStream();
     const chunks: Buffer[] = [];
     for await (const chunk of stream) chunks.push(chunk);
 
     expect(JSON.parse(Buffer.concat(chunks).toString())).toEqual({
       url: 'http://localhost:8081/',
-      title: '@localhost',
+      title: origin,
       tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
         '+plugin/cron': { interval: 'PT15M' },
-        '+plugin/origin': { remote: '', local: '@localhost' },
-        '+plugin/origin/tunnel': { remoteUser: '+user' },
+        '+plugin/origin': { remote: origin, local: origin },
+        '+plugin/origin/tunnel': { remoteUser: '+user' + origin },
       },
     });
   });

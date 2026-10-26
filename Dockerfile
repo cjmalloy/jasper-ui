@@ -1,6 +1,5 @@
 FROM node:26.12.0 AS builder
 WORKDIR /app
-RUN npm i -g @angular/cli@20.3.15
 COPY package.json package-lock.json ./
 COPY patches ./patches/
 RUN npm ci
@@ -10,7 +9,6 @@ RUN npm run $BUILD_SCRIPT
 
 FROM node:26.12.0 AS test
 WORKDIR /app
-RUN npm i -g @angular/cli@20.3.15
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
 CMD mkdir -p /report && \

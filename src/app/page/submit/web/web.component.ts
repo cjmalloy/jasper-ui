@@ -93,10 +93,12 @@ export class SubmitWebPage implements HasChanges {
   private savingSubscription?: Subscription;
   readonly defaults = signal<{ url: string, ref: Partial<Ref> } | undefined>(undefined);
   readonly loadingDefaults = signal<Ext[]>([]);
+  readonly defaultsLoaded = signal(false);
   readonly alreadyExists = signal<boolean>(false);
 
   private oldSubmit: string[] = [];
   private cursor?: string;
+  private hasDraft = false;
 
   constructor() {
     const fb = this.fb;
@@ -122,21 +124,18 @@ export class SubmitWebPage implements HasChanges {
 
   private readonly initializeView = afterNextRender(() => {
     this.url = this.store.submit.url()?.trim();
-    if (this.admin.editing() && this.url) {
-      this.refs.getEditing(this.url).subscribe(draft => {
-        if (!draft) return;
-        this.cursor = draft.modifiedString;
-        this.refForm.setRef(draft.plugins?.['plugin/editing'] || {});
-      });
-    }
     const allTags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
-    this.exts.getCachedExts(allTags).pipe(
-      map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
-      switchMap(xs => {
-        this.loadingDefaults.set(xs);
-        return this.refs.getDefaults(...xs.map(x => x.tag))
-      }),
-    ).subscribe(d => {
+    // Load the draft before the defaults, so neither the defaults nor a scraped title overwrite it
+    (this.admin.editing() && this.url ? this.refs.getEditing(this.url) : of(undefined)).pipe(
+      switchMap(draft => this.exts.getCachedExts(allTags).pipe(
+        map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
+        switchMap(xs => {
+          this.loadingDefaults.set(xs);
+          return this.refs.getDefaults(...xs.map(x => x.tag))
+        }),
+        map(d => ({ draft, d })),
+      )),
+    ).subscribe(({ draft, d }) => {
       this.defaults.set(d);
       this.loadingDefaults.set([]);
       // Seed the location once so later tag changes keep any edits
@@ -156,6 +155,12 @@ export class SubmitWebPage implements HasChanges {
       }
       if (this.store.account.localTag()) this.addTag(this.store.account.localTag());
       if (point && !d) this.addPlugin('plugin/geo/point', point);
+      if (draft) {
+        this.cursor = draft.modifiedString;
+        this.hasDraft = true;
+        this.refForm.setRef(draft.plugins?.['plugin/editing'] || {});
+      }
+      this.defaultsLoaded.set(true);
       effect(() => {
         this.store.submit.tags();
         this.store.account.localTag();
@@ -222,19 +227,19 @@ export class SubmitWebPage implements HasChanges {
                   if (!this.store.submit.title()) this.webForm.get('title')!.setValue(username);
                   const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
                   this.addFeedTags(tag);
-                } else if (!this.store.submit.title()) {
+                } else if (!this.store.submit.title() && !this.hasDraft) {
                   this.refForm.scrapeTitle();
                 }
               } else {
                 // No RSS URL found or found value already exists
-                if (!this.store.submit.title()) {
+                if (!this.store.submit.title() && !this.hasDraft) {
                   this.refForm.scrapeTitle();
                 }
               }
             });
           } else {
             this.oembeds.get(url).subscribe(oembed => {
-              if (!this.store.submit.title()) this.refForm.scrapeTitle();
+              if (!this.store.submit.title() && !this.hasDraft) this.refForm.scrapeTitle();
               if (!oembed) return;
               if (oembed?.thumbnail_url) {
                 this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url });
@@ -362,7 +367,7 @@ export class SubmitWebPage implements HasChanges {
       this.savingSubscription?.add(() => this.submit());
       return;
     }
-    if (this.alreadyExists()) {
+    if (!this.defaultsLoaded() || this.alreadyExists()) {
       return;
     }
     this.serverError.set([]);

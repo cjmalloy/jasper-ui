@@ -31,6 +31,6 @@
     @if (alreadyExists()) {
       <button type="button" [disabled]="submitting() || saving()" (click)="prepareRepost()" i18n>Repost</button>
     }
-    <button type="submit" [disabled]="submitting() || alreadyExists() || (submitted() && !webFormValid())" i18n>Submit</button>
+    <button type="submit" [disabled]="!defaultsLoaded() || submitting() || alreadyExists() || (submitted() && !webFormValid())" i18n>Submit</button>
   </span>
 </form>
