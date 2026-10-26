@@ -2203,6 +2203,19 @@ formly-field-radio, formly-field-multicheckbox {
   &.inline-embed, &.embed-container {
     height: 600px;
   }
+
+  // Wait before showing the placeholder, so a fast oEmbed request doesn't flash it
+  &.embed-container {
+    animation-name: image-loading, loading-delay;
+    animation-duration: 4s, 0.5s;
+    animation-iteration-count: infinite, 1;
+    animation-timing-function: linear, step-end;
+  }
+}
+@keyframes loading-delay {
+  from, to {
+    opacity: 0;
+  }
 }
 @keyframes image-loading {
   from {
