@@ -323,7 +323,7 @@ export class RefFormComponent {
     (this.web() ? this.webTitle$ : of(undefined)).subscribe(title => {
       this.scrapingTitle.set(false);
       title ||= getTitleFromFilename(this.url().value) || undefined;
-      if (title) this.group().patchValue({ title });
+      if (title && !this.title().dirty) this.group().patchValue({ title });
     });
   }
 
