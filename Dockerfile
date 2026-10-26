@@ -1,4 +1,4 @@
-FROM node:26.12.0 AS builder
+FROM node:26.12.1 AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY patches ./patches/
@@ -7,7 +7,7 @@ COPY . ./
 ARG BUILD_SCRIPT=build
 RUN npm run $BUILD_SCRIPT
 
-FROM node:26.12.0 AS test
+FROM node:26.12.1 AS test
 WORKDIR /app
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
