@@ -25,6 +25,9 @@ const allowedConsoleErrors: RegExp[] = [
   // Chrome logs every 4xx/5xx response as a console error, e.g. the 404 for a user without a User entity
   // on startup. Tests assert on API results and UI state directly.
   /^Failed to load resource: the server responded with a status of \d+/,
+  // The map spec loads its basemap from an external tile server, which may be unreachable from the runner.
+  /^MapLibre Engine Error: .*AJAXError: Failed to fetch \(0\): https:\/\/demotiles\.maplibre\.org\//,
+  /^Failed to load resource: net::ERR_[A-Z_]+ \(https:\/\/demotiles\.maplibre\.org\//,
 ];
 
 const runId = process.env.PW_RUN_ID ||= Date.now().toString(36);
@@ -116,9 +119,9 @@ export const test = base.extend<{ failOnConsoleErrors: void, origin: string, rep
     const errors: string[] = [];
     const onConsole = (msg: ConsoleMessage) => {
       if (msg.type() !== 'error') return;
-      const text = msg.text();
+      const text = `${msg.text()} (${msg.location().url})`;
       if (allowedConsoleErrors.some(r => r.test(text))) return;
-      errors.push(`console.error: ${text} (${msg.location().url})`);
+      errors.push(`console.error: ${text}`);
     };
     const onWebError = (e: WebError) => errors.push(`pageerror: ${e.error().stack || e.error().message}`);
     const tracked = new Set<BrowserContext>();
