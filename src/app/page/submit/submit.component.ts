@@ -130,16 +130,14 @@ export class SubmitPage {
         }
         this.validations.set(validations);
         this.url.updateValueAndValidity();
-        if (this.url.value) {
-          const tags = [
-            ...this.store.submit.tags(),
-            ...this.admin.getPluginsForUrl(this.store.submit.url()).map(p => p.tag),
-          ];
-          for (const t of tags) {
-            if (hasPrefix(t, 'plugin')) {
-              this.plugin.set(t);
-              break;
-            }
+        const tags = [
+          ...this.store.submit.tags(),
+          ...(this.url.value ? this.admin.getPluginsForUrl(this.store.submit.url()).map(p => p.tag) : []),
+        ];
+        for (const t of tags) {
+          if (hasPrefix(t, 'plugin')) {
+            this.plugin.set(t);
+            break;
           }
         }
       });
