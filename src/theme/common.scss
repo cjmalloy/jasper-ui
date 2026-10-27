@@ -1514,24 +1514,40 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
 
 .buttons.floating {
   position: sticky;
-  bottom: 8px;
+  bottom: 4px;
   z-index: 10;
-  flex: none;
-  align-items: center;
-  width: fit-content;
-  box-sizing: border-box;
-  padding: 4px;
-  border: 1px solid var(--border-accent);
-  border-radius: 8px;
-  background-color: var(--bg);
-  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.2);
-  &.right {
-    margin-left: auto;
-    justify-self: end;
-  }
+  grid-column: 1 / -1;
+  container-type: scroll-state;
   &.top {
-    top: 8px;
+    top: 4px;
     bottom: auto;
+  }
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 4px;
+  }
+  @supports not (container-type: scroll-state) {
+    &::before {
+      background-color: var(--bg);
+    }
+  }
+  @container scroll-state(stuck: bottom) {
+    &::before {
+      background-color: var(--bg);
+      border-top: 1px solid var(--border-accent);
+      box-shadow: 0 -2px 8px 0 rgba(0, 0, 0, 0.2);
+    }
+  }
+  @container scroll-state(stuck: top) {
+    &::before {
+      background-color: var(--bg);
+      border-bottom: 1px solid var(--border-accent);
+      box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.2);
+    }
   }
 }
 
