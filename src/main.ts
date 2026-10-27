@@ -26,6 +26,8 @@ import { rateLimitInterceptor } from './app/http/rate-limit.interceptor';
 import { AccountService } from './app/service/account.service';
 import { AdminService } from './app/service/admin.service';
 import { ExtService } from './app/service/api/ext.service';
+import { OEmbedService } from './app/service/api/oembed.service';
+import { ScrapeService } from './app/service/api/scrape.service';
 import { StompService } from './app/service/api/stomp.service';
 import { ConfigService } from './app/service/config.service';
 import { DebugService } from './app/service/debug.service';
@@ -42,6 +44,9 @@ function load() {
   const mods = inject(ModService);
   const exts = inject(ExtService);
   const stomp = inject(StompService);
+  // Listen for *:defaults before the first admin run fires it
+  inject(OEmbedService);
+  inject(ScrapeService);
   return config.load$.pipe(
     tap(() => stomp.initialize()),
     tap(() => console.log('-{1}- Loading Jasper')),
