@@ -1532,13 +1532,15 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   }
   @supports not (container-type: scroll-state) {
     &::before {
-      background-color: var(--bg);
+      border: 1px dashed var(--border);
+      backdrop-filter: blur(1px);
     }
   }
   @container scroll-state((stuck: top) or (stuck: bottom)) {
     &::before {
-      background-color: var(--bg);
+      border: 1px dashed var(--border);
       box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(1px);
     }
   }
 }

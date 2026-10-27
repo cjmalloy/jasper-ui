@@ -218,8 +218,7 @@ body.dark-theme {
 
   @container scroll-state((stuck: top) or (stuck: bottom)) {
     .buttons.floating::before {
-      background-image: linear-gradient(var(--bg-accent), var(--bg-accent));
-      backdrop-filter: blur(1px);
+      background-color: var(--bg-accent);
     }
   }
 
