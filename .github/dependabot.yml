@@ -18,10 +18,6 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
-  cooldown:
-    semver-major-days: 5
-    semver-minor-days: 1
-    semver-patch-days: 0
   groups:
     angular:
       patterns:
@@ -77,10 +73,6 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
-  cooldown:
-    semver-major-days: 0
-    semver-minor-days: 0
-    semver-patch-days: 0
   groups:
     angular:
       patterns:
