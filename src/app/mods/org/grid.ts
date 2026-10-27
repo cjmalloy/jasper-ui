@@ -87,7 +87,7 @@ export const gridTemplate: Template = {
     submitText: true,
     noFloatingSidebar: true,
     columnDefs: [
-      { headerName: $localize`Thumbnail`, field: 'plugins.plugin/thumbnail.url', type: 'image' },
+      { headerName: $localize`Thumbnail`, field: 'plugins->plugin/thumbnail->url', type: 'image' },
       { headerName: $localize`Title`, field: 'title', type: 'text', flex: 2 },
       { headerName: $localize`Published`, field: 'published', type: 'dateTime' },
       { headerName: $localize`Tags`, field: 'tags', type: 'tags', flex: 1 },

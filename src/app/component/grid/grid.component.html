@@ -1,6 +1,7 @@
 <ag-grid-angular [class.ag-theme-quartz]="!store.darkTheme()"
                  [class.ag-theme-quartz-dark]="store.darkTheme()"
                  theme="legacy"
+                 [suppressFieldDotNotation]="true"
                  [style.height.vh]="90"
                  [rowData]="rowData()"
                  [columnDefs]="columnDefs()"></ag-grid-angular>
