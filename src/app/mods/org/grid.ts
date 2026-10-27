@@ -37,6 +37,7 @@ export const gridTemplate: Template = {
           type: 'string',
           props: {
             label: $localize`Field:`,
+            title: $localize`Use -> for nested fields, or tags-> for the value of a tag (e.g., tags->plugin/duration:dur). Append :num or :dur to read the value as a number or duration.`,
           },
         }, {
           key: 'type',

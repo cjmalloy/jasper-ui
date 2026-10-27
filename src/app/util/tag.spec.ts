@@ -13,6 +13,7 @@ import {
   removeTag,
   setPrivate,
   setProtected,
+  tagValue,
   updateMetadata
 } from './tag';
 
@@ -370,5 +371,13 @@ describe('Tag Utils', () => {
       expect(localPluginResponses(parent, 'plugin/comment')).toBe(1);
       expect(pluginResponses(parent, 'plugin/comment')).toBe(2);
     });
+  });
+
+  it('tagValue', () => {
+    expect(tagValue({ tags: ['plugin/title/hello'] }, 'plugin/title')).toBe('hello');
+    expect(tagValue({ tags: ['plugin/progress', 'plugin/progress/37/100'] }, 'plugin/progress')).toBe('37');
+    expect(tagValue({ tags: ['plugin/progressive/1'] }, 'plugin/progress')).toBeUndefined();
+    expect(tagValue({ tags: [] }, 'plugin/progress')).toBeUndefined();
+    expect(tagValue(undefined, 'plugin/progress')).toBeUndefined();
   });
 });

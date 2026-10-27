@@ -3,9 +3,9 @@ import * as d3 from 'd3';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import { cloneDeep, defer, isEqual, omitBy, uniqWith } from 'lodash-es';
-import { DateTime, Duration, DurationObjectUnits } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { v4 as uuid } from 'uuid';
-import { dedent, interestingTags } from '../util/format';
+import { dedent, formatDuration, interestingTags } from '../util/format';
 import { hasAnyResponse, hasQuery, hasResponse, hasTag, hasPrefix, prefix, remotePlugins, subOrigin } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Ext, extSchema } from './ext';
@@ -557,27 +557,6 @@ Handlebars.registerHelper('progress', (ref: Ref, tag: string) => {
 });
 Handlebars.registerHelper('human', (value: any) => {
   if (!value) return '';
-  const formatDuration = (d: Duration) => {
-    // Standard duration units ordered by scale
-    const units: (keyof DurationObjectUnits)[] = [
-      'years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds'
-    ];
-    // Find the largest unit that has at least "1" of that unit
-    const largestUnitIndex = units.findIndex(unit => d.as(unit) >= 1);
-    // Fallback for durations < 1 second (e.g., "0.5 seconds" becomes "1 second")
-    if (largestUnitIndex === -1) {
-      return d.shiftTo('seconds').mapUnits(Math.round).toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
-    }
-    const primaryUnit = units[largestUnitIndex];
-    const secondaryUnit = units[largestUnitIndex + 1];
-    // Build target units (e.g., ['years', 'months'] or ['seconds'])
-    const targetUnits = secondaryUnit ? [primaryUnit, secondaryUnit] : [primaryUnit];
-    return d
-      .shiftTo(...targetUnits)
-      .mapUnits(Math.round) // Rounds the smallest visible unit
-      .normalize()          // Handles carry-over (e.g., 60m -> 1h)
-      .toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
-  };
   if (Duration.isDuration(value)) return formatDuration(value);
   if (DateTime.isDateTime(value)) return value.toRelative() ?? '';
   if (typeof value === 'string') {

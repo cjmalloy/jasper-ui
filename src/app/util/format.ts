@@ -1,5 +1,6 @@
 import * as he from 'he';
 import { filter, sortBy, uniq } from 'lodash-es';
+import { Duration, DurationObjectUnits } from 'luxon';
 import { Ref } from '../model/ref';
 import { Config, ModType } from '../model/tag';
 import { reverseOrigin } from '../mods/mailbox';
@@ -208,4 +209,26 @@ export function readableBytes(size: number): string  {
   const i = !size ? 0 : Math.floor(Math.log(size) / Math.log(1024));
   // @ts-ignore
   return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+}
+
+export function formatDuration(d: Duration): string {
+  // Standard duration units ordered by scale
+  const units: (keyof DurationObjectUnits)[] = [
+    'years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds'
+  ];
+  // Find the largest unit that has at least "1" of that unit
+  const largestUnitIndex = units.findIndex(unit => d.as(unit) >= 1);
+  // Fallback for durations < 1 second (e.g., "0.5 seconds" becomes "1 second")
+  if (largestUnitIndex === -1) {
+    return d.shiftTo('seconds').mapUnits(Math.round).toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
+  }
+  const primaryUnit = units[largestUnitIndex];
+  const secondaryUnit = units[largestUnitIndex + 1];
+  // Build target units (e.g., ['years', 'months'] or ['seconds'])
+  const targetUnits = secondaryUnit ? [primaryUnit, secondaryUnit] : [primaryUnit];
+  return d
+    .shiftTo(...targetUnits)
+    .mapUnits(Math.round) // Rounds the smallest visible unit
+    .normalize()          // Handles carry-over (e.g., 60m -> 1h)
+    .toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
 }

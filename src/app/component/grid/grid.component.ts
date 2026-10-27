@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
 import { isEqual } from 'lodash-es';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { catchError, forkJoin, of, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -14,7 +14,8 @@ import { gridTemplate } from '../../mods/org/grid';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
-import { hasTag, repost } from '../../util/tag';
+import { formatDuration } from '../../util/format';
+import { hasTag, repost, tagValue } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { GridCellComponent } from './grid-cell/grid-cell.component';
@@ -76,7 +77,9 @@ export class GridComponent implements HasChanges {
 
   applyFormatters(cols: ColDef[]): ColDef[] {
     return cols.map(col => {
-      if (!col.valueGetter && col.field?.includes('->')) {
+      if (!col.valueGetter && col.field?.startsWith('tags->')) {
+        col = this.tagValueCol(col);
+      } else if (!col.valueGetter && col.field?.includes('->')) {
         const path = col.field.split('->');
         col = { ...col, valueGetter: params => path.reduce((value: any, key) => value?.[key], params.data) };
       }
@@ -103,6 +106,41 @@ export class GridComponent implements HasChanges {
       }
       return col;
     });
+  }
+
+  /**
+   * Column for the value of a tag, using the same syntax as sorting by tag value:
+   * `tags->{tag}`, with optional `:num` or `:dur` suffix.
+   */
+  tagValueCol(col: ColDef): ColDef {
+    let tag = col.field!.substring('tags->'.length);
+    if (tag.endsWith(':num')) {
+      tag = tag.substring(0, tag.length - ':num'.length);
+      return {
+        filter: 'agNumberColumnFilter',
+        ...col,
+        valueGetter: params => {
+          const value = tagValue(params.data, tag);
+          if (!value || !/^-?\d+(\.\d+)?$/.test(value)) return null;
+          return parseFloat(value);
+        },
+      };
+    }
+    if (tag.endsWith(':dur')) {
+      tag = tag.substring(0, tag.length - ':dur'.length);
+      return {
+        filter: 'agNumberColumnFilter',
+        ...col,
+        valueGetter: params => {
+          const value = tagValue(params.data, tag);
+          if (!value) return null;
+          const d = Duration.fromISO(value.toUpperCase());
+          return d.isValid ? d.toMillis() : null;
+        },
+        valueFormatter: col.valueFormatter || (params => typeof params.value === 'number' ? formatDuration(Duration.fromMillis(params.value)) : ''),
+      };
+    }
+    return { ...col, valueGetter: params => tagValue(params.data, tag) ?? null };
   }
 
   formatDate(value: unknown, format: Intl.DateTimeFormatOptions = DateTime.DATETIME_SHORT): string {
