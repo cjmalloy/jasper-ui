@@ -81,7 +81,7 @@
   }
 
   <span><!-- Buttons --></span>
-  <span class="buttons right">
+  <span class="buttons right floating">
     @if (randomURL() && (addAnother || store.hotkey())) {
       <div class="add-more" i18n-title title="Will not clear form to all another Ref.">
         <input id="addAnother" type="checkbox" [checked]="addAnother" (input)="addAnother = !addAnother">

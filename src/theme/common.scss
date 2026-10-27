@@ -35,7 +35,7 @@ html, body {
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
   font-size: 16px;
 }
 
@@ -1512,6 +1512,39 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   }
 }
 
+.buttons.floating {
+  position: sticky;
+  bottom: 8px;
+  z-index: 10;
+  grid-column: 1 / -1;
+  container-type: scroll-state;
+  &.top {
+    top: 8px;
+    bottom: auto;
+  }
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 8px;
+  }
+  @supports not (container-type: scroll-state) {
+    &::before {
+      border: 1px dashed var(--border);
+      backdrop-filter: blur(1px);
+    }
+  }
+  @container scroll-state((stuck: top) or (stuck: bottom)) {
+    &::before {
+      border: 1px dashed var(--border);
+      box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(1px);
+    }
+  }
+}
+
 .drag-handle {
   &:after {
     content: '≡';
@@ -1853,7 +1886,7 @@ formly-field-radio, formly-field-multicheckbox {
   --thread-sent: rgba(39, 78, 124, 0.58);
   --thread-recieved: rgba(128, 128, 128, 0.5);
   border-radius: 32px;
-  overflow: hidden;
+  overflow: clip;
   &.sent {
     margin-left: 40px;
     background-color: var(--thread-sent);

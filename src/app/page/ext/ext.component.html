@@ -29,7 +29,7 @@
     }
 
     <span><!-- Buttons --></span>
-    <span class="buttons right">
+    <span class="buttons right floating">
       @if (creating()) {
         <app-loading [inline]="true"></app-loading>
       }
@@ -51,7 +51,7 @@
     }
 
     <span><!-- Buttons --></span>
-    <span class="buttons right">
+    <span class="buttons right floating">
       @if (overwritten()) {
         <div class="overwrite warning" i18n-title title="Will drop all unknown configs.">
           <input id="overwrite" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">

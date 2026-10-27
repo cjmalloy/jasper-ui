@@ -216,6 +216,12 @@ body.dark-theme {
     backdrop-filter: blur(1px);
   }
 
+  @container scroll-state((stuck: top) or (stuck: bottom)) {
+    .buttons.floating::before {
+      background-color: var(--bg-accent);
+    }
+  }
+
   .thumbnail, .image-expand, video:not(:fullscreen), .embed-expand, .qr-expand {
     filter: drop-shadow(0px 0px 0.5px #ffffff);
   }

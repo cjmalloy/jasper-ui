@@ -339,7 +339,7 @@
     }
 
     <span><!-- Buttons --></span>
-    <span class="buttons right">
+    <span class="buttons right floating">
       @if (overwritten()) {
         <div class="overwrite warning">
           <input id="overwrite" type="checkbox" [checked]="overwrite()" (input)="overwrite.set(!overwrite())">
@@ -367,7 +367,7 @@
 
     @if (local() || !ref().metadata?.obsolete) {
       <span><!-- Buttons --></span>
-      <span class="buttons right">
+      <span class="buttons right floating">
         @if (overwritten()) {
           <div class="overwrite warning">
             <input id="overwriteDiff" type="checkbox" [checked]="overwrite()" (input)="overwrite.set(!overwrite())">

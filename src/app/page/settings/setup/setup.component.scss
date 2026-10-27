@@ -20,6 +20,14 @@ label {
 .log {
   flex: 1;
   margin: 10px;
+  &.mobile-hide {
+    position: sticky;
+    top: 10px;
+    align-self: flex-start;
+    box-sizing: border-box;
+    max-height: calc(100vh - 20px);
+    overflow-y: auto;
+  }
 }
 
 .merge-title {
