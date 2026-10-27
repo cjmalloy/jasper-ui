@@ -143,6 +143,19 @@ describe('GridComponent', () => {
       expect(result[0].wrapText).toBe(true);
     });
 
+    it('should use -> for field access', () => {
+      const cols = [{ headerName: 'Thumbnail', field: 'plugins->plugin/thumbnail->url', type: 'image' }];
+      const result = component.applyFormatters(cols);
+      const getter = result[0].valueGetter as (params: any) => unknown;
+      expect(getter({ data: { plugins: { 'plugin/thumbnail': { url: 'https://example.com/a.png' } } } })).toBe('https://example.com/a.png');
+      expect(getter({ data: {} })).toBeUndefined();
+    });
+
+    it('should not add a value getter for plain fields', () => {
+      const result = component.applyFormatters([{ headerName: 'Title', field: 'title' }]);
+      expect(result[0].valueGetter).toBeUndefined();
+    });
+
     it('should preserve existing filter on date type column', () => {
       const cols = [{ headerName: 'Published', field: 'published', type: 'dateTime', filter: 'myFilter' }];
       const result = component.applyFormatters(cols);
