@@ -1543,6 +1543,14 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
       backdrop-filter: blur(1px);
     }
   }
+  @media (max-width: 740px), (pointer: coarse) {
+    position: static;
+    grid-column: auto;
+    container-type: normal;
+    &::before {
+      display: none;
+    }
+  }
 }
 
 .drag-handle {
