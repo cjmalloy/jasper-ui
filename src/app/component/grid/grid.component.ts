@@ -76,6 +76,10 @@ export class GridComponent implements HasChanges {
 
   applyFormatters(cols: ColDef[]): ColDef[] {
     return cols.map(col => {
+      if (!col.valueGetter && col.field?.includes('->')) {
+        const path = col.field.split('->');
+        col = { ...col, valueGetter: params => path.reduce((value: any, key) => value?.[key], params.data) };
+      }
       const type = col.type as string | undefined;
       if (type && this.customTypes.has(type)) {
         return {

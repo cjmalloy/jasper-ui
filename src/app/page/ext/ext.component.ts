@@ -272,6 +272,7 @@ export class ExtPage implements HasChanges {
         }),
       ).subscribe(() => {
         this.deleting.set(false);
+        this.editForm()?.markAsPristine();
         this.router.navigate(['/tag', ext.tag]);
       });
     this.deletingSubscription?.add(() => this.deleting.set(false));

@@ -3,8 +3,10 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+import { ExtService } from '../../service/api/ext.service';
 
 import { ExtPage } from './ext.component';
 
@@ -32,5 +34,20 @@ describe('ExtPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('does not ask to discard the draft after deleting', () => {
+    const ext = { tag: 'science', origin: '' };
+    const form = new FormGroup({ name: new FormControl('') });
+    form.markAsDirty();
+    component.editForm.set(form as any);
+    component.store.view.exts.set([ext]);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(TestBed.inject(ExtService), 'delete').mockReturnValue(of(null) as any);
+    vi.spyOn(component.router, 'navigate').mockResolvedValue(true);
+
+    component.delete();
+
+    expect(component.saveChanges()).toBe(true);
   });
 });
