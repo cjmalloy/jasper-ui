@@ -1,8 +1,9 @@
 import { Component, computed, effect, inject, untracked } from '@angular/core';
-import { FieldArrayType, FormlyField } from '@ngx-formly/core';
+import { FormlyField } from '@ngx-formly/core';
 import { Store } from '../store/store';
 import { controlValue } from '../util/form';
 import { subOrigin } from '../util/tag';
+import { JasperFieldArrayType } from './field-array.type';
 
 /**
  * Table of user mappings. Each row maps a local user to a user in the
@@ -83,7 +84,7 @@ import { subOrigin } from '../util/tag';
     FormlyField,
   ],
 })
-export class FormlyFieldUserMap extends FieldArrayType {
+export class FormlyFieldUserMap extends JasperFieldArrayType {
   private store = inject(Store);
 
   readonly localOrigin = computed(() => this.store.account.origin() || '');

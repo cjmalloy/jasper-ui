@@ -1,13 +1,14 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Component, inject, signal } from '@angular/core';
-import { FieldArrayType, FormlyField } from '@ngx-formly/core';
+import { FormlyField } from '@ngx-formly/core';
 import { cloneDeep, defer, isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
 import { Store } from '../store/store';
 import { clipboardPasteValues } from '../util/clipboard';
 import { hasLocation } from '../util/geo';
 import { getPath } from '../util/http';
+import { JasperFieldArrayType } from './field-array.type';
 import { closedRings, locationLists, locationPicker } from './location-picker';
 
 @Component({
@@ -60,7 +61,7 @@ import { closedRings, locationLists, locationPicker } from './location-picker';
     FormlyField,
   ],
 })
-export class ListTypeComponent extends FieldArrayType {
+export class ListTypeComponent extends JasperFieldArrayType {
   private store = inject(Store);
 
 
@@ -253,6 +254,7 @@ export class ListTypeComponent extends FieldArrayType {
         }
         event.preventDefault();
         this.add(index);
+        this.focus(index);
       }
     }
     if (!this.model[index] && event.key === 'Backspace') {

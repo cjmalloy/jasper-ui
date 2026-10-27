@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
-import { FieldArrayType, FormlyField, FormlyFieldConfig } from '@ngx-formly/core';
+import { FormlyField, FormlyFieldConfig } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../model/plugin';
 import { controlValue } from '../util/form';
 import { directChild } from '../util/tag';
+import { JasperFieldArrayType } from './field-array.type';
 
 /**
  * List of features in a GeoJSON FeatureCollection. Each child plugin of
@@ -58,7 +59,7 @@ import { directChild } from '../util/tag';
   `,
   imports: [FormlyField],
 })
-export class FormlyFieldGeometries extends FieldArrayType {
+export class FormlyFieldGeometries extends JasperFieldArrayType {
 
   protected readonly value = controlValue<any[]>(() => this.formControl);
 
