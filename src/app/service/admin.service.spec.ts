@@ -8,10 +8,11 @@ import { blogTemplate } from '../mods/blog';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
-import { firstValueFrom, of } from 'rxjs';
+import { defer, firstValueFrom, of } from 'rxjs';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { PluginService } from './api/plugin.service';
+import { TemplateService } from './api/template.service';
 import { ConfigService } from './config.service';
 
 describe('AdminService', () => {
@@ -46,6 +47,27 @@ describe('AdminService', () => {
     const create = vi.spyOn(TestBed.inject(PluginService), 'create').mockReturnValue(of(null as any));
     service.firstRun$;
     expect(create).toHaveBeenCalled();
+  });
+
+  it('should load defaults after installing default mods', () => {
+    const store = TestBed.inject(Store);
+    store.account.admin = true;
+    const calls: string[] = [];
+    vi.spyOn(TestBed.inject(PluginService), 'create').mockImplementation(() => defer(() => {
+      calls.push('install');
+      return of(null as any);
+    }));
+    vi.spyOn(TestBed.inject(TemplateService), 'create').mockImplementation(() => defer(() => {
+      calls.push('install');
+      return of(null as any);
+    }));
+    store.eventBus.events.subscribe(({ event }) => {
+      if (event === '*:defaults') calls.push('defaults');
+    });
+    vi.spyOn(service, 'init$', 'get').mockReturnValue(of(null));
+    service.firstRun$.subscribe();
+    expect(calls.length).toBeGreaterThan(1);
+    expect(calls.indexOf('defaults')).toBe(calls.length - 1);
   });
 
   it('should only list PDF embeds that will embed', () => {

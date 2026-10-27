@@ -12,7 +12,6 @@ import { archivePlugin, archiveUrl } from './mods/tools/archive';
 import { AdminService } from './service/admin.service';
 import { OriginService } from './service/api/origin.service';
 import { ProxyService } from './service/api/proxy.service';
-import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
@@ -43,7 +42,6 @@ export class AppComponent {
   private admin = inject(AdminService);
   private proxy = inject(ProxyService);
   private origins = inject(OriginService);
-  private scrape = inject(ScrapeService);
   private router = inject(Router);
   private vc = inject(ViewContainerRef);
 

@@ -347,10 +347,10 @@ export class AdminService {
         return throwError(() => err);
       })
     )));
-    return of(null).pipe(
-      tap(() => this.store.eventBus.fire('*:defaults')),
-      switchMap(() => concat(...installs).pipe(toArray())),
+    return concat(...installs).pipe(
+      toArray(),
       switchMap(() => this.init$),
+      tap(() => this.store.eventBus.fire('*:defaults')),
       switchMap(() => this.logDefaultReceipts$()),
     );
   }
