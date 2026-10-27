@@ -523,3 +523,17 @@ export function getUserUrl(ref: Ref) {
   if (!ref.url.includes('?')) return ref.url.substring('tag:/'.length);
   return setPublic(ref.url.substring('tag:/'.length, ref.url.indexOf('?'))) + (ref.origin || '');
 }
+
+/**
+ * Value of a tag, as used by `tags->{tag}` sorts.
+ * The first sub-tag after the prefix of the first tag that has one.
+ */
+export function tagValue(ref: Pick<Ref, 'tags'> | undefined, tag: string): string | undefined {
+  const p = tag + '/';
+  for (const t of ref?.tags || []) {
+    if (!t.startsWith(p)) continue;
+    const value = t.substring(p.length).split('/')[0];
+    if (value) return value;
+  }
+  return undefined;
+}

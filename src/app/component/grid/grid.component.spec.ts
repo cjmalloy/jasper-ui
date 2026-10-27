@@ -151,6 +151,33 @@ describe('GridComponent', () => {
       expect(getter({ data: {} })).toBeUndefined();
     });
 
+    it('should use tags-> for tag values', () => {
+      const result = component.applyFormatters([{ headerName: 'Title', field: 'tags->plugin/title' }]);
+      const getter = result[0].valueGetter as (params: any) => unknown;
+      expect(getter({ data: { tags: ['plugin/title', 'plugin/title/hello/world'] } })).toBe('hello');
+      expect(getter({ data: { tags: ['science'] } })).toBeNull();
+    });
+
+    it('should read tag values as numbers with :num', () => {
+      const result = component.applyFormatters([{ headerName: 'Progress', field: 'tags->plugin/progress:num' }]);
+      const getter = result[0].valueGetter as (params: any) => unknown;
+      expect(result[0].filter).toBe('agNumberColumnFilter');
+      expect(getter({ data: { tags: ['plugin/progress/37/100'] } })).toBe(37);
+      expect(getter({ data: { tags: ['plugin/progress/abc'] } })).toBeNull();
+    });
+
+    it('should read tag values as durations with :dur', () => {
+      const result = component.applyFormatters([{ headerName: 'Duration', field: 'tags->plugin/duration:dur' }]);
+      const getter = result[0].valueGetter as (params: any) => unknown;
+      const formatter = result[0].valueFormatter as (params: any) => string;
+      expect(result[0].filter).toBe('agNumberColumnFilter');
+      expect(getter({ data: { tags: ['plugin/duration/pt90m'] } })).toBe(90 * 60 * 1000);
+      expect(getter({ data: { tags: ['plugin/duration/pt1h'] } })).toBe(60 * 60 * 1000);
+      expect(getter({ data: { tags: ['plugin/duration/nope'] } })).toBeNull();
+      expect(formatter({ value: 90 * 60 * 1000 })).toBeTruthy();
+      expect(formatter({ value: null })).toBe('');
+    });
+
     it('should not add a value getter for plain fields', () => {
       const result = component.applyFormatters([{ headerName: 'Title', field: 'title' }]);
       expect(result[0].valueGetter).toBeUndefined();

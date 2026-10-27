@@ -8119,6 +8119,18 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Unable to check mods for local changes. Updates and diffs are unavailable.</source>
         <target>MODのローカル変更を確認できません。更新と差分は利用できません。</target>
       </trans-unit>
+      <trans-unit id="3188742934634402561" datatype="html">
+        <source>⏱️ duration</source>
+        <target>⏱️ 長さ</target>
+      </trans-unit>
+      <trans-unit id="3364923133459715605" datatype="html">
+        <source>Media duration</source>
+        <target>メディアの長さ</target>
+      </trans-unit>
+      <trans-unit id="6017082719104554504" datatype="html">
+        <source>Use -&gt; for nested fields, or tags-&gt; for the value of a tag (e.g., tags-&gt;plugin/duration:dur). Append :num or :dur to read the value as a number or duration.</source>
+        <target>ネストされたフィールドには -&gt; を、タグの値には tags-&gt; を使用します（例：tags-&gt;plugin/duration:dur）。値を数値または期間として読み取るには :num または :dur を追加します。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

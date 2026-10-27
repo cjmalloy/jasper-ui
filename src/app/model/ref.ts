@@ -157,7 +157,8 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
   'tags:len' | 'tags:len,ASC' | 'tags:len,DESC' |
   'sources:len' | 'sources:len,ASC' | 'sources:len,DESC' |
   `metadata->${string}` | `metadata->${string},ASC` | `metadata->${string},DESC` |
-  `plugins->${string}` | `plugins->${string},ASC` | `plugins->${string},DESC`;
+  `plugins->${string}` | `plugins->${string},ASC` | `plugins->${string},DESC` |
+  `tags->${string}` | `tags->${string},ASC` | `tags->${string},DESC`;
 
 export function mapRef(obj: any): Ref {
   obj.origin ||= '';

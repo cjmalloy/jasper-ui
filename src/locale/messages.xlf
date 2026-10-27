@@ -595,11 +595,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/comment/comment-edit/comment-edit.component.html</context>
-          <context context-type="linenumber">15,16</context>
+          <context context-type="linenumber">16,17</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/comment/comment-reply/comment-reply.component.html</context>
-          <context context-type="linenumber">18,19</context>
+          <context context-type="linenumber">19,20</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ext/ext.component.html</context>
@@ -770,7 +770,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/comment/comment-reply/comment-reply.component.html</context>
-          <context context-type="linenumber">14,15</context>
+          <context context-type="linenumber">15,16</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/comment/comment.component.html</context>
@@ -1024,7 +1024,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/comment/comment-edit/comment-edit.component.html</context>
-          <context context-type="linenumber">11,12</context>
+          <context context-type="linenumber">12,13</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ext/ext.component.html</context>
@@ -1466,7 +1466,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/editor/editor.component.ts</context>
-          <context context-type="linenumber">663</context>
+          <context context-type="linenumber">665</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8323509891710996119" datatype="html">
@@ -1790,7 +1790,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ext/ext.component.html</context>
-          <context context-type="linenumber">53,54</context>
+          <context context-type="linenumber">56,57</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6348472219726735693" datatype="html">
@@ -1809,7 +1809,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ext/ext.component.html</context>
-          <context context-type="linenumber">55,56</context>
+          <context context-type="linenumber">58,59</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5407098412547993382" datatype="html">
@@ -3976,7 +3976,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ext/ext.component.ts</context>
-          <context context-type="linenumber">83</context>
+          <context context-type="linenumber">87</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4425025986348608405" datatype="html">
@@ -4652,7 +4652,7 @@ Please Reload.</source>
         <source>Locking is permanent once saved. Are you sure you want to lock?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/editor/editor.component.ts</context>
-          <context context-type="linenumber">332</context>
+          <context context-type="linenumber">334</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7978273686665519179" datatype="html">
@@ -5073,7 +5073,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1318</context>
+          <context context-type="linenumber">1333</context>
         </context-group>
       </trans-unit>
       <trans-unit id="92407217402348402" datatype="html">
@@ -5109,7 +5109,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1313</context>
+          <context context-type="linenumber">1328</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2546100133022381479" datatype="html">
@@ -5721,7 +5721,7 @@ Must not start with a period or contain two periods in a row.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1291</context>
+          <context context-type="linenumber">1306</context>
         </context-group>
       </trans-unit>
       <trans-unit id="955101720290239655" datatype="html">
@@ -7313,7 +7313,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1372</context>
+          <context context-type="linenumber">1387</context>
         </context-group>
       </trans-unit>
       <trans-unit id="954152769713616958" datatype="html">
@@ -9487,7 +9487,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">62</context>
+          <context context-type="linenumber">63</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3277324395816403788" datatype="html">
@@ -10030,7 +10030,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">61</context>
+          <context context-type="linenumber">62</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7175078292963657559" datatype="html">
@@ -11005,6 +11005,20 @@ Home / End: Jump to start/end
           <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="3188742934634402561" datatype="html">
+        <source>⏱️ duration</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/media/duration.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3364923133459715605" datatype="html">
+        <source>Media duration</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/media/duration.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="3442140557480554147" datatype="html">
         <source>🔭️ Embed</source>
         <context-group purpose="location">
@@ -11919,11 +11933,18 @@ F: Fullscreen toggle
           <context context-type="linenumber">39</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="6017082719104554504" datatype="html">
+        <source>Use -&gt; for nested fields, or tags-&gt; for the value of a tag (e.g., tags-&gt;plugin/duration:dur). Append :num or :dur to read the value as a number or duration.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
+          <context context-type="linenumber">40</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="2736556170366900089" datatype="html">
         <source>Type:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">46</context>
+          <context context-type="linenumber">47</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/submit.component.html</context>
@@ -11938,56 +11959,56 @@ F: Fullscreen toggle
         <source>Text</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">50</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6370642728789544052" datatype="html">
         <source>Number</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">50</context>
+          <context context-type="linenumber">51</context>
         </context-group>
       </trans-unit>
       <trans-unit id="969459137986754249" datatype="html">
         <source>Boolean</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">51</context>
+          <context context-type="linenumber">52</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3973931101896534797" datatype="html">
         <source>Date</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">52</context>
+          <context context-type="linenumber">53</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3133970229219959368" datatype="html">
         <source>Date (String)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">53</context>
+          <context context-type="linenumber">54</context>
         </context-group>
       </trans-unit>
       <trans-unit id="191896776974707877" datatype="html">
         <source>Date Time</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">54</context>
+          <context context-type="linenumber">55</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7140378840867733873" datatype="html">
         <source>Date Time (String)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">55</context>
+          <context context-type="linenumber">56</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2375260419993138758" datatype="html">
         <source>URL</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">56</context>
+          <context context-type="linenumber">57</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/local/local.component.html</context>
@@ -11998,7 +12019,7 @@ F: Fullscreen toggle
         <source>Tag</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">57</context>
+          <context context-type="linenumber">58</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/local/local.component.html</context>
@@ -12009,14 +12030,14 @@ F: Fullscreen toggle
         <source>Tag List</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">58</context>
+          <context context-type="linenumber">59</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3998597663055219440" datatype="html">
         <source>Sources</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">59</context>
+          <context context-type="linenumber">60</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ref/ref.component.html</context>
@@ -12031,21 +12052,21 @@ F: Fullscreen toggle
         <source>Image</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">60</context>
+          <context context-type="linenumber">61</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8151017381798767627" datatype="html">
         <source>Embed</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">63</context>
+          <context context-type="linenumber">64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3434410278501759813" datatype="html">
         <source>Thumbnail</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">90</context>
+          <context context-type="linenumber">91</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/cache.ts</context>
@@ -12056,21 +12077,21 @@ F: Fullscreen toggle
         <source>Title</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">91</context>
+          <context context-type="linenumber">92</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4058575476871566236" datatype="html">
         <source>Published</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">92</context>
+          <context context-type="linenumber">93</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7886570921510760899" datatype="html">
         <source>Tags</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
-          <context context-type="linenumber">93</context>
+          <context context-type="linenumber">94</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/tags/tags.component.ts</context>
@@ -13520,7 +13541,7 @@ F: Fullscreen toggle
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1264</context>
+          <context context-type="linenumber">1279</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3621153583371414913" datatype="html">
@@ -16576,21 +16597,21 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Extend Tag...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ext/ext.component.html</context>
-          <context context-type="linenumber">14,15</context>
+          <context context-type="linenumber">16,17</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4393844882242159576" datatype="html">
         <source>Extend</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ext/ext.component.html</context>
-          <context context-type="linenumber">33,34</context>
+          <context context-type="linenumber">36,37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3768927257183755959" datatype="html">
         <source>Save</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ext/ext.component.html</context>
-          <context context-type="linenumber">61,62</context>
+          <context context-type="linenumber">64,65</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/me/me.component.html</context>
@@ -16609,7 +16630,7 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Delete</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ext/ext.component.html</context>
-          <context context-type="linenumber">62,63</context>
+          <context context-type="linenumber">65,66</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/user/user.component.html</context>
@@ -16626,14 +16647,14 @@ Each response contains the converted Markdown from a specific source format.</so
           (i.e. &quot;science&quot;, &quot;my/tag&quot;, or &quot;_my/private/tag&quot;)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ext/ext.component.ts</context>
-          <context context-type="linenumber">152,158</context>
+          <context context-type="linenumber">158,164</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3663195331886604553" datatype="html">
         <source>Are you sure you want to delete this tag extension?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/ext/ext.component.ts</context>
-          <context context-type="linenumber">254</context>
+          <context context-type="linenumber">261</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8236500445291281286" datatype="html">
@@ -17049,7 +17070,7 @@ Each response contains the converted Markdown from a specific source format.</so
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1315</context>
+          <context context-type="linenumber">1330</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5894041458938781581" datatype="html">
@@ -17569,45 +17590,45 @@ Each response contains the converted Markdown from a specific source format.</so
           <context context-type="linenumber">80</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="7867778808310576533" datatype="html">
-        <source>Reload the page to finish loading mod changes.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">103</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="1501551320838124286" datatype="html">
         <source>Success.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">151</context>
+          <context context-type="linenumber">142</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">166</context>
+          <context context-type="linenumber">157</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">217</context>
+          <context context-type="linenumber">211</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">242</context>
+          <context context-type="linenumber">236</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">252</context>
+          <context context-type="linenumber">246</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">375</context>
+          <context context-type="linenumber">369</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7867778808310576533" datatype="html">
+        <source>Reload the page to finish loading mod changes.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
+          <context context-type="linenumber">164</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3374858599666683478" datatype="html">
         <source>⚠️ Skipped <x id="PH" equiv-text="mod"/> mod: unable to merge local changes automatically. Use diff to update manually.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">204</context>
+          <context context-type="linenumber">198</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9211072850644603743" datatype="html">
@@ -17907,7 +17928,7 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>URL...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/submit.component.ts</context>
-          <context context-type="linenumber">167</context>
+          <context context-type="linenumber">165</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4300700333865753394" datatype="html">
@@ -18100,21 +18121,21 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Submit: Web Link</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/web/web.component.ts</context>
-          <context context-type="linenumber">104</context>
+          <context context-type="linenumber">106</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8933678649024290979" datatype="html">
         <source>Replicate Remote Origin</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/web/web.component.ts</context>
-          <context context-type="linenumber">190</context>
+          <context context-type="linenumber">195</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7029898027000516030" datatype="html">
         <source>Submit: Feed</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/web/web.component.ts</context>
-          <context context-type="linenumber">193</context>
+          <context context-type="linenumber">198</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7768085580454620175" datatype="html">
@@ -18171,604 +18192,604 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Installing <x id="PH" equiv-text="def.title || def.url"/> ref...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1048</context>
+          <context context-type="linenumber">1063</context>
         </context-group>
       </trans-unit>
       <trans-unit id="561504958933416072" datatype="html">
         <source>⚠️ Ref <x id="PH" equiv-text="def.title || def.url"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1056</context>
+          <context context-type="linenumber">1071</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3630868986759354735" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> ext...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1067</context>
+          <context context-type="linenumber">1082</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1858593291803956631" datatype="html">
         <source>⚠️ Ext <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1071</context>
+          <context context-type="linenumber">1086</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3524609671751595375" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> user...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1082</context>
+          <context context-type="linenumber">1097</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7080347165498627487" datatype="html">
         <source>⚠️ User <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1086</context>
+          <context context-type="linenumber">1101</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4744345424867452582" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> plugin...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1097</context>
+          <context context-type="linenumber">1112</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3325694507372119924" datatype="html">
         <source>⚠️ Plugin <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1102</context>
+          <context context-type="linenumber">1117</context>
         </context-group>
       </trans-unit>
       <trans-unit id="663969018956266050" datatype="html">
         <source>Deleting <x id="PH" equiv-text="p.name || p.tag"/> plugin...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1113</context>
+          <context context-type="linenumber">1128</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7341203762945439729" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> template...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1122</context>
+          <context context-type="linenumber">1137</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2090507741999597777" datatype="html">
         <source>⚠️ Template <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1127</context>
+          <context context-type="linenumber">1142</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8397044276128761089" datatype="html">
         <source>Deleting <x id="PH" equiv-text="t.name || t.tag"/> template...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1138</context>
+          <context context-type="linenumber">1153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="898435854656311367" datatype="html">
         <source>Installing <x id="PH" equiv-text="mod"/> mod...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1148</context>
+          <context context-type="linenumber">1163</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1170</context>
+          <context context-type="linenumber">1185</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4164502271007019945" datatype="html">
         <source>Deleting <x id="PH" equiv-text="mod"/> mod...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1196</context>
+          <context context-type="linenumber">1211</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7393705938004595273" datatype="html">
         <source>Updating <x id="PH" equiv-text="def.name || def.tag"/> plugin...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1208</context>
+          <context context-type="linenumber">1223</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7325078987927217893" datatype="html">
         <source>Updating <x id="PH" equiv-text="def.name || def.tag"/> template...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1217</context>
+          <context context-type="linenumber">1232</context>
         </context-group>
       </trans-unit>
       <trans-unit id="612983901370848355" datatype="html">
         <source>Logging <x id="PH" equiv-text="mod || ref.url"/> receipt...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1246</context>
+          <context context-type="linenumber">1261</context>
         </context-group>
       </trans-unit>
       <trans-unit id="358462242581945792" datatype="html">
         <source>Anonymous</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1260</context>
+          <context context-type="linenumber">1275</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6239936537351977310" datatype="html">
         <source>Viewer</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1261</context>
+          <context context-type="linenumber">1276</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2392488717875840729" datatype="html">
         <source>User</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1262</context>
+          <context context-type="linenumber">1277</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3742657416068781599" datatype="html">
         <source>Editor</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1263</context>
+          <context context-type="linenumber">1278</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5041354590769758251" datatype="html">
         <source>Admin</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1265</context>
+          <context context-type="linenumber">1280</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7952806382632077864" datatype="html">
         <source>Tags:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1312</context>
+          <context context-type="linenumber">1327</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5821079155715493424" datatype="html">
         <source>Alternate URLs:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1314</context>
+          <context context-type="linenumber">1329</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2106196228976233665" datatype="html">
         <source>Internal Responses:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1316</context>
+          <context context-type="linenumber">1331</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2572862589008909876" datatype="html">
         <source>Full Text:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1317</context>
+          <context context-type="linenumber">1332</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1269111960920949095" datatype="html">
         <source>Modified:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1319</context>
+          <context context-type="linenumber">1334</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6996821581668497894" datatype="html">
         <source>Ignored:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1320</context>
+          <context context-type="linenumber">1335</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8285199640734786793" datatype="html">
         <source>Cascade:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1321</context>
+          <context context-type="linenumber">1336</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6962491897313784482" datatype="html">
         <source>Regen:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1322</context>
+          <context context-type="linenumber">1337</context>
         </context-group>
       </trans-unit>
       <trans-unit id="17858856723291247" datatype="html">
         <source>Hot Tags:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1323</context>
+          <context context-type="linenumber">1338</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3254073718846303093" datatype="html">
         <source>+ Add another hot tag</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1323</context>
+          <context context-type="linenumber">1338</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3931464303130647899" datatype="html">
         <source>Mode:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1331</context>
+          <context context-type="linenumber">1346</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6252070156626006029" datatype="html">
         <source>None</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1333</context>
+          <context context-type="linenumber">1348</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1294909756545406951" datatype="html">
         <source>JWT</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1334</context>
+          <context context-type="linenumber">1349</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3055482817788310469" datatype="html">
         <source>JWKS</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1335</context>
+          <context context-type="linenumber">1350</context>
         </context-group>
       </trans-unit>
       <trans-unit id="96939896979671376" datatype="html">
         <source>Client ID:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1339</context>
+          <context context-type="linenumber">1354</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2171682499664391857" datatype="html">
         <source>Base64 Secret:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1340</context>
+          <context context-type="linenumber">1355</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2826556801109615631" datatype="html">
         <source>Secret:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1341</context>
+          <context context-type="linenumber">1356</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6128585949974056288" datatype="html">
         <source>JWKS URI:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1342</context>
+          <context context-type="linenumber">1357</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2092428687293359482" datatype="html">
         <source>Token Endpoint:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1343</context>
+          <context context-type="linenumber">1358</context>
         </context-group>
       </trans-unit>
       <trans-unit id="773634236369835932" datatype="html">
         <source>SCIM Endpoint:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1344</context>
+          <context context-type="linenumber">1359</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4578323700882507107" datatype="html">
         <source>Username Claim:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1345</context>
+          <context context-type="linenumber">1360</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2937658856539339437" datatype="html">
         <source>External ID:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1346</context>
+          <context context-type="linenumber">1361</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4461219990131574338" datatype="html">
         <source>Email Domain in Username:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1347</context>
+          <context context-type="linenumber">1362</context>
         </context-group>
       </trans-unit>
       <trans-unit id="611844416234750457" datatype="html">
         <source>Root Email Domain:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1348</context>
+          <context context-type="linenumber">1363</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4668265183162157990" datatype="html">
         <source>Verified Email Claim:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1349</context>
+          <context context-type="linenumber">1364</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1906498667754202201" datatype="html">
         <source>Authorities Claim:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1350</context>
+          <context context-type="linenumber">1365</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3554549445418471934" datatype="html">
         <source>Read Access Claim:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1351</context>
+          <context context-type="linenumber">1366</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6573164998565497456" datatype="html">
         <source>Write Access Claim:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1352</context>
+          <context context-type="linenumber">1367</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4080308780610501058" datatype="html">
         <source>Tag Read Access Claim:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1353</context>
+          <context context-type="linenumber">1368</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3159593655793344817" datatype="html">
         <source>Tag Write Access Claim:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1354</context>
+          <context context-type="linenumber">1369</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7071077457527210882" datatype="html">
         <source>Minimum Role:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1355</context>
+          <context context-type="linenumber">1370</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4511144288314242616" datatype="html">
         <source>Minimum Write Role:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1356</context>
+          <context context-type="linenumber">1371</context>
         </context-group>
       </trans-unit>
       <trans-unit id="691364592464217898" datatype="html">
         <source>Minimum Fetch Role:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1357</context>
+          <context context-type="linenumber">1372</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3767029322871201813" datatype="html">
         <source>Minimum Config Role:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1358</context>
+          <context context-type="linenumber">1373</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6863117208241732879" datatype="html">
         <source>Minimum Read Backups Role:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1359</context>
+          <context context-type="linenumber">1374</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2166896702147259055" datatype="html">
         <source>Default Role:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1360</context>
+          <context context-type="linenumber">1375</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5621193416243290984" datatype="html">
         <source>Default User:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1361</context>
+          <context context-type="linenumber">1376</context>
         </context-group>
       </trans-unit>
       <trans-unit id="506442826666958014" datatype="html">
         <source>Default Read Access:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1362</context>
+          <context context-type="linenumber">1377</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4883915371651750412" datatype="html">
         <source>Default Write Access:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1363</context>
+          <context context-type="linenumber">1378</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4259696464846155470" datatype="html">
         <source>Default Tag Read Access:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1364</context>
+          <context context-type="linenumber">1379</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5526166092096200314" datatype="html">
         <source>Default Tag Write Access:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1365</context>
+          <context context-type="linenumber">1380</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2220439483055668236" datatype="html">
         <source>Max Requests:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1366</context>
+          <context context-type="linenumber">1381</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1386</context>
+          <context context-type="linenumber">1401</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4384669116619372319" datatype="html">
         <source>Max Concurrent Scripts:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1367</context>
+          <context context-type="linenumber">1382</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1384</context>
+          <context context-type="linenumber">1399</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9021443889920600817" datatype="html">
         <source>Email Host:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1371</context>
+          <context context-type="linenumber">1386</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4380698437796110971" datatype="html">
         <source>Mod Seals:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1373</context>
+          <context context-type="linenumber">1388</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3099369741220407050" datatype="html">
         <source>Editor Seals:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1374</context>
+          <context context-type="linenumber">1389</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2816699011146502167" datatype="html">
         <source>Web Origins:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1375</context>
+          <context context-type="linenumber">1390</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3418563004002934073" datatype="html">
         <source>SSH Origins:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1376</context>
+          <context context-type="linenumber">1391</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6753089416923244601" datatype="html">
         <source>Script Selectors:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1377</context>
+          <context context-type="linenumber">1392</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1439518739239879765" datatype="html">
         <source>Script Whitelist:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1378</context>
+          <context context-type="linenumber">1393</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2419727904967200417" datatype="html">
         <source>+ Add another script hash</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1378</context>
+          <context context-type="linenumber">1393</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8197161514267928821" datatype="html">
         <source>Host Whitelist:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1379</context>
+          <context context-type="linenumber">1394</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4764902553829476804" datatype="html">
         <source>+ Add another host</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1379</context>
+          <context context-type="linenumber">1394</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1380</context>
+          <context context-type="linenumber">1395</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4532253287748146144" datatype="html">
         <source>Host Blacklist:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1380</context>
+          <context context-type="linenumber">1395</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4208753654448851784" datatype="html">
         <source>Max Replicate Entity Batch:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1381</context>
+          <context context-type="linenumber">1396</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8669706344840499177" datatype="html">
         <source>Max Push Entity Batch:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1382</context>
+          <context context-type="linenumber">1397</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7806785220394848608" datatype="html">
         <source>Max Pull Entity Batch:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1383</context>
+          <context context-type="linenumber">1398</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8728289233177553222" datatype="html">
         <source>Max Concurrent Replication:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1385</context>
+          <context context-type="linenumber">1400</context>
         </context-group>
       </trans-unit>
       <trans-unit id="983054103375640113" datatype="html">
         <source>Max Concurrent Requests:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1387</context>
+          <context context-type="linenumber">1402</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6132894875829395268" datatype="html">
         <source>Max Concurrent Fetch:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1388</context>
+          <context context-type="linenumber">1403</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9136752928013288532" datatype="html">
         <source>Storage:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1393</context>
+          <context context-type="linenumber">1408</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2906587845957718064" datatype="html">
         <source>Local</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1395</context>
+          <context context-type="linenumber">1410</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/store/view.ts</context>
@@ -18779,21 +18800,21 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Google Cloud Storage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1396</context>
+          <context context-type="linenumber">1411</context>
         </context-group>
       </trans-unit>
       <trans-unit id="500125802698921621" datatype="html">
         <source>S3</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1397</context>
+          <context context-type="linenumber">1412</context>
         </context-group>
       </trans-unit>
       <trans-unit id="807737485781495169" datatype="html">
         <source>Storage Bucket:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1401</context>
+          <context context-type="linenumber">1416</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9116115446897812158" datatype="html">
@@ -18807,7 +18828,7 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>User </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/embed.service.ts</context>
-          <context context-type="linenumber">311</context>
+          <context context-type="linenumber">309</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/markdown.ts</context>
@@ -19021,26 +19042,26 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Re: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/format.ts</context>
-          <context context-type="linenumber">164</context>
+          <context context-type="linenumber">165</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/format.ts</context>
-          <context context-type="linenumber">166</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/util/format.ts</context>
-          <context context-type="linenumber">197</context>
+          <context context-type="linenumber">167</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/format.ts</context>
           <context context-type="linenumber">198</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/util/format.ts</context>
+          <context context-type="linenumber">199</context>
         </context-group>
       </trans-unit>
       <trans-unit id="950338657895578107" datatype="html">
         <source> Image </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/format.ts</context>
-          <context context-type="linenumber">183</context>
+          <context context-type="linenumber">184</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6574802489883645842" datatype="html">
