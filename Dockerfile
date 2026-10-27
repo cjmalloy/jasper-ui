@@ -1,4 +1,4 @@
-FROM node:26.12.0 AS builder
+FROM node:26.12.1 AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY patches ./patches/
@@ -7,7 +7,7 @@ COPY . ./
 ARG BUILD_SCRIPT=build
 RUN npm run $BUILD_SCRIPT
 
-FROM node:26.12.0 AS test
+FROM node:26.12.1 AS test
 WORKDIR /app
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
@@ -23,7 +23,7 @@ CMD mkdir -p /report && \
     (if [ -d .vitest ]; then cp -r .vitest/. /report/; fi) && \
     exit $(cat /report/exit-code.txt)
 
-FROM nginx:1.31.6 AS deploy
+FROM nginx:1.31.8 AS deploy
 RUN apt-get update && apt-get install -y --no-install-recommends jq moreutils && rm -rf /var/lib/apt/lists/*
 WORKDIR /var/lib/jasper/
 COPY --from=builder /app/dist/jasper-ui/browser ./
