@@ -64,6 +64,9 @@ export function provideJasperFormly() {
     ],
     validationMessages: [
       { name: 'required', message: 'This field is required' },
+      { name: 'step', message: (error: { step: number, base: number }) => error.base
+          ? `Must be ${error.base} plus a multiple of ${error.step}`
+          : `Must be a multiple of ${error.step}` },
     ],
     wrappers: [{
       name: 'form-field',
