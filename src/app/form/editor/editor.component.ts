@@ -314,6 +314,8 @@ export class EditorComponent {
     return this._text() || this.control()?.value || '';
   });
 
+  readonly showPreview = computed(() => this.preview() && (this.fullscreen() || !!this.currentText()));
+
   updateTags(tags: string[]) {
     if (!this.tags()) {
       this.createdTags.set(tags);

@@ -132,6 +132,14 @@ body.light-theme {
     backdrop-filter: blur(1px) sepia(5%);
   }
 
+  @container scroll-state((stuck: top) or (stuck: bottom)) {
+    .buttons.floating::before {
+      background-image: url("../assets/bg-light.png");
+      background-blend-mode: darken;
+      backdrop-filter: blur(1px) sepia(5%);
+    }
+  }
+
   .comment-children {
     border-left: 1px dotted rgba(128, 128, 128, 0.3);
   }

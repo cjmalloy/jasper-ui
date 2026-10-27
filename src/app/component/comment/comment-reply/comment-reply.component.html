@@ -11,7 +11,7 @@
   <div class="error">{{ e }}</div>
 }
 
-<span class="buttons floating">
+<span class="buttons" [class.floating]="editor.showPreview()">
   <button class="comment-reply-submit" type="button" [disabled]="replying()" (click)="reply()" i18n>reply</button>
   @if (replying()) {
     <app-loading [inline]="true"></app-loading>

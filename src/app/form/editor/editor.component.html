@@ -140,7 +140,7 @@
     <div class="floating-toggles">
     </div>
   </div>
-  @if (preview() && (fullscreen() || currentText())) {
+  @if (showPreview()) {
     <app-md #md
             class="expand"
             [origin]="store.account.origin()"
