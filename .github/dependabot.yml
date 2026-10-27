@@ -12,6 +12,8 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
 - package-ecosystem: npm
   open-pull-requests-limit: 20
   directory: /
@@ -19,9 +21,7 @@ updates:
     interval: daily
     timezone: America/Halifax
   cooldown:
-    semver-major-days: 5
-    semver-minor-days: 1
-    semver-patch-days: 0
+    default-days: 0
   groups:
     angular:
       patterns:
@@ -63,6 +63,8 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
 - package-ecosystem: docker
   target-branch: v1.3
   directories:
@@ -71,6 +73,8 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
 - package-ecosystem: npm
   target-branch: v1.3
   directory: /
@@ -78,9 +82,7 @@ updates:
     interval: daily
     timezone: America/Halifax
   cooldown:
-    semver-major-days: 0
-    semver-minor-days: 0
-    semver-patch-days: 0
+    default-days: 0
   groups:
     angular:
       patterns:
@@ -107,3 +109,5 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
