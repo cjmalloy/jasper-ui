@@ -12,12 +12,16 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
 - package-ecosystem: npm
   open-pull-requests-limit: 20
   directory: /
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
   groups:
     angular:
       patterns:
@@ -59,6 +63,8 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
 - package-ecosystem: docker
   target-branch: v1.3
   directories:
@@ -67,12 +73,16 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
 - package-ecosystem: npm
   target-branch: v1.3
   directory: /
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
   groups:
     angular:
       patterns:
@@ -99,3 +109,5 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
