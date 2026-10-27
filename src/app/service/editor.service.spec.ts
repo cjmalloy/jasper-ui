@@ -4,6 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import Europa from 'europa';
+import { Marked } from 'marked';
 
 import { EditorService } from './editor.service';
 
@@ -104,6 +105,17 @@ static float clamp(float value)
       ['<a href="http://x"><em>foo</em><div>bar</div></a>', '[*foo*bar](http://x)'],
     ])('should handle whitespace around emphasis for %s', (html, markdown) => {
       expect(europa.convert(html)).toBe(markdown);
+    });
+
+    it.each([
+      ['<p>This is <em>italic </em>text</p>', 'This is <em>italic</em> text'],
+      ['<p>foo<em>bar</em>baz</p>', 'foo<em>bar</em>baz'],
+      ['<p><span><em>foo</em></span>bar</p>', '<em>foo</em>bar'],
+      ['<p><em>hello!</em><strong>world</strong></p>', '<em>hello!</em><strong>world</strong>'],
+      ['<p>x <em><strong>bi</strong></em> y</p>', 'x <em><strong>bi</strong></em> y'],
+      ['<p>ab<em>ab<strong>c</strong> <strong>cc!c</strong></em></p>', 'ab<em>ab<strong>c</strong> <strong>cc!c</strong></em>'],
+    ])('should render emphasis converted from %s', (html, rendered) => {
+      expect(new Marked().parseInline(europa.convert(html))).toBe(rendered);
     });
   });
 });
