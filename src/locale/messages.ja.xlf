@@ -7829,9 +7829,49 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Base64 Secret:</source>
         <target>Base64シークレット:</target>
       </trans-unit>
-      <trans-unit id="2220439483055668236" datatype="html">
-        <source>Max Requests:</source>
-        <target>最大リクエスト数:</target>
+      <trans-unit id="1110314996833452070" datatype="html">
+        <source>Maximum HTTP requests per origin every Max Requests Period. Sub-origins get their own limit with the same settings.</source>
+        <target>最大リクエスト期間ごとのオリジンあたりの最大HTTPリクエスト数。サブオリジンは同じ設定で独自の制限を持ちます。</target>
+      </trans-unit>
+      <trans-unit id="2021971567998997481" datatype="html">
+        <source>100 ms</source>
+        <target>100ミリ秒</target>
+      </trans-unit>
+      <trans-unit id="205488346774233272" datatype="html">
+        <source>Max Requests Period:</source>
+        <target>最大リクエスト期間:</target>
+      </trans-unit>
+      <trans-unit id="2863855608329538007" datatype="html">
+        <source>Unlimited (500 ns)</source>
+        <target>無制限 (500ナノ秒)</target>
+      </trans-unit>
+      <trans-unit id="4101655365640883147" datatype="html">
+        <source>Max Requests (global):</source>
+        <target>最大リクエスト数 (グローバル):</target>
+      </trans-unit>
+      <trans-unit id="4999829279268672917" datatype="html">
+        <source>1 second</source>
+        <target>1秒</target>
+      </trans-unit>
+      <trans-unit id="7793936968458095532" datatype="html">
+        <source>Maximum HTTP requests across all origins every Max Requests Period.</source>
+        <target>最大リクエスト期間ごとの全オリジン合計の最大HTTPリクエスト数。</target>
+      </trans-unit>
+      <trans-unit id="8285625852904868201" datatype="html">
+        <source>Refresh period for the global Max Requests limit. The default (500 ns) is effectively unlimited.</source>
+        <target>グローバル最大リクエスト数制限のリフレッシュ期間。デフォルト (500ナノ秒) は実質的に無制限です。</target>
+      </trans-unit>
+      <trans-unit id="8741075396255863130" datatype="html">
+        <source>10 seconds</source>
+        <target>10秒</target>
+      </trans-unit>
+      <trans-unit id="8884665568210966872" datatype="html">
+        <source>Max Requests (per origin):</source>
+        <target>最大リクエスト数 (オリジンごと):</target>
+      </trans-unit>
+      <trans-unit id="954970669747777544" datatype="html">
+        <source>Refresh period for the per origin Max Requests limit. The default (500 ns) is effectively unlimited.</source>
+        <target>オリジンごとの最大リクエスト数制限のリフレッシュ期間。デフォルト (500ナノ秒) は実質的に無制限です。</target>
       </trans-unit>
       <trans-unit id="2392488717875840729" datatype="html">
         <source>User</source>
