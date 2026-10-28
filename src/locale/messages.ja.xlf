@@ -3246,6 +3246,14 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Check feed entries for video.</source>
         <target>フィードエントリにビデオがあるかチェックします。</target>
       </trans-unit>
+      <trans-unit id="6777991785986284117" datatype="html">
+        <source>Shorts:</source>
+        <target>ショート:</target>
+      </trans-unit>
+      <trans-unit id="4512060284754739756" datatype="html">
+        <source>Check feed entries for YouTube shorts. If only one of Video or Shorts is enabled, the other kind of entry is skipped.</source>
+        <target>フィードエントリにYouTubeショートがあるかチェックします。ビデオとショートのどちらか一方のみが有効な場合、もう一方の種類のエントリはスキップされます。</target>
+      </trans-unit>
       <trans-unit id="7516660859644454899" datatype="html">
         <source>Scrape Webpage:</source>
         <target>ウェブページをスクレイピング:</target>
