@@ -23,7 +23,6 @@ export function formlyType(typeNames: string[]): TypeOption {
         addText: $localize`+ Add another field`,
       },
       fieldArray: {
-        wrappers: ['form-group'],
         className: 'formly-field-config',
         fieldGroup: [{
           key: 'key',
@@ -129,24 +128,28 @@ export function formBuilderFields(): FormlyFieldConfig[] {
   return [{
     key: 'form',
     type: 'formly',
+    className: 'builder-form',
     props: {
       label: $localize`Form:`,
     },
   }, {
     key: 'advancedForm',
     type: 'formly',
+    className: 'builder-advanced-form',
     props: {
       label: $localize`Advanced Form:`,
     },
   }, {
     key: 'adminForm',
     type: 'formly',
+    className: 'builder-admin-form',
     props: {
       label: $localize`Admin Form:`,
     },
   }, {
     key: 'advancedAdminForm',
     type: 'formly',
+    className: 'builder-advanced-admin-form',
     props: {
       label: $localize`Advanced Admin Form:`,
     },
