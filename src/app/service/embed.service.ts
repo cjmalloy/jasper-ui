@@ -1,5 +1,5 @@
 import { inject, Injectable, ViewContainerRef } from '@angular/core';
-import { escape, uniq } from 'lodash-es';
+import { escape, maxBy, uniq } from 'lodash-es';
 import { marked, MarkedExtension, Renderer, RendererObject, Token, Tokens, TokensList } from 'marked';
 import markedKatex from 'marked-katex-extension';
 import { catchError, EMPTY, forkJoin, map, Observable, of, retry, Subscription, switchMap } from 'rxjs';
@@ -32,7 +32,7 @@ import {
   wrapTables
 } from '../util/markdown';
 import { getArgs, getFilters, UrlFilter } from '../util/query';
-import { isQuery, queryPrefix, topAnds } from '../util/tag';
+import { hasPrefix, isQuery, queryPrefix, topAnds } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -788,7 +788,7 @@ export class EmbedService {
     }
     const ext = exts.find(x => x.modifiedString && x.tag === view);
     if (ext) return ext;
-    const t = this.admin.view().find(t => t.tag === view);
+    const t = maxBy(this.admin.view().filter(t => hasPrefix(view, t.tag)), t => t.tag.length);
     if (t) {
       return { tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } };
     }

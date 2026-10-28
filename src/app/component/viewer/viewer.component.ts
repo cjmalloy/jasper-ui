@@ -137,7 +137,7 @@ export class ViewerComponent {
     catchError(() => of(undefined)),
     startWith(undefined),
   ) : of(undefined))), { initialValue: undefined });
-  private readonly queryUrl = computed(() => hasTag('plugin/lens', this.ref())
+  private readonly queryUrl = computed(() => hasTag('plugin/lens', this.currentTags())
     ? this.ref()?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref()) ? this.ref()?.sources?.[0] : this.ref()?.url)
     : undefined);
   private readonly lensResult = toSignal(toObservable(this.queryUrl).pipe(
@@ -194,7 +194,7 @@ export class ViewerComponent {
       const tags = this.tagsInput();
       const text = this.textInput();
       untracked(() => {
-        const newRef = ref?.url !== this.prevRef?.url;
+        const newRef = ref?.url !== this.prevRef?.url || ref?.origin !== this.prevRef?.origin;
         const changesRef = !this.initialized || ref?.modifiedString !== this.prevRef?.modifiedString || newRef;
         const changesTags = !isEqual(tags, this.prevTags);
         const changesText = text !== this.prevText;

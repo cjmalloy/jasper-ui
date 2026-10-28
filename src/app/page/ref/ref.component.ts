@@ -19,6 +19,7 @@ import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
+import { ViewerComponent } from '../../component/viewer/viewer.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { isWiki } from '../../mods/org/wiki';
@@ -30,6 +31,8 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { markRead } from '../../util/response';
 import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '../../util/tag';
+import { RefCommentsComponent } from './comments/comments.component';
+import { RefThreadComponent } from './thread/thread.component';
 
 @Component({
   selector: 'app-ref-page',
@@ -43,6 +46,9 @@ import { hasTag, localPluginResponses, pluginResponses, privateTag, top } from '
     SidebarComponent,
     RouterOutlet,
     LoadingComponent,
+    ViewerComponent,
+    RefCommentsComponent,
+    RefThreadComponent,
   ],
 })
 export class RefPage implements HasChanges {
@@ -152,7 +158,7 @@ export class RefPage implements HasChanges {
         : this.refs.get(url, origin)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-      map(ref => ref || { url }),
+      map(ref => ref || { url, tags: url?.startsWith('tag:/') ? ['plugin/lens'] : [] }),
       tap(ref => this.markRead(ref)),
       tap(ref => this.watch(ref)),
       switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
@@ -232,6 +238,7 @@ export class RefPage implements HasChanges {
   readonly isWiki = computed(() => !this.admin.isWikiExternal() && isWiki(this.store.view.url(), this.admin.getWikiPrefix()));
 
   markRead(ref: Ref) {
+    if (!ref.created) return;
     markRead(this.admin, this.ts, ref);
   }
 }

@@ -14,12 +14,10 @@ import {
   viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, of, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Ref, RefSort } from '../../model/ref';
@@ -32,6 +30,7 @@ import { Store } from '../../store/store';
 import { negate, UrlFilter } from '../../util/query';
 import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
+import { NavComponent } from '../nav/nav.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
 
@@ -53,11 +52,10 @@ export interface KanbanDrag {
     CdkDropListGroup,
     CdkScrollable,
     CdkDropList,
-    RouterLink,
-    TitleDirective,
     ReactiveFormsModule,
     PageControlsComponent,
     AsyncPipe,
+    NavComponent,
   ],
 })
 export class KanbanComponent implements HasChanges {

@@ -5,6 +5,7 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
+import { LoadingComponent } from '../../loading/loading.component';
 import { CommentComponent } from '../comment.component';
 
 @Component({
@@ -14,6 +15,7 @@ import { CommentComponent } from '../comment.component';
   host: { 'class': 'comment-thread' },
   imports: [
     forwardRef(() => CommentComponent),
+    LoadingComponent,
   ],
 })
 export class CommentThreadComponent implements HasChanges {

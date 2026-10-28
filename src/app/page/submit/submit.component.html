@@ -186,7 +186,7 @@
           </div>
           @if (responsesToUrl().page.totalPages > 1) {
             <span><!-- show more --></span>
-            <a [routerLink]="['/ref', urlValue(), 'responses']"
+            <a [routerLink]="[store.view.subviewPath('responses'), urlValue(), 'responses']"
                class="load-more no-select" i18n>
               see all
             </a>

@@ -193,7 +193,7 @@ describe('RefPage', () => {
       component.reload(url, undefined);
 
       expect(topics()).toEqual([]);
-      expect(component.store.view.ref()).toEqual({ url });
+      expect(component.store.view.ref()).toEqual({ url, tags: [] });
     });
 
     it('does not reuse a 404 placeholder', () => {
@@ -207,7 +207,7 @@ describe('RefPage', () => {
       expect(getCurrent).toHaveBeenCalledTimes(2);
       expect(get).toHaveBeenCalledTimes(1);
       expect(topics()).toEqual([]);
-      expect(component.store.view.ref()).toEqual({ url });
+      expect(component.store.view.ref()).toEqual({ url, tags: [] });
     });
 
     it('resubscribes when the displayed copy changes origin', () => {

@@ -39,7 +39,6 @@ import { RelativePipe } from '../../pipe/relative.pipe';
 import { isInlineSvg, ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -158,7 +157,6 @@ export class RefComponent implements HasChanges {
   private auth = inject(AuthzService);
   private editor = inject(EditorService);
   private refs = inject(RefService);
-  private exts = inject(ExtService);
   private bookmarks = inject(BookmarkService);
   private proxy = inject(ProxyService);
   private uploadCache = inject(UploadCacheService);
@@ -855,24 +853,14 @@ export class RefComponent implements HasChanges {
     ]);
   });
 
-  readonly authorExts = toSignal(toObservable(computed(() =>
-    [this.authors(), this.ref().origin || ''] as const)).pipe(
-    switchMap(([tags, origin]) => this.exts.getCachedExts(tags, origin).pipe(this.admin.authorFallback)),
-  ), { initialValue: [] });
-
   readonly recipients = computed(() => {
     const lookup = this.store.origins.originMap().get(this.ref().origin || '');
-    const userRecipients = without(addressedTo(this.ref()).map(a => mapRemoteOrigin(a, this.ref().origin || '', this.store.account.origin(), lookup)), ...this.authors());
-    return [
-      ...userRecipients,
-      ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
-    ];
+    const origin = this.ref().origin || '';
+    return without([
+      ...addressedTo(this.ref()),
+      ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t).map(t => t + origin) || [],
+    ].map(a => mapRemoteOrigin(a, origin, this.store.account.origin(), lookup)), ...this.authors());
   });
-
-  readonly recipientExts = toSignal(toObservable(computed(() =>
-    [this.recipients(), this.ref().origin || ''] as const)).pipe(
-    switchMap(([tags, origin]) => this.exts.getCachedExts(tags, origin).pipe(this.admin.recipientFallback)),
-  ), { initialValue: [] });
 
   readonly mailboxes = computed(() => {
     return mailboxes(this.ref(), this.store.account.tag(), this.store.origins.originMap());
@@ -905,17 +893,12 @@ export class RefComponent implements HasChanges {
     return interestingTags(this.ref().tags);
   });
 
-  readonly tagExts = toSignal(toObservable(computed(() =>
-    [this.tags(), this.ref().origin || ''] as const)).pipe(
-    switchMap(([tags, origin]) => this.editor.getTagsPreview(tags, origin)),
-  ), { initialValue: [] });
-
   readonly url = computed(() => {
     return this.repost() ? this.ref().sources![0] : this.ref().url;
   });
 
   readonly origin = computed(() => {
-    return this.bareRef()?.origin;
+    return this.bareRef()?.origin || '';
   });
 
   readonly link = computed(() => {

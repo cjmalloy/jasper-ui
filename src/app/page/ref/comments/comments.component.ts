@@ -57,7 +57,13 @@ export class RefCommentsComponent implements HasChanges {
 
   private readonly initialize = afterNextRender(() => {
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref())), { injector: this.injector });
+    effect(() => {
+      if (this.store.view.browser()) {
+        this.mod.setTitle(getTitle(this.store.view.ref()));
+      } else {
+        this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref()));
+      }
+    }, { injector: this.injector });
     effect(() => {
       const ref = this.store.view.ref();
       if (ref) {
@@ -68,6 +74,7 @@ export class RefCommentsComponent implements HasChanges {
     this.newComments$.subscribe(c => {
       if (c && this.store.view.ref()) {
         updateMetadata(this.store.view.ref()!, c);
+        this.thread.newComments.set(true);
         this.store.eventBus.refresh(this.store.view.ref()!);
       }
     });

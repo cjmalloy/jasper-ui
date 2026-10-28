@@ -1,4 +1,3 @@
-import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, forwardRef, inject, input, linkedSignal, } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -7,13 +6,11 @@ import { uniq } from 'lodash-es';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
-import { TitleDirective } from '../../../directive/title.directive';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
 import { mapRemoteOrigin } from '../../../mods/mailbox';
 import { RelativePipe } from '../../../pipe/relative.pipe';
 import { AdminService } from '../../../service/admin.service';
-import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -35,13 +32,11 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   styleUrls: ['./chat-entry.component.scss'],
   host: { 'class': 'chat-entry', '[attr.tabindex]': '0' },
   imports: [
-    AsyncPipe,
     RelativePipe,
     FakeLinkDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => MdComponent),
     RouterLink,
-    TitleDirective,
     LoadingComponent,
     NavComponent,
     ConfirmActionComponent,
@@ -53,7 +48,6 @@ export class ChatEntryComponent {
   admin = inject(AdminService);
   store = inject(Store);
   private auth = inject(AuthzService);
-  private exts = inject(ExtService);
   private ts = inject(TaggingService);
   private refs = inject(RefService);
 
@@ -109,9 +103,6 @@ export class ChatEntryComponent {
       ...authors(this.ref()).map(a => mapRemoteOrigin(a, this.ref().origin || '', this.store.account.origin(), lookup)),
     ]);
   });
-
-  readonly authorExts$ = computed(() =>
-    this.exts.getCachedExts(this.authors(), this.ref().origin || '').pipe(this.admin.authorFallback));
 
   readonly tagLink = computed(() => this.url().toLowerCase().startsWith('tag:/'));
 

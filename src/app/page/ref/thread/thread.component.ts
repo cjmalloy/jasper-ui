@@ -105,7 +105,13 @@ export class RefThreadComponent implements HasChanges {
 
   private readonly initialize = afterNextRender(() => {
     // TODO: set title for bare reposts
-    effect(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref())), { injector: this.injector });
+    effect(() => {
+      if (this.store.view.browser()) {
+        this.mod.setTitle(getTitle(this.store.view.ref()));
+      } else {
+        this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref()));
+      }
+    }, { injector: this.injector });
     effect(() => {
       this.store.view.ref();
       this.store.view.url();

@@ -13,7 +13,7 @@ import {
   untracked,
   viewChild
 } from '@angular/core';
-import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
 import { Observable, Subject } from 'rxjs';
@@ -37,12 +37,10 @@ import { getMailbox, mailboxes, mapRemoteOrigin } from '../../mods/mailbox';
 import { score } from '../../mods/vote';
 import { RelativePipe } from '../../pipe/relative.pipe';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
-import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
@@ -51,6 +49,7 @@ import { addPluginResponse, hasTag, hasUserUrlResponse, pluginResponses, removeT
 import { ActionListComponent } from '../action/action-list/action-list.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
+import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 import { CommentEditComponent } from './comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './comment-reply/comment-reply.component';
@@ -73,6 +72,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
     InlineTagComponent,
     ActionListComponent,
     CommentReplyComponent,
+    NavComponent,
   ],
 })
 export class CommentComponent implements HasChanges {
@@ -81,8 +81,6 @@ export class CommentComponent implements HasChanges {
   thread = inject(ThreadStore);
   private auth = inject(AuthzService);
   private refs = inject(RefService);
-  private exts = inject(ExtService);
-  private editor = inject(EditorService);
   private ts = inject(TaggingService);
   private bookmarks = inject(BookmarkService);
   private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
@@ -185,6 +183,8 @@ export class CommentComponent implements HasChanges {
     return this.store.view.lastSelected()?.url === this.ref().url;
   });
 
+  readonly origin = computed(() => this.ref().origin || '');
+
   readonly nonLocalOrigin = computed(() => {
     if (this.ref().origin === this.store.account.origin()) return undefined;
     return this.ref().origin || '';
@@ -218,11 +218,6 @@ export class CommentComponent implements HasChanges {
     ]);
   });
 
-  readonly authorExts = rxResource({
-    params: () => ({ tags: this.authors(), origin: this.ref().origin || '' }),
-    stream: ({ params }) => this.exts.getCachedExts(params.tags, params.origin).pipe(this.admin.authorFallback),
-  });
-
   readonly mailboxes = computed(() => {
     return mailboxes(this.ref(), this.store.account.tag(), this.store.origins.originMap());
   });
@@ -237,11 +232,6 @@ export class CommentComponent implements HasChanges {
 
   readonly tagged = computed(() => {
     return interestingTags(this.ref().tags);
-  });
-
-  readonly tagExts = rxResource({
-    params: () => ({ tags: this.tagged(), origin: this.ref().origin || '' }),
-    stream: ({ params }) => this.editor.getTagsPreview(params.tags, params.origin),
   });
 
   readonly deleted = computed(() => {

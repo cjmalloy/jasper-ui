@@ -41,7 +41,6 @@ import { getMailbox, mailboxes, mapRemoteOrigin } from '../../../mods/mailbox';
 import { findArchive } from '../../../mods/tools/archive';
 import { RelativePipe } from '../../../pipe/relative.pipe';
 import { AdminService } from '../../../service/admin.service';
-import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -92,7 +91,6 @@ export class BlogEntryComponent implements HasChanges {
   private auth = inject(AuthzService);
   private editor = inject(EditorService);
   private refs = inject(RefService);
-  private exts = inject(ExtService);
   private bookmarks = inject(BookmarkService);
   private ts = inject(TaggingService);
   private router = inject(Router);
@@ -173,6 +171,8 @@ export class BlogEntryComponent implements HasChanges {
   init() {
   }
 
+  readonly origin = computed(() => this.ref().origin || '');
+
   readonly nonLocalOrigin = computed(() => {
     if (this.ref().origin === this.store.account.origin()) return undefined;
     return this.ref().origin || '';
@@ -249,21 +249,11 @@ export class BlogEntryComponent implements HasChanges {
     ]);
   });
 
-  readonly authorExts = rxResource({
-    params: () => ({ tags: this.authors(), origin: this.ref().origin || '' }),
-    stream: ({ params }) => this.exts.getCachedExts(params.tags, params.origin).pipe(this.admin.authorFallback),
-  });
-
   readonly tags = computed(() => {
     let result = interestingTags(this.ref().tags);
     const blog = this.blog();
     if (!blog?.config?.filterTags) return result;
     return intersection(result, blog.config.tags || []);
-  });
-
-  readonly tagExts = rxResource({
-    params: () => ({ tags: this.tags(), origin: this.ref().origin || '' }),
-    stream: ({ params }) => this.editor.getTagsPreview(params.tags, params.origin),
   });
 
   readonly tagLink = computed(() => {

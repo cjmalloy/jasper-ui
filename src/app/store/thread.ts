@@ -66,6 +66,13 @@ export class ThreadStore {
   });
   /** The most recently loaded batch of comments. */
   readonly latest = linkedSignal<Ref[]>(() => [...this.pages().at(-1)?.content || []]);
+  /** The first page loaded and had no comments. */
+  readonly empty = computed(() => this.first.hasValue() && !this.first.value()?.content.length);
+  /** Comments were added in this thread since the args changed. */
+  readonly newComments = linkedSignal(() => {
+    this.args();
+    return false;
+  });
   readonly hasMore = computed(() => {
     if (!this.pages().length) return false;
     return this.pages().length < this.pages()[0].page.totalPages;

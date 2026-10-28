@@ -8,7 +8,7 @@
 } @else {
   <app-loading></app-loading>
 }
-@if (store.view.ref()) {
+@if (store.view.ref() && (!store.view.browser() || store.account.signedIn())) {
   <app-comment-reply #reply
                      [to]="to()"
                      [tags]="replyTags()"

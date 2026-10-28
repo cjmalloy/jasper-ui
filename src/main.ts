@@ -11,7 +11,7 @@ import {
   provideZonelessChangeDetection
 } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter, UrlSerializer, withRouterConfig } from '@angular/router';
+import { provideRouter, UrlSerializer, withInMemoryScrolling, withRouterConfig } from '@angular/router';
 import { provideServiceWorker, SwRegistrationOptions } from '@angular/service-worker';
 import { Settings } from 'luxon';
 import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
@@ -97,6 +97,8 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes, withRouterConfig({
       paramsInheritanceStrategy: 'always',
       onSameUrlNavigation: 'reload',
+    }), withInMemoryScrolling({
+      scrollPositionRestoration: 'enabled',
     })),
     { provide: UrlSerializer, useClass: CustomUrlSerializer },
     { provide: NGX_MONACO_EDITOR_CONFIG, useValue: {} },

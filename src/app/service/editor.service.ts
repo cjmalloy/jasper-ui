@@ -269,6 +269,7 @@ export class EditorService {
   }
 
   getUrlType(url: string) {
+    if (url.startsWith('tag:/')) return 'tag';
     if (url.startsWith(this.config.base)) {
       url = url.substring(this.config.base.length);
     }
