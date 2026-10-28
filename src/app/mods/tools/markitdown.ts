@@ -54,6 +54,12 @@ Resources are fetched through the Jasper proxy API.`,
         label: $localize`Script:`,
         language: 'python',
       },
+    }, {
+      key: 'aiInstructions',
+      type: 'editor',
+      props: {
+        label: $localize`AI Instructions:`,
+      },
     }],
     // language=python
     script: `

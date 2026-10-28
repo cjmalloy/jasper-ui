@@ -62,27 +62,28 @@ export const pollPlugin: Plugin = {
     snippet: `
       <script>
         Handlebars.registerHelper('count', (ref, tag) => {
-          return ref?.metadata?.plugins?.[tag] || 0;
+          return (ref?.metadata?.remotePlugins || ref?.metadata?.plugins || {})[tag] || 0;
         });
 
         Handlebars.registerHelper('percent', (ref, value, prefix) => {
-          if (!ref?.metadata?.plugins) return 0;
+          const counts = ref?.metadata?.remotePlugins || ref?.metadata?.plugins || {};
           let total = 0;
-          for (const k in ref.metadata.plugins) {
+          for (const k in counts) {
             if (k.startsWith(prefix)) {
-              total += ref.metadata.plugins[k] || 0;
+              total += counts[k] || 0;
             }
           }
           if (!total) return 0;
-          return Math.floor(100 * (ref.metadata.plugins[prefix + value] || 0) / total);
+          return Math.floor(100 * (counts[prefix + value] || 0) / total);
         });
 
         Handlebars.registerHelper('maxCount', (ref, prefix) => {
+          const counts = ref?.metadata?.remotePlugins || ref?.metadata?.plugins || {};
           let maxVal = -1;
           let max = 'nothing found';
-          for (const k in ref?.metadata?.plugins || []) {
+          for (const k in counts) {
             if (k.startsWith(prefix)) {
-              const n = ref.metadata.plugins[k] || 0;
+              const n = counts[k] || 0;
               if (n > maxVal) {
                 maxVal = n;
                 max = k.substring(prefix.length);

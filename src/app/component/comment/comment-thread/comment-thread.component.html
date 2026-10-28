@@ -1,19 +1,20 @@
-<ng-container *mobxAutorun>
-  @if (thread.latest.length || thread.newComments) {
-    @for (comment of newComments; track comment.url) {
-      <app-comment [ref]="comment"
-                   [depth]="depth"
-                   [context]="context"></app-comment>
-    }
-    @if (depth > 0) {
-      @for (comment of comments; track comment.origin + comment.url) {
-        <app-comment [ref]="comment"
-                     [scrollToLatest]="scrollToLatest"
-                     [depth]="depth"
-                     [context]="context"></app-comment>
-      }
-    }
-  } @else if (!thread.empty) {
-    <app-loading></app-loading>
+@if (thread.latest().length || thread.newComments()) {
+  @for (comment of newComments(); track comment.url) {
+
+    <app-comment #comment
+                 [ref]="comment"
+                 [depth]="depth()"
+                 [context]="context()"></app-comment>
   }
-</ng-container>
+  @if (depth() > 0) {
+    @for (comment of comments(); track comment.origin + comment.url) {
+      <app-comment #comment
+                   [ref]="comment"
+                   [scrollToLatest]="scrollToLatest()"
+                   [depth]="depth()"
+                   [context]="context()"></app-comment>
+    }
+  }
+} @else if (!thread.empty()) {
+  <app-loading></app-loading>
+}

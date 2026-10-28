@@ -143,6 +143,46 @@ describe('GridComponent', () => {
       expect(result[0].wrapText).toBe(true);
     });
 
+    it('should use -> for field access', () => {
+      const cols = [{ headerName: 'Thumbnail', field: 'plugins->plugin/thumbnail->url', type: 'image' }];
+      const result = component.applyFormatters(cols);
+      const getter = result[0].valueGetter as (params: any) => unknown;
+      expect(getter({ data: { plugins: { 'plugin/thumbnail': { url: 'https://example.com/a.png' } } } })).toBe('https://example.com/a.png');
+      expect(getter({ data: {} })).toBeUndefined();
+    });
+
+    it('should use tags-> for tag values', () => {
+      const result = component.applyFormatters([{ headerName: 'Title', field: 'tags->plugin/title' }]);
+      const getter = result[0].valueGetter as (params: any) => unknown;
+      expect(getter({ data: { tags: ['plugin/title', 'plugin/title/hello/world'] } })).toBe('hello');
+      expect(getter({ data: { tags: ['science'] } })).toBeNull();
+    });
+
+    it('should read tag values as numbers with :num', () => {
+      const result = component.applyFormatters([{ headerName: 'Progress', field: 'tags->plugin/progress:num' }]);
+      const getter = result[0].valueGetter as (params: any) => unknown;
+      expect(result[0].filter).toBe('agNumberColumnFilter');
+      expect(getter({ data: { tags: ['plugin/progress/37/100'] } })).toBe(37);
+      expect(getter({ data: { tags: ['plugin/progress/abc'] } })).toBeNull();
+    });
+
+    it('should read tag values as durations with :dur', () => {
+      const result = component.applyFormatters([{ headerName: 'Duration', field: 'tags->plugin/duration:dur' }]);
+      const getter = result[0].valueGetter as (params: any) => unknown;
+      const formatter = result[0].valueFormatter as (params: any) => string;
+      expect(result[0].filter).toBe('agNumberColumnFilter');
+      expect(getter({ data: { tags: ['plugin/duration/pt90m'] } })).toBe(90 * 60 * 1000);
+      expect(getter({ data: { tags: ['plugin/duration/pt1h'] } })).toBe(60 * 60 * 1000);
+      expect(getter({ data: { tags: ['plugin/duration/nope'] } })).toBeNull();
+      expect(formatter({ value: 90 * 60 * 1000 })).toBeTruthy();
+      expect(formatter({ value: null })).toBe('');
+    });
+
+    it('should not add a value getter for plain fields', () => {
+      const result = component.applyFormatters([{ headerName: 'Title', field: 'title' }]);
+      expect(result[0].valueGetter).toBeUndefined();
+    });
+
     it('should preserve existing filter on date type column', () => {
       const cols = [{ headerName: 'Published', field: 'published', type: 'dateTime', filter: 'myFilter' }];
       const result = component.applyFormatters(cols);
@@ -152,7 +192,7 @@ describe('GridComponent', () => {
 
   describe('columnDefs', () => {
     it('should return formatted column defs from defaultCols', () => {
-      const defs = component.columnDefs;
+      const defs = component.columnDefs();
       const published = defs.find(c => c.field === 'published');
       expect(published).toBeTruthy();
       expect(published?.filter).toBe('agDateColumnFilter');
@@ -160,8 +200,9 @@ describe('GridComponent', () => {
     });
 
     it('should apply formatters to ext config columnDefs when provided', () => {
-      component.ext = { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published', type: 'dateTime' }] } } as any;
-      const defs = component.columnDefs;
+      fixture.componentRef.setInput('ext', { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published', type: 'dateTime' }] } } as any);
+      fixture.detectChanges();
+      const defs = component.columnDefs();
       expect(typeof defs[0].valueFormatter).toBe('function');
     });
   });
@@ -181,7 +222,8 @@ describe('GridComponent', () => {
         title: 'Original title',
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       const req = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
@@ -190,7 +232,7 @@ describe('GridComponent', () => {
       );
       req.flush(Page.of([sourceRef]));
 
-      expect(component.rowData).toEqual([expect.objectContaining({
+      expect(component.rowData()).toEqual([expect.objectContaining({
         url: sourceRef.url,
         title: sourceRef.title,
       })]);
@@ -205,10 +247,11 @@ describe('GridComponent', () => {
         title: 'Repost title',
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       http.expectNone(request => request.url.endsWith('/api/v1/ref/page'));
-      expect(component.rowData).toEqual([repostRef]);
+      expect(component.rowData()).toEqual([repostRef]);
     });
 
     it('should keep bare repost rows when source refs fail to load', () => {
@@ -219,7 +262,8 @@ describe('GridComponent', () => {
         sources: ['https://example.com/original'],
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       const req = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
@@ -227,7 +271,7 @@ describe('GridComponent', () => {
       );
       req.flush('server error', { status: 500, statusText: 'Server Error' });
 
-      expect(component.rowData).toEqual([repostRef]);
+      expect(component.rowData()).toEqual([repostRef]);
     });
 
     it('should cancel previous bare repost source fetches when page changes', () => {
@@ -250,13 +294,15 @@ describe('GridComponent', () => {
         title: 'Second original',
       };
 
-      component.page = Page.of([firstRepost]);
+      fixture.componentRef.setInput('page', Page.of([firstRepost]));
+      fixture.detectChanges();
       const firstReq = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
         && request.params.get('url') === firstRepost.sources![0]
       );
 
-      component.page = Page.of([secondRepost]);
+      fixture.componentRef.setInput('page', Page.of([secondRepost]));
+      fixture.detectChanges();
 
       expect(firstReq.cancelled).toBe(true);
       const secondReq = http.expectOne(request =>
@@ -265,11 +311,11 @@ describe('GridComponent', () => {
       );
       secondReq.flush(Page.of([secondSource]));
 
-      expect(component.rowData).toEqual([expect.objectContaining({
+      expect(component.rowData()).toEqual([expect.objectContaining({
         url: secondSource.url,
         title: secondSource.title,
       })]);
-      expect(component.rowData.some(ref => ref.url === firstRepost.sources![0])).toBe(false);
+      expect(component.rowData().some(ref => ref.url === firstRepost.sources![0])).toBe(false);
     });
   });
 });

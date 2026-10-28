@@ -1,5 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
-import { mod, openTextSubmit } from './setup';
+import { expect, type Page } from '@playwright/test';
+import { mod, openTextSubmit, test } from './setup';
 
 test.describe.serial('Graph Plugin', () => {
   let page: Page;
@@ -65,6 +65,7 @@ test.describe.serial('Graph Plugin', () => {
     const url = await page.locator('[name=url]').inputValue();
     await page.goto('/tag/@*?search=' + url + '&debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.tabs a', { hasText: 'graph' }).first().click();
+    await expect(page.locator('.force-directed-graph circle').first()).toBeVisible();
     await expect(page.locator('.ref-list .link a', { hasText: 'Reply' }).first()).toBeVisible();
     const loadMore = page.locator('.load-more');
     if (await loadMore.isVisible({ timeout: 3_000 }).catch(() => false)) {

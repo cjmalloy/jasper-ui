@@ -1,6 +1,82 @@
-import { removeTag, setPrivate, setProtected } from './tag';
+import { Ref } from '../model/ref';
+import {
+  addPluginResponse,
+  andQueries,
+  braces,
+  hasAnyResponse,
+  hasQuery,
+  isGroup,
+  isNegatedGroup,
+  localPluginResponses,
+  pickPlugins,
+  pluginResponses,
+  removeTag,
+  setPrivate,
+  setProtected,
+  tagValue,
+  updateMetadata
+} from './tag';
 
 describe('Tag Utils', () => {
+  it('hasQuery', () => {
+    const tags = ['+plugin/origin', '+user/chris', 'public'];
+    expect(hasQuery('+plugin/origin', tags)).toBe(true);
+    expect(hasQuery('+plugin', tags)).toBe(true);
+    expect(hasQuery('!+plugin/origin/push', tags)).toBe(true);
+    expect(hasQuery('+plugin/origin:!+plugin/origin/push:!+plugin/origin/pull:(+user|_user)', tags)).toBe(true);
+    expect(hasQuery('+plugin/origin:!+plugin/origin/push:!+plugin/origin/pull:(+user|_user)', [...tags, '+plugin/origin/pull'])).toBe(false);
+    expect(hasQuery('+plugin/origin:(+user|_user)', ['+plugin/origin', '_user/bob'])).toBe(true);
+    expect(hasQuery('+plugin/origin:(+user|_user)', ['+plugin/origin'])).toBe(false);
+    expect(hasQuery('missing|public', tags)).toBe(true);
+    expect(hasQuery('public:!(missing|+user)', tags)).toBe(false);
+  });
+
+  describe('isGroup', () => {
+    it('should detect groups covering the whole query', () => {
+      expect(isGroup('(a|b)')).toBe(true);
+      expect(isGroup('((a|b):c)')).toBe(true);
+      expect(isGroup('(a|b):(c|d)')).toBe(false);
+      expect(isGroup('a|b')).toBe(false);
+      expect(isGroup('!(a|b)')).toBe(false);
+    });
+
+    it('should detect negated groups covering the whole query', () => {
+      expect(isNegatedGroup('!(a|b)')).toBe(true);
+      expect(isNegatedGroup('!(a|b):(c)')).toBe(false);
+      expect(isNegatedGroup('!a')).toBe(false);
+    });
+  });
+
+  describe('braces', () => {
+    it('should wrap OR queries', () => {
+      expect(braces('a|b')).toBe('(a|b)');
+      expect(braces('a:b')).toBe('a:b');
+    });
+
+    it('should not wrap whole query groups', () => {
+      expect(braces('(a|b)')).toBe('(a|b)');
+      expect(braces('!(a|b)')).toBe('!(a|b)');
+      expect(braces('!(a|b):c|d')).toBe('(!(a|b):c|d)');
+    });
+
+    it('should only wrap top level OR queries', () => {
+      expect(braces('(a|b):c')).toBe('(a|b):c');
+      expect(braces('!(a|b):(c|d)')).toBe('!(a|b):(c|d)');
+    });
+  });
+
+  describe('andQueries', () => {
+    it('should join with braces', () => {
+      expect(andQueries(['a|b', '', 'c'])).toBe('(a|b):c');
+      expect(andQueries(['(a|b):c', 'd'])).toBe('(a|b):c:d');
+    });
+
+    it('should nest top level OR queries with groups', () => {
+      expect(andQueries(['!(a|b)|c', 'd'])).toBe('(!(a|b)|c):d');
+      expect(andQueries(['!(a|b)|c', 'd|e'])).toBe('(!(a|b)|c):(d|e)');
+    });
+  });
+
   describe('removeTag', () => {
     it('should remove a single tag from array', () => {
       const tags = ['science', 'funny', 'news'];
@@ -235,5 +311,73 @@ describe('Tag Utils', () => {
       const result = setProtected('a/b/c/d/e');
       expect(result).toEqual('+a/b/c/d/e');
     });
+  });
+
+  describe('pickPlugins', () => {
+    it('keeps plugin data for parent tags', () => {
+      const plugins = {
+        'plugin/delta': { a: 1 },
+        'plugin/thumbnail': { url: 'x' },
+        'plugin/image': { url: 'y' },
+      };
+      expect(pickPlugins(plugins, ['plugin/delta/ai', 'plugin/thumbnail'])).toEqual({
+        'plugin/delta': { a: 1 },
+        'plugin/thumbnail': { url: 'x' },
+      });
+    });
+
+    it('handles missing plugins and tags', () => {
+      expect(pickPlugins(undefined, ['public'])).toEqual({});
+      expect(pickPlugins({ 'plugin/image': {} }, undefined)).toEqual({});
+    });
+  });
+
+  describe('plugin responses', () => {
+    it('uses remote counts for responses and local counts for logs', () => {
+      const ref: Ref = { url: 'test:', metadata: {
+        plugins: { '+plugin/log': 1, 'plugin/comment': 1 },
+        remotePlugins: { '+plugin/log': 3, 'plugin/comment': 4, 'plugin/thread': 2 },
+      } };
+      expect(pluginResponses(ref, 'plugin/comment')).toBe(4);
+      expect(pluginResponses(ref, 'plugin/thread')).toBe(2);
+      expect(localPluginResponses(ref, '+plugin/log')).toBe(1);
+      expect(localPluginResponses(ref, 'plugin/thread')).toBe(0);
+      expect(hasAnyResponse('plugin/thread', ref)).toBe(true);
+    });
+
+    it('falls back to local counts without remote counts', () => {
+      const ref: Ref = { url: 'test:', metadata: { plugins: { 'plugin/comment': 2 } } };
+      expect(pluginResponses(ref, 'plugin/comment')).toBe(2);
+      expect(pluginResponses(undefined, 'plugin/comment')).toBe(0);
+    });
+
+    it('counts new responses', () => {
+      const ref: Ref = { url: 'test:', metadata: { plugins: {}, remotePlugins: {} } };
+      addPluginResponse(ref, 'plugin/comment');
+      addPluginResponse(ref, 'plugin/comment', false);
+      expect(ref.metadata!.plugins).toEqual({ 'plugin/comment': 1 });
+      expect(ref.metadata!.remotePlugins).toEqual({ 'plugin/comment': 2 });
+
+      const old: Ref = { url: 'test:' };
+      addPluginResponse(old, 'plugin/comment', false);
+      expect(old.metadata!.plugins).toEqual({ 'plugin/comment': 1 });
+      expect(old.metadata!.remotePlugins).toBeUndefined();
+    });
+
+    it('updateMetadata only counts local responses locally', () => {
+      const parent: Ref = { url: 'test:', origin: '@a', metadata: { plugins: {}, remotePlugins: {} } };
+      updateMetadata(parent, { url: 'comment:1', origin: '@a', tags: ['plugin/comment'] });
+      updateMetadata(parent, { url: 'comment:2', origin: '@b', tags: ['plugin/comment'] });
+      expect(localPluginResponses(parent, 'plugin/comment')).toBe(1);
+      expect(pluginResponses(parent, 'plugin/comment')).toBe(2);
+    });
+  });
+
+  it('tagValue', () => {
+    expect(tagValue({ tags: ['plugin/title/hello'] }, 'plugin/title')).toBe('hello');
+    expect(tagValue({ tags: ['plugin/progress', 'plugin/progress/37/100'] }, 'plugin/progress')).toBe('37');
+    expect(tagValue({ tags: ['plugin/progressive/1'] }, 'plugin/progress')).toBeUndefined();
+    expect(tagValue({ tags: [] }, 'plugin/progress')).toBeUndefined();
+    expect(tagValue(undefined, 'plugin/progress')).toBeUndefined();
   });
 });

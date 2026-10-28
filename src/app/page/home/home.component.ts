@@ -1,8 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -19,80 +17,65 @@ import { getArgs } from '../../util/query';
   selector: 'app-home-page',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     LensComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     SidebarComponent,
   ],
 })
-export class HomePage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+export class HomePage implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  account = inject(AccountService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private exts = inject(ExtService);
 
-  @ViewChild('lens')
-  lens?: LensComponent;
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public account: AccountService,
-    public store: Store,
-    public query: QueryStore,
-    private exts: ExtService,
-  ) {
+  private readonly forYouQuery = rxResource({
+    params: () => this.store.view.forYou() || undefined,
+    stream: () => this.account.forYouQuery$,
+  });
+
+  readonly lens = viewChild<LensComponent>('lens');
+
+  constructor() {
+    const mod = this.mod;
+    const admin = this.admin;
+    const store = this.store;
+    const exts = this.exts;
+
     mod.setTitle($localize`Home`);
     store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
-    query.clear();
-    if (admin.home) {
-      exts.getCachedExt('config/home' + (store.account.origin || '@')).subscribe(x => runInAction(() => {
+    if (admin.home()) {
+      exts.getCachedExt('config/home' + (store.account.origin() || '@')).subscribe(x => {
         if (x.modified) {
-          store.view.exts = [x];
+          store.view.exts.set([x]);
         } else {
-          store.view.exts = [ { ...this.exts.defaultExt('config/home'), config: admin.getDefaults('config/home') }];
+          store.view.exts.set([ { ...this.exts.defaultExt('config/home'), config: admin.getDefaults('config/home') }]);
         }
-      }));
+      });
     }
+    this.store.view.extTemplates.set(this.admin.view());
+    this.query.watch(() => {
+      const query = this.store.view.forYou()
+        ? (this.forYouQuery.hasValue() ? this.forYouQuery.value() : undefined)
+        : this.store.account.subscriptionQuery();
+      if (query === undefined) return undefined;
+      return getArgs(
+        query,
+        this.store.view.sort(),
+        ['user/!plugin/user/hide', ...this.store.view.filter()],
+        this.store.view.search(),
+        this.store.view.pageNumber(),
+        this.store.view.pageSize(),
+      );
+    });
   }
 
   saveChanges() {
-    return !this.lens || this.lens.saveChanges();
+    const lens = this.lens();
+    return !lens || lens.saveChanges();
   }
-
-  ngOnInit(): void {
-    runInAction(() => this.store.view.extTemplates = this.admin.view);
-    this.disposers.push(autorun(() => {
-      if (this.store.view.forYou) {
-        this.account.forYouQuery$.subscribe(q => {
-          const args = getArgs(
-            q,
-            this.store.view.sort,
-            ['user/!plugin/user/hide', ...this.store.view.filter],
-            this.store.view.search,
-            this.store.view.pageNumber,
-            this.store.view.pageSize,
-          );
-          defer(() => this.query.setArgs(args));
-        })
-      } else {
-        const args = getArgs(
-          this.store.account.subscriptionQuery,
-          this.store.view.sort,
-          ['user/!plugin/user/hide', ...this.store.view.filter],
-          this.store.view.search,
-          this.store.view.pageNumber,
-          this.store.view.pageSize,
-        );
-        defer(() => this.query.setArgs(args));
-      }
-    }));
-  }
-
-  ngOnDestroy() {
-    this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
-
 }

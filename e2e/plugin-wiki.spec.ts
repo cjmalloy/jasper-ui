@@ -1,11 +1,7 @@
-import { expect, test } from '@playwright/test';
-import { clearAll, deleteRef, mod, openSidebar } from './setup';
+import { expect } from '@playwright/test';
+import { deleteRef, mod, openSidebar, test } from './setup';
 
 test.describe.serial('Wiki Plugin', () => {
-
-  test('clear all', async ({ page }) => {
-    await clearAll(page);
-  });
 
   test('creates a wiki', async ({ page }) => {
     // Clean up any existing wiki from a previous failed run/retry
@@ -55,12 +51,13 @@ test.describe.serial('Wiki Plugin', () => {
     await page.locator('.tabs a', { hasText: 'template' }).first().click();
     const fileContent = JSON.stringify({ tag: 'config/wiki', config: { prefix: 'https://externalwiki/', external: true }});
     const buffer = Buffer.from(fileContent);
-    await page.locator('input.upload').setInputFiles({
+    const created = page.waitForResponse(resp => resp.url().includes('/api/v1/template') && resp.request().method() === 'POST');
+    await page.locator('input.upload-template').setInputFiles({
       name: 'config.json',
       mimeType: 'application/json',
       buffer,
     });
-    await page.waitForLoadState('networkidle');
+    expect((await created).ok()).toBe(true);
   });
 
   test('submit wiki button removed', async ({ page }) => {

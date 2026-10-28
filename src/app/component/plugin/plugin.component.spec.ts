@@ -26,7 +26,7 @@ describe('PluginComponent', () => {
 
     fixture = TestBed.createComponent(PluginComponent);
     component = fixture.componentInstance;
-    component.plugin = { tag: 'plugin/test' };
+    fixture.componentRef.setInput('plugin', { tag: 'plugin/test' });
     fixture.detectChanges();
   });
 

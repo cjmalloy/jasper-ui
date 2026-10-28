@@ -364,14 +364,6 @@ Please Reload.</source>
       <trans-unit id="3053227545305680611" datatype="html">
         <source>♟︎</source>
       </trans-unit>
-      <trans-unit id="7798956354099304791" datatype="html">
-        <source>Promote to Queen:</source>
-        <target>クイーンに昇格:</target>
-      </trans-unit>
-      <trans-unit id="2335593090473173311" datatype="html">
-        <source>Promotion:</source>
-        <target>昇格:</target>
-      </trans-unit>
       <trans-unit id="7050921390685083582" datatype="html">
         <source>Checkmate!</source>
         <target>チェックメイト！</target>
@@ -1205,6 +1197,22 @@ Please Reload.</source>
         <source>🧵️ new response</source>
         <target>🧵️ 新しいレスポンス</target>
       </trans-unit>
+      <trans-unit id="222383995525529492" datatype="html">
+        <source>Date of new reaction</source>
+        <target>新しいリアクションの日付</target>
+      </trans-unit>
+      <trans-unit id="3526392212941308686" datatype="html">
+        <source>😃️ new reaction</source>
+        <target>😃️ 新しいリアクション</target>
+      </trans-unit>
+      <trans-unit id="6317872943258377560" datatype="html">
+        <source>🗃️ metadata</source>
+        <target>🗃️ メタデータ</target>
+      </trans-unit>
+      <trans-unit id="9170356745028793454" datatype="html">
+        <source>Date metadata modified</source>
+        <target>メタデータの更新日</target>
+      </trans-unit>
       <trans-unit id="713523746868927245" datatype="html">
         <source>Date of new response</source>
         <target>新しいレスポンスの日付</target>
@@ -1829,6 +1837,18 @@ Private tags start with an underscore.
       <trans-unit id="466704681453006045" datatype="html">
         <source>@</source>
       </trans-unit>
+      <trans-unit id="2151296313495500477" datatype="html">
+        <source>Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+May end with a wildcard (i.e. "@*" or "@my.*").
+The default origin is blank.
+Must not start with a period or contain two periods in a row.
+(i.e. "@origin", "@my.origin", "@my.*", or "").</source>
+        <target>オリジンはアットマーク(@)で始まり、小文字の英字、数字、ピリオドのみを含める必要があります。
+ワイルドカードで終わることができます(例: "@*" または "@my.*")。
+デフォルトのオリジンは空白です。
+ピリオドで始まったり、連続して2つのピリオドを含んだりしてはなりません。
+(例: "@origin", "@my.origin", "@my.*", または "")。</target>
+      </trans-unit>
       <trans-unit id="2607251770369091122" datatype="html">
         <source>Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
 The default origin is blank.
@@ -1961,6 +1981,36 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="6622743147699505349" datatype="html">
         <source>🔖️</source>
+      </trans-unit>
+      <trans-unit id="7356383811096054810" datatype="html">
+        <source>Origins: </source>
+        <target>オリジン: </target>
+      </trans-unit>
+      <trans-unit id="3444072210683622660" datatype="html">
+        <source>Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Tags may be qualified with an origin.
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Use an origin without a tag to match all tags at that origin.
+Missing origins match the default origin.
+Use @* to match any top-level origin, or @origin.* to match direct sub-origins of @origin.
+Negation (!) is not allowed.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "", "science", "science@origin", "@origin", "@origin.*", "@*", or "_my/private/tag")</source>
+        <target>タグは小文字の英字、数字、ピリオド、スラッシュのみを使用してください。
+スラッシュまたはピリオドで始まってはなりません。
+連続して2つのスラッシュまたはピリオドを含んではなりません。
+タグはオリジンで修飾されることがあります。
+オリジンはアットマーク(@)で始まり、小文字の英字、数字、ピリオドのみを含める必要があります。
+タグなしのオリジンを使用して、そのオリジンのすべてのタグに一致させることができます。
+オリジンを省略するとデフォルトオリジンに一致します。
+@* を使用すると任意のトップレベルオリジンに、@origin.* を使用すると @origin の直下のサブオリジンに一致します。
+否定(!)は使用できません。
+保護されたタグはプラス記号で始まります。
+プライベートタグはアンダースコアで始まります。
+(例: "", "science", "science@origin", "@origin", "@origin.*", "@*", または "_my/private/tag")</target>
       </trans-unit>
       <trans-unit id="441268148003212172" datatype="html">
         <source>Query: </source>
@@ -2099,6 +2149,9 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="2431574352661739964" datatype="html">
         <source>Nous</source>
+      </trans-unit>
+      <trans-unit id="8252591585673168867" datatype="html">
+        <source>Meta</source>
       </trans-unit>
       <trans-unit id="347407180135731058" datatype="html">
         <source>Audio</source>
@@ -3203,6 +3256,14 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="2708547691364191266" datatype="html">
         <source>Check feed entries for video.</source>
         <target>フィードエントリにビデオがあるかチェックします。</target>
+      </trans-unit>
+      <trans-unit id="6777991785986284117" datatype="html">
+        <source>Shorts:</source>
+        <target>ショート:</target>
+      </trans-unit>
+      <trans-unit id="4512060284754739756" datatype="html">
+        <source>Check feed entries for YouTube shorts. If only one of Video or Shorts is enabled, the other kind of entry is skipped.</source>
+        <target>フィードエントリにYouTubeショートがあるかチェックします。ビデオとショートのどちらか一方のみが有効な場合、もう一方の種類のエントリはスキップされます。</target>
       </trans-unit>
       <trans-unit id="7516660859644454899" datatype="html">
         <source>Scrape Webpage:</source>
@@ -4925,6 +4986,10 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>👨️‍💻️ Snippet</source>
         <target>👨️‍💻️ スニペット</target>
       </trans-unit>
+      <trans-unit id="6449481533239104192" datatype="html">
+        <source>Snippet:</source>
+        <target>スニペット:</target>
+      </trans-unit>
       <trans-unit id="5576030930420434791" datatype="html">
         <source>📟️ System</source>
         <target>📟️ システム</target>
@@ -5487,17 +5552,9 @@ F: フルスクリーン切替
         <source>Are you sure you want totally regenerate metadata<x id="PH" equiv-text="this.origin ? ' in ' + this.origin : ''"/>?</source>
         <target><x id="PH" equiv-text="this.origin ? this.origin + 'で' : ''"/>メタデータを完全に再生成してもよろしいですか？</target>
       </trans-unit>
-      <trans-unit id="634947648499843911" datatype="html">
-        <source>Are you sure you want totally delete everything in <x id="PH" equiv-text="this.origin || 'default'"/>?
-
-Enter the origin to confirm:</source>
-        <target><x id="PH" equiv-text="this.origin || 'default'"/>内のすべてを完全に削除してもよろしいですか？
-
-確認のためにオリジンを入力してください:</target>
-      </trans-unit>
-      <trans-unit id="6858804327619005655" datatype="html">
-        <source>Origin did not match <x id="PH" equiv-text="this.origin || 'default'"/>, aborting.</source>
-        <target>オリジンが<x id="PH" equiv-text="this.origin || 'default'"/>と一致しませんでした、中止します。</target>
+      <trans-unit id="7257764669036559061" datatype="html">
+        <source>Are you sure you want totally delete everything in <x id="INTERPOLATION" equiv-text="{{ originLabel }}"/>?<x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/>Enter the origin to confirm:</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ originLabel }}"/>内のすべてを完全に削除してもよろしいですか？<x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/>確認のためにオリジンを入力してください:</target>
       </trans-unit>
       <trans-unit id="3688912811854720535" datatype="html">
         <source>Change User:</source>
@@ -5511,9 +5568,9 @@ Enter the origin to confirm:</source>
         <source>Upload Plugin</source>
         <target>プラグインをアップロード</target>
       </trans-unit>
-      <trans-unit id="8162805937861449789" datatype="html">
-        <source>+ upload dev plugin</source>
-        <target>+ 開発プラグインをアップロード</target>
+      <trans-unit id="1997402288136117161" datatype="html">
+        <source>Upload Dev Plugin</source>
+        <target>開発プラグインをアップロード</target>
       </trans-unit>
       <trans-unit id="4825319678291826215" datatype="html">
         <source>Settings: Plugins</source>
@@ -5635,9 +5692,9 @@ Enter the origin to confirm:</source>
         <source>Upload Template</source>
         <target>テンプレートをアップロード</target>
       </trans-unit>
-      <trans-unit id="7666610490036284503" datatype="html">
-        <source>+ upload dev template</source>
-        <target>+ 開発テンプレートをアップロード</target>
+      <trans-unit id="8605448348202273940" datatype="html">
+        <source>Upload Dev Template</source>
+        <target>開発テンプレートをアップロード</target>
       </trans-unit>
       <trans-unit id="9211072850644603743" datatype="html">
         <source>Settings: Templates</source>
@@ -6112,6 +6169,10 @@ Enter the origin to confirm:</source>
       <trans-unit id="8151924435547335490" datatype="html">
         <source>Upload failed</source>
         <target>アップロード失敗</target>
+      </trans-unit>
+      <trans-unit id="9044473253449241037" datatype="html">
+        <source>File uploads not enabled</source>
+        <target>ファイルアップロードは有効になっていません</target>
       </trans-unit>
       <trans-unit id="8465388462838343511" datatype="html">
         <source>Obsolete</source>
@@ -7269,6 +7330,22 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Neo Banana image-generation signature tag.</source>
         <target>Neo Banana画像生成シグネチャタグ。</target>
       </trans-unit>
+      <trans-unit id="4107084600334559322" datatype="html">
+        <source>Account Aliases:</source>
+        <target>アカウントエイリアス：</target>
+      </trans-unit>
+      <trans-unit id="5285549800187267122" datatype="html">
+        <source>Stores a notification cursor on a user settings Ref.</source>
+        <target>ユーザー設定Refに通知カーソルを保存します。</target>
+      </trans-unit>
+      <trans-unit id="6826184964642290919" datatype="html">
+        <source>+ Add another account alias</source>
+        <target>+ アカウントエイリアスを追加</target>
+      </trans-unit>
+      <trans-unit id="6845948372805707808" datatype="html">
+        <source>Notification Cursor</source>
+        <target>通知カーソル</target>
+      </trans-unit>
       <trans-unit id="1858593291803956631" datatype="html">
         <source>⚠️ Ext <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <target>⚠️ Ext <x id="PH" equiv-text="def.name || def.tag"/> は既に存在します...</target>
@@ -7695,6 +7772,427 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="7806416699195259046" datatype="html">
         <source>World</source>
         <target>世界</target>
+      </trans-unit>
+      <trans-unit id="3414074061531423433" datatype="html">
+        <source>Initialize a sub-origin by granting admin permissions in the
+      sub-origin to all users who have signed the origin, and downloading a template
+      origin Ref set up to push to the sub-origin.</source>
+        <target>オリジンに署名したすべてのユーザーにサブオリジンの管理者権限を付与し、
+      サブオリジンへプッシュするよう設定されたテンプレートのオリジンRefを
+      ダウンロードして、サブオリジンを初期化します。</target>
+      </trans-unit>
+      <trans-unit id="210075778207659076" datatype="html">
+        <source>Are you sure you want to make all signing users admins in the sub-origin?</source>
+        <target>署名したすべてのユーザーをサブオリジンの管理者にしてもよろしいですか？</target>
+      </trans-unit>
+      <trans-unit id="2370410813163896164" datatype="html">
+        <source>🏛️🔑️ Init Sub-Origin</source>
+        <target>🏛️🔑️ サブオリジン初期化</target>
+      </trans-unit>
+      <trans-unit id="5383104019191048440" datatype="html">
+        <source>init</source>
+        <target>初期化</target>
+      </trans-unit>
+      <trans-unit id="793596213163700451" datatype="html">
+        <source>Grant admin permissions in the sub-origin to all signing users.</source>
+        <target>署名したすべてのユーザーにサブオリジンの管理者権限を付与します。</target>
+      </trans-unit>
+      <trans-unit id="1269111960920949095" datatype="html">
+        <source>Modified:</source>
+        <target>更新日時:</target>
+      </trans-unit>
+      <trans-unit id="6996821581668497894" datatype="html">
+        <source>Ignored:</source>
+        <target>無視:</target>
+      </trans-unit>
+      <trans-unit id="8285199640734786793" datatype="html">
+        <source>Cascade:</source>
+        <target>カスケード:</target>
+      </trans-unit>
+      <trans-unit id="6962491897313784482" datatype="html">
+        <source>Regen:</source>
+        <target>再生成:</target>
+      </trans-unit>
+      <trans-unit id="17858856723291247" datatype="html">
+        <source>Hot Tags:</source>
+        <target>ホットタグ:</target>
+      </trans-unit>
+      <trans-unit id="3254073718846303093" datatype="html">
+        <source>+ Add another hot tag</source>
+        <target>+ ホットタグを追加</target>
+      </trans-unit>
+      <trans-unit id="1294909756545406951" datatype="html">
+        <source>JWT</source>
+      </trans-unit>
+      <trans-unit id="1439518739239879765" datatype="html">
+        <source>Script Whitelist:</source>
+        <target>スクリプトホワイトリスト:</target>
+      </trans-unit>
+      <trans-unit id="1906498667754202201" datatype="html">
+        <source>Authorities Claim:</source>
+        <target>権限クレーム:</target>
+      </trans-unit>
+      <trans-unit id="1932212689542409293" datatype="html">
+        <source>+ Add another origin</source>
+        <target>+ オリジンを追加</target>
+      </trans-unit>
+      <trans-unit id="2092428687293359482" datatype="html">
+        <source>Token Endpoint:</source>
+        <target>トークンエンドポイント:</target>
+      </trans-unit>
+      <trans-unit id="2106196228976233665" datatype="html">
+        <source>Internal Responses:</source>
+        <target>内部返信:</target>
+      </trans-unit>
+      <trans-unit id="2166896702147259055" datatype="html">
+        <source>Default Role:</source>
+        <target>デフォルトロール:</target>
+      </trans-unit>
+      <trans-unit id="2171682499664391857" datatype="html">
+        <source>Base64 Secret:</source>
+        <target>Base64シークレット:</target>
+      </trans-unit>
+      <trans-unit id="1110314996833452070" datatype="html">
+        <source>Maximum HTTP requests per origin every Max Requests Period. Sub-origins get their own limit with the same settings.</source>
+        <target>最大リクエスト期間ごとのオリジンあたりの最大HTTPリクエスト数。サブオリジンは同じ設定で独自の制限を持ちます。</target>
+      </trans-unit>
+      <trans-unit id="2021971567998997481" datatype="html">
+        <source>100 ms</source>
+        <target>100ミリ秒</target>
+      </trans-unit>
+      <trans-unit id="205488346774233272" datatype="html">
+        <source>Max Requests Period:</source>
+        <target>最大リクエスト期間:</target>
+      </trans-unit>
+      <trans-unit id="2863855608329538007" datatype="html">
+        <source>Unlimited (500 ns)</source>
+        <target>無制限 (500ナノ秒)</target>
+      </trans-unit>
+      <trans-unit id="4101655365640883147" datatype="html">
+        <source>Max Requests (global):</source>
+        <target>最大リクエスト数 (グローバル):</target>
+      </trans-unit>
+      <trans-unit id="4999829279268672917" datatype="html">
+        <source>1 second</source>
+        <target>1秒</target>
+      </trans-unit>
+      <trans-unit id="7793936968458095532" datatype="html">
+        <source>Maximum HTTP requests across all origins every Max Requests Period.</source>
+        <target>最大リクエスト期間ごとの全オリジン合計の最大HTTPリクエスト数。</target>
+      </trans-unit>
+      <trans-unit id="8285625852904868201" datatype="html">
+        <source>Refresh period for the global Max Requests limit. The default (500 ns) is effectively unlimited.</source>
+        <target>グローバル最大リクエスト数制限のリフレッシュ期間。デフォルト (500ナノ秒) は実質的に無制限です。</target>
+      </trans-unit>
+      <trans-unit id="8741075396255863130" datatype="html">
+        <source>10 seconds</source>
+        <target>10秒</target>
+      </trans-unit>
+      <trans-unit id="8884665568210966872" datatype="html">
+        <source>Max Requests (per origin):</source>
+        <target>最大リクエスト数 (オリジンごと):</target>
+      </trans-unit>
+      <trans-unit id="954970669747777544" datatype="html">
+        <source>Refresh period for the per origin Max Requests limit. The default (500 ns) is effectively unlimited.</source>
+        <target>オリジンごとの最大リクエスト数制限のリフレッシュ期間。デフォルト (500ナノ秒) は実質的に無制限です。</target>
+      </trans-unit>
+      <trans-unit id="2392488717875840729" datatype="html">
+        <source>User</source>
+        <target>ユーザー</target>
+      </trans-unit>
+      <trans-unit id="2419727904967200417" datatype="html">
+        <source>+ Add another script hash</source>
+        <target>+ スクリプトハッシュを追加</target>
+      </trans-unit>
+      <trans-unit id="2572862589008909876" datatype="html">
+        <source>Full Text:</source>
+        <target>全文:</target>
+      </trans-unit>
+      <trans-unit id="2816699011146502167" datatype="html">
+        <source>Web Origins:</source>
+        <target>Webオリジン:</target>
+      </trans-unit>
+      <trans-unit id="2826556801109615631" datatype="html">
+        <source>Secret:</source>
+        <target>シークレット:</target>
+      </trans-unit>
+      <trans-unit id="2937658856539339437" datatype="html">
+        <source>External ID:</source>
+        <target>外部ID:</target>
+      </trans-unit>
+      <trans-unit id="2974956065423158526" datatype="html">
+        <source>Google Cloud Storage</source>
+        <target>Google Cloud Storage</target>
+      </trans-unit>
+      <trans-unit id="3055482817788310469" datatype="html">
+        <source>JWKS</source>
+      </trans-unit>
+      <trans-unit id="3099369741220407050" datatype="html">
+        <source>Editor Seals:</source>
+        <target>編集者シール:</target>
+      </trans-unit>
+      <trans-unit id="3159593655793344817" datatype="html">
+        <source>Tag Write Access Claim:</source>
+        <target>タグ書き込みアクセスクレーム:</target>
+      </trans-unit>
+      <trans-unit id="3418563004002934073" datatype="html">
+        <source>SSH Origins:</source>
+        <target>SSHオリジン:</target>
+      </trans-unit>
+      <trans-unit id="3554549445418471934" datatype="html">
+        <source>Read Access Claim:</source>
+        <target>読み取りアクセスクレーム:</target>
+      </trans-unit>
+      <trans-unit id="358462242581945792" datatype="html">
+        <source>Anonymous</source>
+        <target>匿名</target>
+      </trans-unit>
+      <trans-unit id="3742657416068781599" datatype="html">
+        <source>Editor</source>
+        <target>編集者</target>
+      </trans-unit>
+      <trans-unit id="3767029322871201813" datatype="html">
+        <source>Minimum Config Role:</source>
+        <target>最小設定ロール:</target>
+      </trans-unit>
+      <trans-unit id="3931464303130647899" datatype="html">
+        <source>Mode:</source>
+        <target>モード:</target>
+      </trans-unit>
+      <trans-unit id="4080308780610501058" datatype="html">
+        <source>Tag Read Access Claim:</source>
+        <target>タグ読み取りアクセスクレーム:</target>
+      </trans-unit>
+      <trans-unit id="4208753654448851784" datatype="html">
+        <source>Max Replicate Entity Batch:</source>
+        <target>最大レプリケートエンティティバッチ:</target>
+      </trans-unit>
+      <trans-unit id="4259696464846155470" datatype="html">
+        <source>Default Tag Read Access:</source>
+        <target>デフォルトタグ読み取りアクセス:</target>
+      </trans-unit>
+      <trans-unit id="4380698437796110971" datatype="html">
+        <source>Mod Seals:</source>
+        <target>モデレーターシール:</target>
+      </trans-unit>
+      <trans-unit id="4384669116619372319" datatype="html">
+        <source>Max Concurrent Scripts:</source>
+        <target>最大同時スクリプト数:</target>
+      </trans-unit>
+      <trans-unit id="4461219990131574338" datatype="html">
+        <source>Email Domain in Username:</source>
+        <target>ユーザー名にメールドメインを含める:</target>
+      </trans-unit>
+      <trans-unit id="4511144288314242616" datatype="html">
+        <source>Minimum Write Role:</source>
+        <target>最小書き込みロール:</target>
+      </trans-unit>
+      <trans-unit id="4532253287748146144" datatype="html">
+        <source>Host Blacklist:</source>
+        <target>ホストブラックリスト:</target>
+      </trans-unit>
+      <trans-unit id="4578323700882507107" datatype="html">
+        <source>Username Claim:</source>
+        <target>ユーザー名クレーム:</target>
+      </trans-unit>
+      <trans-unit id="4668265183162157990" datatype="html">
+        <source>Verified Email Claim:</source>
+        <target>確認済みメールクレーム:</target>
+      </trans-unit>
+      <trans-unit id="4730042794315617214" datatype="html">
+        <source>AI Instructions:</source>
+        <target>AI指示:</target>
+      </trans-unit>
+      <trans-unit id="4764902553829476804" datatype="html">
+        <source>+ Add another host</source>
+        <target>+ ホストを追加</target>
+      </trans-unit>
+      <trans-unit id="4883915371651750412" datatype="html">
+        <source>Default Write Access:</source>
+        <target>デフォルト書き込みアクセス:</target>
+      </trans-unit>
+      <trans-unit id="500125802698921621" datatype="html">
+        <source>S3</source>
+      </trans-unit>
+      <trans-unit id="5041354590769758251" datatype="html">
+        <source>Admin</source>
+        <target>管理者</target>
+      </trans-unit>
+      <trans-unit id="506442826666958014" datatype="html">
+        <source>Default Read Access:</source>
+        <target>デフォルト読み取りアクセス:</target>
+      </trans-unit>
+      <trans-unit id="5526166092096200314" datatype="html">
+        <source>Default Tag Write Access:</source>
+        <target>デフォルトタグ書き込みアクセス:</target>
+      </trans-unit>
+      <trans-unit id="5621193416243290984" datatype="html">
+        <source>Default User:</source>
+        <target>デフォルトユーザー:</target>
+      </trans-unit>
+      <trans-unit id="5821079155715493424" datatype="html">
+        <source>Alternate URLs:</source>
+        <target>代替URL:</target>
+      </trans-unit>
+      <trans-unit id="611844416234750457" datatype="html">
+        <source>Root Email Domain:</source>
+        <target>ルートメールドメイン:</target>
+      </trans-unit>
+      <trans-unit id="6128585949974056288" datatype="html">
+        <source>JWKS URI:</source>
+        <target>JWKS URI:</target>
+      </trans-unit>
+      <trans-unit id="6132894875829395268" datatype="html">
+        <source>Max Concurrent Fetch:</source>
+        <target>最大同時取得数:</target>
+      </trans-unit>
+      <trans-unit id="6239936537351977310" datatype="html">
+        <source>Viewer</source>
+        <target>閲覧者</target>
+      </trans-unit>
+      <trans-unit id="6252070156626006029" datatype="html">
+        <source>None</source>
+        <target>なし</target>
+      </trans-unit>
+      <trans-unit id="6573164998565497456" datatype="html">
+        <source>Write Access Claim:</source>
+        <target>書き込みアクセスクレーム:</target>
+      </trans-unit>
+      <trans-unit id="6753089416923244601" datatype="html">
+        <source>Script Selectors:</source>
+        <target>スクリプトセレクター:</target>
+      </trans-unit>
+      <trans-unit id="6863117208241732879" datatype="html">
+        <source>Minimum Read Backups Role:</source>
+        <target>最小バックアップ読み取りロール:</target>
+      </trans-unit>
+      <trans-unit id="691364592464217898" datatype="html">
+        <source>Minimum Fetch Role:</source>
+        <target>最小取得ロール:</target>
+      </trans-unit>
+      <trans-unit id="7071077457527210882" datatype="html">
+        <source>Minimum Role:</source>
+        <target>最小ロール:</target>
+      </trans-unit>
+      <trans-unit id="773634236369835932" datatype="html">
+        <source>SCIM Endpoint:</source>
+        <target>SCIMエンドポイント:</target>
+      </trans-unit>
+      <trans-unit id="7806785220394848608" datatype="html">
+        <source>Max Pull Entity Batch:</source>
+        <target>最大プルエンティティバッチ:</target>
+      </trans-unit>
+      <trans-unit id="7952806382632077864" datatype="html">
+        <source>Tags:</source>
+        <target>タグ:</target>
+      </trans-unit>
+      <trans-unit id="807737485781495169" datatype="html">
+        <source>Storage Bucket:</source>
+        <target>ストレージバケット:</target>
+      </trans-unit>
+      <trans-unit id="8197161514267928821" datatype="html">
+        <source>Host Whitelist:</source>
+        <target>ホストホワイトリスト:</target>
+      </trans-unit>
+      <trans-unit id="8669706344840499177" datatype="html">
+        <source>Max Push Entity Batch:</source>
+        <target>最大プッシュエンティティバッチ:</target>
+      </trans-unit>
+      <trans-unit id="8728289233177553222" datatype="html">
+        <source>Max Concurrent Replication:</source>
+        <target>最大同時レプリケーション数:</target>
+      </trans-unit>
+      <trans-unit id="9021443889920600817" datatype="html">
+        <source>Email Host:</source>
+        <target>メールホスト:</target>
+      </trans-unit>
+      <trans-unit id="9136752928013288532" datatype="html">
+        <source>Storage:</source>
+        <target>ストレージ:</target>
+      </trans-unit>
+      <trans-unit id="96939896979671376" datatype="html">
+        <source>Client ID:</source>
+        <target>クライアントID:</target>
+      </trans-unit>
+      <trans-unit id="983054103375640113" datatype="html">
+        <source>Max Concurrent Requests:</source>
+        <target>最大同時リクエスト数:</target>
+      </trans-unit>
+      <trans-unit id="8043921542836348988" datatype="html">
+        <source>⏳️ Progress</source>
+        <target>⏳️ 進捗</target>
+      </trans-unit>
+      <trans-unit id="8797854122499218390" datatype="html">
+        <source>Stores progress in the tag itself (e.g., plugin/progress/37/100 is 37%).
+      Scripts reporting progress should also add the _seal/delta tag to prevent the update from
+      running delta scripts again.</source>
+        <target>進捗をタグ自体に保存します（例：plugin/progress/37/100 は37%）。
+      進捗を報告するスクリプトは、更新によってデルタスクリプトが再実行されないように
+      _seal/delta タグも追加してください。</target>
+      </trans-unit>
+      <trans-unit id="2608131079155543603" datatype="html">
+        <source>📌️ pinned</source>
+        <target>📌️ ピン留め</target>
+      </trans-unit>
+      <trans-unit id="3779190388212566897" datatype="html">
+        <source>Pinned version</source>
+        <target>ピン留めされたバージョン</target>
+      </trans-unit>
+      <trans-unit id="4282945801176727685" datatype="html">
+        <source>📌️ Pinned</source>
+        <target>📌️ ピン留め</target>
+      </trans-unit>
+      <trans-unit id="7101979787474383505" datatype="html">
+        <source>Pinned copies of a Ref take precedence over newer unpinned copies from other origins.</source>
+        <target>ピン留めされたRefのコピーは、他のオリジンにある新しいピン留めされていないコピーよりも優先されます。</target>
+      </trans-unit>
+      <trans-unit id="6597558255631425774" datatype="html">
+        <source>render</source>
+        <target>レンダリング</target>
+      </trans-unit>
+      <trans-unit id="6828004417956801185" datatype="html">
+        <source>Render diagram</source>
+        <target>図をレンダリング</target>
+      </trans-unit>
+      <trans-unit id="4323470180912194028" datatype="html">
+        <source>Copy</source>
+        <target>コピー</target>
+      </trans-unit>
+      <trans-unit id="2115592966120408375" datatype="html">
+        <source>Copied</source>
+        <target>コピーしました</target>
+      </trans-unit>
+      <trans-unit id="3462619539465434942" datatype="html">
+        <source>Copy failed</source>
+        <target>コピーに失敗しました</target>
+      </trans-unit>
+      <trans-unit id="5339926499595149159" datatype="html">
+        <source>Modified remotely while editing</source>
+        <target>編集中にリモートで変更されました</target>
+      </trans-unit>
+      <trans-unit id="2047384804297137102" datatype="html">
+        <source>Checking mods for local changes...</source>
+        <target>MODのローカル変更を確認中...</target>
+      </trans-unit>
+      <trans-unit id="7867778808310576533" datatype="html">
+        <source>Reload the page to finish loading mod changes.</source>
+        <target>MODの変更の読み込みを完了するには、ページを再読み込みしてください。</target>
+      </trans-unit>
+      <trans-unit id="600030360233898153" datatype="html">
+        <source>Unable to check mods for local changes. Updates and diffs are unavailable.</source>
+        <target>MODのローカル変更を確認できません。更新と差分は利用できません。</target>
+      </trans-unit>
+      <trans-unit id="3188742934634402561" datatype="html">
+        <source>⏱️ duration</source>
+        <target>⏱️ 長さ</target>
+      </trans-unit>
+      <trans-unit id="3364923133459715605" datatype="html">
+        <source>Media duration</source>
+        <target>メディアの長さ</target>
+      </trans-unit>
+      <trans-unit id="6017082719104554504" datatype="html">
+        <source>Use -&gt; for nested fields, or tags-&gt; for the value of a tag (e.g., tags-&gt;plugin/duration:dur). Append :num or :dur to read the value as a number or duration.</source>
+        <target>ネストされたフィールドには -&gt; を、タグの値には tags-&gt; を使用します（例：tags-&gt;plugin/duration:dur）。値を数値または期間として読み取るには :num または :dur を追加します。</target>
       </trans-unit>
     </body>
   </file>

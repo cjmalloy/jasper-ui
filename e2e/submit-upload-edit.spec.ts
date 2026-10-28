@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { deleteRef } from './setup';
+import { expect } from '@playwright/test';
+import { deleteRef, test } from './setup';
 
 test.describe.serial('Upload Edit', () => {
   const originalUrl = 'https://www.example.com/upload-edit-original';

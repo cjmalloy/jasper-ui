@@ -2,12 +2,11 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as d3 from 'd3';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
-import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
-import { DateTime, Duration, DurationObjectUnits } from 'luxon';
-import { toJS } from 'mobx';
+import { cloneDeep, defer, isEqual, omitBy, uniqWith } from 'lodash-es';
+import { DateTime, Duration } from 'luxon';
 import { v4 as uuid } from 'uuid';
-import { interestingTags } from '../util/format';
-import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
+import { dedent, formatDuration, interestingTags } from '../util/format';
+import { hasAnyResponse, hasQuery, hasResponse, hasTag, hasPrefix, prefix, remotePlugins, subOrigin } from '../util/tag';
 import { filterModels } from '../util/zip';
 import { Ext, extSchema } from './ext';
 import { Plugin, pluginSchema } from './plugin';
@@ -237,7 +236,8 @@ export interface Visibility {
    */
   title?: string;
   /**
-   * Tag to show / hide.
+   * Tag to show / hide. May be a simple query using : (and), | (or),
+   * ! (not) and () (groups).
    */
   if?: string;
   /**
@@ -271,7 +271,7 @@ export interface Visibility {
 }
 
 export function visible(ref: Ref, v: Visibility, isAuthor: boolean, isRecipient: boolean) {
-  if (('if' in v) && !hasTag(v.if, ref)) return false;
+  if (('if' in v) && !hasQuery(v.if, ref)) return false;
   if (!v.visible) return true;
   if (isAuthor) return v.visible === 'author' || v.visible === 'participant';
   if (isRecipient) return v.visible === 'recipient' || v.visible === 'participant';
@@ -427,7 +427,7 @@ export interface EditorButton {
   _on?: boolean;
 }
 
-export type Action = (TagAction | ResponseAction | EmitAction | EventAction) & {
+export type Action = (TagAction | ResponseAction | EmitAction | DownloadAction | EventAction) & {
   /**
    * Display confirm message.
    */
@@ -496,6 +496,17 @@ export interface EmitAction extends Visibility {
   label?: string;
 }
 
+export interface DownloadAction extends Visibility {
+  /**
+   * Download the templated json as a file.
+   */
+  download: string;
+  /**
+   * Handlebars template label.
+   */
+  label?: string;
+}
+
 export function active(ref: Ref, o: TagAction | ResponseAction | EventAction | Icon) {
   if (('tag' in o) && !hasTag(o.tag, ref)) return false;
   if (('response' in o) && !hasResponse(o.response, ref)) return false;
@@ -533,29 +544,19 @@ Handlebars.registerHelper('duration', (ref: Ref, tag: string) => {
   const d = Duration.fromISO(value.toUpperCase());
   return d.isValid ? d : undefined;
 });
+Handlebars.registerHelper('progress', (ref: Ref, tag: string) => {
+  const p = tag + '/';
+  const t = ref?.tags?.find(t => t.startsWith(p));
+  if (!t) return undefined;
+  const [num, den = '100'] = t.substring(p.length).split('/');
+  if (!/^\d+$/.test(num) || !/^\d+$/.test(den)) return undefined;
+  const max = parseInt(den);
+  if (!max) return undefined;
+  const value = Math.min(parseInt(num), max);
+  return { value, max, percent: Math.floor(100 * value / max) };
+});
 Handlebars.registerHelper('human', (value: any) => {
   if (!value) return '';
-  const formatDuration = (d: Duration) => {
-    // Standard duration units ordered by scale
-    const units: (keyof DurationObjectUnits)[] = [
-      'years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds'
-    ];
-    // Find the largest unit that has at least "1" of that unit
-    const largestUnitIndex = units.findIndex(unit => d.as(unit) >= 1);
-    // Fallback for durations < 1 second (e.g., "0.5 seconds" becomes "1 second")
-    if (largestUnitIndex === -1) {
-      return d.shiftTo('seconds').mapUnits(Math.round).toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
-    }
-    const primaryUnit = units[largestUnitIndex];
-    const secondaryUnit = units[largestUnitIndex + 1];
-    // Build target units (e.g., ['years', 'months'] or ['seconds'])
-    const targetUnits = secondaryUnit ? [primaryUnit, secondaryUnit] : [primaryUnit];
-    return d
-      .shiftTo(...targetUnits)
-      .mapUnits(Math.round) // Rounds the smallest visible unit
-      .normalize()          // Handles carry-over (e.g., 60m -> 1h)
-      .toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
-  };
   if (Duration.isDuration(value)) return formatDuration(value);
   if (DateTime.isDateTime(value)) return value.toRelative() ?? '';
   if (typeof value === 'string') {
@@ -571,11 +572,15 @@ Handlebars.registerHelper('number', (value: any) => {
   const num = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(num) ? num.toLocaleString() : '';
 });
-Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => ref.metadata?.plugins?.[plugin]);
+Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => remotePlugins(ref)[plugin]);
 Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
 Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
 Handlebars.registerHelper('interestingTags', (tags: string[]) => interestingTags(tags));
 Handlebars.registerHelper('hasTag', (tag: string | undefined, ref: Ref | string[] | undefined) => hasTag(tag, ref));
+Handlebars.registerHelper('json', (value: any) => JSON.stringify(value ?? null));
+Handlebars.registerHelper('subOrigin', (local?: string, origin?: string) => subOrigin(local, origin));
+Handlebars.registerHelper('userTags', (tags: string[]) => tags?.filter(t => hasPrefix(t, '+user') || hasPrefix(t, '_user')) || []);
+Handlebars.registerHelper('first', (array: any[]) => array?.[0]);
 Handlebars.registerHelper('tail', (text: string) => text.split('\n').pop()!.trim());
 Handlebars.registerHelper('eq', (v1, v2) => v1 === v2);
 Handlebars.registerHelper('ne', (v1, v2) => v1 !== v2);
@@ -594,7 +599,7 @@ let hydrateError = false;
 export function hydrate(config: any, field: string, model: any): string {
   if (!config[field]) return '';
   config._cache ||= {};
-  config._cache[field] ||= Handlebars.compile(config[field]);
+  config._cache[field] ||= Handlebars.compile(dedent(config[field]));
   try {
     return config._cache[field](model);
   } catch (e) {
@@ -606,11 +611,19 @@ export function hydrate(config: any, field: string, model: any): string {
 
 export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
   const hydrated = hydrate(action, 'emit', {
-    action: toJS(action),
-    ref: toJS(ref),
+    action: cloneDeep(action),
+    ref: cloneDeep(ref),
     user: user,
   });
   return filterModels(JSON.parse(hydrated));
+}
+
+export function downloadModel(action: DownloadAction, ref?: Ref, user?: string) {
+  return JSON.parse(hydrate(action, 'download', {
+    action: cloneDeep(action),
+    ref: cloneDeep(ref),
+    user: user,
+  }));
 }
 
 export function clear<T extends Config>(c: T) {

@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { clearMods, deleteRef, openSidebar } from './setup';
+import { expect } from '@playwright/test';
+import { deleteRef, localOrigin, openSidebar, test } from './setup';
 
 test.describe.serial('Smoke Tests', () => {
   test('loads the page', async ({ page }) => {
@@ -18,14 +18,6 @@ test.describe.serial('Smoke Tests', () => {
     await expect(page).not.toHaveURL(initialUrl);
     await page.locator('.back-button').click();
     await expect(page).toHaveURL(initialUrl);
-  });
-
-  test('@\u{ff20}main : clear mods', async ({ page }) => {
-    await clearMods(page);
-  });
-
-  test('@\u{ff20}repl : clear mods', async ({ page }) => {
-    await clearMods(page, process.env.REPL_URL || 'http://localhost:8082');
   });
 
   test('creates a ref', async ({ page }) => {
@@ -51,7 +43,9 @@ test.describe.serial('Smoke Tests', () => {
     await deleteLink.press('Enter');
     const confirmLink = page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first();
     await confirmLink.focus();
+    const deleted = page.waitForResponse(res => res.request().method() === 'DELETE' && res.url().includes('/api/v1/ref'));
     await confirmLink.press('Space');
+    expect((await deleted).ok()).toBe(true);
     await page.goto(`/ref/e/${encodeURIComponent('https://jasperkm.info/')}?debug=USER`);
     await expect(page.locator('.error-404', { hasText: 'Not Found' })).toBeVisible();
   });
@@ -62,7 +56,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: true,
       mod: true,
       editor: true,
@@ -78,7 +72,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: false,
       mod: true,
       editor: true,
@@ -94,7 +88,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: false,
       mod: false,
       editor: true,
@@ -110,7 +104,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: false,
       mod: false,
       editor: false,
@@ -126,7 +120,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: false,
       mod: false,
       editor: false,
@@ -142,7 +136,7 @@ test.describe.serial('Smoke Tests', () => {
     const response = await whoamiPromise;
     const body = await response.json();
     expect(body).toMatchObject({
-      tag: '+user/debug',
+      tag: '+user/debug' + localOrigin(),
       admin: false,
       mod: false,
       editor: false,

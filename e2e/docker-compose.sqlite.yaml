@@ -5,6 +5,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:sqlite:file:jasper-test?mode=memory&cache=shared
       SPRING_DATASOURCE_USERNAME: ''
       SPRING_DATASOURCE_PASSWORD: ''
+      JASPER_BACKFILL_IDLE_SEC: 0
     depends_on:
       db:
         condition: service_started
@@ -15,6 +16,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:sqlite:file:jasper-test?mode=memory&cache=shared
       SPRING_DATASOURCE_USERNAME: ''
       SPRING_DATASOURCE_PASSWORD: ''
+      JASPER_BACKFILL_IDLE_SEC: 0
     depends_on:
       repl-db:
         condition: service_started

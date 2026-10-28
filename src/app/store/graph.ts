@@ -1,154 +1,176 @@
-import { assign, difference, max, min, pull, pullAll, remove } from 'lodash-es';
+import { computed, signal, untracked } from '@angular/core';
+import { difference, max, min, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { makeAutoObservable, observableShallow } from 'mobx';
-import { RouterStore } from 'mobx-angular';
 import { Page } from '../model/page';
 import { RefNode } from '../model/ref';
 import { findNode, graphable, GraphLink, GraphNode, links, linkSources, unloadedReferences } from '../util/graph';
+import { RouterStore } from './router';
 
 export class GraphStore {
 
-  selected: GraphNode[] = [];
-  nodes: GraphNode[] = [];
-  links: GraphLink[] = [];
-  loading: string[] = [];
-  timeline = true;
-  arrows = false;
-  showUnloaded = true;
+  readonly selected = signal<GraphNode[]>([]);
+  readonly nodes = signal<GraphNode[]>([]);
+  readonly links = signal<GraphLink[]>([]);
+  readonly loading = signal<string[]>([]);
+  readonly timeline = signal(true);
+  readonly arrows = signal(false);
+  readonly showUnloaded = signal(true);
+
+  readonly unloaded = computed(() => this.nodes().filter(n => n.unloaded).map(n => n.url));
+  readonly graphable = computed(() => graphable(...this.nodes()));
+  readonly unloadedNotLoading = computed(() => difference(this.unloaded(), this.loading()));
+  readonly selectedPage = computed(() => Page.of(this.selected().filter(s => !s.unloaded)));
+  readonly minPublished = computed((): DateTime => min(this.graphable().map(r => r.published).filter(p => !!p)) || DateTime.now().minus({ day: 1 }));
+  readonly maxPublished = computed((): DateTime => max(this.graphable().map(r => r.published).filter(p => !!p)) || DateTime.now());
+  readonly publishedDiff = computed(() => this.maxPublished()?.diff(this.minPublished()).milliseconds || 0);
 
   constructor(
     public route: RouterStore,
-  ) {
-    makeAutoObservable(this, {
-      selected: observableShallow,
-      nodes: observableShallow,
-      links: observableShallow,
+  ) { }
+
+  set(refs: RefNode[]) {
+    untracked(() => {
+      const nodes: GraphNode[] = [...refs];
+      if (this.showUnloaded()) {
+        nodes.push(...unloadedReferences(nodes, ...refs).map(url => ({ url, unloaded: true })));
+      }
+      this.loading.set([]);
+      this.nodes.set(nodes);
+      this.selected.set([...refs]);
+      this.links.set(links(nodes, ...nodes));
     });
   }
 
-  get unloaded(): string[] {
-    return this.nodes.filter(n => n.unloaded).map(n => n.url);
-  }
-
-  get graphable(): GraphNode[] {
-    return graphable(...this.nodes);
-  }
-
-  get unloadedNotLoading(): string[] {
-    return difference(this.unloaded, this.loading);
-  }
-
-  get selectedPage() {
-    return Page.of(this.selected.filter(s => !s.unloaded));
-  }
-
-  get minPublished(): DateTime {
-    return min(this.graphable.map(r => r.published).filter(p => !!p)) || DateTime.now().minus({ day: 1 });
-  }
-
-  get maxPublished(): DateTime {
-    return max(this.graphable.map(r => r.published).filter(p => !!p)) || DateTime.now();
-  }
-
-  get publishedDiff() {
-    return this.maxPublished?.diff(this.minPublished).milliseconds || 0;
-  }
-
-  set(refs: RefNode[]) {
-    this.loading = [];
-    this.nodes = [...refs];
-    this.selected = [...refs];
-    if (this.showUnloaded) {
-      this.nodes.push(...unloadedReferences(this.nodes, ...refs).map(url => ({ url, unloaded: true })));
-    }
-    this.links = links(this.nodes, ...this.nodes);
-  }
-
   load(...refs: RefNode[]) {
-    for (const ref of refs) {
-      const found = findNode(this.nodes, ref.url);
-      if (found) {
-        assign(found, ref);
-        found.unloaded = false;
-      } else {
-        this.nodes.push(ref);
+    untracked(() => {
+      const nodes = [...this.nodes()];
+      for (const ref of refs) {
+        const found = findNode(nodes, ref.url);
+        if (found) {
+          nodes[nodes.indexOf(found)] = { ...found, ...ref, unloaded: false };
+        } else {
+          nodes.push(ref);
+        }
       }
-    }
-    // Trigger shallow observable
-    this.nodes = [...this.nodes];
-    this.selected = [...this.selected];
-    if (this.showUnloaded) {
-      this.nodes.push(...difference(unloadedReferences(this.nodes, ...refs), this.unloaded).map(url => ({ url, unloaded: true })));
-    }
-    this.links.push(...links(this.nodes, ...refs));
-    pullAll(this.loading, refs.map(r => r.url));
+      if (this.showUnloaded()) {
+        const unloaded = nodes.filter(n => n.unloaded).map(n => n.url);
+        nodes.push(...difference(unloadedReferences(nodes, ...refs), unloaded).map(url => ({ url, unloaded: true })));
+      }
+      this.nodes.set(nodes);
+      this.selected.update(selected => selected.map(n => findNode(nodes, n.url) || n));
+      this.links.update(previous => [
+        ...this.remapLinks(previous, nodes),
+        ...links(nodes, ...refs),
+      ]);
+      this.loading.update(loading => without(loading, ...refs.map(r => r.url)));
+    });
   }
 
   remove(refs: RefNode[]) {
-    pullAll(this.nodes, refs);
-    pullAll(this.selected, refs);
-    for (const ref of refs) {
-      remove(this.links, l => l.target === ref || l.source === ref);
-    }
+    untracked(() => {
+      const removed = new Set(refs.map(ref => ref.url));
+      this.nodes.update(nodes => nodes.filter(n => !removed.has(n.url)));
+      this.selected.update(selected => selected.filter(n => !removed.has(n.url)));
+      this.links.update(links => links.filter(l =>
+        !removed.has(typeof l.target === 'string' ? l.target : l.target.url)
+        && !removed.has(typeof l.source === 'string' ? l.source : l.source.url)));
+    });
   }
 
   toggleShowUnloaded() {
-    this.showUnloaded = !this.showUnloaded;
-    if (this.showUnloaded) {
-      if (this.showUnloaded) {
-        this.nodes.push(...unloadedReferences(this.nodes, ...this.nodes).map(url => ({ url, unloaded: true })));
+    untracked(() => {
+      this.showUnloaded.set(!this.showUnloaded());
+      let nodes = [...this.nodes()];
+      if (this.showUnloaded()) {
+        nodes.push(...unloadedReferences(nodes, ...nodes).map(url => ({ url, unloaded: true })));
+      } else {
+        nodes = nodes.filter(n => !n.unloaded);
       }
-    } else {
-      remove(this.nodes, n => n.unloaded);
-    }
-    this.links = links(this.nodes, ...this.nodes);
+      this.nodes.set(nodes);
+      this.links.set(links(nodes, ...nodes));
+    });
   }
 
   select(...refs: GraphNode[]) {
-    this.selected = [...refs];
+    const nodes = untracked(this.nodes);
+    this.selected.set(refs.map(ref => findNode(nodes, ref.url) || { ...ref }));
   }
 
   selectAll() {
-    this.selected = [...this.nodes];
+    this.selected.set([...untracked(() => this.nodes())]);
   }
 
   clearSelection() {
-    this.selected.length = 0;
+    this.selected.set([]);
   }
 
   getLoading(number: number) {
-    if (this.unloadedNotLoading.length === 0) return [];
-    const more = this.unloadedNotLoading.slice(0, number);
-    this.loading.push(...more);
-    return more;
+    return untracked(() => {
+      if (this.unloadedNotLoading().length === 0) return [];
+      const more = this.unloadedNotLoading().slice(0, number);
+      this.loading.update(loading => [...loading, ...more]);
+      return more;
+    });
   }
 
   startLoading(...url: string[]) {
-    this.loading.push(...url);
+    this.loading.update(loading => [...loading, ...url]);
   }
 
   notFound(url: string) {
-    let ref = findNode(this.nodes, url);
-    if (!ref) {
-      ref = { url, notFound: true };
-      this.nodes.push(ref);
-    }
-    ref.notFound = true;
-    ref.unloaded = false;
-    pull(this.loading, url);
-    if (!this.showUnloaded) {
-      this.links.push(...linkSources(this.nodes, url));
-    }
-    // Trigger shallow observable
-    this.selected = [...this.selected];
-    return ref;
+    return untracked(() => {
+      const nodes = [...this.nodes()];
+      let ref = findNode(nodes, url);
+      if (ref) {
+        const index = nodes.indexOf(ref);
+        ref = { ...ref, notFound: true, unloaded: false };
+        nodes[index] = ref;
+      } else {
+        ref = { url, notFound: true, unloaded: false };
+        nodes.push(ref);
+      }
+      this.nodes.set(nodes);
+      this.loading.update(loading => without(loading, url));
+      this.links.update(previous => [
+        ...this.remapLinks(previous, nodes),
+        ...!this.showUnloaded() ? linkSources(nodes, url) : [],
+      ]);
+      this.selected.update(selected => selected.map(n => findNode(nodes, n.url) || n));
+      return ref;
+    });
+  }
+
+  private remapLinks(previous: GraphLink[], nodes: GraphNode[]): GraphLink[] {
+    return previous.map(link => ({
+      ...link,
+      source: typeof link.source === 'string' ? link.source : findNode(nodes, link.source.url) || link.source,
+      target: typeof link.target === 'string' ? link.target : findNode(nodes, link.target.url) || link.target,
+    }));
+  }
+
+  setPinned(pinned: boolean, ...refs: GraphNode[]) {
+    const positions = new Map(refs.map(ref => [ref.url, ref]));
+    this.nodes.update(nodes => nodes.map(node => {
+      const position = positions.get(node.url);
+      if (!position) return node;
+      return {
+        ...node,
+        pinned,
+        fx: pinned ? position.x ?? 0 : undefined,
+        fy: pinned ? position.y ?? 0 : undefined,
+      };
+    }));
+    const nodes = untracked(this.nodes);
+    this.selected.update(selected => selected.map(node => findNode(nodes, node.url) || node));
+    this.links.update(previous => this.remapLinks(previous, nodes));
   }
 
   grabNodeOrSelection(ref: RefNode) {
-    if (!this.selected.includes(ref)) {
-      this.selected = [ref];
-    }
-    return [...this.selected];
+    return untracked(() => {
+      if (!this.selected().some(node => node.url === ref.url)) {
+        this.select(ref);
+      }
+      return [...this.selected()];
+    });
   }
 }
-

@@ -12,16 +12,16 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
 - package-ecosystem: npm
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 20
   directory: /
   schedule:
     interval: daily
     timezone: America/Halifax
   cooldown:
-    semver-major-days: 5
-    semver-minor-days: 1
-    semver-patch-days: 0
+    default-days: 0
   groups:
     angular:
       patterns:
@@ -37,7 +37,6 @@ updates:
         - "@ngx-formly/*"
     marked:
       patterns:
-        - "ngx-markdown"
         - "marked"
         - "marked-*"
     ag-grid:
@@ -64,3 +63,51 @@ updates:
   schedule:
     interval: daily
     timezone: America/Halifax
+  cooldown:
+    default-days: 0
+- package-ecosystem: docker
+  target-branch: v1.3
+  directories:
+    - "/"
+    - "/e2e"
+  schedule:
+    interval: daily
+    timezone: America/Halifax
+  cooldown:
+    default-days: 0
+- package-ecosystem: npm
+  target-branch: v1.3
+  directory: /
+  schedule:
+    interval: daily
+    timezone: America/Halifax
+  cooldown:
+    default-days: 0
+  groups:
+    angular:
+      patterns:
+        - "@angular/*"
+        - "@angular-devkit/*"
+        - "rxjs"
+        - "zone.js"
+        - "tslib"
+        - "ngx-monaco-editor"
+        - "@ngx-formly/*"
+        - "marked"
+        - "marked-*"
+        - "ag-grid-angular"
+        - "ag-grid-community"
+        - "@maplibre/*"
+        - "maplibre-gl"
+        - "@vitest/*"
+        - "vitest"
+        - "jsdom"
+        - "@playwright/*"
+- package-ecosystem: github-actions
+  target-branch: v1.3
+  directory: /
+  schedule:
+    interval: daily
+    timezone: America/Halifax
+  cooldown:
+    default-days: 0

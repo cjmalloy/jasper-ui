@@ -8,6 +8,8 @@ services:
         condition: service_started
       repl-client:
         condition: service_started
+      proxy-client:
+        condition: service_started
       web:
         condition: service_healthy
       repl-web:
@@ -20,12 +22,18 @@ services:
       REPL_URL: http://localhost:8082
       REPL_API: http://localhost:8083
       REPL_API_PROXY: http://repl-web
+      PROXY_URL: http://jasper.test:8084
       CI: true
+      PW_VIDEO: ${PW_VIDEO:-}
+      PW_WORKERS: ${PW_WORKERS:-}
     working_dir: /e2e
     volumes:
       - ../:/e2e
   client:
-    build: ..
+    build:
+      context: ..
+      args:
+        BUILD_SCRIPT: build:e2e
 #    image: ghcr.io/cjmalloy/jasper-ui:master
     ports:
       - 8080:80
@@ -35,6 +43,23 @@ services:
       CSP_DEFAULT_SRC: http://localhost:8081 ws://localhost:8081
       CSP_CONNECT_SRC: http://localhost:8081 ws://localhost:8081
       JASPER_TITLE: PLAYWRIGHT
+      JASPER_INSTALL_DEFAULTS: false
+    depends_on:
+      - web
+  proxy-client:
+    build:
+      context: ..
+      args:
+        BUILD_SCRIPT: build:e2e
+    # Same origin API through the client proxy, opened as http://jasper.test:8084
+    ports:
+      - 8084:80
+    environment:
+      NGINX_ENTRYPOINT_QUIET_LOGS: 1
+      JASPER_API: .
+      JASPER_API_PROXY: http://web
+      JASPER_TITLE: PROXY
+      JASPER_INSTALL_DEFAULTS: false
     depends_on:
       - web
   web:
@@ -60,8 +85,13 @@ services:
       JASPER_OVERRIDE_SECURITY_MODE: 'jwt'
       JASPER_OVERRIDE_SECURITY_CLIENT_ID: ''
       JASPER_OVERRIDE_SECURITY_BASE64_SECRET: 'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM='
-      JASPER_HEAP: 256m
+      JASPER_HEAP: 512m
       JASPER_CACHE_API: http://web
+      # Each spec file runs in its own sub origin (Local-Origin header), see e2e/setup.ts
+      JASPER_OVERRIDE_SERVER_WEB_ORIGINS: '@,@*'
+      # Cron, user run and pull watchers only start for origins listed explicitly (fixedOriginSpecs in e2e/setup.ts),
+      # first attempt and retry
+      JASPER_OVERRIDE_SERVER_SCRIPT_SELECTORS: '@,@*,@pluginoriginaliasesr0,@pluginoriginaliasesr1,@pluginoriginpullr0,@pluginoriginpullr1,@pluginoriginpushr0,@pluginoriginpushr1,@pluginoutboxr0,@pluginoutboxr1'
     depends_on:
       - db
   db:
@@ -71,7 +101,10 @@ services:
       POSTGRES_PASSWORD: jasper
       POSTGRES_DB: jasper
   repl-client:
-    build: ..
+    build:
+      context: ..
+      args:
+        BUILD_SCRIPT: build:e2e
 #    image: ghcr.io/cjmalloy/jasper-ui:master
     ports:
       - 8082:80
@@ -81,6 +114,7 @@ services:
       CSP_DEFAULT_SRC: http://localhost:8083 ws://localhost:8083
       CSP_CONNECT_SRC: http://localhost:8083 ws://localhost:8083
       JASPER_TITLE: REPL
+      JASPER_INSTALL_DEFAULTS: false
     depends_on:
       - repl-web
   repl-web:
@@ -105,12 +139,14 @@ services:
       JASPER_CORS_MAX_AGE: 1800
       JASPER_LOCAL_ORIGIN: '@repl'
       JASPER_DEFAULT_ROLE: ROLE_ADMIN # TODO: create remote user instead
-      JASPER_OVERRIDE_SERVER_WEB_ORIGINS: '@repl'
+      # Each spec file runs in its own sub origin (Local-Origin header), see e2e/setup.ts
+      JASPER_OVERRIDE_SERVER_WEB_ORIGINS: '@repl,@repl.*'
       JASPER_OVERRIDE_SERVER_SSH_ORIGINS: '@repl'
+      JASPER_OVERRIDE_SERVER_SCRIPT_SELECTORS: '@repl,@repl.*,@repl.pluginoriginaliasesr0,@repl.pluginoriginaliasesr1,@repl.pluginoutboxr0,@repl.pluginoutboxr1'
       JASPER_OVERRIDE_SECURITY_MODE: 'jwt'
       JASPER_OVERRIDE_SECURITY_CLIENT_ID: ''
       JASPER_OVERRIDE_SECURITY_BASE64_SECRET: 'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM='
-      JASPER_HEAP: 256m
+      JASPER_HEAP: 512m
     depends_on:
       - repl-db
   repl-db:

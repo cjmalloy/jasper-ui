@@ -35,7 +35,7 @@ html, body {
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
   font-size: 16px;
 }
 
@@ -206,6 +206,13 @@ hr {
   }
   &.resize-dragging > * {
     pointer-events: none;
+  }
+}
+
+body.textarea-resizing {
+  &, * {
+    cursor: nwse-resize !important;
+    user-select: none !important;
   }
 }
 
@@ -895,6 +902,7 @@ video.qr-preview {
 
 .tabs {
   display: flex;
+  box-sizing: border-box;
   user-select: none;
   flex-wrap: wrap;
   min-height: 60px;
@@ -1360,6 +1368,26 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   max-width: 600px;
 }
 
+.form:has(.fill-editor > :is(textarea, ngx-monaco-editor)) {
+  min-width: min-content;
+}
+
+.form:has(.fill-editor > :is(textarea, ngx-monaco-editor):is([style^="width"], [style*=" width"], [style*=";width"])) {
+  width: fit-content;
+  max-width: none;
+}
+
+.fill-editor {
+  & > textarea,
+  & > ngx-monaco-editor {
+    width: 100%;
+    min-width: min(504px, 100vw - 32px);
+  }
+  & > ngx-monaco-editor {
+    contain: inline-size;
+  }
+}
+
 .form,
 formly-list-section .form-array > formly-field > formly-group,
 formly-field-geometries .geometry-item > formly-field > formly-group {
@@ -1370,6 +1398,7 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   .shrink select {
     margin-top: 2px;
   }
+
   .nested-title {
     text-align: left;
     margin: 12px 4px 0;
@@ -1395,6 +1424,7 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
       line-height: 24px;
     }
   }
+
   & > * {
     margin: 4px;
   }
@@ -1479,6 +1509,47 @@ formly-field-geometries .geometry-item > formly-field > formly-group {
   }
   select {
     margin-left: 0;
+  }
+}
+
+.buttons.floating {
+  position: sticky;
+  bottom: 8px;
+  z-index: 10;
+  grid-column: 1 / -1;
+  container-type: scroll-state;
+  &.top {
+    top: 8px;
+    bottom: auto;
+  }
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 8px;
+  }
+  @supports not (container-type: scroll-state) {
+    &::before {
+      border: 1px dashed var(--border);
+      backdrop-filter: blur(1px);
+    }
+  }
+  @container scroll-state((stuck: top) or (stuck: bottom)) {
+    &::before {
+      border: 1px dashed var(--border);
+      box-shadow: 0 0 4px 2px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(1px);
+    }
+  }
+  @media (max-width: 740px), (pointer: coarse) {
+    position: static;
+    grid-column: auto;
+    container-type: normal;
+    &::before {
+      display: none;
+    }
   }
 }
 
@@ -1823,7 +1894,7 @@ formly-field-radio, formly-field-multicheckbox {
   --thread-sent: rgba(39, 78, 124, 0.58);
   --thread-recieved: rgba(128, 128, 128, 0.5);
   border-radius: 32px;
-  overflow: hidden;
+  overflow: clip;
   &.sent {
     margin-left: 40px;
     background-color: var(--thread-sent);
@@ -2032,10 +2103,13 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   padding: 2px 0;
-  height: 14px;
+  min-height: 14px;
   user-select: none;
-  white-space: nowrap;
+  white-space: normal;
 
   a, .fake-link {
     margin: 2px 6px 2px 0;
@@ -2136,6 +2210,10 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
+.ref.list-item.expand {
+  display: grid;
+}
+
 .image-expand {
   height: 600px;
   background-size: contain;
@@ -2165,6 +2243,19 @@ formly-field-radio, formly-field-multicheckbox {
 
   &.inline-embed, &.embed-container {
     height: 600px;
+  }
+
+  // Wait before showing the placeholder, so a fast oEmbed request doesn't flash it
+  &.embed-container {
+    animation-name: image-loading, loading-delay;
+    animation-duration: 4s, 0.5s;
+    animation-iteration-count: infinite, 1;
+    animation-timing-function: linear, step-end;
+  }
+}
+@keyframes loading-delay {
+  from, to {
+    opacity: 0;
   }
 }
 @keyframes image-loading {
@@ -2284,6 +2375,30 @@ footer {
     & > br {
       display: none !important;
     }
+  }
+}
+
+.pele {
+  --pele-bg: var(--bg);
+  --pele-fg: var(--text);
+  --pele-muted: var(--info);
+  --pele-line: var(--text);
+  --pele-surface: var(--placeholder);
+  --pele-surface-alt: var(--card);
+  --pele-border: var(--border-accent);
+  --pele-error: var(--error);
+}
+
+.md-pre {
+  position: relative;
+
+  .markdown-clipboard-toolbar {
+    position: absolute;
+    top: .5em;
+    right: .5em;
+    z-index: 1;
+    display: flex;
+    gap: 4px;
   }
 }
 

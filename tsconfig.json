@@ -27,7 +27,17 @@
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "strictTemplates": true
+    "strictTemplates": true,
+    "extendedDiagnostics": {
+      "checks": {
+        "interpolatedSignalNotInvoked": "error",
+        "uninvokedFunctionInEventBinding": "error",
+        "uninvokedFunctionInTextInterpolation": "error",
+        "uninvokedTrackFunction": "error",
+        "nullishCoalescingNotNullable": "suppress",
+        "optionalChainNotNullable": "suppress"
+      }
+    }
   },
   "include": [
     "src/**/*.ts"
