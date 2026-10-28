@@ -287,6 +287,10 @@ keys.push(ext.tag + ':' + ext.origin);
     if (ext) this.prefillCache(ext);
   }
 
+  flushCache() {
+    this._cache.clear();
+  }
+
   page(args?: TagPageArgs): Observable<Page<Ext>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),

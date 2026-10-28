@@ -1,8 +1,12 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+import { AccountService } from '../../service/account.service';
+import { AdminService } from '../../service/admin.service';
+import { ExtService } from '../../service/api/ext.service';
 
 import { BackupComponent } from './backup.component';
 
@@ -49,5 +53,35 @@ describe('BackupComponent', () => {
     expect(component.deleted()).toBe(true);
     fixture.componentRef.setInput('id', 'next');
     expect(component.deleted()).toBe(false);
+  });
+
+  it('flushes caches after a successful restore', () => {
+    const http = TestBed.inject(HttpTestingController);
+    const flushExts = vi.spyOn(TestBed.inject(ExtService), 'flushCache');
+    const clearAccount = vi.spyOn(TestBed.inject(AccountService), 'clearCache');
+    const reload = vi.spyOn(TestBed.inject(AdminService), 'reload$').mockReturnValue(of(null));
+    component.restoreOptionsForm.patchValue({ plugin: true });
+
+    component.confirmRestore();
+    expect(flushExts).not.toHaveBeenCalled();
+    http.expectOne(req => req.url.endsWith('/backup/restore/test')).flush('');
+
+    expect(flushExts).toHaveBeenCalled();
+    expect(clearAccount).toHaveBeenCalled();
+    expect(reload).toHaveBeenCalled();
+  });
+
+  it('does not flush caches when restore fails', () => {
+    const http = TestBed.inject(HttpTestingController);
+    const flushExts = vi.spyOn(TestBed.inject(ExtService), 'flushCache');
+    const reload = vi.spyOn(TestBed.inject(AdminService), 'reload$').mockReturnValue(of(null));
+
+    component.confirmRestore();
+    http.expectOne(req => req.url.endsWith('/backup/restore/test'))
+      .flush('error', { status: 500, statusText: 'Server Error' });
+
+    expect(flushExts).not.toHaveBeenCalled();
+    expect(reload).not.toHaveBeenCalled();
+    expect(component.serverError().length).toBeGreaterThan(0);
   });
 });

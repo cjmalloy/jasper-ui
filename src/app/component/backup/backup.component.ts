@@ -15,11 +15,13 @@ import {
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { catchError, filter, of, throwError } from 'rxjs';
+import { catchError, EMPTY, filter, of, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { BackupOptions } from '../../model/backup';
+import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { BackupService } from '../../service/api/backup.service';
+import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
 import { readableBytes } from '../../util/format';
 import { printError } from '../../util/http';
@@ -37,6 +39,8 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
 export class BackupComponent {
   admin = inject(AdminService);
   backups = inject(BackupService);
+  private exts = inject(ExtService);
+  private accounts = inject(AccountService);
   store = inject(Store);
   private fb = inject(UntypedFormBuilder);
   private overlay = inject(Overlay);
@@ -148,12 +152,19 @@ export class BackupComponent {
     this.backups.restore(this.origin(), this.id(), options).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError.set(printError(err));
-        return throwError(() => err);
+        return EMPTY;
       }),
       tap(() => {
         this.serverError.set([]);
+        this.flushCache(options);
       }),
     ).subscribe();
+  }
+
+  private flushCache(options: BackupOptions) {
+    this.exts.flushCache();
+    this.accounts.clearCache();
+    if (options.plugin || options.template) this.admin.reload$();
   }
 
   cancelRestore() {
