@@ -34,6 +34,23 @@ describe('AdminService', () => {
     expect(service).toBeTruthy();
   });
 
+  it.each([
+    ['_config/security', 'per origin'],
+    ['_config/server', 'global'],
+  ])('should add maxRequestsPeriod after maxRequests in %s', (tag, scope) => {
+    const form = service.getTemplateAdminForm(tag);
+    const keys = form.map(f => f.key);
+    const index = keys.indexOf('maxRequests');
+    expect(index).toBeGreaterThanOrEqual(0);
+    expect(keys[index + 1]).toBe('maxRequestsPeriod');
+    expect(form[index].props?.label).toContain(scope);
+    const period = form[index + 1];
+    expect(period.type).toBe('duration');
+    expect(period.props?.hint).toContain('unlimited');
+    expect(period.props?.datalist.map((o: any) => o.value)).toEqual(
+      expect.arrayContaining(['PT0.0000005S', 'PT0.1S', 'PT1S', 'PT10S', 'PT1M', 'PT1H']));
+  });
+
   it('should not install default mods when installDefaults is disabled', async () => {
     TestBed.inject(ConfigService).installDefaults = false;
     TestBed.inject(Store).account.admin = true;

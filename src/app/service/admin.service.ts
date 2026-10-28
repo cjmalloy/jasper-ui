@@ -1312,6 +1312,27 @@ function origins(key: string, label: string): FormlyFieldConfig {
   };
 }
 
+export const rateLimitPeriods = [
+  { value: 'PT0.0000005S', label: $localize`Unlimited (500 ns)` },
+  { value: 'PT0.1S', label: $localize`100 ms` },
+  { value: 'PT1S', label: $localize`1 second` },
+  { value: 'PT10S', label: $localize`10 seconds` },
+  { value: 'PT1M', label: $localize`1 min` },
+  { value: 'PT1H', label: $localize`1 hour` },
+];
+
+function rateLimitPeriod(hint: string): FormlyFieldConfig {
+  return {
+    key: 'maxRequestsPeriod',
+    type: 'duration',
+    props: {
+      label: $localize`Max Requests Period:`,
+      hint,
+      datalist: rateLimitPeriods,
+    },
+  };
+}
+
 function role(key: string, label: string): FormlyFieldConfig {
   return {
     key,
@@ -1378,7 +1399,15 @@ const securityConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'defaultWriteAccess', type: 'qtags', props: { label: $localize`Default Write Access:` } },
   { key: 'defaultTagReadAccess', type: 'qtags', props: { label: $localize`Default Tag Read Access:` } },
   { key: 'defaultTagWriteAccess', type: 'qtags', props: { label: $localize`Default Tag Write Access:` } },
-  { key: 'maxRequests', type: 'integer', props: { label: $localize`Max Requests:` } },
+  {
+    key: 'maxRequests',
+    type: 'integer',
+    props: {
+      label: $localize`Max Requests (per origin):`,
+      hint: $localize`Maximum HTTP requests per origin every Max Requests Period. Sub-origins get their own limit with the same settings.`,
+    },
+  },
+  rateLimitPeriod($localize`Refresh period for the per origin Max Requests limit. The default (500 ns) is effectively unlimited.`),
   { key: 'maxConcurrentScripts', type: 'integer', props: { label: $localize`Max Concurrent Scripts:` } },
 ];
 
@@ -1398,7 +1427,15 @@ const serverConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'maxPullEntityBatch', type: 'integer', props: { label: $localize`Max Pull Entity Batch:` } },
   { key: 'maxConcurrentScripts', type: 'integer', props: { label: $localize`Max Concurrent Scripts:` } },
   { key: 'maxConcurrentReplication', type: 'integer', props: { label: $localize`Max Concurrent Replication:` } },
-  { key: 'maxRequests', type: 'integer', props: { label: $localize`Max Requests:` } },
+  {
+    key: 'maxRequests',
+    type: 'integer',
+    props: {
+      label: $localize`Max Requests (global):`,
+      hint: $localize`Maximum HTTP requests across all origins every Max Requests Period.`,
+    },
+  },
+  rateLimitPeriod($localize`Refresh period for the global Max Requests limit. The default (500 ns) is effectively unlimited.`),
   { key: 'maxConcurrentRequests', type: 'integer', props: { label: $localize`Max Concurrent Requests:` } },
   { key: 'maxConcurrentFetch', type: 'integer', props: { label: $localize`Max Concurrent Fetch:` } },
   {
