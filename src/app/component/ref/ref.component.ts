@@ -544,12 +544,14 @@ export class RefComponent implements HasChanges {
   private handleViewer(value: ViewerComponent | undefined) {
     if (value) {
       if (this.fullscreen()) {
-        value.el.nativeElement.requestFullscreen().catch((err: TypeError) => {
+        this.focusViewer = false;
+        value.el.nativeElement.requestFullscreen().then(() => {
+          value.el.nativeElement.focus({ preventScroll: true });
+        }).catch((err: TypeError) => {
           console.warn('Could not make fullscreen.');
           if (this.closeOffFullscreen) this.expanded.set(false);
         });
-      }
-      if (this.focusViewer) {
+      } else if (this.focusViewer) {
         this.focusViewer = false;
         // Defer to ensure the viewer's DOM is fully rendered before focusing
         defer(() => value.el.nativeElement.focus({ preventScroll: true }));
@@ -1090,11 +1092,12 @@ export class RefComponent implements HasChanges {
         this.closeOffFullscreen = !this.expanded();
         const viewer = this.viewer();
         if (viewer) {
-          viewer.el.nativeElement.requestFullscreen().catch(() => {
+          viewer.el.nativeElement.requestFullscreen().then(() => {
+            viewer.el.nativeElement.focus({ preventScroll: true });
+          }).catch(() => {
             console.warn('Could not make fullscreen.');
           });
         }
-        this.focusViewer = true;
         this.expanded.set(true);
       } else if (this.pipRequired()) {
         this.store.eventBus.fire('pip', this.ref());
