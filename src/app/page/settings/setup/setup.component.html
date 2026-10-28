@@ -12,7 +12,9 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons right floating top">
-      @if (modChangesLoaded() && store.view.modUpdates().size) {
+      @if (!modChangesLoaded() && !modChangesError().length) {
+        <app-loading class="mod-changes-loading" [inline]="true" title="Checking mods for local changes..." i18n-title />
+      } @else if (modChangesLoaded() && store.view.modUpdates().size) {
         <button type="button" (click)="updateAll()" i18n>🌟️ Update All</button>
       }
       @if (selectAllToggle()) {
@@ -31,12 +33,6 @@
         }
         <div class="error" i18n>Unable to check mods for local changes. Updates and diffs are unavailable.</div>
         <span class="fake-link mod-changes-retry" (click)="loadModChanges()" i18n>retry</span>
-      </div>
-    } @else if (!modChangesLoaded()) {
-      <span><!-- Mod Changes Loading --></span>
-      <div class="mod-changes-loading">
-        <app-loading [inline]="true" />
-        <span i18n>Checking mods for local changes...</span>
       </div>
     }
 
