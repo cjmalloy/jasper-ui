@@ -61,11 +61,23 @@ export function toDuration(value: string | number | null | undefined): Duration 
   return Duration.fromISO(value);
 }
 
+/**
+ * Duration in seconds, keeping the sub-millisecond precision Luxon truncates.
+ */
+export function durationSeconds(value: string | number | null | undefined): number | undefined {
+  if (typeof value === 'number') return value;
+  const d = toDuration(value);
+  if (!d?.isValid) return undefined;
+  const fraction = /[.,](\d+)S$/i.exec(value as string)?.[1];
+  if (!fraction) return d.as('seconds');
+  return d.minus({ milliseconds: d.milliseconds % 1000 }).as('seconds') + Number('0.' + fraction);
+}
+
 function sameDuration(a: string | number, b: string | number) {
   if (a === b) return true;
-  const da = toDuration(a);
-  const db = toDuration(b);
-  return !!da?.isValid && !!db?.isValid && da.toMillis() === db.toMillis();
+  const da = durationSeconds(a);
+  const db = durationSeconds(b);
+  return da !== undefined && da === db;
 }
 
 /**
@@ -75,13 +87,12 @@ export function durationIndex(datalist: DurationOption[] | undefined, value: str
   if (!datalist?.length) return 0;
   const exact = datalist.findIndex(o => o.value === value);
   if (exact >= 0) return exact;
-  const d = toDuration(value);
-  if (!d?.isValid) return 0;
-  const millis = d.toMillis();
+  const seconds = durationSeconds(value);
+  if (seconds === undefined) return 0;
   let best = 0;
   let bestDiff = Infinity;
   datalist.forEach((o, i) => {
-    const diff = Math.abs((toDuration(o.value)?.toMillis() ?? 0) - millis);
+    const diff = Math.abs((durationSeconds(o.value) ?? 0) - seconds);
     if (diff < bestDiff) {
       best = i;
       bestDiff = diff;

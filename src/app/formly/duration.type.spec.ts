@@ -3,7 +3,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
-import { DurationInputAccessor, durationIndex, DurationOption, FormlyFieldDuration, toDuration } from './duration.type';
+import { DurationInputAccessor, durationIndex, DurationOption, durationSeconds, FormlyFieldDuration, toDuration } from './duration.type';
 
 const datalist: DurationOption[] = [
   { value: 'PT0.0000005S', label: 'Unlimited' },
@@ -28,6 +28,15 @@ describe('FormlyFieldDuration', () => {
     expect(toDuration(undefined)).toBeUndefined();
   });
 
+  it('keeps sub-millisecond precision', () => {
+    expect(durationSeconds('PT0.0000005S')).toBe(0.0000005);
+    expect(durationSeconds(0.0000005)).toBe(0.0000005);
+    expect(durationSeconds('PT0.0005S')).toBe(0.0005);
+    expect(durationSeconds('PT1.5S')).toBe(1.5);
+    expect(durationSeconds('PT1M0.1S')).toBe(60.1);
+    expect(durationSeconds('bad')).toBeUndefined();
+  });
+
   it('finds exact or nearest slider position', () => {
     expect(durationIndex(datalist, 'PT0.0000005S')).toBe(0);
     expect(durationIndex(datalist, 'PT1S')).toBe(2);
@@ -40,6 +49,8 @@ describe('FormlyFieldDuration', () => {
   it('formats datalist labels, numbers and values not in the list', () => {
     const field = TestBed.runInInjectionContext(() => new FormlyFieldDuration());
     expect(field.formatInterval('PT0.0000005S', datalist)).toBe('Unlimited');
+    expect(field.formatInterval(0.0000005, datalist)).toBe('Unlimited');
+    expect(field.formatInterval('PT0.0005S', datalist)).not.toBe('Unlimited');
     expect(field.formatInterval(1, datalist)).toBe('1 second');
     expect(field.formatInterval('PT2S', datalist)).toBe('2 seconds');
     expect(field.formatInterval('PT2S')).toBe('2 seconds');
