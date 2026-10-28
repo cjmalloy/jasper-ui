@@ -9,6 +9,7 @@ import {
 } from '@angular/forms';
 import { cloneDeep } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
+import { formBuilderFields } from '../../formly/formly.type';
 import { AdminService } from '../../service/admin.service';
 import { controlValue } from '../../util/form';
 import { AdminConfigComponent } from '../admin-config/admin-config.component';
@@ -40,6 +41,8 @@ export class PluginFormComponent {
   readonly editingConfig = signal<any>(false);
   readonly editingDefaults = signal<any>(false);
   readonly editingSchema = signal<any>(false);
+  readonly formBuilderOpen = signal(false);
+  readonly formBuilder = formBuilderFields();
 
   private readonly initialTag = computed(() => {
     const group = this.group();

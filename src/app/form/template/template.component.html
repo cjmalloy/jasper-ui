@@ -33,6 +33,17 @@
     </details>
   }
 
+  <details class="advanced form-builder" (toggle)="formBuilderOpen.set($any($event.target).open)">
+    <summary><span i18n>Form Builder</span></summary>
+    @if (formBuilderOpen()) {
+      <div class="form">
+        <app-admin-config class="form-builder-form"
+                          [group]="group()"
+                          [fields]="formBuilder" />
+      </div>
+    }
+  </details>
+
   <ng-template #jsonEditors>
     <label [for]="id + '-config'" i18n>Config:</label>
     @if (!editingConfig() && !config()) {

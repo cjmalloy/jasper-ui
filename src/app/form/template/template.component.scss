@@ -2,7 +2,7 @@ details {
   grid-column: 1 / 3;
 }
 
-details.admin-advanced {
+details.admin-advanced, details.form-builder {
   overflow-x: visible;
   overflow-y: clip;
   & > .form {

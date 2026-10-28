@@ -1,5 +1,5 @@
 import { AbstractControl } from '@angular/forms';
-import { FormlyExtension, FormlyFieldConfig, provideFormlyCore, withFormlyFieldExpression } from '@ngx-formly/core';
+import { ConfigOption, FormlyExtension, FormlyFieldConfig, provideFormlyCore, withFormlyFieldExpression } from '@ngx-formly/core';
 import { v4 as uuid } from 'uuid';
 import {
   ORIGIN_REGEX,
@@ -23,6 +23,7 @@ import { FormlyFieldDuration } from './duration.type';
 import { FormlyFieldEditor } from './editor.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { FormlyWrapperFormGroup } from './form-group.wrapper';
+import { formlyType } from './formly.type';
 import { FormlyFieldGeoStyle } from './geo-style.type';
 import { FormlyFieldGeometries } from './geometries.type';
 import { FormlyFieldInput } from './input.type';
@@ -57,7 +58,7 @@ export class IdPrefixExtension implements FormlyExtension {
 const formlyFieldExpressionConfig = withFormlyFieldExpression();
 
 export function provideJasperFormly() {
-  return provideFormlyCore({
+  const config: ConfigOption = {
     extensions: [
       ...(formlyFieldExpressionConfig.extensions || []),
       { name: 'id-prefix', extension: new IdPrefixExtension() },
@@ -751,5 +752,8 @@ Private tags start with an underscore.
         },
       },
     }],
-  });
+  };
+  return provideFormlyCore([config, {
+    types: [formlyType(config.types!.map(t => t.name))],
+  }]);
 }
