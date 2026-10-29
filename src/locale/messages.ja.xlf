@@ -8239,6 +8239,26 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Form:</source>
         <target>フォーム:</target>
       </trans-unit>
+      <trans-unit id="2933264521282120114" datatype="html">
+        <source>Default Values</source>
+        <target>デフォルト値</target>
+      </trans-unit>
+      <trans-unit id="4751779431858528558" datatype="html">
+        <source>Generate Schema</source>
+        <target>スキーマを生成</target>
+      </trans-unit>
+      <trans-unit id="5562658514852867880" datatype="html">
+        <source>Replace the schema with one generated from the form</source>
+        <target>フォームから生成したスキーマで置き換える</target>
+      </trans-unit>
+      <trans-unit id="5677285386251965258" datatype="html">
+        <source>Generate Defaults</source>
+        <target>デフォルト値を生成</target>
+      </trans-unit>
+      <trans-unit id="6062314466203660156" datatype="html">
+        <source>Add default values for new fields and remove defaults for deleted fields</source>
+        <target>新しいフィールドのデフォルト値を追加し、削除したフィールドのデフォルト値を削除する</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

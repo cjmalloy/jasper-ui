@@ -89,7 +89,7 @@ export class PluginFormComponent {
     return groupFormFields(this.group());
   }, { equal: isEqual });
 
-  readonly defaultsForm = computed(() => optionalFields(this.formFields()));
+  readonly defaultsForm = computed(() => optionalFields(this.formlyConfig, this.formFields()));
 
   generateSchema() {
     generateSchema(this.formlyConfig, this.group());

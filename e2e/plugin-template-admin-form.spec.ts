@@ -119,6 +119,12 @@ test.describe.serial('Plugin/Template Admin Form', () => {
       await options.locator('.formly-option-value input').fill('red');
       await options.locator('.formly-option-label input').fill('Red');
 
+      await builder.locator('button.generate-schema').click();
+      const defaults = builder.locator('.defaults-form');
+      await expect(defaults.locator('select option', { hasText: 'Red' })).toHaveCount(1);
+      await defaults.locator('select').selectOption({ label: 'Red' });
+      await builder.locator('button.generate-defaults').click();
+
       const savePromise = page.waitForResponse(resp => (
         resp.url().includes(`/api/v1/${type}`) && resp.request().method() === 'PUT' && resp.ok()
       ));
@@ -133,6 +139,8 @@ test.describe.serial('Plugin/Template Admin Form', () => {
         type: 'select',
         props: { label: 'Color:', options: [{ value: 'red', label: 'Red' }] },
       }]);
+      expect(saved.schema).toEqual({ optionalProperties: { color: { enum: ['red'] } } });
+      expect(saved.defaults).toEqual({ color: 'red' });
       expect(saved.config.title).toBe('after');
       expect(saved.config.adminForm).toHaveLength(2);
     });

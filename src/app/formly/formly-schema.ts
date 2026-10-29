@@ -1,7 +1,7 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
 import { Schema } from 'jtd';
-import { cloneDeep, cloneDeepWith, defaultsDeep, isObject } from 'lodash-es';
+import { cloneDeep, cloneDeepWith, defaultsDeep, isObject, isPlainObject } from 'lodash-es';
 
 type ObjectSchema = { properties?: Record<string, Schema>, optionalProperties?: Record<string, Schema> };
 
@@ -151,17 +151,45 @@ export function formlyDefaults(config: FormlyConfig, builder: FormlyFormBuilder,
 export function configFormFields(config: any): FormlyFieldConfig[] {
   if (!isObject(config)) return [];
   const { form, advancedForm } = config as any;
-  return [
+  return validFields([
     ...(Array.isArray(form) ? form : []),
     ...(Array.isArray(advancedForm) ? advancedForm : []),
-  ];
+  ]);
+}
+
+/**
+ * Remove blank entries, such as new rows in the form builder.
+ */
+function validFields(fields: any[]): FormlyFieldConfig[] {
+  return fields
+    .filter(f => isPlainObject(f))
+    .map(f => {
+      f = { ...f };
+      if (Array.isArray(f.fieldGroup)) f.fieldGroup = validFields(f.fieldGroup);
+      if (isPlainObject(f.fieldArray)) f.fieldArray = validFields([f.fieldArray])[0];
+      if (Array.isArray(f.props?.options)) f.props = { ...f.props, options: f.props.options.filter((o: any) => isPlainObject(o)) };
+      return f;
+    });
 }
 
 /**
  * Copy of form fields with nothing required, for editing default values.
+ * Fields which can't be rendered yet, such as unknown types or lists
+ * without a field array, are skipped.
  */
-export function optionalFields(fields: FormlyFieldConfig[]): FormlyFieldConfig[] {
-  return cloneDeepWith(fields, (value, key) => key === 'required' ? false : undefined);
+export function optionalFields(config: FormlyConfig, fields: FormlyFieldConfig[]): FormlyFieldConfig[] {
+  const renderable = (field: FormlyFieldConfig): boolean => {
+    if (field.type) {
+      if (typeof field.type !== 'string' || !config.getType(field.type)) return false;
+      const chain = typeChain(config, field.type);
+      if (chain.includes('list') && !chain.includes('formly') && !mergedField(config, field).fieldArray) return false;
+    }
+    return true;
+  };
+  const filter = (fields: FormlyFieldConfig[]): FormlyFieldConfig[] => fields
+    .filter(renderable)
+    .map(f => Array.isArray(f.fieldGroup) ? { ...f, fieldGroup: filter(f.fieldGroup) } : f);
+  return cloneDeepWith(filter(fields), (value, key) => key === 'required' ? false : undefined);
 }
 
 function parseJson(value: any) {

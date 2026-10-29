@@ -4854,19 +4854,19 @@ Please Reload.</source>
           <context context-type="linenumber">37</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3692159634466422316" datatype="html">
-        <source>Config:</source>
+      <trans-unit id="5562658514852867880" datatype="html">
+        <source>Replace the schema with one generated from the form</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
-          <context context-type="linenumber">47,48</context>
+          <context context-type="linenumber">49,50</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/template/template.component.html</context>
-          <context context-type="linenumber">48,49</context>
+          <context context-type="linenumber">50,51</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="687655182412538211" datatype="html">
-        <source>+ Add Config</source>
+      <trans-unit id="4751779431858528558" datatype="html">
+        <source>Generate Schema</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
           <context context-type="linenumber">50,51</context>
@@ -4874,6 +4874,61 @@ Please Reload.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/template/template.component.html</context>
           <context context-type="linenumber">51,52</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6062314466203660156" datatype="html">
+        <source>Add default values for new fields and remove defaults for deleted fields</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
+          <context context-type="linenumber">56,57</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/template/template.component.html</context>
+          <context context-type="linenumber">57,58</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5677285386251965258" datatype="html">
+        <source>Generate Defaults</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
+          <context context-type="linenumber">57,58</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/template/template.component.html</context>
+          <context context-type="linenumber">58,59</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2933264521282120114" datatype="html">
+        <source>Default Values</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
+          <context context-type="linenumber">61,62</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/template/template.component.html</context>
+          <context context-type="linenumber">62,63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3692159634466422316" datatype="html">
+        <source>Config:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
+          <context context-type="linenumber">72,73</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/template/template.component.html</context>
+          <context context-type="linenumber">73,74</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="687655182412538211" datatype="html">
+        <source>+ Add Config</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
+          <context context-type="linenumber">75,76</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/template/template.component.html</context>
+          <context context-type="linenumber">76,77</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/user/user.component.html</context>
@@ -4884,11 +4939,11 @@ Please Reload.</source>
         <source>Defaults:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
-          <context context-type="linenumber">66,67</context>
+          <context context-type="linenumber">91,92</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/template/template.component.html</context>
-          <context context-type="linenumber">68,69</context>
+          <context context-type="linenumber">93,94</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/home.ts</context>
@@ -4907,44 +4962,44 @@ Please Reload.</source>
         <source>+ Add Defaults</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
-          <context context-type="linenumber">69,70</context>
+          <context context-type="linenumber">94,95</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/template/template.component.html</context>
-          <context context-type="linenumber">71,72</context>
+          <context context-type="linenumber">96,97</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7257420460109926387" datatype="html">
         <source>Schema:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
-          <context context-type="linenumber">85,86</context>
+          <context context-type="linenumber">110,111</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/template/template.component.html</context>
-          <context context-type="linenumber">87,88</context>
+          <context context-type="linenumber">112,113</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3781053248830267123" datatype="html">
         <source>+ Add Schema</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
-          <context context-type="linenumber">88,89</context>
+          <context context-type="linenumber">113,114</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/template/template.component.html</context>
-          <context context-type="linenumber">90,91</context>
+          <context context-type="linenumber">115,116</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6561953245119183227" datatype="html">
         <source>Name must not be blank.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/plugin/plugin.component.ts</context>
-          <context context-type="linenumber">87</context>
+          <context context-type="linenumber">107</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/template/template.component.ts</context>
-          <context context-type="linenumber">87</context>
+          <context context-type="linenumber">107</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8598886608217248074" datatype="html">
@@ -6014,14 +6069,14 @@ Private tags start with an underscore.
         <source>Key:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2736556170366900089" datatype="html">
         <source>Type:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">40</context>
+          <context context-type="linenumber">39</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
@@ -6040,18 +6095,18 @@ Private tags start with an underscore.
         <source>Group</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">41</context>
+          <context context-type="linenumber">40</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4252511510736696081" datatype="html">
         <source>Label:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">49</context>
+          <context context-type="linenumber">48</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">105</context>
+          <context context-type="linenumber">104</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/home.ts</context>
@@ -6086,70 +6141,70 @@ Private tags start with an underscore.
         <source>Placeholder:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">59</context>
+          <context context-type="linenumber">58</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6517386974227510649" datatype="html">
         <source>Hint:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">69</context>
+          <context context-type="linenumber">68</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4981729030739812160" datatype="html">
         <source>Required:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">79</context>
+          <context context-type="linenumber">78</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3661243150687969383" datatype="html">
         <source>Options:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">89</context>
+          <context context-type="linenumber">88</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2354379848714892211" datatype="html">
         <source>+ Add another option</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">90</context>
+          <context context-type="linenumber">89</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3904805944153220794" datatype="html">
         <source>Value:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">98</context>
+          <context context-type="linenumber">97</context>
         </context-group>
       </trans-unit>
       <trans-unit id="664144390539044292" datatype="html">
         <source>Fields:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">117</context>
+          <context context-type="linenumber">116</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4456423849243411800" datatype="html">
         <source>Advanced Form:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">139</context>
+          <context context-type="linenumber">140</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3469158197044132609" datatype="html">
         <source>Admin Form:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">145</context>
+          <context context-type="linenumber">147</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4272529530551543307" datatype="html">
         <source>Advanced Admin Form:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">151</context>
+          <context context-type="linenumber">154</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4222367315079343305" datatype="html">

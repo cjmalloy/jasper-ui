@@ -138,16 +138,22 @@ describe('formly schema', () => {
     expect(defaults).toEqual({ level: 5, title: 'new' });
   });
 
-  it('makes every field optional for editing defaults', () => {
-    const fields = optionalFields([{ key: 'title', type: 'string', props: { required: true } }]);
+  it('makes every renderable field optional for editing defaults', () => {
+    const fields = optionalFields(config, [
+      { key: 'title', type: 'string', props: { required: true } },
+      { key: 'typo', type: 'strnig' },
+      { key: 'items', type: 'list' },
+      { key: 'tags', type: 'tags' },
+    ]);
+    expect(fields.map(f => f.key)).toEqual(['title', 'tags']);
     expect(fields[0].props!.required).toBe(false);
   });
 
   it('updates the schema and defaults controls from the config control', () => {
     const group = new FormGroup({
       config: new FormControl(JSON.stringify({
-        form: [{ key: 'title', type: 'string', defaultValue: 'hi' }],
-        advancedForm: [{ key: 'count', type: 'integer' }],
+        form: [null, { key: 'title', type: 'string', defaultValue: 'hi' }, { fieldGroup: [null] }],
+        advancedForm: [{ key: 'count', type: 'integer' }, { key: 'color', type: 'select', props: { options: [null, { value: 'red' }] } }],
       })),
       schema: new FormControl<string | null>(null),
       defaults: new FormControl<string | null>(null),
@@ -155,7 +161,7 @@ describe('formly schema', () => {
     generateSchema(config, group);
     generateDefaults(config, builder, group);
     expect(JSON.parse(group.value.schema!)).toEqual({
-      optionalProperties: { title: { type: 'string' }, count: { type: 'int32' } },
+      optionalProperties: { title: { type: 'string' }, count: { type: 'int32' }, color: { enum: ['red'] } },
     });
     expect(JSON.parse(group.value.defaults!)).toEqual({ title: 'hi' });
     expect(group.get('schema')!.dirty).toBe(true);
