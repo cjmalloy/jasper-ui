@@ -1,7 +1,7 @@
 {
   "name": "jasper-ui",
   "version": "1.4.0",
-  "packageManager": "npm@11.6.2",
+  "packageManager": "npm@11.20.0",
   "scripts": {
     "postinstall": "patch-package",
     "ng": "ng",
