@@ -76,7 +76,7 @@
         <div class="error">{{ e }}</div>
       }
       <div class="error" i18n>Unable to check mods for local changes. Updates and diffs are unavailable.</div>
-      <span class="fake-link mod-changes-retry" (click)="loadModChanges()" i18n>retry</span>
+      <button type="button" class="mod-changes-retry" (click)="loadModChanges()" i18n>retry</button>
     </div>
   }
   @for (e of serverError(); track $index) {
