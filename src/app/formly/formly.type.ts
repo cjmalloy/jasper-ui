@@ -43,7 +43,7 @@ export function formlyType(typeNames: string[]): TypeOption {
         label: $localize`Form:`,
         addText: $localize`+ Add another field`,
       },
-      fieldArray: {
+      fieldArray: keepHidden({
         className: 'formly-field-config',
         fieldGroup: [{
           key: 'key',
@@ -72,7 +72,6 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'props.placeholder',
           type: 'string',
           className: 'formly-placeholder',
-          resetOnHide: false,
           expressions: {
             hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
           },
@@ -83,7 +82,6 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'props.hint',
           type: 'string',
           className: 'formly-hint',
-          resetOnHide: false,
           expressions: {
             hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
           },
@@ -94,7 +92,6 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'props.required',
           type: 'boolean',
           className: 'formly-required',
-          resetOnHide: false,
           expressions: {
             hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
           },
@@ -105,7 +102,6 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'props.options',
           type: 'list',
           className: 'formly-options',
-          resetOnHide: false,
           expressions: {
             hide: (field: FormlyFieldConfig) => !OPTIONS_TYPES.includes(field.parent?.model?.type),
           },
@@ -134,7 +130,6 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'fieldGroup',
           type: 'formly',
           className: 'formly-field-group',
-          resetOnHide: false,
           expressions: {
             hide: (field: FormlyFieldConfig) => !!field.parent?.model?.type,
           },
@@ -142,9 +137,20 @@ export function formlyType(typeNames: string[]): TypeOption {
             label: $localize`Fields:`,
           },
         }],
-      },
+      }),
     },
   };
+}
+
+/**
+ * Keep values of hidden fields, so changing the type of a field in the
+ * builder doesn't delete its options or nested fields.
+ */
+function keepHidden(field: FormlyFieldConfig): FormlyFieldConfig {
+  field.resetOnHide = false;
+  field.fieldGroup?.forEach(keepHidden);
+  if (field.fieldArray) keepHidden(field.fieldArray as FormlyFieldConfig);
+  return field;
 }
 
 /**

@@ -92,4 +92,20 @@ describe('formly type', () => {
     child(field.fieldGroup![0], 'props.label').formControl!.setValue('Labels:');
     expect(model.form[0]).toEqual({ key: 'tags', type: 'tags', className: 'my-tags', props: { label: 'Labels:', addText: '+ tag' } });
   });
+
+  it('keeps hidden options and nested fields when the type changes', async () => {
+    const model = { form: [
+      { key: 'a', type: 'select', props: { options: [{ value: 'x', label: 'X' }] } },
+      { key: 'b', fieldGroup: [{ key: 'nested', type: 'number' }] },
+    ] };
+    const { fixture, field } = await render(model);
+    child(field.fieldGroup![0], 'type').formControl!.setValue('string');
+    child(field.fieldGroup![1], 'type').formControl!.setValue('string');
+    await fixture.whenStable();
+    child(field.fieldGroup![0], 'type').formControl!.setValue('select');
+    child(field.fieldGroup![1], 'type').formControl!.setValue(null);
+    await fixture.whenStable();
+    expect(model.form[0].props!.options).toEqual([{ value: 'x', label: 'X' }]);
+    expect(model.form[1].fieldGroup).toEqual([{ key: 'nested', type: 'number' }]);
+  });
 });
