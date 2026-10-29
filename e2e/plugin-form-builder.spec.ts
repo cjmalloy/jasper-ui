@@ -447,7 +447,7 @@ test.describe('Plugin Form Builder', () => {
 
   test('nested structures survive a save and reload', async ({ page, request, origin }) => {
     test.setTimeout(120_000);
-    const tag = await createPlugin(request, origin, 'nested', { config: {} });
+    const tag = await createPlugin(request, origin, 'tree', { config: {} });
     let { item, builder } = await openBuilder(page, tag);
     const form = builder.locator('.builder-form');
     const outer = await addField(form, 'outer');
