@@ -1,8 +1,8 @@
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
-import { KeyValuePipe } from '@angular/common';
+import { KeyValuePipe, NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal, TemplateRef, viewChild, ViewContainerRef } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, sortBy, uniq } from 'lodash-es';
@@ -35,6 +35,7 @@ interface ModUpdatePreview {
     ReactiveFormsModule,
     RouterLink,
     KeyValuePipe,
+    NgTemplateOutlet,
     DiffComponent,
     OverlayModule,
     LoadingComponent,
@@ -56,6 +57,7 @@ export class SettingsSetupPage {
   readonly mergeSaving = signal(false);
   readonly modChangesLoaded = signal(false);
   readonly modChangesError = signal<string[]>([]);
+  readonly hasLog = computed(() => !!(this.modChangesError().length || this.serverError().length || this.installMessages().length));
   private mergeSavingSubscription?: Subscription;
   private modChangesSubscription?: Subscription;
 
