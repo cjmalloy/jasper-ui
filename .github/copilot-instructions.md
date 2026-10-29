@@ -2,6 +2,12 @@
 
 Always reference these instructions first. Fall back to searching the repo only when something here does not match what you observe. Every command and timing below was verified on a 4-core / 16 GB Linux agent runner.
 
+## Read the Jasper spec first
+
+Before changing anything involving origins, users, access, tagging, or special URLs, read the server spec:
+https://github.com/cjmalloy/jasper/blob/master/README.md
+It is short, and the client depends on its rules. Do not guess server behaviour.
+
 ## What is Jasper?
 
 Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper stores links to content rather than the content itself, creating a fast overlay database that indexes content sources. This Angular client (jasper-ui) is the reference client for the Jasper server.
@@ -19,12 +25,16 @@ All entities use composite keys:
 ### Key concepts
 
 - **Tags**: hierarchical strings: `public`, `+protected`, `_private`. Regex: `[_+]?[a-z0-9]+([./][a-z0-9]+)*`
-- **Origins**: `@origin`, used for replication and multi-tenant setups. The local origin is the empty string. Regex: `@[a-z0-9]+([.][a-z0-9])*`
+- **Origins**: `@origin`, used for replication and multi-tenant setups. The local origin is the empty string. Regex: `@[a-z0-9]+([.][a-z0-9]+)*`
+  - Users can only read their own origin and its sub-origins (`@home` sees `@home` and `@home.*`, never a sibling like `@city`). Writing is only allowed to your own origin.
+  - Remotes are pulled into a sub-origin of the local origin, so every visible remote origin is `local + '.' + name`.
 - **Querying**: set-like operators: `:` (and), `|` (or), `!` (not), `()` (groups, which cannot be nested)
   - `science:funny`: has both tags. `science|funny`: has either tag. `science:!funny`: has `science` but not `funny`.
   - `(science|math):funny`. `music:people/murray` also matches child tags such as `people/murray/anne`.
   - Queries are origin-aware. `tag@origin` is fully qualified, the special origin `@` matches the default empty origin, and unqualified tags match any origin.
 - **Special URLs**: `cache:` points to the file cache. `tag:/...` Refs follow tag access rules; user settings Refs look like `tag:/+user/<name>`.
+  - User URLs (`tag:/+user/<name>` and `tag:/+user/<name>?url=...`) are always owned by that user. The server stores them without the `+`/`_` prefix (`tag:/user/<name>?url=...`).
+  - `plugin/user/*` plugins may only be added to user URL Refs.
 - **Access control**: hierarchical roles (Anonymous, Viewer, User, Editor, Mod, Admin) plus TBAC. Users can query protected tags but cannot freely add them. Private tags are stripped from responses unless the user has access.
 
 ### Gotchas
@@ -33,6 +43,7 @@ All entities use composite keys:
 - Tags are plain strings, not entities. A tag can be used on a Ref without a matching Ext, User, Plugin, or Template.
 - The model has four layers: identity (storage/replication), indexing (tags/query/sort), validation (full entity + schema), and modding (client only).
 - Plugins *stack* on Refs. Templates *merge down* the tag hierarchy onto Exts and config.
+- Every embed iframe is a security boundary. `blob:` URLs keep the app origin, so HTML written by the client (oEmbed) uses opaque-origin `data:` URLs (`dataUrl`, `iframeUrl` in `util/embed.ts`). The embed iframe has one `sandbox` that allows everything except top navigation (`allow-same-origin` keeps sites working). PDFs can't use the `sandbox` attribute (Chrome won't render them) and are only embedded from our own cache, framed by URL so the viewer can stream them (the server sends `Content-Security-Policy: sandbox` and `X-Frame-Options: SAMEORIGIN`). With the `plugin/pdf` `proxy` setting off, only `cache:` PDFs embed. `e2e/embed-origin.spec.ts` proves it.
 - Modding is client-side on purpose. New plugins and templates should not need server changes or restarts.
 - Replication is pull-based and eventually consistent. It polls for entities modified after the last stored cursor `(origin, modified)`, so modified timestamps must be unique.
 
@@ -81,8 +92,10 @@ npx playwright install --with-deps chromium
 | Task | Command | Verified time |
 |---|---|---|
 | Production build (all locales) | `npm run build` | ~45s (up to ~100s on cold cache) |
-| Unit tests (Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
-| Single spec | `npm test -- --watch=false --include src/app/util/format.spec.ts` | ~6s |
+| Lint (angular-eslint) | `npm run lint` | ~10s. `npx eslint src --fix` fixes self-closing tags. |
+| Unit tests (lint, then Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
+| Single spec | `npx ng test --watch=false --include src/app/util/format.spec.ts` | ~6s |
+| App type check (incl. template diagnostics) | `npx ngc -p tsconfig.app.json --noEmit` | ~15s |
 | Unit tests exactly like CI | `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test` | ~4.5 min (cached builder) |
 
 Expected noise that is **not** an error:
@@ -100,7 +113,7 @@ Builds write `dist/`, `.angular/`, and `.vitest/`, which are all gitignored.
 |---|---|---|---|
 | Dev server | `npm start` | 4200 | expects `//localhost:8081` (hard-coded default in `ConfigService`) |
 | Root compose (`docker-compose.yaml`) | `docker compose --profile server up --build -d` | 8082 | 8081 (Spring `dev` profile, Postgres) |
-| E2E compose (`e2e/docker-compose.yaml`) | `cd e2e && docker compose up --build -d` | 8080 (main), 8082 (replica) | 8081 (main), 8083 (replica) |
+| E2E compose (`e2e/docker-compose.yaml`) | `cd e2e && docker compose up --build -d` | 8080 (main), 8082 (replica), 8084 (main through the client's `/api/` proxy) | 8081 (main), 8083 (replica) |
 
 ⚠️ The root and E2E stacks **both bind 8081 and 8082**, so only one can run at a time. Run `docker compose down -v` on one before starting the other.
 
@@ -143,7 +156,7 @@ Attach light **and** dark mode screenshots for UI changes. If the Playwright MCP
 
 ## E2E Tests (Playwright)
 
-E2E tests live in `e2e/`. They need the E2E compose stack (main 8080/8081 + replica 8082/8083, Postgres, `ghcr.io/cjmalloy/jasper:master`). The `client` images are built from this repo's `Dockerfile`, so **rebuild the stack (`up --build`) after changing app code**. Otherwise the tests run against the old UI.
+E2E tests live in `e2e/`. They need the E2E compose stack (main 8080/8081 + replica 8082/8083 + same-origin proxied main client 8084, Postgres, `ghcr.io/cjmalloy/jasper:master`). The `client` images are built from this repo's `Dockerfile`, so **rebuild the stack (`up --build`) after changing app code**. Otherwise the tests run against the old UI.
 
 ### From the host (best for iterating)
 
@@ -176,12 +189,14 @@ Files that the container writes to `e2e/reports` and `test-results` may be owned
 - **Update the E2E tests whenever you change user interactions** (buttons, overlays, dialogs, forms).
 - New tests that are not meant to expose a known bug **must be run and pass** before you submit them.
 - File naming: numbered core suites (`00-smoke.spec.ts`, `01-backup.spec.ts`, ...), `plugin-<name>.spec.ts`, `template-<name>.spec.ts`.
-- Tests run serially in one worker (`workers: 1`), so state carries over between tests. Reset it with the helpers.
+- Spec files run in parallel workers (`PW_WORKERS`, default 4 in CI) against one server stack. Tests in a file run in order, so state carries over between them.
+- Every context sends a `Local-Origin` header for a sub-origin unique to the spec (`isolatedOrigin()`, `@repl.*` on the replica). Never use the default origin: post with `origin`, and qualify tags in GETs and DELETEs (`tag + origin`). Specs that need server watchers (cron, pull, push) use fixed origins listed in `fixedOriginSpecs` and in the compose script selectors.
 - Viewport is 1280x720 to avoid the mobile layout.
+- To test real cross-domain behaviour, see `e2e/embed-origin.spec.ts`: it maps `*.test` to 127.0.0.1 with `--host-resolver-rules`, opens the proxied client as `http://jasper.test:8084`, and uses `channel: 'chromium'` with `--unsafely-treat-insecure-origin-as-secure` so debug login (`crypto.subtle`) works over http. It also disables Chrome's local network access checks, because routed `other.test` pages count as public while `jasper.test` is loopback.
 
 ```typescript
-import { expect, test } from '@playwright/test';
-import { mod } from './setup';
+import { expect } from '@playwright/test';
+import { mod, test } from './setup';
 
 test.describe.serial('Feature Name', () => {
   test('enable mods', async ({ page }) => {
@@ -194,6 +209,10 @@ test.describe.serial('Feature Name', () => {
   });
 });
 ```
+
+**Always import `test` from `./setup`, never from `@playwright/test`.** That `test` has an auto fixture that fails the test on any `console.error` or uncaught page error (`pageerror`), including pages created in `beforeAll` and contexts created during the test. The only allowed console errors are in `allowedConsoleErrors` in `e2e/setup.ts` (Chrome's `Failed to load resource: ... status of <code>` log for expected 4xx/5xx responses). Don't add Angular errors such as NG0100 or NG0600 to that list; fix them.
+
+The E2E client images are built with `npm run build:e2e` (`--configuration e2e`): production app behaviour (`environment.dev` is false, so no auto login), but unoptimized so Angular dev-mode checks run, including exhaustive `checkNoChanges`.
 
 `e2e/setup.ts` helpers:
 - `clearMods(page, base?)`, `mod(page, ...mods)`, `modRemote(page, base, ...mods)`: reset plugins/templates and enable mods such as `'#mod-wiki'`
@@ -223,10 +242,38 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 
 ## Code Conventions
 
-- Stack: Angular 22, TypeScript 6, MobX (`src/app/store/`), Formly, RxJS, Vitest, Playwright.
+- Stack: Angular 22 (zoneless, signals), TypeScript 6, Formly, RxJS, Vitest, Playwright.
 - Generate new pieces with `npx ng generate component|service|pipe|directive <name>`.
 - **RxJS subscribe style**: always pass a single callback (`obs.subscribe(value => { ... })`). Never pass an observer object, and never pass multiple callbacks.
 - Don't add comments unless they match the surrounding style.
+
+### Data flow
+
+The app is zoneless. Components are OnPush (the Angular 22 default, so don't set `changeDetection`). A template only re-renders when a signal it reads changes, an input changes, or an event fires inside it.
+
+1. **State flows down, events flow up.** `input()` in, `output()` out. A parent never calls methods on a child (no `viewChild(...).reset()`, no `viewChildren(...).forEach(...)`).
+2. **State is `signal()`, derived values are `computed()`, async data is `resource`/`rxResource`/`httpResource`.** `rxResource(...).value()` throws in the error state, so read it as `r.hasValue() ? r.value() : fallback`.
+3. **`effect()` only syncs to something outside Angular** (localStorage, document title, Monaco/maplibre/d3/ag-grid, `<video>`, router, STOMP). An effect never writes a signal. Put a one-line comment above each effect saying what it syncs.
+4. **`linkedSignal` only for a local edit buffer seeded from an input.** UI state (`editing`, `replying`, `viewSource`, `submitted`) is a plain `signal(false)`, changed only by user events. To reset a row for a new entity, re-create it with `@for (…; track ref.url)`.
+5. **No `defer`/`delay`/`setTimeout` to wait for rendering.** Use `afterNextRender`/`afterRenderEffect` only when the DOM is really needed.
+6. **Layout is CSS.** Breakpoints are SCSS media queries. Only measure DOM widths in TypeScript when CSS cannot express it, such as `TabsComponent` moving overflowing tabs into its dropdown (measured from a `ResizeObserver` and `afterRenderEffect`).
+
+More rules:
+- Use `inject()`, never constructor parameter injection. Don't implement lifecycle interfaces (`OnInit`, `OnDestroy`, `AfterViewInit`, ...): use field initializers, `computed()`, `afterNextRender()` and `inject(DestroyRef).onDestroy()`.
+- Route pages load their list with `inject(QueryStore).watch(() => args)` (or `ExtStore`/`PluginStore`/`TemplateStore`/`UserStore`/`ProfileStore`, all `util/page-store.ts`) in the constructor. The store loads with `rxResource` and stops when the page is destroyed.
+- A row that saves, votes, tags or deletes sets the result into its own `ref` in the same handler. `EventBus` is only for real cross-component broadcasts.
+- Don't pass RxJS `Subject`s between components. Use signals, `output()` or a direct call.
+- **Always call signals in templates**: `@if (editing())`, `[class.busy]="busy()"`. An uncalled signal is a function and is always truthy.
+- **Never read `FormControl`/`AbstractControl` state (`.value`, `.valid`, `.dirty`, ...) in a binding.** Read it in event handlers. State a template needs is a plain signal set from the handler, or from `valueChanges`/`statusChanges` with `takeUntilDestroyed()`. Use typed forms (`FormControl<T>`), not `Untyped*`.
+- **Never bind to DOM state of a template reference** (`#input` then `[title]="input.value"`). Keep the value in a signal.
+- **No side effects in `computed()`.**
+- **Relative times**: use the `relative` pipe (`{{ ref().modified | relative }}`), never `.toRelative()` in a template. It formats against `ClockService.now`, which ticks every 10s, so the text is stable within a render.
+- Use `isDevMode()` only for Angular checks. For local development conveniences (auto login, prefetch, ...) use `environment.dev`, which is false in the E2E build.
+
+Checks:
+- **Lint** (`npm run lint`, also run by `npm test` and the Docker build): angular-eslint `prefer-inject`, `prefer-signals`, `template/prefer-control-flow`, `template/prefer-self-closing-tags`; bans `@Input`/`@Output`/`@ViewChild(ren)`/`@ContentChild(ren)`/`@HostBinding`/`@HostListener`, lifecycle interfaces, lodash `defer`/`delay`, and imports of `zone.js`, `mobx*`, `NgZone` and `HTTP_INTERCEPTORS`. Config: `eslint.config.js`.
+- **Compiler** (`tsconfig.json`): `strictTemplates` plus the extended diagnostics `interpolatedSignalNotInvoked` (NG8109), `uninvokedFunctionInEventBinding` (NG8111), `uninvokedFunctionInTextInterpolation` (NG8117) and `uninvokedTrackFunction` (NG8115) are errors. `strictTemplates` also reports TS2774 for an uncalled function in `@if`.
+- **Runtime**: dev (`npm start`, `environment.ts`) and E2E (`environment.e2e.ts`) builds add `provideCheckNoChangesConfig({ exhaustive: true })`, so state that changes without notifying an OnPush view logs NG0100. The Playwright fixture turns that into a test failure.
 
 ### Project structure
 
@@ -237,7 +284,7 @@ The goal is a **simple, easy-to-navigate CSS tree**:
 - `src/app/mods/`: built-in plugins/templates (the "mods")
 - `src/app/page/`: routed pages
 - `src/app/service/`: API (`service/api/`) and app services (`config`, `debug`, `authz`, ...)
-- `src/app/store/`: MobX stores
+- `src/app/store/`: Signal-based stores
 - `src/locale/`: i18n XLIFF files
 - `src/theme/`: global SCSS themes
 - `docker/`: nginx entrypoint scripts (`JASPER_API`, CSP, base href, locale, ...)

@@ -93,7 +93,8 @@ describe('MapComponent', () => {
         },
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       const req = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
@@ -102,7 +103,7 @@ describe('MapComponent', () => {
       );
       req.flush(Page.of([sourceRef]));
 
-      expect(component.mapData).toEqual([[
+      expect(component.mapData()).toEqual([[
         expect.objectContaining({
           url: repostRef.url,
           title: sourceRef.title,
@@ -143,7 +144,8 @@ describe('MapComponent', () => {
         },
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
       const req = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
@@ -151,7 +153,7 @@ describe('MapComponent', () => {
       );
       req.flush(Page.of([sourceRef]));
 
-      const [ref, bareRepost] = component.mapData[0];
+      const [ref, bareRepost] = component.mapData()[0];
       expect(ref).toEqual(expect.objectContaining({
         url: repostRef.url,
         title: sourceRef.title,
@@ -179,9 +181,10 @@ describe('MapComponent', () => {
         },
       };
 
-      component.page = Page.of([repostRef]);
+      fixture.componentRef.setInput('page', Page.of([repostRef]));
+      fixture.detectChanges();
 
-      expect(component.mapData).toEqual([[repostRef]]);
+      expect(component.mapData()).toEqual([[repostRef]]);
     });
 
     it('should cancel previous bare repost source fetches when page changes', () => {
@@ -211,13 +214,15 @@ describe('MapComponent', () => {
         },
       };
 
-      component.page = Page.of([firstRepost]);
+      fixture.componentRef.setInput('page', Page.of([firstRepost]));
+      fixture.detectChanges();
       const firstReq = http.expectOne(request =>
         request.url.endsWith('/api/v1/ref/page')
         && request.params.get('url') === firstRepost.sources![0]
       );
 
-      component.page = Page.of([secondRepost]);
+      fixture.componentRef.setInput('page', Page.of([secondRepost]));
+      fixture.detectChanges();
 
       expect(firstReq.cancelled).toBe(true);
       const secondReq = http.expectOne(request =>
@@ -226,14 +231,14 @@ describe('MapComponent', () => {
       );
       secondReq.flush(Page.of([secondSource]));
 
-      expect(component.mapData).toEqual([[
+      expect(component.mapData()).toEqual([[
         expect.objectContaining({
           url: secondRepost.url,
           title: secondSource.title,
         }),
         secondRepost,
       ]]);
-      expect(component.mapData.some(([ref]) => ref.url === firstRepost.sources![0])).toBe(false);
+      expect(component.mapData().some(([ref]) => ref.url === firstRepost.sources![0])).toBe(false);
     });
   });
 });

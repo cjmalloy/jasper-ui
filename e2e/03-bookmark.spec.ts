@@ -1,5 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
-import { mod, openSidebar } from './setup';
+import { expect, type Page } from '@playwright/test';
+import { mod, openSidebar, test } from './setup';
 
 test.describe.serial('Bookmark Formly Type', () => {
 
@@ -93,6 +93,89 @@ test.describe.serial('Bookmark Formly Type', () => {
     expect(filtersIndex).toBeLessThan(kanbanIndex);
     const originsIndex = groups.indexOf('Origins 🏛️');
     if (originsIndex !== -1) expect(kanbanIndex).toBeLessThan(originsIndex);
+  });
+
+  test('fills the ext form with template config in one step', async ({ page }) => {
+    await page.goto('/ext/kanban/bookmark/filter?debug=MOD', { waitUntil: 'networkidle' });
+    await expect(page.locator('[name=name]')).toHaveValue('Bookmark Filter Kanban');
+    await expect(page.locator('[name=showColumnBacklog]')).toBeChecked();
+    await expect(page.locator('[name=columnBacklogTitle]')).toHaveValue('todo');
+    await expect(page.locator('.columns input.grow.preview')).toHaveCount(2);
+  });
+
+  test('keeps a hidden ext draft in a list', async ({ page }) => {
+    await page.goto('/tags/kanban?debug=MOD', { waitUntil: 'networkidle' });
+    const ext = page.locator('.ext', { has: page.getByRole('link', { name: 'Bookmark Filter Kanban' }) });
+    const edit = ext.locator('.actions .fake-link', { hasText: /^\*?edit\*?$/ });
+    await edit.click();
+    await expect(ext.locator('[name=columnBacklogTitle]')).toHaveValue('todo');
+    await ext.locator('[name=columnBacklogTitle]').fill('backlog');
+    await ext.locator('[name=name]').fill('Draft Kanban');
+    await ext.locator('.columns button').first().click();
+    const columns = ext.locator('.columns input.grow:not(.preview)');
+    const columnValues = () => ext.locator('.columns input.grow').evaluateAll(es => es.map(e => (e as HTMLInputElement).value));
+    await columns.last().fill('review');
+    await columns.last().press('Enter');
+    await expect.poll(columnValues).toContain('review');
+    await edit.click();
+    await expect(ext.locator('[name=columnBacklogTitle]')).toHaveCount(0);
+    await expect(ext.locator('.actions .fake-link', { hasText: '*edit*' })).toBeVisible();
+    await edit.click();
+    await expect(ext.locator('[name=columnBacklogTitle]')).toHaveValue('backlog');
+    await expect(ext.locator('[name=name]')).toHaveValue('Draft Kanban');
+    await expect.poll(columnValues).toContain('review');
+    await ext.locator('button', { hasText: 'cancel' }).click();
+    await expect(ext.locator('.actions .fake-link', { hasText: '*edit*' })).toHaveCount(0);
+  });
+
+  test('keeps an ext draft when the list reloads with remote edits', async ({ page, browser }) => {
+    await page.goto('/tags/kanban?debug=MOD', { waitUntil: 'networkidle' });
+    const ext = page.locator('.ext').filter({ has: page.locator('.link a[href$="/tag/kanban/bookmark/filter"]') });
+    const edit = ext.locator('.actions .fake-link', { hasText: /^\*?edit\*?$/ });
+    await edit.click();
+    await ext.locator('[name=columnBacklogTitle]').fill('backlog');
+    await edit.click();
+    await expect(ext.locator('.actions .fake-link', { hasText: '*edit*' })).toBeVisible();
+
+    const origin = new URL(page.url()).origin;
+    const renameExt = async (name: string) => {
+      const updaterContext = await browser.newContext();
+      const updater = await updaterContext.newPage();
+      try {
+        await updater.goto(`${origin}/ext/kanban/bookmark/filter?debug=MOD`, { waitUntil: 'networkidle' });
+        await updater.locator('[name=name]').fill(name);
+        const saved = updater.waitForResponse(response => response.url().includes('/api/v1/ext') && response.request().method() === 'PUT' && response.ok());
+        await updater.locator('button', { hasText: 'save' }).click();
+        await saved;
+      } finally {
+        await updaterContext.close();
+      }
+    };
+    await renameExt('Remote Kanban');
+
+    const search = page.locator('.search input[type=search]');
+    await search.fill('Kanban');
+    await search.press('Enter');
+    await expect(page).toHaveURL(/search=Kanban/);
+    await expect(ext.locator('.info .remote-edits')).toBeVisible();
+    await expect(ext.locator('.link a').first()).toContainText('Bookmark Filter Kanban');
+    await edit.click();
+    await expect(ext.locator('[name=columnBacklogTitle]')).toHaveValue('backlog');
+    await expect(ext.locator('[name=name]')).toHaveValue('Bookmark Filter Kanban');
+
+    await ext.locator('button', { hasText: 'cancel' }).click();
+    await expect(ext.locator('.link a').first()).toContainText('Remote Kanban');
+    await expect(ext.locator('.info .remote-edits')).toHaveCount(0);
+    await edit.click();
+    await expect(ext.locator('[name=columnBacklogTitle]')).toHaveValue('todo');
+    await expect(ext.locator('[name=name]')).toHaveValue('Remote Kanban');
+    await ext.locator('[name=name]').fill('Bookmark Filter Kanban');
+    const saved = page.waitForResponse(response => response.url().includes('/api/v1/ext') && response.request().method() === 'PUT' && response.ok());
+    await ext.locator('button', { hasText: 'save' }).click();
+    await saved;
+    await expect(ext.locator('[name=name]')).toHaveCount(0);
+    await expect(ext.locator('.link a').first()).toContainText('Bookmark Filter Kanban');
+    await expect(ext.locator('.actions .fake-link', { hasText: '*edit*' })).toHaveCount(0);
   });
 
   test('clicking outside popup closes it', async ({ page }) => {

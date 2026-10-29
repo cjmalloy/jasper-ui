@@ -1,10 +1,10 @@
 /// <reference types="vitest/globals" />
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { RateLimitInterceptor } from './rate-limit.interceptor';
+import { rateLimitInterceptor } from './rate-limit.interceptor';
 
-describe('RateLimitInterceptor', () => {
+describe('rateLimitInterceptor', () => {
   let httpClient: HttpClient;
   let httpTestingController: HttpTestingController;
 
@@ -12,10 +12,8 @@ describe('RateLimitInterceptor', () => {
     await TestBed.configureTestingModule({
       imports: [],
       providers: [
-        RateLimitInterceptor,
-        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptors([rateLimitInterceptor])),
         provideHttpClientTesting(),
-        { provide: HTTP_INTERCEPTORS, useClass: RateLimitInterceptor, multi: true },
       ]
     }).compileComponents();
 
@@ -25,11 +23,6 @@ describe('RateLimitInterceptor', () => {
 
   afterEach(() => {
     httpTestingController.verify();
-  });
-
-  it('should be created', () => {
-    const interceptor: RateLimitInterceptor = TestBed.inject(RateLimitInterceptor);
-    expect(interceptor).toBeTruthy();
   });
 
   it('should pass through successful requests', async () => {

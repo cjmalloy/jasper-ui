@@ -2,7 +2,7 @@ import { isArray, uniq, without } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
-import { braces, fixClientQuery, hasPrefix } from './tag';
+import { andQueries, fixClientQuery, hasPrefix, isGroup, isNegatedGroup } from './tag';
 
 const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
 const DEFAULT_DESC_PREFIXES = ['metadata->'];
@@ -51,7 +51,7 @@ export function negatable(filter: string) {
 export function toggle(filter: UrlFilter): UrlFilter {
   if (filter.startsWith('query/')) {
     const query = filter.substring('query/'.length);
-    if (query.startsWith('!(')) {
+    if (isNegatedGroup(query)) {
       return 'query/' + query.substring(2, query.length - 1) as UrlFilter;
     } else {
       return 'query/!(' + query + ')' as UrlFilter;
@@ -109,7 +109,7 @@ export function getArgs(
   }
   filters = uniq(filters);
   let queryFilter = getFiltersQuery(filters);
-  const query = queryFilter && tagOrSimpleQuery ? `${braces(tagOrSimpleQuery)}:${queryFilter}` : tagOrSimpleQuery || queryFilter;
+  const query = queryFilter && tagOrSimpleQuery ? andQueries([tagOrSimpleQuery, ...getFilters(filters)]) : tagOrSimpleQuery || queryFilter;
   if (sort?.length) {
     sort = Array.isArray(sort) ? [...sort] : [sort];
     for (let i = 0; i < sort.length; i++) {
@@ -156,29 +156,23 @@ export function getFilters(filters: UrlFilter[] | UrlFilter) {
 
 export function getFilter(filter: `query/${string}`) {
   const query = filter.substring('query/'.length);
-  if (!query.startsWith('!(')) return query;
+  if (!isNegatedGroup(query)) return query;
   return negate(query.substring(2, query.length - 1));
 }
 
 export function negate(query: string): string {
-  if (query.includes('(') || query.includes(':') && query.includes('|')) {
-    // TODO: Parse query to negate
-    console.error('Query parsing not implemented. Bailing on negate.');
-    return query;
+  if (isNegatedGroup(query)) return query.substring(2, query.length - 1);
+  if (isGroup(query)) return '!' + query;
+  if (!/[:|()]/.test(fixClientQuery(query))) {
+    // Single tag
+    if (query.startsWith('!')) return query.substring(1);
+    return '!' + query;
   }
-  if (query.includes(':')) {
-    return braces(query.split(':').map(negate).join('|'));
-  }
-  if (query.includes('|')) {
-    return query.split('|').map(negate).join(':');
-  }
-  // Single tag
-  if (query.startsWith('!')) return query.substring(1);
-  return '!' + query;
+  return `!(${query})`;
 }
 
 export function getFiltersQuery(filters: UrlFilter[] | UrlFilter){
-  return getFilters(filters).map(braces).join(':');
+  return andQueries(getFilters(filters));
 }
 
 export function parseArgs(params: any): RefPageArgs {
@@ -283,12 +277,5 @@ export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
 
 export function getTagQueryFilter(query: string, filter?: UrlFilter[]): string {
   if (!filter) return query;
-  let result = query;
-  for (const f of filter) {
-    if (f.startsWith('query/')) {
-      if (result) result += ':';
-      result += braces(getFilter(f as `query/${string}`));
-    }
-  }
-  return result;
+  return andQueries([query, ...getFilters(filter)]);
 }

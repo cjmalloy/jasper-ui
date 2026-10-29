@@ -37,6 +37,22 @@ describe('ConfigService', () => {
     http.verify();
   });
 
+  it('defaults installDefaults to true', () => {
+    service.load$.subscribe();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne(service.base + 'assets/config.json').flush({});
+    expect(service.installDefaults).toBe(true);
+    http.verify();
+  });
+
+  it('loads false booleans from config.json', () => {
+    service.load$.subscribe();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne(service.base + 'assets/config.json').flush({ installDefaults: false });
+    expect(service.installDefaults).toBe(false);
+    http.verify();
+  });
+
   it('keeps the default when maxEmbedNesting is omitted', () => {
     service.load$.subscribe();
     const http = TestBed.inject(HttpTestingController);

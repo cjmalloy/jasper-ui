@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, input, linkedSignal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UntypedFormControl, UntypedFormGroup, ValidatorFn } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { AdminService } from '../../service/admin.service';
+import { controlValue } from '../../util/form';
 
 /**
  * Formly editor for a JSON string form control.
@@ -12,71 +13,68 @@ import { AdminService } from '../../service/admin.service';
   templateUrl: './admin-config.component.html',
   styleUrls: ['./admin-config.component.scss'],
   host: { 'class': 'nested-form admin-config' },
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormlyForm],
 })
-export class AdminConfigComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
+export class AdminConfigComponent {
+  admin = inject(AdminService);
 
-  @Input()
-  group!: UntypedFormGroup;
-  @Input()
-  fieldName = 'config';
-  @Input()
-  fields: FormlyFieldConfig[] = [];
+  readonly group = input.required<UntypedFormGroup>();
+  readonly fieldName = input('config');
+  readonly fields = input<FormlyFieldConfig[]>([]);
+
+  readonly control = computed(() => this.group().get(this.fieldName()) as UntypedFormControl);
+  private readonly json = controlValue(() => this.control());
+  private written?: string;
+
+  readonly model = linkedSignal<string | undefined, any>({
+    source: this.json,
+    computation: (value, previous) => {
+      if (previous && value === this.written) return previous.value;
+      try {
+        return value ? JSON.parse(value) : {};
+      } catch (e) {
+        // Keep the last valid model while the JSON is being edited
+        return previous?.value ?? {};
+      }
+    },
+  });
 
   form = new UntypedFormGroup({});
-  model: any = {};
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
-      config: this.model,
+      config: {},
     },
   };
 
-  private json?: string;
   private formValidator: ValidatorFn = () => this.form.invalid ? { adminForm: true } : null;
 
-  constructor(
-    public admin: AdminService,
-    private cd: ChangeDetectorRef,
-  ) { }
-
-  get control() {
-    return this.group.get(this.fieldName) as UntypedFormControl;
-  }
-
-  ngOnInit() {
-    this.readJson(this.control.value);
-    this.control.valueChanges.pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(value => this.readJson(value));
-    this.control.addValidators(this.formValidator);
-    this.form.statusChanges.pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(() => this.control.updateValueAndValidity({ emitEvent: false }));
-    this.destroyRef.onDestroy(() => {
-      this.control.removeValidators(this.formValidator);
-      this.control.updateValueAndValidity({ emitEvent: false });
+  constructor() {
+    // Sync the model into the formly form state
+    effect(() => {
+      this.options.formState.config = this.model();
     });
-  }
-
-  private readJson(value?: string) {
-    if (value === this.json) return;
-    this.json = value;
-    try {
-      this.model = value ? JSON.parse(value) : {};
-    } catch (e) {
-      // Keep the last valid model while the JSON is being edited
-      return;
-    }
-    this.options.formState.config = this.model;
-    this.cd.markForCheck();
+    // Sync the formly form validity into the JSON control validators
+    effect(onCleanup => {
+      const control = this.control();
+      untracked(() => {
+        control.addValidators(this.formValidator);
+        control.updateValueAndValidity({ emitEvent: false });
+      });
+      onCleanup(() => {
+        control.removeValidators(this.formValidator);
+        control.updateValueAndValidity({ emitEvent: false });
+      });
+    });
+    this.form.statusChanges.pipe(
+      takeUntilDestroyed(inject(DestroyRef)),
+    ).subscribe(() => untracked(() => this.control()).updateValueAndValidity({ emitEvent: false }));
   }
 
   modelChange(model: any) {
-    this.json = JSON.stringify(model, null, 2);
-    this.control.setValue(this.json);
-    this.control.markAsDirty();
+    this.written = JSON.stringify(model, null, 2);
+    const control = this.control();
+    control.setValue(this.written);
+    control.markAsDirty();
   }
 }

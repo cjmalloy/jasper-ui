@@ -1,5 +1,5 @@
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponseBase } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest, HttpResponseBase } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
 import { from, Observable, switchMap, tap } from 'rxjs';
 import { ConfigService } from '../service/config.service';
 import { Store } from '../store/store';
@@ -11,28 +11,27 @@ import { base64Bytes, signJwt } from '../util/jwt';
  */
 export const JASPER_KEY_HEADER = 'X-Jasper-Key';
 
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
+export const authInterceptor: HttpInterceptorFn = (request, next) => inject(AuthTokenService).intercept(request, next);
+
+@Injectable({ providedIn: 'root' })
+export class AuthTokenService {
+  private config = inject(ConfigService);
+  private store = inject(Store);
 
   private secret = '';
   private tokenSecret = '';
   private tokenUserTag = '';
   private minting?: Promise<string>;
 
-  constructor(
-    private config: ConfigService,
-    private store: Store,
-  ) {}
-
-  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+  intercept(request: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> {
     const minting = this.updateToken();
     if (minting) return from(minting).pipe(switchMap(() => this.handle(request, next)));
     return this.handle(request, next);
   }
 
-  private handle(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+  private handle(request: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> {
     const userTag = this.secret ? '' : this.store.local.selectedUserTag;
-    if (!this.config.token && !userTag) return this.readSecret(next.handle(request));
+    if (!this.config.token && !userTag) return this.readSecret(next(request));
     let headers = request.headers;
     if (this.config.token) {
       headers = headers.set('Authorization', 'Bearer ' + this.config.token);
@@ -40,7 +39,7 @@ export class AuthInterceptor implements HttpInterceptor {
     if (userTag) {
       headers = headers.set('User-Tag', userTag);
     }
-    return this.readSecret(next.handle(request.clone({ headers })));
+    return this.readSecret(next(request.clone({ headers })));
   }
 
   private readSecret(events: Observable<HttpEvent<unknown>>) {

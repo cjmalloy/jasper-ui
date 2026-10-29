@@ -8,7 +8,7 @@ export const summaryQueryPlugin: Plugin = {
   name: $localize`✂️️💭️ Summarize`,
   config: {
     mod: $localize`✂️ Summarize`,
-    version: 2,
+    version: 3,
     type: 'tool',
     default: false,
     add: true,
@@ -34,60 +34,60 @@ export const summaryQueryPlugin: Plugin = {
     }],
     // language=JavaScript
     script: `
-      const bundle = { ref: [] };
-      const uuid = require('uuid');
-      const axios = require('axios');
-      const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
-      const origin = ref.origin || '';
-      const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
-      const existingResponse = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-        headers: {
-          'Local-Origin': origin || 'default',
-          'User-Tag': authors[0] || '',
-        },
-        params: {
-          query: '+plugin/placeholder:!+plugin/delta:' + authors.map(a => a.substring(1)).join(':'),
-          responses: ref.url,
-          size: 1,
-        },
-      }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        })).data.content[0];
-      if (existingResponse) process.exit(0);
-      const response = {
-        origin,
-        url: 'ai:' + uuid.v4(),
-        title: ref.title ? 'Summary of: ' + ref.title : 'Summary',
-        comment: '+plugin/delta/ai/summary is working...',
-        tags: ['+plugin/placeholder', 'plugin/llm'],
-        plugins: {
-          'plugin/llm': {
-            ignoreThread: true,
-          }
-        }
-      };
-      bundle.ref.push(response);
-      response.tags.push(...authors.map(a => a.startsWith('+') || a.startsWith('_') ? a.substring(1) : a));
-      if (ref.tags.includes('public')) response.tags.push('public');
-      if (ref.tags.includes('internal')) response.tags.push('internal');
-      if (ref.tags.includes('dm')) response.tags.push('dm', 'internal', 'plugin/thread');
-      if (ref.tags.includes('plugin/comment')) response.tags.push('plugin/comment', 'internal');
-      if (ref.tags.includes('plugin/thread')) response.tags.push('plugin/thread', 'internal');
-      const chatTags = ref.tags.filter(t => t === 'chat' || t.startsWith('chat/'));
-      if (chatTags.length) {
-        response.tags.push(chatTags);
-      }
-      const uniq = (v, i, a) => a.indexOf(v) === i;
-      response.tags = response.tags.filter(uniq);
-      response.sources = [ref.url];
-      if (ref.sources && (ref.tags.includes('plugin/thread') || ref.tags.includes('plugin/comment'))) {
-        response.sources.push(ref.sources[1] || ref.sources[0] || ref.url);
-      } else {
-        response.sources.push(ref.url);
-      }
-      response.sources.push('system:summary-prompt');
-      console.log(JSON.stringify(bundle));
+const bundle = { ref: [] };
+const uuid = require('uuid');
+const axios = require('axios');
+const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
+const origin = ref.origin || '';
+const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
+const existingResponse = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+  headers: {
+    'Local-Origin': origin || 'default',
+    'User-Tag': authors[0] || '',
+  },
+  params: {
+    query: '+plugin/placeholder:!+plugin/delta:' + authors.map(a => a.substring(1)).join(':'),
+    responses: ref.url,
+    size: 1,
+  },
+}).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  })).data.content[0];
+if (existingResponse) process.exit(0);
+const response = {
+  origin,
+  url: 'ai:' + uuid.v4(),
+  title: ref.title ? 'Summary of: ' + ref.title : 'Summary',
+  comment: '+plugin/delta/ai/summary is working...',
+  tags: ['+plugin/placeholder', 'plugin/llm'],
+  plugins: {
+    'plugin/llm': {
+      ignoreThread: true,
+    }
+  }
+};
+bundle.ref.push(response);
+response.tags.push(...authors.map(a => a.startsWith('+') || a.startsWith('_') ? a.substring(1) : a));
+if (ref.tags.includes('public')) response.tags.push('public');
+if (ref.tags.includes('internal')) response.tags.push('internal');
+if (ref.tags.includes('dm')) response.tags.push('dm', 'internal', 'plugin/thread');
+if (ref.tags.includes('plugin/comment')) response.tags.push('plugin/comment', 'internal');
+if (ref.tags.includes('plugin/thread')) response.tags.push('plugin/thread', 'internal');
+const chatTags = ref.tags.filter(t => t === 'chat' || t.startsWith('chat/'));
+if (chatTags.length) {
+  response.tags.push(chatTags);
+}
+const uniq = (v, i, a) => a.indexOf(v) === i;
+response.tags = response.tags.filter(uniq);
+response.sources = [ref.url];
+if (ref.sources && (ref.tags.includes('plugin/thread') || ref.tags.includes('plugin/comment'))) {
+  response.sources.push(ref.sources[1] || ref.sources[0] || ref.url);
+} else {
+  response.sources.push(ref.url);
+}
+response.sources.push('system:summary-prompt');
+console.log(JSON.stringify(bundle));
     `
   }
 };

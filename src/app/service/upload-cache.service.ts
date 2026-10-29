@@ -1,6 +1,5 @@
 import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { reaction } from 'mobx';
+import { inject, Injectable, untracked } from '@angular/core';
 import { concat, defer, filter, finalize, map, Observable, of, shareReplay, switchMap, tap, toArray } from 'rxjs';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
@@ -20,6 +19,10 @@ import { RefService } from './api/ref.service';
   providedIn: 'root',
 })
 export class UploadCacheService {
+  private store = inject(Store);
+  private proxy = inject(ProxyService);
+  private refs = inject(RefService);
+
 
   /**
    * Map of origin and old cache ID to new cache ID.
@@ -29,13 +32,13 @@ export class UploadCacheService {
    * In flight uploads, keyed by origin and old cache ID.
    */
   private pending = new Map<string, Observable<string | undefined>>();
+  /**
+   * Upload list last used to prune mappings.
+   */
+  private pruned: readonly Ref[];
 
-  constructor(
-    private store: Store,
-    private proxy: ProxyService,
-    private refs: RefService,
-  ) {
-    reaction(() => this.store.submit.refs, refs => this.prune(refs));
+  constructor() {
+    this.pruned = untracked(() => this.store.submit.refs());
   }
 
   /**
@@ -43,6 +46,11 @@ export class UploadCacheService {
    * the new cache IDs.
    */
   restore$(ref: Ref, origin: string): Observable<Ref> {
+    const refs = untracked(() => this.store.submit.refs());
+    if (refs !== this.pruned) {
+      this.pruned = refs;
+      this.prune(refs);
+    }
     const ids = refCacheIds(ref).filter(id => {
       const key = this.key(id, origin);
       return this.ids.has(key) || this.pending.has(key) || this.store.submit.cacheFiles.has(id);
@@ -77,7 +85,7 @@ export class UploadCacheService {
     return origin + ' ' + id;
   }
 
-  private prune(refs: Ref[]) {
+  private prune(refs: readonly Ref[]) {
     const keep = new Set(refs.flatMap(refCacheIds));
     for (const key of [...this.ids.keys()]) {
       if (!keep.has(key.substring(key.lastIndexOf(' ') + 1))) this.ids.delete(key);
@@ -107,14 +115,14 @@ export class UploadCacheService {
   }
 
   private fileName(id: string, ref: Ref): string {
-    for (const r of [ref, ...this.store.submit.refs]) {
+    for (const r of [ref, ...untracked(() => this.store.submit.refs())]) {
       if (cacheUrlId(r.url) === id && r.title) return r.title;
     }
     return id;
   }
 
   private mimeType(id: string, ref: Ref): string {
-    for (const r of [ref, ...this.store.submit.refs]) {
+    for (const r of [ref, ...untracked(() => this.store.submit.refs())]) {
       const cache = r.plugins?.['_plugin/cache'];
       if (cache?.id === id && cache.mimeType) return cache.mimeType;
     }

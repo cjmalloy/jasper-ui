@@ -20,10 +20,22 @@ describe('ActionListComponent', () => {
     }).compileComponents();
     fixture = TestBed.createComponent(ActionListComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('ref', { url: 'test:1' });
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('renders plugin actions inline', () => {
+    fixture.componentRef.setInput('groupedActions', {
+      One: [{ event: 'one' }],
+      Two: [{ event: 'two' }],
+      Three: [{ event: 'three' }],
+    });
+    fixture.detectChanges();
+    const actions = fixture.nativeElement.querySelectorAll('.list-action');
+    expect(actions.length).toBe(3);
   });
 });

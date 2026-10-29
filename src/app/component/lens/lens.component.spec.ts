@@ -1,10 +1,12 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { runInAction } from 'mobx';
 
+import { Ref } from '../../model/ref';
+import { QueryStore } from '../../store/query';
 import { LensComponent } from './lens.component';
 
 describe('LensComponent', () => {
@@ -18,6 +20,7 @@ describe('LensComponent', () => {
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
+        { provide: QueryStore, useValue: { sourcesOf: signal<Ref | undefined>(undefined), responseOf: signal<Ref | undefined>(undefined), refresh: vi.fn() } },
       ],
       deferBlockBehavior: DeferBlockBehavior.Playthrough,
     });
@@ -38,7 +41,7 @@ describe('LensComponent', () => {
   ] as const)('reacts when query.%s loads', async (property, selector) => {
     expect(fixture.nativeElement.querySelector(selector)).toBeNull();
 
-    runInAction(() => component.query[property] = {
+    (component.query[property] as WritableSignal<Ref | undefined>).set({
       url: 'https://example.com/ref',
       title: 'Filtered ref',
     });

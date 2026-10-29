@@ -42,4 +42,10 @@ describe('SubmitPage', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('selects the plugin from the tag query param without a url', () => {
+    component.store.view.route.routeSnapshot.set({ queryParams: { tag: ['science', 'plugin/test'] } } as any);
+    TestBed.tick();
+    expect(component.plugin()).toBe('plugin/test');
+  });
 });

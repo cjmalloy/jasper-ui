@@ -26,7 +26,7 @@ describe('TemplateComponent', () => {
 
     fixture = TestBed.createComponent(TemplateComponent);
     component = fixture.componentInstance;
-    component.template = { tag: 'template' };
+    fixture.componentRef.setInput('template', { tag: 'template' });
     fixture.detectChanges();
   });
 

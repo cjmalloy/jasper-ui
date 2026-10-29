@@ -3,10 +3,11 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   globalSetup: require.resolve('./e2e/global-setup.ts'),
+  // Spec files run in parallel (each worker uses its own origins), tests within a file run in order
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: 1,
+  workers: process.env.PW_WORKERS ? +process.env.PW_WORKERS : process.env.CI ? 4 : 1,
   expect: { timeout: 15_000 },
   reporter: process.env.CI ? [
       ['list'],
@@ -17,7 +18,8 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'http://localhost:8080',
     // baseURL: 'http://localhost:4200', // debugging
     trace: 'on-first-retry',
-    video: process.env.CI ? 'on' : 'off',
+    // PW_VIDEO=on records every test (master), anything else keeps only failures (PRs)
+    video: !process.env.CI ? 'off' : process.env.PW_VIDEO === 'on' ? 'on' : 'retain-on-failure',
     viewport: { width: 1280, height: 720 }, // Prevent mobile layout
     actionTimeout: 10_000,
   },

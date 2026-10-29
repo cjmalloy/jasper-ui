@@ -1,32 +1,33 @@
-import { Directive, ElementRef, Input } from '@angular/core';
+import { afterNextRender, Directive, ElementRef, inject, input, linkedSignal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
 @Directive({ selector: '[appAutofocus]', })
 export class AutofocusDirective {
+  private elementRef = inject(ElementRef);
+  private router = inject(Router);
 
-  @Input('appAutofocus')
-  enabled: boolean | '' = true;
 
-  @Input()
-  select = true;
+  readonly enabledInput = input<boolean | ''>(true, { alias: 'appAutofocus' });
+  readonly enabled = linkedSignal(() => this.enabledInput());
 
-  constructor(
-    private elementRef: ElementRef,
-    private router: Router,
-  ) {
+  readonly select = input(true);
+
+  constructor() {
+    const router = this.router;
+
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.focus());
   };
 
-  ngOnInit(): void {
+  private readonly initialize = afterNextRender(() => {
     this.focus();
-  }
+  });
 
   focus() {
-    if (this.enabled === false) return;
-    this.enabled = false;
+    if (this.enabled() === false) return;
+    this.enabled.set(false);
     this.elementRef.nativeElement.focus();
     if ('setSelectionRange' in this.elementRef.nativeElement) {
       try {

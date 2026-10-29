@@ -1,6 +1,8 @@
-import { DestroyRef, inject, Component, ElementRef, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, ElementRef, inject, input } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { isEqual } from 'lodash-es';
+import { catchError, Observable, of, startWith, switchMap } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -16,76 +18,81 @@ import { hasPrefix } from '../../util/tag';
   selector: 'app-nav',
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink]
 })
-export class NavComponent implements OnInit {
+export class NavComponent {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private editor = inject(EditorService);
+  private vis = inject(VisibilityService);
+  private el = inject(ElementRef);
+
   private destroyRef = inject(DestroyRef);
 
-  @Input()
-  origin: string = '';
-  @Input()
-  url: string = '';
-  @Input()
-  title = '';
-  @Input()
-  text = '';
-  @Input()
-  css = '';
-  @Input()
-  external = false;
-  @Input()
-  shortUser = false;
+  readonly origin = input('');
+  readonly url = input('');
+  readonly titleInput = input('', { alias: 'title' });
+  readonly title = computed(() => {
+    const tag = this.previewTag();
+    if (this.titleInput() || tag === undefined) return this.titleInput() || this.preview()?.tag || '';
+    return this.user() ? formatAuthor(tag) : tag ? '#' + tag : '';
+  });
+  readonly textInput = input('', { alias: 'text' });
+  readonly text = computed(() => {
+    const tag = this.previewTag();
+    if (tag === undefined) return this.textInput();
+    return this.preview()?.name || this.textInput() || (this.user() ? formatAuthor(tag) : tag && !tag.startsWith('@') ? '#' + tag : tag);
+  });
+  readonly css = input('');
+  readonly external = input(false);
+  readonly shortUser = input(false);
 
-  nav?: (string|number)[];
-
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private editor: EditorService,
-    private vis: VisibilityService,
-    private el: ElementRef,
-  ) { }
-
-  ngOnInit() {
-    if (this.localUrl) {
-      const nav = this.getNav();
-      this.nav = nav;
-if (nav[0] === '/tag' && this.store.view.browser) {
-  const suffixIndex = this.url.search(/[?#]/);
-  const suffix = suffixIndex < 0 ? '' : this.url.substring(suffixIndex);
-  this.nav = ['/browse', 'tag:/' + nav[1] + suffix];
-}
-      if (nav[0] === '/tag' && !this.external && !this.hasText) {
-        const tag = nav[1] as string;
-        const user = this.shortUser && hasPrefix(tag, 'user');
-        this.text = this.text || (user ? formatAuthor(tag) : tag && !tag.startsWith('@') ? '#' + tag : tag) || '';
-        this.title ||= user ? formatAuthor(tag) : tag ? '#' + tag : '';
-        this.editor.getTagPreview(tag, this.origin, true, !user)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(x => this.text = x?.name || this.text);
-      }
-    } else if (!this.external) {
-      this.vis.notifyVisible(this.el, () => {
-        this.refs.exists(this.url).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(exists => {
-          if (exists) {
-            this.nav = [this.store.view.refPath, this.url];
-          }
-        });
-      });
+  private readonly exists = toSignal(toObservable(computed(() =>
+    this.url() && !this.localUrl() && !this.external() ? this.url() : undefined,
+  )).pipe(switchMap(url => !url ? of(false) : new Observable<void>(subscriber => {
+    this.vis.notifyVisible(this.el, () => subscriber.next());
+  }).pipe(switchMap(() => this.refs.exists(url).pipe(catchError(() => of(false)))), startWith(false)))), { initialValue: false });
+  readonly nav = computed(() => {
+    if (!this.localUrl()) return this.exists() ? [this.store.view.refPath(), this.url()] : undefined;
+    const nav = this.getNav();
+    if (nav[0] === '/tag' && this.store.view.browser()) {
+      const url = this.url();
+      const suffixIndex = url.search(/[?#]/);
+      const suffix = suffixIndex < 0 ? '' : url.substring(suffixIndex);
+      return ['/browse', 'tag:/' + nav[1] + suffix];
     }
-  }
+    return nav;
+  });
+  private readonly previewTag = computed(() => {
+    const nav = this.localUrl() ? this.getNav() : undefined;
+    return nav?.[0] === '/tag' && !this.external() && !this.meaningfulText(this.textInput())
+      ? nav[1] as string : undefined;
+  });
+  private readonly user = computed(() => {
+    const tag = this.previewTag();
+    return !!tag && this.shortUser() && hasPrefix(tag, 'user');
+  });
+  private readonly preview = toSignal(toObservable(computed(() => ({
+    tag: this.previewTag(),
+    origin: this.origin(),
+    user: this.user(),
+  }), { equal: isEqual })).pipe(switchMap(({ tag, origin, user }) => tag
+    ? this.editor.getTagPreview(tag, origin, true, !user).pipe(startWith(undefined))
+    : of(undefined))),
+  { initialValue: undefined });
+  private readonly baseHref = document.getElementsByTagName('base')[0]?.href || document.baseURI || location.origin + '/';
 
 
   getNav() {
-    if (this.url.toLowerCase().startsWith('tag:/')) {
-      return ['/tag', getPath(this.url.substring('tag:'.length))!.substring(1)];
+    const url = this.url();
+    if (url.toLowerCase().startsWith('tag:/')) {
+      return ['/tag', getPath(url.substring('tag:'.length))!.substring(1)];
     }
-    let path = getPath(this.url) || '';
-    const basePath = getPath(this.config.base)!;
+    let path = getPath(url) || '';
+    const basePath = getPath(this.baseHref)!;
     if (path.startsWith(basePath)) {
       path = path.substring(basePath.length);
     }
@@ -101,31 +108,37 @@ if (nav[0] === '/tag' && this.store.view.browser) {
     return ['/' + route, parts.join('/')];
   }
 
-  get query() {
-    if (this.nav?.[0] === '/browse') return undefined;
-    return parseBookmarkParams(this.url);
-  }
+  readonly query = computed(() => {
+    if (this.nav()?.[0] === '/browse') return undefined;
+    return parseBookmarkParams(this.url());
+  });
 
-  get localUrl() {
-    if (this.url.toLowerCase().startsWith('tag:/'))return true
-    if (this.url.startsWith(this.config.base)) return true
-    if (this.url.startsWith(getPath(this.config.base)!)) return true;
-    if (this.url.startsWith('/')) return true;
+  readonly localUrl = computed(() => {
+    const url = this.url();
+    if (url.toLowerCase().startsWith('tag:/'))return true
+    if (url.startsWith(this.baseHref)) return true
+    if (url.startsWith(getPath(this.baseHref)!)) return true;
+    if (url.startsWith('/')) return true;
     return false;
-  }
+  });
 
-  get hasText() {
-    if (!this.text || hasPrefix(this.text, 'user') || hasPrefix(this.text, 'plugin')) return false;
-    if (this.url.startsWith('/tag/') || this.url.toLowerCase().startsWith('tag:/')) {
-      if (this.text === '#' + this.url.substring(5)) return false;
+  readonly hasText = computed(() => this.meaningfulText(this.text()));
+
+  private meaningfulText(text: string) {
+    const url = this.url();
+    if (!text || hasPrefix(text, 'user') || hasPrefix(text, 'plugin')) return false;
+    if (url.startsWith('/tag/') || url.toLowerCase().startsWith('tag:/')) {
+      if (text === '#' + url.substring(5)) return false;
     }
-    return this.text != this.url;
+    const nav = this.localUrl() ? this.getNav() : undefined;
+    if (nav?.[0] === '/tag' && text === '#' + nav[1]) return false;
+    return text != url;
   }
 
   markRead(event: MouseEvent) {
     if (!this.admin.getPlugin('plugin/user/read')) return;
     if (event.button !== 0 && event.button !== 1) return;
-    this.ts.createResponse('plugin/user/read', this.url).subscribe();
+    this.ts.createResponse('plugin/user/read', this.url()).subscribe();
   }
 
 }

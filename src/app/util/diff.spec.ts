@@ -296,6 +296,44 @@ describe('Diff Utils', () => {
       expect(result!.plugin![0].config!.a.script).toBe('a\nB\nc\nD\ne');
     });
 
+    it('should merge indexed subDiff paths inside arrays line-by-line', () => {
+      const indexed = (s: string, steps: any[] = []) => ({ plugin: [{ tag: 'plugin/test', config: { subDiff: ['steps[0].script'], steps: [{ name: 'run', script: s }, ...steps] } }] } as any);
+      const { result, conflict } = mergeBundle(
+        indexed('a\nB\nc\nd\ne'),
+        indexed('a\nb\nc\nd\ne'),
+        indexed('a\nb\nc\nD\ne', [{ name: 'added' }]));
+      expect(conflict).toBeFalsy();
+      expect(result!.plugin![0].config!.steps).toEqual([{ name: 'run', script: 'a\nB\nc\nD\ne' }, { name: 'added' }]);
+    });
+
+    it('should conflict on the same line of an indexed subDiff path', () => {
+      const indexed = (s: string) => ({ plugin: [{ tag: 'plugin/test', config: { subDiff: ['steps[0].script'], steps: [{ script: s }] } }] } as any);
+      expect(mergeBundle(indexed('a\nB\nc'), indexed('a\nb\nc'), indexed('a\nX\nc')).conflict).toBe(true);
+    });
+
+    it('should merge subDiff paths that are array elements line-by-line', () => {
+      const scripts = (s: string, ...rest: string[]) => ({ plugin: [{ tag: 'plugin/test', config: { subDiff: ['scripts[0]'], scripts: [s, ...rest] } }] } as any);
+      const { result, conflict } = mergeBundle(
+        scripts('a\nB\nc\nd\ne'),
+        scripts('a\nb\nc\nd\ne'),
+        scripts('a\nb\nc\nD\ne', 'added'));
+      expect(conflict).toBeFalsy();
+      expect(result!.plugin![0].config!.scripts).toEqual(['a\nB\nc\nD\ne', 'added']);
+      expect(mergeBundle(scripts('a\nB\nc'), scripts('a\nb\nc'), scripts('a\nX\nc')).conflict).toBe(true);
+    });
+
+    it('should conflict when an edited indexed subDiff element is deleted', () => {
+      const steps = (...steps: any[]) => ({ plugin: [{ tag: 'plugin/test', config: { subDiff: ['steps[0].script'], steps } }] } as any);
+      expect(mergeBundle(
+        steps({ name: 'a', script: 'x\nY' }, { name: 'b', script: 'x\ny' }),
+        steps({ name: 'a', script: 'x\ny' }, { name: 'b', script: 'x\ny' }),
+        steps({ name: 'b', script: 'x\ny' })).conflict).toBe(true);
+      expect(mergeBundle(
+        steps({ script: 'a\nB' }, { script: 'c\nd' }),
+        steps({ script: 'a\nb' }, { script: 'c\nd' }),
+        steps({ script: 'c\nd' })).conflict).toBe(true);
+    });
+
     it('should take one-sided subDiff changes', () => {
       const base = bundle('a\nb');
       const ours = bundle('a\nb');
@@ -336,6 +374,57 @@ describe('Diff Utils', () => {
       const ours = { plugin: [{ tag: 'plugin/test', config: { subDiff: ['a.script'], a: {} } }] } as any;
       const { result } = mergeBundle(ours, base, ours);
       expect(result!.plugin![0].config!.a).toEqual({});
+    });
+
+    it('should merge changes to adjacent fields', () => {
+      const base = bundle('s', { a: 'a', b: 'b', c: 'c' }, []);
+      const ours = bundle('s', { a: 'X', b: 'b', c: 'c' }, []);
+      const theirs = bundle('s', { a: 'a', b: 'Y', c: 'c', version: 2 }, []);
+      const { result, conflict } = mergeBundle(ours, base, theirs);
+      expect(conflict).toBeFalsy();
+      expect(result!.plugin![0].config).toEqual(expect.objectContaining({ a: 'X', b: 'Y', c: 'c', version: 2 }));
+    });
+
+    it('should merge a local change with a field added by the update', () => {
+      const base = bundle('s', { a: 'a', b: 'b' }, []);
+      const ours = bundle('s', { a: 'a', b: 'X' }, []);
+      const theirs = bundle('s', { a: 'a', b: 'b', c: 'new' }, []);
+      const { result, conflict } = mergeBundle(ours, base, theirs);
+      expect(conflict).toBeFalsy();
+      expect(result!.plugin![0].config).toEqual(expect.objectContaining({ b: 'X', c: 'new' }));
+    });
+
+    it('should merge subDiff scripts alongside other changes in the same plugin', () => {
+      const base = bundle('a\nb\nc\nd\ne', { timeoutMs: 1 });
+      const ours = bundle('a\nB\nc\nd\ne', { timeoutMs: 2 });
+      const theirs = bundle('a\nb\nc\nD\ne', { timeoutMs: 1, version: 2, description: 'new' });
+      const { result, conflict } = mergeBundle(ours, base, theirs);
+      expect(conflict).toBeFalsy();
+      expect(result!.plugin![0].config).toEqual(expect.objectContaining({
+        script: 'a\nB\nc\nD\ne',
+        timeoutMs: 2,
+        version: 2,
+        description: 'new',
+      }));
+    });
+
+    it('should add and remove entities from the update', () => {
+      const base = { plugin: [{ tag: 'plugin/old', config: { mod: 'Test' } }, { tag: 'plugin/test', config: { mod: 'Test' } }] } as any;
+      const ours = { plugin: [{ tag: 'plugin/old', config: { mod: 'Test' } }, { tag: 'plugin/test', config: { mod: 'Test', custom: true } }] } as any;
+      const theirs = { plugin: [{ tag: 'plugin/new', config: { mod: 'Test' } }, { tag: 'plugin/test', config: { mod: 'Test' } }] } as any;
+      const { result, conflict } = mergeBundle(ours, base, theirs);
+      expect(conflict).toBeFalsy();
+      expect(result!.plugin!.map(p => p.tag)).toEqual(['plugin/new', 'plugin/test']);
+      expect(result!.plugin![1].config!.custom).toBe(true);
+    });
+
+    it('should ignore server fields', () => {
+      const base = bundle('s');
+      const ours = { plugin: [{ ...base.plugin[0], origin: '', modified: '2026-01-01T00:00:00Z', modifiedString: '2026-01-01T00:00:00Z' }] } as any;
+      const theirs = bundle('s', { version: 2 });
+      const { result, conflict } = mergeBundle(ours, base, theirs);
+      expect(conflict).toBeFalsy();
+      expect(result).toEqual(clearMod(theirs));
     });
   });
 });

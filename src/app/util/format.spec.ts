@@ -1,30 +1,58 @@
 /// <reference types="vitest/globals" />
+import { Ref } from '../model/ref';
 import {
-  URI_REGEX,
-  TAG_REGEX,
-  ORIGIN_REGEX,
-  ORIGIN_NOT_BLANK_REGEX,
-  QUALIFIED_TAG_REGEX,
-  PLUGIN_REGEX,
-  USER_REGEX,
-  urlSummary,
-  interestingTag,
-  interestingTags,
+  authors,
+  dedent,
   formatAuthor,
-  getTitle,
   getNiceTitle,
   getRe,
-  readableBytes,
+  getTitle,
   hasComment,
-  tagLink,
+  interestingTag,
+  interestingTags,
   isTextPost,
+  ORIGIN_NOT_BLANK_REGEX,
+  ORIGIN_REGEX,
+  PLUGIN_REGEX,
+  QUALIFIED_TAG_REGEX,
+  QUERY_REGEX,
+  readableBytes,
+  TAG_REGEX,
+  tagLink,
   templates,
+  URI_REGEX,
+  urlSummary,
+  USER_REGEX,
   userAuthors,
-  authors,
 } from './format';
-import { Ref } from '../model/ref';
 
 describe('Format Utils', () => {
+  describe('QUERY_REGEX', () => {
+    it('should match multi-character sub-origins in every term position', () => {
+      for (const q of ['science@home.ab', '(science@home.ab)', 'a:science@home.ab', 'a:(b|c@x.yz)', '(a@x.yz|b):c@x.yz', '@home.ab|@*']) {
+        expect(QUERY_REGEX.test(q)).toBe(true);
+      }
+    });
+
+    it('should match negated and nested groups', () => {
+      for (const q of ['!(a|b)', '!(a:b)', '!!(a)', '!(!a)', '((a|b):c)|d', 'a:!(b|(c:!d))', '!(a|b@x.yz)']) {
+        expect(QUERY_REGEX.test(q)).toBe(true);
+      }
+    });
+
+    it('should not match malformed operators or groups', () => {
+      for (const q of ['', 'a::b', 'a:', '|a', '!', '()', 'a)(b', 'a!b', 'a(b)']) {
+        expect(QUERY_REGEX.test(q)).toBe(false);
+      }
+    });
+
+    it('should not match invalid origins', () => {
+      for (const q of ['a@.x', '(a@x.)', 'a:b@x..y', 'a@x.*', '(a@x.*)']) {
+        expect(QUERY_REGEX.test(q)).toBe(false);
+      }
+    });
+  });
+
   describe('URI_REGEX', () => {
     it('should match valid URIs', () => {
       expect(URI_REGEX.test('http://example.com')).toBe(true);
@@ -399,6 +427,21 @@ describe('Format Utils', () => {
       const ref: Ref = { url: 'test', origin: '@origin', tags: ['+user/name', '+user/name'] };
       const result = authors(ref);
       expect(result.filter(a => a === '+user/name@origin').length).toBe(1);
+    });
+  });
+
+  describe('dedent', () => {
+    it('should remove common leading indentation', () => {
+      expect(dedent('\n      a\n        b\n      c')).toBe('\na\n  b\nc');
+    });
+
+    it('should ignore blank lines when finding indentation', () => {
+      expect(dedent('  a\n\n    \n  b')).toBe('a\n\n\nb');
+    });
+
+    it('should leave unindented text unchanged', () => {
+      expect(dedent('a\n    b')).toBe('a\n    b');
+      expect(dedent('')).toBe('');
     });
   });
 });

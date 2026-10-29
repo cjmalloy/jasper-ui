@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { catchError, concat, first, map, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -17,15 +17,15 @@ export const REF_CACHE_MS = 15 * 60 * 1000;
   providedIn: 'root',
 })
 export class RefService {
+  private http = inject(HttpClient);
+  private config = inject(ConfigService);
+  private store = inject(Store);
+  private login = inject(LoginService);
+
 
   private _cache = new Map<string, boolean>();
 
-  constructor(
-    private http: HttpClient,
-    private config: ConfigService,
-    private store: Store,
-    private login: LoginService,
-  ) {
+  constructor() {
     this.store.eventBus.events.subscribe(event => {
       if (event.event === 'reload') {
         this.store.eventBus.catchError$(this.get(event.ref!.url, event.ref!.origin!))
@@ -128,10 +128,10 @@ export class RefService {
   }
 
   getEditing(url: string): Observable<Ref | undefined> {
-    if (!this.store.account.localTag) return of(undefined);
+    if (!this.store.account.localTag()) return of(undefined);
     return this.page({
       url,
-      query: this.store.account.localTag + ':plugin/editing',
+      query: this.store.account.localTag() + ':plugin/editing',
       size: 1,
       obsolete: null,
     }).pipe(
@@ -143,15 +143,15 @@ export class RefService {
   startEditing(ref: Ref) {
     return this.create({
       url: ref.url,
-      origin: this.store.account.origin,
-      tags: [this.store.account.localTag, 'plugin/editing'],
+      origin: this.store.account.origin(),
+      tags: [this.store.account.localTag(), 'plugin/editing'],
       plugins: { 'plugin/editing': writeEdit(ref) }
     });
   }
 
   saveEdit(ref: Ref, cursor?: string): Observable<string> {
     if (!cursor) return this.startEditing(ref);
-    return this.patch(ref.url, this.store.account.origin, cursor, [{
+    return this.patch(ref.url, this.store.account.origin(), cursor, [{
       op: 'add',
       path: '/plugins/' + escapePath('plugin/editing'),
       value: writeEdit(ref),

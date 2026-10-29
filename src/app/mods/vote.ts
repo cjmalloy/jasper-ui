@@ -2,6 +2,7 @@ import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Mod } from '../model/tag';
+import { pluginResponses } from '../util/tag';
 
 export const voteUpPlugin: Plugin = {
   tag: 'plugin/user/vote/up',
@@ -91,14 +92,7 @@ export const voteDownPlugin: Plugin = {
 };
 
 export function score(ref: Ref) {
-  let score = 0;
-  if (ref.metadata?.plugins?.['plugin/user/vote/up']) {
-    score += ref.metadata?.plugins['plugin/user/vote/up'];
-  }
-  if (ref.metadata?.plugins?.['plugin/user/vote/down']) {
-    score -= ref.metadata?.plugins['plugin/user/vote/down'];
-  }
-  return score;
+  return pluginResponses(ref, 'plugin/user/vote/up') - pluginResponses(ref, 'plugin/user/vote/down');
 }
 
 export const voteMod: Mod = {

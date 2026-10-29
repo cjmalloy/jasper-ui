@@ -1,13 +1,23 @@
 /// <reference types="vitest/globals" />
+import { TestBed } from '@angular/core/testing';
 import { FormArray, FormControl } from '@angular/forms';
 import { FieldArrayType } from '@ngx-formly/core';
 import { vi } from 'vitest';
+import { Store } from '../store/store';
 import { ListTypeComponent } from './list.type';
 import { closedRings } from './location-picker';
 
 describe('ListTypeComponent', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Store, useValue: { hotkey: () => false } },
+      ],
+    });
+  });
+
   function createComponent() {
-    const component = new ListTypeComponent({ hotkey: false } as any);
+    const component = TestBed.runInInjectionContext(() => new ListTypeComponent());
     const patchValue = vi.fn();
     component.field = {
       fieldArray: {},
@@ -54,9 +64,44 @@ describe('ListTypeComponent', () => {
     expect(removeSpy).toHaveBeenCalledWith(1);
   });
 
+  it('keeps blank inputs on blur when keepBlank is set', () => {
+    const { component } = createComponent();
+    component.field.props = { keepBlank: true };
+    const removeSpy = vi.spyOn(component, 'remove').mockImplementation(() => undefined);
+    const event = {
+      target: {
+        tagName: 'INPUT',
+        classList: { contains: () => false },
+        value: '',
+      },
+    } as any;
+
+    component.maybeRemove(event, 1);
+
+    expect(removeSpy).not.toHaveBeenCalled();
+  });
+
+  it('removes blank middle inputs on Backspace and Delete when keepBlank is set', () => {
+    const { component } = createComponent();
+    (component.field as any).model = ['alpha', '', 'gamma'];
+    component.field.fieldGroup = [{ id: 'field-0' }, { id: 'field-1' }, { id: 'field-2' }];
+    component.field.props = { keepBlank: true };
+    const removeSpy = vi.spyOn(component, 'remove').mockImplementation(() => undefined);
+    const focusSpy = vi.spyOn(component, 'focus').mockImplementation(() => undefined);
+    const key = (key: string) => ({ key, shiftKey: false, repeat: false, preventDefault: vi.fn() }) as any;
+
+    component.keydown(key('Backspace'), 1);
+    expect(removeSpy).toHaveBeenLastCalledWith(1);
+    expect(focusSpy).toHaveBeenLastCalledWith(0, true);
+
+    component.keydown(key('Delete'), 1);
+    expect(removeSpy).toHaveBeenCalledTimes(2);
+    expect(focusSpy).toHaveBeenLastCalledWith(1, true);
+  });
+
   describe('location seeding', () => {
     function createLocationList(values: any[], ring = false) {
-      const component = new ListTypeComponent({ hotkey: false } as any);
+      const component = TestBed.runInInjectionContext(() => new ListTypeComponent());
       const formControl = { length: values.length, value: values } as any;
       component.field = {
         fieldArray: { type: 'location' },
@@ -98,7 +143,7 @@ describe('ListTypeComponent', () => {
 
   describe('ring closure', () => {
     function createRing(values: any[]) {
-      const component = new ListTypeComponent({ hotkey: false } as any);
+      const component = TestBed.runInInjectionContext(() => new ListTypeComponent());
       const formControl = new FormArray(values.map(v => new FormControl(v)));
       const model = [...values];
       component.field = {

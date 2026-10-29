@@ -1,11 +1,11 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { isEqual, omit } from 'lodash-es';
-import { action, makeAutoObservable, observableRef, observableStruct, runInAction } from 'mobx';
-import { catchError, EMPTY, Observable, Subscription } from 'rxjs';
+import { catchError, Observable, of } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
+import { PageStore } from '../util/page-store';
 import { withStableDateSort } from '../util/query';
 
 interface PendingCursor {
@@ -17,106 +17,51 @@ interface PendingCursor {
 @Injectable({
   providedIn: 'root'
 })
-export class QueryStore {
+export class QueryStore extends PageStore<RefPageArgs, Ref> {
+  private refs = inject(RefService);
 
-  args?: RefPageArgs = {} as any;
-  sourcesOf?: Ref = {} as any;
-  responseOf?: Ref = {} as any;
-  page?: Page<Ref> = {} as any;
-  error?: HttpErrorResponse = {} as any;
+  private readonly relatedSource = signal<() => RefPageArgs | undefined>(() => undefined);
+  /** Args used only to load {@link sourcesOf} and {@link responseOf}, without loading a page. */
+  readonly relatedArgs = computed(() => this.relatedSource()(), { equal: isEqual });
+  private readonly related = computed(() => this.args() || this.relatedArgs());
 
-  private running?: Subscription;
-  private runningSources?: Subscription;
-  private runningResponses?: Subscription;
+  private readonly sourcesResource = rxResource({
+    params: () => this.related()?.sources,
+    stream: ({ params }) => this.refs.getCurrent(params).pipe(catchError(() => of(undefined))),
+  });
+  readonly sourcesOf = computed(() => this.sourcesResource.value());
+
+  private readonly responseResource = rxResource({
+    params: () => this.related()?.responses,
+    stream: ({ params }) => this.refs.getCurrent(params).pipe(catchError(() => of(undefined))),
+  });
+  readonly responseOf = computed(() => this.responseResource.value());
+
   private pendingCursor?: PendingCursor;
 
-  constructor(
-    private refs: RefService,
-  ) {
-    makeAutoObservable(this, {
-      args: observableStruct,
-      page: observableRef,
-      clear: action,
+  protected load(args: RefPageArgs) {
+    return this.takeCursor(args) ?? this.refs.page(withStableDateSort(args));
+  }
+
+  /**
+   * Load {@link sourcesOf} and {@link responseOf} for the given args without
+   * loading a page, until the calling component is destroyed.
+   * Must be called in an injection context.
+   */
+  watchRelated(args: () => RefPageArgs | undefined) {
+    this.relatedSource.set(args);
+    inject(DestroyRef).onDestroy(() => {
+      if (this.relatedSource() === args) this.relatedSource.set(() => undefined);
     });
-    this.clear(); // Initial observables may not be null for MobX
   }
 
-  clear() {
-    this.args = undefined;
-    this.page = undefined;
-    this.error = undefined;
-    this.sourcesOf = undefined;
-    this.responseOf = undefined;
-    this.running?.unsubscribe();
-    this.runningSources?.unsubscribe();
-    this.runningResponses?.unsubscribe();
-    this.pendingCursor = undefined;
-  }
-
-  close() {
-    this.pendingCursor = undefined;
-    if (this.running && !this.running.closed) this.clear()
-  }
-
-  setArgs(args: RefPageArgs) {
-    const cursorRequest = this.takeCursor(args);
-    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
-    this.args = args;
-    this.refresh(cursorRequest);
-  }
-
+  /**
+   * Use a prefetched request when the args next change to the target page.
+   */
   queueCursorPage(target: number, request: Observable<Page<Ref>>) {
-    if (!this.args) return;
-    this.pendingCursor = {
-      args: { ...this.args },
-      target,
-      request,
-    };
-  }
-
-  setRelatedArgs(args: RefPageArgs) {
-    this.pendingCursor = undefined;
-    this.args = args;
-    this.runningSources?.unsubscribe();
-    if (args.sources) {
-      this.runningSources = this.refs.getCurrent(args.sources).pipe(
-        catchError(() => EMPTY),
-      ).subscribe(ref => runInAction(() => this.sourcesOf = ref));
-    } else {
-      this.sourcesOf = undefined;
-    }
-    this.runningResponses?.unsubscribe();
-    if (args.responses) {
-      this.runningResponses = this.refs.getCurrent(args.responses).pipe(
-        catchError(() => EMPTY),
-      ).subscribe(ref => runInAction(() => this.responseOf = ref));
-    } else {
-      this.responseOf = undefined;
-    }
-  }
-
-  refresh(pageRequest?: Observable<Page<Ref>>) {
-    if (this.args) {
-      this.running?.unsubscribe();
-      this.running = (pageRequest ?? this.refs.page(withStableDateSort(this.args))).pipe(
-        catchError((err: HttpErrorResponse) => {
-          runInAction(() => this.error = err);
-          return EMPTY;
-        }),
-      ).subscribe(p => runInAction(() => this.page = p));
-      this.runningSources?.unsubscribe();
-      if (this.args.sources) {
-        this.runningSources = this.refs.getCurrent(this.args.sources).pipe(
-          catchError(() => EMPTY),
-        ).subscribe(ref => runInAction(() => this.sourcesOf = ref));
-      }
-      this.runningResponses?.unsubscribe();
-      if (this.args.responses) {
-        this.runningResponses = this.refs.getCurrent(this.args.responses).pipe(
-          catchError(() => EMPTY),
-        ).subscribe(ref => runInAction(() => this.responseOf = ref));
-      }
-    }
+    const args = this.args();
+    if (!args) return;
+    this.pendingCursor = { args: { ...args }, target, request };
   }
 
   private takeCursor(args: RefPageArgs): Observable<Page<Ref>> | undefined {

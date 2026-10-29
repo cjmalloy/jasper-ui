@@ -1,6 +1,8 @@
 import { chromium, FullConfig } from '@playwright/test';
 
 async function globalSetup(config: FullConfig) {
+  // Shared by all workers so isolated origins are unique per run
+  process.env.PW_RUN_ID ||= Date.now().toString(36);
   const baseURL = process.env.BASE_URL || config.projects[0]?.use?.baseURL?.toString() || 'http://localhost:8080';
   const replURL = process.env.REPL_URL || baseURL.replace(':8080', ':8082');
   const browser = await chromium.launch();

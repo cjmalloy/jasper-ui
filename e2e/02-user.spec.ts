@@ -1,5 +1,7 @@
-import { expect, test } from '@playwright/test';
-import { mod } from './setup';
+import { expect } from '@playwright/test';
+import { adminHeaders, mod, test } from './setup';
+
+const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
 
 test.describe.serial('User Page', () => {
 
@@ -47,7 +49,15 @@ test.describe.serial('User Page', () => {
     await expect(page).toHaveURL(/\/tag\/\+user\/bob/);
   });
 
-  test('downloads a pre-filled connection ref', async ({ page }) => {
+  test('downloads a pre-filled connection ref', async ({ request, page, origin }) => {
+    await request.get(`${api}/user/page`);
+    const { cookies } = await request.storageState();
+    const xsrf = cookies.find(c => c.name === 'XSRF-TOKEN')?.value || '';
+    const created = await request.post(`${api}/user`, {
+      headers: { Authorization: 'Bearer ' + adminHeaders.jwt, 'X-XSRF-TOKEN': xsrf },
+      data: { tag: '+user', origin },
+    });
+    expect([201, 409]).toContain(created.status());
     await page.goto('/settings/user?debug=ADMIN', { waitUntil: 'networkidle' });
     const profile = page.locator('.profile', {
       has: page.getByRole('link', { name: '+user', exact: true }),
@@ -55,20 +65,55 @@ test.describe.serial('User Page', () => {
     const downloadPromise = page.waitForEvent('download');
     await profile.locator('.connect-action').click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe('@localhost.json');
+    expect(download.suggestedFilename()).toBe(`${origin}.json`);
     const stream = await download.createReadStream();
     const chunks: Buffer[] = [];
     for await (const chunk of stream) chunks.push(chunk);
 
     expect(JSON.parse(Buffer.concat(chunks).toString())).toEqual({
       url: 'http://localhost:8081/',
-      title: '@localhost',
+      title: origin,
       tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
         '+plugin/cron': { interval: 'PT15M' },
-        '+plugin/origin': { remote: '', local: '@localhost' },
-        '+plugin/origin/tunnel': { remoteUser: '+user' },
+        '+plugin/origin': { remote: origin, local: origin },
+        '+plugin/origin/tunnel': { remoteUser: '+user' + origin },
       },
     });
+  });
+
+  test('fills the user form in one step', async ({ page }) => {
+    await page.goto('/user/+user/formfill?debug=ADMIN', { waitUntil: 'networkidle' });
+    const existing = page.locator('button', { hasText: 'Delete' });
+    if (await existing.isVisible().catch(() => false)) {
+      page.once('dialog', dialog => dialog.accept());
+      await existing.click();
+      await page.goto('/user/+user/formfill?debug=ADMIN', { waitUntil: 'networkidle' });
+    }
+    await page.locator('[id$=-name]').fill('Form Fill');
+    const writeAccess = page.locator('.form-group').filter({ hasText: 'Write Access:' }).filter({ hasNotText: 'Tag Write Access:' });
+    await writeAccess.getByRole('button', { name: '+ Add another tag' }).click();
+    await writeAccess.locator('input').last().fill('+custom');
+    const created = page.waitForResponse(resp => resp.url().includes('/api/v1/user') && resp.request().method() === 'POST');
+    await page.locator('button', { hasText: 'Create' }).click();
+    await created;
+
+    await page.goto('/user/+user/formfill?debug=ADMIN', { waitUntil: 'networkidle' });
+    await expect(page.locator('[id$=-name]')).toHaveValue('Form Fill');
+    await expect(writeAccess.locator('input').last()).toHaveValue('+custom');
+
+    await page.goto('/settings/user?debug=ADMIN', { waitUntil: 'networkidle' });
+    const profile = page.locator('.profile', { has: page.getByRole('link', { name: 'Form Fill' }) });
+    await profile.locator('.actions .fake-link', { hasText: 'edit' }).click();
+    await expect(profile.locator('[id$=-name]')).toHaveValue('Form Fill');
+    const profileWriteAccess = profile.locator('.form-group').filter({ hasText: 'Write Access:' }).filter({ hasNotText: 'Tag Write Access:' });
+    await expect(profileWriteAccess.locator('input').last()).toHaveValue('+custom');
+    await profile.locator('[id$=-name]').fill('Edited');
+    await profile.locator('.actions .fake-link', { hasText: 'edit' }).click();
+    await expect(profile.locator('.actions .fake-link', { hasText: '*edit*' })).toBeVisible();
+    await profile.locator('.actions .fake-link', { hasText: '*edit*' }).click();
+    await expect(profile.locator('[id$=-name]')).toHaveValue('Edited');
+    await profile.locator('button', { hasText: 'cancel' }).click();
+    await expect(profile.locator('.actions .fake-link', { hasText: '*edit*' })).toHaveCount(0);
   });
 });

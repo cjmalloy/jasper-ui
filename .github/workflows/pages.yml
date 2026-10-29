@@ -109,22 +109,42 @@ jobs:
             '{schemaVersion: 1, label: $label, message: $message, color: $color}' \
             > _site/reports/dependabot-badge.json
 
+          # Download artifacts individually: cleanup jobs may delete an artifact between listing and download,
+          # which makes `gh run download --pattern` stop at the first HTTP 404 and skip the remaining artifacts.
+          download_reports() {
+            local run_id="$1" pattern="$2" artifact_id artifact_name
+            gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts?per_page=100" \
+              --jq '.artifacts[] | select(.expired | not) | [.id, .name] | @tsv' 2>/dev/null \
+              | while IFS=$'\t' read -r artifact_id artifact_name; do
+                [[ "$artifact_name" == $pattern ]] || continue
+                [ -e "_site/reports/${artifact_name}" ] && continue
+                if gh api "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" > /tmp/report-artifact.zip 2>/dev/null \
+                  && unzip -q -o /tmp/report-artifact.zip -d "_site/reports/${artifact_name}"; then
+                  :
+                else
+                  echo "Skipping unavailable artifact: ${artifact_name} (${artifact_id})"
+                  rm -rf "_site/reports/${artifact_name}"
+                fi
+                rm -f /tmp/report-artifact.zip
+              done || true
+          }
+
           # Download only the latest 10 reports for each type to save space
           gh run list --workflow test.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
-            gh run download "$run_id" --pattern "vitest-reports-*" --dir _site/reports 2>/dev/null || true
+            download_reports "$run_id" "vitest-reports-*"
           done
 
           gh run list --workflow playwright.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
-            gh run download "$run_id" --pattern "playwright-reports-*" --dir _site/reports 2>/dev/null || true
+            download_reports "$run_id" "playwright-reports-*"
           done
 
           # Download PR reports
           gh run list --workflow playwright.yml --limit 20 --json databaseId --jq '.[].databaseId' | while read run_id; do
-            gh run download "$run_id" --pattern "playwright-reports-*-pr-*" --dir _site/reports 2>/dev/null || true
+            download_reports "$run_id" "playwright-reports-*-pr-*"
           done
 
           gh run list --workflow test.yml --limit 20 --json databaseId --jq '.[].databaseId' | while read run_id; do
-            gh run download "$run_id" --pattern "vitest-reports-pr-*" --dir _site/reports 2>/dev/null || true
+            download_reports "$run_id" "vitest-reports-pr-*"
           done
 
           latest_vitest=$(ls -dv _site/reports/vitest-reports-master-* 2>/dev/null | tail -1)

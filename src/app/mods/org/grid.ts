@@ -37,6 +37,7 @@ export const gridTemplate: Template = {
           type: 'string',
           props: {
             label: $localize`Field:`,
+            title: $localize`Use -> for nested fields, or tags-> for the value of a tag (e.g., tags->plugin/duration:dur). Append :num or :dur to read the value as a number or duration.`,
           },
         }, {
           key: 'type',
@@ -87,7 +88,7 @@ export const gridTemplate: Template = {
     submitText: true,
     noFloatingSidebar: true,
     columnDefs: [
-      { headerName: $localize`Thumbnail`, field: 'plugins.plugin/thumbnail.url', type: 'image' },
+      { headerName: $localize`Thumbnail`, field: 'plugins->plugin/thumbnail->url', type: 'image' },
       { headerName: $localize`Title`, field: 'title', type: 'text', flex: 2 },
       { headerName: $localize`Published`, field: 'published', type: 'dateTime' },
       { headerName: $localize`Tags`, field: 'tags', type: 'tags', flex: 1 },

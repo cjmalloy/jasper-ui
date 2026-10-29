@@ -1,14 +1,13 @@
 import {
   Component,
+  computed,
   ElementRef,
-  EventEmitter,
   forwardRef,
-  HostBinding,
-  HostListener,
-  Input,
-  NgZone,
-  Output,
-  ChangeDetectionStrategy
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal
 } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
@@ -19,78 +18,63 @@ import { MdComponent } from '../../md/md.component';
   selector: 'app-todo-item',
   templateUrl: './item.component.html',
   styleUrls: ['./item.component.scss'],
-  host: { 'class': 'todo-item' },
-  changeDetection: ChangeDetectionStrategy.Eager,
+  host: {
+    'class': 'todo-item',
+    '[class.unlocked]': 'unlocked()',
+    '(touchend)': 'touchend($event)',
+    '(press)': 'unlock($event)',
+  },
   imports: [
     AutofocusDirective,
     forwardRef(() => MdComponent),
   ]
 })
 export class TodoItemComponent {
+  private store = inject(Store);
+  config = inject(ConfigService);
+  private el = inject(ElementRef);
 
-  @HostBinding('class.unlocked')
-  unlocked = false;
 
-  @Input()
-  pressToUnlock = false;
-  @Input()
-  plugins: string[] = [];
-  @Input()
-  origin = '';
+  readonly unlocked = signal(false);
 
-  @Output()
-  update = new EventEmitter<{ text: string, checked: boolean }>();
+  readonly pressToUnlock = input(false);
+  readonly plugins = input<string[]>([]);
+  readonly origin = input('');
 
-  checked = false;
-  editing = false;
-  text = '';
-  hovering = false;
+  readonly update = output<{
+    text: string;
+    checked: boolean;
+}>();
 
-  private _line = '';
+  readonly checked = linkedSignal(() => !!/^[\s-]*\[([\sxX]*)]/.exec(this.line())?.[1]?.trim());
+  readonly editing = linkedSignal(() => { this.line(); return false; });
+  readonly text = linkedSignal(() => this.line().replace(/^[\s-]*\[[\sxX]*]\s*/g, ''));
+  readonly hovering = signal(false);
 
-  constructor(
-    private store: Store,
-    public config: ConfigService,
-    private el: ElementRef,
-    private zone: NgZone,
-  ) { }
+  readonly line = input('', { alias: 'line' });
 
-  get local() {
-    return this.origin === this.store.account.origin;
-  }
+  readonly local = computed(() => {
+    return this.origin() === this.store.account.origin();
+  });
 
-  @Input()
-  set line(value: string) {
-    this._line = value;
-    if (value) {
-      this.checked = !!/^[\s-]*\[([\sxX]*)]/.exec(value)?.[1]?.trim() || false;
-      this.text = this._line.replace(/^[\s-]*\[[\sxX]*]\s*/g, '');
-    } else {
-      this.checked = false;
-      this.text = '';
-    }
-  }
-
-  @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
-    this.zone.run(() => this.unlocked = false);
+    this.unlocked.set(false);
   }
 
-  @HostListener('press', ['$event'])
   unlock(event: any) {
-    if (!this.config.mobile) return;
-    this.unlocked = true;
+    if (!this.config.mobile()) return;
+    this.unlocked.set(true);
     this.el.nativeElement.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
   }
 
   toggle() {
-    this.checked = !this.checked;
-    this.update.next({ text: this.text, checked: this.checked });
+    this.checked.set(!this.checked());
+    this.update.emit({ text: this.text(), checked: this.checked() });
   }
 
   edit() {
-    this.update.next({ text: this.text, checked: this.checked });
-    this.editing = false;
+    this.update.emit({ text: this.text(), checked: this.checked() });
+    this.editing.set(false);
   }
 }

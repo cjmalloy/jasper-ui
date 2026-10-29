@@ -11,3 +11,10 @@ app-loading {
 hr {
   margin: 0;
 }
+
+.delete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 400px;
+}

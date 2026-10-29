@@ -23,7 +23,7 @@ describe('NoteComponent', () => {
 
     fixture = TestBed.createComponent(NoteComponent);
     component = fixture.componentInstance;
-    component.ref = {url: ''};
+    fixture.componentRef.setInput('ref', {url: ''});
     fixture.detectChanges();
   });
 

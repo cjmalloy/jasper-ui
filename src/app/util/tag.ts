@@ -1,4 +1,4 @@
-import { filter, find, flatMap, isArray, uniq, without } from 'lodash-es';
+import { filter, find, flatMap, isArray, pickBy, uniq, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -79,6 +79,43 @@ export function hasTag(tag: string | undefined, ref: Ref | string[] | undefined)
   return !!find(tags, t => expandedTagsInclude(t, tag)) !== not;
 }
 
+/**
+ * Keep only plugin data for tags present on the Ref. Plugin data is kept
+ * when the Ref has the plugin tag or any of its child tags.
+ */
+export function pickPlugins(plugins: Record<string, any> | undefined, tags: string[] | undefined): Record<string, any> {
+  return pickBy(plugins, (_, tag) => hasTag(tag, tags || []));
+}
+
+/**
+ * Like hasTag, but supports simple queries using : (and), | (or),
+ * ! (not) and () (groups).
+ */
+export function hasQuery(query: string | undefined, ref: Ref | string[] | undefined): boolean {
+  if (!query) return false;
+  const split = (q: string, op: string) => {
+    const result: string[] = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < q.length; i++) {
+      if (q[i] === '(') depth++;
+      if (q[i] === ')') depth--;
+      if (!depth && q[i] === op) {
+        result.push(q.substring(start, i));
+        start = i + 1;
+      }
+    }
+    result.push(q.substring(start));
+    return result.map(s => s.trim());
+  };
+  const term = (t: string): boolean => {
+    if (t.startsWith('!(') && t.endsWith(')')) return !hasQuery(t.substring(2, t.length - 1), ref);
+    if (t.startsWith('(') && t.endsWith(')')) return hasQuery(t.substring(1, t.length - 1), ref);
+    return hasTag(t, ref);
+  };
+  return !!split(query, '|').find(or => !split(or, ':').find(and => !term(and)));
+}
+
 export function addTags(ref: Ref, ...tags: string[]) {
   ref.tags ||= [];
   ref.tags = uniq([...ref.tags, ...tags]);
@@ -103,9 +140,45 @@ export function test(query: string, ref: Ref | string[] | undefined) {
   return tags.find(t => captures(query, t));
 }
 
+/**
+ * Plugin response counts from all origins (local and remote).
+ * Falls back to local counts if the metadata was generated before remote counts were tracked.
+ */
+export function remotePlugins(ref: Ref | undefined): Record<string, number> {
+  return ref?.metadata?.remotePlugins || ref?.metadata?.plugins || {};
+}
+
+/**
+ * Number of responses with this plugin from all origins (local and remote).
+ */
+export function pluginResponses(ref: Ref | undefined, plugin: string): number {
+  return remotePlugins(ref)[plugin] || 0;
+}
+
+/**
+ * Number of responses with this plugin from the same origin as the Ref.
+ */
+export function localPluginResponses(ref: Ref | undefined, plugin: string): number {
+  return ref?.metadata?.plugins?.[plugin] || 0;
+}
+
+/**
+ * Optimistically count a new plugin response.
+ */
+export function addPluginResponse(parent: Ref, plugin: string, local = true) {
+  parent.metadata ||= {};
+  if (parent.metadata.remotePlugins) {
+    parent.metadata.remotePlugins[plugin] = (parent.metadata.remotePlugins[plugin] || 0) + 1;
+  }
+  if (local || !parent.metadata.remotePlugins) {
+    parent.metadata.plugins ||= {};
+    parent.metadata.plugins[plugin] = (parent.metadata.plugins[plugin] || 0) + 1;
+  }
+}
+
 export function hasAnyResponse(plugin: string | undefined, ref: Ref | undefined): boolean {
   if (!plugin) return false;
-  for (const p of Object.keys(ref?.metadata?.plugins || {})) {
+  for (const p of Object.keys(remotePlugins(ref))) {
     if (hasPrefix(p, plugin)) return true;
   }
   return false;
@@ -262,11 +335,45 @@ export function getPrefixes(tag: string) {
   return [tag, '+' + tag, '_' + tag].map(t => not ? '!' + t : t);
 }
 
+export function isGroup(query: string) {
+  if (!query?.startsWith('(') || !query.endsWith(')')) return false;
+  let depth = 0;
+  for (let i = 0; i < query.length; i++) {
+    if (query[i] === '(') depth++;
+    else if (query[i] === ')') depth--;
+    if (!depth && i < query.length - 1) return false;
+  }
+  return !depth;
+}
+
+export function isNegatedGroup(query: string) {
+  return !!query?.startsWith('!') && isGroup(query.substring(1));
+}
+
+export function splitTop(query: string, separator: ':' | '|') {
+  const result: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < query.length; i++) {
+    if (query[i] === '(') depth++;
+    else if (query[i] === ')') depth--;
+    else if (!depth && query[i] === separator) {
+      result.push(query.substring(start, i));
+      start = i + 1;
+    }
+  }
+  result.push(query.substring(start));
+  return result;
+}
+
 export function braces(query: string) {
   if (!query) return '';
-  if (!query.includes('|')) return query;
-  if (query.startsWith('(') && query.endsWith(')') && !query.substring(1, query.length-2).includes('(')) return query;
+  if (splitTop(fixClientQuery(query), '|').length < 2) return query;
   return `(${query})`;
+}
+
+export function andQueries(queries: string[]) {
+  return queries.filter(q => !!q).map(braces).join(':');
 }
 
 export function fixClientQuery(query: string) {
@@ -398,12 +505,9 @@ export function repost(ref?: Ref) {
 
 export function updateMetadata(parent: Ref, child: Ref) {
   parent.metadata ||= {};
-  parent.metadata.plugins ||= {} as any;
+  const local = (child.origin || '') === (parent.origin || '');
   for (const plugin of ['plugin/comment', 'plugin/thread', '+plugin/log']) {
-    if (hasTag(plugin, child)) {
-      parent.metadata.plugins![plugin] ||= 0;
-      parent.metadata.plugins![plugin]++;
-    }
+    if (hasTag(plugin, child)) addPluginResponse(parent, plugin, local);
   }
   if (hasTag('internal', child)) {
     parent.metadata.internalResponses ||= 0;
@@ -418,4 +522,18 @@ export function getUserUrl(ref: Ref) {
   if (!ref.url.startsWith('tag:/')) return '';
   if (!ref.url.includes('?')) return ref.url.substring('tag:/'.length);
   return setPublic(ref.url.substring('tag:/'.length, ref.url.indexOf('?'))) + (ref.origin || '');
+}
+
+/**
+ * Value of a tag, as used by `tags->{tag}` sorts.
+ * The first sub-tag after the prefix of the first tag that has one.
+ */
+export function tagValue(ref: Pick<Ref, 'tags'> | undefined, tag: string): string | undefined {
+  const p = tag + '/';
+  for (const t of ref?.tags || []) {
+    if (!t.startsWith(p)) continue;
+    const value = t.substring(p.length).split('/')[0];
+    if (value) return value;
+  }
+  return undefined;
 }

@@ -1,5 +1,9 @@
 /// <reference types="vitest/globals" />
+import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, of } from 'rxjs';
+import { AdminService } from '../service/admin.service';
+import { ProxyService } from '../service/api/proxy.service';
+import { OembedStore } from '../store/oembed';
 import { ThumbnailPipe } from './thumbnail.pipe';
 
 describe('ThumbnailPipe', () => {
@@ -21,7 +25,14 @@ describe('ThumbnailPipe', () => {
     proxy = {
       getFetch: vi.fn((url: string) => `proxy:${url}`),
     };
-    pipe = new ThumbnailPipe(admin, store, proxy);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: AdminService, useValue: admin },
+        { provide: OembedStore, useValue: store },
+        { provide: ProxyService, useValue: proxy },
+      ],
+    });
+    pipe = TestBed.runInInjectionContext(() => new ThumbnailPipe());
   });
 
   it('does not resolve image thumbnails without the image plugin', async () => {

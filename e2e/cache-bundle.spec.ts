@@ -1,7 +1,7 @@
-import { type APIRequestContext, expect, test } from '@playwright/test';
+import { type APIRequestContext, expect } from '@playwright/test';
 import { readFileSync, writeFileSync } from 'fs';
 import JSZip from 'jszip';
-import { adminHeaders, mod } from './setup';
+import { adminHeaders, localOrigin, mod, test } from './setup';
 
 test.describe.serial('Bulk download cache files', () => {
   const tag = 'cachebundle' + Date.now();
@@ -79,10 +79,10 @@ test.describe.serial('Bulk download cache files', () => {
     expect(newUrl).toMatch(/^cache:/);
     expect(newUrl).not.toBe(oldUrl);
     await expect(page).toHaveURL(url => decodeURIComponent(url.pathname) === '/ref/' + newUrl);
-    const content = await page.evaluate(async ({ api, url }) => {
-      const res = await fetch(api + '/proxy?origin=&url=' + encodeURIComponent(url));
+    const content = await page.evaluate(async ({ api, url, origin }) => {
+      const res = await fetch(api + '/proxy?origin=' + encodeURIComponent(origin) + '&url=' + encodeURIComponent(url));
       return res.text();
-    }, { api, url: newUrl });
+    }, { api, url: newUrl, origin: localOrigin() });
     expect(content).toBe('hello cache');
   });
 
@@ -124,7 +124,7 @@ test.describe.serial('Bulk download cache files', () => {
       { url: embedUrl, title: 'Embedded', tags: ['public', 'plugin/image'], plugins: { 'plugin/image': { url: oldUrl } } },
       { url: 'comment:' + exportTag, title: 'Embedder', comment: `![](${embedUrl})`, tags: ['public', exportTag] },
     ]) {
-      const res = await request.post(`${api}/ref`, { headers: await headers(request), data });
+      const res = await request.post(`${api}/ref`, { headers: await headers(request), data: { ...data, origin: localOrigin() } });
       expect(res.ok(), await res.text()).toBeTruthy();
     }
 

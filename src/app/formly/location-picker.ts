@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Subject } from 'rxjs';
@@ -11,7 +12,7 @@ export class LocationPicker {
   /**
    * The location input the map is shown above.
    */
-  owner?: AbstractControl;
+  readonly owner = signal<AbstractControl | undefined>(undefined);
   /**
    * The location set by clicking the map.
    */
@@ -28,7 +29,7 @@ export class LocationPicker {
   ) { }
 
   get open() {
-    return !!this.owner;
+    return !!this.owner();
   }
 
   /**
@@ -36,13 +37,13 @@ export class LocationPicker {
    * control, close it and open it here instead.
    */
   toggle(control: AbstractControl) {
-    if (this.owner === control) {
+    if (this.owner() === control) {
       this.close();
       return;
     }
     if (openPicker && openPicker !== this) openPicker.close();
     openPicker = this;
-    this.owner = this.active = control;
+    this.owner.set(this.active = control);
     this.target = undefined;
     this.changes.next();
   }
@@ -50,14 +51,14 @@ export class LocationPicker {
   close() {
     if (openPicker === this) openPicker = undefined;
     this.target = undefined;
-    if (!this.owner && !this.active) return;
-    this.owner = this.active = undefined;
+    if (!this.owner() && !this.active) return;
+    this.owner.set(this.active = undefined);
     this.changes.next();
   }
 
   select(control?: AbstractControl) {
-    if (!this.owner) return;
-    control ||= this.owner;
+    if (!this.owner()) return;
+    control ||= this.owner();
     this.target = undefined;
     if (this.active === control) return;
     this.active = control;
@@ -69,10 +70,10 @@ export class LocationPicker {
    * above closes the map.
    */
   removed(control: AbstractControl) {
-    if (this.owner === control) {
+    if (this.owner() === control) {
       this.close();
     } else if (this.active === control) {
-      this.select(this.owner);
+      this.select(this.owner());
     }
   }
 }

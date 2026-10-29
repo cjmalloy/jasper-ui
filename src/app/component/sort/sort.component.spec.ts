@@ -22,7 +22,7 @@ describe('SortComponent', () => {
 
     fixture = TestBed.createComponent(SortComponent);
     component = fixture.componentInstance;
-    component.sorts = ['modified'];
+    component.sorts.set(['modified']);
     fixture.detectChanges();
   });
 

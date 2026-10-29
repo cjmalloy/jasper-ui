@@ -1,5 +1,6 @@
 import * as he from 'he';
 import { filter, sortBy, uniq } from 'lodash-es';
+import { Duration, DurationObjectUnits } from 'luxon';
 import { Ref } from '../model/ref';
 import { Config, ModType } from '../model/tag';
 import { reverseOrigin } from '../mods/mailbox';
@@ -15,10 +16,12 @@ export const QUALIFIED_USER_REGEX = /^[_+]user(\/[a-z0-9]+([./][a-z0-9]+)*)?(@[a
 export const PLUGIN_REGEX = /^[_+]?plugin\/[a-z0-9]+([./][a-z0-9]+)*$/;
 export const ORIGIN_NOT_BLANK_REGEX = /^@[a-z0-9]+(\.[a-z0-9]+)*$/;
 export const ORIGIN_REGEX = /^(@[a-z0-9]+(\.[a-z0-9]+)*)?$/;
+export const ORIGIN_WILDCARD_REGEX = /^(@\*?|@[a-z0-9]+(\.[a-z0-9]+)*(\.\*)?)?$/;
+export const TAG_ORIGIN_SELECTOR_REGEX = /^([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@(\*|[a-z0-9]+(\.[a-z0-9]+)*(\.\*)?)?)?$/;
 export const QUALIFIED_TAG_REGEX = /^[_+]?[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?$/;
 export const QUALIFIED_TAGS_REGEX = /^[,\s]*[_+]?[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?([,\s]+[_+]?[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?)*[,\s]*$/;
 export const SELECTOR_REGEX = /^!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9]+)*|@\*|@|\*))$/;
-export const QUERY_REGEX = /^(!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9]+)*|@\*|@|\*))|\(!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*|@|\*))([ |]!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*|@|\*)))*\))([ |:&](!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*|@|\*))|\(!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*|@|\*))([ |]!?([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9])*|@\*|@|\*)))*\)))*$/;
+export const QUERY_REGEX = /^[!(]*([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9]+)*|@\*|@|\*))\)*([ |:&][!(]*([_+]?[a-z0-9]+([./][a-z0-9]+)*|([_+]?[a-z0-9]+([./][a-z0-9]+)*)?(@[a-z0-9]+(\.[a-z0-9]+)*|@\*|@|\*))\)*)*$/;
 
 export function templates(tags?: string[], template?: string) {
   return filter(tags, t => hasPrefix(t, template));
@@ -67,6 +70,14 @@ export function urlSummary(url: string) {
   if (url.startsWith('bc1')) return 'bitcoin';
   if (url.startsWith('0x')) return 'ethereum';
   return 'unknown';
+}
+
+export function dedent(text: string): string {
+  if (typeof text !== 'string') return text;
+  const lines = text.split('\n');
+  const indent = Math.min(...lines.filter(l => l.trim()).map(l => l.search(/\S/)));
+  if (!indent || !isFinite(indent)) return text;
+  return lines.map(l => l.trim() ? l.substring(indent) : '').join('\n');
 }
 
 export function interestingTags(tags?: string[]): string[] {
@@ -126,6 +137,9 @@ export function getTitle(ref: Ref | undefined): string {
   const comment = (ref.comment || '').trim();
   if (title) return title;
   if (comment) return trimCommentForTitle(comment);
+  if (hasTag('plugin/editing', ref) && ref.plugins?.['plugin/editing']) {
+    return getTitle({ ...ref.plugins['plugin/editing'], url: ref.url });
+  }
   if (ref.url?.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
   return ref.url;
 }
@@ -195,4 +209,26 @@ export function readableBytes(size: number): string  {
   const i = !size ? 0 : Math.floor(Math.log(size) / Math.log(1024));
   // @ts-ignore
   return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+}
+
+export function formatDuration(d: Duration): string {
+  // Standard duration units ordered by scale
+  const units: (keyof DurationObjectUnits)[] = [
+    'years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds'
+  ];
+  // Find the largest unit that has at least "1" of that unit
+  const largestUnitIndex = units.findIndex(unit => d.as(unit) >= 1);
+  // Fallback for durations < 1 second (e.g., "0.5 seconds" becomes "1 second")
+  if (largestUnitIndex === -1) {
+    return d.shiftTo('seconds').mapUnits(Math.round).toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
+  }
+  const primaryUnit = units[largestUnitIndex];
+  const secondaryUnit = units[largestUnitIndex + 1];
+  // Build target units (e.g., ['years', 'months'] or ['seconds'])
+  const targetUnits = secondaryUnit ? [primaryUnit, secondaryUnit] : [primaryUnit];
+  return d
+    .shiftTo(...targetUnits)
+    .mapUnits(Math.round) // Rounds the smallest visible unit
+    .normalize()          // Handles carry-over (e.g., 60m -> 1h)
+    .toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
 }
