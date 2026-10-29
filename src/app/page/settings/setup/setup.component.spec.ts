@@ -73,7 +73,7 @@ describe('SettingsSetupPage', () => {
       admin.loadModChanges$.mockReturnValue(NEVER);
       component.loadModChanges();
       fixture.detectChanges();
-      expect(el().querySelector('.mod-changes-loading')).toBeTruthy();
+      expect(el().querySelector('.buttons .mod-changes-loading')).toBeTruthy();
       expect(el().querySelector('.mod-changes-error')).toBeNull();
     });
 

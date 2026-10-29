@@ -200,11 +200,11 @@ test.describe.serial('Mod Update', () => {
       : route.continue());
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
     const row = page.locator('.mod-row', { has: page.locator('#mod-blog') });
-    await expect(page.locator('.mod-changes-error')).toContainText('Receipts unavailable');
+    await expect(page.locator('.log.mobile-hide .mod-changes-error')).toContainText('Receipts unavailable');
     await expect(page.locator('.mod-changes-loading')).toHaveCount(0);
     await expect(row.locator('.mod-update-link')).toHaveCount(0);
     fail = false;
-    await page.locator('.mod-changes-retry').click();
+    await page.locator('.log.mobile-hide .mod-changes-retry').click();
     await expect(page.locator('.mod-changes-error')).toHaveCount(0);
     await expect(page.locator('.mod-changes-loading')).toHaveCount(0);
     await expect(row.locator('.mod-update-link')).toBeVisible();
