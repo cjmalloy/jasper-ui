@@ -8,6 +8,27 @@ type TypeOption = NonNullable<ConfigOption['types']>[number];
 export const OPTIONS_TYPES = ['select', 'enum', 'radio', 'multicheckbox'];
 
 /**
+ * Names of the types which can be picked in the form builder.
+ * List types without a field array are skipped, since the builder
+ * can't edit the field array.
+ */
+export function builderTypeNames(types: TypeOption[]): string[] {
+  const byName = new Map(types.map(t => [t.name, t]));
+  const hasFieldArray = (name?: string, seen: string[] = []): boolean => {
+    const t = name ? byName.get(name) : undefined;
+    if (!t || seen.includes(t.name)) return false;
+    if (t.defaultOptions?.fieldArray) return true;
+    return hasFieldArray(t.extends, [...seen, t.name]);
+  };
+  const isList = (name?: string, seen: string[] = []): boolean => {
+    const t = name ? byName.get(name) : undefined;
+    if (!t || seen.includes(t.name)) return false;
+    return t.name === 'list' || isList(t.extends, [...seen, t.name]);
+  };
+  return types.map(t => t.name).filter(t => !isList(t) || hasFieldArray(t));
+}
+
+/**
  * Formly type for editing a list of formly field configs, so formly forms
  * can be built in the UI. Field config properties not shown in the
  * builder are kept as is.
@@ -51,6 +72,7 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'props.placeholder',
           type: 'string',
           className: 'formly-placeholder',
+          resetOnHide: false,
           expressions: {
             hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
           },
@@ -61,6 +83,7 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'props.hint',
           type: 'string',
           className: 'formly-hint',
+          resetOnHide: false,
           expressions: {
             hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
           },
@@ -71,6 +94,7 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'props.required',
           type: 'boolean',
           className: 'formly-required',
+          resetOnHide: false,
           expressions: {
             hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
           },
@@ -81,6 +105,7 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'props.options',
           type: 'list',
           className: 'formly-options',
+          resetOnHide: false,
           expressions: {
             hide: (field: FormlyFieldConfig) => !OPTIONS_TYPES.includes(field.parent?.model?.type),
           },
@@ -109,6 +134,7 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'fieldGroup',
           type: 'formly',
           className: 'formly-field-group',
+          resetOnHide: false,
           expressions: {
             hide: (field: FormlyFieldConfig) => !!field.parent?.model?.type,
           },

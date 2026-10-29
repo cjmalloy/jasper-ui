@@ -52,8 +52,8 @@ describe('formly schema', () => {
         title: { type: 'string' },
       },
       optionalProperties: {
-        count: { type: 'int32' },
-        ratio: { type: 'float64' },
+        count: { type: 'int32', nullable: true },
+        ratio: { type: 'float64', nullable: true },
         level: { type: 'float64' },
         done: { type: 'boolean' },
         tags: { elements: { type: 'string' } },
@@ -161,9 +161,56 @@ describe('formly schema', () => {
     generateSchema(config, group);
     generateDefaults(config, builder, group);
     expect(JSON.parse(group.value.schema!)).toEqual({
-      optionalProperties: { title: { type: 'string' }, count: { type: 'int32' }, color: { enum: ['red'] } },
+      optionalProperties: { title: { type: 'string' }, count: { type: 'int32', nullable: true }, color: { enum: ['red'] } },
     });
     expect(JSON.parse(group.value.defaults!)).toEqual({ title: 'hi' });
     expect(group.get('schema')!.dirty).toBe(true);
+  });
+
+  it('allows null for optional fields which can be cleared', () => {
+    const schema = formlySchema(config, [
+      { key: 'width', type: 'integer' },
+      { key: 'height', type: 'integer', props: { required: true } },
+      { key: 'accent', type: 'color' },
+      { key: 'level', type: 'range' },
+    ]);
+    expect(schema).toEqual({
+      properties: { height: { type: 'int32' } },
+      optionalProperties: {
+        width: { type: 'int32', nullable: true },
+        accent: { type: 'string', nullable: true },
+        level: { type: 'float64' },
+      },
+    });
+    expect(validate(schema, { height: 1, width: null, accent: null })).toEqual([]);
+  });
+
+  it('merges keyed groups which appear more than once', () => {
+    const fields = [
+      { key: 'settings', fieldGroup: [{ key: 'a', type: 'string' }] },
+      { key: 'settings', fieldGroup: [{ key: 'b', type: 'string', props: { required: true } }] },
+    ];
+    expect(formlySchema(config, fields)).toEqual({
+      properties: {
+        settings: {
+          properties: { b: { type: 'string' } },
+          optionalProperties: { a: { type: 'string' } },
+        },
+      },
+    });
+  });
+
+  it('removes nested defaults for deleted fields', () => {
+    const fields: FormlyFieldConfig[] = [
+      { key: 'profile', fieldGroup: [{ key: 'name', type: 'string' }] },
+      { key: 'rows', type: 'list', fieldArray: { fieldGroup: [{ key: 'label', type: 'string' }] } },
+    ];
+    const defaults = formlyDefaults(config, builder, fields, {
+      profile: { name: 'Alice', retired: true },
+      rows: [{ label: 'a', old: 1 }],
+      gone: 1,
+    });
+    expect(defaults).toEqual({ profile: { name: 'Alice' }, rows: [{ label: 'a' }] });
+    expect(validate(formlySchema(config, fields), defaults)).toEqual([]);
   });
 });

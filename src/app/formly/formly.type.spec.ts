@@ -54,6 +54,8 @@ describe('formly type', () => {
     expect(values).toContain('string');
     expect(values).toContain('select');
     expect(values).toContain('formly');
+    expect(values).toContain('tags');
+    expect(values).not.toContain('list');
   });
 
   it('shows options only for option types', async () => {

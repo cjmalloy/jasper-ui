@@ -44,6 +44,17 @@ function optionsSchema(options: any): Schema {
  * JTD schema for the value of a single field, ignoring its key.
  */
 function fieldSchema(config: FormlyConfig, field: FormlyFieldConfig): Schema {
+  const schema = valueSchema(config, field);
+  if (field.props?.required || !('type' in schema)) return schema;
+  const merged = mergedField(config, field);
+  const chain = typeChain(config, merged.type as string);
+  if (chain.includes('range')) return schema;
+  // Clearing a number input or an input with a clear button sets null
+  if (chain.includes('input') && (merged.props?.type === 'number' || merged.props?.clear)) return { ...schema, nullable: true };
+  return schema;
+}
+
+function valueSchema(config: FormlyConfig, field: FormlyFieldConfig): Schema {
   const merged = mergedField(config, field);
   const chain = typeChain(config, merged.type as string);
   const props: any = merged.props || {};
@@ -75,12 +86,61 @@ function isRequired(field: FormlyFieldConfig): boolean {
   return !field.type && !!field.fieldGroup?.some(f => isRequired(f));
 }
 
+function isObjectSchema(schema: any): schema is ObjectSchema {
+  return isPlainObject(schema) && ('properties' in schema || 'optionalProperties' in schema);
+}
+
+/**
+ * Merge the properties of two object schemas, such as a keyed group
+ * in both the form and advanced form.
+ */
+function mergeSchemas(a: ObjectSchema, b: ObjectSchema): Schema {
+  const merged = cloneDeep(a);
+  for (const [k, v] of Object.entries(b.properties || {})) addProperty(merged, [k], cloneDeep(v), true);
+  for (const [k, v] of Object.entries(b.optionalProperties || {})) addProperty(merged, [k], cloneDeep(v), false);
+  if (!merged.properties && !merged.optionalProperties) merged.optionalProperties = {};
+  return merged as Schema;
+}
+
+/**
+ * Remove values not described by the schema, recursively.
+ */
+function prune(schema: any, value: any): any {
+  if (!isPlainObject(schema) || value === null || value === undefined) return value;
+  if (isObjectSchema(schema)) {
+    if (!isPlainObject(value)) return value;
+    const result: any = {};
+    for (const [k, v] of Object.entries(value)) {
+      const child = schema.properties?.[k] || schema.optionalProperties?.[k];
+      if (child) {
+        result[k] = prune(child, v);
+      } else if ((schema as any).additionalProperties) {
+        result[k] = cloneDeep(v);
+      }
+    }
+    return result;
+  }
+  if (schema.elements && Array.isArray(value)) return value.map(v => prune(schema.elements, v));
+  if (schema.values && isPlainObject(value)) {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, prune(schema.values, v)]));
+  }
+  return cloneDeep(value);
+}
+
+function removeProperty(schema: ObjectSchema, prop: keyof ObjectSchema, key: string) {
+  if (!schema[prop]?.[key]) return;
+  delete schema[prop]![key];
+  if (!Object.keys(schema[prop]!).length) delete schema[prop];
+}
+
 function addProperty(schema: ObjectSchema, path: string[], value: Schema, required: boolean) {
   const [key, ...rest] = path;
-  const prop = required ? 'properties' : 'optionalProperties';
-  const other = required ? 'optionalProperties' : 'properties';
   if (!rest.length) {
-    delete schema[other]?.[key];
+    const existing = schema.properties?.[key] || schema.optionalProperties?.[key];
+    if (isObjectSchema(existing) && isObjectSchema(value)) value = mergeSchemas(existing, value);
+    if (schema.properties?.[key]) required = true;
+    const prop = required ? 'properties' : 'optionalProperties';
+    removeProperty(schema, required ? 'optionalProperties' : 'properties', key);
     (schema[prop] ||= {})[key] = value;
     return;
   }
@@ -88,7 +148,7 @@ function addProperty(schema: ObjectSchema, path: string[], value: Schema, requir
   if (!child || !('properties' in child || 'optionalProperties' in child)) child = { optionalProperties: {} };
   addProperty(child, rest, value, required);
   const childRequired = required || !!schema.properties?.[key];
-  delete (childRequired ? schema.optionalProperties : schema.properties)?.[key];
+  removeProperty(schema, childRequired ? 'optionalProperties' : 'properties', key);
   (schema[childRequired ? 'properties' : 'optionalProperties'] ||= {})[key] = child as Schema;
 }
 
@@ -132,14 +192,8 @@ export function formlySchema(config: FormlyConfig, fields: FormlyFieldConfig[], 
  * default values of the fields and their types fill in the rest.
  */
 export function formlyDefaults(config: FormlyConfig, builder: FormlyFormBuilder, fields: FormlyFieldConfig[], existing?: any): any {
-  const schema = groupSchema(config, fields) as ObjectSchema;
-  const keys = new Set([...Object.keys(schema.properties || {}), ...Object.keys(schema.optionalProperties || {})]);
-  const model: any = {};
-  if (isObject(existing) && !Array.isArray(existing)) {
-    for (const [k, v] of Object.entries(existing)) {
-      if (keys.has(k)) model[k] = cloneDeep(v);
-    }
-  }
+  const schema = groupSchema(config, fields);
+  const model: any = isPlainObject(existing) ? prune(schema, existing) : {};
   builder.build({ form: new FormGroup({}), model, options: {}, fieldGroup: cloneDeep(fields) });
   return JSON.parse(JSON.stringify(model));
 }

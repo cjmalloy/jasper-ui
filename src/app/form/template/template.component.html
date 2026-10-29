@@ -44,14 +44,12 @@
         <div class="form-builder-actions">
           <button type="button"
                   class="generate-schema"
-                  [disabled]="!formFields().length"
                   (click)="generateSchema()"
                   i18n-title
                   title="Replace the schema with one generated from the form"
                   i18n>Generate Schema</button>
           <button type="button"
                   class="generate-defaults"
-                  [disabled]="!formFields().length"
                   (click)="generateDefaults()"
                   i18n-title
                   title="Add default values for new fields and remove defaults for deleted fields"

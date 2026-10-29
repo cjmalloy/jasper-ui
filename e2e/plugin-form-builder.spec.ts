@@ -140,7 +140,7 @@ test.describe('Plugin Form Builder', () => {
     expect(saved.defaults ?? {}).toEqual({});
   });
 
-  test('a list built in the UI can add items', async ({ page, request, origin }) => {
+  test('only lists with an item editor can be built in the UI', async ({ page, request, origin }) => {
     const tag = await createPlugin(request, origin, 'list', { config: {} });
     const { item, builder } = await openBuilder(page, tag);
     const form = builder.locator('.builder-admin-form');
@@ -148,7 +148,8 @@ test.describe('Plugin Form Builder', () => {
     const field = form.locator('.formly-field-config');
     await expect(field).toHaveCount(1);
     await field.locator('.formly-key input').fill('items');
-    await field.locator('.formly-type select').selectOption('list');
+    await expect(field.locator('.formly-type select').getByRole('option', { name: 'list', exact: true })).toHaveCount(0);
+    await field.locator('.formly-type select').selectOption('tags');
     await save(page, item);
 
     await page.reload({ waitUntil: 'networkidle' });
