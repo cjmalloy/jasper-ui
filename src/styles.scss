@@ -9,3 +9,8 @@
 @use 'theme/android';
 @use 'theme/print';
 @use 'theme/electron';
+
+// Element is floating in a Picture-in-Picture window
+.is-hidden-in-pip {
+  display: none !important;
+}

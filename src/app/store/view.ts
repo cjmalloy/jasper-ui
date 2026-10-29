@@ -76,6 +76,10 @@ export class ViewStore {
   readonly inboxTabs = signal<Plugin[]>([]);
   readonly settingsTabs = signal<Plugin[]>([]);
   /**
+   * URL of the Ref currently open in the Picture-in-Picture window.
+   */
+  readonly pip = signal('');
+  /**
    * Current map center and zoom, updated as the map is panned.
    */
   readonly liveMapView = signal('');
@@ -104,6 +108,18 @@ export class ViewStore {
   clearModChanges() {
     this.modChanges.set(new Map());
     this.modUpdates.set(new Set());
+  }
+
+  addPip(url: string) {
+    this.pip.set(url);
+  }
+
+  removePip(url: string) {
+    if (this.pip() === url) this.pip.set('');
+  }
+
+  inPip(url?: string) {
+    return !!url && this.pip() === url;
   }
 
   setLastSelected(ref?: Ref) {

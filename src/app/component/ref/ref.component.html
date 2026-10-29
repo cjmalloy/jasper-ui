@@ -160,6 +160,7 @@
 </div>
 @if (expanded() && expandInline() && !editing() && !viewSource()) {
   <app-viewer #viewer class="viewer-inline"
+              [class.is-hidden-in-pip]="store.view.inPip(ref().url)"
               [ref]="bareRef()"
               [tags]="plugins() || viewerTags()"
               [disableResize]="disableResize()"
@@ -300,6 +301,7 @@
 }
 @if (expanded() && !expandInline() && !editing() && !viewSource()) {
   <app-viewer #viewer class="viewer-below"
+              [class.is-hidden-in-pip]="store.view.inPip(ref().url)"
               [ref]="bareRef()"
               [tags]="plugins() || viewerTags()"
               [disableResize]="disableResize()"

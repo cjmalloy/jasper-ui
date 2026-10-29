@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, ViewContainerRef } from '@angular/core';
+import { Component, computed, DestroyRef, inject } from '@angular/core';
 import { NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { environment } from '../environments/environment';
@@ -13,6 +13,7 @@ import { AdminService } from './service/admin.service';
 import { OriginService } from './service/api/origin.service';
 import { ProxyService } from './service/api/proxy.service';
 import { ConfigService } from './service/config.service';
+import { Ref } from './model/ref';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
 import { trackTextareaResize } from './util/resize';
@@ -43,7 +44,6 @@ export class AppComponent {
   private proxy = inject(ProxyService);
   private origins = inject(OriginService);
   private router = inject(Router);
-  private vc = inject(ViewContainerRef);
 
 
   electron = this.config.electron;
@@ -60,6 +60,7 @@ export class AppComponent {
   readonly archivePlugin = computed(() => this.admin.getPlugin('plugin/archive') as typeof archivePlugin | undefined);
   readonly pipPlugin = computed(() => this.admin.getPlugin('plugin/pip') as typeof pipPlugin | undefined);
   readonly userClipboardPlugin = computed(() => this.admin.getPlugin('plugin/user/clipboard') as typeof userClipboardPlugin | undefined);
+  pipWindow?: Window;
 
   constructor() {
     document.body.style.height = '';
@@ -107,8 +108,8 @@ export class AppComponent {
         if (!url) return;
         open(url, '_blank');
       }
-      if (event === 'pip' && pipPlugin) {
-        createPip(this.vc, ref!, pipPlugin.config?.windowConfig);
+      if (event === 'pip' && pipPlugin && ref?.url) {
+        this.pip(ref);
       }
       if (event === 'browse' && ref?.url) {
         const path = this.router.serializeUrl(this.router.createUrlTree(['/browse', ref.url], {
@@ -132,6 +133,31 @@ export class AppComponent {
       this.store.view.back.set(!isLinkClick && !isForwardButton);
       currentNavigationId = event.restoredState?.navigationId ?? event.id;
     });
+  }
+
+  async pip(ref: Ref) {
+    const url = ref.url;
+    this.pipWindow?.close();
+    let win: Window | null = null;
+    try {
+      win = await createPip(ref, this.pipPlugin()?.config?.windowConfig);
+    } catch (e) {
+      console.error('Failed to open Picture-in-Picture', e);
+    }
+    if (!win) return;
+    this.pipWindow = win;
+    this.store.view.addPip(url);
+    let restored = false;
+    const restore = () => {
+      if (restored) return;
+      restored = true;
+      clearInterval(poll);
+      if (this.pipWindow !== win) return;
+      this.pipWindow = undefined;
+      this.store.view.removePip(url);
+    };
+    const poll = setInterval(() => win!.closed && restore(), 500);
+    win.addEventListener('pagehide', restore);
   }
 
   readonly macos = /Macintosh/i.test(navigator.userAgent);
