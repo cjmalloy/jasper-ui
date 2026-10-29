@@ -20,3 +20,13 @@ details[open] {
     margin-bottom: 8px;
   }
 }
+
+.form-builder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.defaults-title {
+  margin: 12px 4px 0;
+}

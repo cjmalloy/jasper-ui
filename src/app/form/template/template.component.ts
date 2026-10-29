@@ -7,8 +7,10 @@ import {
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
-import { cloneDeep } from 'lodash-es';
+import { FormlyConfig, FormlyFormBuilder } from '@ngx-formly/core';
+import { cloneDeep, isEqual } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
+import { generateDefaults, generateSchema, groupFormFields, optionalFields } from '../../formly/formly-schema';
 import { formBuilderFields } from '../../formly/formly.type';
 import { AdminService } from '../../service/admin.service';
 import { controlValue } from '../../util/form';
@@ -24,6 +26,8 @@ import { JsonComponent } from '../json/json.component';
 })
 export class TemplateFormComponent {
   private admin = inject(AdminService);
+  private formlyConfig = inject(FormlyConfig);
+  private formlyBuilder = inject(FormlyFormBuilder);
 
   private readonly rootControlState = controlValue(() => this.group());
 
@@ -78,6 +82,22 @@ export class TemplateFormComponent {
     this.controlState2();
     return this.editingSchema() || this.group().get('schema')?.value;
   });
+
+  readonly formFields = computed(() => {
+    this.rootControlState();
+    this.controlState0();
+    return groupFormFields(this.group());
+  }, { equal: isEqual });
+
+  readonly defaultsForm = computed(() => optionalFields(this.formFields()));
+
+  generateSchema() {
+    generateSchema(this.formlyConfig, this.group());
+  }
+
+  generateDefaults() {
+    generateDefaults(this.formlyConfig, this.formlyBuilder, this.group());
+  }
 
   readonly jsonErrors = computed(() => !!(this.configErrors().length || this.defaultsErrors().length || this.schemaErrors().length));
 
