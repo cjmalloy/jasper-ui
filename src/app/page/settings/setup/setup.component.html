@@ -25,26 +25,10 @@
       <button type="button" (click)="install()" [disabled]="submitted() && !adminFormValid()" i18n>Save</button>
     </span>
 
-    @if (modChangesError().length) {
-      <span><!-- Mod Changes Error --></span>
-      <div class="mod-changes-error">
-        @for (e of modChangesError(); track $index) {
-          <div class="error">{{ e }}</div>
-        }
-        <div class="error" i18n>Unable to check mods for local changes. Updates and diffs are unavailable.</div>
-        <span class="fake-link mod-changes-retry" (click)="loadModChanges()" i18n>retry</span>
-      </div>
-    }
-
-    @if (serverError().length || installMessages().length) {
+    @if (hasLog()) {
       <span class="mobile-block"><!-- Log --></span>
       <div class="log mobile-block">
-        @for (e of serverError(); track e) {
-          <div class="error">{{ e }}</div>
-        }
-        @for (i of installMessages(); track $index) {
-          <div>{{ i }}</div>
-        }
+        <ng-container *ngTemplateOutlet="log" />
       </div>
     }
 
@@ -78,17 +62,30 @@
     }
 
   </form>
-  @if (serverError().length || installMessages().length) {
+  @if (hasLog()) {
     <span class="log mobile-hide">
-      @for (e of serverError(); track $index) {
-        <div class="error">{{ e }}</div>
-      }
-      @for (i of installMessages(); track $index) {
-        <div>{{ i }}</div>
-      }
+      <ng-container *ngTemplateOutlet="log" />
     </span>
   }
 </div>
+
+<ng-template #log>
+  @if (modChangesError().length) {
+    <div class="mod-changes-error">
+      @for (e of modChangesError(); track $index) {
+        <div class="error">{{ e }}</div>
+      }
+      <div class="error" i18n>Unable to check mods for local changes. Updates and diffs are unavailable.</div>
+      <span class="fake-link mod-changes-retry" (click)="loadModChanges()" i18n>retry</span>
+    </div>
+  }
+  @for (e of serverError(); track $index) {
+    <div class="error">{{ e }}</div>
+  }
+  @for (i of installMessages(); track $index) {
+    <div>{{ i }}</div>
+  }
+</ng-template>
 
 <ng-template #mergePopup>
   <div class="merge-popup">
