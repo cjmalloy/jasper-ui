@@ -53,7 +53,6 @@ test.describe('Plugin Form Builder', () => {
   }
 
   test('generate buttons can clear the schema and defaults after the last field is removed', async ({ page, request, origin }) => {
-    test.fail(true, 'Generate buttons are disabled when the form is empty');
     const tag = await createPlugin(request, origin, 'clear', {
       config: { form: [{ key: 'title', type: 'string' }] },
       schema: { optionalProperties: { title: { type: 'string' } } },
@@ -77,7 +76,6 @@ test.describe('Plugin Form Builder', () => {
   });
 
   test('clearing an optional number default stays valid against the generated schema', async ({ page, request, origin }) => {
-    test.fail(true, 'Clearing a number writes null but the schema is not nullable');
     const tag = await createPlugin(request, origin, 'number', {
       config: { form: [{ key: 'width', type: 'integer', props: { label: 'Width:' } }] },
       defaults: { width: 5 },
@@ -95,7 +93,6 @@ test.describe('Plugin Form Builder', () => {
   });
 
   test('generate defaults prunes removed nested keys', async ({ page, request, origin }) => {
-    test.fail(true, 'Generate Defaults only prunes top level keys');
     const tag = await createPlugin(request, origin, 'nested', {
       config: {
         form: [{
@@ -144,7 +141,6 @@ test.describe('Plugin Form Builder', () => {
   });
 
   test('a list built in the UI can add items', async ({ page, request, origin }) => {
-    test.fail(true, 'The builder offers list without a fieldArray editor');
     const tag = await createPlugin(request, origin, 'list', { config: {} });
     const { item, builder } = await openBuilder(page, tag);
     const form = builder.locator('.builder-admin-form');
@@ -164,7 +160,6 @@ test.describe('Plugin Form Builder', () => {
   });
 
   test('clearing an optional color default stays valid against the generated schema', async ({ page, request, origin }) => {
-    test.fail(true, 'Clearing a color writes null but the schema is not nullable');
     const tag = await createPlugin(request, origin, 'color', {
       config: { form: [{ key: 'accent', type: 'color' }] },
       defaults: { accent: '#ff0000' },
@@ -179,7 +174,6 @@ test.describe('Plugin Form Builder', () => {
   });
 
   test('a keyed group in both form and advancedForm is merged in the schema', async ({ page, request, origin }) => {
-    test.fail(true, 'A shared group in advancedForm replaces the one in form');
     const tag = await createPlugin(request, origin, 'merge', {
       config: {
         form: [{ key: 'settings', fieldGroup: [{ key: 'a', type: 'string' }] }],
@@ -223,7 +217,6 @@ test.describe('Plugin Form Builder', () => {
   });
 
   test('changing a select type and back keeps its options', async ({ page, request, origin }) => {
-    test.fail(true, 'resetOnHide deletes hidden options');
     const tag = await createPlugin(request, origin, 'options', {
       config: {
         form: [{ key: 'color', type: 'select', props: { options: [{ value: 'red', label: 'Red' }] } }],
