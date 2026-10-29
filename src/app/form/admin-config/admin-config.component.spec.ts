@@ -58,9 +58,9 @@ describe('AdminConfigComponent', () => {
   it('should propagate form validity to the JSON control', () => {
     fixture.componentRef.setInput('fields', [{ key: 'required', type: 'string', props: { required: true } }]);
     fixture.detectChanges();
-    expect(component.form.invalid).toBe(true);
+    expect(component.form().invalid).toBe(true);
     expect(group.invalid).toBe(true);
-    component.form.get('required')!.setValue('x');
+    component.form().get('required')!.setValue('x');
     expect(group.valid).toBe(true);
   });
 
@@ -70,5 +70,14 @@ describe('AdminConfigComponent', () => {
     expect(group.invalid).toBe(true);
     fixture.destroy();
     expect(group.valid).toBe(true);
+  });
+
+  it('should rebuild when a field becomes a group', () => {
+    group.get('config')!.setValue(JSON.stringify({ script: 'a' }));
+    fixture.componentRef.setInput('fields', [{ key: 'script' }]);
+    fixture.detectChanges();
+    fixture.componentRef.setInput('fields', [{ key: 'script', fieldGroup: [{ key: 'nested', type: 'string' }] }]);
+    fixture.detectChanges();
+    expect(component.form().get('script.nested')).toBeTruthy();
   });
 });

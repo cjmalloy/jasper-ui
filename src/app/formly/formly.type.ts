@@ -48,6 +48,7 @@ export function formlyType(typeNames: string[]): TypeOption {
         fieldGroup: [{
           key: 'key',
           type: 'string',
+          parsers: [omitEmpty],
           className: 'formly-key',
           props: {
             label: $localize`Key:`,
@@ -64,6 +65,7 @@ export function formlyType(typeNames: string[]): TypeOption {
         }, {
           key: 'props.label',
           type: 'string',
+          parsers: [omitEmpty],
           className: 'formly-label',
           props: {
             label: $localize`Label:`,
@@ -71,6 +73,7 @@ export function formlyType(typeNames: string[]): TypeOption {
         }, {
           key: 'props.placeholder',
           type: 'string',
+          parsers: [omitEmpty],
           className: 'formly-placeholder',
           expressions: {
             hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
@@ -81,6 +84,7 @@ export function formlyType(typeNames: string[]): TypeOption {
         }, {
           key: 'props.hint',
           type: 'string',
+          parsers: [omitEmpty],
           className: 'formly-hint',
           expressions: {
             hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
@@ -140,6 +144,13 @@ export function formlyType(typeNames: string[]): TypeOption {
       }),
     },
   };
+}
+
+/**
+ * Remove cleared text, so clearing a key or label doesn't leave an empty string.
+ */
+function omitEmpty(value: any) {
+  return value === '' ? undefined : value;
 }
 
 /**

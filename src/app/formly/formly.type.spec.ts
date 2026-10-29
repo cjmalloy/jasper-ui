@@ -108,4 +108,13 @@ describe('formly type', () => {
     expect(model.form[0].props!.options).toEqual([{ value: 'x', label: 'X' }]);
     expect(model.form[1].fieldGroup).toEqual([{ key: 'nested', type: 'number' }]);
   });
+
+  it('removes cleared keys and labels', async () => {
+    const model = { form: [{ key: 'a', type: 'string', props: { label: 'A:' } }] };
+    const { fixture, field } = await render(model);
+    child(field.fieldGroup![0], 'key').formControl!.setValue('');
+    child(field.fieldGroup![0], 'props.label').formControl!.setValue('');
+    await fixture.whenStable();
+    expect(JSON.parse(JSON.stringify(model.form[0]))).toEqual({ type: 'string', props: {} });
+  });
 });

@@ -1,5 +1,4 @@
-import { Component, computed, DestroyRef, effect, inject, input, linkedSignal, untracked } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, computed, effect, inject, input, linkedSignal, untracked } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, ValidatorFn } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { AdminService } from '../../service/admin.service';
@@ -39,7 +38,14 @@ export class AdminConfigComponent {
     },
   });
 
-  form = new UntypedFormGroup({});
+  /**
+   * New form group for each set of fields, so a key which changes between
+   * a field and a group of fields doesn't reuse a control of the wrong kind.
+   */
+  readonly form = computed(() => {
+    this.fields();
+    return new UntypedFormGroup({});
+  });
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
@@ -47,7 +53,7 @@ export class AdminConfigComponent {
     },
   };
 
-  private formValidator: ValidatorFn = () => this.form.invalid ? { adminForm: true } : null;
+  private formValidator: ValidatorFn = () => untracked(() => this.form()).invalid ? { adminForm: true } : null;
 
   constructor() {
     // Sync the model into the formly form state
@@ -66,9 +72,12 @@ export class AdminConfigComponent {
         control.updateValueAndValidity({ emitEvent: false });
       });
     });
-    this.form.statusChanges.pipe(
-      takeUntilDestroyed(inject(DestroyRef)),
-    ).subscribe(() => untracked(() => this.control()).updateValueAndValidity({ emitEvent: false }));
+    // Sync the formly form status into the JSON control validity
+    effect(onCleanup => {
+      const subscription = this.form().statusChanges
+        .subscribe(() => untracked(() => this.control()).updateValueAndValidity({ emitEvent: false }));
+      onCleanup(() => subscription.unsubscribe());
+    });
   }
 
   modelChange(model: any) {
