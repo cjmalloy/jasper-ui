@@ -29,11 +29,17 @@ services:
     working_dir: /e2e
     volumes:
       - ../:/e2e
+  # Replaces the builder stage of ../Dockerfile with an e2e configuration build
+  client-builder:
+    build:
+      context: ..
+      dockerfile: e2e/client.Dockerfile
+    scale: 0
   client:
     build:
       context: ..
-      args:
-        BUILD_SCRIPT: build:e2e
+      additional_contexts:
+        builder: service:client-builder
 #    image: ghcr.io/cjmalloy/jasper-ui:master
     ports:
       - 8080:80
@@ -49,8 +55,8 @@ services:
   proxy-client:
     build:
       context: ..
-      args:
-        BUILD_SCRIPT: build:e2e
+      additional_contexts:
+        builder: service:client-builder
     # Same origin API through the client proxy, opened as http://jasper.test:8084
     ports:
       - 8084:80
@@ -103,8 +109,8 @@ services:
   repl-client:
     build:
       context: ..
-      args:
-        BUILD_SCRIPT: build:e2e
+      additional_contexts:
+        builder: service:client-builder
 #    image: ghcr.io/cjmalloy/jasper-ui:master
     ports:
       - 8082:80

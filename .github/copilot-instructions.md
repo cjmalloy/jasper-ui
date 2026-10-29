@@ -213,7 +213,7 @@ test.describe.serial('Feature Name', () => {
 
 **Always import `test` from `./setup`, never from `@playwright/test`.** That `test` has an auto fixture that fails the test on any `console.error` or uncaught page error (`pageerror`), including pages created in `beforeAll` and contexts created during the test. The only allowed console errors are in `allowedConsoleErrors` in `e2e/setup.ts` (Chrome's `Failed to load resource: ... status of <code>` log for expected 4xx/5xx responses). Don't add Angular errors such as NG0100 or NG0600 to that list; fix them.
 
-The E2E client images are built with `npm run build:e2e` (`--configuration e2e`): production app behaviour (`environment.dev` is false, so no auto login), but unoptimized so Angular dev-mode checks run, including exhaustive `checkNoChanges`.
+The E2E client images are built with `npm run build:e2e` (`--configuration e2e`) in `e2e/client.Dockerfile`, which `e2e/docker-compose.yaml` swaps in for the `builder` stage of the main `Dockerfile`: production app behaviour (`environment.dev` is false, so no auto login), but unoptimized so Angular dev-mode checks run, including exhaustive `checkNoChanges`.
 
 `e2e/setup.ts` helpers:
 - `clearMods(page, base?)`, `mod(page, ...mods)`, `modRemote(page, base, ...mods)`: reset plugins/templates and enable mods such as `'#mod-wiki'`

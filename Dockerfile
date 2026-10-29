@@ -4,8 +4,7 @@ COPY package.json package-lock.json ./
 COPY patches ./patches/
 RUN npm ci
 COPY . ./
-ARG BUILD_SCRIPT=build
-RUN npm run $BUILD_SCRIPT
+RUN npm run build
 
 FROM node:26.12.1 AS test
 WORKDIR /app
