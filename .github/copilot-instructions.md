@@ -276,6 +276,12 @@ Checks:
 - **Compiler** (`tsconfig.json`): `strictTemplates` plus the extended diagnostics `interpolatedSignalNotInvoked` (NG8109), `uninvokedFunctionInEventBinding` (NG8111), `uninvokedFunctionInTextInterpolation` (NG8117) and `uninvokedTrackFunction` (NG8115) are errors. `strictTemplates` also reports TS2774 for an uncalled function in `@if`.
 - **Runtime**: dev (`npm start`, `environment.ts`) and E2E (`environment.e2e.ts`) builds add `provideCheckNoChangesConfig({ exhaustive: true })`, so state that changes without notifying an OnPush view logs NG0100. The Playwright fixture turns that into a test failure.
 
+### UX
+
+- **NEVER shift the layout where someone might be interacting with it.** Async results (loading, errors, status messages) must not insert, remove, or resize content above or around buttons, links, inputs, or list rows, because a click can land on the wrong target.
+  - Loading: swap the indicator in place of the control it relates to (e.g. `SettingsSetupPage` shows `app-loading` where the "Update All" button goes).
+  - Errors and status messages: put them in an existing log or message container (e.g. the `.log` panel on the setup page). Pushing down non-interactive content such as a log is acceptable.
+
 ### Project structure
 
 - `src/app/component/`: reusable UI components
