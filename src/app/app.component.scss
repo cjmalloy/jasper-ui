@@ -6,6 +6,10 @@
   hr {
     flex-grow: 1;
   }
+
+  &.offline {
+    --top-banner-height: 26px;
+  }
 }
 
 .offline-banner {
@@ -14,7 +18,10 @@
 
 .offline .offline-banner {
   display: block;
-  padding: 4px;
+  box-sizing: border-box;
+  height: var(--top-banner-height);
+  line-height: var(--top-banner-height);
+  overflow: hidden;
   text-align: center;
   background-color: var(--bg-accent);
   backdrop-filter: blur(1px);

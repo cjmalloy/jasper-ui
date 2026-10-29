@@ -1043,7 +1043,7 @@ video.qr-preview {
     float: none;
     position: absolute;
     right: 0;
-    top: 86px;
+    top: calc(86px + var(--top-banner-height, 0px));
   }
 
   .toggle {
