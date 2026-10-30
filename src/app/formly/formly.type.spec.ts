@@ -102,6 +102,7 @@ describe('formly type', () => {
     child(field.fieldGroup![0], 'type').formControl!.setValue('string');
     child(field.fieldGroup![1], 'type').formControl!.setValue('string');
     await fixture.whenStable();
+    expect(model.form[1]).not.toHaveProperty('fieldGroup');
     child(field.fieldGroup![0], 'type').formControl!.setValue('select');
     child(field.fieldGroup![1], 'type').formControl!.setValue(null);
     await fixture.whenStable();

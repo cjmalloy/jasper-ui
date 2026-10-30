@@ -42,6 +42,7 @@ describe('formly schema', () => {
       { key: 'where', type: 'location' },
       { key: 'color', type: 'select', props: { options: [{ value: 'red' }, { value: 'blue' }] } },
       { key: 'cols', type: 'select', props: { options: [{ label: 'Default' }, { value: 1 }, { value: 2 }] } },
+      { key: 'big', type: 'select', props: { options: [{ value: 1 }, { value: 4294967296 }] } },
       { key: 'notes', type: 'editor' },
       { key: 'form', type: 'formly' },
     ];
@@ -61,6 +62,7 @@ describe('formly schema', () => {
         where: { elements: { type: 'float64' } },
         color: { enum: ['red', 'blue'] },
         cols: { type: 'int32' },
+        big: { type: 'float64' },
         notes: { type: 'string' },
         form: { elements: {} },
       },

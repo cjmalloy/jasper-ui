@@ -34,7 +34,7 @@ function optionsSchema(options: any): Schema {
   const values = options.map(o => o?.value).filter(v => v !== undefined && v !== null);
   if (!values.length) return {};
   if (values.every(v => typeof v === 'string')) return { enum: [...new Set(values)] };
-  if (values.every(v => Number.isInteger(v))) return { type: 'int32' };
+  if (values.every(v => Number.isInteger(v) && v >= -2147483648 && v <= 2147483647)) return { type: 'int32' };
   if (values.every(v => typeof v === 'number')) return { type: 'float64' };
   if (values.every(v => typeof v === 'boolean')) return { type: 'boolean' };
   return {};

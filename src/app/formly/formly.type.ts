@@ -134,8 +134,9 @@ export function formlyType(typeNames: string[]): TypeOption {
           key: 'fieldGroup',
           type: 'formly',
           className: 'formly-field-group',
+          resetOnHide: true,
           expressions: {
-            hide: (field: FormlyFieldConfig) => !!field.parent?.model?.type,
+            hide: hideFieldGroup,
           },
           props: {
             label: $localize`Fields:`,
@@ -153,12 +154,33 @@ function omitEmpty(value: any) {
   return value === '' ? undefined : value;
 }
 
+const hiddenFieldGroups = new WeakMap<object, any>();
+
+/**
+ * Hide nested fields when a group gets a type, since a typed field with a
+ * field group would get a FormGroup instead of a FormControl.
+ * The nested fields are removed from the config, but kept in the editor so
+ * changing back to a group restores them.
+ */
+function hideFieldGroup(field: FormlyFieldConfig) {
+  const model = field.parent?.model;
+  if (!model) return false;
+  const hide = !!model.type;
+  if (hide && model.fieldGroup) {
+    hiddenFieldGroups.set(model, model.fieldGroup);
+  } else if (!hide && !model.fieldGroup && hiddenFieldGroups.has(model)) {
+    model.fieldGroup = hiddenFieldGroups.get(model);
+    hiddenFieldGroups.delete(model);
+  }
+  return hide;
+}
+
 /**
  * Keep values of hidden fields, so changing the type of a field in the
  * builder doesn't delete its options or nested fields.
  */
 function keepHidden(field: FormlyFieldConfig): FormlyFieldConfig {
-  field.resetOnHide = false;
+  field.resetOnHide ??= false;
   field.fieldGroup?.forEach(keepHidden);
   if (field.fieldArray) keepHidden(field.fieldArray as FormlyFieldConfig);
   return field;
