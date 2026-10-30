@@ -151,6 +151,26 @@ describe('formly schema', () => {
     expect(fields[0].props!.required).toBe(false);
   });
 
+  it('only clears required in field props', () => {
+    const fields = optionalFields(config, [
+      { key: 'group', defaultValue: { required: true }, props: { required: true }, fieldGroup: [
+        { key: 'required', type: 'boolean', defaultValue: true, props: { required: true } },
+      ] },
+    ]);
+    expect(fields[0].defaultValue).toEqual({ required: true });
+    expect(fields[0].props!.required).toBe(false);
+    expect(fields[0].fieldGroup![0].defaultValue).toBe(true);
+    expect(fields[0].fieldGroup![0].props!.required).toBe(false);
+  });
+
+  it('keeps null select options in the schema', () => {
+    const schema = formlySchema(config, [
+      { key: 'color', type: 'select', props: { options: [{ value: 'red' }, { value: null, label: 'None' }] } },
+    ]);
+    expect(schema).toEqual({ optionalProperties: { color: { enum: ['red'], nullable: true } } });
+    expect(validate(schema as any, { color: null })).toEqual([]);
+  });
+
   it('updates the schema and defaults controls from the config control', () => {
     const group = new FormGroup({
       config: new FormControl(JSON.stringify({

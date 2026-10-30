@@ -1,7 +1,7 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
 import { Schema } from 'jtd';
-import { cloneDeep, cloneDeepWith, defaultsDeep, isObject, isPlainObject } from 'lodash-es';
+import { cloneDeep, defaultsDeep, isObject, isPlainObject } from 'lodash-es';
 
 type ObjectSchema = { properties?: Record<string, Schema>, optionalProperties?: Record<string, Schema> };
 
@@ -33,10 +33,11 @@ function optionsSchema(options: any): Schema {
   if (!Array.isArray(options)) return {};
   const values = options.map(o => o?.value).filter(v => v !== undefined && v !== null);
   if (!values.length) return {};
-  if (values.every(v => typeof v === 'string')) return { enum: [...new Set(values)] };
-  if (values.every(v => Number.isInteger(v) && v >= -2147483648 && v <= 2147483647)) return { type: 'int32' };
-  if (values.every(v => typeof v === 'number')) return { type: 'float64' };
-  if (values.every(v => typeof v === 'boolean')) return { type: 'boolean' };
+  const nullable = options.some(o => o && 'value' in o && o.value === null) ? { nullable: true } : {};
+  if (values.every(v => typeof v === 'string')) return { enum: [...new Set(values)], ...nullable };
+  if (values.every(v => Number.isInteger(v) && v >= -2147483648 && v <= 2147483647)) return { type: 'int32', ...nullable };
+  if (values.every(v => typeof v === 'number')) return { type: 'float64', ...nullable };
+  if (values.every(v => typeof v === 'boolean')) return { type: 'boolean', ...nullable };
   return {};
 }
 
@@ -240,10 +241,17 @@ export function optionalFields(config: FormlyConfig, fields: FormlyFieldConfig[]
     }
     return true;
   };
+  const optional = (field: FormlyFieldConfig): FormlyFieldConfig => {
+    const result = cloneDeep(field);
+    if (result.props?.required) result.props.required = false;
+    if (Array.isArray(result.fieldGroup)) result.fieldGroup = filter(result.fieldGroup);
+    if (result.fieldArray && typeof result.fieldArray === 'object') result.fieldArray = optional(result.fieldArray);
+    return result;
+  };
   const filter = (fields: FormlyFieldConfig[]): FormlyFieldConfig[] => fields
     .filter(renderable)
-    .map(f => Array.isArray(f.fieldGroup) ? { ...f, fieldGroup: filter(f.fieldGroup) } : f);
-  return cloneDeepWith(filter(fields), (value, key) => key === 'required' ? false : undefined);
+    .map(optional);
+  return filter(fields);
 }
 
 function parseJson(value: any) {
