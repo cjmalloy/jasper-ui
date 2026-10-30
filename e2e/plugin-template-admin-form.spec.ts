@@ -96,6 +96,56 @@ test.describe.serial('Plugin/Template Admin Form', () => {
     });
   }
 
+  for (const type of ['plugin', 'template'] as const) {
+    test(`build ${type} form in the UI`, async ({ page, request, origin }) => {
+      await page.goto(`/settings/${type}?debug=ADMIN&search=adminform${runId}`, { waitUntil: 'networkidle' });
+      const item = page.locator(`.${type}.list-item`);
+      await expect(item).toHaveCount(1);
+      await item.locator('.actions .fake-link', { hasText: 'edit' }).click();
+
+      const builder = item.locator('details.form-builder');
+      await expect(builder).not.toHaveAttribute('open');
+      await builder.locator('summary').click();
+      const form = builder.locator('.builder-form');
+      await form.locator('button', { hasText: '+ Add another field' }).click();
+      const field = form.locator('.formly-field-config');
+      await expect(field).toHaveCount(1);
+      await field.locator('.formly-key input').fill('color');
+      await expect(field.locator('.formly-options')).toHaveCount(0);
+      await field.locator('.formly-type select').selectOption('select');
+      await field.locator('.formly-label input').first().fill('Color:');
+      const options = field.locator('.formly-options');
+      await options.locator('button', { hasText: '+ Add another option' }).click();
+      await options.locator('.formly-option-value input').fill('red');
+      await options.locator('.formly-option-label input').fill('Red');
+
+      await builder.locator('button.generate-schema').click();
+      const defaults = builder.locator('.defaults-form');
+      await expect(defaults.locator('select option', { hasText: 'Red' })).toHaveCount(1);
+      await defaults.locator('select').selectOption({ label: 'Red' });
+      await builder.locator('button.generate-defaults').click();
+
+      const savePromise = page.waitForResponse(resp => (
+        resp.url().includes(`/api/v1/${type}`) && resp.request().method() === 'PUT' && resp.ok()
+      ));
+      await item.locator('button[type=submit]').click();
+      await savePromise;
+
+      const res = await request.get(`${api}/${type}`, { headers: await headers(request), params: { tag: tags[type] + origin } });
+      expect(res.ok()).toBeTruthy();
+      const saved = await res.json();
+      expect(saved.config.form).toEqual([{
+        key: 'color',
+        type: 'select',
+        props: { label: 'Color:', options: [{ value: 'red', label: 'Red' }] },
+      }]);
+      expect(saved.schema).toEqual({ optionalProperties: { color: { enum: ['red'] } } });
+      expect(saved.defaults).toEqual({ color: 'red' });
+      expect(saved.config.title).toBe('after');
+      expect(saved.config.adminForm).toHaveLength(2);
+    });
+  }
+
   test('fallback admin form for server config template', async ({ page }) => {
     await page.goto(`/settings/template?debug=ADMIN&search=${tags.config}`, { waitUntil: 'networkidle' });
     const item = page.locator('.template.list-item').filter({ hasText: tags.config });

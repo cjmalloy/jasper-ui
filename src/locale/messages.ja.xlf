@@ -8179,6 +8179,86 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Use -&gt; for nested fields, or tags-&gt; for the value of a tag (e.g., tags-&gt;plugin/duration:dur). Append :num or :dur to read the value as a number or duration.</source>
         <target>ネストされたフィールドには -&gt; を、タグの値には tags-&gt; を使用します（例：tags-&gt;plugin/duration:dur）。値を数値または期間として読み取るには :num または :dur を追加します。</target>
       </trans-unit>
+      <trans-unit id="2354379848714892211" datatype="html">
+        <source>+ Add another option</source>
+        <target>+ 選択肢を追加</target>
+      </trans-unit>
+      <trans-unit id="2426670095217837155" datatype="html">
+        <source>Key:</source>
+        <target>キー:</target>
+      </trans-unit>
+      <trans-unit id="2653680894409981066" datatype="html">
+        <source>+ Add another field</source>
+        <target>+ フィールドを追加</target>
+      </trans-unit>
+      <trans-unit id="3469158197044132609" datatype="html">
+        <source>Admin Form:</source>
+        <target>管理フォーム:</target>
+      </trans-unit>
+      <trans-unit id="3661243150687969383" datatype="html">
+        <source>Options:</source>
+        <target>選択肢:</target>
+      </trans-unit>
+      <trans-unit id="3904805944153220794" datatype="html">
+        <source>Value:</source>
+        <target>値:</target>
+      </trans-unit>
+      <trans-unit id="4272529530551543307" datatype="html">
+        <source>Advanced Admin Form:</source>
+        <target>詳細管理フォーム:</target>
+      </trans-unit>
+      <trans-unit id="4456423849243411800" datatype="html">
+        <source>Advanced Form:</source>
+        <target>詳細フォーム:</target>
+      </trans-unit>
+      <trans-unit id="4981729030739812160" datatype="html">
+        <source>Required:</source>
+        <target>必須:</target>
+      </trans-unit>
+      <trans-unit id="5876331597925221003" datatype="html">
+        <source>Form Builder</source>
+        <target>フォームビルダー</target>
+      </trans-unit>
+      <trans-unit id="6517386974227510649" datatype="html">
+        <source>Hint:</source>
+        <target>ヒント:</target>
+      </trans-unit>
+      <trans-unit id="664144390539044292" datatype="html">
+        <source>Fields:</source>
+        <target>フィールド:</target>
+      </trans-unit>
+      <trans-unit id="7679125598990170756" datatype="html">
+        <source>Placeholder:</source>
+        <target>プレースホルダー:</target>
+      </trans-unit>
+      <trans-unit id="8623978917681527907" datatype="html">
+        <source>Group</source>
+        <target>グループ</target>
+      </trans-unit>
+      <trans-unit id="8744384645884009475" datatype="html">
+        <source>Form:</source>
+        <target>フォーム:</target>
+      </trans-unit>
+      <trans-unit id="2933264521282120114" datatype="html">
+        <source>Default Values</source>
+        <target>デフォルト値</target>
+      </trans-unit>
+      <trans-unit id="4751779431858528558" datatype="html">
+        <source>Generate Schema</source>
+        <target>スキーマを生成</target>
+      </trans-unit>
+      <trans-unit id="5562658514852867880" datatype="html">
+        <source>Replace the schema with one generated from the form</source>
+        <target>フォームから生成したスキーマで置き換える</target>
+      </trans-unit>
+      <trans-unit id="5677285386251965258" datatype="html">
+        <source>Generate Defaults</source>
+        <target>デフォルト値を生成</target>
+      </trans-unit>
+      <trans-unit id="6062314466203660156" datatype="html">
+        <source>Add default values for new fields and remove defaults for deleted fields</source>
+        <target>新しいフィールドのデフォルト値を追加し、削除したフィールドのデフォルト値を削除する</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

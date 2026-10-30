@@ -32,6 +32,40 @@
     </details>
   }
 
+  <details class="advanced form-builder" (toggle)="formBuilderOpen.set($any($event.target).open)">
+    <summary><span i18n>Form Builder</span></summary>
+    @if (formBuilderOpen()) {
+      <div class="form">
+        <app-admin-config class="form-builder-form"
+                          [group]="group()"
+                          [fields]="formBuilder" />
+        <span><!-- Buttons --></span>
+        <div class="form-builder-actions">
+          <button type="button"
+                  class="generate-schema"
+                  (click)="generateSchema()"
+                  i18n-title
+                  title="Replace the schema with one generated from the form"
+                  i18n>Generate Schema</button>
+          <button type="button"
+                  class="generate-defaults"
+                  (click)="generateDefaults()"
+                  i18n-title
+                  title="Add default values for new fields and remove defaults for deleted fields"
+                  i18n>Generate Defaults</button>
+        </div>
+        @if (defaultsForm().length) {
+          <span><!-- Title --></span>
+          <h3 class="defaults-title" i18n>Default Values</h3>
+          <app-admin-config class="defaults-form"
+                            fieldName="defaults"
+                            [group]="group()"
+                            [fields]="defaultsForm()" />
+        }
+      </div>
+    }
+  </details>
+
   <ng-template #jsonEditors>
     <label [for]="id + '-config'" i18n>Config:</label>
     @if (!editingConfig() && !config()) {
