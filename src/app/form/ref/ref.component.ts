@@ -290,9 +290,19 @@ export class RefFormComponent {
   }
 
   get scrape$() {
+    return this.scrapeUrl$();
+  }
+
+  /**
+   * Scrapes the given URL, or the source of a repost, or the URL.
+   * Pass the URL when it was just added to the form, as links are only
+   * written to the form when it renders.
+   */
+  private scrapeUrl$(url?: string) {
     const scraped = this.scraped();
     if (scraped) return of(scraped);
-    return this.scrape.webScrape(hasTag('plugin/repost', this.tags().value) ? this.sources().value?.[0] : this.url().value).pipe(
+    url ||= hasTag('plugin/repost', this.tags().value) ? this.sources().value?.[0] : this.url().value;
+    return this.scrape.webScrape(url!).pipe(
       tap(s => {
         this.scraped.set(s);
         const current = this.ref();
@@ -378,11 +388,11 @@ export class RefFormComponent {
     }
   }
 
-  scrapePlugins() {
+  scrapePlugins(url?: string) {
     if (this.oembed()) {
       // TODO: oEmbed
     } else {
-      this.scrape$.subscribe(s => {
+      this.scrapeUrl$(url).subscribe(s => {
         for (const t of s.tags || []) {
           if (!hasTag(t, this.tags().value)) this.togglePlugin(t);
         }

@@ -165,4 +165,19 @@ describe('RefFormComponent', () => {
 
     expect(component.title().value).toBe('Typed While Pending');
   });
+
+  it('scrapes plugins from a source that was just added', () => {
+    const channel = 'https://www.youtube.com/@channel';
+    component.url().setValue('https://www.youtube.com/feeds/videos.xml?channel_id=abc');
+    component.tagsFormComponent().addTag('plugin/repost');
+    component.sourcesFormComponent().addLink(channel);
+
+    component.scrapePlugins(channel);
+
+    const req = httpMock.expectOne(request => request.url.includes('/api/v1/scrape/web'));
+    expect(req.request.params.get('url')).toBe(channel);
+    req.flush({ url: channel, tags: [], plugins: { 'plugin/thumbnail': { url: 'https://yt3.example/thumb.jpg' } } });
+
+    expect(component.ref()?.plugins?.['plugin/thumbnail']).toEqual({ url: 'https://yt3.example/thumb.jpg' });
+  });
 });

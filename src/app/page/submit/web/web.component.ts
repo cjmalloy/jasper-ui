@@ -221,7 +221,7 @@ export class SubmitWebPage implements HasChanges {
                 this.url = value;
                 this.addTag('plugin/repost');
                 this.addSource(url);
-                this.refForm.scrapePlugins();
+                this.refForm.scrapePlugins(url);
                 if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
                   const username = url.substring(url.indexOf('@'));
                   if (!this.store.submit.title()) this.webForm.get('title')!.setValue(username);
