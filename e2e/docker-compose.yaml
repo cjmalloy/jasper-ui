@@ -30,10 +30,7 @@ services:
     volumes:
       - ../:/e2e
   client:
-    build:
-      context: ..
-      args:
-        BUILD_SCRIPT: build:e2e
+    build: ..
 #    image: ghcr.io/cjmalloy/jasper-ui:master
     ports:
       - 8080:80
@@ -47,10 +44,7 @@ services:
     depends_on:
       - web
   proxy-client:
-    build:
-      context: ..
-      args:
-        BUILD_SCRIPT: build:e2e
+    build: ..
     # Same origin API through the client proxy, opened as http://jasper.test:8084
     ports:
       - 8084:80
@@ -101,10 +95,7 @@ services:
       POSTGRES_PASSWORD: jasper
       POSTGRES_DB: jasper
   repl-client:
-    build:
-      context: ..
-      args:
-        BUILD_SCRIPT: build:e2e
+    build: ..
 #    image: ghcr.io/cjmalloy/jasper-ui:master
     ports:
       - 8082:80

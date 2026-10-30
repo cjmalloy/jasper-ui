@@ -213,8 +213,6 @@ test.describe.serial('Feature Name', () => {
 
 **Always import `test` from `./setup`, never from `@playwright/test`.** That `test` has an auto fixture that fails the test on any `console.error` or uncaught page error (`pageerror`), including pages created in `beforeAll` and contexts created during the test. The only allowed console errors are in `allowedConsoleErrors` in `e2e/setup.ts` (Chrome's `Failed to load resource: ... status of <code>` log for expected 4xx/5xx responses). Don't add Angular errors such as NG0100 or NG0600 to that list; fix them.
 
-The E2E client images are built with `npm run build:e2e` (`--configuration e2e`): production app behaviour (`environment.dev` is false, so no auto login), but unoptimized so Angular dev-mode checks run, including exhaustive `checkNoChanges`.
-
 `e2e/setup.ts` helpers:
 - `clearMods(page, base?)`, `mod(page, ...mods)`, `modRemote(page, base, ...mods)`: reset plugins/templates and enable mods such as `'#mod-wiki'`
 - `clearOrigin(page, base?, origin?)`, `clearAll(page, base?, origin?)`, `deleteRef(page, url, base?)`
@@ -274,7 +272,7 @@ More rules:
 Checks:
 - **Lint** (`npm run lint`, also run by `npm test` and the Docker build): angular-eslint `prefer-inject`, `prefer-signals`, `template/prefer-control-flow`, `template/prefer-self-closing-tags`; bans `@Input`/`@Output`/`@ViewChild(ren)`/`@ContentChild(ren)`/`@HostBinding`/`@HostListener`, lifecycle interfaces, lodash `defer`/`delay`, and imports of `zone.js`, `mobx*`, `NgZone` and `HTTP_INTERCEPTORS`. Config: `eslint.config.js`.
 - **Compiler** (`tsconfig.json`): `strictTemplates` plus the extended diagnostics `interpolatedSignalNotInvoked` (NG8109), `uninvokedFunctionInEventBinding` (NG8111), `uninvokedFunctionInTextInterpolation` (NG8117) and `uninvokedTrackFunction` (NG8115) are errors. `strictTemplates` also reports TS2774 for an uncalled function in `@if`.
-- **Runtime**: dev (`npm start`, `environment.ts`) and E2E (`environment.e2e.ts`) builds add `provideCheckNoChangesConfig({ exhaustive: true })`, so state that changes without notifying an OnPush view logs NG0100. The Playwright fixture turns that into a test failure.
+- **Runtime**: the dev build (`npm start`, `environment.ts`) adds `provideCheckNoChangesConfig({ exhaustive: true })`, so state that changes without notifying an OnPush view logs NG0100. E2E runs the production build, where these dev-mode checks are compiled out.
 
 ### UX
 
