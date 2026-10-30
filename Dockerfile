@@ -1,4 +1,4 @@
-FROM node:26.12.1 AS builder
+FROM node:26.13.0 AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY patches ./patches/
@@ -6,7 +6,7 @@ RUN npm ci
 COPY . ./
 RUN npm run build
 
-FROM node:26.12.1 AS test
+FROM node:26.13.0 AS test
 WORKDIR /app
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
