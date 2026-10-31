@@ -388,7 +388,11 @@ export class RefFormComponent {
     }
   }
 
-  scrapePlugins(url?: string) {
+  /**
+   * Scrapes plugins from the URL. Defaults are merged under the scraped
+   * value of each plugin that was found.
+   */
+  scrapePlugins(url?: string, defaults: Record<string, any> = {}) {
     if (this.oembed()) {
       // TODO: oEmbed
     } else {
@@ -396,11 +400,15 @@ export class RefFormComponent {
         for (const t of s.tags || []) {
           if (!hasTag(t, this.tags().value)) this.togglePlugin(t);
         }
+        const scraped: Record<string, any> = { ...s.plugins || {} };
+        for (const t in scraped) {
+          if (defaults[t]) scraped[t] = { ...defaults[t], ...scraped[t] };
+        }
         this.ref.update(ref => ({
           ...ref,
           plugins: {
             ...this.group().value.plugins || {},
-            ...s.plugins || {},
+            ...scraped,
           },
         } as Ref));
       });

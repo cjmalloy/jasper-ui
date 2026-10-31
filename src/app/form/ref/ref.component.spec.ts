@@ -180,4 +180,18 @@ describe('RefFormComponent', () => {
 
     expect(component.ref()?.plugins?.['plugin/thumbnail']).toEqual({ url: 'https://yt3.example/thumb.jpg' });
   });
+
+  it('merges plugin defaults under scraped plugins', () => {
+    const channel = 'https://www.youtube.com/@channel';
+    component.url().setValue('https://www.youtube.com/feeds/videos.xml?channel_id=abc');
+    component.tagsFormComponent().addTag('plugin/repost');
+    component.sourcesFormComponent().addLink(channel);
+
+    component.scrapePlugins(channel, { 'plugin/thumbnail': { radius: 24 } });
+
+    httpMock.expectOne(request => request.url.includes('/api/v1/scrape/web'))
+      .flush({ url: channel, tags: [], plugins: { 'plugin/thumbnail': { url: 'https://yt3.example/thumb.jpg' } } });
+
+    expect(component.ref()?.plugins?.['plugin/thumbnail']).toEqual({ url: 'https://yt3.example/thumb.jpg', radius: 24 });
+  });
 });

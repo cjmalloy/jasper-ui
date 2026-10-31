@@ -221,14 +221,15 @@ export class SubmitWebPage implements HasChanges {
                 this.url = value;
                 this.addTag('plugin/repost');
                 this.addSource(url);
-                this.refForm.scrapePlugins(url);
                 if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
+                  this.refForm.scrapePlugins(url, { 'plugin/thumbnail': { radius: 24 } });
                   const username = url.substring(url.indexOf('@'));
                   if (!this.store.submit.title()) this.webForm.get('title')!.setValue(username);
                   const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
                   this.addFeedTags(tag);
-                } else if (!this.store.submit.title() && !this.hasDraft) {
-                  this.refForm.scrapeTitle();
+                } else {
+                  this.refForm.scrapePlugins(url);
+                  if (!this.store.submit.title() && !this.hasDraft) this.refForm.scrapeTitle();
                 }
               } else {
                 // No RSS URL found or found value already exists
