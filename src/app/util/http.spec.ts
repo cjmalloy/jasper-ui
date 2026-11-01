@@ -1,6 +1,32 @@
-import { encodeBookmarkParams, getTitleFromFilename, parseBookmarkParams } from './http';
+import { banlistConfig } from '../mods/system/banlist';
+import { encodeBookmarkParams, fixUrl, getTitleFromFilename, parseBookmarkParams, stripParams } from './http';
 
 describe('HTTP Utils', () => {
+  describe('fixUrl', () => {
+    it('should strip youtube tracking params', () => {
+      expect(fixUrl('https://www.youtube.com/watch?v=abc&pp=xyz', banlistConfig)).toBe('https://www.youtube.com/watch?v=abc');
+      expect(fixUrl('https://www.youtube.com/watch?v=abc&si=1&feature=shared&t=10', banlistConfig)).toBe('https://www.youtube.com/watch?v=abc&t=10');
+      expect(fixUrl('https://www.youtube.com/watch?pp=xyz&v=abc', banlistConfig)).toBe('https://www.youtube.com/watch?v=abc');
+      expect(fixUrl('https://www.youtube.com/shorts/abc?si=xyz', banlistConfig)).toBe('https://www.youtube.com/shorts/abc');
+    });
+
+    it('should expand youtu.be and strip tracking params', () => {
+      expect(fixUrl('https://youtu.be/abc?si=xyz', banlistConfig)).toBe('https://www.youtube.com/watch?v=abc');
+      expect(fixUrl('https://youtu.be/abc?si=xyz&t=5', banlistConfig)).toBe('https://www.youtube.com/watch?v=abc&t=5');
+    });
+
+    it('should keep other youtube params', () => {
+      expect(fixUrl('https://www.youtube.com/watch?v=abc&list=PL1&index=2', banlistConfig)).toBe('https://www.youtube.com/watch?v=abc&list=PL1&index=2');
+    });
+  });
+
+  describe('stripParams', () => {
+    it('should preserve hash', () => {
+      expect(stripParams('https://a.com/p?x=1&si=2#h', ['si'])).toBe('https://a.com/p?x=1#h');
+      expect(stripParams('https://a.com/p?si=2#h', ['si'])).toBe('https://a.com/p#h');
+    });
+  });
+
   describe('encodeBookmarkParams (string overload)', () => {
     it('should extract sort, filter, search from a full URL', () => {
       const qs = encodeBookmarkParams('/tag/science?sort=published,DESC&filter=+plugin/delete&pageSize=20');

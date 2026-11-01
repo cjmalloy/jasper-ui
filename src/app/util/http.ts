@@ -117,9 +117,7 @@ export function fixUrl(url: string, banlist: typeof banlistConfig) {
   }
   if (isTracking(url, banlist)) {
     if (url.startsWith('https://www.youtube.com/') || url.startsWith('https://music.youtube.com/')) {
-      if (url.includes('&si=')) {
-        url = url.replace(/&si=[^&#]*/, '');
-      }
+      url = stripParams(url, youtubeTrackers);
     } else if (url.includes('?')) {
       url = url.substring(0, url.indexOf('?'));
     }
@@ -128,6 +126,27 @@ export function fixUrl(url: string, banlist: typeof banlistConfig) {
     throw 'Banned URL';
   }
   return url;
+}
+
+const youtubeTrackers = ['si', 'pp', 'feature', 'ab_channel', 'embeds_referring_euri', 'embeds_referring_origin', 'source_ve_path'];
+
+/**
+ * Remove the given query params from a URL, leaving everything else untouched.
+ */
+export function stripParams(url: string, keys: string[]) {
+  const q = url.indexOf('?');
+  const h = url.indexOf('#');
+  if (q === -1 || (h !== -1 && h < q)) return url;
+  const base = url.substring(0, q);
+  const query = url.substring(q + 1, h === -1 ? undefined : h);
+  const hash = h === -1 ? '' : url.substring(h);
+  const kept = query.split('&').filter(p => {
+    if (!p) return false;
+    const eq = p.indexOf('=');
+    const key = eq === -1 ? p : p.substring(0, eq);
+    return !keys.includes(key.toLowerCase());
+  });
+  return base + (kept.length ? '?' + kept.join('&') : '') + hash;
 }
 
 export function isShortener(url: string, banlist: typeof banlistConfig) {
