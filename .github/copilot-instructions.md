@@ -189,6 +189,7 @@ Files that the container writes to `e2e/reports` and `test-results` may be owned
 
 - **Update the E2E tests whenever you change user interactions** (buttons, overlays, dialogs, forms).
 - New tests that are not meant to expose a known bug **must be run and pass** before you submit them.
+- **Never make a failing test pass by working around the missing behaviour.** If a test fails because of a bug or an unreleased server change (for example a Jasper PR that isn't merged yet), leave it failing. Don't mock or rewrite API responses with `page.route`, don't use `test.fail`/`test.skip`/`test.fixme`, and don't weaken assertions. A red build is how we know not to merge yet.
 - File naming: numbered core suites (`00-smoke.spec.ts`, `01-backup.spec.ts`, ...), `plugin-<name>.spec.ts`, `template-<name>.spec.ts`.
 - Spec files run in parallel workers (`PW_WORKERS`, default 4 in CI) against one server stack. Tests in a file run in order, so state carries over between them.
 - Every context sends a `Local-Origin` header for a sub-origin unique to the spec (`isolatedOrigin()`, `@repl.*` on the replica). Never use the default origin: post with `origin`, and qualify tags in GETs and DELETEs (`tag + origin`). Specs that need server watchers (cron, pull, push) use fixed origins listed in `fixedOriginSpecs` and in the compose script selectors.
