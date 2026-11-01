@@ -388,10 +388,26 @@ describe('Query Utils', () => {
       });
     });
 
+    it('should split plugin value filters with a suffix and no field after the suffix', () => {
+      expect(parseValueFilter('plugins->plugin/score:num/after/1/after/2')).toEqual({
+        column: 'plugins->plugin/score:num',
+        dir: 'after',
+        value: '1/after/2',
+      });
+    });
+
+    it('should split bare plugin value filters on the last direction', () => {
+      expect(parseValueFilter('plugins->plugin/name/after/x/before/kiwi')).toEqual({
+        column: 'plugins->plugin/name/after/x',
+        dir: 'before',
+        value: 'kiwi',
+      });
+    });
+
     it('should reject invalid value filters', () => {
       expect(parseValueFilter('modified/before/now')).toBeUndefined();
-      expect(parseValueFilter('plugins->plugin/score:num/before/1')).toBeUndefined();
       expect(parseValueFilter('tags->plugin/duration:dur/pt1h')).toBeUndefined();
+      expect(parseValueFilter('plugins->plugin/score:num/10')).toBeUndefined();
     });
   });
 

@@ -47,11 +47,12 @@ export type SortItem = { value: RefSort | TagSort, label: string, title?: string
 /**
  * Parse a `{sort column}/before/{value}` or `{sort column}/after/{value}` filter,
  * such as `tags->plugin/duration:dur/before/pt5m`.
- * Tag sort columns may contain `/`, but tag values cannot, so the last `/before/` or `/after/` is used.
- * Plugin fields cannot contain `/`, but plugin values can, so the first one after a field is used.
+ * Fields and suffixes cannot contain `/`, so after a plugin field or suffix the first `/before/` or `/after/`
+ * is used and the value may contain `/`. Otherwise tags and plugins may contain `/` but values cannot,
+ * so the last one is used.
  */
 export function parseValueFilter(filter: string) {
-  const match = filter.match(/^(tags->.+|plugins->[^>]+->[^/]+)\/(before|after)\/(.*)$/);
+  const match = filter.match(/^(plugins->[^>]+->[^/]+|plugins->[^>:]+:(?:num|len)|(?:tags|plugins)->.+)\/(before|after)\/(.*)$/);
   if (!match) return undefined;
   return { column: match[1], dir: match[2] as 'before' | 'after', value: match[3] };
 }

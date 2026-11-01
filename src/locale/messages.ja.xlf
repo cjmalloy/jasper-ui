@@ -8295,6 +8295,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Value to compare against</source>
         <target>比較する値</target>
       </trans-unit>
+      <trans-unit id="2687607523494767476" datatype="html">
+        <source>🏆️ score over</source>
+        <target>🏆️ スコアが超える</target>
+      </trans-unit>
+      <trans-unit id="5959001852818346533" datatype="html">
+        <source>Score higher than</source>
+        <target>スコアがこれより高い</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
