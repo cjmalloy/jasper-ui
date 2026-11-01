@@ -25,7 +25,7 @@ import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
 import { controlValue } from '../../util/form';
 import { TAG_REGEX } from '../../util/format';
-import { convertFilter, convertSort, defaultDesc, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
+import { convertFilter, convertSort, defaultDesc, FilterItem, negatable, parseValueFilter, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
 import { themesForm, ThemesFormComponent } from '../themes/themes.component';
@@ -255,8 +255,9 @@ export class ExtFormComponent  {
   }
 
   filterOption(filter: UrlFilter) {
-    if (!this.filterIsDate(filter)) return filter;
-    const prefix = filter.substring(0, filter.lastIndexOf('/') + 1);
+    const v = parseValueFilter(filter);
+    if (!v && !this.filterIsDate(filter)) return filter;
+    const prefix = v ? `${v.column}/${v.dir}/` : filter.substring(0, filter.lastIndexOf('/') + 1);
     return this.allFilters().find(option => option.filter.startsWith(prefix))?.filter || filter;
   }
 
@@ -268,6 +269,15 @@ export class ExtFormComponent  {
   hasFilterOption(filter: UrlFilter) {
     const selected = this.filterOption(filter);
     return this.allFilters().some(option => option.filter === selected);
+  }
+
+  readonly parseValueFilter = parseValueFilter;
+
+  setFilterValue(index: number, filter: UrlFilter, value: string) {
+    const v = parseValueFilter(filter);
+    value = value.trim();
+    if (!v || !value) return;
+    this.setFilter(index, `${v.column}/${v.dir}/${value}` as UrlFilter);
   }
 
   filterIsDate(filter: UrlFilter) {

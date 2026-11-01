@@ -44,12 +44,12 @@ test.describe.serial('Duration Plugin', () => {
     await value.fill('pt1h');
     await value.press('Enter');
     await expect(links).toHaveText(['Short', 'Medium']);
-    expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['before/tags->plugin/duration:dur/pt1h']);
+    expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/before/pt1h']);
   });
 
   test('filters longer than a duration', async ({ page }) => {
     const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('tagAfter'));
-    await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=after/tags->plugin/duration:dur/PT10M`, { waitUntil: 'networkidle' });
+    await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/after/PT10M`, { waitUntil: 'networkidle' });
     expect(new URL((await request).url()).searchParams.getAll('tagAfter')).toEqual(['tags->plugin/duration:dur/pt10m']);
     await expect(page.locator('.ref-list-item .link a')).toHaveText(['Medium', 'Long']);
   });

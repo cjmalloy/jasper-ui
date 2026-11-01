@@ -17,17 +17,7 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
-import {
-  convertFilter,
-  FilterGroup,
-  FilterItem,
-  isValueFilter,
-  negatable,
-  splitValueFilter,
-  toggle,
-  UrlFilter,
-  valueFilterTag,
-} from '../../util/query';
+import { convertFilter, FilterGroup, FilterItem, negatable, parseValueFilter, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
@@ -88,11 +78,10 @@ export class FilterComponent {
       }
     };
     const load = (config: FilterConfig) => {
-      if ((config.query || config.response) && !this.auth.queryReadAccess(config.query || config.response)) return;
-      const item = convertFilter(config);
-      const value = splitValueFilter(item.filter);
-      if (isValueFilter(item.filter) && !this.auth.tagReadAccess(valueFilterTag(value?.column || ''))) return;
-      push({ label: config.group || '', filters: [item] });
+      const sortTag = config.sort?.replace(/^(tags|plugins)->/, '').split(/->|:/)[0];
+      const query = config.query || config.response || sortTag;
+      if (query && !this.auth.queryReadAccess(query)) return;
+      push({ label: config.group || '', filters: [convertFilter(config)] });
     };
     if (this.type() === 'ref') {
       for (const ext of this.activeExts()) {
@@ -207,12 +196,15 @@ export class FilterComponent {
     const dates = ['modified', 'response', 'published', 'created'];
     for (const value of this.filters()) {
       const datePrefix = dates.flatMap(date => [`${date}/before/`, `${date}/after/`]).find(prefix => value.startsWith(prefix));
-      const valuePrefix = splitValueFilter(value)?.prefix;
-      const sameValueFilter = (item: FilterItem) => !!valuePrefix && splitValueFilter(item.filter)?.prefix === valuePrefix;
+      const v = parseValueFilter(value);
+      const sameValueFilter = (item: FilterItem) => {
+        const i = parseValueFilter(item.filter);
+        return i?.column === v?.column && i?.dir === v?.dir;
+      };
       if (datePrefix) {
         groups = groups.map(group => ({ ...group, filters: group.filters.map(item =>
           item.filter.startsWith(datePrefix) ? { ...item, filter: value } : item) }));
-      } else if (groups.some(group => group.filters.some(sameValueFilter))) {
+      } else if (v && groups.some(group => group.filters.some(sameValueFilter))) {
         groups = groups.map(group => ({ ...group, filters: group.filters.map(item =>
           sameValueFilter(item) ? { ...item, filter: value } : item) }));
       } else if (!groups.some(group => group.filters.some(item => item.filter === value))) {
@@ -223,10 +215,8 @@ export class FilterComponent {
           groups = groups.map(group => ({ ...group, filters: group.filters.map(item => item.filter === opposite
             ? { ...item, filter: value, label: item.label.startsWith(not) ? item.label.substring(not.length) : not + item.label }
             : item) }));
-        } else if (value.startsWith('before/')) {
-          load({ group: $localize`Filters 🕵️️`, before: value.substring('before/'.length) as any });
-        } else if (value.startsWith('after/')) {
-          load({ group: $localize`Filters 🕵️️`, after: value.substring('after/'.length) as any });
+        } else if (v) {
+          load({ group: $localize`Filters 🕵️️`, sort: v.column as FilterConfig['sort'], [v.dir]: v.value });
         } else if (value.startsWith('scheme/')) {
           load({ group: $localize`Schemes 🏳️️`, scheme: value.substring('scheme/'.length) });
         } else if (value.startsWith('sources/')) {
@@ -318,20 +308,13 @@ export class FilterComponent {
     this.setFilters();
   }
 
-  isValueFilter(filter: string) {
-    return isValueFilter(filter);
-  }
-
-  filterValue(filter: string) {
-    return splitValueFilter(filter)?.value || '';
-  }
+  readonly parseValueFilter = parseValueFilter;
 
   setValue(index: number, filter: UrlFilter, value: string) {
-    const prefix = splitValueFilter(filter)?.prefix;
+    const v = parseValueFilter(filter);
     value = value.trim();
-    if (!prefix || !value) return;
-    this.filters.update(filters => filters.map((f, i) => i === index ? prefix + value as UrlFilter : f));
-    this.setFilters();
+    if (!v || !value) return;
+    this.setFilter(index, `${v.column}/${v.dir}/${value}` as UrlFilter);
   }
 
   removeFilter(index: number) {

@@ -30,21 +30,16 @@ describe('FilterComponent', () => {
   });
 
   describe('value filters', () => {
-    it('reads the value after the sort column', () => {
-      expect(component.filterValue('before/tags->plugin/duration:dur/pt5m')).toBe('pt5m');
-      expect(component.filterValue('after/plugins->_plugin/cache->contentLength:num/1000')).toBe('1000');
-    });
-
     it('replaces the value and keeps the sort column', () => {
-      component.filters.set(['query/science', 'before/tags->plugin/duration:dur/pt5m']);
-      component.setValue(1, 'before/tags->plugin/duration:dur/pt5m', ' pt1h ');
-      expect(component.filters()).toEqual(['query/science', 'before/tags->plugin/duration:dur/pt1h']);
+      component.filters.set(['query/science', 'tags->plugin/duration:dur/before/pt5m']);
+      component.setValue(1, 'tags->plugin/duration:dur/before/pt5m', ' pt1h ');
+      expect(component.filters()).toEqual(['query/science', 'tags->plugin/duration:dur/before/pt1h']);
     });
 
     it('ignores an empty value', () => {
-      component.filters.set(['after/plugins->_plugin/cache->contentLength:num/1000']);
-      component.setValue(0, 'after/plugins->_plugin/cache->contentLength:num/1000', '');
-      expect(component.filters()).toEqual(['after/plugins->_plugin/cache->contentLength:num/1000']);
+      component.filters.set(['plugins->_plugin/cache->contentLength:num/after/1000']);
+      component.setValue(0, 'plugins->_plugin/cache->contentLength:num/after/1000', '');
+      expect(component.filters()).toEqual(['plugins->_plugin/cache->contentLength:num/after/1000']);
     });
   });
 

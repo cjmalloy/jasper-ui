@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import {
+  convertFilter,
   defaultDesc,
   getArgs,
   getFilter,
@@ -7,10 +8,9 @@ import {
   getFiltersQuery,
   negatable,
   negate,
-  splitValueFilter,
+  parseValueFilter,
   toggle,
   UrlFilter,
-  valueFilterTag,
   withStableDateSort,
 } from './query';
 
@@ -263,9 +263,9 @@ describe('Query Utils', () => {
 
     it('should extract tag value filters', () => {
       const args = getArgs('science', undefined, [
-        'before/tags->plugin/duration:dur/PT1H',
-        'after/tags->plugin/duration:dur/pt5m',
-        'after/tags->plugin/progress:num/9',
+        'tags->plugin/duration:dur/before/PT1H',
+        'tags->plugin/duration:dur/after/pt5m',
+        'tags->plugin/progress:num/after/9',
       ]);
       expect(args.tagBefore).toEqual(['tags->plugin/duration:dur/pt1h']);
       expect(args.tagAfter).toEqual(['tags->plugin/duration:dur/pt5m', 'tags->plugin/progress:num/9']);
@@ -274,8 +274,8 @@ describe('Query Utils', () => {
 
     it('should extract plugin value filters', () => {
       const args = getArgs('science', undefined, [
-        'after/plugins->_plugin/cache->contentLength:num/1000',
-        'before/plugins->plugin/test->title/A/B',
+        'plugins->_plugin/cache->contentLength:num/after/1000',
+        'plugins->plugin/test->title/before/A/B',
       ]);
       expect(args.pluginAfter).toEqual(['plugins->_plugin/cache->contentLength:num/1000']);
       expect(args.pluginBefore).toEqual(['plugins->plugin/test->title/A/B']);
@@ -283,7 +283,7 @@ describe('Query Utils', () => {
     });
 
     it('should skip value filters without a value', () => {
-      const args = getArgs('science', undefined, ['before/tags->plugin/duration:dur/' as UrlFilter]);
+      const args = getArgs('science', undefined, ['tags->plugin/duration:dur/before/' as UrlFilter]);
       expect(args.tagBefore).toBeUndefined();
     });
 
@@ -371,32 +371,36 @@ describe('Query Utils', () => {
     });
   });
 
-  describe('splitValueFilter', () => {
-    it('should split tag value filters on the last slash', () => {
-      expect(splitValueFilter('before/tags->plugin/duration:dur/pt1h')).toEqual({
-        prefix: 'before/tags->plugin/duration:dur/',
-        column: 'tags->plugin/duration:dur',
+  describe('parseValueFilter', () => {
+    it('should split tag value filters on the last direction', () => {
+      expect(parseValueFilter('tags->plugin/before/x:dur/before/pt1h')).toEqual({
+        column: 'tags->plugin/before/x:dur',
+        dir: 'before',
         value: 'pt1h',
       });
     });
 
     it('should split plugin value filters on the first slash after a field', () => {
-      expect(splitValueFilter('after/plugins->_plugin/cache->contentLength:num/1/2')).toEqual({
-        prefix: 'after/plugins->_plugin/cache->contentLength:num/',
+      expect(parseValueFilter('plugins->_plugin/cache->contentLength:num/after/1/after/2')).toEqual({
         column: 'plugins->_plugin/cache->contentLength:num',
-        value: '1/2',
+        dir: 'after',
+        value: '1/after/2',
       });
     });
 
     it('should reject invalid value filters', () => {
-      expect(splitValueFilter('modified/before/now')).toBeUndefined();
-      expect(splitValueFilter('before/plugins->plugin/score:num/1')).toBeUndefined();
-      expect(splitValueFilter('before/metadata->responses/1')).toBeUndefined();
+      expect(parseValueFilter('modified/before/now')).toBeUndefined();
+      expect(parseValueFilter('plugins->plugin/score:num/before/1')).toBeUndefined();
+      expect(parseValueFilter('tags->plugin/duration:dur/pt1h')).toBeUndefined();
     });
+  });
 
-    it('should get the tag of the sort column', () => {
-      expect(valueFilterTag('tags->plugin/duration:dur')).toBe('plugin/duration');
-      expect(valueFilterTag('plugins->_plugin/cache->contentLength:num')).toBe('_plugin/cache');
+  describe('convertFilter', () => {
+    it('should put the direction between the sort column and value', () => {
+      expect(convertFilter({ sort: 'tags->plugin/duration:dur', before: 'pt5m', label: 'short' }).filter)
+        .toBe('tags->plugin/duration:dur/before/pt5m');
+      expect(convertFilter({ sort: 'plugins->_plugin/cache->contentLength:num', after: '1000' }).filter)
+        .toBe('plugins->_plugin/cache->contentLength:num/after/1000');
     });
   });
 

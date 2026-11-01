@@ -39,10 +39,10 @@
            (change)="hasFocus() && set(i, filter, toIso($any($event.target).value))"
            (keydown)="clearFocus() && $event.key === 'Enter' && set(i, filter, toIso($any($event.target).value)) || true"
            (blur)="set(i, filter, toIso($any($event.target).value))">
-  } @else if (isValueFilter(filter)) {
+  } @else if (parseValueFilter(filter); as v) {
     <input type="text"
            class="filter-value"
-           [value]="filterValue(filter)"
+           [value]="v.value"
            i18n-title title="Value to compare against"
            (change)="setValue(i, filter, $any($event.target).value)">
   }

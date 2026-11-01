@@ -1,7 +1,7 @@
 import { isArray, uniq, without } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
-import { FilterConfig, TagQueryArgs, TagSort, ValueFilter } from '../model/tag';
+import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { andQueries, fixClientQuery, hasPrefix, isGroup, isNegatedGroup } from './tag';
 
 const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
@@ -25,8 +25,8 @@ export type UrlFilter = Filter |
   `created/after/${string}` |
   `response/before/${string}` |
   `response/after/${string}` |
-  `before/${ValueFilter}` |
-  `after/${ValueFilter}` |
+  `tags->${string}` |
+  `plugins->${string}` |
   `sources/${string}` |
   `noSources/${string}` |
   `responses/${string}` |
@@ -44,40 +44,16 @@ export type UrlFilter = Filter |
 
 export type SortItem = { value: RefSort | TagSort, label: string, title?: string };
 
-export function isValueFilter(filter: string) {
-  return filter.startsWith('before/') || filter.startsWith('after/');
-}
-
 /**
- * Split a `before/` or `after/` value filter into the prefix up to and including the
- * `/` before the value, the sort column and the value.
- * Tag values are always after the last `/`. Plugin fields cannot contain `/`, so plugin
- * values start after the first `/` following the first field.
+ * Parse a `{sort column}/before/{value}` or `{sort column}/after/{value}` filter,
+ * such as `tags->plugin/duration:dur/before/pt5m`.
+ * Tag sort columns may contain `/`, but tag values cannot, so the last `/before/` or `/after/` is used.
+ * Plugin fields cannot contain `/`, but plugin values can, so the first one after a field is used.
  */
-export function splitValueFilter(filter: string): { prefix: string, column: string, value: string } | undefined {
-  const dir = filter.startsWith('before/') ? 'before/' : filter.startsWith('after/') ? 'after/' : '';
-  if (!dir) return undefined;
-  const f = filter.substring(dir.length);
-  let i = -1;
-  if (f.startsWith('tags->')) {
-    i = f.lastIndexOf('/');
-    if (i <= 'tags->'.length) return undefined;
-  } else if (f.startsWith('plugins->')) {
-    const field = f.indexOf('->', 'plugins->'.length);
-    if (field < 0) return undefined;
-    i = f.indexOf('/', field);
-  }
-  if (i < 0) return undefined;
-  return { prefix: dir + f.substring(0, i + 1), column: f.substring(0, i), value: f.substring(i + 1) };
-}
-
-/**
- * The tag or plugin a value filter sort column reads.
- */
-export function valueFilterTag(column: string) {
-  if (column.startsWith('tags->')) return column.substring('tags->'.length).replace(/:(num|dur)$/, '');
-  if (column.startsWith('plugins->')) return column.substring('plugins->'.length).split('->')[0];
-  return '';
+export function parseValueFilter(filter: string) {
+  const match = filter.match(/^(tags->.+|plugins->[^>]+->[^/]+)\/(before|after)\/(.*)$/);
+  if (!match) return undefined;
+  return { column: match[1], dir: match[2] as 'before' | 'after', value: match[3] };
 }
 
 export function negatable(filter: string) {
@@ -120,10 +96,9 @@ export function convertFilter(filter: FilterConfig): FilterItem {
     return { filter: `user/${filter.user}`, label: filter.label || filter.user, title: filter.title };
   } else if (filter.response) {
     return { filter: filter.response, label: filter.label || filter.response, title: filter.title };
-  } else if (filter.before) {
-    return { filter: `before/${filter.before}`, label: filter.label || filter.before, title: filter.title };
-  } else if (filter.after) {
-    return { filter: `after/${filter.after}`, label: filter.label || filter.after, title: filter.title };
+  } else if (filter.sort) {
+    const dir = filter.before ? 'before' : 'after';
+    return { filter: `${filter.sort}/${dir}/${filter[dir]}`, label: filter.label || `${filter.sort} ${dir}`, title: filter.title };
   }
   throw 'Can\'t convert filter';
 }
@@ -281,20 +256,18 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       result.responseBefore = fixDateTime(f.substring('response/before/'.length));
     } else if (f.startsWith('response/after/')) {
       result.responseAfter = fixDateTime(f.substring('response/after/'.length));
-    } else if (isValueFilter(f)) {
-      const v = splitValueFilter(f);
+    } else if (f.startsWith('tags->') || f.startsWith('plugins->')) {
+      const v = parseValueFilter(f);
       if (!v?.value) {
         console.warn('Invalid value filter', f);
-        continue;
+      } else if (v.column.startsWith('tags->')) {
+        // Tag values are lowercase, so PT1H works like pt1h
+        const key = v.dir === 'before' ? 'tagBefore' : 'tagAfter';
+        result[key] = [...result[key] || [], v.column + '/' + v.value.toLowerCase()];
+      } else {
+        const key = v.dir === 'before' ? 'pluginBefore' : 'pluginAfter';
+        result[key] = [...result[key] || [], v.column + '/' + v.value];
       }
-      const before = f.startsWith('before/');
-      const tags = v.column.startsWith('tags->');
-      const value = tags ? v.value.toLowerCase() : v.value;
-      const key = tags
-        ? (before ? 'tagBefore' : 'tagAfter')
-        : (before ? 'pluginBefore' : 'pluginAfter');
-      result[key] ||= [];
-      result[key].push(v.column + '/' + value);
     } else if (f === '!obsolete') {
       result['obsolete'] = null as any;
     } else if (f.startsWith('!')) {

@@ -22,8 +22,8 @@ export const cachePlugin: Plugin = {
     filters: [
       { query: '_plugin/cache', label: $localize`🗜️ cache`, title: $localize`Has cache entry`, group: $localize`Plugins 🧰️` },
       { scheme: 'cache:', label: $localize`cache:`, group: $localize`Schemes 🏳️️`},
-      { after: 'plugins->_plugin/cache->contentLength:num/10000000', label: $localize`🗜️ larger than`, title: $localize`Cache size larger than (bytes)`, group: $localize`Plugins 🧰️` },
-      { before: 'plugins->_plugin/cache->contentLength:num/1000000', label: $localize`🗜️ smaller than`, title: $localize`Cache size smaller than (bytes)`, group: $localize`Plugins 🧰️` },
+      { sort: 'plugins->_plugin/cache->contentLength:num', after: '10000000', label: $localize`🗜️ larger than`, title: $localize`Cache size larger than (bytes)`, group: $localize`Plugins 🧰️` },
+      { sort: 'plugins->_plugin/cache->contentLength:num', before: '1000000', label: $localize`🗜️ smaller than`, title: $localize`Cache size smaller than (bytes)`, group: $localize`Plugins 🧰️` },
     ],
     sorts: [
       { sort: 'plugins->_plugin/cache->contentLength:num', label: $localize`🗜️ size`, title: $localize`Cache size` },
