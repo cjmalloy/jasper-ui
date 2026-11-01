@@ -135,8 +135,8 @@ const youtubeTrackers = ['si', 'pp', 'feature', 'ab_channel', 'embeds_referring_
  */
 export function stripParams(url: string, keys: string[]) {
   const q = url.indexOf('?');
-  if (q === -1) return url;
-  const h = url.indexOf('#', q);
+  const h = url.indexOf('#');
+  if (q === -1 || (h !== -1 && h < q)) return url;
   const base = url.substring(0, q);
   const query = url.substring(q + 1, h === -1 ? undefined : h);
   const hash = h === -1 ? '' : url.substring(h);
