@@ -209,7 +209,7 @@ export const naviPlugin: Plugin = {
   name: $localize`👻️ Navi`,
   config: {
     mod: $localize`👻️ Navi Chat`,
-    version: 1,
+    version: 2,
     type: 'tool',
     default: false,
     genId: true,
@@ -398,6 +398,24 @@ that cannot be parsed, sort as \`''\` or \`0\`.
 To index a tag value sort on PostgreSQL, add it to \`hotTags\` in the \`_config/index\` template config,
 for example \`{"hotTags": ["plugin/progress:num", "plugin/duration:dur"]}\`. Hot tag indexes that are
 removed from the list are dropped. Hot tags are ignored on SQLite.
+
+### Filtering by value
+
+Refs can be filtered by the same values they can be sorted on, similar to \`modifiedBefore\` and \`modifiedAfter\`.
+Each filter is a sort column (including any \`:num\`, \`:len\` or \`:dur\` suffix) followed by \`/\` and the value
+to compare against, and keeps Refs whose value is strictly less than (\`Before\`) or greater than (\`After\`) it.
+Refs without a value never match. Every filter parameter can be repeated, and all filters must match.
+
+- \`tagBefore\` and \`tagAfter\` take \`tags->{tag}[:num|:dur]/{value}\`. Tag values are a single tag segment,
+  so numbers cannot be negative and durations must be lowercase. For example,
+  \`tagAfter=tags->plugin/progress:num/9&tagBefore=tags->plugin/progress:num/50\` matches \`plugin/progress/37/100\`,
+  and \`tagBefore=tags->plugin/duration:dur/pt1h\` matches \`plugin/duration/pt10m25s\`.
+- \`pluginBefore\` and \`pluginAfter\` take \`plugins->{plugin}->{field}[->{field}...][:num|:len]/{value}\`, with at
+  least one field. The value starts after the first \`/\` following the last field or suffix, and may contain \`/\`.
+  For example, \`pluginAfter=plugins->_plugin/cache->contentLength:num/1000\` matches Refs with a cached file
+  over 1000 bytes.
+
+Values cannot contain \`,\`. Invalid filters are rejected with \`400 Bad Request\`.
 
 Metadata dates useful for sorting:
 

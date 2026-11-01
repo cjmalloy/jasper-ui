@@ -8259,6 +8259,42 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Add default values for new fields and remove defaults for deleted fields</source>
         <target>新しいフィールドのデフォルト値を追加し、削除したフィールドのデフォルト値を削除する</target>
       </trans-unit>
+      <trans-unit id="2681761104042123835" datatype="html">
+        <source>🗜️ larger than</source>
+        <target>🗜️ より大きい</target>
+      </trans-unit>
+      <trans-unit id="3521736876862370790" datatype="html">
+        <source>Cache size larger than (bytes)</source>
+        <target>キャッシュサイズがこれより大きい（バイト）</target>
+      </trans-unit>
+      <trans-unit id="4854495057507431989" datatype="html">
+        <source>Media longer than duration (e.g., pt1h)</source>
+        <target>メディアの長さがこれより長い（例: pt1h）</target>
+      </trans-unit>
+      <trans-unit id="5196498824201285421" datatype="html">
+        <source>Cache size smaller than (bytes)</source>
+        <target>キャッシュサイズがこれより小さい（バイト）</target>
+      </trans-unit>
+      <trans-unit id="5483294391686313950" datatype="html">
+        <source>Media shorter than duration (e.g., pt5m)</source>
+        <target>メディアの長さがこれより短い（例: pt5m）</target>
+      </trans-unit>
+      <trans-unit id="6030436125074878722" datatype="html">
+        <source>⏱️ longer than</source>
+        <target>⏱️ より長い</target>
+      </trans-unit>
+      <trans-unit id="6184974166617314425" datatype="html">
+        <source>⏱️ shorter than</source>
+        <target>⏱️ より短い</target>
+      </trans-unit>
+      <trans-unit id="6919957515277564252" datatype="html">
+        <source>🗜️ smaller than</source>
+        <target>🗜️ より小さい</target>
+      </trans-unit>
+      <trans-unit id="8130397953837480329" datatype="html">
+        <source>Value to compare against</source>
+        <target>比較する値</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

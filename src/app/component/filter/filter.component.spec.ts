@@ -29,6 +29,25 @@ describe('FilterComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('value filters', () => {
+    it('reads the value after the sort column', () => {
+      expect(component.filterValue('before/tags->plugin/duration:dur/pt5m')).toBe('pt5m');
+      expect(component.filterValue('after/plugins->_plugin/cache->contentLength:num/1000')).toBe('1000');
+    });
+
+    it('replaces the value and keeps the sort column', () => {
+      component.filters.set(['query/science', 'before/tags->plugin/duration:dur/pt5m']);
+      component.setValue(1, 'before/tags->plugin/duration:dur/pt5m', ' pt1h ');
+      expect(component.filters()).toEqual(['query/science', 'before/tags->plugin/duration:dur/pt1h']);
+    });
+
+    it('ignores an empty value', () => {
+      component.filters.set(['after/plugins->_plugin/cache->contentLength:num/1000']);
+      component.setValue(0, 'after/plugins->_plugin/cache->contentLength:num/1000', '');
+      expect(component.filters()).toEqual(['after/plugins->_plugin/cache->contentLength:num/1000']);
+    });
+  });
+
   describe('toDate', () => {
     beforeEach(() => {
       vi.useFakeTimers();

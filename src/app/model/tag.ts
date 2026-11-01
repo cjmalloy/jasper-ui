@@ -326,6 +326,12 @@ export interface Icon extends Visibility {
   scheme?: `${string}:`;
 }
 
+/**
+ * A sort column followed by `/` and the value to compare against,
+ * e.g. `tags->plugin/duration:dur/pt1h` or `plugins->_plugin/cache->contentLength:num/1000`.
+ */
+export type ValueFilter = `tags->${string}/${string}` | `plugins->${string}/${string}`;
+
 export interface FilterConfig {
   /**
    * Filter based on a tag query.
@@ -357,6 +363,18 @@ export interface FilterConfig {
    * If set, query and scheme must not be set.
    */
   user?: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}` | `!plugin/user/${string}` | `!+plugin/user/${string}` | `!_plugin/user/${string}`;
+  /**
+   * Filter Refs whose sort column value is less than the given value.
+   * A sort column followed by `/` and the default value, e.g. `tags->plugin/duration:dur/pt5m`.
+   * If set, no other filter types must be set.
+   */
+  before?: ValueFilter;
+  /**
+   * Filter Refs whose sort column value is greater than the given value.
+   * A sort column followed by `/` and the default value, e.g. `plugins->_plugin/cache->contentLength:num/1000`.
+   * If set, no other filter types must be set.
+   */
+  after?: ValueFilter;
   label?: string;
   title?: string;
   group?: string;
