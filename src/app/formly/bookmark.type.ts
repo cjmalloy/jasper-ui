@@ -35,7 +35,9 @@ import {
   FilterGroup,
   FilterItem,
   negatable,
+  parseValueFilter,
   SortItem,
+  switchFilter,
   toggle,
   UrlFilter
 } from '../util/query';
@@ -120,9 +122,10 @@ import { getErrorMessage } from './errors';
         width: 100%;
         box-sizing: border-box;
       }
-      select {
+      select, .filter-value {
         display: block;
         width: 100%;
+        box-sizing: border-box;
       }
       .unselected {
         text-align: center;
@@ -222,7 +225,7 @@ import { getErrorMessage } from './errors';
         </select>
         @for (filter of filters(); track filter; let i = $index) {
           <div class="controls" [title]="filter">
-            <select [ngModel]="filter" (ngModelChange)="setFilter(i, $event)">
+            <select [ngModel]="filter" (ngModelChange)="setFilter(i, switchFilter($any(filter), $event))">
               @for (g of allFilters(); track g.label) {
                 @if (g.filters.length) {
                   <optgroup [label]="g.label">
@@ -238,6 +241,13 @@ import { getErrorMessage } from './errors';
             }
             <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
           </div>
+          @if (parseValueFilter(filter); as v) {
+            <input type="text"
+                   class="filter-value"
+                   [value]="v.value"
+                   i18n-title title="Value to compare against"
+                   (change)="setValue(i, filter, $any($event.target).value)">
+          }
         }
       </div>
     </ng-template>
@@ -558,7 +568,20 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
         }));
       } else if (addMissing && !this.allFilters().find(g => g.filters.find(i => i.filter === f))) {
         // Filter not found — add it as a fallback so the dropdown shows the current value
-        if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
+        const v = parseValueFilter(f);
+        if (v) {
+          // Show the value in an unused option for the same bound, so repeated bounds each keep an option
+          const unused = (i: FilterItem) => {
+            const o = parseValueFilter(i.filter);
+            return o?.column === v.column && o.dir === v.dir && !this.filters().includes(i.filter);
+          };
+          const option = this.allFilters().flatMap(g => g.filters).find(unused);
+          if (option) {
+            this.allFilters.update(groups => groups.map(g => ({ ...g, filters: g.filters.map(i => i === option ? { ...i, filter: f as UrlFilter } : i) })));
+          } else {
+            this.loadFilter({ group: $localize`Filters 🕵️️`, sort: v.column as FilterConfig['sort'], [v.dir]: v.value });
+          }
+        } else if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
           this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
         } else if (f.startsWith('user/')) {
           this.loadFilter({ group: $localize`Filters 🕵️️`, user: f.substring('user/'.length) as any });
@@ -755,6 +778,16 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
 
   negatable(filter: string) {
     return negatable(filter);
+  }
+
+  readonly parseValueFilter = parseValueFilter;
+  readonly switchFilter = switchFilter;
+
+  setValue(index: number, filter: string, value: string) {
+    const v = parseValueFilter(filter);
+    value = value.trim();
+    if (!v || !value || value.includes('/')) return;
+    this.setFilter(index, `${v.column}/${v.dir}/${value}`);
   }
 
   // Search management

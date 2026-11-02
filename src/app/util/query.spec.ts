@@ -432,6 +432,11 @@ describe('Query Utils', () => {
       expect(convertFilter({ sort: 'plugins->_plugin/cache->contentLength:num', after: '1000' }).filter)
         .toBe('plugins->_plugin/cache->contentLength:num/after/1000');
     });
+
+    it('should use before when it is empty', () => {
+      expect(convertFilter({ sort: 'tags->plugin/duration:dur', before: '' }).filter)
+        .toBe('tags->plugin/duration:dur/before/');
+    });
   });
 
   describe('withStableDateSort', () => {

@@ -3,7 +3,7 @@ import { mod, test } from './setup';
 
 test.describe.serial('Ext defaults', () => {
   test('enable Ext default mods', async ({ page }) => {
-    await mod(page, '#mod-root', '#mod-config\\/home');
+    await mod(page, '#mod-root', '#mod-config\\/home', '[id="mod-plugin/duration"]');
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
     const deleteButton = page.getByRole('button', { name: 'Delete', exact: true });
     if (await deleteButton.isVisible()) {
@@ -89,6 +89,35 @@ test.describe.serial('Ext defaults', () => {
     await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await expect(page.locator('.sort .controls')).toHaveCount(2);
     await expect(page.locator('.filter .controls')).toHaveCount(3);
+  });
+
+  test('configures and loads a default value filter', async ({ page }) => {
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.locator('.default-filter-create').selectOption({ label: '⏱️ shorter than' });
+    const row = page.locator('.default-filter-row').last();
+    await expect(row.locator('.default-filter-value')).toHaveValue('pt5m');
+    await row.locator('.default-filter-value').fill('pt20m');
+    await row.locator('.default-filter-value').blur();
+    await row.locator('select').selectOption({ label: '⏱️ longer than' });
+    await expect(row.locator('select')).toHaveValue(/^tags->plugin\/duration:dur\/after\//);
+    await expect(row.locator('.default-filter-value')).toHaveValue('pt20m');
+
+    const save = page.waitForResponse(response => (
+      response.url().includes('/api/v1/ext') &&
+      ['POST', 'PUT'].includes(response.request().method()) &&
+      response.ok()
+    ));
+    await page.locator('button', { hasText: 'Save' }).click();
+    const saveResponse = await save;
+    expect(saveResponse.request().postDataJSON().config.defaultFilter).toContain('tags->plugin/duration:dur/after/pt20m');
+
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    await expect(page.locator('.default-filter-row select').last()).toHaveValue(/^tags->plugin\/duration:dur\/after\//);
+    await expect(page.locator('.default-filter-row .default-filter-value').last()).toHaveValue('pt20m');
+
+    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('tagAfter'));
+    await page.goto('/home?debug=ADMIN');
+    expect(new URL((await request).url()).searchParams.getAll('tagAfter')).toEqual(['tags->plugin/duration:dur/pt20m']);
   });
 
   test('configures and renders a Markdown header', async ({ page }) => {

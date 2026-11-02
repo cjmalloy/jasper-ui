@@ -4,7 +4,7 @@ import { mod, openSidebar, test } from './setup';
 test.describe.serial('Bookmark Formly Type', () => {
 
   test('enable bookmark form mods', async ({ page }) => {
-    await mod(page, '#mod-root', '#mod-user', '#mod-kanban');
+    await mod(page, '#mod-root', '#mod-user', '#mod-kanban', '[id="mod-plugin/duration"]');
   });
 
   /** Helper: add a bookmark, blur the input so breadcrumbs/filter-toggle are visible.
@@ -238,6 +238,25 @@ test.describe.serial('Bookmark Formly Type', () => {
     await expect(popup.locator('.controls')).toHaveCount(1);
     await popup.locator('.controls button', { hasText: '–' }).first().click();
     await expect(popup.locator('.controls')).toHaveCount(0);
+  });
+
+  test('edits a value filter and keeps the value when switching', async ({ page }) => {
+    await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
+    const bookmarkField = await addBookmark(page, 'science');
+    await bookmarkField.locator('.filter-toggle').click();
+    const popup = page.locator('.params-panel');
+    await popup.locator('select.big').last().selectOption({ label: '⏱️ shorter than' });
+    const value = popup.locator('.filter-value');
+    await expect(value).toHaveValue('pt5m');
+    await value.fill('pt20m');
+    await value.blur();
+    await expect(popup.locator('.controls select')).toHaveValue('tags->plugin/duration:dur/before/pt20m');
+    await popup.locator('.controls select').selectOption({ label: '⏱️ longer than' });
+    await expect(popup.locator('.controls select')).toHaveValue('tags->plugin/duration:dur/after/pt20m');
+    await expect(value).toHaveValue('pt20m');
+    await page.locator('label', { hasText: 'Bookmarks' }).first().click();
+    await bookmarkField.locator('.crumbs-left').click();
+    expect(await bookmarkField.locator('input.grow:not(.preview)').inputValue()).toContain('filter=tags->plugin/duration:dur/after/pt20m');
   });
 
   test('search field accepts input', async ({ page }) => {

@@ -49,6 +49,21 @@ describe('FilterComponent', () => {
     });
   });
 
+  describe('value filter options', () => {
+    const options = () => component.allFilters().flatMap(g => g.filters).map(i => i.filter);
+
+    it('keeps an option for each repeated bound', () => {
+      component.filters.set(['tags->plugin/duration:dur/after/pt5m', 'tags->plugin/duration:dur/after/pt1m']);
+      expect(options()).toContain('tags->plugin/duration:dur/after/pt5m');
+      expect(options()).toContain('tags->plugin/duration:dur/after/pt1m');
+    });
+
+    it('does not duplicate an option', () => {
+      component.filters.set(['tags->plugin/duration:dur/after/pt5m', 'tags->plugin/duration:dur/after/pt5m']);
+      expect(options().filter(f => f === 'tags->plugin/duration:dur/after/pt5m').length).toBe(1);
+    });
+  });
+
   describe('toDate', () => {
     beforeEach(() => {
       vi.useFakeTimers();

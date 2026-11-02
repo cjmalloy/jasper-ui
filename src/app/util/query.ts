@@ -112,7 +112,7 @@ export function convertFilter(filter: FilterConfig): FilterItem {
   } else if (filter.response) {
     return { filter: filter.response, label: filter.label || filter.response, title: filter.title };
   } else if (filter.sort) {
-    const dir = filter.before ? 'before' : 'after';
+    const dir = filter.before !== undefined ? 'before' : 'after';
     return { filter: `${filter.sort}/${dir}/${filter[dir]}`, label: filter.label || `${filter.sort} ${dir}`, title: filter.title };
   }
   throw 'Can\'t convert filter';

@@ -197,16 +197,21 @@ export class FilterComponent {
     for (const value of this.filters()) {
       const datePrefix = dates.flatMap(date => [`${date}/before/`, `${date}/after/`]).find(prefix => value.startsWith(prefix));
       const v = parseValueFilter(value);
+      // Show the value in an unused option for the same bound, so repeated bounds each keep an option
       const sameValueFilter = (item: FilterItem) => {
         const i = parseValueFilter(item.filter);
-        return i?.column === v?.column && i?.dir === v?.dir;
+        return i?.column === v?.column && i?.dir === v?.dir && !this.filters().includes(item.filter);
       };
       if (datePrefix) {
         groups = groups.map(group => ({ ...group, filters: group.filters.map(item =>
           item.filter.startsWith(datePrefix) ? { ...item, filter: value } : item) }));
-      } else if (v && groups.some(group => group.filters.some(sameValueFilter))) {
-        groups = groups.map(group => ({ ...group, filters: group.filters.map(item =>
-          sameValueFilter(item) ? { ...item, filter: value } : item) }));
+      } else if (v && !groups.some(group => group.filters.some(item => item.filter === value)) && groups.some(group => group.filters.some(sameValueFilter))) {
+        let replaced = false;
+        groups = groups.map(group => ({ ...group, filters: group.filters.map(item => {
+          if (replaced || !sameValueFilter(item)) return item;
+          replaced = true;
+          return { ...item, filter: value };
+        }) }));
       } else if (!groups.some(group => group.filters.some(item => item.filter === value))) {
         const opposite = toggle(value);
         const match = groups.some(group => group.filters.some(item => item.filter === opposite));
