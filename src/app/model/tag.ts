@@ -378,6 +378,11 @@ export interface FilterConfig {
    */
   input?: 'text' | 'range' | 'units';
   /**
+   * Input shown instead of a range while the hotkey is held. Defaults to text.
+   * Holding the hotkey while dragging the range turns off snapping instead.
+   */
+  hotkeyInput?: 'text' | 'units';
+  /**
    * Unit of the value of a sort filter, which sets the range stops, the unit dropdown
    * and the shorthand (like 5m or 10mb) accepted in the URL.
    * Defaults to duration for :dur columns.

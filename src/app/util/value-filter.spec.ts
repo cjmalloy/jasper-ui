@@ -7,9 +7,13 @@ import {
   humanAmount,
   parseAmount,
   rangeStops,
+  roundAmount,
+  roundSeconds,
   serverValue,
   splitAmount,
   STOPS,
+  stopAmount,
+  stopIndex,
   unitValue,
   UNITS,
   valueUnit
@@ -105,8 +109,47 @@ describe('value-filter', () => {
       expect(rangeStops('duration', undefined, 0, 5)).toEqual(STOPS.duration);
     });
 
-    it('includes the current value', () => {
-      expect(rangeStops('duration', 400, 90, 700)).toEqual([60, 120, 300, 400, 600, 900]);
+    it('includes the current value outside the stops', () => {
+      expect(rangeStops('duration', 400, 90, 700)).toEqual([60, 120, 300, 600, 900]);
+      expect(rangeStops('duration', 1200, 90, 700)).toEqual([60, 120, 300, 600, 900, 1200]);
+    });
+  });
+
+  describe('stopAmount', () => {
+    it('reads stops at whole positions', () => {
+      expect(stopAmount([60, 120, 300], 1)).toBe(120);
+      expect(stopAmount([60, 120, 300], 2)).toBe(300);
+    });
+
+    it('uses a log scale between stops', () => {
+      expect(stopAmount([100, 10000], 0.5)).toBeCloseTo(1000);
+      expect(stopIndex([100, 10000], 1000)).toBeCloseTo(0.5);
+    });
+
+    it('is linear from zero', () => {
+      expect(stopAmount([0, 60], 0.25)).toBe(15);
+      expect(stopIndex([0, 60], 15)).toBe(0.25);
+    });
+
+    it('finds positions of stops', () => {
+      expect(stopIndex([60, 120, 300], 120)).toBe(1);
+      expect(stopIndex([60, 120, 300], 10)).toBe(0);
+      expect(stopIndex([60, 120, 300], 600)).toBe(2);
+    });
+  });
+
+  describe('roundAmount', () => {
+    it('keeps the two largest units of a duration', () => {
+      expect(roundAmount('duration', 3 * 3600 + 17 * 60 + 42.4)).toBe(3 * 3600 + 18 * 60);
+      expect(roundAmount('duration', 45.6)).toBe(46);
+      expect(roundSeconds(3 * 24 * 3600 + 4 * 3600 + 60).toISO()).toBe('P3DT4H');
+      expect(roundSeconds(4 * 24 * 3600 + 13.9 * 3600).toISO()).toBe('P4DT14H');
+      expect(roundSeconds(3600 + 59.7 * 60).toISO()).toBe('PT2H');
+      expect(roundSeconds(42).toISO()).toBe('PT42S');
+    });
+
+    it('keeps 3 significant digits of a size', () => {
+      expect(roundAmount('bytes', 3.14159 * 1024 ** 2)).toBe(Math.round(3.14 * 1024 ** 2));
     });
   });
 });

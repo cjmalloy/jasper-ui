@@ -89,6 +89,29 @@ test.describe.serial('Duration Plugin', () => {
     await expect(page.locator('.filter .filter-range-label')).toHaveText('1 hr, 30 min');
   });
 
+  test('drags between stops with the hotkey', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/before/pt10m`, { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    const range = page.locator('.filter .filter-range');
+    await expect(page.locator('.filter .filter-range-label')).toHaveText('10 min');
+    const box = (await range.boundingBox())!;
+    const max = Number(await range.getAttribute('max'));
+    const value = Number(await range.inputValue());
+    const x = box.x + 8 + (box.width - 16) * value / max;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.keyboard.down('Control');
+    await expect(range).toHaveAttribute('step', 'any');
+    // A third of a stop, which would snap back to 10 min
+    await page.mouse.move(x + (box.width - 16) / max / 3, y, { steps: 4 });
+    await page.mouse.up();
+    await page.keyboard.up('Control');
+    await expect(range).toHaveAttribute('step', '1');
+    await expect(page.locator('.filter .filter-range-label')).not.toHaveText('10 min');
+    await expect.poll(() => new URL(page.url()).searchParams.get('filter')).toMatch(/^tags->plugin\/duration:dur\/before\/pt1\dm(\d+s)?$/);
+  });
+
   test('filters longer than a duration', async ({ page }) => {
     const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('tagAfter'));
     await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/after/PT10M`, { waitUntil: 'networkidle' });

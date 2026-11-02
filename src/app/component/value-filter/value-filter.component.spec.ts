@@ -16,6 +16,7 @@ describe('ValueFilterComponent', () => {
   const filters = signal<FilterConfig[]>([
     { sort: 'tags->plugin/duration:dur', before: 'pt5m', input: 'range' },
     { sort: 'plugins->_plugin/cache->contentLength:num', after: '10mb', input: 'units', unit: 'bytes' },
+    { sort: 'plugins->size:num', after: '1mb', input: 'range', hotkeyInput: 'units', unit: 'bytes' },
   ]);
 
   beforeEach(async () => {
@@ -96,6 +97,64 @@ describe('ValueFilterComponent', () => {
       await fixture.whenStable();
       expect(el.querySelector('.filter-value')).toBeNull();
       expect(el.querySelector('.filter-range-label')!.textContent).toContain('1 hr, 30 min');
+    });
+
+    it('turns off snapping while dragging with the hotkey', async () => {
+      const el = await render('tags->plugin/duration:dur/before/pt5m');
+      const store = TestBed.inject(Store);
+      const range = el.querySelector<HTMLInputElement>('.filter-range')!;
+      range.dispatchEvent(new Event('pointerdown'));
+      store.hotkey.set(true);
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-range')).toBe(range);
+      expect(range.step).toBe('any');
+      range.value = '2.5';
+      range.dispatchEvent(new Event('input'));
+      range.dispatchEvent(new Event('pointerup'));
+      range.dispatchEvent(new Event('change'));
+      // Halfway between 5 and 10 minutes on a log scale
+      expect(changed).toEqual(['pt7m4s']);
+      store.hotkey.set(false);
+      await fixture.whenStable();
+      expect(range.step).toBe('1');
+    });
+
+    it('snaps when the hotkey is released while dragging', async () => {
+      const el = await render('tags->plugin/duration:dur/before/pt5m');
+      const store = TestBed.inject(Store);
+      const range = el.querySelector<HTMLInputElement>('.filter-range')!;
+      range.dispatchEvent(new Event('pointerdown'));
+      store.hotkey.set(true);
+      await fixture.whenStable();
+      range.value = '2.6';
+      range.dispatchEvent(new Event('input'));
+      store.hotkey.set(false);
+      await fixture.whenStable();
+      range.dispatchEvent(new Event('pointerup'));
+      range.dispatchEvent(new Event('change'));
+      expect(changed).toEqual(['pt10m']);
+    });
+
+    it('shows a number and unit while the hotkey is held', async () => {
+      const el = await render('plugins->size:num/after/1mb');
+      expect(el.querySelector('.filter-range')).not.toBeNull();
+      TestBed.inject(Store).hotkey.set(true);
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-range')).toBeNull();
+      expect(el.querySelector<HTMLInputElement>('.filter-value')!.value).toBe('1');
+      const unit = el.querySelector<HTMLSelectElement>('.filter-unit')!;
+      expect(unit.value).toBe('mb');
+      expect(el.querySelector('.filter-range-label')!.textContent).toBe('1 MB');
+      unit.dispatchEvent(new Event('focus'));
+      TestBed.inject(Store).hotkey.set(false);
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-unit')).toBe(unit);
+      unit.value = 'kb';
+      unit.dispatchEvent(new Event('change'));
+      expect(changed).toEqual(['1kb']);
+      unit.dispatchEvent(new Event('blur'));
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-range')).not.toBeNull();
     });
 
     it('shows shorthand from the URL', async () => {

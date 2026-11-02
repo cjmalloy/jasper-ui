@@ -10,7 +10,10 @@ import {
   humanAmount,
   parseAmount,
   rangeStops,
+  roundAmount,
   splitAmount,
+  stopAmount,
+  stopIndex,
   unitValue,
   UNITS,
   valueUnit
@@ -69,9 +72,27 @@ export class ValueFilterComponent {
   readonly typing = signal(false);
 
   /**
-   * Hold the hotkey to type any value, like an ISO duration, instead of using the slider.
+   * Dragging the slider, until the hotkey is released.
    */
-  readonly input = computed(() => this.configInput() === 'range' && (this.store.hotkey() || this.typing()) ? 'typed' : this.configInput());
+  readonly dragging = linkedSignal<boolean, boolean>({
+    source: () => this.store.hotkey(),
+    computation: (hotkey, previous) => hotkey && !!previous?.value,
+  });
+
+  /**
+   * Holding the hotkey while dragging turns off snapping to stops.
+   */
+  readonly fine = computed(() => this.dragging() && this.store.hotkey());
+
+  /**
+   * Hold the hotkey to type any value instead of using the slider,
+   * like an ISO duration in a text box, or a number and unit.
+   */
+  readonly input = computed(() => {
+    const input = this.configInput();
+    if (input !== 'range' || this.dragging() || !this.store.hotkey() && !this.typing()) return input;
+    return this.config()?.hotkeyInput === 'units' ? 'units' : 'typed';
+  });
 
   private readonly rangeParams = computed(() => this.configInput() === 'range'
     ? { column: this.parsed()!.column, unit: this.unit()!, query: this.query() }
@@ -95,9 +116,9 @@ export class ValueFilterComponent {
     return rangeStops(this.unit()!, this.amount(), min, max);
   });
 
-  readonly index = linkedSignal(() => this.stops().indexOf(this.amount()!));
+  readonly index = linkedSignal(() => stopIndex(this.stops(), this.amount()!));
 
-  readonly rangeLabel = computed(() => humanAmount(this.unit()!, this.stops()[this.index()]));
+  readonly rangeLabel = computed(() => humanAmount(this.unit()!, this.amountAt(this.index())));
 
   readonly options = computed(() => UNITS[this.unit()!]);
 
@@ -116,8 +137,19 @@ export class ValueFilterComponent {
     this.emit(input.value);
   }
 
+  release() {
+    if (!this.store.hotkey()) this.dragging.set(false);
+  }
+
   setRange() {
-    this.emit(formatAmount(this.unit()!, this.stops()[this.index()]));
+    // Snapped back if the hotkey was released while dragging
+    const index = this.fine() ? this.index() : Math.round(this.index());
+    this.emit(formatAmount(this.unit()!, this.amountAt(index)));
+  }
+
+  private amountAt(index: number) {
+    if (Number.isInteger(index)) return this.stops()[index];
+    return roundAmount(this.unit()!, stopAmount(this.stops(), index));
   }
 
   setNumber(input: HTMLInputElement) {

@@ -8,6 +8,8 @@
   }
   app-filter, app-sort {
     width: 50%;
+    // Don't let the width of the inputs, which change with the hotkey, resize the columns
+    min-width: 0;
   }
 }
 

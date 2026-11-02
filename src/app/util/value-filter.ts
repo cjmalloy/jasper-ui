@@ -90,6 +90,7 @@ export function unitValue(unit: ValueUnit, number: number, option: UnitOption) {
 }
 
 export function formatAmount(unit: ValueUnit, amount: number) {
+  if (unit === 'duration') return unitValue(unit, amount, { factor: 1 } as UnitOption);
   const { number, option } = splitAmount(unit, amount);
   return unitValue(unit, number, option);
 }
@@ -140,7 +141,8 @@ export function columnAmount(ref: Ref, column: string, unit: ValueUnit): number 
 }
 
 /**
- * Range stops, limited to the stops around the values found, plus the current value.
+ * Range stops, limited to the stops around the values found,
+ * plus the current value if it is outside them.
  */
 export function rangeStops(unit: ValueUnit, current?: number, min?: number, max?: number) {
   let stops = STOPS[unit];
@@ -148,6 +150,61 @@ export function rangeStops(unit: ValueUnit, current?: number, min?: number, max?
   const hi = max === undefined ? -1 : stops.findIndex(s => s >= max);
   const clipped = stops.slice(lo, hi < 0 ? stops.length : hi + 1);
   if (clipped.length >= 2) stops = clipped;
-  if (current !== undefined && !stops.includes(current)) stops = [...stops, current].sort((a, b) => a - b);
+  if (current !== undefined && (current < stops[0] || current > stops[stops.length - 1])) {
+    stops = [...stops, current].sort((a, b) => a - b);
+  }
   return stops;
+}
+
+/**
+ * The amount at a slider position between stops, on a log scale
+ * (linear from a zero stop).
+ */
+export function stopAmount(stops: number[], index: number) {
+  const i = Math.max(0, Math.min(Math.floor(index), stops.length - 1));
+  const f = index - i;
+  if (!f || i === stops.length - 1) return stops[i];
+  const a = stops[i];
+  const b = stops[i + 1];
+  return a > 0 ? a * (b / a) ** f : b * f;
+}
+
+/**
+ * The slider position of an amount between stops, the inverse of {@link stopAmount}.
+ */
+export function stopIndex(stops: number[], amount: number) {
+  if (amount <= stops[0]) return 0;
+  for (let i = 0; i < stops.length - 1; i++) {
+    const a = stops[i];
+    const b = stops[i + 1];
+    if (amount > b) continue;
+    if (amount === b) return i + 1;
+    return i + (a > 0 ? Math.log(amount / a) / Math.log(b / a) : amount / b);
+  }
+  return stops.length - 1;
+}
+
+/**
+ * Round a duration in seconds to its two largest units, like 3 hours 17 minutes.
+ */
+export function roundSeconds(seconds: number) {
+  const units = ['years', 'months', 'days', 'hours', 'minutes', 'seconds'] as const;
+  const d = Duration.fromObject({ seconds: Math.round(seconds) });
+  const i = Math.min(units.findIndex(u => d.as(u) >= 1), units.length - 2);
+  if (i < 0) return d;
+  const shifted = d.shiftTo(units[i], units[i + 1]).toObject();
+  return Duration.fromObject({
+    [units[i]]: shifted[units[i]],
+    [units[i + 1]]: Math.round(shifted[units[i + 1]]!),
+  }).shiftTo(units[i], units[i + 1]);
+}
+
+/**
+ * Round an amount picked between stops so it reads well:
+ * durations to their two largest units, sizes to 3 significant digits.
+ */
+export function roundAmount(unit: ValueUnit, amount: number) {
+  if (unit === 'duration') return roundSeconds(amount).as('seconds');
+  const { option } = splitAmount(unit, amount);
+  return Math.round(Number((amount / option.factor).toPrecision(3)) * option.factor);
 }

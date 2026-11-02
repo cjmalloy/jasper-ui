@@ -4,9 +4,12 @@
            class="filter-range"
            min="0"
            [max]="stops().length - 1"
-           step="1"
+           [step]="fine() ? 'any' : 1"
            [value]="index()"
            i18n-title title="Value to compare against"
+           (pointerdown)="dragging.set(true)"
+           (pointerup)="release()"
+           (pointercancel)="release()"
            (input)="index.set(+$any($event.target).value)"
            (change)="setRange()">
     <output class="filter-range-label">{{ rangeLabel() }}</output>
@@ -27,12 +30,20 @@
            class="filter-value"
            [value]="split().number"
            i18n-title title="Value to compare against"
+           (focus)="typing.set(true)"
+           (blur)="typing.set(false)"
            (change)="setNumber($any($event.target))">
-    <select class="filter-unit" (change)="setUnit($any($event.target).value)">
+    <select class="filter-unit"
+            (focus)="typing.set(true)"
+            (blur)="typing.set(false)"
+            (change)="setUnit($any($event.target).value)">
       @for (o of options(); track o.suffix) {
         <option [value]="o.suffix" [selected]="o.suffix === split().option.suffix">{{ o.label }}</option>
       }
     </select>
+    @if (configInput() === 'range') {
+      <output class="filter-range-label">{{ rangeLabel() }}</output>
+    }
   }
   @default {
     <input type="text"
