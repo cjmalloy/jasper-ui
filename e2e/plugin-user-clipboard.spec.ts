@@ -88,6 +88,17 @@ test.describe.serial('User Clipboard Plugin', () => {
 
   async function embedImage(page: Page, request: APIRequestContext) {
     const url = await cacheImage(request);
+    await page.addInitScript(() => {
+      const w = window as any;
+      w.e2eVibrations = [];
+      w.e2eWiggles = [];
+      Object.defineProperty(navigator, 'vibrate', { configurable: true, value: (pattern: VibratePattern) => w.e2eVibrations.push(pattern) });
+      const animate = Element.prototype.animate;
+      Element.prototype.animate = function (keyframes: any, options: any) {
+        if (this.classList.contains('image-expand')) w.e2eWiggles.push({ keyframes, options });
+        return animate.call(this, keyframes, options);
+      };
+    });
     await page.goto('/submit/text?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.evaluate(() => localStorage.setItem('showPreview', 'true'));
     await page.reload({ waitUntil: 'networkidle' });
@@ -95,6 +106,20 @@ test.describe.serial('User Clipboard Plugin', () => {
     const image = page.locator('.editor .md .embed .image-expand');
     await expect(image).not.toHaveClass(/loading/);
     return image;
+  }
+
+  async function copyFeedback(page: Page) {
+    return page.evaluate(() => {
+      const w = window as any;
+      return {
+        vibrations: w.e2eVibrations.length as number,
+        wiggles: (w.e2eWiggles as any[]).map(({ keyframes, options }) => {
+          const angles = keyframes.map((k: any) => Number(/rotate\((-?[\d.e-]+)rad\)/.exec(k.transform)![1]));
+          const angle = Math.max(...angles.map(Math.abs));
+          return { duration: options.duration as number, angle, turns: angles.map((a: number) => Math.sign(a) || 0) };
+        }),
+      };
+    });
   }
 
   test('copies an embedded image to the system clipboard on click', async ({ page, context, request }) => {
@@ -109,11 +134,17 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.mouse.down();
     await page.mouse.move(box.x + 50, box.y + 50, { steps: 5 });
     await page.mouse.up();
-    await expect(image).not.toHaveClass(/copied/);
+    expect(await copyFeedback(page)).toEqual({ vibrations: 0, wiggles: [] });
 
     await image.click();
 
-    await expect(image).toHaveClass(/copied/);
+    await expect.poll(() => copyFeedback(page)).toMatchObject({ vibrations: 1, wiggles: [{ duration: 400 }] });
+    const { wiggles: [wiggle] } = await copyFeedback(page);
+    const box2 = (await image.boundingBox())!;
+    const corner = Math.hypot(box2.width, box2.height) / 2 * wiggle.angle;
+    expect(corner).toBeGreaterThan(1.5);
+    expect(corner).toBeLessThan(2.5);
+    expect(wiggle.turns).toEqual([0, -1, 1, -1, 0]);
     const types = await page.evaluate(async () => (await navigator.clipboard.read()).flatMap(item => item.types));
     expect(types).toContain('image/png');
     await expect(bubbles).toHaveCount(before);
@@ -129,7 +160,7 @@ test.describe.serial('User Clipboard Plugin', () => {
 
     await image.click();
 
-    await expect(image).toHaveClass(/copied/);
+    await expect.poll(() => copyFeedback(page)).toMatchObject({ vibrations: 1, wiggles: [{ duration: 400 }] });
     await expect(bubbles).toHaveCount(before + 1);
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('unchanged');
     const bubble = bubbles.last();

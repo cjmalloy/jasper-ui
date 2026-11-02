@@ -280,7 +280,6 @@ export class ViewerComponent {
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.removeAudioListener();
     this.removeVideoListener();
-    window.clearTimeout(this.imageCopiedTimeout);
   });
 
   readonly pluginClasses = computed(() => {
@@ -514,17 +513,14 @@ export class ViewerComponent {
     return url;
   });
 
-  readonly imageCopied = signal<'' | 'copied' | 'copy-failed'>('');
-  private imageCopiedTimeout?: number;
-
-  copyImage() {
+  copyImage(el: HTMLElement) {
     const url = this.imageUrl();
     if (!url) return;
     const ref = this.ref();
     if (ref?.url) {
       const clip = new CustomEvent(CLIPBOARD_COPY_EVENT, { bubbles: true, cancelable: true, detail: ref });
       if (!this.el.nativeElement.dispatchEvent(clip)) {
-        this.imageCopyStatus('copied');
+        this.imageCopied(el);
         return;
       }
     }
@@ -537,16 +533,27 @@ export class ViewerComponent {
         console.warn('Could not copy image, copying URL instead', err);
         return copyText(this.el.nativeElement.ownerDocument, url);
       })
-      .then(() => this.imageCopyStatus('copied'), err => {
-        console.warn(err);
-        this.imageCopyStatus('copy-failed');
-      });
+      .then(() => this.imageCopied(el), err => console.warn(err));
   }
 
-  private imageCopyStatus(status: 'copied' | 'copy-failed') {
-    this.imageCopied.set(status);
-    window.clearTimeout(this.imageCopiedTimeout);
-    this.imageCopiedTimeout = window.setTimeout(() => this.imageCopied.set(''), 1000);
+  /**
+   * Haptic and a quick wiggle: counter-clockwise, clockwise, counter-clockwise, rest.
+   * The angle is scaled so the corners swing about 4px between the two extremes.
+   */
+  private imageCopied(el: HTMLElement) {
+    if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
+    if (!el.animate || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const radius = Math.hypot(el.offsetWidth, el.offsetHeight) / 2;
+    if (!radius) return;
+    const angle = 2 / radius;
+    // Each swing to the opposite side is twice as far, so it gets twice the time
+    el.animate([
+      { transform: 'rotate(0rad)', offset: 0 },
+      { transform: `rotate(${-angle}rad)`, offset: 1 / 6 },
+      { transform: `rotate(${angle}rad)`, offset: 1 / 2 },
+      { transform: `rotate(${-angle}rad)`, offset: 5 / 6 },
+      { transform: 'rotate(0rad)', offset: 1 },
+    ], { duration: 400, easing: 'linear' });
   }
 
   getFilename(d = $localize`Untitled`) {
