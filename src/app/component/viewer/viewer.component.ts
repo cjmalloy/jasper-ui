@@ -18,7 +18,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import Hls from 'hls.js';
 import { isEqual, some, without } from 'lodash-es';
-import { BehaviorSubject, catchError, of, startWith, Subject, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, firstValueFrom, of, startWith, Subject, switchMap } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
@@ -38,10 +38,12 @@ import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
+import { CLIPBOARD_COPY_EVENT, copyImage } from '../../util/clipboard';
 import { embedUrl, setIframeSrc } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
+import { copyText } from '../../util/markdown';
 import { hasPrefix, hasTag, pluginResponses } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
@@ -111,6 +113,7 @@ export class ViewerComponent {
   readonly videoEl = viewChild<ElementRef<HTMLVideoElement>>('video');
   readonly audioEl = viewChild<ElementRef<HTMLAudioElement>>('audio');
   readonly pdfIframeEl = viewChild<ElementRef<HTMLIFrameElement>>('pdfIframe');
+  readonly imageEl = viewChild<ElementRef<HTMLElement>>('imageEl');
 
   readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
   readonly ref = linkedSignal(() => this.refInput());
@@ -258,6 +261,12 @@ export class ViewerComponent {
 
   onKeydown(event: KeyboardEvent) {
     if (event.defaultPrevented) return;
+    const image = this.imageEl()?.nativeElement;
+    if (image && event.target === this.el.nativeElement && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      this.copyImage(image);
+      return;
+    }
     if (this.currentVideo) {
       handleMediaKeydown(event, this.currentVideo);
       return;
@@ -490,15 +499,69 @@ export class ViewerComponent {
     return url;
   });
 
-  readonly imageUrl = computed(() => {
+  private readonly imageSrc = computed<string>(() => {
     if (!this.admin.getPlugin('plugin/image')) return '';
     if (!this.image() && !hasTag('plugin/image', this.currentTags())) return '';
-    const url = this.image() || this.ref()?.plugins?.['plugin/image']?.url || this.ref()?.url;
-    if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
+    return this.image() || this.ref()?.plugins?.['plugin/image']?.url || this.ref()?.url || '';
+  });
+
+  private readonly imageProxied = computed(() => {
+    const url = this.imageSrc();
+    if (!url || url.startsWith('data:')) return false;
+    return url.startsWith('cache:') || !!this.admin.getPlugin('plugin/image')?.config?.proxy;
+  });
+
+  readonly imageUrl = computed(() => {
+    const url = this.imageSrc();
+    if (!url) return '';
+    if (this.imageProxied()) {
       return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename($localize`Untitled Image`));
     }
     return url;
   });
+
+  copyImage(el: HTMLElement) {
+    const url = this.imageUrl();
+    if (!url) return;
+    const ref = this.ref();
+    if (ref?.url) {
+      const clip = new CustomEvent(CLIPBOARD_COPY_EVENT, { bubbles: true, cancelable: true, detail: ref });
+      if (!this.el.nativeElement.dispatchEvent(clip)) {
+        this.imageCopied(el);
+        return;
+      }
+    }
+    const image = this.imageProxied()
+      ? firstValueFrom(this.proxy.fetch(this.imageSrc(), this.currentOrigin(), this.getFilename($localize`Untitled Image`)))
+        .then(res => new Blob([res.data!], { type: res.mimeType || '' }))
+      : Promise.resolve(url);
+    copyImage(image)
+      .catch(err => {
+        console.warn('Could not copy image, copying URL instead', err);
+        return copyText(this.el.nativeElement.ownerDocument, url);
+      })
+      .then(() => this.imageCopied(el), err => console.warn(err));
+  }
+
+  /**
+   * Haptic and a quick wiggle: counter-clockwise, clockwise, counter-clockwise, rest.
+   * The angle is scaled so the corners swing about 4px between the two extremes.
+   */
+  private imageCopied(el: HTMLElement) {
+    if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
+    if (!el.animate || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const radius = Math.hypot(el.offsetWidth, el.offsetHeight) / 2;
+    if (!radius) return;
+    const angle = 2 / radius;
+    // Each swing to the opposite side is twice as far, so it gets twice the time
+    el.animate([
+      { transform: 'rotate(0rad)', offset: 0 },
+      { transform: `rotate(${-angle}rad)`, offset: 1 / 6 },
+      { transform: `rotate(${angle}rad)`, offset: 1 / 2 },
+      { transform: `rotate(${-angle}rad)`, offset: 5 / 6 },
+      { transform: 'rotate(0rad)', offset: 1 },
+    ], { duration: 400, easing: 'linear' });
+  }
 
   getFilename(d = $localize`Untitled`) {
     const url = this.ref()?.url;

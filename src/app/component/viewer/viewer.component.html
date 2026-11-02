@@ -51,13 +51,15 @@
     </div>
   }
   @if (imageUrl()) {
-    <div class="image-expand"
+    <div #imageEl
+         class="image-expand"
          [appImage]="imageUrl()"
          [ref]="ref()"
          [defaultWidth]="ref()?.plugins?.['plugin/image']?.width"
          [defaultHeight]="ref()?.plugins?.['plugin/image']?.height"
          [grid]="disableResize()"
-         [appResize]="!disableResize()"></div>
+         [appResize]="!disableResize()"
+         (appResizeClick)="copyImage(imageEl)"></div>
   }
   @if (videoUrl()) {
     <video #video
