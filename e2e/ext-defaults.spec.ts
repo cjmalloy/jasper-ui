@@ -95,12 +95,13 @@ test.describe.serial('Ext defaults', () => {
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('.default-filter-create').selectOption({ label: '⏱️ shorter than' });
     const row = page.locator('.default-filter-row').last();
-    await expect(row.locator('.default-filter-value')).toHaveValue('pt5m');
-    await row.locator('.default-filter-value').fill('pt20m');
-    await row.locator('.default-filter-value').blur();
+    await expect(row.locator('.filter-range-label')).toHaveText('5 min');
+    await row.locator('.filter-range').press('ArrowRight');
+    await expect(row.locator('.filter-range-label')).not.toHaveText('5 min');
+    const label = await row.locator('.filter-range-label').textContent();
     await row.locator('select').selectOption({ label: '⏱️ longer than' });
     await expect(row.locator('select')).toHaveValue(/^tags->plugin\/duration:dur\/after\//);
-    await expect(row.locator('.default-filter-value')).toHaveValue('pt20m');
+    await expect(row.locator('.filter-range-label')).toHaveText(label!);
 
     const save = page.waitForResponse(response => (
       response.url().includes('/api/v1/ext') &&
@@ -109,15 +110,18 @@ test.describe.serial('Ext defaults', () => {
     ));
     await page.locator('button', { hasText: 'Save' }).click();
     const saveResponse = await save;
-    expect(saveResponse.request().postDataJSON().config.defaultFilter).toContain('tags->plugin/duration:dur/after/pt20m');
+    const saved: string[] = saveResponse.request().postDataJSON().config.defaultFilter;
+    const value = saved.find(f => f.startsWith('tags->plugin/duration:dur/after/'))!.replace('tags->plugin/duration:dur/after/', '');
+    expect(value).toMatch(/^pt/);
+    expect(value).not.toBe('pt5m');
 
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await expect(page.locator('.default-filter-row select').last()).toHaveValue(/^tags->plugin\/duration:dur\/after\//);
-    await expect(page.locator('.default-filter-row .default-filter-value').last()).toHaveValue('pt20m');
+    await expect(page.locator('.default-filter-row .filter-range-label').last()).toHaveText(label!);
 
     const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('tagAfter'));
     await page.goto('/home?debug=ADMIN');
-    expect(new URL((await request).url()).searchParams.getAll('tagAfter')).toEqual(['tags->plugin/duration:dur/pt20m']);
+    expect(new URL((await request).url()).searchParams.getAll('tagAfter')).toEqual(['tags->plugin/duration:dur/' + value]);
   });
 
   test('configures and renders a Markdown header', async ({ page }) => {

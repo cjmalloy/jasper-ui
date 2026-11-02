@@ -246,17 +246,19 @@ test.describe.serial('Bookmark Formly Type', () => {
     await bookmarkField.locator('.filter-toggle').click();
     const popup = page.locator('.params-panel');
     await popup.locator('select.big').last().selectOption({ label: '⏱️ shorter than' });
-    const value = popup.locator('.filter-value');
-    await expect(value).toHaveValue('pt5m');
-    await value.fill('pt20m');
-    await value.blur();
-    await expect(popup.locator('.controls select')).toHaveValue('tags->plugin/duration:dur/before/pt20m');
+    const label = popup.locator('.filter-range-label');
+    await expect(label).toHaveText('5 min');
+    await popup.locator('.filter-range').press('ArrowRight');
+    await expect(popup.locator('.controls select')).not.toHaveValue('tags->plugin/duration:dur/before/pt5m');
+    const text = await label.textContent();
+    const value = (await popup.locator('.controls select').inputValue()).replace('tags->plugin/duration:dur/before/', '');
+    expect(value).not.toBe('pt5m');
     await popup.locator('.controls select').selectOption({ label: '⏱️ longer than' });
-    await expect(popup.locator('.controls select')).toHaveValue('tags->plugin/duration:dur/after/pt20m');
-    await expect(value).toHaveValue('pt20m');
+    await expect(popup.locator('.controls select')).toHaveValue('tags->plugin/duration:dur/after/' + value);
+    await expect(label).toHaveText(text!);
     await page.locator('label', { hasText: 'Bookmarks' }).first().click();
     await bookmarkField.locator('.crumbs-left').click();
-    expect(await bookmarkField.locator('input.grow:not(.preview)').inputValue()).toContain('filter=tags->plugin/duration:dur/after/pt20m');
+    expect(await bookmarkField.locator('input.grow:not(.preview)').inputValue()).toContain('filter=tags->plugin/duration:dur/after/' + value);
   });
 
   test('search field accepts input', async ({ page }) => {

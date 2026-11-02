@@ -3,6 +3,7 @@ import { DateTime, Duration } from 'luxon';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { andQueries, fixClientQuery, hasPrefix, isGroup, isNegatedGroup } from './tag';
+import { serverValue } from './value-filter';
 
 const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
 const DEFAULT_DESC_PREFIXES = ['metadata->'];
@@ -278,10 +279,10 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       } else if (v.column.startsWith('tags->')) {
         // Tag values are lowercase, so PT1H works like pt1h
         const key = v.dir === 'before' ? 'tagBefore' : 'tagAfter';
-        result[key] = [...result[key] || [], v.column + '/' + v.value.toLowerCase()];
+        result[key] = [...result[key] || [], v.column + '/' + serverValue(v.column, v.value).toLowerCase()];
       } else {
         const key = v.dir === 'before' ? 'pluginBefore' : 'pluginAfter';
-        result[key] = [...result[key] || [], v.column + '/' + v.value];
+        result[key] = [...result[key] || [], v.column + '/' + serverValue(v.column, v.value)];
       }
     } else if (f === '!obsolete') {
       result['obsolete'] = null as any;

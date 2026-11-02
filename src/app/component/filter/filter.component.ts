@@ -19,13 +19,14 @@ import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
 import { convertFilter, FilterGroup, FilterItem, negatable, parseValueFilter, switchFilter, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
+import { ValueFilterComponent } from '../value-filter/value-filter.component';
 
 @Component({
   selector: 'app-filter',
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
   host: { 'class': 'filter form-group' },
-  imports: [ReactiveFormsModule, FormsModule]
+  imports: [ReactiveFormsModule, FormsModule, ValueFilterComponent]
 })
 export class FilterComponent {
   router = inject(Router);
@@ -316,13 +317,9 @@ export class FilterComponent {
   readonly parseValueFilter = parseValueFilter;
   readonly switchFilter = switchFilter;
 
-  setValue(index: number, filter: UrlFilter, input: HTMLInputElement) {
+  setValue(index: number, filter: UrlFilter, value: string) {
     const v = parseValueFilter(filter);
-    if (!v) return;
-    const value = input.value.trim();
-    // Show the accepted value, since a rejected or trimmed edit leaves the filter (and the [value] binding) unchanged
-    input.value = !value || value.includes('/') ? v.value : value;
-    if (input.value !== v.value) this.setFilter(index, `${v.column}/${v.dir}/${input.value}` as UrlFilter);
+    if (v) this.setFilter(index, `${v.column}/${v.dir}/${value}` as UrlFilter);
   }
 
   removeFilter(index: number) {

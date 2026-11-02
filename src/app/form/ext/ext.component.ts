@@ -17,6 +17,7 @@ import { catchError, of, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
+import { ValueFilterComponent } from '../../component/value-filter/value-filter.component';
 import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
 import { getMailbox } from '../../mods/mailbox';
@@ -43,6 +44,7 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
     RouterLink,
     ThemesFormComponent,
     LoadingComponent,
+    ValueFilterComponent,
   ],
 })
 export class ExtFormComponent  {
@@ -274,13 +276,9 @@ export class ExtFormComponent  {
   readonly parseValueFilter = parseValueFilter;
   readonly switchFilter = switchFilter;
 
-  setFilterValue(index: number, filter: UrlFilter, input: HTMLInputElement) {
+  setFilterValue(index: number, filter: UrlFilter, value: string) {
     const v = parseValueFilter(filter);
-    if (!v) return;
-    const value = input.value.trim();
-    // Show the accepted value, since a rejected or trimmed edit leaves the filter (and the [value] binding) unchanged
-    input.value = !value || value.includes('/') ? v.value : value;
-    if (input.value !== v.value) this.setFilter(index, `${v.column}/${v.dir}/${input.value}` as UrlFilter);
+    if (v) this.setFilter(index, `${v.column}/${v.dir}/${value}` as UrlFilter);
   }
 
   filterIsDate(filter: UrlFilter) {

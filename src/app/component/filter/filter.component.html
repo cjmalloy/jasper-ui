@@ -13,7 +13,7 @@
     }
   }
 </select>
-@for (filter of filters(); track filter; let i = $index) {
+@for (filter of filters(); track $index; let i = $index) {
   <div class="controls" [title]="filter">
     <select id="filter-{{ i }}" [ngModel]="filter" (ngModelChange)="setFilter(i, switchFilter(filter, $event))" [title]="title(filter)">
       @for (g of allFilters(); track g.label) {
@@ -39,11 +39,7 @@
            (change)="hasFocus() && set(i, filter, toIso($any($event.target).value))"
            (keydown)="clearFocus() && $event.key === 'Enter' && set(i, filter, toIso($any($event.target).value)) || true"
            (blur)="set(i, filter, toIso($any($event.target).value))">
-  } @else if (parseValueFilter(filter); as v) {
-    <input type="text"
-           class="filter-value"
-           [value]="v.value"
-           i18n-title title="Value to compare against"
-           (change)="setValue(i, filter, $any($event.target))">
+  } @else if (parseValueFilter(filter)) {
+    <app-value-filter [filter]="filter" (changed)="setValue(i, filter, $event)" />
   }
 }

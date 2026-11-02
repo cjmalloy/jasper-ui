@@ -8263,21 +8263,37 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>🗜️ larger than</source>
         <target>🗜️ より大きい</target>
       </trans-unit>
-      <trans-unit id="3521736876862370790" datatype="html">
-        <source>Cache size larger than (bytes)</source>
-        <target>キャッシュサイズがこれより大きい（バイト）</target>
+      <trans-unit id="2905050553453459643" datatype="html">
+        <source>Cache size larger than</source>
+        <target>キャッシュサイズがこれより大きい</target>
       </trans-unit>
-      <trans-unit id="4854495057507431989" datatype="html">
-        <source>Media longer than duration (e.g., pt1h)</source>
-        <target>メディアの長さがこれより長い（例: pt1h）</target>
+      <trans-unit id="4704866115669457629" datatype="html">
+        <source>Media longer than</source>
+        <target>メディアの長さがこれより長い</target>
       </trans-unit>
-      <trans-unit id="5196498824201285421" datatype="html">
-        <source>Cache size smaller than (bytes)</source>
-        <target>キャッシュサイズがこれより小さい（バイト）</target>
+      <trans-unit id="2672534974804206542" datatype="html">
+        <source>Cache size smaller than</source>
+        <target>キャッシュサイズがこれより小さい</target>
       </trans-unit>
-      <trans-unit id="5483294391686313950" datatype="html">
-        <source>Media shorter than duration (e.g., pt5m)</source>
-        <target>メディアの長さがこれより短い（例: pt5m）</target>
+      <trans-unit id="899113578443100335" datatype="html">
+        <source>Media shorter than</source>
+        <target>メディアの長さがこれより短い</target>
+      </trans-unit>
+      <trans-unit id="8444840466573361504" datatype="html">
+        <source>sec</source>
+        <target>秒</target>
+      </trans-unit>
+      <trans-unit id="3901733599428143571" datatype="html">
+        <source>min</source>
+        <target>分</target>
+      </trans-unit>
+      <trans-unit id="3226253490468863097" datatype="html">
+        <source>hr</source>
+        <target>時間</target>
+      </trans-unit>
+      <trans-unit id="7036284206110282007" datatype="html">
+        <source>days</source>
+        <target>日</target>
       </trans-unit>
       <trans-unit id="6030436125074878722" datatype="html">
         <source>⏱️ longer than</source>

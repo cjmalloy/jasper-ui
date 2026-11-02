@@ -371,6 +371,18 @@ export interface FilterConfig {
    * Keep Refs where the sort column is greater than this value.
    */
   after?: string;
+  /**
+   * How to edit the value of a sort filter. Defaults to text.
+   * range: a slider over built-in stops for the unit, limited to the values found on the server.
+   * units: a number with a unit dropdown.
+   */
+  input?: 'text' | 'range' | 'units';
+  /**
+   * Unit of the value of a sort filter, which sets the range stops, the unit dropdown
+   * and the shorthand (like 5m or 10mb) accepted in the URL.
+   * Defaults to duration for :dur columns.
+   */
+  unit?: 'duration' | 'bytes';
   label?: string;
   title?: string;
   group?: string;

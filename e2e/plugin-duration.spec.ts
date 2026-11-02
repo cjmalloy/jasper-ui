@@ -37,14 +37,16 @@ test.describe.serial('Duration Plugin', () => {
     await expect(links).toHaveText(['Short', 'Medium', 'Long']);
     await openSidebar(page);
     await page.locator('.filter select.big').selectOption({ label: '⏱️ shorter than' });
-    const value = page.locator('.filter .filter-value');
-    await expect(value).toHaveValue('pt5m');
+    const range = page.locator('.filter .filter-range');
+    await expect(page.locator('.filter .filter-range-label')).toHaveText('5 min');
     await expect(links).toHaveText(['Short']);
+    // Stops from 2 min to 2 hr, the shortest and longest durations
+    await expect(range).toHaveAttribute('max', '8');
 
-    await value.fill('pt1h');
-    await value.press('Enter');
+    await range.press('End');
+    await expect(page.locator('.filter .filter-range-label')).toHaveText('2 hr');
     await expect(links).toHaveText(['Short', 'Medium']);
-    expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/before/pt1h']);
+    expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/before/pt2h']);
   });
 
   test('keeps the value when switching to longer than', async ({ page }) => {
@@ -53,22 +55,18 @@ test.describe.serial('Duration Plugin', () => {
     await expect(links).toHaveText(['Short']);
     await openSidebar(page);
     await page.locator('.filter #filter-0').selectOption({ label: '⏱️ longer than' });
-    await expect(page.locator('.filter .filter-value')).toHaveValue('pt10m');
+    await expect(page.locator('.filter .filter-range-label')).toHaveText('10 min');
     await expect(links).toHaveText(['Medium', 'Long']);
     expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/after/pt10m']);
   });
 
-  test('restores the value after clearing it', async ({ page }) => {
-    await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/before/pt10m`, { waitUntil: 'networkidle' });
+  test('reads shorthand from the URL', async ({ page }) => {
+    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('tagBefore'));
+    await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/before/45m`, { waitUntil: 'networkidle' });
+    expect(new URL((await request).url()).searchParams.getAll('tagBefore')).toEqual(['tags->plugin/duration:dur/pt45m']);
+    await expect(page.locator('.ref-list-item .link a')).toHaveText(['Short', 'Medium']);
     await openSidebar(page);
-    const value = page.locator('.filter .filter-value');
-    await value.fill('');
-    await value.blur();
-    await expect(value).toHaveValue('pt10m');
-    await value.fill('a/b');
-    await value.blur();
-    await expect(value).toHaveValue('pt10m');
-    expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/before/pt10m']);
+    await expect(page.locator('.filter .filter-range-label')).toHaveText('45 min');
   });
 
   test('filters longer than a duration', async ({ page }) => {

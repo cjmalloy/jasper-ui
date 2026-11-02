@@ -32,26 +32,8 @@ describe('FilterComponent', () => {
   describe('value filters', () => {
     it('replaces the value and keeps the sort column', () => {
       component.filters.set(['query/science', 'tags->plugin/duration:dur/before/pt5m']);
-      const input = Object.assign(document.createElement('input'), { value: ' pt1h ' });
-      component.setValue(1, 'tags->plugin/duration:dur/before/pt5m', input);
-      expect(input.value).toBe('pt1h');
+      component.setValue(1, 'tags->plugin/duration:dur/before/pt5m', 'pt1h');
       expect(component.filters()).toEqual(['query/science', 'tags->plugin/duration:dur/before/pt1h']);
-    });
-
-    it('ignores an empty value', () => {
-      component.filters.set(['plugins->_plugin/cache->contentLength:num/after/1000']);
-      const input = Object.assign(document.createElement('input'), { value: '' });
-      component.setValue(0, 'plugins->_plugin/cache->contentLength:num/after/1000', input);
-      expect(component.filters()).toEqual(['plugins->_plugin/cache->contentLength:num/after/1000']);
-      expect(input.value).toBe('1000');
-    });
-
-    it('ignores a value with /', () => {
-      component.filters.set(['plugins->_plugin/cache->contentLength:num/after/1000']);
-      const input = Object.assign(document.createElement('input'), { value: '1/2' });
-      component.setValue(0, 'plugins->_plugin/cache->contentLength:num/after/1000', input);
-      expect(component.filters()).toEqual(['plugins->_plugin/cache->contentLength:num/after/1000']);
-      expect(input.value).toBe('1000');
     });
   });
 

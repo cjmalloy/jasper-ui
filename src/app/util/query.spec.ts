@@ -283,6 +283,17 @@ describe('Query Utils', () => {
       expect(args.tagBefore).toBeUndefined();
     });
 
+    it('should convert shorthand value filters', () => {
+      const args = getArgs('science', undefined, [
+        'tags->plugin/duration:dur/before/1h30m',
+        'plugins->_plugin/cache->contentLength:num/after/10mb',
+        'plugins->plugin/test->title/before/5b',
+      ]);
+      expect(args.tagBefore).toEqual(['tags->plugin/duration:dur/pt1h30m']);
+      expect(args.pluginAfter).toEqual(['plugins->_plugin/cache->contentLength:num/' + 10 * 1024 * 1024]);
+      expect(args.pluginBefore).toEqual(['plugins->plugin/test->title/5b']);
+    });
+
     it('should skip value filters without a value', () => {
       const args = getArgs('science', undefined, ['tags->plugin/duration:dur/before/' as UrlFilter]);
       expect(args.tagBefore).toBeUndefined();

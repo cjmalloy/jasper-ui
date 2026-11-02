@@ -19,6 +19,7 @@ import { debounce, defer, uniq, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
+import { ValueFilterComponent } from '../component/value-filter/value-filter.component';
 import { Ext } from '../model/ext';
 import { Config, FilterConfig } from '../model/tag';
 import { type Template } from '../model/template';
@@ -122,7 +123,7 @@ import { getErrorMessage } from './errors';
         width: 100%;
         box-sizing: border-box;
       }
-      select, .filter-value {
+      select {
         display: block;
         width: 100%;
         box-sizing: border-box;
@@ -223,7 +224,7 @@ import { getErrorMessage } from './errors';
             }
           }
         </select>
-        @for (filter of filters(); track filter; let i = $index) {
+        @for (filter of filters(); track $index; let i = $index) {
           <div class="controls" [title]="filter">
             <select [ngModel]="filter" (ngModelChange)="setFilter(i, switchFilter($any(filter), $event))">
               @for (g of allFilters(); track g.label) {
@@ -241,12 +242,8 @@ import { getErrorMessage } from './errors';
             }
             <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
           </div>
-          @if (parseValueFilter(filter); as v) {
-            <input type="text"
-                   class="filter-value"
-                   [value]="v.value"
-                   i18n-title title="Value to compare against"
-                   (change)="setValue(i, filter, $any($event.target))">
+          @if (parseValueFilter(filter)) {
+            <app-value-filter [filter]="filter" (changed)="setValue(i, filter, $event)" />
           }
         }
       </div>
@@ -257,6 +254,7 @@ import { getErrorMessage } from './errors';
     ReactiveFormsModule,
     FormsModule,
     FormlyAttributes,
+    ValueFilterComponent,
   ],
 })
 export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
@@ -783,13 +781,9 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
   readonly parseValueFilter = parseValueFilter;
   readonly switchFilter = switchFilter;
 
-  setValue(index: number, filter: string, input: HTMLInputElement) {
+  setValue(index: number, filter: string, value: string) {
     const v = parseValueFilter(filter);
-    if (!v) return;
-    const value = input.value.trim();
-    // Show the accepted value, since a rejected or trimmed edit leaves the filter (and the [value] binding) unchanged
-    input.value = !value || value.includes('/') ? v.value : value;
-    if (input.value !== v.value) this.setFilter(index, `${v.column}/${v.dir}/${input.value}`);
+    if (v) this.setFilter(index, `${v.column}/${v.dir}/${value}`);
   }
 
   // Search management

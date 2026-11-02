@@ -101,12 +101,8 @@
                        [value]="filterDate(filter)"
                        (change)="setFilterDate(i, filter, $any($event.target).value)">
               }
-            } @else if (parseValueFilter(filter); as v) {
-              <input type="text"
-                     class="default-filter-value"
-                     [value]="v.value"
-                     i18n-title title="Value to compare against"
-                     (change)="setFilterValue(i, filter, $any($event.target))">
+            } @else if (parseValueFilter(filter)) {
+              <app-value-filter [filter]="filter" (changed)="setFilterValue(i, filter, $event)" />
             }
           </div>
         }
