@@ -411,8 +411,7 @@ Refs without a value never match. Every filter parameter can be repeated, and al
   \`tagAfter=tags->plugin/progress:num/9&tagBefore=tags->plugin/progress:num/50\` matches \`plugin/progress/37/100\`,
   and \`tagBefore=tags->plugin/duration:dur/pt1h\` matches \`plugin/duration/pt10m25s\`.
 - \`pluginBefore\` and \`pluginAfter\` take \`plugins->{plugin}[->{field}...][:num|:len]/{value}\`.
-  After a field or suffix, the value starts after the first \`/\` and may contain \`/\`.
-  Without either, the value is the last \`/\` segment, like tag values, and text cannot contain \`/\` or \`->\`.
+  Like tag values, the value is always the last \`/\` segment, so it cannot contain \`/\` or \`->\`.
   For example, \`pluginAfter=plugins->_plugin/cache->contentLength:num/1000\` matches Refs with a cached file
   over 1000 bytes, and \`pluginAfter=plugins->plugin/score:num/1000\` matches a score over 1000.
 

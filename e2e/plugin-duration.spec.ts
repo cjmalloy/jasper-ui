@@ -47,6 +47,17 @@ test.describe.serial('Duration Plugin', () => {
     expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/before/pt1h']);
   });
 
+  test('keeps the value when switching to longer than', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/before/pt10m`, { waitUntil: 'networkidle' });
+    const links = page.locator('.ref-list-item .link a');
+    await expect(links).toHaveText(['Short']);
+    await openSidebar(page);
+    await page.locator('.filter #filter-0').selectOption({ label: '⏱️ longer than' });
+    await expect(page.locator('.filter .filter-value')).toHaveValue('pt10m');
+    await expect(links).toHaveText(['Medium', 'Long']);
+    expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/after/pt10m']);
+  });
+
   test('filters longer than a duration', async ({ page }) => {
     const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('tagAfter'));
     await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/after/PT10M`, { waitUntil: 'networkidle' });

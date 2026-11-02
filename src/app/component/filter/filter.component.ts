@@ -17,7 +17,7 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
-import { convertFilter, FilterGroup, FilterItem, negatable, parseValueFilter, toggle, UrlFilter } from '../../util/query';
+import { convertFilter, FilterGroup, FilterItem, negatable, parseValueFilter, switchFilter, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
@@ -309,11 +309,12 @@ export class FilterComponent {
   }
 
   readonly parseValueFilter = parseValueFilter;
+  readonly switchFilter = switchFilter;
 
   setValue(index: number, filter: UrlFilter, value: string) {
     const v = parseValueFilter(filter);
     value = value.trim();
-    if (!v || !value) return;
+    if (!v || !value || value.includes('/')) return;
     this.setFilter(index, `${v.column}/${v.dir}/${value}` as UrlFilter);
   }
 

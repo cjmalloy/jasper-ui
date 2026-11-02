@@ -47,14 +47,28 @@ export type SortItem = { value: RefSort | TagSort, label: string, title?: string
 /**
  * Parse a `{sort column}/before/{value}` or `{sort column}/after/{value}` filter,
  * such as `tags->plugin/duration:dur/before/pt5m`.
- * Fields and suffixes cannot contain `/`, so after a plugin field or suffix the first `/before/` or `/after/`
- * is used and the value may contain `/`. Otherwise tags and plugins may contain `/` but values cannot,
- * so the last one is used.
+ * Sort columns may contain `/` but values cannot, so the value is always the last `/` segment.
  */
 export function parseValueFilter(filter: string) {
-  const match = filter.match(/^(plugins->[^>]+->[^/]+|plugins->[^>:]+:(?:num|len)|(?:tags|plugins)->.+)\/(before|after)\/(.*)$/);
+  const match = filter.match(/^((?:tags|plugins)->.+)\/(before|after)\/([^/]*)$/);
   if (!match) return undefined;
   return { column: match[1], dir: match[2] as 'before' | 'after', value: match[3] };
+}
+
+/**
+ * Switch to the next filter, keeping the value of the previous filter if they compare the same thing.
+ * For example, switching from `modified/before/{date}` to `published/after/{default}` keeps the date,
+ * and switching between before and after on the same sort column keeps the value.
+ */
+export function switchFilter(previous: UrlFilter, next: UrlFilter): UrlFilter {
+  const date = /^(modified|response|published|created)\/(before|after)\//;
+  if (date.test(previous) && date.test(next)) {
+    return next.substring(0, next.lastIndexOf('/') + 1) + previous.substring(previous.lastIndexOf('/') + 1) as UrlFilter;
+  }
+  const p = parseValueFilter(previous);
+  const n = parseValueFilter(next);
+  if (p && n && p.column === n.column) return `${n.column}/${n.dir}/${p.value}` as UrlFilter;
+  return next;
 }
 
 export function negatable(filter: string) {

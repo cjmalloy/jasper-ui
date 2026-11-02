@@ -25,7 +25,7 @@ import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
 import { controlValue } from '../../util/form';
 import { TAG_REGEX } from '../../util/format';
-import { convertFilter, convertSort, defaultDesc, FilterItem, negatable, parseValueFilter, toggle, UrlFilter } from '../../util/query';
+import { convertFilter, convertSort, defaultDesc, FilterItem, negatable, parseValueFilter, switchFilter, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
 import { themesForm, ThemesFormComponent } from '../themes/themes.component';
@@ -272,11 +272,12 @@ export class ExtFormComponent  {
   }
 
   readonly parseValueFilter = parseValueFilter;
+  readonly switchFilter = switchFilter;
 
   setFilterValue(index: number, filter: UrlFilter, value: string) {
     const v = parseValueFilter(filter);
     value = value.trim();
-    if (!v || !value) return;
+    if (!v || !value || value.includes('/')) return;
     this.setFilter(index, `${v.column}/${v.dir}/${value}` as UrlFilter);
   }
 

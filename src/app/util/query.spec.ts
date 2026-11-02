@@ -9,6 +9,7 @@ import {
   negatable,
   negate,
   parseValueFilter,
+  switchFilter,
   toggle,
   UrlFilter,
   withStableDateSort,
@@ -275,10 +276,10 @@ describe('Query Utils', () => {
     it('should extract plugin value filters', () => {
       const args = getArgs('science', undefined, [
         'plugins->_plugin/cache->contentLength:num/after/1000',
-        'plugins->plugin/test->title/before/A/B',
+        'plugins->plugin/test->title/before/B',
       ]);
       expect(args.pluginAfter).toEqual(['plugins->_plugin/cache->contentLength:num/1000']);
-      expect(args.pluginBefore).toEqual(['plugins->plugin/test->title/A/B']);
+      expect(args.pluginBefore).toEqual(['plugins->plugin/test->title/B']);
       expect(args.tagBefore).toBeUndefined();
     });
 
@@ -380,27 +381,16 @@ describe('Query Utils', () => {
       });
     });
 
-    it('should split plugin value filters on the first slash after a field', () => {
-      expect(parseValueFilter('plugins->_plugin/cache->contentLength:num/after/1/after/2')).toEqual({
-        column: 'plugins->_plugin/cache->contentLength:num',
-        dir: 'after',
-        value: '1/after/2',
-      });
-    });
-
-    it('should split plugin value filters with a suffix and no field after the suffix', () => {
-      expect(parseValueFilter('plugins->plugin/score:num/after/1/after/2')).toEqual({
-        column: 'plugins->plugin/score:num',
-        dir: 'after',
-        value: '1/after/2',
-      });
-    });
-
-    it('should split bare plugin value filters on the last direction', () => {
+    it('should split plugin value filters on the last direction', () => {
       expect(parseValueFilter('plugins->plugin/name/after/x/before/kiwi')).toEqual({
         column: 'plugins->plugin/name/after/x',
         dir: 'before',
         value: 'kiwi',
+      });
+      expect(parseValueFilter('plugins->plugin/score:num/after/10')).toEqual({
+        column: 'plugins->plugin/score:num',
+        dir: 'after',
+        value: '10',
       });
     });
 
@@ -408,6 +398,30 @@ describe('Query Utils', () => {
       expect(parseValueFilter('modified/before/now')).toBeUndefined();
       expect(parseValueFilter('tags->plugin/duration:dur/pt1h')).toBeUndefined();
       expect(parseValueFilter('plugins->plugin/score:num/10')).toBeUndefined();
+    });
+  });
+
+  describe('switchFilter', () => {
+    it('should keep the value when switching direction on the same sort column', () => {
+      expect(switchFilter(
+        'plugins->_plugin/cache->contentLength:num/after/5000',
+        'plugins->_plugin/cache->contentLength:num/before/1000000',
+      )).toBe('plugins->_plugin/cache->contentLength:num/before/5000');
+    });
+
+    it('should use the default value when switching to a different sort column', () => {
+      expect(switchFilter('tags->plugin/duration:dur/after/pt5m', 'plugins->plugin/score:num/after/1000'))
+        .toBe('plugins->plugin/score:num/after/1000');
+    });
+
+    it('should keep the date when switching between date filters', () => {
+      expect(switchFilter('modified/before/2024-01-02', 'published/after/2026-01-01'))
+        .toBe('published/after/2024-01-02');
+    });
+
+    it('should not keep values for other filters', () => {
+      expect(switchFilter('query/science', 'tags->plugin/duration:dur/before/pt5m'))
+        .toBe('tags->plugin/duration:dur/before/pt5m');
     });
   });
 

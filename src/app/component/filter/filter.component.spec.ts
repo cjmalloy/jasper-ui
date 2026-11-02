@@ -41,6 +41,12 @@ describe('FilterComponent', () => {
       component.setValue(0, 'plugins->_plugin/cache->contentLength:num/after/1000', '');
       expect(component.filters()).toEqual(['plugins->_plugin/cache->contentLength:num/after/1000']);
     });
+
+    it('ignores a value with /', () => {
+      component.filters.set(['plugins->_plugin/cache->contentLength:num/after/1000']);
+      component.setValue(0, 'plugins->_plugin/cache->contentLength:num/after/1000', '1/2');
+      expect(component.filters()).toEqual(['plugins->_plugin/cache->contentLength:num/after/1000']);
+    });
   });
 
   describe('toDate', () => {

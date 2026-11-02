@@ -71,7 +71,7 @@
           <div class="default-filter-row">
             <span class="controls">
               <select [id]="id + '-defaultFilter-' + i"
-                      (input)="setFilter(i, $any($event.target).value)">
+                      (input)="setFilter(i, switchFilter(filter, $any($event.target).value))">
                 @if (!hasFilterOption(filter)) {
                   <option [value]="filter" selected>{{ filterOptionLabel(filter) }}</option>
                 }
