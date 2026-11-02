@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
+import { isEqual } from 'lodash-es';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { AdminService } from '../../service/admin.service';
 import { ValueFilterService } from '../../service/value-filter.service';
@@ -29,6 +30,10 @@ export class ValueFilterComponent {
   private values = inject(ValueFilterService);
 
   readonly filter = input.required<string>();
+  /**
+   * Query to find the range in, without filters.
+   */
+  readonly query = input('');
   readonly changed = output<string>();
 
   readonly parsed = computed(() => parseValueFilter(this.filter()));
@@ -56,15 +61,25 @@ export class ValueFilterComponent {
    */
   readonly input = computed(() => this.amount() === undefined ? 'text' : this.config()?.input || 'text');
 
-  private readonly rangeColumn = computed(() => this.input() === 'range' ? this.parsed()!.column : undefined);
+  private readonly rangeParams = computed(() => this.input() === 'range'
+    ? { column: this.parsed()!.column, unit: this.unit()!, query: this.query() }
+    : undefined, { equal: isEqual });
 
   private readonly extent = rxResource({
-    params: () => this.rangeColumn(),
-    stream: ({ params }) => this.values.extent(params, this.unit()!),
+    params: () => this.rangeParams(),
+    stream: ({ params }) => this.values.extent(params.column, params.unit, params.query),
+  });
+
+  /**
+   * Keep the previous range while a new query loads so the slider doesn't jump.
+   */
+  private readonly lastExtent = linkedSignal<(number | undefined)[], (number | undefined)[]>({
+    source: () => this.extent.hasValue() ? this.extent.value() : [],
+    computation: (current, previous) => current.length || !previous ? current : previous.value,
   });
 
   readonly stops = computed(() => {
-    const [min, max] = this.extent.hasValue() ? this.extent.value() : [];
+    const [min, max] = this.lastExtent();
     return rangeStops(this.unit()!, this.amount(), min, max);
   });
 

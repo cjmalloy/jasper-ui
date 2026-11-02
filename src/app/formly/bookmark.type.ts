@@ -243,7 +243,7 @@ import { getErrorMessage } from './errors';
             <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
           </div>
           @if (parseValueFilter(filter)) {
-            <app-value-filter [filter]="filter" (changed)="setValue(i, filter, $event)" />
+            <app-value-filter [filter]="filter" [query]="query()" (changed)="setValue(i, filter, $event)" />
           }
         }
       </div>

@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { NEVER, of } from 'rxjs';
 import { FilterConfig } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { ValueFilterService } from '../../service/value-filter.service';
@@ -10,17 +10,19 @@ import { ValueFilterComponent } from './value-filter.component';
 describe('ValueFilterComponent', () => {
   let fixture: ComponentFixture<ValueFilterComponent>;
   let changed: string[];
+  let extent: ReturnType<typeof vi.fn<(...args: any[]) => any>>;
   const filters = signal<FilterConfig[]>([
     { sort: 'tags->plugin/duration:dur', before: 'pt5m', input: 'range' },
     { sort: 'plugins->_plugin/cache->contentLength:num', after: '10mb', input: 'units', unit: 'bytes' },
   ]);
 
   beforeEach(async () => {
+    extent = vi.fn<(...args: any[]) => any>(() => of([90, 700]));
     await TestBed.configureTestingModule({
       imports: [ValueFilterComponent],
       providers: [
         { provide: AdminService, useValue: { filters } },
-        { provide: ValueFilterService, useValue: { extent: () => of([90, 700]) } },
+        { provide: ValueFilterService, useValue: { extent: (...args: any[]) => extent(...args) } },
       ],
     }).compileComponents();
   });
@@ -47,6 +49,30 @@ describe('ValueFilterComponent', () => {
       expect(changed).toEqual([]);
       range.dispatchEvent(new Event('change'));
       expect(changed).toEqual(['pt15m']);
+    });
+
+    it('finds the range in the query, ignoring value changes', async () => {
+      fixture = TestBed.createComponent(ValueFilterComponent);
+      fixture.componentRef.setInput('filter', 'tags->plugin/duration:dur/before/pt5m');
+      fixture.componentRef.setInput('query', 'music');
+      await fixture.whenStable();
+      expect(extent).toHaveBeenCalledTimes(1);
+      expect(extent).toHaveBeenLastCalledWith('tags->plugin/duration:dur', 'duration', 'music');
+      fixture.componentRef.setInput('filter', 'tags->plugin/duration:dur/before/pt15m');
+      await fixture.whenStable();
+      expect(extent).toHaveBeenCalledTimes(1);
+      fixture.componentRef.setInput('query', 'science');
+      await fixture.whenStable();
+      expect(extent).toHaveBeenCalledTimes(2);
+      expect(extent).toHaveBeenLastCalledWith('tags->plugin/duration:dur', 'duration', 'science');
+    });
+
+    it('keeps the range while a new query loads', async () => {
+      const el = await render('tags->plugin/duration:dur/before/pt5m');
+      extent.mockReturnValue(NEVER);
+      fixture.componentRef.setInput('query', 'science');
+      fixture.detectChanges();
+      expect(el.querySelector<HTMLInputElement>('.filter-range')!.max).toBe('4');
     });
 
     it('shows shorthand from the URL', async () => {

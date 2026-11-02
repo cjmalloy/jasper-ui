@@ -102,7 +102,7 @@
                        (change)="setFilterDate(i, filter, $any($event.target).value)">
               }
             } @else if (parseValueFilter(filter)) {
-              <app-value-filter [filter]="filter" (changed)="setFilterValue(i, filter, $event)" />
+              <app-value-filter [filter]="filter" [query]="ext()?.tag || ''" (changed)="setFilterValue(i, filter, $event)" />
             }
           </div>
         }

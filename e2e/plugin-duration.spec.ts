@@ -17,13 +17,13 @@ test.describe.serial('Duration Plugin', () => {
   });
 
   test('create refs with durations', async ({ request }) => {
-    for (const [title, duration] of [['Short', 'pt2m'], ['Medium', 'pt30m'], ['Long', 'pt2h']]) {
+    for (const [title, duration, t] of [['Short', 'pt2m', tag], ['Medium', 'pt30m', tag], ['Long', 'pt2h', tag], ['Other', 'pt10h', tag + 'other']]) {
       const res = await request.post(`${api}/ref`, {
         headers: await headers(request),
         data: {
-          url: `comment:${tag}/${duration}`,
+          url: `comment:${t}/${duration}`,
           title,
-          tags: ['public', tag, `plugin/duration/${duration}`],
+          tags: ['public', t, `plugin/duration/${duration}`],
           origin: localOrigin(),
         },
       });
@@ -40,7 +40,7 @@ test.describe.serial('Duration Plugin', () => {
     const range = page.locator('.filter .filter-range');
     await expect(page.locator('.filter .filter-range-label')).toHaveText('5 min');
     await expect(links).toHaveText(['Short']);
-    // Stops from 2 min to 2 hr, the shortest and longest durations
+    // Stops from 2 min to 2 hr, the shortest and longest durations on this tag
     await expect(range).toHaveAttribute('max', '8');
 
     await range.press('End');
