@@ -1,8 +1,9 @@
-import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { isEqual } from 'lodash-es';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { AdminService } from '../../service/admin.service';
 import { ValueFilterService } from '../../service/value-filter.service';
+import { Store } from '../../store/store';
 import { parseValueFilter } from '../../util/query';
 import {
   formatAmount,
@@ -28,6 +29,7 @@ import {
 export class ValueFilterComponent {
   private admin = inject(AdminService);
   private values = inject(ValueFilterService);
+  private store = inject(Store);
 
   readonly filter = input.required<string>();
   /**
@@ -59,9 +61,19 @@ export class ValueFilterComponent {
   /**
    * Values that can't be parsed fall back to text so they can be fixed.
    */
-  readonly input = computed(() => this.amount() === undefined ? 'text' : this.config()?.input || 'text');
+  readonly configInput = computed(() => this.amount() === undefined ? 'text' : this.config()?.input || 'text');
 
-  private readonly rangeParams = computed(() => this.input() === 'range'
+  /**
+   * The text box being edited, so it stays after the hotkey is released.
+   */
+  readonly typing = signal(false);
+
+  /**
+   * Hold the hotkey to type any value, like an ISO duration, instead of using the slider.
+   */
+  readonly input = computed(() => this.configInput() === 'range' && (this.store.hotkey() || this.typing()) ? 'typed' : this.configInput());
+
+  private readonly rangeParams = computed(() => this.configInput() === 'range'
     ? { column: this.parsed()!.column, unit: this.unit()!, query: this.query() }
     : undefined, { equal: isEqual });
 
@@ -90,6 +102,11 @@ export class ValueFilterComponent {
   readonly options = computed(() => UNITS[this.unit()!]);
 
   readonly split = computed(() => splitAmount(this.unit()!, this.amount()!));
+
+  setTyped(input: HTMLInputElement) {
+    this.typing.set(false);
+    this.setText(input);
+  }
 
   setText(input: HTMLInputElement) {
     const v = this.parsed()!;

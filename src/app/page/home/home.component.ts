@@ -1,5 +1,4 @@
 import { Component, inject, viewChild } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LensComponent } from '../../component/lens/lens.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
@@ -32,12 +31,6 @@ export class HomePage implements HasChanges {
   query = inject(QueryStore);
   private exts = inject(ExtService);
 
-
-  private readonly forYouQuery = rxResource({
-    params: () => this.store.view.forYou() || undefined,
-    stream: () => this.account.forYouQuery$,
-  });
-
   readonly lens = viewChild<LensComponent>('lens');
 
   constructor() {
@@ -59,9 +52,7 @@ export class HomePage implements HasChanges {
     }
     this.store.view.extTemplates.set(this.admin.view());
     this.query.watch(() => {
-      const query = this.store.view.forYou()
-        ? (this.forYouQuery.hasValue() ? this.forYouQuery.value() : undefined)
-        : this.store.account.subscriptionQuery();
+      const query = this.account.homeQuery();
       if (query === undefined) return undefined;
       return getArgs(
         query,

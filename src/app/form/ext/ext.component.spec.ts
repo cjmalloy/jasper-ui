@@ -234,7 +234,7 @@ describe('ExtFormComponent', () => {
     detectInputChanges();
     expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(2);
 
-    component.setFilterDatePreset(1, component.defaultFilter().value[1], '11');
+    component.setFilterDatePreset(1, component.defaultFilter().value[1], 'P1Y');
     expect(component.defaultFilter().value[1]).toBe('created/after/P1Y');
   });
 

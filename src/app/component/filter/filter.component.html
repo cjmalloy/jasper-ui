@@ -32,14 +32,18 @@
     <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
   </div>
   @if (filter.startsWith('modified/') || filter.startsWith('response/') || filter.startsWith('published/') || filter.startsWith('created/')) {
-    <input type="datetime-local"
-           step="60"
-           [value]="toDate(filter)"
-           (focus)="focus()"
-           (change)="hasFocus() && set(i, filter, toIso($any($event.target).value))"
-           (keydown)="clearFocus() && $event.key === 'Enter' && set(i, filter, toIso($any($event.target).value)) || true"
-           (blur)="set(i, filter, toIso($any($event.target).value))">
+    @if (store.hotkey() || relativeDate(dateValue(filter))) {
+      <app-relative-date [value]="dateValue(filter)" (changed)="set(i, filter, $event)" />
+    } @else {
+      <input type="datetime-local"
+             step="60"
+             [value]="toDate(filter)"
+             (focus)="focus()"
+             (change)="hasFocus() && set(i, filter, toIso($any($event.target).value))"
+             (keydown)="clearFocus() && $event.key === 'Enter' && set(i, filter, toIso($any($event.target).value)) || true"
+             (blur)="set(i, filter, toIso($any($event.target).value))">
+    }
   } @else if (parseValueFilter(filter)) {
-    <app-value-filter [filter]="filter" [query]="store.view.tag()" (changed)="setValue(i, filter, $event)" />
+    <app-value-filter [filter]="filter" [query]="rangeQuery()" (changed)="setValue(i, filter, $event)" />
   }
 }

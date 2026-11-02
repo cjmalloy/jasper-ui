@@ -1,0 +1,10 @@
+<input type="range"
+       class="relative-date-range"
+       min="0"
+       [max]="presets.length - 1"
+       step="1"
+       [value]="index()"
+       i18n-title title="Time ago"
+       (input)="index.set(+$any($event.target).value)"
+       (change)="set()">
+<output class="relative-date-label">{{ label() }}</output>

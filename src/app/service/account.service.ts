@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { delay, isArray, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import {
@@ -180,6 +181,18 @@ export class AccountService {
     }
     return this._userExt$;
   }
+
+  private readonly forYouQuery = rxResource({
+    params: () => this.store.view.forYou() || undefined,
+    stream: () => this.forYouQuery$,
+  });
+
+  /**
+   * Query for the home page, or undefined while it loads.
+   */
+  readonly homeQuery = computed(() => this.store.view.forYou()
+    ? (this.forYouQuery.hasValue() ? this.forYouQuery.value() : undefined)
+    : this.store.account.subscriptionQuery());
 
   get forYouQuery$(): Observable<string> {
     const followers = this.store.account.userSubs()

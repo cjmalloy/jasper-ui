@@ -30,17 +30,6 @@ app-ref {
   }
 }
 
-.default-filter-date-range {
-  display: flex;
-  gap: 8px;
-
-  input {
-    flex: 1;
-    min-width: 0;
-    width: 0;
-  }
-}
-
 .default-filter-row {
   display: flex;
   flex-direction: column;

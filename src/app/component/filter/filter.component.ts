@@ -10,6 +10,7 @@ import { FilterConfig } from '../../model/tag';
 import { KanbanConfig } from '../../mods/org/kanban';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
+import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
@@ -17,8 +18,19 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
-import { convertFilter, FilterGroup, FilterItem, negatable, parseValueFilter, switchFilter, toggle, UrlFilter } from '../../util/query';
+import {
+  convertFilter,
+  FilterGroup,
+  FilterItem,
+  negatable,
+  parseValueFilter,
+  relativeDate,
+  switchFilter,
+  toggle,
+  UrlFilter
+} from '../../util/query';
 import { hasPrefix } from '../../util/tag';
+import { RelativeDateComponent } from '../relative-date/relative-date.component';
 import { ValueFilterComponent } from '../value-filter/value-filter.component';
 
 @Component({
@@ -26,7 +38,7 @@ import { ValueFilterComponent } from '../value-filter/value-filter.component';
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
   host: { 'class': 'filter form-group' },
-  imports: [ReactiveFormsModule, FormsModule, ValueFilterComponent]
+  imports: [ReactiveFormsModule, FormsModule, ValueFilterComponent, RelativeDateComponent]
 })
 export class FilterComponent {
   router = inject(Router);
@@ -35,6 +47,7 @@ export class FilterComponent {
   private auth = inject(AuthzService);
   private bookmarks = inject(BookmarkService);
   private editor = inject(EditorService);
+  private account = inject(AccountService);
 
 
   readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
@@ -65,6 +78,15 @@ export class FilterComponent {
     })).pipe(startWith([])) : of([])),
   ), { initialValue: [] });
   readonly allFilters = computed(() => this.buildFilters());
+
+  /**
+   * Query of the page without filters, to find the range of value filters in.
+   */
+  readonly rangeQuery = computed(() => this.store.view.current() === 'home'
+    ? this.account.homeQuery() || ''
+    : this.store.view.tag());
+
+  readonly relativeDate = relativeDate;
 
 
   emoji = emoji($localize`🪄️`) || $localize`🔍️`;
@@ -333,6 +355,10 @@ export class FilterComponent {
 
   toIso(date: string) {
     return DateTime.fromISO(date).toISO()!;
+  }
+
+  dateValue(filter: string) {
+    return filter.substring(filter.lastIndexOf('/') + 1);
   }
 
   toDate(filter: string) {

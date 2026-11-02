@@ -69,6 +69,26 @@ test.describe.serial('Duration Plugin', () => {
     await expect(page.locator('.filter .filter-range-label')).toHaveText('45 min');
   });
 
+  test('types an ISO duration with the hotkey', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/before/pt10m`, { waitUntil: 'networkidle' });
+    const links = page.locator('.ref-list-item .link a');
+    await expect(links).toHaveText(['Short']);
+    await openSidebar(page);
+    const text = page.locator('.filter .filter-value');
+    await expect(text).toHaveCount(0);
+
+    await page.keyboard.down('Control');
+    await expect(text).toHaveValue('pt10m');
+    await text.click();
+    await page.keyboard.up('Control');
+    await text.fill('PT1H30M');
+    await text.press('Enter');
+    await expect(links).toHaveText(['Short', 'Medium']);
+    expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/before/PT1H30M']);
+    await expect(text).toHaveCount(0);
+    await expect(page.locator('.filter .filter-range-label')).toHaveText('1 hr, 30 min');
+  });
+
   test('filters longer than a duration', async ({ page }) => {
     const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('tagAfter'));
     await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/after/PT10M`, { waitUntil: 'networkidle' });

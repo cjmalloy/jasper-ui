@@ -295,6 +295,57 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
   return result;
 }
 
+/**
+ * Relative dates for date filters, from now back to 100 years ago.
+ */
+export const DATE_PRESETS = [
+  'now',
+  'PT1M',
+  'PT15M',
+  'PT1H',
+  'PT6H',
+  'PT24H',
+  'P3D',
+  'P7D',
+  'P2W',
+  'P1M',
+  'P3M',
+  'P1Y',
+  'P5Y',
+  'P15Y',
+  'P50Y',
+  'P100Y',
+];
+
+/**
+ * Date filters with a value relative to now, like `now` or `P1D`.
+ */
+export function relativeDate(value: string) {
+  return value.toLowerCase() === 'now' || Duration.fromISO(value.toUpperCase()).isValid;
+}
+
+export function relativeDateLabel(value: string) {
+  if (value.toLowerCase() === 'now') return value.toLowerCase();
+  const duration = Duration.fromISO(value.toUpperCase());
+  return duration.isValid ? duration.toHuman() : value;
+}
+
+/**
+ * Index of the nearest {@link DATE_PRESETS} for a relative date.
+ */
+export function relativeDatePreset(value: string) {
+  if (value.toLowerCase() === 'now') return 0;
+  const index = DATE_PRESETS.indexOf(value.toUpperCase());
+  if (index >= 0) return index;
+  if (!relativeDate(value)) return 0;
+  const duration = Duration.fromISO(value.toUpperCase()).as('milliseconds');
+  return DATE_PRESETS.reduce((closest, preset, index) => {
+    const milliseconds = preset === 'now' ? 0 : Duration.fromISO(preset).as('milliseconds');
+    const closestMilliseconds = closest === 0 ? 0 : Duration.fromISO(DATE_PRESETS[closest]).as('milliseconds');
+    return Math.abs(milliseconds - duration) < Math.abs(closestMilliseconds - duration) ? index : closest;
+  }, 0);
+}
+
 export function fixDateTime(t: string) {
   const relative = t.toUpperCase();
   if (relative === 'NOW') return DateTime.now().toUTC().toISO()!;

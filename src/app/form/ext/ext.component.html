@@ -86,15 +86,9 @@
             </span>
             @if (filterIsDate(filter)) {
               @if (store.hotkey() || filterSpecialDate(filter)) {
-                <span class="default-filter-date-range">
-                  <input type="range"
-                         min="0"
-                         [max]="datePresets.length - 1"
-                         step="1"
-                         [value]="filterDatePreset(filter)"
-                         (input)="setFilterDatePreset(i, filter, $any($event.target).value)">
-                  <output>{{ filterDateLabel(filter) }}</output>
-                </span>
+                <app-relative-date class="default-filter-date-range"
+                                   [value]="filterDateValue(filter)"
+                                   (changed)="setFilterDatePreset(i, filter, $event)" />
               } @else {
                 <input type="datetime-local"
                        step="60"

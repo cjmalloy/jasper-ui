@@ -8319,6 +8319,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Score higher than</source>
         <target>スコアがこれより高い</target>
       </trans-unit>
+      <trans-unit id="6816310719157027310" datatype="html">
+        <source>Time ago</source>
+        <target>経過時間</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

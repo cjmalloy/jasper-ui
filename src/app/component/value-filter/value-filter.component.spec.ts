@@ -1,10 +1,12 @@
 /// <reference types="vitest/globals" />
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { NEVER, of } from 'rxjs';
 import { FilterConfig } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { ValueFilterService } from '../../service/value-filter.service';
+import { Store } from '../../store/store';
 import { ValueFilterComponent } from './value-filter.component';
 
 describe('ValueFilterComponent', () => {
@@ -21,6 +23,7 @@ describe('ValueFilterComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ValueFilterComponent],
       providers: [
+        provideRouter([]),
         { provide: AdminService, useValue: { filters } },
         { provide: ValueFilterService, useValue: { extent: (...args: any[]) => extent(...args) } },
       ],
@@ -73,6 +76,26 @@ describe('ValueFilterComponent', () => {
       fixture.componentRef.setInput('query', 'science');
       fixture.detectChanges();
       expect(el.querySelector<HTMLInputElement>('.filter-range')!.max).toBe('4');
+    });
+
+    it('types any value while the hotkey is held', async () => {
+      const el = await render('tags->plugin/duration:dur/before/pt5m');
+      TestBed.inject(Store).hotkey.set(true);
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-range')).toBeNull();
+      const input = el.querySelector<HTMLInputElement>('.filter-value')!;
+      expect(input.value).toBe('pt5m');
+      input.dispatchEvent(new Event('focus'));
+      TestBed.inject(Store).hotkey.set(false);
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-value')).toBe(input);
+      input.value = 'PT1H30M';
+      input.dispatchEvent(new Event('change'));
+      expect(changed).toEqual(['PT1H30M']);
+      fixture.componentRef.setInput('filter', 'tags->plugin/duration:dur/before/PT1H30M');
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-value')).toBeNull();
+      expect(el.querySelector('.filter-range-label')!.textContent).toContain('1 hr, 30 min');
     });
 
     it('shows shorthand from the URL', async () => {

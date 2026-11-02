@@ -11,6 +11,16 @@
            (change)="setRange()">
     <output class="filter-range-label">{{ rangeLabel() }}</output>
   }
+  @case ('typed') {
+    <input type="text"
+           class="filter-value"
+           [value]="parsed()?.value"
+           i18n-title title="Value to compare against"
+           (focus)="typing.set(true)"
+           (blur)="typing.set(false)"
+           (change)="setTyped($any($event.target))">
+    <output class="filter-range-label">{{ rangeLabel() }}</output>
+  }
   @case ('units') {
     <input type="text"
            inputmode="decimal"
