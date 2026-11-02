@@ -45,6 +45,9 @@ export class AuthTokenService {
   private readSecret(events: Observable<HttpEvent<unknown>>) {
     return events.pipe(tap(event => {
       if (!(event instanceof HttpResponseBase)) return;
+      // A response from the HTTP cache (like a proxied file) keeps the key echoed when it was stored,
+      // which may be from an earlier launch. Only trust responses that are never stored.
+      if (!event.headers.get('Cache-Control')?.includes('no-store')) return;
       const secret = event.headers.get(JASPER_KEY_HEADER);
       if (secret) this.secret = secret;
     }));

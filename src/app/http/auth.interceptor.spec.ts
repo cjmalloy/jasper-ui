@@ -10,6 +10,7 @@ import { base64Bytes } from '../util/jwt';
 import { authInterceptor, JASPER_KEY_HEADER } from './auth.interceptor';
 
 const SECRET = btoa('electron-secret');
+const NO_STORE = 'no-cache, no-store, max-age=0, must-revalidate';
 
 function payload(jwt: string) {
   return JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
@@ -60,7 +61,7 @@ describe('authInterceptor', () => {
 
   async function receiveSecret(secret = SECRET) {
     const req = await nextRequest('config.json');
-    req.flush({}, { headers: { [JASPER_KEY_HEADER]: secret } });
+    req.flush({}, { headers: { [JASPER_KEY_HEADER]: secret, 'Cache-Control': NO_STORE } });
   }
 
   it('sends User-Tag header without the electron secret', async () => {
@@ -113,12 +114,23 @@ describe('authInterceptor', () => {
     expect(second).not.toBe(first);
     expect(payload(second.substring('Bearer '.length)).sub).toBe('+user/bob');
     const newSecret = btoa('new-secret');
-    req.flush({}, { headers: { [JASPER_KEY_HEADER]: newSecret } });
+    req.flush({}, { headers: { [JASPER_KEY_HEADER]: newSecret, 'Cache-Control': NO_STORE } });
 
     req = await nextRequest('/api/v1/user/whoami');
     const third = req.request.headers.get('Authorization');
     expect(third).not.toBe(second);
     expect(await verify(third.substring('Bearer '.length), newSecret)).toBe(true);
+    req.flush({});
+  });
+
+  it('ignores the secret from a cacheable response', async () => {
+    await receiveSecret();
+    let req = await nextRequest('/api/v1/proxy');
+    req.flush({}, { headers: { [JASPER_KEY_HEADER]: btoa('old-secret'), 'Cache-Control': 'max-age=8640000, private' } });
+
+    req = await nextRequest('/api/v1/ref/page');
+    const jwt = req.request.headers.get('Authorization')!.substring('Bearer '.length);
+    expect(await verify(jwt, SECRET)).toBe(true);
     req.flush({});
   });
 });
