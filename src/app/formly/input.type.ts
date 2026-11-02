@@ -24,8 +24,16 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
                [type]="type"
                [formControl]="formControl"
                [formlyAttributes]="field"
+               [attr.list]="props.suggestions ? id + '-suggestions' : null"
                [class.is-invalid]="showError"
                [class.cleared]="props.clear && !field.formControl.value">
+        @if (props.suggestions) {
+          <datalist [id]="id + '-suggestions'">
+            @for (s of suggestions(); track s) {
+              <option [value]="s"></option>
+            }
+          </datalist>
+        }
       } @else {
         <input type="number"
                class="grow"
@@ -72,6 +80,13 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
    */
   get type() {
     return this.props.type || 'text';
+  }
+
+  /**
+   * Suggested values from installed mods, as a function of {@link AdminService}.
+   */
+  suggestions(): string[] {
+    return this.props.suggestions?.(this.admin) || [];
   }
 
   validate(input: HTMLInputElement) {

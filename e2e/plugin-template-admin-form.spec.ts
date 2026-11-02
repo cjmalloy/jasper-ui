@@ -1,5 +1,5 @@
 import { type APIRequestContext, expect } from '@playwright/test';
-import { adminHeaders, test } from './setup';
+import { adminHeaders, mod, test } from './setup';
 
 test.describe.serial('Plugin/Template Admin Form', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
@@ -155,5 +155,25 @@ test.describe.serial('Plugin/Template Admin Form', () => {
     await expect(item.locator('.admin-form input[name=emailHost]')).toBeVisible();
     await expect(item.locator('.admin-form input[name=maxSources]')).toHaveAttribute('type', 'number');
     await expect(item.locator('details.admin-advanced .json-editor')).toHaveCount(1);
+  });
+
+  test('suggests hot tags and hot plugins from installed mods', async ({ page, request, origin }) => {
+    await mod(page, '#mod-cache', '[id="mod-plugin/duration"]');
+    const res = await request.post(`${api}/template`, {
+      headers: await headers(request),
+      data: { tag: '_config/index', origin, config: { hotTags: [''], hotPlugins: [''] } },
+    });
+    expect(res.ok(), await res.text()).toBeTruthy();
+
+    await page.goto('/settings/template?debug=ADMIN&search=_config/index', { waitUntil: 'networkidle' });
+    const item = page.locator('.template.list-item').filter({ hasText: '_config/index' });
+    await expect(item).toHaveCount(1);
+    await item.locator('.actions .fake-link', { hasText: 'edit' }).click();
+
+    const hotTag = item.locator('.admin-form input[list$=-suggestions]').first();
+    const hotPlugin = item.locator('.admin-form input[list$=-suggestions]').last();
+    const options = async (input: typeof hotTag) => page.locator(`datalist[id="${await input.getAttribute('list')}"] option`);
+    await expect(await options(hotTag)).toHaveAttribute('value', 'plugin/duration:dur');
+    await expect(await options(hotPlugin)).toHaveAttribute('value', '_plugin/cache->contentLength:num');
   });
 });

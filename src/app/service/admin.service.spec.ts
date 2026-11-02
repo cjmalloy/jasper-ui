@@ -5,6 +5,9 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
+import { jezzballMod } from '../mods/games/jezzball';
+import { durationPlugin } from '../mods/media/duration';
+import { cachePlugin } from '../mods/system/cache';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
@@ -109,6 +112,19 @@ describe('AdminService', () => {
     expect(service.getTemplateAdminForm('parent/child').map(f => f.key)).toEqual(['c']);
     expect(service.getTemplateAdminForm('parent/child', 'advancedAdminForm')).toEqual([]);
     expect(service.getTemplateAdminForm('parent', 'advancedAdminForm').map(f => f.key)).toEqual(['b']);
+  });
+
+  it('should suggest hot tags and hot plugins from installed mods', () => {
+    (service as any).updateStatus((status: any) => {
+      status.plugins['plugin/duration'] = durationPlugin;
+      status.plugins['_plugin/cache'] = cachePlugin;
+      for (const p of jezzballMod.plugin!) status.plugins[p.tag] = p;
+    });
+    expect(service.hotTagSuggestions()).toEqual(['plugin/duration:dur']);
+    expect(service.hotPluginSuggestions()).toEqual(['_plugin/cache->contentLength:num', 'plugin/score:num']);
+    const [hotTags, hotPlugins] = service.getTemplateAdminForm('_config/index').slice(-2);
+    expect((hotTags.fieldArray as any).props.suggestions(service)).toEqual(['plugin/duration:dur']);
+    expect((hotPlugins.fieldArray as any).props.suggestions(service)).toEqual(['_plugin/cache->contentLength:num', 'plugin/score:num']);
   });
 
   it('should fall back to hard coded config admin forms', () => {

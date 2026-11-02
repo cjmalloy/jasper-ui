@@ -758,6 +758,23 @@ export class AdminService {
       .flatMap(p => p.config?.sorts!);
   });
 
+  /**
+   * Tag value columns used by installed mods to sort or filter, for the `_config/index` hot tags.
+   */
+  readonly hotTagSuggestions = computed(() => uniq([
+    ...this.refSorts().map(s => s.sort),
+    ...this.configProperty('filters').flatMap(p => p.config!.filters!).map(f => f.sort),
+  ].filter(s => s?.startsWith('tags->')).map(s => s!.substring('tags->'.length))).sort());
+
+  /**
+   * Plugin columns used by installed mods to filter, for the `_config/index` hot plugins.
+   */
+  readonly hotPluginSuggestions = computed(() => uniq(this.configProperty('filters')
+    .flatMap(p => p.config!.filters!)
+    .map(f => f.sort)
+    .filter(s => s?.startsWith('plugins->'))
+    .map(s => s!.substring('plugins->'.length))).sort());
+
   readonly tagSorts = computed(() => {
     return this.templateConfigProperty('sorts')
       .flatMap(p => p.config?.sorts!);
@@ -1280,7 +1297,7 @@ const roles = [
   { value: 'ROLE_ADMIN', label: $localize`Admin` },
 ];
 
-function strings(key: string, label: string, addText: string): FormlyFieldConfig {
+function strings(key: string, label: string, addText: string, suggestions?: (admin: AdminService) => string[]): FormlyFieldConfig {
   return {
     key,
     type: 'list',
@@ -1290,6 +1307,7 @@ function strings(key: string, label: string, addText: string): FormlyFieldConfig
     },
     fieldArray: {
       type: 'string',
+      props: { suggestions },
     },
   };
 }
@@ -1356,8 +1374,8 @@ const indexConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'ignored', type: 'boolean', props: { label: $localize`Ignored:` } },
   { key: 'cascade', type: 'boolean', props: { label: $localize`Cascade:` } },
   { key: 'regen', type: 'boolean', props: { label: $localize`Regen:` } },
-  strings('hotTags', $localize`Hot Tags:`, $localize`+ Add another hot tag`),
-  strings('hotPlugins', $localize`Hot Plugins:`, $localize`+ Add another hot plugin`),
+  strings('hotTags', $localize`Hot Tags:`, $localize`+ Add another hot tag`, admin => admin.hotTagSuggestions()),
+  strings('hotPlugins', $localize`Hot Plugins:`, $localize`+ Add another hot plugin`, admin => admin.hotPluginSuggestions()),
 ];
 
 const securityConfigAdminForm: FormlyFieldConfig[] = [
