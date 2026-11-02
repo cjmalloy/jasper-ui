@@ -75,8 +75,14 @@ test.describe.serial('User Clipboard Plugin', () => {
     expect(res.ok()).toBe(true);
   }
 
-  async function cacheImage(request: APIRequestContext) {
-    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==', 'base64');
+  async function cacheImage(page: Page, request: APIRequestContext) {
+    await page.goto('/?debug=ADMIN');
+    const png = Buffer.from(await page.evaluate(() => {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 64;
+      canvas.getContext('2d')!.fillRect(0, 0, 64, 64);
+      return canvas.toDataURL('image/png').split(',')[1];
+    }), 'base64');
     const res = await request.post(`${api}/proxy`, {
       headers: { ...await headers(request), 'Content-Type': 'image/png' },
       params: { title: 'clip.png', mime: 'image/png', origin: localOrigin() },
@@ -87,7 +93,7 @@ test.describe.serial('User Clipboard Plugin', () => {
   }
 
   async function embedImage(page: Page, request: APIRequestContext) {
-    const url = await cacheImage(request);
+    const url = await cacheImage(page, request);
     await page.addInitScript(() => {
       const w = window as any;
       w.e2eVibrations = [];
@@ -130,10 +136,11 @@ test.describe.serial('User Clipboard Plugin', () => {
     const before = await bubbles.count();
 
     const box = (await image.boundingBox())!;
-    await page.mouse.move(box.x + 10, box.y + 10);
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
-    await page.mouse.move(box.x + 50, box.y + 50, { steps: 5 });
+    await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 40, { steps: 5 });
     await page.mouse.up();
+    expect((await image.boundingBox())!.width).toBeGreaterThan(box.width + 20);
     expect(await copyFeedback(page)).toEqual({ vibrations: 0, wiggles: [] });
 
     await image.click();
@@ -148,6 +155,13 @@ test.describe.serial('User Clipboard Plugin', () => {
     const types = await page.evaluate(async () => (await navigator.clipboard.read()).flatMap(item => item.types));
     expect(types).toContain('image/png');
     await expect(bubbles).toHaveCount(before);
+
+    await page.evaluate(() => navigator.clipboard.writeText('unchanged'));
+    await image.locator('..').focus();
+    await page.keyboard.press('Enter');
+    await expect.poll(() => copyFeedback(page)).toMatchObject({ vibrations: 2 });
+    await expect.poll(async () => page.evaluate(async () => (await navigator.clipboard.read()).flatMap(item => item.types)))
+      .toContain('image/png');
   });
 
   test('clips an embedded image Ref instead when intercepting copy', async ({ page, context, request }) => {

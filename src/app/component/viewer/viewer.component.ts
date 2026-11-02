@@ -113,6 +113,7 @@ export class ViewerComponent {
   readonly videoEl = viewChild<ElementRef<HTMLVideoElement>>('video');
   readonly audioEl = viewChild<ElementRef<HTMLAudioElement>>('audio');
   readonly pdfIframeEl = viewChild<ElementRef<HTMLIFrameElement>>('pdfIframe');
+  readonly imageEl = viewChild<ElementRef<HTMLElement>>('imageEl');
 
   readonly refInput = input<Ref | undefined>(undefined, { alias: 'ref' });
   readonly ref = linkedSignal(() => this.refInput());
@@ -260,6 +261,12 @@ export class ViewerComponent {
 
   onKeydown(event: KeyboardEvent) {
     if (event.defaultPrevented) return;
+    const image = this.imageEl()?.nativeElement;
+    if (image && event.target === this.el.nativeElement && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      this.copyImage(image);
+      return;
+    }
     if (this.currentVideo) {
       handleMediaKeydown(event, this.currentVideo);
       return;
