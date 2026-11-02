@@ -70,6 +70,7 @@ interface DragState {
     '(window:resize)': 'resize()',
     '(document:dragend)': 'dragEnd()',
     '(document:copy)': 'copy($event)',
+    '(document:jasper-clipboard-copy)': 'copyRef($event)',
     '(document:paste)': 'paste($event)',
     '(document:focusin)': 'focusIn($event)',
   },
@@ -383,6 +384,13 @@ export class UserClipboardComponent {
     if (!item) return;
     event.preventDefault();
     this.addItem(item);
+  }
+
+  copyRef(event: Event) {
+    if (!this.interceptCopy()) return;
+    if (!(event instanceof CustomEvent) || !event.detail?.url) return;
+    event.preventDefault();
+    this.addItem({ ref: event.detail });
   }
 
   paste(event: ClipboardEvent) {
@@ -935,7 +943,18 @@ export class UserClipboardComponent {
       this.hasThumbnailValue(thumbnail, 'color') ||
       this.hasThumbnailValue(thumbnail, 'emoji') ||
       this.hasPluginThumbnailUrl(plugins, 'plugin/image') ||
-      this.hasPluginThumbnailUrl(plugins, 'plugin/video');
+      this.hasPluginThumbnailUrl(plugins, 'plugin/video') ||
+      this.hasEmbedThumbnail(ref);
+  }
+
+  /**
+   * Matches the ThumbnailPipe fallback that shows the Ref URL for image and video embeds.
+   */
+  private hasEmbedThumbnail(ref: Ref) {
+    if (!this.admin.getPlugin('plugin/image')) return false;
+    if (!ref.url || /^(data|comment|internal):/.test(ref.url)) return false;
+    const embeds = this.admin.getEmbeds(ref);
+    return embeds.includes('plugin/image') || embeds.includes('plugin/video');
   }
 
   private hasPluginThumbnailUrl(plugins: Record<string, unknown> | undefined, plugin: 'plugin/image' | 'plugin/video') {

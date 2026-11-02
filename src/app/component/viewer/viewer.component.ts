@@ -38,7 +38,7 @@ import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
-import { copyImage } from '../../util/clipboard';
+import { CLIPBOARD_COPY_EVENT, copyImage } from '../../util/clipboard';
 import { embedUrl, setIframeSrc } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
@@ -520,6 +520,14 @@ export class ViewerComponent {
   copyImage() {
     const url = this.imageUrl();
     if (!url) return;
+    const ref = this.ref();
+    if (ref?.url) {
+      const clip = new CustomEvent(CLIPBOARD_COPY_EVENT, { bubbles: true, cancelable: true, detail: ref });
+      if (!this.el.nativeElement.dispatchEvent(clip)) {
+        this.imageCopyStatus('copied');
+        return;
+      }
+    }
     const image = this.imageProxied()
       ? firstValueFrom(this.proxy.fetch(this.imageSrc(), this.currentOrigin(), this.getFilename($localize`Untitled Image`)))
         .then(res => new Blob([res.data!], { type: res.mimeType || '' }))
@@ -533,9 +541,6 @@ export class ViewerComponent {
         console.warn(err);
         this.imageCopyStatus('copy-failed');
       });
-    if (this.admin.getPlugin('plugin/user/clipboard') && this.ref()?.url) {
-      this.store.eventBus.fire('clip', this.ref());
-    }
   }
 
   private imageCopyStatus(status: 'copied' | 'copy-failed') {

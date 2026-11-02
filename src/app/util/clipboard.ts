@@ -1,3 +1,9 @@
+/**
+ * Cancelable event with a Ref detail. The clipboard mod cancels it when it
+ * intercepts copies, otherwise the sender copies to the system clipboard.
+ */
+export const CLIPBOARD_COPY_EVENT = 'jasper-clipboard-copy';
+
 export function clipboardPasteValues(event: Event) {
   return event instanceof CustomEvent && Array.isArray(event.detail) ? event.detail as string[] : [];
 }
