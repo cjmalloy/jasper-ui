@@ -246,7 +246,7 @@ import { getErrorMessage } from './errors';
                    class="filter-value"
                    [value]="v.value"
                    i18n-title title="Value to compare against"
-                   (change)="setValue(i, filter, $any($event.target).value)">
+                   (change)="setValue(i, filter, $any($event.target))">
           }
         }
       </div>
@@ -783,11 +783,13 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
   readonly parseValueFilter = parseValueFilter;
   readonly switchFilter = switchFilter;
 
-  setValue(index: number, filter: string, value: string) {
+  setValue(index: number, filter: string, input: HTMLInputElement) {
     const v = parseValueFilter(filter);
-    value = value.trim();
-    if (!v || !value || value.includes('/')) return;
-    this.setFilter(index, `${v.column}/${v.dir}/${value}`);
+    if (!v) return;
+    const value = input.value.trim();
+    // Show the accepted value, since a rejected or trimmed edit leaves the filter (and the [value] binding) unchanged
+    input.value = !value || value.includes('/') ? v.value : value;
+    if (input.value !== v.value) this.setFilter(index, `${v.column}/${v.dir}/${input.value}`);
   }
 
   // Search management

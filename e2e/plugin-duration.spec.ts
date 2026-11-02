@@ -58,6 +58,19 @@ test.describe.serial('Duration Plugin', () => {
     expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/after/pt10m']);
   });
 
+  test('restores the value after clearing it', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/before/pt10m`, { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    const value = page.locator('.filter .filter-value');
+    await value.fill('');
+    await value.blur();
+    await expect(value).toHaveValue('pt10m');
+    await value.fill('a/b');
+    await value.blur();
+    await expect(value).toHaveValue('pt10m');
+    expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/before/pt10m']);
+  });
+
   test('filters longer than a duration', async ({ page }) => {
     const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('tagAfter'));
     await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/after/PT10M`, { waitUntil: 'networkidle' });

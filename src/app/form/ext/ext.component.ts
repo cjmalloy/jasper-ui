@@ -274,11 +274,13 @@ export class ExtFormComponent  {
   readonly parseValueFilter = parseValueFilter;
   readonly switchFilter = switchFilter;
 
-  setFilterValue(index: number, filter: UrlFilter, value: string) {
+  setFilterValue(index: number, filter: UrlFilter, input: HTMLInputElement) {
     const v = parseValueFilter(filter);
-    value = value.trim();
-    if (!v || !value || value.includes('/')) return;
-    this.setFilter(index, `${v.column}/${v.dir}/${value}` as UrlFilter);
+    if (!v) return;
+    const value = input.value.trim();
+    // Show the accepted value, since a rejected or trimmed edit leaves the filter (and the [value] binding) unchanged
+    input.value = !value || value.includes('/') ? v.value : value;
+    if (input.value !== v.value) this.setFilter(index, `${v.column}/${v.dir}/${input.value}` as UrlFilter);
   }
 
   filterIsDate(filter: UrlFilter) {
