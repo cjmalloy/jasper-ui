@@ -1,4 +1,4 @@
-import { computed, Directive, ElementRef, inject, input, signal } from '@angular/core';
+import { computed, Directive, ElementRef, inject, input, output, signal } from '@angular/core';
 
 @Directive({
   selector: '[appResize]',
@@ -22,6 +22,10 @@ export class ResizeDirective {
 
 
   readonly enabled = input<boolean | undefined>(undefined, { alias: 'appResize' });
+  /**
+   * Clicks that did not end a resize drag.
+   */
+  readonly resizeClick = output<MouseEvent>({ alias: 'appResizeClick' });
 
   readonly zIndex = computed(() => {
     return this.dirty() ? 1 : 0;
@@ -53,6 +57,7 @@ export class ResizeDirective {
     if (this.enabled() === false) return;
     if (e.button) return;
     e.preventDefault();
+    this.wasDragging = false;
     this.oldZoom = this.zoom;
     this.dragStart = {
       x: e.clientX,
@@ -66,6 +71,7 @@ export class ResizeDirective {
 
   onTouchstart(e: TouchEvent) {
     if (this.enabled() === false) return;
+    if (e.touches.length === 1) this.wasDragging = false;
     if (e.touches.length != 2) return;
     if (window.visualViewport && window.visualViewport.scale > 1.01) return;
     e.preventDefault();
@@ -85,11 +91,12 @@ export class ResizeDirective {
   }
 
   onClick(e: MouseEvent) {
-    if (this.enabled() === false) return;
-    if (this.wasDragging) {
+    if (this.enabled() !== false && this.wasDragging) {
       e.preventDefault();
+      this.wasDragging = false;
+      return;
     }
-    this.wasDragging = false;
+    this.resizeClick.emit(e);
   }
 
   onMousemove(e: MouseEvent) {
