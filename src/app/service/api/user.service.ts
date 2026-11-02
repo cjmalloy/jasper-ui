@@ -52,8 +52,8 @@ export class UserService {
     );
   }
 
-  keygen(tag: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/keygen`, null, {
+  keygen(tag: string): Observable<string> {
+    return this.http.post<string>(`${this.base}/keygen`, null, {
       params: params({ tag }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),

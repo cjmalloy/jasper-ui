@@ -7806,6 +7806,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>+ Add another hot tag</source>
         <target>+ ホットタグを追加</target>
       </trans-unit>
+      <trans-unit id="5368822288199237175" datatype="html">
+        <source>Hot Plugins:</source>
+        <target>ホットプラグイン:</target>
+      </trans-unit>
+      <trans-unit id="5145963060673597655" datatype="html">
+        <source>+ Add another hot plugin</source>
+        <target>+ ホットプラグインを追加</target>
+      </trans-unit>
       <trans-unit id="1294909756545406951" datatype="html">
         <source>JWT</source>
       </trans-unit>

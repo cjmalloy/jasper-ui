@@ -409,11 +409,25 @@ Refs without a value never match. Every filter parameter can be repeated, and al
 - \`tagBefore\` and \`tagAfter\` take \`tags->{tag}[:num|:dur]/{value}\`. Tag values are a single tag segment,
   so numbers cannot be negative and durations must be lowercase. For example,
   \`tagAfter=tags->plugin/progress:num/9&tagBefore=tags->plugin/progress:num/50\` matches \`plugin/progress/37/100\`,
-  and \`tagBefore=tags->plugin/duration:dur/pt1h\` matches \`plugin/duration/pt10m25s\`.
+  and \`tagBefore=tags->plugin/duration:dur/pt1h\` matches \`plugin/duration/pt10m25s\`. Hot tag indexes are used
+  for filtering as well as sorting.
 - \`pluginBefore\` and \`pluginAfter\` take \`plugins->{plugin}[->{field}...][:num|:len]/{value}\`.
+  Fields are optional, since plugin data may be a primitive.
   Like tag values, the value is always the last \`/\` segment, so it cannot contain \`/\` or \`->\`.
-  For example, \`pluginAfter=plugins->_plugin/cache->contentLength:num/1000\` matches Refs with a cached file
-  over 1000 bytes, and \`pluginAfter=plugins->plugin/score:num/1000\` matches a score over 1000.
+  Use \`:num\` to compare numbers (which may be negative) or \`:len\` to compare array lengths, otherwise values
+  compare as strings. For example, \`pluginAfter=plugins->_plugin/cache->contentLength:num/1000\` matches Refs with
+  a cached file over 1000 bytes, \`pluginBefore=plugins->plugin/test->ids:len/3\` matches Refs with fewer than
+  three \`ids\`, and \`pluginAfter=plugins->plugin/score:num/1000\` matches a score over 1000.
+  Values of the wrong type never match: \`:num\` skips values that are not numbers and \`:len\` skips values that
+  are not arrays (including \`null\`).
+  Strings compare using the database's ordering: PostgreSQL uses the database locale collation, which usually
+  ignores case and accents except to break ties, while SQLite compares bytes.
+
+To index a plugin filter on PostgreSQL, add its column to \`hotPlugins\` in the \`_config/index\` template config,
+for example \`{"hotPlugins": ["plugin/test->size:num", "plugin/test->name", "plugin/test->ids:len"]}\`
+(the \`plugins->\` prefix is optional). Hot plugin indexes are used by \`pluginBefore\` and \`pluginAfter\` filters,
+but not by plugin sorts, since sorts treat missing values as \`''\` or \`0\`. Hot plugin indexes that are removed
+from the list are dropped. Hot plugins are ignored on SQLite.
 
 Values cannot contain \`,\`. Invalid filters are rejected with \`400 Bad Request\`.
 

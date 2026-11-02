@@ -1357,6 +1357,7 @@ const indexConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'cascade', type: 'boolean', props: { label: $localize`Cascade:` } },
   { key: 'regen', type: 'boolean', props: { label: $localize`Regen:` } },
   strings('hotTags', $localize`Hot Tags:`, $localize`+ Add another hot tag`),
+  strings('hotPlugins', $localize`Hot Plugins:`, $localize`+ Add another hot plugin`),
 ];
 
 const securityConfigAdminForm: FormlyFieldConfig[] = [
