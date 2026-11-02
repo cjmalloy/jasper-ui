@@ -57,7 +57,10 @@
          [defaultWidth]="ref()?.plugins?.['plugin/image']?.width"
          [defaultHeight]="ref()?.plugins?.['plugin/image']?.height"
          [grid]="disableResize()"
-         [appResize]="!disableResize()"></div>
+         [class.copied]="imageCopied() === 'copied'"
+         [class.copy-failed]="imageCopied() === 'copy-failed'"
+         [appResize]="!disableResize()"
+         (appResizeClick)="copyImage()"></div>
   }
   @if (videoUrl()) {
     <video #video

@@ -11,7 +11,7 @@ async function dispatchFileDragEvent(target: Locator, type: 'dragenter' | 'drop'
 
 test.describe.serial('User Clipboard Plugin', () => {
   test('enable clipboard mod', async ({ page }) => {
-    await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-filecache', '#mod-plugin\\/code');
+    await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-filecache', '#mod-plugin\\/code', '#mod-images');
   });
 
   test('hides the dropzone after a file drop in an editor', async ({ page }) => {
@@ -55,5 +55,44 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble).not.toHaveClass(/selected/);
     await bubble.locator('.clipboard-preview').click();
     await bubble.locator('.clipboard-clear').click();
+  });
+
+  test('copies an embedded image and clips its Ref on click', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.goto('/submit/text?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.evaluate(() => localStorage.setItem('showPreview', 'true'));
+    await page.reload({ waitUntil: 'networkidle' });
+    const jpeg = await page.evaluate(() => {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 64;
+      canvas.getContext('2d')!.fillRect(0, 0, 64, 64);
+      return canvas.toDataURL('image/jpeg');
+    });
+    await page.locator('.editor textarea:not(.measurer)').fill(`<img src="${jpeg}">`);
+    const image = page.locator('.editor .md .embed .image-expand');
+    await expect(image).not.toHaveClass(/loading/);
+
+    const bubbles = page.locator('.clipboard-bubble');
+    const before = await bubbles.count();
+
+    const box = (await image.boundingBox())!;
+    await page.mouse.move(box.x + 10, box.y + 10);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 50, box.y + 50, { steps: 5 });
+    await page.mouse.up();
+    await expect(image).not.toHaveClass(/copied/);
+    await expect(bubbles).toHaveCount(before);
+
+    await image.click();
+
+    await expect(image).toHaveClass(/copied/);
+    const types = await page.evaluate(async () => (await navigator.clipboard.read()).flatMap(item => item.types));
+    expect(types).toContain('image/png');
+    await expect(bubbles).toHaveCount(before + 1);
+    const bubble = bubbles.last();
+    await expect(bubble.locator('.clipboard-preview')).toHaveAttribute('title', /data:image\/jpeg/);
+    await bubble.locator('.clipboard-preview').click();
+    await bubble.locator('.clipboard-clear').click();
+    await expect(bubbles).toHaveCount(before);
   });
 });

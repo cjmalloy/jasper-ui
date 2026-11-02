@@ -18,7 +18,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
 import Hls from 'hls.js';
 import { isEqual, some, without } from 'lodash-es';
-import { BehaviorSubject, catchError, of, startWith, Subject, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, firstValueFrom, of, startWith, Subject, switchMap } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
@@ -38,10 +38,12 @@ import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
+import { copyImage } from '../../util/clipboard';
 import { embedUrl, setIframeSrc } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { handleMediaKeydown } from '../../util/keyboard';
+import { copyText } from '../../util/markdown';
 import { hasPrefix, hasTag, pluginResponses } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
@@ -278,6 +280,7 @@ export class ViewerComponent {
   private readonly destroyCleanup = inject(DestroyRef).onDestroy(() => {
     this.removeAudioListener();
     this.removeVideoListener();
+    window.clearTimeout(this.imageCopiedTimeout);
   });
 
   readonly pluginClasses = computed(() => {
@@ -490,15 +493,56 @@ export class ViewerComponent {
     return url;
   });
 
-  readonly imageUrl = computed(() => {
+  private readonly imageSrc = computed<string>(() => {
     if (!this.admin.getPlugin('plugin/image')) return '';
     if (!this.image() && !hasTag('plugin/image', this.currentTags())) return '';
-    const url = this.image() || this.ref()?.plugins?.['plugin/image']?.url || this.ref()?.url;
-    if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
+    return this.image() || this.ref()?.plugins?.['plugin/image']?.url || this.ref()?.url || '';
+  });
+
+  private readonly imageProxied = computed(() => {
+    const url = this.imageSrc();
+    if (!url || url.startsWith('data:')) return false;
+    return url.startsWith('cache:') || !!this.admin.getPlugin('plugin/image')?.config?.proxy;
+  });
+
+  readonly imageUrl = computed(() => {
+    const url = this.imageSrc();
+    if (!url) return '';
+    if (this.imageProxied()) {
       return this.proxy.getFetch(url, this.currentOrigin(), this.getFilename($localize`Untitled Image`));
     }
     return url;
   });
+
+  readonly imageCopied = signal<'' | 'copied' | 'copy-failed'>('');
+  private imageCopiedTimeout?: number;
+
+  copyImage() {
+    const url = this.imageUrl();
+    if (!url) return;
+    const image = this.imageProxied()
+      ? firstValueFrom(this.proxy.fetch(this.imageSrc(), this.currentOrigin(), this.getFilename($localize`Untitled Image`)))
+        .then(res => new Blob([res.data!], { type: res.mimeType || '' }))
+      : Promise.resolve(url);
+    copyImage(image)
+      .catch(err => {
+        console.warn('Could not copy image, copying URL instead', err);
+        return copyText(this.el.nativeElement.ownerDocument, url);
+      })
+      .then(() => this.imageCopyStatus('copied'), err => {
+        console.warn(err);
+        this.imageCopyStatus('copy-failed');
+      });
+    if (this.admin.getPlugin('plugin/user/clipboard') && this.ref()?.url) {
+      this.store.eventBus.fire('clip', this.ref());
+    }
+  }
+
+  private imageCopyStatus(status: 'copied' | 'copy-failed') {
+    this.imageCopied.set(status);
+    window.clearTimeout(this.imageCopiedTimeout);
+    this.imageCopiedTimeout = window.setTimeout(() => this.imageCopied.set(''), 1000);
+  }
 
   getFilename(d = $localize`Untitled`) {
     const url = this.ref()?.url;

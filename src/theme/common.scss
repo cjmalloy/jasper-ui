@@ -2220,6 +2220,17 @@ formly-field-radio, formly-field-multicheckbox {
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 4px;
+  cursor: copy;
+  outline: 2px solid transparent;
+  transition: outline-color 0.3s;
+
+  &.copied {
+    outline-color: var(--mod);
+  }
+
+  &.copy-failed {
+    outline-color: var(--error);
+  }
 }
 
 .loading {
