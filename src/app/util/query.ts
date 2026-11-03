@@ -327,7 +327,7 @@ export function relativeDate(value: string) {
 export function relativeDateLabel(value: string) {
   if (value.toLowerCase() === 'now') return value.toLowerCase();
   const duration = Duration.fromISO(value.toUpperCase());
-  return duration.isValid ? duration.toHuman() : value;
+  return duration.isValid ? $localize`${duration.toHuman()}:DURATION: ago` : value;
 }
 
 /**
@@ -344,6 +344,23 @@ export function relativeDatePreset(value: string) {
     const closestMilliseconds = closest === 0 ? 0 : Duration.fromISO(DATE_PRESETS[closest]).as('milliseconds');
     return Math.abs(milliseconds - duration) < Math.abs(closestMilliseconds - duration) ? index : closest;
   }, 0);
+}
+
+/**
+ * Value for a datetime-local input from a date filter value, like `now`, `P1D` or an ISO timestamp.
+ */
+export function dateTimeLocal(value: string) {
+  let dt: DateTime;
+  if (value.toLowerCase() === 'now') {
+    dt = DateTime.now();
+  } else if (value.toUpperCase().startsWith('P')) {
+    const duration = Duration.fromISO(value.toUpperCase());
+    if (!duration.isValid) return '';
+    dt = DateTime.now().minus(duration);
+  } else {
+    dt = DateTime.fromISO(value);
+  }
+  return dt.isValid ? dt.toFormat("yyyy-MM-dd'T'T") : '';
 }
 
 export function fixDateTime(t: string) {

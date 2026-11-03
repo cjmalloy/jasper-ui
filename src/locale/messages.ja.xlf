@@ -8331,6 +8331,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Time ago</source>
         <target>経過時間</target>
       </trans-unit>
+      <trans-unit id="5637689707945674312" datatype="html">
+        <source><x id="DURATION" equiv-text="duration.toHuman()"/> ago</source>
+        <target><x id="DURATION" equiv-text="duration.toHuman()"/>前</target>
+      </trans-unit>
       <trans-unit id="8932917860978648376" datatype="html">
         <source>Unit</source>
         <target>単位</target>

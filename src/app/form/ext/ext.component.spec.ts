@@ -95,6 +95,25 @@ describe('ExtFormComponent', () => {
     expect(component.defaultFilter().value).toHaveLength(1);
   });
 
+  it('marks the form dirty when editing default sorts and filters', () => {
+    component.config().addControl('defaultSort', new FormControl<string[]>(['published,DESC'], { nonNullable: true }));
+    component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>(['published/before/P1D'], { nonNullable: true }));
+    detectInputChanges();
+    const group = component.group();
+    expect(group.dirty).toBe(false);
+
+    component.setSortDir(0, 'ASC');
+    expect(group.dirty).toBe(true);
+    group.markAsPristine();
+
+    const range = fixture.nativeElement.querySelector('.default-filter-date-range input[type="range"]') as HTMLInputElement;
+    range.value = '3';
+    range.dispatchEvent(new Event('input'));
+    range.dispatchEvent(new Event('change'));
+    expect(component.defaultFilter().value).toEqual(['published/before/PT1H']);
+    expect(group.dirty).toBe(true);
+  });
+
   it('shows a negated default filter on its base option', () => {
     component.allFilters.set([
       { filter: 'query/private', label: 'private' },
@@ -217,7 +236,7 @@ describe('ExtFormComponent', () => {
     ]);
   });
 
-  it('uses range presets for special dates and while the hotkey is pressed', () => {
+  it('swaps range presets and dates while the hotkey is pressed', () => {
     component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'published/before/PT15M',
       'created/after/2026-07-10T03:00:00.000Z',
@@ -225,6 +244,7 @@ describe('ExtFormComponent', () => {
     detectInputChanges();
 
     expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(1);
+    expect(fixture.nativeElement.querySelectorAll('input[type="datetime-local"]')).toHaveLength(1);
     expect(component.filterDatePreset(component.defaultFilter().value[0])).toBe(2);
     expect(component.filterDatePreset('modified/after/now')).toBe(0);
     expect(component.filterSpecialDate('modified/after/P2D')).toBe(true);
@@ -232,7 +252,9 @@ describe('ExtFormComponent', () => {
 
     component.store.hotkey.set(true);
     detectInputChanges();
-    expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(2);
+    const range = fixture.nativeElement.querySelectorAll('.default-filter-date-range')[1].querySelector('input');
+    expect(range.type).toBe('range');
+    expect(fixture.nativeElement.querySelectorAll('.default-filter-date-range')[0].querySelector('input').type).toBe('datetime-local');
 
     component.setFilterDatePreset(1, component.defaultFilter().value[1], 'P1Y');
     expect(component.defaultFilter().value[1]).toBe('created/after/P1Y');
@@ -244,8 +266,8 @@ describe('ExtFormComponent', () => {
     ], { nonNullable: true }));
     detectInputChanges();
 
-    expect(component.filterDateLabel(component.defaultFilter().value[0])).toBe('15 minutes');
-    expect(fixture.nativeElement.querySelector('.default-filter-date-range output').textContent).toBe('15 minutes');
+    expect(component.filterDateLabel(component.defaultFilter().value[0])).toBe('15 minutes ago');
+    expect(fixture.nativeElement.querySelector('.default-filter-date-range output').textContent).toBe('15 minutes ago');
   });
 
   it('builds the formly model from the ext input in one step', () => {

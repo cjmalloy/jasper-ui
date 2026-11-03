@@ -85,16 +85,9 @@
               <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
             </span>
             @if (filterIsDate(filter)) {
-              @if (store.hotkey() || filterSpecialDate(filter)) {
-                <app-relative-date class="default-filter-date-range"
-                                   [value]="filterDateValue(filter)"
-                                   (changed)="setFilterDatePreset(i, filter, $event)" />
-              } @else {
-                <input type="datetime-local"
-                       step="60"
-                       [value]="filterDate(filter)"
-                       (change)="setFilterDate(i, filter, $any($event.target).value)">
-              }
+              <app-relative-date class="default-filter-date-range"
+                                 [value]="filterDateValue(filter)"
+                                 (changed)="setFilterDatePreset(i, filter, $event)" />
             } @else if (parseValueFilter(filter)) {
               <app-value-filter [filter]="filter" [query]="ext()?.tag || ''" (changed)="setFilterValue(i, filter, $event)" />
             }
