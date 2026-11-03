@@ -4,6 +4,7 @@
        [max]="max"
        [step]="fine() ? 'any' : 1"
        [value]="index()"
+       [attr.aria-valuetext]="label()"
        i18n-title title="Time ago"
        (pointerdown)="dragging.set(true)"
        (pointerup)="release()"

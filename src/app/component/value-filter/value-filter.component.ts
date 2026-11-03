@@ -116,7 +116,18 @@ export class ValueFilterComponent {
     return rangeStops(this.unit()!, this.amount(), min, max);
   });
 
-  readonly index = linkedSignal(() => stopIndex(this.stops(), this.amount()!));
+  /**
+   * Slider position. Keeps an uncommitted preview when only the stops change, such as when the range loads mid-drag.
+   */
+  readonly index = linkedSignal<{ stops: number[], amount?: number }, number>({
+    source: () => ({ stops: this.stops(), amount: this.amount() }),
+    computation: ({ stops, amount }, previous) => {
+      if (previous && previous.source.amount === amount && previous.value !== stopIndex(previous.source.stops, amount!)) {
+        return stopIndex(stops, this.amountAt(previous.value, previous.source.stops));
+      }
+      return stopIndex(stops, amount!);
+    },
+  });
 
   readonly rangeLabel = computed(() => humanAmount(this.unit()!, this.amountAt(this.index())));
 
@@ -147,9 +158,9 @@ export class ValueFilterComponent {
     this.emit(formatAmount(this.unit()!, this.amountAt(index)));
   }
 
-  private amountAt(index: number) {
-    if (Number.isInteger(index)) return this.stops()[index];
-    return roundAmount(this.unit()!, stopAmount(this.stops(), index));
+  private amountAt(index: number, stops = this.stops()) {
+    if (Number.isInteger(index)) return stops[index];
+    return roundAmount(this.unit()!, stopAmount(stops, index));
   }
 
   setNumber(input: HTMLInputElement) {

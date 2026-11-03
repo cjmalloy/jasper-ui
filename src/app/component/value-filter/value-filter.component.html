@@ -6,6 +6,7 @@
            [max]="stops().length - 1"
            [step]="fine() ? 'any' : 1"
            [value]="index()"
+           [attr.aria-valuetext]="rangeLabel()"
            i18n-title title="Value to compare against"
            (pointerdown)="dragging.set(true)"
            (pointerup)="release()"
@@ -34,6 +35,7 @@
            (blur)="typing.set(false)"
            (change)="setNumber($any($event.target))">
     <select class="filter-unit"
+            i18n-title title="Unit"
             (focus)="typing.set(true)"
             (blur)="typing.set(false)"
             (change)="setUnit($any($event.target).value)">

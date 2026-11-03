@@ -73,6 +73,8 @@ describe('value-filter', () => {
     expect(unitValue('duration', 1.5, UNITS.duration[2])).toBe('pt1h30m');
     expect(formatAmount('duration', 300)).toBe('pt5m');
     expect(formatAmount('bytes', 1.5 * 1024 * 1024)).toBe('1.5mb');
+    expect(formatAmount('bytes', 1024 * 1024 + 1)).toBe('1048577');
+    expect(formatAmount('duration', 3601)).toBe('pt1h1s');
     expect(humanAmount('bytes', 1.5 * 1024 * 1024)).toBe('1.5 MB');
     expect(humanAmount('duration', 5400)).toContain('1');
   });
@@ -93,6 +95,8 @@ describe('value-filter', () => {
     expect(columnAmount({ url: '', tags: ['plugin/duration'] } as Ref, 'tags->plugin/duration:dur', 'duration')).toBeUndefined();
     expect(columnAmount({ url: '', plugins: { '_plugin/cache': { contentLength: 2048 } } } as Ref, 'plugins->_plugin/cache->contentLength:num', 'bytes')).toBe(2048);
     expect(columnAmount({ url: '' } as Ref, 'plugins->_plugin/cache->contentLength:num', 'bytes')).toBeUndefined();
+    expect(columnAmount({ url: '', plugins: { 'plugin/files': { sizes: [512, 1024] } } } as Ref, 'plugins->plugin/files->sizes[1]:num', 'bytes')).toBe(1024);
+    expect(columnAmount({ url: '', plugins: { 'plugin/files': { grid: [[1, 2]] } } } as Ref, 'plugins->plugin/files->grid[0][1]:num', 'bytes')).toBe(2);
   });
 
   describe('rangeStops', () => {

@@ -2,7 +2,7 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { NEVER, of } from 'rxjs';
+import { NEVER, of, Subject } from 'rxjs';
 import { FilterConfig } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { ValueFilterService } from '../../service/value-filter.service';
@@ -69,6 +69,26 @@ describe('ValueFilterComponent', () => {
       await fixture.whenStable();
       expect(extent).toHaveBeenCalledTimes(2);
       expect(extent).toHaveBeenLastCalledWith('tags->plugin/duration:dur', 'duration', 'science');
+    });
+
+    it('keeps the dragged value when the range loads mid-drag', async () => {
+      const el = await render('tags->plugin/duration:dur/before/pt5m');
+      const loaded = new Subject<number[]>();
+      extent.mockReturnValue(loaded);
+      fixture.componentRef.setInput('query', 'science');
+      fixture.detectChanges();
+      const range = el.querySelector<HTMLInputElement>('.filter-range')!;
+      expect(range.getAttribute('aria-valuetext')).toBe('5 min');
+      range.value = String(+range.value + 1);
+      range.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      const label = el.querySelector('.filter-range-label')!.textContent;
+      expect(label).not.toBe('5 min');
+      loaded.next([120, 7200]);
+      loaded.complete();
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-range-label')!.textContent).toBe(label);
+      expect(range.getAttribute('aria-valuetext')).toBe(label);
     });
 
     it('keeps the range while a new query loads', async () => {

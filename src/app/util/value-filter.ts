@@ -92,6 +92,8 @@ export function unitValue(unit: ValueUnit, number: number, option: UnitOption) {
 export function formatAmount(unit: ValueUnit, amount: number) {
   if (unit === 'duration') return unitValue(unit, amount, { factor: 1 } as UnitOption);
   const { number, option } = splitAmount(unit, amount);
+  // Keep the exact amount when the unit would round it
+  if (number * option.factor !== amount) return unitValue(unit, amount, UNITS[unit][0]);
   return unitValue(unit, number, option);
 }
 
@@ -136,7 +138,10 @@ export function columnAmount(ref: Ref, column: string, unit: ValueUnit): number 
     return value ? parseAmount(unit, value) : undefined;
   }
   let value: any = ref.plugins?.[tag];
-  for (const field of column.substring('plugins->'.length).replace(/:\w+$/, '').split('->').slice(1)) value = value?.[field];
+  for (const field of column.substring('plugins->'.length).replace(/:\w+$/, '').split('->').slice(1)) {
+    // Array elements such as sizes[0]
+    for (const [, key, index] of field.matchAll(/([^[\]]+)|\[(\d+)]/g)) value = value?.[key ?? +index];
+  }
   return value === undefined || value === null ? undefined : parseAmount(unit, String(value));
 }
 
