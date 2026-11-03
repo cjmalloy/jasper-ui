@@ -225,4 +225,74 @@ describe('RelativeDateComponent', () => {
     await fixture.whenStable();
     expect(el.querySelector('output')!.textContent).toBe('1 hour ago');
   });
+
+  it('measures a relative date from when the date input is shown', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date('2026-07-09T12:00:00Z'));
+      const el = await render('P1D');
+      const store = TestBed.inject(Store);
+      store.hotkey.set(true);
+      await fixture.whenStable();
+      expect(el.querySelector<HTMLInputElement>('input[type="datetime-local"]')!.value)
+        .toBe(DateTime.fromISO('2026-07-08T12:00:00Z').toFormat("yyyy-MM-dd'T'T"));
+      store.hotkey.set(false);
+      await fixture.whenStable();
+      vi.setSystemTime(new Date('2026-07-09T13:00:00Z'));
+      store.hotkey.set(true);
+      await fixture.whenStable();
+      expect(el.querySelector<HTMLInputElement>('input[type="datetime-local"]')!.value)
+        .toBe(DateTime.fromISO('2026-07-08T13:00:00Z').toFormat("yyyy-MM-dd'T'T"));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('applies each calendar pick', async () => {
+    const el = await render('2025-01-02T03:04:00Z');
+    const date = el.querySelector<HTMLInputElement>('input[type="datetime-local"]')!;
+    date.dispatchEvent(new Event('focus'));
+    date.value = '2024-01-02T03:04';
+    date.dispatchEvent(new Event('change'));
+    date.value = '2023-01-02T03:04';
+    date.dispatchEvent(new Event('change'));
+    expect(changed).toEqual([
+      DateTime.fromISO('2024-01-02T03:04').toISO(),
+      DateTime.fromISO('2023-01-02T03:04').toISO(),
+    ]);
+  });
+
+  it('converts a relative date to the prefilled timestamp with enter', async () => {
+    const el = await render('P1D');
+    TestBed.inject(Store).hotkey.set(true);
+    await fixture.whenStable();
+    const date = el.querySelector<HTMLInputElement>('input[type="datetime-local"]')!;
+    const value = date.value;
+    date.dispatchEvent(new Event('focus'));
+    date.dispatchEvent(new Event('blur'));
+    expect(changed).toEqual([]);
+    date.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    expect(changed).toEqual([DateTime.fromISO(value).toISO()]);
+  });
+
+  it('keeps the slider while adjusting a timestamp with the keyboard and the hotkey held', async () => {
+    const el = await render('2025-01-02T03:04:00Z');
+    const store = TestBed.inject(Store);
+    store.hotkey.set(true);
+    await fixture.whenStable();
+    const range = el.querySelector<HTMLInputElement>('input[type="range"]')!;
+    range.value = '3';
+    range.dispatchEvent(new Event('input'));
+    range.dispatchEvent(new Event('change'));
+    expect(changed).toEqual(['PT1H']);
+    fixture.componentRef.setInput('value', 'PT1H');
+    await fixture.whenStable();
+    expect(el.querySelector('input[type="range"]')).toBe(range);
+    store.hotkey.set(false);
+    await fixture.whenStable();
+    expect(el.querySelector('input[type="range"]')).not.toBeNull();
+    store.hotkey.set(true);
+    await fixture.whenStable();
+    expect(el.querySelector('input[type="datetime-local"]')).not.toBeNull();
+  });
 });

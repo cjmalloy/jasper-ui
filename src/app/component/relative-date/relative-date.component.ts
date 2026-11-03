@@ -36,7 +36,10 @@ export class RelativeDateComponent {
 
   readonly relative = computed(() => relativeDate(this.value()));
 
-  readonly date = computed(() => dateTimeLocal(this.value()));
+  /**
+   * Date input value. A relative date is measured from when the date input is shown.
+   */
+  readonly date = computed(() => this.range() ? '' : dateTimeLocal(this.value()));
 
   /**
    * The date input being edited, so it stays after the hotkey is released.
@@ -146,6 +149,8 @@ export class RelativeDateComponent {
   }
 
   set() {
+    // Keep the slider while adjusting it with the keyboard and the hotkey held
+    this.kept.set(this.store.hotkey());
     const value = presetAt(this.index());
     if (value === this.value() || value === this.emitted()) return;
     this.emitted.set(value);
@@ -159,7 +164,8 @@ export class RelativeDateComponent {
 
   keydown(event: KeyboardEvent) {
     if (event.key === 'Enter') {
-      this.setDate(event.target as HTMLInputElement);
+      // Enter converts a relative date to the timestamp shown
+      this.setDate(event.target as HTMLInputElement, this.relative());
     } else if (!MODIFIERS.includes(event.key)) {
       this.picked = false;
     }
@@ -174,11 +180,10 @@ export class RelativeDateComponent {
     this.setDate(input);
   }
 
-  private setDate(input: HTMLInputElement) {
-    this.picked = false;
+  private setDate(input: HTMLInputElement, convert = false) {
     if (!input.value) return;
     const date = DateTime.fromISO(input.value);
     if (!date.isValid) return;
-    if (input.value !== this.date()) this.changed.emit(date.toISO()!);
+    if (convert || input.value !== this.date()) this.changed.emit(date.toISO()!);
   }
 }
