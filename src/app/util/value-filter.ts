@@ -190,22 +190,6 @@ export function stopIndex(stops: number[], amount: number) {
 }
 
 /**
- * The next whole stop from a slider position, for the arrow keys.
- */
-export function nextStop(index: number, dir: number, max: number) {
-  return Math.max(0, Math.min(max, dir > 0 ? Math.floor(index) + 1 : Math.ceil(index) - 1));
-}
-
-const ARROWS: Record<string, number> = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 };
-
-/**
- * Direction of an arrow key on a slider, or 0 for other keys.
- */
-export function arrowDir(event: KeyboardEvent) {
-  return ARROWS[event.key] || 0;
-}
-
-/**
  * Round a duration in seconds to its two largest units, like 3 hours 17 minutes.
  */
 export function roundSeconds(seconds: number) {

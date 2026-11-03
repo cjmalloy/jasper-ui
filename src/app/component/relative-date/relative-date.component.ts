@@ -2,7 +2,7 @@ import { Component, computed, inject, input, linkedSignal, output, signal } from
 import { Duration } from 'luxon';
 import { Store } from '../../store/store';
 import { DATE_PRESETS, relativeDate, relativeDateLabel } from '../../util/query';
-import { arrowDir, nextStop, roundSeconds, stopAmount, stopIndex } from '../../util/value-filter';
+import { roundSeconds, stopAmount, stopIndex } from '../../util/value-filter';
 
 const PRESET_SECONDS = DATE_PRESETS.map(p => p === 'now' ? 0 : Duration.fromISO(p).as('seconds'));
 
@@ -59,10 +59,16 @@ export class RelativeDateComponent {
    */
   readonly fine = computed(() => this.dragging() && this.store.hotkey());
 
+  /**
+   * Fine tuned during this drag, so releasing the hotkey keeps the fine value instead of snapping back.
+   */
+  readonly tuned = signal(false);
+
   readonly label = computed(() => relativeDateLabel(presetAt(this.index())));
 
   press() {
     this.pressed.set(true);
+    this.tuned.set(false);
   }
 
   release() {
@@ -70,25 +76,9 @@ export class RelativeDateComponent {
     this.kept.set(this.store.hotkey());
   }
 
-  /**
-   * Snap to the nearest preset unless fine. The step is always 'any', so the thumb shows exactly where the value is,
-   * and releasing the hotkey keeps the fine value until the slider moves again.
-   */
-  drag(input: HTMLInputElement, index = +input.value) {
-    if (!this.fine()) index = Math.round(index);
-    input.value = String(index);
+  drag(index: number) {
+    if (this.fine()) this.tuned.set(true);
     this.index.set(index);
-  }
-
-  /**
-   * Arrow keys step to the next preset, since the browser steps 'any' by a fraction of the range.
-   */
-  key(event: KeyboardEvent, input: HTMLInputElement) {
-    const dir = arrowDir(event);
-    if (!dir) return;
-    event.preventDefault();
-    this.drag(input, nextStop(this.index(), dir, this.max));
-    this.set();
   }
 
   set() {

@@ -4,15 +4,14 @@
            class="filter-range"
            min="0"
            [max]="stops().length - 1"
-           step="any"
+           [step]="fine() || tuned() ? 'any' : 1"
            [value]="index()"
            [attr.aria-valuetext]="rangeLabel()"
            i18n-title title="Value to compare against"
            (pointerdown)="press()"
            (pointerup)="release()"
            (pointercancel)="release()"
-           (keydown)="key($event, $any($event.target))"
-           (input)="drag($any($event.target))"
+           (input)="drag(+$any($event.target).value)"
            (change)="setRange()">
     <output class="filter-range-label">{{ rangeLabel() }}</output>
   }

@@ -140,12 +140,12 @@ test.describe.serial('Cache Plugin', () => {
     await expect.poll(() => new URL(page.url()).searchParams.getAll('filter')[0]).not.toMatch(/\/(1|5)mb$/);
     expect(new URL(page.url()).searchParams.getAll('filter')[0]).toMatch(/^plugins->_plugin\/cache->contentLength:num\/after\/\d+$/);
 
-    // Snapping to the nearest stop from a fine value
+    // The next drag snaps to stops again
     await page.mouse.move(x(3.6), y);
     await page.mouse.down();
-    await page.mouse.move(x(4), y, { steps: 5 });
-    await expect(label).toHaveText('5 MB');
+    await page.mouse.move(x(3), y, { steps: 5 });
+    await expect(label).toHaveText('1 MB');
     await page.mouse.up();
-    await expect.poll(() => new URL(page.url()).searchParams.getAll('filter')).toEqual([filter + '5mb']);
+    await expect.poll(() => new URL(page.url()).searchParams.getAll('filter')).toEqual([filter + '1mb']);
   });
 });

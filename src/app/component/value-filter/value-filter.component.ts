@@ -6,10 +6,8 @@ import { ValueFilterService } from '../../service/value-filter.service';
 import { Store } from '../../store/store';
 import { parseValueFilter } from '../../util/query';
 import {
-  arrowDir,
   formatAmount,
   humanAmount,
-  nextStop,
   parseAmount,
   rangeStops,
   roundAmount,
@@ -97,6 +95,11 @@ export class ValueFilterComponent {
   readonly fine = computed(() => this.dragging() && this.store.hotkey());
 
   /**
+   * Fine tuned during this drag, so releasing the hotkey keeps the fine value instead of snapping back.
+   */
+  readonly tuned = signal(false);
+
+  /**
    * Hold the hotkey to type any value instead of using the slider,
    * like an ISO duration in a text box, or a number and unit.
    */
@@ -175,6 +178,7 @@ export class ValueFilterComponent {
 
   press() {
     this.pressed.set(true);
+    this.tuned.set(false);
   }
 
   release() {
@@ -182,26 +186,10 @@ export class ValueFilterComponent {
     this.kept.set(this.store.hotkey());
   }
 
-  /**
-   * Snap to the nearest stop unless fine. The step is always 'any', so the thumb shows exactly where the value is,
-   * and releasing the hotkey keeps the fine value until the slider moves again.
-   */
-  drag(input: HTMLInputElement, index = +input.value) {
-    if (!this.fine()) index = Math.round(index);
-    input.value = String(index);
+  drag(index: number) {
+    if (this.fine()) this.tuned.set(true);
     this.index.set(index);
     this.preview.set(this.amountAt(index));
-  }
-
-  /**
-   * Arrow keys step to the next stop, since the browser steps 'any' by a fraction of the range.
-   */
-  key(event: KeyboardEvent, input: HTMLInputElement) {
-    const dir = arrowDir(event);
-    if (!dir) return;
-    event.preventDefault();
-    this.drag(input, nextStop(this.index(), dir, this.stops().length - 1));
-    this.setRange();
   }
 
   setRange() {

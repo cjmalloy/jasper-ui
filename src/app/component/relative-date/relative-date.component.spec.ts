@@ -74,21 +74,6 @@ describe('RelativeDateComponent', () => {
     expect(changed).toEqual(['P4DT14H']);
   });
 
-  it('snaps from a value between presets to the nearest preset', async () => {
-    const el = await render('P4DT14H');
-    const range = el.querySelector<HTMLInputElement>('input')!;
-    range.value = '6.6';
-    range.dispatchEvent(new Event('input'));
-    range.dispatchEvent(new Event('change'));
-    expect(changed).toEqual(['P7D']);
-  });
-
-  it('steps to the next preset with the arrow keys', async () => {
-    const el = await render('P4DT14H');
-    el.querySelector('input')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
-    expect(changed).toEqual(['P3D']);
-  });
-
   it('places a value between presets', async () => {
     const el = await render('P4DT14H');
     expect(el.querySelector('output')!.textContent).toBe('4 days, 14 hours');
