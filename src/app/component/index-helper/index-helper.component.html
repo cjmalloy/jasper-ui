@@ -4,14 +4,14 @@
       <span class="index-status" i18n>⚡️ Indexes</span>
     } @else if (!anyMissing()) {
       <span class="index-status indexed" i18n>⚡️ Indexed</span>
-    } @else if (index()) {
+    } @else if (index() || needs().unindexed.length) {
       <span class="index-status not-indexed" i18n>⚡️ Not indexed</span>
     } @else {
       <span class="index-status not-indexed" i18n>⚡️ May not be indexed</span>
     }
     @if (loading() || fixing()) {
       <app-loading [inline]="true" />
-    } @else if (anyMissing()) {
+    } @else if (fixable()) {
       @if (serverError().length) {
         <span class="error" [title]="serverError().join('\n')" i18n>failed</span>
       }

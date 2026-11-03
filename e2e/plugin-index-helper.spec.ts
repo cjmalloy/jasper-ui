@@ -44,6 +44,14 @@ test.describe.serial('Index Helper', () => {
     await expect(helper.locator('.request-indexes')).toBeVisible();
   });
 
+  test('plugin sorts are not indexed', async ({ page }) => {
+    await page.goto(sorted('plugins->plugin/user/vote:score,DESC', 'ADMIN'), { waitUntil: 'networkidle' });
+    const helper = page.locator('.index-helper');
+    await expect(helper.locator('.index-status')).toHaveText('⚡️ Not indexed');
+    await expect(helper.locator('.index-line')).toHaveAttribute('title', /✖️ plugins->plugin\/user\/vote:score/);
+    await expect(helper.locator('.fix-indexes, .request-indexes')).toHaveCount(0);
+  });
+
   test('hidden without read access', async ({ page }) => {
     await page.goto(sorted('tags->plugin/duration:dur', 'USER') + '&tag=alice', { waitUntil: 'networkidle' });
     await expect(page.locator('.bulk.actions')).toBeVisible();
@@ -53,7 +61,7 @@ test.describe.serial('Index Helper', () => {
   test('grant read access', async ({ request, origin }) => {
     const res = await request.post(`${api}/user`, {
       headers: await headers(request),
-      data: { tag: '+user/debug', origin, tagReadAccess: ['_index.helper', '_config/index'] },
+      data: { tag: '+user/debug', origin, tagReadAccess: ['_index.helper'] },
     });
     expect(res.ok(), await res.text()).toBeTruthy();
   });

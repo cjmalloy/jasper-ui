@@ -8375,10 +8375,6 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Add the missing indices to the _config/index template</source>
         <target>不足しているインデックスを_config/indexテンプレートに追加する</target>
       </trans-unit>
-      <trans-unit id="2360270686016925075" datatype="html">
-        <source>Check if the current query is using DB indices. Admins can add missing indices to the _config/index template, everyone else can ask for them. Users need read access to _index.helper and _config/index.</source>
-        <target>現在のクエリがDBインデックスを使用しているか確認します。管理者は不足しているインデックスを_config/indexテンプレートに追加でき、その他のユーザーは追加を依頼できます。ユーザーには_index.helperと_config/indexの読み取りアクセスが必要です。</target>
-      </trans-unit>
       <trans-unit id="3717867441197894810" datatype="html">
         <source>⚡️ Indexed</source>
         <target>⚡️ インデックス済み</target>
@@ -8398,6 +8394,14 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="1913408832824440185" datatype="html">
         <source>_config/index disabled</source>
         <target>_config/indexは無効です</target>
+      </trans-unit>
+      <trans-unit id="2279717337649921188" datatype="html">
+        <source>(sort can&apos;t be indexed)</source>
+        <target>(ソートはインデックスできません)</target>
+      </trans-unit>
+      <trans-unit id="7706142096799635459" datatype="html">
+        <source>Check if the current query is using DB indices. The _config/index template only exists in the root origin, where admins can add missing indices. Everyone else, including every user in other origins, can ask for them. Users need read access to _index.helper, and to _config/index in the root origin.</source>
+        <target>現在のクエリがDBインデックスを使用しているか確認します。_config/indexテンプレートはルートオリジンにのみ存在し、管理者はそこで不足しているインデックスを追加できます。他のオリジンのユーザーを含め、それ以外のユーザーは追加を依頼できます。ユーザーには_index.helperへの読み取りアクセス、およびルートオリジンでは_config/indexへの読み取りアクセスが必要です。</target>
       </trans-unit>
     </body>
   </file>

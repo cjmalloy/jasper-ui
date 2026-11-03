@@ -10,6 +10,7 @@ import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { AuthzService } from '../../service/authz.service';
 import { QueryStore } from '../../store/query';
+import { Store } from '../../store/store';
 import { RefPageArgs } from '../../model/ref';
 
 import { IndexHelperComponent } from './index-helper.component';
@@ -25,7 +26,7 @@ describe('IndexHelperComponent', () => {
     config: { hotTags: ['public'] },
   } as Template;
 
-  function create() {
+  function create(origin = '') {
     TestBed.configureTestingModule({
       imports: [IndexHelperComponent],
       providers: [
@@ -38,6 +39,7 @@ describe('IndexHelperComponent', () => {
         { provide: TemplateService, useValue: templates },
       ],
     });
+    TestBed.inject(Store).account.origin.set(origin);
     const fixture = TestBed.createComponent(IndexHelperComponent);
     fixture.detectChanges();
     return fixture;
@@ -87,6 +89,28 @@ describe('IndexHelperComponent', () => {
     expect(fixture.componentInstance.disabled()).toBe(true);
     expect(fixture.componentInstance.canFix()).toBe(false);
     expect(fixture.componentInstance.missing().hotTags).toEqual(['plugin/title']);
+  });
+
+  it('only requests indices in a tenant origin', async () => {
+    admin = true;
+    const fixture = create('@tenant');
+    await fixture.whenStable();
+    expect(templates.get).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.canFix()).toBe(false);
+    expect(fixture.componentInstance.fixable()).toBe(true);
+  });
+
+  it('reports plugin sorts as not indexed', async () => {
+    admin = true;
+    args.set({ sort: ['plugins->plugin/user/vote:score,DESC'] });
+    const fixture = create();
+    await fixture.whenStable();
+    expect(templates.get).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.show()).toBe(true);
+    expect(fixture.componentInstance.anyMissing()).toBe(true);
+    expect(fixture.componentInstance.fixable()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.index-status').textContent).toContain('Not indexed');
+    expect(fixture.nativeElement.querySelector('.fix-indexes, .request-indexes')).toBeNull();
   });
 
   it('shows nothing for queries without indices', async () => {

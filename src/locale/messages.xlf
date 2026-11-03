@@ -2896,18 +2896,25 @@ Please Reload.</source>
           <context context-type="linenumber">27,28</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="2279717337649921188" datatype="html">
+        <source>(sort can&apos;t be indexed)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.ts</context>
+          <context context-type="linenumber">108</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="3829500704324703245" datatype="html">
         <source>Index request</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.ts</context>
-          <context context-type="linenumber">128</context>
+          <context context-type="linenumber">137</context>
         </context-group>
       </trans-unit>
       <trans-unit id="365417024232498474" datatype="html">
         <source>Please add these DB indices to the _config/index template to speed up this query:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.ts</context>
-          <context context-type="linenumber">129</context>
+          <context context-type="linenumber">138</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1110193733117145811" datatype="html">
@@ -15799,8 +15806,8 @@ Are you sure you want to purge deleted files from storage?</source>
           <context context-type="linenumber">9</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2360270686016925075" datatype="html">
-        <source>Check if the current query is using DB indices. Admins can add missing indices to the _config/index template, everyone else can ask for them. Users need read access to _index.helper and _config/index.</source>
+      <trans-unit id="7706142096799635459" datatype="html">
+        <source>Check if the current query is using DB indices. The _config/index template only exists in the root origin, where admins can add missing indices. Everyone else, including every user in other origins, can ask for them. Users need read access to _index.helper, and to _config/index in the root origin.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/index-helper.ts</context>
           <context context-type="linenumber">12</context>

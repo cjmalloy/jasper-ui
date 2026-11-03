@@ -42,7 +42,17 @@ export interface IndexNeeds {
    * Plugin columns, without the `plugins->` prefix.
    */
   hotPlugins: string[];
+  /**
+   * Sort columns that no `_config/index` setting can index.
+   */
+  unindexed: string[];
 }
+
+/**
+ * Sorts that are covered by an index flag or the primary key, or rank search results.
+ * The `created` sort is left out, since it is used everywhere and has no index setting.
+ */
+const INDEXABLE_SORTS = ['created', 'published', 'modified', 'rank', 'url'];
 
 /**
  * Sort or filter column without the `,ASC` direction or `/{value}` filter value.
@@ -75,7 +85,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   const flags: IndexFlag[] = [];
   const hotTags: string[] = [];
   const hotPlugins: string[] = [];
-  if (!args) return { flags, hotTags, hotPlugins };
+  const unindexed: string[] = [];
+  if (!args) return { flags, hotTags, hotPlugins, unindexed };
   if (queryHasTags(args.query)) flags.push('tags');
   // Search also matches the URL or alternate URLs
   if (args.search) flags.push('fulltext', 'alts');
@@ -84,11 +95,17 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   if (args.responses || args.noResponses) flags.push('sources');
   if (args.publishedBefore || args.publishedAfter) flags.push('published');
   if (args.modifiedBefore || args.modifiedAfter) flags.push('modified');
-  for (const s of args.sort || []) {
+  for (const [i, s] of (args.sort || []).entries()) {
     const c = sortColumn(s);
     if (c === 'published') flags.push('published');
     if (c === 'modified') flags.push('modified');
-    if (c.startsWith('tags->')) hotTags.push(column(c, 'tags->'));
+    if (c.startsWith('tags->')) {
+      hotTags.push(column(c, 'tags->'));
+    } else if (i === 0 && !INDEXABLE_SORTS.includes(c)) {
+      // Only the first sort can use an index, the rest are tie breakers
+      // Plugin sorts can't use hot plugin indices, since sorts treat missing values as '' or 0
+      unindexed.push(c);
+    }
   }
   for (const f of [...args.tagBefore || [], ...args.tagAfter || []]) {
     if (f.startsWith('tags->')) hotTags.push(valueColumn(f, 'tags->'));
@@ -100,6 +117,7 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
     flags: uniq(flags),
     hotTags: uniq(hotTags.filter(t => !!t)),
     hotPlugins: uniq(hotPlugins.filter(p => !!p)),
+    unindexed: uniq(unindexed),
   };
 }
 
@@ -118,10 +136,18 @@ export function missingIndexes(needs: IndexNeeds, config: IndexConfig = {}): Ind
     flags: needs.flags.filter(f => config[f] === false),
     hotTags: needs.hotTags.filter(t => !hotTags.includes(t)),
     hotPlugins: needs.hotPlugins.filter(p => !hotPlugins.includes(p)),
+    unindexed: needs.unindexed,
   };
 }
 
 export function hasIndexes(needs: IndexNeeds) {
+  return hasFixable(needs) || !!needs.unindexed.length;
+}
+
+/**
+ * Whether any of the indices can be added to `_config/index`.
+ */
+export function hasFixable(needs: IndexNeeds) {
   return !!(needs.flags.length || needs.hotTags.length || needs.hotPlugins.length);
 }
 

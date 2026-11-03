@@ -1,11 +1,24 @@
 /// <reference types="vitest/globals" />
-import { fixIndexConfig, hasIndexes, indexList, indexNeeds, missingIndexes } from './index-helper';
+import { fixIndexConfig, hasFixable, hasIndexes, indexList, indexNeeds, missingIndexes } from './index-helper';
 
 describe('Index Helper', () => {
   it('needs nothing without args', () => {
     expect(hasIndexes(indexNeeds())).toBe(false);
     expect(hasIndexes(indexNeeds({ query: '@*' }))).toBe(false);
     expect(hasIndexes(indexNeeds({ query: '*' }))).toBe(false);
+    expect(hasIndexes(indexNeeds({ sort: ['created,DESC'] }))).toBe(false);
+  });
+
+  it('flags sorts that cannot be indexed', () => {
+    expect(indexNeeds({ sort: ['metadata->responses'] }).unindexed).toEqual(['metadata->responses']);
+    expect(indexNeeds({ sort: ['url', 'title'] }).unindexed).toEqual([]);
+    expect(indexNeeds({ sort: ['published', 'modified,ASC', 'origin,ASC'] }).unindexed).toEqual([]);
+    const needs = indexNeeds({ sort: ['plugins->plugin/user/vote:score,DESC', 'title'] });
+    expect(needs.unindexed).toEqual(['plugins->plugin/user/vote:score']);
+    expect(hasIndexes(needs)).toBe(true);
+    const missing = missingIndexes(needs, {});
+    expect(missing.unindexed).toEqual(needs.unindexed);
+    expect(hasFixable(missing)).toBe(false);
   });
 
   it('needs the tags index for tag queries', () => {
@@ -56,7 +69,7 @@ describe('Index Helper', () => {
       hotTags: ['plugin/progress:num'],
       hotPlugins: ['plugins->plugin/score:num'],
     });
-    expect(missing).toEqual({ flags: ['fulltext'], hotTags: [], hotPlugins: ['plugin/test->name'] });
+    expect(missing).toEqual({ flags: ['fulltext'], hotTags: [], hotPlugins: ['plugin/test->name'], unindexed: [] });
     expect(hasIndexes(missing)).toBe(true);
     expect(hasIndexes(missingIndexes(needs, {
       hotTags: ['plugin/progress:num'],
@@ -70,7 +83,7 @@ describe('Index Helper', () => {
       disabled: true,
       fulltext: false,
       hotTags: ['plugin/progress:num'],
-    })).toEqual({ flags: [], hotTags: ['plugin/progress:num'], hotPlugins: [] });
+    })).toEqual({ flags: [], hotTags: ['plugin/progress:num'], hotPlugins: [], unindexed: [] });
   });
 
   it('skips blank hot indices', () => {
@@ -78,12 +91,12 @@ describe('Index Helper', () => {
     expect(missingIndexes(needs, {
       hotTags: [null as any],
       hotPlugins: [null as any, '', 'plugin/score:num'],
-    })).toEqual({ flags: [], hotTags: [], hotPlugins: [] });
+    })).toEqual({ flags: [], hotTags: [], hotPlugins: [], unindexed: [] });
   });
 
   it('fixes the config', () => {
     const config = { fulltext: false, hotTags: ['plugin/a', ''], hotPlugins: ['plugin/b'] };
-    const missing = { flags: ['fulltext' as const], hotTags: ['plugin/c:num'], hotPlugins: [] };
+    const missing = { flags: ['fulltext' as const], hotTags: ['plugin/c:num'], hotPlugins: [], unindexed: ['title'] };
     expect(fixIndexConfig(missing, config)).toEqual({
       fulltext: true,
       hotTags: ['plugin/a', 'plugin/c:num'],

@@ -10,10 +10,12 @@ import { TemplateService } from '../../service/api/template.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
+import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 import { withStableDateSort } from '../../util/query';
 import {
   fixIndexConfig,
+  hasFixable,
   hasIndexes,
   IndexConfig,
   indexList,
@@ -33,6 +35,7 @@ import { LoadingComponent } from '../loading/loading.component';
 export class IndexHelperComponent {
   private admin = inject(AdminService);
   private auth = inject(AuthzService);
+  private store = inject(Store);
   private query = inject(QueryStore);
   private templates = inject(TemplateService);
   private router = inject(Router);
@@ -52,11 +55,15 @@ export class IndexHelperComponent {
   readonly show = computed(() => this.enabled() && hasIndexes(this.needs()));
 
   /**
-   * The server only reads `_config/index` from its root origin, so tenant copies are ignored.
+   * `_config/index` only exists in the root origin. In other origins the helper can only ask for indices.
+   */
+  readonly root = computed(() => !this.store.account.origin());
+
+  /**
    * Only load the index config once a query uses an index.
    */
   private readonly indexConfig = rxResource({
-    params: () => this.show() ? '_config/index' : undefined,
+    params: () => this.show() && this.root() && hasFixable(this.needs()) ? '_config/index' : undefined,
     stream: ({ params }) => this.templates.get(params).pipe(catchError(() => of(null))),
   });
   readonly loading = computed(() => this.indexConfig.isLoading());
@@ -84,9 +91,10 @@ export class IndexHelperComponent {
   }, { equal: isEqual });
 
   readonly anyMissing = computed(() => hasIndexes(this.missing()));
+  readonly fixable = computed(() => hasFixable(this.missing()));
 
   /**
-   * Indices the query uses, marked ✅️ indexed, ⚠️ missing, or ❔ unknown.
+   * Indices the query uses, marked ✅️ indexed, ⚠️ missing, ❔ unknown, or ✖️ can't be indexed.
    */
   readonly tooltip = computed(() => {
     if (this.loading()) return '';
@@ -97,6 +105,7 @@ export class IndexHelperComponent {
       ...needs.flags.map(f => mark(missing.flags, f) + ' ' + f),
       ...needs.hotTags.map(t => mark(missing.hotTags, t) + ' tags->' + t),
       ...needs.hotPlugins.map(p => mark(missing.hotPlugins, p) + ' plugins->' + p),
+      ...needs.unindexed.map(c => '✖️ ' + c + ' ' + $localize`(sort can't be indexed)`),
     ].join('\n');
   });
 
