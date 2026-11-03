@@ -2,7 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
-import { catchError, concat, EMPTY, expand, forkJoin, map, Observable, of, retry, shareReplay, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, defer, EMPTY, expand, forkJoin, map, Observable, of, retry, share, shareReplay, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
@@ -759,21 +759,22 @@ export class AdminService {
       .flatMap(p => p.config?.sorts!);
   });
 
-  private hotIndexSuggestions?: Observable<HotIndexSuggestions>;
-
   /**
    * Columns used by the mods installed in any visible origin, for the `_config/index` hot tags and hot plugins.
    * Scans every sub origin, since in a multi-tenant setup the root origin may have few mods installed.
+   * Fields rendered together share one scan, and the scan runs again each time the form opens.
    */
+  private readonly hotIndexSuggestions = defer(() => forkJoin([
+    this.scanAllOrigins$(args => this.plugins.page(args)),
+    this.scanAllOrigins$(args => this.templates.page(args)),
+  ])).pipe(
+    map(([plugins, templates]) => hotIndexSuggestions(plugins, templates)),
+    catchError(() => of({ tags: [], plugins: [] })),
+    share(),
+  );
+
   hotIndexSuggestions$(): Observable<HotIndexSuggestions> {
-    return this.hotIndexSuggestions ||= forkJoin([
-      this.scanAllOrigins$(args => this.plugins.page(args)),
-      this.scanAllOrigins$(args => this.templates.page(args)),
-    ]).pipe(
-      map(([plugins, templates]) => hotIndexSuggestions(plugins, templates)),
-      catchError(() => of({ tags: [], plugins: [] })),
-      shareReplay({ bufferSize: 1, refCount: true }),
-    );
+    return this.hotIndexSuggestions;
   }
 
   private scanAllOrigins$<T>(page: (args: TagPageArgs) => Observable<Page<T>>): Observable<T[]> {

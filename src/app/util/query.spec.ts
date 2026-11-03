@@ -6,6 +6,7 @@ import {
   getFilter,
   getFilters,
   getFiltersQuery,
+  getTagFilter,
   negatable,
   negate,
   parseValueFilter,
@@ -319,6 +320,13 @@ describe('Query Utils', () => {
         const args = getArgs('science', undefined, ['published/before/NoW']);
 
         expect(args.publishedBefore).toBe('2026-07-09T23:36:00.000Z');
+      });
+
+      it('should resolve relative dates in tag list filters', () => {
+        expect(getTagFilter(['modified/after/P7D', 'modified/before/now'])).toEqual({
+          modifiedAfter: '2026-07-02T23:36:00.000Z',
+          modifiedBefore: '2026-07-09T23:36:00.000Z',
+        });
       });
 
       it('should reject incomplete ISO durations', () => {

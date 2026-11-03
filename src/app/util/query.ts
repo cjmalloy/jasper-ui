@@ -361,9 +361,9 @@ export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
   let result: TagQueryArgs = {};
   for (const f of filter) {
     if (f.startsWith('modified/before/')) {
-      result.modifiedBefore = f.substring('modified/before/'.length);
+      result.modifiedBefore = fixDateTime(f.substring('modified/before/'.length));
     } else if (f.startsWith('modified/after/')) {
-      result.modifiedAfter = f.substring('modified/after/'.length);
+      result.modifiedAfter = fixDateTime(f.substring('modified/after/'.length));
     } else if (f == 'plugin/delete') {
       result.deleted = true;
     }

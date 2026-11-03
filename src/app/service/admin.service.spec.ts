@@ -11,7 +11,7 @@ import { cachePlugin } from '../mods/system/cache';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
-import { defer, firstValueFrom, of } from 'rxjs';
+import { defer, firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { PluginService } from './api/plugin.service';
@@ -130,6 +130,27 @@ describe('AdminService', () => {
     const [hotTags, hotPlugins] = service.getTemplateAdminForm('_config/index').slice(-2);
     expect(await firstValueFrom((hotTags.fieldArray as any).props.suggestions(service))).toEqual(['plugin/duration:dur']);
     expect(await firstValueFrom((hotPlugins.fieldArray as any).props.suggestions(service))).toEqual(['_plugin/cache->contentLength:num', 'plugin/score:num']);
+  });
+
+  it('should scan for hot index suggestions again each time the form opens', async () => {
+    const empty = of({ content: [], page: { number: 0, size: 0, totalElements: 0, totalPages: 1 } });
+    const pluginPage = vi.spyOn(TestBed.inject(PluginService), 'page').mockReturnValueOnce(throwError(() => 'offline')).mockReturnValue(empty as any);
+    vi.spyOn(TestBed.inject(TemplateService), 'page').mockReturnValue(empty as any);
+    expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({ tags: [], plugins: [] });
+    pluginPage.mockReturnValue(of({ content: [durationPlugin], page: { number: 0, size: 1, totalElements: 1, totalPages: 1 } }) as any);
+    expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({ tags: ['plugin/duration:dur'], plugins: [] });
+    expect(pluginPage).toHaveBeenCalledTimes(2);
+  });
+
+  it('should share one hot index scan between fields rendered together', async () => {
+    const pages = new Subject<any>();
+    const pluginPage = vi.spyOn(TestBed.inject(PluginService), 'page').mockReturnValue(pages);
+    vi.spyOn(TestBed.inject(TemplateService), 'page').mockReturnValue(of({ content: [], page: { number: 0, size: 0, totalElements: 0, totalPages: 1 } }) as any);
+    const both = Promise.all([firstValueFrom(service.hotIndexSuggestions$()), firstValueFrom(service.hotIndexSuggestions$())]);
+    pages.next({ content: [durationPlugin], page: { number: 0, size: 1, totalElements: 1, totalPages: 1 } });
+    pages.complete();
+    expect((await both)[1].tags).toEqual(['plugin/duration:dur']);
+    expect(pluginPage).toHaveBeenCalledTimes(1);
   });
 
   it('should fall back to hard coded config admin forms', () => {
