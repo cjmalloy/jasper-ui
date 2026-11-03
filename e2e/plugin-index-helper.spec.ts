@@ -58,7 +58,7 @@ test.describe.serial('Index Helper', () => {
   test('grant read access', async ({ request, origin }) => {
     const res = await request.post(`${api}/user`, {
       headers: await headers(request),
-      data: { tag: '+user/debug', origin, tagReadAccess: ['_config/index.helper', '_config/index'] },
+      data: { tag: '+user/debug', origin, tagReadAccess: ['_index.helper', '_config/index'] },
     });
     expect(res.ok(), await res.text()).toBeTruthy();
   });

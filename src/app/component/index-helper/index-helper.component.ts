@@ -42,11 +42,14 @@ export class IndexHelperComponent {
   readonly fixing = signal(false);
   readonly serverError = signal<string[]>([]);
 
-  readonly enabled = computed(() => !!this.admin.getTemplate('_config/index.helper'));
+  readonly enabled = computed(() => !!this.admin.getTemplate('_index.helper'));
   readonly needs = computed(() => indexNeeds(this.query.args()), { equal: isEqual });
 
+  /**
+   * Only load the index config once a query uses an index.
+   */
   private readonly indexConfig = rxResource({
-    params: () => this.enabled() ? '_config/index' + this.store.account.origin() : undefined,
+    params: () => this.enabled() && hasIndexes(this.needs()) ? '_config/index' + this.store.account.origin() : undefined,
     stream: ({ params }) => this.templates.get(params).pipe(catchError(() => of(null))),
   });
   readonly index = computed(() => this.indexConfig.hasValue() ? this.indexConfig.value() : undefined);
