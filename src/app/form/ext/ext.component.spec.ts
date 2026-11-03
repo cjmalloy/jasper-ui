@@ -95,6 +95,25 @@ describe('ExtFormComponent', () => {
     expect(component.defaultFilter().value).toHaveLength(1);
   });
 
+  it('marks the form dirty when editing default sorts and filters', () => {
+    component.config().addControl('defaultSort', new FormControl<string[]>(['published,DESC'], { nonNullable: true }));
+    component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>(['published/before/P1D'], { nonNullable: true }));
+    detectInputChanges();
+    const group = component.group();
+    expect(group.dirty).toBe(false);
+
+    component.setSortDir(0, 'ASC');
+    expect(group.dirty).toBe(true);
+    group.markAsPristine();
+
+    const range = fixture.nativeElement.querySelector('.default-filter-date-range input[type="range"]') as HTMLInputElement;
+    range.value = '3';
+    range.dispatchEvent(new Event('input'));
+    range.dispatchEvent(new Event('change'));
+    expect(component.defaultFilter().value).toEqual(['published/before/PT1H']);
+    expect(group.dirty).toBe(true);
+  });
+
   it('shows a negated default filter on its base option', () => {
     component.allFilters.set([
       { filter: 'query/private', label: 'private' },

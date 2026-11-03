@@ -145,4 +145,21 @@ test.describe.serial('Ext defaults', () => {
     await page.reload({ waitUntil: 'networkidle' });
     await expect(page.locator('.lens-header h1')).toHaveText('Home header');
   });
+
+  test('asks to discard the draft after editing a default date filter', async ({ page }) => {
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    const range = page.locator('.default-filter-row .relative-date-range').first();
+    await expect(range).toBeVisible();
+    await range.press('End');
+    await expect(page.locator('.default-filter-date-range output').first()).toHaveText('100 years ago');
+
+    const dialogs: string[] = [];
+    page.once('dialog', dialog => {
+      dialogs.push(dialog.message());
+      return dialog.dismiss();
+    });
+    await page.locator('a.logo').click();
+    await expect.poll(() => dialogs).toEqual(['Discard draft?']);
+    await expect(page).toHaveURL(/\/ext\/config\/home/);
+  });
 });
