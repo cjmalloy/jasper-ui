@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import { AdminService } from '../service/admin.service';
 import { Saving } from '../store/submit';
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
@@ -12,6 +12,21 @@ import { ImageUploadComponent } from './image-upload/image-upload.component';
 import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
+
+const suggestionCache = new WeakMap<object, Map<unknown, Observable<string[]>>>();
+
+/**
+ * Suggestions are loaded once per parent field, so adding an item to a list
+ * reuses the suggestions instead of loading them again.
+ * Opening the form again builds new fields, which loads them again.
+ */
+export function sharedSuggestions(parent: object, key: unknown, load: () => Observable<unknown>): Observable<string[]> {
+  let cache = suggestionCache.get(parent);
+  if (!cache) suggestionCache.set(parent, cache = new Map());
+  let result = cache.get(key);
+  if (!result) cache.set(key, result = (load() as Observable<string[]>).pipe(shareReplay(1)));
+  return result;
+}
 
 @Component({
   selector: 'formly-field-input',
@@ -87,7 +102,7 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 
   private readonly suggested = rxResource({
     params: () => this.props.suggestions,
-    stream: ({ params }) => params(this.admin) as Observable<string[]>,
+    stream: ({ params }) => sharedSuggestions(this.field.parent || this.field, params, () => params(this.admin)),
   });
 
   /**
