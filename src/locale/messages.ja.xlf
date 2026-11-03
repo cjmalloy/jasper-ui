@@ -8335,6 +8335,54 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Unit</source>
         <target>単位</target>
       </trans-unit>
+      <trans-unit id="1351960864982014330" datatype="html">
+        <source>This query might not be using DB indices</source>
+        <target>このクエリはDBインデックスを使用していない可能性があります</target>
+      </trans-unit>
+      <trans-unit id="3084651188390309598" datatype="html">
+        <source>⚡️ Not indexed</source>
+        <target>⚡️ インデックスなし</target>
+      </trans-unit>
+      <trans-unit id="3587778497229799551" datatype="html">
+        <source>request</source>
+        <target>リクエスト</target>
+      </trans-unit>
+      <trans-unit id="365417024232498474" datatype="html">
+        <source>Please add these DB indices to the _config/index template to speed up this query:</source>
+        <target>このクエリを高速化するため、次のDBインデックスを_config/indexテンプレートに追加してください:</target>
+      </trans-unit>
+      <trans-unit id="3826239813864023955" datatype="html">
+        <source>fix</source>
+        <target>修正</target>
+      </trans-unit>
+      <trans-unit id="3829500704324703245" datatype="html">
+        <source>Index request</source>
+        <target>インデックスのリクエスト</target>
+      </trans-unit>
+      <trans-unit id="6215927026522448416" datatype="html">
+        <source>This query is not using DB indices</source>
+        <target>このクエリはDBインデックスを使用していません</target>
+      </trans-unit>
+      <trans-unit id="6559568111517881125" datatype="html">
+        <source>⚡️ May not be indexed</source>
+        <target>⚡️ インデックスがない可能性があります</target>
+      </trans-unit>
+      <trans-unit id="6980926981064110029" datatype="html">
+        <source>⚡️ Index Helper</source>
+        <target>⚡️ インデックスヘルパー</target>
+      </trans-unit>
+      <trans-unit id="77420438410761387" datatype="html">
+        <source>Ask an admin to add the missing indices</source>
+        <target>不足しているインデックスの追加を管理者に依頼する</target>
+      </trans-unit>
+      <trans-unit id="7973472992007164910" datatype="html">
+        <source>Add the missing indices to the _config/index template</source>
+        <target>不足しているインデックスを_config/indexテンプレートに追加する</target>
+      </trans-unit>
+      <trans-unit id="8846395617085139292" datatype="html">
+        <source>Check if the current query is using DB indices. Admins can add missing indices to the _config/index template, everyone else can ask for them.</source>
+        <target>現在のクエリがDBインデックスを使用しているか確認します。管理者は不足しているインデックスを_config/indexテンプレートに追加でき、その他のユーザーは追加を依頼できます。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
