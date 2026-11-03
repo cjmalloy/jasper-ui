@@ -34,27 +34,27 @@
             i18n-label label="Notifications:"
             fieldName="notifications"
             emoji="✉️"
-            [group]="group()"></app-tags>
+            [group]="group()" />
 
   <app-tags
             i18n-label label="Read Access:"
             fieldName="readAccess"
-            [group]="group()"></app-tags>
+            [group]="group()" />
 
   <app-tags
             i18n-label label="Write Access:"
             fieldName="writeAccess"
-            [group]="group()"></app-tags>
+            [group]="group()" />
 
   <app-tags
             i18n-label label="Tag Read Access:"
             fieldName="tagReadAccess"
-            [group]="group()"></app-tags>
+            [group]="group()" />
 
   <app-tags
             i18n-label label="Tag Write Access:"
             fieldName="tagWriteAccess"
-            [group]="group()"></app-tags>
+            [group]="group()" />
 
   @if (showPubKey()) {
     <label [for]="id + '-pubKey'" i18n>SSH Public Key:</label>
@@ -80,7 +80,7 @@
       <app-json (focusin)="editingExternal.set(true)" [id]="id + '-external'"
                 fieldName="external"
                 [style.pointer-events]="store.account.mod ? 'auto' : 'none'"
-                [group]="group()"></app-json>
+                [group]="group()" />
       @if (externalErrors().length) {
         <span><!-- Errors --></span>
         @for (e of externalErrors(); track e) {

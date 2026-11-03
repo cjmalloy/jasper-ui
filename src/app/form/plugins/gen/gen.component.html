@@ -18,7 +18,7 @@
                    [model]="model()"
                    [form]="group()!"
                    [fields]="form() || advancedForm()!"
-                   [options]="options"></formly-form>
+                   [options]="options" />
     }
     @if (advancedForm() && (form() || !promoteAdvanced())) {
       <details class="advanced {{ cssClass(plugin().tag) }}"
@@ -33,7 +33,7 @@
                      [model]="model()"
                      [form]="group()!"
                      [fields]="advancedForm()!"
-                     [options]="options"></formly-form>
+                     [options]="options" />
       </details>
     }
   }
@@ -41,7 +41,7 @@
     @if (plugins().contains(child.tag)) {
       <hr>
       <div>
-        <app-form-gen [plugins]="plugins()" [plugin]="child" [values]="values()"></app-form-gen>
+        <app-form-gen [plugins]="plugins()" [plugin]="child" [values]="values()" />
       </div>
     }
   }

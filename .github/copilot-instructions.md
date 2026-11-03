@@ -93,8 +93,8 @@ npx playwright install --with-deps chromium
 | Task | Command | Verified time |
 |---|---|---|
 | Production build (all locales) | `npm run build` | ~45s (up to ~100s on cold cache) |
-| Lint (angular-eslint) | `npm run lint` | ~10s. `npx eslint src --fix` fixes self-closing tags. |
-| Unit tests (lint, then Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
+| Lint (angular-eslint) | `npm run lint` | ~10s. Must report 0 errors. `npx eslint src --fix` fixes self-closing tags and missing `readonly`. |
+| Unit tests (Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
 | Single spec | `npx ng test --watch=false --include src/app/util/format.spec.ts` | ~6s |
 | App type check (incl. template diagnostics) | `npx ngc -p tsconfig.app.json --noEmit` | ~15s |
 | Unit tests exactly like CI | `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test` | ~4.5 min (cached builder) |
@@ -271,7 +271,7 @@ More rules:
 - Use `isDevMode()` only for Angular checks. For local development conveniences (auto login, prefetch, ...) use `environment.dev`, which is false in the E2E build.
 
 Checks:
-- **Lint** (`npm run lint`, also run by `npm test` and the Docker build): angular-eslint `prefer-inject`, `prefer-signals`, `template/prefer-control-flow`, `template/prefer-self-closing-tags`; bans `@Input`/`@Output`/`@ViewChild(ren)`/`@ContentChild(ren)`/`@HostBinding`/`@HostListener`, lifecycle interfaces, lodash `defer`/`delay`, and imports of `zone.js`, `mobx*`, `NgZone` and `HTTP_INTERCEPTORS`. Config: `eslint.config.js`.
+- **Lint** (`npm run lint`): a local check for you. CI, `npm test` and the Docker build do **not** run it, so run it yourself before committing. The baseline is 0 errors, so any error is yours to fix. angular-eslint `prefer-inject`, `prefer-signals`, `template/prefer-control-flow`, `template/prefer-self-closing-tags`; bans `@Input`/`@Output`/`@ViewChild(ren)`/`@ContentChild(ren)`/`@HostBinding`/`@HostListener`, lifecycle interfaces, and imports of `zone.js`, `mobx*`, `NgZone` and `HTTP_INTERCEPTORS`. Config: `eslint.config.js`.
 - **Compiler** (`tsconfig.json`): `strictTemplates` plus the extended diagnostics `interpolatedSignalNotInvoked` (NG8109), `uninvokedFunctionInEventBinding` (NG8111), `uninvokedFunctionInTextInterpolation` (NG8117) and `uninvokedTrackFunction` (NG8115) are errors. `strictTemplates` also reports TS2774 for an uncalled function in `@if`.
 - **Runtime**: the dev build (`npm start`, `environment.ts`) adds `provideCheckNoChangesConfig({ exhaustive: true })`, so state that changes without notifying an OnPush view logs NG0100. E2E runs the production build, where these dev-mode checks are compiled out.
 

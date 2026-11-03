@@ -3,13 +3,13 @@
     <app-comment [ref]="ref"
                  [showLoadMore]="showLoadMore()"
                  [depth]="depth()"
-                 [context]="context()"></app-comment>
+                 [context]="context()" />
   } @else {
     <app-ref [ref]="ref"
              [class.thread]="true"
              [showToggle]="false"
              [expanded]="true"
-             [expandInline]="true"></app-ref>
+             [expandInline]="true" />
   }
 }
 @if (depth() > 0) {
@@ -18,13 +18,13 @@
       <app-comment [ref]="ref"
                    [showLoadMore]="showLoadMore()"
                    [depth]="depth()"
-                   [context]="context()"></app-comment>
+                   [context]="context()" />
     } @else {
       <app-ref [ref]="ref"
                [class.thread]="true"
                [showToggle]="false"
                [expanded]="true"
-               [expandInline]="true"></app-ref>
+               [expandInline]="true" />
     }
   }
 }

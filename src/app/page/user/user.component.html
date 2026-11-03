@@ -1,7 +1,7 @@
 <div class="tabs">
   <a class="logo" routerLink="/"></a>
   <h5 routerLink="." i18n>User Permissions</h5>
-  <app-settings></app-settings>
+  <app-settings />
 </div>
 
 <form class="form" [formGroup]="profileForm" (ngSubmit)="save()">
@@ -12,7 +12,7 @@
                  [showClear]="!!store.view.selectedUser()"
                  [showPubKey]="!!store.view.selectedUser()"
                  [externalErrors]="externalErrors()"
-                 (clear)="clear()"></app-user-form>
+                 (clear)="clear()" />
 
   @if (config.scim) {
     <label class="scim-label">SCIM</label>

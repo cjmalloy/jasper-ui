@@ -1,5 +1,5 @@
 <a class="fake-link" (click)="editing.set(!editing())">
-  <ng-content></ng-content>
+  <ng-content />
 </a>
 @if (editing()) {
   <span class="inline-tagging">
@@ -22,5 +22,5 @@
     <button type="button" (click)="save(inlineTag)" i18n>+</button>
   </span>
 } @else if (acting()) {
-  <app-loading [inline]="true"></app-loading>
+  <app-loading [inline]="true" />
 }

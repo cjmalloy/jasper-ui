@@ -49,6 +49,6 @@
 </app-tabs>
 @if (store.view.type()) {
   <app-sidebar [tag]="store.view.settingsTag()"
-               [ext]="store.view.settingsExt()"></app-sidebar>
+               [ext]="store.view.settingsExt()" />
 }
-<router-outlet></router-outlet>
+<router-outlet />

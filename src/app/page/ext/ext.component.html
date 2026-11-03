@@ -1,15 +1,15 @@
 <div class="tabs">
   <a class="logo" routerLink="/"></a>
   <h5 routerLink="." i18n>Edit Tag</h5>
-  <app-settings></app-settings>
+  <app-settings />
 </div>
 @if (!loaded()) {
-  <app-loading></app-loading>
+  <app-loading />
 } @else if (!store.view.ext()) {
   <form class="form" [formGroup]="extForm" (ngSubmit)="create()">
     <label for="tag"></label>
     <div class="form-array">
-      <app-select-template [(template)]="template"></app-select-template>
+      <app-select-template [(template)]="template" />
       <input id="tag"
              name="tag"
              i18n-placeholder
@@ -31,7 +31,7 @@
     <span><!-- Buttons --></span>
     <span class="buttons right floating">
       @if (creating()) {
-        <app-loading [inline]="true"></app-loading>
+        <app-loading [inline]="true" />
       }
       <button type="submit" [disabled]="!loaded() || creating() || submitted() && !extFormValid()" i18n>Extend</button>
     </span>
@@ -43,7 +43,7 @@
     <app-ext-form [group]="editForm"
                   [ext]="ext()"
                   [showClear]="true"
-                  (clear)="clear()"></app-ext-form>
+                  (clear)="clear()" />
 
     @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
@@ -59,7 +59,7 @@
         </div>
       }
       @if (editing() || deleting()) {
-        <app-loading [inline]="true"></app-loading>
+        <app-loading [inline]="true" />
       }
       <button type="submit" [disabled]="editing() || deleting() || submitted() && !editFormValid()" i18n>Save</button>
         <button type="button" [disabled]="editing() || deleting()" (click)="delete()" i18n>Delete</button>

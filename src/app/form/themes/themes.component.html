@@ -3,11 +3,11 @@
                  placeholder="New theme name..."
                  (onAdd)="addTheme($event)"
                  (onRemove)="removeTheme($event)"
-                 (selected)="edit($event)"></app-list-editor>
+                 (selected)="edit($event)" />
 @for (theme of keys(); track theme) {
   @if (theme === selectedTheme() && themes(); as group) {
     <app-code [group]="group"
               language="css"
-              [fieldName]="theme"></app-code>
+              [fieldName]="theme" />
   }
 }

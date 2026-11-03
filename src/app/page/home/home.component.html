@@ -44,7 +44,7 @@
 <app-sidebar [home]="true"
              [floating]="store.view.floatingSidebar()"
              [ext]="store.view.homeExt()"
-             [activeExts]="store.view.activeExts()"></app-sidebar>
+             [activeExts]="store.view.activeExts()" />
 @if (query.error()?.status !== 403) {
   <app-lens #lens [page]="query.page()"
             [showVotes]="store.view.isVoteSorted()"
@@ -55,7 +55,7 @@
             [cols]="store.view.cols()"
             [sort]="store.view.sort()"
             [filter]="store.view.filter()"
-            [search]="store.view.search()"></app-lens>
+            [search]="store.view.search()" />
 } @else {
   <div class="error-403" i18n>Access Denied</div>
 }

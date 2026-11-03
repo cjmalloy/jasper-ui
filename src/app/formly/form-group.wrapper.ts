@@ -15,7 +15,7 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
     </label>
 
     <div class="nested-form">
-      <ng-template #fieldComponent></ng-template>
+      <ng-template #fieldComponent />
     </div>
 
     @if (props.footer) {

@@ -4,13 +4,13 @@
                 emptyMessage=""
                 [showToggle]="false"
                 [expanded]="true"
-                [expandInline]="true"></app-ref-list>
+                [expandInline]="true" />
 } @else {
-  <app-loading></app-loading>
+  <app-loading />
 }
 @if (store.view.ref()) {
   <app-comment-reply #reply
                      [to]="to()"
                      [tags]="replyTags()"
-                     (save)="newRefs$.next($event)"></app-comment-reply>
+                     (save)="newRefs$.next($event)" />
 }

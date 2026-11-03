@@ -10,12 +10,12 @@
                    [line]="line"
                    [origin]="origin()"
                    [plugins]="tags() || ref()?.tags || []"
-                   (update)="update({ index: i, text: $event.text, checked: $event.checked })"></app-todo-item>
+                   (update)="update({ index: i, text: $event.text, checked: $event.checked })" />
   }
   @for (line of pushText(); let i = $index; track line) {
     <app-todo-item [line]="line"
                    [origin]="origin()"
-                   [plugins]="tags() || ref()?.tags || []"></app-todo-item>
+                   [plugins]="tags() || ref()?.tags || []" />
   }
 </div>
 <div class="spacer"></div>

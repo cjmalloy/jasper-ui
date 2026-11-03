@@ -109,11 +109,11 @@
       </div>
       @if (editing()) {
         <app-comment-edit #editComponent [ref]="ref()"
-                          [commentEdited$]="commentEdited$"></app-comment-edit>
+                          [commentEdited$]="commentEdited$" />
       } @else {
         <app-viewer class="comment-body"
                     [expand]="false"
-                    [ref]="ref()"></app-viewer>
+                    [ref]="ref()" />
       }
       <div class="actions">
         <a [routerLink]="['/ref', ref().url, 'comments']"
@@ -157,7 +157,7 @@
         }
         <app-action-list [ref]="ref()"
                          [showDownload]="false"
-                         [groupedActions]="groupedActions()"></app-action-list>
+                         [groupedActions]="groupedActions()" />
       </div>
     </div>
   }
@@ -168,7 +168,7 @@
                      [to]="ref()"
                      [showCancel]="true"
                      [tags]="replyTags()"
-                     (save)="newComments$.next($event)"></app-comment-reply>
+                     (save)="newComments$.next($event)" />
 }
 <div class="comment-children"
      [class.hidden-without-removing]="collapsed()">
@@ -176,7 +176,7 @@
                       [scrollToLatest]="scrollToLatest()"
                       [depth]="(depth() ?? 0) - 1"
                       [context]="context() + 1"
-                      [newComments$]="newComments$"></app-comment-thread>
+                      [newComments$]="newComments$" />
 </div>
 @if (showLoadMore() && !collapsed() && ((depth() === 1 && comments()) || moreComments())) {
   @if (context() < maxContext) {

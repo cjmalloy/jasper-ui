@@ -17,7 +17,7 @@ const datalist: DurationOption[] = [
   imports: [ReactiveFormsModule, DurationInputAccessor],
 })
 class HostComponent {
-  datalist = signal(datalist);
+  readonly datalist = signal(datalist);
   control = new FormControl<string | number>('PT2S', { nonNullable: true });
 }
 

@@ -5,7 +5,7 @@
               (syncTags)="syncTags($event)"
               (addSource)="addSource($event)"
               (uploadCompleted)="uploadCompleted($event)"
-              [autoFocus]="autofocus()"></app-editor>
+              [autoFocus]="autofocus()" />
 </form>
 @for (e of serverError(); track e) {
   <div class="error">{{ e }}</div>
@@ -14,7 +14,7 @@
 <span class="buttons" [class.floating]="editor.showPreview()">
   <button class="comment-reply-submit" type="button" [disabled]="replying()" (click)="reply()" i18n>reply</button>
   @if (replying()) {
-    <app-loading [inline]="true"></app-loading>
+    <app-loading [inline]="true" />
   } @else if (showCancel()) {
     <button class="comment-reply-cancel" type="button" (click)="cancel()" i18n>cancel</button>
   }

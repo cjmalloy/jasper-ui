@@ -46,7 +46,7 @@ import { closedRings, locationLists, locationPicker } from './location-picker';
           <formly-field class="grow"
                         [field]="field"
                         (focusout)="maybeRemove($event, i)"
-                        (keydown)="keydown($event, i)"></formly-field>
+                        (keydown)="keydown($event, i)" />
           <button type="button" (click)="remove(i)" i18n>&ndash;</button>
         </div>
         }

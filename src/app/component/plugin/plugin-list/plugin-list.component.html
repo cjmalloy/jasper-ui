@@ -2,14 +2,14 @@
   <div class="list-container">
     @for (p of page()!.content; track p.tag + p.origin; let i = $index) {
       <div class="list-number">{{ i + page()!.page.number * page()!.page.size + 1 }}</div>
-      <app-plugin [plugin]="p"></app-plugin>
+      <app-plugin [plugin]="p" />
     }
   </div>
   @if (page()!.content.length) {
-    <app-page-controls [page]="page()"></app-page-controls>
+    <app-page-controls [page]="page()" />
   } @else {
     <p class="no-results" i18n>No results found</p>
   }
 } @else {
-  <app-loading></app-loading>
+  <app-loading />
 }

@@ -4,17 +4,17 @@
              [fetchRepost]="false"
              [showToggle]="true"
              [expandInline]="true"
-             [ref]="repost()"></app-ref>
+             [ref]="repost()" />
   }
   @if (editingRef()) {
     <app-ref class="list-item expand"
              [fetchRepost]="false"
              [showToggle]="true"
              [expandInline]="true"
-             [ref]="editingRef()"></app-ref>
+             [ref]="editingRef()" />
   }
   @if (playlist()) {
-    <app-playlist [ref]="ref()"></app-playlist>
+    <app-playlist [ref]="ref()" />
   }
   @if (lens()) {
     @if (lensPage()) {
@@ -27,9 +27,9 @@
                 [cols]="lensCols()"
                 [sort]="lensSort()"
                 [filter]="lensFilter()"
-                [search]="lensSearch()"></app-lens>
+                [search]="lensSearch()" />
     } @else {
-      <app-loading></app-loading>
+      <app-loading />
     }
   }
   @if (embedIframe()) {
@@ -87,7 +87,7 @@
   @if (qrUrl()) {
     <app-qr class="zoom qr-expand"
             [url]="qrUrl()"
-            [appResize]="!disableResize()"></app-qr>
+            [appResize]="!disableResize()" />
   }
   @if (mapPage(); as mapPage) {
     @defer {
@@ -108,14 +108,14 @@
               [text]="text()"
               [tags]="tags()"
               (comment)="comment.emit($event)"
-              (copied)="copied.emit($event)"></app-todo>
+              (copied)="copied.emit($event)" />
   }
   @if (backgammon()) {
     <app-backgammon class="no-resize"
                     [ref]="ref()"
                     [text]="text()"
                     (comment)="comment.emit($event)"
-                    (copied)="copied.emit($event)"></app-backgammon>
+                    (copied)="copied.emit($event)" />
   }
   @if (chess()) {
     <app-chess class="no-resize"
@@ -123,7 +123,7 @@
                [ref]="ref()"
                [text]="text()"
                (comment)="comment.emit($event)"
-               (copied)="copied.emit($event)"></app-chess>
+               (copied)="copied.emit($event)" />
   }
 }
 @if (code()) {
@@ -131,13 +131,13 @@
           [origin]="currentOrigin()"
           [text]="currentCode()"
           [mermaid]="false"
-          [clipboard]="false"></app-md>
+          [clipboard]="false" />
 } @else if (currentText()) {
   <app-md class="zoom md-container"
           [class.expand]="expand()"
           [origin]="currentOrigin()"
           [text]="currentText()"
-          [plugins]="currentTags()"></app-md>
+          [plugins]="currentTags()" />
 }
 @if (pdf()) {
   <div class="embed-container"
@@ -158,10 +158,10 @@
           [class]="uiCss(ui.tag)"
           [disableSanitizer]="true"
           [origin]="currentOrigin()"
-          [text]="ui.text"></app-md>
+          [text]="ui.text" />
 }
 @if (mod()) {
   <app-mod class="zoom md-container"
            [mod]="mod()"
-           [class.expand]="expand()"></app-mod>
+           [class.expand]="expand()" />
 }

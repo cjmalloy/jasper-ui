@@ -45,7 +45,7 @@
             i18n-title
             title="Upload Backup" i18n>+ upload</button>
   } @else {
-    <app-loading></app-loading>
+    <app-loading />
   }
   <input #uploadFile
          type="file"
@@ -67,7 +67,7 @@
 }
 
 <app-backup-list [list]="list()"
-                 [origin]="origin()"></app-backup-list>
+                 [origin]="origin()" />
 
 <ng-template #backupOptions>
   <div class="popup bubble" (click)="$event.stopPropagation()" [formGroup]="backupOptionsForm">

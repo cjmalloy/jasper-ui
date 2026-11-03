@@ -3,7 +3,7 @@
   <app-comment #comment
                [ref]="comment"
                [depth]="depth()"
-               [context]="context()"></app-comment>
+               [context]="context()" />
 }
 @if (depth() > 0) {
   @for (comment of comments(); track comment.origin + comment.url) {
@@ -11,6 +11,6 @@
                  [ref]="comment"
                  [scrollToLatest]="scrollToLatest()"
                  [depth]="depth()"
-                 [context]="context()"></app-comment>
+                 [context]="context()" />
   }
 }

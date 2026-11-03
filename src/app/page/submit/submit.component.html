@@ -62,7 +62,7 @@
     }
   }
 </app-tabs>
-<router-outlet></router-outlet>
+<router-outlet />
 
 @if (!store.submit.subpage()) {
   <div class="full-page-form">
@@ -96,7 +96,7 @@
       <div class="form-array">
         @if (store.submit.web()) {
           <app-select-plugin [(plugin)]="plugin"
-                             [settings]="!!admin.getPluginSettings(store.submit.tags()).length"></app-select-plugin>
+                             [settings]="!!admin.getPluginSettings(store.submit.tags()).length" />
         }
         @if (uploading()) {
           <progress class="grow" max="100" [value]="progress()"></progress>
@@ -121,14 +121,14 @@
         }
         @if (!store.submit.wiki()) {
           @if ((!plugin() || plugin() === 'plugin/qr') && admin.getPlugin('plugin/qr')) {
-            <app-qr-scanner [upload]="plugin() === 'plugin/qr'" (data)="scanQr($event)"></app-qr-scanner>
+            <app-qr-scanner [upload]="plugin() === 'plugin/qr'" (data)="scanQr($event)" />
           }
           @if (admin.getPlugin('plugin/file')) {
             @switch (plugin()) {
-              @case (  'plugin/pdf') { <app-pdf-upload   (data)="onUpload($event)"></app-pdf-upload> }
-              @case ('plugin/audio') { <app-audio-upload (data)="onUpload($event)"></app-audio-upload> }
-              @case ('plugin/video') { <app-video-upload (data)="onUpload($event)"></app-video-upload> }
-              @case ('plugin/image') { <app-image-upload (data)="onUpload($event)"></app-image-upload> }
+              @case (  'plugin/pdf') { <app-pdf-upload   (data)="onUpload($event)" /> }
+              @case ('plugin/audio') { <app-audio-upload (data)="onUpload($event)" /> }
+              @case ('plugin/video') { <app-video-upload (data)="onUpload($event)" /> }
+              @case ('plugin/image') { <app-image-upload (data)="onUpload($event)" /> }
             }
           }
         }
@@ -149,7 +149,7 @@
       @if (!uploading()) {
         @if (existingRef()) {
           <br>
-          <app-ref [ref]="existingRef()" [showToggle]="true"></app-ref>
+          <app-ref [ref]="existingRef()" [showToggle]="true" />
         }
 
         <br>
@@ -166,7 +166,7 @@
         <span><!-- Buttons --></span>
         <span class="buttons right floating">
           @if (submitFormPending()) {
-            <app-loading [inline]="true"></app-loading>
+            <app-loading [inline]="true" />
           }
           <button type="submit"
                   i18n-title title="Submit link"
@@ -181,7 +181,7 @@
           <div class="list-container">
             @for (ref of responsesToUrl().content; track ref.url; let i = $index) {
               <div class="list-number">{{ i + 1 }}</div>
-              <app-ref [ref]="ref" [showToggle]="true"></app-ref>
+              <app-ref [ref]="ref" [showToggle]="true" />
             }
           </div>
           @if (responsesToUrl().page.totalPages > 1) {
@@ -201,7 +201,7 @@
       <div class="list-container">
         @for (ref of store.submit.topRefs(); track ref.url; let i = $index) {
           <div class="list-number">{{ i + 1 }}</div>
-          <app-ref [ref]="ref" [showToggle]="true"></app-ref>
+          <app-ref [ref]="ref" [showToggle]="true" />
         }
       </div>
       @if (store.submit.refs().length > store.submit.topRefs().length) {

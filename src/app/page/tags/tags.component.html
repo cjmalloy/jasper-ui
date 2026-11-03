@@ -43,9 +43,9 @@
      i18n-title title="🧑️ User"
      i18n>🧑️</a>
 </app-tabs>
-<app-sidebar [tag]="store.view.home() ? '' : store.view.template()"></app-sidebar>
+<app-sidebar [tag]="store.view.home() ? '' : store.view.template()" />
 @if (query.error()?.status !== 403) {
-  <app-ext-list #list [page]="query.page()"></app-ext-list>
+  <app-ext-list #list [page]="query.page()" />
 } @else {
   <div class="error-403" i18n>Access Denied</div>
 }

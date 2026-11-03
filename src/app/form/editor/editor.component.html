@@ -33,7 +33,7 @@
           @if (button.eventDone && loadingEvents()[button.eventDone]) {
             <app-loading class="event-loading"
                          [inline]="true"
-                         [title]="button.title || button.label || ''"></app-loading>
+                         [title]="button.title || button.label || ''" />
           } @else {
             <button type="button"
                     (click)="fireEvent(button)"
@@ -105,7 +105,7 @@
           </div>
         }
       </div>
-      <app-loading class="upload-loading" [batch]="true"></app-loading>
+      <app-loading class="upload-loading" [batch]="true" />
     } @else if (uploadErrors().length) {
       <div class="upload-progress upload-errors">
         <div class="upload-list">
@@ -148,7 +148,7 @@
             [plugins]="allTags()"
             [progressive]="true"
             (postProcessMarkdown)="postProcessMarkdown()"
-            (pointerup)="onSelectPreview()"></app-md>
+            (pointerup)="onSelectPreview()" />
     <textarea #hiddenMeasure
               class="measurer"></textarea>
   }

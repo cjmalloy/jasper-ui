@@ -83,7 +83,7 @@
     <span></span>
     <div>
       @if (processing()) {
-        <app-loading></app-loading>
+        <app-loading />
       }
     </div>
   }
@@ -110,7 +110,7 @@
       <span></span>
       @for (ext of store.submit.exts(); track ext; let i = $index) {
         <div class="list-number">{{ i + 1 }}</div>
-        <app-ext [ext]="ext"></app-ext>
+        <app-ext [ext]="ext" />
       }
     }
     @if (store.submit.refs().length) {
@@ -118,7 +118,7 @@
       <span></span>
       @for (ref of store.submit.refs(); track ref; let i = $index) {
         <div class="list-number">{{ i + 1 }}</div>
-        <app-ref [ref]="ref" [showToggle]="true" [scrollToLatest]="true"></app-ref>
+        <app-ref [ref]="ref" [showToggle]="true" [scrollToLatest]="true" />
       }
     }
   }

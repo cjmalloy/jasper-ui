@@ -4,10 +4,10 @@
 
   @if (store.local.selectedUserTag || config.electron || isDevMode() || store.account.localTag() === '+user' || store.account.localTag() === '_user') {
     <label for="change-user" i18n>Change User:</label>
-    <app-user-tag-selector id="change-user"></app-user-tag-selector>
+    <app-user-tag-selector id="change-user" />
     <hr><hr>
   }
-  <app-ext-form [group]="editForm" [ext]="ext"></app-ext-form>
+  <app-ext-form [group]="editForm" [ext]="ext" />
 
   @for (e of serverError(); track e) {
     <span><!-- Unexpected Error --></span>
@@ -17,7 +17,7 @@
   <span><!-- Buttons --></span>
   <span class="buttons right floating">
     @if (editing()) {
-      <app-loading [inline]="true"></app-loading>
+      <app-loading [inline]="true" />
     }
     <button type="submit" [disabled]="editing() || submitted() && !editFormValid()" i18n>Save</button>
   </span>
