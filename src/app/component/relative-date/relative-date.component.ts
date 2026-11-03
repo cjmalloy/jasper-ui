@@ -109,6 +109,20 @@ export class RelativeDateComponent {
     return this.relative() !== this.store.hotkey();
   });
 
+  /**
+   * The slider was moved from a timestamp, such as with the keyboard.
+   */
+  readonly moved = linkedSignal({
+    source: () => this.value(),
+    computation: () => false,
+  });
+
+  /**
+   * Show the label for a relative date, even in the date input, so holding the hotkey doesn't shift the layout.
+   * A timestamp waits until the slider is used.
+   */
+  readonly showLabel = computed(() => this.relative() || this.dragging() || this.moved());
+
   readonly label = computed(() => relativeDateLabel(presetAt(this.index())));
 
   press() {
@@ -126,6 +140,7 @@ export class RelativeDateComponent {
   }
 
   drag(index: number) {
+    this.moved.set(true);
     if (this.fine()) this.tuned.set(true);
     this.index.set(index);
   }

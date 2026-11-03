@@ -12,7 +12,9 @@
          (pointercancel)="release()"
          (input)="drag(+$any($event.target).value)"
          (change)="set()">
-  <output class="relative-date-label">{{ label() }}</output>
+  @if (showLabel()) {
+    <output class="relative-date-label">{{ label() }}</output>
+  }
 } @else {
   <input type="datetime-local"
          class="relative-date-input"
@@ -22,4 +24,7 @@
          (keydown)="keydown($event)"
          (change)="pick($any($event.target))"
          (blur)="blur($any($event.target))">
+  @if (showLabel()) {
+    <output class="relative-date-label">{{ label() }}</output>
+  }
 }

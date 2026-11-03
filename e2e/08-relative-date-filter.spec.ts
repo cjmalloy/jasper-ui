@@ -51,9 +51,13 @@ test.describe.serial('Relative date filter', () => {
     await expect(page.locator('.filter input[type="datetime-local"]')).toBeVisible();
     await expect(page.locator('.filter .relative-date-range')).toHaveCount(0);
 
+    const label = page.locator('.filter .relative-date-label');
+    await expect(label).toHaveCount(0);
+
     await page.keyboard.down('Control');
     const range = page.locator('.filter .relative-date-range');
     await expect(range).toBeVisible();
+    await expect(label).toHaveCount(0);
     // P7D
     await range.fill('7');
     await page.keyboard.up('Control');
@@ -74,6 +78,7 @@ test.describe.serial('Relative date filter', () => {
     const date = page.locator('.filter input[type="datetime-local"]');
     await expect(date).toBeVisible();
     await expect(page.locator('.filter .relative-date-range')).toHaveCount(0);
+    await expect(page.locator('.filter .relative-date-label')).toHaveText('7 days ago');
     await date.focus();
     await page.keyboard.up('Control');
     await expect(date).toBeVisible();

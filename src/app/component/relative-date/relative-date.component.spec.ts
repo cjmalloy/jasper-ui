@@ -194,4 +194,35 @@ describe('RelativeDateComponent', () => {
     await fixture.whenStable();
     expect(el.querySelector('output')!.textContent).toBe('now');
   });
+
+  it('keeps the label when the hotkey shows the date input', async () => {
+    const el = await render('PT1H');
+    TestBed.inject(Store).hotkey.set(true);
+    await fixture.whenStable();
+    expect(el.querySelector('input[type="datetime-local"]')).not.toBeNull();
+    expect(el.querySelector('output')!.textContent).toBe('1 hour ago');
+  });
+
+  it('waits to label a timestamp until the slider is used', async () => {
+    const el = await render('2025-01-02T03:04:00Z');
+    expect(el.querySelector('output')).toBeNull();
+    TestBed.inject(Store).hotkey.set(true);
+    await fixture.whenStable();
+    const range = el.querySelector<HTMLInputElement>('input[type="range"]')!;
+    expect(el.querySelector('output')).toBeNull();
+    range.dispatchEvent(new Event('pointerdown'));
+    await fixture.whenStable();
+    expect(el.querySelector('output')).not.toBeNull();
+  });
+
+  it('labels a timestamp moved with the keyboard', async () => {
+    const el = await render('2025-01-02T03:04:00Z');
+    TestBed.inject(Store).hotkey.set(true);
+    await fixture.whenStable();
+    const range = el.querySelector<HTMLInputElement>('input[type="range"]')!;
+    range.value = '3';
+    range.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(el.querySelector('output')!.textContent).toBe('1 hour ago');
+  });
 });
