@@ -6,6 +6,8 @@ import { roundSeconds, stopAmount, stopIndex } from '../../util/value-filter';
 
 const PRESET_SECONDS = DATE_PRESETS.map(p => p === 'now' ? 0 : Duration.fromISO(p).as('seconds'));
 
+const MODIFIERS = ['Control', 'Meta', 'Shift', 'Alt'];
+
 function presetAt(index: number) {
   if (Number.isInteger(index)) return DATE_PRESETS[index];
   const seconds = stopAmount(PRESET_SECONDS, index);
@@ -38,18 +40,28 @@ export class RelativeDateComponent {
 
   /**
    * The date input being edited, so it stays after the hotkey is released.
+   * A new value means the edit is done, even if the date input was removed without a blur.
    */
-  readonly typing = signal(false);
+  readonly typing = linkedSignal({
+    source: () => this.value(),
+    computation: () => false,
+  });
 
   /**
    * The date was picked rather than typed, so it can be set right away.
    */
   private picked = false;
 
+  /**
+   * Slider position. A timestamp is placed by how long ago it was, so sliding to `now` changes it.
+   */
   readonly index = linkedSignal(() => {
     const value = this.value();
-    if (value.toLowerCase() === 'now' || !relativeDate(value)) return 0;
-    return stopIndex(PRESET_SECONDS, Duration.fromISO(value.toUpperCase()).as('seconds'));
+    if (value.toLowerCase() === 'now') return 0;
+    if (relativeDate(value)) return stopIndex(PRESET_SECONDS, Duration.fromISO(value.toUpperCase()).as('seconds'));
+    const date = DateTime.fromISO(value);
+    if (!date.isValid) return 0;
+    return stopIndex(PRESET_SECONDS, -date.diffNow('seconds').seconds);
   });
 
   /**
@@ -85,7 +97,7 @@ export class RelativeDateComponent {
    */
   readonly range = computed(() => {
     if (this.dragging()) return true;
-    if (this.typing()) return false;
+    if (this.relative() && this.typing()) return false;
     return this.relative() !== this.store.hotkey();
   });
 
@@ -117,8 +129,11 @@ export class RelativeDateComponent {
   }
 
   keydown(event: KeyboardEvent) {
-    this.picked = false;
-    if (event.key === 'Enter') this.setDate(event.target as HTMLInputElement);
+    if (event.key === 'Enter') {
+      this.setDate(event.target as HTMLInputElement);
+    } else if (!MODIFIERS.includes(event.key)) {
+      this.picked = false;
+    }
   }
 
   pick(input: HTMLInputElement) {

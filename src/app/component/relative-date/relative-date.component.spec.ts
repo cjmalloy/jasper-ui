@@ -131,4 +131,46 @@ describe('RelativeDateComponent', () => {
     await fixture.whenStable();
     expect(el.querySelector('input[type="range"]')).toBe(range);
   });
+
+  it('slides a timestamp to now', async () => {
+    const el = await render(DateTime.now().minus({ days: 7 }).toISO()!);
+    TestBed.inject(Store).hotkey.set(true);
+    await fixture.whenStable();
+    expect(fixture.componentInstance.index()).toBeCloseTo(7, 1);
+    const range = el.querySelector<HTMLInputElement>('input[type="range"]')!;
+    range.value = '0';
+    range.dispatchEvent(new Event('input'));
+    range.dispatchEvent(new Event('change'));
+    expect(changed).toEqual(['now']);
+  });
+
+  it('switches a focused timestamp to the slider with the hotkey', async () => {
+    const el = await render('2025-01-02T03:04:00Z');
+    el.querySelector<HTMLInputElement>('input[type="datetime-local"]')!.dispatchEvent(new Event('focus'));
+    TestBed.inject(Store).hotkey.set(true);
+    await fixture.whenStable();
+    expect(el.querySelector('input[type="range"]')).not.toBeNull();
+  });
+
+  it('picks a date while holding the hotkey', async () => {
+    const el = await render('P1D');
+    const store = TestBed.inject(Store);
+    store.hotkey.set(true);
+    await fixture.whenStable();
+    const date = el.querySelector<HTMLInputElement>('input[type="datetime-local"]')!;
+    date.dispatchEvent(new Event('focus'));
+    date.dispatchEvent(new KeyboardEvent('keydown', { key: 'Control', ctrlKey: true }));
+    store.hotkey.set(false);
+    await fixture.whenStable();
+    date.value = '2025-01-02T03:04';
+    date.dispatchEvent(new Event('change'));
+    const value = DateTime.fromISO('2025-01-02T03:04').toISO()!;
+    expect(changed).toEqual([value]);
+    fixture.componentRef.setInput('value', value);
+    await fixture.whenStable();
+    expect(el.querySelector('input[type="datetime-local"]')).toBe(date);
+    store.hotkey.set(true);
+    await fixture.whenStable();
+    expect(el.querySelector('input[type="range"]')).not.toBeNull();
+  });
 });
