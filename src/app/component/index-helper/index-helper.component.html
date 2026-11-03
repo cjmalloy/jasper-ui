@@ -1,46 +1,31 @@
 @if (show()) {
-  <details class="advanced">
-    <summary>
-      @if (loading()) {
-        <span class="index-status" i18n>⚡️ Indexes</span>
-      } @else if (!anyMissing()) {
-        <span class="index-status indexed" i18n-title title="This query is using DB indices" i18n>⚡️ Indexed</span>
-      } @else if (index()) {
-        <span class="index-status not-indexed" i18n-title title="This query is not using DB indices" i18n>⚡️ Not indexed</span>
-      } @else {
-        <span class="index-status not-indexed" i18n-title title="This query might not be using DB indices" i18n>⚡️ May not be indexed</span>
+  <div class="index-line" [title]="tooltip()">
+    @if (loading()) {
+      <span class="index-status" i18n>⚡️ Indexes</span>
+    } @else if (!anyMissing()) {
+      <span class="index-status indexed" i18n>⚡️ Indexed</span>
+    } @else if (index()) {
+      <span class="index-status not-indexed" i18n>⚡️ Not indexed</span>
+    } @else {
+      <span class="index-status not-indexed" i18n>⚡️ May not be indexed</span>
+    }
+    @if (loading() || fixing()) {
+      <app-loading [inline]="true" />
+    } @else if (anyMissing()) {
+      @if (serverError().length) {
+        <span class="error" [title]="serverError().join('\n')" i18n>failed</span>
       }
-    </summary>
-    <ul class="indexes">
-      @for (f of needs().flags; track f) {
-        <li class="flag">{{ status('flags', f) }} <code>{{ f }}</code></li>
+      @if (disabled() && isAdmin()) {
+        <span class="index-disabled" i18n-title title="The server ignores the _config/index template while it is disabled" i18n>_config/index disabled</span>
+      } @else if (canFix()) {
+        <a class="fake-link fix-indexes"
+           i18n-title title="Add the missing indices to the _config/index template"
+           (click)="fix()" i18n>fix</a>
+      } @else if (config.support) {
+        <a class="fake-link request-indexes"
+           i18n-title title="Ask an admin to add the missing indices"
+           (click)="request()" i18n>request</a>
       }
-      @for (t of needs().hotTags; track t) {
-        <li class="hot-tag">{{ status('hotTags', t) }} <code>tags-&gt;{{ t }}</code></li>
-      }
-      @for (p of needs().hotPlugins; track p) {
-        <li class="hot-plugin">{{ status('hotPlugins', p) }} <code>plugins-&gt;{{ p }}</code></li>
-      }
-    </ul>
-    <div class="index-action">
-      @if (loading() || fixing()) {
-        <app-loading [inline]="true" />
-      } @else if (anyMissing()) {
-        @if (serverError().length) {
-          <span class="error" [title]="serverError().join('\n')" i18n>failed</span>
-        }
-        @if (disabled() && isAdmin()) {
-          <span class="index-disabled" i18n-title title="The server ignores the _config/index template while it is disabled" i18n>_config/index disabled</span>
-        } @else if (canFix()) {
-          <a class="fake-link fix-indexes"
-             i18n-title title="Add the missing indices to the _config/index template"
-             (click)="fix()" i18n>fix</a>
-        } @else if (config.support) {
-          <a class="fake-link request-indexes"
-             i18n-title title="Ask an admin to add the missing indices"
-             (click)="request()" i18n>request</a>
-        }
-      }
-    </div>
-  </details>
+    }
+  </div>
 }

@@ -545,7 +545,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/input.type.ts</context>
-          <context context-type="linenumber">48</context>
+          <context context-type="linenumber">63</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/backup/backup.component.html</context>
@@ -576,7 +576,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/input.type.ts</context>
-          <context context-type="linenumber">48</context>
+          <context context-type="linenumber">63</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/backup/backup.component.html</context>
@@ -2823,112 +2823,91 @@ Please Reload.</source>
         <source>⚡️ Indexes</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">5,6</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4763097035451302644" datatype="html">
-        <source>This query is using DB indices</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">7</context>
+          <context context-type="linenumber">4,5</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3717867441197894810" datatype="html">
         <source>⚡️ Indexed</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">7,8</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="6215927026522448416" datatype="html">
-        <source>This query is not using DB indices</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">9</context>
+          <context context-type="linenumber">6,7</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3084651188390309598" datatype="html">
         <source>⚡️ Not indexed</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">9,10</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="1351960864982014330" datatype="html">
-        <source>This query might not be using DB indices</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">11</context>
+          <context context-type="linenumber">8,9</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6559568111517881125" datatype="html">
         <source>⚡️ May not be indexed</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">11,12</context>
+          <context context-type="linenumber">10,11</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4083337005045748464" datatype="html">
         <source>failed</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">30,31</context>
+          <context context-type="linenumber">16,17</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1676246076323699308" datatype="html">
         <source>The server ignores the _config/index template while it is disabled</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1913408832824440185" datatype="html">
         <source>_config/index disabled</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">33,34</context>
+          <context context-type="linenumber">19,20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7973472992007164910" datatype="html">
         <source>Add the missing indices to the _config/index template</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">36,37</context>
+          <context context-type="linenumber">22,23</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3826239813864023955" datatype="html">
         <source>fix</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">38</context>
+          <context context-type="linenumber">24</context>
         </context-group>
       </trans-unit>
       <trans-unit id="77420438410761387" datatype="html">
         <source>Ask an admin to add the missing indices</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">40,41</context>
+          <context context-type="linenumber">26,27</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3587778497229799551" datatype="html">
         <source>request</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.html</context>
-          <context context-type="linenumber">41,42</context>
+          <context context-type="linenumber">27,28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3829500704324703245" datatype="html">
         <source>Index request</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.ts</context>
-          <context context-type="linenumber">123</context>
+          <context context-type="linenumber">128</context>
         </context-group>
       </trans-unit>
       <trans-unit id="365417024232498474" datatype="html">
         <source>Please add these DB indices to the _config/index template to speed up this query:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/index-helper/index-helper.component.ts</context>
-          <context context-type="linenumber">124</context>
+          <context context-type="linenumber">129</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1110193733117145811" datatype="html">

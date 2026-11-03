@@ -30,18 +30,16 @@ test.describe.serial('Index Helper', () => {
   test('index flags are on by default', async ({ page }) => {
     await page.goto('/tag/science?debug=ADMIN', { waitUntil: 'networkidle' });
     const helper = page.locator('.index-helper');
-    await expect(helper.locator('summary')).toHaveText('⚡️ Indexed');
-    await helper.locator('summary').click();
-    await expect(helper.locator('.flag').first()).toHaveText('✅️ tags');
+    await expect(helper.locator('.index-status')).toHaveText('⚡️ Indexed');
+    await expect(helper.locator('.index-line')).toHaveAttribute('title', /✅️ tags/);
     await expect(helper.locator('.fix-indexes, .request-indexes')).toHaveCount(0);
   });
 
   test('tenant admin can only request root index', async ({ page }) => {
     await page.goto(sorted('tags->plugin/title', 'ADMIN'), { waitUntil: 'networkidle' });
     const helper = page.locator('.index-helper');
-    await expect(helper.locator('summary')).toHaveText('⚡️ May not be indexed');
-    await helper.locator('summary').click();
-    await expect(helper.locator('.hot-tag')).toHaveText('❔ tags->plugin/title');
+    await expect(helper.locator('.index-status')).toHaveText('⚡️ May not be indexed');
+    await expect(helper.locator('.index-line')).toHaveAttribute('title', /❔ tags->plugin\/title/);
     await expect(helper.locator('.fix-indexes')).toHaveCount(0);
     await expect(helper.locator('.request-indexes')).toBeVisible();
   });
@@ -49,7 +47,7 @@ test.describe.serial('Index Helper', () => {
   test('hidden without read access', async ({ page }) => {
     await page.goto(sorted('tags->plugin/duration:dur', 'USER') + '&tag=alice', { waitUntil: 'networkidle' });
     await expect(page.locator('.bulk.actions')).toBeVisible();
-    await expect(page.locator('.index-helper details')).toHaveCount(0);
+    await expect(page.locator('.index-helper .index-line')).toHaveCount(0);
   });
 
   test('grant read access', async ({ request, origin }) => {
@@ -63,8 +61,7 @@ test.describe.serial('Index Helper', () => {
   test('user requests missing hot tag', async ({ page }) => {
     await page.goto(sorted('tags->plugin/duration:dur', 'USER'), { waitUntil: 'networkidle' });
     const helper = page.locator('.index-helper');
-    await helper.locator('summary').click();
-    await expect(helper.locator('.hot-tag')).toHaveText('❔ tags->plugin/duration:dur');
+    await expect(helper.locator('.index-line')).toHaveAttribute('title', /❔ tags->plugin\/duration:dur/);
     await expect(helper.locator('.fix-indexes')).toHaveCount(0);
     await helper.locator('.request-indexes').click();
     await expect(page).toHaveURL(/\/submit\/dm/);

@@ -86,14 +86,19 @@ export class IndexHelperComponent {
   readonly anyMissing = computed(() => hasIndexes(this.missing()));
 
   /**
-   * Status of an index used by the query: ✅️ indexed, ⚠️ missing, or ❔ unknown.
+   * Indices the query uses, marked ✅️ indexed, ⚠️ missing, or ❔ unknown.
    */
-  status(list: keyof IndexNeeds, value: string) {
+  readonly tooltip = computed(() => {
     if (this.loading()) return '';
-    const missing = (this.missing()[list] as string[]).includes(value);
-    if (missing) return this.index() ? '⚠️' : '❔';
-    return '✅️';
-  }
+    const needs = this.needs();
+    const missing = this.missing();
+    const mark = (list: string[], value: string) => !list.includes(value) ? '✅️' : this.index() ? '⚠️' : '❔';
+    return [
+      ...needs.flags.map(f => mark(missing.flags, f) + ' ' + f),
+      ...needs.hotTags.map(t => mark(missing.hotTags, t) + ' tags->' + t),
+      ...needs.hotPlugins.map(p => mark(missing.hotPlugins, p) + ' plugins->' + p),
+    ].join('\n');
+  });
 
   fix() {
     const index = this.index();

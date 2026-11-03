@@ -1,21 +1,16 @@
 :host {
   margin: 0;
+  width: 100%;
 }
 
-details {
-  text-align: right;
-  user-select: none;
+.index-line {
   display: flex;
-  flex-direction: column;
-}
-
-.indexes {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-// Reserve the action line so async results don't move the controls below
-.index-action {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 0 6px;
+  width: 100%;
+  // Reserve the line so async results don't move the controls below
   min-height: 1.5em;
+  user-select: none;
 }

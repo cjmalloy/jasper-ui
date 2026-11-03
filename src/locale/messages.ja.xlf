@@ -8339,10 +8339,6 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Unit</source>
         <target>単位</target>
       </trans-unit>
-      <trans-unit id="1351960864982014330" datatype="html">
-        <source>This query might not be using DB indices</source>
-        <target>このクエリはDBインデックスを使用していない可能性があります</target>
-      </trans-unit>
       <trans-unit id="3084651188390309598" datatype="html">
         <source>⚡️ Not indexed</source>
         <target>⚡️ インデックスなし</target>
@@ -8362,10 +8358,6 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="3829500704324703245" datatype="html">
         <source>Index request</source>
         <target>インデックスのリクエスト</target>
-      </trans-unit>
-      <trans-unit id="6215927026522448416" datatype="html">
-        <source>This query is not using DB indices</source>
-        <target>このクエリはDBインデックスを使用していません</target>
       </trans-unit>
       <trans-unit id="6559568111517881125" datatype="html">
         <source>⚡️ May not be indexed</source>
@@ -8394,10 +8386,6 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="4083337005045748464" datatype="html">
         <source>failed</source>
         <target>失敗</target>
-      </trans-unit>
-      <trans-unit id="4763097035451302644" datatype="html">
-        <source>This query is using DB indices</source>
-        <target>このクエリはDBインデックスを使用しています</target>
       </trans-unit>
       <trans-unit id="8754952744734405536" datatype="html">
         <source>⚡️ Indexes</source>
