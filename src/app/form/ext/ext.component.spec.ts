@@ -217,7 +217,7 @@ describe('ExtFormComponent', () => {
     ]);
   });
 
-  it('uses range presets for special dates and while the hotkey is pressed', () => {
+  it('swaps range presets and dates while the hotkey is pressed', () => {
     component.config().addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'published/before/PT15M',
       'created/after/2026-07-10T03:00:00.000Z',
@@ -225,6 +225,7 @@ describe('ExtFormComponent', () => {
     detectInputChanges();
 
     expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(1);
+    expect(fixture.nativeElement.querySelectorAll('input[type="datetime-local"]')).toHaveLength(1);
     expect(component.filterDatePreset(component.defaultFilter().value[0])).toBe(2);
     expect(component.filterDatePreset('modified/after/now')).toBe(0);
     expect(component.filterSpecialDate('modified/after/P2D')).toBe(true);
@@ -232,7 +233,9 @@ describe('ExtFormComponent', () => {
 
     component.store.hotkey.set(true);
     detectInputChanges();
-    expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(2);
+    const range = fixture.nativeElement.querySelectorAll('.default-filter-date-range')[1].querySelector('input');
+    expect(range.type).toBe('range');
+    expect(fixture.nativeElement.querySelectorAll('.default-filter-date-range')[0].querySelector('input').type).toBe('datetime-local');
 
     component.setFilterDatePreset(1, component.defaultFilter().value[1], 'P1Y');
     expect(component.defaultFilter().value[1]).toBe('created/after/P1Y');

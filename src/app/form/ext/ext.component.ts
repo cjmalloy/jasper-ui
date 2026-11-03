@@ -302,11 +302,6 @@ export class ExtFormComponent  {
     this.setFilter(index, (filter.substring(0, filter.lastIndexOf('/') + 1) + preset) as UrlFilter);
   }
 
-  filterDate(filter: UrlFilter) {
-    const date = DateTime.fromISO(filter.substring(filter.lastIndexOf('/') + 1));
-    return date.isValid ? date.toFormat("yyyy-MM-dd'T'T") : '';
-  }
-
   readonly themes = computed(() => {
     this.rootControlState();
     return this.config().get('themes') as UntypedFormGroup;

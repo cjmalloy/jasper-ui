@@ -346,6 +346,23 @@ export function relativeDatePreset(value: string) {
   }, 0);
 }
 
+/**
+ * Value for a datetime-local input from a date filter value, like `now`, `P1D` or an ISO timestamp.
+ */
+export function dateTimeLocal(value: string) {
+  let dt: DateTime;
+  if (value.toLowerCase() === 'now') {
+    dt = DateTime.now();
+  } else if (value.toUpperCase().startsWith('P')) {
+    const duration = Duration.fromISO(value.toUpperCase());
+    if (!duration.isValid) return '';
+    dt = DateTime.now().minus(duration);
+  } else {
+    dt = DateTime.fromISO(value);
+  }
+  return dt.isValid ? dt.toFormat("yyyy-MM-dd'T'T") : '';
+}
+
 export function fixDateTime(t: string) {
   const relative = t.toUpperCase();
   if (relative === 'NOW') return DateTime.now().toUTC().toISO()!;

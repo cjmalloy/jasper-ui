@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
-import { Duration } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { Store } from '../../store/store';
-import { DATE_PRESETS, relativeDate, relativeDateLabel } from '../../util/query';
+import { DATE_PRESETS, dateTimeLocal, relativeDate, relativeDateLabel } from '../../util/query';
 import { roundSeconds, stopAmount, stopIndex } from '../../util/value-filter';
 
 const PRESET_SECONDS = DATE_PRESETS.map(p => p === 'now' ? 0 : Duration.fromISO(p).as('seconds'));
@@ -13,7 +13,9 @@ function presetAt(index: number) {
 }
 
 /**
- * Slider for a date filter relative to now, like `now` or `P1D`.
+ * Edit the value of a date filter.
+ * Relative dates like `now` or `P1D` use a slider, and timestamps use a date input.
+ * Hold the hotkey to switch between them.
  * Holding the hotkey while dragging slides between the presets.
  */
 @Component({
@@ -29,6 +31,20 @@ export class RelativeDateComponent {
   readonly changed = output<string>();
 
   readonly max = DATE_PRESETS.length - 1;
+
+  readonly relative = computed(() => relativeDate(this.value()));
+
+  readonly date = computed(() => dateTimeLocal(this.value()));
+
+  /**
+   * The date input being edited, so it stays after the hotkey is released.
+   */
+  readonly typing = signal(false);
+
+  /**
+   * The date was picked rather than typed, so it can be set right away.
+   */
+  private picked = false;
 
   readonly index = linkedSignal(() => {
     const value = this.value();
@@ -64,6 +80,15 @@ export class RelativeDateComponent {
    */
   readonly tuned = signal(false);
 
+  /**
+   * Show the slider. Hold the hotkey to switch between the slider and the date input.
+   */
+  readonly range = computed(() => {
+    if (this.dragging()) return true;
+    if (this.typing()) return false;
+    return this.relative() !== this.store.hotkey();
+  });
+
   readonly label = computed(() => relativeDateLabel(presetAt(this.index())));
 
   press() {
@@ -84,5 +109,32 @@ export class RelativeDateComponent {
   set() {
     const value = presetAt(this.index());
     if (value !== this.value()) this.changed.emit(value);
+  }
+
+  focus() {
+    this.typing.set(true);
+    this.picked = true;
+  }
+
+  keydown(event: KeyboardEvent) {
+    this.picked = false;
+    if (event.key === 'Enter') this.setDate(event.target as HTMLInputElement);
+  }
+
+  pick(input: HTMLInputElement) {
+    if (this.picked) this.setDate(input);
+  }
+
+  blur(input: HTMLInputElement) {
+    this.typing.set(false);
+    this.setDate(input);
+  }
+
+  private setDate(input: HTMLInputElement) {
+    this.picked = false;
+    if (!input.value) return;
+    const date = DateTime.fromISO(input.value);
+    if (!date.isValid) return;
+    if (input.value !== this.date()) this.changed.emit(date.toISO()!);
   }
 }

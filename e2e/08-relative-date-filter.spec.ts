@@ -62,4 +62,27 @@ test.describe.serial('Relative date filter', () => {
     await expect(links).toHaveText(['Recent']);
     expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['published/after/P7D']);
   });
+
+  test('hotkey switches a relative date to a date', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=USER&sort=published&filter=published/after/P7D`, { waitUntil: 'networkidle' });
+    const links = page.locator('.ref-list-item .link a');
+    await expect(links).toHaveText(['Recent']);
+    await openSidebar(page);
+    await expect(page.locator('.filter .relative-date-range')).toBeVisible();
+
+    await page.keyboard.down('Control');
+    const date = page.locator('.filter input[type="datetime-local"]');
+    await expect(date).toBeVisible();
+    await expect(page.locator('.filter .relative-date-range')).toHaveCount(0);
+    await date.focus();
+    await page.keyboard.up('Control');
+    await expect(date).toBeVisible();
+    await date.fill('2000-01-01T00:00');
+    await date.press('Enter');
+    await expect(links).toHaveText(['Recent', 'Old']);
+    const [filter] = new URL(page.url()).searchParams.getAll('filter');
+    expect(filter).toMatch(/^published\/after\/2000-01-01T00:00/);
+    await expect(date).toBeVisible();
+    await expect(page.locator('.filter .relative-date-range')).toHaveCount(0);
+  });
 });

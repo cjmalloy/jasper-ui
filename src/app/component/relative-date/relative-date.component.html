@@ -1,14 +1,25 @@
-<input type="range"
-       class="relative-date-range"
-       min="0"
-       [max]="max"
-       [step]="fine() || tuned() ? 'any' : 1"
-       [value]="index()"
-       [attr.aria-valuetext]="label()"
-       i18n-title title="Time ago"
-       (pointerdown)="press()"
-       (pointerup)="release()"
-       (pointercancel)="release()"
-       (input)="drag(+$any($event.target).value)"
-       (change)="set()">
-<output class="relative-date-label">{{ label() }}</output>
+@if (range()) {
+  <input type="range"
+         class="relative-date-range"
+         min="0"
+         [max]="max"
+         [step]="fine() || tuned() ? 'any' : 1"
+         [value]="index()"
+         [attr.aria-valuetext]="label()"
+         i18n-title title="Time ago"
+         (pointerdown)="press()"
+         (pointerup)="release()"
+         (pointercancel)="release()"
+         (input)="drag(+$any($event.target).value)"
+         (change)="set()">
+  <output class="relative-date-label">{{ label() }}</output>
+} @else {
+  <input type="datetime-local"
+         class="relative-date-input"
+         step="60"
+         [value]="date()"
+         (focus)="focus()"
+         (keydown)="keydown($event)"
+         (change)="pick($any($event.target))"
+         (blur)="blur($any($event.target))">
+}
