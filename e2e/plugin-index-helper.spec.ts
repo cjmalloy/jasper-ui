@@ -49,6 +49,20 @@ test.describe.serial('Index Helper', () => {
     expect((await res.json()).config.hotTags).toEqual(['plugin/title', 'plugin/progress:num']);
   });
 
+  test('hidden without read access', async ({ page }) => {
+    await page.goto(sorted('tags->plugin/duration:dur', 'USER') + '&tag=alice', { waitUntil: 'networkidle' });
+    await expect(page.locator('.bulk.actions')).toBeVisible();
+    await expect(page.locator('.index-helper .missing-indexes')).toHaveCount(0);
+  });
+
+  test('grant read access', async ({ request, origin }) => {
+    const res = await request.post(`${api}/user`, {
+      headers: await headers(request),
+      data: { tag: '+user/debug', origin, tagReadAccess: ['_config/index.helper', '_config/index'] },
+    });
+    expect(res.ok(), await res.text()).toBeTruthy();
+  });
+
   test('user requests missing hot tag', async ({ page }) => {
     await page.goto(sorted('tags->plugin/duration:dur', 'USER'), { waitUntil: 'networkidle' });
     const helper = page.locator('.index-helper');

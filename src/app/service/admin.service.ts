@@ -236,6 +236,13 @@ export class AdminService {
     fileMod,
   ];
 
+  /**
+   * Config mods with a private `_config/` tag.
+   */
+  private readonly configMods = this.mods.flatMap(mod => mod.template || [])
+    .map(t => t.tag)
+    .filter(t => t.startsWith('_config/'));
+
   def = {
     plugins: <Record<string, Plugin>> Object.fromEntries(this.mods.flatMap(mod => mod.plugin || []).map(p => [p.tag, p])),
     templates: <Record<string, Template>> Object.fromEntries(this.mods.flatMap(mod => mod.template || []).map(t => [t.tag, t])),
@@ -290,7 +297,7 @@ export class AdminService {
     this.clearCache();
     this.store.view.clearModChanges();
     this._status.set(emptyStatus());
-    return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
+    return forkJoin([this.loadPlugins$(), this.loadTemplates$(), this.loadConfigTemplates$()]).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.firstRun$),
       catchError(() => of(null)),
@@ -400,6 +407,20 @@ export class AdminService {
       retry(10),
       tap(batch => this.templateToStatus(batch.content)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadTemplates$(page + 1) : of(null)),
+    );
+  }
+
+  /**
+   * Config templates are skipped when loading templates, so load the config mods
+   * the user can read one by one.
+   */
+  private loadConfigTemplates$(): Observable<null> {
+    if (!this.configMods.length) return of(null);
+    return forkJoin(this.configMods.map(tag => this.templates.get(tag + this.store.account.origin()).pipe(
+      catchError(() => of(null)),
+    ))).pipe(
+      tap(list => this.templateToStatus(list.filter(t => !!t))),
+      map(() => null),
     );
   }
 

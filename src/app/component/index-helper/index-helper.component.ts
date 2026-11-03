@@ -7,6 +7,7 @@ import { catchError, of } from 'rxjs';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
+import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
@@ -32,6 +33,7 @@ import { LoadingComponent } from '../loading/loading.component';
 export class IndexHelperComponent {
   private admin = inject(AdminService);
   private store = inject(Store);
+  private auth = inject(AuthzService);
   private query = inject(QueryStore);
   private templates = inject(TemplateService);
   private router = inject(Router);
@@ -40,19 +42,19 @@ export class IndexHelperComponent {
   readonly fixing = signal(false);
   readonly serverError = signal<string[]>([]);
 
-  readonly enabled = computed(() => !!this.admin.getTemplate('config/index.helper'));
+  readonly enabled = computed(() => !!this.admin.getTemplate('_config/index.helper'));
   readonly needs = computed(() => indexNeeds(this.query.args()), { equal: isEqual });
 
   private readonly indexConfig = rxResource({
-    params: () => this.enabled() && this.store.account.admin ? '_config/index' + this.store.account.origin() : undefined,
+    params: () => this.enabled() ? '_config/index' + this.store.account.origin() : undefined,
     stream: ({ params }) => this.templates.get(params).pipe(catchError(() => of(null))),
   });
   readonly index = computed(() => this.indexConfig.hasValue() ? this.indexConfig.value() : undefined);
 
   /**
-   * Admins can only fix the index config if they can read it.
+   * Writing templates needs the config role, which defaults to admin.
    */
-  readonly canFix = computed(() => !!this.index() && this.store.account.admin);
+  readonly canFix = computed(() => !!this.index() && this.auth.hasRole('ROLE_ADMIN'));
 
   /**
    * Missing indices. When the index config can't be read, any hot tags or hot plugins

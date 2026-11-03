@@ -8379,9 +8379,9 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Add the missing indices to the _config/index template</source>
         <target>不足しているインデックスを_config/indexテンプレートに追加する</target>
       </trans-unit>
-      <trans-unit id="8846395617085139292" datatype="html">
-        <source>Check if the current query is using DB indices. Admins can add missing indices to the _config/index template, everyone else can ask for them.</source>
-        <target>現在のクエリがDBインデックスを使用しているか確認します。管理者は不足しているインデックスを_config/indexテンプレートに追加でき、その他のユーザーは追加を依頼できます。</target>
+      <trans-unit id="978789602647548878" datatype="html">
+        <source>Check if the current query is using DB indices. Admins can add missing indices to the _config/index template, everyone else can ask for them. Users need read access to _config/index.helper and _config/index.</source>
+        <target>現在のクエリがDBインデックスを使用しているか確認します。管理者は不足しているインデックスを_config/indexテンプレートに追加でき、その他のユーザーは追加を依頼できます。ユーザーには_config/index.helperと_config/indexの読み取りアクセスが必要です。</target>
       </trans-unit>
     </body>
   </file>
