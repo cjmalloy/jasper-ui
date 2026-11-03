@@ -114,17 +114,22 @@ describe('AdminService', () => {
     expect(service.getTemplateAdminForm('parent', 'advancedAdminForm').map(f => f.key)).toEqual(['b']);
   });
 
-  it('should suggest hot tags and hot plugins from installed mods', () => {
-    (service as any).updateStatus((status: any) => {
-      status.plugins['plugin/duration'] = durationPlugin;
-      status.plugins['_plugin/cache'] = cachePlugin;
-      for (const p of jezzballMod.plugin!) status.plugins[p.tag] = p;
+  it('should suggest hot tags and hot plugins from mods in every origin', async () => {
+    const page = <T>(content: T[], number: number, totalPages: number) => of({
+      content, page: { number, size: content.length, totalElements: 0, totalPages },
     });
-    expect(service.hotTagSuggestions()).toEqual(['plugin/duration:dur']);
-    expect(service.hotPluginSuggestions()).toEqual(['_plugin/cache->contentLength:num', 'plugin/score:num']);
+    const pluginPage = vi.spyOn(TestBed.inject(PluginService), 'page').mockImplementation(args => args.page === 0
+      ? page([{ ...durationPlugin, origin: '@a' }], 0, 2)
+      : page([{ ...cachePlugin, origin: '@b' }, ...jezzballMod.plugin!], 1, 2));
+    vi.spyOn(TestBed.inject(TemplateService), 'page').mockReturnValue(page([], 0, 1));
+    expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({
+      tags: ['plugin/duration:dur'],
+      plugins: ['_plugin/cache->contentLength:num', 'plugin/score:num'],
+    });
+    expect(pluginPage.mock.calls.map(([args]) => [args.query, args.page])).toEqual([['@*', 0], ['@*', 1]]);
     const [hotTags, hotPlugins] = service.getTemplateAdminForm('_config/index').slice(-2);
-    expect((hotTags.fieldArray as any).props.suggestions(service)).toEqual(['plugin/duration:dur']);
-    expect((hotPlugins.fieldArray as any).props.suggestions(service)).toEqual(['_plugin/cache->contentLength:num', 'plugin/score:num']);
+    expect(await firstValueFrom((hotTags.fieldArray as any).props.suggestions(service))).toEqual(['plugin/duration:dur']);
+    expect(await firstValueFrom((hotPlugins.fieldArray as any).props.suggestions(service))).toEqual(['_plugin/cache->contentLength:num', 'plugin/score:num']);
   });
 
   it('should fall back to hard coded config admin forms', () => {

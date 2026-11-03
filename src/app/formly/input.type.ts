@@ -1,7 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
+import { Observable } from 'rxjs';
 import { AdminService } from '../service/admin.service';
 import { Saving } from '../store/submit';
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
@@ -21,6 +23,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       } @else if (type !== 'number') {
         <input class="grow"
                (blur)="blur($any($event.target))"
+               (focus)="focus()"
                [type]="type"
                [formControl]="formControl"
                [formlyAttributes]="field"
@@ -82,11 +85,28 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
     return this.props.type || 'text';
   }
 
+  private readonly suggested = rxResource({
+    params: () => this.props.suggestions,
+    stream: ({ params }) => params(this.admin) as Observable<string[]>,
+  });
+
   /**
-   * Suggested values from installed mods, as a function of {@link AdminService}.
+   * Values used by the other items of the parent list, read on focus.
    */
-  suggestions(): string[] {
-    return this.props.suggestions?.(this.admin) || [];
+  private readonly used = signal<unknown[]>([]);
+
+  /**
+   * Suggested values, skipping values already in the parent list.
+   */
+  readonly suggestions = computed(() => {
+    const used = this.used();
+    return (this.suggested.hasValue() ? this.suggested.value() : []).filter(s => !used.includes(s));
+  });
+
+  focus() {
+    if (!this.props.suggestions) return;
+    const list = this.field.parent?.model;
+    this.used.set(Array.isArray(list) ? list.filter((v, i) => String(i) !== String(this.field.key) && v) : []);
   }
 
   validate(input: HTMLInputElement) {

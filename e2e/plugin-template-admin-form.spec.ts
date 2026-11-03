@@ -1,5 +1,5 @@
-import { type APIRequestContext, expect } from '@playwright/test';
-import { adminHeaders, mod, test } from './setup';
+import { type APIRequestContext, expect, type Locator } from '@playwright/test';
+import { adminHeaders, test } from './setup';
 
 test.describe.serial('Plugin/Template Admin Form', () => {
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
@@ -157,11 +157,30 @@ test.describe.serial('Plugin/Template Admin Form', () => {
     await expect(item.locator('details.admin-advanced .json-editor')).toHaveCount(1);
   });
 
-  test('suggests hot tags and hot plugins from installed mods', async ({ page, request, origin }) => {
-    await mod(page, '#mod-cache', '[id="mod-plugin/duration"]');
+  test('suggests hot tags and hot plugins from mods in every origin', async ({ page, request, origin }) => {
+    const tenant = origin + '.tenant';
+    // A tenant admin installs a custom mod in their own origin
+    const plugin = await request.post(`${api}/plugin`, {
+      headers: { ...await headers(request), 'Local-Origin': tenant },
+      data: {
+        tag: 'plugin/custom',
+        origin: tenant,
+        config: {
+          sorts: [
+            { sort: 'tags->plugin/custom:num', label: 'custom' },
+            { sort: 'tags->plugin/custom/rank:num', label: 'custom rank' },
+          ],
+          filters: [
+            { sort: 'tags->plugin/custom:num', after: '1', label: 'custom over' },
+            { sort: 'plugins->plugin/custom->size:num', after: '1', label: 'custom size over' },
+          ],
+        },
+      },
+    });
+    expect(plugin.ok(), await plugin.text()).toBeTruthy();
     const res = await request.post(`${api}/template`, {
       headers: await headers(request),
-      data: { tag: '_config/index', origin, config: { hotTags: [''], hotPlugins: [''] } },
+      data: { tag: '_config/index', origin, config: { hotTags: ['plugin/custom:num', ''], hotPlugins: [''] } },
     });
     expect(res.ok(), await res.text()).toBeTruthy();
 
@@ -170,10 +189,18 @@ test.describe.serial('Plugin/Template Admin Form', () => {
     await expect(item).toHaveCount(1);
     await item.locator('.actions .fake-link', { hasText: 'edit' }).click();
 
-    const hotTag = item.locator('.admin-form input[list$=-suggestions]').first();
-    const hotPlugin = item.locator('.admin-form input[list$=-suggestions]').last();
-    const options = async (input: typeof hotTag) => page.locator(`datalist[id="${await input.getAttribute('list')}"] option`);
-    await expect(await options(hotTag)).toHaveAttribute('value', 'plugin/duration:dur');
-    await expect(await options(hotPlugin)).toHaveAttribute('value', '_plugin/cache->contentLength:num');
+    const inputs = item.locator('.admin-form input[list$=-suggestions]');
+    await expect(inputs).toHaveCount(3);
+    const options = async (index: number) => {
+      const input = inputs.nth(index);
+      await input.focus();
+      return page.locator(`datalist[id="${await input.getAttribute('list')}"] option`);
+    };
+    // Editing a hot tag suggests its own value
+    const values = (options: Locator) => options.evaluateAll(os => os.map(o => (o as HTMLOptionElement).value));
+    await expect.poll(async () => values(await options(0))).toEqual(['plugin/custom/rank:num', 'plugin/custom:num']);
+    await expect.poll(async () => values(await options(2))).toEqual(['plugin/custom->size:num']);
+    // A new hot tag skips values already in the list (blank items are removed on blur, so check this last)
+    await expect.poll(async () => values(await options(1))).toEqual(['plugin/custom/rank:num']);
   });
 });

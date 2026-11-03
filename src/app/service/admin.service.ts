@@ -2,13 +2,14 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
-import { catchError, concat, forkJoin, map, Observable, of, retry, shareReplay, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, EMPTY, expand, forkJoin, map, Observable, of, retry, shareReplay, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
+import { Page } from '../model/page';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../model/tag';
+import { bundleSize, clear, condition, Config, EditorButton, Mod, TagPageArgs } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
 import { aiMod } from '../mods/ai/ai';
@@ -758,22 +759,32 @@ export class AdminService {
       .flatMap(p => p.config?.sorts!);
   });
 
-  /**
-   * Tag value columns used by installed mods to sort or filter, for the `_config/index` hot tags.
-   */
-  readonly hotTagSuggestions = computed(() => uniq([
-    ...this.refSorts().map(s => s.sort),
-    ...this.configProperty('filters').flatMap(p => p.config!.filters!).map(f => f.sort),
-  ].filter(s => s?.startsWith('tags->')).map(s => s!.substring('tags->'.length))).sort());
+  private hotIndexSuggestions?: Observable<HotIndexSuggestions>;
 
   /**
-   * Plugin columns used by installed mods to filter, for the `_config/index` hot plugins.
+   * Columns used by the mods installed in any visible origin, for the `_config/index` hot tags and hot plugins.
+   * Scans every sub origin, since in a multi-tenant setup the root origin may have few mods installed.
    */
-  readonly hotPluginSuggestions = computed(() => uniq(this.configProperty('filters')
-    .flatMap(p => p.config!.filters!)
-    .map(f => f.sort)
-    .filter(s => s?.startsWith('plugins->'))
-    .map(s => s!.substring('plugins->'.length))).sort());
+  hotIndexSuggestions$(): Observable<HotIndexSuggestions> {
+    return this.hotIndexSuggestions ||= forkJoin([
+      this.scanAllOrigins$(args => this.plugins.page(args)),
+      this.scanAllOrigins$(args => this.templates.page(args)),
+    ]).pipe(
+      map(([plugins, templates]) => hotIndexSuggestions(plugins, templates)),
+      catchError(() => of({ tags: [], plugins: [] })),
+      shareReplay({ bufferSize: 1, refCount: true }),
+    );
+  }
+
+  private scanAllOrigins$<T>(page: (args: TagPageArgs) => Observable<Page<T>>): Observable<T[]> {
+    const size = this.config.fetchBatch;
+    return page({ query: '@*', page: 0, size }).pipe(
+      expand((batch, i) => i + 1 < batch.page.totalPages ? page({ query: '@*', page: i + 1, size }) : EMPTY),
+      map(batch => batch.content),
+      toArray(),
+      map(batches => batches.flat()),
+    );
+  }
 
   readonly tagSorts = computed(() => {
     return this.templateConfigProperty('sorts')
@@ -1297,7 +1308,7 @@ const roles = [
   { value: 'ROLE_ADMIN', label: $localize`Admin` },
 ];
 
-function strings(key: string, label: string, addText: string, suggestions?: (admin: AdminService) => string[]): FormlyFieldConfig {
+function strings(key: string, label: string, addText: string, suggestions?: (admin: AdminService) => Observable<string[]>): FormlyFieldConfig {
   return {
     key,
     type: 'list',
@@ -1362,6 +1373,34 @@ function role(key: string, label: string): FormlyFieldConfig {
   };
 }
 
+export interface HotIndexSuggestions {
+  /**
+   * Tag value columns, without the `tags->` prefix.
+   */
+  tags: string[];
+  /**
+   * Plugin columns, without the `plugins->` prefix.
+   */
+  plugins: string[];
+}
+
+/**
+ * Hot tag columns used to sort or filter, and hot plugin columns used to filter.
+ * Plugin sorts are skipped, since the server only uses hot plugin indexes for filters.
+ */
+export function hotIndexSuggestions(plugins: Plugin[], templates: Template[]): HotIndexSuggestions {
+  const sorts = plugins.flatMap(p => p.config?.sorts || []).map(s => s.sort);
+  const filters = [...plugins, ...templates].flatMap(p => p.config?.filters || []).map(f => f.sort);
+  const columns = (prefix: string, cs: (string | undefined)[]) => uniq(cs
+    .filter(c => c?.startsWith(prefix))
+    .map(c => c!.substring(prefix.length)))
+    .sort();
+  return {
+    tags: columns('tags->', [...sorts, ...filters]),
+    plugins: columns('plugins->', filters),
+  };
+}
+
 const indexConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'tags', type: 'boolean', props: { label: $localize`Tags:` } },
   { key: 'sources', type: 'boolean', props: { label: $localize`Sources:` } },
@@ -1374,8 +1413,8 @@ const indexConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'ignored', type: 'boolean', props: { label: $localize`Ignored:` } },
   { key: 'cascade', type: 'boolean', props: { label: $localize`Cascade:` } },
   { key: 'regen', type: 'boolean', props: { label: $localize`Regen:` } },
-  strings('hotTags', $localize`Hot Tags:`, $localize`+ Add another hot tag`, admin => admin.hotTagSuggestions()),
-  strings('hotPlugins', $localize`Hot Plugins:`, $localize`+ Add another hot plugin`, admin => admin.hotPluginSuggestions()),
+  strings('hotTags', $localize`Hot Tags:`, $localize`+ Add another hot tag`, admin => admin.hotIndexSuggestions$().pipe(map(s => s.tags))),
+  strings('hotPlugins', $localize`Hot Plugins:`, $localize`+ Add another hot plugin`, admin => admin.hotIndexSuggestions$().pipe(map(s => s.plugins))),
 ];
 
 const securityConfigAdminForm: FormlyFieldConfig[] = [
