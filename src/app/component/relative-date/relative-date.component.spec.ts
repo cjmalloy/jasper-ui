@@ -295,4 +295,20 @@ describe('RelativeDateComponent', () => {
     await fixture.whenStable();
     expect(el.querySelector('input[type="datetime-local"]')).not.toBeNull();
   });
+
+  it('keeps a relative date when blurring the unchanged date input after releasing the hotkey', async () => {
+    const el = await render('P1D');
+    const store = TestBed.inject(Store);
+    store.hotkey.set(true);
+    await fixture.whenStable();
+    const date = el.querySelector<HTMLInputElement>('input[type="datetime-local"]')!;
+    date.dispatchEvent(new Event('focus'));
+    store.hotkey.set(false);
+    await fixture.whenStable();
+    expect(el.querySelector('input[type="datetime-local"]')).toBe(date);
+    date.dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+    expect(changed).toEqual([]);
+    expect(el.querySelector('input[type="range"]')).not.toBeNull();
+  });
 });

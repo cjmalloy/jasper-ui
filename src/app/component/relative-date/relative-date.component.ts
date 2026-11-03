@@ -176,8 +176,9 @@ export class RelativeDateComponent {
   }
 
   blur(input: HTMLInputElement) {
-    this.typing.set(false);
+    // Compare before the date input is hidden, which clears the date
     this.setDate(input);
+    this.typing.set(false);
   }
 
   private setDate(input: HTMLInputElement, convert = false) {
