@@ -53,6 +53,14 @@ export class RelativeDateComponent {
   private picked = false;
 
   /**
+   * Last value set from the slider, so releasing and the change event don't both set it.
+   */
+  private readonly emitted = linkedSignal<string, string | undefined>({
+    source: () => this.value(),
+    computation: () => undefined,
+  });
+
+  /**
    * Slider position. A timestamp is placed by how long ago it was, so sliding to `now` changes it.
    */
   readonly index = linkedSignal(() => {
@@ -108,9 +116,13 @@ export class RelativeDateComponent {
     this.tuned.set(false);
   }
 
-  release() {
+  release(range?: HTMLInputElement) {
     this.pressed.set(false);
     this.kept.set(this.store.hotkey());
+    // Sliding a timestamp to where the slider snapped it doesn't fire a change event
+    if (!range || this.relative()) return;
+    this.index.set(+range.value);
+    this.set();
   }
 
   drag(index: number) {
@@ -120,7 +132,9 @@ export class RelativeDateComponent {
 
   set() {
     const value = presetAt(this.index());
-    if (value !== this.value()) this.changed.emit(value);
+    if (value === this.value() || value === this.emitted()) return;
+    this.emitted.set(value);
+    this.changed.emit(value);
   }
 
   focus() {

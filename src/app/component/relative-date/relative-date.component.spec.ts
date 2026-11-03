@@ -23,7 +23,7 @@ describe('RelativeDateComponent', () => {
   it('shows the nearest preset', async () => {
     const el = await render('P1D');
     expect(el.querySelector<HTMLInputElement>('input')!.value).toBe('5');
-    expect(el.querySelector('output')!.textContent).toBe('24 hours');
+    expect(el.querySelector('output')!.textContent).toBe('24 hours ago');
   });
 
   it('previews while sliding and sets on change', async () => {
@@ -32,7 +32,7 @@ describe('RelativeDateComponent', () => {
     range.value = '2';
     range.dispatchEvent(new Event('input'));
     await fixture.whenStable();
-    expect(el.querySelector('output')!.textContent).toBe('15 minutes');
+    expect(el.querySelector('output')!.textContent).toBe('15 minutes ago');
     expect(changed).toEqual([]);
     range.dispatchEvent(new Event('change'));
     expect(changed).toEqual(['PT15M']);
@@ -49,7 +49,7 @@ describe('RelativeDateComponent', () => {
     range.value = '6.5';
     range.dispatchEvent(new Event('input'));
     await fixture.whenStable();
-    expect(el.querySelector('output')!.textContent).toBe('4 days, 14 hours');
+    expect(el.querySelector('output')!.textContent).toBe('4 days, 14 hours ago');
     range.dispatchEvent(new Event('change'));
     expect(changed).toEqual(['P4DT14H']);
   });
@@ -77,7 +77,7 @@ describe('RelativeDateComponent', () => {
 
   it('places a value between presets', async () => {
     const el = await render('P4DT14H');
-    expect(el.querySelector('output')!.textContent).toBe('4 days, 14 hours');
+    expect(el.querySelector('output')!.textContent).toBe('4 days, 14 hours ago');
     expect(fixture.componentInstance.index()).toBeCloseTo(6.5, 1);
   });
 
@@ -172,5 +172,26 @@ describe('RelativeDateComponent', () => {
     store.hotkey.set(true);
     await fixture.whenStable();
     expect(el.querySelector('input[type="range"]')).not.toBeNull();
+  });
+
+  it('slides a new timestamp to now without moving', async () => {
+    const el = await render(DateTime.now().minus({ seconds: 10 }).toISO()!);
+    TestBed.inject(Store).hotkey.set(true);
+    await fixture.whenStable();
+    const range = el.querySelector<HTMLInputElement>('input[type="range"]')!;
+    // Browsers snap the value to the step
+    range.value = '0';
+    range.dispatchEvent(new Event('pointerdown'));
+    range.dispatchEvent(new Event('pointerup'));
+    range.dispatchEvent(new Event('change'));
+    expect(changed).toEqual(['now']);
+  });
+
+  it('labels durations as time ago', async () => {
+    const el = await render('PT1H');
+    expect(el.querySelector('output')!.textContent).toBe('1 hour ago');
+    fixture.componentRef.setInput('value', 'now');
+    await fixture.whenStable();
+    expect(el.querySelector('output')!.textContent).toBe('now');
   });
 });

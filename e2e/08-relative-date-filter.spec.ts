@@ -34,10 +34,10 @@ test.describe.serial('Relative date filter', () => {
     await expect(links).toHaveText(['Recent']);
     await openSidebar(page);
     await expect(page.locator('.filter input[type="datetime-local"]')).toHaveCount(0);
-    await expect(page.locator('.filter .relative-date-label')).toHaveText('7 days');
+    await expect(page.locator('.filter .relative-date-label')).toHaveText('7 days ago');
 
     await page.locator('.filter .relative-date-range').press('End');
-    await expect(page.locator('.filter .relative-date-label')).toHaveText('100 years');
+    await expect(page.locator('.filter .relative-date-label')).toHaveText('100 years ago');
     await expect(links).toHaveText(['Recent', 'Old']);
     expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['published/after/P100Y']);
   });
@@ -58,7 +58,7 @@ test.describe.serial('Relative date filter', () => {
     await range.fill('7');
     await page.keyboard.up('Control');
     await expect(range).toBeVisible();
-    await expect(page.locator('.filter .relative-date-label')).toHaveText('7 days');
+    await expect(page.locator('.filter .relative-date-label')).toHaveText('7 days ago');
     await expect(links).toHaveText(['Recent']);
     expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['published/after/P7D']);
   });
@@ -118,5 +118,25 @@ test.describe.serial('Relative date filter', () => {
     await expect(page.locator('.filter .relative-date-range')).toBeVisible();
     await page.keyboard.up('Control');
     await expect(input).toBeVisible();
+  });
+
+  test('hotkey slides a new date to now', async ({ page }) => {
+    const date = new Date(Date.now() - 5 * 1000).toISOString();
+    await page.goto(`/tag/${tag}?debug=USER&sort=published&filter=published/before/${date}`, { waitUntil: 'networkidle' });
+    const links = page.locator('.ref-list-item .link a');
+    await expect(links).toHaveText(['Recent', 'Old']);
+    await openSidebar(page);
+    await page.keyboard.down('Control');
+    const range = page.locator('.filter .relative-date-range');
+    await expect(range).toBeVisible();
+    await expect(range).toHaveValue('0');
+    const box = (await range.boundingBox())!;
+    await page.mouse.move(box.x + 8, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x - 20, box.y + box.height / 2, { steps: 5 });
+    await page.mouse.up();
+    await page.keyboard.up('Control');
+    await expect(page.locator('.filter .relative-date-label')).toHaveText('now');
+    await expect.poll(() => new URL(page.url()).searchParams.getAll('filter')).toEqual(['published/before/now']);
   });
 });

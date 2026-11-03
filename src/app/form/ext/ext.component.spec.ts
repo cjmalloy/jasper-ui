@@ -247,8 +247,8 @@ describe('ExtFormComponent', () => {
     ], { nonNullable: true }));
     detectInputChanges();
 
-    expect(component.filterDateLabel(component.defaultFilter().value[0])).toBe('15 minutes');
-    expect(fixture.nativeElement.querySelector('.default-filter-date-range output').textContent).toBe('15 minutes');
+    expect(component.filterDateLabel(component.defaultFilter().value[0])).toBe('15 minutes ago');
+    expect(fixture.nativeElement.querySelector('.default-filter-date-range output').textContent).toBe('15 minutes ago');
   });
 
   it('builds the formly model from the ext input in one step', () => {

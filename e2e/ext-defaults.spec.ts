@@ -59,7 +59,7 @@ test.describe.serial('Ext defaults', () => {
     await range.fill('2');
     await page.keyboard.up('Control');
     await expect(range).toBeVisible();
-    await expect(dateFilter.locator('.default-filter-date-range output')).toHaveText('15 minutes');
+    await expect(dateFilter.locator('.default-filter-date-range output')).toHaveText('15 minutes ago');
     await expect(page.locator('.default-filter-row').nth(1).locator('input[type="datetime-local"]')).toBeVisible();
     const queryFilter = page.locator('.default-filter-row').last();
     const queryFilterOption = queryFilter.locator('option:checked');

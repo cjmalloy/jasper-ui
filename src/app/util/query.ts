@@ -327,7 +327,7 @@ export function relativeDate(value: string) {
 export function relativeDateLabel(value: string) {
   if (value.toLowerCase() === 'now') return value.toLowerCase();
   const duration = Duration.fromISO(value.toUpperCase());
-  return duration.isValid ? duration.toHuman() : value;
+  return duration.isValid ? $localize`${duration.toHuman()}:DURATION: ago` : value;
 }
 
 /**

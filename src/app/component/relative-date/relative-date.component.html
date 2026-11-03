@@ -8,7 +8,7 @@
          [attr.aria-valuetext]="label()"
          i18n-title title="Time ago"
          (pointerdown)="press()"
-         (pointerup)="release()"
+         (pointerup)="release($any($event.target))"
          (pointercancel)="release()"
          (input)="drag(+$any($event.target).value)"
          (change)="set()">
