@@ -3,7 +3,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, uniq } from 'lodash-es';
-import { DateTime, Duration } from 'luxon';
+import { DateTime } from 'luxon';
 import { combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
@@ -24,7 +24,6 @@ import {
   FilterItem,
   negatable,
   parseValueFilter,
-  relativeDate,
   switchFilter,
   toggle,
   UrlFilter
@@ -85,9 +84,6 @@ export class FilterComponent {
   readonly rangeQuery = computed(() => this.store.view.current() === 'home'
     ? this.account.homeQuery() || ''
     : this.store.view.tag());
-
-  readonly relativeDate = relativeDate;
-
 
   emoji = emoji($localize`🪄️`) || $localize`🔍️`;
 
@@ -315,21 +311,7 @@ export class FilterComponent {
     this.setFilters();
   }
 
-  lastFocused = false;
-  hasFocus() {
-    return this.lastFocused;
-  }
-  focus() {
-    this.lastFocused = true;
-    return true;
-  }
-  clearFocus() {
-    this.lastFocused = false;
-    return true;
-  }
-
   set(index: number, filter: UrlFilter, isoDate: string) {
-    this.clearFocus();
     if (!isoDate) return;
     const value = filter.substring(0, filter.lastIndexOf('/') + 1) + isoDate as UrlFilter;
     this.filters.update(filters => filters.map((f, i) => i === index ? value : f));
@@ -353,27 +335,8 @@ export class FilterComponent {
     this.bookmarks.setFilters(filter(this.filters(), f => !!f));
   }
 
-  toIso(date: string) {
-    return DateTime.fromISO(date).toISO()!;
-  }
-
   dateValue(filter: string) {
     return filter.substring(filter.lastIndexOf('/') + 1);
-  }
-
-  toDate(filter: string) {
-    if (filter.includes('/')) filter = filter.substring(filter.lastIndexOf('/') + 1);
-    let dt: DateTime;
-    if (filter.toLowerCase() === 'now') {
-      dt = DateTime.now();
-    } else if (filter.toUpperCase().startsWith('P')) {
-      const duration = Duration.fromISO(filter.toUpperCase());
-      if (!duration.isValid) return '';
-      dt = DateTime.now().minus(duration);
-    } else {
-      dt = DateTime.fromISO(filter);
-    }
-    return dt.isValid ? dt.toFormat("yyyy-MM-dd'T'T") : '';
   }
 
 }

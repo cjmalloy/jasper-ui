@@ -187,9 +187,17 @@ export class ExtFormComponent  {
   protected readonly defaultSortValue = controlValue(this.defaultSort);
   protected readonly defaultFilterValue = controlValue(this.defaultFilter);
 
+  /**
+   * Set a value from a custom control, which doesn't mark the form as dirty itself.
+   */
+  private edit<T>(control: FormControl<T>, value: T) {
+    control.setValue(value);
+    control.markAsDirty();
+  }
+
   addSort(value: string, select: HTMLSelectElement) {
     if (!value) return;
-    this.defaultSort().setValue([
+    this.edit(this.defaultSort(), [
       ...this.defaultSort().value || [],
       value + ',' + (defaultDesc(value) ? 'DESC' : 'ASC'),
     ]);
@@ -209,43 +217,43 @@ export class ExtFormComponent  {
   setSortCol(index: number, value: string) {
     const sorts = [...this.defaultSort().value];
     sorts[index] = value + ',' + this.sortDir(value);
-    this.defaultSort().setValue(sorts);
+    this.edit(this.defaultSort(), sorts);
   }
 
   setSortDir(index: number, value: string) {
     const sorts = [...this.defaultSort().value];
     sorts[index] = this.sortCol(sorts[index]) + ',' + value;
-    this.defaultSort().setValue(sorts);
+    this.edit(this.defaultSort(), sorts);
   }
 
   removeSort(index: number) {
     const sorts = [...this.defaultSort().value];
     sorts.splice(index, 1);
-    this.defaultSort().setValue(sorts);
+    this.edit(this.defaultSort(), sorts);
   }
 
   addFilter(value: UrlFilter, select: HTMLSelectElement) {
     if (!value) return;
-    this.defaultFilter().setValue([...this.defaultFilter().value || [], value]);
+    this.edit(this.defaultFilter(), [...this.defaultFilter().value || [], value]);
     select.selectedIndex = 0;
   }
 
   setFilter(index: number, value: UrlFilter) {
     const filters = [...this.defaultFilter().value];
     filters[index] = value;
-    this.defaultFilter().setValue(filters);
+    this.edit(this.defaultFilter(), filters);
   }
 
   removeFilter(index: number) {
     const filters = [...this.defaultFilter().value];
     filters.splice(index, 1);
-    this.defaultFilter().setValue(filters);
+    this.edit(this.defaultFilter(), filters);
   }
 
   toggleFilter(index: number) {
     const filters = [...this.defaultFilter().value];
     filters[index] = toggle(filters[index])!;
-    this.defaultFilter().setValue(filters);
+    this.edit(this.defaultFilter(), filters);
   }
 
   setFilterDate(index: number, filter: UrlFilter, date: string) {
@@ -300,11 +308,6 @@ export class ExtFormComponent  {
 
   setFilterDatePreset(index: number, filter: UrlFilter, preset: string) {
     this.setFilter(index, (filter.substring(0, filter.lastIndexOf('/') + 1) + preset) as UrlFilter);
-  }
-
-  filterDate(filter: UrlFilter) {
-    const date = DateTime.fromISO(filter.substring(filter.lastIndexOf('/') + 1));
-    return date.isValid ? date.toFormat("yyyy-MM-dd'T'T") : '';
   }
 
   readonly themes = computed(() => {

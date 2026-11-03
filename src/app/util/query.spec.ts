@@ -1,6 +1,8 @@
 /// <reference types="vitest/globals" />
+import { DateTime } from 'luxon';
 import {
   convertFilter,
+  dateTimeLocal,
   defaultDesc,
   getArgs,
   getFilter,
@@ -477,6 +479,34 @@ describe('Query Utils', () => {
     it('leaves non-date sorts unchanged', () => {
       const args = { sort: ['title,ASC' as const] };
       expect(withStableDateSort(args)).toBe(args);
+    });
+  });
+
+  describe('dateTimeLocal', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-07-09T23:36:00Z'));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('parses now case-insensitively', () => {
+      expect(dateTimeLocal('NoW')).toBe(DateTime.fromISO('2026-07-09T23:36:00Z').toFormat("yyyy-MM-dd'T'T"));
+    });
+
+    it('subtracts ISO durations case-insensitively', () => {
+      expect(dateTimeLocal('p1d')).toBe(DateTime.fromISO('2026-07-08T23:36:00Z').toFormat("yyyy-MM-dd'T'T"));
+    });
+
+    it('parses standard ISO timestamps', () => {
+      expect(dateTimeLocal('2025-01-02T03:04:00Z')).toBe(DateTime.fromISO('2025-01-02T03:04:00Z').toFormat("yyyy-MM-dd'T'T"));
+    });
+
+    it('returns an empty value for malformed input', () => {
+      expect(dateTimeLocal('P-invalid')).toBe('');
+      expect(dateTimeLocal('not-a-date')).toBe('');
     });
   });
 });

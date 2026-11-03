@@ -49,14 +49,18 @@ test.describe.serial('Ext defaults', () => {
     await filterCreate.selectOption({ label: '✨️ created after' });
     await filterCreate.selectOption('query/public');
     await expect(page.locator('.default-filter-row')).toHaveCount(3);
-    await page.locator('.default-filter-row input[type="datetime-local"]').first().fill('2026-07-09T12:30');
+    const dateFilter = page.locator('.default-filter-row').first();
+    const date = dateFilter.locator('input[type="datetime-local"]');
+    await date.fill('2026-07-09T12:30');
+    await date.blur();
     await page.keyboard.down('Control');
-    const range = page.locator('.default-filter-row input[type="range"]').first();
+    const range = dateFilter.locator('input[type="range"]');
     await expect(range).toBeVisible();
     await range.fill('2');
     await page.keyboard.up('Control');
     await expect(range).toBeVisible();
-    await expect(page.locator('.default-filter-date-range output').first()).toHaveText('15 minutes');
+    await expect(dateFilter.locator('.default-filter-date-range output')).toHaveText('15 minutes ago');
+    await expect(page.locator('.default-filter-row').nth(1).locator('input[type="datetime-local"]')).toBeVisible();
     const queryFilter = page.locator('.default-filter-row').last();
     const queryFilterOption = queryFilter.locator('option:checked');
     const queryFilterLabel = await queryFilterOption.textContent();
@@ -140,5 +144,22 @@ test.describe.serial('Ext defaults', () => {
     await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.reload({ waitUntil: 'networkidle' });
     await expect(page.locator('.lens-header h1')).toHaveText('Home header');
+  });
+
+  test('asks to discard the draft after editing a default date filter', async ({ page }) => {
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    const range = page.locator('.default-filter-row .relative-date-range').first();
+    await expect(range).toBeVisible();
+    await range.press('End');
+    await expect(page.locator('.default-filter-date-range output').first()).toHaveText('100 years ago');
+
+    const dialogs: string[] = [];
+    page.once('dialog', dialog => {
+      dialogs.push(dialog.message());
+      return dialog.dismiss();
+    });
+    await page.locator('a.logo').click();
+    await expect.poll(() => dialogs).toEqual(['Discard draft?']);
+    await expect(page).toHaveURL(/\/ext\/config\/home/);
   });
 });
