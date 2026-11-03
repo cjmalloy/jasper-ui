@@ -186,8 +186,6 @@ export class SubmitDmPage implements HasChanges {
     this.store.submit.dmPlugin();
     this.store.submit.to();
     this.store.submit.tags();
-    this.store.submit.title();
-    this.store.submit.comment();
     this.store.account.localTag();
     untracked(() => {
       const dmPlugin = this.store.submit.dmPlugin();
@@ -198,11 +196,21 @@ export class SubmitDmPage implements HasChanges {
       } else {
         this.setTo('');
       }
-      if (this.store.submit.title()) this.title.setValue(this.store.submit.title());
-      if (this.store.submit.comment()) this.comment.setValue(this.store.submit.comment());
       const tags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
       if (tags.length) this.addTags(tags);
     });
+  });
+
+  // Sync the title query param into the form
+  private readonly prefillTitle = effect(() => {
+    const title = this.store.submit.title();
+    if (title) untracked(() => this.title.setValue(title));
+  });
+
+  // Sync the comment query param into the form
+  private readonly prefillComment = effect(() => {
+    const comment = this.store.submit.comment();
+    if (comment) untracked(() => this.comment.setValue(comment));
   });
 
   get to() {

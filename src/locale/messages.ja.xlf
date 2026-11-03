@@ -8383,6 +8383,22 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Check if the current query is using DB indices. Admins can add missing indices to the _config/index template, everyone else can ask for them. Users need read access to _index.helper and _config/index.</source>
         <target>現在のクエリがDBインデックスを使用しているか確認します。管理者は不足しているインデックスを_config/indexテンプレートに追加でき、その他のユーザーは追加を依頼できます。ユーザーには_index.helperと_config/indexの読み取りアクセスが必要です。</target>
       </trans-unit>
+      <trans-unit id="3717867441197894810" datatype="html">
+        <source>⚡️ Indexed</source>
+        <target>⚡️ インデックス済み</target>
+      </trans-unit>
+      <trans-unit id="4083337005045748464" datatype="html">
+        <source>failed</source>
+        <target>失敗</target>
+      </trans-unit>
+      <trans-unit id="4763097035451302644" datatype="html">
+        <source>This query is using DB indices</source>
+        <target>このクエリはDBインデックスを使用しています</target>
+      </trans-unit>
+      <trans-unit id="8754952744734405536" datatype="html">
+        <source>⚡️ Indexes</source>
+        <target>⚡️ インデックス</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -10,8 +10,8 @@ import { TemplateService } from '../../service/api/template.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
-import { Store } from '../../store/store';
 import { printError } from '../../util/http';
+import { withStableDateSort } from '../../util/query';
 import {
   fixIndexConfig,
   hasIndexes,
@@ -32,7 +32,6 @@ import { LoadingComponent } from '../loading/loading.component';
 })
 export class IndexHelperComponent {
   private admin = inject(AdminService);
-  private store = inject(Store);
   private auth = inject(AuthzService);
   private query = inject(QueryStore);
   private templates = inject(TemplateService);
@@ -43,15 +42,24 @@ export class IndexHelperComponent {
   readonly serverError = signal<string[]>([]);
 
   readonly enabled = computed(() => !!this.admin.getTemplate('_index.helper'));
-  readonly needs = computed(() => indexNeeds(this.query.args()), { equal: isEqual });
+  /**
+   * Indices used by the request {@link QueryStore} sends.
+   */
+  readonly needs = computed(() => {
+    const args = this.query.args();
+    return indexNeeds(args && withStableDateSort(args));
+  }, { equal: isEqual });
+  readonly show = computed(() => this.enabled() && hasIndexes(this.needs()));
 
   /**
+   * The server only reads `_config/index` from its root origin, so tenant copies are ignored.
    * Only load the index config once a query uses an index.
    */
   private readonly indexConfig = rxResource({
-    params: () => this.enabled() && hasIndexes(this.needs()) ? '_config/index' + this.store.account.origin() : undefined,
+    params: () => this.show() ? '_config/index' : undefined,
     stream: ({ params }) => this.templates.get(params).pipe(catchError(() => of(null))),
   });
+  readonly loading = computed(() => this.indexConfig.isLoading());
   readonly index = computed(() => this.indexConfig.hasValue() ? this.indexConfig.value() : undefined);
 
   /**
@@ -69,12 +77,17 @@ export class IndexHelperComponent {
     return { ...this.needs(), flags: [] };
   }, { equal: isEqual });
 
-  readonly show = computed(() => {
-    if (!this.enabled()) return false;
-    if (this.indexConfig.isLoading()) return false;
-    if (!this.canFix() && !this.config.support) return false;
-    return hasIndexes(this.missing());
-  });
+  readonly anyMissing = computed(() => hasIndexes(this.missing()));
+
+  /**
+   * Status of an index used by the query: ✅️ indexed, ⚠️ missing, or ❔ unknown.
+   */
+  status(list: keyof IndexNeeds, value: string) {
+    if (this.loading()) return '';
+    const missing = (this.missing()[list] as string[]).includes(value);
+    if (missing) return this.index() ? '⚠️' : '❔';
+    return '✅️';
+  }
 
   fix() {
     const index = this.index();

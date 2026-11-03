@@ -20,7 +20,12 @@ describe('Index Helper', () => {
       noResponses: 'https://b.com',
       publishedAfter: '2020-01-01',
       sort: ['modified,DESC'],
-    }).flags).toEqual(['fulltext', 'sources', 'responses', 'published', 'modified']);
+    }).flags).toEqual(['fulltext', 'responses', 'internalResponses', 'sources', 'published', 'modified']);
+  });
+
+  it('needs the sources index for responses filters', () => {
+    expect(indexNeeds({ responses: 'https://a.com' }).flags).toEqual(['sources']);
+    expect(indexNeeds({ noSources: 'https://a.com' }).flags).toEqual(['responses', 'internalResponses']);
   });
 
   it('needs hot tags for tag value sorts and filters', () => {

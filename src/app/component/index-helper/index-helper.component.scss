@@ -1,13 +1,21 @@
 :host {
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
 }
 
-.missing-indexes {
+details {
+  text-align: right;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.indexes {
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+// Reserve the action line so async results don't move the controls below
+.index-action {
+  min-height: 1.5em;
 }

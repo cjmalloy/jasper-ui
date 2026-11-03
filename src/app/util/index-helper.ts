@@ -20,7 +20,7 @@ export interface IndexConfig {
   hotPlugins?: string[];
 }
 
-export type IndexFlag = 'tags' | 'sources' | 'responses' | 'fulltext' | 'published' | 'modified';
+export type IndexFlag = 'tags' | 'sources' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified';
 
 /**
  * Indices used by a Ref query.
@@ -74,8 +74,9 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   if (!args) return { flags, hotTags, hotPlugins };
   if (queryHasTags(args.query)) flags.push('tags');
   if (args.search) flags.push('fulltext');
-  if (args.sources || args.noSources) flags.push('sources');
-  if (args.responses || args.noResponses) flags.push('responses');
+  // Sources filters look up the responses of the source, and responses filters look up the sources of the response
+  if (args.sources || args.noSources) flags.push('responses', 'internalResponses');
+  if (args.responses || args.noResponses) flags.push('sources');
   if (args.publishedBefore || args.publishedAfter) flags.push('published');
   if (args.modifiedBefore || args.modifiedAfter) flags.push('modified');
   for (const s of args.sort || []) {

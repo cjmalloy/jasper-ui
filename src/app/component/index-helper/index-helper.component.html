@@ -1,36 +1,44 @@
 @if (show()) {
-  <div class="index-warning">
-    @if (index()) {
-      <span i18n-title title="This query is not using DB indices" i18n>⚡️ Not indexed</span>
-    } @else {
-      <span i18n-title title="This query might not be using DB indices" i18n>⚡️ May not be indexed</span>
-    }
-  </div>
-  <ul class="missing-indexes">
-    @for (f of missing().flags; track f) {
-      <li><code>{{ f }}</code></li>
-    }
-    @for (t of missing().hotTags; track t) {
-      <li class="hot-tag"><code>tags-&gt;{{ t }}</code></li>
-    }
-    @for (p of missing().hotPlugins; track p) {
-      <li class="hot-plugin"><code>plugins-&gt;{{ p }}</code></li>
-    }
-  </ul>
-  @if (canFix()) {
-    @if (fixing()) {
-      <app-loading [inline]="true" />
-    } @else {
-      <a class="fake-link fix-indexes"
-         i18n-title title="Add the missing indices to the _config/index template"
-         (click)="fix()" i18n>fix</a>
-    }
-  } @else {
-    <a class="fake-link request-indexes"
-       i18n-title title="Ask an admin to add the missing indices"
-       (click)="request()" i18n>request</a>
-  }
-  @for (e of serverError(); track e) {
-    <div class="error">{{ e }}</div>
-  }
+  <details class="advanced">
+    <summary>
+      @if (loading()) {
+        <span class="index-status" i18n>⚡️ Indexes</span>
+      } @else if (!anyMissing()) {
+        <span class="index-status indexed" i18n-title title="This query is using DB indices" i18n>⚡️ Indexed</span>
+      } @else if (index()) {
+        <span class="index-status not-indexed" i18n-title title="This query is not using DB indices" i18n>⚡️ Not indexed</span>
+      } @else {
+        <span class="index-status not-indexed" i18n-title title="This query might not be using DB indices" i18n>⚡️ May not be indexed</span>
+      }
+    </summary>
+    <ul class="indexes">
+      @for (f of needs().flags; track f) {
+        <li class="flag">{{ status('flags', f) }} <code>{{ f }}</code></li>
+      }
+      @for (t of needs().hotTags; track t) {
+        <li class="hot-tag">{{ status('hotTags', t) }} <code>tags-&gt;{{ t }}</code></li>
+      }
+      @for (p of needs().hotPlugins; track p) {
+        <li class="hot-plugin">{{ status('hotPlugins', p) }} <code>plugins-&gt;{{ p }}</code></li>
+      }
+    </ul>
+    <div class="index-action">
+      @if (loading() || fixing()) {
+        <app-loading [inline]="true" />
+      } @else if (anyMissing()) {
+        @if (serverError().length) {
+          <span class="error" [title]="serverError().join('\n')" i18n>failed</span>
+        }
+        @if (canFix()) {
+          <a class="fake-link fix-indexes"
+             i18n-title title="Add the missing indices to the _config/index template"
+             (click)="fix()" i18n>fix</a>
+        } @else if (config.support) {
+          <a class="fake-link request-indexes"
+             i18n-title title="Ask an admin to add the missing indices"
+             (click)="request()" i18n>request</a>
+        }
+      }
+    </div>
+  </details>
 }
