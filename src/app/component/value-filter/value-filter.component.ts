@@ -6,8 +6,10 @@ import { ValueFilterService } from '../../service/value-filter.service';
 import { Store } from '../../store/store';
 import { parseValueFilter } from '../../util/query';
 import {
+  arrowDir,
   formatAmount,
   humanAmount,
+  nextStop,
   parseAmount,
   rangeStops,
   roundAmount,
@@ -72,12 +74,22 @@ export class ValueFilterComponent {
   readonly typing = signal(false);
 
   /**
-   * Dragging the slider, until the hotkey is released.
+   * The pointer is down on the slider.
    */
-  readonly dragging = linkedSignal<boolean, boolean>({
+  private readonly pressed = signal(false);
+
+  /**
+   * Keeps the slider after it is released with the hotkey held, until the hotkey is released.
+   */
+  private readonly kept = linkedSignal<boolean, boolean>({
     source: () => this.store.hotkey(),
     computation: (hotkey, previous) => hotkey && !!previous?.value,
   });
+
+  /**
+   * Dragging the slider. Pressing or releasing the hotkey mid-drag keeps dragging.
+   */
+  readonly dragging = computed(() => this.pressed() || this.kept());
 
   /**
    * Holding the hotkey while dragging turns off snapping to stops.
@@ -161,19 +173,39 @@ export class ValueFilterComponent {
     this.emit(input.value);
   }
 
-  drag(index: number) {
+  press() {
+    this.pressed.set(true);
+  }
+
+  release() {
+    this.pressed.set(false);
+    this.kept.set(this.store.hotkey());
+  }
+
+  /**
+   * Snap to the nearest stop unless fine. The step is always 'any', so the thumb shows exactly where the value is,
+   * and releasing the hotkey keeps the fine value until the slider moves again.
+   */
+  drag(input: HTMLInputElement, index = +input.value) {
+    if (!this.fine()) index = Math.round(index);
+    input.value = String(index);
     this.index.set(index);
     this.preview.set(this.amountAt(index));
   }
 
-  release() {
-    if (!this.store.hotkey()) this.dragging.set(false);
+  /**
+   * Arrow keys step to the next stop, since the browser steps 'any' by a fraction of the range.
+   */
+  key(event: KeyboardEvent, input: HTMLInputElement) {
+    const dir = arrowDir(event);
+    if (!dir) return;
+    event.preventDefault();
+    this.drag(input, nextStop(this.index(), dir, this.stops().length - 1));
+    this.setRange();
   }
 
   setRange() {
-    // Snapped back if the hotkey was released while dragging
-    const index = this.fine() ? this.index() : Math.round(this.index());
-    this.emit(formatAmount(this.unit()!, this.amountAt(index)));
+    this.emit(formatAmount(this.unit()!, this.amountAt(this.index())));
   }
 
   private amountAt(index: number, stops = this.stops()) {

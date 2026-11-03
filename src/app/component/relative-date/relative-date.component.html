@@ -2,13 +2,14 @@
        class="relative-date-range"
        min="0"
        [max]="max"
-       [step]="fine() ? 'any' : 1"
+       step="any"
        [value]="index()"
        [attr.aria-valuetext]="label()"
        i18n-title title="Time ago"
-       (pointerdown)="dragging.set(true)"
+       (pointerdown)="press()"
        (pointerup)="release()"
        (pointercancel)="release()"
-       (input)="index.set(+$any($event.target).value)"
+       (keydown)="key($event, $any($event.target))"
+       (input)="drag($any($event.target))"
        (change)="set()">
 <output class="relative-date-label">{{ label() }}</output>

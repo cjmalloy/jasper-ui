@@ -53,6 +53,42 @@ describe('RelativeDateComponent', () => {
     expect(changed).toEqual(['P4DT14H']);
   });
 
+  it('keeps the fine value when the hotkey is released while dragging', async () => {
+    const el = await render('P3D');
+    const range = el.querySelector<HTMLInputElement>('input')!;
+    const store = TestBed.inject(Store);
+    range.dispatchEvent(new Event('pointerdown'));
+    store.hotkey.set(true);
+    await fixture.whenStable();
+    range.value = '6.5';
+    range.dispatchEvent(new Event('input'));
+    store.hotkey.set(false);
+    await fixture.whenStable();
+    store.hotkey.set(true);
+    await fixture.whenStable();
+    expect(fixture.componentInstance.fine()).toBe(true);
+    store.hotkey.set(false);
+    await fixture.whenStable();
+    range.dispatchEvent(new Event('pointerup'));
+    range.dispatchEvent(new Event('change'));
+    expect(changed).toEqual(['P4DT14H']);
+  });
+
+  it('snaps from a value between presets to the nearest preset', async () => {
+    const el = await render('P4DT14H');
+    const range = el.querySelector<HTMLInputElement>('input')!;
+    range.value = '6.6';
+    range.dispatchEvent(new Event('input'));
+    range.dispatchEvent(new Event('change'));
+    expect(changed).toEqual(['P7D']);
+  });
+
+  it('steps to the next preset with the arrow keys', async () => {
+    const el = await render('P4DT14H');
+    el.querySelector('input')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+    expect(changed).toEqual(['P3D']);
+  });
+
   it('places a value between presets', async () => {
     const el = await render('P4DT14H');
     expect(el.querySelector('output')!.textContent).toBe('4 days, 14 hours');

@@ -155,23 +155,92 @@ describe('ValueFilterComponent', () => {
       expect(changed).toEqual(['pt7m4s']);
       store.hotkey.set(false);
       await fixture.whenStable();
-      expect(range.step).toBe('1');
+      expect(el.querySelector('.filter-range')).toBe(range);
     });
 
-    it('snaps when the hotkey is released while dragging', async () => {
+    it('keeps the fine value when the hotkey is released while dragging, until the slider moves', async () => {
+      const el = await render('tags->plugin/duration:dur/before/pt5m');
+      const store = TestBed.inject(Store);
+      const range = el.querySelector<HTMLInputElement>('.filter-range')!;
+      const label = () => el.querySelector('.filter-range-label')!.textContent;
+      range.dispatchEvent(new Event('pointerdown'));
+      store.hotkey.set(true);
+      await fixture.whenStable();
+      range.value = '2.5';
+      range.dispatchEvent(new Event('input'));
+      store.hotkey.set(false);
+      await fixture.whenStable();
+      expect(label()).toBe('7 min, 4 sec');
+      expect(range.value).toBe('2.5');
+      range.value = '2.6';
+      range.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+      expect(label()).toBe('10 min');
+      expect(range.value).toBe('3');
+      range.dispatchEvent(new Event('pointerup'));
+      range.dispatchEvent(new Event('change'));
+      expect(changed).toEqual(['pt10m']);
+    });
+
+    it('commits the fine value when the hotkey is released before the slider', async () => {
       const el = await render('tags->plugin/duration:dur/before/pt5m');
       const store = TestBed.inject(Store);
       const range = el.querySelector<HTMLInputElement>('.filter-range')!;
       range.dispatchEvent(new Event('pointerdown'));
       store.hotkey.set(true);
       await fixture.whenStable();
-      range.value = '2.6';
+      range.value = '2.5';
       range.dispatchEvent(new Event('input'));
       store.hotkey.set(false);
       await fixture.whenStable();
       range.dispatchEvent(new Event('pointerup'));
       range.dispatchEvent(new Event('change'));
+      expect(changed).toEqual(['pt7m4s']);
+    });
+
+    it('resumes fine tuning when the hotkey is pressed again while dragging', async () => {
+      const el = await render('tags->plugin/duration:dur/before/pt5m');
+      const store = TestBed.inject(Store);
+      const range = el.querySelector<HTMLInputElement>('.filter-range')!;
+      range.dispatchEvent(new Event('pointerdown'));
+      store.hotkey.set(true);
+      await fixture.whenStable();
+      store.hotkey.set(false);
+      await fixture.whenStable();
+      store.hotkey.set(true);
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-range')).toBe(range);
+      expect(el.querySelector('.filter-value')).toBeNull();
+      range.value = '2.5';
+      range.dispatchEvent(new Event('input'));
+      range.dispatchEvent(new Event('pointerup'));
+      range.dispatchEvent(new Event('change'));
+      expect(changed).toEqual(['pt7m4s']);
+    });
+
+    it('shows a value between stops where it is, so it can snap to the nearest stop', async () => {
+      const el = await render('tags->plugin/duration:dur/before/pt7m4s');
+      const range = el.querySelector<HTMLInputElement>('.filter-range')!;
+      expect(+range.value).toBeCloseTo(2.5, 2);
+      range.dispatchEvent(new Event('pointerdown'));
+      range.value = '2.7';
+      range.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-range-label')!.textContent).toBe('10 min');
+      range.dispatchEvent(new Event('pointerup'));
+      range.dispatchEvent(new Event('change'));
       expect(changed).toEqual(['pt10m']);
+    });
+
+    it('steps to the next stop with the arrow keys', async () => {
+      const el = await render('tags->plugin/duration:dur/before/pt7m4s');
+      const range = el.querySelector<HTMLInputElement>('.filter-range')!;
+      range.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+      expect(changed).toEqual(['pt10m']);
+      fixture.componentRef.setInput('filter', 'tags->plugin/duration:dur/before/pt7m4s');
+      await fixture.whenStable();
+      range.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+      expect(changed).toEqual(['pt10m', 'pt5m']);
     });
 
     it('shows a number and unit while the hotkey is held', async () => {

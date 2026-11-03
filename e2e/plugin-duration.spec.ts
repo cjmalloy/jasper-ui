@@ -102,12 +102,10 @@ test.describe.serial('Duration Plugin', () => {
     await page.mouse.move(x, y);
     await page.mouse.down();
     await page.keyboard.down('Control');
-    await expect(range).toHaveAttribute('step', 'any');
     // A third of a stop, which would snap back to 10 min
     await page.mouse.move(x + (box.width - 16) / max / 3, y, { steps: 4 });
     await page.mouse.up();
     await page.keyboard.up('Control');
-    await expect(range).toHaveAttribute('step', '1');
     await expect(page.locator('.filter .filter-range-label')).not.toHaveText('10 min');
     await expect.poll(() => new URL(page.url()).searchParams.get('filter')).toMatch(/^tags->plugin\/duration:dur\/before\/pt1\dm(\d+s)?$/);
   });

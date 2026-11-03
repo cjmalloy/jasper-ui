@@ -102,4 +102,50 @@ test.describe.serial('Cache Plugin', () => {
     await expect(page.locator('.filter .filter-range-label')).toHaveText('10 MB');
     await expect(page.locator('.ref-list-item .link a')).toHaveText(['Large']);
   });
+
+  test('fine tunes while dragging with the hotkey', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=ADMIN&sort=plugins->_plugin/cache->contentLength:num,ASC&filter=${filter}1mb`, { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    const range = page.locator('.filter .filter-range');
+    const label = page.locator('.filter .filter-range-label');
+    await expect(label).toHaveText('1 MB');
+    const max = Number(await range.getAttribute('max'));
+    const box = (await range.boundingBox())!;
+    // Chrome's default thumb is 16px wide
+    const x = (index: number) => box.x + 8 + (box.width - 16) * index / max;
+    const y = box.y + box.height / 2;
+    const stops = ['1 MB', '5 MB'];
+
+    await page.mouse.move(x(3), y);
+    await page.mouse.down();
+    await page.keyboard.down('Control');
+    await page.mouse.move(x(3.5), y, { steps: 5 });
+    const fine = (await label.textContent())!;
+    expect(stops).not.toContain(fine);
+
+    // Releasing the hotkey keeps the fine value
+    await page.keyboard.up('Control');
+    await expect(label).toHaveText(fine);
+
+    // Pressing it again resumes fine tuning
+    await page.keyboard.down('Control');
+    await expect(range).toBeVisible();
+    await expect(page.locator('.filter .filter-value')).toHaveCount(0);
+    await page.mouse.move(x(3.6), y, { steps: 5 });
+    const finer = (await label.textContent())!;
+    expect([...stops, fine]).not.toContain(finer);
+    await page.keyboard.up('Control');
+    await page.mouse.up();
+    await expect(label).toHaveText(finer);
+    await expect.poll(() => new URL(page.url()).searchParams.getAll('filter')[0]).not.toMatch(/\/(1|5)mb$/);
+    expect(new URL(page.url()).searchParams.getAll('filter')[0]).toMatch(/^plugins->_plugin\/cache->contentLength:num\/after\/\d+$/);
+
+    // Snapping to the nearest stop from a fine value
+    await page.mouse.move(x(3.6), y);
+    await page.mouse.down();
+    await page.mouse.move(x(4), y, { steps: 5 });
+    await expect(label).toHaveText('5 MB');
+    await page.mouse.up();
+    await expect.poll(() => new URL(page.url()).searchParams.getAll('filter')).toEqual([filter + '5mb']);
+  });
 });

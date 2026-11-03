@@ -1,8 +1,8 @@
-import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { Duration } from 'luxon';
 import { Store } from '../../store/store';
 import { DATE_PRESETS, relativeDate, relativeDateLabel } from '../../util/query';
-import { roundSeconds, stopAmount, stopIndex } from '../../util/value-filter';
+import { arrowDir, nextStop, roundSeconds, stopAmount, stopIndex } from '../../util/value-filter';
 
 const PRESET_SECONDS = DATE_PRESETS.map(p => p === 'now' ? 0 : Duration.fromISO(p).as('seconds'));
 
@@ -37,12 +37,22 @@ export class RelativeDateComponent {
   });
 
   /**
-   * Dragging the slider, until the hotkey is released.
+   * The pointer is down on the slider.
    */
-  readonly dragging = linkedSignal<boolean, boolean>({
+  private readonly pressed = signal(false);
+
+  /**
+   * Keeps dragging after the slider is released with the hotkey held, until the hotkey is released.
+   */
+  private readonly kept = linkedSignal<boolean, boolean>({
     source: () => this.store.hotkey(),
     computation: (hotkey, previous) => hotkey && !!previous?.value,
   });
+
+  /**
+   * Dragging the slider. Pressing or releasing the hotkey mid-drag keeps dragging.
+   */
+  readonly dragging = computed(() => this.pressed() || this.kept());
 
   /**
    * Holding the hotkey while dragging turns off snapping to presets.
@@ -51,13 +61,38 @@ export class RelativeDateComponent {
 
   readonly label = computed(() => relativeDateLabel(presetAt(this.index())));
 
+  press() {
+    this.pressed.set(true);
+  }
+
   release() {
-    if (!this.store.hotkey()) this.dragging.set(false);
+    this.pressed.set(false);
+    this.kept.set(this.store.hotkey());
+  }
+
+  /**
+   * Snap to the nearest preset unless fine. The step is always 'any', so the thumb shows exactly where the value is,
+   * and releasing the hotkey keeps the fine value until the slider moves again.
+   */
+  drag(input: HTMLInputElement, index = +input.value) {
+    if (!this.fine()) index = Math.round(index);
+    input.value = String(index);
+    this.index.set(index);
+  }
+
+  /**
+   * Arrow keys step to the next preset, since the browser steps 'any' by a fraction of the range.
+   */
+  key(event: KeyboardEvent, input: HTMLInputElement) {
+    const dir = arrowDir(event);
+    if (!dir) return;
+    event.preventDefault();
+    this.drag(input, nextStop(this.index(), dir, this.max));
+    this.set();
   }
 
   set() {
-    // Snapped back if the hotkey was released while dragging
-    const value = presetAt(this.fine() ? this.index() : Math.round(this.index()));
+    const value = presetAt(this.index());
     if (value !== this.value()) this.changed.emit(value);
   }
 }
