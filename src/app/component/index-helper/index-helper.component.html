@@ -1,0 +1,36 @@
+@if (show()) {
+  <div class="index-warning">
+    @if (index()) {
+      <span i18n-title title="This query is not using DB indices" i18n>⚡️ Not indexed</span>
+    } @else {
+      <span i18n-title title="This query might not be using DB indices" i18n>⚡️ May not be indexed</span>
+    }
+  </div>
+  <ul class="missing-indexes">
+    @for (f of missing().flags; track f) {
+      <li><code>{{ f }}</code></li>
+    }
+    @for (t of missing().hotTags; track t) {
+      <li class="hot-tag"><code>tags-&gt;{{ t }}</code></li>
+    }
+    @for (p of missing().hotPlugins; track p) {
+      <li class="hot-plugin"><code>plugins-&gt;{{ p }}</code></li>
+    }
+  </ul>
+  @if (canFix()) {
+    @if (fixing()) {
+      <app-loading [inline]="true" />
+    } @else {
+      <a class="fake-link fix-indexes"
+         i18n-title title="Add the missing indices to the _config/index template"
+         (click)="fix()" i18n>fix</a>
+    }
+  } @else {
+    <a class="fake-link request-indexes"
+       i18n-title title="Ask an admin to add the missing indices"
+       (click)="request()" i18n>request</a>
+  }
+  @for (e of serverError(); track e) {
+    <div class="error">{{ e }}</div>
+  }
+}

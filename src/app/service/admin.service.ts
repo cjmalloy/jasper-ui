@@ -74,6 +74,7 @@ import { debugMod } from '../mods/system/debug';
 import { errorMod } from '../mods/system/error';
 import { fullscreenMod } from '../mods/system/fullscreen';
 import { gdprMod } from '../mods/system/gdpr';
+import { indexHelperMod } from '../mods/system/index-helper';
 import { oembedMod } from '../mods/system/oembed';
 import { pipMod } from '../mods/system/pip';
 import { scriptMod } from '../mods/system/script';
@@ -164,6 +165,7 @@ export class AdminService {
     // Configs
     experimentsMod,
     helpMod,
+    indexHelperMod,
     wikiMod,
     graphMod,
     modlistMod,
