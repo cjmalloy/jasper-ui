@@ -20,7 +20,7 @@ describe('Index Helper', () => {
       noResponses: 'https://b.com',
       publishedAfter: '2020-01-01',
       sort: ['modified,DESC'],
-    }).flags).toEqual(['fulltext', 'responses', 'internalResponses', 'sources', 'published', 'modified']);
+    }).flags).toEqual(['fulltext', 'alts', 'responses', 'internalResponses', 'sources', 'published', 'modified']);
   });
 
   it('needs the sources index for responses filters', () => {
@@ -62,6 +62,23 @@ describe('Index Helper', () => {
       hotTags: ['plugin/progress:num'],
       hotPlugins: ['plugin/score:num', 'plugin/test->name'],
     }))).toBe(false);
+  });
+
+  it('ignores a disabled config', () => {
+    const needs = indexNeeds({ search: 'cats', sort: ['tags->plugin/progress:num'] });
+    expect(missingIndexes(needs, {
+      disabled: true,
+      fulltext: false,
+      hotTags: ['plugin/progress:num'],
+    })).toEqual({ flags: [], hotTags: ['plugin/progress:num'], hotPlugins: [] });
+  });
+
+  it('skips blank hot indices', () => {
+    const needs = indexNeeds({ pluginAfter: ['plugins->plugin/score:num/10'] });
+    expect(missingIndexes(needs, {
+      hotTags: [null as any],
+      hotPlugins: [null as any, '', 'plugin/score:num'],
+    })).toEqual({ flags: [], hotTags: [], hotPlugins: [] });
   });
 
   it('fixes the config', () => {

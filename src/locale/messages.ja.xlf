@@ -8403,6 +8403,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>⚡️ Indexes</source>
         <target>⚡️ インデックス</target>
       </trans-unit>
+      <trans-unit id="1676246076323699308" datatype="html">
+        <source>The server ignores the _config/index template while it is disabled</source>
+        <target>無効になっている間、サーバーは_config/indexテンプレートを無視します</target>
+      </trans-unit>
+      <trans-unit id="1913408832824440185" datatype="html">
+        <source>_config/index disabled</source>
+        <target>_config/indexは無効です</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -29,7 +29,9 @@
         @if (serverError().length) {
           <span class="error" [title]="serverError().join('\n')" i18n>failed</span>
         }
-        @if (canFix()) {
+        @if (disabled() && isAdmin()) {
+          <span class="index-disabled" i18n-title title="The server ignores the _config/index template while it is disabled" i18n>_config/index disabled</span>
+        } @else if (canFix()) {
           <a class="fake-link fix-indexes"
              i18n-title title="Add the missing indices to the _config/index template"
              (click)="fix()" i18n>fix</a>

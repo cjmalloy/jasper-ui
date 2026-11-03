@@ -63,9 +63,15 @@ export class IndexHelperComponent {
   readonly index = computed(() => this.indexConfig.hasValue() ? this.indexConfig.value() : undefined);
 
   /**
+   * The server ignores a disabled `_config/index`, so adding indices to it would not help.
+   */
+  readonly disabled = computed(() => !!this.index()?.config?.disabled);
+
+  /**
    * Writing templates needs the config role, which defaults to admin.
    */
-  readonly canFix = computed(() => !!this.index() && this.auth.hasRole('ROLE_ADMIN'));
+  readonly isAdmin = computed(() => this.auth.hasRole('ROLE_ADMIN'));
+  readonly canFix = computed(() => !!this.index() && !this.disabled() && this.isAdmin());
 
   /**
    * Missing indices. When the index config can't be read, any hot tags or hot plugins

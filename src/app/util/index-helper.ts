@@ -5,6 +5,10 @@ import { RefPageArgs } from '../model/ref';
  * Config of the `_config/index` template. Missing flags default to true.
  */
 export interface IndexConfig {
+  /**
+   * The server ignores a disabled `_config/index` and uses the defaults.
+   */
+  disabled?: boolean;
   tags?: boolean;
   sources?: boolean;
   alts?: boolean;
@@ -20,7 +24,7 @@ export interface IndexConfig {
   hotPlugins?: string[];
 }
 
-export type IndexFlag = 'tags' | 'sources' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified';
+export type IndexFlag = 'tags' | 'sources' | 'alts' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified';
 
 /**
  * Indices used by a Ref query.
@@ -73,7 +77,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   const hotPlugins: string[] = [];
   if (!args) return { flags, hotTags, hotPlugins };
   if (queryHasTags(args.query)) flags.push('tags');
-  if (args.search) flags.push('fulltext');
+  // Search also matches the URL or alternate URLs
+  if (args.search) flags.push('fulltext', 'alts');
   // Sources filters look up the responses of the source, and responses filters look up the sources of the response
   if (args.sources || args.noSources) flags.push('responses', 'internalResponses');
   if (args.responses || args.noResponses) flags.push('sources');
@@ -99,13 +104,14 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
 }
 
 function normalize(columns: string[] | undefined, prefix: string) {
-  return (columns || []).map(c => c.startsWith(prefix) ? c.substring(prefix.length) : c);
+  return (columns || []).filter(c => !!c).map(c => c.startsWith(prefix) ? c.substring(prefix.length) : c);
 }
 
 /**
  * The indices a query needs that are not in the `_config/index` config.
  */
 export function missingIndexes(needs: IndexNeeds, config: IndexConfig = {}): IndexNeeds {
+  if (config.disabled) config = {};
   const hotTags = normalize(config.hotTags, 'tags->');
   const hotPlugins = normalize(config.hotPlugins, 'plugins->');
   return {

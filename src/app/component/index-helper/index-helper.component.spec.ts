@@ -79,6 +79,16 @@ describe('IndexHelperComponent', () => {
     expect(fixture.componentInstance.missing().hotTags).toEqual(['plugin/title']);
   });
 
+  it('cannot fix a disabled _config/index', async () => {
+    admin = true;
+    templates.get = vi.fn(() => of({ ...index, config: { disabled: true, hotTags: ['plugin/title'] } }));
+    const fixture = create();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.disabled()).toBe(true);
+    expect(fixture.componentInstance.canFix()).toBe(false);
+    expect(fixture.componentInstance.missing().hotTags).toEqual(['plugin/title']);
+  });
+
   it('shows nothing for queries without indices', async () => {
     args.set({});
     const fixture = create();
