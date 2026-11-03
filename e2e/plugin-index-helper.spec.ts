@@ -27,10 +27,13 @@ test.describe.serial('Index Helper', () => {
     expect(res.ok(), await res.text()).toBeTruthy();
   });
 
-  test('hidden for queries without indices', async ({ page }) => {
+  test('index flags are on by default', async ({ page }) => {
     await page.goto('/tag/science?debug=ADMIN', { waitUntil: 'networkidle' });
-    await expect(page.locator('.bulk.actions')).toBeVisible();
-    await expect(page.locator('.index-helper details')).toHaveCount(0);
+    const helper = page.locator('.index-helper');
+    await expect(helper.locator('summary')).toHaveText('⚡️ Indexed');
+    await helper.locator('summary').click();
+    await expect(helper.locator('.flag').first()).toHaveText('✅️ tags');
+    await expect(helper.locator('.fix-indexes, .request-indexes')).toHaveCount(0);
   });
 
   test('tenant admin can only request root index', async ({ page }) => {
