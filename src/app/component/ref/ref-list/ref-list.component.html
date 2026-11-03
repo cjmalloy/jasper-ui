@@ -11,7 +11,7 @@
              [disableResize]="ext()?.config?.disableResize"
              [showToggle]="showToggle()"
              [expanded]="expanded()"
-             [expandInline]="expandInline()"></app-ref>
+             [expandInline]="expandInline()" />
   }
   @if (insertNewAtTop()) {
     @for (ref of newRefs(); track ref.origin + '@' + ref.url) {
@@ -24,7 +24,7 @@
                [disableResize]="ext()?.config?.disableResize"
                [showToggle]="showToggle()"
                [expanded]="expanded()"
-               [expandInline]="expandInline()"></app-ref>
+               [expandInline]="expandInline()" />
     }
   }
   @for (ref of page()?.content; track ref.origin + '@' + ref.url; let i = $index) {
@@ -39,7 +39,7 @@
                [showAlarm]="showAlarm()"
                [showToggle]="showToggle()"
                [expanded]="expanded()"
-               [expandInline]="expandInline()"></app-ref>
+               [expandInline]="expandInline()" />
     }
   }
   @if (!insertNewAtTop()) {
@@ -53,7 +53,7 @@
                [disableResize]="ext()?.config?.disableResize"
                [showToggle]="showToggle()"
                [expanded]="expanded()"
-               [expandInline]="expandInline()"></app-ref>
+               [expandInline]="expandInline()" />
     }
   }
 </div>
@@ -66,8 +66,8 @@
     <app-page-controls [showPageLast]="showPageLast()"
                        [page]="page()"
                        [defaultCols]="cols()"
-                       [showPrev]="showPrev()"></app-page-controls>
+                       [showPrev]="showPrev()" />
   }
 } @else {
-  <app-loading></app-loading>
+  <app-loading />
 }

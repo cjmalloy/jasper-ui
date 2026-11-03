@@ -1,6 +1,6 @@
 @if (!confirming() && !acting() && !minTimeout()) {
   <span class="fake-link" (click)="confirming.set(true)">
-    <ng-content></ng-content>
+    <ng-content />
   </span>
 } @else if (confirming()) {
   <span>
@@ -10,5 +10,5 @@
     <a class="fake-link" (click)="confirming.set(false)" i18n>no</a>&nbsp;
   </span>
 } @else {
-  <app-loading [inline]="true"></app-loading>
+  <app-loading [inline]="true" />
 }

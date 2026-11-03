@@ -3,17 +3,17 @@
        [class.grid-layout]="colStyle()"
        [style.grid-template-columns]="colStyle()">
     @for (ref of pinned(); track ref.origin + '@' + ref.url) {
-      <app-blog-entry class="pinned" [ref]="ref"></app-blog-entry>
+      <app-blog-entry class="pinned" [ref]="ref" />
     }
     @for (ref of currentPage.content; track ref.origin + '@' + ref.url) {
-      <app-blog-entry [ref]="ref" [blog]="ext()"></app-blog-entry>
+      <app-blog-entry [ref]="ref" [blog]="ext()" />
     } @empty {
       <p class="no-results">{{ emptyMessage() }}</p>
     }
   </div>
   @if (pageControls() && currentPage.content.length) {
-    <app-page-controls [defaultCols]="cols()" [page]="currentPage"></app-page-controls>
+    <app-page-controls [defaultCols]="cols()" [page]="currentPage" />
   }
 } @else {
-  <app-loading></app-loading>
+  <app-loading />
 }

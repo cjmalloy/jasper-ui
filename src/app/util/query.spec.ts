@@ -1,12 +1,16 @@
 /// <reference types="vitest/globals" />
 import {
+  convertFilter,
   defaultDesc,
   getArgs,
   getFilter,
   getFilters,
   getFiltersQuery,
+  getTagFilter,
   negatable,
   negate,
+  parseValueFilter,
+  switchFilter,
   toggle,
   UrlFilter,
   withStableDateSort,
@@ -259,6 +263,43 @@ describe('Query Utils', () => {
       expect(args.modifiedAfter).toContain('2023-01-0');
     });
 
+    it('should extract tag value filters', () => {
+      const args = getArgs('science', undefined, [
+        'tags->plugin/duration:dur/before/PT1H',
+        'tags->plugin/duration:dur/after/pt5m',
+        'tags->plugin/progress:num/after/9',
+      ]);
+      expect(args.tagBefore).toEqual(['tags->plugin/duration:dur/pt1h']);
+      expect(args.tagAfter).toEqual(['tags->plugin/duration:dur/pt5m', 'tags->plugin/progress:num/9']);
+      expect(args.pluginBefore).toBeUndefined();
+    });
+
+    it('should extract plugin value filters', () => {
+      const args = getArgs('science', undefined, [
+        'plugins->_plugin/cache->contentLength:num/after/1000',
+        'plugins->plugin/test->title/before/B',
+      ]);
+      expect(args.pluginAfter).toEqual(['plugins->_plugin/cache->contentLength:num/1000']);
+      expect(args.pluginBefore).toEqual(['plugins->plugin/test->title/B']);
+      expect(args.tagBefore).toBeUndefined();
+    });
+
+    it('should convert shorthand value filters', () => {
+      const args = getArgs('science', undefined, [
+        'tags->plugin/duration:dur/before/1h30m',
+        'plugins->_plugin/cache->contentLength:num/after/10mb',
+        'plugins->plugin/test->title/before/5b',
+      ]);
+      expect(args.tagBefore).toEqual(['tags->plugin/duration:dur/pt1h30m']);
+      expect(args.pluginAfter).toEqual(['plugins->_plugin/cache->contentLength:num/' + 10 * 1024 * 1024]);
+      expect(args.pluginBefore).toEqual(['plugins->plugin/test->title/5b']);
+    });
+
+    it('should skip value filters without a value', () => {
+      const args = getArgs('science', undefined, ['tags->plugin/duration:dur/before/' as UrlFilter]);
+      expect(args.tagBefore).toBeUndefined();
+    });
+
     describe('relative date filters', () => {
       beforeEach(() => {
         vi.useFakeTimers();
@@ -279,6 +320,13 @@ describe('Query Utils', () => {
         const args = getArgs('science', undefined, ['published/before/NoW']);
 
         expect(args.publishedBefore).toBe('2026-07-09T23:36:00.000Z');
+      });
+
+      it('should resolve relative dates in tag list filters', () => {
+        expect(getTagFilter(['modified/after/P7D', 'modified/before/now'])).toEqual({
+          modifiedAfter: '2026-07-02T23:36:00.000Z',
+          modifiedBefore: '2026-07-09T23:36:00.000Z',
+        });
       });
 
       it('should reject incomplete ISO durations', () => {
@@ -340,6 +388,73 @@ describe('Query Utils', () => {
       const filters: UrlFilter[] = ['!plugin/vote' as UrlFilter];
       const args = getArgs('science', undefined, filters);
       expect(args.noPluginResponse).toContain('plugin/vote');
+    });
+  });
+
+  describe('parseValueFilter', () => {
+    it('should split tag value filters on the last direction', () => {
+      expect(parseValueFilter('tags->plugin/before/x:dur/before/pt1h')).toEqual({
+        column: 'tags->plugin/before/x:dur',
+        dir: 'before',
+        value: 'pt1h',
+      });
+    });
+
+    it('should split plugin value filters on the last direction', () => {
+      expect(parseValueFilter('plugins->plugin/name/after/x/before/kiwi')).toEqual({
+        column: 'plugins->plugin/name/after/x',
+        dir: 'before',
+        value: 'kiwi',
+      });
+      expect(parseValueFilter('plugins->plugin/score:num/after/10')).toEqual({
+        column: 'plugins->plugin/score:num',
+        dir: 'after',
+        value: '10',
+      });
+    });
+
+    it('should reject invalid value filters', () => {
+      expect(parseValueFilter('modified/before/now')).toBeUndefined();
+      expect(parseValueFilter('tags->plugin/duration:dur/pt1h')).toBeUndefined();
+      expect(parseValueFilter('plugins->plugin/score:num/10')).toBeUndefined();
+    });
+  });
+
+  describe('switchFilter', () => {
+    it('should keep the value when switching direction on the same sort column', () => {
+      expect(switchFilter(
+        'plugins->_plugin/cache->contentLength:num/after/5000',
+        'plugins->_plugin/cache->contentLength:num/before/1000000',
+      )).toBe('plugins->_plugin/cache->contentLength:num/before/5000');
+    });
+
+    it('should use the default value when switching to a different sort column', () => {
+      expect(switchFilter('tags->plugin/duration:dur/after/pt5m', 'plugins->plugin/score:num/after/1000'))
+        .toBe('plugins->plugin/score:num/after/1000');
+    });
+
+    it('should keep the date when switching between date filters', () => {
+      expect(switchFilter('modified/before/2024-01-02', 'published/after/2026-01-01'))
+        .toBe('published/after/2024-01-02');
+    });
+
+    it('should not keep values for other filters', () => {
+      expect(switchFilter('query/science', 'tags->plugin/duration:dur/before/pt5m'))
+        .toBe('tags->plugin/duration:dur/before/pt5m');
+    });
+  });
+
+  describe('convertFilter', () => {
+    it('should put the direction between the sort column and value', () => {
+      expect(convertFilter({ sort: 'tags->plugin/duration:dur', before: 'pt5m', label: 'short' }).filter)
+        .toBe('tags->plugin/duration:dur/before/pt5m');
+      expect(convertFilter({ sort: 'plugins->_plugin/cache->contentLength:num', after: '1000' }).filter)
+        .toBe('plugins->_plugin/cache->contentLength:num/after/1000');
+    });
+
+    it('should use before when it is empty', () => {
+      expect(convertFilter({ sort: 'tags->plugin/duration:dur', before: '' }).filter)
+        .toBe('tags->plugin/duration:dur/before/');
     });
   });
 

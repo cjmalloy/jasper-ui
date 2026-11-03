@@ -21,7 +21,7 @@ interface EditorProps extends FormlyFieldProps {
                   [addButton]="!!props.addButton"
                   [addCommentTitle]="addCommentTitle"
                   [addCommentLabel]="addCommentLabel"
-                  [class.bubble]="props.bubble"></app-editor>
+                  [class.bubble]="props.bubble" />
     </div>
   `,
   imports: [EditorComponent],

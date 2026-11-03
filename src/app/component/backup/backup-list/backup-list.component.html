@@ -9,10 +9,10 @@
         <div class="list-number">{{ i + 1 }}</div>
         <app-backup [id]="b.id"
                     [size]="b.size"
-                    [origin]="origin()"></app-backup>
+                    [origin]="origin()" />
       }
     </div>
   }
 } @else {
-  <app-loading></app-loading>
+  <app-loading />
 }

@@ -5,7 +5,7 @@
                 [autoplay]="autoplay()"
                 (playing)="autoplay.set(true)"
                 (pausing)="autoplay.set(false)"
-                (ended)="next(repeat())"></app-viewer>
+                (ended)="next(repeat())" />
     <div class="playlist-controls">
       <button class="previous-track" type="button" (click)="back()">◀️</button>
       <button class="repeat-toggle" type="button" (click)="repeat.set(!repeat())" [class.selected]="repeat()">🔁</button>
@@ -26,5 +26,5 @@
     </details>
   }
 } @else {
-  <app-loading></app-loading>
+  <app-loading />
 }

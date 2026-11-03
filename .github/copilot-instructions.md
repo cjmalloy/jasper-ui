@@ -93,8 +93,8 @@ npx playwright install --with-deps chromium
 | Task | Command | Verified time |
 |---|---|---|
 | Production build (all locales) | `npm run build` | ~45s (up to ~100s on cold cache) |
-| Lint (angular-eslint) | `npm run lint` | ~10s. `npx eslint src --fix` fixes self-closing tags. |
-| Unit tests (lint, then Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
+| Lint (angular-eslint) | `npm run lint` | ~10s. Must report 0 errors. `npx eslint src --fix` fixes self-closing tags and missing `readonly`. |
+| Unit tests (Vitest via `ng test`) | `npm test -- --watch=false` | **~3.5 min** on 4 cores. Use a timeout of at least 300s and don't cancel. |
 | Single spec | `npx ng test --watch=false --include src/app/util/format.spec.ts` | ~6s |
 | App type check (incl. template diagnostics) | `npx ngc -p tsconfig.app.json --noEmit` | ~15s |
 | Unit tests exactly like CI | `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test` | ~4.5 min (cached builder) |
@@ -189,6 +189,7 @@ Files that the container writes to `e2e/reports` and `test-results` may be owned
 
 - **Update the E2E tests whenever you change user interactions** (buttons, overlays, dialogs, forms).
 - New tests that are not meant to expose a known bug **must be run and pass** before you submit them.
+- **Never make a failing test pass by working around the missing behaviour.** If a test fails because of a bug or an unreleased server change (for example a Jasper PR that isn't merged yet), leave it failing. Don't mock or rewrite API responses with `page.route`, don't use `test.fail`/`test.skip`/`test.fixme`, and don't weaken assertions. A red build is how we know not to merge yet.
 - File naming: numbered core suites (`00-smoke.spec.ts`, `01-backup.spec.ts`, ...), `plugin-<name>.spec.ts`, `template-<name>.spec.ts`.
 - Spec files run in parallel workers (`PW_WORKERS`, default 4 in CI) against one server stack. Tests in a file run in order, so state carries over between them.
 - Every context sends a `Local-Origin` header for a sub-origin unique to the spec (`isolatedOrigin()`, `@repl.*` on the replica). Never use the default origin: post with `origin`, and qualify tags in GETs and DELETEs (`tag + origin`). Specs that need server watchers (cron, pull, push) use fixed origins listed in `fixedOriginSpecs` and in the compose script selectors.
@@ -270,7 +271,7 @@ More rules:
 - Use `isDevMode()` only for Angular checks. For local development conveniences (auto login, prefetch, ...) use `environment.dev`, which is false in the E2E build.
 
 Checks:
-- **Lint** (`npm run lint`, also run by `npm test` and the Docker build): angular-eslint `prefer-inject`, `prefer-signals`, `template/prefer-control-flow`, `template/prefer-self-closing-tags`; bans `@Input`/`@Output`/`@ViewChild(ren)`/`@ContentChild(ren)`/`@HostBinding`/`@HostListener`, lifecycle interfaces, lodash `defer`/`delay`, and imports of `zone.js`, `mobx*`, `NgZone` and `HTTP_INTERCEPTORS`. Config: `eslint.config.js`.
+- **Lint** (`npm run lint`): a local check for you. CI, `npm test` and the Docker build do **not** run it, so run it yourself before committing. The baseline is 0 errors, so any error is yours to fix. angular-eslint `prefer-inject`, `prefer-signals`, `template/prefer-control-flow`, `template/prefer-self-closing-tags`; bans `@Input`/`@Output`/`@ViewChild(ren)`/`@ContentChild(ren)`/`@HostBinding`/`@HostListener`, lifecycle interfaces, and imports of `zone.js`, `mobx*`, `NgZone` and `HTTP_INTERCEPTORS`. Config: `eslint.config.js`.
 - **Compiler** (`tsconfig.json`): `strictTemplates` plus the extended diagnostics `interpolatedSignalNotInvoked` (NG8109), `uninvokedFunctionInEventBinding` (NG8111), `uninvokedFunctionInTextInterpolation` (NG8117) and `uninvokedTrackFunction` (NG8115) are errors. `strictTemplates` also reports TS2774 for an uncalled function in `@if`.
 - **Runtime**: the dev build (`npm start`, `environment.ts`) adds `provideCheckNoChangesConfig({ exhaustive: true })`, so state that changes without notifying an OnPush view logs NG0100. E2E runs the production build, where these dev-mode checks are compiled out.
 

@@ -3,6 +3,7 @@ import { DateTime, Duration } from 'luxon';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { andQueries, fixClientQuery, hasPrefix, isGroup, isNegatedGroup } from './tag';
+import { serverValue } from './value-filter';
 
 const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
 const DEFAULT_DESC_PREFIXES = ['metadata->'];
@@ -25,6 +26,8 @@ export type UrlFilter = Filter |
   `created/after/${string}` |
   `response/before/${string}` |
   `response/after/${string}` |
+  `tags->${string}` |
+  `plugins->${string}` |
   `sources/${string}` |
   `noSources/${string}` |
   `responses/${string}` |
@@ -41,6 +44,33 @@ export type UrlFilter = Filter |
   `!_plugin/${string}`;
 
 export type SortItem = { value: RefSort | TagSort, label: string, title?: string };
+
+/**
+ * Parse a `{sort column}/before/{value}` or `{sort column}/after/{value}` filter,
+ * such as `tags->plugin/duration:dur/before/pt5m`.
+ * Sort columns may contain `/` but values cannot, so the value is always the last `/` segment.
+ */
+export function parseValueFilter(filter: string) {
+  const match = filter.match(/^((?:tags|plugins)->.+)\/(before|after)\/([^/]*)$/);
+  if (!match) return undefined;
+  return { column: match[1], dir: match[2] as 'before' | 'after', value: match[3] };
+}
+
+/**
+ * Switch to the next filter, keeping the value of the previous filter if they compare the same thing.
+ * For example, switching from `modified/before/{date}` to `published/after/{default}` keeps the date,
+ * and switching between before and after on the same sort column keeps the value.
+ */
+export function switchFilter(previous: UrlFilter, next: UrlFilter): UrlFilter {
+  const date = /^(modified|response|published|created)\/(before|after)\//;
+  if (date.test(previous) && date.test(next)) {
+    return next.substring(0, next.lastIndexOf('/') + 1) + previous.substring(previous.lastIndexOf('/') + 1) as UrlFilter;
+  }
+  const p = parseValueFilter(previous);
+  const n = parseValueFilter(next);
+  if (p && n && p.column === n.column) return `${n.column}/${n.dir}/${p.value}` as UrlFilter;
+  return next;
+}
 
 export function negatable(filter: string) {
   if (!filter) return false;
@@ -82,6 +112,9 @@ export function convertFilter(filter: FilterConfig): FilterItem {
     return { filter: `user/${filter.user}`, label: filter.label || filter.user, title: filter.title };
   } else if (filter.response) {
     return { filter: filter.response, label: filter.label || filter.response, title: filter.title };
+  } else if (filter.sort) {
+    const dir = filter.before !== undefined ? 'before' : 'after';
+    return { filter: `${filter.sort}/${dir}/${filter[dir]}`, label: filter.label || `${filter.sort} ${dir}`, title: filter.title };
   }
   throw 'Can\'t convert filter';
 }
@@ -239,6 +272,18 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       result.responseBefore = fixDateTime(f.substring('response/before/'.length));
     } else if (f.startsWith('response/after/')) {
       result.responseAfter = fixDateTime(f.substring('response/after/'.length));
+    } else if (f.startsWith('tags->') || f.startsWith('plugins->')) {
+      const v = parseValueFilter(f);
+      if (!v?.value) {
+        console.warn('Invalid value filter', f);
+      } else if (v.column.startsWith('tags->')) {
+        // Tag values are lowercase, so PT1H works like pt1h
+        const key = v.dir === 'before' ? 'tagBefore' : 'tagAfter';
+        result[key] = [...result[key] || [], v.column + '/' + serverValue(v.column, v.value).toLowerCase()];
+      } else {
+        const key = v.dir === 'before' ? 'pluginBefore' : 'pluginAfter';
+        result[key] = [...result[key] || [], v.column + '/' + serverValue(v.column, v.value)];
+      }
     } else if (f === '!obsolete') {
       result['obsolete'] = null as any;
     } else if (f.startsWith('!')) {
@@ -248,6 +293,57 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
     }
   }
   return result;
+}
+
+/**
+ * Relative dates for date filters, from now back to 100 years ago.
+ */
+export const DATE_PRESETS = [
+  'now',
+  'PT1M',
+  'PT15M',
+  'PT1H',
+  'PT6H',
+  'PT24H',
+  'P3D',
+  'P7D',
+  'P2W',
+  'P1M',
+  'P3M',
+  'P1Y',
+  'P5Y',
+  'P15Y',
+  'P50Y',
+  'P100Y',
+];
+
+/**
+ * Date filters with a value relative to now, like `now` or `P1D`.
+ */
+export function relativeDate(value: string) {
+  return value.toLowerCase() === 'now' || Duration.fromISO(value.toUpperCase()).isValid;
+}
+
+export function relativeDateLabel(value: string) {
+  if (value.toLowerCase() === 'now') return value.toLowerCase();
+  const duration = Duration.fromISO(value.toUpperCase());
+  return duration.isValid ? duration.toHuman() : value;
+}
+
+/**
+ * Index of the nearest {@link DATE_PRESETS} for a relative date.
+ */
+export function relativeDatePreset(value: string) {
+  if (value.toLowerCase() === 'now') return 0;
+  const index = DATE_PRESETS.indexOf(value.toUpperCase());
+  if (index >= 0) return index;
+  if (!relativeDate(value)) return 0;
+  const duration = Duration.fromISO(value.toUpperCase()).as('milliseconds');
+  return DATE_PRESETS.reduce((closest, preset, index) => {
+    const milliseconds = preset === 'now' ? 0 : Duration.fromISO(preset).as('milliseconds');
+    const closestMilliseconds = closest === 0 ? 0 : Duration.fromISO(DATE_PRESETS[closest]).as('milliseconds');
+    return Math.abs(milliseconds - duration) < Math.abs(closestMilliseconds - duration) ? index : closest;
+  }, 0);
 }
 
 export function fixDateTime(t: string) {
@@ -265,9 +361,9 @@ export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
   let result: TagQueryArgs = {};
   for (const f of filter) {
     if (f.startsWith('modified/before/')) {
-      result.modifiedBefore = f.substring('modified/before/'.length);
+      result.modifiedBefore = fixDateTime(f.substring('modified/before/'.length));
     } else if (f.startsWith('modified/after/')) {
-      result.modifiedAfter = f.substring('modified/after/'.length);
+      result.modifiedAfter = fixDateTime(f.substring('modified/after/'.length));
     } else if (f == 'plugin/delete') {
       result.deleted = true;
     }

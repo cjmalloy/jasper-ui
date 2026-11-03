@@ -6,13 +6,13 @@
   @if (store.offline()) {
     <div class="offline-banner">📴️ Offline</div>
   } @else {
-    <app-login-popup></app-login-popup>
+    <app-login-popup />
   }
-  <app-subscription-bar></app-subscription-bar>
+  <app-subscription-bar />
   @if (store.account.signedIn() && userClipboardPlugin()) {
-    <app-user-clipboard></app-user-clipboard>
+    <app-user-clipboard />
   }
-  <router-outlet></router-outlet>
+  <router-outlet />
   @if (store.account.banned) {
     <div class="ban-message">
       You have been banned.

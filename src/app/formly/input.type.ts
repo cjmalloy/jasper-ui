@@ -1,7 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
+import { Observable } from 'rxjs';
 import { AdminService } from '../service/admin.service';
 import { Saving } from '../store/submit';
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
@@ -21,11 +23,20 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       } @else if (type !== 'number') {
         <input class="grow"
                (blur)="blur($any($event.target))"
+               (focus)="focus()"
                [type]="type"
                [formControl]="formControl"
                [formlyAttributes]="field"
+               [attr.list]="props.suggestions ? id + '-suggestions' : null"
                [class.is-invalid]="showError"
                [class.cleared]="props.clear && !field.formControl.value">
+        @if (props.suggestions) {
+          <datalist [id]="id + '-suggestions'">
+            @for (s of suggestions(); track s) {
+              <option [value]="s"></option>
+            }
+          </datalist>
+        }
       } @else {
         <input type="number"
                class="grow"
@@ -35,12 +46,12 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
                [class.is-invalid]="showError">
       }
       @if (props.clear) { <button type="button" (click)="field.formControl!.setValue(null)" i18n-title title="Clear" i18n>🆑️</button> }
-      @if (field.type   ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner> }
+      @if (field.type   ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)" /> }
       @if (files()) {
-        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="onUpload($event)"></app-pdf-upload> }
-        @if (field.type === 'audio') { <app-audio-upload (data)="onUpload($event)"></app-audio-upload> }
-        @if (field.type === 'video') { <app-video-upload (data)="onUpload($event)"></app-video-upload> }
-        @if (field.type === 'image') { <app-image-upload (data)="onUpload($event)"></app-image-upload> }
+        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="onUpload($event)" /> }
+        @if (field.type === 'audio') { <app-audio-upload (data)="onUpload($event)" /> }
+        @if (field.type === 'video') { <app-video-upload (data)="onUpload($event)" /> }
+        @if (field.type === 'image') { <app-image-upload (data)="onUpload($event)" /> }
       }
     </div>
   `,
@@ -72,6 +83,30 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
    */
   get type() {
     return this.props.type || 'text';
+  }
+
+  private readonly suggested = rxResource({
+    params: () => this.props.suggestions,
+    stream: ({ params }) => params(this.admin) as Observable<string[]>,
+  });
+
+  /**
+   * Values used by the other items of the parent list, read on focus.
+   */
+  private readonly used = signal<unknown[]>([]);
+
+  /**
+   * Suggested values, skipping values already in the parent list.
+   */
+  readonly suggestions = computed(() => {
+    const used = this.used();
+    return (this.suggested.hasValue() ? this.suggested.value() : []).filter(s => !used.includes(s));
+  });
+
+  focus() {
+    if (!this.props.suggestions) return;
+    const list = this.field.parent?.model;
+    this.used.set(Array.isArray(list) ? list.filter((v, i) => String(i) !== String(this.field.key) && v) : []);
   }
 
   validate(input: HTMLInputElement) {

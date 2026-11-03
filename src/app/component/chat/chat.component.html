@@ -1,5 +1,5 @@
 @if (!messages() || loadingPrev()) {
-  <app-loading></app-loading>
+  <app-loading />
 }
 @if (messages() && !loadingPrev()) {
   <a class="load-more fake-link" (click)="loadPrev()">load prev</a>
@@ -13,7 +13,7 @@
                   [ref]="ref"
                   [class.odd]="odd"
                   (click)="scrollLock.set(index)"
-                  [focused]="scrollLock() === index"></app-chat-entry>
+                  [focused]="scrollLock() === index" />
 </cdk-virtual-scroll-viewport>
 @if (notAtBottom()) {
   <div class="scroll-to-bottom" tabindex="0" (click)="scrollToBottom()" i18n>More messages below</div>
@@ -89,7 +89,7 @@
     }
   </div>
   @if (hasActiveUploads()) {
-    <app-loading class="upload-loading" [batch]="true"></app-loading>
+    <app-loading class="upload-loading" [batch]="true" />
   }
 }
 <span class="hints">
@@ -104,9 +104,9 @@
 <div class="list-container">
   @for (ref of errored(); track ref.origin + ref.url) {
     <button type="button" class="retry" (click)="retry(ref)" i18n>retry</button>
-    <app-chat-entry [ref]="ref" [loading]="false"></app-chat-entry>
+    <app-chat-entry [ref]="ref" [loading]="false" />
   }
   @for (ref of sending(); track ref.url) {
-    <app-chat-entry [ref]="ref"></app-chat-entry>
+    <app-chat-entry [ref]="ref" />
   }
 </div>

@@ -28,5 +28,5 @@
      [style.pointer-events]="dragging() ? 'none' : undefined">{{ title() }}</a>
 </div>
 @if (expanded()) {
-  <app-viewer [ref]="ref()"></app-viewer>
+  <app-viewer [ref]="ref()" />
 }

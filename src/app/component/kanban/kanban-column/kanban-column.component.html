@@ -7,12 +7,12 @@
                      [pressToUnlock]="pressToUnlock()"
                      [ref]="ref"
                      [ext]="ext()"
-                     (copied)="copy($event)"></app-kanban-card>
+                     (copied)="copy($event)" />
   }
   @for (upload of adding(); track upload.id) {
     <app-kanban-card [ref]="{ url: '', title: upload.name }"
                      [ext]="ext()"
-                     [progress]="upload.progress"></app-kanban-card>
+                     [progress]="upload.progress" />
   }
   @for (failedItem of failed(); track failedItem.text) {
     <div class="failed-item">
@@ -35,7 +35,7 @@
     </div>
   }
 } @else {
-  <app-loading></app-loading>
+  <app-loading />
 }
 <div class="spacer"></div>
 @if (hasMore()) {

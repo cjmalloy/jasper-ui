@@ -1,0 +1,57 @@
+@switch (input()) {
+  @case ('range') {
+    <input type="range"
+           class="filter-range"
+           min="0"
+           [max]="stops().length - 1"
+           [step]="fine() || tuned() ? 'any' : 1"
+           [value]="index()"
+           [attr.aria-valuetext]="rangeLabel()"
+           i18n-title title="Value to compare against"
+           (pointerdown)="press()"
+           (pointerup)="release()"
+           (pointercancel)="release()"
+           (input)="drag(+$any($event.target).value)"
+           (change)="setRange()">
+    <output class="filter-range-label">{{ rangeLabel() }}</output>
+  }
+  @case ('typed') {
+    <input type="text"
+           class="filter-value"
+           [value]="parsed()?.value"
+           i18n-title title="Value to compare against"
+           (focus)="typing.set(true)"
+           (blur)="typing.set(false)"
+           (change)="setTyped($any($event.target))">
+    <output class="filter-range-label">{{ rangeLabel() }}</output>
+  }
+  @case ('units') {
+    <input type="text"
+           inputmode="decimal"
+           class="filter-value"
+           [value]="split().number"
+           i18n-title title="Value to compare against"
+           (focus)="typing.set(true)"
+           (blur)="typing.set(false)"
+           (change)="setNumber($any($event.target))">
+    <select class="filter-unit"
+            i18n-title title="Unit"
+            (focus)="typing.set(true)"
+            (blur)="typing.set(false)"
+            (change)="setUnit($any($event.target).value)">
+      @for (o of options(); track o.suffix) {
+        <option [value]="o.suffix" [selected]="o.suffix === split().option.suffix">{{ o.label }}</option>
+      }
+    </select>
+    @if (configInput() === 'range') {
+      <output class="filter-range-label">{{ rangeLabel() }}</output>
+    }
+  }
+  @default {
+    <input type="text"
+           class="filter-value"
+           [value]="parsed()?.value"
+           i18n-title title="Value to compare against"
+           (change)="setText($any($event.target))">
+  }
+}

@@ -3,7 +3,7 @@ import { mod, test } from './setup';
 
 test.describe.serial('Ext defaults', () => {
   test('enable Ext default mods', async ({ page }) => {
-    await mod(page, '#mod-root', '#mod-config\\/home');
+    await mod(page, '#mod-root', '#mod-config\\/home', '[id="mod-plugin/duration"]');
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
     const deleteButton = page.getByRole('button', { name: 'Delete', exact: true });
     if (await deleteButton.isVisible()) {
@@ -89,6 +89,39 @@ test.describe.serial('Ext defaults', () => {
     await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await expect(page.locator('.sort .controls')).toHaveCount(2);
     await expect(page.locator('.filter .controls')).toHaveCount(3);
+  });
+
+  test('configures and loads a default value filter', async ({ page }) => {
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.locator('.default-filter-create').selectOption({ label: '⏱️ shorter than' });
+    const row = page.locator('.default-filter-row').last();
+    await expect(row.locator('.filter-range-label')).toHaveText('5 min');
+    await row.locator('.filter-range').press('ArrowRight');
+    await expect(row.locator('.filter-range-label')).not.toHaveText('5 min');
+    const label = await row.locator('.filter-range-label').textContent();
+    await row.locator('select').selectOption({ label: '⏱️ longer than' });
+    await expect(row.locator('select')).toHaveValue(/^tags->plugin\/duration:dur\/after\//);
+    await expect(row.locator('.filter-range-label')).toHaveText(label!);
+
+    const save = page.waitForResponse(response => (
+      response.url().includes('/api/v1/ext') &&
+      ['POST', 'PUT'].includes(response.request().method()) &&
+      response.ok()
+    ));
+    await page.locator('button', { hasText: 'Save' }).click();
+    const saveResponse = await save;
+    const saved: string[] = saveResponse.request().postDataJSON().config.defaultFilter;
+    const value = saved.find(f => f.startsWith('tags->plugin/duration:dur/after/'))!.replace('tags->plugin/duration:dur/after/', '');
+    expect(value).toMatch(/^pt/);
+    expect(value).not.toBe('pt5m');
+
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    await expect(page.locator('.default-filter-row select').last()).toHaveValue(/^tags->plugin\/duration:dur\/after\//);
+    await expect(page.locator('.default-filter-row .filter-range-label').last()).toHaveText(label!);
+
+    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('tagAfter'));
+    await page.goto('/home?debug=ADMIN');
+    expect(new URL((await request).url()).searchParams.getAll('tagAfter')).toEqual(['tags->plugin/duration:dur/' + value]);
   });
 
   test('configures and renders a Markdown header', async ({ page }) => {

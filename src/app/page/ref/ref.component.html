@@ -69,7 +69,7 @@
 </app-tabs>
 <app-sidebar [ext]="store.view.viewExt()"
              [tag]="store.view.tag()"
-             [activeExts]="store.view.activeExts()"></app-sidebar>
+             [activeExts]="store.view.activeExts()" />
 @if (store.view.ref()) {
   @if ((thread() || comment()) && store.view.top() && store.view.ref()!.url !== store.view.top()!.url && store.view.current() !== 'ref/sources' && !store.view.repost()) {
     <app-ref class="print-hide"
@@ -78,7 +78,7 @@
              [ref]="store.view.top()"
              [showToggle]="false"
              [expanded]="false"
-             (copied)="reload()"></app-ref>
+             (copied)="reload()" />
     @if (thread()) {
       <a class="parent-link print-hide" [routerLink]="['/ref', store.view.top()!.url, 'thread']" (click)="store.view.preloadRef(store.view.top()!)" i18n>full thread</a>
     } @else if (comment() && store.view.current() === 'ref/comments') {
@@ -93,7 +93,7 @@
            [showToggle]="!thread()"
            [expandInline]="!config.mobile() || !!thread()"
            [expanded]="expandedOnLoad() || !!thread()"
-           (copied)="reload()"></app-ref>
+           (copied)="reload()" />
   @if (newResponses()) {
     <div class="warning print-hide" i18n>
       {newResponses(), plural, =1 {1 new response} other {{{newResponses()}} new responses}}
@@ -126,8 +126,8 @@
   }
   @if (store.view.ref()!.created || store.view.versions() || store.view.current() !== 'ref/summary') {
     <hr>
-    <router-outlet></router-outlet>
+    <router-outlet />
   }
 } @else {
-  <app-loading></app-loading>
+  <app-loading />
 }

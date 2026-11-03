@@ -3,7 +3,7 @@
             (syncTags)="editorTags.set($event)"
             (addSource)="addSource($event)"
             (uploadCompleted)="uploadCompleted($event)"
-            [autoFocus]="true"></app-editor>
+            [autoFocus]="true" />
 @for (e of serverError(); track e) {
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
@@ -11,7 +11,7 @@
 <span class="buttons" [class.floating]="editor.showPreview()">
   <button class="comment-save" type="button" [disabled]="editing()" (click)="save()" i18n>save</button>
   @if (editing()) {
-    <app-loading [inline]="true"></app-loading>
+    <app-loading [inline]="true" />
   } @else {
     <button class="comment-cancel" type="button" (click)="cancel()" i18n>cancel</button>
   }

@@ -8,7 +8,7 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
     <label cdkDragHandle [attr.for]="id" class="form-label" [class.required]="props.required">
       {{ props.label || '' }}
     </label>
-    <ng-template #fieldComponent></ng-template>
+    <ng-template #fieldComponent />
     @if (props.hint) {
       <span><!-- Hint --></span>
       <div class="no-margin">

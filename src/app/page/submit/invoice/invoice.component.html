@@ -14,7 +14,7 @@
            type="text"
            [formControl]="url"
            (blur)="validate($any($event.target))">
-    <app-qr-scanner (data)="$event && url.setValue($event)"></app-qr-scanner>
+    <app-qr-scanner (data)="$event && url.setValue($event)" />
   </div>
 
   <label for="title" i18n>Title:</label>
@@ -42,7 +42,7 @@
                 (syncEditor)="syncEditor()"
                 [tags]="invoiceFormValue()?.tags"
                 (syncTags)="editorTags = $event"
-                (uploadCompleted)="addCompletedUpload($event)"></app-editor>
+                (uploadCompleted)="addCompletedUpload($event)" />
   </div>
 
   @for (e of serverError(); track e) {
@@ -53,7 +53,7 @@
   <span><!-- Buttons --></span>
   <span class="buttons right floating">
       @if (submitting()) {
-        <app-loading [inline]="true"></app-loading>
+        <app-loading [inline]="true" />
       }
     <button type="submit" [disabled]="submitting() || submitted() && !invoiceFormValid()" i18n>Send</button>
   </span>

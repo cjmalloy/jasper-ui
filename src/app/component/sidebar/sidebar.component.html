@@ -6,7 +6,7 @@
     @if (store.view.type()) {
       <div class="wide">
         @if (expanded() && store.view.showRemotesCheckbox()) {
-          <app-search></app-search>
+          <app-search />
           @if (admin.getPlugin('+plugin/origin')) {
             <div class="show-remotes">
               <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes()" (input)="showRemotes = sr.checked">
@@ -14,7 +14,7 @@
             </div>
           }
         } @else {
-          <app-search class="centered"></app-search>
+          <app-search class="centered" />
         }
       </div>
     }
@@ -22,9 +22,9 @@
   @if (store.view.type()) {
     @if (tag() && (store.view.tag() || store.view.template())) {
       @if (!user()) {
-        <app-query [query]="tag()" class="breadcrumbs"></app-query>
+        <app-query [query]="tag()" class="breadcrumbs" />
       } @else {
-        <app-nav class="center" [url]="'tag:/' + tag()"></app-nav>
+        <app-nav class="center" [url]="'tag:/' + tag()" />
         <div class="tag-select row center">
           <div class="submit-button"
                routerLinkActive="toggled"
@@ -45,20 +45,20 @@
   @if (expanded()) {
     @if (store.view.type()) {
       <div class="row mini-col reverse">
-        <app-filter [type]="store.view.type()!" [activeExts]="activeExts()"></app-filter>
-        <app-sort [type]="store.view.type()!"></app-sort>
+        <app-filter [type]="store.view.type()!" [activeExts]="activeExts()" />
+        <app-sort [type]="store.view.type()!" />
       </div>
     }
-    <app-debug></app-debug>
+    <app-debug />
     @if (store.view.type()) {
       <app-bulk [type]="store.view.type()!"
                 [viewExt]="ext()"
-                [activeExts]="activeExts()"></app-bulk>
+                [activeExts]="activeExts()" />
     }
   }
   <span class="button-bar">
     @if (videoChat()) {
-      <app-chat-video [url]="store.view.ref()?.url || 'tag:/chat'"></app-chat-video>
+      <app-chat-video [url]="store.view.ref()?.url || 'tag:/chat'" />
     }
     @if (!dm() && !user() && canAddTag() && !plugin()?.config?.reply && store.account.user && (store.view.type() === 'ref' || store.view.current() === 'ref/summary')) {
       @if (plugin()?.config?.submitText || rootConfig()?.submitText) {
@@ -260,12 +260,12 @@
     <app-md class="hide ui"
             [disableSanitizer]="true"
             [origin]="ext()!.origin || ''"
-            [text]="uiMarkdown()"></app-md>
+            [text]="uiMarkdown()" />
   }
   @if (root()) {
     <div class="hide template-root">
       @if (ext()?.config?.sidebar) {
-        <app-md [origin]="ext()?.origin || ''" [text]="ext()!.config!.sidebar"></app-md>
+        <app-md [origin]="ext()?.origin || ''" [text]="ext()!.config!.sidebar" />
       }
     </div>
   }
@@ -273,7 +273,7 @@
     @for (res of queryExts(); track res.x.tag) {
       <h5>{{ res.x.name || res.x.tag}} Tags:</h5>
       @for (x of res.children; track x.tag + x.origin) {
-        <app-ext [ext]="x" [useEditPage]="true"></app-ext>
+        <app-ext [ext]="x" [useEditPage]="true" />
       }
       @if (res.more) {
         <a [routerLink]="['/tags', res.x.tag]"
@@ -284,7 +284,7 @@
       }
     }
     @if (chat()) {
-      <app-chat query="chat" [responseOf]="store.view.ref()"></app-chat>
+      <app-chat query="chat" [responseOf]="store.view.ref()" />
     } @else if (store.view.ref() && admin.getPlugin('plugin/chat')) {
       <a class="fake-link load-more" (click)="startChat()" i18n>chat</a>
     }

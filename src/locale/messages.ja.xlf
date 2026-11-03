@@ -7806,6 +7806,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>+ Add another hot tag</source>
         <target>+ ホットタグを追加</target>
       </trans-unit>
+      <trans-unit id="5368822288199237175" datatype="html">
+        <source>Hot Plugins:</source>
+        <target>ホットプラグイン:</target>
+      </trans-unit>
+      <trans-unit id="5145963060673597655" datatype="html">
+        <source>+ Add another hot plugin</source>
+        <target>+ ホットプラグインを追加</target>
+      </trans-unit>
       <trans-unit id="1294909756545406951" datatype="html">
         <source>JWT</source>
       </trans-unit>
@@ -8258,6 +8266,74 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="6062314466203660156" datatype="html">
         <source>Add default values for new fields and remove defaults for deleted fields</source>
         <target>新しいフィールドのデフォルト値を追加し、削除したフィールドのデフォルト値を削除する</target>
+      </trans-unit>
+      <trans-unit id="2681761104042123835" datatype="html">
+        <source>🗜️ larger than</source>
+        <target>🗜️ より大きい</target>
+      </trans-unit>
+      <trans-unit id="2905050553453459643" datatype="html">
+        <source>Cache size larger than</source>
+        <target>キャッシュサイズがこれより大きい</target>
+      </trans-unit>
+      <trans-unit id="4704866115669457629" datatype="html">
+        <source>Media longer than</source>
+        <target>メディアの長さがこれより長い</target>
+      </trans-unit>
+      <trans-unit id="2672534974804206542" datatype="html">
+        <source>Cache size smaller than</source>
+        <target>キャッシュサイズがこれより小さい</target>
+      </trans-unit>
+      <trans-unit id="899113578443100335" datatype="html">
+        <source>Media shorter than</source>
+        <target>メディアの長さがこれより短い</target>
+      </trans-unit>
+      <trans-unit id="8444840466573361504" datatype="html">
+        <source>sec</source>
+        <target>秒</target>
+      </trans-unit>
+      <trans-unit id="3901733599428143571" datatype="html">
+        <source>min</source>
+        <target>分</target>
+      </trans-unit>
+      <trans-unit id="3226253490468863097" datatype="html">
+        <source>hr</source>
+        <target>時間</target>
+      </trans-unit>
+      <trans-unit id="7036284206110282007" datatype="html">
+        <source>days</source>
+        <target>日</target>
+      </trans-unit>
+      <trans-unit id="6030436125074878722" datatype="html">
+        <source>⏱️ longer than</source>
+        <target>⏱️ より長い</target>
+      </trans-unit>
+      <trans-unit id="6184974166617314425" datatype="html">
+        <source>⏱️ shorter than</source>
+        <target>⏱️ より短い</target>
+      </trans-unit>
+      <trans-unit id="6919957515277564252" datatype="html">
+        <source>🗜️ smaller than</source>
+        <target>🗜️ より小さい</target>
+      </trans-unit>
+      <trans-unit id="8130397953837480329" datatype="html">
+        <source>Value to compare against</source>
+        <target>比較する値</target>
+      </trans-unit>
+      <trans-unit id="2687607523494767476" datatype="html">
+        <source>🏆️ score over</source>
+        <target>🏆️ スコアが超える</target>
+      </trans-unit>
+      <trans-unit id="5959001852818346533" datatype="html">
+        <source>Score higher than</source>
+        <target>スコアがこれより高い</target>
+      </trans-unit>
+      <trans-unit id="6816310719157027310" datatype="html">
+        <source>Time ago</source>
+        <target>経過時間</target>
+      </trans-unit>
+      <trans-unit id="8932917860978648376" datatype="html">
+        <source>Unit</source>
+        <target>単位</target>
       </trans-unit>
     </body>
   </file>

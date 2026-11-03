@@ -5,16 +5,16 @@
   @if (defaults()?.url || loadingDefaults().length) {
     <span></span>
     <div>
-      <span i18n>Loading defaults for <app-nav [url]="defaults()?.url || ('tag:/' + loadingDefaults()[0].tag)"></app-nav></span>
+      <span i18n>Loading defaults for <app-nav [url]="defaults()?.url || ('tag:/' + loadingDefaults()[0].tag)" /></span>
       @if (!defaults()) {
-        <app-loading [inline]="true"></app-loading>
+        <app-loading [inline]="true" />
       }
     </div>
   }
 
   <app-ref-form #refForm [group]="webForm"
                 [creating]="true"
-                (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
+                (toggleTag)="bookmarks.toggleTag($event)" />
 
   @for (e of serverError(); track e) {
     <span><!-- Unexpected Error --></span>
@@ -23,7 +23,7 @@
   <span><!-- Buttons --></span>
   <span class="buttons right floating">
     @if (submitting() || saving()) {
-      <app-loading [inline]="true"></app-loading>
+      <app-loading [inline]="true" />
     }
     @if (admin.getPlugin('plugin/editing')) {
       <button type="button" [disabled]="submitting() || saving() || submitted() || webFormPristine()" (click)="saveForLater(true)" i18n>Save for later</button>

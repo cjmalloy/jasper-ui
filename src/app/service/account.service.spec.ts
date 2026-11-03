@@ -35,6 +35,17 @@ describe('AccountService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('reloads the For You query when subscriptions change', () => {
+    const store = (service as any).store;
+    store.account.ext.set({ tag: '+user/dad', config: { subscriptions: ['science'] } });
+    store.route.routeSnapshot.set({ queryParams: { forYou: 'true' } });
+    TestBed.tick();
+    expect(service.homeQuery()).toBe('!internal:(science)');
+    store.account.ext.set({ tag: '+user/dad', config: { subscriptions: ['science', 'music'] } });
+    TestBed.tick();
+    expect(service.homeQuery()).toBe('!internal:(science|music)');
+  });
+
   const setAccount = () => {
     const store = (service as any).store;
     store.account.tag.set('+user/dad');

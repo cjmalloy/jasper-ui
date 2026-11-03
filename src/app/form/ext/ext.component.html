@@ -71,7 +71,7 @@
           <div class="default-filter-row">
             <span class="controls">
               <select [id]="id + '-defaultFilter-' + i"
-                      (input)="setFilter(i, $any($event.target).value)">
+                      (input)="setFilter(i, switchFilter(filter, $any($event.target).value))">
                 @if (!hasFilterOption(filter)) {
                   <option [value]="filter" selected>{{ filterOptionLabel(filter) }}</option>
                 }
@@ -86,21 +86,17 @@
             </span>
             @if (filterIsDate(filter)) {
               @if (store.hotkey() || filterSpecialDate(filter)) {
-                <span class="default-filter-date-range">
-                  <input type="range"
-                         min="0"
-                         [max]="datePresets.length - 1"
-                         step="1"
-                         [value]="filterDatePreset(filter)"
-                         (input)="setFilterDatePreset(i, filter, $any($event.target).value)">
-                  <output>{{ filterDateLabel(filter) }}</output>
-                </span>
+                <app-relative-date class="default-filter-date-range"
+                                   [value]="filterDateValue(filter)"
+                                   (changed)="setFilterDatePreset(i, filter, $event)" />
               } @else {
                 <input type="datetime-local"
                        step="60"
                        [value]="filterDate(filter)"
                        (change)="setFilterDate(i, filter, $any($event.target).value)">
               }
+            } @else if (parseValueFilter(filter)) {
+              <app-value-filter [filter]="filter" [query]="ext()?.tag || ''" (changed)="setFilterValue(i, filter, $event)" />
             }
           </div>
         }
@@ -111,7 +107,7 @@
                    [form]="config()"
                    [model]="model()"
                    [fields]="form"
-                   [options]="options"></formly-form>
+                   [options]="options" />
     }
     @if (modmail() && inbox() && !user()) {
       <label [for]="id + '-modmail'" i18n>Enable Modmail:</label>
@@ -133,7 +129,7 @@
           <summary i18n-title title="Custom Themes"><span><span class="summary-open" i18n>Custom Themes</span></span></summary>
           <app-themes id="themes"
                       [group]="config()"
-                      fieldName="themes"></app-themes>
+                      fieldName="themes" />
         </details>
       </div>
     }
@@ -176,12 +172,12 @@
                      [form]="config()"
                      [model]="model()"
                      [fields]="advancedForm()!"
-                     [options]="options"></formly-form>
+                     [options]="options" />
       </div>
       @if (defaults()) {
-        <app-ref class="bubble" [ref]="defaults()"></app-ref>
+        <app-ref class="bubble" [ref]="defaults()" />
       } @else if (loadingDefaults()) {
-        <app-loading></app-loading>
+        <app-loading />
       }
     </details>
   }

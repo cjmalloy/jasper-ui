@@ -41,7 +41,7 @@
     <app-plugin-form [group]="editForm"
                      [configErrors]="configErrors()"
                      [defaultsErrors]="defaultsErrors()"
-                     [schemaErrors]="schemaErrors()"></app-plugin-form>
+                     [schemaErrors]="schemaErrors()" />
 
     @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
@@ -51,7 +51,7 @@
     <span><!-- Buttons --></span>
     <span class="buttons right floating">
       @if (saving()) {
-        <app-loading [inline]="true"></app-loading>
+        <app-loading [inline]="true" />
       }
       <button type="submit" [disabled]="saving() || submitted() && !editFormValid()" i18n>save</button>
       <button type="button" (click)="cancelEdit()" i18n>cancel</button>
@@ -59,15 +59,14 @@
   </form>
 } @else if (viewSource()) {
   <form class="form" [formGroup]="editForm">
-    <app-plugin-form [group]="editForm"></app-plugin-form>
+    <app-plugin-form [group]="editForm" />
   </form>
 } @else if (diffing() && diffLocal() && diffRemote()) {
   <div class="diff-view form">
     <app-diff #diffEditor
               [original]="diffLocal()!"
               [modified]="diffRemote()!"
-              [readOnly]="!store.account.admin">
-    </app-diff>
+              [readOnly]="!store.account.admin" />
 
     @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
@@ -77,7 +76,7 @@
     <span><!-- Buttons --></span>
     <span class="buttons right floating">
       @if (saving()) {
-        <app-loading [inline]="true"></app-loading>
+        <app-loading [inline]="true" />
       }
       @if (store.account.admin) {
         <button type="button" class="save-diff" [disabled]="saving()" (click)="saveDiff()" i18n>save</button>

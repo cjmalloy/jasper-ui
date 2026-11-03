@@ -386,7 +386,7 @@ describe('EditorComponent', () => {
 
 @Component({
   selector: 'app-on-push-editor-host',
-  template: `<app-editor [control]="control"></app-editor>`,
+  template: `<app-editor [control]="control" />`,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [EditorComponent],
 })

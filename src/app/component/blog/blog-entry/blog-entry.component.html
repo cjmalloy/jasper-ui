@@ -3,9 +3,9 @@
   <div class="stack">
     <h2 class="link blog-title" [class.remote]="!local()">
       @if (tagLink()) {
-        <app-nav [url]="url()" [text]="title()"></app-nav>
+        <app-nav [url]="url()" [text]="title()" />
       } @else if (clickableLink()) {
-        <app-nav [url]="url()" [text]="title()" [external]="true"></app-nav>
+        <app-nav [url]="url()" [text]="title()" [external]="true" />
       } @else {
         <span>{{ title() }}</span>
       }
@@ -96,7 +96,7 @@
           }
           <app-action-list [ref]="ref()"
                            [repostRef]="repostRef()"
-                           [groupedActions]="groupedActions()"></app-action-list>
+                           [groupedActions]="groupedActions()" />
         </div>
       </div>
     </div>
@@ -108,12 +108,12 @@
                      [to]="ref()"
                      [showCancel]="true"
                      [tags]="replyTags()"
-                     (save)="goToComments()"></app-comment-reply>
+                     (save)="goToComments()" />
 }
 @if (editing()) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-ref-form [group]="editForm" [ref]="ref()"></app-ref-form>
+    <app-ref-form [group]="editForm" [ref]="ref()" />
 
     @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
@@ -123,7 +123,7 @@
     <span><!-- Buttons --></span>
     <span class="buttons right floating">
       @if (submitting()) {
-        <app-loading [inline]="true"></app-loading>
+        <app-loading [inline]="true" />
       }
       <button type="submit" [disabled]="submitting() || submitted() && !editFormValid()" i18n>save</button>
       <button class="blog-edit-cancel" type="button" [disabled]="submitting()" (click)="cancelEdit()" i18n>cancel</button>
@@ -131,10 +131,10 @@
   </form>
 } @else if (viewSource()) {
   <form class="form" [formGroup]="editForm">
-    <app-ref-form [group]="editForm" [ref]="ref()" [origin]="ref().origin"></app-ref-form>
+    <app-ref-form [group]="editForm" [ref]="ref()" [origin]="ref().origin" />
   </form>
 } @else {
-  <app-viewer class="blog-body" [ref]="ref()"></app-viewer>
+  <app-viewer class="blog-body" [ref]="ref()" />
   @for (e of serverError(); track e) {
     <div class="error">{{ e }}</div>
   }
@@ -147,12 +147,12 @@
                       [showLoadMore]="false"
                       [source]="ref().url"
                       [depth]="1"
-                      [pageSize]="summaryItems"></app-thread-summary>
+                      [pageSize]="summaryItems" />
   <a class="load-more" [routerLink]="['/ref', ref().url, 'comments']" [queryParams]="{ origin: nonLocalOrigin() }" i18n>
     more comments
   </a>
 </div>
 <app-comment-reply [to]="ref()"
                    [tags]="replyTags()"
-                   (save)="goToComments()"></app-comment-reply>
+                   (save)="goToComments()" />
 <hr>

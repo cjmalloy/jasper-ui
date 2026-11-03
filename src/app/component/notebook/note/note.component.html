@@ -1,5 +1,5 @@
 @if (!ref().modified) {
-  <app-loading></app-loading>
+  <app-loading />
 }
 <div class="note-container">
   <div class="badges">
@@ -54,15 +54,15 @@
   </div>
   @if (chess()) {
     <app-chess [white]="chessWhite()"
-               [ref]="ref()"></app-chess>
+               [ref]="ref()" />
   }
   @if (todo()) {
-    <app-todo [ref]="ref()"></app-todo>
+    <app-todo [ref]="ref()" />
   }
   @if (currentText()) {
     <app-md [origin]="ref().origin || ''"
             [plugins]="ref().tags || []"
-            [text]="currentText()"></app-md>
+            [text]="currentText()" />
   }
 
   <ng-template #cardMenu>

@@ -10,6 +10,7 @@ import { FilterConfig } from '../../model/tag';
 import { KanbanConfig } from '../../mods/org/kanban';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
+import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
@@ -17,15 +18,27 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
-import { convertFilter, FilterGroup, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
+import {
+  convertFilter,
+  FilterGroup,
+  FilterItem,
+  negatable,
+  parseValueFilter,
+  relativeDate,
+  switchFilter,
+  toggle,
+  UrlFilter
+} from '../../util/query';
 import { hasPrefix } from '../../util/tag';
+import { RelativeDateComponent } from '../relative-date/relative-date.component';
+import { ValueFilterComponent } from '../value-filter/value-filter.component';
 
 @Component({
   selector: 'app-filter',
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
   host: { 'class': 'filter form-group' },
-  imports: [ReactiveFormsModule, FormsModule]
+  imports: [ReactiveFormsModule, FormsModule, ValueFilterComponent, RelativeDateComponent]
 })
 export class FilterComponent {
   router = inject(Router);
@@ -34,6 +47,7 @@ export class FilterComponent {
   private auth = inject(AuthzService);
   private bookmarks = inject(BookmarkService);
   private editor = inject(EditorService);
+  private account = inject(AccountService);
 
 
   readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
@@ -65,6 +79,15 @@ export class FilterComponent {
   ), { initialValue: [] });
   readonly allFilters = computed(() => this.buildFilters());
 
+  /**
+   * Query of the page without filters, to find the range of value filters in.
+   */
+  readonly rangeQuery = computed(() => this.store.view.current() === 'home'
+    ? this.account.homeQuery() || ''
+    : this.store.view.tag());
+
+  readonly relativeDate = relativeDate;
+
 
   emoji = emoji($localize`🪄️`) || $localize`🔍️`;
 
@@ -78,7 +101,9 @@ export class FilterComponent {
       }
     };
     const load = (config: FilterConfig) => {
-      if ((config.query || config.response) && !this.auth.queryReadAccess(config.query || config.response)) return;
+      const sortTag = config.sort?.replace(/^(tags|plugins)->/, '').split(/->|:/)[0];
+      const query = config.query || config.response || sortTag;
+      if (query && !this.auth.queryReadAccess(query)) return;
       push({ label: config.group || '', filters: [convertFilter(config)] });
     };
     if (this.type() === 'ref') {
@@ -194,9 +219,22 @@ export class FilterComponent {
     const dates = ['modified', 'response', 'published', 'created'];
     for (const value of this.filters()) {
       const datePrefix = dates.flatMap(date => [`${date}/before/`, `${date}/after/`]).find(prefix => value.startsWith(prefix));
+      const v = parseValueFilter(value);
+      // Show the value in an unused option for the same bound, so repeated bounds each keep an option
+      const sameValueFilter = (item: FilterItem) => {
+        const i = parseValueFilter(item.filter);
+        return i?.column === v?.column && i?.dir === v?.dir && !this.filters().includes(item.filter);
+      };
       if (datePrefix) {
         groups = groups.map(group => ({ ...group, filters: group.filters.map(item =>
           item.filter.startsWith(datePrefix) ? { ...item, filter: value } : item) }));
+      } else if (v && !groups.some(group => group.filters.some(item => item.filter === value)) && groups.some(group => group.filters.some(sameValueFilter))) {
+        let replaced = false;
+        groups = groups.map(group => ({ ...group, filters: group.filters.map(item => {
+          if (replaced || !sameValueFilter(item)) return item;
+          replaced = true;
+          return { ...item, filter: value };
+        }) }));
       } else if (!groups.some(group => group.filters.some(item => item.filter === value))) {
         const opposite = toggle(value);
         const match = groups.some(group => group.filters.some(item => item.filter === opposite));
@@ -205,6 +243,8 @@ export class FilterComponent {
           groups = groups.map(group => ({ ...group, filters: group.filters.map(item => item.filter === opposite
             ? { ...item, filter: value, label: item.label.startsWith(not) ? item.label.substring(not.length) : not + item.label }
             : item) }));
+        } else if (v) {
+          load({ group: $localize`Filters 🕵️️`, sort: v.column as FilterConfig['sort'], [v.dir]: v.value });
         } else if (value.startsWith('scheme/')) {
           load({ group: $localize`Schemes 🏳️️`, scheme: value.substring('scheme/'.length) });
         } else if (value.startsWith('sources/')) {
@@ -296,6 +336,14 @@ export class FilterComponent {
     this.setFilters();
   }
 
+  readonly parseValueFilter = parseValueFilter;
+  readonly switchFilter = switchFilter;
+
+  setValue(index: number, filter: UrlFilter, value: string) {
+    const v = parseValueFilter(filter);
+    if (v) this.setFilter(index, `${v.column}/${v.dir}/${value}` as UrlFilter);
+  }
+
   removeFilter(index: number) {
     this.filters.update(filters => filters.filter((f, i) => i !== index));
     this.setFilters();
@@ -307,6 +355,10 @@ export class FilterComponent {
 
   toIso(date: string) {
     return DateTime.fromISO(date).toISO()!;
+  }
+
+  dateValue(filter: string) {
+    return filter.substring(filter.lastIndexOf('/') + 1);
   }
 
   toDate(filter: string) {

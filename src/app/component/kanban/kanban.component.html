@@ -1,6 +1,6 @@
 <ng-container>
   @if (!error && !ext()) {
-    <app-loading></app-loading>
+    <app-loading />
   } @else if (error) {
     <div class="error-404" i18n>Not Found</div>
   } @else if (ext()) {
@@ -30,7 +30,7 @@
                   <label for="disable-swim-lanes" i18n>Hide Swim Lanes</label>
                 </div>
               }
-              <app-page-controls [hideCols]="true"></app-page-controls>
+              <app-page-controls [hideCols]="true" />
             </div>
           }
         </div>
@@ -67,7 +67,7 @@
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
                                [query]="getQuery({sl})"
-                               [addTags]="addingTags({sl})"></app-kanban-column>
+                               [addTags]="addingTags({sl})" />
           }
           @for (col of columns(); track col) {
             <app-kanban-column cdkDropList
@@ -82,7 +82,7 @@
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
                                [query]="getQuery({col, sl})"
-                               [addTags]="addingTags({col, sl})"></app-kanban-column>
+                               [addTags]="addingTags({col, sl})" />
           }
         }
         @if (showSwimLaneBacklog()) {
@@ -102,7 +102,7 @@
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
                                [query]="getQuery({})"
-                               [addTags]="addingTags({})"></app-kanban-column>
+                               [addTags]="addingTags({})" />
           }
           @for (col of columns(); track col) {
             <app-kanban-column cdkDropList
@@ -117,7 +117,7 @@
                                (cdkDropListDropped)="drop($any($event))"
                                [updates]="updates"
                                [query]="getQuery({col})"
-                               [addTags]="addingTags({col})"></app-kanban-column>
+                               [addTags]="addingTags({col})" />
           }
         }
       } @else {
@@ -134,7 +134,7 @@
                              (cdkDropListDropped)="drop($any($event))"
                              [updates]="updates"
                              [query]="getQuery({})"
-                             [addTags]="addingTags({})"></app-kanban-column>
+                             [addTags]="addingTags({})" />
         }
         @for (col of columns(); track col) {
           <app-kanban-column cdkDropList
@@ -149,12 +149,12 @@
                              (cdkDropListDropped)="drop($any($event))"
                              [updates]="updates"
                              [query]="getQuery({col})"
-                             [addTags]="addingTags({col})"></app-kanban-column>
+                             [addTags]="addingTags({col})" />
         }
       }
     </div>
   }
   @if (pageControls()) {
-    <app-page-controls></app-page-controls>
+    <app-page-controls />
   }
 </ng-container>

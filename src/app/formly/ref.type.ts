@@ -59,12 +59,12 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
                [formlyAttributes]="field"
                [class.is-invalid]="showError">
       }
-      @if (field.type   ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)"></app-qr-scanner> }
+      @if (field.type   ===    'qr') { <app-qr-scanner   (data)="$event && field.formControl!.setValue($event)" /> }
       @if (files) {
-        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="onUpload($event)"></app-pdf-upload> }
-        @if (field.type === 'audio') { <app-audio-upload (data)="onUpload($event)"></app-audio-upload> }
-        @if (field.type === 'video') { <app-video-upload (data)="onUpload($event)"></app-video-upload> }
-        @if (field.type === 'image') { <app-image-upload (data)="onUpload($event)"></app-image-upload> }
+        @if (field.type ===   'pdf') { <app-pdf-upload   (data)="onUpload($event)" /> }
+        @if (field.type === 'audio') { <app-audio-upload (data)="onUpload($event)" /> }
+        @if (field.type === 'video') { <app-video-upload (data)="onUpload($event)" /> }
+        @if (field.type === 'image') { <app-image-upload (data)="onUpload($event)" /> }
       }
     </div>
   `,

@@ -5,10 +5,13 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
+import { jezzballMod } from '../mods/games/jezzball';
+import { durationPlugin } from '../mods/media/duration';
+import { cachePlugin } from '../mods/system/cache';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
-import { defer, firstValueFrom, of } from 'rxjs';
+import { defer, firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
 import { PluginService } from './api/plugin.service';
@@ -111,10 +114,49 @@ describe('AdminService', () => {
     expect(service.getTemplateAdminForm('parent', 'advancedAdminForm').map(f => f.key)).toEqual(['b']);
   });
 
+  it('should suggest hot tags and hot plugins from mods in every origin', async () => {
+    const page = <T>(content: T[], number: number, totalPages: number) => of({
+      content, page: { number, size: content.length, totalElements: 0, totalPages },
+    });
+    const pluginPage = vi.spyOn(TestBed.inject(PluginService), 'page').mockImplementation(args => args.page === 0
+      ? page([{ ...durationPlugin, origin: '@a' }], 0, 2)
+      : page([{ ...cachePlugin, origin: '@b' }, ...jezzballMod.plugin!], 1, 2));
+    vi.spyOn(TestBed.inject(TemplateService), 'page').mockReturnValue(page([], 0, 1));
+    expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({
+      tags: ['plugin/duration:dur'],
+      plugins: ['_plugin/cache->contentLength:num', 'plugin/score:num'],
+    });
+    expect(pluginPage.mock.calls.map(([args]) => [args.query, args.page])).toEqual([['@*', 0], ['@*', 1]]);
+    const [hotTags, hotPlugins] = service.getTemplateAdminForm('_config/index').slice(-2);
+    expect(await firstValueFrom((hotTags.fieldArray as any).props.suggestions(service))).toEqual(['plugin/duration:dur']);
+    expect(await firstValueFrom((hotPlugins.fieldArray as any).props.suggestions(service))).toEqual(['_plugin/cache->contentLength:num', 'plugin/score:num']);
+  });
+
+  it('should scan for hot index suggestions again each time the form opens', async () => {
+    const empty = of({ content: [], page: { number: 0, size: 0, totalElements: 0, totalPages: 1 } });
+    const pluginPage = vi.spyOn(TestBed.inject(PluginService), 'page').mockReturnValueOnce(throwError(() => 'offline')).mockReturnValue(empty as any);
+    vi.spyOn(TestBed.inject(TemplateService), 'page').mockReturnValue(empty as any);
+    expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({ tags: [], plugins: [] });
+    pluginPage.mockReturnValue(of({ content: [durationPlugin], page: { number: 0, size: 1, totalElements: 1, totalPages: 1 } }) as any);
+    expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({ tags: ['plugin/duration:dur'], plugins: [] });
+    expect(pluginPage).toHaveBeenCalledTimes(2);
+  });
+
+  it('should share one hot index scan between fields rendered together', async () => {
+    const pages = new Subject<any>();
+    const pluginPage = vi.spyOn(TestBed.inject(PluginService), 'page').mockReturnValue(pages);
+    vi.spyOn(TestBed.inject(TemplateService), 'page').mockReturnValue(of({ content: [], page: { number: 0, size: 0, totalElements: 0, totalPages: 1 } }) as any);
+    const both = Promise.all([firstValueFrom(service.hotIndexSuggestions$()), firstValueFrom(service.hotIndexSuggestions$())]);
+    pages.next({ content: [durationPlugin], page: { number: 0, size: 1, totalElements: 1, totalPages: 1 } });
+    pages.complete();
+    expect((await both)[1].tags).toEqual(['plugin/duration:dur']);
+    expect(pluginPage).toHaveBeenCalledTimes(1);
+  });
+
   it('should fall back to hard coded config admin forms', () => {
     expect(service.getTemplateAdminForm('_config/index').map(f => f.key)).toEqual([
       'tags', 'sources', 'alts', 'responses', 'internalResponses', 'fulltext', 'published', 'modified',
-      'ignored', 'cascade', 'regen', 'hotTags',
+      'ignored', 'cascade', 'regen', 'hotTags', 'hotPlugins',
     ]);
     expect(service.getTemplateAdminForm('_config/security').map(f => f.key)).toContain('minRole');
     expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toContain('scriptSelectors');

@@ -16,7 +16,7 @@
                   (pendingUsed)="usePending($event)"
                   (togglePlugin)="togglePlugin.emit($event)"
                   (setPlugin)="pending[$event.tag] = $event.value"
-                  [children]="admin.getPluginSubForms(plugin.tag)"></app-form-gen>
+                  [children]="admin.getPluginSubForms(plugin.tag)" />
   }
 }
 @if (empty()) {

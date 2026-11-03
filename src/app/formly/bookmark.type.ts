@@ -19,6 +19,7 @@ import { debounce, defer, uniq, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
+import { ValueFilterComponent } from '../component/value-filter/value-filter.component';
 import { Ext } from '../model/ext';
 import { Config, FilterConfig } from '../model/tag';
 import { type Template } from '../model/template';
@@ -35,7 +36,9 @@ import {
   FilterGroup,
   FilterItem,
   negatable,
+  parseValueFilter,
   SortItem,
+  switchFilter,
   toggle,
   UrlFilter
 } from '../util/query';
@@ -123,6 +126,7 @@ import { getErrorMessage } from './errors';
       select {
         display: block;
         width: 100%;
+        box-sizing: border-box;
       }
       .unselected {
         text-align: center;
@@ -220,9 +224,9 @@ import { getErrorMessage } from './errors';
             }
           }
         </select>
-        @for (filter of filters(); track filter; let i = $index) {
+        @for (filter of filters(); track $index; let i = $index) {
           <div class="controls" [title]="filter">
-            <select [ngModel]="filter" (ngModelChange)="setFilter(i, $event)">
+            <select [ngModel]="filter" (ngModelChange)="setFilter(i, switchFilter($any(filter), $event))">
               @for (g of allFilters(); track g.label) {
                 @if (g.filters.length) {
                   <optgroup [label]="g.label">
@@ -238,6 +242,9 @@ import { getErrorMessage } from './errors';
             }
             <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
           </div>
+          @if (parseValueFilter(filter)) {
+            <app-value-filter [filter]="filter" [query]="query()" (changed)="setValue(i, filter, $event)" />
+          }
         }
       </div>
     </ng-template>
@@ -247,6 +254,7 @@ import { getErrorMessage } from './errors';
     ReactiveFormsModule,
     FormsModule,
     FormlyAttributes,
+    ValueFilterComponent,
   ],
 })
 export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
@@ -558,7 +566,20 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
         }));
       } else if (addMissing && !this.allFilters().find(g => g.filters.find(i => i.filter === f))) {
         // Filter not found — add it as a fallback so the dropdown shows the current value
-        if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
+        const v = parseValueFilter(f);
+        if (v) {
+          // Show the value in an unused option for the same bound, so repeated bounds each keep an option
+          const unused = (i: FilterItem) => {
+            const o = parseValueFilter(i.filter);
+            return o?.column === v.column && o.dir === v.dir && !this.filters().includes(i.filter);
+          };
+          const option = this.allFilters().flatMap(g => g.filters).find(unused);
+          if (option) {
+            this.allFilters.update(groups => groups.map(g => ({ ...g, filters: g.filters.map(i => i === option ? { ...i, filter: f as UrlFilter } : i) })));
+          } else {
+            this.loadFilter({ group: $localize`Filters 🕵️️`, sort: v.column as FilterConfig['sort'], [v.dir]: v.value });
+          }
+        } else if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
           this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
         } else if (f.startsWith('user/')) {
           this.loadFilter({ group: $localize`Filters 🕵️️`, user: f.substring('user/'.length) as any });
@@ -755,6 +776,14 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
 
   negatable(filter: string) {
     return negatable(filter);
+  }
+
+  readonly parseValueFilter = parseValueFilter;
+  readonly switchFilter = switchFilter;
+
+  setValue(index: number, filter: string, value: string) {
+    const v = parseValueFilter(filter);
+    if (v) this.setFilter(index, `${v.column}/${v.dir}/${value}`);
   }
 
   // Search management

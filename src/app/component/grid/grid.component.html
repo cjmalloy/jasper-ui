@@ -4,14 +4,14 @@
                  [suppressFieldDotNotation]="true"
                  [style.height.vh]="90"
                  [rowData]="rowData()"
-                 [columnDefs]="columnDefs()"></ag-grid-angular>
+                 [columnDefs]="columnDefs()" />
 @if (page()) {
   @if (emptyMessage() && !page()!.content.length) {
     <p class="no-results">{{ emptyMessage() }}</p>
   } @else if (pageControls()) {
     <app-page-controls [page]="page()"
-                       [defaultCols]="cols()"></app-page-controls>
+                       [defaultCols]="cols()" />
   }
 } @else {
-  <app-loading></app-loading>
+  <app-loading />
 }

@@ -357,6 +357,37 @@ export interface FilterConfig {
    * If set, query and scheme must not be set.
    */
   user?: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}` | `!plugin/user/${string}` | `!+plugin/user/${string}` | `!_plugin/user/${string}`;
+  /**
+   * Filter based on the value of a sort column, such as `tags->plugin/duration:dur`.
+   * Set either before or after to the default value to compare against.
+   * If set, no other filter types must be set.
+   */
+  sort?: `tags->${string}` | `plugins->${string}`;
+  /**
+   * Keep Refs where the sort column is less than this value.
+   */
+  before?: string;
+  /**
+   * Keep Refs where the sort column is greater than this value.
+   */
+  after?: string;
+  /**
+   * How to edit the value of a sort filter. Defaults to text.
+   * range: a slider over built-in stops for the unit, limited to the values found on the server.
+   * units: a number with a unit dropdown.
+   */
+  input?: 'text' | 'range' | 'units';
+  /**
+   * Input shown instead of a range while the hotkey is held. Defaults to text.
+   * Holding the hotkey while dragging the range turns off snapping instead.
+   */
+  hotkeyInput?: 'text' | 'units';
+  /**
+   * Unit of the value of a sort filter, which sets the range stops, the unit dropdown
+   * and the shorthand (like 5m or 10mb) accepted in the URL.
+   * Defaults to duration for :dur columns.
+   */
+  unit?: 'duration' | 'bytes';
   label?: string;
   title?: string;
   group?: string;

@@ -1,5 +1,5 @@
 @if (header()) {
-  <app-viewer class="lens-header" [text]="header()"></app-viewer>
+  <app-viewer class="lens-header" [text]="header()" />
 }
   @if (query.responseOf()) {
     <div class="list-container responses-of">
@@ -7,7 +7,7 @@
       <app-ref class="full-page"
                [ref]="query.responseOf()"
                [showToggle]="true"
-               (copied)="query.refresh()"></app-ref>
+               (copied)="query.refresh()" />
     </div>
   }
   @if (query.sourcesOf()) {
@@ -16,16 +16,16 @@
       <app-ref class="full-page"
                [ref]="query.sourcesOf()"
                [showToggle]="true"
-               (copied)="query.refresh()"></app-ref>
+               (copied)="query.refresh()" />
     </div>
   }
 @if (isTemplate('graph')) {
   @defer {
     <app-force-directed #lens
                         [tag]="tag()"
-                        [content]="page()?.content || []"></app-force-directed>
+                        [content]="page()?.content || []" />
   } @placeholder {
-    <app-loading></app-loading>
+    <app-loading />
   }
 } @else if (isTemplate('grid')) {
   @defer {
@@ -34,9 +34,9 @@
               [ext]="ext()!"
               [page]="page()"
               [pageControls]="pageControls()"
-              [cols]="cols()"></app-grid>
+              [cols]="cols()" />
   } @placeholder {
-    <app-loading></app-loading>
+    <app-loading />
   }
 } @else if (isTemplate('notes')) {
   <app-notebook #lens
@@ -45,7 +45,7 @@
                 [page]="page()"
                 [pageControls]="pageControls()"
                 [plugins]="plugins()"
-                [cols]="cols()"></app-notebook>
+                [cols]="cols()" />
 } @else if (isTemplate('kanban')) {
   <app-kanban #lens
               [query]="tag()"
@@ -55,16 +55,16 @@
               [size]="size()"
               [sort]="sort()"
               [filter]="filter()"
-              [search]="search()"></app-kanban>
+              [search]="search()" />
 } @else if (isTemplate('blog')) {
   <app-blog #lens
             [ext]="ext()!"
             [page]="page()"
             [pageControls]="pageControls()"
-            [cols]="cols()"></app-blog>
+            [cols]="cols()" />
 } @else if (isTemplate('chat')) {
   <app-chat #lens
-            [query]="tag()"></app-chat>
+            [query]="tag()" />
 } @else if (isTemplate('map')) {
   @defer {
     <app-map #lens
@@ -72,15 +72,15 @@
              [ext]="ext()"
              [page]="page()"
              [saveView]="fullPage()"
-             [pageControls]="pageControls()"></app-map>
+             [pageControls]="pageControls()" />
   } @placeholder {
-    <app-loading></app-loading>
+    <app-loading />
   }
 } @else if (isTemplate('folder')) {
   <app-folder #lens
               [page]="page()"
               [tag]="tag()"
-              [ext]="ext()!"></app-folder>
+              [ext]="ext()!" />
 } @else {
   <app-ref-list #lens
                 class="expand"
@@ -91,5 +91,5 @@
                 [plugins]="plugins()"
                 [cols]="cols()"
                 [showAlarm]="showAlarm()"
-                [showVotes]="showVotes()"></app-ref-list>
+                [showVotes]="showVotes()" />
 }

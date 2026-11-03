@@ -36,11 +36,11 @@
      [class.redundant]="redundantLink()"
      [attr.title]="altText()">
   @if (tagLink()) {
-    <app-nav [url]="url()" [text]="title()"></app-nav>
+    <app-nav [url]="url()" [text]="title()" />
   } @else if (editingLink()) {
     <a [routerLink]="editingLink()!.routerLink" [queryParams]="editingLink()!.queryParams">{{ title() }}</a><wbr>
   } @else if (clickableLink()) {
-    <app-nav [url]="link()" [text]="title()" [external]="true"></app-nav>
+    <app-nav [url]="link()" [text]="title()" [external]="true" />
   } @else {
     <a [routerLink]="defaultView() ? ['/ref', url(), defaultView()] : ['/ref', url()]"
        [queryParams]="{ origin: obsoleteOrigin() }"
@@ -151,7 +151,7 @@
     <app-md class="inline-ui"
             [disableSanitizer]="true"
             [origin]="ref().origin"
-            [text]="ui.text"></app-md>
+            [text]="ui.text" />
   }
   @if (ref().created && !local()) {
     <span i18n> on <a class="origin tag" [routerLink]="['/tag', ref().origin || '*']">{{ ref().origin || 'default' }}</a></span>
@@ -185,7 +185,7 @@
               [disableResize]="disableResize()"
               [fullscreen]="fullscreen()"
               (contextmenu)="unlockViewer($event)"
-              (copied)="copied.emit($event)"></app-viewer>
+              (copied)="copied.emit($event)" />
 }
 <div class="actions"
      [class.expanded]="actionsExpanded()"
@@ -281,7 +281,7 @@
                    [repostRef]="repostRef()"
                    [mediaAttachment]="mediaAttachment()"
                    [groupedActions]="groupedActions()"
-                   [groupedAdvancedActions]="groupedAdvancedActions()"></app-action-list>
+                   [groupedAdvancedActions]="groupedAdvancedActions()" />
 </div>
 <div class="toggle actions-toggle"
      (click)="actionsExpanded.set(!actionsExpanded())">⚙️</div>
@@ -316,7 +316,7 @@
                      [showCancel]="true"
                      [selectResponseType]="!thread() && !comment() && !dm()"
                      [tags]="replyTags()"
-                     (save)="onReply($event)"></app-comment-reply>
+                     (save)="onReply($event)" />
 }
 @if (expanded() && !expandInline() && !editing() && !viewSource()) {
   <app-viewer #viewer class="viewer-below"
@@ -325,13 +325,13 @@
               [disableResize]="disableResize()"
               [fullscreen]="fullscreen()"
               (contextmenu)="unlockViewer($event)"
-              (copied)="copied.emit($event)"></app-viewer>
+              (copied)="copied.emit($event)" />
 }
 
 @if (editing()) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-ref-form [group]="editForm" [ref]="ref()"></app-ref-form>
+    <app-ref-form [group]="editForm" [ref]="ref()" />
 
     @for (e of serverError(); track e) {
       <span><!-- Unexpected Error --></span>
@@ -347,7 +347,7 @@
         </div>
       }
       @if (submitting()) {
-        <app-loading [inline]="true"></app-loading>
+        <app-loading [inline]="true" />
       }
       <button type="submit" [disabled]="submitting() || submitted() && !editFormValid()" i18n>save</button>
       <button type="button" [disabled]="submitting()" (click)="discard()" i18n>cancel</button>
@@ -355,15 +355,14 @@
   </form>
 } @else if (viewSource()) {
   <form class="form" [formGroup]="editForm">
-    <app-ref-form [group]="editForm" [ref]="ref()" [origin]="origin()"></app-ref-form>
+    <app-ref-form [group]="editForm" [ref]="ref()" [origin]="origin()" />
   </form>
 } @else if (diffing() && diffOriginal() && diffModified()) {
   <div class="diff-view form">
     <app-diff #diffEditor
               [original]="diffOriginal()!"
               [modified]="diffModified()!"
-              [readOnly]="!local() && !!ref().metadata?.obsolete">
-    </app-diff>
+              [readOnly]="!local() && !!ref().metadata?.obsolete" />
 
     @if (local() || !ref().metadata?.obsolete) {
       <span><!-- Buttons --></span>
@@ -375,7 +374,7 @@
           </div>
         }
         @if (submitting()) {
-          <app-loading [inline]="true"></app-loading>
+          <app-loading [inline]="true" />
         }
         <button type="button" [disabled]="submitting()" (click)="saveDiff()" i18n>save</button>
         <button type="button" [disabled]="submitting()" (click)="setDiffing(false)" i18n>cancel</button>

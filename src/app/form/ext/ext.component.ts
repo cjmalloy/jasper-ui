@@ -12,11 +12,13 @@ import {
 import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep, uniq } from 'lodash-es';
-import { DateTime, Duration } from 'luxon';
+import { DateTime } from 'luxon';
 import { catchError, of, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
+import { RelativeDateComponent } from '../../component/relative-date/relative-date.component';
+import { ValueFilterComponent } from '../../component/value-filter/value-filter.component';
 import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
 import { getMailbox } from '../../mods/mailbox';
@@ -25,7 +27,20 @@ import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
 import { controlValue } from '../../util/form';
 import { TAG_REGEX } from '../../util/format';
-import { convertFilter, convertSort, defaultDesc, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
+import {
+  convertFilter,
+  convertSort,
+  defaultDesc,
+  FilterItem,
+  negatable,
+  parseValueFilter,
+  relativeDate,
+  relativeDateLabel,
+  relativeDatePreset,
+  switchFilter,
+  toggle,
+  UrlFilter
+} from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 import { linksForm } from '../links/links.component';
 import { themesForm, ThemesFormComponent } from '../themes/themes.component';
@@ -43,6 +58,8 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
     RouterLink,
     ThemesFormComponent,
     LoadingComponent,
+    ValueFilterComponent,
+    RelativeDateComponent,
   ],
 })
 export class ExtFormComponent  {
@@ -67,24 +84,6 @@ export class ExtFormComponent  {
     { filter: `created/after/${DateTime.now().toISO()}`, label: $localize`✨️ created after` },
     ...this.admin.filters().map(convertFilter),
   ]);
-  datePresets = [
-    'now',
-    'PT1M',
-    'PT15M',
-    'PT1H',
-    'PT6H',
-    'PT24H',
-    'P3D',
-    'P7D',
-    'P2W',
-    'P1M',
-    'P3M',
-    'P1Y',
-    'P5Y',
-    'P15Y',
-    'P50Y',
-    'P100Y',
-  ];
 
   readonly group = input.required<UntypedFormGroup>();
   /**
@@ -255,8 +254,9 @@ export class ExtFormComponent  {
   }
 
   filterOption(filter: UrlFilter) {
-    if (!this.filterIsDate(filter)) return filter;
-    const prefix = filter.substring(0, filter.lastIndexOf('/') + 1);
+    const v = parseValueFilter(filter);
+    if (!v && !this.filterIsDate(filter)) return filter;
+    const prefix = v ? `${v.column}/${v.dir}/` : filter.substring(0, filter.lastIndexOf('/') + 1);
     return this.allFilters().find(option => option.filter.startsWith(prefix))?.filter || filter;
   }
 
@@ -270,6 +270,14 @@ export class ExtFormComponent  {
     return this.allFilters().some(option => option.filter === selected);
   }
 
+  readonly parseValueFilter = parseValueFilter;
+  readonly switchFilter = switchFilter;
+
+  setFilterValue(index: number, filter: UrlFilter, value: string) {
+    const v = parseValueFilter(filter);
+    if (v) this.setFilter(index, `${v.column}/${v.dir}/${value}` as UrlFilter);
+  }
+
   filterIsDate(filter: UrlFilter) {
     return /^(modified|response|published|created)\/(before|after)\//.test(filter);
   }
@@ -279,33 +287,19 @@ export class ExtFormComponent  {
   }
 
   filterDateLabel(filter: UrlFilter) {
-    const value = this.filterDateValue(filter);
-    if (value === 'now') return value;
-    const duration = Duration.fromISO(value.toUpperCase());
-    return duration.isValid ? duration.toHuman() : value;
+    return relativeDateLabel(this.filterDateValue(filter));
   }
 
   filterSpecialDate(filter: UrlFilter) {
-    const value = this.filterDateValue(filter);
-    return value === 'now' || Duration.fromISO(value.toUpperCase()).isValid;
+    return relativeDate(this.filterDateValue(filter));
   }
 
   filterDatePreset(filter: UrlFilter) {
-    const value = this.filterDateValue(filter);
-    if (value === 'now') return 0;
-    const index = this.datePresets.indexOf(value.toUpperCase());
-    if (index >= 0) return index;
-    if (!this.filterSpecialDate(filter)) return 0;
-    const duration = Duration.fromISO(value.toUpperCase()).as('milliseconds');
-    return this.datePresets.reduce((closest, preset, index) => {
-      const milliseconds = preset === 'now' ? 0 : Duration.fromISO(preset).as('milliseconds');
-      const closestMilliseconds = closest === 0 ? 0 : Duration.fromISO(this.datePresets[closest]).as('milliseconds');
-      return Math.abs(milliseconds - duration) < Math.abs(closestMilliseconds - duration) ? index : closest;
-    }, 0);
+    return relativeDatePreset(this.filterDateValue(filter));
   }
 
   setFilterDatePreset(index: number, filter: UrlFilter, preset: string) {
-    this.setFilter(index, (filter.substring(0, filter.lastIndexOf('/') + 1) + this.datePresets[Number(preset)]) as UrlFilter);
+    this.setFilter(index, (filter.substring(0, filter.lastIndexOf('/') + 1) + preset) as UrlFilter);
   }
 
   filterDate(filter: UrlFilter) {

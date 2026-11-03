@@ -31,14 +31,14 @@ export class PlaylistComponent {
   private store = inject(Store);
 
 
-  ref = input<Ref | undefined>(undefined);
+  readonly ref = input<Ref | undefined>(undefined);
   readonly indexInput = input(0, { alias: 'index' });
   readonly index = linkedSignal(() => { this.ref(); return this.indexInput(); });
   readonly indexChange = output<number>();
-  repeat = model(true);
-  autoplay = model(false);
+  readonly repeat = model(true);
+  readonly autoplay = model(false);
 
-  current = computed<Ref>(() => {
+  readonly current = computed<Ref>(() => {
     const sources = this.sources();
     const index = this.index();
     const ref = this.ref();

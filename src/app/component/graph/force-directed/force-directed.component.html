@@ -61,11 +61,11 @@
 }
 <div class="loading-container">
   @if (store.graph.loading().length) {
-    <app-loading></app-loading>
+    <app-loading />
   }
 </div>
 <label class="graph-selected no-select" i18n>Selected:</label>
 <app-ref-list #list [page]="store.graph.selectedPage()"
               i18n-emptyMessage
               emptyMessage="Empty selection"
-              [pageControls]="false"></app-ref-list>
+              [pageControls]="false" />

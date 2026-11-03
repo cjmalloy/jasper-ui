@@ -135,6 +135,10 @@ export type RefFilter = FilterObj & {
   createdBefore?: string | DateTime;
   responseAfter?: string | DateTime;
   responseBefore?: string | DateTime;
+  tagBefore?: string[];
+  tagAfter?: string[];
+  pluginBefore?: string[];
+  pluginAfter?: string[];
 };
 
 export type RefPageArgs = RefFilter & {

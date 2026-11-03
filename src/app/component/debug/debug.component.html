@@ -1,6 +1,6 @@
 @if (debug) {
   <details class="advanced">
-    <summary><span i18n>Debug</span> @if (batchRunning()) { <app-loading></app-loading> }</summary>
+    <summary><span i18n>Debug</span> @if (batchRunning()) { <app-loading /> }</summary>
     <a class="fake-link" (click)="settingUser.update(v => !v)">user</a>
     @if (settingUser()) {
       <span>

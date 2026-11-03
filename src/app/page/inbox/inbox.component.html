@@ -43,6 +43,6 @@
   }
 </app-tabs>
 @if (store.view.type()) {
-  <app-sidebar [tag]="store.view.inboxTag()"></app-sidebar>
+  <app-sidebar [tag]="store.view.inboxTag()" />
 }
-<router-outlet></router-outlet>
+<router-outlet />
