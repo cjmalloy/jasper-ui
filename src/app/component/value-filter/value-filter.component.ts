@@ -111,10 +111,22 @@ export class ValueFilterComponent {
     computation: (current, previous) => current.length || !previous ? current : previous.value,
   });
 
+  /**
+   * Amount being dragged to, kept in the stops if a new range loads mid-drag.
+   */
+  private readonly preview = linkedSignal<number | undefined, number | undefined>({
+    source: () => this.amount(),
+    computation: () => undefined,
+  });
+
   readonly stops = computed(() => {
     const [min, max] = this.lastExtent();
-    return rangeStops(this.unit()!, this.amount(), min, max);
-  });
+    const stops = rangeStops(this.unit()!, this.amount(), min, max);
+    const preview = this.preview();
+    if (preview === undefined || stops.includes(preview)) return stops;
+    if (preview > stops[0] && preview < stops[stops.length - 1]) return stops;
+    return [...stops, preview].sort((a, b) => a - b);
+  }, { equal: isEqual });
 
   /**
    * Slider position. Keeps an uncommitted preview when only the stops change, such as when the range loads mid-drag.
@@ -143,9 +155,15 @@ export class ValueFilterComponent {
   setText(input: HTMLInputElement) {
     const v = this.parsed()!;
     const value = input.value.trim();
+    // The server rejects '/', ',' and '->' in values.
     // Show the accepted value, since a rejected or trimmed edit leaves the filter (and the [value] binding) unchanged
-    input.value = !value || value.includes('/') ? v.value : value;
+    input.value = !value || /\/|,|->/.test(value) ? v.value : value;
     this.emit(input.value);
+  }
+
+  drag(index: number) {
+    this.index.set(index);
+    this.preview.set(this.amountAt(index));
   }
 
   release() {

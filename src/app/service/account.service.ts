@@ -1,6 +1,6 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { delay, isArray, uniq, without } from 'lodash-es';
+import { delay, isArray, isEqual, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import {
   catchError,
@@ -183,7 +183,8 @@ export class AccountService {
   }
 
   private readonly forYouQuery = rxResource({
-    params: () => this.store.view.forYou() || undefined,
+    params: () => this.store.view.forYou() ? this.store.account.subs() : undefined,
+    equal: isEqual,
     stream: () => this.forYouQuery$,
   });
 

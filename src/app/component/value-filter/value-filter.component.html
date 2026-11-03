@@ -11,7 +11,7 @@
            (pointerdown)="dragging.set(true)"
            (pointerup)="release()"
            (pointercancel)="release()"
-           (input)="index.set(+$any($event.target).value)"
+           (input)="drag(+$any($event.target).value)"
            (change)="setRange()">
     <output class="filter-range-label">{{ rangeLabel() }}</output>
   }

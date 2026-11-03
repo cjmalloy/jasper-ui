@@ -91,6 +91,25 @@ describe('ValueFilterComponent', () => {
       expect(range.getAttribute('aria-valuetext')).toBe(label);
     });
 
+    it('keeps a dragged value outside the range that loads mid-drag', async () => {
+      const el = await render('tags->plugin/duration:dur/before/pt5m');
+      const loaded = new Subject<number[]>();
+      extent.mockReturnValue(loaded);
+      fixture.componentRef.setInput('query', 'science');
+      fixture.detectChanges();
+      const range = el.querySelector<HTMLInputElement>('.filter-range')!;
+      range.value = range.max;
+      range.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(el.querySelector('.filter-range-label')!.textContent).toBe('15 min');
+      loaded.next([120, 600]);
+      loaded.complete();
+      await fixture.whenStable();
+      expect(el.querySelector('.filter-range-label')!.textContent).toBe('15 min');
+      range.dispatchEvent(new Event('change'));
+      expect(changed).toEqual(['pt15m']);
+    });
+
     it('keeps the range while a new query loads', async () => {
       const el = await render('tags->plugin/duration:dur/before/pt5m');
       extent.mockReturnValue(NEVER);
@@ -242,12 +261,16 @@ describe('ValueFilterComponent', () => {
       expect(input.value).toBe('2000');
     });
 
-    it('restores an empty value or a value with /', async () => {
+    it('restores an empty value or a value with /, , or ->', async () => {
       const el = await render('plugins->plugin/score:num/after/1000');
       const input = el.querySelector<HTMLInputElement>('.filter-value')!;
       input.value = '';
       input.dispatchEvent(new Event('change'));
       input.value = '1/2';
+      input.dispatchEvent(new Event('change'));
+      input.value = '1,000';
+      input.dispatchEvent(new Event('change'));
+      input.value = 'a->b';
       input.dispatchEvent(new Event('change'));
       expect(changed).toEqual([]);
       expect(input.value).toBe('1000');
