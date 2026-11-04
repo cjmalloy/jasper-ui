@@ -38,7 +38,7 @@
     "array.prototype.at": "^1.2.0",
     "chess.js": "^1.4.0",
     "css-flatten": "^2.0.1",
-    "d3": "^7.9.0",
+    "d3": "^7.9.2",
     "dompurify": "^3.4.17",
     "europa": "^6.0.0",
     "europa-core": "^6.0.0",
