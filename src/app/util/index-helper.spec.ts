@@ -36,6 +36,10 @@ describe('Index Helper', () => {
     }).flags).toEqual(['fulltext', 'alts', 'responses', 'internalResponses', 'sources', 'published', 'modified']);
   });
 
+  it('needs the alts index for url filters', () => {
+    expect(indexNeeds({ url: 'https://a.com' }).flags).toEqual(['alts']);
+  });
+
   it('needs the sources index for responses filters', () => {
     expect(indexNeeds({ responses: 'https://a.com' }).flags).toEqual(['sources']);
     expect(indexNeeds({ noSources: 'https://a.com' }).flags).toEqual(['responses', 'internalResponses']);

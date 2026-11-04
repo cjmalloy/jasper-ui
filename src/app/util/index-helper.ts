@@ -90,6 +90,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   if (queryHasTags(args.query)) flags.push('tags');
   // Search also matches the URL or alternate URLs
   if (args.search) flags.push('fulltext', 'alts');
+  // URL filters also match alternate URLs
+  if (args.url) flags.push('alts');
   // Sources filters look up the responses of the source, and responses filters look up the sources of the response
   if (args.sources || args.noSources) flags.push('responses', 'internalResponses');
   if (args.responses || args.noResponses) flags.push('sources');
