@@ -101,9 +101,12 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
     if (c === 'modified') flags.push('modified');
     if (c.startsWith('tags->')) {
       hotTags.push(column(c, 'tags->'));
-    } else if (i === 0 && !INDEXABLE_SORTS.includes(c)) {
+    } else if (i > 0 || INDEXABLE_SORTS.includes(c)) {
       // Only the first sort can use an index, the rest are tie breakers
-      // Plugin sorts can't use hot plugin indices, since sorts treat missing values as '' or 0
+    } else if (c.startsWith('plugins->') && !c.startsWith('plugins->plugin/user/vote:')) {
+      // Hot plugins also build an index for plugin sorts, but vote sorts are computed
+      hotPlugins.push(column(c, 'plugins->'));
+    } else {
       unindexed.push(c);
     }
   }

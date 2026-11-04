@@ -44,12 +44,20 @@ test.describe.serial('Index Helper', () => {
     await expect(helper.locator('.request-indexes')).toBeVisible();
   });
 
-  test('plugin sorts are not indexed', async ({ page }) => {
+  test('vote sorts are not indexed', async ({ page }) => {
     await page.goto(sorted('plugins->plugin/user/vote:score,DESC', 'ADMIN'), { waitUntil: 'networkidle' });
     const helper = page.locator('.index-helper');
     await expect(helper.locator('.index-status')).toHaveText('⚡️ Not indexed');
     await expect(helper.locator('.index-line')).toHaveAttribute('title', /✖️ plugins->plugin\/user\/vote:score/);
     await expect(helper.locator('.fix-indexes, .request-indexes')).toHaveCount(0);
+  });
+
+  test('plugin sorts need hot plugins', async ({ page }) => {
+    await page.goto(sorted('plugins->_plugin/cache->contentLength:num,DESC', 'ADMIN'), { waitUntil: 'networkidle' });
+    const helper = page.locator('.index-helper');
+    await expect(helper.locator('.index-status')).toHaveText('⚡️ May not be indexed');
+    await expect(helper.locator('.index-line')).toHaveAttribute('title', /❔ plugins->_plugin\/cache->contentLength:num/);
+    await expect(helper.locator('.request-indexes')).toBeVisible();
   });
 
   test('hidden without read access', async ({ page }) => {

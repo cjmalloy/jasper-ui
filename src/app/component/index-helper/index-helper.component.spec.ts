@@ -100,7 +100,7 @@ describe('IndexHelperComponent', () => {
     expect(fixture.componentInstance.fixable()).toBe(true);
   });
 
-  it('reports plugin sorts as not indexed', async () => {
+  it('reports vote sorts as not indexed', async () => {
     admin = true;
     args.set({ sort: ['plugins->plugin/user/vote:score,DESC'] });
     const fixture = create();
@@ -111,6 +111,19 @@ describe('IndexHelperComponent', () => {
     expect(fixture.componentInstance.fixable()).toBe(false);
     expect(fixture.nativeElement.querySelector('.index-status').textContent).toContain('Not indexed');
     expect(fixture.nativeElement.querySelector('.fix-indexes, .request-indexes')).toBeNull();
+  });
+
+  it('admin can add a hot plugin for a plugin sort', async () => {
+    admin = true;
+    args.set({ sort: ['plugins->plugin/test->size:num,DESC'] });
+    const fixture = create();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.missing().hotPlugins).toEqual(['plugin/test->size:num']);
+    expect(fixture.componentInstance.canFix()).toBe(true);
+    fixture.componentInstance.fix();
+    expect(templates.merge).toHaveBeenCalledWith('_config/index', index.modifiedString, {
+      config: { hotPlugins: ['plugin/test->size:num'] },
+    });
   });
 
   it('shows nothing for queries without indices', async () => {

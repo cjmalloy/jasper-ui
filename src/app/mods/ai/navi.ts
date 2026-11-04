@@ -423,11 +423,11 @@ Refs without a value never match. Every filter parameter can be repeated, and al
   Strings compare using the database's ordering: PostgreSQL uses the database locale collation, which usually
   ignores case and accents except to break ties, while SQLite compares bytes.
 
-To index a plugin filter on PostgreSQL, add its column to \`hotPlugins\` in the \`_config/index\` template config,
+To index a plugin filter or sort on PostgreSQL, add its column to \`hotPlugins\` in the \`_config/index\` template config,
 for example \`{"hotPlugins": ["plugin/test->size:num", "plugin/test->name", "plugin/test->ids:len"]}\`
-(the \`plugins->\` prefix is optional). Hot plugin indexes are used by \`pluginBefore\` and \`pluginAfter\` filters,
-but not by plugin sorts, since sorts treat missing values as \`''\` or \`0\`. Hot plugin indexes that are removed
-from the list are dropped. Hot plugins are ignored on SQLite.
+(the \`plugins->\` prefix is optional). Each hot plugin builds two indexes: one used by \`pluginBefore\` and
+\`pluginAfter\` filters, and one used by plugin sorts, since sorts treat missing values as \`''\` or \`0\`.
+Hot plugin indexes that are removed from the list are dropped. Hot plugins are ignored on SQLite.
 
 Values cannot contain \`,\`. Invalid filters are rejected with \`400 Bad Request\`.
 

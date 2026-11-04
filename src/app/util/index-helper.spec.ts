@@ -49,12 +49,12 @@ describe('Index Helper', () => {
     }).hotTags).toEqual(['plugin/progress:num', 'plugin/duration:dur', 'plugin/title']);
   });
 
-  it('needs hot plugins for plugin filters but not sorts', () => {
+  it('needs hot plugins for plugin sorts and filters', () => {
     expect(indexNeeds({
-      sort: ['plugins->plugin/test->size:num'],
+      sort: ['plugins->plugin/test->size:num,DESC', 'plugins->plugin/test->name'],
       pluginAfter: ['plugins->_plugin/cache->contentLength:num/1000'],
       pluginBefore: ['plugins->plugin/score:num/10'],
-    }).hotPlugins).toEqual(['plugin/score:num', '_plugin/cache->contentLength:num']);
+    }).hotPlugins).toEqual(['plugin/test->size:num', 'plugin/score:num', '_plugin/cache->contentLength:num']);
   });
 
   it('finds missing indexes', () => {
