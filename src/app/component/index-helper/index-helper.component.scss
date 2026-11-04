@@ -9,7 +9,9 @@
   justify-content: flex-end;
   align-items: center;
   gap: 0 6px;
+  box-sizing: border-box;
   width: 100%;
+  padding: 0 4px;
   // Reserve a button height so async results don't move the controls below
   min-height: 22px;
   user-select: none;
