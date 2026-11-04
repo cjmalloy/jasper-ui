@@ -1,0 +1,14 @@
+diff --git a/node_modules/ngx-monaco-editor/fesm2015/ngx-monaco-editor.js b/node_modules/ngx-monaco-editor/fesm2015/ngx-monaco-editor.js
+index 3e8bf9e..8d5e247 100644
+--- a/node_modules/ngx-monaco-editor/fesm2015/ngx-monaco-editor.js
++++ b/node_modules/ngx-monaco-editor/fesm2015/ngx-monaco-editor.js
+@@ -139,6 +139,9 @@ class EditorComponent extends BaseEditor {
+         }
+         this._editor.onDidChangeModelContent((e) => {
+             const value = this._editor.getValue();
++            // Writing the form value back into the editor is not a change
++            if (value === this._value)
++                return;
+             // value is not propagated to parent when executing outside zone.
+             this.zone.run(() => {
+                 this.propagateChange(value);

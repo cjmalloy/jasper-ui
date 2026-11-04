@@ -4,7 +4,6 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { isEqual } from 'lodash-es';
 import { catchError, of } from 'rxjs';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { AuthzService } from '../../service/authz.service';
@@ -30,7 +29,7 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './index-helper.component.html',
   styleUrls: ['./index-helper.component.scss'],
   host: { 'class': 'index-helper actions' },
-  imports: [FakeLinkDirective, LoadingComponent],
+  imports: [LoadingComponent],
 })
 export class IndexHelperComponent {
   private admin = inject(AdminService);

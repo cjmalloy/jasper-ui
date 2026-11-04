@@ -97,6 +97,37 @@ test.describe.serial('Plugin/Template Admin Form', () => {
   }
 
   for (const type of ['plugin', 'template'] as const) {
+    test(`reopening ${type} editor after save is not a draft`, async ({ page }) => {
+      await page.goto(`/settings/${type}?debug=ADMIN&search=adminform${runId}`, { waitUntil: 'networkidle' });
+      const item = page.locator(`.${type}.list-item`);
+      const edit = item.locator('.actions .fake-link', { hasText: 'edit' });
+      await edit.click();
+      await expect(item.locator('.json-editor .monaco-editor')).toHaveCount(1);
+      const savePromise = page.waitForResponse(resp => (
+        resp.url().includes(`/api/v1/${type}`) && resp.request().method() === 'PUT' && resp.ok()
+      ));
+      await item.locator('button[type=submit]').click();
+      await savePromise;
+      await expect(item.locator('form')).toHaveCount(0);
+
+      // Monaco is loaded now, so the editor writes the form value into itself after it opens
+      await edit.click();
+      await expect(item.locator('.json-editor .monaco-editor')).toHaveCount(1);
+      await expect(item.locator('.json-editor .view-lines')).toContainText('adminForm');
+      await expect(edit).toHaveText('edit');
+
+      const dialogs: string[] = [];
+      page.on('dialog', dialog => {
+        dialogs.push(dialog.message());
+        return dialog.dismiss();
+      });
+      await page.locator('a.logo').click();
+      await expect(page).not.toHaveURL(/\/settings\//);
+      expect(dialogs).toEqual([]);
+    });
+  }
+
+  for (const type of ['plugin', 'template'] as const) {
     test(`build ${type} form in the UI`, async ({ page, request, origin }) => {
       await page.goto(`/settings/${type}?debug=ADMIN&search=adminform${runId}`, { waitUntil: 'networkidle' });
       const item = page.locator(`.${type}.list-item`);
