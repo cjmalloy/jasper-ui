@@ -7,11 +7,11 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  align-items: baseline;
+  align-items: center;
   gap: 0 6px;
   width: 100%;
-  // Reserve the line so async results don't move the controls below
-  min-height: 1.5em;
+  // Reserve a button height so async results don't move the controls below
+  min-height: 22px;
   user-select: none;
 
   // The inline loader's vertical margins would make the line taller than the text
