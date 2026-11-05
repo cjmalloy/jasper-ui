@@ -71,4 +71,32 @@ describe('SubmitDmPage', () => {
     expect(draft.tags.value).not.toContain('dm');
     expect(bookmarksSetTo).not.toHaveBeenCalled();
   });
+
+  it('addresses a draft replicated from another origin to the remote recipient', () => {
+    vi.spyOn(TestBed.inject(AdminService), 'editing').mockReturnValue({ tag: 'plugin/editing' });
+    vi.spyOn(TestBed.inject(Store).submit, 'url').mockReturnValue('comment:draft');
+    TestBed.inject(Store).account.origin.set('@home');
+    const draftRef = new Subject<Ref | undefined>();
+    vi.spyOn(TestBed.inject(RefService), 'getEditing').mockReturnValue(draftRef);
+    vi.spyOn(TestBed.inject(BookmarkService), 'setTo').mockImplementation(() => {});
+    const draftFixture = TestBed.createComponent(SubmitDmPage);
+    const draft = draftFixture.componentInstance;
+    draftFixture.detectChanges();
+    draftRef.next({
+      url: 'comment:draft',
+      origin: '@home.other',
+      tags: ['plugin/editing'],
+      plugins: {
+        'plugin/editing': {
+          title: 'DM',
+          tags: ['dm', 'plugin/thread', 'plugin/inbox/user/alice'],
+        },
+      },
+    });
+    draftFixture.detectChanges();
+
+    expect(draft.to.value).toBe('+user/alice@home.other');
+    expect(draft.tags.value).toContain('plugin/outbox/other/user/alice');
+    expect(draft.tags.value).not.toContain('plugin/inbox/user/alice');
+  });
 });

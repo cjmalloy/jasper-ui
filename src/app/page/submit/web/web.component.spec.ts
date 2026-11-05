@@ -83,8 +83,10 @@ describe('SubmitWebPage', () => {
     })));
 
     component.submit();
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(component.alreadyExists()).toBe(false);
+    expect(component.submitting()).toBe(false);
     expect(component.serverError()).toEqual(['Ref already modified']);
   });
 });

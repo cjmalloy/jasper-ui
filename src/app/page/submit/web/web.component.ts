@@ -386,11 +386,11 @@ export class SubmitWebPage implements HasChanges {
     const cursor = this.cursor;
     this.submittingSubscription = (cursor ? this.refs.update({ ...ref, modifiedString: cursor }) : this.refs.create(ref)).pipe(
       catchError((res: HttpErrorResponse) => {
-        // Updating a draft conflicts when it was modified, which does not mean the link was already submitted
-        if (res.status !== 409 || cursor) return throwError(() => res);
+        if (res.status !== 409) return throwError(() => res);
         this.submitting.set(false);
         this.serverError.set(printError(res));
-        this.alreadyExists.set(true);
+        // Updating a draft conflicts when it was modified, which does not mean the link was already submitted
+        if (!cursor) this.alreadyExists.set(true);
         return EMPTY;
       }),
       tap(() => {

@@ -129,7 +129,8 @@ export class RefService {
 
   /**
    * Your draft of a URL. Prefers the draft in your origin. A draft replicated from another
-   * origin is returned without its origin and cursor, since saving it creates a new draft here.
+   * origin keeps its origin, so its tags resolve correctly, but is returned without its
+   * cursor, since saving it creates a new draft in your origin.
    */
   getEditing(url: string): Observable<Ref | undefined> {
     if (!this.store.account.localTag()) return of(undefined);
@@ -140,7 +141,7 @@ export class RefService {
     const query = this.store.account.localTag() + ':plugin/editing';
     return draft(query + ':' + (origin || '@')).pipe(
       switchMap(local => local ? of(local) : draft(query).pipe(
-        map(remote => remote && { ...remote, origin, modified: undefined, modifiedString: undefined }),
+        map(remote => remote && { ...remote, modified: undefined, modifiedString: undefined }),
       )),
       catchError(() => of(undefined)),
     );

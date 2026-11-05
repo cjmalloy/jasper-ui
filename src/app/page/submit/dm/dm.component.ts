@@ -46,7 +46,7 @@ import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugin
 import { fillTags, TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
-import { addressedTo, getMailbox } from '../../../mods/mailbox';
+import { addressedTo, getMailbox, notifications } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -158,6 +158,8 @@ export class SubmitDmPage implements HasChanges {
           this.comment.setValue(edit.comment || '');
           for (const s of edit.sources || []) this.sources.push(this.fb.control(s, LinksFormComponent.validators));
           if (hasTag('notes', edit)) return;
+          // Mailboxes are relative to the draft's origin, so replace them with mailboxes for the recipients
+          this.addedMailboxes = notifications(edit);
           const to = uniq([
             ...addressedTo(edit),
             ...edit.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
