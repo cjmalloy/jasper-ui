@@ -1254,6 +1254,14 @@ Please Reload.</source>
         <source>💬️ comments</source>
         <target>💬️ コメント</target>
       </trans-unit>
+      <trans-unit id="2849024443470669147" datatype="html">
+        <source>👀️ views</source>
+        <target>👀️ 閲覧数</target>
+      </trans-unit>
+      <trans-unit id="8062944054460698803" datatype="html">
+        <source>Number of people who read it</source>
+        <target>読んだ人の数</target>
+      </trans-unit>
       <trans-unit id="7853206737394857773" datatype="html">
         <source>Number of comments</source>
         <target>コメント数</target>

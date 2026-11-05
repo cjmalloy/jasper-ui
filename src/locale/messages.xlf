@@ -13149,18 +13149,32 @@ F: Fullscreen toggle
           <context context-type="linenumber">13</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="2849024443470669147" datatype="html">
+        <source>👀️ views</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/org/read.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8062944054460698803" datatype="html">
+        <source>Number of people who read it</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/org/read.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="3637945073659558487" datatype="html">
         <source>read</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/read.ts</context>
-          <context context-type="linenumber">15</context>
+          <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2933800072904145816" datatype="html">
         <source>unread</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/read.ts</context>
-          <context context-type="linenumber">15</context>
+          <context context-type="linenumber">18</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/inbox/inbox.component.html</context>
