@@ -17,6 +17,8 @@ export interface IndexConfig {
   fulltext?: boolean;
   published?: boolean;
   modified?: boolean;
+  newResponse?: boolean;
+  newReaction?: boolean;
   ignored?: boolean;
   cascade?: boolean;
   regen?: boolean;
@@ -24,7 +26,7 @@ export interface IndexConfig {
   hotPlugins?: string[];
 }
 
-export type IndexFlag = 'tags' | 'sources' | 'alts' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified';
+export type IndexFlag = 'tags' | 'sources' | 'alts' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified' | 'newResponse' | 'newReaction';
 
 /**
  * Indices used by a Ref query.
@@ -105,6 +107,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
       hotTags.push(column(c, 'tags->'));
     } else if (i > 0 || INDEXABLE_SORTS.includes(c)) {
       // Only the first sort can use an index, the rest are tie breakers
+    } else if (c === 'metadata->newResponse' || c === 'metadata->newReaction') {
+      flags.push(column(c, 'metadata->') as IndexFlag);
     } else if (c.startsWith('plugins->') && !c.startsWith('plugins->plugin/user/vote:')) {
       // Hot plugins also build an index for plugin sorts, but vote sorts are computed
       hotPlugins.push(column(c, 'plugins->'));

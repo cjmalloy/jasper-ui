@@ -7786,6 +7786,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Modified:</source>
         <target>更新日時:</target>
       </trans-unit>
+      <trans-unit id="2206623789485157542" datatype="html">
+        <source>New Response:</source>
+        <target>新しい返信:</target>
+      </trans-unit>
+      <trans-unit id="8523715045122094170" datatype="html">
+        <source>New Reaction:</source>
+        <target>新しいリアクション:</target>
+      </trans-unit>
       <trans-unit id="6996821581668497894" datatype="html">
         <source>Ignored:</source>
         <target>無視:</target>

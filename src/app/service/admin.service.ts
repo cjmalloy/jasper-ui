@@ -1413,6 +1413,8 @@ const indexConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'fulltext', type: 'boolean', props: { label: $localize`Full Text:` } },
   { key: 'published', type: 'boolean', props: { label: $localize`Published:` } },
   { key: 'modified', type: 'boolean', props: { label: $localize`Modified:` } },
+  { key: 'newResponse', type: 'boolean', props: { label: $localize`New Response:` } },
+  { key: 'newReaction', type: 'boolean', props: { label: $localize`New Reaction:` } },
   { key: 'ignored', type: 'boolean', props: { label: $localize`Ignored:` } },
   { key: 'cascade', type: 'boolean', props: { label: $localize`Cascade:` } },
   { key: 'regen', type: 'boolean', props: { label: $localize`Regen:` } },

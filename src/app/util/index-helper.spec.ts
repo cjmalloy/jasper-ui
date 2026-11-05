@@ -11,6 +11,9 @@ describe('Index Helper', () => {
 
   it('flags sorts that cannot be indexed', () => {
     expect(indexNeeds({ sort: ['metadata->responses'] }).unindexed).toEqual(['metadata->responses']);
+    expect(indexNeeds({ sort: ['metadata->newResponse,DESC'] })).toEqual({ flags: ['newResponse'], hotTags: [], hotPlugins: [], unindexed: [] });
+    expect(indexNeeds({ sort: ['metadata->newReaction'] }).flags).toEqual(['newReaction']);
+    expect(indexNeeds({ sort: ['published', 'metadata->newResponse'] }).flags).toEqual(['published']);
     expect(indexNeeds({ sort: ['url', 'title'] }).unindexed).toEqual([]);
     expect(indexNeeds({ sort: ['published', 'modified,ASC', 'origin,ASC'] }).unindexed).toEqual([]);
     const needs = indexNeeds({ sort: ['plugins->plugin/user/vote:score,DESC', 'title'] });
