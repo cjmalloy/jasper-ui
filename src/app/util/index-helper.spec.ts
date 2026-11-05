@@ -79,6 +79,7 @@ describe('Index Helper', () => {
       unindexed: [],
     });
     expect(indexNeeds({ sort: ['metadata->plugins->plugin/comment:num'] }).hotResponses).toEqual(['plugin/comment']);
+    expect(indexNeeds({ sort: ['metadata->plugins->plugin/ninja.triangle'] }).hotResponses).toEqual(['plugin/ninja.triangle']);
     expect(indexNeeds({ sort: ['published', 'metadata->remotePlugins->plugin/comment'] }).hotRemoteResponses).toEqual([]);
     expect(indexNeeds({ sort: ['metadata->plugins->plugin/comment->x'] }).unindexed).toEqual(['metadata->plugins->plugin/comment->x']);
     const missing = missingIndexes(needs, { hotResponses: ['plugin/thread'], hotRemoteResponses: [''] });

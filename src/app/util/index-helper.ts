@@ -86,7 +86,7 @@ function sortColumn(sort: string) {
  */
 function responsePlugin(c: string, prefix: string) {
   const plugin = column(c, prefix).replace(/:num$/, '');
-  return /^[_+]?plugin(\/[a-z0-9]+)*$/.test(plugin) ? plugin : undefined;
+  return /^[_+]?plugin([./][a-z0-9]+)*$/.test(plugin) ? plugin : undefined;
 }
 
 /**
