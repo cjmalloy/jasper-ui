@@ -39,7 +39,7 @@ import { Saving } from '../../store/submit';
 import { controlState, controlValue } from '../../util/form';
 import { getPageTitle, URI_REGEX } from '../../util/format';
 import { fixUrl } from '../../util/http';
-import { hasPrefix } from '../../util/tag';
+import { hasPrefix, hasTag } from '../../util/tag';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
@@ -196,7 +196,10 @@ export class SubmitPage {
     return timer(400).pipe(
       switchMap(() => this.refs.page({ url, size: 1, query: this.store.account.origin() || '*', obsolete: null })),
       map(page => {
-        this.existingRef.set(page.content[0]);
+        const ref = page.content[0];
+        // Your own draft is published by submitting it
+        const draft = hasTag('plugin/editing', ref) && hasTag(this.store.account.localTag(), ref);
+        this.existingRef.set(draft ? undefined : ref);
         return !!this.existingRef();
       }),
       catchError(err => of(false)),
