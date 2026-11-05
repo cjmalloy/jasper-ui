@@ -11,6 +11,8 @@ export const readMod: Mod = {
       description: $localize`Mark Refs as read for the current user across multiple sessions`,
       filters: [
         { user: '!plugin/user/read', label: $localize`☑️ unread`, title: $localize`You read it`, group: $localize`Lists ☰` },
+        { sort: 'metadata->remotePlugins->plugin/user/read', after: '10', label: $localize`👀️ more views than`, title: $localize`Read by more people than`, group: $localize`Lists ☰` },
+        { sort: 'metadata->remotePlugins->plugin/user/read', before: '10', label: $localize`👀️ fewer views than`, title: $localize`Read by fewer people than`, group: $localize`Lists ☰` },
       ],
       sorts: [
         { sort: 'metadata->remotePlugins->plugin/user/read', label: $localize`👀️ views`, title: $localize`Number of people who read it` },

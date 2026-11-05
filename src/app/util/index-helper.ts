@@ -17,6 +17,7 @@ export interface IndexConfig {
   fulltext?: boolean;
   published?: boolean;
   modified?: boolean;
+  created?: boolean;
   newResponse?: boolean;
   newReaction?: boolean;
   ignored?: boolean;
@@ -28,7 +29,7 @@ export interface IndexConfig {
   hotRemoteResponses?: string[];
 }
 
-export type IndexFlag = 'tags' | 'sources' | 'alts' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified' | 'newResponse' | 'newReaction';
+export type IndexFlag = 'tags' | 'sources' | 'alts' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified' | 'created' | 'newResponse' | 'newReaction';
 
 /**
  * Indices used by a Ref query.
@@ -55,16 +56,20 @@ export interface IndexNeeds {
    */
   hotRemoteResponses: string[];
   /**
-   * Sort columns that no `_config/index` setting can index.
+   * Sort and filter columns that no `_config/index` setting can index.
    */
   unindexed: string[];
 }
 
 /**
- * Sorts that are covered by an index flag or the primary key, or rank search results.
- * The `created` sort is left out, since it is used everywhere and has no index setting.
+ * Date columns with an index flag.
  */
-const INDEXABLE_SORTS = ['created', 'published', 'modified', 'rank', 'url'];
+const DATE_COLUMNS = ['published', 'modified', 'created'];
+
+/**
+ * Sorts that are covered by the primary key, or rank search results.
+ */
+const INDEXABLE_SORTS = ['rank', 'url'];
 
 /**
  * Sort or filter column without the `,ASC` direction or `/{value}` filter value.
@@ -123,18 +128,14 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   // URL filters also match alternate URLs
   if (args.url) flags.push('alts');
   // Sources filters look up the responses of the source, and responses filters look up the sources of the response
-  if (args.sources || args.noSources) flags.push('responses', 'internalResponses');
-  if (args.responses || args.noResponses) flags.push('sources');
-  if (args.publishedBefore || args.publishedAfter) flags.push('published');
-  if (args.modifiedBefore || args.modifiedAfter) flags.push('modified');
-  for (const [i, s] of (args.sort || []).entries()) {
-    const c = sortColumn(s);
-    if (c === 'published') flags.push('published');
-    if (c === 'modified') flags.push('modified');
-    if (c.startsWith('tags->')) {
+  if (args.sources) flags.push('responses', 'internalResponses');
+  if (args.responses) flags.push('sources');
+  // Filters and sorts on the same column use the same index
+  const needs = (c: string) => {
+    if (DATE_COLUMNS.includes(c)) {
+      flags.push(c as IndexFlag);
+    } else if (c.startsWith('tags->')) {
       hotTags.push(column(c, 'tags->'));
-    } else if (i > 0 || INDEXABLE_SORTS.includes(c)) {
-      // Only the first sort can use an index, the rest are tie breakers
     } else if (c === 'metadata->newResponse' || c === 'metadata->newReaction') {
       flags.push(column(c, 'metadata->') as IndexFlag);
     } else if (c.startsWith('metadata->plugins->') && responsePlugin(c, 'metadata->plugins->')) {
@@ -142,20 +143,25 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
     } else if (c.startsWith('metadata->remotePlugins->') && responsePlugin(c, 'metadata->remotePlugins->')) {
       hotRemoteResponses.push(responsePlugin(c, 'metadata->remotePlugins->')!);
     } else if (c.startsWith('plugins->') && !c.startsWith('plugins->plugin/user/vote:') && PLUGIN_COLUMN_REGEX.test(column(c, 'plugins->'))) {
-      // Hot plugins also build an index for plugin sorts, but vote sorts are computed and the server skips invalid columns
+      // Vote sorts are computed and the server skips invalid columns
       hotPlugins.push(column(c, 'plugins->'));
     } else {
       unindexed.push(c);
     }
+  };
+  for (const [i, s] of (args.sort || []).entries()) {
+    const c = sortColumn(s);
+    if (DATE_COLUMNS.includes(c) || c.startsWith('tags->')) {
+      needs(c);
+    } else if (i > 0 || INDEXABLE_SORTS.includes(c)) {
+      // Only the first sort can use an index, the rest are tie breakers
+    } else {
+      needs(c);
+    }
   }
-  for (const f of [...args.tagBefore || [], ...args.tagAfter || []]) {
-    if (f.startsWith('tags->')) hotTags.push(valueColumn(f, 'tags->'));
+  for (const f of [...args.filterBefore || [], ...args.filterAfter || [], ...args.filterEquals || []]) {
+    needs(valueColumn(f, ''));
   }
-  for (const f of [...args.pluginBefore || [], ...args.pluginAfter || []]) {
-    if (f.startsWith('plugins->')) hotPlugins.push(valueColumn(f, 'plugins->'));
-  }
-  // Plugin response filters count the responses from the same origin
-  hotResponses.push(...args.pluginResponse || [], ...args.noPluginResponse || []);
   return {
     flags: uniq(flags),
     hotTags: uniq(hotTags.filter(t => !!t)),

@@ -28,6 +28,7 @@ import { cursorSettingsUrl, getMailbox } from '../mods/mailbox';
 import { UserConfig } from '../mods/user';
 import { Store } from '../store/store';
 import { escapePath } from '../util/json-patch';
+import { dateRange } from '../util/query';
 import { hasPrefix, localTag, setPublic, subOrigin, tagOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
@@ -318,7 +319,7 @@ export class AccountService {
           return forkJoin([
             this.countNotifications$(this.notificationQueries(stream, borrowed)),
             stream.alarmQuery
-              ? this.refs.count({ query: stream.alarmQuery, modifiedAfter })
+              ? this.refs.count(dateRange({ query: stream.alarmQuery }, 'modified', modifiedAfter))
               : of(0),
           ]);
         });
@@ -340,11 +341,11 @@ export class AccountService {
         const queries = [...streams, this.otherNotifications(streams)]
           .flatMap(stream => this.notificationQueries(stream, borrowed));
         return from(queries).pipe(
-          mergeMap(query => this.refs.page({
-            ...query,
+          mergeMap(query => this.refs.page(dateRange({
+            query: query.query,
             sort: ['modified,ASC'],
             size,
-          }), CURSOR_CONCURRENCY),
+          }, 'modified', query.modifiedAfter)), CURSOR_CONCURRENCY),
           toArray(),
         );
       }),
@@ -421,11 +422,10 @@ export class AccountService {
    */
   private discoverOtherOrigins$(readCursor: string): Observable<unknown> {
     const page$ = () => this.loadNotificationCursors$().pipe(
-      switchMap(streams => this.refs.page({
+      switchMap(streams => this.refs.page(dateRange({
         query: this.otherNotifications(streams).query,
-        modifiedBefore: DateTime.fromISO(readCursor).plus({ millisecond: 1 }),
         size: DISCOVER_PAGE_SIZE,
-      })),
+      }, 'modified', undefined, DateTime.fromISO(readCursor).plus({ millisecond: 1 })))),
       map(page => {
         const found = uniq(page.content.map(ref => ref.origin || ''))
           .filter(origin => !this.store.account.notificationCursors.has(origin) && !this.otherOrigins.has(origin));
@@ -513,7 +513,7 @@ export class AccountService {
   }
 
   private countNotifications$(queries: NotificationQuery[], modifiedBefore?: DateTime): Observable<number> {
-    return forkJoin(queries.map(query => this.refs.count({ ...query, ...(modifiedBefore ? { modifiedBefore } : {}) }))).pipe(
+    return forkJoin(queries.map(query => this.refs.count(dateRange({ query: query.query }, 'modified', query.modifiedAfter, modifiedBefore)))).pipe(
       map(counts => counts.reduce((sum, count) => sum + count, 0)),
     );
   }

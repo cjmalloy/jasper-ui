@@ -1194,14 +1194,6 @@ Please Reload.</source>
         <source>😃️ new reaction</source>
         <target>😃️ 新しいリアクション</target>
       </trans-unit>
-      <trans-unit id="6317872943258377560" datatype="html">
-        <source>🗃️ metadata</source>
-        <target>🗃️ メタデータ</target>
-      </trans-unit>
-      <trans-unit id="9170356745028793454" datatype="html">
-        <source>Date metadata modified</source>
-        <target>メタデータの更新日</target>
-      </trans-unit>
       <trans-unit id="713523746868927245" datatype="html">
         <source>Date of new response</source>
         <target>新しいレスポンスの日付</target>
@@ -8427,13 +8419,33 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>_config/index disabled</source>
         <target>_config/indexは無効です</target>
       </trans-unit>
-      <trans-unit id="2279717337649921188" datatype="html">
-        <source>(sort can&apos;t be indexed)</source>
-        <target>(ソートはインデックスできません)</target>
+      <trans-unit id="276118881435903701" datatype="html">
+        <source>(can&apos;t be indexed)</source>
+        <target>(インデックスできません)</target>
       </trans-unit>
       <trans-unit id="7706142096799635459" datatype="html">
         <source>Check if the current query is using DB indices. The _config/index template only exists in the root origin, where admins can add missing indices. Everyone else, including every user in other origins, can ask for them. Users need read access to _index.helper, and to _config/index in the root origin.</source>
         <target>現在のクエリがDBインデックスを使用しているか確認します。_config/indexテンプレートはルートオリジンにのみ存在し、管理者はそこで不足しているインデックスを追加できます。他のオリジンのユーザーを含め、それ以外のユーザーは追加を依頼できます。ユーザーには_index.helperへの読み取りアクセス、およびルートオリジンでは_config/indexへの読み取りアクセスが必要です。</target>
+      </trans-unit>
+      <trans-unit id="1616250945945379783" datatype="html">
+        <source>Created:</source>
+        <target>作成日時:</target>
+      </trans-unit>
+      <trans-unit id="3685064853913502757" datatype="html">
+        <source>👀️ more views than</source>
+        <target>👀️ 閲覧数が次より多い</target>
+      </trans-unit>
+      <trans-unit id="1753460215259113732" datatype="html">
+        <source>Read by more people than</source>
+        <target>次の人数より多くの人が読んだ</target>
+      </trans-unit>
+      <trans-unit id="2108842550064877715" datatype="html">
+        <source>👀️ fewer views than</source>
+        <target>👀️ 閲覧数が次より少ない</target>
+      </trans-unit>
+      <trans-unit id="5986925006285253318" datatype="html">
+        <source>Read by fewer people than</source>
+        <target>次の人数より少ない人が読んだ</target>
       </trans-unit>
     </body>
   </file>

@@ -106,7 +106,7 @@ export class IndexHelperComponent {
       ...needs.hotPlugins.map(p => mark(missing.hotPlugins, p) + ' plugins->' + p),
       ...needs.hotResponses.map(p => mark(missing.hotResponses, p) + ' metadata->plugins->' + p),
       ...needs.hotRemoteResponses.map(p => mark(missing.hotRemoteResponses, p) + ' metadata->remotePlugins->' + p),
-      ...needs.unindexed.map(c => '✖️ ' + c + ' ' + $localize`(sort can't be indexed)`),
+      ...needs.unindexed.map(c => '✖️ ' + c + ' ' + $localize`(can't be indexed)`),
     ].join('\n');
   });
 

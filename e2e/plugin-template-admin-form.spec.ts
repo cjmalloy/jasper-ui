@@ -223,7 +223,7 @@ test.describe.serial('Plugin/Template Admin Form', () => {
 
     // Unset flags show the server default (enabled) without making the form a draft
     const checkboxes = item.locator('.admin-form input[type=checkbox]');
-    await expect(checkboxes).toHaveCount(13);
+    await expect(checkboxes).toHaveCount(14);
     for (const checkbox of await checkboxes.all()) await expect(checkbox).toBeChecked();
     await expect(edit).toHaveText('edit');
 
