@@ -82,11 +82,20 @@ function sortColumn(sort: string) {
 }
 
 /**
+ * Plugin tag pattern used by the server.
+ */
+const PLUGIN_REGEX = '[_+]?plugin(?:/[a-z0-9]+(?:[./][a-z0-9]+)*)?';
+/**
+ * Plugin column pattern the server accepts for hot plugins.
+ */
+const PLUGIN_COLUMN_REGEX = new RegExp('^' + PLUGIN_REGEX + '(?:->(?:[A-Za-z0-9_$-]+(?:\\[[0-9]{1,9}\\])?|\\[[0-9]{1,9}\\]))*(?::num|:len)?$');
+
+/**
  * Plugin of a response count sort, or undefined if the sort is a deeper path.
  */
 function responsePlugin(c: string, prefix: string) {
   const plugin = column(c, prefix).replace(/:num$/, '');
-  return /^[_+]?plugin([./][a-z0-9]+)*$/.test(plugin) ? plugin : undefined;
+  return new RegExp('^' + PLUGIN_REGEX + '$').test(plugin) ? plugin : undefined;
 }
 
 /**
@@ -132,8 +141,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
       hotResponses.push(responsePlugin(c, 'metadata->plugins->')!);
     } else if (c.startsWith('metadata->remotePlugins->') && responsePlugin(c, 'metadata->remotePlugins->')) {
       hotRemoteResponses.push(responsePlugin(c, 'metadata->remotePlugins->')!);
-    } else if (c.startsWith('plugins->') && !c.startsWith('plugins->plugin/user/vote:')) {
-      // Hot plugins also build an index for plugin sorts, but vote sorts are computed
+    } else if (c.startsWith('plugins->') && !c.startsWith('plugins->plugin/user/vote:') && PLUGIN_COLUMN_REGEX.test(column(c, 'plugins->'))) {
+      // Hot plugins also build an index for plugin sorts, but vote sorts are computed and the server skips invalid columns
       hotPlugins.push(column(c, 'plugins->'));
     } else {
       unindexed.push(c);

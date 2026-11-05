@@ -62,6 +62,10 @@ describe('Index Helper', () => {
       pluginAfter: ['plugins->_plugin/cache->contentLength:num/1000'],
       pluginBefore: ['plugins->plugin/score:num/10'],
     }).hotPlugins).toEqual(['plugin/test->size:num', 'plugin/score:num', '_plugin/cache->contentLength:num']);
+    expect(indexNeeds({ sort: ['plugins->plugin/ninja.triangle->ids[0]:num'] }).hotPlugins).toEqual(['plugin/ninja.triangle->ids[0]:num']);
+    const invalid = indexNeeds({ sort: ['plugins->plugin/test->a.b,DESC'] });
+    expect(invalid.hotPlugins).toEqual([]);
+    expect(invalid.unindexed).toEqual(['plugins->plugin/test->a.b']);
   });
 
   it('needs hot responses for plugin response count sorts and filters', () => {
@@ -80,6 +84,7 @@ describe('Index Helper', () => {
     });
     expect(indexNeeds({ sort: ['metadata->plugins->plugin/comment:num'] }).hotResponses).toEqual(['plugin/comment']);
     expect(indexNeeds({ sort: ['metadata->plugins->plugin/ninja.triangle'] }).hotResponses).toEqual(['plugin/ninja.triangle']);
+    expect(indexNeeds({ sort: ['metadata->plugins->plugin.x'] }).unindexed).toEqual(['metadata->plugins->plugin.x']);
     expect(indexNeeds({ sort: ['published', 'metadata->remotePlugins->plugin/comment'] }).hotRemoteResponses).toEqual([]);
     expect(indexNeeds({ sort: ['metadata->plugins->plugin/comment->x'] }).unindexed).toEqual(['metadata->plugins->plugin/comment->x']);
     const missing = missingIndexes(needs, { hotResponses: ['plugin/thread'], hotRemoteResponses: [''] });
