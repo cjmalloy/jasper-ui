@@ -429,6 +429,12 @@ for example \`{"hotPlugins": ["plugin/test->size:num", "plugin/test->name", "plu
 \`pluginAfter\` filters, and one used by plugin sorts, since sorts treat missing values as \`''\` or \`0\`.
 Hot plugin indexes that are removed from the list are dropped. Hot plugins are ignored on SQLite.
 
+To index a plugin response count sort or filter on PostgreSQL, add the plugin to \`hotResponses\` (counts of
+responses from the same origin, \`metadata->plugins->{plugin}\`, also used by plugin response filters) or
+\`hotRemoteResponses\` (counts of responses from all origins, \`metadata->remotePlugins->{plugin}\`) in the
+\`_config/index\` template config, for example \`{"hotRemoteResponses": ["plugin/comment"]}\`.
+These counts always sort as numbers. Hot response indexes are ignored on SQLite.
+
 Values cannot contain \`,\`. Invalid filters are rejected with \`400 Bad Request\`.
 
 Metadata dates useful for sorting:

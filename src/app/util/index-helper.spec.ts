@@ -11,7 +11,7 @@ describe('Index Helper', () => {
 
   it('flags sorts that cannot be indexed', () => {
     expect(indexNeeds({ sort: ['metadata->responses'] }).unindexed).toEqual(['metadata->responses']);
-    expect(indexNeeds({ sort: ['metadata->newResponse,DESC'] })).toEqual({ flags: ['newResponse'], hotTags: [], hotPlugins: [], unindexed: [] });
+    expect(indexNeeds({ sort: ['metadata->newResponse,DESC'] })).toEqual({ flags: ['newResponse'], hotTags: [], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
     expect(indexNeeds({ sort: ['metadata->newReaction'] }).flags).toEqual(['newReaction']);
     expect(indexNeeds({ sort: ['published', 'metadata->newResponse'] }).flags).toEqual(['published']);
     expect(indexNeeds({ sort: ['url', 'title'] }).unindexed).toEqual([]);
@@ -64,6 +64,33 @@ describe('Index Helper', () => {
     }).hotPlugins).toEqual(['plugin/test->size:num', 'plugin/score:num', '_plugin/cache->contentLength:num']);
   });
 
+  it('needs hot responses for plugin response count sorts and filters', () => {
+    const needs = indexNeeds({
+      sort: ['metadata->remotePlugins->plugin/comment,DESC'],
+      pluginResponse: ['plugin/thread'],
+      noPluginResponse: ['+plugin/log'],
+    });
+    expect(needs).toEqual({
+      flags: [],
+      hotTags: [],
+      hotPlugins: [],
+      hotResponses: ['plugin/thread', '+plugin/log'],
+      hotRemoteResponses: ['plugin/comment'],
+      unindexed: [],
+    });
+    expect(indexNeeds({ sort: ['metadata->plugins->plugin/comment:num'] }).hotResponses).toEqual(['plugin/comment']);
+    expect(indexNeeds({ sort: ['published', 'metadata->remotePlugins->plugin/comment'] }).hotRemoteResponses).toEqual([]);
+    expect(indexNeeds({ sort: ['metadata->plugins->plugin/comment->x'] }).unindexed).toEqual(['metadata->plugins->plugin/comment->x']);
+    const missing = missingIndexes(needs, { hotResponses: ['plugin/thread'], hotRemoteResponses: [''] });
+    expect(missing.hotResponses).toEqual(['+plugin/log']);
+    expect(missing.hotRemoteResponses).toEqual(['plugin/comment']);
+    expect(fixIndexConfig(missing, { hotResponses: ['plugin/thread'] })).toEqual({
+      hotResponses: ['plugin/thread', '+plugin/log'],
+      hotRemoteResponses: ['plugin/comment'],
+    });
+    expect(indexList(missing)).toBe('* `hotResponses`: `+plugin/log`\n* `hotRemoteResponses`: `plugin/comment`');
+  });
+
   it('finds missing indexes', () => {
     const needs = indexNeeds({
       query: 'science',
@@ -76,7 +103,7 @@ describe('Index Helper', () => {
       hotTags: ['plugin/progress:num'],
       hotPlugins: ['plugins->plugin/score:num'],
     });
-    expect(missing).toEqual({ flags: ['fulltext'], hotTags: [], hotPlugins: ['plugin/test->name'], unindexed: [] });
+    expect(missing).toEqual({ flags: ['fulltext'], hotTags: [], hotPlugins: ['plugin/test->name'], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
     expect(hasIndexes(missing)).toBe(true);
     expect(hasIndexes(missingIndexes(needs, {
       hotTags: ['plugin/progress:num'],
@@ -90,7 +117,7 @@ describe('Index Helper', () => {
       disabled: true,
       fulltext: false,
       hotTags: ['plugin/progress:num'],
-    })).toEqual({ flags: [], hotTags: ['plugin/progress:num'], hotPlugins: [], unindexed: [] });
+    })).toEqual({ flags: [], hotTags: ['plugin/progress:num'], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
   });
 
   it('skips blank hot indices', () => {
@@ -98,12 +125,12 @@ describe('Index Helper', () => {
     expect(missingIndexes(needs, {
       hotTags: [null as any],
       hotPlugins: [null as any, '', 'plugin/score:num'],
-    })).toEqual({ flags: [], hotTags: [], hotPlugins: [], unindexed: [] });
+    })).toEqual({ flags: [], hotTags: [], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
   });
 
   it('fixes the config', () => {
     const config = { fulltext: false, hotTags: ['plugin/a', ''], hotPlugins: ['plugin/b'] };
-    const missing = { flags: ['fulltext' as const], hotTags: ['plugin/c:num'], hotPlugins: [], unindexed: ['title'] };
+    const missing = { flags: ['fulltext' as const], hotTags: ['plugin/c:num'], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: ['title'] };
     expect(fixIndexConfig(missing, config)).toEqual({
       fulltext: true,
       hotTags: ['plugin/a', 'plugin/c:num'],

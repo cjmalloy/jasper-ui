@@ -13,7 +13,7 @@ import { userTemplate } from '../mods/user';
 import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
 import { defer, firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { Store } from '../store/store';
-import { AdminService } from './admin.service';
+import { AdminService, hotIndexSuggestions } from './admin.service';
 import { PluginService } from './api/plugin.service';
 import { TemplateService } from './api/template.service';
 import { ConfigService } from './config.service';
@@ -125,20 +125,29 @@ describe('AdminService', () => {
     expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({
       tags: ['plugin/duration:dur'],
       plugins: ['_plugin/cache->contentLength:num', 'plugin/score:num'],
+      responses: [],
+      remoteResponses: [],
     });
     expect(pluginPage.mock.calls.map(([args]) => [args.query, args.page])).toEqual([['@*', 0], ['@*', 1]]);
-    const [hotTags, hotPlugins] = service.getTemplateAdminForm('_config/index').slice(-2);
+    const [hotTags, hotPlugins] = service.getTemplateAdminForm('_config/index').slice(-4);
     expect(await firstValueFrom((hotTags.fieldArray as any).props.suggestions(service))).toEqual(['plugin/duration:dur']);
     expect(await firstValueFrom((hotPlugins.fieldArray as any).props.suggestions(service))).toEqual(['_plugin/cache->contentLength:num', 'plugin/score:num']);
+  });
+
+  it('should suggest hot responses from response count sorts', () => {
+    expect(hotIndexSuggestions([
+      { tag: 'plugin/comment', config: { sorts: [{ sort: 'metadata->remotePlugins->plugin/comment' }] } },
+      { tag: 'plugin/thread', config: { sorts: [{ sort: 'metadata->plugins->plugin/thread:num' }, { sort: 'metadata->newResponse' }] } },
+    ] as any, [])).toEqual({ tags: [], plugins: [], responses: ['plugin/thread'], remoteResponses: ['plugin/comment'] });
   });
 
   it('should scan for hot index suggestions again each time the form opens', async () => {
     const empty = of({ content: [], page: { number: 0, size: 0, totalElements: 0, totalPages: 1 } });
     const pluginPage = vi.spyOn(TestBed.inject(PluginService), 'page').mockReturnValueOnce(throwError(() => 'offline')).mockReturnValue(empty as any);
     vi.spyOn(TestBed.inject(TemplateService), 'page').mockReturnValue(empty as any);
-    expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({ tags: [], plugins: [] });
+    expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({ tags: [], plugins: [], responses: [], remoteResponses: [] });
     pluginPage.mockReturnValue(of({ content: [durationPlugin], page: { number: 0, size: 1, totalElements: 1, totalPages: 1 } }) as any);
-    expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({ tags: ['plugin/duration:dur'], plugins: [] });
+    expect(await firstValueFrom(service.hotIndexSuggestions$())).toEqual({ tags: ['plugin/duration:dur'], plugins: [], responses: [], remoteResponses: [] });
     expect(pluginPage).toHaveBeenCalledTimes(2);
   });
 
@@ -156,7 +165,7 @@ describe('AdminService', () => {
   it('should fall back to hard coded config admin forms', () => {
     expect(service.getTemplateAdminForm('_config/index').map(f => f.key)).toEqual([
       'tags', 'sources', 'alts', 'responses', 'internalResponses', 'fulltext', 'published', 'modified', 'newResponse', 'newReaction',
-      'ignored', 'cascade', 'regen', 'hotTags', 'hotPlugins',
+      'ignored', 'cascade', 'regen', 'hotTags', 'hotPlugins', 'hotResponses', 'hotRemoteResponses',
     ]);
     expect(service.getTemplateAdminForm('_config/security').map(f => f.key)).toContain('minRole');
     expect(service.getTemplateAdminForm('_config/server').map(f => f.key)).toContain('scriptSelectors');

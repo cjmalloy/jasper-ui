@@ -104,6 +104,8 @@ export class IndexHelperComponent {
       ...needs.flags.map(f => mark(missing.flags, f) + ' ' + f),
       ...needs.hotTags.map(t => mark(missing.hotTags, t) + ' tags->' + t),
       ...needs.hotPlugins.map(p => mark(missing.hotPlugins, p) + ' plugins->' + p),
+      ...needs.hotResponses.map(p => mark(missing.hotResponses, p) + ' metadata->plugins->' + p),
+      ...needs.hotRemoteResponses.map(p => mark(missing.hotRemoteResponses, p) + ' metadata->remotePlugins->' + p),
       ...needs.unindexed.map(c => '✖️ ' + c + ' ' + $localize`(sort can't be indexed)`),
     ].join('\n');
   });

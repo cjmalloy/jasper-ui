@@ -771,7 +771,7 @@ export class AdminService {
     this.scanAllOrigins$(args => this.templates.page(args)),
   ])).pipe(
     map(([plugins, templates]) => hotIndexSuggestions(plugins, templates)),
-    catchError(() => of({ tags: [], plugins: [] })),
+    catchError(() => of({ tags: [], plugins: [], responses: [], remoteResponses: [] })),
     share(),
   );
 
@@ -1385,22 +1385,34 @@ export interface HotIndexSuggestions {
    * Plugin columns, without the `plugins->` prefix.
    */
   plugins: string[];
+  /**
+   * Plugins counted in `metadata->plugins`.
+   */
+  responses: string[];
+  /**
+   * Plugins counted in `metadata->remotePlugins`.
+   */
+  remoteResponses: string[];
 }
 
 /**
- * Hot tag columns used to sort or filter, and hot plugin columns used to filter.
+ * Hot tag columns used to sort or filter, hot plugin columns used to filter,
+ * and plugins whose response counts are used to sort.
  * Plugin sorts are skipped, since the server only uses hot plugin indexes for filters.
  */
 export function hotIndexSuggestions(plugins: Plugin[], templates: Template[]): HotIndexSuggestions {
   const sorts = plugins.flatMap(p => p.config?.sorts || []).map(s => s.sort);
   const filters = [...plugins, ...templates].flatMap(p => p.config?.filters || []).map(f => f.sort);
-  const columns = (prefix: string, cs: (string | undefined)[]) => uniq(cs
+  const columns = (prefix: string, cs: (string | undefined)[], suffix?: RegExp) => uniq(cs
     .filter(c => c?.startsWith(prefix))
-    .map(c => c!.substring(prefix.length)))
+    .map(c => c!.substring(prefix.length))
+    .map(c => suffix ? c.replace(suffix, '') : c))
     .sort();
   return {
     tags: columns('tags->', [...sorts, ...filters]),
     plugins: columns('plugins->', filters),
+    responses: columns('metadata->plugins->', sorts, /:num$/),
+    remoteResponses: columns('metadata->remotePlugins->', sorts, /:num$/),
   };
 }
 
@@ -1420,6 +1432,8 @@ const indexConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'regen', type: 'boolean', defaultValue: true, props: { label: $localize`Regen:` } },
   strings('hotTags', $localize`Hot Tags:`, $localize`+ Add another hot tag`, admin => admin.hotIndexSuggestions$().pipe(map(s => s.tags))),
   strings('hotPlugins', $localize`Hot Plugins:`, $localize`+ Add another hot plugin`, admin => admin.hotIndexSuggestions$().pipe(map(s => s.plugins))),
+  strings('hotResponses', $localize`Hot Responses:`, $localize`+ Add another hot response`, admin => admin.hotIndexSuggestions$().pipe(map(s => s.responses))),
+  strings('hotRemoteResponses', $localize`Hot Remote Responses:`, $localize`+ Add another hot remote response`, admin => admin.hotIndexSuggestions$().pipe(map(s => s.remoteResponses))),
 ];
 
 const securityConfigAdminForm: FormlyFieldConfig[] = [

@@ -7822,6 +7822,22 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>+ Add another hot plugin</source>
         <target>+ ホットプラグインを追加</target>
       </trans-unit>
+      <trans-unit id="668933993902584610" datatype="html">
+        <source>Hot Responses:</source>
+        <target>ホットレスポンス:</target>
+      </trans-unit>
+      <trans-unit id="4481532836147475630" datatype="html">
+        <source>Hot Remote Responses:</source>
+        <target>ホットリモートレスポンス:</target>
+      </trans-unit>
+      <trans-unit id="144496082450862170" datatype="html">
+        <source>+ Add another hot response</source>
+        <target>+ ホットレスポンスを追加</target>
+      </trans-unit>
+      <trans-unit id="2689581838945996659" datatype="html">
+        <source>+ Add another hot remote response</source>
+        <target>+ ホットリモートレスポンスを追加</target>
+      </trans-unit>
       <trans-unit id="1294909756545406951" datatype="html">
         <source>JWT</source>
       </trans-unit>

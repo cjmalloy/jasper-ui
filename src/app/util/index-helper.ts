@@ -24,6 +24,8 @@ export interface IndexConfig {
   regen?: boolean;
   hotTags?: string[];
   hotPlugins?: string[];
+  hotResponses?: string[];
+  hotRemoteResponses?: string[];
 }
 
 export type IndexFlag = 'tags' | 'sources' | 'alts' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified' | 'newResponse' | 'newReaction';
@@ -44,6 +46,14 @@ export interface IndexNeeds {
    * Plugin columns, without the `plugins->` prefix.
    */
   hotPlugins: string[];
+  /**
+   * Plugins counted in `metadata->plugins`, the responses from the same origin.
+   */
+  hotResponses: string[];
+  /**
+   * Plugins counted in `metadata->remotePlugins`, the responses from all origins.
+   */
+  hotRemoteResponses: string[];
   /**
    * Sort columns that no `_config/index` setting can index.
    */
@@ -72,6 +82,14 @@ function sortColumn(sort: string) {
 }
 
 /**
+ * Plugin of a response count sort, or undefined if the sort is a deeper path.
+ */
+function responsePlugin(c: string, prefix: string) {
+  const plugin = column(c, prefix).replace(/:num$/, '');
+  return /^[_+]?plugin(\/[a-z0-9]+)*$/.test(plugin) ? plugin : undefined;
+}
+
+/**
  * Whether the query selects any tags, not only origins.
  */
 function queryHasTags(query?: string) {
@@ -81,14 +99,15 @@ function queryHasTags(query?: string) {
 
 /**
  * Work out which `_config/index` indices a Ref page query uses.
- * Plugin sorts are skipped, since the server only uses hot plugin indexes for filters.
  */
 export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   const flags: IndexFlag[] = [];
   const hotTags: string[] = [];
   const hotPlugins: string[] = [];
+  const hotResponses: string[] = [];
+  const hotRemoteResponses: string[] = [];
   const unindexed: string[] = [];
-  if (!args) return { flags, hotTags, hotPlugins, unindexed };
+  if (!args) return { flags, hotTags, hotPlugins, hotResponses, hotRemoteResponses, unindexed };
   if (queryHasTags(args.query)) flags.push('tags');
   // Search also matches the URL or alternate URLs
   if (args.search) flags.push('fulltext', 'alts');
@@ -109,6 +128,10 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
       // Only the first sort can use an index, the rest are tie breakers
     } else if (c === 'metadata->newResponse' || c === 'metadata->newReaction') {
       flags.push(column(c, 'metadata->') as IndexFlag);
+    } else if (c.startsWith('metadata->plugins->') && responsePlugin(c, 'metadata->plugins->')) {
+      hotResponses.push(responsePlugin(c, 'metadata->plugins->')!);
+    } else if (c.startsWith('metadata->remotePlugins->') && responsePlugin(c, 'metadata->remotePlugins->')) {
+      hotRemoteResponses.push(responsePlugin(c, 'metadata->remotePlugins->')!);
     } else if (c.startsWith('plugins->') && !c.startsWith('plugins->plugin/user/vote:')) {
       // Hot plugins also build an index for plugin sorts, but vote sorts are computed
       hotPlugins.push(column(c, 'plugins->'));
@@ -122,10 +145,14 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   for (const f of [...args.pluginBefore || [], ...args.pluginAfter || []]) {
     if (f.startsWith('plugins->')) hotPlugins.push(valueColumn(f, 'plugins->'));
   }
+  // Plugin response filters count the responses from the same origin
+  hotResponses.push(...args.pluginResponse || [], ...args.noPluginResponse || []);
   return {
     flags: uniq(flags),
     hotTags: uniq(hotTags.filter(t => !!t)),
     hotPlugins: uniq(hotPlugins.filter(p => !!p)),
+    hotResponses: uniq(hotResponses.filter(p => !!p)),
+    hotRemoteResponses: uniq(hotRemoteResponses),
     unindexed: uniq(unindexed),
   };
 }
@@ -141,10 +168,14 @@ export function missingIndexes(needs: IndexNeeds, config: IndexConfig = {}): Ind
   if (config.disabled) config = {};
   const hotTags = normalize(config.hotTags, 'tags->');
   const hotPlugins = normalize(config.hotPlugins, 'plugins->');
+  const hotResponses = normalize(config.hotResponses, '');
+  const hotRemoteResponses = normalize(config.hotRemoteResponses, '');
   return {
     flags: needs.flags.filter(f => config[f] === false),
     hotTags: needs.hotTags.filter(t => !hotTags.includes(t)),
     hotPlugins: needs.hotPlugins.filter(p => !hotPlugins.includes(p)),
+    hotResponses: needs.hotResponses.filter(p => !hotResponses.includes(p)),
+    hotRemoteResponses: needs.hotRemoteResponses.filter(p => !hotRemoteResponses.includes(p)),
     unindexed: needs.unindexed,
   };
 }
@@ -157,7 +188,7 @@ export function hasIndexes(needs: IndexNeeds) {
  * Whether any of the indices can be added to `_config/index`.
  */
 export function hasFixable(needs: IndexNeeds) {
-  return !!(needs.flags.length || needs.hotTags.length || needs.hotPlugins.length);
+  return !!(needs.flags.length || needs.hotTags.length || needs.hotPlugins.length || needs.hotResponses.length || needs.hotRemoteResponses.length);
 }
 
 /**
@@ -168,6 +199,8 @@ export function fixIndexConfig(missing: IndexNeeds, config: IndexConfig = {}): I
   for (const f of missing.flags) patch[f] = true;
   if (missing.hotTags.length) patch.hotTags = uniq([...(config.hotTags || []).filter(t => !!t), ...missing.hotTags]);
   if (missing.hotPlugins.length) patch.hotPlugins = uniq([...(config.hotPlugins || []).filter(p => !!p), ...missing.hotPlugins]);
+  if (missing.hotResponses.length) patch.hotResponses = uniq([...(config.hotResponses || []).filter(p => !!p), ...missing.hotResponses]);
+  if (missing.hotRemoteResponses.length) patch.hotRemoteResponses = uniq([...(config.hotRemoteResponses || []).filter(p => !!p), ...missing.hotRemoteResponses]);
   return patch;
 }
 
@@ -179,5 +212,7 @@ export function indexList(missing: IndexNeeds) {
     ...missing.flags.map(f => `* \`${f}\``),
     ...missing.hotTags.map(t => `* \`hotTags\`: \`${t}\``),
     ...missing.hotPlugins.map(p => `* \`hotPlugins\`: \`${p}\``),
+    ...missing.hotResponses.map(p => `* \`hotResponses\`: \`${p}\``),
+    ...missing.hotRemoteResponses.map(p => `* \`hotRemoteResponses\`: \`${p}\``),
   ].join('\n');
 }
