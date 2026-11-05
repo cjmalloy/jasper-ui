@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, concat, first, map, Observable, of } from 'rxjs';
+import { catchError, concat, first, map, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { mapPage, Page } from '../../model/page';
 import { mapRef, Ref, RefFilter, RefPageArgs, writeEdit, writeRef } from '../../model/ref';
@@ -127,15 +127,21 @@ export class RefService {
     );
   }
 
+  /**
+   * Your draft of a URL. Prefers the draft in your origin. A draft replicated from another
+   * origin is returned without its origin and cursor, since saving it creates a new draft here.
+   */
   getEditing(url: string): Observable<Ref | undefined> {
     if (!this.store.account.localTag()) return of(undefined);
-    return this.page({
-      url,
-      query: this.store.account.localTag() + ':plugin/editing',
-      size: 1,
-      obsolete: null,
-    }).pipe(
+    const origin = this.store.account.origin();
+    const draft = (query: string) => this.page({ url, query, size: 1, obsolete: null }).pipe(
       map(page => page.content[0]),
+    );
+    const query = this.store.account.localTag() + ':plugin/editing';
+    return draft(query + ':' + (origin || '@')).pipe(
+      switchMap(local => local ? of(local) : draft(query).pipe(
+        map(remote => remote && { ...remote, origin, modified: undefined, modifiedString: undefined }),
+      )),
       catchError(() => of(undefined)),
     );
   }

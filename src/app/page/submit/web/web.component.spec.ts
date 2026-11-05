@@ -69,4 +69,22 @@ describe('SubmitWebPage', () => {
     expect(component.alreadyExists()).toBe(false);
     expect(component.submitted()).toBe(false);
   });
+
+  it('does not offer a repost when publishing a draft conflicts', async () => {
+    component.url = 'https://example.com';
+    await new Promise(resolve => setTimeout(resolve, 10));
+    component['cursor'] = '2026-01-01T00:00:00Z';
+    vi.spyOn(component.webForm, 'valid', 'get').mockReturnValue(true);
+    vi.spyOn(component, 'syncEditor').mockImplementation(() => {});
+    vi.spyOn(component, 'writeRef').mockReturnValue({ tags: [] } as any);
+    vi.spyOn(component['refs'], 'update').mockReturnValue(throwError(() => new HttpErrorResponse({
+      status: 409,
+      error: { detail: 'Ref already modified' },
+    })));
+
+    component.submit();
+
+    expect(component.alreadyExists()).toBe(false);
+    expect(component.serverError()).toEqual(['Ref already modified']);
+  });
 });
