@@ -91,6 +91,65 @@ test.describe.serial('Drafts Plugin', () => {
     await expect(page.locator('.ref .link a', { hasText: webTitle })).toBeVisible();
   });
 
+  test('submits a web link draft from the submit page', async () => {
+    const url = 'https://www.jasper.example/submit-draft-' + Date.now();
+    const webTitle = 'Submit Draft ' + Date.now();
+    await page.goto('/submit/web?debug=USER&url=' + encodeURIComponent(url), { waitUntil: 'networkidle' });
+    await page.locator('[name=title]').fill(webTitle);
+    const saved = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await page.locator('button', { hasText: 'Save for later' }).click();
+    await saved;
+    await expect(page).toHaveURL(/\/inbox\/ref\/plugin(%2F|\/)editing/);
+    await page.goto('/submit?debug=USER', { waitUntil: 'networkidle' });
+    const checked = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref/page') && res.url().includes('responses='));
+    await page.locator('#url').fill(url);
+    await checked;
+    const next = page.locator('button[type=submit]', { hasText: 'Next' });
+    await expect(next).toBeVisible();
+    await next.click();
+    await expect(page).toHaveURL(/\/submit\/web/);
+    await expect(page).not.toHaveURL(/plugin(%2F|\/)repost/);
+    await expect(page.locator('[name=title]')).toHaveValue(webTitle);
+    const published = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'PUT');
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click();
+    expect((await published).ok()).toBe(true);
+    await expect(page).toHaveURL(/\/ref\//);
+  });
+
+  test('does not autosave a web link draft while submitting', async () => {
+    const url = 'https://www.jasper.example/slow-submit-' + Date.now();
+    await page.goto('/submit/web?debug=USER&url=' + encodeURIComponent(url), { waitUntil: 'networkidle' });
+    const saved = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await page.locator('[name=title]').fill('Slow Submit ' + Date.now());
+    await saved;
+    await page.locator('[name=title]').fill('Slow Submit Edited ' + Date.now());
+    // Hold the publish response past the autosave interval
+    const refApi = (u: URL) => u.pathname.endsWith('/api/v1/ref');
+    await page.route(refApi, async route => {
+      if (route.request().method() !== 'PUT') return route.fallback();
+      const res = await route.fetch();
+      await new Promise(resolve => setTimeout(resolve, 6_000));
+      await route.fulfill({ response: res });
+    });
+    const patches: string[] = [];
+    const onRequest = (req: { url(): string, method(): string }) => {
+      if (req.url().includes('/api/v1/ref') && req.method() === 'PATCH') patches.push(req.url());
+    };
+    page.on('request', onRequest);
+    const published = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'PUT');
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click();
+    expect((await published).ok()).toBe(true);
+    await expect(page).toHaveURL(/\/ref\//);
+    page.off('request', onRequest);
+    await page.unroute(refApi);
+    expect(patches).toEqual([]);
+  });
+
   test('restores a DM draft with its recipient and tags', async () => {
     const dmTitle = 'DM Draft ' + Date.now();
     await page.goto('/submit/dm?debug=USER&to=' + encodeURIComponent('+user/alice'), { waitUntil: 'networkidle' });
