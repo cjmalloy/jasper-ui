@@ -218,7 +218,14 @@ test.describe.serial('Plugin/Template Admin Form', () => {
     await page.goto('/settings/template?debug=ADMIN&search=_config/index', { waitUntil: 'networkidle' });
     const item = page.locator('.template.list-item').filter({ hasText: '_config/index' });
     await expect(item).toHaveCount(1);
-    await item.locator('.actions .fake-link', { hasText: 'edit' }).click();
+    const edit = item.locator('.actions .fake-link', { hasText: 'edit' });
+    await edit.click();
+
+    // Unset flags show the server default (enabled) without making the form a draft
+    const checkboxes = item.locator('.admin-form input[type=checkbox]');
+    await expect(checkboxes).toHaveCount(13);
+    for (const checkbox of await checkboxes.all()) await expect(checkbox).toBeChecked();
+    await expect(edit).toHaveText('edit');
 
     const inputs = item.locator('.admin-form input[list$=-suggestions]');
     await expect(inputs).toHaveCount(3);
