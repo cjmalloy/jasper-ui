@@ -33,7 +33,7 @@
     "@ngx-formly/core": "11.0.0",
     "@stomp/rx-stomp": "^2.4.0",
     "@stomp/stompjs": "^7.5.0",
-    "ag-grid-angular": "^36.2.0",
+    "ag-grid-angular": "^36.3.0",
     "ag-grid-community": "^36.1.0",
     "array.prototype.at": "^1.2.0",
     "chess.js": "^1.4.0",
