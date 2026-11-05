@@ -45,6 +45,15 @@ describe('AdminConfigComponent', () => {
     expect(group.get('config')!.dirty).toBe(true);
   });
 
+  it('should write form edits to the model signal and JSON', () => {
+    const model = component.model();
+    component.form().get('script')!.setValue('b');
+    expect(component.model()).toEqual({ script: 'b', other: 1 });
+    expect(component.model()).not.toBe(model);
+    expect(model).toEqual({ script: 'a', other: 1 });
+    expect(JSON.parse(group.get('config')!.value)).toEqual({ script: 'b', other: 1 });
+  });
+
   it('should update the model when JSON changes', () => {
     group.get('config')!.setValue(JSON.stringify({ script: 'c' }));
     expect(component.model()).toEqual({ script: 'c' });
