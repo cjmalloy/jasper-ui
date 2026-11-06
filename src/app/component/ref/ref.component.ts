@@ -871,7 +871,7 @@ export class RefComponent implements HasChanges {
 
   readonly recipientExts = toSignal(toObservable(computed(() =>
     [this.recipients(), this.ref().origin || ''] as const)).pipe(
-    switchMap(([tags, origin]) => this.exts.getCachedExts(tags, origin).pipe(this.admin.recipientFallback)),
+    switchMap(([tags, origin]) => this.exts.getCachedRecipientExts(tags, origin).pipe(this.admin.recipientFallback)),
   ), { initialValue: [] });
 
   readonly mailboxes = computed(() => {
