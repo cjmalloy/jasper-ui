@@ -55,9 +55,6 @@ updates:
     playwright:
       patterns:
         - "@playwright/*"
-  ignore:
-    - dependency-name: "@playwright/*"
-      versions: ["1.62.x"]
 - package-ecosystem: github-actions
   directory: /
   schedule:
@@ -88,9 +85,38 @@ updates:
   cooldown:
     default-days: 0
   groups:
-    v1-4:
+    angular:
       patterns:
-        - "*"
+        - "@angular/*"
+        - "@angular-devkit/*"
+        - "rxjs"
+        - "zone.js"
+        - "typescript"
+        - "tslib"
+        - "ngx-monaco-editor"
+    formly:
+      patterns:
+        - "@ngx-formly/*"
+    marked:
+      patterns:
+        - "marked"
+        - "marked-*"
+    ag-grid:
+      patterns:
+        - "ag-grid-angular"
+        - "ag-grid-community"
+    maplibre-gl:
+      patterns:
+        - "@maplibre/*"
+        - "maplibre-gl"
+    tests:
+      patterns:
+        - "@vitest/*"
+        - "vitest"
+        - "jsdom"
+    playwright:
+      patterns:
+        - "@playwright/*"
 - package-ecosystem: docker
   target-branch: v1.3
   directories:
@@ -114,6 +140,35 @@ updates:
   cooldown:
     default-days: 0
   groups:
-    v1-3:
+    angular:
       patterns:
-        - "*"
+        - "@angular/*"
+        - "@angular-devkit/*"
+        - "rxjs"
+        - "zone.js"
+        - "typescript"
+        - "tslib"
+        - "ngx-monaco-editor"
+    formly:
+      patterns:
+        - "@ngx-formly/*"
+    marked:
+      patterns:
+        - "marked"
+        - "marked-*"
+    ag-grid:
+      patterns:
+        - "ag-grid-angular"
+        - "ag-grid-community"
+    maplibre-gl:
+      patterns:
+        - "@maplibre/*"
+        - "maplibre-gl"
+    tests:
+      patterns:
+        - "@vitest/*"
+        - "vitest"
+        - "jsdom"
+    playwright:
+      patterns:
+        - "@playwright/*"
