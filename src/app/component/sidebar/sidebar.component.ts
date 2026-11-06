@@ -50,6 +50,7 @@ import { ChatComponent } from '../chat/chat.component';
 import { DebugComponent } from '../debug/debug.component';
 import { ExtComponent } from '../ext/ext.component';
 import { FilterComponent } from '../filter/filter.component';
+import { IndexHelperComponent } from '../index-helper/index-helper.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { QueryComponent } from '../query/query.component';
@@ -74,6 +75,7 @@ import { SortComponent } from '../sort/sort.component';
     FilterComponent,
     SortComponent,
     DebugComponent,
+    IndexHelperComponent,
     BulkComponent,
     RouterLink,
     ChatComponent,

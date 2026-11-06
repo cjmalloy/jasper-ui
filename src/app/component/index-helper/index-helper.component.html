@@ -1,0 +1,34 @@
+@if (show()) {
+  <div class="index-line" [title]="tooltip()">
+    @if (loading()) {
+      <span class="index-status" i18n>⚡️ Indexes</span>
+    } @else if (!anyMissing()) {
+      <span class="index-status indexed" i18n>⚡️ Indexed</span>
+    } @else if (index() || needs().unindexed.length) {
+      <span class="index-status not-indexed" i18n>⚡️ Not indexed</span>
+    } @else {
+      <span class="index-status not-indexed" i18n>⚡️ May not be indexed</span>
+    }
+    @if (loading()) {
+      <app-loading [inline]="true" />
+    } @else if (fixable()) {
+      @if (serverError().length) {
+        <span class="error" [title]="serverError().join('\n')" i18n>failed</span>
+      }
+      @if (disabled() && isAdmin()) {
+        <span class="index-disabled" i18n-title title="The server ignores the _config/index template while it is disabled" i18n>_config/index disabled</span>
+      } @else if (canFix()) {
+        <button type="button"
+                class="fix-indexes"
+                i18n-title title="Add the missing indices to the _config/index template"
+                [disabled]="fixing()"
+                (click)="fix()" i18n>fix</button>
+      } @else if (config.support) {
+        <button type="button"
+                class="request-indexes"
+                i18n-title title="Ask an admin to add the missing indices"
+                (click)="request()" i18n>request</button>
+      }
+    }
+  </div>
+}

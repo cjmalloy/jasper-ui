@@ -51,7 +51,7 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { URI_REGEX } from '../../util/format';
-import { getArgs } from '../../util/query';
+import { dateRange, getArgs } from '../../util/query';
 import { braces, hasTag, tagOrigin } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { ChatEntryComponent } from './chat-entry/chat-entry.component';
@@ -204,7 +204,7 @@ export class ChatComponent implements HasChanges {
     }
     this.lastPoll.set(DateTime.now());
     const query = braces(this.query()) + ':' + (origin || '@');
-    this.refs.page({
+    this.refs.page(dateRange({
       ...getArgs(
         query,
         'modified,ASC',
@@ -214,8 +214,7 @@ export class ChatComponent implements HasChanges {
         this.store.view.pageSize(),
       ),
       responses: this.responseOf()?.url,
-      modifiedAfter: this.cursors.get(origin!)
-    }).pipe(
+    }, 'modified', this.cursors.get(origin!))).pipe(
       catchError(err => {
         this.setPoll(true);
         this.messages.update(messages => [...messages || []]);
@@ -242,7 +241,7 @@ export class ChatComponent implements HasChanges {
     if (this.loadingPrev()) return;
     this.loadingPrev.set(true);
     this.lastPoll.set(DateTime.now());
-    this.refs.page({
+    this.refs.page(dateRange({
       ...getArgs(
         this.query(),
         'modified,DESC',
@@ -252,8 +251,7 @@ export class ChatComponent implements HasChanges {
         Math.max(this.store.view.pageSize(), !this.cursors.size ? this.initialSize : 0),
       ),
       responses: this.responseOf()?.url,
-      modifiedBefore: this.messages()?.[0]?.modifiedString,
-    }).pipe(
+    }, 'modified', undefined, this.messages()?.[0]?.modifiedString)).pipe(
       catchError(err => {
         this.loadingPrev.set(false);
         this.setPoll(true);

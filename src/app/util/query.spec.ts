@@ -261,8 +261,13 @@ describe('Query Utils', () => {
         'modified/after/2023-01-02' as UrlFilter
       ];
       const args = getArgs('science', undefined, filters);
-      expect(args.modifiedBefore).toContain('2024-01-0');
-      expect(args.modifiedAfter).toContain('2023-01-0');
+      expect(args.filterBefore).toEqual([expect.stringMatching(/^modified\/2024-01-0.*Z$/)]);
+      expect(args.filterAfter).toEqual([expect.stringMatching(/^modified\/2023-01-0.*Z$/)]);
+    });
+
+    it('should filter response dates on the new response date', () => {
+      const args = getArgs('science', undefined, ['response/after/2024-01-01T00:00:00Z']);
+      expect(args.filterAfter).toEqual(['metadata->newResponse/2024-01-01T00:00:00.000Z']);
     });
 
     it('should extract tag value filters', () => {
@@ -271,9 +276,8 @@ describe('Query Utils', () => {
         'tags->plugin/duration:dur/after/pt5m',
         'tags->plugin/progress:num/after/9',
       ]);
-      expect(args.tagBefore).toEqual(['tags->plugin/duration:dur/pt1h']);
-      expect(args.tagAfter).toEqual(['tags->plugin/duration:dur/pt5m', 'tags->plugin/progress:num/9']);
-      expect(args.pluginBefore).toBeUndefined();
+      expect(args.filterBefore).toEqual(['tags->plugin/duration:dur/pt1h']);
+      expect(args.filterAfter).toEqual(['tags->plugin/duration:dur/pt5m', 'tags->plugin/progress:num/9']);
     });
 
     it('should extract plugin value filters', () => {
@@ -281,9 +285,17 @@ describe('Query Utils', () => {
         'plugins->_plugin/cache->contentLength:num/after/1000',
         'plugins->plugin/test->title/before/B',
       ]);
-      expect(args.pluginAfter).toEqual(['plugins->_plugin/cache->contentLength:num/1000']);
-      expect(args.pluginBefore).toEqual(['plugins->plugin/test->title/B']);
-      expect(args.tagBefore).toBeUndefined();
+      expect(args.filterAfter).toEqual(['plugins->_plugin/cache->contentLength:num/1000']);
+      expect(args.filterBefore).toEqual(['plugins->plugin/test->title/B']);
+    });
+
+    it('should extract response count filters', () => {
+      const args = getArgs('science', undefined, [
+        'metadata->remotePlugins->plugin/user/read/after/10',
+        'metadata->remotePlugins->plugin/user/read/before/100',
+      ]);
+      expect(args.filterAfter).toEqual(['metadata->remotePlugins->plugin/user/read/10']);
+      expect(args.filterBefore).toEqual(['metadata->remotePlugins->plugin/user/read/100']);
     });
 
     it('should convert shorthand value filters', () => {
@@ -292,14 +304,13 @@ describe('Query Utils', () => {
         'plugins->_plugin/cache->contentLength:num/after/10mb',
         'plugins->plugin/test->title/before/5b',
       ]);
-      expect(args.tagBefore).toEqual(['tags->plugin/duration:dur/pt1h30m']);
-      expect(args.pluginAfter).toEqual(['plugins->_plugin/cache->contentLength:num/' + 10 * 1024 * 1024]);
-      expect(args.pluginBefore).toEqual(['plugins->plugin/test->title/5b']);
+      expect(args.filterBefore).toEqual(['tags->plugin/duration:dur/pt1h30m', 'plugins->plugin/test->title/5b']);
+      expect(args.filterAfter).toEqual(['plugins->_plugin/cache->contentLength:num/' + 10 * 1024 * 1024]);
     });
 
     it('should skip value filters without a value', () => {
       const args = getArgs('science', undefined, ['tags->plugin/duration:dur/before/' as UrlFilter]);
-      expect(args.tagBefore).toBeUndefined();
+      expect(args.filterBefore).toBeUndefined();
     });
 
     describe('relative date filters', () => {
@@ -315,26 +326,26 @@ describe('Query Utils', () => {
       it('should resolve ISO durations in published-before Ext defaults', () => {
         const args = getArgs('science', undefined, ['published/before/p1d']);
 
-        expect(args.publishedBefore).toBe('2026-07-08T23:36:00.000Z');
+        expect(args.filterBefore).toEqual(['published/2026-07-08T23:36:00.000Z']);
       });
 
       it('should resolve now in published-before Ext defaults', () => {
         const args = getArgs('science', undefined, ['published/before/NoW']);
 
-        expect(args.publishedBefore).toBe('2026-07-09T23:36:00.000Z');
+        expect(args.filterBefore).toEqual(['published/2026-07-09T23:36:00.000Z']);
       });
 
       it('should resolve relative dates in tag list filters', () => {
         expect(getTagFilter(['modified/after/P7D', 'modified/before/now'])).toEqual({
-          modifiedAfter: '2026-07-02T23:36:00.000Z',
-          modifiedBefore: '2026-07-09T23:36:00.000Z',
+          filterAfter: ['modified/2026-07-02T23:36:00.000Z'],
+          filterBefore: ['modified/2026-07-09T23:36:00.000Z'],
         });
       });
 
       it('should reject incomplete ISO durations', () => {
         const args = getArgs('science', undefined, ['published/before/P']);
 
-        expect(args.publishedBefore).toBeNull();
+        expect(args.filterBefore).toBeUndefined();
       });
     });
 
@@ -383,13 +394,13 @@ describe('Query Utils', () => {
     it('should handle plugin response filters', () => {
       const filters: UrlFilter[] = ['plugin/vote' as UrlFilter];
       const args = getArgs('science', undefined, filters);
-      expect(args.pluginResponse).toContain('plugin/vote');
+      expect(args.filterAfter).toEqual(['metadata->plugins->plugin/vote/0']);
     });
 
     it('should handle negated plugin response filters', () => {
       const filters: UrlFilter[] = ['!plugin/vote' as UrlFilter];
       const args = getArgs('science', undefined, filters);
-      expect(args.noPluginResponse).toContain('plugin/vote');
+      expect(args.filterEquals).toEqual(['metadata->plugins->plugin/vote/0']);
     });
   });
 

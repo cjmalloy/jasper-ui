@@ -28,12 +28,10 @@ export type UrlFilter = Filter |
   `response/after/${string}` |
   `tags->${string}` |
   `plugins->${string}` |
+  `metadata->${string}` |
   `sources/${string}` |
-  `noSources/${string}` |
   `responses/${string}` |
-  `noResponses/${string}` |
   `query/${string}` |
-  `noDescendents/${string}` |
   `scheme/${string}` |
   `user/${string}` |
   `plugin/${string}` |
@@ -51,7 +49,7 @@ export type SortItem = { value: RefSort | TagSort, label: string, title?: string
  * Sort columns may contain `/` but values cannot, so the value is always the last `/` segment.
  */
 export function parseValueFilter(filter: string) {
-  const match = filter.match(/^((?:tags|plugins)->.+)\/(before|after)\/([^/]*)$/);
+  const match = filter.match(/^((?:tags|plugins|metadata)->.+)\/(before|after)\/([^/]*)$/);
   if (!match) return undefined;
   return { column: match[1], dir: match[2] as 'before' | 'after', value: match[3] };
 }
@@ -222,23 +220,20 @@ export function parseArgs(params: any): RefPageArgs {
 function getRefFilter(filter?: UrlFilter[]): RefFilter {
   if (!filter) return {};
   let result: RefFilter = {};
+  const add = (key: 'filterBefore' | 'filterAfter' | 'filterEquals', column: string, value: string) =>
+    result[key] = [...result[key] || [], column + '/' + value];
   for (const f of filter) {
     if (f.startsWith('query/')) continue;
-    if (f.startsWith('noDescendents/')) {
-      if (result.noDescendents) console.warn('Multiple noDescendents filters (last wins)');
-      result.noDescendents = f.substring('noDescendents/'.length)
+    const date = dateFilter(f);
+    if (date) {
+      if (date.value) add(date.key, date.column, date.value);
+      else console.warn('Invalid date filter', f);
     } else if (f.startsWith('sources/')) {
       if (result.sources) console.warn('Multiple sources filters (last wins)');
       result.sources = f.substring('sources/'.length)
-    } else if (f.startsWith('noSources/')) {
-      if (result.noSources) console.warn('Multiple noSources filters (last wins)');
-      result.noSources = f.substring('noSources/'.length)
     } else if (f.startsWith('responses/')) {
       if (result.responses) console.warn('Multiple response filters (last wins)');
       result.responses = f.substring('responses/'.length)
-    } else if (f.startsWith('noResponses/')) {
-      if (result.noResponses) console.warn('Multiple noResponses filters (last wins)');
-      result.noResponses = f.substring('noResponses/'.length)
     } else if (f.startsWith('scheme/')) {
       result.scheme = f.substring('scheme/'.length)
     } else if (f.startsWith('user/')) {
@@ -251,38 +246,18 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
         result.noUserResponse.push(p.substring(1));
       }
     } else if (hasPrefix(f, 'plugin')) {
-      result.pluginResponse ||= [];
-      result.pluginResponse.push(f);
+      // Count of responses from the same origin
+      add('filterAfter', 'metadata->plugins->' + f, '0');
     } else if (f.startsWith('!') && hasPrefix(f.substring(1), 'plugin')) {
-      result.noPluginResponse ||= [];
-      result.noPluginResponse.push(f.substring(1));
-    } else if (f.startsWith('modified/before/')) {
-      result.modifiedBefore = fixDateTime(f.substring('modified/before/'.length));
-    } else if (f.startsWith('modified/after/')) {
-      result.modifiedAfter = fixDateTime(f.substring('modified/after/'.length));
-    } else if (f.startsWith('published/before/')) {
-      result.publishedBefore = fixDateTime(f.substring('published/before/'.length));
-    } else if (f.startsWith('published/after/')) {
-      result.publishedAfter = fixDateTime(f.substring('published/after/'.length));
-    } else if (f.startsWith('created/before/')) {
-      result.createdBefore = fixDateTime(f.substring('created/before/'.length));
-    } else if (f.startsWith('created/after/')) {
-      result.createdAfter = fixDateTime(f.substring('created/after/'.length));
-    } else if (f.startsWith('response/before/')) {
-      result.responseBefore = fixDateTime(f.substring('response/before/'.length));
-    } else if (f.startsWith('response/after/')) {
-      result.responseAfter = fixDateTime(f.substring('response/after/'.length));
-    } else if (f.startsWith('tags->') || f.startsWith('plugins->')) {
+      add('filterEquals', 'metadata->plugins->' + f.substring(1), '0');
+    } else if (f.startsWith('tags->') || f.startsWith('plugins->') || f.startsWith('metadata->')) {
       const v = parseValueFilter(f);
       if (!v?.value) {
         console.warn('Invalid value filter', f);
-      } else if (v.column.startsWith('tags->')) {
-        // Tag values are lowercase, so PT1H works like pt1h
-        const key = v.dir === 'before' ? 'tagBefore' : 'tagAfter';
-        result[key] = [...result[key] || [], v.column + '/' + serverValue(v.column, v.value).toLowerCase()];
       } else {
-        const key = v.dir === 'before' ? 'pluginBefore' : 'pluginAfter';
-        result[key] = [...result[key] || [], v.column + '/' + serverValue(v.column, v.value)];
+        // Tag values are lowercase, so PT1H works like pt1h
+        const value = serverValue(v.column, v.value);
+        add(v.dir === 'before' ? 'filterBefore' : 'filterAfter', v.column, v.column.startsWith('tags->') ? value.toLowerCase() : value);
       }
     } else if (f === '!obsolete') {
       result['obsolete'] = null as any;
@@ -292,6 +267,41 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       result[f as Filter] = true;
     }
   }
+  return result;
+}
+
+/**
+ * Sort columns of the date filters. The response date is the date of the latest response.
+ */
+const DATE_FILTER_COLUMNS: Record<string, string> = {
+  modified: 'modified',
+  published: 'published',
+  created: 'created',
+  response: 'metadata->newResponse',
+};
+
+/**
+ * Server filter for a `{date}/before|after/{value}` filter, like `modified/after/P1D`.
+ */
+function dateFilter(f: string) {
+  const match = f.match(/^(modified|published|created|response)\/(before|after)\/(.*)$/);
+  if (!match) return undefined;
+  return {
+    key: match[2] === 'before' ? 'filterBefore' as const : 'filterAfter' as const,
+    column: DATE_FILTER_COLUMNS[match[1]],
+    value: fixDateTime(match[3]),
+  };
+}
+
+/**
+ * Add a date range on a date sort column to Ref page args, keeping their other filters.
+ * Missing dates are skipped.
+ */
+export function dateRange(args: RefPageArgs, column: 'modified' | 'published' | 'created', after?: string | DateTime, before?: string | DateTime): RefPageArgs {
+  const value = (date: string | DateTime) => column + '/' + (DateTime.isDateTime(date) ? date.toUTC().toISO() : date);
+  const result = { ...args };
+  if (after) result.filterAfter = [...args.filterAfter || [], value(after)];
+  if (before) result.filterBefore = [...args.filterBefore || [], value(before)];
   return result;
 }
 
@@ -377,10 +387,10 @@ export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
   if (!filter) return {};
   let result: TagQueryArgs = {};
   for (const f of filter) {
-    if (f.startsWith('modified/before/')) {
-      result.modifiedBefore = fixDateTime(f.substring('modified/before/'.length));
-    } else if (f.startsWith('modified/after/')) {
-      result.modifiedAfter = fixDateTime(f.substring('modified/after/'.length));
+    const date = f.startsWith('modified/') && dateFilter(f);
+    if (date) {
+      if (date.value) result[date.key] = [...result[date.key] || [], date.column + '/' + date.value];
+      else console.warn('Invalid date filter', f);
     } else if (f == 'plugin/delete') {
       result.deleted = true;
     }

@@ -113,32 +113,27 @@ type FilterObj = {
 
 export type RefFilter = FilterObj & {
   query?: string;
-  noDescendents?: string;
   nesting?: number,
   scheme?: string;
-  pluginResponse?: string[];
-  noPluginResponse?: string[];
   userResponse?: string[];
   noUserResponse?: string[];
   url?: string;
   obsolete?: boolean | null;
-  noResponses?: string;
   responses?: string;
   sources?: string;
-  noSources?: string;
   search?: string;
-  modifiedAfter?: string | DateTime;
-  modifiedBefore?: string | DateTime;
-  publishedAfter?: string | DateTime;
-  publishedBefore?: string | DateTime;
-  createdAfter?: string | DateTime;
-  createdBefore?: string | DateTime;
-  responseAfter?: string | DateTime;
-  responseBefore?: string | DateTime;
-  tagBefore?: string[];
-  tagAfter?: string[];
-  pluginBefore?: string[];
-  pluginAfter?: string[];
+  /**
+   * Keep Refs where the sort column is less than the value: `{sort column}/{value}`.
+   */
+  filterBefore?: string[];
+  /**
+   * Keep Refs where the sort column is greater than the value: `{sort column}/{value}`.
+   */
+  filterAfter?: string[];
+  /**
+   * Keep Refs where the sort column equals the value: `{sort column}/{value}`.
+   */
+  filterEquals?: string[];
 };
 
 export type RefPageArgs = RefFilter & {

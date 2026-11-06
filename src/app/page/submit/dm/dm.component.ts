@@ -204,6 +204,18 @@ export class SubmitDmPage implements HasChanges {
     });
   });
 
+  // Sync the title query param into the form
+  private readonly prefillTitle = effect(() => {
+    const title = this.store.submit.title();
+    if (title) untracked(() => this.title.setValue(title));
+  });
+
+  // Sync the comment query param into the form
+  private readonly prefillComment = effect(() => {
+    const comment = this.store.submit.comment();
+    if (comment) untracked(() => this.comment.setValue(comment));
+  });
+
   get to() {
     return this.dmForm.get('to') as UntypedFormControl;
   }

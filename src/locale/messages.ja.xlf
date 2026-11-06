@@ -1194,14 +1194,6 @@ Please Reload.</source>
         <source>😃️ new reaction</source>
         <target>😃️ 新しいリアクション</target>
       </trans-unit>
-      <trans-unit id="6317872943258377560" datatype="html">
-        <source>🗃️ metadata</source>
-        <target>🗃️ メタデータ</target>
-      </trans-unit>
-      <trans-unit id="9170356745028793454" datatype="html">
-        <source>Date metadata modified</source>
-        <target>メタデータの更新日</target>
-      </trans-unit>
       <trans-unit id="713523746868927245" datatype="html">
         <source>Date of new response</source>
         <target>新しいレスポンスの日付</target>
@@ -1253,6 +1245,14 @@ Please Reload.</source>
       <trans-unit id="6331833042399260350" datatype="html">
         <source>💬️ comments</source>
         <target>💬️ コメント</target>
+      </trans-unit>
+      <trans-unit id="2849024443470669147" datatype="html">
+        <source>👀️ views</source>
+        <target>👀️ 閲覧数</target>
+      </trans-unit>
+      <trans-unit id="8062944054460698803" datatype="html">
+        <source>Number of people who read it</source>
+        <target>読んだ人の数</target>
       </trans-unit>
       <trans-unit id="7853206737394857773" datatype="html">
         <source>Number of comments</source>
@@ -7786,6 +7786,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Modified:</source>
         <target>更新日時:</target>
       </trans-unit>
+      <trans-unit id="2206623789485157542" datatype="html">
+        <source>New Response:</source>
+        <target>新しい返信:</target>
+      </trans-unit>
+      <trans-unit id="8523715045122094170" datatype="html">
+        <source>New Reaction:</source>
+        <target>新しいリアクション:</target>
+      </trans-unit>
       <trans-unit id="6996821581668497894" datatype="html">
         <source>Ignored:</source>
         <target>無視:</target>
@@ -7813,6 +7821,22 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="5145963060673597655" datatype="html">
         <source>+ Add another hot plugin</source>
         <target>+ ホットプラグインを追加</target>
+      </trans-unit>
+      <trans-unit id="668933993902584610" datatype="html">
+        <source>Hot Responses:</source>
+        <target>ホットレスポンス:</target>
+      </trans-unit>
+      <trans-unit id="4481532836147475630" datatype="html">
+        <source>Hot Remote Responses:</source>
+        <target>ホットリモートレスポンス:</target>
+      </trans-unit>
+      <trans-unit id="144496082450862170" datatype="html">
+        <source>+ Add another hot response</source>
+        <target>+ ホットレスポンスを追加</target>
+      </trans-unit>
+      <trans-unit id="2689581838945996659" datatype="html">
+        <source>+ Add another hot remote response</source>
+        <target>+ ホットリモートレスポンスを追加</target>
       </trans-unit>
       <trans-unit id="1294909756545406951" datatype="html">
         <source>JWT</source>
@@ -8338,6 +8362,90 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="8932917860978648376" datatype="html">
         <source>Unit</source>
         <target>単位</target>
+      </trans-unit>
+      <trans-unit id="3084651188390309598" datatype="html">
+        <source>⚡️ Not indexed</source>
+        <target>⚡️ インデックスなし</target>
+      </trans-unit>
+      <trans-unit id="3587778497229799551" datatype="html">
+        <source>request</source>
+        <target>リクエスト</target>
+      </trans-unit>
+      <trans-unit id="365417024232498474" datatype="html">
+        <source>Please add these DB indices to the _config/index template to speed up this query:</source>
+        <target>このクエリを高速化するため、次のDBインデックスを_config/indexテンプレートに追加してください:</target>
+      </trans-unit>
+      <trans-unit id="3826239813864023955" datatype="html">
+        <source>fix</source>
+        <target>修正</target>
+      </trans-unit>
+      <trans-unit id="3829500704324703245" datatype="html">
+        <source>Index request</source>
+        <target>インデックスのリクエスト</target>
+      </trans-unit>
+      <trans-unit id="6559568111517881125" datatype="html">
+        <source>⚡️ May not be indexed</source>
+        <target>⚡️ インデックスがない可能性があります</target>
+      </trans-unit>
+      <trans-unit id="6980926981064110029" datatype="html">
+        <source>⚡️ Index Helper</source>
+        <target>⚡️ インデックスヘルパー</target>
+      </trans-unit>
+      <trans-unit id="77420438410761387" datatype="html">
+        <source>Ask an admin to add the missing indices</source>
+        <target>不足しているインデックスの追加を管理者に依頼する</target>
+      </trans-unit>
+      <trans-unit id="7973472992007164910" datatype="html">
+        <source>Add the missing indices to the _config/index template</source>
+        <target>不足しているインデックスを_config/indexテンプレートに追加する</target>
+      </trans-unit>
+      <trans-unit id="3717867441197894810" datatype="html">
+        <source>⚡️ Indexed</source>
+        <target>⚡️ インデックス済み</target>
+      </trans-unit>
+      <trans-unit id="4083337005045748464" datatype="html">
+        <source>failed</source>
+        <target>失敗</target>
+      </trans-unit>
+      <trans-unit id="8754952744734405536" datatype="html">
+        <source>⚡️ Indexes</source>
+        <target>⚡️ インデックス</target>
+      </trans-unit>
+      <trans-unit id="1676246076323699308" datatype="html">
+        <source>The server ignores the _config/index template while it is disabled</source>
+        <target>無効になっている間、サーバーは_config/indexテンプレートを無視します</target>
+      </trans-unit>
+      <trans-unit id="1913408832824440185" datatype="html">
+        <source>_config/index disabled</source>
+        <target>_config/indexは無効です</target>
+      </trans-unit>
+      <trans-unit id="276118881435903701" datatype="html">
+        <source>(can&apos;t be indexed)</source>
+        <target>(インデックスできません)</target>
+      </trans-unit>
+      <trans-unit id="7706142096799635459" datatype="html">
+        <source>Check if the current query is using DB indices. The _config/index template only exists in the root origin, where admins can add missing indices. Everyone else, including every user in other origins, can ask for them. Users need read access to _index.helper, and to _config/index in the root origin.</source>
+        <target>現在のクエリがDBインデックスを使用しているか確認します。_config/indexテンプレートはルートオリジンにのみ存在し、管理者はそこで不足しているインデックスを追加できます。他のオリジンのユーザーを含め、それ以外のユーザーは追加を依頼できます。ユーザーには_index.helperへの読み取りアクセス、およびルートオリジンでは_config/indexへの読み取りアクセスが必要です。</target>
+      </trans-unit>
+      <trans-unit id="1616250945945379783" datatype="html">
+        <source>Created:</source>
+        <target>作成日時:</target>
+      </trans-unit>
+      <trans-unit id="3685064853913502757" datatype="html">
+        <source>👀️ more views than</source>
+        <target>👀️ 閲覧数が次より多い</target>
+      </trans-unit>
+      <trans-unit id="1753460215259113732" datatype="html">
+        <source>Read by more people than</source>
+        <target>次の人数より多くの人が読んだ</target>
+      </trans-unit>
+      <trans-unit id="2108842550064877715" datatype="html">
+        <source>👀️ fewer views than</source>
+        <target>👀️ 閲覧数が次より少ない</target>
+      </trans-unit>
+      <trans-unit id="5986925006285253318" datatype="html">
+        <source>Read by fewer people than</source>
+        <target>次の人数より少ない人が読んだ</target>
       </trans-unit>
     </body>
   </file>
