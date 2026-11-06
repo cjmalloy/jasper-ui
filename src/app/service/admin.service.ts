@@ -527,9 +527,8 @@ export class AdminService {
       if (plugin?.config?.signature) {
         plugin = this.getPlugin(plugin.config.signature) || plugin;
         x.tag = plugin?.tag || x.tag;
-        x.name ||= plugin?.name;
       }
-      x.name ||= tmpl?.name;
+      x.name ||= plugin?.name || tmpl?.name;
       return x;
     }));
   }
