@@ -7,6 +7,7 @@ import { Store } from '../../store/store';
 import { parseValueFilter } from '../../util/query';
 import {
   formatAmount,
+  formOptions,
   humanAmount,
   parseAmount,
   rangeStops,
@@ -20,7 +21,7 @@ import {
 } from '../../util/value-filter';
 
 /**
- * Edit the value of a `{sort column}/before|after/{value}` filter,
+ * Edit the value of a `{sort column}/before|after|equals/{value}` filter,
  * with the input set by the mod filter config.
  */
 @Component({
@@ -62,9 +63,33 @@ export class ValueFilterComponent {
   });
 
   /**
+   * Options of the select input, from the filter config or the plugin form field.
+   */
+  private readonly selectOptions = computed(() => {
+    const v = this.parsed();
+    if (!v || this.config()?.input !== 'select') return [];
+    const config = this.config()?.options;
+    if (config?.length) return config;
+    return formOptions(this.admin.getPlugin(v.column.substring('plugins->'.length).split('->')[0]), v.column);
+  }, { equal: isEqual });
+
+  /**
+   * Select options, plus the current value if it isn't one of them so it can be shown.
+   */
+  readonly choices = computed(() => {
+    const value = this.parsed()?.value;
+    const options = this.selectOptions().map(o => ({ value: o.value, label: o.label || o.value }));
+    if (value === undefined || options.some(o => o.value === value)) return options;
+    return [...options, { value, label: value }];
+  }, { equal: isEqual });
+
+  /**
    * Values that can't be parsed fall back to text so they can be fixed.
    */
-  readonly configInput = computed(() => this.amount() === undefined ? 'text' : this.config()?.input || 'text');
+  readonly configInput = computed(() => {
+    if (this.config()?.input === 'select') return this.selectOptions().length ? 'select' : 'text';
+    return this.amount() === undefined ? 'text' : this.config()?.input || 'text';
+  });
 
   /**
    * The text box being edited, so it stays after the hotkey is released.
@@ -199,6 +224,10 @@ export class ValueFilterComponent {
   private amountAt(index: number, stops = this.stops()) {
     if (Number.isInteger(index)) return stops[index];
     return roundAmount(this.unit()!, stopAmount(stops, index));
+  }
+
+  setOption(value: string) {
+    this.emit(value);
   }
 
   setNumber(input: HTMLInputElement) {

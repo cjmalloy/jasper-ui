@@ -161,6 +161,7 @@ export const debugPlugin: Plugin = {
     filters: [
       { query: 'plugin/debug', label: $localize`🐞️ debug`, title: $localize`Debug`, group: $localize`Plugins 🧰️` },
       { response: 'plugin/user/breakpoint', label: $localize`🔴️ breakpoint`, title: $localize`Breakpoint`, group: $localize`Plugins 🧰️` },
+      { sort: 'plugins->plugin/debug->select', equals: '1', input: 'select', label: $localize`🐞️ select`, title: $localize`Debug select option`, group: $localize`Plugins 🧰️` },
     ],
     form: [{
       key: 'show',

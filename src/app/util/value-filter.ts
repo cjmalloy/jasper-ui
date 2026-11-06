@@ -1,4 +1,7 @@
+import { FormlyFieldConfig } from '@ngx-formly/core';
+import { isArray } from 'lodash-es';
 import { Duration } from 'luxon';
+import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { FilterConfig } from '../model/tag';
 
@@ -212,4 +215,30 @@ export function roundAmount(unit: ValueUnit, amount: number) {
   if (unit === 'duration') return roundSeconds(amount).as('seconds');
   const { option } = splitAmount(unit, amount);
   return Math.round(Number((amount / option.factor).toPrecision(3)) * option.factor);
+}
+
+/**
+ * Options of the plugin form field a `plugins->{plugin}->{field}` column holds,
+ * such as a select or radio field.
+ */
+export function formOptions(plugin: Plugin | undefined, column: string): NonNullable<FilterConfig['options']> {
+  if (!column.startsWith('plugins->')) return [];
+  const [, key, ...rest] = column.substring('plugins->'.length).split('->');
+  if (!key || rest.length || !/^[A-Za-z0-9_$-]+$/.test(key)) return [];
+  const find = (fields?: FormlyFieldConfig[]): FormlyFieldConfig | undefined => {
+    for (const f of fields || []) {
+      if (f.key === key) return f;
+      // Field groups without a key keep their fields at the same level
+      if (!f.key) {
+        const nested = find(f.fieldGroup);
+        if (nested) return nested;
+      }
+    }
+    return undefined;
+  };
+  const options = find([...plugin?.config?.form || [], ...plugin?.config?.advancedForm || []])?.props?.options;
+  if (!isArray(options)) return [];
+  return options
+    .filter(o => o?.value !== undefined && o.value !== null)
+    .map(o => ({ value: String(o.value), label: o.label ? String(o.label) : undefined }));
 }

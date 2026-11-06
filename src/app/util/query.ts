@@ -44,14 +44,14 @@ export type UrlFilter = Filter |
 export type SortItem = { value: RefSort | TagSort, label: string, title?: string };
 
 /**
- * Parse a `{sort column}/before/{value}` or `{sort column}/after/{value}` filter,
+ * Parse a `{sort column}/before/{value}`, `{sort column}/after/{value}` or `{sort column}/equals/{value}` filter,
  * such as `tags->plugin/duration:dur/before/pt5m`.
  * Sort columns may contain `/` but values cannot, so the value is always the last `/` segment.
  */
 export function parseValueFilter(filter: string) {
-  const match = filter.match(/^((?:tags|plugins|metadata)->.+)\/(before|after)\/([^/]*)$/);
+  const match = filter.match(/^((?:tags|plugins|metadata)->.+)\/(before|after|equals)\/([^/]*)$/);
   if (!match) return undefined;
-  return { column: match[1], dir: match[2] as 'before' | 'after', value: match[3] };
+  return { column: match[1], dir: match[2] as 'before' | 'after' | 'equals', value: match[3] };
 }
 
 /**
@@ -111,7 +111,7 @@ export function convertFilter(filter: FilterConfig): FilterItem {
   } else if (filter.response) {
     return { filter: filter.response, label: filter.label || filter.response, title: filter.title };
   } else if (filter.sort) {
-    const dir = filter.before !== undefined ? 'before' : 'after';
+    const dir = filter.before !== undefined ? 'before' : filter.after !== undefined ? 'after' : 'equals';
     return { filter: `${filter.sort}/${dir}/${filter[dir]}`, label: filter.label || `${filter.sort} ${dir}`, title: filter.title };
   }
   throw 'Can\'t convert filter';
@@ -257,7 +257,8 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       } else {
         // Tag values are lowercase, so PT1H works like pt1h
         const value = serverValue(v.column, v.value);
-        add(v.dir === 'before' ? 'filterBefore' : 'filterAfter', v.column, v.column.startsWith('tags->') ? value.toLowerCase() : value);
+        const key = v.dir === 'before' ? 'filterBefore' : v.dir === 'after' ? 'filterAfter' : 'filterEquals';
+        add(key, v.column, v.column.startsWith('tags->') ? value.toLowerCase() : value);
       }
     } else if (f === '!obsolete') {
       result['obsolete'] = null as any;

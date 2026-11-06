@@ -4,6 +4,7 @@ import {
   columnAmount,
   columnTag,
   formatAmount,
+  formOptions,
   humanAmount,
   parseAmount,
   rangeStops,
@@ -20,6 +21,32 @@ import {
 } from './value-filter';
 
 describe('value-filter', () => {
+  describe('formOptions', () => {
+    const plugin = {
+      tag: 'plugin/test',
+      config: {
+        form: [
+          { key: 'status', type: 'select', props: { options: [{ value: 'open', label: 'Open' }, { value: 2 }] } },
+          { fieldGroup: [{ key: 'color', type: 'radio', props: { options: [{ value: 'red', label: 'Red' }] } }] },
+          { key: 'name', type: 'string' },
+        ],
+      },
+    } as any;
+
+    it('reads the options of the plugin form field', () => {
+      expect(formOptions(plugin, 'plugins->plugin/test->status')).toEqual([{ value: 'open', label: 'Open' }, { value: '2', label: undefined }]);
+      expect(formOptions(plugin, 'plugins->plugin/test->color')).toEqual([{ value: 'red', label: 'Red' }]);
+    });
+
+    it('has no options for other columns', () => {
+      expect(formOptions(plugin, 'plugins->plugin/test->name')).toEqual([]);
+      expect(formOptions(plugin, 'plugins->plugin/test->status->x')).toEqual([]);
+      expect(formOptions(plugin, 'plugins->plugin/test')).toEqual([]);
+      expect(formOptions(plugin, 'tags->plugin/test')).toEqual([]);
+      expect(formOptions(undefined, 'plugins->plugin/test->status')).toEqual([]);
+    });
+  });
+
   it('defaults to duration for :dur columns', () => {
     expect(valueUnit('tags->plugin/duration:dur')).toBe('duration');
     expect(valueUnit('plugins->_plugin/cache->contentLength:num')).toBeUndefined();

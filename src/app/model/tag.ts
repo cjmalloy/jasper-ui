@@ -359,7 +359,7 @@ export interface FilterConfig {
   user?: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}` | `!plugin/user/${string}` | `!+plugin/user/${string}` | `!_plugin/user/${string}`;
   /**
    * Filter based on the value of a sort column, such as `tags->plugin/duration:dur`.
-   * Set either before or after to the default value to compare against.
+   * Set one of before, after or equals to the default value to compare against.
    * If set, no other filter types must be set.
    */
   sort?: `tags->${string}` | `plugins->${string}` | `metadata->${string}`;
@@ -372,11 +372,21 @@ export interface FilterConfig {
    */
   after?: string;
   /**
+   * Keep Refs where the sort column is equal to this value.
+   * Use for values picked from a list, where before and after don't make sense.
+   */
+  equals?: string;
+  /**
    * How to edit the value of a sort filter. Defaults to text.
    * range: a slider over built-in stops for the unit, limited to the values found on the server.
    * units: a number with a unit dropdown.
+   * select: a dropdown of the options. Defaults to the options of the plugin form field for the sort column.
    */
-  input?: 'text' | 'range' | 'units';
+  input?: 'text' | 'range' | 'units' | 'select';
+  /**
+   * Values to pick from with the select input.
+   */
+  options?: { value: string, label?: string }[];
   /**
    * Input shown instead of a range while the hotkey is held. Defaults to text.
    * Holding the hotkey while dragging the range turns off snapping instead.

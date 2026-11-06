@@ -26,3 +26,8 @@ select {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+
+.filter-option {
+  flex: 1;
+  min-width: 0;
+}

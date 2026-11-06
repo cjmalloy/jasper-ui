@@ -298,6 +298,16 @@ describe('Query Utils', () => {
       expect(args.filterBefore).toEqual(['metadata->remotePlugins->plugin/user/read/100']);
     });
 
+    it('should extract equals filters', () => {
+      const args = getArgs('science', undefined, [
+        'plugins->plugin/debug->select/equals/2',
+        'tags->plugin/status/equals/Open',
+      ]);
+      expect(args.filterEquals).toEqual(['plugins->plugin/debug->select/2', 'tags->plugin/status/open']);
+      expect(args.filterBefore).toBeUndefined();
+      expect(args.filterAfter).toBeUndefined();
+    });
+
     it('should convert shorthand value filters', () => {
       const args = getArgs('science', undefined, [
         'tags->plugin/duration:dur/before/1h30m',
@@ -426,6 +436,14 @@ describe('Query Utils', () => {
       });
     });
 
+    it('should parse equals filters', () => {
+      expect(parseValueFilter('plugins->plugin/debug->select/equals/2')).toEqual({
+        column: 'plugins->plugin/debug->select',
+        dir: 'equals',
+        value: '2',
+      });
+    });
+
     it('should reject invalid value filters', () => {
       expect(parseValueFilter('modified/before/now')).toBeUndefined();
       expect(parseValueFilter('tags->plugin/duration:dur/pt1h')).toBeUndefined();
@@ -463,6 +481,11 @@ describe('Query Utils', () => {
         .toBe('tags->plugin/duration:dur/before/pt5m');
       expect(convertFilter({ sort: 'plugins->_plugin/cache->contentLength:num', after: '1000' }).filter)
         .toBe('plugins->_plugin/cache->contentLength:num/after/1000');
+    });
+
+    it('should put equals between the sort column and value', () => {
+      expect(convertFilter({ sort: 'plugins->plugin/debug->select', equals: '1' }).filter)
+        .toBe('plugins->plugin/debug->select/equals/1');
     });
 
     it('should use before when it is empty', () => {
