@@ -1,9 +1,26 @@
-import { expect, type Page } from '@playwright/test';
+import { type Browser, expect, type Page } from '@playwright/test';
 import { localOrigin, mod, openTextSubmit, test } from './setup';
 
 test.describe.serial('Drafts Plugin', () => {
   let page: Page;
   const title = 'Auto Saved Draft ' + Date.now();
+
+  /**
+   * Save a web link draft from another origin. Origins pull from each other into sub origins, so a
+   * sub origin stands in for a replicated draft.
+   */
+  async function saveDraftInOrigin(browser: Browser, url: string, origin: string, draftTitle: string) {
+    const ctx = await browser.newContext({ extraHTTPHeaders: { 'Local-Origin': origin } });
+    const other = await ctx.newPage();
+    await mod(other, '#mod-drafts');
+    await other.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(url), { waitUntil: 'networkidle' });
+    await other.locator('[name=title]').fill(draftTitle);
+    const saved = other.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await other.locator('button', { hasText: 'Save for later' }).click();
+    await saved;
+    await ctx.close();
+  }
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage();
@@ -89,6 +106,100 @@ test.describe.serial('Drafts Plugin', () => {
     await saved;
     await expect(page).toHaveURL(/\/inbox\/ref\/plugin(%2F|\/)editing/);
     await expect(page.locator('.ref .link a', { hasText: webTitle })).toBeVisible();
+  });
+
+  test('submits a web link draft from the submit page', async () => {
+    const url = 'https://www.jasper.example/submit-draft-' + Date.now();
+    const webTitle = 'Submit Draft ' + Date.now();
+    await page.goto('/submit/web?debug=USER&url=' + encodeURIComponent(url), { waitUntil: 'networkidle' });
+    await page.locator('[name=title]').fill(webTitle);
+    const saved = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await page.locator('button', { hasText: 'Save for later' }).click();
+    await saved;
+    await expect(page).toHaveURL(/\/inbox\/ref\/plugin(%2F|\/)editing/);
+    await page.goto('/submit?debug=USER', { waitUntil: 'networkidle' });
+    const checked = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref/page') && res.url().includes('responses='));
+    await page.locator('#url').fill(url);
+    await checked;
+    const next = page.locator('button[type=submit]', { hasText: 'Next' });
+    await expect(next).toBeVisible();
+    await next.click();
+    await expect(page).toHaveURL(/\/submit\/web/);
+    await expect(page).not.toHaveURL(/plugin(%2F|\/)repost/);
+    await expect(page.locator('[name=title]')).toHaveValue(webTitle);
+    const published = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'PUT');
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click();
+    expect((await published).ok()).toBe(true);
+    await expect(page).toHaveURL(/\/ref\//);
+  });
+
+  test('does not autosave a web link draft while submitting', async () => {
+    const url = 'https://www.jasper.example/slow-submit-' + Date.now();
+    await page.goto('/submit/web?debug=USER&url=' + encodeURIComponent(url), { waitUntil: 'networkidle' });
+    const saved = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await page.locator('[name=title]').fill('Slow Submit ' + Date.now());
+    await saved;
+    await page.locator('[name=title]').fill('Slow Submit Edited ' + Date.now());
+    // Hold the publish response past the autosave interval
+    const refApi = (u: URL) => u.pathname.endsWith('/api/v1/ref');
+    await page.route(refApi, async route => {
+      if (route.request().method() !== 'PUT') return route.fallback();
+      const res = await route.fetch();
+      await new Promise(resolve => setTimeout(resolve, 6_000));
+      await route.fulfill({ response: res });
+    });
+    const patches: string[] = [];
+    const onRequest = (req: { url(): string, method(): string }) => {
+      if (req.url().includes('/api/v1/ref') && req.method() === 'PATCH') patches.push(req.url());
+    };
+    page.on('request', onRequest);
+    const published = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'PUT');
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click();
+    expect((await published).ok()).toBe(true);
+    await expect(page).toHaveURL(/\/ref\//);
+    page.off('request', onRequest);
+    await page.unroute(refApi);
+    expect(patches).toEqual([]);
+  });
+
+  test('publishes a link with a draft replicated from another origin', async ({ browser }) => {
+    const url = 'https://www.jasper.example/replicated-draft-' + Date.now();
+    const webTitle = 'Replicated Draft ' + Date.now();
+    await saveDraftInOrigin(browser, url, localOrigin() + '.other', webTitle);
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(url), { waitUntil: 'networkidle' });
+    await expect(page.locator('[name=title]')).toHaveValue(webTitle);
+    const published = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && ['POST', 'PUT'].includes(res.request().method()));
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click();
+    const res = await published;
+    expect(res.ok(), await res.text()).toBe(true);
+    await expect(page).toHaveURL(/\/ref\//);
+  });
+
+  test('publishes a saved draft when a replicated draft also exists', async ({ browser }) => {
+    const url = 'https://www.jasper.example/both-drafts-' + Date.now();
+    const webTitle = 'Local Draft ' + Date.now();
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(url), { waitUntil: 'networkidle' });
+    await page.locator('[name=title]').fill(webTitle);
+    const saved = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && res.request().method() === 'POST' && res.ok());
+    await page.locator('button', { hasText: 'Save for later' }).click();
+    await saved;
+    await expect(page).toHaveURL(/\/inbox\/ref\/plugin(%2F|\/)editing/);
+    await saveDraftInOrigin(browser, url, localOrigin() + '.other', 'Remote Draft');
+    await page.goto('/submit/web?debug=ADMIN&url=' + encodeURIComponent(url), { waitUntil: 'networkidle' });
+    await expect(page.locator('[name=title]')).toHaveValue(webTitle);
+    const published = page.waitForResponse(res =>
+      res.url().includes('/api/v1/ref') && ['POST', 'PUT'].includes(res.request().method()));
+    await page.locator('button[type=submit]', { hasText: 'Submit' }).click();
+    const res = await published;
+    expect(res.ok(), await res.text()).toBe(true);
+    await expect(page).toHaveURL(/\/ref\//);
   });
 
   test('restores a DM draft with its recipient and tags', async () => {

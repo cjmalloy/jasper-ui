@@ -109,7 +109,7 @@ export class SubmitWebPage implements HasChanges {
       interval(5_000).pipe(
         takeUntilDestroyed(),
       ).subscribe(() => {
-        if (this.webForm.dirty) this.saveForLater();
+        if (this.webForm.dirty && !this.saving() && !this.submitting()) this.saveForLater();
       });
     }
   }
@@ -383,12 +383,14 @@ export class SubmitWebPage implements HasChanges {
     const ref = this.writeRef(true);
     const finalTags = ref.tags;
     this.submitting.set(true);
-    this.submittingSubscription = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
+    const cursor = this.cursor;
+    this.submittingSubscription = (cursor ? this.refs.update({ ...ref, modifiedString: cursor }) : this.refs.create(ref)).pipe(
       catchError((res: HttpErrorResponse) => {
         if (res.status !== 409) return throwError(() => res);
         this.submitting.set(false);
         this.serverError.set(printError(res));
-        this.alreadyExists.set(true);
+        // Updating a draft conflicts when it was modified, which does not mean the link was already submitted
+        if (!cursor) this.alreadyExists.set(true);
         return EMPTY;
       }),
       tap(() => {
