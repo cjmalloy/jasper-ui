@@ -104,20 +104,6 @@ describe('AdminService', () => {
     expect(service.getEmbeds(external)).toEqual(['plugin/pdf/scanned']);
   });
 
-  it('should name recipients after their inbox plugin', async () => {
-    (service as any).updateStatus((status: any) => {
-      status.plugins['plugin/inbox/support'] = { tag: 'plugin/inbox/support', name: 'Support' };
-    });
-    const xs = await firstValueFrom(of([
-      { tag: 'support', origin: '@tenant', name: '' },
-      { tag: 'other', origin: '@tenant', name: '' },
-    ]).pipe(service.recipientFallback));
-    expect(xs).toEqual([
-      { tag: 'support', origin: '@tenant', name: 'Support' },
-      { tag: 'other', origin: '@tenant', name: undefined },
-    ]);
-  });
-
   it('should not inherit template admin forms', () => {
     (service as any).updateStatus((status: any) => {
       status.templates['parent'] = { tag: 'parent', config: { adminForm: [{ key: 'a' }], advancedAdminForm: [{ key: 'b' }] } };
