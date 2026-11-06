@@ -91,18 +91,6 @@ updates:
     v1-4:
       patterns:
         - "*"
-- package-ecosystem: github-actions
-  target-branch: v1.4
-  directory: /
-  schedule:
-    interval: daily
-    timezone: America/Halifax
-  cooldown:
-    default-days: 0
-  groups:
-    v1-4:
-      patterns:
-        - "*"
 - package-ecosystem: docker
   target-branch: v1.3
   directories:
@@ -118,18 +106,6 @@ updates:
       patterns:
         - "*"
 - package-ecosystem: npm
-  target-branch: v1.3
-  directory: /
-  schedule:
-    interval: daily
-    timezone: America/Halifax
-  cooldown:
-    default-days: 0
-  groups:
-    v1-3:
-      patterns:
-        - "*"
-- package-ecosystem: github-actions
   target-branch: v1.3
   directory: /
   schedule:
