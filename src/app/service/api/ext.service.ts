@@ -22,7 +22,7 @@ import { latest, TagPageArgs, TagQueryArgs } from '../../model/tag';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { OpPatch } from '../../util/json-patch';
-import { access, hasPrefix, isQuery, localTag, protectedTag, removePrefix, tagOrigin } from '../../util/tag';
+import { hasPrefix, isQuery, localTag, protectedTag, removePrefix, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 import { StompService } from './stomp.service';
@@ -231,19 +231,6 @@ keys.push(ext.tag + ':' + ext.origin);
   getCachedExts(tags: string[], origin?: string): Observable<Ext[]> {
     if (!tags) return of([]);
     return concat(...tags.map(t => this.getCachedExt(t, origin))).pipe(toArray());
-  }
-
-  /**
-   * Mailboxes drop the access prefix, so a public recipient without an Ext
-   * may be addressing a protected Ext such as +support.
-   */
-  getCachedRecipientExts(tags: string[], origin?: string): Observable<Ext[]> {
-    if (!tags) return of([]);
-    return concat(...tags.map(t => this.getCachedExt(t, origin).pipe(
-      switchMap(x => x.modifiedString || !t || access(t) || isQuery(t) || hasPrefix(t, 'user')
-        ? of(x)
-        : this.getCachedExt('+' + t, origin).pipe(map(p => p.modifiedString ? p : x))),
-    ))).pipe(toArray());
   }
 
   getCachedExt(tag: string, origin?: string) {

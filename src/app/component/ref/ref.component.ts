@@ -862,7 +862,7 @@ export class RefComponent implements HasChanges {
 
   readonly recipients = computed(() => {
     const lookup = this.store.origins.originMap().get(this.ref().origin || '');
-    const userRecipients = without(addressedTo(this.ref()).map(a => mapRemoteOrigin(a, this.ref().origin || '', this.store.account.origin(), lookup)), ...this.authors());
+    const userRecipients = without(addressedTo(this.ref()).map(a => this.admin.recipientSignature(mapRemoteOrigin(a, this.ref().origin || '', this.store.account.origin(), lookup))), ...this.authors());
     return [
       ...userRecipients,
       ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
@@ -871,7 +871,7 @@ export class RefComponent implements HasChanges {
 
   readonly recipientExts = toSignal(toObservable(computed(() =>
     [this.recipients(), this.ref().origin || ''] as const)).pipe(
-    switchMap(([tags, origin]) => this.exts.getCachedRecipientExts(tags, origin).pipe(this.admin.recipientFallback)),
+    switchMap(([tags, origin]) => this.exts.getCachedExts(tags, origin).pipe(this.admin.recipientFallback)),
   ), { initialValue: [] });
 
   readonly mailboxes = computed(() => {

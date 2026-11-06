@@ -104,6 +104,15 @@ describe('AdminService', () => {
     expect(service.getEmbeds(external)).toEqual(['plugin/pdf/scanned']);
   });
 
+  it('should map recipients to their Template signature', () => {
+    (service as any).updateStatus((status: any) => {
+      status.templates['support'] = { tag: 'support', config: { signature: '+support' } };
+    });
+    expect(service.recipientSignature('support')).toBe('+support');
+    expect(service.recipientSignature('support@tenant')).toBe('+support@tenant');
+    expect(service.recipientSignature('other@tenant')).toBe('other@tenant');
+  });
+
   it('should not inherit template admin forms', () => {
     (service as any).updateStatus((status: any) => {
       status.templates['parent'] = { tag: 'parent', config: { adminForm: [{ key: 'a' }], advancedAdminForm: [{ key: 'b' }] } };

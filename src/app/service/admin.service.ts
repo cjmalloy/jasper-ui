@@ -99,7 +99,7 @@ import { Store } from '../store/store';
 import { equalBundle } from '../util/diff';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
-import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
+import { addHierarchicalTags, directChild, hasPrefix, hasTag, localTag, tagIntersection, tagOrigin, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
@@ -532,6 +532,14 @@ export class AdminService {
       x.name ||= tmpl?.name;
       return x;
     }));
+  }
+
+  /**
+   * Replace a recipient tag with the signature from its Template, keeping the origin.
+   */
+  recipientSignature(tag: string) {
+    const signature = this.getTemplate(localTag(tag))?.config?.signature;
+    return signature ? signature + tagOrigin(tag) : tag;
   }
 
   configProperty(...names: string[]): [Plugin | Template] {

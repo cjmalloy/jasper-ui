@@ -49,16 +49,6 @@ describe('ExtService', () => {
     expect(updates.observed).toBe(false);
   });
 
-  it('should fall back to the protected Ext for a mailbox recipient', async () => {
-    const support = { tag: '+support', origin: '', name: 'Support', modifiedString: '1' };
-    service.prefillCache({ tag: 'support', origin: '' });
-    service.prefillCache(support);
-    service.prefillCache({ tag: 'other', origin: '' });
-    service.prefillCache({ tag: '+other', origin: '' });
-    const xs = await firstValueFrom(service.getCachedRecipientExts(['support', 'other'], ''));
-    expect(xs).toEqual([support, { tag: 'other', origin: '' }]);
-  });
-
   it('should return cached ext immediately', async () => {
     const testExt = { tag: 'test', origin: '', name: 'Test' };
     service.prefillCache(testExt);
