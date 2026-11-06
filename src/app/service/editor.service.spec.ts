@@ -5,6 +5,9 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import Europa from 'europa';
 import { Marked } from 'marked';
+import { firstValueFrom, Subject } from 'rxjs';
+import { AdminService } from './admin.service';
+import { ExtService } from './api/ext.service';
 
 import { EditorService } from './editor.service';
 
@@ -25,6 +28,22 @@ describe('EditorService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('should preview inbox recipients using the Template signature', async () => {
+    (TestBed.inject(AdminService) as any).updateStatus((status: any) => {
+      status.plugins['plugin/inbox'] = { tag: 'plugin/inbox', name: 'Inbox' };
+      status.templates['support'] = { tag: 'support', name: 'Support', config: { signature: '+support' } };
+    });
+    const exts = TestBed.inject(ExtService);
+    vi.spyOn(exts['stomp'], 'watchExt').mockReturnValue(new Subject<any>());
+    for (const tag of ['plugin/inbox/support', 'plugin/inbox/other', 'plugin/inbox/user/bob', '+support', 'other', '+user/bob']) {
+      exts.prefillCache(exts.defaultExt(tag));
+    }
+    const name = async (tag: string) => (await firstValueFrom(service.getTagPreview(tag)))?.name;
+    expect(await name('plugin/inbox/support')).toBe('Inbox / Support');
+    expect(await name('plugin/inbox/other')).toBe('Inbox / other');
+    expect(await name('plugin/inbox/user/bob')).toBe('Inbox / bob');
   });
 
   describe('HTML to Markdown', () => {

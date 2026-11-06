@@ -6,6 +6,7 @@ import { difference, uniq } from 'lodash-es';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { TagsFormComponent } from '../form/tags/tags.component';
 import { Ext } from '../model/ext';
+import { getUser } from '../mods/mailbox';
 import { Store } from '../store/store';
 import { getMailboxes } from '../util/editor';
 import { getPath } from '../util/http';
@@ -387,8 +388,14 @@ export class EditorService {
               const origin = childTag.substring(0, childTag.indexOf('/'));
               const remoteTag = childTag.substring(origin.length + 1);
               const originFormat = origin ? ' @' + origin : '';
-              return this.exts.getCachedExt(remoteTag, origin).pipe(
-                map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
+              return this.exts.getCachedExt(this.admin.recipientSignature(remoteTag), origin).pipe(
+                map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || this.admin.getTemplate(c.tag)?.name || c.tag) + originFormat })),
+              );
+            }
+            if (longestMatch.tag === 'plugin/inbox') {
+              const recipient = this.admin.recipientSignature(getUser(x.tag, '')!);
+              return this.exts.getCachedExt(recipient, defaultOrigin).pipe(
+                map(c => ({ tag: x.tag, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + (c.name || this.admin.getTemplate(recipient)?.name || recipient) })),
               );
             }
             let a = access(x.tag) || '+';
