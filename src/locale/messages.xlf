@@ -1993,14 +1993,6 @@ Please Reload.</source>
           <context context-type="linenumber">13</context>
         </context-group>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/org/read.ts</context>
-          <context context-type="linenumber">14</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/org/read.ts</context>
-          <context context-type="linenumber">15</context>
-        </context-group>
-        <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/save.ts</context>
           <context context-type="linenumber">14</context>
         </context-group>
@@ -2350,6 +2342,14 @@ Please Reload.</source>
           <context context-type="linenumber">102</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/org/read.ts</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/org/read.ts</context>
+          <context context-type="linenumber">15</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/todo.ts</context>
           <context context-type="linenumber">44</context>
         </context-group>
@@ -2388,6 +2388,10 @@ Please Reload.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
           <context context-type="linenumber">163</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
+          <context context-type="linenumber">164</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/error.ts</context>
@@ -4727,7 +4731,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/value-filter/value-filter.component.html</context>
-          <context context-type="linenumber">54,55</context>
+          <context context-type="linenumber">52,53</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/value-filter/value-filter.component.html</context>
+          <context context-type="linenumber">63,64</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8932917860978648376" datatype="html">
@@ -7290,7 +7298,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">392</context>
+          <context context-type="linenumber">393</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/error.ts</context>
@@ -15513,7 +15521,7 @@ Are you sure you want to purge deleted files from storage?</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">390</context>
+          <context context-type="linenumber">391</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7788810607690477146" datatype="html">
@@ -15568,7 +15576,7 @@ Are you sure you want to purge deleted files from storage?</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">176</context>
+          <context context-type="linenumber">177</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6379343675834361422" datatype="html">
@@ -15579,7 +15587,7 @@ Are you sure you want to purge deleted files from storage?</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">182</context>
+          <context context-type="linenumber">183</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3349141065704514141" datatype="html">
@@ -15590,7 +15598,7 @@ Are you sure you want to purge deleted files from storage?</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">275</context>
+          <context context-type="linenumber">276</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3702410230315710332" datatype="html">
@@ -15601,7 +15609,7 @@ Are you sure you want to purge deleted files from storage?</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">281</context>
+          <context context-type="linenumber">282</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5740778061773144209" datatype="html">
@@ -15612,7 +15620,7 @@ Are you sure you want to purge deleted files from storage?</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">293</context>
+          <context context-type="linenumber">294</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6857598786757174736" datatype="html">
@@ -15623,7 +15631,7 @@ Are you sure you want to purge deleted files from storage?</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">304</context>
+          <context context-type="linenumber">305</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4218577158719181924" datatype="html">
@@ -15634,7 +15642,7 @@ Are you sure you want to purge deleted files from storage?</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">317</context>
+          <context context-type="linenumber">318</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6989801959553989625" datatype="html">
@@ -15686,32 +15694,46 @@ Are you sure you want to purge deleted files from storage?</source>
           <context context-type="linenumber">163</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="2472004631584907300" datatype="html">
+        <source>🐞️ select</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
+          <context context-type="linenumber">164</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8450792408347654022" datatype="html">
+        <source>Debug select option</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
+          <context context-type="linenumber">164</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="1160916388490317189" datatype="html">
         <source>Show:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">169</context>
+          <context context-type="linenumber">170</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4239399926414000056" datatype="html">
         <source>Datetime:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">209</context>
+          <context context-type="linenumber">210</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2036482061661740298" datatype="html">
         <source>QR:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">233</context>
+          <context context-type="linenumber">234</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5821666341420875081" datatype="html">
         <source>🔴️ Breakpoint</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/debug.ts</context>
-          <context context-type="linenumber">388</context>
+          <context context-type="linenumber">389</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5922701808616764085" datatype="html">
@@ -18197,7 +18219,7 @@ Each response contains the converted Markdown from a specific source format.</so
         (i.e. &quot;+user/bob&quot;, &quot;plugin/outbox/dictionary/science&quot;, or &quot;_user/charlie@jasperkm.info&quot;)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/dm/dm.component.ts</context>
-          <context context-type="linenumber">290,295</context>
+          <context context-type="linenumber">293,298</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1286451333007315778" datatype="html">
@@ -19736,7 +19758,7 @@ Each response contains the converted Markdown from a specific source format.</so
         <source><x id="DURATION" equiv-text="duration.toHuman()"/> ago</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/query.ts</context>
-          <context context-type="linenumber">340</context>
+          <context context-type="linenumber">341</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2180343879821060413" datatype="html">
@@ -20023,28 +20045,28 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>sec</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/value-filter.ts</context>
-          <context context-type="linenumber">15</context>
+          <context context-type="linenumber">18</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3901733599428143571" datatype="html">
         <source>min</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/value-filter.ts</context>
-          <context context-type="linenumber">16</context>
+          <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3226253490468863097" datatype="html">
         <source>hr</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/value-filter.ts</context>
-          <context context-type="linenumber">17</context>
+          <context context-type="linenumber">20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7036284206110282007" datatype="html">
         <source>days</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/util/value-filter.ts</context>
-          <context context-type="linenumber">18</context>
+          <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
     </body>

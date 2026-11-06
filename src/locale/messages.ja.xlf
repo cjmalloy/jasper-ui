@@ -8447,6 +8447,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Read by fewer people than</source>
         <target>次の人数より少ない人が読んだ</target>
       </trans-unit>
+      <trans-unit id="2472004631584907300" datatype="html">
+        <source>🐞️ select</source>
+        <target>🐞️ 選択</target>
+      </trans-unit>
+      <trans-unit id="8450792408347654022" datatype="html">
+        <source>Debug select option</source>
+        <target>デバッグの選択肢</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
