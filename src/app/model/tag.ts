@@ -358,29 +358,35 @@ export interface FilterConfig {
    */
   user?: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}` | `!plugin/user/${string}` | `!+plugin/user/${string}` | `!_plugin/user/${string}`;
   /**
-   * Filter based on the value of a sort column, such as `tags->plugin/duration:dur`.
-   * Set one of before, after or equals to the default value to compare against.
+   * Filter based on where the value of a sort column falls in sort order, such as `tags->plugin/duration:dur`.
+   * Set before or after to the default value to compare against.
    * If set, no other filter types must be set.
    */
   sort?: `tags->${string}` | `plugins->${string}` | `metadata->${string}`;
   /**
-   * Keep Refs where the sort column is less than this value.
+   * Keep Refs that sort before this value.
    */
   before?: string;
   /**
-   * Keep Refs where the sort column is greater than this value.
+   * Keep Refs that sort after this value.
    */
   after?: string;
   /**
-   * Keep Refs where the sort column is equal to this value.
+   * Filter based on the value of a field, such as `plugins->plugin/todo->status` or `tags->plugin/status`.
+   * Set equals to the default value.
    * Use for values picked from a list, where before and after don't make sense.
+   * If set, no other filter types must be set.
+   */
+  field?: `tags->${string}` | `plugins->${string}` | `metadata->${string}`;
+  /**
+   * Keep Refs where the field is equal to this value.
    */
   equals?: string;
   /**
-   * How to edit the value of a sort filter. Defaults to text.
+   * How to edit the value of a sort or field filter. Defaults to text.
    * range: a slider over built-in stops for the unit, limited to the values found on the server.
    * units: a number with a unit dropdown.
-   * select: a dropdown of the options. Defaults to the options of the plugin form field for the sort column.
+   * select: a dropdown of the options. Defaults to the options of the plugin form field.
    */
   input?: 'text' | 'range' | 'units' | 'select';
   /**

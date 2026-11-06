@@ -219,7 +219,7 @@ export function roundAmount(unit: ValueUnit, amount: number) {
 
 /**
  * Options of the plugin form field a `plugins->{plugin}->{field}` column holds,
- * such as a select or radio field.
+ * such as a select or radio field, or true and false for a boolean field.
  */
 export function formOptions(plugin: Plugin | undefined, column: string): NonNullable<FilterConfig['options']> {
   if (!column.startsWith('plugins->')) return [];
@@ -236,7 +236,9 @@ export function formOptions(plugin: Plugin | undefined, column: string): NonNull
     }
     return undefined;
   };
-  const options = find([...plugin?.config?.form || [], ...plugin?.config?.advancedForm || []])?.props?.options;
+  const field = find([...plugin?.config?.form || [], ...plugin?.config?.advancedForm || []]);
+  if (field?.type === 'boolean' || field?.type === 'checkbox') return [{ value: 'true' }, { value: 'false' }];
+  const options = field?.props?.options;
   if (!isArray(options)) return [];
   return options
     .filter(o => o?.value !== undefined && o.value !== null)

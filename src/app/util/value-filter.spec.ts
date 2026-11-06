@@ -29,6 +29,7 @@ describe('value-filter', () => {
           { key: 'status', type: 'select', props: { options: [{ value: 'open', label: 'Open' }, { value: 2 }] } },
           { fieldGroup: [{ key: 'color', type: 'radio', props: { options: [{ value: 'red', label: 'Red' }] } }] },
           { key: 'name', type: 'string' },
+          { key: 'done', type: 'boolean' },
         ],
       },
     } as any;
@@ -36,6 +37,10 @@ describe('value-filter', () => {
     it('reads the options of the plugin form field', () => {
       expect(formOptions(plugin, 'plugins->plugin/test->status')).toEqual([{ value: 'open', label: 'Open' }, { value: '2', label: undefined }]);
       expect(formOptions(plugin, 'plugins->plugin/test->color')).toEqual([{ value: 'red', label: 'Red' }]);
+    });
+
+    it('picks true or false for a boolean field', () => {
+      expect(formOptions(plugin, 'plugins->plugin/test->done')).toEqual([{ value: 'true' }, { value: 'false' }]);
     });
 
     it('has no options for other columns', () => {

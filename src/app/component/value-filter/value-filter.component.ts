@@ -47,6 +47,7 @@ export class ValueFilterComponent {
   readonly config = computed(() => {
     const v = this.parsed();
     if (!v) return undefined;
+    if (v.dir === 'equals') return this.admin.filters().find(f => f.field === v.column);
     const configs = this.admin.filters().filter(f => f.sort === v.column);
     return configs.find(f => f[v.dir] !== undefined) || configs[0];
   });

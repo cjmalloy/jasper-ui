@@ -40,7 +40,8 @@ import {
   SortItem,
   switchFilter,
   toggle,
-  UrlFilter
+  UrlFilter,
+  valueFilterConfig
 } from '../util/query';
 import {
   access,
@@ -577,7 +578,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
           if (option) {
             this.allFilters.update(groups => groups.map(g => ({ ...g, filters: g.filters.map(i => i === option ? { ...i, filter: f as UrlFilter } : i) })));
           } else {
-            this.loadFilter({ group: $localize`Filters 🕵️️`, sort: v.column as FilterConfig['sort'], [v.dir]: v.value });
+            this.loadFilter(valueFilterConfig(v, $localize`Filters 🕵️️`));
           }
         } else if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
           this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });

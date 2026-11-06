@@ -44,7 +44,7 @@ export type UrlFilter = Filter |
 export type SortItem = { value: RefSort | TagSort, label: string, title?: string };
 
 /**
- * Parse a `{sort column}/before/{value}`, `{sort column}/after/{value}` or `{sort column}/equals/{value}` filter,
+ * Parse a `{sort column}/before/{value}`, `{sort column}/after/{value}` or `{field}/equals/{value}` filter,
  * such as `tags->plugin/duration:dur/before/pt5m`.
  * Sort columns may contain `/` but values cannot, so the value is always the last `/` segment.
  */
@@ -55,9 +55,25 @@ export function parseValueFilter(filter: string) {
 }
 
 /**
+ * Filter config for a value filter that isn't in any mod.
+ */
+export function valueFilterConfig(v: NonNullable<ReturnType<typeof parseValueFilter>>, group: string): FilterConfig {
+  const column = v.column as FilterConfig['sort'];
+  if (v.dir === 'equals') return { group, field: column, equals: v.value };
+  return { group, sort: column, [v.dir]: v.value };
+}
+
+/**
+ * The tag a sort or field filter reads, used to check read access.
+ */
+export function filterColumnTag(config: FilterConfig) {
+  return (config.field || config.sort)?.replace(/^(tags|plugins)->/, '').split(/->|:/)[0];
+}
+
+/**
  * Switch to the next filter, keeping the value of the previous filter if they compare the same thing.
  * For example, switching from `modified/before/{date}` to `published/after/{default}` keeps the date,
- * and switching between before and after on the same sort column keeps the value.
+ * and switching between before, after and equals on the same column keeps the value.
  */
 export function switchFilter(previous: UrlFilter, next: UrlFilter): UrlFilter {
   const date = /^(modified|response|published|created)\/(before|after)\//;
@@ -110,9 +126,11 @@ export function convertFilter(filter: FilterConfig): FilterItem {
     return { filter: `user/${filter.user}`, label: filter.label || filter.user, title: filter.title };
   } else if (filter.response) {
     return { filter: filter.response, label: filter.label || filter.response, title: filter.title };
+  } else if (filter.field) {
+    return { filter: `${filter.field}/equals/${filter.equals ?? ''}`, label: filter.label || `${filter.field} =`, title: filter.title };
   } else if (filter.sort) {
-    const dir = filter.before !== undefined ? 'before' : filter.after !== undefined ? 'after' : 'equals';
-    return { filter: `${filter.sort}/${dir}/${filter[dir]}`, label: filter.label || `${filter.sort} ${dir}`, title: filter.title };
+    const dir = filter.before !== undefined ? 'before' : 'after';
+    return { filter: `${filter.sort}/${dir}/${filter[dir] ?? ''}`, label: filter.label || `${filter.sort} ${dir}`, title: filter.title };
   }
   throw 'Can\'t convert filter';
 }
@@ -257,7 +275,7 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       } else {
         // Tag values are lowercase, so PT1H works like pt1h
         const value = serverValue(v.column, v.value);
-        const key = v.dir === 'before' ? 'filterBefore' : v.dir === 'after' ? 'filterAfter' : 'filterEquals';
+        const key = v.dir === 'equals' ? 'filterEquals' : v.dir === 'before' ? 'filterBefore' : 'filterAfter';
         add(key, v.column, v.column.startsWith('tags->') ? value.toLowerCase() : value);
       }
     } else if (f === '!obsolete') {
