@@ -67,6 +67,18 @@ export interface IndexNeeds {
 const DATE_COLUMNS = ['published', 'modified', 'created'];
 
 /**
+ * Array length columns, indexed by the flag of their array index.
+ */
+const LENGTH_COLUMNS: Record<string, IndexFlag> = {
+  'tags:len': 'tags',
+  'metadata->expandedTags': 'tags',
+  'sources:len': 'sources',
+  'alternateUrls:len': 'alts',
+  'metadata->responses': 'responses',
+  'metadata->internalResponses': 'internalResponses',
+};
+
+/**
  * Sorts that are covered by the primary key, or rank search results.
  */
 const INDEXABLE_SORTS = ['rank', 'url'];
@@ -134,6 +146,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   const needs = (c: string) => {
     if (DATE_COLUMNS.includes(c)) {
       flags.push(c as IndexFlag);
+    } else if (LENGTH_COLUMNS[c]) {
+      flags.push(LENGTH_COLUMNS[c]);
     } else if (c.startsWith('tags->')) {
       hotTags.push(column(c, 'tags->'));
     } else if (c === 'metadata->newResponse' || c === 'metadata->newReaction') {
