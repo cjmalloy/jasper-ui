@@ -17,6 +17,7 @@ import {
   stopIndex,
   unitValue,
   UNITS,
+  validFilterValue,
   valueUnit
 } from './value-filter';
 
@@ -39,6 +40,10 @@ describe('value-filter', () => {
       expect(formOptions(plugin, 'plugins->plugin/test->color')).toEqual([{ value: 'red', label: 'Red' }]);
     });
 
+    it('reads the options of a numeric column', () => {
+      expect(formOptions(plugin, 'plugins->plugin/test->status:num')).toEqual([{ value: 'open', label: 'Open' }, { value: '2', label: undefined }]);
+    });
+
     it('picks true or false for a boolean field', () => {
       expect(formOptions(plugin, 'plugins->plugin/test->done')).toEqual([{ value: 'true' }, { value: 'false' }]);
     });
@@ -50,6 +55,12 @@ describe('value-filter', () => {
       expect(formOptions(plugin, 'tags->plugin/test')).toEqual([]);
       expect(formOptions(undefined, 'plugins->plugin/test->status')).toEqual([]);
     });
+  });
+
+  it('accepts only values the server can filter on', () => {
+    expect(validFilterValue('open')).toBe(true);
+    expect(validFilterValue('0')).toBe(true);
+    for (const value of [undefined, '', 'a/b', 'a,b', 'a->b']) expect(validFilterValue(value)).toBe(false);
   });
 
   it('defaults to duration for :dur columns', () => {

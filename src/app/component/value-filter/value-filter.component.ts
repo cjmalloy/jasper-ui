@@ -17,6 +17,7 @@ import {
   stopIndex,
   unitValue,
   UNITS,
+  validFilterValue,
   valueUnit
 } from '../../util/value-filter';
 
@@ -70,8 +71,8 @@ export class ValueFilterComponent {
     const v = this.parsed();
     if (!v || this.config()?.input !== 'select') return [];
     const config = this.config()?.options;
-    if (config?.length) return config;
-    return formOptions(this.admin.getPlugin(v.column.substring('plugins->'.length).split('->')[0]), v.column);
+    const options = config?.length ? config : formOptions(this.admin.getPlugin(v.column.substring('plugins->'.length).split('->')[0]), v.column);
+    return options.filter(o => validFilterValue(o.value));
   }, { equal: isEqual });
 
   /**
@@ -196,9 +197,8 @@ export class ValueFilterComponent {
   setText(input: HTMLInputElement) {
     const v = this.parsed()!;
     const value = input.value.trim();
-    // The server rejects '/', ',' and '->' in values.
     // Show the accepted value, since a rejected or trimmed edit leaves the filter (and the [value] binding) unchanged
-    input.value = !value || /\/|,|->/.test(value) ? v.value : value;
+    input.value = validFilterValue(value) ? value : v.value;
     this.emit(input.value);
   }
 

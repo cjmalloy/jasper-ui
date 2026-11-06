@@ -23,12 +23,15 @@ describe('ValueFilterComponent', () => {
     { field: 'plugins->plugin/test->done', equals: 'true', input: 'select' },
     { sort: 'plugins->plugin/test->rank:num', after: '5', input: 'select', options: [{ value: '5' }] },
     { field: 'plugins->plugin/test->rank:num', equals: '3' },
+    { field: 'plugins->plugin/test->path', equals: 'a', input: 'select', options: [{ value: 'a' }, { value: '' }, { value: 'a/b' }, { value: 'a,b' }, { value: 'a->b' }] },
+    { field: 'plugins->plugin/test->level:num', equals: '1', input: 'select' },
   ]);
   const plugin = {
     tag: 'plugin/test',
     config: { form: [
       { key: 'color', type: 'radio', props: { options: [{ value: 'red', label: 'Red' }, { value: 'blue', label: 'Blue' }] } },
       { key: 'done', type: 'boolean' },
+      { key: 'level', type: 'select', props: { options: [{ value: 1, label: 'Low' }, { value: 2, label: 'High' }, { value: '1/2' }] } },
     ] },
   };
 
@@ -329,6 +332,19 @@ describe('ValueFilterComponent', () => {
       const select = el.querySelector<HTMLSelectElement>('.filter-option')!;
       expect([...select.options].map(o => o.textContent)).toEqual(['Red', 'Blue']);
       expect(select.value).toBe('blue');
+    });
+
+    it('leaves out options the server cannot filter on', async () => {
+      const el = await render('plugins->plugin/test->path/equals/a');
+      const select = el.querySelector<HTMLSelectElement>('.filter-option')!;
+      expect([...select.options].map(o => o.value)).toEqual(['a']);
+    });
+
+    it('reads the plugin form options of a numeric field', async () => {
+      const el = await render('plugins->plugin/test->level:num/equals/1');
+      const select = el.querySelector<HTMLSelectElement>('.filter-option')!;
+      expect([...select.options].map(o => o.textContent)).toEqual(['Low', 'High']);
+      expect(select.value).toBe('1');
     });
 
     it('shows a value that is not an option', async () => {

@@ -218,12 +218,19 @@ export function roundAmount(unit: ValueUnit, amount: number) {
 }
 
 /**
+ * The server rejects empty values and values with `/`, `,` or `->`.
+ */
+export function validFilterValue(value?: string): value is string {
+  return !!value && !/\/|,|->/.test(value);
+}
+
+/**
  * Options of the plugin form field a `plugins->{plugin}->{field}` column holds,
  * such as a select or radio field, or true and false for a boolean field.
  */
 export function formOptions(plugin: Plugin | undefined, column: string): NonNullable<FilterConfig['options']> {
   if (!column.startsWith('plugins->')) return [];
-  const [, key, ...rest] = column.substring('plugins->'.length).split('->');
+  const [, key, ...rest] = column.substring('plugins->'.length).replace(/:num$/, '').split('->');
   if (!key || rest.length || !/^[A-Za-z0-9_$-]+$/.test(key)) return [];
   const find = (fields?: FormlyFieldConfig[]): FormlyFieldConfig | undefined => {
     for (const f of fields || []) {
