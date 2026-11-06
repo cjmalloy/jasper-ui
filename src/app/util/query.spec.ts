@@ -3,6 +3,7 @@ import { DateTime } from 'luxon';
 import {
   convertFilter,
   dateTimeLocal,
+  filterColumnTag,
   defaultDesc,
   getArgs,
   getFilter,
@@ -15,6 +16,7 @@ import {
   switchFilter,
   toggle,
   UrlFilter,
+  valueFilterConfig,
   withStableDateSort,
 } from './query';
 
@@ -298,6 +300,16 @@ describe('Query Utils', () => {
       expect(args.filterBefore).toEqual(['metadata->remotePlugins->plugin/user/read/100']);
     });
 
+    it('should extract equals filters', () => {
+      const args = getArgs('science', undefined, [
+        'plugins->plugin/debug->select/equals/2',
+        'tags->plugin/status/equals/Open',
+      ]);
+      expect(args.filterEquals).toEqual(['plugins->plugin/debug->select/2', 'tags->plugin/status/open']);
+      expect(args.filterBefore).toBeUndefined();
+      expect(args.filterAfter).toBeUndefined();
+    });
+
     it('should convert shorthand value filters', () => {
       const args = getArgs('science', undefined, [
         'tags->plugin/duration:dur/before/1h30m',
@@ -426,6 +438,14 @@ describe('Query Utils', () => {
       });
     });
 
+    it('should parse equals filters', () => {
+      expect(parseValueFilter('plugins->plugin/debug->select/equals/2')).toEqual({
+        column: 'plugins->plugin/debug->select',
+        dir: 'equals',
+        value: '2',
+      });
+    });
+
     it('should reject invalid value filters', () => {
       expect(parseValueFilter('modified/before/now')).toBeUndefined();
       expect(parseValueFilter('tags->plugin/duration:dur/pt1h')).toBeUndefined();
@@ -465,9 +485,40 @@ describe('Query Utils', () => {
         .toBe('plugins->_plugin/cache->contentLength:num/after/1000');
     });
 
+    it('should put equals between the sort column and value', () => {
+      expect(convertFilter({ field: 'plugins->plugin/debug->select', equals: '1' }).filter)
+        .toBe('plugins->plugin/debug->select/equals/1');
+      expect(convertFilter({ field: 'tags->plugin/status', equals: 'open', label: 'open' }))
+        .toEqual({ filter: 'tags->plugin/status/equals/open', label: 'open', title: undefined });
+    });
+
     it('should use before when it is empty', () => {
       expect(convertFilter({ sort: 'tags->plugin/duration:dur', before: '' }).filter)
         .toBe('tags->plugin/duration:dur/before/');
+    });
+  });
+
+  describe('valueFilterConfig', () => {
+    it('should use field for equals filters and sort for before and after', () => {
+      expect(valueFilterConfig(parseValueFilter('plugins->plugin/test->status/equals/open')!, 'g'))
+        .toEqual({ group: 'g', field: 'plugins->plugin/test->status', equals: 'open' });
+      expect(valueFilterConfig(parseValueFilter('plugins->plugin/score:num/before/10')!, 'g'))
+        .toEqual({ group: 'g', sort: 'plugins->plugin/score:num', before: '10' });
+    });
+  });
+
+  describe('filterColumnTag', () => {
+    it('should read the tag of a sort or field filter', () => {
+      expect(filterColumnTag({ field: 'plugins->_plugin/secret->status', equals: 'x' })).toBe('_plugin/secret');
+      expect(filterColumnTag({ sort: 'tags->plugin/duration:dur', before: 'pt5m' })).toBe('plugin/duration');
+      expect(filterColumnTag({ query: 'science' })).toBeUndefined();
+    });
+  });
+
+  describe('switchFilter', () => {
+    it('should keep the value when switching between equals and a bound on the same column', () => {
+      expect(switchFilter('plugins->plugin/test->n:num/equals/3', 'plugins->plugin/test->n:num/after/0'))
+        .toBe('plugins->plugin/test->n:num/after/3');
     });
   });
 

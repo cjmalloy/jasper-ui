@@ -7,6 +7,7 @@ import { Store } from '../../store/store';
 import { parseValueFilter } from '../../util/query';
 import {
   formatAmount,
+  formOptions,
   humanAmount,
   parseAmount,
   rangeStops,
@@ -16,11 +17,12 @@ import {
   stopIndex,
   unitValue,
   UNITS,
+  validFilterValue,
   valueUnit
 } from '../../util/value-filter';
 
 /**
- * Edit the value of a `{sort column}/before|after/{value}` filter,
+ * Edit the value of a `{sort column}/before|after|equals/{value}` filter,
  * with the input set by the mod filter config.
  */
 @Component({
@@ -46,6 +48,7 @@ export class ValueFilterComponent {
   readonly config = computed(() => {
     const v = this.parsed();
     if (!v) return undefined;
+    if (v.dir === 'equals') return this.admin.filters().find(f => f.field === v.column);
     const configs = this.admin.filters().filter(f => f.sort === v.column);
     return configs.find(f => f[v.dir] !== undefined) || configs[0];
   });
@@ -62,9 +65,33 @@ export class ValueFilterComponent {
   });
 
   /**
+   * Options of the select input, from the filter config or the plugin form field.
+   */
+  private readonly selectOptions = computed(() => {
+    const v = this.parsed();
+    if (!v || this.config()?.input !== 'select') return [];
+    const config = this.config()?.options;
+    const options = config?.length ? config : formOptions(this.admin.getPlugin(v.column.substring('plugins->'.length).split('->')[0]), v.column);
+    return options.filter(o => validFilterValue(o.value));
+  }, { equal: isEqual });
+
+  /**
+   * Select options, plus the current value if it isn't one of them so it can be shown.
+   */
+  readonly choices = computed(() => {
+    const value = this.parsed()?.value;
+    const options = this.selectOptions().map(o => ({ value: o.value, label: o.label || o.value }));
+    if (value === undefined || options.some(o => o.value === value)) return options;
+    return [...options, { value, label: value }];
+  }, { equal: isEqual });
+
+  /**
    * Values that can't be parsed fall back to text so they can be fixed.
    */
-  readonly configInput = computed(() => this.amount() === undefined ? 'text' : this.config()?.input || 'text');
+  readonly configInput = computed(() => {
+    if (this.config()?.input === 'select') return this.selectOptions().length ? 'select' : 'text';
+    return this.amount() === undefined ? 'text' : this.config()?.input || 'text';
+  });
 
   /**
    * The text box being edited, so it stays after the hotkey is released.
@@ -170,9 +197,8 @@ export class ValueFilterComponent {
   setText(input: HTMLInputElement) {
     const v = this.parsed()!;
     const value = input.value.trim();
-    // The server rejects '/', ',' and '->' in values.
     // Show the accepted value, since a rejected or trimmed edit leaves the filter (and the [value] binding) unchanged
-    input.value = !value || /\/|,|->/.test(value) ? v.value : value;
+    input.value = validFilterValue(value) ? value : v.value;
     this.emit(input.value);
   }
 
@@ -199,6 +225,10 @@ export class ValueFilterComponent {
   private amountAt(index: number, stops = this.stops()) {
     if (Number.isInteger(index)) return stops[index];
     return roundAmount(this.unit()!, stopAmount(stops, index));
+  }
+
+  setOption(value: string) {
+    this.emit(value);
   }
 
   setNumber(input: HTMLInputElement) {

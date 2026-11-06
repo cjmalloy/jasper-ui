@@ -8447,6 +8447,90 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Read by fewer people than</source>
         <target>次の人数より少ない人が読んだ</target>
       </trans-unit>
+      <trans-unit id="2472004631584907300" datatype="html">
+        <source>🐞️ select</source>
+        <target>🐞️ 選択</target>
+      </trans-unit>
+      <trans-unit id="8450792408347654022" datatype="html">
+        <source>Debug select option</source>
+        <target>デバッグの選択肢</target>
+      </trans-unit>
+      <trans-unit id="1054295293915359951" datatype="html">
+        <source>Debug sub-tag</source>
+        <target>デバッグのサブタグ</target>
+      </trans-unit>
+      <trans-unit id="1313466937138408600" datatype="html">
+        <source>🐞️ string</source>
+        <target>🐞️ 文字列</target>
+      </trans-unit>
+      <trans-unit id="149083922233790436" datatype="html">
+        <source>Debug string</source>
+        <target>デバッグ文字列</target>
+      </trans-unit>
+      <trans-unit id="237990357613964650" datatype="html">
+        <source>Debug number greater than</source>
+        <target>デバッグ数値がより大きい</target>
+      </trans-unit>
+      <trans-unit id="3279750569631482573" datatype="html">
+        <source>🐞️ debug tag</source>
+        <target>🐞️ デバッグタグ</target>
+      </trans-unit>
+      <trans-unit id="3609357270120872131" datatype="html">
+        <source>Debug 🐞️</source>
+        <target>デバッグ 🐞️</target>
+      </trans-unit>
+      <trans-unit id="3882561553706943854" datatype="html">
+        <source>🐞️ number under</source>
+        <target>🐞️ 数値未満</target>
+      </trans-unit>
+      <trans-unit id="3895925689447258661" datatype="html">
+        <source>🐞️ radio</source>
+        <target>🐞️ ラジオ</target>
+      </trans-unit>
+      <trans-unit id="4714461439095115371" datatype="html">
+        <source>🐞️ option A</source>
+        <target>🐞️ オプションA</target>
+      </trans-unit>
+      <trans-unit id="5174606040825909207" datatype="html">
+        <source>🐞️ show</source>
+        <target>🐞️ 表示</target>
+      </trans-unit>
+      <trans-unit id="5384746441050718536" datatype="html">
+        <source>Debug multi-checkbox option A</source>
+        <target>デバッグ複数チェックボックスのオプションA</target>
+      </trans-unit>
+      <trans-unit id="5661394932239631327" datatype="html">
+        <source>Debug number</source>
+        <target>デバッグ数値</target>
+      </trans-unit>
+      <trans-unit id="6051281088272113348" datatype="html">
+        <source>🐞️ number</source>
+        <target>🐞️ 数値</target>
+      </trans-unit>
+      <trans-unit id="635734613407033151" datatype="html">
+        <source>🐞️ number over</source>
+        <target>🐞️ 数値超</target>
+      </trans-unit>
+      <trans-unit id="6593102842691553493" datatype="html">
+        <source>Debug number less than</source>
+        <target>デバッグ数値がより小さい</target>
+      </trans-unit>
+      <trans-unit id="6886424155317402000" datatype="html">
+        <source>✅️ checked</source>
+        <target>✅️ チェック済み</target>
+      </trans-unit>
+      <trans-unit id="7923971266635777269" datatype="html">
+        <source>⬜️ unchecked</source>
+        <target>⬜️ 未チェック</target>
+      </trans-unit>
+      <trans-unit id="7956992190684005162" datatype="html">
+        <source>Debug radio option</source>
+        <target>デバッグのラジオオプション</target>
+      </trans-unit>
+      <trans-unit id="843256005222997443" datatype="html">
+        <source>Debug show toggle</source>
+        <target>デバッグの表示切替</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

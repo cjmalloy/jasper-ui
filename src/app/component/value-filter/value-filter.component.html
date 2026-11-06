@@ -47,6 +47,15 @@
       <output class="filter-range-label">{{ rangeLabel() }}</output>
     }
   }
+  @case ('select') {
+    <select class="filter-option"
+            i18n-title title="Value to compare against"
+            (change)="setOption($any($event.target).value)">
+      @for (o of choices(); track o.value) {
+        <option [value]="o.value" [selected]="o.value === parsed()?.value">{{ o.label }}</option>
+      }
+    </select>
+  }
   @default {
     <input type="text"
            class="filter-value"

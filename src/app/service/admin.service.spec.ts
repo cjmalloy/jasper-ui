@@ -141,6 +141,12 @@ describe('AdminService', () => {
     ] as any, [])).toEqual({ tags: [], plugins: [], responses: ['plugin/thread'], remoteResponses: ['plugin/comment'] });
   });
 
+  it('should suggest hot indexes from field filters', () => {
+    expect(hotIndexSuggestions([
+      { tag: 'plugin/test', config: { filters: [{ field: 'plugins->plugin/test->status', equals: 'open' }, { field: 'tags->plugin/status', equals: 'done' }] } },
+    ] as any, [])).toEqual({ tags: ['plugin/status'], plugins: ['plugin/test->status'], responses: [], remoteResponses: [] });
+  });
+
   it('should scan for hot index suggestions again each time the form opens', async () => {
     const empty = of({ content: [], page: { number: 0, size: 0, totalElements: 0, totalPages: 1 } });
     const pluginPage = vi.spyOn(TestBed.inject(PluginService), 'page').mockReturnValueOnce(throwError(() => 'offline')).mockReturnValue(empty as any);

@@ -4,6 +4,7 @@ import {
   columnAmount,
   columnTag,
   formatAmount,
+  formOptions,
   humanAmount,
   parseAmount,
   rangeStops,
@@ -16,10 +17,52 @@ import {
   stopIndex,
   unitValue,
   UNITS,
+  validFilterValue,
   valueUnit
 } from './value-filter';
 
 describe('value-filter', () => {
+  describe('formOptions', () => {
+    const plugin = {
+      tag: 'plugin/test',
+      config: {
+        form: [
+          { key: 'status', type: 'select', props: { options: [{ value: 'open', label: 'Open' }, { value: 2 }] } },
+          { fieldGroup: [{ key: 'color', type: 'radio', props: { options: [{ value: 'red', label: 'Red' }] } }] },
+          { key: 'name', type: 'string' },
+          { key: 'done', type: 'boolean' },
+        ],
+      },
+    } as any;
+
+    it('reads the options of the plugin form field', () => {
+      expect(formOptions(plugin, 'plugins->plugin/test->status')).toEqual([{ value: 'open', label: 'Open' }, { value: '2', label: undefined }]);
+      expect(formOptions(plugin, 'plugins->plugin/test->color')).toEqual([{ value: 'red', label: 'Red' }]);
+    });
+
+    it('reads the options of a numeric column', () => {
+      expect(formOptions(plugin, 'plugins->plugin/test->status:num')).toEqual([{ value: 'open', label: 'Open' }, { value: '2', label: undefined }]);
+    });
+
+    it('picks true or false for a boolean field', () => {
+      expect(formOptions(plugin, 'plugins->plugin/test->done')).toEqual([{ value: 'true' }, { value: 'false' }]);
+    });
+
+    it('has no options for other columns', () => {
+      expect(formOptions(plugin, 'plugins->plugin/test->name')).toEqual([]);
+      expect(formOptions(plugin, 'plugins->plugin/test->status->x')).toEqual([]);
+      expect(formOptions(plugin, 'plugins->plugin/test')).toEqual([]);
+      expect(formOptions(plugin, 'tags->plugin/test')).toEqual([]);
+      expect(formOptions(undefined, 'plugins->plugin/test->status')).toEqual([]);
+    });
+  });
+
+  it('accepts only values the server can filter on', () => {
+    expect(validFilterValue('open')).toBe(true);
+    expect(validFilterValue('0')).toBe(true);
+    for (const value of [undefined, '', 'a/b', 'a,b', 'a->b']) expect(validFilterValue(value)).toBe(false);
+  });
+
   it('defaults to duration for :dur columns', () => {
     expect(valueUnit('tags->plugin/duration:dur')).toBe('duration');
     expect(valueUnit('plugins->_plugin/cache->contentLength:num')).toBeUndefined();

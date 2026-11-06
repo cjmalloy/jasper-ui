@@ -11,7 +11,7 @@ describe('Index Helper', () => {
   });
 
   it('flags sorts that cannot be indexed', () => {
-    expect(indexNeeds({ sort: ['metadata->responses'] }).unindexed).toEqual(['metadata->responses']);
+    expect(indexNeeds({ sort: ['title'] }).unindexed).toEqual(['title']);
     expect(indexNeeds({ sort: ['metadata->newResponse,DESC'] })).toEqual({ flags: ['newResponse'], hotTags: [], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
     expect(indexNeeds({ sort: ['metadata->newReaction'] }).flags).toEqual(['newReaction']);
     expect(indexNeeds({ sort: ['published', 'metadata->newResponse'] }).flags).toEqual(['published']);
@@ -39,6 +39,19 @@ describe('Index Helper', () => {
       filterBefore: ['created/2020-01-01T00:00:00.000Z'],
       sort: ['modified,DESC'],
     }).flags).toEqual(['fulltext', 'alts', 'responses', 'internalResponses', 'sources', 'modified', 'created', 'published', 'newReaction']);
+  });
+
+  it('needs array index flags for length sorts and filters', () => {
+    expect(indexNeeds({ sort: ['tags:len,DESC'] })).toEqual({ flags: ['tags'], hotTags: [], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
+    expect(indexNeeds({ sort: ['metadata->expandedTags'] }).flags).toEqual(['tags']);
+    expect(indexNeeds({ sort: ['sources:len'] }).flags).toEqual(['sources']);
+    expect(indexNeeds({ sort: ['alternateUrls:len,ASC'] }).flags).toEqual(['alts']);
+    expect(indexNeeds({ sort: ['metadata->responses,DESC'] }).flags).toEqual(['responses']);
+    expect(indexNeeds({ sort: ['metadata->internalResponses'] }).flags).toEqual(['internalResponses']);
+    expect(indexNeeds({ sort: ['metadata->responses:len'] }).flags).toEqual(['responses']);
+    expect(indexNeeds({ filterAfter: ['metadata->responses/3'], filterBefore: ['sources:len/2'] }).flags).toEqual(['sources', 'responses']);
+    expect(indexNeeds({ sort: ['published', 'sources:len'] }).flags).toEqual(['published']);
+    expect(missingIndexes(indexNeeds({ sort: ['metadata->responses'] }), { responses: false }).flags).toEqual(['responses']);
   });
 
   it('needs the alts index for url filters', () => {
@@ -90,7 +103,7 @@ describe('Index Helper', () => {
     expect(indexNeeds({ sort: ['published', 'metadata->remotePlugins->plugin/comment'] }).hotRemoteResponses).toEqual([]);
     expect(indexNeeds({ sort: ['metadata->plugins->plugin/comment->x'] }).unindexed).toEqual(['metadata->plugins->plugin/comment->x']);
     expect(indexNeeds({ filterAfter: ['metadata->remotePlugins->plugin/user/read/10'] }).hotRemoteResponses).toEqual(['plugin/user/read']);
-    expect(indexNeeds({ filterAfter: ['metadata->responses/0', 'plugins->plugin/user/vote:top/5'] }).unindexed).toEqual(['metadata->responses', 'plugins->plugin/user/vote:top']);
+    expect(indexNeeds({ filterAfter: ['comment/a', 'plugins->plugin/user/vote:top/5'] }).unindexed).toEqual(['comment', 'plugins->plugin/user/vote:top']);
     const missing = missingIndexes(needs, { hotResponses: ['plugin/thread'], hotRemoteResponses: [''] });
     expect(missing.hotResponses).toEqual(['+plugin/log']);
     expect(missing.hotRemoteResponses).toEqual(['plugin/comment']);

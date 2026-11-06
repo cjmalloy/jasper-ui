@@ -34,7 +34,6 @@ export const archivePlugin: Plugin = {
       },
     }],
   },
-  defaults: {},
   schema: {
     optionalProperties: {
       url: { type: 'string' },

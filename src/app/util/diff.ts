@@ -4,7 +4,7 @@ import { diff3Merge, MergeRegion } from 'node-diff3';
 import { Ext } from '../model/ext';
 import { Plugin, writePlugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { clear, Config, Mod } from '../model/tag';
+import { clear, Config, emptyDefaults, Mod } from '../model/tag';
 import { Template, writeTemplate } from '../model/template';
 import { User } from '../model/user';
 
@@ -78,7 +78,7 @@ function clearConfig<T extends Config>(e: T, strict = false): T {
     ...e,
     config: e.config && { ...e.config },
   } as any;
-  if (isEmpty(result.defaults)) delete result.defaults;
+  if (emptyDefaults(result.defaults)) delete result.defaults;
   if (result.schema === null) delete result.schema;
   if (!strict) {
     delete result.config?.version;

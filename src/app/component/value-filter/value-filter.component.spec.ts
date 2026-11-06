@@ -17,7 +17,23 @@ describe('ValueFilterComponent', () => {
     { sort: 'tags->plugin/duration:dur', before: 'pt5m', input: 'range' },
     { sort: 'plugins->_plugin/cache->contentLength:num', after: '10mb', input: 'units', unit: 'bytes' },
     { sort: 'plugins->size:num', after: '1mb', input: 'range', hotkeyInput: 'units', unit: 'bytes' },
+    { field: 'plugins->plugin/test->status', equals: 'open', input: 'select', options: [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }] },
+    { field: 'plugins->plugin/test->color', equals: 'red', input: 'select' },
+    { field: 'plugins->plugin/test->name', equals: 'kiwi', input: 'select' },
+    { field: 'plugins->plugin/test->done', equals: 'true', input: 'select' },
+    { sort: 'plugins->plugin/test->rank:num', after: '5', input: 'select', options: [{ value: '5' }] },
+    { field: 'plugins->plugin/test->rank:num', equals: '3' },
+    { field: 'plugins->plugin/test->path', equals: 'a', input: 'select', options: [{ value: 'a' }, { value: '' }, { value: 'a/b' }, { value: 'a,b' }, { value: 'a->b' }] },
+    { field: 'plugins->plugin/test->level:num', equals: '1', input: 'select' },
   ]);
+  const plugin = {
+    tag: 'plugin/test',
+    config: { form: [
+      { key: 'color', type: 'radio', props: { options: [{ value: 'red', label: 'Red' }, { value: 'blue', label: 'Blue' }] } },
+      { key: 'done', type: 'boolean' },
+      { key: 'level', type: 'select', props: { options: [{ value: 1, label: 'Low' }, { value: 2, label: 'High' }, { value: '1/2' }] } },
+    ] },
+  };
 
   beforeEach(async () => {
     extent = vi.fn<(...args: any[]) => any>(() => of([90, 700]));
@@ -25,7 +41,7 @@ describe('ValueFilterComponent', () => {
       imports: [ValueFilterComponent],
       providers: [
         provideRouter([]),
-        { provide: AdminService, useValue: { filters } },
+        { provide: AdminService, useValue: { filters, getPlugin: (tag: string) => tag === plugin.tag ? plugin : undefined } },
         { provide: ValueFilterService, useValue: { extent: (...args: any[]) => extent(...args) } },
       ],
     }).compileComponents();
@@ -297,6 +313,68 @@ describe('ValueFilterComponent', () => {
       input.dispatchEvent(new Event('change'));
       expect(changed).toEqual([]);
       expect(input.value).toBe('10');
+    });
+  });
+
+  describe('select', () => {
+    it('picks from the filter config options', async () => {
+      const el = await render('plugins->plugin/test->status/equals/open');
+      const select = el.querySelector<HTMLSelectElement>('.filter-option')!;
+      expect([...select.options].map(o => o.textContent)).toEqual(['Open', 'Closed']);
+      expect(select.value).toBe('open');
+      select.value = 'closed';
+      select.dispatchEvent(new Event('change'));
+      expect(changed).toEqual(['closed']);
+    });
+
+    it('defaults to the options of the plugin form field', async () => {
+      const el = await render('plugins->plugin/test->color/equals/blue');
+      const select = el.querySelector<HTMLSelectElement>('.filter-option')!;
+      expect([...select.options].map(o => o.textContent)).toEqual(['Red', 'Blue']);
+      expect(select.value).toBe('blue');
+    });
+
+    it('leaves out options the server cannot filter on', async () => {
+      const el = await render('plugins->plugin/test->path/equals/a');
+      const select = el.querySelector<HTMLSelectElement>('.filter-option')!;
+      expect([...select.options].map(o => o.value)).toEqual(['a']);
+    });
+
+    it('reads the plugin form options of a numeric field', async () => {
+      const el = await render('plugins->plugin/test->level:num/equals/1');
+      const select = el.querySelector<HTMLSelectElement>('.filter-option')!;
+      expect([...select.options].map(o => o.textContent)).toEqual(['Low', 'High']);
+      expect(select.value).toBe('1');
+    });
+
+    it('shows a value that is not an option', async () => {
+      const el = await render('plugins->plugin/test->status/equals/other');
+      const select = el.querySelector<HTMLSelectElement>('.filter-option')!;
+      expect([...select.options].map(o => o.textContent)).toEqual(['Open', 'Closed', 'other']);
+      expect(select.value).toBe('other');
+    });
+
+    it('picks true or false for a boolean field', async () => {
+      const el = await render('plugins->plugin/test->done/equals/true');
+      const select = el.querySelector<HTMLSelectElement>('.filter-option')!;
+      expect([...select.options].map(o => o.value)).toEqual(['true', 'false']);
+      select.value = 'false';
+      select.dispatchEvent(new Event('change'));
+      expect(changed).toEqual(['false']);
+    });
+
+    it('uses the field config for equals and the sort config for before and after', async () => {
+      let el = await render('plugins->plugin/test->rank:num/equals/3');
+      expect(el.querySelector('.filter-option')).toBeNull();
+      expect(el.querySelector<HTMLInputElement>('.filter-value')!.value).toBe('3');
+      el = await render('plugins->plugin/test->rank:num/after/5');
+      expect(el.querySelector<HTMLSelectElement>('.filter-option')!.value).toBe('5');
+    });
+
+    it('falls back to text without options', async () => {
+      const el = await render('plugins->plugin/test->name/equals/kiwi');
+      expect(el.querySelector('.filter-option')).toBeNull();
+      expect(el.querySelector<HTMLInputElement>('.filter-value')!.value).toBe('kiwi');
     });
   });
 

@@ -5,6 +5,17 @@ import { Ref } from '../model/ref';
 import { clearMod, equalBundle, formatBundleDiff, formatDiff, merge3, mergeBundle } from './diff';
 
 describe('Diff Utils', () => {
+  describe('equalBundle', () => {
+    it('should ignore empty defaults the server does not return', () => {
+      expect(equalBundle({ plugin: [{ tag: 'plugin/a', defaults: {} }] }, { plugin: [{ tag: 'plugin/a' }] })).toBe(true);
+    });
+
+    it('should compare scalar defaults', () => {
+      expect(equalBundle({ plugin: [{ tag: 'plugin/a', defaults: 0 }] }, { plugin: [{ tag: 'plugin/a', defaults: 5 }] })).toBe(false);
+      expect(equalBundle({ plugin: [{ tag: 'plugin/a', defaults: 0 }] }, { plugin: [{ tag: 'plugin/a' }] })).toBe(false);
+    });
+  });
+
   describe('formatDiff', () => {
     it('should format a ref excluding modified and created fields', () => {
       const ref: Ref = {

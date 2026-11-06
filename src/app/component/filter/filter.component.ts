@@ -20,13 +20,15 @@ import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
 import {
   convertFilter,
+  filterColumnTag,
   FilterGroup,
   FilterItem,
   negatable,
   parseValueFilter,
   switchFilter,
   toggle,
-  UrlFilter
+  UrlFilter,
+  valueFilterConfig
 } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 import { RelativeDateComponent } from '../relative-date/relative-date.component';
@@ -97,8 +99,7 @@ export class FilterComponent {
       }
     };
     const load = (config: FilterConfig) => {
-      const sortTag = config.sort?.replace(/^(tags|plugins)->/, '').split(/->|:/)[0];
-      const query = config.query || config.response || sortTag;
+      const query = config.query || config.response || filterColumnTag(config);
       if (query && !this.auth.queryReadAccess(query)) return;
       push({ label: config.group || '', filters: [convertFilter(config)] });
     };
@@ -240,7 +241,7 @@ export class FilterComponent {
             ? { ...item, filter: value, label: item.label.startsWith(not) ? item.label.substring(not.length) : not + item.label }
             : item) }));
         } else if (v) {
-          load({ group: $localize`Filters 🕵️️`, sort: v.column as FilterConfig['sort'], [v.dir]: v.value });
+          load(valueFilterConfig(v, $localize`Filters 🕵️️`));
         } else if (value.startsWith('scheme/')) {
           load({ group: $localize`Schemes 🏳️️`, scheme: value.substring('scheme/'.length) });
         } else if (value.startsWith('sources/')) {

@@ -17,6 +17,7 @@ export const debugTemplate: Template = {
     icons: [{ thumbnail: $localize`🐞️` }],
     filters: [
       { query: 'debug', label: $localize`🐞️ debug`, title: $localize`Debug`, group: $localize`Templates 🎨️` },
+      { field: 'tags->debug', equals: 'a', label: $localize`🐞️ debug tag`, title: $localize`Debug sub-tag`, group: $localize`Debug 🐞️` },
     ],
     form: [{
       key: 'input',
@@ -101,7 +102,6 @@ export const debugTemplate: Template = {
      Advanced: {{ advanced }}
     `,
   },
-  defaults: {},
   schema: {
     optionalProperties: {
       input: { type: 'string' },
@@ -161,6 +161,14 @@ export const debugPlugin: Plugin = {
     filters: [
       { query: 'plugin/debug', label: $localize`🐞️ debug`, title: $localize`Debug`, group: $localize`Plugins 🧰️` },
       { response: 'plugin/user/breakpoint', label: $localize`🔴️ breakpoint`, title: $localize`Breakpoint`, group: $localize`Plugins 🧰️` },
+      { field: 'plugins->plugin/debug->select', equals: '1', input: 'select', label: $localize`🐞️ select`, title: $localize`Debug select option`, group: $localize`Debug 🐞️` },
+      { field: 'plugins->plugin/debug->radio', equals: 'red', input: 'select', label: $localize`🐞️ radio`, title: $localize`Debug radio option`, group: $localize`Debug 🐞️` },
+      { field: 'plugins->plugin/debug->show', equals: 'true', input: 'select', label: $localize`🐞️ show`, title: $localize`Debug show toggle`, group: $localize`Debug 🐞️` },
+      { field: 'plugins->plugin/debug->multicheckbox->a', equals: 'true', input: 'select', options: [{ value: 'true', label: $localize`✅️ checked` }, { value: 'false', label: $localize`⬜️ unchecked` }], label: $localize`🐞️ option A`, title: $localize`Debug multi-checkbox option A`, group: $localize`Debug 🐞️` },
+      { field: 'plugins->plugin/debug->input', equals: 'debug', label: $localize`🐞️ string`, title: $localize`Debug string`, group: $localize`Debug 🐞️` },
+      { field: 'plugins->plugin/debug->number:num', equals: '42', label: $localize`🐞️ number`, title: $localize`Debug number`, group: $localize`Debug 🐞️` },
+      { sort: 'plugins->plugin/debug->number:num', after: '0', label: $localize`🐞️ number over`, title: $localize`Debug number greater than`, group: $localize`Debug 🐞️` },
+      { sort: 'plugins->plugin/debug->number:num', before: '100', label: $localize`🐞️ number under`, title: $localize`Debug number less than`, group: $localize`Debug 🐞️` },
     ],
     form: [{
       key: 'show',
@@ -334,7 +342,6 @@ export const debugPlugin: Plugin = {
      {{/if}}
     `,
   },
-  defaults: {},
   schema: {
     optionalProperties: {
       show: { type: 'boolean' },

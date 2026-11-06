@@ -1402,7 +1402,7 @@ export interface HotIndexSuggestions {
  */
 export function hotIndexSuggestions(plugins: Plugin[], templates: Template[]): HotIndexSuggestions {
   const sorts = plugins.flatMap(p => p.config?.sorts || []).map(s => s.sort);
-  const filters = [...plugins, ...templates].flatMap(p => p.config?.filters || []).map(f => f.sort);
+  const filters = [...plugins, ...templates].flatMap(p => p.config?.filters || []).map(f => f.sort || f.field);
   const columns = (prefix: string, cs: (string | undefined)[], suffix?: RegExp) => uniq(cs
     .filter(c => c?.startsWith(prefix))
     .map(c => c!.substring(prefix.length))
