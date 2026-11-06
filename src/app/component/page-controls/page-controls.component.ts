@@ -10,7 +10,7 @@ import { RefService } from '../../service/api/ref.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
-import { defaultDesc, withStableDateSort } from '../../util/query';
+import { dateRange, defaultDesc, withStableDateSort } from '../../util/query';
 
 const CURSOR_PAGE_PADDING = 1;
 const DATE_SORT_FIELDS = ['created', 'modified', 'published'] as const;
@@ -18,7 +18,6 @@ const DATE_SORT_FIELDS = ['created', 'modified', 'published'] as const;
 type DateSortField = typeof DATE_SORT_FIELDS[number];
 type SortDirection = 'ASC' | 'DESC';
 type CursorBound = 'Before' | 'After';
-type CursorFilter = `${DateSortField}${CursorBound}`;
 
 interface DateSort {
   field: DateSortField;
@@ -193,16 +192,17 @@ export class PageControlsComponent {
 
     const stableArgs = withStableDateSort(args);
     const stableSort = stableArgs.sort ?? [];
-    const filter = `${sort.field}${move.bound}` as CursorFilter;
+    const request = {
+      ...stableArgs,
+      page: undefined,
+      sort: move.reverse ? this.reverseSort(stableSort) : stableSort,
+    };
 
     return {
       anchor: move.anchor,
-      request: {
-        ...stableArgs,
-        page: undefined,
-        sort: move.reverse ? this.reverseSort(stableSort) : stableSort,
-        [filter]: cursor,
-      },
+      request: move.bound === 'Before'
+        ? dateRange(request, sort.field, undefined, cursor)
+        : dateRange(request, sort.field, cursor),
       fallback: { ...stableArgs, page: move.target },
       initialSize: contentSize + CURSOR_PAGE_PADDING,
       reverse: move.reverse,

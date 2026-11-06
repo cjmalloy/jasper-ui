@@ -66,6 +66,32 @@ updates:
   cooldown:
     default-days: 0
 - package-ecosystem: docker
+  target-branch: v1.4
+  directories:
+    - "/"
+    - "/e2e"
+  schedule:
+    interval: daily
+    timezone: America/Halifax
+  cooldown:
+    default-days: 0
+  groups:
+    v1-4:
+      patterns:
+        - "*"
+- package-ecosystem: npm
+  target-branch: v1.4
+  directory: /
+  schedule:
+    interval: daily
+    timezone: America/Halifax
+  cooldown:
+    default-days: 0
+  groups:
+    v1-4:
+      patterns:
+        - "*"
+- package-ecosystem: docker
   target-branch: v1.3
   directories:
     - "/"
@@ -75,6 +101,10 @@ updates:
     timezone: America/Halifax
   cooldown:
     default-days: 0
+  groups:
+    v1-3:
+      patterns:
+        - "*"
 - package-ecosystem: npm
   target-branch: v1.3
   directory: /
@@ -84,30 +114,6 @@ updates:
   cooldown:
     default-days: 0
   groups:
-    angular:
+    v1-3:
       patterns:
-        - "@angular/*"
-        - "@angular-devkit/*"
-        - "rxjs"
-        - "zone.js"
-        - "tslib"
-        - "ngx-monaco-editor"
-        - "@ngx-formly/*"
-        - "marked"
-        - "marked-*"
-        - "ag-grid-angular"
-        - "ag-grid-community"
-        - "@maplibre/*"
-        - "maplibre-gl"
-        - "@vitest/*"
-        - "vitest"
-        - "jsdom"
-        - "@playwright/*"
-- package-ecosystem: github-actions
-  target-branch: v1.3
-  directory: /
-  schedule:
-    interval: daily
-    timezone: America/Halifax
-  cooldown:
-    default-days: 0
+        - "*"

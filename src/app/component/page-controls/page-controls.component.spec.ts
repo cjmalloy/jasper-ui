@@ -92,7 +92,7 @@ describe('PageControlsComponent', () => {
       page: undefined,
       size: 3,
       sort: ['published,DESC', 'modified,ASC', 'origin,ASC'],
-      publishedBefore: '2024-01-02T00:00:00.001Z',
+      filterBefore: ['published/2024-01-02T00:00:00.001Z'],
     });
     expect(result?.content).toEqual([next, older]);
     expect(result?.page).toEqual({ ...current.page, number: 1 });
@@ -131,7 +131,7 @@ describe('PageControlsComponent', () => {
       page: undefined,
       size: 3,
       sort: ['published,ASC', 'modified,DESC', 'origin,DESC'],
-      publishedAfter: '2024-01-01T23:59:59.999Z',
+      filterAfter: ['published/2024-01-01T23:59:59.999Z'],
     });
     expect(result?.content).toEqual([first, previousLast]);
     expect(result?.page).toEqual({ ...current.page, number: 0 });
@@ -155,7 +155,7 @@ describe('PageControlsComponent', () => {
     expect(refService.page).toHaveBeenCalledOnce();
     expect(refService.page.mock.calls[0][0]).toMatchObject({
       sort: ['published,ASC', 'modified,ASC', 'origin,ASC'],
-      publishedAfter: '2024-01-01T23:59:59.999Z',
+      filterAfter: ['published/2024-01-01T23:59:59.999Z'],
     });
   });
 
@@ -169,7 +169,7 @@ describe('PageControlsComponent', () => {
     fixture.componentRef.setInput('page', current);
     fixture.detectChanges();
     refService.page.mockImplementation((args: RefPageArgs) => {
-      if (args.publishedBefore) {
+      if (args.filterBefore) {
         return of(refPage([
           ref('unrelated-1', { published: DATE }),
           anchor,

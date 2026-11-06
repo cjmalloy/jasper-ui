@@ -74,6 +74,7 @@ import { debugMod } from '../mods/system/debug';
 import { errorMod } from '../mods/system/error';
 import { fullscreenMod } from '../mods/system/fullscreen';
 import { gdprMod } from '../mods/system/gdpr';
+import { indexHelperMod } from '../mods/system/index-helper';
 import { oembedMod } from '../mods/system/oembed';
 import { pipMod } from '../mods/system/pip';
 import { scriptMod } from '../mods/system/script';
@@ -164,6 +165,7 @@ export class AdminService {
     // Configs
     experimentsMod,
     helpMod,
+    indexHelperMod,
     wikiMod,
     graphMod,
     modlistMod,
@@ -769,7 +771,7 @@ export class AdminService {
     this.scanAllOrigins$(args => this.templates.page(args)),
   ])).pipe(
     map(([plugins, templates]) => hotIndexSuggestions(plugins, templates)),
-    catchError(() => of({ tags: [], plugins: [] })),
+    catchError(() => of({ tags: [], plugins: [], responses: [], remoteResponses: [] })),
     share(),
   );
 
@@ -1383,39 +1385,56 @@ export interface HotIndexSuggestions {
    * Plugin columns, without the `plugins->` prefix.
    */
   plugins: string[];
+  /**
+   * Plugins counted in `metadata->plugins`.
+   */
+  responses: string[];
+  /**
+   * Plugins counted in `metadata->remotePlugins`.
+   */
+  remoteResponses: string[];
 }
 
 /**
- * Hot tag columns used to sort or filter, and hot plugin columns used to filter.
+ * Hot tag columns used to sort or filter, hot plugin columns used to filter,
+ * and plugins whose response counts are used to sort.
  * Plugin sorts are skipped, since the server only uses hot plugin indexes for filters.
  */
 export function hotIndexSuggestions(plugins: Plugin[], templates: Template[]): HotIndexSuggestions {
   const sorts = plugins.flatMap(p => p.config?.sorts || []).map(s => s.sort);
   const filters = [...plugins, ...templates].flatMap(p => p.config?.filters || []).map(f => f.sort);
-  const columns = (prefix: string, cs: (string | undefined)[]) => uniq(cs
+  const columns = (prefix: string, cs: (string | undefined)[], suffix?: RegExp) => uniq(cs
     .filter(c => c?.startsWith(prefix))
-    .map(c => c!.substring(prefix.length)))
+    .map(c => c!.substring(prefix.length))
+    .map(c => suffix ? c.replace(suffix, '') : c))
     .sort();
   return {
     tags: columns('tags->', [...sorts, ...filters]),
     plugins: columns('plugins->', filters),
+    responses: columns('metadata->plugins->', sorts, /:num$/),
+    remoteResponses: columns('metadata->remotePlugins->', sorts, /:num$/),
   };
 }
 
 const indexConfigAdminForm: FormlyFieldConfig[] = [
-  { key: 'tags', type: 'boolean', props: { label: $localize`Tags:` } },
-  { key: 'sources', type: 'boolean', props: { label: $localize`Sources:` } },
-  { key: 'alts', type: 'boolean', props: { label: $localize`Alternate URLs:` } },
-  { key: 'responses', type: 'boolean', props: { label: $localize`Responses:` } },
-  { key: 'internalResponses', type: 'boolean', props: { label: $localize`Internal Responses:` } },
-  { key: 'fulltext', type: 'boolean', props: { label: $localize`Full Text:` } },
-  { key: 'published', type: 'boolean', props: { label: $localize`Published:` } },
-  { key: 'modified', type: 'boolean', props: { label: $localize`Modified:` } },
-  { key: 'ignored', type: 'boolean', props: { label: $localize`Ignored:` } },
-  { key: 'cascade', type: 'boolean', props: { label: $localize`Cascade:` } },
-  { key: 'regen', type: 'boolean', props: { label: $localize`Regen:` } },
+  { key: 'tags', type: 'boolean', defaultValue: true, props: { label: $localize`Tags:` } },
+  { key: 'sources', type: 'boolean', defaultValue: true, props: { label: $localize`Sources:` } },
+  { key: 'alts', type: 'boolean', defaultValue: true, props: { label: $localize`Alternate URLs:` } },
+  { key: 'responses', type: 'boolean', defaultValue: true, props: { label: $localize`Responses:` } },
+  { key: 'internalResponses', type: 'boolean', defaultValue: true, props: { label: $localize`Internal Responses:` } },
+  { key: 'fulltext', type: 'boolean', defaultValue: true, props: { label: $localize`Full Text:` } },
+  { key: 'published', type: 'boolean', defaultValue: true, props: { label: $localize`Published:` } },
+  { key: 'modified', type: 'boolean', defaultValue: true, props: { label: $localize`Modified:` } },
+  { key: 'created', type: 'boolean', defaultValue: true, props: { label: $localize`Created:` } },
+  { key: 'newResponse', type: 'boolean', defaultValue: true, props: { label: $localize`New Response:` } },
+  { key: 'newReaction', type: 'boolean', defaultValue: true, props: { label: $localize`New Reaction:` } },
+  { key: 'ignored', type: 'boolean', defaultValue: true, props: { label: $localize`Ignored:` } },
+  { key: 'cascade', type: 'boolean', defaultValue: true, props: { label: $localize`Cascade:` } },
+  { key: 'regen', type: 'boolean', defaultValue: true, props: { label: $localize`Regen:` } },
   strings('hotTags', $localize`Hot Tags:`, $localize`+ Add another hot tag`, admin => admin.hotIndexSuggestions$().pipe(map(s => s.tags))),
   strings('hotPlugins', $localize`Hot Plugins:`, $localize`+ Add another hot plugin`, admin => admin.hotIndexSuggestions$().pipe(map(s => s.plugins))),
+  strings('hotResponses', $localize`Hot Responses:`, $localize`+ Add another hot response`, admin => admin.hotIndexSuggestions$().pipe(map(s => s.responses))),
+  strings('hotRemoteResponses', $localize`Hot Remote Responses:`, $localize`+ Add another hot remote response`, admin => admin.hotIndexSuggestions$().pipe(map(s => s.remoteResponses))),
 ];
 
 const securityConfigAdminForm: FormlyFieldConfig[] = [

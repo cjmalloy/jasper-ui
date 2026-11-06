@@ -92,6 +92,10 @@ export class SubmitStore {
     return this.route.routeSnapshot()?.queryParams['title'] || '';
   });
 
+  readonly comment = computed((): string => {
+    return this.route.routeSnapshot()?.queryParams['comment'] || '';
+  });
+
   readonly to = computed((): string[] => {
     const tag = this.route.routeSnapshot()?.queryParams['to'];
     if (!tag) return [];

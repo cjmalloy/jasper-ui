@@ -50,6 +50,9 @@
       </div>
     }
     <app-debug />
+    @if (store.view.type() === 'ref') {
+      <app-index-helper />
+    }
     @if (store.view.type()) {
       <app-bulk [type]="store.view.type()!"
                 [viewExt]="ext()"

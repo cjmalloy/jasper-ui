@@ -362,7 +362,7 @@ export interface FilterConfig {
    * Set either before or after to the default value to compare against.
    * If set, no other filter types must be set.
    */
-  sort?: `tags->${string}` | `plugins->${string}`;
+  sort?: `tags->${string}` | `plugins->${string}` | `metadata->${string}`;
   /**
    * Keep Refs where the sort column is less than this value.
    */
@@ -678,8 +678,9 @@ export type TagQueryArgs = {
   level?: number,
   deleted?: boolean,
   search?: string,
-  modifiedBefore?: string,
-  modifiedAfter?: string,
+  filterBefore?: string[],
+  filterAfter?: string[],
+  filterEquals?: string[],
 };
 
 export type TagPageArgs = TagQueryArgs & {
