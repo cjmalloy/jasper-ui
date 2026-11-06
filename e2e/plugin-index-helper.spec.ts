@@ -52,6 +52,14 @@ test.describe.serial('Index Helper', () => {
     await expect(helper.locator('.fix-indexes, .request-indexes')).toHaveCount(0);
   });
 
+  test('length sorts use the array index flags', async ({ page }) => {
+    await page.goto(sorted('sources:len,DESC', 'ADMIN'), { waitUntil: 'networkidle' });
+    const helper = page.locator('.index-helper');
+    await expect(helper.locator('.index-status')).toHaveText('⚡️ Indexed');
+    await expect(helper.locator('.index-line')).toHaveAttribute('title', /✅️ sources/);
+    await expect(helper.locator('.index-line')).not.toHaveAttribute('title', /✖️/);
+  });
+
   test('plugin sorts need hot plugins', async ({ page }) => {
     await page.goto(sorted('plugins->_plugin/cache->contentLength:num,DESC', 'ADMIN'), { waitUntil: 'networkidle' });
     const helper = page.locator('.index-helper');

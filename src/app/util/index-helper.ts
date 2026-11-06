@@ -69,14 +69,21 @@ const DATE_COLUMNS = ['published', 'modified', 'created'];
 /**
  * Array length columns, indexed by the flag of their array index.
  */
-const LENGTH_COLUMNS: Record<string, IndexFlag> = {
-  'tags:len': 'tags',
-  'metadata->expandedTags': 'tags',
-  'sources:len': 'sources',
-  'alternateUrls:len': 'alts',
-  'metadata->responses': 'responses',
-  'metadata->internalResponses': 'internalResponses',
-};
+const LENGTH_COLUMNS = new Map<string, IndexFlag>([
+  ['tags:len', 'tags'],
+  ['metadata->expandedTags', 'tags'],
+  ['sources:len', 'sources'],
+  ['alternateUrls:len', 'alts'],
+  ['metadata->responses', 'responses'],
+  ['metadata->internalResponses', 'internalResponses'],
+]);
+
+/**
+ * The server ignores a `:num` or `:len` suffix on metadata columns.
+ */
+function lengthColumn(c: string) {
+  return c.startsWith('metadata->') ? c.replace(/:(num|len)$/, '') : c;
+}
 
 /**
  * Sorts that are covered by the primary key, or rank search results.
@@ -146,8 +153,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   const needs = (c: string) => {
     if (DATE_COLUMNS.includes(c)) {
       flags.push(c as IndexFlag);
-    } else if (LENGTH_COLUMNS[c]) {
-      flags.push(LENGTH_COLUMNS[c]);
+    } else if (LENGTH_COLUMNS.has(lengthColumn(c))) {
+      flags.push(LENGTH_COLUMNS.get(lengthColumn(c))!);
     } else if (c.startsWith('tags->')) {
       hotTags.push(column(c, 'tags->'));
     } else if (c === 'metadata->newResponse' || c === 'metadata->newReaction') {

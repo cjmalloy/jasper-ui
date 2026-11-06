@@ -155,6 +155,7 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
   'comment' | 'comment,ASC' | 'comment,DESC' |
   'tags:len' | 'tags:len,ASC' | 'tags:len,DESC' |
   'sources:len' | 'sources:len,ASC' | 'sources:len,DESC' |
+  'alternateUrls:len' | 'alternateUrls:len,ASC' | 'alternateUrls:len,DESC' |
   `metadata->${string}` | `metadata->${string},ASC` | `metadata->${string},DESC` |
   `plugins->${string}` | `plugins->${string},ASC` | `plugins->${string},DESC` |
   `tags->${string}` | `tags->${string},ASC` | `tags->${string},DESC`;
