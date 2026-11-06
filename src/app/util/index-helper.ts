@@ -18,6 +18,7 @@ export interface IndexConfig {
   published?: boolean;
   modified?: boolean;
   created?: boolean;
+  title?: boolean;
   newResponse?: boolean;
   newReaction?: boolean;
   ignored?: boolean;
@@ -29,7 +30,7 @@ export interface IndexConfig {
   hotRemoteResponses?: string[];
 }
 
-export type IndexFlag = 'tags' | 'sources' | 'alts' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified' | 'created' | 'newResponse' | 'newReaction';
+export type IndexFlag = 'tags' | 'sources' | 'alts' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified' | 'created' | 'title' | 'newResponse' | 'newReaction';
 
 /**
  * Indices used by a Ref query.
@@ -153,6 +154,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   const needs = (c: string) => {
     if (DATE_COLUMNS.includes(c)) {
       flags.push(c as IndexFlag);
+    } else if (c === 'title') {
+      flags.push('title');
     } else if (LENGTH_COLUMNS.has(lengthColumn(c))) {
       flags.push(LENGTH_COLUMNS.get(lengthColumn(c))!);
     } else if (c.startsWith('tags->')) {

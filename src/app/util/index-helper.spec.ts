@@ -11,7 +11,7 @@ describe('Index Helper', () => {
   });
 
   it('flags sorts that cannot be indexed', () => {
-    expect(indexNeeds({ sort: ['title'] }).unindexed).toEqual(['title']);
+    expect(indexNeeds({ sort: ['origin'] }).unindexed).toEqual(['origin']);
     expect(indexNeeds({ sort: ['metadata->newResponse,DESC'] })).toEqual({ flags: ['newResponse'], hotTags: [], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
     expect(indexNeeds({ sort: ['metadata->newReaction'] }).flags).toEqual(['newReaction']);
     expect(indexNeeds({ sort: ['published', 'metadata->newResponse'] }).flags).toEqual(['published']);
@@ -23,6 +23,14 @@ describe('Index Helper', () => {
     const missing = missingIndexes(needs, {});
     expect(missing.unindexed).toEqual(needs.unindexed);
     expect(hasFixable(missing)).toBe(false);
+  });
+
+  it('needs the title index for title sorts', () => {
+    expect(indexNeeds({ sort: ['title'] })).toEqual({ flags: ['title'], hotTags: [], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
+    expect(indexNeeds({ sort: ['title,DESC'] }).flags).toEqual(['title']);
+    expect(indexNeeds({ sort: ['published', 'title'] }).flags).toEqual(['published']);
+    expect(missingIndexes(indexNeeds({ sort: ['title'] }), { title: false }).flags).toEqual(['title']);
+    expect(missingIndexes(indexNeeds({ sort: ['title'] }), {}).flags).toEqual([]);
   });
 
   it('needs the tags index for tag queries', () => {
@@ -153,7 +161,7 @@ describe('Index Helper', () => {
 
   it('fixes the config', () => {
     const config = { fulltext: false, hotTags: ['plugin/a', ''], hotPlugins: ['plugin/b'] };
-    const missing = { flags: ['fulltext' as const], hotTags: ['plugin/c:num'], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: ['title'] };
+    const missing = { flags: ['fulltext' as const], hotTags: ['plugin/c:num'], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: ['origin'] };
     expect(fixIndexConfig(missing, config)).toEqual({
       fulltext: true,
       hotTags: ['plugin/a', 'plugin/c:num'],
