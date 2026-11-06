@@ -29,6 +29,11 @@ describe('Tag Model', () => {
       expect(cleared.config?.mod).toBe('📔️ Wiki');
       expect(cleared.config?.generated).toBeUndefined();
     });
+
+    it('should drop empty defaults, since the server does not return them', () => {
+      expect('defaults' in clear({ tag: 'plugin/debug', defaults: {} } as any)).toBe(false);
+      expect(clear({ tag: 'plugin/debug', defaults: { a: 1 } } as any).defaults).toEqual({ a: 1 });
+    });
   });
 
   describe('progress', () => {

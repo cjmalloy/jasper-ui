@@ -16,6 +16,13 @@ test.describe.serial('Debug Plugin', () => {
     await mod(page, '#mod-experiments', '#mod-debug');
   });
 
+  test('is up to date right after installing', async ({ page }) => {
+    const row = page.locator('.mod-row', { has: page.locator('#mod-debug') });
+    await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
+    await expect(row.locator('#mod-debug')).toBeChecked();
+    await expect(row.locator('.mod-update-link')).toHaveCount(0);
+  });
+
   test('create refs with debug values', async ({ request }) => {
     const refs: [string, string[], any][] = [
       ['One', [], { select: '1', radio: 'red', show: true, multicheckbox: { a: true }, input: 'debug', number: 42 }],

@@ -2,7 +2,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as d3 from 'd3';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
-import { cloneDeep, defer, isEqual, omitBy, uniqWith } from 'lodash-es';
+import { cloneDeep, defer, isEmpty, isEqual, omitBy, uniqWith } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { v4 as uuid } from 'uuid';
 import { dedent, formatDuration, interestingTags } from '../util/format';
@@ -677,6 +677,7 @@ export function clear<T extends Config>(c: T) {
   const { tag } = c;
   c = omitBy(c, i => !i) as any;
   if (tag !== undefined) c.tag = tag;
+  if (isEmpty(c.defaults)) delete c.defaults;
   c.config = omitBy(c.config, i => !i);
   delete c.config!.generated;
   delete c.config!._parent;
