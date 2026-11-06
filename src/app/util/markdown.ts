@@ -149,7 +149,7 @@ export function sanitizeMarkdown(doc: Document) {
  * Inline CSS properties allowed in untrusted markdown. Covers basic formatting,
  * media dimensions and the properties KaTeX emits.
  */
-const STYLE_PROPS = /^(color|background-color|opacity|font-(weight|style|size|family|variant)|line-height|letter-spacing|word-spacing|text-(align|decoration(-[a-z]+)*|transform|indent|shadow)|white-space|vertical-align|display|visibility|(min-|max-)?(width|height)|(margin|padding)(-(top|right|bottom|left))?|border(-(top|right|bottom|left))?(-(width|style|color))?|border-collapse|border-spacing|border(-[a-z]+)?-radius|top|right|bottom|left|list-style(-type|-position)?|float|clear|overflow(-[xy])?|box-sizing|word-break|overflow-wrap)$/;
+const STYLE_PROPS = /^(color|background-color|opacity|font-(weight|style|size|family|variant(-[a-z]+)*)|line-height|letter-spacing|word-spacing|text-(align(-all|-last)?|decoration(-[a-z]+)*|transform|indent|shadow|wrap(-mode|-style)?)|white-space(-collapse|-trim)?|vertical-align|baseline-(source|shift)|alignment-baseline|display|visibility|(min-|max-)?(width|height)|(margin|padding)(-(top|right|bottom|left))?|border(-(top|right|bottom|left))?(-(width|style|color))?|border-collapse|border-spacing|border(-(top|bottom)-(left|right))?-radius|top|right|bottom|left|list-style(-type|-position)?|float|clear|overflow(-[xy])?|box-sizing|word-break|overflow-wrap)$/;
 
 /**
  * Restrict untrusted inline CSS to safe formatting properties.

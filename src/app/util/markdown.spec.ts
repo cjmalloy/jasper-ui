@@ -130,6 +130,19 @@ describe('markdown util', () => {
       expect(span.style.height).toBe('2em');
       expect(span.style.verticalAlign).toBe('-0.5em');
     });
+
+    it('keeps longhands of allowed shorthands', () => {
+      const doc = new DOMParser().parseFromString(
+        '<p style="text-align: center; white-space: pre-wrap; border-radius: 4px; font-variant: small-caps; border: 1px solid red; list-style: disc inside">a</p>', 'text/html');
+      sanitizeMarkdown(doc);
+      const p = doc.body.querySelector('p')!;
+      expect(p.style.textAlign).toBe('center');
+      expect(p.style.whiteSpace).toBe('pre-wrap');
+      expect(p.style.borderRadius).toBe('4px');
+      expect(p.style.fontVariant).toBe('small-caps');
+      expect(p.style.borderTopColor).toBe('red');
+      expect(p.style.listStyleType).toBe('disc');
+    });
   });
 
   describe('copyText', () => {
