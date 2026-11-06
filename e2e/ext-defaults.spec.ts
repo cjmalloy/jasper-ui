@@ -125,7 +125,10 @@ test.describe.serial('Ext defaults', () => {
 
     const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filterAfter'));
     await page.goto('/home?debug=ADMIN');
-    expect(new URL((await request).url()).searchParams.getAll('filterAfter')).toEqual(['tags->plugin/duration:dur/' + value]);
+    expect(new URL((await request).url()).searchParams.getAll('filterAfter')).toEqual([
+      expect.stringMatching(/^created\//),
+      'tags->plugin/duration:dur/' + value,
+    ]);
   });
 
   test('configures and renders a Markdown header', async ({ page }) => {
