@@ -102,7 +102,6 @@ export const debugTemplate: Template = {
      Advanced: {{ advanced }}
     `,
   },
-  defaults: {},
   schema: {
     optionalProperties: {
       input: { type: 'string' },
@@ -343,7 +342,6 @@ export const debugPlugin: Plugin = {
      {{/if}}
     `,
   },
-  defaults: {},
   schema: {
     optionalProperties: {
       show: { type: 'boolean' },

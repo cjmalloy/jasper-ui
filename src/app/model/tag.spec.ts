@@ -31,8 +31,15 @@ describe('Tag Model', () => {
     });
 
     it('should drop empty defaults, since the server does not return them', () => {
-      expect('defaults' in clear({ tag: 'plugin/debug', defaults: {} } as any)).toBe(false);
-      expect(clear({ tag: 'plugin/debug', defaults: { a: 1 } } as any).defaults).toEqual({ a: 1 });
+      for (const defaults of [undefined, null, {}, [], '']) {
+        expect('defaults' in clear({ tag: 'plugin/debug', defaults } as any)).toBe(false);
+      }
+    });
+
+    it('should keep defaults the server returns', () => {
+      for (const defaults of [0, false, true, 5, 'a', [0], { a: 1 }]) {
+        expect(clear({ tag: 'plugin/debug', defaults } as any).defaults).toEqual(defaults);
+      }
     });
   });
 

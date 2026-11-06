@@ -2,7 +2,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import * as d3 from 'd3';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
-import { cloneDeep, defer, isEmpty, isEqual, omitBy, uniqWith } from 'lodash-es';
+import { cloneDeep, defer, isEmpty, isEqual, isPlainObject, omitBy, uniqWith } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { v4 as uuid } from 'uuid';
 import { dedent, formatDuration, interestingTags } from '../util/format';
@@ -673,11 +673,21 @@ export function downloadModel(action: DownloadAction, ref?: Ref, user?: string) 
   }));
 }
 
+/**
+ * The server omits empty defaults (`null`, `{}`, `[]` or `""`), but keeps `0` and `false`.
+ */
+export function emptyDefaults(defaults: any) {
+  if (defaults === null || defaults === undefined || defaults === '') return true;
+  if (Array.isArray(defaults)) return !defaults.length;
+  return isPlainObject(defaults) && isEmpty(defaults);
+}
+
 export function clear<T extends Config>(c: T) {
-  const { tag } = c;
+  const { tag, defaults } = c;
   c = omitBy(c, i => !i) as any;
   if (tag !== undefined) c.tag = tag;
-  if (isEmpty(c.defaults)) delete c.defaults;
+  delete c.defaults;
+  if (!emptyDefaults(defaults)) c.defaults = defaults;
   c.config = omitBy(c.config, i => !i);
   delete c.config!.generated;
   delete c.config!._parent;
