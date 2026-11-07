@@ -26,18 +26,32 @@ export class VisibilityService {
     }
   }
 
-  public notifyVisible(element: ElementRef, callback: () => void) {
+  /**
+   * Call back once when the element is close to the viewport.
+   * @return disposer that cancels the callback
+   */
+  public notifyVisible(element: ElementRef, callback: () => void): () => void {
     if (!('IntersectionObserver' in window)) {
       // Fallback for unsupported browsers
       callback();
-      return;
+      return () => {};
     }
-    const cbs = this.observedElements.get(element.nativeElement);
+    const el = element.nativeElement as Element;
+    const cbs = this.observedElements.get(el);
     if (cbs) {
       cbs.push(callback);
-      return;
+    } else {
+      this.observer!.observe(el);
+      this.observedElements.set(el, [callback]);
     }
-    this.observer!.observe(element.nativeElement);
-    this.observedElements.set(element.nativeElement, [callback]);
+    return () => {
+      const cbs = this.observedElements.get(el);
+      if (!cbs) return;
+      const i = cbs.indexOf(callback);
+      if (i >= 0) cbs.splice(i, 1);
+      if (cbs.length) return;
+      this.observer!.unobserve(el);
+      this.observedElements.delete(el);
+    };
   }
 }

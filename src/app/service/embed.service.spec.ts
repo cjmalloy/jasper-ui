@@ -221,5 +221,43 @@ describe('EmbedService', () => {
       service.render(el, '[page](https://example.com/page)', { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false });
       expect(el.querySelector('.toggle')).toBeNull();
     });
+
+    function lookups(markdown: string, islands = false) {
+      vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
+      vi.spyOn(TestBed.inject(AdminService), 'getEmbedPluginsForUrl').mockImplementation(url => url.endsWith('.pdf') ? [{ tag: 'plugin/pdf' } as any] : []);
+      vi.spyOn(TestBed.inject(RefService), 'exists').mockReturnValue(of(false));
+      const getCurrent = vi.spyOn(TestBed.inject(RefService), 'getCurrent').mockReturnValue(throwError(() => ({ status: 404 })));
+      const fixture = TestBed.createComponent(HostComponent);
+      const ctx = { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false };
+      if (islands) {
+        const tokens = service.lex(markdown);
+        const { root, islands } = service.renderBlock({ tokens } as any, tokens.links);
+        fixture.nativeElement.appendChild(root);
+        islands.forEach((island, start) => service.hydrateIsland(start, island, ctx));
+      } else {
+        service.render(fixture.nativeElement, markdown, ctx);
+      }
+      return getCurrent.mock.calls.map(c => c[0]);
+    }
+
+    it('does not look up links that already have a toggle', () => {
+      expect(lookups('[paper](https://example.com/a.pdf)')).toEqual([]);
+    });
+
+    it('does not look up links followed by an explicit toggle for the same URL', () => {
+      expect(lookups('[paper](https://example.com/paper)![+](https://example.com/paper)')).toEqual([]);
+    });
+
+    it('does not look up links that already have a toggle when hydrating islands', () => {
+      expect(lookups('[paper](https://example.com/a.pdf) [page](https://example.com/page)', true)).toEqual(['https://example.com/page']);
+    });
+
+    it('looks up links followed by a toggle for another URL', () => {
+      expect(lookups('[paper](https://example.com/paper) and ![+](https://example.com/other)')).toEqual(['https://example.com/paper']);
+    });
+
+    it('looks up links directly followed by a toggle for another URL', () => {
+      expect(lookups('[paper](https://example.com/paper)![+](https://example.com/other)')).toEqual(['https://example.com/paper']);
+    });
   });
 });

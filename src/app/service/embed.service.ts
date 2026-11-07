@@ -23,6 +23,7 @@ import {
   MdIsland,
   MdIslands,
   markIslands,
+  markLinkToggles,
   mediaToPlaceholders,
   mermaidHydrator,
   prismHydrator,
@@ -267,6 +268,7 @@ export class EmbedService {
     mediaToPlaceholders(doc);
     wrapTables(doc);
     removeToggleLabels(doc);
+    markLinkToggles(doc);
     fixUserTags(doc, origin, this.store.origins.originMap().get(origin || ''));
     return doc;
   }
@@ -734,7 +736,7 @@ export class EmbedService {
         t.remove();
         return;
       }
-      const hasToggle = t.nextElementSibling?.classList.contains('toggle');
+      const hasToggle = t.dataset.embedToggle !== undefined;
       const c = createLink(vc, href, t.textContent || '', t.title, t.className);
       this.insert(t, c.location.nativeElement);
       t.remove();
@@ -755,11 +757,9 @@ export class EmbedService {
    * @return cleanup function
    */
   private refToggle(link: HTMLElement, url: string, vc: ViewContainerRef) {
-    let destroyed = false;
     let sub: Subscription | undefined;
     let toggleCleanup: (() => void) | undefined;
-    this.vis.notifyVisible(new ElementRef(link), () => {
-      if (destroyed) return;
+    const unobserve = this.vis.notifyVisible(new ElementRef(link), () => {
       sub = this.refs.getCurrent(url).pipe(
         catchError(() => of(null)),
       ).subscribe(ref => {
@@ -773,7 +773,7 @@ export class EmbedService {
       });
     });
     return () => {
-      destroyed = true;
+      unobserve();
       sub?.unsubscribe();
       toggleCleanup?.();
     };

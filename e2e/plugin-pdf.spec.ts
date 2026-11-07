@@ -1,9 +1,14 @@
 import { type APIRequestContext, expect } from '@playwright/test';
+import { readFileSync } from 'fs';
 import { adminHeaders, localOrigin, mod, test } from './setup';
 
 test.describe.serial('PDF Plugin', () => {
   const runId = Date.now().toString(36);
   const api = (process.env.MAIN_API || 'http://localhost:8081') + '/api/v1';
+  // The API refuses to be framed cross origin, so open PDFs through the same origin client proxy
+  const proxyApp = new URL(process.env.PROXY_URL || 'http://jasper.test:8084');
+  proxyApp.hostname = 'localhost';
+  const app = proxyApp.origin;
   const paper = `https://example.com/pdf-${runId}/paper/`;
   const page2 = `https://example.com/pdf-${runId}/page/`;
   const url = `comment:pdf-${runId}`;
@@ -19,12 +24,19 @@ test.describe.serial('PDF Plugin', () => {
   }
 
   test('enable mods', async ({ page }) => {
-    await mod(page, '#mod-root', '#mod-pdf');
+    await mod(page, '#mod-root', '#mod-pdf', '#mod-cache', '#mod-filecache');
   });
 
   test('create refs', async ({ request }) => {
+    const cached = await request.post(`${api}/proxy`, {
+      headers: { ...await headers(request), 'Content-Type': 'application/pdf' },
+      params: { title: `paper-${runId}.pdf`, mime: 'application/pdf', origin: localOrigin() },
+      data: readFileSync('e2e/fixtures/test.pdf'),
+    });
+    expect(cached.ok(), await cached.text()).toBeTruthy();
+    const pdf = (await cached.json()).url as string;
     for (const data of [
-      { url: paper, title: 'Paper', tags: ['public', 'plugin/pdf'], plugins: { 'plugin/pdf': { url: `cache:pdf-${runId}` } } },
+      { url: paper, title: 'Paper', tags: ['public', 'plugin/pdf'], plugins: { 'plugin/pdf': { url: pdf } } },
       { url: page2, title: 'Page', tags: ['public'] },
       { url, title: 'Links', tags: ['public'], comment: `[paper](${paper}) [page](${page2})` },
     ]) {
@@ -37,7 +49,7 @@ test.describe.serial('PDF Plugin', () => {
   });
 
   test('shows an embed toggle for links to PDF Refs', async ({ page }) => {
-    await page.goto(`/ref/e/${encodeURIComponent(url)}?debug=USER`, { waitUntil: 'networkidle' });
+    await page.goto(`${app}/ref/e/${encodeURIComponent(url)}?debug=USER`, { waitUntil: 'networkidle' });
     const md = page.locator('.full-page.ref .md');
     await expect(md.locator('a', { hasText: 'paper' })).toBeVisible();
     const toggle = md.locator('.toggle.embed');
