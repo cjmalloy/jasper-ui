@@ -605,6 +605,18 @@ export function removeToggleLabels(doc: Document) {
   });
 }
 
+/**
+ * Mark links followed by an embed toggle for the same URL, so they keep
+ * that association after islands are hydrated separately.
+ */
+export function markLinkToggles(doc: Document) {
+  doc.body.querySelectorAll<HTMLElement>('.toggle.embed').forEach(t => {
+    let prev = t.previousSibling;
+    while (prev?.nodeType === Node.TEXT_NODE && !prev.textContent?.trim()) prev = prev.previousSibling;
+    if (prev instanceof HTMLAnchorElement && prev.getAttribute('href') === t.title) prev.dataset.embedToggle = '';
+  });
+}
+
 export interface MdMorph {
   /** Live markdown host (.md) */
   host: HTMLElement;
