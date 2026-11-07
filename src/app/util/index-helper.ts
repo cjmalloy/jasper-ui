@@ -19,6 +19,7 @@ export interface IndexConfig {
   modified?: boolean;
   created?: boolean;
   title?: boolean;
+  origin?: boolean;
   newResponse?: boolean;
   newReaction?: boolean;
   ignored?: boolean;
@@ -30,7 +31,7 @@ export interface IndexConfig {
   hotRemoteResponses?: string[];
 }
 
-export type IndexFlag = 'tags' | 'sources' | 'alts' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified' | 'created' | 'title' | 'newResponse' | 'newReaction';
+export type IndexFlag = 'tags' | 'sources' | 'alts' | 'responses' | 'internalResponses' | 'fulltext' | 'published' | 'modified' | 'created' | 'title' | 'origin' | 'newResponse' | 'newReaction';
 
 /**
  * Indices used by a Ref query.
@@ -132,6 +133,14 @@ function queryHasTags(query?: string) {
 }
 
 /**
+ * Whether the query selects any origins other than the `@*` wildcard.
+ */
+function queryHasOrigins(query?: string) {
+  if (!query) return false;
+  return /@[a-z0-9]/.test(query);
+}
+
+/**
  * Work out which `_config/index` indices a Ref page query uses.
  */
 export function indexNeeds(args?: RefPageArgs): IndexNeeds {
@@ -143,6 +152,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
   const unindexed: string[] = [];
   if (!args) return { flags, hotTags, hotPlugins, hotResponses, hotRemoteResponses, unindexed };
   if (queryHasTags(args.query)) flags.push('tags');
+  if (queryHasOrigins(args.query)) flags.push('origin');
+  if (args.nesting !== undefined && args.nesting !== null) flags.push('origin');
   // Search also matches the URL or alternate URLs
   if (args.search) flags.push('fulltext', 'alts');
   // URL filters also match alternate URLs
@@ -156,6 +167,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
       flags.push(c as IndexFlag);
     } else if (c === 'title') {
       flags.push('title');
+    } else if (c === 'origin' || c === 'origin:len') {
+      flags.push('origin');
     } else if (LENGTH_COLUMNS.has(lengthColumn(c))) {
       flags.push(LENGTH_COLUMNS.get(lengthColumn(c))!);
     } else if (c.startsWith('tags->')) {

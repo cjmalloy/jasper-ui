@@ -11,7 +11,7 @@ describe('Index Helper', () => {
   });
 
   it('flags sorts that cannot be indexed', () => {
-    expect(indexNeeds({ sort: ['origin'] }).unindexed).toEqual(['origin']);
+    expect(indexNeeds({ sort: ['comment'] }).unindexed).toEqual(['comment']);
     expect(indexNeeds({ sort: ['metadata->newResponse,DESC'] })).toEqual({ flags: ['newResponse'], hotTags: [], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
     expect(indexNeeds({ sort: ['metadata->newReaction'] }).flags).toEqual(['newReaction']);
     expect(indexNeeds({ sort: ['published', 'metadata->newResponse'] }).flags).toEqual(['published']);
@@ -33,8 +33,19 @@ describe('Index Helper', () => {
     expect(missingIndexes(indexNeeds({ sort: ['title'] }), {}).flags).toEqual([]);
   });
 
+  it('needs the origin index for origin queries, nesting and origin sorts', () => {
+    expect(indexNeeds({ query: '@origin' })).toEqual({ flags: ['origin'], hotTags: [], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
+    expect(indexNeeds({ query: '@origin.*' }).flags).toEqual(['origin']);
+    expect(indexNeeds({ query: '@*' }).flags).toEqual([]);
+    expect(indexNeeds({ nesting: 0 }).flags).toEqual(['origin']);
+    expect(indexNeeds({ sort: ['origin,DESC'] }).flags).toEqual(['origin']);
+    expect(indexNeeds({ sort: ['origin:len'] }).flags).toEqual(['origin']);
+    expect(indexNeeds({ sort: ['published', 'origin'] }).flags).toEqual(['published']);
+    expect(missingIndexes(indexNeeds({ sort: ['origin'] }), { origin: false }).flags).toEqual(['origin']);
+  });
+
   it('needs the tags index for tag queries', () => {
-    expect(indexNeeds({ query: 'science@origin' }).flags).toEqual(['tags']);
+    expect(indexNeeds({ query: 'science@origin' }).flags).toEqual(['tags', 'origin']);
     expect(indexNeeds({ query: '+user/bob' }).flags).toEqual(['tags']);
   });
 
@@ -161,7 +172,7 @@ describe('Index Helper', () => {
 
   it('fixes the config', () => {
     const config = { fulltext: false, hotTags: ['plugin/a', ''], hotPlugins: ['plugin/b'] };
-    const missing = { flags: ['fulltext' as const], hotTags: ['plugin/c:num'], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: ['origin'] };
+    const missing = { flags: ['fulltext' as const], hotTags: ['plugin/c:num'], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: ['comment'] };
     expect(fixIndexConfig(missing, config)).toEqual({
       fulltext: true,
       hotTags: ['plugin/a', 'plugin/c:num'],
