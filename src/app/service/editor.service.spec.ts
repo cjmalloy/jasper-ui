@@ -146,6 +146,10 @@ static float clamp(float value)
       ['<p>a<a href="https://example.com"> link </a>b</p>', 'a [link](https://example.com) b'],
       ['<p>a<a href="https://example.com">link</a>b</p>', 'a[link](https://example.com)b'],
       ['<p>a <a href="https://example.com"><em> link </em></a> b</p>', 'a [_link_](https://example.com) b'],
+      ['<p>a<a href="https://example.com"><img src="i.png"> caption</a>b</p>', 'a[![](i.png) caption](https://example.com)b'],
+      ['<p>a<a href="https://example.com"><span style="display:none"> x</span>link</a>b</p>', 'a[link](https://example.com)b'],
+      ['<p><a href="https://example.com">link<br></a>after</p>', '[link](https://example.com)  \nafter'],
+      ['<p><em>foo<br></em>after</p>', '*foo*  \nafter'],
     ])('should handle whitespace around links for %s', (html, markdown) => {
       expect(europa.convert(html)).toBe(markdown);
     });
@@ -157,6 +161,8 @@ static float clamp(float value)
       ['<p><em>hello!</em><strong>world</strong></p>', '<em>hello!</em><strong>world</strong>'],
       ['<p>x <em><strong>bi</strong></em> y</p>', 'x <em><strong>bi</strong></em> y'],
       ['<p>ab<em>ab<strong>c</strong> <strong>cc!c</strong></em></p>', 'ab<em>ab<strong>c</strong> <strong>cc!c</strong></em>'],
+      ['<p><a href="https://example.com">link<br></a>after</p>', '<a href="https://example.com">link</a><br>after'],
+      ['<p><em>foo<br></em>after</p>', '<em>foo</em><br>after'],
     ])('should render emphasis converted from %s', (html, rendered) => {
       expect(new Marked().parseInline(europa.convert(html))).toBe(rendered);
     });

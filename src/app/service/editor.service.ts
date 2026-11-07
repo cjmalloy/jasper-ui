@@ -102,19 +102,34 @@ export class EditorService {
       }
       return '';
     };
+    const startsWithWhitespace = (node: Node, skip: Set<string>): boolean | undefined => {
+      if (node.nodeType === Node.TEXT_NODE) return node.textContent ? /^\s/.test(node.textContent) : undefined;
+      if (node.nodeType !== Node.ELEMENT_NODE) return undefined;
+      const el = node as HTMLElement;
+      const tag = el.tagName.toUpperCase();
+      if (skip.has(tag) || el.style?.display === 'none' || el.style?.visibility === 'hidden') return undefined;
+      if (tag === 'IMG' || tag === 'AUDIO' || tag === 'VIDEO' || tag === 'BR') return false;
+      for (const child of Array.from(el.childNodes)) {
+        const ws = startsWithWhitespace(child, skip);
+        if (ws !== undefined) return ws;
+      }
+      return undefined;
+    };
     const trimTrailingWhitespace = (conversion: Parameters<NonNullable<PluginConverter['endTag']>>[0]): string => {
       const left = conversion.left.replace(/[ \t]+$/, '');
       let last = conversion.last || '';
       let trimmed = '';
+      let hardBreak = false;
       while (true) {
         const ws = last.match(/[ \t]+$/)?.[0] || (left && last.endsWith(left) ? left : '');
         if (!ws) break;
         trimmed += ws;
         last = last.substring(0, last.length - ws.length);
+        if (ws === left && / {2,}$/.test(last)) hardBreak = true;
       }
       conversion.last = last;
       conversion.atNoWhitespace = false;
-      return trimmed;
+      return hardBreak ? '  \n' : trimmed.includes('\n') ? '\n' : trimmed ? ' ' : '';
     };
     const emphasisConverter = (marker: string, intrawordMarker = marker): PluginConverter => ({
       startTag(conversion, context): boolean {
@@ -132,9 +147,9 @@ export class EditorService {
       },
       endTag(conversion, context) {
         if (!context.has('marker')) return;
-        const trimmed = trimTrailingWhitespace(conversion);
+        const trailing = trimTrailingWhitespace(conversion);
         conversion.output(context.get<string>('marker')!);
-        if (trimmed) conversion.output(trimmed.includes('\n') ? '\n' : ' ');
+        conversion.output(trailing, { preserveLeadingWhitespace: true });
       },
     });
     const emphasisProvider = (api: PluginApi): Plugin => {
@@ -198,7 +213,7 @@ export class EditorService {
             }
 
             context.set('value', value);
-            if (/^\s/.test(element.text() || '') && !conversion.atNoWhitespace) conversion.output(' ');
+            if (startsWithWhitespace(element.node(), conversion.skipTagNames) && !conversion.atNoWhitespace) conversion.output(' ');
             conversion.output('[');
             conversion.atNoWhitespace = true;
 
@@ -207,9 +222,9 @@ export class EditorService {
 
           endTag(conversion, context) {
             if (context.has('value')) {
-              const trimmed = trimTrailingWhitespace(conversion);
+              const trailing = trimTrailingWhitespace(conversion);
               conversion.output(`]${context.get<string>('value')}`);
-              if (trimmed) conversion.output(trimmed.includes('\n') ? '\n' : ' ');
+              conversion.output(trailing, { preserveLeadingWhitespace: true });
 
               // Unset inline flag
               // @ts-ignore
