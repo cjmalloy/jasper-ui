@@ -178,7 +178,7 @@ describe('EmbedService', () => {
   describe('toggles', () => {
     it('recovers when expanding fails', () => {
       vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
-      vi.spyOn(TestBed.inject(AdminService), 'getPluginsForUrl').mockReturnValue([]);
+      vi.spyOn(TestBed.inject(AdminService), 'getEmbedPluginsForUrl').mockReturnValue([]);
       vi.spyOn(TestBed.inject(EditorService), 'getUrlType').mockReturnValue('tag');
       const loadQuery = vi.spyOn(service, 'loadQuery$').mockReturnValue(throwError(() => new Error('fail')));
       const fixture = TestBed.createComponent(HostComponent);

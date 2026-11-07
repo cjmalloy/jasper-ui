@@ -165,7 +165,7 @@ export class EmbedService {
             out += ' title="' + (escape(title)) + '"';
           }
           out += '>' + text + '</a>';
-          if (admin.getPluginsForUrl(href).length || ['ref', 'tag'].includes(editor.getUrlType(href))) {
+          if (admin.getEmbedPluginsForUrl(href).length || ['ref', 'tag'].includes(editor.getUrlType(href))) {
             return out + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
           }
           return out;
@@ -555,7 +555,7 @@ export class EmbedService {
               this.insert(t, c.location.nativeElement);
               t.remove();
             } else {
-              const embeds = this.admin.getPluginsForUrl(url);
+              const embeds = this.admin.getEmbedPluginsForUrl(url);
               if (embeds.length) {
                 const c = createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) });
                 if (title) c.location.nativeElement.title = title;
@@ -697,7 +697,7 @@ export class EmbedService {
       // TODO: Don't use title to store url
       const url = t.title;
       cleanup.push(this.toggle(t, done => {
-        const embeds = this.admin.getPluginsForUrl(url);
+        const embeds = this.admin.getEmbedPluginsForUrl(url);
         if (embeds.length) {
           return done(createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) }).location.nativeElement);
         }
