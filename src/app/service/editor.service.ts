@@ -102,6 +102,20 @@ export class EditorService {
       }
       return '';
     };
+    const trimTrailingWhitespace = (conversion: Parameters<NonNullable<PluginConverter['endTag']>>[0]): string => {
+      const left = conversion.left.replace(/[ \t]+$/, '');
+      let last = conversion.last || '';
+      let trimmed = '';
+      while (true) {
+        const ws = last.match(/[ \t]+$/)?.[0] || (left && last.endsWith(left) ? left : '');
+        if (!ws) break;
+        trimmed += ws;
+        last = last.substring(0, last.length - ws.length);
+      }
+      conversion.last = last;
+      conversion.atNoWhitespace = false;
+      return trimmed;
+    };
     const emphasisConverter = (marker: string, intrawordMarker = marker): PluginConverter => ({
       startTag(conversion, context): boolean {
         const { element } = conversion;
@@ -118,17 +132,7 @@ export class EditorService {
       },
       endTag(conversion, context) {
         if (!context.has('marker')) return;
-        const left = conversion.left.replace(/[ \t]+$/, '');
-        let last = conversion.last || '';
-        let trimmed = '';
-        while (true) {
-          const ws = last.match(/[ \t]+$/)?.[0] || (left && last.endsWith(left) ? left : '');
-          if (!ws) break;
-          trimmed += ws;
-          last = last.substring(0, last.length - ws.length);
-        }
-        conversion.last = last;
-        conversion.atNoWhitespace = false;
+        const trimmed = trimTrailingWhitespace(conversion);
         conversion.output(context.get<string>('marker')!);
         if (trimmed) conversion.output(trimmed.includes('\n') ? '\n' : ' ');
       },
@@ -194,6 +198,7 @@ export class EditorService {
             }
 
             context.set('value', value);
+            if (/^\s/.test(element.text() || '') && !conversion.atNoWhitespace) conversion.output(' ');
             conversion.output('[');
             conversion.atNoWhitespace = true;
 
@@ -202,7 +207,9 @@ export class EditorService {
 
           endTag(conversion, context) {
             if (context.has('value')) {
+              const trimmed = trimTrailingWhitespace(conversion);
               conversion.output(`]${context.get<string>('value')}`);
+              if (trimmed) conversion.output(trimmed.includes('\n') ? '\n' : ' ');
 
               // Unset inline flag
               // @ts-ignore

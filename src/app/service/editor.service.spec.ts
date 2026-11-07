@@ -139,6 +139,18 @@ static float clamp(float value)
     });
 
     it.each([
+      ['<span>Here is</span><a href="https://example.com"> link text</a>', 'Here is [link text](https://example.com)'],
+      ['<p>Here is<a href="https://example.com"> link text</a></p>', 'Here is [link text](https://example.com)'],
+      ['<p>Here is <a href="https://example.com"> link text</a></p>', 'Here is [link text](https://example.com)'],
+      ['<p><a href="https://example.com">link text </a>after</p>', '[link text](https://example.com) after'],
+      ['<p>a<a href="https://example.com"> link </a>b</p>', 'a [link](https://example.com) b'],
+      ['<p>a<a href="https://example.com">link</a>b</p>', 'a[link](https://example.com)b'],
+      ['<p>a <a href="https://example.com"><em> link </em></a> b</p>', 'a [_link_](https://example.com) b'],
+    ])('should handle whitespace around links for %s', (html, markdown) => {
+      expect(europa.convert(html)).toBe(markdown);
+    });
+
+    it.each([
       ['<p>This is <em>italic </em>text</p>', 'This is <em>italic</em> text'],
       ['<p>foo<em>bar</em>baz</p>', 'foo<em>bar</em>baz'],
       ['<p><span><em>foo</em></span>bar</p>', '<em>foo</em>bar'],
