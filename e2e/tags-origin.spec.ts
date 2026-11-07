@@ -50,13 +50,28 @@ test.describe.serial('Tags page origin', () => {
     })).status()).toBe(200);
   });
 
-  test('origin qualified tag shows remote results and hides the toggle', async ({ page }) => {
+  test('origin qualified tag checks show remotes on page load', async ({ page }) => {
     await page.goto(`/tags/${tag}${remote}?debug=ADMIN&search=${tag}`, { waitUntil: 'networkidle' });
     const items = page.locator('.ext.list-item');
     await expect(items).toHaveCount(1);
     await expect(items.locator('.link.remote')).toContainText('Remote Ext');
     await openSidebar(page);
-    await expect(page.locator('.sidebar .show-remotes')).toHaveCount(0);
+    await expect(page.locator('#show-remotes')).toBeChecked();
+  });
+
+  test('unchecking show remotes on an origin qualified tag sticks', async ({ page }) => {
+    await page.goto(`/tags/${tag}${remote}?debug=ADMIN&search=${tag}`, { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    await expect(page.locator('#show-remotes')).toBeChecked();
+    await page.locator('#show-remotes').uncheck();
+    await expect(page.locator('.no-results')).toBeVisible();
+    await expect(page.locator('#show-remotes')).not.toBeChecked();
+  });
+
+  test('explicit showRemotes=false is respected', async ({ page }) => {
+    await page.goto(`/tags/${tag}${remote}?debug=ADMIN&search=${tag}&showRemotes=false`, { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    await expect(page.locator('#show-remotes')).not.toBeChecked();
   });
 
   test('wildcard origin keeps the toggle and hides remotes', async ({ page }) => {

@@ -1,6 +1,6 @@
-import { Component, computed, inject, viewChild } from '@angular/core';
+import { afterNextRender, Component, computed, inject, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -12,7 +12,7 @@ import { ModService } from '../../service/mod.service';
 import { ExtStore } from '../../store/ext';
 import { Store } from '../../store/store';
 import { getTagFilter, getTagQueryFilter } from '../../util/query';
-import { andQueries, braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
+import { andQueries, braces, getPrefixes, hasPrefix, publicTag, tagOrigin } from '../../util/tag';
 
 @Component({
   selector: 'app-tags-page',
@@ -32,6 +32,7 @@ export class TagsPage implements HasChanges {
   query = inject(ExtStore);
   private auth = inject(AuthzService);
   private exts = inject(ExtService);
+  private router = inject(Router);
 
 
   private readonly templateExt = rxResource({
@@ -46,6 +47,14 @@ export class TagsPage implements HasChanges {
   templates = this.admin.tmplSubmit().filter(t => t.config?.view);
 
   readonly list = viewChild<ExtListComponent>('list');
+
+  private readonly defaultShowRemotes = afterNextRender(() => {
+    const view = this.store.view;
+    if (view.home() || !view.showRemotesCheckbox()) return;
+    if (!view.template().includes('@') || tagOrigin(view.template()) === '@*') return;
+    if (this.router.routerState.snapshot.root.queryParams['showRemotes'] !== undefined) return;
+    this.router.navigate([], { queryParams: { showRemotes: true }, queryParamsHandling: 'merge', replaceUrl: true });
+  });
 
   constructor() {
     const mod = this.mod;
