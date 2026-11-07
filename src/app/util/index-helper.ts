@@ -134,10 +134,11 @@ function queryHasTags(query?: string) {
 
 /**
  * Whether the query selects any origins other than the `@*` wildcard.
+ * `*`, `@` and `tag@` select the default origin.
  */
 function queryHasOrigins(query?: string) {
   if (!query) return false;
-  return /@[a-z0-9]/.test(query);
+  return query.split(/[:|!()\s]+/).some(s => s === '*' || s.includes('@') && !s.endsWith('@*'));
 }
 
 /**

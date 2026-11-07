@@ -5,7 +5,6 @@ describe('Index Helper', () => {
   it('needs nothing without args', () => {
     expect(hasIndexes(indexNeeds())).toBe(false);
     expect(hasIndexes(indexNeeds({ query: '@*' }))).toBe(false);
-    expect(hasIndexes(indexNeeds({ query: '*' }))).toBe(false);
     expect(hasIndexes(indexNeeds({ sort: ['url'] }))).toBe(false);
     expect(indexNeeds({ sort: ['created,DESC'] }).flags).toEqual(['created']);
   });
@@ -37,6 +36,14 @@ describe('Index Helper', () => {
     expect(indexNeeds({ query: '@origin' })).toEqual({ flags: ['origin'], hotTags: [], hotPlugins: [], hotResponses: [], hotRemoteResponses: [], unindexed: [] });
     expect(indexNeeds({ query: '@origin.*' }).flags).toEqual(['origin']);
     expect(indexNeeds({ query: '@*' }).flags).toEqual([]);
+    expect(indexNeeds({ query: 'science@*' }).flags).toEqual(['tags']);
+    expect(indexNeeds({ query: '*' }).flags).toEqual(['origin']);
+    expect(indexNeeds({ query: '@' }).flags).toEqual(['origin']);
+    expect(indexNeeds({ query: 'science@' }).flags).toEqual(['tags', 'origin']);
+    expect(indexNeeds({ query: 'science:!@' }).flags).toEqual(['tags', 'origin']);
+    expect(indexNeeds({ query: '(science|math):*' }).flags).toEqual(['tags', 'origin']);
+    expect(missingIndexes(indexNeeds({ query: '*' }), { origin: false }).flags).toEqual(['origin']);
+    expect(missingIndexes(indexNeeds({ query: 'science@' }), { origin: false }).flags).toEqual(['origin']);
     expect(indexNeeds({ nesting: 0 }).flags).toEqual(['origin']);
     expect(indexNeeds({ sort: ['origin,DESC'] }).flags).toEqual(['origin']);
     expect(indexNeeds({ sort: ['origin:len'] }).flags).toEqual(['origin']);
