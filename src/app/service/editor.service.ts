@@ -108,7 +108,8 @@ export class EditorService {
       const el = node as HTMLElement;
       const tag = el.tagName.toUpperCase();
       if (skip.has(tag) || el.style?.display === 'none' || el.style?.visibility === 'hidden') return undefined;
-      if (tag === 'IMG' || tag === 'AUDIO' || tag === 'VIDEO' || tag === 'BR') return false;
+      if (tag === 'IMG' || tag === 'AUDIO' || tag === 'VIDEO') return mediaSource(el, tag) ? false : undefined;
+      if (tag === 'BR') return false;
       for (const child of Array.from(el.childNodes)) {
         const ws = startsWithWhitespace(child, skip);
         if (ws !== undefined) return ws;

@@ -148,6 +148,8 @@ static float clamp(float value)
       ['<p>a <a href="https://example.com"><em> link </em></a> b</p>', 'a [_link_](https://example.com) b'],
       ['<p>a<a href="https://example.com"><img src="i.png"> caption</a>b</p>', 'a[![](i.png) caption](https://example.com)b'],
       ['<p>a<a href="https://example.com"><span style="display:none"> x</span>link</a>b</p>', 'a[link](https://example.com)b'],
+      ['<p>a<a href="https://example.com"><audio></audio> caption</a>b</p>', 'a [caption](https://example.com)b'],
+      ['<p>a<a href="https://example.com"><img> caption</a>b</p>', 'a [caption](https://example.com)b'],
       ['<p><a href="https://example.com">link<br></a>after</p>', '[link](https://example.com)  \nafter'],
       ['<p><em>foo<br></em>after</p>', '*foo*  \nafter'],
     ])('should handle whitespace around links for %s', (html, markdown) => {
