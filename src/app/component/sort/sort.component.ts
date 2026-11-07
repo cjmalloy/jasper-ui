@@ -36,8 +36,8 @@ export class SortComponent {
     return Array.isArray(sort) ? [...sort] : [sort];
   });
   private readonly tagNames = toSignal(toObservable(computed(() => uniq(this.sorts().flatMap(s => columnTags(this.sortCol(s || '')))), { equal: isEqual })).pipe(
-    switchMap(tags => this.editor.getTagNames(tags, this.store.account.origin()).pipe(startWith({} as Record<string, string>))),
-  ), { initialValue: {} as Record<string, string> });
+    switchMap(tags => this.editor.getTagNames(tags, this.store.account.origin()).pipe(startWith(new Map<string, string>()))),
+  ), { initialValue: new Map<string, string>() });
   private readonly menuSorts = computed(() => this.type() === 'ref'
     ? [...this.store.view.isSearch() ? [{ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` }] : [], ...this.allRefSorts()]
     : this.allTagSorts());
@@ -46,7 +46,7 @@ export class SortComponent {
    */
   readonly allSorts = computed(() => {
     const names = this.tagNames();
-    const name = (tag: string) => names[tag] || this.admin.getPlugin(tag)?.name || this.admin.getTemplate(tag)?.name;
+    const name = (tag: string) => names.get(tag) || this.admin.getPlugin(tag)?.name || this.admin.getTemplate(tag)?.name;
     const urlOnly = uniq(this.sorts().map(s => this.sortCol(s || '')))
       .filter(col => validSortColumn(this.type(), col) && !this.menuSorts().some(s => s.value === col))
       .map(col => ({ value: col, label: columnLabel(col, name) }) as SortItem);

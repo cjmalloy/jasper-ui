@@ -420,11 +420,11 @@ export class EditorService {
   /**
    * Display names of tags from their Ext, template or plugin, keyed by tag. Tags without a name are left out.
    */
-  getTagNames(tags: string[], defaultOrigin = ''): Observable<Record<string, string>> {
+  getTagNames(tags: string[], defaultOrigin = ''): Observable<Map<string, string>> {
     tags = uniq(tags.filter(t => !!t));
-    if (!tags.length) return of({});
+    if (!tags.length) return of(new Map());
     return forkJoin(tags.map(t => this.getTagPreview(t, defaultOrigin).pipe(map(p => [t, p?.name] as const)))).pipe(
-      map(names => Object.fromEntries(names.filter(([, name]) => !!name)) as Record<string, string>),
+      map(names => new Map(names.filter((n): n is readonly [string, string] => !!n[1]))),
     );
   }
 

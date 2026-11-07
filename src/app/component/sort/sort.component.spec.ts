@@ -57,4 +57,9 @@ describe('SortComponent', () => {
     expect(sort?.label).toBe('⏱️ Duration');
     expect(component.allSorts().filter(s => s.value === 'modified').length).toBe(1);
   });
+
+  it('should not name a tag after an Object property', () => {
+    component.sorts.set(['tags->constructor']);
+    expect(component.allSorts().find(s => s.value === 'tags->constructor')?.label).toBe('#constructor');
+  });
 });

@@ -956,7 +956,8 @@ export class AdminService {
   }
 
   getTemplate(tag: string) {
-    if (this.status().templates[tag]) return this.status().templates[tag];
+    const templates = this.status().templates;
+    if (Object.hasOwn(templates, tag) && templates[tag]) return templates[tag];
     return Object.values(this.status().templates).find(t => {
       if (t?.tag === tag.replace('+', '')) return true;
       return t?.tag === tag.replace('_', '');

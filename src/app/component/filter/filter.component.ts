@@ -31,6 +31,8 @@ import {
   switchFilter,
   toggle,
   UrlFilter,
+  validColumnFilter,
+  validFilterColumn,
   valueFilterConfig
 } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
@@ -82,8 +84,8 @@ export class FilterComponent {
     })).pipe(startWith([])) : of([])),
   ), { initialValue: [] });
   private readonly tagNames = toSignal(toObservable(computed(() => uniq(this.filters().flatMap(filterTags)), { equal: isEqual })).pipe(
-    switchMap(tags => this.editor.getTagNames(tags, this.store.account.origin()).pipe(startWith({} as Record<string, string>))),
-  ), { initialValue: {} as Record<string, string> });
+    switchMap(tags => this.editor.getTagNames(tags, this.store.account.origin()).pipe(startWith(new Map<string, string>()))),
+  ), { initialValue: new Map<string, string>() });
   private readonly knownSorts = computed(() => (this.type() === 'ref' ? this.admin.refSorts() : this.admin.tagSorts()).map(convertSort));
   readonly allFilters = computed(() => this.buildFilters());
 
@@ -248,7 +250,9 @@ export class FilterComponent {
             ? { ...item, filter: value, label: item.label.startsWith(not) ? item.label.substring(not.length) : not + item.label }
             : item) }));
         } else if (v) {
-          load({ ...valueFilterConfig(v, $localize`Filters 🕵️️`), label: this.filterLabel(value) });
+          if (validFilterColumn(this.type() || 'ref', v.column)) {
+            load({ ...valueFilterConfig(v, $localize`Filters 🕵️️`), label: this.filterLabel(value) });
+          }
         } else if (value.startsWith('scheme/')) {
           load({ group: $localize`Schemes 🏳️️`, scheme: value.substring('scheme/'.length) });
         } else if (value.startsWith('sources/')) {
@@ -262,7 +266,7 @@ export class FilterComponent {
         } else if (value.startsWith('query/')) {
           const query = value.substring('query/'.length);
           load({ group: $localize`Queries 🔎️️`, query, label: query.startsWith('@') ? $localize`🏛️ ${query}` : this.filterLabel(value) });
-        } else if (this.filterLabel(value)) {
+        } else if (validColumnFilter(this.type() || 'ref', value) && this.filterLabel(value)) {
           push({ label: $localize`Filters 🕵️️`, filters: [{ filter: value, label: this.filterLabel(value)! }] });
         }
       }
@@ -273,7 +277,7 @@ export class FilterComponent {
 
   private filterLabel(filter: UrlFilter) {
     const names = this.tagNames();
-    return filterLabel(filter, tag => names[tag] || this.admin.getPlugin(tag)?.name || this.admin.getTemplate(tag)?.name, this.knownSorts());
+    return filterLabel(filter, tag => names.get(tag) || this.admin.getPlugin(tag)?.name || this.admin.getTemplate(tag)?.name, this.knownSorts());
   }
 
   readonly rootConfigs = computed(() => {

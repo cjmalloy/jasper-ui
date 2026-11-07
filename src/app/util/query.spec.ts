@@ -15,6 +15,7 @@ import {
   getFilters,
   getFiltersQuery,
   getTagFilter,
+  validColumnFilter,
   negatable,
   negate,
   parseValueFilter,
@@ -751,6 +752,26 @@ describe('Query Utils', () => {
 
     it('should still send the obsolete filter', () => {
       expect(getArgs('science', undefined, ['obsolete' as UrlFilter]).obsolete).toBe(true);
+    });
+
+    it('should only accept column filters the server accepts for the entity', () => {
+      expect(validColumnFilter('ref', 'tag:len/after/2')).toEqual({ column: 'tags:len', dir: 'after', value: '2' });
+      expect(validColumnFilter('ref', 'config->pinned:len/after/2')).toBeUndefined();
+      expect(validColumnFilter('ref', 'tags:len/after/')).toBeUndefined();
+      expect(validColumnFilter('ref', 'tags:len/after/a,b')).toBeUndefined();
+      expect(validColumnFilter('ext', 'tag:len/after/2')).toEqual({ column: 'tag:len', dir: 'after', value: '2' });
+      expect(validColumnFilter('ext', 'tags:len/after/2')).toBeUndefined();
+      expect(validColumnFilter('user', 'external->ids:len/after/1')).toEqual({ column: 'external->ids:len', dir: 'after', value: '1' });
+      expect(validColumnFilter('user', 'config->ids:len/after/1')).toBeUndefined();
+    });
+
+    it('should forward valid column filters on tag entities', () => {
+      expect(getTagFilter(['tag:len/after/2', 'config->pinned:len/before/3'] as unknown as UrlFilter[])).toEqual({
+        filter: ['tag:len/after/2', 'config->pinned:len/before/3'],
+      });
+      expect(getTagFilter(['tags:len/after/2', 'external->ids:len/after/1', 'published/after/1'] as unknown as UrlFilter[], 'ext')).toEqual({});
+      expect(getTagFilter(['external->ids:len/after/1'] as unknown as UrlFilter[], 'user')).toEqual({ filter: ['external->ids:len/after/1'] });
+      expect(getTagFilter(['schema->x/equals/y'] as unknown as UrlFilter[], 'template')).toEqual({ filter: ['schema->x/equals/y'] });
     });
 
     it('should send Ref length filters', () => {

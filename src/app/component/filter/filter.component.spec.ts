@@ -72,10 +72,28 @@ describe('FilterComponent', () => {
     });
 
     it('names the tags in a query from their Ext', () => {
-      vi.spyOn(TestBed.inject(EditorService), 'getTagNames').mockReturnValue(of({ science: '🔬️ Science' }));
+      vi.spyOn(TestBed.inject(EditorService), 'getTagNames').mockReturnValue(of(new Map([['science', '🔬️ Science']])));
       component.filters.set(['query/science:!funny']);
       TestBed.tick();
       expect(label('query/science:!funny')).toBe('🔬️ Science:!funny');
+    });
+
+    it('does not name a tag after an Object property', () => {
+      component.filters.set(['query/constructor']);
+      TestBed.tick();
+      expect(label('query/constructor')).toBe('constructor');
+    });
+
+    it('only offers column filters the page sends', () => {
+      fixture.componentRef.setInput('type', 'ref');
+      component.filters.set(['config->pinned:len/after/2' as any, 'tag:len/after/2' as any, 'tags->plugin/x:len/after/1' as any]);
+      expect(label('config->pinned:len/after/2')).toBeUndefined();
+      expect(label('tags->plugin/x:len/after/1')).toBeUndefined();
+      expect(label('tag:len/after/2')).toBeDefined();
+      fixture.componentRef.setInput('type', 'ext');
+      component.filters.set(['tag:len/after/2' as any, 'tags:len/after/2' as any]);
+      expect(label('tag:len/after/2')).toBeDefined();
+      expect(label('tags:len/after/2')).toBeUndefined();
     });
   });
 });

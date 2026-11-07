@@ -30,7 +30,7 @@ export class SettingsTemplatePage implements HasChanges {
       sort: [...this.store.view.sort()],
       page: this.store.view.pageNumber(),
       size: this.store.view.pageSize(),
-      ...getTagFilter(this.store.view.filter()),
+      ...getTagFilter(this.store.view.filter(), 'template'),
     }));
   }
 

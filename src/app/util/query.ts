@@ -423,6 +423,7 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
     if (f.startsWith('query/')) continue;
     const date = dateFilter(f);
     const v = columnFilter(f);
+    const valid = validColumnFilter('ref', f);
     if (date) {
       if (date.value) add(date.column, date.dir, date.value);
       else console.warn('Invalid date filter', f);
@@ -449,12 +450,12 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
     } else if (f.startsWith('!') && hasPrefix(f.substring(1), 'plugin')) {
       add('metadata->plugins->' + f.substring(1), 'equals', '0');
     } else if (v) {
-      if (!v.value || !validFilterColumn('ref', v.column)) {
+      if (!valid) {
         console.warn('Invalid value filter', f);
       } else {
         // Tag values are lowercase, so PT1H works like pt1h
-        const value = serverValue(v.column, v.value);
-        add(v.column, v.dir, v.column.startsWith('tags->') ? value.toLowerCase() : value);
+        const value = serverValue(valid.column, valid.value);
+        add(valid.column, valid.dir, valid.column.startsWith('tags->') ? value.toLowerCase() : value);
       }
     } else if (/[/:]|->/.test(f)) {
       console.warn('Invalid filter', f);
@@ -493,16 +494,27 @@ function dateFilter(f: string) {
 }
 
 /**
- * Any `{column}/before|after|equals/{value}` filter on Refs. `tag:len` is mapped to `tags:len`.
+ * Any `{column}/before|after|equals/{value}` filter.
  */
 function columnFilter(f: string) {
   const match = f.match(/^(.+)\/(before|after|equals)\/([^/]*)$/);
   if (!match) return undefined;
   return {
-    column: match[1] === 'tag:len' ? 'tags:len' : match[1],
+    column: match[1],
     dir: match[2] as 'before' | 'after' | 'equals',
     value: match[3],
   };
+}
+
+/**
+ * A `{column}/before|after|equals/{value}` filter the server accepts for this entity, or undefined.
+ * On Refs `tag:len` is mapped to `tags:len`. Values cannot be empty or contain `,` or `->`.
+ */
+export function validColumnFilter(entity: SortEntity, f: string) {
+  const v = columnFilter(f);
+  if (!v || !v.value || /,|->/.test(v.value)) return undefined;
+  if (entity === 'ref' && v.column === 'tag:len') v.column = 'tags:len';
+  return validFilterColumn(entity, v.column) ? v : undefined;
 }
 
 /**
@@ -595,16 +607,19 @@ export function fixDateTime(t: string) {
   return DateTime.fromISO(t).toUTC().toISO()!;
 }
 
-export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
+export function getTagFilter(filter?: UrlFilter[], entity: Exclude<SortEntity, 'ref'> = 'ext'): TagQueryArgs {
   if (!filter) return {};
   let result: TagQueryArgs = {};
   for (const f of filter) {
     const date = f.startsWith('modified/') && dateFilter(f);
+    const column = validColumnFilter(entity, f);
     if (date) {
       if (date.value) result.filter = [...result.filter || [], date.column + '/' + date.dir + '/' + date.value];
       else console.warn('Invalid date filter', f);
     } else if (f == 'plugin/delete') {
       result.deleted = true;
+    } else if (column) {
+      result.filter = [...result.filter || [], column.column + '/' + column.dir + '/' + column.value];
     }
   }
   return result;
