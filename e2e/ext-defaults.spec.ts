@@ -126,6 +126,7 @@ test.describe.serial('Ext defaults', () => {
     const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filter='));
     await page.goto('/home?debug=ADMIN');
     expect(new URL((await request).url()).searchParams.getAll('filter')).toEqual([
+      expect.stringMatching(/^published\/before\//),
       expect.stringMatching(/^created\/after\//),
       'tags->plugin/duration:dur/after/' + value,
     ]);
