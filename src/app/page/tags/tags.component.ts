@@ -1,4 +1,4 @@
-import { afterNextRender, Component, computed, inject, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, untracked, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
@@ -48,12 +48,16 @@ export class TagsPage implements HasChanges {
 
   readonly list = viewChild<ExtListComponent>('list');
 
-  private readonly defaultShowRemotes = afterNextRender(() => {
-    const view = this.store.view;
-    if (view.home() || !view.showRemotesCheckbox()) return;
-    if (!view.template().includes('@') || tagOrigin(view.template()) === '@*') return;
-    if (this.router.routerState.snapshot.root.queryParams['showRemotes'] !== undefined) return;
-    this.router.navigate([], { queryParams: { showRemotes: true }, queryParamsHandling: 'merge', replaceUrl: true });
+  // Sync showRemotes to the router when the tags page opens a new origin qualified tag
+  private readonly defaultShowRemotes = effect(() => {
+    const template = this.store.view.template();
+    const home = this.store.view.home();
+    untracked(() => {
+      if (home || !this.store.view.showRemotesCheckbox()) return;
+      if (!template.includes('@') || tagOrigin(template) === '@*') return;
+      if (this.router.routerState.snapshot.root.queryParams['showRemotes'] !== undefined) return;
+      this.router.navigate([], { queryParams: { showRemotes: true }, queryParamsHandling: 'merge', replaceUrl: true });
+    });
   });
 
   constructor() {

@@ -234,6 +234,7 @@ keys.push(ext.tag + ':' + ext.origin);
   }
 
   getCachedExt(tag: string, origin?: string) {
+    if (tagOrigin(tag)) origin = undefined;
     const key = tag + ':' + (origin || '');
 
     // Return immediately if cached

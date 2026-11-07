@@ -89,6 +89,18 @@ describe('ExtService', () => {
     expect(updates.observed).toBe(true);
   });
 
+  it('should share the refreshed cache entry for origin qualified tags', async () => {
+    vi.useFakeTimers();
+    const updates = new Subject<Ext>();
+    vi.spyOn(service['stomp'], 'watchExt').mockReturnValue(updates);
+    service.prefillCache({ tag: 'test', origin: '@remote', name: 'Initial' });
+
+    vi.advanceTimersByTime(EXT_UPDATE_RATE_LIMIT_MS);
+    updates.next({ tag: 'test', origin: '@remote', name: 'Renamed' });
+
+    expect(await firstValueFrom(service.getCachedExt('test@remote', '@remote'))).toEqual({ tag: 'test', origin: '@remote', name: 'Renamed' });
+  });
+
   it('should batch uncached ext requests', async () => {
     // Request multiple exts
     const promise1 = firstValueFrom(service.getCachedExt('tag1', ''));

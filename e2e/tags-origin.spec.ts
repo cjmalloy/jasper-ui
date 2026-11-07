@@ -86,4 +86,16 @@ test.describe.serial('Tags page origin', () => {
     await expect(items.locator('.link.remote')).toContainText('Remote Ext');
     await expect(items.locator('.link:not(.remote)')).toContainText('Local Ext');
   });
+
+  test('navigating to a remote row checks show remotes', async ({ page }) => {
+    await page.goto(`/tags?debug=ADMIN&search=${tag}&showRemotes=true`, { waitUntil: 'networkidle' });
+    const items = page.locator('.ext.list-item');
+    await expect(items).toHaveCount(2);
+    await items.filter({ has: page.locator('.link.remote') }).locator('.actions a', { hasText: 'tags' }).click();
+    await expect(page).toHaveURL(new RegExp(`/tags/${tag}${remote.replace(/\./g, '\\.')}\\?showRemotes=true`));
+    await expect(items).toHaveCount(1);
+    await expect(items.locator('.link.remote')).toContainText('Remote Ext');
+    await openSidebar(page);
+    await expect(page.locator('#show-remotes')).toBeChecked();
+  });
 });
