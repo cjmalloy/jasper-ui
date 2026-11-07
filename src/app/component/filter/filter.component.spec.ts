@@ -38,6 +38,15 @@ describe('FilterComponent', () => {
       component.setValue(1, 'tags->plugin/duration:dur/before/pt5m', 'pt1h');
       expect(component.filters()).toEqual(['query/science', 'tags->plugin/duration:dur/before/pt1h']);
     });
+
+    it('edits the value of any column filter', () => {
+      fixture.componentRef.setInput('type', 'ref');
+      component.filters.set(['tags:len/after/3' as any]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.value-filter')).toBeTruthy();
+      component.setValue(0, 'tags:len/after/3' as any, '5');
+      expect(component.filters()).toEqual(['tags:len/after/5']);
+    });
   });
 
   describe('value filter options', () => {

@@ -45,6 +45,8 @@ export type SortItem = { value: RefSort | TagSort, label: string, title?: string
 
 export type SortEntity = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
 
+const SORT_ENTITIES: SortEntity[] = ['ref', 'ext', 'user', 'plugin', 'template'];
+
 const TAG_REGEX = '[_+]?[a-z0-9]+(?:[./][a-z0-9]+)*';
 const PLUGIN_REGEX = '[_+]?plugin(?:/[a-z0-9]+(?:[./][a-z0-9]+)*)?';
 const FIELD_REGEX = '(?:[A-Za-z0-9_$-]+(?:\\[[0-9]{1,9}\\])?|\\[[0-9]{1,9}\\])';
@@ -149,13 +151,14 @@ export function fixSorts<T extends string>(entity: SortEntity, sorts?: T[]): T[]
 }
 
 /**
- * Parse a `{sort column}/before/{value}`, `{sort column}/after/{value}` or `{field}/equals/{value}` filter,
- * such as `tags->plugin/duration:dur/before/pt5m`.
- * Sort columns may contain `/` but values cannot, so the value is always the last `/` segment.
+ * Parse a `{column}/before|after|equals/{value}` filter on any column the server can filter by, other than dates,
+ * such as `tags->plugin/duration:dur/before/pt5m`, `tags:len/after/3` or `config->pinned:len/after/2`.
+ * Columns may contain `/` but values cannot, so the value is always the last `/` segment.
  */
 export function parseValueFilter(filter: string) {
-  const match = filter.match(/^((?:tags|plugins|metadata)->.+)\/(before|after|equals)\/([^/]*)$/);
-  if (!match) return undefined;
+  const match = filter.match(/^(.+)\/(before|after|equals)\/([^/]*)$/);
+  if (!match || DATE_FILTER_COLUMNS[match[1]]) return undefined;
+  if (!/^(?:tags|plugins|metadata)->/.test(match[1]) && !SORT_ENTITIES.some(entity => validFilterColumn(entity, match[1]))) return undefined;
   return { column: match[1], dir: match[2] as 'before' | 'after' | 'equals', value: match[3] };
 }
 
@@ -204,7 +207,7 @@ export function filterTags(filter: string): string[] {
   if (filter.startsWith('query/')) return queryTags(filter.substring('query/'.length));
   if (filter.startsWith('user/')) return queryTags(filter.substring('user/'.length));
   if (filter.startsWith('!') || hasPrefix(filter, 'plugin')) return queryTags(filter);
-  const v = columnFilterParts(filter);
+  const v = parseValueFilter(filter);
   return v ? columnTags(v.column) : [];
 }
 
@@ -237,15 +240,9 @@ export function filterLabel(filter: string, name: TagName = () => undefined, kno
   if (filter.startsWith('query/')) return tagsLabel(filter.substring('query/'.length));
   if (filter.startsWith('user/')) return tagsLabel(filter.substring('user/'.length));
   if (filter.startsWith('!') || hasPrefix(filter, 'plugin')) return tagsLabel(filter);
-  const v = columnFilterParts(filter);
+  const v = parseValueFilter(filter);
   if (!v) return undefined;
   return columnLabel(v.column, name, known) + ' ' + { before: '<', after: '>', equals: '=' }[v.dir];
-}
-
-function columnFilterParts(filter: string) {
-  const match = filter.match(/^(.+)\/(before|after|equals)\/([^/]*)$/);
-  if (!match || DATE_FILTER_COLUMNS[match[1]]) return undefined;
-  return { column: match[1], dir: match[2] as 'before' | 'after' | 'equals', value: match[3] };
 }
 
 /**

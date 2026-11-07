@@ -593,7 +593,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
         // Filter not found — add it as a fallback so the dropdown shows the current value
         const v = parseValueFilter(f);
         if (v) {
-          if (!validFilterColumn('ref', v.column)) continue;
+          if (!validFilterColumn('ref', v.column) && !validColumnFilter('ref', f)) continue;
           // Show the value in an unused option for the same bound, so repeated bounds each keep an option
           const unused = (i: FilterItem) => {
             const o = parseValueFilter(i.filter);
@@ -617,8 +617,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
           this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Responses ⤵️`, responses: f.substring('responses/'.length) });
         } else if (f.startsWith('query/')) {
           this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length), label: this.filterLabel(f) });
-        } else if (validColumnFilter('ref', f) && this.filterLabel(f)) {
-          this.pushFilter({ label: $localize`Filters 🕵️️`, filters: [{ filter: f as UrlFilter, label: this.filterLabel(f)! }] });
         }
       }
     }

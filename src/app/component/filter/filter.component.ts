@@ -250,7 +250,7 @@ export class FilterComponent {
             ? { ...item, filter: value, label: item.label.startsWith(not) ? item.label.substring(not.length) : not + item.label }
             : item) }));
         } else if (v) {
-          if (validFilterColumn(this.type() || 'ref', v.column)) {
+          if (validFilterColumn(this.type() || 'ref', v.column) || validColumnFilter(this.type() || 'ref', value)) {
             load({ ...valueFilterConfig(v, $localize`Filters 🕵️️`), label: this.filterLabel(value) });
           }
         } else if (value.startsWith('scheme/')) {
@@ -266,8 +266,6 @@ export class FilterComponent {
         } else if (value.startsWith('query/')) {
           const query = value.substring('query/'.length);
           load({ group: $localize`Queries 🔎️️`, query, label: query.startsWith('@') ? $localize`🏛️ ${query}` : this.filterLabel(value) });
-        } else if (validColumnFilter(this.type() || 'ref', value) && this.filterLabel(value)) {
-          push({ label: $localize`Filters 🕵️️`, filters: [{ filter: value, label: this.filterLabel(value)! }] });
         }
       }
     }

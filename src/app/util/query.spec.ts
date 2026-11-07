@@ -449,6 +449,19 @@ describe('Query Utils', () => {
       });
     });
 
+    it('should parse any filter column', () => {
+      expect(parseValueFilter('tags:len/after/3')).toEqual({ column: 'tags:len', dir: 'after', value: '3' });
+      expect(parseValueFilter('tag:len/before/2')).toEqual({ column: 'tag:len', dir: 'before', value: '2' });
+      expect(parseValueFilter('config->pinned:len/after/2')).toEqual({ column: 'config->pinned:len', dir: 'after', value: '2' });
+    });
+
+    it('should not parse dates or other filters', () => {
+      expect(parseValueFilter('modified/after/2020-01-01')).toBeUndefined();
+      expect(parseValueFilter('title/equals/kiwi')).toBeUndefined();
+      expect(parseValueFilter('query/science/after/x')).toBeUndefined();
+      expect(parseValueFilter('plugin/x/after/y')).toBeUndefined();
+    });
+
     it('should parse equals filters', () => {
       expect(parseValueFilter('plugins->plugin/debug->select/equals/2')).toEqual({
         column: 'plugins->plugin/debug->select',
