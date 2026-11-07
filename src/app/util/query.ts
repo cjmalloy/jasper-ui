@@ -82,6 +82,21 @@ function tagFilterColumn(entity: Exclude<SortEntity, 'ref'>) {
 }
 
 /**
+ * A JSON key in a sort path. Sorts use each `->` segment as a literal key, so keys are less restricted than in filters.
+ * Keys cannot contain `:`, which starts a `:num` or `:len` suffix, or `,`, which separates the sort direction.
+ */
+const SORT_FIELD_REGEX = '(?:(?!->)[^:,])+';
+
+/**
+ * JSON sort columns of each entity, which accept more keys than filter columns.
+ * Same as `SortSpec.jsonbColumn` in the server.
+ */
+function jsonSortColumn(entity: SortEntity) {
+  const root = entity === 'ref' ? 'plugins->' + PLUGIN_REGEX + '(?:->' + SORT_FIELD_REGEX + ')*' : '(?:' + TAG_FIELDS[entity] + ')(?:->' + SORT_FIELD_REGEX + ')+';
+  return new RegExp('^' + root + '(?::num|:len)?$');
+}
+
+/**
  * Plain columns that can be sorted but not filtered.
  */
 const SORT_ONLY_COLUMNS: Record<SortEntity, string[]> = {
@@ -112,7 +127,7 @@ export function validFilterColumn(entity: SortEntity, column?: string) {
  */
 export function validSortColumn(entity: SortEntity, column?: string) {
   if (!column) return false;
-  return SORT_ONLY_COLUMNS[entity].includes(column) || validFilterColumn(entity, column);
+  return SORT_ONLY_COLUMNS[entity].includes(column) || validFilterColumn(entity, column) || jsonSortColumn(entity).test(column);
 }
 
 /**
@@ -441,6 +456,8 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
         const value = serverValue(v.column, v.value);
         add(v.column, v.dir, v.column.startsWith('tags->') ? value.toLowerCase() : value);
       }
+    } else if (/[/:]|->/.test(f)) {
+      console.warn('Invalid filter', f);
     } else if (f === '!obsolete') {
       result['obsolete'] = null as any;
     } else if (f.startsWith('!')) {

@@ -39,12 +39,14 @@ import {
   FilterItem,
   filterLabel,
   filterTags,
+  fixSorts,
   negatable,
   parseValueFilter,
   SortItem,
   switchFilter,
   toggle,
   UrlFilter,
+  validSortColumn,
   valueFilterConfig
 } from '../util/query';
 import {
@@ -392,7 +394,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
     ];
     const sorts = [...base, ...this.admin.refSorts().map(convertSort)];
     const urlOnly = uniq(this.sorts().map(s => this.sortCol(s)))
-      .filter(col => !!col && !sorts.some(s => s.value === col))
+      .filter(col => validSortColumn('ref', col) && !sorts.some(s => s.value === col))
       .map(col => ({ value: col, label: columnLabel(col, this.tagName) }) as SortItem);
     return [...sorts, ...urlOnly];
   });
@@ -629,7 +631,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
       return;
     }
     const params = parseBookmarkParams(value.substring(idx + 1));
-    this.sorts.set([params['sort']].flat().filter(Boolean));
+    this.sorts.set(fixSorts('ref', [params['sort']].flat().filter(Boolean)));
     this.filters.set([params['filter']].flat().filter(Boolean));
     this.searchText.set(params['search'] || '');
     this.buildAllFilters();

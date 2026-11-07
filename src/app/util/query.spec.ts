@@ -623,6 +623,20 @@ describe('Query Utils', () => {
         expect(validSortColumn(type, 'external->x')).toBe(false);
       }
     });
+
+    it('should allow any JSON key in a sort, but not in a filter', () => {
+      expect(validSortColumn('ext', 'config->release.name')).toBe(true);
+      expect(validFilterColumn('ext', 'config->release.name')).toBe(false);
+      expect(validSortColumn('user', 'external->a b->c.d:num')).toBe(true);
+      expect(validSortColumn('template', 'schema->x y:len')).toBe(true);
+      expect(validSortColumn('ref', 'plugins->plugin/x->release.name')).toBe(true);
+      expect(validFilterColumn('ref', 'plugins->plugin/x->release.name')).toBe(false);
+      for (const c of ['config->', 'config->a:b->c', 'config->a,b', 'config->x:dur', 'external->release.name']) {
+        expect(validSortColumn('ext', c)).toBe(false);
+      }
+      expect(validSortColumn('ref', 'plugins->other.name')).toBe(false);
+      expect(validSortColumn('ref', 'metadata->release.name')).toBe(false);
+    });
   });
 
   describe('validFilterColumn', () => {
@@ -689,6 +703,10 @@ describe('Query Utils', () => {
       expect(fixSorts('ref', ['tag', 'name,DESC', 'config->x', 'modified'])).toEqual(['modified']);
     });
 
+    it('should keep JSON sorts with dotted keys', () => {
+      expect(fixSorts('ext', ['config->release.name,DESC'])).toEqual(['config->release.name,DESC']);
+    });
+
     it('should keep tag:len and drop Ref only columns on other entities', () => {
       expect(fixSorts('ext', ['tag:len', 'tag'])).toEqual(['tag:len', 'tag']);
       expect(fixSorts('user', ['published', 'tags:len', 'sources:len,DESC', 'metadata->responses', 'plugins->x', 'tags->x', 'name'])).toEqual(['name']);
@@ -721,6 +739,18 @@ describe('Query Utils', () => {
       ] as UrlFilter[]);
       expect(args.filter).toBeUndefined();
       expect(Object.keys(args).filter(k => k.includes('/'))).toEqual([]);
+    });
+
+    it('should drop malformed column filters instead of sending them as boolean parameters', () => {
+      const args = getArgs('science', undefined, [
+        'plugins->plugin/score:num/10', 'tags->plugin/duration:dur/pt5m', 'metadata->responses/after', 'tags:len/3',
+      ] as UrlFilter[]);
+      expect(args.filter).toBeUndefined();
+      expect(Object.keys(args).filter(k => /[/:]|->/.test(k))).toEqual([]);
+    });
+
+    it('should still send the obsolete filter', () => {
+      expect(getArgs('science', undefined, ['obsolete' as UrlFilter]).obsolete).toBe(true);
     });
 
     it('should send Ref length filters', () => {
