@@ -371,6 +371,7 @@ export class EditorService {
               if (x.tag === '_user') return of({ ...x, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + $localize`🥷 Root` });
             }
             if (x.tag === longestMatch.tag) return of(longestMatch);
+            if (setPublic(x.tag) === longestMatch.tag) return of({ tag: x.tag, name: x.name || longestMatch.config?.view || longestMatch.name || longestMatch.tag });
             const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
             return of({ tag: x.tag, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + (x.name || childTag) });
           }

@@ -46,6 +46,18 @@ describe('EditorService', () => {
     expect(await name('plugin/inbox/user/bob')).toBe('Inbox / bob');
   });
 
+  it('should preview a protected tag with the name of its public Template', async () => {
+    (TestBed.inject(AdminService) as any).updateStatus((status: any) => {
+      status.templates['support'] = { tag: 'support', name: 'Support', config: { signature: '+support' } };
+    });
+    const exts = TestBed.inject(ExtService);
+    vi.spyOn(exts['stomp'], 'watchExt').mockReturnValue(new Subject<any>());
+    exts.prefillCache(exts.defaultExt('+support'));
+    expect((await firstValueFrom(service.getTagPreview('+support')))?.name).toBe('Support');
+    exts.prefillCache({ tag: '+support', origin: '', name: 'Mods' });
+    expect((await firstValueFrom(service.getTagPreview('+support')))?.name).toBe('Mods');
+  });
+
   describe('HTML to Markdown', () => {
     let europa: Europa;
 
