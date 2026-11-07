@@ -170,7 +170,7 @@ describe('AdminService', () => {
 
   it('should fall back to hard coded config admin forms', () => {
     expect(service.getTemplateAdminForm('_config/index').map(f => f.key)).toEqual([
-      'tags', 'sources', 'alts', 'responses', 'internalResponses', 'fulltext', 'published', 'modified', 'created', 'newResponse', 'newReaction',
+      'tags', 'sources', 'alts', 'responses', 'internalResponses', 'fulltext', 'published', 'modified', 'created', 'title', 'origin', 'newResponse', 'newReaction',
       'ignored', 'cascade', 'regen', 'hotTags', 'hotPlugins', 'hotResponses', 'hotRemoteResponses',
     ]);
     expect(service.getTemplateAdminForm('_config/security').map(f => f.key)).toContain('minRole');

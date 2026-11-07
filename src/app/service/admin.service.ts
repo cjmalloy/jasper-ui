@@ -1426,6 +1426,8 @@ const indexConfigAdminForm: FormlyFieldConfig[] = [
   { key: 'published', type: 'boolean', defaultValue: true, props: { label: $localize`Published:` } },
   { key: 'modified', type: 'boolean', defaultValue: true, props: { label: $localize`Modified:` } },
   { key: 'created', type: 'boolean', defaultValue: true, props: { label: $localize`Created:` } },
+  { key: 'title', type: 'boolean', defaultValue: true, props: { label: $localize`Title:` } },
+  { key: 'origin', type: 'boolean', defaultValue: true, props: { label: $localize`Origin:` } },
   { key: 'newResponse', type: 'boolean', defaultValue: true, props: { label: $localize`New Response:` } },
   { key: 'newReaction', type: 'boolean', defaultValue: true, props: { label: $localize`New Reaction:` } },
   { key: 'ignored', type: 'boolean', defaultValue: true, props: { label: $localize`Ignored:` } },
