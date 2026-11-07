@@ -58,9 +58,22 @@ export class ResizeHandleDirective {
   shrinkContainer() {
     const child = this.child();
     if (!child) return;
-    this.el.nativeElement.style.width = child.style.width;
+    this.el.nativeElement.style.width = this.followChild(child, 'width');
     // When not resizable, let the height follow the child so its margins still apply
-    this.el.nativeElement.style.height = this.enabled() ? child.style.height : '';
+    this.el.nativeElement.style.height = this.enabled() ? this.followChild(child, 'height') : '';
+  }
+
+  /**
+   * Percentages on the child are relative to the container, so copying them
+   * would shrink the child again and leave the handle outside it.
+   * Move them to the container and let the child fill it instead.
+   */
+  private followChild(child: HTMLElement, prop: 'width' | 'height') {
+    const size = child.style[prop];
+    if (!size.includes('%')) return size;
+    if (size === '100%') return this.el.nativeElement.style[prop];
+    child.style[prop] = '100%';
+    return size;
   }
 
   onPointerDown(event: PointerEvent) {
