@@ -45,28 +45,51 @@ export type SortItem = { value: RefSort | TagSort, label: string, title?: string
 
 export type SortEntity = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
 
+const TAG_REGEX = '[_+]?[a-z0-9]+(?:[./][a-z0-9]+)*';
+const PLUGIN_REGEX = '[_+]?plugin(?:/[a-z0-9]+(?:[./][a-z0-9]+)*)?';
+const FIELD_REGEX = '(?:[A-Za-z0-9_$-]+(?:\\[[0-9]{1,9}\\])?|\\[[0-9]{1,9}\\])';
+
 /**
- * Sort columns the server accepts for each entity.
- * Refs have many tags, so the number of tags is `tags:len`. The other entities have a single tag,
- * and `tag:len` is its nesting level.
+ * Ref columns the server can filter on, which are also its computed sort columns.
+ * Same as `SortSpec.Filter.REF_COLUMN_REGEX` in the server.
+ * Refs have many tags, so the number of tags is `tags:len`.
  */
-const SORT_COLUMNS: Record<SortEntity, string[]> = {
-  ref: ['rank', 'created', 'modified', 'published', 'url', 'obsolete', 'scheme', 'title', 'origin', 'origin:len', 'comment', 'tags:len', 'sources:len', 'alternateUrls:len'],
-  ext: ['modified', 'tag', 'tag:len', 'name', 'origin', 'origin:len'],
-  user: ['modified', 'tag', 'tag:len', 'name', 'origin', 'origin:len'],
-  plugin: ['modified', 'tag', 'tag:len', 'name', 'origin', 'origin:len'],
-  template: ['modified', 'tag', 'tag:len', 'name', 'origin', 'origin:len'],
+const REF_FILTER_COLUMN = new RegExp('^(?:modified|published|created|origin:len|(?:tags|sources|alternateUrls):len'
+  + '|metadata->(?:newResponse|newReaction)'
+  + '|metadata->(?:expandedTags|responses|internalResponses)(?::len)?'
+  + '|metadata->(?:plugins|remotePlugins)->' + PLUGIN_REGEX + '(?::num)?'
+  + '|plugins->plugin/user/vote:(?:top|score|decay)'
+  + '|plugins->' + PLUGIN_REGEX + '(?:->' + FIELD_REGEX + ')*(?::num|:len)?'
+  + '|tags->' + TAG_REGEX + '(?::num|:dur)?)$');
+
+/**
+ * JSON fields each entity other than Refs can be sorted and filtered by with `{field}->{path}`.
+ */
+const TAG_FIELDS: Record<Exclude<SortEntity, 'ref'>, string> = {
+  ext: 'config',
+  user: 'external',
+  plugin: 'config|defaults|schema',
+  template: 'config|defaults|schema',
 };
 
 /**
- * JSON columns each entity can be sorted by with `{field}->{path}`.
+ * Filter columns of Exts, Users, Plugins and Templates.
+ * Same as `SortSpec.Filter.TAG_COLUMN_REGEX` in the server, limited to the JSON fields of the entity.
+ * These entities have a single tag, so `tag:len` is its nesting level.
  */
-const SORT_PREFIXES: Record<SortEntity, string[]> = {
-  ref: ['metadata->', 'plugins->', 'tags->'],
-  ext: ['config->'],
-  user: ['external->'],
-  plugin: ['config->', 'defaults->', 'schema->'],
-  template: ['config->', 'defaults->', 'schema->'],
+function tagFilterColumn(entity: Exclude<SortEntity, 'ref'>) {
+  return new RegExp('^(?:modified|origin:len|tag:len|(?:' + TAG_FIELDS[entity] + ')(?:->' + FIELD_REGEX + ')+(?::num|:len)?)$');
+}
+
+/**
+ * Plain columns that can be sorted but not filtered.
+ */
+const SORT_ONLY_COLUMNS: Record<SortEntity, string[]> = {
+  ref: ['rank', 'url', 'origin', 'title', 'comment', 'scheme'],
+  ext: ['tag', 'name', 'origin'],
+  user: ['tag', 'name', 'origin'],
+  plugin: ['tag', 'name', 'origin'],
+  template: ['tag', 'name', 'origin'],
 };
 
 /**
@@ -77,11 +100,19 @@ export function sortColumn(sort: string) {
 }
 
 /**
- * Whether the server accepts the sort or filter column for this entity.
+ * Whether the server accepts the filter column for this entity.
+ */
+export function validFilterColumn(entity: SortEntity, column?: string) {
+  if (!column) return false;
+  return (entity === 'ref' ? REF_FILTER_COLUMN : tagFilterColumn(entity)).test(column);
+}
+
+/**
+ * Whether the server accepts the sort column for this entity.
  */
 export function validSortColumn(entity: SortEntity, column?: string) {
   if (!column) return false;
-  return SORT_COLUMNS[entity].includes(column) || SORT_PREFIXES[entity].some(p => column.startsWith(p) && column.length > p.length);
+  return SORT_ONLY_COLUMNS[entity].includes(column) || validFilterColumn(entity, column);
 }
 
 /**
@@ -303,13 +334,10 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
   for (const f of filter) {
     if (f.startsWith('query/')) continue;
     const date = dateFilter(f);
-    const len = lengthFilter(f);
+    const v = columnFilter(f);
     if (date) {
       if (date.value) add(date.column, date.dir, date.value);
       else console.warn('Invalid date filter', f);
-    } else if (len) {
-      if (len.column) add(len.column, len.dir, len.value);
-      else console.warn('Invalid Ref filter', f);
     } else if (f.startsWith('sources/')) {
       if (result.sources) console.warn('Multiple sources filters (last wins)');
       result.sources = f.substring('sources/'.length)
@@ -332,9 +360,8 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       add('metadata->plugins->' + f, 'after', '0');
     } else if (f.startsWith('!') && hasPrefix(f.substring(1), 'plugin')) {
       add('metadata->plugins->' + f.substring(1), 'equals', '0');
-    } else if (f.startsWith('tags->') || f.startsWith('plugins->') || f.startsWith('metadata->')) {
-      const v = parseValueFilter(f);
-      if (!v?.value) {
+    } else if (v) {
+      if (!v.value || !validFilterColumn('ref', v.column)) {
         console.warn('Invalid value filter', f);
       } else {
         // Tag values are lowercase, so PT1H works like pt1h
@@ -376,15 +403,13 @@ function dateFilter(f: string) {
 }
 
 /**
- * Server filter for a `{column}:len/before|after|equals/{length}` filter on Refs, like `tags:len/after/2`.
- * The column is mapped to `tags:len` for `tag:len`, and is undefined for columns Refs can't be filtered by.
+ * Any `{column}/before|after|equals/{value}` filter on Refs. `tag:len` is mapped to `tags:len`.
  */
-function lengthFilter(f: string) {
-  const match = f.match(/^([A-Za-z]+:len)\/(before|after|equals)\/(\d+)$/);
+function columnFilter(f: string) {
+  const match = f.match(/^(.+)\/(before|after|equals)\/([^/]*)$/);
   if (!match) return undefined;
-  const column = match[1] === 'tag:len' ? 'tags:len' : match[1];
   return {
-    column: validSortColumn('ref', column) ? column : undefined,
+    column: match[1] === 'tag:len' ? 'tags:len' : match[1],
     dir: match[2] as 'before' | 'after' | 'equals',
     value: match[3],
   };

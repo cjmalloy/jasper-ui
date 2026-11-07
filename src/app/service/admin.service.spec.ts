@@ -11,7 +11,7 @@ import { cachePlugin } from '../mods/system/cache';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
-import { validSortColumn } from '../util/query';
+import { validFilterColumn, validSortColumn } from '../util/query';
 import { defer, firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { Store } from '../store/store';
 import { AdminService, hotIndexSuggestions } from './admin.service';
@@ -173,7 +173,7 @@ describe('AdminService', () => {
     const filters = [...plugins, ...templates].flatMap(p => p.config?.filters || []).map(f => f.sort || f.field).filter(c => !!c);
     expect(sorts.length).toBeGreaterThan(0);
     expect(sorts.filter(c => !validSortColumn('ref', c))).toEqual([]);
-    expect(filters.filter(c => !validSortColumn('ref', c))).toEqual([]);
+    expect(filters.filter(c => !validFilterColumn('ref', c))).toEqual([]);
     expect(sorts).not.toContain('tag:len');
     expect(sorts).toContain('tags:len');
   });
@@ -188,12 +188,12 @@ describe('AdminService', () => {
 
   it('should not offer tag:len or other non-Ref columns as Ref sorts or filters', () => {
     vi.spyOn(service as any, 'pluginConfigProperty').mockReturnValue([
-      { tag: 'plugin/test', config: { sorts: [{ sort: 'tag:len' }, { sort: 'name' }, { sort: 'tags:len' }, { sort: 'metadata->responses' }] } },
+      { tag: 'plugin/test', config: { sorts: [{ sort: 'tag:len' }, { sort: 'name' }, { sort: 'tags:len' }, { sort: 'metadata->responses' }, { sort: 'obsolete' }, { sort: 'title' }] } },
     ]);
     vi.spyOn(service as any, 'configProperty').mockReturnValue([
-      { tag: 'plugin/test', config: { filters: [{ sort: 'tag:len', after: '1' }, { field: 'config->x', equals: '1' }, { sort: 'tags->plugin/x:num', after: '1' }, { query: 'science' }] } },
+      { tag: 'plugin/test', config: { filters: [{ sort: 'tag:len', after: '1' }, { field: 'config->x', equals: '1' }, { sort: 'tags->plugin/x:num', after: '1' }, { field: 'title' as any, equals: 'kiwi' }, { sort: 'tags->plugin/x:len' as any, after: '1' }, { query: 'science' }] } },
     ]);
-    expect(service.refSorts().map(s => s.sort)).toEqual(['tags:len', 'metadata->responses']);
+    expect(service.refSorts().map(s => s.sort)).toEqual(['tags:len', 'metadata->responses', 'title']);
     expect(service.filters().map(f => f.sort || f.query)).toEqual(['tags->plugin/x:num', 'science']);
   });
 

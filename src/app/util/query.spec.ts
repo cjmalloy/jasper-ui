@@ -17,6 +17,7 @@ import {
   switchFilter,
   toggle,
   UrlFilter,
+  validFilterColumn,
   validSortColumn,
   valueFilterConfig,
   withStableDateSort,
@@ -239,13 +240,13 @@ describe('Query Utils', () => {
     });
 
     it('should add DESC for metadata-> prefix sorts', () => {
-      const args = getArgs('science', 'metadata->field');
-      expect(args.sort).toContain('metadata->field,DESC');
+      const args = getArgs('science', 'metadata->responses');
+      expect(args.sort).toContain('metadata->responses,DESC');
     });
 
     it('should preserve explicit direction for metadata-> sorts', () => {
-      const args = getArgs('science', 'metadata->field,ASC');
-      expect(args.sort).toContain('metadata->field,ASC');
+      const args = getArgs('science', 'metadata->responses,ASC');
+      expect(args.sort).toContain('metadata->responses,ASC');
     });
 
     it('should include pagination', () => {
@@ -620,6 +621,59 @@ describe('Query Utils', () => {
     });
   });
 
+  describe('validFilterColumn', () => {
+    it('should not filter Refs on plain text columns that can only be sorted', () => {
+      for (const c of ['title', 'url', 'scheme', 'origin', 'comment', 'rank']) {
+        expect(validSortColumn('ref', c)).toBe(true);
+        expect(validFilterColumn('ref', c)).toBe(false);
+      }
+    });
+
+    it('should not sort or filter Refs on obsolete', () => {
+      expect(validSortColumn('ref', 'obsolete')).toBe(false);
+      expect(validFilterColumn('ref', 'obsolete')).toBe(false);
+    });
+
+    it('should only allow tag value columns with no suffix, :num or :dur', () => {
+      for (const c of ['tags->plugin/progress', 'tags->plugin/progress:num', 'tags->plugin/duration:dur', 'tags->+user/x']) {
+        expect(validFilterColumn('ref', c)).toBe(true);
+      }
+      for (const c of ['tags->plugin/progress:len', 'tags->Plugin', 'tags->plugin//x', 'tags->plugin/x->y']) {
+        expect(validSortColumn('ref', c)).toBe(false);
+      }
+    });
+
+    it('should only allow the generated metadata columns', () => {
+      for (const c of ['metadata->newResponse', 'metadata->responses', 'metadata->responses:len', 'metadata->plugins->plugin/comment',
+        'metadata->remotePlugins->plugin/user/read', 'metadata->plugins->plugin/thread:num']) {
+        expect(validFilterColumn('ref', c)).toBe(true);
+      }
+      for (const c of ['metadata->x', 'metadata->plugins->plugin/comment->x', 'metadata->plugins->other']) {
+        expect(validFilterColumn('ref', c)).toBe(false);
+      }
+    });
+
+    it('should only allow plugin columns', () => {
+      for (const c of ['plugins->plugin/test->ids:len', 'plugins->_plugin/cache->contentLength:num', 'plugins->plugin/user/vote:decay', 'plugins->plugin/debug->multicheckbox->a']) {
+        expect(validFilterColumn('ref', c)).toBe(true);
+      }
+      for (const c of ['plugins->other', 'plugins->plugin/x:dur', 'plugins->plugin/user/vote:hot']) {
+        expect(validFilterColumn('ref', c)).toBe(false);
+      }
+    });
+
+    it('should filter other entities on their sort columns except plain text', () => {
+      expect(validFilterColumn('ext', 'tag:len')).toBe(true);
+      expect(validFilterColumn('ext', 'config->pinned:len')).toBe(true);
+      expect(validFilterColumn('ext', 'tag')).toBe(false);
+      expect(validFilterColumn('ext', 'name')).toBe(false);
+      expect(validFilterColumn('user', 'external->ids:len')).toBe(true);
+      expect(validFilterColumn('user', 'config->x')).toBe(false);
+      expect(validFilterColumn('plugin', 'config->version:num')).toBe(true);
+      expect(validFilterColumn('template', 'config->x:dur')).toBe(false);
+    });
+  });
+
   describe('fixSorts', () => {
     it('should map tag:len to tags:len on Refs', () => {
       expect(fixSorts('ref', ['tag:len'])).toEqual(['tags:len']);
@@ -654,6 +708,15 @@ describe('Query Utils', () => {
       expect(args.filter).toEqual(['tags:len/after/1']);
       expect(JSON.stringify(args)).not.toContain('tag:len');
       expect(JSON.stringify(args)).not.toContain('name');
+    });
+
+    it('should drop saved obsolete sorts and filters on columns Refs cannot filter by', () => {
+      expect(getArgs('science', ['obsolete' as any, 'title']).sort).toEqual(['title']);
+      const args = getArgs('science', undefined, [
+        'config->pinned:len/after/2', 'external->ids:len/after/1', 'title/equals/kiwi', 'tags->plugin/progress:len/after/1', 'metadata->x/after/1',
+      ] as UrlFilter[]);
+      expect(args.filter).toBeUndefined();
+      expect(Object.keys(args).filter(k => k.includes('/'))).toEqual([]);
     });
 
     it('should send Ref length filters', () => {
