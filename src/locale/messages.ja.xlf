@@ -8431,6 +8431,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Created:</source>
         <target>作成日時:</target>
       </trans-unit>
+      <trans-unit id="8277984342911297704" datatype="html">
+        <source>Origin:</source>
+        <target>オリジン:</target>
+      </trans-unit>
       <trans-unit id="3685064853913502757" datatype="html">
         <source>👀️ more views than</source>
         <target>👀️ 閲覧数が次より多い</target>
