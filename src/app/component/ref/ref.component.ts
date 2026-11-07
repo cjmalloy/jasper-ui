@@ -863,10 +863,10 @@ export class RefComponent implements HasChanges {
   readonly recipients = computed(() => {
     const lookup = this.store.origins.originMap().get(this.ref().origin || '');
     const userRecipients = without(addressedTo(this.ref()).map(a => this.admin.recipientSignature(mapRemoteOrigin(a, this.ref().origin || '', this.store.account.origin(), lookup))), ...this.authors());
-    return [
+    return uniq([
       ...userRecipients,
       ...this.ref().tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
-    ];
+    ]);
   });
 
   readonly recipientExts = toSignal(toObservable(computed(() =>
