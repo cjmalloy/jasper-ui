@@ -186,7 +186,7 @@ export class ExtComponent implements HasChanges {
   });
   readonly preview = toSignal(toObservable(computed(() => ({
     tag: this.ext().tag, origin: this.ext().origin,
-  }))).pipe(switchMap(({ tag, origin }) => this.editor.getTagPreview(tag, origin).pipe(startWith(undefined)))), { initialValue: undefined });
+  }))).pipe(switchMap(({ tag, origin }) => this.editor.getTagPreview(tag + origin, origin).pipe(startWith(undefined)))), { initialValue: undefined });
 
   save() {
     this.submitted.set(true);

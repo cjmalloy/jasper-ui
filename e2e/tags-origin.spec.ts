@@ -54,7 +54,7 @@ test.describe.serial('Tags page origin', () => {
     await page.goto(`/tags/${tag}${remote}?debug=ADMIN&search=${tag}`, { waitUntil: 'networkidle' });
     const items = page.locator('.ext.list-item');
     await expect(items).toHaveCount(1);
-    await expect(items.locator('.link.remote')).toContainText(tag + remote);
+    await expect(items.locator('.link.remote')).toContainText('Remote Ext');
     await openSidebar(page);
     await expect(page.locator('.sidebar .show-remotes')).toHaveCount(0);
   });
@@ -63,10 +63,12 @@ test.describe.serial('Tags page origin', () => {
     await page.goto(`/tags?debug=ADMIN&search=${tag}`, { waitUntil: 'networkidle' });
     const items = page.locator('.ext.list-item');
     await expect(items).toHaveCount(1);
-    await expect(items.locator('.link:not(.remote)')).toContainText(tag + origin);
+    await expect(items.locator('.link:not(.remote)')).toContainText('Local Ext');
     await openSidebar(page);
     await expect(page.locator('.sidebar .show-remotes')).toBeVisible();
     await page.locator('#show-remotes').check();
     await expect(items).toHaveCount(2);
+    await expect(items.locator('.link.remote')).toContainText('Remote Ext');
+    await expect(items.locator('.link:not(.remote)')).toContainText('Local Ext');
   });
 });
