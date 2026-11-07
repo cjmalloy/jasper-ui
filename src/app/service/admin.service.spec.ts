@@ -104,6 +104,17 @@ describe('AdminService', () => {
     expect(service.getEmbeds(external)).toEqual(['plugin/pdf/scanned']);
   });
 
+  it('should only embed external PDF URLs through the proxy', () => {
+    (service as any).updateStatus((status: any) => {
+      status.plugins['plugin/pdf'] = { tag: 'plugin/pdf', config: { embeddable: true, proxy: false, extensions: ['.pdf'] } };
+    });
+    expect(service.getEmbedPluginsForUrl('https://example.com/paper.pdf')).toEqual([]);
+    (service as any).updateStatus((status: any) => {
+      status.plugins['plugin/pdf'] = { tag: 'plugin/pdf', config: { embeddable: true, proxy: true, extensions: ['.pdf'] } };
+    });
+    expect(service.getEmbedPluginsForUrl('https://example.com/paper.pdf').map(p => p.tag)).toEqual(['plugin/pdf']);
+  });
+
   it('should map recipients to their Template signature', () => {
     (service as any).updateStatus((status: any) => {
       status.templates['support'] = { tag: 'support', config: { signature: '+support' } };

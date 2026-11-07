@@ -821,6 +821,14 @@ export class AdminService {
       .filter(tag => !hasTag('plugin/pdf', [tag]) || pdfEmbedUrl(this.getPlugin('plugin/pdf'), ref));
   }
 
+  /**
+   * Plugins that can embed a bare URL. External PDFs can only be embedded through the proxy.
+   */
+  getEmbedPluginsForUrl(url: string) {
+    return this.getPluginsForUrl(url)
+      .filter(p => !hasTag('plugin/pdf', [p.tag]) || pdfEmbedUrl(this.getPlugin('plugin/pdf'), { url, origin: '', tags: [p.tag] }));
+  }
+
   getPluginsForUrl(url: string) {
     return uniq([...this.getPluginsForHost(url), ...this.getPluginsForPrefix(url), ...this.getPluginsForExtension(url)]);
   }

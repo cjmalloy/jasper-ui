@@ -1,4 +1,4 @@
-import { inject, Injectable, ViewContainerRef } from '@angular/core';
+import { ElementRef, inject, Injectable, ViewContainerRef } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { marked, MarkedExtension, Renderer, RendererObject, Token, Tokens, TokensList } from 'marked';
 import markedKatex from 'marked-katex-extension';
@@ -23,6 +23,7 @@ import {
   MdIsland,
   MdIslands,
   markIslands,
+  markLinkToggles,
   mediaToPlaceholders,
   mermaidHydrator,
   prismHydrator,
@@ -38,6 +39,7 @@ import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
 import { EditorService } from './editor.service';
+import { VisibilityService } from './visibility.service';
 
 /**
  * marked is a global singleton, so KaTeX is gated per parse instead of
@@ -79,6 +81,7 @@ export class EmbedService {
   private exts = inject(ExtService);
   private oembeds = inject(OembedStore);
   private store = inject(Store);
+  private vis = inject(VisibilityService);
 
   /**
    * Ordered registry of hydrators run on rendered markdown after it is attached.
@@ -163,7 +166,7 @@ export class EmbedService {
             out += ' title="' + (escape(title)) + '"';
           }
           out += '>' + text + '</a>';
-          if (admin.getPluginsForUrl(href).length || ['ref', 'tag'].includes(editor.getUrlType(href))) {
+          if (admin.getEmbedPluginsForUrl(href).length || ['ref', 'tag'].includes(editor.getUrlType(href))) {
             return out + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
           }
           return out;
@@ -265,6 +268,7 @@ export class EmbedService {
     mediaToPlaceholders(doc);
     wrapTables(doc);
     removeToggleLabels(doc);
+    markLinkToggles(doc);
     fixUserTags(doc, origin, this.store.origins.originMap().get(origin || ''));
     return doc;
   }
@@ -553,7 +557,7 @@ export class EmbedService {
               this.insert(t, c.location.nativeElement);
               t.remove();
             } else {
-              const embeds = this.admin.getPluginsForUrl(url);
+              const embeds = this.admin.getEmbedPluginsForUrl(url);
               if (embeds.length) {
                 const c = createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) });
                 if (title) c.location.nativeElement.title = title;
@@ -695,7 +699,7 @@ export class EmbedService {
       // TODO: Don't use title to store url
       const url = t.title;
       cleanup.push(this.toggle(t, done => {
-        const embeds = this.admin.getPluginsForUrl(url);
+        const embeds = this.admin.getEmbedPluginsForUrl(url);
         if (embeds.length) {
           return done(createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) }).location.nativeElement);
         }
@@ -716,6 +720,7 @@ export class EmbedService {
 
   private hydrateLinks(host: HTMLElement, { vc }: MdContext) {
     const imagesEnabled = !!this.admin.getPlugin('plugin/image');
+    const cleanup: (() => void)[] = [];
     host.querySelectorAll<HTMLAnchorElement>('a[href]').forEach(t => {
       const href = t.getAttribute('href') || '';
       const embeds = t.querySelectorAll<HTMLElement>('.md-embed');
@@ -731,10 +736,47 @@ export class EmbedService {
         t.remove();
         return;
       }
+      const hasToggle = t.dataset.embedToggle !== undefined;
       const c = createLink(vc, href, t.textContent || '', t.title, t.className);
       this.insert(t, c.location.nativeElement);
       t.remove();
+      if (!hasToggle && this.isExternalUrl(href)) cleanup.push(this.refToggle(c.location.nativeElement, href, vc));
     });
+    return () => cleanup.forEach(fn => fn());
+  }
+
+  private isExternalUrl(url: string) {
+    if (url.startsWith(this.config.base)) return false;
+    if (url.toLowerCase().startsWith('tag:')) return false;
+    return /^[a-z][a-z0-9+.-]*:/i.test(url);
+  }
+
+  /**
+   * Add an embed toggle after a link to an existing Ref with embeds,
+   * such as a web page tagged plugin/pdf.
+   * @return cleanup function
+   */
+  private refToggle(link: HTMLElement, url: string, vc: ViewContainerRef) {
+    let sub: Subscription | undefined;
+    let toggleCleanup: (() => void) | undefined;
+    const unobserve = this.vis.notifyVisible(new ElementRef(link), () => {
+      sub = this.refs.getCurrent(url).pipe(
+        catchError(() => of(null)),
+      ).subscribe(ref => {
+        const tags = this.admin.getEmbeds(ref);
+        if (!ref || !tags.length) return;
+        const t = document.createElement('span');
+        t.className = 'toggle embed';
+        t.title = url;
+        this.insert(link, t, true);
+        toggleCleanup = this.toggle(t, done => done(createEmbed(vc, { ...ref, tags }).location.nativeElement));
+      });
+    });
+    return () => {
+      unobserve();
+      sub?.unsubscribe();
+      toggleCleanup?.();
+    };
   }
 
   private get iframeBg() {

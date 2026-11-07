@@ -5,9 +5,10 @@ import { Component, inject, ViewContainerRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { marked } from 'marked';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { AdminService } from './admin.service';
+import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
 import { EditorService } from './editor.service';
 import { EmbedService } from './embed.service';
@@ -177,7 +178,7 @@ describe('EmbedService', () => {
   describe('toggles', () => {
     it('recovers when expanding fails', () => {
       vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
-      vi.spyOn(TestBed.inject(AdminService), 'getPluginsForUrl').mockReturnValue([]);
+      vi.spyOn(TestBed.inject(AdminService), 'getEmbedPluginsForUrl').mockReturnValue([]);
       vi.spyOn(TestBed.inject(EditorService), 'getUrlType').mockReturnValue('tag');
       const loadQuery = vi.spyOn(service, 'loadQuery$').mockReturnValue(throwError(() => new Error('fail')));
       const fixture = TestBed.createComponent(HostComponent);
@@ -192,6 +193,71 @@ describe('EmbedService', () => {
       expect(x.style.display).toBe('none');
       toggle.click();
       expect(loadQuery).toHaveBeenCalledTimes(2);
+    });
+
+    it('adds a toggle to links to Refs with embeds', () => {
+      vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
+      const ref = { url: 'https://example.com/paper', origin: '', tags: ['plugin/pdf'] };
+      const getCurrent = vi.spyOn(TestBed.inject(RefService), 'getCurrent').mockReturnValue(of(ref));
+      vi.spyOn(TestBed.inject(RefService), 'exists').mockReturnValue(of(true));
+      vi.spyOn(TestBed.inject(AdminService), 'getEmbeds').mockImplementation(r => r ? ['plugin/pdf'] : []);
+      const fixture = TestBed.createComponent(HostComponent);
+      const el = fixture.nativeElement as HTMLElement;
+      service.render(el, '[paper](https://example.com/paper) [tag](/tag/science)', { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false });
+      expect(getCurrent).toHaveBeenCalledTimes(1);
+      expect(getCurrent).toHaveBeenCalledWith('https://example.com/paper');
+      const toggles = el.querySelectorAll<HTMLElement>('.toggle.embed');
+      expect(toggles.length).toBe(2);
+      expect(toggles[0].title).toBe('https://example.com/paper');
+      expect(toggles[0].querySelector('.toggle-plus')).not.toBeNull();
+    });
+
+    it('does not add a toggle to links without a Ref', () => {
+      vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
+      vi.spyOn(TestBed.inject(RefService), 'getCurrent').mockReturnValue(throwError(() => ({ status: 404 })));
+      vi.spyOn(TestBed.inject(RefService), 'exists').mockReturnValue(of(false));
+      const fixture = TestBed.createComponent(HostComponent);
+      const el = fixture.nativeElement as HTMLElement;
+      service.render(el, '[page](https://example.com/page)', { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false });
+      expect(el.querySelector('.toggle')).toBeNull();
+    });
+
+    function lookups(markdown: string, islands = false) {
+      vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
+      vi.spyOn(TestBed.inject(AdminService), 'getEmbedPluginsForUrl').mockImplementation(url => url.endsWith('.pdf') ? [{ tag: 'plugin/pdf' } as any] : []);
+      vi.spyOn(TestBed.inject(RefService), 'exists').mockReturnValue(of(false));
+      const getCurrent = vi.spyOn(TestBed.inject(RefService), 'getCurrent').mockReturnValue(throwError(() => ({ status: 404 })));
+      const fixture = TestBed.createComponent(HostComponent);
+      const ctx = { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false };
+      if (islands) {
+        const tokens = service.lex(markdown);
+        const { root, islands } = service.renderBlock({ tokens } as any, tokens.links);
+        fixture.nativeElement.appendChild(root);
+        islands.forEach((island, start) => service.hydrateIsland(start, island, ctx));
+      } else {
+        service.render(fixture.nativeElement, markdown, ctx);
+      }
+      return getCurrent.mock.calls.map(c => c[0]);
+    }
+
+    it('does not look up links that already have a toggle', () => {
+      expect(lookups('[paper](https://example.com/a.pdf)')).toEqual([]);
+    });
+
+    it('does not look up links followed by an explicit toggle for the same URL', () => {
+      expect(lookups('[paper](https://example.com/paper)![+](https://example.com/paper)')).toEqual([]);
+    });
+
+    it('does not look up links that already have a toggle when hydrating islands', () => {
+      expect(lookups('[paper](https://example.com/a.pdf) [page](https://example.com/page)', true)).toEqual(['https://example.com/page']);
+    });
+
+    it('looks up links followed by a toggle for another URL', () => {
+      expect(lookups('[paper](https://example.com/paper) and ![+](https://example.com/other)')).toEqual(['https://example.com/paper']);
+    });
+
+    it('looks up links directly followed by a toggle for another URL', () => {
+      expect(lookups('[paper](https://example.com/paper)![+](https://example.com/other)')).toEqual(['https://example.com/paper']);
     });
   });
 });

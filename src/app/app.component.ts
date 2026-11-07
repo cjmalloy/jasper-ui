@@ -99,7 +99,7 @@ export class AppComponent {
       if (event === 'pdf' && pdfPlugin) {
         let pdf = pdfUrl(pdfPlugin, ref, repost);
         if (!pdf) return;
-        if (pdf.url.startsWith('cache:') || pdfPlugin.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin, pdf.title + (pdf.title.toLowerCase().endsWith('.pdf') ? '' : '.pdf'));
+        if (pdf.url.startsWith('cache:') || pdfPlugin.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin, (pdf.title || '') + (pdf.title?.toLowerCase().endsWith('.pdf') ? '' : '.pdf'));
         open(pdf.url, '_blank');
       }
       if (event === 'archive' && archivePlugin) {

@@ -5,18 +5,18 @@ import { ElementRef, Injectable } from '@angular/core';
 })
 export class VisibilityService {
   private observer?: IntersectionObserver;
-  private observedElements = new Map<Element, () => void>();
+  private observedElements = new Map<Element, (() => void)[]>();
 
   constructor() {
     if (('IntersectionObserver' in window)) {
       this.observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const cb = this.observedElements.get(entry.target);
-            if (cb) {
-              cb();
+            const cbs = this.observedElements.get(entry.target);
+            if (cbs) {
               this.observer!.unobserve(entry.target);
               this.observedElements.delete(entry.target);
+              cbs.forEach(cb => cb());
             }
           }
         }, {
@@ -26,13 +26,32 @@ export class VisibilityService {
     }
   }
 
-  public notifyVisible(element: ElementRef, callback: () => void) {
+  /**
+   * Call back once when the element is close to the viewport.
+   * @return disposer that cancels the callback
+   */
+  public notifyVisible(element: ElementRef, callback: () => void): () => void {
     if (!('IntersectionObserver' in window)) {
       // Fallback for unsupported browsers
       callback();
-      return;
+      return () => {};
     }
-    this.observer!.observe(element.nativeElement);
-    this.observedElements.set(element.nativeElement, callback);
+    const el = element.nativeElement as Element;
+    const cbs = this.observedElements.get(el);
+    if (cbs) {
+      cbs.push(callback);
+    } else {
+      this.observer!.observe(el);
+      this.observedElements.set(el, [callback]);
+    }
+    return () => {
+      const cbs = this.observedElements.get(el);
+      if (!cbs) return;
+      const i = cbs.indexOf(callback);
+      if (i >= 0) cbs.splice(i, 1);
+      if (cbs.length) return;
+      this.observer!.unobserve(el);
+      this.observedElements.delete(el);
+    };
   }
 }

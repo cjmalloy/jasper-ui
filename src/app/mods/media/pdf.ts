@@ -69,7 +69,8 @@ export function pdfUrl(plugin?: typeof pdfPlugin, ref?: Ref, repost?: Ref) {
   return ref?.plugins?.['plugin/pdf']?.url && { url: ref!.plugins?.['plugin/pdf'].url, origin: ref!.origin }
     || repost?.plugins?.['plugin/pdf']?.url && { url: repost!.plugins?.['plugin/pdf'].url, origin: repost!.origin }
     || findExtension('.pdf', ref, repost)
-    || hasTag('plugin/pdf', ref) && findCache(ref, repost);
+    || hasTag('plugin/pdf', ref) && findCache(ref, repost)
+    || hasTag('plugin/pdf', ref) && /^https?:/i.test(ref!.url) && { url: ref!.url, origin: ref!.origin, title: ref!.title };
 }
 
 /**
