@@ -16,6 +16,12 @@ describe('pdfEmbedUrl', () => {
     expect(pdfEmbedUrl(pdfPlugin, ref('comment:1', 'cache:abc'))).toBe('cache:abc');
   });
 
+  it('falls back to the Ref URL when tagged without a .pdf extension', () => {
+    expect(pdfEmbedUrl(pdfPlugin, ref('https://arxiv.org/pdf/1234'))).toBe('https://arxiv.org/pdf/1234');
+    expect(pdfEmbedUrl(pdfPlugin, ref('comment:1'))).toBeUndefined();
+    expect(pdfEmbedUrl(proxyOff, ref('https://arxiv.org/pdf/1234'))).toBeUndefined();
+  });
+
   it('only embeds cached PDFs without the proxy', () => {
     expect(pdfEmbedUrl(proxyOff, ref('https://example.com/paper.pdf'))).toBeUndefined();
     expect(pdfEmbedUrl(proxyOff, ref('comment:1', 'cache:abc'))).toBe('cache:abc');

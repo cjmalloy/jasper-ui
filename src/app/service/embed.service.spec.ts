@@ -5,9 +5,10 @@ import { Component, inject, ViewContainerRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { marked } from 'marked';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { AdminService } from './admin.service';
+import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
 import { EditorService } from './editor.service';
 import { EmbedService } from './embed.service';
@@ -192,6 +193,33 @@ describe('EmbedService', () => {
       expect(x.style.display).toBe('none');
       toggle.click();
       expect(loadQuery).toHaveBeenCalledTimes(2);
+    });
+
+    it('adds a toggle to links to Refs with embeds', () => {
+      vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
+      const ref = { url: 'https://example.com/paper', origin: '', tags: ['plugin/pdf'] };
+      const getCurrent = vi.spyOn(TestBed.inject(RefService), 'getCurrent').mockReturnValue(of(ref));
+      vi.spyOn(TestBed.inject(RefService), 'exists').mockReturnValue(of(true));
+      vi.spyOn(TestBed.inject(AdminService), 'getEmbeds').mockImplementation(r => r ? ['plugin/pdf'] : []);
+      const fixture = TestBed.createComponent(HostComponent);
+      const el = fixture.nativeElement as HTMLElement;
+      service.render(el, '[paper](https://example.com/paper) [tag](/tag/science)', { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false });
+      expect(getCurrent).toHaveBeenCalledTimes(1);
+      expect(getCurrent).toHaveBeenCalledWith('https://example.com/paper');
+      const toggles = el.querySelectorAll<HTMLElement>('.toggle.embed');
+      expect(toggles.length).toBe(2);
+      expect(toggles[0].title).toBe('https://example.com/paper');
+      expect(toggles[0].querySelector('.toggle-plus')).not.toBeNull();
+    });
+
+    it('does not add a toggle to links without a Ref', () => {
+      vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
+      vi.spyOn(TestBed.inject(RefService), 'getCurrent').mockReturnValue(throwError(() => ({ status: 404 })));
+      vi.spyOn(TestBed.inject(RefService), 'exists').mockReturnValue(of(false));
+      const fixture = TestBed.createComponent(HostComponent);
+      const el = fixture.nativeElement as HTMLElement;
+      service.render(el, '[page](https://example.com/page)', { vc: fixture.componentInstance.vc, origin: '', mermaid: false, clipboard: false });
+      expect(el.querySelector('.toggle')).toBeNull();
     });
   });
 });
