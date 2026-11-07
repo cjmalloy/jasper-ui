@@ -34,9 +34,9 @@ test.describe.serial('Cache Plugin', () => {
   });
 
   test('filters larger than a size', async ({ page }) => {
-    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filterAfter'));
+    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filter='));
     await page.goto(`/tag/${tag}?debug=ADMIN&sort=plugins->_plugin/cache->contentLength:num,ASC&filter=${filter}1mb`, { waitUntil: 'networkidle' });
-    expect(new URL((await request).url()).searchParams.getAll('filterAfter')).toEqual(['plugins->_plugin/cache->contentLength:num/' + 1024 * 1024]);
+    expect(new URL((await request).url()).searchParams.getAll('filter')).toEqual(['plugins->_plugin/cache->contentLength:num/after/' + 1024 * 1024]);
     const links = page.locator('.ref-list-item .link a');
     await expect(links).toHaveText(['Medium', 'Large']);
     await openSidebar(page);

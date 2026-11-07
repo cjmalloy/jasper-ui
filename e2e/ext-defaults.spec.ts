@@ -123,11 +123,11 @@ test.describe.serial('Ext defaults', () => {
     await expect(page.locator('.default-filter-row select').last()).toHaveValue(/^tags->plugin\/duration:dur\/after\//);
     await expect(page.locator('.default-filter-row .filter-range-label').last()).toHaveText(label!);
 
-    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filterAfter'));
+    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filter='));
     await page.goto('/home?debug=ADMIN');
-    expect(new URL((await request).url()).searchParams.getAll('filterAfter')).toEqual([
-      expect.stringMatching(/^created\//),
-      'tags->plugin/duration:dur/' + value,
+    expect(new URL((await request).url()).searchParams.getAll('filter')).toEqual([
+      expect.stringMatching(/^created\/after\//),
+      'tags->plugin/duration:dur/after/' + value,
     ]);
   });
 

@@ -705,9 +705,10 @@ export type TagQueryArgs = {
   level?: number,
   deleted?: boolean,
   search?: string,
-  filterBefore?: string[],
-  filterAfter?: string[],
-  filterEquals?: string[],
+  /**
+   * `{sort column}/{before|after|equals}/{value}`
+   */
+  filter?: string[],
 };
 
 export type TagPageArgs = TagQueryArgs & {

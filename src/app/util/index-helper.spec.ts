@@ -61,8 +61,7 @@ describe('Index Helper', () => {
       search: 'cats',
       sources: 'https://a.com',
       responses: 'https://b.com',
-      filterAfter: ['published/2020-01-01T00:00:00.000Z', 'metadata->newReaction/2020-01-01T00:00:00.000Z'],
-      filterBefore: ['created/2020-01-01T00:00:00.000Z'],
+      filter: ['created/before/2020-01-01T00:00:00.000Z', 'published/after/2020-01-01T00:00:00.000Z', 'metadata->newReaction/after/2020-01-01T00:00:00.000Z'],
       sort: ['modified,DESC'],
     }).flags).toEqual(['fulltext', 'alts', 'responses', 'internalResponses', 'sources', 'modified', 'created', 'published', 'newReaction']);
   });
@@ -75,7 +74,7 @@ describe('Index Helper', () => {
     expect(indexNeeds({ sort: ['metadata->responses,DESC'] }).flags).toEqual(['responses']);
     expect(indexNeeds({ sort: ['metadata->internalResponses'] }).flags).toEqual(['internalResponses']);
     expect(indexNeeds({ sort: ['metadata->responses:len'] }).flags).toEqual(['responses']);
-    expect(indexNeeds({ filterAfter: ['metadata->responses/3'], filterBefore: ['sources:len/2'] }).flags).toEqual(['sources', 'responses']);
+    expect(indexNeeds({ filter: ['sources:len/before/2', 'metadata->responses/after/3'] }).flags).toEqual(['sources', 'responses']);
     expect(indexNeeds({ sort: ['published', 'sources:len'] }).flags).toEqual(['published']);
     expect(missingIndexes(indexNeeds({ sort: ['metadata->responses'] }), { responses: false }).flags).toEqual(['responses']);
   });
@@ -92,16 +91,14 @@ describe('Index Helper', () => {
   it('needs hot tags for tag value sorts and filters', () => {
     expect(indexNeeds({
       sort: ['tags->plugin/progress:num,DESC', 'tags->plugin/duration:dur'],
-      filterBefore: ['tags->plugin/progress:num/50'],
-      filterAfter: ['tags->plugin/title/m'],
+      filter: ['tags->plugin/progress:num/before/50', 'tags->plugin/title/after/m'],
     }).hotTags).toEqual(['plugin/progress:num', 'plugin/duration:dur', 'plugin/title']);
   });
 
   it('needs hot plugins for plugin sorts and filters', () => {
     expect(indexNeeds({
       sort: ['plugins->plugin/test->size:num,DESC', 'plugins->plugin/test->name'],
-      filterAfter: ['plugins->_plugin/cache->contentLength:num/1000'],
-      filterBefore: ['plugins->plugin/score:num/10'],
+      filter: ['plugins->plugin/score:num/before/10', 'plugins->_plugin/cache->contentLength:num/after/1000'],
     }).hotPlugins).toEqual(['plugin/test->size:num', 'plugin/score:num', '_plugin/cache->contentLength:num']);
     expect(indexNeeds({ sort: ['plugins->plugin/ninja.triangle->ids[0]:num'] }).hotPlugins).toEqual(['plugin/ninja.triangle->ids[0]:num']);
     const invalid = indexNeeds({ sort: ['plugins->plugin/test->a.b,DESC'] });
@@ -112,8 +109,7 @@ describe('Index Helper', () => {
   it('needs hot responses for plugin response count sorts and filters', () => {
     const needs = indexNeeds({
       sort: ['metadata->remotePlugins->plugin/comment,DESC'],
-      filterAfter: ['metadata->plugins->plugin/thread/0'],
-      filterEquals: ['metadata->plugins->+plugin/log/0'],
+      filter: ['metadata->plugins->plugin/thread/after/0', 'metadata->plugins->+plugin/log/equals/0'],
     });
     expect(needs).toEqual({
       flags: [],
@@ -128,8 +124,8 @@ describe('Index Helper', () => {
     expect(indexNeeds({ sort: ['metadata->plugins->plugin.x'] }).unindexed).toEqual(['metadata->plugins->plugin.x']);
     expect(indexNeeds({ sort: ['published', 'metadata->remotePlugins->plugin/comment'] }).hotRemoteResponses).toEqual([]);
     expect(indexNeeds({ sort: ['metadata->plugins->plugin/comment->x'] }).unindexed).toEqual(['metadata->plugins->plugin/comment->x']);
-    expect(indexNeeds({ filterAfter: ['metadata->remotePlugins->plugin/user/read/10'] }).hotRemoteResponses).toEqual(['plugin/user/read']);
-    expect(indexNeeds({ filterAfter: ['comment/a', 'plugins->plugin/user/vote:top/5'] }).unindexed).toEqual(['comment', 'plugins->plugin/user/vote:top']);
+    expect(indexNeeds({ filter: ['metadata->remotePlugins->plugin/user/read/after/10'] }).hotRemoteResponses).toEqual(['plugin/user/read']);
+    expect(indexNeeds({ filter: ['comment/after/a', 'plugins->plugin/user/vote:top/after/5'] }).unindexed).toEqual(['comment', 'plugins->plugin/user/vote:top']);
     const missing = missingIndexes(needs, { hotResponses: ['plugin/thread'], hotRemoteResponses: [''] });
     expect(missing.hotResponses).toEqual(['+plugin/log']);
     expect(missing.hotRemoteResponses).toEqual(['plugin/comment']);
@@ -145,7 +141,7 @@ describe('Index Helper', () => {
       query: 'science',
       search: 'cats',
       sort: ['tags->plugin/progress:num'],
-      filterAfter: ['plugins->plugin/score:num/10', 'plugins->plugin/test->name/m'],
+      filter: ['plugins->plugin/score:num/after/10', 'plugins->plugin/test->name/after/m'],
     });
     const missing = missingIndexes(needs, {
       fulltext: false,
@@ -170,7 +166,7 @@ describe('Index Helper', () => {
   });
 
   it('skips blank hot indices', () => {
-    const needs = indexNeeds({ filterAfter: ['plugins->plugin/score:num/10'] });
+    const needs = indexNeeds({ filter: ['plugins->plugin/score:num/after/10'] });
     expect(missingIndexes(needs, {
       hotTags: [null as any],
       hotPlugins: [null as any, '', 'plugin/score:num'],

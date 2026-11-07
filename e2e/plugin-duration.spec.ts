@@ -61,9 +61,9 @@ test.describe.serial('Duration Plugin', () => {
   });
 
   test('reads shorthand from the URL', async ({ page }) => {
-    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filterBefore'));
+    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filter='));
     await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/before/45m`, { waitUntil: 'networkidle' });
-    expect(new URL((await request).url()).searchParams.getAll('filterBefore')).toEqual(['tags->plugin/duration:dur/pt45m']);
+    expect(new URL((await request).url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/before/pt45m']);
     await expect(page.locator('.ref-list-item .link a')).toHaveText(['Short', 'Medium']);
     await openSidebar(page);
     await expect(page.locator('.filter .filter-range-label')).toHaveText('45 min');
@@ -111,9 +111,9 @@ test.describe.serial('Duration Plugin', () => {
   });
 
   test('filters longer than a duration', async ({ page }) => {
-    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filterAfter'));
+    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filter='));
     await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration:dur&filter=tags->plugin/duration:dur/after/PT10M`, { waitUntil: 'networkidle' });
-    expect(new URL((await request).url()).searchParams.getAll('filterAfter')).toEqual(['tags->plugin/duration:dur/pt10m']);
+    expect(new URL((await request).url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/after/pt10m']);
     await expect(page.locator('.ref-list-item .link a')).toHaveText(['Medium', 'Long']);
   });
 });

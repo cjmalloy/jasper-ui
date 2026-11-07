@@ -99,8 +99,12 @@ function column(value: string, prefix: string) {
   return value.substring(prefix.length);
 }
 
-function valueColumn(filter: string, prefix: string) {
-  return column(filter.substring(0, filter.lastIndexOf('/')), prefix);
+/**
+ * Column of a `{column}/{before|after|equals}/{value}` filter.
+ */
+function filterColumn(filter: string) {
+  const column = filter.substring(0, filter.lastIndexOf('/'));
+  return column.substring(0, column.lastIndexOf('/'));
 }
 
 function sortColumn(sort: string) {
@@ -197,8 +201,8 @@ export function indexNeeds(args?: RefPageArgs): IndexNeeds {
       needs(c);
     }
   }
-  for (const f of [...args.filterBefore || [], ...args.filterAfter || [], ...args.filterEquals || []]) {
-    needs(valueColumn(f, ''));
+  for (const f of args.filter || []) {
+    needs(filterColumn(f));
   }
   return {
     flags: uniq(flags),

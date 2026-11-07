@@ -229,22 +229,23 @@ export function parseArgs(params: any): RefPageArgs {
   delete params.pageNumber;
   params.size = params.pageSize;
   delete params.pageSize;
+  const { filter, ...rest } = params;
   return {
-    ...params,
-    ...getRefFilter(params.filter as any),
+    ...rest,
+    ...getRefFilter(filter),
   };
 }
 
 function getRefFilter(filter?: UrlFilter[]): RefFilter {
   if (!filter) return {};
   let result: RefFilter = {};
-  const add = (key: 'filterBefore' | 'filterAfter' | 'filterEquals', column: string, value: string) =>
-    result[key] = [...result[key] || [], column + '/' + value];
+  const add = (column: string, dir: 'before' | 'after' | 'equals', value: string) =>
+    result.filter = [...result.filter || [], column + '/' + dir + '/' + value];
   for (const f of filter) {
     if (f.startsWith('query/')) continue;
     const date = dateFilter(f);
     if (date) {
-      if (date.value) add(date.key, date.column, date.value);
+      if (date.value) add(date.column, date.dir, date.value);
       else console.warn('Invalid date filter', f);
     } else if (f.startsWith('sources/')) {
       if (result.sources) console.warn('Multiple sources filters (last wins)');
@@ -265,9 +266,9 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       }
     } else if (hasPrefix(f, 'plugin')) {
       // Count of responses from the same origin
-      add('filterAfter', 'metadata->plugins->' + f, '0');
+      add('metadata->plugins->' + f, 'after', '0');
     } else if (f.startsWith('!') && hasPrefix(f.substring(1), 'plugin')) {
-      add('filterEquals', 'metadata->plugins->' + f.substring(1), '0');
+      add('metadata->plugins->' + f.substring(1), 'equals', '0');
     } else if (f.startsWith('tags->') || f.startsWith('plugins->') || f.startsWith('metadata->')) {
       const v = parseValueFilter(f);
       if (!v?.value) {
@@ -275,8 +276,7 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       } else {
         // Tag values are lowercase, so PT1H works like pt1h
         const value = serverValue(v.column, v.value);
-        const key = v.dir === 'equals' ? 'filterEquals' : v.dir === 'before' ? 'filterBefore' : 'filterAfter';
-        add(key, v.column, v.column.startsWith('tags->') ? value.toLowerCase() : value);
+        add(v.column, v.dir, v.column.startsWith('tags->') ? value.toLowerCase() : value);
       }
     } else if (f === '!obsolete') {
       result['obsolete'] = null as any;
@@ -306,7 +306,7 @@ function dateFilter(f: string) {
   const match = f.match(/^(modified|published|created|response)\/(before|after)\/(.*)$/);
   if (!match) return undefined;
   return {
-    key: match[2] === 'before' ? 'filterBefore' as const : 'filterAfter' as const,
+    dir: match[2] as 'before' | 'after',
     column: DATE_FILTER_COLUMNS[match[1]],
     value: fixDateTime(match[3]),
   };
@@ -317,11 +317,11 @@ function dateFilter(f: string) {
  * Missing dates are skipped.
  */
 export function dateRange(args: RefPageArgs, column: 'modified' | 'published' | 'created', after?: string | DateTime, before?: string | DateTime): RefPageArgs {
-  const value = (date: string | DateTime) => column + '/' + (DateTime.isDateTime(date) ? date.toUTC().toISO() : date);
-  const result = { ...args };
-  if (after) result.filterAfter = [...args.filterAfter || [], value(after)];
-  if (before) result.filterBefore = [...args.filterBefore || [], value(before)];
-  return result;
+  const value = (dir: 'before' | 'after', date: string | DateTime) => column + '/' + dir + '/' + (DateTime.isDateTime(date) ? date.toUTC().toISO() : date);
+  const filter = [...args.filter || []];
+  if (after) filter.push(value('after', after));
+  if (before) filter.push(value('before', before));
+  return filter.length ? { ...args, filter } : { ...args };
 }
 
 /**
@@ -408,7 +408,7 @@ export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
   for (const f of filter) {
     const date = f.startsWith('modified/') && dateFilter(f);
     if (date) {
-      if (date.value) result[date.key] = [...result[date.key] || [], date.column + '/' + date.value];
+      if (date.value) result.filter = [...result.filter || [], date.column + '/' + date.dir + '/' + date.value];
       else console.warn('Invalid date filter', f);
     } else if (f == 'plugin/delete') {
       result.deleted = true;
