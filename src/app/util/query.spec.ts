@@ -5,6 +5,7 @@ import {
   dateTimeLocal,
   filterColumnTag,
   defaultDesc,
+  fixSorts,
   getArgs,
   getFilter,
   getFilters,
@@ -16,6 +17,7 @@ import {
   switchFilter,
   toggle,
   UrlFilter,
+  validSortColumn,
   valueFilterConfig,
   withStableDateSort,
 } from './query';
@@ -572,6 +574,91 @@ describe('Query Utils', () => {
     it('returns an empty value for malformed input', () => {
       expect(dateTimeLocal('P-invalid')).toBe('');
       expect(dateTimeLocal('not-a-date')).toBe('');
+    });
+  });
+  describe('validSortColumn', () => {
+    it('should only allow tags:len, not tag:len, on Refs', () => {
+      expect(validSortColumn('ref', 'tags:len')).toBe(true);
+      expect(validSortColumn('ref', 'tag:len')).toBe(false);
+      expect(validSortColumn('ref', 'tag')).toBe(false);
+      expect(validSortColumn('ref', 'name')).toBe(false);
+      expect(validSortColumn('ref', 'config->x')).toBe(false);
+    });
+
+    it('should allow Ref columns on Refs', () => {
+      for (const c of ['published', 'created', 'modified', 'title', 'url', 'scheme', 'origin', 'origin:len', 'sources:len', 'alternateUrls:len',
+        'metadata->responses', 'plugins->plugin/user/vote:decay', 'tags->plugin/duration:dur']) {
+        expect(validSortColumn('ref', c)).toBe(true);
+      }
+      expect(validSortColumn('ref', 'metadata->')).toBe(false);
+      expect(validSortColumn('ref', '')).toBe(false);
+      expect(validSortColumn('ref', undefined)).toBe(false);
+    });
+
+    it('should allow tag:len but not Ref columns on Exts, Users, Plugins and Templates', () => {
+      for (const type of ['ext', 'user', 'plugin', 'template'] as const) {
+        for (const c of ['modified', 'tag', 'tag:len', 'name', 'origin', 'origin:len']) {
+          expect(validSortColumn(type, c)).toBe(true);
+        }
+        for (const c of ['published', 'created', 'title', 'tags:len', 'sources:len', 'metadata->responses', 'plugins->plugin/x', 'tags->plugin/x']) {
+          expect(validSortColumn(type, c)).toBe(false);
+        }
+      }
+    });
+
+    it('should allow the JSON columns of each entity', () => {
+      expect(validSortColumn('ext', 'config->pinned:len')).toBe(true);
+      expect(validSortColumn('ext', 'external->ids')).toBe(false);
+      expect(validSortColumn('user', 'external->ids:len')).toBe(true);
+      expect(validSortColumn('user', 'config->x')).toBe(false);
+      for (const type of ['plugin', 'template'] as const) {
+        expect(validSortColumn(type, 'config->version:num')).toBe(true);
+        expect(validSortColumn(type, 'defaults->x')).toBe(true);
+        expect(validSortColumn(type, 'schema->x')).toBe(true);
+        expect(validSortColumn(type, 'external->x')).toBe(false);
+      }
+    });
+  });
+
+  describe('fixSorts', () => {
+    it('should map tag:len to tags:len on Refs', () => {
+      expect(fixSorts('ref', ['tag:len'])).toEqual(['tags:len']);
+      expect(fixSorts('ref', ['tag:len,DESC', 'published'])).toEqual(['tags:len,DESC', 'published']);
+      expect(fixSorts('ref', ['tags:len', 'tag:len,DESC'])).toEqual(['tags:len']);
+    });
+
+    it('should drop columns Refs cannot be sorted by', () => {
+      expect(fixSorts('ref', ['tag', 'name,DESC', 'config->x', 'modified'])).toEqual(['modified']);
+    });
+
+    it('should keep tag:len and drop Ref only columns on other entities', () => {
+      expect(fixSorts('ext', ['tag:len', 'tag'])).toEqual(['tag:len', 'tag']);
+      expect(fixSorts('user', ['published', 'tags:len', 'sources:len,DESC', 'metadata->responses', 'plugins->x', 'tags->x', 'name'])).toEqual(['name']);
+    });
+
+    it('should handle empty sorts', () => {
+      expect(fixSorts('ref', undefined)).toEqual([]);
+      expect(fixSorts('ref', ['' as any])).toEqual([]);
+    });
+  });
+
+  describe('getArgs Ref columns', () => {
+    it('should map a tag:len sort to tags:len', () => {
+      expect(getArgs('science', 'tag:len' as any).sort).toEqual(['tags:len']);
+      expect(getArgs('science', ['tag:len,DESC' as any, 'published']).sort).toEqual(['tags:len,DESC', 'published,DESC']);
+    });
+
+    it('should never send tag:len or non-Ref columns', () => {
+      const args = getArgs('science', ['tag' as any, 'name' as any], ['tag:len/after/1' as UrlFilter, 'name:len/after/1' as UrlFilter]);
+      expect(args.sort).toEqual([]);
+      expect(args.filter).toEqual(['tags:len/after/1']);
+      expect(JSON.stringify(args)).not.toContain('tag:len');
+      expect(JSON.stringify(args)).not.toContain('name');
+    });
+
+    it('should send Ref length filters', () => {
+      expect(getArgs('science', undefined, ['tags:len/before/3' as UrlFilter, 'sources:len/equals/0' as UrlFilter]).filter)
+        .toEqual(['tags:len/before/3', 'sources:len/equals/0']);
     });
   });
 });

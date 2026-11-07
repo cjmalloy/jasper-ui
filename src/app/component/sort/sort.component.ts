@@ -5,7 +5,7 @@ import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
-import { convertSort, defaultDesc } from '../../util/query';
+import { convertSort, defaultDesc, validSortColumn } from '../../util/query';
 
 @Component({
   selector: 'app-sort',
@@ -24,7 +24,9 @@ export class SortComponent {
   readonly type = input<Type>('ref');
 
   readonly allRefSorts = computed(() => this.admin.refSorts().map(convertSort));
-  readonly allTagSorts = computed(() => this.admin.tagSorts().map(convertSort));
+  readonly allTagSorts = computed(() => this.admin.tagSorts()
+    .filter(s => this.type() !== 'ref' && validSortColumn(this.type(), s?.sort))
+    .map(convertSort));
   readonly allSorts = computed(() => this.type() === 'ref'
     ? [...this.store.view.isSearch() ? [{ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` }] : [], ...this.allRefSorts()]
     : this.allTagSorts());

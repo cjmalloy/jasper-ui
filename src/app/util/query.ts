@@ -43,6 +43,65 @@ export type UrlFilter = Filter |
 
 export type SortItem = { value: RefSort | TagSort, label: string, title?: string };
 
+export type SortEntity = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
+
+/**
+ * Sort columns the server accepts for each entity.
+ * Refs have many tags, so the number of tags is `tags:len`. The other entities have a single tag,
+ * and `tag:len` is its nesting level.
+ */
+const SORT_COLUMNS: Record<SortEntity, string[]> = {
+  ref: ['rank', 'created', 'modified', 'published', 'url', 'obsolete', 'scheme', 'title', 'origin', 'origin:len', 'comment', 'tags:len', 'sources:len', 'alternateUrls:len'],
+  ext: ['modified', 'tag', 'tag:len', 'name', 'origin', 'origin:len'],
+  user: ['modified', 'tag', 'tag:len', 'name', 'origin', 'origin:len'],
+  plugin: ['modified', 'tag', 'tag:len', 'name', 'origin', 'origin:len'],
+  template: ['modified', 'tag', 'tag:len', 'name', 'origin', 'origin:len'],
+};
+
+/**
+ * JSON columns each entity can be sorted by with `{field}->{path}`.
+ */
+const SORT_PREFIXES: Record<SortEntity, string[]> = {
+  ref: ['metadata->', 'plugins->', 'tags->'],
+  ext: ['config->'],
+  user: ['external->'],
+  plugin: ['config->', 'defaults->', 'schema->'],
+  template: ['config->', 'defaults->', 'schema->'],
+};
+
+/**
+ * Column of a `{column}` or `{column},{ASC|DESC}` sort.
+ */
+export function sortColumn(sort: string) {
+  return sort.replace(/,(ASC|DESC)$/i, '');
+}
+
+/**
+ * Whether the server accepts the sort or filter column for this entity.
+ */
+export function validSortColumn(entity: SortEntity, column?: string) {
+  if (!column) return false;
+  return SORT_COLUMNS[entity].includes(column) || SORT_PREFIXES[entity].some(p => column.startsWith(p) && column.length > p.length);
+}
+
+/**
+ * Fix up sorts from a URL or saved query for an entity.
+ * On Refs `tag:len` is mapped to `tags:len`. Other columns the server would reject are dropped.
+ */
+export function fixSorts<T extends string>(entity: SortEntity, sorts?: T[]): T[] {
+  if (!sorts) return [];
+  const result: T[] = [];
+  for (let s of sorts) {
+    if (!s) continue;
+    if (entity === 'ref' && sortColumn(s) === 'tag:len') s = 'tags:len' + s.substring('tag:len'.length) as T;
+    const column = sortColumn(s);
+    if (!validSortColumn(entity, column)) continue;
+    if (result.some(r => sortColumn(r) === column)) continue;
+    result.push(s);
+  }
+  return result;
+}
+
 /**
  * Parse a `{sort column}/before/{value}`, `{sort column}/after/{value}` or `{field}/equals/{value}` filter,
  * such as `tags->plugin/duration:dur/before/pt5m`.
@@ -160,7 +219,7 @@ export function getArgs(
   let queryFilter = getFiltersQuery(filters);
   const query = queryFilter && tagOrSimpleQuery ? andQueries([tagOrSimpleQuery, ...getFilters(filters)]) : tagOrSimpleQuery || queryFilter;
   if (sort?.length) {
-    sort = Array.isArray(sort) ? [...sort] : [sort];
+    sort = fixSorts('ref', Array.isArray(sort) ? sort : [sort]);
     for (let i = 0; i < sort.length; i++) {
       const s = sort[i];
       if (!s.includes(',') && defaultDesc(s)) {
@@ -244,9 +303,13 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
   for (const f of filter) {
     if (f.startsWith('query/')) continue;
     const date = dateFilter(f);
+    const len = lengthFilter(f);
     if (date) {
       if (date.value) add(date.column, date.dir, date.value);
       else console.warn('Invalid date filter', f);
+    } else if (len) {
+      if (len.column) add(len.column, len.dir, len.value);
+      else console.warn('Invalid Ref filter', f);
     } else if (f.startsWith('sources/')) {
       if (result.sources) console.warn('Multiple sources filters (last wins)');
       result.sources = f.substring('sources/'.length)
@@ -309,6 +372,21 @@ function dateFilter(f: string) {
     dir: match[2] as 'before' | 'after',
     column: DATE_FILTER_COLUMNS[match[1]],
     value: fixDateTime(match[3]),
+  };
+}
+
+/**
+ * Server filter for a `{column}:len/before|after|equals/{length}` filter on Refs, like `tags:len/after/2`.
+ * The column is mapped to `tags:len` for `tag:len`, and is undefined for columns Refs can't be filtered by.
+ */
+function lengthFilter(f: string) {
+  const match = f.match(/^([A-Za-z]+:len)\/(before|after|equals)\/(\d+)$/);
+  if (!match) return undefined;
+  const column = match[1] === 'tag:len' ? 'tags:len' : match[1];
+  return {
+    column: validSortColumn('ref', column) ? column : undefined,
+    dir: match[2] as 'before' | 'after' | 'equals',
+    value: match[3],
   };
 }
 

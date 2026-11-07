@@ -11,6 +11,7 @@ import { cachePlugin } from '../mods/system/cache';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
+import { validSortColumn } from '../util/query';
 import { defer, firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { Store } from '../store/store';
 import { AdminService, hotIndexSuggestions } from './admin.service';
@@ -163,6 +164,37 @@ describe('AdminService', () => {
     const [hotTags, hotPlugins] = service.getTemplateAdminForm('_config/index').slice(-4);
     expect(await firstValueFrom((hotTags.fieldArray as any).props.suggestions(service))).toEqual(['plugin/duration:dur']);
     expect(await firstValueFrom((hotPlugins.fieldArray as any).props.suggestions(service))).toEqual(['_plugin/cache->contentLength:num', 'plugin/score:num']);
+  });
+
+  it('should only use Ref columns in mod Ref sorts and filters', () => {
+    const plugins = service.mods.flatMap(m => m.plugin || []);
+    const templates = service.mods.flatMap(m => m.template || []);
+    const sorts = plugins.flatMap(p => p.config?.sorts || []).map(s => s.sort);
+    const filters = [...plugins, ...templates].flatMap(p => p.config?.filters || []).map(f => f.sort || f.field).filter(c => !!c);
+    expect(sorts.length).toBeGreaterThan(0);
+    expect(sorts.filter(c => !validSortColumn('ref', c))).toEqual([]);
+    expect(filters.filter(c => !validSortColumn('ref', c))).toEqual([]);
+    expect(sorts).not.toContain('tag:len');
+    expect(sorts).toContain('tags:len');
+  });
+
+  it('should only use Ext, User, Plugin and Template columns in mod tag sorts', () => {
+    const sorts = service.mods.flatMap(m => m.template || []).flatMap(t => t.config?.sorts || []).map(s => s.sort);
+    expect(sorts).toContain('tag:len');
+    for (const type of ['ext', 'user', 'plugin', 'template'] as const) {
+      expect(sorts.filter(c => !validSortColumn(type, c))).toEqual([]);
+    }
+  });
+
+  it('should not offer tag:len or other non-Ref columns as Ref sorts or filters', () => {
+    vi.spyOn(service as any, 'pluginConfigProperty').mockReturnValue([
+      { tag: 'plugin/test', config: { sorts: [{ sort: 'tag:len' }, { sort: 'name' }, { sort: 'tags:len' }, { sort: 'metadata->responses' }] } },
+    ]);
+    vi.spyOn(service as any, 'configProperty').mockReturnValue([
+      { tag: 'plugin/test', config: { filters: [{ sort: 'tag:len', after: '1' }, { field: 'config->x', equals: '1' }, { sort: 'tags->plugin/x:num', after: '1' }, { query: 'science' }] } },
+    ]);
+    expect(service.refSorts().map(s => s.sort)).toEqual(['tags:len', 'metadata->responses']);
+    expect(service.filters().map(f => f.sort || f.query)).toEqual(['tags->plugin/x:num', 'science']);
   });
 
   it('should suggest hot responses from response count sorts', () => {
