@@ -9,7 +9,7 @@ import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
 import { getPageTitle } from '../util/format';
 import { UrlFilter } from '../util/query';
-import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, top, topAnds } from '../util/tag';
+import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, tagOrigin, top, topAnds } from '../util/tag';
 import { AccountStore } from './account';
 import { RouterStore } from './router';
 
@@ -307,7 +307,7 @@ export class ViewStore {
 
   readonly showRemotesCheckbox = computed(() => {
     if (this.originFilter()) return false;
-    if (this.current() === 'tags' && this.template().includes('@')) return false;
+    if (this.current() === 'tags' && !this.home() && !['', '@*'].includes(tagOrigin(this.template()))) return false;
     return ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'].includes(this.current()!);
   });
 
