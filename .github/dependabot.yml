@@ -168,7 +168,6 @@ updates:
       patterns:
         - "@vitest/*"
         - "vitest"
-        - "jsdom"
     playwright:
       patterns:
         - "@playwright/*"
