@@ -7,6 +7,9 @@ test.describe.serial('PDF Plugin', () => {
   const paper = `https://example.com/pdf-${runId}/paper/`;
   const page2 = `https://example.com/pdf-${runId}/page/`;
   const url = `comment:pdf-${runId}`;
+  const external = `https://example.com/pdf-${runId}/external.pdf`;
+  const webPdf = `https://example.com/pdf-${runId}/web/`;
+  const proxyUrl = `comment:pdf-proxy-${runId}`;
 
   async function headers(request: APIRequestContext) {
     await request.get(`${api}/plugin/page`);
@@ -44,5 +47,27 @@ test.describe.serial('PDF Plugin', () => {
     await expect(md.locator('.embed-container iframe')).toHaveCount(1);
     await toggle.click();
     await expect(md.locator('.embed-container iframe')).toHaveCount(0);
+  });
+
+  test('hides toggles for external PDFs without the proxy', async ({ page, request }) => {
+    const plugin = await (await request.get(`${api}/plugin`, { headers: await headers(request), params: { tag: 'plugin/pdf' + localOrigin() } })).json();
+    for (const data of [
+      { url: webPdf, title: 'Web PDF', tags: ['public', 'plugin/pdf'] },
+      { url: proxyUrl, title: 'Proxy Links', tags: ['public'], comment: `[external](${external}) [web](${webPdf}) [paper](${paper})` },
+    ]) {
+      const res = await request.post(`${api}/ref`, { headers: await headers(request), data: { ...data, origin: localOrigin() } });
+      expect(res.ok(), await res.text()).toBeTruthy();
+    }
+    const md = page.locator('.full-page.ref .md');
+    await page.goto(`/ref/e/${encodeURIComponent(proxyUrl)}?debug=USER`, { waitUntil: 'networkidle' });
+    await expect(md.locator('.toggle.embed')).toHaveCount(3);
+
+    const res = await request.put(`${api}/plugin`, { headers: await headers(request), data: { ...plugin, config: { ...plugin.config, proxy: false } } });
+    expect(res.ok(), await res.text()).toBeTruthy();
+    await page.goto(`/ref/e/${encodeURIComponent(proxyUrl)}?debug=USER`, { waitUntil: 'networkidle' });
+    await expect(md.locator('a', { hasText: 'web' })).toBeVisible();
+    // Only the cached PDF can still be embedded
+    await expect(md.locator('.toggle.embed')).toHaveCount(1);
+    await expect(md.locator('.toggle.embed')).toHaveAttribute('title', paper);
   });
 });

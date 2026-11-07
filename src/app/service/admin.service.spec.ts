@@ -104,6 +104,17 @@ describe('AdminService', () => {
     expect(service.getEmbeds(external)).toEqual(['plugin/pdf/scanned']);
   });
 
+  it('should only embed external PDF URLs through the proxy', () => {
+    (service as any).updateStatus((status: any) => {
+      status.plugins['plugin/pdf'] = { tag: 'plugin/pdf', config: { embeddable: true, proxy: false, extensions: ['.pdf'] } };
+    });
+    expect(service.getEmbedPluginsForUrl('https://example.com/paper.pdf')).toEqual([]);
+    (service as any).updateStatus((status: any) => {
+      status.plugins['plugin/pdf'] = { tag: 'plugin/pdf', config: { embeddable: true, proxy: true, extensions: ['.pdf'] } };
+    });
+    expect(service.getEmbedPluginsForUrl('https://example.com/paper.pdf').map(p => p.tag)).toEqual(['plugin/pdf']);
+  });
+
   it('should not inherit template admin forms', () => {
     (service as any).updateStatus((status: any) => {
       status.templates['parent'] = { tag: 'parent', config: { adminForm: [{ key: 'a' }], advancedAdminForm: [{ key: 'b' }] } };
