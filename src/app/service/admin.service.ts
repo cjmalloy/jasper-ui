@@ -99,7 +99,7 @@ import { Store } from '../store/store';
 import { equalBundle } from '../util/diff';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
-import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
+import { addHierarchicalTags, directChild, hasPrefix, hasTag, localTag, tagIntersection, tagOrigin, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
@@ -521,9 +521,8 @@ export class AdminService {
     return map((xs: Ext[]) => xs.map(x => {
       if (!x.tag || x.modifiedString) return x;
       x = {...x};
-      const inbox = (hasPrefix(x.tag, 'plugin') ? '' : 'plugin/inbox/') + x.tag;
-      const tmpl = this.getTemplate(inbox);
-      let plugin = this.getPlugin(inbox);
+      const tmpl = this.getTemplate(x.tag);
+      let plugin = this.getPlugin(x.tag);
       if (plugin?.config?.signature) {
         plugin = this.getPlugin(plugin.config.signature) || plugin;
         x.tag = plugin?.tag || x.tag;
@@ -532,6 +531,14 @@ export class AdminService {
       x.name ||= tmpl?.name;
       return x;
     }));
+  }
+
+  /**
+   * Replace a recipient tag with the signature from its Template, keeping the origin.
+   */
+  recipientSignature(tag: string) {
+    const signature = this.getTemplate(localTag(tag))?.config?.signature;
+    return signature ? signature + tagOrigin(tag) : tag;
   }
 
   configProperty(...names: string[]): [Plugin | Template] {

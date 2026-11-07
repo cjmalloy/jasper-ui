@@ -115,6 +115,26 @@ describe('AdminService', () => {
     expect(service.getEmbedPluginsForUrl('https://example.com/paper.pdf').map(p => p.tag)).toEqual(['plugin/pdf']);
   });
 
+  it('should map recipients to their Template signature', () => {
+    (service as any).updateStatus((status: any) => {
+      status.templates['support'] = { tag: 'support', config: { signature: '+support' } };
+    });
+    expect(service.recipientSignature('support')).toBe('+support');
+    expect(service.recipientSignature('support@tenant')).toBe('+support@tenant');
+    expect(service.recipientSignature('other@tenant')).toBe('other@tenant');
+  });
+
+  it('should name recipients without an Ext after their Template', async () => {
+    (service as any).updateStatus((status: any) => {
+      status.templates['support'] = { tag: 'support', name: 'Support', config: { signature: '+support' } };
+    });
+    const xs = await firstValueFrom(of([
+      { tag: '+support', origin: '@tenant', name: '' },
+      { tag: 'other', origin: '@tenant', name: '' },
+    ]).pipe(service.recipientFallback));
+    expect(xs.map(x => x.name)).toEqual(['Support', undefined]);
+  });
+
   it('should not inherit template admin forms', () => {
     (service as any).updateStatus((status: any) => {
       status.templates['parent'] = { tag: 'parent', config: { adminForm: [{ key: 'a' }], advancedAdminForm: [{ key: 'b' }] } };

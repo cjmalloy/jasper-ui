@@ -36,6 +36,11 @@ export interface Template extends Config {
      * Add to the sort dropdown.
      */
     sorts?: SortConfig[],
+    /**
+     * Show this tag as the recipient instead, for example when messages
+     * to a protected tag are delivered to its public mailbox.
+     */
+    signature?: string,
   };
   // Client-only
   type?: 'template';

@@ -7,6 +7,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { of, Subject } from 'rxjs';
 import { SafePipe } from '../../pipe/safe.pipe';
+import { AdminService } from '../../service/admin.service';
 
 import { RefComponent } from './ref.component';
 
@@ -36,6 +37,15 @@ describe('RefComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('lists recipients sharing a Template signature once', () => {
+    (TestBed.inject(AdminService) as any).updateStatus((status: any) => {
+      status.templates['support'] = { tag: 'support', config: { signature: '+support' } };
+      status.templates['help'] = { tag: 'help', config: { signature: '+support' } };
+    });
+    fixture.componentRef.setInput('ref', { url: 'comment:1', origin: '', tags: ['plugin/inbox/support', 'plugin/inbox/help'] });
+    expect(component.recipients()).toEqual(['+support']);
   });
 
   it('derives titles from new refs and form edits', () => {

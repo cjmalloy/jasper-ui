@@ -29,7 +29,6 @@ updates:
         - "@angular-devkit/*"
         - "rxjs"
         - "zone.js"
-        - "typescript"
         - "tslib"
         - "ngx-monaco-editor"
     formly:
@@ -91,7 +90,6 @@ updates:
         - "@angular-devkit/*"
         - "rxjs"
         - "zone.js"
-        - "typescript"
         - "tslib"
         - "ngx-monaco-editor"
     formly:
@@ -146,7 +144,6 @@ updates:
         - "@angular-devkit/*"
         - "rxjs"
         - "zone.js"
-        - "typescript"
         - "tslib"
         - "ngx-monaco-editor"
     formly:
@@ -168,7 +165,6 @@ updates:
       patterns:
         - "@vitest/*"
         - "vitest"
-        - "jsdom"
     playwright:
       patterns:
         - "@playwright/*"
