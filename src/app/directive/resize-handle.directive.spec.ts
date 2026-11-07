@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
-import { ElementRef } from '@angular/core';
+import { Component, ElementRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ConfigService } from '../service/config.service';
 import { ResizeHandleDirective } from './resize-handle.directive';
 
@@ -48,5 +49,49 @@ describe('ResizeHandleDirective hit test', () => {
     const directive = create(el);
     directive.onPointerDown({ button: 0, clientX: 300, clientY: 500 } as any);
     expect(directive.dragging()).toBe(false);
+  });
+});
+
+describe('ResizeHandleDirective container', () => {
+  @Component({
+    template: `
+      <div appResizeHandle [child]="child">
+        <iframe #child [style.width]="width" style="height: 67vh"></iframe>
+      </div>`,
+    imports: [ResizeHandleDirective],
+  })
+  class HostComponent {
+    width = '80%';
+  }
+
+  function setup(width: string) {
+    TestBed.configureTestingModule({
+      providers: [{ provide: ConfigService, useValue: { mobile: () => false } }],
+    });
+    const fixture = TestBed.createComponent(HostComponent);
+    fixture.componentInstance.width = width;
+    fixture.detectChanges();
+    const container = fixture.nativeElement.querySelector('div') as HTMLElement;
+    const iframe = fixture.nativeElement.querySelector('iframe') as HTMLIFrameElement;
+    const directive = fixture.debugElement.query(By.directive(ResizeHandleDirective)).injector.get(ResizeHandleDirective);
+    return { container, iframe, directive };
+  }
+
+  it('should move a percentage width to the container so the handle lines up with the child', () => {
+    const { container, iframe, directive } = setup('80%');
+    directive.shrinkContainer();
+    expect(container.style.width).toBe('80%');
+    expect(iframe.style.width).toBe('100%');
+    expect(container.style.height).toBe('67vh');
+    directive.shrinkContainer();
+    expect(container.style.width).toBe('80%');
+    expect(iframe.style.width).toBe('100%');
+  });
+
+  it('should copy fixed sizes to the container', () => {
+    const { container, iframe, directive } = setup('400px');
+    directive.shrinkContainer();
+    expect(container.style.width).toBe('400px');
+    expect(iframe.style.width).toBe('400px');
   });
 });
