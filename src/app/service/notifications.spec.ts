@@ -558,8 +558,9 @@ class FakeJasper {
 
   private find(req: HttpRequest<any>): Ref[] {
     const query = req.params.get('query');
-    const after = req.params.get('filterAfter')?.substring('modified/'.length);
-    const before = req.params.get('filterBefore')?.substring('modified/'.length);
+    const filters = req.params.getAll('filter') || [];
+    const after = filters.find(f => f.startsWith('modified/after/'))?.substring('modified/after/'.length);
+    const before = filters.find(f => f.startsWith('modified/before/'))?.substring('modified/before/'.length);
     const obsolete = req.params.get('obsolete');
     const sort = req.params.getAll('sort') || [];
     const result = this.refs

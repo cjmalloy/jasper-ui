@@ -123,17 +123,10 @@ export type RefFilter = FilterObj & {
   sources?: string;
   search?: string;
   /**
-   * Keep Refs where the sort column is less than the value: `{sort column}/{value}`.
+   * Keep Refs where the sort column is before, after or equal to the value:
+   * `{sort column}/{before|after|equals}/{value}`.
    */
-  filterBefore?: string[];
-  /**
-   * Keep Refs where the sort column is greater than the value: `{sort column}/{value}`.
-   */
-  filterAfter?: string[];
-  /**
-   * Keep Refs where the sort column equals the value: `{sort column}/{value}`.
-   */
-  filterEquals?: string[];
+  filter?: string[];
 };
 
 export type RefPageArgs = RefFilter & {

@@ -45,7 +45,7 @@ for (const field of dateSorts) {
     await page.route('**/api/v1/ref/page**', async route => {
       const url = new URL(route.request().url());
       const sort = url.searchParams.getAll('sort');
-      if (url.searchParams.getAll('filterBefore').some(f => f.startsWith(`${field}/`))) {
+      if (url.searchParams.getAll('filter').some(f => f.startsWith(`${field}/before/`))) {
         cursorRequests.push(url);
         const size = Number(url.searchParams.get('size'));
         await route.fulfill({
@@ -58,7 +58,7 @@ for (const field of dateSorts) {
         });
         return;
       }
-      if (url.searchParams.getAll('filterAfter').some(f => f.startsWith(`${field}/`))) {
+      if (url.searchParams.getAll('filter').some(f => f.startsWith(`${field}/after/`))) {
         cursorRequests.push(url);
         await route.fulfill({
           json: refPage(
@@ -108,7 +108,7 @@ for (const field of dateSorts) {
     expect(nextRequest.searchParams.get('size')).toBe('3');
     expect(page.url()).toContain('pageNumber=1');
     expect(new URL(page.url()).searchParams.getAll('sort')).toEqual([`${field},DESC`]);
-    expect(page.url()).not.toContain('filterBefore');
+    expect(page.url()).not.toContain(`${field}/before/`);
 
     await page.locator('.prev-page').click();
 
@@ -119,7 +119,7 @@ for (const field of dateSorts) {
     expect(previous.searchParams.getAll('sort')).toEqual(reverseSort(stableSort));
     expect(previous.searchParams.has('page')).toBe(false);
     expect(page.url()).toContain('pageNumber=0');
-    expect(page.url()).not.toContain('filterAfter');
+    expect(page.url()).not.toContain(`${field}/after/`);
   });
 }
 

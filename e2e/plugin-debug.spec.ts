@@ -55,9 +55,9 @@ test.describe.serial('Debug Plugin', () => {
     await expect(option).toHaveValue('1');
     await expect(links).toHaveText(['One']);
 
-    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filterEquals'));
+    const request = page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes('filter='));
     await option.selectOption({ label: 'Option 2' });
-    expect(new URL((await request).url()).searchParams.getAll('filterEquals')).toEqual(['plugins->plugin/debug->select/2']);
+    expect(new URL((await request).url()).searchParams.getAll('filter')).toEqual(['plugins->plugin/debug->select/equals/2']);
     await expect(links).toHaveText(['Another Two', 'Two']);
     expect(new URL(page.url()).searchParams.getAll('filter')).toEqual(['plugins->plugin/debug->select/equals/2']);
   });
@@ -77,9 +77,10 @@ test.describe.serial('Debug Plugin', () => {
     return page.locator('.ref-list-item .link a');
   }
 
-  function filterParams(page: Page, param: string) {
-    return page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && req.url().includes(param))
-      .then(req => new URL(req.url()).searchParams.getAll(param));
+  function filterParams(page: Page, op: 'before' | 'after' | 'equals') {
+    const params = (url: string) => new URL(url).searchParams.getAll('filter').filter(f => f.includes(`/${op}/`));
+    return page.waitForRequest(req => req.url().includes('/api/v1/ref/page') && params(req.url()).length > 0)
+      .then(req => params(req.url()));
   }
 
   test('radio options come from the plugin form', async ({ page }) => {
@@ -89,9 +90,9 @@ test.describe.serial('Debug Plugin', () => {
     await expect(option).toHaveValue('red');
     await expect(links).toHaveText(['One', 'Three']);
 
-    const params = filterParams(page, 'filterEquals');
+    const params = filterParams(page, 'equals');
     await option.selectOption({ label: 'Green' });
-    expect(await params).toEqual(['plugins->plugin/debug->radio/green']);
+    expect(await params).toEqual(['plugins->plugin/debug->radio/equals/green']);
     await expect(links).toHaveText(['Another Two']);
   });
 
@@ -112,9 +113,9 @@ test.describe.serial('Debug Plugin', () => {
     await expect(option.locator('option')).toHaveText(['✅️ checked', '⬜️ unchecked']);
     await expect(links).toHaveText(['One']);
 
-    const params = filterParams(page, 'filterEquals');
+    const params = filterParams(page, 'equals');
     await option.selectOption({ label: '⬜️ unchecked' });
-    expect(await params).toEqual(['plugins->plugin/debug->multicheckbox->a/false']);
+    expect(await params).toEqual(['plugins->plugin/debug->multicheckbox->a/equals/false']);
     await expect(links).toHaveText(['Two']);
   });
 
@@ -131,30 +132,30 @@ test.describe.serial('Debug Plugin', () => {
   });
 
   test('numeric fields filter on an equal number', async ({ page }) => {
-    const params = filterParams(page, 'filterEquals');
+    const params = filterParams(page, 'equals');
     const links = await pick(page, '🐞️ number');
-    expect(await params).toEqual(['plugins->plugin/debug->number:num/42']);
+    expect(await params).toEqual(['plugins->plugin/debug->number:num/equals/42']);
     await expect(page.locator('.filter .filter-value')).toHaveValue('42');
     await expect(links).toHaveText(['One']);
   });
 
   test('numeric sorts filter on both ends of a range', async ({ page }) => {
-    let params = filterParams(page, 'filterAfter');
+    let params = filterParams(page, 'after');
     const links = await pick(page, '🐞️ number over');
-    expect(await params).toEqual(['plugins->plugin/debug->number:num/0']);
+    expect(await params).toEqual(['plugins->plugin/debug->number:num/after/0']);
     await expect(links).toHaveText(['Another Two', 'One', 'Two']);
 
-    params = filterParams(page, 'filterBefore');
+    params = filterParams(page, 'before');
     await page.locator('.filter select.big').selectOption({ label: '🐞️ number under' });
-    expect(await params).toEqual(['plugins->plugin/debug->number:num/100']);
+    expect(await params).toEqual(['plugins->plugin/debug->number:num/before/100']);
     await expect(page.locator('.filter #filter-1 option:checked')).toHaveText('🐞️ number under');
     await expect(links).toHaveText(['One', 'Two']);
   });
 
   test('numeric sorts filter below a value', async ({ page }) => {
-    const params = filterParams(page, 'filterBefore');
+    const params = filterParams(page, 'before');
     const links = await pick(page, '🐞️ number under');
-    expect(await params).toEqual(['plugins->plugin/debug->number:num/100']);
+    expect(await params).toEqual(['plugins->plugin/debug->number:num/before/100']);
     await expect(links).toHaveText(['One', 'Three', 'Two']);
   });
 
@@ -172,9 +173,9 @@ test.describe.serial('Debug Plugin', () => {
   });
 
   test('tag fields filter on the sub-tag', async ({ page }) => {
-    const params = filterParams(page, 'filterEquals');
+    const params = filterParams(page, 'equals');
     const links = await pick(page, '🐞️ debug tag');
-    expect(await params).toEqual(['tags->debug/a']);
+    expect(await params).toEqual(['tags->debug/equals/a']);
     await expect(links).toHaveText(['Another Two']);
 
     const value = page.locator('.filter .filter-value');
