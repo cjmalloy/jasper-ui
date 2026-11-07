@@ -307,7 +307,7 @@ export class ViewStore {
 
   readonly showRemotesCheckbox = computed(() => {
     if (this.originFilter()) return false;
-    if (this.current() === 'tags' && !this.home() && !['', '@*'].includes(tagOrigin(this.template()))) return false;
+    if (this.current() === 'tags' && !this.home() && this.template().includes('@') && tagOrigin(this.template()) !== '@*') return false;
     return ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'].includes(this.current()!);
   });
 
