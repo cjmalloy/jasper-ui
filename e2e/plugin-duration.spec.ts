@@ -116,4 +116,12 @@ test.describe.serial('Duration Plugin', () => {
     expect(new URL((await request).url()).searchParams.getAll('filter')).toEqual(['tags->plugin/duration:dur/after/pt10m']);
     await expect(page.locator('.ref-list-item .link a')).toHaveText(['Medium', 'Long']);
   });
+
+  test('labels a sort and filter that are only in the URL', async ({ page }) => {
+    await page.goto(`/tag/${tag}?debug=USER&sort=tags->plugin/duration&filter=tags->plugin/duration:dur/equals/pt30m`, { waitUntil: 'networkidle' });
+    await expect(page.locator('.ref-list-item .link a')).toHaveText(['Medium']);
+    await openSidebar(page);
+    await expect(page.locator('.sort #sort-0 option:checked')).toHaveText('⏱️ Duration');
+    await expect(page.locator('.filter #filter-0 option:checked')).toHaveText('⏱️ duration =');
+  });
 });

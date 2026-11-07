@@ -30,17 +30,23 @@ import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { encodeBookmarkParams, parseBookmarkParams } from '../util/http';
 import {
+  columnLabel,
+  columnTags,
   convertFilter,
   convertSort,
   defaultDesc,
   FilterGroup,
   FilterItem,
+  filterLabel,
+  filterTags,
+  fixSorts,
   negatable,
   parseValueFilter,
   SortItem,
   switchFilter,
   toggle,
   UrlFilter,
+  validSortColumn,
   valueFilterConfig
 } from '../util/query';
 import {
@@ -282,6 +288,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
   readonly filters = signal<string[]>([]);
   readonly searchText = signal('');
   readonly allFilters = signal<FilterGroup[]>([]);
+  private readonly tagNames = signal<Record<string, string>>({});
 
   private overlayRef?: OverlayRef;
   private overlayEvents?: Subscription;
@@ -385,8 +392,18 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
       { value: 'url', label: $localize`🔗️ url` },
       { value: 'origin:len', label: $localize`🪆 nesting` },
     ];
-    return [...base, ...this.admin.refSorts().map(convertSort)];
+    const sorts = [...base, ...this.admin.refSorts().map(convertSort)];
+    const urlOnly = uniq(this.sorts().map(s => this.sortCol(s)))
+      .filter(col => validSortColumn('ref', col) && !sorts.some(s => s.value === col))
+      .map(col => ({ value: col, label: columnLabel(col, this.tagName) }) as SortItem);
+    return [...sorts, ...urlOnly];
   });
+
+  private readonly tagName = (tag: string) => this.tagNames()[tag] || this.admin.getPlugin(tag)?.name || this.admin.getTemplate(tag)?.name;
+
+  private filterLabel(filter: string) {
+    return filterLabel(filter, this.tagName, this.allSorts());
+  }
 
   private extractQuery(value: string): string {
     if (!value) return '';
@@ -402,11 +419,16 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
       switchMap(exts => {
         if (query !== this.queryPart) return of(undefined);
         this.buildFilterGroups(exts);
-        return this.loadActiveKanbanFilters(exts, query);
+        const tags = [...this.filters().flatMap(filterTags), ...this.sorts().flatMap(s => columnTags(this.sortCol(s)))];
+        return forkJoin([
+          this.loadActiveKanbanFilters(exts, query),
+          this.editor.getTagNames(tags, this.field.props.origin || this.store.account.origin()),
+        ]).pipe(map(([, names]) => names));
       }),
-    ).subscribe(() => {
+    ).subscribe(names => {
       // Query can change while kanban tag previews are loading.
       if (query !== this.queryPart) return;
+      if (names) this.tagNames.set(names);
       this.syncFilterOptions();
     });
     this.syncFilterOptions(false);
@@ -578,12 +600,12 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
           if (option) {
             this.allFilters.update(groups => groups.map(g => ({ ...g, filters: g.filters.map(i => i === option ? { ...i, filter: f as UrlFilter } : i) })));
           } else {
-            this.loadFilter(valueFilterConfig(v, $localize`Filters 🕵️️`));
+            this.loadFilter({ ...valueFilterConfig(v, $localize`Filters 🕵️️`), label: this.filterLabel(f) });
           }
         } else if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
-          this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
+          this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any, label: this.filterLabel(f) });
         } else if (f.startsWith('user/')) {
-          this.loadFilter({ group: $localize`Filters 🕵️️`, user: f.substring('user/'.length) as any });
+          this.loadFilter({ group: $localize`Filters 🕵️️`, user: f.substring('user/'.length) as any, label: this.filterLabel(f) });
         } else if (f.startsWith('scheme/')) {
           this.loadFilter({ group: $localize`Filters 🕵️️`, scheme: f.substring('scheme/'.length) });
         } else if (f.startsWith('sources/')) {
@@ -591,7 +613,9 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
         } else if (f.startsWith('responses/')) {
           this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Responses ⤵️`, responses: f.substring('responses/'.length) });
         } else if (f.startsWith('query/')) {
-          this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length) });
+          this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length), label: this.filterLabel(f) });
+        } else if (this.filterLabel(f)) {
+          this.pushFilter({ label: $localize`Filters 🕵️️`, filters: [{ filter: f as UrlFilter, label: this.filterLabel(f)! }] });
         }
       }
     }
@@ -607,7 +631,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> {
       return;
     }
     const params = parseBookmarkParams(value.substring(idx + 1));
-    this.sorts.set([params['sort']].flat().filter(Boolean));
+    this.sorts.set(fixSorts('ref', [params['sort']].flat().filter(Boolean)));
     this.filters.set([params['filter']].flat().filter(Boolean));
     this.searchText.set(params['search'] || '');
     this.buildAllFilters();

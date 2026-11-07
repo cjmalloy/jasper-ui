@@ -99,6 +99,7 @@ import { Store } from '../store/store';
 import { equalBundle } from '../util/diff';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
+import { validFilterColumn, validSortColumn } from '../util/query';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, localTag, tagIntersection, tagOrigin, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
@@ -760,12 +761,14 @@ export class AdminService {
   readonly filters = computed(() => {
     return this.configProperty('filters')
       .flatMap(p => p.config?.filters!)
-      .filter(f => !f.user || this.auth.hasRole('ROLE_USER'));
+      .filter(f => !f.user || this.auth.hasRole('ROLE_USER'))
+      .filter(f => !f.sort && !f.field || validFilterColumn('ref', f.sort || f.field));
   });
 
   readonly refSorts = computed(() => {
     return this.pluginConfigProperty('sorts')
-      .flatMap(p => p.config?.sorts!);
+      .flatMap(p => p.config?.sorts!)
+      .filter(s => validSortColumn('ref', s?.sort));
   });
 
   /**

@@ -3,7 +3,10 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
+import { AdminService } from '../../service/admin.service';
+import { EditorService } from '../../service/editor.service';
 import { FilterComponent } from './filter.component';
 
 describe('FilterComponent', () => {
@@ -49,6 +52,30 @@ describe('FilterComponent', () => {
     it('does not duplicate an option', () => {
       component.filters.set(['tags->plugin/duration:dur/after/pt5m', 'tags->plugin/duration:dur/after/pt5m']);
       expect(options().filter(f => f === 'tags->plugin/duration:dur/after/pt5m').length).toBe(1);
+    });
+  });
+
+  describe('URL only filter labels', () => {
+    const label = (filter: string) => component.allFilters().flatMap(g => g.filters).find(i => i.filter === filter)?.label;
+
+    it('names the plugin a value filter reads', () => {
+      vi.spyOn(TestBed.inject(AdminService), 'getPlugin').mockImplementation(tag => tag === 'plugin/duration' ? <any> { tag, name: '⏱️ Duration' } : undefined);
+      component.filters.set(['tags->plugin/duration:dur/after/pt5m']);
+      expect(label('tags->plugin/duration:dur/after/pt5m')).toBe('⏱️ Duration >');
+    });
+
+    it('uses the label of a known sort for the column', () => {
+      vi.spyOn(TestBed.inject(AdminService), 'refSorts').mockReturnValue(<any[]> [{ sort: 'tags:len', label: '🏷️ tags' }]);
+      fixture.componentRef.setInput('type', 'ref');
+      component.filters.set(['tags:len/after/3' as any]);
+      expect(label('tags:len/after/3')).toBe('🏷️ tags >');
+    });
+
+    it('names the tags in a query from their Ext', () => {
+      vi.spyOn(TestBed.inject(EditorService), 'getTagNames').mockReturnValue(of({ science: '🔬️ Science' }));
+      component.filters.set(['query/science:!funny']);
+      TestBed.tick();
+      expect(label('query/science:!funny')).toBe('🔬️ Science:!funny');
     });
   });
 });
