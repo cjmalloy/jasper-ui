@@ -417,6 +417,17 @@ export class EditorService {
     );
   }
 
+  /**
+   * Display names of tags from their Ext, template or plugin, keyed by tag. Tags without a name are left out.
+   */
+  getTagNames(tags: string[], defaultOrigin = ''): Observable<Record<string, string>> {
+    tags = uniq(tags.filter(t => !!t));
+    if (!tags.length) return of({});
+    return forkJoin(tags.map(t => this.getTagPreview(t, defaultOrigin).pipe(map(p => [t, p?.name] as const)))).pipe(
+      map(names => Object.fromEntries(names.filter(([, name]) => !!name)) as Record<string, string>),
+    );
+  }
+
   getBookmarksPreview(bookmarks: string[], defaultOrigin = ''): Observable<TagPreview[]> {
     return forkJoin(bookmarks.map(b => {
       const query = b.includes('?') ? b.substring(0, b.indexOf('?')) : b;

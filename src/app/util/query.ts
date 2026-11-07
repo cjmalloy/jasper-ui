@@ -161,6 +161,79 @@ export function filterColumnTag(config: FilterConfig) {
 }
 
 /**
+ * Looks up the display name of a tag, such as the Ext, template or plugin name.
+ */
+export type TagName = (tag: string) => string | undefined;
+
+/**
+ * The tags a sort or filter column reads, such as `plugin/duration` in `tags->plugin/duration:dur`.
+ */
+export function columnTags(column: string): string[] {
+  const match = column.match(new RegExp('^(?:tags|plugins|metadata->(?:plugins|remotePlugins))->(' + TAG_REGEX + ')'));
+  return match ? [match[1]] : [];
+}
+
+/**
+ * The tags in a query, without operators, negation or origin wildcards.
+ */
+export function queryTags(query: string): string[] {
+  return query.split(/[:|()]/g)
+    .map(t => t.startsWith('!') ? t.substring(1) : t)
+    .filter(t => !!t && !t.startsWith('@') && !t.includes('*'));
+}
+
+/**
+ * The tags a URL filter reads, to look up their display names.
+ */
+export function filterTags(filter: string): string[] {
+  if (filter.startsWith('query/')) return queryTags(filter.substring('query/'.length));
+  if (filter.startsWith('user/')) return queryTags(filter.substring('user/'.length));
+  if (filter.startsWith('!') || hasPrefix(filter, 'plugin')) return queryTags(filter);
+  const v = columnFilterParts(filter);
+  return v ? columnTags(v.column) : [];
+}
+
+/**
+ * Readable label for a sort or filter column that may not be in any mod.
+ * Uses the label of a known sort for the same column, or names the tag the column reads.
+ */
+export function columnLabel(column: string, name: TagName = () => undefined, known: SortItem[] = []): string {
+  const label = known.find(s => s.value === column)?.label;
+  if (label) return label;
+  const tagLabel = (tag: string) => name(tag) || '#' + tag;
+  const tag = columnTags(column)[0];
+  if (!tag) return column;
+  if (column.startsWith('tags->')) return tagLabel(tag);
+  if (column.startsWith('metadata->plugins->')) return $localize`${tagLabel(tag)} responses`;
+  if (column.startsWith('metadata->remotePlugins->')) return $localize`${tagLabel(tag)} remote responses`;
+  const [path, suffix] = column.substring('plugins->'.length + tag.length).split(':');
+  const fields = path.split('->').filter(f => !!f);
+  const fieldsLabel = [tagLabel(tag), ...fields].join(' ');
+  if (suffix === 'len') return $localize`${fieldsLabel} count`;
+  if (suffix && suffix !== 'num') return fieldsLabel + ' ' + suffix;
+  return fieldsLabel;
+}
+
+/**
+ * Readable label for a URL filter that is not in any mod, or undefined if it has no generated label.
+ */
+export function filterLabel(filter: string, name: TagName = () => undefined, known: SortItem[] = []): string | undefined {
+  const tagsLabel = (query: string) => query.replace(/[^:|()!]+/g, t => t.startsWith('@') || t.includes('*') ? t : name(t) || t);
+  if (filter.startsWith('query/')) return tagsLabel(filter.substring('query/'.length));
+  if (filter.startsWith('user/')) return tagsLabel(filter.substring('user/'.length));
+  if (filter.startsWith('!') || hasPrefix(filter, 'plugin')) return tagsLabel(filter);
+  const v = columnFilterParts(filter);
+  if (!v) return undefined;
+  return columnLabel(v.column, name, known) + ' ' + { before: '<', after: '>', equals: '=' }[v.dir];
+}
+
+function columnFilterParts(filter: string) {
+  const match = filter.match(/^(.+)\/(before|after|equals)\/([^/]*)$/);
+  if (!match || DATE_FILTER_COLUMNS[match[1]]) return undefined;
+  return { column: match[1], dir: match[2] as 'before' | 'after' | 'equals', value: match[3] };
+}
+
+/**
  * Switch to the next filter, keeping the value of the previous filter if they compare the same thing.
  * For example, switching from `modified/before/{date}` to `published/after/{default}` keeps the date,
  * and switching between before, after and equals on the same column keeps the value.

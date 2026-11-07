@@ -1,11 +1,14 @@
 import { Component, computed, ElementRef, inject, input, linkedSignal, viewChild } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
-import { filter } from 'rxjs';
+import { isEqual, uniq } from 'lodash-es';
+import { filter, startWith, switchMap } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
+import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
-import { convertSort, defaultDesc, validSortColumn } from '../../util/query';
+import { columnLabel, columnTags, convertSort, defaultDesc, SortItem, validSortColumn } from '../../util/query';
 
 @Component({
   selector: 'app-sort',
@@ -18,6 +21,7 @@ export class SortComponent {
   router = inject(Router);
   admin = inject(AdminService);
   store = inject(Store);
+  private editor = inject(EditorService);
 
   readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
@@ -27,12 +31,26 @@ export class SortComponent {
   readonly allTagSorts = computed(() => this.admin.tagSorts()
     .filter(s => this.type() !== 'ref' && validSortColumn(this.type(), s?.sort))
     .map(convertSort));
-  readonly allSorts = computed(() => this.type() === 'ref'
-    ? [...this.store.view.isSearch() ? [{ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` }] : [], ...this.allRefSorts()]
-    : this.allTagSorts());
   readonly sorts = linkedSignal(() => {
     const sort = this.store.view.sort();
     return Array.isArray(sort) ? [...sort] : [sort];
+  });
+  private readonly tagNames = toSignal(toObservable(computed(() => uniq(this.sorts().flatMap(s => columnTags(this.sortCol(s || '')))), { equal: isEqual })).pipe(
+    switchMap(tags => this.editor.getTagNames(tags, this.store.account.origin()).pipe(startWith({} as Record<string, string>))),
+  ), { initialValue: {} as Record<string, string> });
+  private readonly menuSorts = computed(() => this.type() === 'ref'
+    ? [...this.store.view.isSearch() ? [{ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` }] : [], ...this.allRefSorts()]
+    : this.allTagSorts());
+  /**
+   * Sorts from the menu, plus sorts only in the URL with a generated label.
+   */
+  readonly allSorts = computed(() => {
+    const names = this.tagNames();
+    const name = (tag: string) => names[tag] || this.admin.getPlugin(tag)?.name || this.admin.getTemplate(tag)?.name;
+    const urlOnly = uniq(this.sorts().map(s => this.sortCol(s || '')))
+      .filter(col => validSortColumn(this.type(), col) && !this.menuSorts().some(s => s.value === col))
+      .map(col => ({ value: col, label: columnLabel(col, name) }) as SortItem);
+    return [...this.menuSorts(), ...urlOnly];
   });
 
   replace = false;

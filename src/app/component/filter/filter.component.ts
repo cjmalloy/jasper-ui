@@ -2,7 +2,7 @@ import { Component, computed, ElementRef, inject, input, linkedSignal, viewChild
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { filter, uniq } from 'lodash-es';
+import { filter, isEqual, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import { Ext } from '../../model/ext';
@@ -20,9 +20,12 @@ import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
 import {
   convertFilter,
+  convertSort,
   filterColumnTag,
   FilterGroup,
   FilterItem,
+  filterLabel,
+  filterTags,
   negatable,
   parseValueFilter,
   switchFilter,
@@ -78,6 +81,10 @@ export class FilterComponent {
       ]), ext.origin || '').pipe(map(previews => ({ key: ext.tag + (ext.origin || ''), previews })));
     })).pipe(startWith([])) : of([])),
   ), { initialValue: [] });
+  private readonly tagNames = toSignal(toObservable(computed(() => uniq(this.filters().flatMap(filterTags)), { equal: isEqual })).pipe(
+    switchMap(tags => this.editor.getTagNames(tags, this.store.account.origin()).pipe(startWith({} as Record<string, string>))),
+  ), { initialValue: {} as Record<string, string> });
+  private readonly knownSorts = computed(() => (this.type() === 'ref' ? this.admin.refSorts() : this.admin.tagSorts()).map(convertSort));
   readonly allFilters = computed(() => this.buildFilters());
 
   /**
@@ -241,7 +248,7 @@ export class FilterComponent {
             ? { ...item, filter: value, label: item.label.startsWith(not) ? item.label.substring(not.length) : not + item.label }
             : item) }));
         } else if (v) {
-          load(valueFilterConfig(v, $localize`Filters 🕵️️`));
+          load({ ...valueFilterConfig(v, $localize`Filters 🕵️️`), label: this.filterLabel(value) });
         } else if (value.startsWith('scheme/')) {
           load({ group: $localize`Schemes 🏳️️`, scheme: value.substring('scheme/'.length) });
         } else if (value.startsWith('sources/')) {
@@ -249,18 +256,25 @@ export class FilterComponent {
         } else if (value.startsWith('responses/')) {
           load({ group: $localize`Filters 🕵️️`, label: $localize`Responses ⤵️`, responses: value.substring('responses/'.length) });
         } else if (value.startsWith('!') || hasPrefix(value, 'plugin')) {
-          load({ group: $localize`Plugins 🧰️`, response: value as any });
+          load({ group: $localize`Plugins 🧰️`, response: value as any, label: this.filterLabel(value) });
         } else if (value.startsWith('user/')) {
-          load({ group: $localize`Filters 🕵️️`, user: value.substring('user/'.length) as any });
+          load({ group: $localize`Filters 🕵️️`, user: value.substring('user/'.length) as any, label: this.filterLabel(value) });
         } else if (value.startsWith('query/')) {
           const query = value.substring('query/'.length);
-          load({ group: $localize`Queries 🔎️️`, query, ...(query.startsWith('@') ? { label: $localize`🏛️ ${query}` } : {}) });
+          load({ group: $localize`Queries 🔎️️`, query, label: query.startsWith('@') ? $localize`🏛️ ${query}` : this.filterLabel(value) });
+        } else if (this.filterLabel(value)) {
+          push({ label: $localize`Filters 🕵️️`, filters: [{ filter: value, label: this.filterLabel(value)! }] });
         }
       }
     }
     return groups;
   }
 
+
+  private filterLabel(filter: UrlFilter) {
+    const names = this.tagNames();
+    return filterLabel(filter, tag => names[tag] || this.admin.getPlugin(tag)?.name || this.admin.getTemplate(tag)?.name, this.knownSorts());
+  }
 
   readonly rootConfigs = computed(() => {
     if (!this.admin.getTemplate('')) return [];

@@ -49,4 +49,12 @@ describe('SortComponent', () => {
     expect(offered('plugin')).toEqual(['tag:len', 'name', 'config->version:num', 'schema->x']);
     expect(offered('template')).toEqual(['tag:len', 'name', 'config->version:num', 'schema->x']);
   });
+
+  it('should show a sort that is only in the URL with a generated label', () => {
+    vi.spyOn(TestBed.inject(AdminService), 'getPlugin').mockImplementation(tag => tag === 'plugin/duration' ? <any> { tag, name: '⏱️ Duration' } : undefined);
+    component.sorts.set(['tags->plugin/duration:dur,DESC', 'modified']);
+    const sort = component.allSorts().find(s => s.value === 'tags->plugin/duration:dur');
+    expect(sort?.label).toBe('⏱️ Duration');
+    expect(component.allSorts().filter(s => s.value === 'modified').length).toBe(1);
+  });
 });

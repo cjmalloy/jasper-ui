@@ -1,10 +1,14 @@
 /// <reference types="vitest/globals" />
 import { DateTime } from 'luxon';
 import {
+  columnLabel,
+  columnTags,
   convertFilter,
   dateTimeLocal,
   filterColumnTag,
   defaultDesc,
+  filterLabel,
+  filterTags,
   fixSorts,
   getArgs,
   getFilter,
@@ -722,6 +726,61 @@ describe('Query Utils', () => {
     it('should send Ref length filters', () => {
       expect(getArgs('science', undefined, ['tags:len/before/3' as UrlFilter, 'sources:len/equals/0' as UrlFilter]).filter)
         .toEqual(['tags:len/before/3', 'sources:len/equals/0']);
+    });
+  });
+
+  describe('URL only labels', () => {
+    const names: Record<string, string> = {
+      'plugin/duration': '⏱️ Duration',
+      'plugin/comment': '💬️ Comment',
+      'plugin/user/vote': '👍️ Vote',
+      'science': '🔬️ Science',
+    };
+    const name = (tag: string) => names[tag];
+
+    it('finds the tags a column reads', () => {
+      expect(columnTags('tags->plugin/duration:dur')).toEqual(['plugin/duration']);
+      expect(columnTags('plugins->plugin/user/vote:top')).toEqual(['plugin/user/vote']);
+      expect(columnTags('plugins->plugin/x->a->b:num')).toEqual(['plugin/x']);
+      expect(columnTags('metadata->plugins->plugin/comment')).toEqual(['plugin/comment']);
+      expect(columnTags('metadata->remotePlugins->plugin/comment')).toEqual(['plugin/comment']);
+      expect(columnTags('tags:len')).toEqual([]);
+      expect(columnTags('metadata->responses')).toEqual([]);
+    });
+
+    it('finds the tags a filter reads', () => {
+      expect(filterTags('tags->plugin/duration:dur/before/pt5m')).toEqual(['plugin/duration']);
+      expect(filterTags('query/(science|math):!funny@other:@origin:*')).toEqual(['science', 'math', 'funny@other']);
+      expect(filterTags('user/!plugin/user/hide')).toEqual(['plugin/user/hide']);
+      expect(filterTags('!plugin/comment')).toEqual(['plugin/comment']);
+      expect(filterTags('query/a/before/b')).toEqual(['a/before/b']);
+      expect(filterTags('modified/before/2020-01-01')).toEqual([]);
+      expect(filterTags('scheme/https:')).toEqual([]);
+    });
+
+    it('labels a column from the tag it reads', () => {
+      expect(columnLabel('tags->plugin/duration:dur', name)).toBe('⏱️ Duration');
+      expect(columnLabel('tags->unknown', name)).toBe('#unknown');
+      expect(columnLabel('plugins->plugin/user/vote:top', name)).toBe('👍️ Vote top');
+      expect(columnLabel('plugins->plugin/duration->seconds:num', name)).toBe('⏱️ Duration seconds');
+      expect(columnLabel('plugins->plugin/duration->parts:len', name)).toBe('⏱️ Duration parts count');
+      expect(columnLabel('metadata->plugins->plugin/comment', name)).toBe('💬️ Comment responses');
+      expect(columnLabel('metadata->remotePlugins->plugin/comment', name)).toBe('💬️ Comment remote responses');
+      expect(columnLabel('tags:len', name, [{ value: 'tags:len', label: '🏷️ tags' }])).toBe('🏷️ tags');
+      expect(columnLabel('alternateUrls:len', name)).toBe('alternateUrls:len');
+    });
+
+    it('labels a filter', () => {
+      expect(filterLabel('tags->plugin/duration:dur/before/pt5m', name)).toBe('⏱️ Duration <');
+      expect(filterLabel('plugins->plugin/user/vote:top/after/3', name)).toBe('👍️ Vote top >');
+      expect(filterLabel('plugins->plugin/duration->unit/equals/s', name)).toBe('⏱️ Duration unit =');
+      expect(filterLabel('tags:len/after/3', name, [{ value: 'tags:len', label: '🏷️ tags' }])).toBe('🏷️ tags >');
+      expect(filterLabel('query/(science|math):!funny:@origin', name)).toBe('(🔬️ Science|math):!funny:@origin');
+      expect(filterLabel('query/a/before/b', name)).toBe('a/before/b');
+      expect(filterLabel('!plugin/comment', name)).toBe('!💬️ Comment');
+      expect(filterLabel('user/plugin/user/vote', name)).toBe('👍️ Vote');
+      expect(filterLabel('modified/before/2020-01-01', name)).toBeUndefined();
+      expect(filterLabel('scheme/https:', name)).toBeUndefined();
     });
   });
 });
