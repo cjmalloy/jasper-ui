@@ -8535,6 +8535,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Debug show toggle</source>
         <target>デバッグの表示切替</target>
       </trans-unit>
+      <trans-unit id="5252390288615077157" datatype="html">
+        <source>🛎️ Support</source>
+        <target>🛎️ サポート</target>
+      </trans-unit>
+      <trans-unit id="8984592473025740070" datatype="html">
+        <source>Shared support inbox. Direct messages sent to this tag are shown as sent to +support.</source>
+        <target>共有サポート受信箱。このタグに送信されたダイレクトメッセージは +support 宛てとして表示されます。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
