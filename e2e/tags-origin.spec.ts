@@ -92,7 +92,7 @@ test.describe.serial('Tags page origin', () => {
     const items = page.locator('.ext.list-item');
     await expect(items).toHaveCount(2);
     await items.filter({ has: page.locator('.link.remote') }).locator('.actions a', { hasText: 'tags' }).click();
-    await expect(page).toHaveURL(new RegExp(`/tags/${tag}${remote.replace(/\./g, '\\.')}\\?showRemotes=true`));
+    await expect(page).toHaveURL(url => url.pathname.endsWith(`/tags/${tag}${remote}`) && url.searchParams.get('showRemotes') === 'true');
     await expect(items).toHaveCount(1);
     await expect(items.locator('.link.remote')).toContainText('Remote Ext');
     await openSidebar(page);
