@@ -1,21 +1,29 @@
 /// <reference types="vitest/globals" />
 import { DateTime } from 'luxon';
 import {
+  columnLabel,
+  columnTags,
   convertFilter,
   dateTimeLocal,
   filterColumnTag,
   defaultDesc,
+  filterLabel,
+  filterTags,
+  fixSorts,
   getArgs,
   getFilter,
   getFilters,
   getFiltersQuery,
   getTagFilter,
+  validColumnFilter,
   negatable,
   negate,
   parseValueFilter,
   switchFilter,
   toggle,
   UrlFilter,
+  validFilterColumn,
+  validSortColumn,
   valueFilterConfig,
   withStableDateSort,
 } from './query';
@@ -237,13 +245,13 @@ describe('Query Utils', () => {
     });
 
     it('should add DESC for metadata-> prefix sorts', () => {
-      const args = getArgs('science', 'metadata->field');
-      expect(args.sort).toContain('metadata->field,DESC');
+      const args = getArgs('science', 'metadata->responses');
+      expect(args.sort).toContain('metadata->responses,DESC');
     });
 
     it('should preserve explicit direction for metadata-> sorts', () => {
-      const args = getArgs('science', 'metadata->field,ASC');
-      expect(args.sort).toContain('metadata->field,ASC');
+      const args = getArgs('science', 'metadata->responses,ASC');
+      expect(args.sort).toContain('metadata->responses,ASC');
     });
 
     it('should include pagination', () => {
@@ -441,6 +449,19 @@ describe('Query Utils', () => {
       });
     });
 
+    it('should parse any filter column', () => {
+      expect(parseValueFilter('tags:len/after/3')).toEqual({ column: 'tags:len', dir: 'after', value: '3' });
+      expect(parseValueFilter('tag:len/before/2')).toEqual({ column: 'tag:len', dir: 'before', value: '2' });
+      expect(parseValueFilter('config->pinned:len/after/2')).toEqual({ column: 'config->pinned:len', dir: 'after', value: '2' });
+    });
+
+    it('should not parse dates or other filters', () => {
+      expect(parseValueFilter('modified/after/2020-01-01')).toBeUndefined();
+      expect(parseValueFilter('title/equals/kiwi')).toBeUndefined();
+      expect(parseValueFilter('query/science/after/x')).toBeUndefined();
+      expect(parseValueFilter('plugin/x/after/y')).toBeUndefined();
+    });
+
     it('should parse equals filters', () => {
       expect(parseValueFilter('plugins->plugin/debug->select/equals/2')).toEqual({
         column: 'plugins->plugin/debug->select',
@@ -572,6 +593,258 @@ describe('Query Utils', () => {
     it('returns an empty value for malformed input', () => {
       expect(dateTimeLocal('P-invalid')).toBe('');
       expect(dateTimeLocal('not-a-date')).toBe('');
+    });
+  });
+  describe('validSortColumn', () => {
+    it('should only allow tags:len, not tag:len, on Refs', () => {
+      expect(validSortColumn('ref', 'tags:len')).toBe(true);
+      expect(validSortColumn('ref', 'tag:len')).toBe(false);
+      expect(validSortColumn('ref', 'tag')).toBe(false);
+      expect(validSortColumn('ref', 'name')).toBe(false);
+      expect(validSortColumn('ref', 'config->x')).toBe(false);
+    });
+
+    it('should allow Ref columns on Refs', () => {
+      for (const c of ['published', 'created', 'modified', 'title', 'url', 'scheme', 'origin', 'origin:len', 'sources:len', 'alternateUrls:len',
+        'metadata->responses', 'plugins->plugin/user/vote:decay', 'tags->plugin/duration:dur']) {
+        expect(validSortColumn('ref', c)).toBe(true);
+      }
+      expect(validSortColumn('ref', 'metadata->')).toBe(false);
+      expect(validSortColumn('ref', '')).toBe(false);
+      expect(validSortColumn('ref', undefined)).toBe(false);
+    });
+
+    it('should allow tag:len but not Ref columns on Exts, Users, Plugins and Templates', () => {
+      for (const type of ['ext', 'user', 'plugin', 'template'] as const) {
+        for (const c of ['modified', 'tag', 'tag:len', 'name', 'origin', 'origin:len']) {
+          expect(validSortColumn(type, c)).toBe(true);
+        }
+        for (const c of ['published', 'created', 'title', 'tags:len', 'sources:len', 'metadata->responses', 'plugins->plugin/x', 'tags->plugin/x']) {
+          expect(validSortColumn(type, c)).toBe(false);
+        }
+      }
+    });
+
+    it('should allow the JSON columns of each entity', () => {
+      expect(validSortColumn('ext', 'config->pinned:len')).toBe(true);
+      expect(validSortColumn('ext', 'external->ids')).toBe(false);
+      expect(validSortColumn('user', 'external->ids:len')).toBe(true);
+      expect(validSortColumn('user', 'config->x')).toBe(false);
+      for (const type of ['plugin', 'template'] as const) {
+        expect(validSortColumn(type, 'config->version:num')).toBe(true);
+        expect(validSortColumn(type, 'defaults->x')).toBe(true);
+        expect(validSortColumn(type, 'schema->x')).toBe(true);
+        expect(validSortColumn(type, 'external->x')).toBe(false);
+      }
+    });
+
+    it('should allow any JSON key in a sort, but not in a filter', () => {
+      expect(validSortColumn('ext', 'config->release.name')).toBe(true);
+      expect(validFilterColumn('ext', 'config->release.name')).toBe(false);
+      expect(validSortColumn('user', 'external->a b->c.d:num')).toBe(true);
+      expect(validSortColumn('template', 'schema->x y:len')).toBe(true);
+      expect(validSortColumn('ref', 'plugins->plugin/x->release.name')).toBe(true);
+      expect(validFilterColumn('ref', 'plugins->plugin/x->release.name')).toBe(false);
+      for (const c of ['config->', 'config->a:b->c', 'config->a,b', 'config->x:dur', 'external->release.name']) {
+        expect(validSortColumn('ext', c)).toBe(false);
+      }
+      expect(validSortColumn('ref', 'plugins->other.name')).toBe(false);
+      expect(validSortColumn('ref', 'metadata->release.name')).toBe(false);
+    });
+  });
+
+  describe('validFilterColumn', () => {
+    it('should not filter Refs on plain text columns that can only be sorted', () => {
+      for (const c of ['title', 'url', 'scheme', 'origin', 'comment', 'rank']) {
+        expect(validSortColumn('ref', c)).toBe(true);
+        expect(validFilterColumn('ref', c)).toBe(false);
+      }
+    });
+
+    it('should not sort or filter Refs on obsolete', () => {
+      expect(validSortColumn('ref', 'obsolete')).toBe(false);
+      expect(validFilterColumn('ref', 'obsolete')).toBe(false);
+    });
+
+    it('should only allow tag value columns with no suffix, :num or :dur', () => {
+      for (const c of ['tags->plugin/progress', 'tags->plugin/progress:num', 'tags->plugin/duration:dur', 'tags->+user/x']) {
+        expect(validFilterColumn('ref', c)).toBe(true);
+      }
+      for (const c of ['tags->plugin/progress:len', 'tags->Plugin', 'tags->plugin//x', 'tags->plugin/x->y']) {
+        expect(validSortColumn('ref', c)).toBe(false);
+      }
+    });
+
+    it('should only allow the generated metadata columns', () => {
+      for (const c of ['metadata->newResponse', 'metadata->responses', 'metadata->responses:len', 'metadata->plugins->plugin/comment',
+        'metadata->remotePlugins->plugin/user/read', 'metadata->plugins->plugin/thread:num']) {
+        expect(validFilterColumn('ref', c)).toBe(true);
+      }
+      for (const c of ['metadata->x', 'metadata->plugins->plugin/comment->x', 'metadata->plugins->other']) {
+        expect(validFilterColumn('ref', c)).toBe(false);
+      }
+    });
+
+    it('should only allow plugin columns', () => {
+      for (const c of ['plugins->plugin/test->ids:len', 'plugins->_plugin/cache->contentLength:num', 'plugins->plugin/user/vote:decay', 'plugins->plugin/debug->multicheckbox->a']) {
+        expect(validFilterColumn('ref', c)).toBe(true);
+      }
+      for (const c of ['plugins->other', 'plugins->plugin/x:dur', 'plugins->plugin/user/vote:hot']) {
+        expect(validFilterColumn('ref', c)).toBe(false);
+      }
+    });
+
+    it('should filter other entities on their sort columns except plain text', () => {
+      expect(validFilterColumn('ext', 'tag:len')).toBe(true);
+      expect(validFilterColumn('ext', 'config->pinned:len')).toBe(true);
+      expect(validFilterColumn('ext', 'tag')).toBe(false);
+      expect(validFilterColumn('ext', 'name')).toBe(false);
+      expect(validFilterColumn('user', 'external->ids:len')).toBe(true);
+      expect(validFilterColumn('user', 'config->x')).toBe(false);
+      expect(validFilterColumn('plugin', 'config->version:num')).toBe(true);
+      expect(validFilterColumn('template', 'config->x:dur')).toBe(false);
+    });
+  });
+
+  describe('fixSorts', () => {
+    it('should map tag:len to tags:len on Refs', () => {
+      expect(fixSorts('ref', ['tag:len'])).toEqual(['tags:len']);
+      expect(fixSorts('ref', ['tag:len,DESC', 'published'])).toEqual(['tags:len,DESC', 'published']);
+      expect(fixSorts('ref', ['tags:len', 'tag:len,DESC'])).toEqual(['tags:len']);
+    });
+
+    it('should drop columns Refs cannot be sorted by', () => {
+      expect(fixSorts('ref', ['tag', 'name,DESC', 'config->x', 'modified'])).toEqual(['modified']);
+    });
+
+    it('should keep JSON sorts with dotted keys', () => {
+      expect(fixSorts('ext', ['config->release.name,DESC'])).toEqual(['config->release.name,DESC']);
+    });
+
+    it('should keep tag:len and drop Ref only columns on other entities', () => {
+      expect(fixSorts('ext', ['tag:len', 'tag'])).toEqual(['tag:len', 'tag']);
+      expect(fixSorts('user', ['published', 'tags:len', 'sources:len,DESC', 'metadata->responses', 'plugins->x', 'tags->x', 'name'])).toEqual(['name']);
+    });
+
+    it('should handle empty sorts', () => {
+      expect(fixSorts('ref', undefined)).toEqual([]);
+      expect(fixSorts('ref', ['' as any])).toEqual([]);
+    });
+  });
+
+  describe('getArgs Ref columns', () => {
+    it('should map a tag:len sort to tags:len', () => {
+      expect(getArgs('science', 'tag:len' as any).sort).toEqual(['tags:len']);
+      expect(getArgs('science', ['tag:len,DESC' as any, 'published']).sort).toEqual(['tags:len,DESC', 'published,DESC']);
+    });
+
+    it('should never send tag:len or non-Ref columns', () => {
+      const args = getArgs('science', ['tag' as any, 'name' as any], ['tag:len/after/1' as UrlFilter, 'name:len/after/1' as UrlFilter]);
+      expect(args.sort).toEqual([]);
+      expect(args.filter).toEqual(['tags:len/after/1']);
+      expect(JSON.stringify(args)).not.toContain('tag:len');
+      expect(JSON.stringify(args)).not.toContain('name');
+    });
+
+    it('should drop saved obsolete sorts and filters on columns Refs cannot filter by', () => {
+      expect(getArgs('science', ['obsolete' as any, 'title']).sort).toEqual(['title']);
+      const args = getArgs('science', undefined, [
+        'config->pinned:len/after/2', 'external->ids:len/after/1', 'title/equals/kiwi', 'tags->plugin/progress:len/after/1', 'metadata->x/after/1',
+      ] as UrlFilter[]);
+      expect(args.filter).toBeUndefined();
+      expect(Object.keys(args).filter(k => k.includes('/'))).toEqual([]);
+    });
+
+    it('should drop malformed column filters instead of sending them as boolean parameters', () => {
+      const args = getArgs('science', undefined, [
+        'plugins->plugin/score:num/10', 'tags->plugin/duration:dur/pt5m', 'metadata->responses/after', 'tags:len/3',
+      ] as UrlFilter[]);
+      expect(args.filter).toBeUndefined();
+      expect(Object.keys(args).filter(k => /[/:]|->/.test(k))).toEqual([]);
+    });
+
+    it('should still send the obsolete filter', () => {
+      expect(getArgs('science', undefined, ['obsolete' as UrlFilter]).obsolete).toBe(true);
+    });
+
+    it('should only accept column filters the server accepts for the entity', () => {
+      expect(validColumnFilter('ref', 'tag:len/after/2')).toEqual({ column: 'tags:len', dir: 'after', value: '2' });
+      expect(validColumnFilter('ref', 'config->pinned:len/after/2')).toBeUndefined();
+      expect(validColumnFilter('ref', 'tags:len/after/')).toBeUndefined();
+      expect(validColumnFilter('ref', 'tags:len/after/a,b')).toBeUndefined();
+      expect(validColumnFilter('ext', 'tag:len/after/2')).toEqual({ column: 'tag:len', dir: 'after', value: '2' });
+      expect(validColumnFilter('ext', 'tags:len/after/2')).toBeUndefined();
+      expect(validColumnFilter('user', 'external->ids:len/after/1')).toEqual({ column: 'external->ids:len', dir: 'after', value: '1' });
+      expect(validColumnFilter('user', 'config->ids:len/after/1')).toBeUndefined();
+    });
+
+    it('should forward valid column filters on tag entities', () => {
+      expect(getTagFilter(['tag:len/after/2', 'config->pinned:len/before/3'] as unknown as UrlFilter[])).toEqual({
+        filter: ['tag:len/after/2', 'config->pinned:len/before/3'],
+      });
+      expect(getTagFilter(['tags:len/after/2', 'external->ids:len/after/1', 'published/after/1'] as unknown as UrlFilter[], 'ext')).toEqual({});
+      expect(getTagFilter(['external->ids:len/after/1'] as unknown as UrlFilter[], 'user')).toEqual({ filter: ['external->ids:len/after/1'] });
+      expect(getTagFilter(['schema->x/equals/y'] as unknown as UrlFilter[], 'template')).toEqual({ filter: ['schema->x/equals/y'] });
+    });
+
+    it('should send Ref length filters', () => {
+      expect(getArgs('science', undefined, ['tags:len/before/3' as UrlFilter, 'sources:len/equals/0' as UrlFilter]).filter)
+        .toEqual(['tags:len/before/3', 'sources:len/equals/0']);
+    });
+  });
+
+  describe('URL only labels', () => {
+    const names: Record<string, string> = {
+      'plugin/duration': '⏱️ Duration',
+      'plugin/comment': '💬️ Comment',
+      'plugin/user/vote': '👍️ Vote',
+      'science': '🔬️ Science',
+    };
+    const name = (tag: string) => names[tag];
+
+    it('finds the tags a column reads', () => {
+      expect(columnTags('tags->plugin/duration:dur')).toEqual(['plugin/duration']);
+      expect(columnTags('plugins->plugin/user/vote:top')).toEqual(['plugin/user/vote']);
+      expect(columnTags('plugins->plugin/x->a->b:num')).toEqual(['plugin/x']);
+      expect(columnTags('metadata->plugins->plugin/comment')).toEqual(['plugin/comment']);
+      expect(columnTags('metadata->remotePlugins->plugin/comment')).toEqual(['plugin/comment']);
+      expect(columnTags('tags:len')).toEqual([]);
+      expect(columnTags('metadata->responses')).toEqual([]);
+    });
+
+    it('finds the tags a filter reads', () => {
+      expect(filterTags('tags->plugin/duration:dur/before/pt5m')).toEqual(['plugin/duration']);
+      expect(filterTags('query/(science|math):!funny@other:@origin:*')).toEqual(['science', 'math', 'funny@other']);
+      expect(filterTags('user/!plugin/user/hide')).toEqual(['plugin/user/hide']);
+      expect(filterTags('!plugin/comment')).toEqual(['plugin/comment']);
+      expect(filterTags('query/a/before/b')).toEqual(['a/before/b']);
+      expect(filterTags('modified/before/2020-01-01')).toEqual([]);
+      expect(filterTags('scheme/https:')).toEqual([]);
+    });
+
+    it('labels a column from the tag it reads', () => {
+      expect(columnLabel('tags->plugin/duration:dur', name)).toBe('⏱️ Duration');
+      expect(columnLabel('tags->unknown', name)).toBe('#unknown');
+      expect(columnLabel('plugins->plugin/user/vote:top', name)).toBe('👍️ Vote top');
+      expect(columnLabel('plugins->plugin/duration->seconds:num', name)).toBe('⏱️ Duration seconds');
+      expect(columnLabel('plugins->plugin/duration->parts:len', name)).toBe('⏱️ Duration parts count');
+      expect(columnLabel('metadata->plugins->plugin/comment', name)).toBe('💬️ Comment responses');
+      expect(columnLabel('metadata->remotePlugins->plugin/comment', name)).toBe('💬️ Comment remote responses');
+      expect(columnLabel('tags:len', name, [{ value: 'tags:len', label: '🏷️ tags' }])).toBe('🏷️ tags');
+      expect(columnLabel('alternateUrls:len', name)).toBe('alternateUrls:len');
+    });
+
+    it('labels a filter', () => {
+      expect(filterLabel('tags->plugin/duration:dur/before/pt5m', name)).toBe('⏱️ Duration <');
+      expect(filterLabel('plugins->plugin/user/vote:top/after/3', name)).toBe('👍️ Vote top >');
+      expect(filterLabel('plugins->plugin/duration->unit/equals/s', name)).toBe('⏱️ Duration unit =');
+      expect(filterLabel('tags:len/after/3', name, [{ value: 'tags:len', label: '🏷️ tags' }])).toBe('🏷️ tags >');
+      expect(filterLabel('query/(science|math):!funny:@origin', name)).toBe('(🔬️ Science|math):!funny:@origin');
+      expect(filterLabel('query/a/before/b', name)).toBe('a/before/b');
+      expect(filterLabel('!plugin/comment', name)).toBe('!💬️ Comment');
+      expect(filterLabel('user/plugin/user/vote', name)).toBe('👍️ Vote');
+      expect(filterLabel('modified/before/2020-01-01', name)).toBeUndefined();
+      expect(filterLabel('scheme/https:', name)).toBeUndefined();
     });
   });
 });

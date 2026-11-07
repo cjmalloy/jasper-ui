@@ -8543,6 +8543,18 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Shared support inbox. Direct messages sent to this tag are shown as sent to +support.</source>
         <target>共有サポート受信箱。このタグに送信されたダイレクトメッセージは +support 宛てとして表示されます。</target>
       </trans-unit>
+      <trans-unit id="1838099726488887786" datatype="html">
+        <source><x id="PH" equiv-text="tagLabel(tag)"/> responses</source>
+        <target><x id="PH" equiv-text="tagLabel(tag)"/> 返信数</target>
+      </trans-unit>
+      <trans-unit id="1828957667714787931" datatype="html">
+        <source><x id="PH" equiv-text="tagLabel(tag)"/> remote responses</source>
+        <target><x id="PH" equiv-text="tagLabel(tag)"/> リモート返信数</target>
+      </trans-unit>
+      <trans-unit id="8717700479081979254" datatype="html">
+        <source><x id="PH" equiv-text="fieldsLabel"/> count</source>
+        <target><x id="PH" equiv-text="fieldsLabel"/> 件数</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

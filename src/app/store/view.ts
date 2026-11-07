@@ -8,7 +8,7 @@ import { Template } from '../model/template';
 import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
 import { getPageTitle } from '../util/format';
-import { UrlFilter } from '../util/query';
+import { fixSorts, UrlFilter } from '../util/query';
 import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, top, topAnds } from '../util/tag';
 import { AccountStore } from './account';
 import { RouterStore } from './router';
@@ -453,8 +453,9 @@ export class ViewStore {
       if (this.search() && this.defaultSearchSort()) return this.defaultSearchSort();
       return this.viewExtSort() || this.defaultSort() || [];
     }
-    if (!Array.isArray(sort)) return [sort]
-    return sort;
+    const sorts = Array.isArray(sort) ? sort : [sort];
+    const type = this.type();
+    return type ? fixSorts(type, sorts) : sorts;
   }, { equal: isEqual });
 
   readonly isSorted = computed(() => {
