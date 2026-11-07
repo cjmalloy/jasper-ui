@@ -81,3 +81,49 @@ describe('ViewStore defaults', () => {
     expect(updated.has('plugin/test')).toBe(true);
   });
 });
+
+describe('ViewStore show remotes on the tags page', () => {
+  function createStore(template: string, queryParams = {}) {
+    const route = {
+      routeSnapshot: signal({
+        queryParams,
+        firstChild: {
+          url: [{ path: 'tags' }],
+          params: { template },
+        },
+      }),
+    } as any;
+    return new ViewStore(route, {} as any);
+  }
+
+  it('hides the toggle and shows remotes for a specific remote origin', () => {
+    const store = createStore('science@remote');
+    expect(store.showRemotesCheckbox()).toBe(false);
+    expect(store.showRemotes()).toBe(true);
+  });
+
+  it('hides the toggle and shows remotes for the explicit empty origin', () => {
+    const store = createStore('science@');
+    expect(store.showRemotesCheckbox()).toBe(false);
+    expect(store.showRemotes()).toBe(true);
+  });
+
+  it('keeps the toggle for the wildcard origin', () => {
+    const store = createStore('@*');
+    expect(store.showRemotesCheckbox()).toBe(true);
+    expect(store.showRemotes()).toBe(false);
+    expect(createStore('@*', { showRemotes: 'true' }).showRemotes()).toBe(true);
+  });
+
+  it('keeps the toggle for unqualified tags', () => {
+    const store = createStore('science');
+    expect(store.showRemotesCheckbox()).toBe(true);
+    expect(store.showRemotes()).toBe(false);
+  });
+
+  it('keeps the toggle on the Home tab', () => {
+    const store = createStore('science@remote', { home: 'true' });
+    expect(store.showRemotesCheckbox()).toBe(true);
+    expect(store.showRemotes()).toBe(false);
+  });
+});
