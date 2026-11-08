@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { uniq, uniqBy } from 'lodash-es';
+import { uniq, uniqBy, without } from 'lodash-es';
 import { catchError, filter, finalize, forkJoin, map, of, Subject, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
@@ -115,8 +115,9 @@ export class SidebarComponent {
   readonly mailPlugin = computed(() => this.tag() ? this.admin.getPlugin(getMailbox(this.tag(), this.store.account.origin())) : undefined);
   readonly tagTemplate = computed(() => this.tag() ? this.admin.getTemplate(this.tag()) : undefined);
   readonly addTags = computed(() => {
-    return getAddTags(this.tag() || undefined, this.plugin(), this.rootConfig(), this.home())
+    const tags = getAddTags(this.tag() || undefined, this.plugin(), this.rootConfig(), this.home())
       .filter(tag => this.auth.canAddTag(tag));
+    return this.admin.privateSettings(tags, this.ext()?.config?.addTags) ? without(tags, 'public') : tags;
   });
   readonly template = toSignal(toObservable(computed(() => {
     const tag = this.store.view.template();

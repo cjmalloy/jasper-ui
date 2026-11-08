@@ -29,7 +29,6 @@ import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
-import { withoutNegated } from '../../util/add-tags';
 import { negate, UrlFilter } from '../../util/query';
 import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
@@ -260,7 +259,7 @@ export class KanbanComponent implements HasChanges {
     result.push(this.ext()!.tag);
     if (tags.col) result.push(tags.col);
     if (tags.sl) result.push(tags.sl);
-    return uniq(withoutNegated(result, this.kanbanConfig().addTags));
+    return uniq(result);
   }
 
   getQuery(tags?: { col?: string, sl?: string }) {

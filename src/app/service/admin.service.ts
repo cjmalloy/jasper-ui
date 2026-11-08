@@ -980,6 +980,16 @@ export class AdminService {
     return this.settings().filter(p => hasTag(p.tag, match));
   }
 
+  /**
+   * Settings are private by default. Adding public to the addTags of a
+   * settings template, or of the given addTags, makes them public.
+   */
+  privateSettings(tags?: string[], addTags?: string[]) {
+    if (addTags?.includes('public')) return false;
+    return this.getPluginSettings(tags).some(p => !this.getTemplates(p.tag)
+      .some(t => t.tag && t.defaults?.addTags?.includes('public')));
+  }
+
   getTemplates(tag = ''): Template[] {
     const template = this.getTemplate(tag);
     const parent = tag ? tag.substring(0, tag.lastIndexOf('/')) : null;

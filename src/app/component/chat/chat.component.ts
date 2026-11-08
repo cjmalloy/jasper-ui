@@ -49,7 +49,6 @@ import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
-import { withoutNegated } from '../../util/add-tags';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { URI_REGEX } from '../../util/format';
 import { dateRange, getArgs } from '../../util/query';
@@ -121,13 +120,10 @@ export class ChatComponent implements HasChanges {
   readonly uploads = linkedSignal<readonly ChatUpload[]>(() => { this.query(); this.responseUrl(); return []; });
   readonly dropping = linkedSignal(() => { this.query(); this.responseUrl(); return false; });
   readonly latex = linkedSignal(() => !!this.admin.getPlugin('plugin/latex'));
-  readonly extAddTags = computed<string[]>(() => this.store.view.ext()?.config?.addTags || []);
   readonly tags = linkedSignal(() => {
     this.query();
     this.responseUrl();
-    const not = this.extAddTags();
-    // Saving a remembered toggle must not reset the current selection
-    return untracked(() => withoutNegated(this.store.account.defaultEditors(this.editors()), not));
+    return this.store.account.defaultEditors(this.editors());
   });
 
   private timeoutId?: number;
@@ -349,14 +345,14 @@ export class ChatComponent implements HasChanges {
     const newTags = uniq([
       'internal',
       ...this.tags(),
-      ...withoutNegated([this.store.view.localTag() || 'chat', ...this.extAddTags()], this.extAddTags()),
+      ...([this.store.view.localTag() || 'chat', ...this.store.view.ext()?.config?.addTags || []]),
       ...this.plugins(),
       ...(this.latex() ? ['plugin/latex'] : []),
       ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
     ]).filter(t => !!t);
     if (URI_REGEX.test(text)) {
       const url = this.editor.getRefUrl(text);
-      newTags.push(...withoutNegated(this.admin.getPluginsForExtension(url).map(p => p.tag), this.extAddTags()).filter(t => !newTags.includes(t)));
+      newTags.push(...this.admin.getPluginsForExtension(url).filter(p => !newTags.includes(p.tag)).map(p => p.tag));
       this.send({
         url,
         origin: this.store.account.origin(),
@@ -557,7 +553,7 @@ export class ChatComponent implements HasChanges {
   }
 
   publicUploads() {
-    return !!this.tags()?.includes('public') || withoutNegated(this.extAddTags(), this.extAddTags()).includes('public');
+    return !!this.tags()?.includes('public') || !!this.store.view.ext()?.config?.addTags?.includes('public');
   }
 
   upload$(file: File, upload: ChatUpload): Observable<Ref | null> {

@@ -10,6 +10,7 @@ import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
+import { Store } from '../../store/store';
 
 import { EditorComponent } from './editor.component';
 
@@ -337,21 +338,22 @@ describe('EditorComponent', () => {
     expect(component.toggleIndex()).toBe(1);
   });
 
-  it('does not add remembered editors negated by template addTags', () => {
-    const admin = TestBed.inject(AdminService);
-    vi.spyOn(admin, 'getEditorButtons').mockReturnValue([
-      { toggle: 'public', remember: true, global: true },
+  it('ignores the remembered public editor for private settings', () => {
+    vi.spyOn(TestBed.inject(AdminService), 'getEditorButtons').mockReturnValue([
+      { toggle: 'public', global: true, _parent: { tag: 'public' } },
     ] as any);
-    vi.spyOn(admin, 'defaultConfig').mockImplementation((tag: string) =>
-      tag === '+plugin/secret' ? { addTags: ['!public', 'plugin/pinned'] } : { addTags: ['public'] });
-    vi.spyOn(component.store.account, 'defaultEditors').mockImplementation(plugins => plugins.filter(p => p === 'public'));
+    vi.spyOn(TestBed.inject(AdminService), 'privateSettings').mockImplementation(tags => !!tags?.includes('+plugin/secret'));
     vi.spyOn(TestBed.inject(AuthzService), 'canAddTag').mockReturnValue(true);
-
-    fixture.componentRef.setInput('tags', new UntypedFormArray([new UntypedFormControl('science')]));
-    expect(component.initTags()).toEqual(['public', 'science']);
-
-    fixture.componentRef.setInput('tags', new UntypedFormArray([new UntypedFormControl('+plugin/secret')]));
-    expect(component.initTags()).toEqual(['+plugin/secret']);
+    vi.spyOn(TestBed.inject(Store).account, 'defaultEditors').mockReturnValue(['public']);
+    const init = (tag: string) => {
+      const f = TestBed.createComponent(EditorComponent);
+      f.componentRef.setInput('control', new UntypedFormControl());
+      f.componentRef.setInput('tags', new UntypedFormArray([new UntypedFormControl(tag)]));
+      f.detectChanges();
+      return f.componentInstance.initTags();
+    };
+    expect(init('+plugin/secret')).toEqual(['+plugin/secret']);
+    expect(init('plugin/note')).toEqual(['public', 'plugin/note']);
   });
 
   it('preserves independent loading events when scraping changes', () => {

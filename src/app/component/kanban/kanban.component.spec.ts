@@ -32,11 +32,6 @@ describe('KanbanComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('does not pass negated addTags to columns', () => {
-    fixture.componentRef.setInput('ext', { tag: 'board', config: { addTags: ['public', 'todo', '!public'] } });
-    expect(component.addingTags({ col: 'doing' })).toEqual(['todo', 'board', 'doing']);
-  });
-
   describe('saveChanges navigation guard', () => {
     it('should allow navigation when no column components exist', () => {
       // No column components, should allow navigation
