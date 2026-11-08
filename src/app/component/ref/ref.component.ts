@@ -1123,11 +1123,19 @@ export class RefComponent implements HasChanges {
   }
 
   markRead() {
-    this.ref.set(markRead(this.admin, this.ts, this.ref()));
+    this.patchRef(markRead(this.admin, this.ts, this.ref()));
   }
 
   setRead() {
-    this.ref.set(readRef(this.ref()));
+    this.patchRef(readRef(this.ref()));
+  }
+
+  /** Metadata only update, keeps the fullscreen choice that a new Ref would reset. */
+  private patchRef(ref: Ref) {
+    if (ref === this.ref()) return;
+    const fullscreen = this.fullscreen();
+    this.ref.set(ref);
+    this.fullscreen.set(fullscreen);
   }
 
   readonly infoUiMarkdowns = computed(() => this.infoUis().map(ui => {
