@@ -63,7 +63,7 @@ import {
   urlSummary
 } from '../../util/format';
 import { emptyObject, getExtension, getScheme, printError } from '../../util/http';
-import { markRead } from '../../util/response';
+import { markRead, readRef } from '../../util/response';
 import {
   storyboardAnimation,
   storyboardHeight,
@@ -1123,7 +1123,19 @@ export class RefComponent implements HasChanges {
   }
 
   markRead() {
-    markRead(this.admin, this.ts, this.ref());
+    this.patchRef(markRead(this.admin, this.ts, this.ref()));
+  }
+
+  setRead() {
+    this.patchRef(readRef(this.ref()));
+  }
+
+  /** Metadata only update, keeps the fullscreen choice that a new Ref would reset. */
+  private patchRef(ref: Ref) {
+    if (ref === this.ref()) return;
+    const fullscreen = this.fullscreen();
+    this.ref.set(ref);
+    this.fullscreen.set(fullscreen);
   }
 
   readonly infoUiMarkdowns = computed(() => this.infoUis().map(ui => {
