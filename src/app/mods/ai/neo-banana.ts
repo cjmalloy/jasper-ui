@@ -7,7 +7,7 @@ export const neoQueryPlugin: Plugin = {
   name: $localize`🍌️💭️ Ask Neo Banana`,
   config: {
     mod: $localize`🍌️ Neo Banana`,
-    version: 4,
+    version: 5,
     type: 'tool',
     default: false,
     add: true,
@@ -51,14 +51,31 @@ const { GoogleGenAI, Modality } = require('@google/genai');
 const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
 const origin = ref.origin || '';
 const config = ref.plugins?.['plugin/delta/neo'] || {};
+const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
 const uniq = (value, index, array) => array.indexOf(value) === index;
+const apiKeyTag = config.apiKeyTag || '+plugin/secret/gemini';
+if (!/^[_+][a-z0-9]+([./][a-z0-9]+)*$/.test(apiKeyTag)) throw new Error('API key tag must be protected or private: ' + apiKeyTag);
+if (apiKeyTag.startsWith('_')) {
+  // Throws if the author cannot read the private tag (404 means no Ext, but the tag is readable)
+  await axios.head(process.env.JASPER_API + '/api/v1/ext', {
+    headers: {
+      'Local-Origin': origin || 'default',
+      'User-Tag': authors[0] || '',
+    },
+    params: { tag: apiKeyTag + origin },
+    validateStatus: status => status < 400 || status === 404,
+  }).catch(e => {
+    console.error('No access to API key tag ' + apiKeyTag, e.response?.status || e.message);
+    throw e;
+  });
+}
 const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
   headers: {
     'Local-Origin': origin || 'default',
     'User-Role': 'ROLE_ADMIN',
   },
   params: {
-    query: (config.apiKeyTag || '+plugin/secret/gemini') + (origin || '@'),
+    query: apiKeyTag + (origin || '@'),
     size: 1,
   },
 }).catch(e => {
@@ -98,7 +115,6 @@ if (ref.tags?.includes('internal')) tags.push('internal');
 if (ref.tags?.includes('dm')) tags.push('dm', 'internal', 'plugin/thread');
 if (ref.tags?.includes('plugin/comment')) tags.push('plugin/comment', 'internal');
 if (ref.tags?.includes('plugin/thread')) tags.push('plugin/thread', 'internal');
-const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
 const aiTags = ref.tags?.filter(tag => tag.startsWith('+plugin/delta/ai/')) || [];
 const mailboxes = ref.tags?.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) || [];
 tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)), ...aiTags.map(tag => tag.substring(1)));

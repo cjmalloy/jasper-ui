@@ -4967,6 +4967,10 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Store secrets with opaque protected tags.</source>
         <target>不透明な保護されたタグでシークレットを保存します。</target>
       </trans-unit>
+      <trans-unit id="8432684216662455548" datatype="html">
+        <source>Do not add public when submitting secrets.</source>
+        <target>シークレットを投稿するときにpublicを追加しません。</target>
+      </trans-unit>
       <trans-unit id="3302998287729753049" datatype="html">
         <source>👨️‍💻️ Snippet</source>
         <target>👨️‍💻️ スニペット</target>
