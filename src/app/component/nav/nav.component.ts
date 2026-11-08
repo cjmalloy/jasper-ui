@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, ElementRef, inject, input } from '@angular/core';
+import { Component, computed, DestroyRef, ElementRef, inject, input, output } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, Observable, of, startWith, switchMap } from 'rxjs';
@@ -35,6 +35,8 @@ export class NavComponent {
   readonly text = computed(() => this.preview()?.name || this.textInput() || this.preview()?.tag || '');
   readonly css = input('');
   readonly external = input(false);
+  readonly readUrl = input('');
+  readonly read = output<void>();
 
   private readonly exists = toSignal(toObservable(computed(() =>
     this.url() && !this.localUrl() && !this.external() ? this.url() : undefined,
@@ -102,7 +104,8 @@ export class NavComponent {
   markRead(event: MouseEvent) {
     if (!this.admin.getPlugin('plugin/user/read')) return;
     if (event.button !== 0 && event.button !== 1) return;
-    this.ts.createResponse('plugin/user/read', this.url()).subscribe();
+    this.ts.createResponse('plugin/user/read', this.readUrl() || this.url()).subscribe();
+    this.read.emit();
   }
 
 }

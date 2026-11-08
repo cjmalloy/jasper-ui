@@ -153,7 +153,7 @@ export class RefPage implements HasChanges {
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
-      tap(ref => this.markRead(ref)),
+      map(ref => this.markRead(ref)),
       tap(ref => this.watch(ref)),
       switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
@@ -232,6 +232,6 @@ export class RefPage implements HasChanges {
   readonly isWiki = computed(() => !this.admin.isWikiExternal() && isWiki(this.store.view.url(), this.admin.getWikiPrefix()));
 
   markRead(ref: Ref) {
-    markRead(this.admin, this.ts, ref);
+    return markRead(this.admin, this.ts, ref);
   }
 }

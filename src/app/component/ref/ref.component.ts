@@ -63,7 +63,7 @@ import {
   urlSummary
 } from '../../util/format';
 import { emptyObject, getExtension, getScheme, printError } from '../../util/http';
-import { markRead } from '../../util/response';
+import { markRead, readRef } from '../../util/response';
 import {
   storyboardAnimation,
   storyboardHeight,
@@ -1123,7 +1123,11 @@ export class RefComponent implements HasChanges {
   }
 
   markRead() {
-    markRead(this.admin, this.ts, this.ref());
+    this.ref.set(markRead(this.admin, this.ts, this.ref()));
+  }
+
+  setRead() {
+    this.ref.set(readRef(this.ref()));
   }
 
   readonly infoUiMarkdowns = computed(() => this.infoUis().map(ui => {
