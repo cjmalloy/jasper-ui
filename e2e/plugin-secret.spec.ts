@@ -18,13 +18,4 @@ test.describe.serial('Secret Plugin', () => {
     await expect(page.locator('.tag-field input.preview[title="+plugin/secret"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title="public"]')).toHaveCount(0);
   });
-
-  test('switches to the secret tab without the public tag', async ({ page }) => {
-    await page.goto('/submit?debug=ADMIN&tag=public', { waitUntil: 'networkidle' });
-    await page.locator('.tabs a', { hasText: 'secret' }).first().click();
-    await expect(page).toHaveURL(/\/submit\/web/);
-    const tags = new URL(page.url()).searchParams.getAll('tag');
-    expect(tags).toContain('+plugin/secret');
-    expect(tags).not.toContain('public');
-  });
 });

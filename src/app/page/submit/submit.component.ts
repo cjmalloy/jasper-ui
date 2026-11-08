@@ -176,10 +176,6 @@ export class SubmitPage {
   });
 
   submitInternal(tag: string) {
-    const plugin = this.admin.getPlugin(tag);
-    if (plugin?.config?.addTags) {
-      return uniq([...plugin.config.addTags, ...plugin.config.internal ? ['internal'] : [], tag]);
-    }
     return uniq([...without(this.store.submit.tags(), ...this.store.submit.submitGenId().map(p => p.tag)), tag]);
   }
 
