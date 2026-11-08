@@ -173,7 +173,7 @@ if (validMoves.length === 1) {
       'Local-Origin': origin || 'default',
       'User-Role': 'ROLE_ADMIN',
     },
-    params: { query: apiKeyTag + origin },
+    params: { query: apiKeyTag + (origin || '@') },
   }).catch(e => {
     console.error(e.response.data);
     throw new Error(e);

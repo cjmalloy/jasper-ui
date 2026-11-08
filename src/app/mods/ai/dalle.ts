@@ -167,7 +167,7 @@ const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
     'Local-Origin': origin || 'default',
     'User-Role': 'ROLE_ADMIN',
   },
-  params: { query: apiKeyTag + origin },
+  params: { query: apiKeyTag + (origin || '@') },
 }).catch(e => {
     console.error(e.response.data);
     throw new Error(e);
