@@ -24,13 +24,15 @@ export class SelectTemplateComponent {
   readonly templates = computed(() => {
     const templates = this.submitTemplates();
     const value = this.template();
+    if (!value) return templates;
     if (templates.some(t => t.tag === value || t.tag === value.substring(access(value).length))) return templates;
     const template = this.admin.getTemplate(value);
-    return template ? [template, ...templates] : templates;
+    return template?.config?.submit ? [template, ...templates] : templates;
   });
 
   readonly selected = computed(() => {
     const value = this.template();
+    if (!value) return '';
     const tags = this.templates().map(t => t.tag);
     if (tags.includes(value)) return value;
     const stripped = value.substring(access(value).length);
