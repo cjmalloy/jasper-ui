@@ -22,40 +22,21 @@ const secretPlugin: Plugin = {
 
 /**
  * Script snippet defining getApiKey(apiKeyTag, authors, origin) for server side scripts.
- * Only +plugin/secret and _plugin/secret tags may be used. Private secrets
- * require the author to have the tag in their read access or tag read access.
+ * The secret is read as the author, so the server only returns it if the author has access.
  * Requires axios to be in scope.
  */
 // language=JavaScript
 export const getApiKeyScript = `
-const getApiKey = async (apiKeyTag, authors, origin) => {
-  if (!/^[_+]plugin\\/secret(\\/|$)/.test(apiKeyTag || '')) {
-    throw new Error('API key tag must start with +plugin/secret or _plugin/secret: ' + apiKeyTag);
-  }
-  if (apiKeyTag.startsWith('_')) {
-    const user = authors?.[0] && (await axios.get(process.env.JASPER_API + '/api/v1/user', {
-      headers: {
-        'Local-Origin': origin || 'default',
-        'User-Role': 'ROLE_ADMIN',
-      },
-      params: { tag: authors[0] + origin },
-    }).catch(() => ({ data: undefined }))).data;
-    const access = [...user?.readAccess || [], ...user?.tagReadAccess || []];
-    if (!access.some(t => apiKeyTag === t || apiKeyTag.startsWith(t + '/'))) {
-      throw new Error('No read access to API key tag ' + apiKeyTag);
-    }
-  }
-  return (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-    headers: {
-      'Local-Origin': origin || 'default',
-      'User-Role': 'ROLE_ADMIN',
-    },
-    params: { query: apiKeyTag + (origin || '@'), size: 1 },
-  }).catch(e => {
-    console.error(e.response?.data || e.message);
-    throw e;
-  })).data.content[0]?.comment;
-};
+const getApiKey = async (apiKeyTag, authors, origin) => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+  headers: {
+    'Local-Origin': origin || 'default',
+    'User-Tag': authors?.[0] || '',
+  },
+  params: { query: apiKeyTag + (origin || '@'), size: 1 },
+}).catch(e => {
+  console.error(e.response?.data || e.message);
+  throw e;
+})).data.content[0]?.comment;
 `;
 
 export const secretMod: Mod = {
