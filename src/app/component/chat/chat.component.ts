@@ -49,6 +49,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
+import { withoutNegated } from '../../util/add-tags';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { URI_REGEX } from '../../util/format';
 import { dateRange, getArgs } from '../../util/query';
@@ -345,14 +346,14 @@ export class ChatComponent implements HasChanges {
     const newTags = uniq([
       'internal',
       ...this.tags(),
-      ...([this.store.view.localTag() || 'chat', ...this.store.view.ext()?.config?.addTags || []]),
+      ...withoutNegated([this.store.view.localTag() || 'chat', ...this.store.view.ext()?.config?.addTags || []], this.store.view.ext()?.config?.addTags),
       ...this.plugins(),
       ...(this.latex() ? ['plugin/latex'] : []),
       ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
     ]).filter(t => !!t);
     if (URI_REGEX.test(text)) {
       const url = this.editor.getRefUrl(text);
-      newTags.push(...this.admin.getPluginsForExtension(url).filter(p => !newTags.includes(p.tag)));
+      newTags.push(...this.admin.getPluginsForExtension(url).filter(p => !newTags.includes(p.tag)).map(p => p.tag));
       this.send({
         url,
         origin: this.store.account.origin(),

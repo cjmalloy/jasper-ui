@@ -38,6 +38,7 @@ import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
+import { negatedTags } from '../../util/add-tags';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { controlValue } from '../../util/form';
 import { expandedTagsInclude, hasTag, test } from '../../util/tag';
@@ -271,8 +272,11 @@ export class EditorComponent {
     ]);
   });
 
+  readonly negatedTags = computed(() => uniq(this.allTags().flatMap(t => negatedTags((this.admin.defaultConfig(t) as { addTags?: string[] }).addTags))));
+
   readonly initTags = computed(() => [
-    ...without(intersection(this.store.account.defaultEditors(this.editors()), this.editorButtons().filter(b => this.visible(b)).map(b => b.toggle!)), ...this.allTags()),
+    ...without(intersection(this.store.account.defaultEditors(this.editors()), this.editorButtons().filter(b => this.visible(b)).map(b => b.toggle!)), ...this.allTags())
+      .filter(t => !this.negatedTags().some(n => expandedTagsInclude(t, n))),
     ...this.allTags(),
   ]);
 

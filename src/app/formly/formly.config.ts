@@ -431,6 +431,31 @@ Private tags start with an underscore.
         },
       },
     }, {
+      name: 'ntag',
+      extends: 'tag',
+      defaultOptions: {
+        validators: {
+          pattern: {
+            expression: (c: AbstractControl) => !c.value || TAG_REGEX.test(c.value.replace(/^!/, '')),
+            message: $localize`Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+Start with an exclamation mark to never add a tag.
+(i.e. "science", "my/tag", "_my/private/tag", or "!public")`,
+          }
+        },
+      },
+    }, {
+      name: 'ntags',
+      extends: 'tags',
+      defaultOptions: {
+        fieldArray: {
+          type: 'ntag',
+        },
+      },
+    }, {
       name: 'qtag',
       extends: 'tag',
       defaultOptions: {

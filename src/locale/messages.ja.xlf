@@ -1823,6 +1823,22 @@ Private tags start with an underscore.
 プライベートタグはアンダースコアで始まります。
 (例: "science", "my/tag", または "_my/private/tag")</target>
       </trans-unit>
+      <trans-unit id="15520966392517887" datatype="html">
+        <source>Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+Start with an exclamation mark to never add a tag.
+(i.e. "science", "my/tag", "_my/private/tag", or "!public")</source>
+        <target>タグは小文字の英字、数字、ピリオド、スラッシュのみを使用してください。
+スラッシュまたはピリオドで始まってはなりません。
+連続して2つのスラッシュまたはピリオドを含んではなりません。
+保護されたタグはプラス記号で始まります。
+プライベートタグはアンダースコアで始まります。
+タグを追加しない場合は感嘆符で始めます。
+(例: "science", "my/tag", "_my/private/tag", または "!public")</target>
+      </trans-unit>
       <trans-unit id="466704681453006045" datatype="html">
         <source>@</source>
       </trans-unit>
@@ -4967,9 +4983,9 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Store secrets with opaque protected tags.</source>
         <target>不透明な保護されたタグでシークレットを保存します。</target>
       </trans-unit>
-      <trans-unit id="8432684216662455548" datatype="html">
-        <source>Do not add public when submitting secrets.</source>
-        <target>シークレットを投稿するときにpublicを追加しません。</target>
+      <trans-unit id="5384799664579687453" datatype="html">
+        <source>Do not add public when submitting secrets, and pin them.</source>
+        <target>シークレットを投稿するときにpublicを追加せず、ピン留めします。</target>
       </trans-unit>
       <trans-unit id="3302998287729753049" datatype="html">
         <source>👨️‍💻️ Snippet</source>

@@ -9,6 +9,7 @@ import { firstValueFrom, Observable, of, Subject } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
+import { AuthzService } from '../../service/authz.service';
 
 import { EditorComponent } from './editor.component';
 
@@ -334,6 +335,23 @@ describe('EditorComponent', () => {
     expect(component.toggleIndex()).toBe(0);
     tags.setValue(['response/two']);
     expect(component.toggleIndex()).toBe(1);
+  });
+
+  it('does not add remembered editors negated by template addTags', () => {
+    const admin = TestBed.inject(AdminService);
+    vi.spyOn(admin, 'getEditorButtons').mockReturnValue([
+      { toggle: 'public', remember: true, global: true },
+    ] as any);
+    vi.spyOn(admin, 'defaultConfig').mockImplementation((tag: string) =>
+      tag === '+plugin/secret' ? { addTags: ['!public', 'plugin/pinned'] } : { addTags: ['public'] });
+    vi.spyOn(component.store.account, 'defaultEditors').mockImplementation(plugins => plugins.filter(p => p === 'public'));
+    vi.spyOn(TestBed.inject(AuthzService), 'canAddTag').mockReturnValue(true);
+
+    fixture.componentRef.setInput('tags', new UntypedFormArray([new UntypedFormControl('science')]));
+    expect(component.initTags()).toEqual(['public', 'science']);
+
+    fixture.componentRef.setInput('tags', new UntypedFormArray([new UntypedFormControl('+plugin/secret')]));
+    expect(component.initTags()).toEqual(['+plugin/secret']);
   });
 
   it('preserves independent loading events when scraping changes', () => {
