@@ -85,7 +85,15 @@ export class ActionListComponent {
         originY: 'center',
         overlayX: 'start',
         overlayY: 'top',
-      }]);
+      }, {
+        originX: 'center',
+        originY: 'center',
+        overlayX: 'start',
+        overlayY: 'bottom',
+      }])
+      .withFlexibleDimensions(false)
+      .withPush(true)
+      .withViewportMargin(8);
     this.overlayRef = this.overlay.create({
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.reposition(),
