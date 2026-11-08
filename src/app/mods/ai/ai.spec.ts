@@ -576,4 +576,89 @@ describe('aiQueryPlugin', () => {
   it('does not fall back to text when web search returns truncated JSON', async () => {
     await expect(runSearch('{"ref":[{"title":"Cut","comment":"This is cut o')).rejects.toThrow();
   });
+
+  const runApiKey = async (apiKeyTag: string, canReadTag = true) => {
+    const response = {
+      url: 'ai:response',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: ['spec:question'],
+      plugins: { 'plugin/llm': { provider: 'openai', apiKeyTag } },
+    };
+    const axios = {
+      get: vi.fn(async (_url: string, options: { headers: Record<string, string>, params: { query?: string } }) => {
+        const query = options.params.query;
+        if (query?.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query?.startsWith(apiKeyTag) && options.headers['User-Role'] === 'ROLE_ADMIN') return { data: { content: [{ comment: 'api-key' }] } };
+        return { data: { content: [] } };
+      }),
+      head: vi.fn(async (_url: string, options: { validateStatus: (status: number) => boolean }) => {
+        const status = canReadTag ? 404 : 403;
+        if (!options.validateStatus(status)) throw Object.assign(new Error('Forbidden'), { response: { status } });
+        return { status };
+      }),
+    };
+    const create = vi.fn(async () => ({
+      output_text: 'Answer',
+      usage: { input_tokens: 5, output_tokens: 3, total_tokens: 8 },
+    }));
+    const clientOptions = vi.fn();
+    class OpenAi {
+      responses = { create };
+      constructor(options: unknown) {
+        clientOptions(options);
+      }
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai', '+user/alice'] }) },
+      'openai': OpenAi,
+    })[module];
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+    const result = run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: vi.fn(), error: vi.fn() });
+    const keyRequests = () => axios.get.mock.calls.filter(call => call[1].params.query?.startsWith(apiKeyTag)).map(call => call[1]);
+    return { result, keyRequests, clientOptions, head: axios.head };
+  };
+
+  it('reads protected API keys without checking tag access', async () => {
+    const { result, keyRequests, clientOptions, head } = await runApiKey('+plugin/secret/openai');
+    await result;
+    expect(head).not.toHaveBeenCalled();
+    expect(keyRequests()).toEqual([expect.objectContaining({ headers: expect.objectContaining({ 'User-Role': 'ROLE_ADMIN' }) })]);
+    expect(clientOptions).toHaveBeenCalledWith(expect.objectContaining({ apiKey: 'api-key' }));
+  });
+
+  it('reads private API keys when the author can read the tag', async () => {
+    const { result, keyRequests, clientOptions, head } = await runApiKey('_plugin/secret/openai');
+    await result;
+    expect(head).toHaveBeenCalledWith('http://jasper.test/api/v1/ext', expect.objectContaining({
+      headers: expect.objectContaining({ 'User-Tag': '+user/alice' }),
+      params: { tag: '_plugin/secret/openai' },
+    }));
+    expect(keyRequests()).toEqual([expect.objectContaining({ headers: expect.objectContaining({ 'User-Role': 'ROLE_ADMIN' }) })]);
+    expect(clientOptions).toHaveBeenCalledWith(expect.objectContaining({ apiKey: 'api-key' }));
+  });
+
+  it('refuses private API keys when the author cannot read the tag', async () => {
+    const { result, keyRequests, clientOptions } = await runApiKey('_plugin/secret/openai', false);
+    await expect(result).rejects.toThrow();
+    expect(keyRequests()).toHaveLength(0);
+    expect(clientOptions).not.toHaveBeenCalled();
+  });
+
+  it('refuses public API key tags', async () => {
+    const { result, keyRequests, clientOptions, head } = await runApiKey('secret/openai');
+    await expect(result).rejects.toThrow('API key tag must be protected or private');
+    expect(head).not.toHaveBeenCalled();
+    expect(keyRequests()).toHaveLength(0);
+    expect(clientOptions).not.toHaveBeenCalled();
+  });
 });

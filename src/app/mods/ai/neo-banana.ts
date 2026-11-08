@@ -53,13 +53,29 @@ const origin = ref.origin || '';
 const config = ref.plugins?.['plugin/delta/neo'] || {};
 const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
 const uniq = (value, index, array) => array.indexOf(value) === index;
+const apiKeyTag = config.apiKeyTag || '+plugin/secret/gemini';
+if (!apiKeyTag.startsWith('+') && !apiKeyTag.startsWith('_')) throw new Error('API key tag must be protected or private: ' + apiKeyTag);
+if (apiKeyTag.startsWith('_')) {
+  // Throws if the author cannot read the private tag (404 means no Ext, but the tag is readable)
+  await axios.head(process.env.JASPER_API + '/api/v1/ext', {
+    headers: {
+      'Local-Origin': origin || 'default',
+      'User-Tag': authors[0] || '',
+    },
+    params: { tag: apiKeyTag + origin },
+    validateStatus: status => status < 400 || status === 404,
+  }).catch(e => {
+    console.error('No access to API key tag ' + apiKeyTag, e.response?.status || e.message);
+    throw e;
+  });
+}
 const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
   headers: {
     'Local-Origin': origin || 'default',
-    'User-Tag': authors[0] || '',
+    'User-Role': 'ROLE_ADMIN',
   },
   params: {
-    query: (config.apiKeyTag || '+plugin/secret/gemini') + (origin || '@'),
+    query: apiKeyTag + (origin || '@'),
     size: 1,
   },
 }).catch(e => {
