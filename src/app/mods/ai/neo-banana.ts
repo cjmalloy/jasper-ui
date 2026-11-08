@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../../model/plugin';
 import { Mod } from '../../model/tag';
-import { getApiKeyScript } from '../system/secret';
 
 export const neoQueryPlugin: Plugin = {
   tag: 'plugin/delta/neo',
@@ -52,9 +51,21 @@ const { GoogleGenAI, Modality } = require('@google/genai');
 const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
 const origin = ref.origin || '';
 const config = ref.plugins?.['plugin/delta/neo'] || {};
+const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
 const uniq = (value, index, array) => array.indexOf(value) === index;
-${getApiKeyScript}
-const apiKey = await getApiKey(config.apiKeyTag || '+plugin/secret/gemini', ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')), origin);
+const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+  headers: {
+    'Local-Origin': origin || 'default',
+    'User-Tag': authors[0] || '',
+  },
+  params: {
+    query: (config.apiKeyTag || '+plugin/secret/gemini') + (origin || '@'),
+    size: 1,
+  },
+}).catch(e => {
+  console.error(e.response?.data || e.message);
+  throw e;
+})).data.content[0]?.comment;
 if (!apiKey) throw new Error('Gemini API key not found.');
 const prompt = [ref.title, ref.comment]
   .filter(Boolean)
@@ -88,7 +99,6 @@ if (ref.tags?.includes('internal')) tags.push('internal');
 if (ref.tags?.includes('dm')) tags.push('dm', 'internal', 'plugin/thread');
 if (ref.tags?.includes('plugin/comment')) tags.push('plugin/comment', 'internal');
 if (ref.tags?.includes('plugin/thread')) tags.push('plugin/thread', 'internal');
-const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
 const aiTags = ref.tags?.filter(tag => tag.startsWith('+plugin/delta/ai/')) || [];
 const mailboxes = ref.tags?.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) || [];
 tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)), ...aiTags.map(tag => tag.substring(1)));

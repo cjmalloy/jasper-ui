@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../../model/plugin';
 import { Mod } from '../../model/tag';
-import { getApiKeyScript } from '../system/secret';
 
 export const aiQueryPlugin: Plugin = {
   tag: 'plugin/delta/ai',
@@ -43,7 +42,6 @@ const capturesDownwards = (upper, lower) => {
   return matchesTag(publicTag(upper), lower);
 };
 const uniq = (v, i, a) => a.indexOf(v) === i;
-${getApiKeyScript}
 const followup = hasTag('+plugin/delta/ai', ref);
 const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
 const response = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
@@ -619,7 +617,16 @@ const providers = {
 };
 const provider = providers[config.provider ||= DEFAULT_PROVIDER];
 provider.init(config);
-const apiKey = await getApiKey(config.apiKeyTag ||= ('+plugin/secret/' + config.provider), authors, origin);
+const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+  headers: {
+    'Local-Origin': origin || 'default',
+    'User-Tag': authors[0] || '',
+  },
+  params: { query: (config.apiKeyTag ||= ('+plugin/secret/' + config.provider)) + (origin || '@') },
+}).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  })).data.content[0]?.comment;
 const messages = [];
 const systemPrompts = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
   headers: {
@@ -1091,7 +1098,7 @@ export const llmPlugin: Plugin = {
   name: $localize`✨️ LLM Config`,
   config: {
     mod: $localize`✨️ AI Generation`,
-    version: 4,
+    version: 3,
     type: 'tool',
     default: false,
     inherit: true,
@@ -1136,7 +1143,7 @@ export const llmPlugin: Plugin = {
       type: 'tag',
       props: {
         label: $localize`🔑️ API Key Tag:`,
-        prefix: '+plugin/secret|_plugin/secret',
+        prefix: '+plugin/secret',
       },
     }, {
       key: 'model',

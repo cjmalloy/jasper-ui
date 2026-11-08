@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../../model/plugin';
 import { Mod } from '../../model/tag';
-import { getApiKeyScript } from '../system/secret';
 
 export const dalleQueryPlugin: Plugin = {
   tag: 'plugin/delta/dalle',
@@ -146,9 +145,17 @@ const { Buffer } = require('node:buffer');
 const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
 const origin = ref.origin || ''
 const config = ref.plugins?.['plugin/delta/dalle'];
-${getApiKeyScript}
-const apiKey = await getApiKey(config?.apiKeyTag || '+plugin/secret/openai', ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')), origin);
-if (!apiKey) throw new Error('OpenAI API key not found.');
+const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
+const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+  headers: {
+    'Local-Origin': origin || 'default',
+    'User-Tag': authors[0] || '',
+  },
+  params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
+}).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  })).data.content[0].comment;
 const openai = new OpenAi({ apiKey });
 const gen = await openai.images.generate({
   model: config?.model || 'dall-e-3',
@@ -164,7 +171,6 @@ if (ref.tags?.includes('internal')) tags.push('internal');
 if (ref.tags?.includes('dm')) tags.push('dm', 'internal', 'plugin/thread');
 if (ref.tags?.includes('plugin/comment')) tags.push('plugin/comment', 'internal');
 if (ref.tags?.includes('plugin/thread')) tags.push('plugin/thread', 'internal');
-const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
 const ai = ref.tags?.filter(tag => tag.startsWith('+plugin/delta/ai/')) || [];
 const mailboxes = ref.tags?.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) || [];
 tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)), ...ai.map(tag => tag.substring(1)));

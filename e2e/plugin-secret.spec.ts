@@ -3,7 +3,7 @@ import { mod, openSidebar, test } from './setup';
 
 test.describe.serial('Secret Plugin', () => {
   test('enable mods', async ({ page }) => {
-    await mod(page, '#mod-secrets');
+    await mod(page, '#mod-root', '#mod-secrets');
   });
 
   test('submits secrets without the public tag', async ({ page }) => {

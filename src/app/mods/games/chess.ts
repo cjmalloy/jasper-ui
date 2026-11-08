@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../../model/plugin';
 import { Mod } from '../../model/tag';
-import { getApiKeyScript } from '../system/secret';
 import { Template } from '../../model/template';
 
 export const chessPlugin: Plugin = {
@@ -140,11 +139,11 @@ const OpenAi = require('openai');
 const { Chess } = require('chess.js');
 const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
 const origin = ref.origin || ''
-${getApiKeyScript}
 const chess = new Chess();
 chess.loadPgn(ref.comment || '');
 if (chess.isGameOver()) process.exit(0);
 const config = ref.plugins['plugin/delta/chess'];
+const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
 const color = config?.aiColor.toLowerCase();
 const moves = (ref.comment || '').split('\\n').filter(m => !!m.trim());
 if ((color === 'black') !== !!(moves.length % 2)) process.exit(0);
@@ -153,8 +152,16 @@ let move = '';
 if (validMoves.length === 1) {
   move = validMoves[0];
 } else {
-  const apiKey = await getApiKey(config?.apiKeyTag || '+plugin/secret/openai', ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')), origin);
-  if (!apiKey) throw new Error('OpenAI API key not found.');
+  const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
+    headers: {
+      'Local-Origin': origin || 'default',
+      'User-Tag': authors[0] || '',
+    },
+    params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
+  }).catch(e => {
+    console.error(e.response.data);
+    throw new Error(e);
+  })).data.content[0].comment;
   const prompt =
     'You are playing a game of chess against an opponent.\\n' +
     'You are the ' + color + ' player.\\n\\n' +
