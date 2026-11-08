@@ -153,7 +153,7 @@ if (validMoves.length === 1) {
   move = validMoves[0];
 } else {
   const apiKeyTag = config?.apiKeyTag || '+plugin/secret/openai';
-  if (!apiKeyTag.startsWith('+') && !apiKeyTag.startsWith('_')) throw new Error('API key tag must be protected or private: ' + apiKeyTag);
+  if (!/^[_+][a-z0-9]+([./][a-z0-9]+)*$/.test(apiKeyTag)) throw new Error('API key tag must be protected or private: ' + apiKeyTag);
   if (apiKeyTag.startsWith('_')) {
     // Throws if the author cannot read the private tag (404 means no Ext, but the tag is readable)
     await axios.head(process.env.JASPER_API + '/api/v1/ext', {

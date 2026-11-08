@@ -661,4 +661,12 @@ describe('aiQueryPlugin', () => {
     expect(keyRequests()).toHaveLength(0);
     expect(clientOptions).not.toHaveBeenCalled();
   });
+
+  it('refuses API key tags that are queries', async () => {
+    const { result, keyRequests, clientOptions, head } = await runApiKey('+plugin/secret/missing|_plugin/secret/alice');
+    await expect(result).rejects.toThrow('API key tag must be protected or private');
+    expect(head).not.toHaveBeenCalled();
+    expect(keyRequests()).toHaveLength(0);
+    expect(clientOptions).not.toHaveBeenCalled();
+  });
 });
