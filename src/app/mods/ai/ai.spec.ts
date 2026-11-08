@@ -486,7 +486,7 @@ describe('aiQueryPlugin', () => {
     await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
 
     expect(axios.get).toHaveBeenCalledWith('http://jasper.test/api/v1/ref/page', expect.objectContaining({
-      params: { query: '+plugin/secret/meta@' },
+      params: { query: '+plugin/secret/meta@', size: 1 },
     }));
     expect(clientOptions).toHaveBeenCalledWith({ apiKey: 'meta-key', baseURL: 'https://api.meta.ai/v1' });
     expect(create).toHaveBeenCalledTimes(1);

@@ -7,10 +7,10 @@ import { localTag, topAnds } from './tag';
  * Tags added to a Ref submitted from a tag page.
  */
 export function getAddTags(tag: string | undefined, plugin: Plugin | undefined, rootConfig: RootConfig | undefined, home = false): string[] {
-  if (!tag || home) return rootConfig?.addTags || plugin?.config?.reply || ['public'];
+  if (!tag || home) return plugin?.config?.addTags || rootConfig?.addTags || plugin?.config?.reply || ['public'];
   if (plugin) {
     return uniq([
-      ...rootConfig?.addTags || plugin.config?.reply || ['public'],
+      ...plugin.config?.addTags || rootConfig?.addTags || plugin.config?.reply || ['public'],
       ...plugin.config?.submit ? [plugin.tag] : [],
       ...plugin.config?.internal ? ['internal'] : []]);
   }

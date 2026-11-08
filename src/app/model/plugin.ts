@@ -25,6 +25,10 @@ export interface Plugin extends Config {
      */
     genId?: boolean,
     /**
+     * Override the default tags (such as public) added when submitting this plugin.
+     */
+    addTags?: string[],
+    /**
      * This plugin should be used in combination with the internal tag so it
      * does not show up on the home page or search.
      */

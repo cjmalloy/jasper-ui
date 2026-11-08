@@ -1,13 +1,14 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../../model/plugin';
 import { Mod } from '../../model/tag';
+import { getApiKeyScript } from '../system/secret';
 
 export const neoQueryPlugin: Plugin = {
   tag: 'plugin/delta/neo',
   name: $localize`🍌️💭️ Ask Neo Banana`,
   config: {
     mod: $localize`🍌️ Neo Banana`,
-    version: 4,
+    version: 5,
     type: 'tool',
     default: false,
     add: true,
@@ -52,19 +53,8 @@ const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
 const origin = ref.origin || '';
 const config = ref.plugins?.['plugin/delta/neo'] || {};
 const uniq = (value, index, array) => array.indexOf(value) === index;
-const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-  headers: {
-    'Local-Origin': origin || 'default',
-    'User-Role': 'ROLE_ADMIN',
-  },
-  params: {
-    query: (config.apiKeyTag || '+plugin/secret/gemini') + (origin || '@'),
-    size: 1,
-  },
-}).catch(e => {
-  console.error(e.response?.data || e.message);
-  throw e;
-})).data.content[0]?.comment;
+${getApiKeyScript}
+const apiKey = await getApiKey(config.apiKeyTag || '+plugin/secret/gemini', ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')), origin);
 if (!apiKey) throw new Error('Gemini API key not found.');
 const prompt = [ref.title, ref.comment]
   .filter(Boolean)

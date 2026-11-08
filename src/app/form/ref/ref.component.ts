@@ -216,7 +216,7 @@ export class RefFormComponent {
     this.rootControlState();
     this.controlState3();
     // TODO: Move to config
-    if (hasTag('+plugin/secret', this.tags().value)) return $localize`Secret Key`;
+    if (hasTag('+plugin/secret', this.tags().value) || hasTag('_plugin/secret', this.tags().value)) return $localize`Secret Key`;
     if (hasTag('plugin/alt', this.tags().value)) return $localize`Alt Text`;
     return $localize`Abstract`;
   });

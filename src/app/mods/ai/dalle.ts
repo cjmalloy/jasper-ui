@@ -1,13 +1,14 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../../model/plugin';
 import { Mod } from '../../model/tag';
+import { getApiKeyScript } from '../system/secret';
 
 export const dalleQueryPlugin: Plugin = {
   tag: 'plugin/delta/dalle',
   name: $localize`👨️‍🎨️💭️ Ask DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
-    version: 5,
+    version: 6,
     type: 'tool',
     default: false,
     add: true,
@@ -145,16 +146,9 @@ const { Buffer } = require('node:buffer');
 const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
 const origin = ref.origin || ''
 const config = ref.plugins?.['plugin/delta/dalle'];
-const apiKey = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
-  headers: {
-    'Local-Origin': origin || 'default',
-    'User-Role': 'ROLE_ADMIN',
-  },
-  params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
-}).catch(e => {
-    console.error(e.response.data);
-    throw new Error(e);
-  })).data.content[0].comment;
+${getApiKeyScript}
+const apiKey = await getApiKey(config?.apiKeyTag || '+plugin/secret/openai', ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')), origin);
+if (!apiKey) throw new Error('OpenAI API key not found.');
 const openai = new OpenAi({ apiKey });
 const gen = await openai.images.generate({
   model: config?.model || 'dall-e-3',
