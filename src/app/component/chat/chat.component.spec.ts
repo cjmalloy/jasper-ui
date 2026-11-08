@@ -9,6 +9,7 @@ import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
+import { Store } from '../../store/store';
 
 import { ChatComponent } from './chat.component';
 
@@ -40,6 +41,26 @@ describe('ChatComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('does not apply remembered editors or public uploads negated by the Ext addTags', () => {
+    vi.spyOn(TestBed.inject(AdminService), 'getEditorButtons').mockReturnValue([{ toggle: 'public', remember: true }] as any);
+    vi.spyOn(TestBed.inject(Store).account, 'defaultEditors').mockImplementation(plugins => plugins.filter(p => p === 'public'));
+    const ext = vi.spyOn(TestBed.inject(Store).view, 'ext');
+    const chat = () => TestBed.createComponent(ChatComponent).componentInstance;
+
+    ext.mockReturnValue({ tag: 'chat', config: { addTags: ['public'] } } as any);
+    const open = chat();
+    expect(open.tags()).toEqual(['public']);
+    expect(open.publicUploads()).toBe(true);
+
+    ext.mockReturnValue({ tag: 'chat', config: { addTags: ['public', '!public'] } } as any);
+    const secret = chat();
+    expect(secret.tags()).toEqual([]);
+    expect(secret.publicUploads()).toBe(false);
+
+    secret.tags.set(['public']);
+    expect(secret.publicUploads()).toBe(true);
   });
 
   it('updates upload progress without mutating existing signal snapshots', () => {

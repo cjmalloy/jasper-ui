@@ -121,10 +121,11 @@ export class ChatComponent implements HasChanges {
   readonly uploads = linkedSignal<readonly ChatUpload[]>(() => { this.query(); this.responseUrl(); return []; });
   readonly dropping = linkedSignal(() => { this.query(); this.responseUrl(); return false; });
   readonly latex = linkedSignal(() => !!this.admin.getPlugin('plugin/latex'));
+  readonly extAddTags = computed<string[]>(() => this.store.view.ext()?.config?.addTags || []);
   readonly tags = linkedSignal(() => {
     this.query();
     this.responseUrl();
-    return this.store.account.defaultEditors(this.editors());
+    return withoutNegated(this.store.account.defaultEditors(this.editors()), this.extAddTags());
   });
 
   private timeoutId?: number;
@@ -346,7 +347,7 @@ export class ChatComponent implements HasChanges {
     const newTags = uniq([
       'internal',
       ...this.tags(),
-      ...withoutNegated([this.store.view.localTag() || 'chat', ...this.store.view.ext()?.config?.addTags || []], this.store.view.ext()?.config?.addTags),
+      ...withoutNegated([this.store.view.localTag() || 'chat', ...this.extAddTags()], this.extAddTags()),
       ...this.plugins(),
       ...(this.latex() ? ['plugin/latex'] : []),
       ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
@@ -554,7 +555,7 @@ export class ChatComponent implements HasChanges {
   }
 
   publicUploads() {
-    return !!this.tags()?.includes('public') || !!this.store.view.ext()?.config?.addTags?.includes('public');
+    return !!this.tags()?.includes('public') || withoutNegated(this.extAddTags(), this.extAddTags()).includes('public');
   }
 
   upload$(file: File, upload: ChatUpload): Observable<Ref | null> {
