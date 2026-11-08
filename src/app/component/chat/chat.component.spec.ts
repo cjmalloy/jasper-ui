@@ -5,10 +5,12 @@ import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { firstValueFrom, of, Subject } from 'rxjs';
+import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
+import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 
 import { ChatComponent } from './chat.component';
@@ -41,6 +43,39 @@ describe('ChatComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('keeps an explicit Public toggle after saving the remembered editor', () => {
+    vi.spyOn(TestBed.inject(AdminService), 'getEditorButtons').mockReturnValue([{ toggle: 'public', remember: true }] as any);
+    vi.spyOn(TestBed.inject(AdminService), 'getTemplate').mockImplementation(tag => tag === 'user' ? { tag: 'user' } as any : undefined);
+    const store = TestBed.inject(Store);
+    vi.spyOn(store.view, 'ext').mockReturnValue({ tag: 'chat', config: { addTags: ['!public'] } } as any);
+    store.account.ext.set({ tag: '+user/debug', config: {} } as any);
+    vi.spyOn(TestBed.inject(AccountService), 'addConfigArray$').mockImplementation((name, value) => {
+      store.account.ext.set({ tag: '+user/debug', config: { [name]: [value] } } as any);
+      return of(undefined) as any;
+    });
+    const chat = TestBed.createComponent(ChatComponent).componentInstance;
+    expect(chat.tags()).toEqual([]);
+
+    chat.toggleTag({ toggle: 'public', remember: true } as any);
+
+    expect(store.account.config().editors).toEqual(['public']);
+    expect(chat.tags()).toEqual(['public']);
+  });
+
+  it('does not add URL plugins negated by the Ext addTags', () => {
+    const admin = TestBed.inject(AdminService);
+    vi.spyOn(admin, 'getPluginsForExtension').mockReturnValue([{ tag: 'plugin/pdf' }] as any);
+    vi.spyOn(TestBed.inject(Store).view, 'ext').mockReturnValue({ tag: 'chat', config: { addTags: ['!plugin/pdf'] } } as any);
+    const chat = TestBed.createComponent(ChatComponent).componentInstance;
+    vi.spyOn(TestBed.inject(EditorService), 'getRefUrl').mockImplementation(url => url);
+    const send = vi.spyOn(chat as any, 'send').mockImplementation(() => undefined);
+
+    chat.add('https://example.com/a.pdf');
+
+    expect(send).toHaveBeenCalledOnce();
+    expect((send.mock.calls[0][0] as any).tags).not.toContain('plugin/pdf');
   });
 
   it('does not apply remembered editors or public uploads negated by the Ext addTags', () => {

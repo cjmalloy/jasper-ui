@@ -125,7 +125,9 @@ export class ChatComponent implements HasChanges {
   readonly tags = linkedSignal(() => {
     this.query();
     this.responseUrl();
-    return withoutNegated(this.store.account.defaultEditors(this.editors()), this.extAddTags());
+    const not = this.extAddTags();
+    // Saving a remembered toggle must not reset the current selection
+    return untracked(() => withoutNegated(this.store.account.defaultEditors(this.editors()), not));
   });
 
   private timeoutId?: number;
@@ -354,7 +356,7 @@ export class ChatComponent implements HasChanges {
     ]).filter(t => !!t);
     if (URI_REGEX.test(text)) {
       const url = this.editor.getRefUrl(text);
-      newTags.push(...this.admin.getPluginsForExtension(url).filter(p => !newTags.includes(p.tag)).map(p => p.tag));
+      newTags.push(...withoutNegated(this.admin.getPluginsForExtension(url).map(p => p.tag), this.extAddTags()).filter(t => !newTags.includes(t)));
       this.send({
         url,
         origin: this.store.account.origin(),
