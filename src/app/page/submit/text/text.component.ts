@@ -57,7 +57,7 @@ import { readFileAsString } from '../../../util/async';
 import { controlState, controlValue, scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { filterInputTag, inputTagValues, matchesInputTag, parseInputTag, partialInputTag } from '../../../util/input-tag';
-import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
+import { getVisibilityTags, hasPrefix, hasTag, notPublicSecret } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-text',
@@ -428,7 +428,7 @@ export class SubmitTextPage implements HasChanges {
   }
 
   setTags(value: string[]) {
-    fillTags(this.fb, this.tags, value);
+    fillTags(this.fb, this.tags, notPublicSecret(value));
   }
 
   setInputTagModel(model: Record<string, string | null>) {
@@ -456,6 +456,8 @@ export class SubmitTextPage implements HasChanges {
 
   addTag(...values: string[]) {
     addTags(this.fb, this.tags, ...values);
+    const tags = notPublicSecret(this.tags.value);
+    if (tags.length !== this.tags.length) fillTags(this.fb, this.tags, tags);
     this.submitted.set(false);
   }
 
@@ -498,7 +500,7 @@ export class SubmitTextPage implements HasChanges {
       title: this.title.value, // Need to pull separately if disabled by wiki mode
       origin: this.store.account.origin(),
       published: this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : publish ? DateTime.now() : undefined,
-      tags: uniq(this.textForm.value.tags),
+      tags: uniq(notPublicSecret(this.textForm.value.tags)),
       plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
     };
   }

@@ -30,6 +30,23 @@ test.describe.serial('Submit inputTag', () => {
     }
   });
 
+  test('suggests more than one level for the last input', async ({ page, request }) => {
+    for (const tag of ['kanban/jasper', 'kanban/jasper/bugs']) {
+      const res = await request.post(`${api}/ext`, {
+        headers: await headers(request),
+        data: { tag, origin: localOrigin() },
+      });
+      expect(res.ok(), await res.text()).toBeTruthy();
+    }
+    await page.goto('/submit/text?debug=USER&inputTag=kanban/<Board>', { waitUntil: 'networkidle' });
+    const board = page.locator('.input-tag input');
+    await board.focus();
+    await expect(await options(board)).toHaveCount(2);
+    await expect((await options(board)).nth(1)).toHaveAttribute('value', 'jasper/bugs');
+    await board.fill('jasper/bugs');
+    await expect(page.locator('.tag-field input.preview[title="kanban/jasper/bugs"]')).toBeAttached();
+  });
+
   test('shows an input per placeholder above the title', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>&inputTag=color/<Color>', { waitUntil: 'networkidle' });
     const rows = page.locator('.input-tag');

@@ -75,6 +75,18 @@ describe('SubmitTextPage', () => {
     expect(component.inputTagForm().form.touched).toBe(true);
   });
 
+  it('never makes a secret public', () => {
+    component.addTag('public');
+    expect(component.tags.value).toContain('public');
+    component.addTag('+plugin/secret/openai');
+    expect(component.tags.value).not.toContain('public');
+    component.addTag('public');
+    expect(component.tags.value).not.toContain('public');
+    component.setTags([...component.tags.value, 'public']);
+    expect(component.tags.value).not.toContain('public');
+    expect(component.writeRef().tags).not.toContain('public');
+  });
+
   it('should initialize a generated url for text posts', () => {
     expect(component.url.value).toMatch(/^comment:/);
   });

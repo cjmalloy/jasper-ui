@@ -18,17 +18,17 @@ describe('inputTag', () => {
     expect(parseInputTag('car/<Year>/<Make>')).toEqual([
       { options: ['car'], depth: 0 },
       { label: 'Year', depth: 1 },
-      { label: 'Make', depth: 2 },
+      { label: 'Make', depth: 2, rest: true },
     ]);
   });
 
   it('appends a placeholder to a template without one', () => {
-    expect(parseInputTag('+plugin/secret')).toEqual([{ options: ['+plugin/secret'], depth: 0 }, { label: '', depth: 2 }]);
+    expect(parseInputTag('+plugin/secret')).toEqual([{ options: ['+plugin/secret'], depth: 0 }, { label: '', depth: 2, rest: true }]);
   });
 
   it('groups the prefix before the first input into one dropdown', () => {
     const parts = parseInputTag('+plugin,_plugin/secret/<Secret>');
-    expect(parts).toEqual([{ options: ['+plugin/secret', '_plugin/secret'], depth: 0 }, { label: 'Secret', depth: 2 }]);
+    expect(parts).toEqual([{ options: ['+plugin/secret', '_plugin/secret'], depth: 0 }, { label: 'Secret', depth: 2, rest: true }]);
     expect(inputTagDefaults(parts)).toEqual(['+plugin/secret', '']);
     expect(resolveInputTag(parts, ['_plugin/secret', 'openai'])).toBe('_plugin/secret/openai');
     expect(resolveInputTag(parts, ['plugin/secret', 'openai'])).toBe('');
@@ -72,6 +72,17 @@ describe('inputTag', () => {
     expect(inputTagSuggestion(car, values, 1, 'car/year')).toBeUndefined();
     expect(inputTagSuggestion(car, values, 1, 'car/month/2020')).toBeUndefined();
   });
+
+  it('allows more than one segment in the last placeholder', () => {
+    const kanban = parseInputTag('kanban/<Board>');
+    expect(resolveInputTag(kanban, ['kanban', 'jasper/bugs'])).toBe('kanban/jasper/bugs');
+    expect(resolveInputTag(kanban, ['kanban', 'jasper/'])).toBe('');
+    expect(resolveInputTag(car, ['car/year', '2020/1', 'make', 'toyota', 'model', 'corolla'])).toBe('');
+    expect(matchesInputTag(kanban, 'kanban/jasper/bugs')).toBe(true);
+    expect(inputTagSuggestion(kanban, ['kanban', ''], 1, 'kanban/jasper')).toBe('jasper');
+    expect(inputTagSuggestion(kanban, ['kanban', ''], 1, 'kanban/jasper/bugs')).toBe('jasper/bugs');
+    expect(inputTagValues(kanban, 'kanban/jasper/bugs')).toEqual(['kanban', 'jasper/bugs']);
+  });
 });
 
 describe('partial inputTag', () => {
@@ -99,7 +110,8 @@ describe('partial inputTag', () => {
     expect(matchesInputTag(secret, '+plugin/secret/openai')).toBe(true);
     expect(matchesInputTag(secret, '+plugin/secret')).toBe(false);
     expect(matchesInputTag(secret, 'plugin/secret/openai')).toBe(false);
-    expect(matchesInputTag(secret, '+plugin/secret/openai/key')).toBe(false);
+    expect(matchesInputTag(secret, '+plugin/secret/openai/key')).toBe(true);
+    expect(matchesInputTag(parseInputTag('a/<X>/b'), 'a/x/y/b')).toBe(false);
     expect(matchesInputTag(secret, null)).toBe(false);
   });
 });

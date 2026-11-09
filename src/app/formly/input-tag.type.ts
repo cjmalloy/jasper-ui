@@ -10,6 +10,7 @@ import { AuthzService } from '../service/authz.service';
 import { EditorService } from '../service/editor.service';
 import {
   filterInputTag,
+  inputTagPattern,
   inputTagQuery,
   inputTagSuggestion,
   inputTagValues,
@@ -43,7 +44,7 @@ import {
                  required
                  [attr.id]="i === firstControl() ? id : null"
                  [attr.list]="listId"
-                 [attr.pattern]="p.depth ? '[a-z0-9]+(\\\\.[a-z0-9]+)*' : '[_+]?[a-z0-9]+(\\\\.[a-z0-9]+)*'"
+                 [attr.pattern]="patterns()[i]"
                  [placeholder]="p.label"
                  [attr.aria-label]="p.label || null"
                  [value]="values()[i]"
@@ -101,6 +102,7 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
   readonly template = computed(() => this.props.template as string || '');
   readonly parts = computed(() => filterInputTag(parseInputTag(this.template()), t => this.auth.canAddTag(t)));
   readonly values = linkedSignal(() => inputTagValues(this.parts(), untracked(() => this.formControl.value)));
+  readonly patterns = computed(() => this.parts().map(p => p.options ? null : inputTagPattern(p).source.slice(1, -1)));
   readonly firstControl = computed(() => this.parts().findIndex(p => !p.options || p.options.length > 1));
   readonly touched = signal(false);
   readonly autocomplete = signal<{ value: string, label: string }[]>([]);
@@ -141,18 +143,30 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
       switchMap(index => {
         const parts = this.parts();
         const values = this.values();
-        const depth = parts[index].depth;
+        const part = parts[index];
+        const value = values[index] || '';
+        let query = inputTagQuery(parts, values, index);
+        let search = value;
+        if (part.rest && value.includes('/')) {
+          // Search below the levels already typed out
+          const parent = value.substring(0, value.lastIndexOf('/'));
+          search = value.substring(parent.length + 1);
+          if (inputTagPattern(part).test(parent) && (query || '').split('/').length === part.depth) {
+            query = query ? query + '/' + parent : parent;
+          }
+        }
         return this.exts.page({
-          query: inputTagQuery(parts, values, index),
-          search: values[index] || undefined,
+          query,
+          search: search || undefined,
           sort: ['tag:len', 'tag'],
           size: 100,
         }).pipe(
           map(page => page.content.flatMap(x => {
             const suggestion = inputTagSuggestion(parts, values, index, x.tag);
             if (!suggestion) return [];
-            if (!this.auth.canAddTag(x.tag.split('/').slice(0, depth + 1).join('/'))) return [];
-            const own = x.tag.split('/').length === depth + 1;
+            const depth = part.depth + suggestion.split('/').length;
+            if (!this.auth.canAddTag(x.tag.split('/').slice(0, depth).join('/'))) return [];
+            const own = x.tag.split('/').length === depth;
             return [{ value: suggestion, label: own && x.name || suggestion }];
           })),
           catchError(() => of([])),

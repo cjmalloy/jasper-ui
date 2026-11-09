@@ -272,8 +272,7 @@ export class EditorComponent {
   });
 
   readonly initTags = computed(() => [
-    ...without(intersection(this.store.account.defaultEditors(this.editors()), this.editorButtons().filter(b => this.visible(b)).map(b => b.toggle!)),
-      ...this.allTags(), ...this.admin.getPluginSettings(this.allTags()).length ? ['public'] : []),
+    ...without(intersection(this.store.account.defaultEditors(this.editors()), this.editorButtons().filter(b => this.visible(b)).map(b => b.toggle!)), ...this.allTags()),
     ...this.allTags(),
   ]);
 

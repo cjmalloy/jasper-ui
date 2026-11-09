@@ -112,7 +112,25 @@ describe('FormlyFieldInputTag', () => {
     field.search(2);
     vi.advanceTimersByTime(300);
     expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: 'car' }));
-    expect(field.autocomplete()).toEqual([{ value: 'toyota', label: 'Toyota' }, { value: 'honda', label: 'honda' }]);
+    expect(field.autocomplete()).toEqual([{ value: 'toyota', label: 'Toyota' }, { value: 'honda/civic', label: 'Civic' }]);
+    vi.useRealTimers();
+  });
+
+  it('suggests more than one level for the last input', async () => {
+    const page = vi.spyOn(TestBed.inject(ExtService), 'page').mockReturnValue(of({
+      content: [{ tag: 'kanban/jasper', name: 'Jasper' }, { tag: 'kanban/jasper/bugs', name: 'Bugs' }],
+      page: { number: 0, size: 50, totalElements: 2, totalPages: 1 },
+    } as any));
+    const { field } = await render('kanban/<Board>');
+    vi.useFakeTimers();
+    field.search(1);
+    vi.advanceTimersByTime(300);
+    expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: 'kanban' }));
+    expect(field.autocomplete()).toEqual([{ value: 'jasper', label: 'Jasper' }, { value: 'jasper/bugs', label: 'Bugs' }]);
+    field.setValue(1, 'jasper/b');
+    field.search(1);
+    vi.advanceTimersByTime(300);
+    expect(page).toHaveBeenLastCalledWith(expect.objectContaining({ query: 'kanban/jasper', search: 'b' }));
     vi.useRealTimers();
   });
 

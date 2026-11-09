@@ -2,14 +2,17 @@
  * A part of an inputTag template: either a run of fixed segments, which
  * may have several options, or a placeholder the user fills out.
  * The depth is the index of the first tag segment in the part.
+ * A placeholder at the end of the template is the rest of the tag, so it may have more than one segment.
  */
 export type InputTagPart =
-  { options: string[], depth: number, label?: undefined } |
-  { label: string, depth: number, options?: undefined };
+  { options: string[], depth: number, label?: undefined, rest?: undefined } |
+  { label: string, depth: number, rest?: boolean, options?: undefined };
 
 const PLACEHOLDER_REGEX = /^<(.*)>$/;
 const FIRST_SEGMENT_REGEX = /^[_+]?[a-z0-9]+(\.[a-z0-9]+)*$/;
 const SEGMENT_REGEX = /^[a-z0-9]+(\.[a-z0-9]+)*$/;
+const REST_REGEX = /^[a-z0-9]+(\.[a-z0-9]+)*(\/[a-z0-9]+(\.[a-z0-9]+)*)*$/;
+const FIRST_REST_REGEX = /^[_+]?[a-z0-9]+(\.[a-z0-9]+)*(\/[a-z0-9]+(\.[a-z0-9]+)*)*$/;
 
 /**
  * Split an inputTag template such as `car/<Year>/<Make>` into parts.
@@ -39,7 +42,12 @@ export function parseInputTag(template: string): InputTagPart[] {
     depth++;
   }
   flush();
-  if (!parts.some(p => p.label !== undefined)) parts.push({ label: '', depth });
+  const last = parts[parts.length - 1];
+  if (!parts.some(p => p.label !== undefined)) {
+    parts.push({ label: '', depth, rest: true });
+  } else if (last.label !== undefined) {
+    last.rest = true;
+  }
   return parts;
 }
 
@@ -50,17 +58,25 @@ export function inputTagDefaults(parts: InputTagPart[]) {
   return parts.map(p => p.options?.[0] || '');
 }
 
-export function validInputTagValue(value: string | undefined, depth: number, options?: string[]) {
+/**
+ * The pattern a placeholder value must match.
+ */
+export function inputTagPattern(part: InputTagPart) {
+  if (part.rest) return part.depth ? REST_REGEX : FIRST_REST_REGEX;
+  return part.depth ? SEGMENT_REGEX : FIRST_SEGMENT_REGEX;
+}
+
+export function validInputTagValue(value: string | undefined, part: InputTagPart) {
   if (!value) return false;
-  if (options) return options.includes(value);
-  return (depth ? SEGMENT_REGEX : FIRST_SEGMENT_REGEX).test(value);
+  if (part.options) return part.options.includes(value);
+  return inputTagPattern(part).test(value);
 }
 
 /**
  * Value for each part, or undefined for a part that is empty or invalid.
  */
 function partValues(parts: InputTagPart[], values: string[]) {
-  return parts.map((p, i) => validInputTagValue(values[i], p.depth, p.options) ? values[i] : undefined);
+  return parts.map((p, i) => validInputTagValue(values[i], p) ? values[i] : undefined);
 }
 
 /**
@@ -89,6 +105,7 @@ export function inputTagQuery(parts: InputTagPart[], values: string[], index: nu
  * The value an Ext tag suggests for the placeholder at a part index,
  * or undefined if the tag does not fit the template. Deeper tags suggest
  * their segment too, so a parent tag does not need its own Ext.
+ * The last placeholder suggests the rest of the tag.
  */
 export function inputTagSuggestion(parts: InputTagPart[], values: string[], index: number, tag: string) {
   const segments = tag.split('/');
@@ -101,7 +118,7 @@ export function inputTagSuggestion(parts: InputTagPart[], values: string[], inde
     const length = value.split('/').length;
     if (segments.slice(parts[i].depth, parts[i].depth + length).join('/') !== value) return undefined;
   }
-  return segments[depth];
+  return parts[index].rest ? segments.slice(depth).join('/') : segments[depth];
 }
 
 /**
