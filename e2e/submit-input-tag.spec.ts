@@ -163,6 +163,19 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.tag-field input.preview[title="car/2020/toyota/corolla/le"]')).toBeAttached();
   });
 
+  test('pressing enter fills the following inputs without submitting', async ({ page }) => {
+    await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>', { waitUntil: 'networkidle' });
+    await page.locator('#title').fill('Car');
+    const inputs = page.locator('.stencil input.tag-input');
+    await inputs.nth(0).fill('2021/ford');
+    await inputs.nth(0).press('Enter');
+    await expect(inputs.nth(0)).toBeFocused();
+    await expect(inputs.nth(0)).toHaveValue('2021');
+    await expect(inputs.nth(1)).toHaveValue('ford');
+    await expect(page).toHaveURL(/\/submit\/text/);
+    await expect(page.locator('.full-page.ref')).toHaveCount(0);
+  });
+
   test('reports invalid input on submit', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>', { waitUntil: 'networkidle' });
     await page.locator('#title').fill('Car');

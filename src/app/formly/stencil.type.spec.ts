@@ -79,8 +79,10 @@ describe('FormlyFieldStencil', () => {
     expect(document.activeElement).toBe(inputs()[0]);
     expect(inputs().map(i => i.value)).toEqual(['2020/toyota/corolla', '', '']);
     expect(inputs()[0].validity.valid).toBe(true);
-    inputs()[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    const enter = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+    inputs()[0].dispatchEvent(enter);
     await fixture.whenStable();
+    expect(enter.defaultPrevented).toBe(true);
     expect(inputs().map(i => i.value)).toEqual(['2020', 'toyota', 'corolla']);
     expect(field.formControl.value).toBe('car/2020/toyota/corolla');
     await type('2020/honda/civic');

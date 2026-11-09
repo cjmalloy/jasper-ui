@@ -23,6 +23,8 @@ import {
   validInputTagValue
 } from '../util/input-tag';
 
+type Suggestion = { value: string, label: string, tag: string };
+
 /**
  * Fill out a tag from the template in `props.template`, such as
  * `+plugin,_plugin/secret/<Name>` or `car/<Year>/<Make>`.
@@ -75,7 +77,7 @@ import {
                    [class.hidden-without-removing]="placeholderNames()[i]"
                    (focus)="edit(i, input)"
                    (blur)="blur(i, input); validate(i, input)"
-                   (keydown.enter)="commit(i, input)"
+                   (keydown.enter)="$event.preventDefault(); commit(i, input)"
                    (input)="type(i, input, $event)">
           } @else if (p.options.length === 1) {
             <span class="tag-preview" [title]="p.options[0]">{{ labels()[i][0] }}</span>
@@ -274,7 +276,15 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
     ),
   });
 
-  readonly autocomplete = computed(() => uniqBy(this.suggestions.hasValue() ? this.suggestions.value() : [], 'value')
+  /**
+   * Keeps the last suggestions for the input while loading, so the datalist does not flash.
+   */
+  private readonly lastSuggestions = linkedSignal<{ index: number, xs?: Suggestion[] }, Suggestion[]>({
+    source: () => ({ index: this.editing(), xs: this.suggestions.hasValue() ? this.suggestions.value() : undefined }),
+    computation: ({ index, xs }, previous) => xs || (previous?.source.index === index ? previous.value : []),
+  });
+
+  readonly autocomplete = computed(() => uniqBy(this.lastSuggestions(), 'value')
     .map(({ value, label }) => ({ value, label })));
 
   /**
@@ -282,7 +292,7 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
    */
   private readonly suggestedTags = computed(() => {
     const tags = new Map<string, string[]>();
-    for (const x of this.suggestions.hasValue() ? this.suggestions.value() : []) tags.set(x.value, [...tags.get(x.value) || [], x.tag]);
+    for (const x of this.lastSuggestions()) tags.set(x.value, [...tags.get(x.value) || [], x.tag]);
     return tags;
   });
 
