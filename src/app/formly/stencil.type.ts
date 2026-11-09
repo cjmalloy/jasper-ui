@@ -25,7 +25,7 @@ import {
  * Fill out a tag from the template in `props.template`, such as
  * `+plugin,_plugin/secret/<Name>` or `car/<Year>/<Make>`.
  * The value is the tag once every input is filled out. Until then it is
- * the known prefix, which the `inputTag` validator rejects.
+ * the known prefix, which the `stencil` validator rejects.
  *
  * With `props.hierarchical` the field shows its own label and only the
  * inputs below its parent: the sibling field `props.parentKey` with the
@@ -33,13 +33,13 @@ import {
  * filled out, cleared when the parent changes, and empty until filled out.
  */
 @Component({
-  selector: 'formly-field-input-tag',
-  host: { 'class': 'field input-tag-field' },
+  selector: 'formly-field-stencil',
+  host: { 'class': 'field stencil-field' },
   template: `
     @if (hierarchical()) {
       <label class="form-label hierarchical-tag-label" [attr.for]="id" [class.required]="props.required">{{ label() }}:</label>
     }
-    <div class="input-tag" [class.hierarchical-tag]="hierarchical()">
+    <div class="stencil" [class.hierarchical-tag]="hierarchical()">
       @for (p of parts(); track $index; let i = $index) {
         @if (i > firstVisible()) {
           <span class="separator">/</span>
@@ -103,7 +103,7 @@ import {
       white-space: nowrap;
     }
 
-    .input-tag {
+    .stencil {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -116,13 +116,13 @@ import {
     }
   `,
 })
-export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
+export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   private exts = inject(ExtService);
   private auth = inject(AuthzService);
   private editor = inject(EditorService);
   private destroyRef = inject(DestroyRef);
 
-  readonly listId = 'input-tag-' + uuid();
+  readonly listId = 'stencil-' + uuid();
   readonly template = computed(() => this.props.template as string || '');
   readonly hierarchical = computed(() => !!this.props.hierarchical);
   readonly parentTemplate = computed(() => this.props.parentTemplate as string | undefined);

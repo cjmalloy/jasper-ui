@@ -10,7 +10,7 @@ test.describe.serial('LLM Config Plugin', () => {
     await page.goto('/submit/text?debug=ADMIN&tag=plugin/llm', { waitUntil: 'networkidle' });
     const advanced = page.locator('details.advanced.plugin_llm');
     await advanced.locator('summary').click();
-    const field = advanced.locator('.input-tag-field');
+    const field = advanced.locator('.stencil-field');
     const name = field.locator('input.tag-input');
     await expect(name).toHaveAttribute('placeholder', 'Name');
     await field.locator('select.tag-choice').selectOption('_plugin/secret');

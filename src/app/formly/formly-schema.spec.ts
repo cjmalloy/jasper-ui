@@ -195,7 +195,7 @@ describe('formly schema', () => {
       { key: 'height', type: 'integer', props: { required: true } },
       { key: 'accent', type: 'color' },
       { key: 'level', type: 'range' },
-      { key: 'tag', type: 'inputtag' },
+      { key: 'tag', type: 'stencil' },
     ]);
     expect(schema).toEqual({
       properties: { height: { type: 'int32' } },

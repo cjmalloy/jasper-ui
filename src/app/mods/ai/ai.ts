@@ -1156,7 +1156,7 @@ export const llmPlugin: Plugin = {
       },
     }, {
       key: 'apiKeyTag',
-      type: 'inputtag',
+      type: 'stencil',
       props: {
         label: $localize`🔑️ API Key Tag:`,
         template: '+plugin,_plugin/secret/<Name>',

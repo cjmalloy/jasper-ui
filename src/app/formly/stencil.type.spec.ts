@@ -12,7 +12,7 @@ import { ExtService } from '../service/api/ext.service';
 import { AuthzService } from '../service/authz.service';
 import { EditorService } from '../service/editor.service';
 import { provideJasperFormly } from './formly.config';
-import { FormlyFieldInputTag } from './input-tag.type';
+import { FormlyFieldStencil } from './stencil.type';
 
 @Component({
   template: `<formly-form [form]="form" [model]="model" [fields]="fields" />`,
@@ -24,7 +24,7 @@ class Host {
   fields: FormlyFieldConfig[] = [];
 }
 
-describe('FormlyFieldInputTag', () => {
+describe('FormlyFieldStencil', () => {
   let canAddTag: (tag?: string) => boolean;
 
   beforeEach(() => {
@@ -49,9 +49,9 @@ describe('FormlyFieldInputTag', () => {
 
   async function render(template: string) {
     const fixture = TestBed.createComponent(Host);
-    fixture.componentInstance.fields = [{ key: 'tag', type: 'inputtag', props: { template, required: true } }];
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'stencil', props: { template, required: true } }];
     await fixture.whenStable();
-    const field = fixture.debugElement.query(By.directive(FormlyFieldInputTag)).componentInstance as FormlyFieldInputTag;
+    const field = fixture.debugElement.query(By.directive(FormlyFieldStencil)).componentInstance as FormlyFieldStencil;
     return { fixture, field, el: fixture.nativeElement as HTMLElement };
   }
 
@@ -59,18 +59,18 @@ describe('FormlyFieldInputTag', () => {
     const { el } = await render('car/<Year>/<Make>');
     expect(el.querySelector('.tag-preview')!.textContent!.trim()).toBe('Cars');
     expect(el.querySelector('.tag-preview')!.getAttribute('title')).toBe('car');
-    expect(el.querySelectorAll('.input-tag input.tag-input').length).toBe(2);
-    expect(el.querySelectorAll<HTMLInputElement>('.input-tag input.tag-input')[1].placeholder).toBe('Make');
+    expect(el.querySelectorAll('.stencil input.tag-input').length).toBe(2);
+    expect(el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')[1].placeholder).toBe('Make');
   });
 
   it('shows the preview of filled out inputs that are not being edited', async () => {
     const { fixture, field, el } = await render('car/<Year>/<Make>');
     field.setValue(1, '2020');
     await fixture.whenStable();
-    const preview = el.querySelector<HTMLInputElement>('.input-tag input.preview')!;
+    const preview = el.querySelector<HTMLInputElement>('.stencil input.preview')!;
     expect(preview.value).toBe('2020 Cars');
     expect(preview.title).toBe('car/2020');
-    const input = el.querySelector<HTMLInputElement>('.input-tag input.tag-input')!;
+    const input = el.querySelector<HTMLInputElement>('.stencil input.tag-input')!;
     expect(input.classList).toContain('hidden-without-removing');
     preview.dispatchEvent(new Event('focus'));
     await fixture.whenStable();
@@ -82,14 +82,14 @@ describe('FormlyFieldInputTag', () => {
   it('fills out hierarchical tags top down', async () => {
     const fixture = TestBed.createComponent(Host);
     fixture.componentInstance.fields = [
-      { key: 'make', type: 'inputtag', wrappers: [], props: { template: 'car/<Make>', required: true, hierarchical: true } },
-      { key: 'model', type: 'inputtag', wrappers: [], props: { template: 'car/<Make>/<Model>', required: true, hierarchical: true, parentKey: 'make', parentTemplate: 'car/<Make>' } },
+      { key: 'make', type: 'stencil', wrappers: [], props: { template: 'car/<Make>', required: true, hierarchical: true } },
+      { key: 'model', type: 'stencil', wrappers: [], props: { template: 'car/<Make>/<Model>', required: true, hierarchical: true, parentKey: 'make', parentTemplate: 'car/<Make>' } },
     ];
     await fixture.whenStable();
     const el: HTMLElement = fixture.nativeElement;
-    const [make, model] = fixture.debugElement.queryAll(By.directive(FormlyFieldInputTag)).map(d => d.componentInstance as FormlyFieldInputTag);
+    const [make, model] = fixture.debugElement.queryAll(By.directive(FormlyFieldStencil)).map(d => d.componentInstance as FormlyFieldStencil);
     const labels = () => [...el.querySelectorAll('.hierarchical-tag-label')].map(l => l.textContent!.trim());
-    const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.input-tag input.tag-input')];
+    const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
     expect(labels()).toEqual(['Cars Make:', 'Cars Model:']);
     expect(el.querySelector('.tag-preview')).toBeNull();
     expect(inputs().map(i => i.disabled)).toEqual([false, true]);
@@ -125,20 +125,20 @@ describe('FormlyFieldInputTag', () => {
   it('reads its inputs from the model', async () => {
     const fixture = TestBed.createComponent(Host);
     fixture.componentInstance.model = { tag: '_plugin/secret/openai' };
-    fixture.componentInstance.fields = [{ key: 'tag', type: 'inputtag', props: { template: '+plugin,_plugin/secret/<Secret>' } }];
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'stencil', props: { template: '+plugin,_plugin/secret/<Secret>' } }];
     await fixture.whenStable();
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector<HTMLSelectElement>('.input-tag select')!.value).toBe('_plugin/secret');
-    expect(el.querySelector<HTMLInputElement>('.input-tag input.tag-input')!.value).toBe('openai');
+    expect(el.querySelector<HTMLSelectElement>('.stencil select')!.value).toBe('_plugin/secret');
+    expect(el.querySelector<HTMLInputElement>('.stencil input.tag-input')!.value).toBe('openai');
     expect(fixture.componentInstance.form.value).toEqual({ tag: '_plugin/secret/openai' });
   });
 
   it('is empty and valid when optional until an input is filled out', async () => {
     const fixture = TestBed.createComponent(Host);
-    fixture.componentInstance.fields = [{ key: 'tag', type: 'inputtag', props: { template: '+plugin,_plugin/secret/<Name>' } }];
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'stencil', props: { template: '+plugin,_plugin/secret/<Name>' } }];
     await fixture.whenStable();
     const form = fixture.componentInstance.form;
-    const field = fixture.debugElement.query(By.directive(FormlyFieldInputTag)).componentInstance as FormlyFieldInputTag;
+    const field = fixture.debugElement.query(By.directive(FormlyFieldStencil)).componentInstance as FormlyFieldStencil;
     expect((form.value as any).tag ?? null).toBeNull();
     expect(form.valid).toBe(true);
     field.setValue(0, '_plugin/secret');
@@ -153,14 +153,14 @@ describe('FormlyFieldInputTag', () => {
   it('keeps an optional value it cannot fill out until it is edited', async () => {
     const fixture = TestBed.createComponent(Host);
     fixture.componentInstance.model = { tag: '+openai/key' };
-    fixture.componentInstance.fields = [{ key: 'tag', type: 'inputtag', props: { template: '+plugin,_plugin/secret/<Name>' } }];
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'stencil', props: { template: '+plugin,_plugin/secret/<Name>' } }];
     await fixture.whenStable();
     expect(fixture.componentInstance.form.value).toEqual({ tag: '+openai/key' });
   });
 
   it('shows one dropdown with every permutation of the prefix', async () => {
     const { fixture, field, el } = await render('+plugin,_plugin/secret/<Secret>');
-    const select = el.querySelector<HTMLSelectElement>('.input-tag select')!;
+    const select = el.querySelector<HTMLSelectElement>('.stencil select')!;
     expect([...select.options].map(o => o.value)).toEqual(['+plugin/secret', '_plugin/secret']);
     expect([...select.options].map(o => o.textContent!.trim())).toEqual(['Secrets (+plugin/secret)', 'Secrets (_plugin/secret)']);
     field.setValue(1, 'openai');
@@ -173,7 +173,7 @@ describe('FormlyFieldInputTag', () => {
   it('only offers prefixes the user can add', async () => {
     canAddTag = tag => !tag?.startsWith('_');
     const { el } = await render('+plugin,_plugin/secret/<Secret>');
-    expect(el.querySelector('.input-tag select')).toBeNull();
+    expect(el.querySelector('.stencil select')).toBeNull();
     expect(el.querySelector('.tag-preview')!.getAttribute('title')).toBe('+plugin/secret');
   });
 

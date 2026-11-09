@@ -80,6 +80,7 @@ export class SubmitStore {
   readonly text = computed(() => {
     if (this.linkTypeOverride()) return this.linkTypeOverride() === 'text';
     if (this.subpage() != 'text') return false;
+    if (this.url()?.startsWith('internal:')) return !this.genId();
     return this.url()?.startsWith('comment:') || !this.url();
   });
 

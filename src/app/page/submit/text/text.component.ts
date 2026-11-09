@@ -158,11 +158,11 @@ export class SubmitTextPage implements HasChanges {
       model: Object.fromEntries(keys.map((k, i) => [k, parents[i] < 0 && partialInputTag(parts[i], inputTagValues(parts[i])) || null])) as Record<string, string | null>,
       fields: templates.map((template, i): FormlyFieldConfig => i < inputTags.length ? {
         key: keys[i],
-        type: 'inputtag',
+        type: 'stencil',
         props: { template, required: true },
       } : {
         key: keys[i],
-        type: 'inputtag',
+        type: 'stencil',
         wrappers: [],
         props: {
           template,

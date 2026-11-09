@@ -26,6 +26,7 @@ test.describe.serial('Secret Plugin', () => {
     const tags = params.getAll('tag');
     expect(tags).not.toContain('+plugin/secret');
     expect(tags).toContain('internal');
+    await expect(page.locator('.tabs a.current-tab')).toHaveText('text');
     await expect(page.locator('.tag-field input.preview[title="public"]')).toHaveCount(0);
   });
 
@@ -34,8 +35,8 @@ test.describe.serial('Secret Plugin', () => {
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'secret' }).first().click();
     await expect(page).toHaveURL(/\/submit\/text/);
-    const name = page.locator('.input-tag input.tag-input');
-    const prefix = page.locator('.input-tag select.tag-choice');
+    const name = page.locator('.stencil input.tag-input');
+    const prefix = page.locator('.stencil select.tag-choice');
     await expect(prefix.locator('option')).toHaveText(['🔑️ Secret', '🔒️ Private Secret']);
     await expect(prefix).toHaveValue('+plugin/secret');
     await expect(name).toHaveAttribute('placeholder', 'Name');
@@ -60,8 +61,8 @@ test.describe.serial('Secret Plugin', () => {
     await expect(page).toHaveURL(/\/submit\/text/);
     await page.locator('#title').fill('Private');
     await page.locator('.editor textarea').fill('key');
-    await page.locator('.input-tag select.tag-choice').selectOption('_plugin/secret');
-    await page.locator('.input-tag input.tag-input').fill('private');
+    await page.locator('.stencil select.tag-choice').selectOption('_plugin/secret');
+    await page.locator('.stencil input.tag-input').fill('private');
     await expect(page.locator('.tag-field input.preview[title="_plugin/secret/private"]')).toBeAttached();
     const created = page.waitForRequest(req => req.url().includes('/api/v1/ref') && req.method() === 'POST');
     await page.getByRole('button', { name: 'Submit', exact: true }).click();
@@ -91,7 +92,7 @@ test.describe.serial('Secret Plugin', () => {
     await submit.click();
     await expect(page).toHaveURL(/\/submit\/text/);
     await page.locator('.editor textarea').fill('key');
-    await page.locator('.input-tag input.tag-input').fill('openai');
+    await page.locator('.stencil input.tag-input').fill('openai');
     await expect(page.locator('.tag-field input.preview[title="+plugin/secret/openai"]')).toBeAttached();
     await expect(toggle).toHaveText('👁️');
     await expect(page.locator('.tag-field input.preview[title="public"]')).toHaveCount(0);
@@ -150,7 +151,7 @@ test.describe.serial('Secret Plugin', () => {
       expect(params.get('url')).toMatch(/^internal:/);
       expect(params.getAll('tag')).not.toContain('+plugin/secret');
       expect(params.getAll('tag')).not.toContain('_plugin/secret');
-      await expect(page.locator('.input-tag select.tag-choice')).toHaveValue(value);
+      await expect(page.locator('.stencil select.tag-choice')).toHaveValue(value);
     }
   });
 });

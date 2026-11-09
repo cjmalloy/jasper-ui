@@ -36,7 +36,7 @@ import { FormlyFieldRange } from './range.type';
 import { FormlyFieldRefInput } from './ref.type';
 import { FormlyFieldSelect } from './select.type';
 import { hierarchicalTagTemplate, matchesInputTag, parseInputTag } from '../util/input-tag';
-import { FormlyFieldInputTag } from './input-tag.type';
+import { FormlyFieldStencil } from './stencil.type';
 import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { FormlyFieldUserMap } from './user-map.type';
@@ -325,12 +325,12 @@ Private tags start with an underscore.
         },
       },
     }, {
-      name: 'inputtag',
-      component: FormlyFieldInputTag,
+      name: 'stencil',
+      component: FormlyFieldStencil,
       wrappers: ['form-field'],
       defaultOptions: {
         validators: {
-          inputTag: {
+          stencil: {
             expression: (c: AbstractControl, field: FormlyFieldConfig) => {
               if (!c.value) return true;
               const parent = field.props?.parentKey ? field.form?.get(field.props.parentKey)?.value : undefined;
