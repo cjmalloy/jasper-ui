@@ -4967,6 +4967,18 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Store secrets with opaque protected tags.</source>
         <target>不透明な保護されたタグでシークレットを保存します。</target>
       </trans-unit>
+      <trans-unit id="5571400295982110168" datatype="html">
+        <source>🔒️ Private Secret</source>
+        <target>🔒️ プライベートシークレット</target>
+      </trans-unit>
+      <trans-unit id="30088139615628812" datatype="html">
+        <source>🔒️ private secret</source>
+        <target>🔒️ プライベートシークレット</target>
+      </trans-unit>
+      <trans-unit id="4747324941401276650" datatype="html">
+        <source>Store secrets with opaque private tags.</source>
+        <target>不透明なプライベートタグでシークレットを保存します。</target>
+      </trans-unit>
       <trans-unit id="202069683793608755" datatype="html">
         <source>⚠️ This secret is public</source>
         <target>⚠️ このシークレットは公開されています</target>

@@ -36,7 +36,7 @@ test.describe.serial('Secret Plugin', () => {
     await expect(page).toHaveURL(/\/submit\/text/);
     const name = page.locator('.input-tag input.tag-input');
     const prefix = page.locator('.input-tag select.tag-choice');
-    await expect(prefix.locator('option')).toHaveText(['🔑️ Secret', '_plugin/secret']);
+    await expect(prefix.locator('option')).toHaveText(['🔑️ Secret', '🔒️ Private Secret']);
     await expect(prefix).toHaveValue('+plugin/secret');
     await expect(name).toHaveAttribute('placeholder', 'Name');
     await page.locator('#title').fill('OpenAI');
@@ -111,5 +111,46 @@ test.describe.serial('Secret Plugin', () => {
     expect(res.ok(), await res.text()).toBeTruthy();
     await page.goto(`/ref/e/${encodeURIComponent('internal:public-secret')}?debug=ADMIN`, { waitUntil: 'networkidle' });
     await expect(page.locator('.full-page.ref .secret-public')).toHaveText('⚠️ This secret is public');
+  });
+
+  test('warns when a private secret is public', async ({ page, request }) => {
+    const res = await request.post(`${api}/ref`, {
+      headers: await headers(request),
+      data: { url: 'internal:public-private-secret', origin: localOrigin(), title: 'Public Private Secret', tags: ['public', '_plugin/secret/leaked'] },
+    });
+    expect(res.ok(), await res.text()).toBeTruthy();
+    await page.goto(`/ref/e/${encodeURIComponent('internal:public-private-secret')}?debug=ADMIN`, { waitUntil: 'networkidle' });
+    await expect(page.locator('.full-page.ref .info .icon', { hasText: '🔑️' })).toBeVisible();
+    await expect(page.locator('.full-page.ref .secret-public')).toHaveText('⚠️ This secret is public');
+  });
+
+  test('lists protected and private secrets in one settings tab', async ({ page }) => {
+    for (const tag of ['+plugin/secret', '_plugin/secret']) {
+      await page.goto(`/settings/ref/${tag}?debug=ADMIN`, { waitUntil: 'networkidle' });
+      await expect(page.locator('.settings-tab', { hasText: 'secrets' })).toHaveCount(1);
+      await expect(page.locator('.settings-tab.current-tab')).toHaveText('secrets');
+      await expect(page.locator('.ref-list .ref .link a', { hasText: 'OpenAI' }).first()).toBeVisible();
+      await expect(page.locator('.ref-list .ref .link a', { hasText: 'Private' }).first()).toBeVisible();
+    }
+  });
+
+  test('shows a submit button for each secret plugin in settings', async ({ page }) => {
+    for (const [i, inputTag, value] of [
+      [0, '+plugin,_plugin/secret/<Name>', '+plugin/secret'],
+      [1, '_plugin,+plugin/secret/<Name>', '_plugin/secret'],
+    ] as const) {
+      await page.goto('/settings/ref/+plugin/secret?debug=ADMIN', { waitUntil: 'networkidle' });
+      await openSidebar(page);
+      const submits = page.locator('.sidebar .submit-button.plugin-submit');
+      await expect(submits).toHaveText([/🔑️ secret/, /🔒️ private secret/]);
+      await submits.nth(i).click();
+      await expect(page).toHaveURL(/\/submit\/text/);
+      const params = new URL(page.url()).searchParams;
+      expect(params.getAll('inputTag')).toEqual([inputTag]);
+      expect(params.get('url')).toMatch(/^internal:/);
+      expect(params.getAll('tag')).not.toContain('+plugin/secret');
+      expect(params.getAll('tag')).not.toContain('_plugin/secret');
+      await expect(page.locator('.input-tag select.tag-choice')).toHaveValue(value);
+    }
   });
 });
