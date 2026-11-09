@@ -352,7 +352,7 @@ export class ChatComponent implements HasChanges {
     ]).filter(t => !!t);
     if (URI_REGEX.test(text)) {
       const url = this.editor.getRefUrl(text);
-      newTags.push(...this.admin.getPluginsForExtension(url).filter(p => !newTags.includes(p.tag)));
+      newTags.push(...this.admin.getPluginsForExtension(url).map(p => p.tag).filter(t => !newTags.includes(t)));
       this.send({
         url,
         origin: this.store.account.origin(),

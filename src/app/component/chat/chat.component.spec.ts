@@ -9,6 +9,7 @@ import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { ConfigService } from '../../service/config.service';
+import { EditorService } from '../../service/editor.service';
 
 import { ChatComponent } from './chat.component';
 
@@ -198,5 +199,16 @@ describe('ChatComponent', () => {
     const file = new File(['hello'], 'test.txt', { type: 'text/plain' });
     await firstValueFrom(component.upload$(file, { id: '1', name: 'test.txt', progress: 0 }));
     expect(create.mock.calls[0][0].tags).not.toContain('public');
+  });
+
+  it('adds the tags of plugins matching a posted URL', () => {
+    const create = vi.spyOn(TestBed.inject(RefService), 'create').mockReturnValue(of('2024-01-01T00:00:00Z'));
+    vi.spyOn(TestBed.inject(AdminService), 'getPluginsForExtension').mockReturnValue([{ tag: 'plugin/image' }, { tag: 'internal' }] as any);
+    vi.spyOn(TestBed.inject(EditorService), 'getRefUrl').mockImplementation(url => url);
+    component.add('https://example.com/cat.png');
+    const tags = create.mock.calls[0][0].tags!;
+    expect(tags).toContain('plugin/image');
+    expect(tags.every(t => typeof t === 'string')).toBe(true);
+    expect(tags.filter(t => t === 'internal').length).toBe(1);
   });
 });
