@@ -75,6 +75,20 @@ describe('SubmitTextPage', () => {
     expect(component.inputTagForm().form.touched).toBe(true);
   });
 
+  it('adds a tag for each hierarchicalTag and needs every level to submit', () => {
+    const create = vi.spyOn(TestBed.inject(RefService), 'create');
+    vi.spyOn(window, 'scroll').mockImplementation(() => {});
+    component.store.submit.route.routeSnapshot.set({ queryParams: { hierarchicalTag: ['car/<Make>', 'car/<Make>/<Model>'] } } as any);
+    expect(component.inputTagForm().fields.map(f => f.props?.parentKey)).toEqual([undefined, 'tag0']);
+    component.title.setValue('Car');
+    component.setInputTags(['car/toyota', '']);
+    component.submit();
+    expect(create).not.toHaveBeenCalled();
+    component.setInputTags(['car/toyota', 'car/toyota/prius']);
+    expect(component.tags.value).toContain('car/toyota');
+    expect(component.tags.value).toContain('car/toyota/prius');
+  });
+
   it('never makes a secret public', () => {
     component.addTag('public');
     expect(component.tags.value).toContain('public');

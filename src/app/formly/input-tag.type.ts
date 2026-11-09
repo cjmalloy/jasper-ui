@@ -9,6 +9,9 @@ import { AuthzService } from '../service/authz.service';
 import { EditorService } from '../service/editor.service';
 import {
   filterInputTag,
+  hierarchicalTagTemplate,
+  inputTagDefaults,
+  InputTagPart,
   inputTagPattern,
   inputTagQuery,
   inputTagSuggestion,
@@ -23,17 +26,27 @@ import {
  * `+plugin,_plugin/secret/<Name>` or `car/<Year>/<Make>`.
  * The value is the tag once every input is filled out. Until then it is
  * the known prefix, which the `inputTag` validator rejects.
+ *
+ * With `props.hierarchical` the field shows its own label and only the
+ * inputs below its parent: the sibling field `props.parentKey` with the
+ * template `props.parentTemplate`. It is disabled until the parent is
+ * filled out, cleared when the parent changes, and empty until filled out.
  */
 @Component({
   selector: 'formly-field-input-tag',
   host: { 'class': 'field input-tag-field' },
   template: `
-    <div class="input-tag">
-      @for (p of parts(); track $index; let i = $index; let first = $first) {
-        @if (!first) {
+    @if (hierarchical()) {
+      <label class="form-label hierarchical-tag-label" [attr.for]="id" [class.required]="props.required">{{ label() }}:</label>
+    }
+    <div class="input-tag" [class.hierarchical-tag]="hierarchical()">
+      @for (p of parts(); track $index; let i = $index) {
+        @if (i > firstVisible()) {
           <span class="separator">/</span>
         }
-        @if (!p.options) {
+        @if (!visible()[i]) {
+          <!-- Shown in the label -->
+        } @else if (!p.options) {
           <input class="preview tag-input-preview"
                  type="text"
                  tabindex="-1"
@@ -56,6 +69,7 @@ import {
                  [placeholder]="p.label"
                  [attr.aria-label]="p.label || null"
                  [value]="values()[i]"
+                 [disabled]="disabled()"
                  [class.hidden-without-removing]="placeholderNames()[i]"
                  (focus)="edit(i, input); search(i)"
                  (blur)="blur()"
@@ -64,6 +78,7 @@ import {
           <span class="tag-preview" [title]="p.options[0]">{{ labels()[i][0] }}</span>
         } @else {
           <select class="tag-choice"
+                  [disabled]="disabled()"
                   [attr.id]="i === firstControl() ? id : null"
                   (change)="setValue(i, $any($event.target).value)">
             @for (o of p.options; track o; let j = $index) {
@@ -82,6 +97,10 @@ import {
   styles: `
     :host {
       display: contents;
+    }
+
+    .hierarchical-tag-label {
+      white-space: nowrap;
     }
 
     .input-tag {
@@ -105,15 +124,49 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
 
   readonly listId = 'input-tag-' + uuid();
   readonly template = computed(() => this.props.template as string || '');
-  readonly parts = computed(() => filterInputTag(parseInputTag(this.template()), t => this.auth.canAddTag(t)));
-  readonly values = linkedSignal(() => inputTagValues(this.parts(), untracked(() => this.formControl.value)));
+  readonly hierarchical = computed(() => !!this.props.hierarchical);
+  readonly parentTemplate = computed(() => this.props.parentTemplate as string | undefined);
+  readonly parentTag = signal<string | null>(null);
+  /**
+   * The template with the parent filled in, or empty until the parent is filled out.
+   */
+  readonly filledTemplate = computed(() => hierarchicalTagTemplate(this.template(), this.parentTemplate(), this.parentTag()));
+  readonly disabled = computed(() => !this.filledTemplate());
+  readonly parts = computed(() => filterInputTag(parseInputTag(this.filledTemplate() || this.template()), t => this.auth.canAddTag(t)));
+  readonly values = linkedSignal<InputTagPart[], string[]>({
+    source: this.parts,
+    computation: (parts, previous) => previous
+      ? inputTagDefaults(parts)
+      : inputTagValues(parts, untracked(() => this.formControl.value)),
+  });
   readonly patterns = computed(() => this.parts().map(p => p.options ? null : inputTagPattern(p).source.slice(1, -1)));
-  readonly firstControl = computed(() => this.parts().findIndex(p => !p.options || p.options.length > 1));
+  /**
+   * The fixed tag shown in the label of a hierarchical field instead of the inputs.
+   */
+  readonly leading = computed(() => {
+    if (!this.hierarchical()) return '';
+    const first = parseInputTag(this.template())[0];
+    return first.options?.length === 1 ? first.options[0] : '';
+  });
+  /**
+   * Hierarchical fields only show the parts below the parent or the leading fixed tag.
+   */
+  readonly visible = computed(() => {
+    const parts = this.parts();
+    if (!this.hierarchical()) return parts.map(() => true);
+    const parent = this.parentTemplate();
+    const depth = parent
+      ? (this.filledTemplate() ? this.parentTag()! : parent).split('/').filter(s => s).length
+      : this.leading() ? parts[1]?.depth ?? 0 : 0;
+    return parts.map(p => p.depth >= depth);
+  });
+  readonly firstVisible = computed(() => this.visible().indexOf(true));
+  readonly firstControl = computed(() => this.parts().findIndex((p, i) => this.visible()[i] && (!p.options || p.options.length > 1)));
   readonly autocomplete = signal<{ value: string, label: string }[]>([]);
   readonly editing = signal(-1);
 
   private readonly previews = rxResource({
-    params: () => this.parts().flatMap(p => p.options || []),
+    params: () => uniq([...this.parts().flatMap(p => p.options || []), ...this.leading() ? [this.leading()] : []]),
     stream: ({ params }) => this.editor.getTagsPreview(params).pipe(
       map(xs => new Map(xs.map(x => [x.tag, x.name || x.tag]))),
       catchError(() => of(new Map<string, string>())),
@@ -129,6 +182,15 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
       const labels = (p.options || []).map(o => names.get(o) || o);
       return labels.map((l, i) => labels.indexOf(l) === labels.lastIndexOf(l) ? l : l + ' (' + p.options![i] + ')');
     });
+  });
+
+  readonly label = computed(() => {
+    const names = this.previews.hasValue() ? this.previews.value() : new Map<string, string>();
+    const leading = this.leading();
+    return [
+      leading && (names.get(leading) || leading),
+      ...this.parts().filter((p, i) => this.visible()[i] && !p.options).map(p => p.label),
+    ].filter(l => l).join(' ');
   });
 
   /**
@@ -163,6 +225,16 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
   private readonly search$ = new Subject<number>();
 
   private readonly initializeView = afterNextRender(() => {
+    const parent = this.props.parentKey ? this.form.get(this.props.parentKey as string) : null;
+    if (parent) {
+      this.parentTag.set(parent.value);
+      parent.valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe(value => {
+        this.parentTag.set(value);
+        this.updateControl();
+      });
+    }
     this.updateControl();
   });
 
@@ -228,7 +300,9 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
   }
 
   private updateControl() {
-    const tag = partialInputTag(this.parts(), this.values()) || null;
+    const tag = (this.parentTemplate()
+      ? this.filledTemplate() && resolveInputTag(this.parts(), this.values())
+      : partialInputTag(this.parts(), this.values())) || null;
     if (tag !== this.formControl.value) this.formControl.setValue(tag);
   }
 }

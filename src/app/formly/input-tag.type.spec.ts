@@ -79,6 +79,37 @@ describe('FormlyFieldInputTag', () => {
     expect(preview.style.display).toBe('none');
   });
 
+  it('fills out hierarchical tags top down', async () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.fields = [
+      { key: 'make', type: 'inputtag', wrappers: [], props: { template: 'car/<Make>', required: true, hierarchical: true } },
+      { key: 'model', type: 'inputtag', wrappers: [], props: { template: 'car/<Make>/<Model>', required: true, hierarchical: true, parentKey: 'make', parentTemplate: 'car/<Make>' } },
+    ];
+    await fixture.whenStable();
+    const el: HTMLElement = fixture.nativeElement;
+    const [make, model] = fixture.debugElement.queryAll(By.directive(FormlyFieldInputTag)).map(d => d.componentInstance as FormlyFieldInputTag);
+    const labels = () => [...el.querySelectorAll('.hierarchical-tag-label')].map(l => l.textContent!.trim());
+    const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.input-tag input.tag-input')];
+    expect(labels()).toEqual(['Cars Make:', 'Cars Model:']);
+    expect(el.querySelector('.tag-preview')).toBeNull();
+    expect(inputs().map(i => i.disabled)).toEqual([false, true]);
+    expect(fixture.componentInstance.form.value).toEqual({ make: 'car', model: null });
+
+    make.setValue(1, 'toyota');
+    await fixture.whenStable();
+    expect(inputs().map(i => i.disabled)).toEqual([false, false]);
+    expect(fixture.componentInstance.form.value).toEqual({ make: 'car/toyota', model: null });
+    model.setValue(1, 'prius');
+    expect(fixture.componentInstance.form.value).toEqual({ make: 'car/toyota', model: 'car/toyota/prius' });
+    expect(fixture.componentInstance.form.valid).toBe(true);
+
+    make.setValue(1, 'honda');
+    await fixture.whenStable();
+    expect(fixture.componentInstance.form.value).toEqual({ make: 'car/honda', model: null });
+    expect(inputs()[1].value).toBe('');
+    expect(fixture.componentInstance.form.valid).toBe(false);
+  });
+
   it('is the known prefix and invalid until it is filled out', async () => {
     const { fixture, field } = await render('car/<Year>/<Make>');
     const form = fixture.componentInstance.form;

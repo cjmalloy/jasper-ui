@@ -56,7 +56,15 @@ import { Store } from '../../../store/store';
 import { readFileAsString } from '../../../util/async';
 import { controlState, controlValue, scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
-import { filterInputTag, inputTagValues, matchesInputTag, parseInputTag, partialInputTag } from '../../../util/input-tag';
+import {
+  filterInputTag,
+  hierarchicalTagParents,
+  hierarchicalTagTemplate,
+  inputTagValues,
+  matchesInputTag,
+  parseInputTag,
+  partialInputTag
+} from '../../../util/input-tag';
 import { getVisibilityTags, hasPrefix, hasTag, notPublicSecret } from '../../../util/tag';
 
 @Component({
@@ -131,19 +139,34 @@ export class SubmitTextPage implements HasChanges {
   private cursor?: string;
   private readonly tagsValue = controlValue<string[]>(() => this.tags);
   readonly inputTagForm = computed(() => {
-    const templates = this.store.submit.inputTags();
+    const inputTags = this.store.submit.inputTags();
+    const hierarchicalTags = this.store.submit.hierarchicalTags();
+    const templates = [...inputTags, ...hierarchicalTags];
     const keys = templates.map((_, i) => 'tag' + i);
+    const parents = [...inputTags.map(() => -1), ...hierarchicalTagParents(hierarchicalTags).map(p => p < 0 ? p : p + inputTags.length)];
     const parts = templates.map(t => filterInputTag(parseInputTag(t), tag => this.auth.canAddTag(tag)));
     return {
       keys,
-      parts,
+      templates,
+      parents,
       form: new FormGroup({}),
-      model: Object.fromEntries(keys.map((k, i) => [k, partialInputTag(parts[i], inputTagValues(parts[i])) || null])) as Record<string, string | null>,
-      fields: templates.map((template, i): FormlyFieldConfig => ({
+      model: Object.fromEntries(keys.map((k, i) => [k, parents[i] < 0 && partialInputTag(parts[i], inputTagValues(parts[i])) || null])) as Record<string, string | null>,
+      fields: templates.map((template, i): FormlyFieldConfig => i < inputTags.length ? {
         key: keys[i],
         type: 'inputtag',
         props: { template, required: true },
-      })),
+      } : {
+        key: keys[i],
+        type: 'inputtag',
+        wrappers: [],
+        props: {
+          template,
+          required: true,
+          hierarchical: true,
+          parentKey: parents[i] < 0 ? undefined : keys[parents[i]],
+          parentTemplate: parents[i] < 0 ? undefined : templates[parents[i]],
+        },
+      }),
     };
   });
   /**
@@ -515,7 +538,12 @@ export class SubmitTextPage implements HasChanges {
     this.textForm.markAllAsTouched();
     this.syncEditor();
     const inputTags = this.inputTagForm();
-    if (inputTags.parts.some((p, i) => !matchesInputTag(p, this.inputTags()[i]))) {
+    const filled = this.inputTags();
+    if (inputTags.templates.some((t, i) => {
+      const parent = inputTags.parents[i];
+      const template = parent < 0 ? t : hierarchicalTagTemplate(t, inputTags.templates[parent], filled[parent]);
+      return !template || !matchesInputTag(filterInputTag(parseInputTag(template), tag => this.auth.canAddTag(tag)), filled[i]);
+    })) {
       inputTags.form.markAllAsTouched();
       window.scroll({ top: 0, behavior: 'smooth' });
       return;

@@ -1,6 +1,8 @@
 /// <reference types="vitest/globals" />
 import {
   filterInputTag,
+  hierarchicalTagParents,
+  hierarchicalTagTemplate,
   inputTagDefaults,
   inputTagQuery,
   inputTagSuggestion,
@@ -113,5 +115,21 @@ describe('partial inputTag', () => {
     expect(matchesInputTag(secret, '+plugin/secret/openai/key')).toBe(true);
     expect(matchesInputTag(parseInputTag('a/<X>/b'), 'a/x/y/b')).toBe(false);
     expect(matchesInputTag(secret, null)).toBe(false);
+  });
+});
+
+describe('hierarchicalTag', () => {
+  it('finds the parent of each template', () => {
+    expect(hierarchicalTagParents(['car/<Make>', 'car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>'])).toEqual([-1, 0, 1]);
+    expect(hierarchicalTagParents(['<Make>/<Model>', '<Make>'])).toEqual([1, -1]);
+    expect(hierarchicalTagParents(['car/<Make>', 'color/<Color>'])).toEqual([-1, -1]);
+  });
+
+  it('fills in the parent tag once it is filled out', () => {
+    expect(hierarchicalTagTemplate('car/<Make>')).toBe('car/<Make>');
+    expect(hierarchicalTagTemplate('car/<Make>/<Model>', 'car/<Make>', 'car/toyota')).toBe('car/toyota/<Model>');
+    expect(hierarchicalTagTemplate('car/<Make>/<Model>', 'car/<Make>', 'car')).toBe('');
+    expect(hierarchicalTagTemplate('car/<Make>/<Model>', 'car/<Make>', null)).toBe('');
+    expect(hierarchicalTagTemplate('<Make>/<Model>', '<Make>', 'toyota')).toBe('toyota/<Model>');
   });
 });

@@ -122,4 +122,51 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.tag-field input.preview[title="_plugin/secret/openai"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title="+plugin/secret/openai"]')).toHaveCount(0);
   });
+
+  test('fills out hierarchical tags top down and adds a tag for each level', async ({ page, request }) => {
+    for (const [tag, name] of [['car', 'Car'], ['car/toyota', 'Toyota'], ['car/toyota/prius', 'Prius']]) {
+      const res = await request.post(`${api}/ext`, {
+        headers: await headers(request),
+        data: { tag, origin: localOrigin(), name },
+      });
+      expect(res.ok(), await res.text()).toBeTruthy();
+    }
+    await page.goto('/submit/text?debug=USER&hierarchicalTag=car/<Make>&hierarchicalTag=car/<Make>/<Model>', { waitUntil: 'networkidle' });
+    await expect(page.locator('.hierarchical-tag-label')).toHaveText(['Car Make:', 'Car Model:']);
+    const [make, model] = [page.locator('.input-tag input.tag-input').first(), page.locator('.input-tag input.tag-input').nth(1)];
+    await expect(model).toBeDisabled();
+    await make.fill('toyota');
+    await expect(model).toBeEnabled();
+    await model.fill('prius');
+    await page.locator('#title').fill('Prius');
+    await expect(page.locator('.input-tag input.preview[title="car/toyota"]')).toHaveValue('Toyota');
+    await expect(page.locator('.tag-field input.preview[title="car/toyota"]')).toBeAttached();
+    await expect(page.locator('.tag-field input.preview[title="car/toyota/prius"]')).toBeAttached();
+
+    await page.locator('.input-tag input.preview[title="car/toyota"]').click();
+    await make.fill('toyot');
+    await expect(model).toHaveValue('');
+    await expect(page.locator('.tag-field input.preview[title="car/toyota/prius"]')).toHaveCount(0);
+    await make.fill('toyota');
+    await model.fill('prius');
+
+    const created = page.waitForRequest(req => req.url().includes('/api/v1/ref') && req.method() === 'POST');
+    await page.getByRole('button', { name: 'Submit', exact: true }).click();
+    const ref = (await created).postDataJSON();
+    expect(ref.tags).toContain('car/toyota');
+    expect(ref.tags).toContain('car/toyota/prius');
+    await expect(page.locator('.full-page.ref .tag', { hasText: 'Toyota' })).toBeVisible();
+    await expect(page.locator('.full-page.ref .tag', { hasText: 'Prius' })).toBeVisible();
+  });
+
+  test('fills out hierarchical tags without a prefix', async ({ page }) => {
+    await page.goto('/submit/text?debug=USER&hierarchicalTag=<Make>&hierarchicalTag=<Make>/<Model>', { waitUntil: 'networkidle' });
+    await expect(page.locator('.hierarchical-tag-label')).toHaveText(['Make:', 'Model:']);
+    const [make, model] = [page.locator('.input-tag input.tag-input').first(), page.locator('.input-tag input.tag-input').nth(1)];
+    await expect(model).toBeDisabled();
+    await make.fill('toyota');
+    await model.fill('prius');
+    await expect(page.locator('.tag-field input.preview[title="toyota"]')).toBeAttached();
+    await expect(page.locator('.tag-field input.preview[title="toyota/prius"]')).toBeAttached();
+  });
 });

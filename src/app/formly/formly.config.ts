@@ -35,7 +35,7 @@ import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldRange } from './range.type';
 import { FormlyFieldRefInput } from './ref.type';
 import { FormlyFieldSelect } from './select.type';
-import { matchesInputTag, parseInputTag } from '../util/input-tag';
+import { hierarchicalTagTemplate, matchesInputTag, parseInputTag } from '../util/input-tag';
 import { FormlyFieldInputTag } from './input-tag.type';
 import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
@@ -331,7 +331,12 @@ Private tags start with an underscore.
       defaultOptions: {
         validators: {
           inputTag: {
-            expression: (c: AbstractControl, field: FormlyFieldConfig) => !c.value || matchesInputTag(parseInputTag(field.props?.template || ''), c.value),
+            expression: (c: AbstractControl, field: FormlyFieldConfig) => {
+              if (!c.value) return true;
+              const parent = field.props?.parentKey ? field.form?.get(field.props.parentKey)?.value : undefined;
+              const template = hierarchicalTagTemplate(field.props?.template || '', field.props?.parentTemplate, parent);
+              return !!template && matchesInputTag(parseInputTag(template), c.value);
+            },
             message: $localize`Fill out every part of the tag.`,
           },
         },

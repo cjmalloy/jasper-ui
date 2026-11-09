@@ -123,6 +123,17 @@ export class SubmitStore {
     return (isArray(tag) ? tag : [tag]).filter(t => t);
   }, { equal: isEqual });
 
+  /**
+   * Tag templates such as `car/<Make>` and `car/<Make>/<Model>` from the
+   * repeatable hierarchicalTag query param. The submit text page shows a
+   * line for each, filled out top down, and adds a tag for each.
+   */
+  readonly hierarchicalTags = computed((): string[] => {
+    const tag = this.route.routeSnapshot()?.queryParams['hierarchicalTag'];
+    if (!tag) return [];
+    return (isArray(tag) ? tag : [tag]).filter(t => t);
+  }, { equal: isEqual });
+
   readonly plugin = computed(() => {
     return this.route.routeSnapshot()?.queryParams['plugin'] || '' as string;
   });

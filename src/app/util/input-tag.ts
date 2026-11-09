@@ -161,3 +161,35 @@ export function partialInputTag(parts: InputTagPart[], values: string[]) {
 export function matchesInputTag(parts: InputTagPart[], tag?: string | null) {
   return !!tag && resolveInputTag(parts, inputTagValues(parts, tag)) === tag;
 }
+
+function segments(template: string) {
+  return template.split('/').filter(s => s);
+}
+
+/**
+ * The index of the parent of each hierarchicalTag template, or -1 for none.
+ * The parent is the longest other template the template starts with,
+ * so `car/<Make>` is the parent of `car/<Make>/<Model>`.
+ */
+export function hierarchicalTagParents(templates: string[]) {
+  return templates.map(t => {
+    const s = segments(t);
+    let parent = -1;
+    templates.forEach((p, i) => {
+      const ps = segments(p);
+      if (ps.length >= s.length || !ps.every((x, j) => x === s[j])) return;
+      if (parent < 0 || ps.length > segments(templates[parent]).length) parent = i;
+    });
+    return parent;
+  });
+}
+
+/**
+ * The template with the part covered by the parent replaced with the parent tag,
+ * or an empty string until the parent tag is filled out.
+ */
+export function hierarchicalTagTemplate(template: string, parentTemplate?: string, parentTag?: string | null) {
+  if (!parentTemplate) return template;
+  if (!matchesInputTag(parseInputTag(parentTemplate), parentTag)) return '';
+  return [parentTag, ...segments(template).slice(segments(parentTemplate).length)].join('/');
+}
