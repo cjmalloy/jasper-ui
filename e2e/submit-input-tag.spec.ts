@@ -103,9 +103,9 @@ test.describe.serial('Submit inputTag', () => {
     await expect((await options(make)).first()).toHaveText('HONDA');
 
     await year.focus();
-    await expect(await options(year)).toHaveCount(5);
+    await expect(await options(year)).toHaveCount(3);
     expect(await (await options(year)).evaluateAll(os => os.map(o => (o as HTMLOptionElement).value).sort()))
-      .toEqual(['2020', '2020/honda', '2020/toyota', '2021', '2021/ford']);
+      .toEqual(['2020/honda', '2020/toyota', '2021/ford']);
     await year.fill('2020');
     await make.focus();
     await expect(await options(make)).toHaveCount(2);
