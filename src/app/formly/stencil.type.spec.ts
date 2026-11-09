@@ -77,6 +77,7 @@ describe('FormlyFieldStencil', () => {
     expect(inputs().map(i => i.value)).toEqual(['2020/toyota/', '', '']);
     await type('2020/toyota/corolla');
     expect(document.activeElement).toBe(inputs()[0]);
+    expect(field.formControl.value).toBe('car');
     expect(inputs().map(i => i.value)).toEqual(['2020/toyota/corolla', '', '']);
     expect(inputs()[0].validity.valid).toBe(true);
     const enter = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
@@ -175,6 +176,9 @@ describe('FormlyFieldStencil', () => {
     field.setValue(2, 'prius');
     expect(fixture.componentInstance.form.value).toEqual({ tag: ['car/toyota', 'car/toyota/prius'] });
     expect(fixture.componentInstance.form.valid).toBe(true);
+    inputs()[0].dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+    expect(fixture.componentInstance.form.value).toEqual({ tag: ['car/toyota', 'car/toyota/prius'] });
 
     field.setValue(1, 'honda');
     await fixture.whenStable();
@@ -199,6 +203,9 @@ describe('FormlyFieldStencil', () => {
     expect(inputs().map(i => i.value)).toEqual(['2020', 'toyota', '']);
     inputs()[2].value = 'corolla/le';
     inputs()[2].dispatchEvent(new InputEvent('input', { inputType: 'insertText' }));
+    await fixture.whenStable();
+    expect(fixture.componentInstance.form.value).toEqual({ tag: ['car/2020', 'car/2020/toyota', ''] });
+    inputs()[2].dispatchEvent(new Event('blur'));
     await fixture.whenStable();
     expect(fixture.componentInstance.form.value).toEqual({ tag: ['car/2020', 'car/2020/toyota', 'car/2020/toyota/corolla/le'] });
     expect(fixture.componentInstance.form.valid).toBe(true);

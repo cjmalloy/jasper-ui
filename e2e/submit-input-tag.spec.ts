@@ -44,6 +44,7 @@ test.describe.serial('Submit inputTag', () => {
     await expect(await options(board)).toHaveCount(2);
     await expect((await options(board)).nth(1)).toHaveAttribute('value', 'jasper/bugs');
     await board.fill('jasper/bugs');
+    await board.blur();
     await expect(page.locator('.tag-field input.preview[title="kanban/jasper/bugs"]')).toBeAttached();
   });
 
@@ -127,12 +128,14 @@ test.describe.serial('Submit inputTag', () => {
     const inputs = page.locator('.stencil input.tag-input');
     await inputs.nth(1).fill('toyota');
     await inputs.nth(2).fill('red');
+    await inputs.nth(2).blur();
     await expect(page.locator('.tag-field input.preview[title="color/red"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title^="car/"]')).toHaveCount(0);
     await page.getByRole('button', { name: 'Submit', exact: true }).click();
     await expect(page).toHaveURL(/\/submit\/text/);
 
     await inputs.nth(0).fill('2020');
+    await inputs.nth(0).blur();
     await expect(page.locator('.tag-field input.preview[title="car/2020/toyota"]')).toBeAttached();
     const preview = page.locator('.stencil input.preview[title="car/2020/toyota"]');
     await expect(preview).toHaveValue('TOYOTA');
@@ -197,6 +200,7 @@ test.describe.serial('Submit inputTag', () => {
       .toEqual(['+plugin/secret', '+plugin/other', '_plugin/secret', '_plugin/other']);
     await expect(select).toHaveValue('+plugin/secret');
     await page.locator('.stencil input.tag-input').fill('openai');
+    await page.locator('.stencil input.tag-input').blur();
     await expect(page.locator('.tag-field input.preview[title="+plugin/secret/openai"]')).toBeAttached();
     await select.selectOption('_plugin/secret');
     await expect(page.locator('.tag-field input.preview[title="_plugin/secret/openai"]')).toBeAttached();
@@ -225,6 +229,7 @@ test.describe.serial('Submit inputTag', () => {
 
     await page.locator('.stencil input.preview[title="car/toyota"]').click();
     await make.fill('toyot');
+    await make.blur();
     await expect(model).toHaveValue('');
     await expect(page.locator('.tag-field input.preview[title="car/toyota/prius"]')).toHaveCount(0);
     await make.fill('toyota');
@@ -259,6 +264,7 @@ test.describe.serial('Submit inputTag', () => {
     await expect(model).toBeDisabled();
     await make.fill('toyota');
     await model.fill('prius');
+    await model.blur();
     await expect(page.locator('.tag-field input.preview[title="toyota"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title="toyota/prius"]')).toBeAttached();
   });

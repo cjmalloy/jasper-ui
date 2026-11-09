@@ -43,6 +43,7 @@ test.describe.serial('Secret Plugin', () => {
     await page.locator('#title').fill('OpenAI');
     await page.locator('.editor textarea').fill('key');
     await name.fill('openai');
+    await name.blur();
     await expect(page.locator('.tag-field input.preview[title="+plugin/secret/openai"]')).toBeAttached();
     const created = page.waitForRequest(req => req.url().includes('/api/v1/ref') && req.method() === 'POST');
     await page.getByRole('button', { name: 'Submit', exact: true }).click();
@@ -63,6 +64,7 @@ test.describe.serial('Secret Plugin', () => {
     await page.locator('.editor textarea').fill('key');
     await page.locator('.stencil select.tag-choice').selectOption('_plugin/secret');
     await page.locator('.stencil input.tag-input').fill('private');
+    await page.locator('.stencil input.tag-input').blur();
     await expect(page.locator('.tag-field input.preview[title="_plugin/secret/private"]')).toBeAttached();
     const created = page.waitForRequest(req => req.url().includes('/api/v1/ref') && req.method() === 'POST');
     await page.getByRole('button', { name: 'Submit', exact: true }).click();
@@ -93,6 +95,7 @@ test.describe.serial('Secret Plugin', () => {
     await expect(page).toHaveURL(/\/submit\/text/);
     await page.locator('.editor textarea').fill('key');
     await page.locator('.stencil input.tag-input').fill('openai');
+    await page.locator('.stencil input.tag-input').blur();
     await expect(page.locator('.tag-field input.preview[title="+plugin/secret/openai"]')).toBeAttached();
     await expect(toggle).toHaveText('👁️');
     await expect(page.locator('.tag-field input.preview[title="public"]')).toHaveCount(0);

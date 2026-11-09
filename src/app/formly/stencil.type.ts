@@ -173,6 +173,10 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   });
   readonly disabledLines = computed(() => this.lineEnds().map((_, l) => l > 0 && !resolveInputTag(this.parts().slice(0, this.lineEnds()[l - 1] + 1), this.values())));
   readonly editing = signal(-1);
+  /**
+   * The values in the tag, which typing does not change until it is committed.
+   */
+  private committed: string[] = [];
 
   private readonly previews = rxResource({
     params: () => uniq([...this.parts().flatMap(p => p.options || []), ...this.leading() ? [this.leading()] : []]),
@@ -306,6 +310,7 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   });
 
   private readonly initializeView = afterNextRender(() => {
+    this.committed = this.values();
     // An optional field keeps its value until it is edited
     if (this.props.required) this.updateControl();
   });
@@ -334,7 +339,8 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
    */
   type(index: number, input: HTMLInputElement, event?: Event) {
     if (event instanceof InputEvent && event.inputType !== 'insertReplacementText') {
-      this.setValue(index, input.value);
+      // The tag is updated once committed
+      this.values.update(values => values.map((v, i) => i === index ? input.value : v));
     } else {
       this.fillBefore(index, input.value);
       this.commit(index, input);
@@ -342,7 +348,7 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   }
 
   /**
-   * Spread the text typed with slashes over the following inputs.
+   * Update the tag with the text typed into an input, spreading slashes over the following inputs.
    */
   commit(index: number, input: HTMLInputElement) {
     const spread = spreadInputTag(this.parts(), this.values(), index, input.value);
@@ -390,11 +396,16 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   }
 
   /**
-   * Set the values changed up to an index. A hierarchical field clears the inputs after it.
+   * Set the values changed up to an index and update the tag.
+   * A hierarchical field clears the inputs after it when they change.
    */
   private setValues(values: string[], last: number) {
-    if (isEqual(values, this.values())) return;
-    this.values.set(this.hierarchical() ? values.map((v, i) => i > last && !this.parts()[i].options ? '' : v) : values);
+    const changed = values.findIndex((v, i) => v !== this.committed[i]);
+    if (this.hierarchical() && changed >= 0 && changed <= last) {
+      values = values.map((v, i) => i > last && !this.parts()[i].options ? '' : v);
+    }
+    this.committed = values;
+    this.values.set(values);
     this.updateControl();
   }
 
