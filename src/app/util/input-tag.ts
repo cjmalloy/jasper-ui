@@ -1,3 +1,5 @@
+import { uniqBy } from 'lodash-es';
+
 /**
  * A part of an inputTag template: either a run of fixed segments, which
  * may have several options, or a placeholder the user fills out.
@@ -201,61 +203,39 @@ function hierarchicalKey(template: string) {
 }
 
 /**
- * Adds a line for every level of the hierarchicalTag templates, so each line
- * has a single input. `car/<Make>/<Model>` adds `car/<Make>` before it,
- * which is shown but does not add a tag unless it is also a template.
- * Templates matching an earlier one, ignoring placeholder labels, are dropped.
+ * The index of the last part of each line of a hierarchical tag. Each line
+ * ends with a placeholder, and the last line also has the fixed parts after it.
  */
-export function expandHierarchicalTags(templates: string[]) {
-  const result: string[] = [];
-  const keys = new Set<string>();
-  const add = (t: string) => {
-    const key = hierarchicalKey(t).join('/');
-    if (!key || keys.has(key)) return;
-    keys.add(key);
-    result.push(t);
+export function inputTagLines(parts: InputTagPart[]) {
+  const ends = parts.flatMap((p, i) => p.options ? [] : [i]);
+  ends.splice(-1, 1, parts.length - 1);
+  return ends;
+}
+
+/**
+ * The tag filled out up to the end of each line of a hierarchical tag,
+ * or an empty string. The first line is the known prefix until it is filled out.
+ */
+export function inputTagLineTags(parts: InputTagPart[], values: string[]) {
+  return inputTagLines(parts).map((end, i) => (i ? resolveInputTag : partialInputTag)(parts.slice(0, end + 1), values));
+}
+
+/**
+ * The hierarchicalTag templates to show, each with a line per placeholder, and
+ * whether each line adds its tag. A template that is a line of a longer one,
+ * ignoring placeholder labels, is shown as that line, so `car/<Make>` and
+ * `car/<Make>/<Model>` are shown as `car/<Make>/<Model>` adding both lines.
+ */
+export function hierarchicalTagTemplates(templates: string[]) {
+  const key = (t: string) => hierarchicalKey(t).join('/');
+  const lines = (t: string) => {
+    const s = hierarchicalKey(t);
+    const ends = s.flatMap((x, i) => x === '<>' ? [i] : []);
+    ends.splice(-1, 1, s.length - 1);
+    return ends.map(e => s.slice(0, e + 1).join('/'));
   };
-  for (const t of templates) {
-    const s = segments(t);
-    s.forEach((x, i) => PLACEHOLDER_REGEX.test(x) && add(s.slice(0, i + 1).join('/')));
-    add(s.join('/'));
-  }
-  return result;
-}
-
-/**
- * Whether each line from {@link expandHierarchicalTags} adds its tag.
- * Only lines matching one of the templates do, ignoring placeholder labels.
- */
-export function hierarchicalTagAdds(lines: string[], templates: string[]) {
-  const keys = new Set(templates.map(t => hierarchicalKey(t).join('/')));
-  return lines.map(l => keys.has(hierarchicalKey(l).join('/')));
-}
-
-/**
- * The index of the parent of each hierarchicalTag template, or -1 for none.
- * The parent is the longest other template the template starts with,
- * so `car/<Make>` is the parent of `car/<Brand>/<Model>`. Placeholders match
- * whatever their label is.
- */
-export function hierarchicalTagParents(templates: string[]) {
-  const keys = templates.map(hierarchicalKey);
-  return keys.map(s => {
-    let parent = -1;
-    keys.forEach((ps, i) => {
-      if (ps.length >= s.length || !ps.every((x, j) => x === s[j])) return;
-      if (parent < 0 || ps.length > keys[parent].length) parent = i;
-    });
-    return parent;
-  });
-}
-
-/**
- * The template with the part covered by the parent replaced with the parent tag,
- * or an empty string until the parent tag is filled out.
- */
-export function hierarchicalTagTemplate(template: string, parentTemplate?: string, parentTag?: string | null) {
-  if (!parentTemplate) return template;
-  if (!matchesInputTag(parseInputTag(parentTemplate), parentTag)) return '';
-  return [parentTag, ...segments(template).slice(segments(parentTemplate).length)].join('/');
+  const keys = new Set(templates.map(key));
+  return uniqBy(templates.filter(key), key)
+    .filter(t => !templates.some(u => key(u) !== key(t) && lines(u).includes(key(t))))
+    .map(template => ({ template, adds: lines(template).map(l => keys.has(l)) }));
 }

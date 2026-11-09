@@ -35,7 +35,7 @@ import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldRange } from './range.type';
 import { FormlyFieldRefInput } from './ref.type';
 import { FormlyFieldSelect } from './select.type';
-import { hierarchicalTagTemplate, matchesInputTag, parseInputTag } from '../util/input-tag';
+import { matchesInputTag, parseInputTag } from '../util/input-tag';
 import { FormlyFieldStencil } from './stencil.type';
 import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
@@ -333,9 +333,9 @@ Private tags start with an underscore.
           stencil: {
             expression: (c: AbstractControl, field: FormlyFieldConfig) => {
               if (!c.value) return true;
-              const parent = field.props?.parentKey ? field.form?.get(field.props.parentKey)?.value : undefined;
-              const template = hierarchicalTagTemplate(field.props?.template || '', field.props?.parentTemplate, parent);
-              return !!template && matchesInputTag(parseInputTag(template), c.value);
+              // A hierarchical field has the tag filled out up to each line
+              const tag = Array.isArray(c.value) ? c.value[c.value.length - 1] : c.value;
+              return matchesInputTag(parseInputTag(field.props?.template || ''), tag);
             },
             message: $localize`Fill out every part of the tag.`,
           },

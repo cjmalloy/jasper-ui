@@ -1,17 +1,17 @@
-import { afterNextRender, afterRenderEffect, Component, computed, DestroyRef, ElementRef, inject, linkedSignal, signal, untracked } from '@angular/core';
-import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { afterNextRender, afterRenderEffect, Component, computed, ElementRef, inject, linkedSignal, signal, untracked } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
-import { uniq, uniqBy } from 'lodash-es';
-import { catchError, debounceTime, forkJoin, map, of, Subject, switchMap } from 'rxjs';
+import { isEqual, uniq, uniqBy } from 'lodash-es';
+import { catchError, forkJoin, map, of, switchMap, timer } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { ExtService } from '../service/api/ext.service';
 import { AuthzService } from '../service/authz.service';
 import { EditorService } from '../service/editor.service';
 import {
   filterInputTag,
-  hierarchicalTagTemplate,
-  inputTagDefaults,
   InputTagPart,
+  inputTagLines,
+  inputTagLineTags,
   inputTagPattern,
   inputTagQuery,
   inputTagSuggestion,
@@ -29,70 +29,69 @@ import {
  * The value is the tag once every input is filled out. Until then it is
  * the known prefix, which the `stencil` validator rejects.
  *
- * With `props.hierarchical` the field shows only the
- * inputs below its parent: the sibling field `props.parentKey` with the
- * template `props.parentTemplate`. It is disabled until the parent is
- * filled out, cleared when the parent changes, and empty until filled out.
- * Without a wrapper it also shows its own label, naming the parent.
+ * With `props.hierarchical` each placeholder gets its own labelled line,
+ * which is disabled until the lines above it are filled out and cleared
+ * when they change. The value is the tag filled out up to the end of each
+ * line. Use it without a wrapper, since it shows its own labels.
  */
 @Component({
   selector: 'formly-field-stencil',
   host: { 'class': 'field stencil-field' },
   template: `
-    @if (ownLabel()) {
-      <label class="form-label hierarchical-tag-label" [attr.for]="id" [class.required]="props.required">{{ label() }}:</label>
-    }
-    <div class="stencil" [class.hierarchical-tag]="hierarchical()">
-      @for (p of parts(); track $index; let i = $index) {
-        @if (i > firstVisible()) {
-          <span class="separator">/</span>
-        }
-        @if (!visible()[i]) {
-          <!-- Shown in the label -->
-        } @else if (!p.options) {
-          <input class="preview tag-input-preview"
-                 type="text"
-                 tabindex="-1"
-                 [value]="placeholderNames()[i]"
-                 [title]="placeholderTags()[i]"
-                 [style.display]="placeholderNames()[i] ? 'block' : 'none'"
-                 (focus)="edit(i, input)">
-          <input #input
-                 class="tag-input"
-                 type="text"
-                 inputmode="email"
-                 enterkeyhint="next"
-                 autocorrect="off"
-                 autocapitalize="none"
-                 autocomplete="off"
-                 required
-                 [attr.id]="i === firstControl() ? id : null"
-                 [attr.list]="listId"
-                 [attr.pattern]="spread()?.index === i ? null : patterns()[i]"
-                 [placeholder]="p.label"
-                 [attr.aria-label]="p.label || null"
-                 [value]="spread()?.index === i ? spread()!.text : values()[i]"
-                 [disabled]="disabled()"
-                 [class.hidden-without-removing]="placeholderNames()[i]"
-                 (focus)="edit(i, input); search(i)"
-                 (blur)="blur(i, input); validate(i, input)"
-                 (keydown.enter)="commit(i, input)"
-                 [attr.data-part]="i"
-                 (input)="type(i, input, $event)">
-        } @else if (p.options.length === 1) {
-          <span class="tag-preview" [title]="p.options[0]">{{ labels()[i][0] }}</span>
-        } @else {
-          <select class="tag-choice"
-                  [disabled]="disabled()"
-                  [attr.id]="i === firstControl() ? id : null"
-                  (change)="setValue(i, $any($event.target).value)">
-            @for (o of p.options; track o; let j = $index) {
-              <option [value]="o" [title]="o" [selected]="values()[i] === o">{{ labels()[i][j] }}</option>
-            }
-          </select>
-        }
+    @for (line of lines(); track $index; let l = $index) {
+      @if (hierarchical()) {
+        <label class="form-label hierarchical-tag-label" [attr.for]="lineIds()[l]" [class.required]="props.required">{{ lineLabels()[l] }}:</label>
       }
-    </div>
+      <div class="stencil" [class.hierarchical-tag]="hierarchical()">
+        @for (i of line; track i; let first = $first) {
+          @let p = parts()[i];
+          @if (!first) {
+            <span class="separator">/</span>
+          }
+          @if (!p.options) {
+            <input class="preview tag-input-preview"
+                   type="text"
+                   tabindex="-1"
+                   [value]="placeholderNames()[i]"
+                   [title]="placeholderTags()[i]"
+                   [style.display]="placeholderNames()[i] ? 'block' : 'none'"
+                   (focus)="edit(i, input)">
+            <input #input
+                   class="tag-input"
+                   type="text"
+                   inputmode="email"
+                   enterkeyhint="next"
+                   autocorrect="off"
+                   autocapitalize="none"
+                   autocomplete="off"
+                   required
+                   [attr.id]="ids()[i]"
+                   [attr.list]="listId"
+                   [attr.data-part]="i"
+                   [placeholder]="p.label"
+                   [attr.aria-label]="p.label || null"
+                   [value]="values()[i]"
+                   [disabled]="disabledLines()[l]"
+                   [class.hidden-without-removing]="placeholderNames()[i]"
+                   (focus)="edit(i, input)"
+                   (blur)="blur(i, input); validate(i, input)"
+                   (keydown.enter)="commit(i, input)"
+                   (input)="type(i, input, $event)">
+          } @else if (p.options.length === 1) {
+            <span class="tag-preview" [title]="p.options[0]">{{ labels()[i][0] }}</span>
+          } @else {
+            <select class="tag-choice"
+                    [attr.id]="ids()[i]"
+                    [disabled]="disabledLines()[l]"
+                    (change)="setValue(i, $any($event.target).value)">
+              @for (o of p.options; track o; let j = $index) {
+                <option [value]="o" [title]="o" [selected]="values()[i] === o">{{ labels()[i][j] }}</option>
+              }
+            </select>
+          }
+        }
+      </div>
+    }
     <datalist [id]="listId">
       @for (o of autocomplete(); track o.value) {
         <option [value]="o.value">{{ o.label }}</option>
@@ -125,69 +124,53 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   private exts = inject(ExtService);
   private auth = inject(AuthzService);
   private editor = inject(EditorService);
-  private destroyRef = inject(DestroyRef);
   private el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly listId = 'stencil-' + uuid();
   readonly template = computed(() => this.props.template as string || '');
   readonly hierarchical = computed(() => !!this.props.hierarchical);
-  /**
-   * A wrapper already shows the label in the first column.
-   */
-  readonly ownLabel = computed(() => this.hierarchical() && !this.field.wrappers?.length);
-  readonly parentTemplate = computed(() => this.props.parentTemplate as string | undefined);
-  readonly parentTag = signal<string | null>(null);
-  /**
-   * The template with the parent filled in, or empty until the parent is filled out.
-   */
-  readonly filledTemplate = computed(() => hierarchicalTagTemplate(this.template(), this.parentTemplate(), this.parentTag()));
-  readonly disabled = computed(() => !this.filledTemplate());
-  /**
-   * A hierarchical field with child fields passes extra segments on to them,
-   * so its last placeholder is a single segment.
-   */
-  readonly hasChildren = computed(() => this.key !== undefined && !!this.field.parent?.fieldGroup?.some(f => f.props?.parentKey === this.key));
-  readonly parts = computed(() => filterInputTag(parseInputTag(this.filledTemplate() || this.template()), t => this.auth.canAddTag(t))
-    .map(p => p.rest && this.hasChildren() ? { ...p, rest: false } : p));
+  readonly parts = computed(() => filterInputTag(parseInputTag(this.template()), t => this.auth.canAddTag(t)));
   readonly values = linkedSignal<InputTagPart[], string[]>({
     source: this.parts,
-    computation: (parts, previous) => previous
-      ? inputTagDefaults(parts)
-      : inputTagValues(parts, untracked(() => this.formControl.value)),
+    computation: (parts, previous) => {
+      if (previous) return inputTagValues(parts);
+      const value = untracked(() => this.formControl.value);
+      return inputTagValues(parts, Array.isArray(value) ? value.filter(t => t).at(-1) : value);
+    },
   });
-  readonly patterns = computed(() => this.parts().map(p => p.options ? null : inputTagPattern(p).source.slice(1, -1)));
   /**
-   * The fixed tag shown in the label of a hierarchical field instead of the inputs.
+   * The fixed tag shown in the labels of a hierarchical field instead of the inputs.
    */
   readonly leading = computed(() => {
-    if (!this.hierarchical()) return '';
-    const first = parseInputTag(this.template())[0];
-    return first.options?.length === 1 ? first.options[0] : '';
+    const first = this.parts()[0];
+    return this.hierarchical() && first.options?.length === 1 ? first.options[0] : '';
   });
   /**
-   * Hierarchical fields only show the parts below the parent or the leading fixed tag.
+   * The index of the last part of each line. A field that is not hierarchical has one line.
    */
-  readonly visible = computed(() => {
+  readonly lineEnds = computed(() => this.hierarchical() ? inputTagLines(this.parts()) : [this.parts().length - 1]);
+  /**
+   * The parts shown on each line.
+   */
+  readonly lines = computed(() => this.lineEnds().map((end, l) => {
+    const start = l ? this.lineEnds()[l - 1] + 1 : this.leading() ? 1 : 0;
+    return this.parts().map((_, i) => i).slice(start, end + 1);
+  }));
+  readonly lineIds = computed(() => this.lineEnds().map((_, l) => l ? this.id + '-' + l : this.id));
+  /**
+   * The first control on each line has the id its label is for.
+   */
+  readonly ids = computed(() => {
     const parts = this.parts();
-    if (!this.hierarchical()) return parts.map(() => true);
-    const parent = this.parentTemplate();
-    const depth = parent
-      ? (this.filledTemplate() ? this.parentTag()! : parent).split('/').filter(s => s).length
-      : this.leading() ? parts[1]?.depth ?? 0 : 0;
-    return parts.map(p => p.depth >= depth);
+    const ids = parts.map(() => null as string | null);
+    this.lines().forEach((line, l) => {
+      const i = line.find(i => !parts[i].options || parts[i].options.length > 1);
+      if (i !== undefined) ids[i] = this.lineIds()[l];
+    });
+    return ids;
   });
-  readonly firstVisible = computed(() => this.visible().indexOf(true));
-  readonly firstControl = computed(() => this.parts().findIndex((p, i) => this.visible()[i] && (!p.options || p.options.length > 1)));
-  readonly autocomplete = signal<{ value: string, label: string }[]>([]);
-  /**
-   * The tags each autocomplete value was suggested by.
-   */
-  private suggestedTags = new Map<string, string[]>();
+  readonly disabledLines = computed(() => this.lineEnds().map((_, l) => l > 0 && !resolveInputTag(this.parts().slice(0, this.lineEnds()[l - 1] + 1), this.values())));
   readonly editing = signal(-1);
-  /**
-   * Text typed with slashes into an input, which fills the following inputs once committed.
-   */
-  readonly spread = signal<{ index: number, text: string } | null>(null);
 
   private readonly previews = rxResource({
     params: () => uniq([...this.parts().flatMap(p => p.options || []), ...this.leading() ? [this.leading()] : []]),
@@ -208,13 +191,13 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
     });
   });
 
-  readonly label = computed(() => {
+  readonly lineLabels = computed(() => {
     const names = this.previews.hasValue() ? this.previews.value() : new Map<string, string>();
     const leading = this.leading();
-    return [
+    return this.lines().map(line => [
       leading && (names.get(leading) || leading),
-      ...this.parts().filter((p, i) => this.visible()[i] && !p.options).map(p => p.label),
-    ].filter(l => l).join(' ');
+      ...line.map(i => this.parts()[i].label),
+    ].filter(l => l).join(' '));
   });
 
   /**
@@ -246,47 +229,15 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
     return this.placeholderTags().map(t => t && names.get(t) || '');
   });
 
-  private readonly search$ = new Subject<number>();
-
-  // Sync the validation message of each input
-  private readonly validity = afterRenderEffect(() => {
-    const values = this.values();
-    for (const input of this.el.nativeElement.querySelectorAll<HTMLInputElement>('input.tag-input[data-part]')) {
-      const index = Number(input.dataset['part']);
-      input.setCustomValidity(this.invalidMessage(index, values[index] || ''));
-    }
-  });
-
-  private readonly initializeView = afterNextRender(() => {
-    const parent = this.props.parentKey ? this.form.get(this.props.parentKey as string) : null;
-    if (parent) {
-      this.parentTag.set(parent.value);
-      parent.valueChanges.pipe(
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(value => {
-        this.parentTag.set(value);
-        this.updateControl();
-        const overflow = this.formState.stencilOverflow;
-        if (overflow?.parentKey === this.props.parentKey) {
-          delete this.formState.stencilOverflow;
-          this.takeOverflow(overflow.value);
-        }
-      });
-    }
-    // An optional field keeps its value until it is edited
-    if (parent || this.props.required) this.updateControl();
-  });
-
-  constructor() {
-    super();
-    this.search$.pipe(
-      debounceTime(200),
-      switchMap(index => {
-        const parts = this.parts();
-        const values = this.values();
+  /**
+   * Autocomplete for the input being edited, with the tag that suggested each value.
+   */
+  private readonly suggestions = rxResource({
+    params: () => this.editing() < 0 ? undefined : { index: this.editing(), parts: this.parts(), values: this.values() },
+    stream: ({ params: { index, parts, values } }) => timer(200).pipe(
+      switchMap(() => {
         const part = parts[index];
-        const spread = this.spread();
-        const value = (spread?.index === index ? spread.text : values[index]) || '';
+        const value = values[index] || '';
         let query = inputTagQuery(parts, values, index);
         let search = value;
         if (part.rest && value.includes('/')) {
@@ -302,35 +253,52 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
           search: search || undefined,
           sort: ['tag:len', 'tag'],
           size: 100,
-        }).pipe(
-          map(page => page.content.flatMap(x => {
-            const suggestion = inputTagSuggestion(parts, values, index, x.tag);
-            if (!suggestion) return [];
-            const depth = part.depth + suggestion.split('/').length;
-            if (!this.auth.canAddTag(x.tag.split('/').slice(0, depth).join('/'))) return [];
-            const own = x.tag.split('/').length === depth;
-            const result = [{ value: suggestion, label: own && x.name || suggestion, tag: x.tag }];
-            if (!part.rest && !own && this.auth.canAddTag(x.tag)) {
-              // Suggest the whole tag, which fills the following inputs
-              const rest = x.tag.split('/').slice(part.depth).join('/');
-              const spread = spreadInputTag(parts, values, index, rest);
-              if (spread && (spread.overflow === undefined || this.hasChildren())) {
-                result.push({ value: rest, label: x.name || rest, tag: x.tag });
-              }
-            }
-            return result;
-          })),
-          catchError(() => of([])),
-        );
+        });
       }),
-      takeUntilDestroyed(),
-    ).subscribe(xs => {
-      this.suggestedTags = new Map();
-      for (const x of xs) this.suggestedTags.set(x.value, [...this.suggestedTags.get(x.value) || [], x.tag]);
-      this.autocomplete.set(uniqBy(xs, 'value').map(({ value, label }) => ({ value, label })));
-    });
-    this.destroyRef.onDestroy(() => this.search$.complete());
-  }
+      map(page => page.content.flatMap(x => {
+        const part = parts[index];
+        const suggestion = inputTagSuggestion(parts, values, index, x.tag);
+        if (!suggestion) return [];
+        const depth = part.depth + suggestion.split('/').length;
+        if (!this.auth.canAddTag(x.tag.split('/').slice(0, depth).join('/'))) return [];
+        const own = x.tag.split('/').length === depth;
+        if (!part.rest && !own && this.auth.canAddTag(x.tag)) {
+          // Suggest the whole tag when it fills the following inputs
+          const rest = x.tag.split('/').slice(part.depth).join('/');
+          const spread = spreadInputTag(parts, values, index, rest);
+          if (spread && spread.overflow === undefined) return [{ value: rest, label: x.name || rest, tag: x.tag }];
+        }
+        return [{ value: suggestion, label: own && x.name || suggestion, tag: x.tag }];
+      })),
+      catchError(() => of([])),
+    ),
+  });
+
+  readonly autocomplete = computed(() => uniqBy(this.suggestions.hasValue() ? this.suggestions.value() : [], 'value')
+    .map(({ value, label }) => ({ value, label })));
+
+  /**
+   * The tags each autocomplete value was suggested by.
+   */
+  private readonly suggestedTags = computed(() => {
+    const tags = new Map<string, string[]>();
+    for (const x of this.suggestions.hasValue() ? this.suggestions.value() : []) tags.set(x.value, [...tags.get(x.value) || [], x.tag]);
+    return tags;
+  });
+
+  // Sync the validation message of each input
+  private readonly validity = afterRenderEffect(() => {
+    const values = this.values();
+    for (const input of this.el.nativeElement.querySelectorAll<HTMLInputElement>('input.tag-input[data-part]')) {
+      const index = Number(input.dataset['part']);
+      input.setCustomValidity(this.invalidMessage(index, values[index] || ''));
+    }
+  });
+
+  private readonly initializeView = afterNextRender(() => {
+    // An optional field keeps its value until it is edited
+    if (this.props.required) this.updateControl();
+  });
 
   edit(index: number, input: HTMLInputElement) {
     this.editing.set(index);
@@ -350,41 +318,30 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
     input.reportValidity();
   }
 
-  search(index: number) {
-    this.autocomplete.set([]);
-    this.search$.next(index);
-  }
-
   /**
-   * Typing a `/` fills the following inputs and moves to the last one filled.
+   * Typing or pasting only changes this input. Picking from the autocomplete
+   * also fills the inputs around it.
    */
   type(index: number, input: HTMLInputElement, event?: Event) {
-    const typed = event instanceof InputEvent && event.inputType !== 'insertReplacementText' && event.inputType !== 'insertFromPaste';
-    if (typed && input.value.includes('/') && this.spreads(index, input.value)) {
-      // Keep typing in this input until it is committed
-      this.spread.set({ index, text: input.value });
-      this.search(index);
-      return;
+    if (event instanceof InputEvent && event.inputType !== 'insertReplacementText') {
+      this.setValue(index, input.value);
+    } else {
+      this.fillBefore(index, input.value);
+      this.commit(index, input);
     }
-    this.spread.set(null);
-    if (!typed) this.fillBefore(index, input.value);
-    if (this.fill(index, input.value)) input.value = this.values()[index];
   }
 
   /**
-   * Fill the following inputs with the text typed with slashes into an input.
+   * Spread the text typed with slashes over the following inputs.
    */
   commit(index: number, input: HTMLInputElement) {
-    const spread = this.spread();
-    if (spread?.index !== index) return;
-    this.spread.set(null);
-    this.fill(index, spread.text);
+    const spread = spreadInputTag(this.parts(), this.values(), index, input.value);
+    if (spread && spread.overflow === undefined) {
+      this.setValues(spread.values, spread.last);
+    } else {
+      this.setValue(index, input.value);
+    }
     input.value = this.values()[index];
-  }
-
-  private spreads(index: number, value: string) {
-    const spread = spreadInputTag(this.parts(), this.values(), index, value);
-    return !!spread && (spread.overflow === undefined ? spread.last > index : this.hasChildren());
   }
 
   /**
@@ -392,48 +349,16 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
    * the value picked from the autocomplete, when they all agree.
    */
   private fillBefore(index: number, value: string) {
-    const tags = this.suggestedTags.get(value);
+    const tags = this.suggestedTags().get(value);
     if (!tags?.length) return;
     const parts = this.parts();
     const candidates = tags.map(t => inputTagValues(parts, t));
-    const values = this.values().map((v, i) => {
+    this.setValues(this.values().map((v, i) => {
       if (i >= index || v || parts[i].options) return v;
       const filled = uniq(candidates.map(c => c[i]));
       return filled.length === 1 ? filled[0] : v;
-    });
-    if (values.some((v, i) => v !== this.values()[i])) this.values.set(values);
+    }), index);
   }
-
-  /**
-   * Set the value typed into the placeholder at an index, spreading it over the
-   * following inputs and child fields. Returns true if it was spread.
-   */
-  private fill(index: number, value: string) {
-    const spread = spreadInputTag(this.parts(), this.values(), index, value);
-    if (!spread || spread.overflow !== undefined && !this.hasChildren()) {
-      this.setValue(index, value);
-      this.search(index);
-      return false;
-    }
-    this.values.set(spread.values);
-    if (spread.overflow === undefined) {
-      this.updateControl();
-    } else {
-      this.formState.stencilOverflow = { parentKey: this.key, value: spread.overflow };
-      this.updateControl(true);
-    }
-    this.search(index);
-    return true;
-  }
-
-  /**
-   * Fill out the extra segments typed into the parent field.
-   */
-  private takeOverflow(value: string) {
-    const index = this.parts().findIndex((p, i) => this.visible()[i] && !p.options);
-    if (index >= 0) this.fill(index, value);
-  }
-
 
   /**
    * Why the value typed into the placeholder at an index is invalid, or an empty string.
@@ -441,21 +366,35 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   invalidMessage(index: number, value: string) {
     const part = this.parts()[index];
     if (!value || validInputTagValue(value, part)) return '';
-    if (value.includes('/') && !part.rest) return $localize`Does not fit the tag ${this.filledTemplate() || this.template()}`;
+    if (value.includes('/') && !part.rest) {
+      // Fills the following inputs once committed
+      const spread = spreadInputTag(this.parts(), this.values(), index, value);
+      return spread && spread.overflow === undefined ? '' : $localize`Does not fit the tag ${this.template()}`;
+    }
     if (part.rest) return $localize`Must be lower case letters, numbers, periods and forward slashes.`;
     return $localize`Must be lower case letters, numbers and periods.`;
   }
 
   setValue(index: number, value: string) {
-    this.values.update(values => values.map((v, i) => i === index ? value : v));
+    this.setValues(this.values().map((v, i) => i === index ? value : v), index);
+  }
+
+  /**
+   * Set the values changed up to an index. A hierarchical field clears the inputs after it.
+   */
+  private setValues(values: string[], last: number) {
+    if (isEqual(values, this.values())) return;
+    this.values.set(this.hierarchical() ? values.map((v, i) => i > last && !this.parts()[i].options ? '' : v) : values);
     this.updateControl();
   }
 
-  private updateControl(emit = false) {
-    const blank = !this.props.required && this.parts().every((p, i) => p.options || !this.values()[i]);
-    const tag = (blank ? null : this.parentTemplate()
-      ? this.filledTemplate() && resolveInputTag(this.parts(), this.values())
-      : partialInputTag(this.parts(), this.values())) || null;
-    if (emit || tag !== this.formControl.value) this.formControl.setValue(tag);
+  private updateControl() {
+    const parts = this.parts();
+    const values = this.values();
+    const blank = !this.props.required && parts.every((p, i) => p.options || !values[i]);
+    const value = blank ? null
+      : this.hierarchical() ? inputTagLineTags(parts, values)
+      : partialInputTag(parts, values) || null;
+    if (!isEqual(value, this.formControl.value)) this.formControl.setValue(value);
   }
 }

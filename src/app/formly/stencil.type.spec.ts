@@ -42,6 +42,7 @@ describe('FormlyFieldStencil', () => {
       tag,
       name: tag.endsWith('plugin/secret') ? 'Secrets' : tag === 'car' ? 'Cars' : undefined,
     }))));
+    vi.spyOn(TestBed.inject(ExtService), 'page').mockReturnValue(of({ content: [], page: { number: 0, size: 50, totalElements: 0, totalPages: 0 } } as any));
     vi.spyOn(TestBed.inject(ExtService), 'getCachedExt').mockImplementation(tag => of(tag === 'car/2020' ?
       { tag, name: '2020 Cars', modified: {} } as any :
       { tag }));
@@ -88,6 +89,18 @@ describe('FormlyFieldStencil', () => {
     await fixture.whenStable();
     expect(inputs().map(i => i.value)).toEqual(['2020', 'honda', 'civic']);
     expect(field.formControl.value).toBe('car/2020/honda/civic');
+  });
+
+  it('keeps pasted text in its input until leaving it', async () => {
+    const { fixture, el } = await render('car/<Year>/<Make>');
+    const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
+    inputs()[0].value = '2020/toyota';
+    inputs()[0].dispatchEvent(new InputEvent('input', { inputType: 'insertFromPaste' }));
+    await fixture.whenStable();
+    expect(inputs().map(i => i.value)).toEqual(['2020/toyota', '']);
+    inputs()[0].dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+    expect(inputs().map(i => i.value)).toEqual(['2020', 'toyota']);
   });
 
   it('explains why an input is invalid', async () => {
@@ -139,54 +152,38 @@ describe('FormlyFieldStencil', () => {
     expect(preview.style.display).toBe('none');
   });
 
-  it('keeps one label per field in the form-field wrapper', async () => {
-    const fixture = TestBed.createComponent(Host);
-    fixture.componentInstance.fields = [{ key: 'make', type: 'stencil', props: { label: 'Make:', template: 'car/<Make>', hierarchical: true } }];
-    await fixture.whenStable();
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelectorAll('label').length).toBe(1);
-    expect(el.querySelector('label')!.textContent!.trim()).toBe('Make:');
-    expect(el.querySelector('.hierarchical-tag-label')).toBeNull();
-  });
-
   it('fills out hierarchical tags top down', async () => {
     const fixture = TestBed.createComponent(Host);
-    fixture.componentInstance.fields = [
-      { key: 'make', type: 'stencil', wrappers: [], props: { template: 'car/<Make>', required: true, hierarchical: true } },
-      { key: 'model', type: 'stencil', wrappers: [], props: { template: 'car/<Make>/<Model>', required: true, hierarchical: true, parentKey: 'make', parentTemplate: 'car/<Make>' } },
-    ];
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'stencil', wrappers: [], props: { template: 'car/<Make>/<Model>', required: true, hierarchical: true } }];
     await fixture.whenStable();
     const el: HTMLElement = fixture.nativeElement;
-    const [make, model] = fixture.debugElement.queryAll(By.directive(FormlyFieldStencil)).map(d => d.componentInstance as FormlyFieldStencil);
+    const field = fixture.debugElement.query(By.directive(FormlyFieldStencil)).componentInstance as FormlyFieldStencil;
     const labels = () => [...el.querySelectorAll('.hierarchical-tag-label')].map(l => l.textContent!.trim());
     const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
     expect(labels()).toEqual(['Cars Make:', 'Cars Model:']);
     expect(el.querySelector('.tag-preview')).toBeNull();
     expect(inputs().map(i => i.disabled)).toEqual([false, true]);
-    expect(fixture.componentInstance.form.value).toEqual({ make: 'car', model: null });
+    expect(fixture.componentInstance.form.value).toEqual({ tag: ['car', ''] });
 
-    make.setValue(1, 'toyota');
+    field.setValue(1, 'toyota');
     await fixture.whenStable();
     expect(inputs().map(i => i.disabled)).toEqual([false, false]);
-    expect(fixture.componentInstance.form.value).toEqual({ make: 'car/toyota', model: null });
-    model.setValue(1, 'prius');
-    expect(fixture.componentInstance.form.value).toEqual({ make: 'car/toyota', model: 'car/toyota/prius' });
+    expect(fixture.componentInstance.form.value).toEqual({ tag: ['car/toyota', ''] });
+    expect(fixture.componentInstance.form.valid).toBe(false);
+    field.setValue(2, 'prius');
+    expect(fixture.componentInstance.form.value).toEqual({ tag: ['car/toyota', 'car/toyota/prius'] });
     expect(fixture.componentInstance.form.valid).toBe(true);
 
-    make.setValue(1, 'honda');
+    field.setValue(1, 'honda');
     await fixture.whenStable();
-    expect(fixture.componentInstance.form.value).toEqual({ make: 'car/honda', model: null });
+    expect(fixture.componentInstance.form.value).toEqual({ tag: ['car/honda', ''] });
     expect(inputs()[1].value).toBe('');
     expect(fixture.componentInstance.form.valid).toBe(false);
   });
 
-  it('fills the following hierarchical fields when typing a slash', async () => {
+  it('fills the following hierarchical lines after typing a slash when leaving the input', async () => {
     const fixture = TestBed.createComponent(Host);
-    fixture.componentInstance.fields = [
-      { key: 'year', type: 'stencil', wrappers: [], props: { template: 'car/<Year>', required: true, hierarchical: true } },
-      { key: 'make', type: 'stencil', wrappers: [], props: { template: 'car/<Year>/<Make>', required: true, hierarchical: true, parentKey: 'year', parentTemplate: 'car/<Year>' } },
-      { key: 'model', type: 'stencil', wrappers: [], props: { template: 'car/<Year>/<Make>/<Model>', required: true, hierarchical: true, parentKey: 'make', parentTemplate: 'car/<Year>/<Make>' } },
-    ];
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'stencil', wrappers: [], props: { template: 'car/<Year>/<Make>/<Model>', required: true, hierarchical: true } }];
     await fixture.whenStable();
     const el: HTMLElement = fixture.nativeElement;
     const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
@@ -196,12 +193,12 @@ describe('FormlyFieldStencil', () => {
     expect(inputs().map(i => i.value)).toEqual(['2020/toyota/', '', '']);
     inputs()[0].dispatchEvent(new Event('blur'));
     await fixture.whenStable();
-    expect(fixture.componentInstance.form.value).toEqual({ year: 'car/2020', make: 'car/2020/toyota', model: null });
+    expect(fixture.componentInstance.form.value).toEqual({ tag: ['car/2020', 'car/2020/toyota', ''] });
     expect(inputs().map(i => i.value)).toEqual(['2020', 'toyota', '']);
     inputs()[2].value = 'corolla/le';
     inputs()[2].dispatchEvent(new InputEvent('input', { inputType: 'insertText' }));
     await fixture.whenStable();
-    expect(fixture.componentInstance.form.value).toEqual({ year: 'car/2020', make: 'car/2020/toyota', model: 'car/2020/toyota/corolla/le' });
+    expect(fixture.componentInstance.form.value).toEqual({ tag: ['car/2020', 'car/2020/toyota', 'car/2020/toyota/corolla/le'] });
     expect(fixture.componentInstance.form.valid).toBe(true);
   });
 
@@ -279,8 +276,9 @@ describe('FormlyFieldStencil', () => {
     } as any));
     const { field } = await render('car/<Year>/<Make>');
     vi.useFakeTimers();
-    field.search(2);
-    vi.advanceTimersByTime(300);
+    field.editing.set(2);
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
     expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: 'car' }));
     expect(field.autocomplete()).toEqual([{ value: 'toyota', label: 'Toyota' }, { value: 'honda/civic', label: 'Civic' }]);
     vi.useRealTimers();
@@ -293,8 +291,9 @@ describe('FormlyFieldStencil', () => {
     } as any));
     const { fixture, field, el } = await render('kanban/<Board1>/<Board2>');
     vi.useFakeTimers();
-    field.search(1);
-    vi.advanceTimersByTime(300);
+    field.editing.set(1);
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
     vi.useRealTimers();
     expect(field.autocomplete()).toEqual([{ value: 'jasper', label: 'Jasper' }, { value: 'jasper/bugs', label: 'Bugs' }]);
     const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
@@ -314,8 +313,9 @@ describe('FormlyFieldStencil', () => {
     } as any));
     const { fixture, field, el } = await render('kanban/<Board1>/<Board2>');
     vi.useFakeTimers();
-    field.search(2);
-    vi.advanceTimersByTime(300);
+    field.editing.set(2);
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
     vi.useRealTimers();
     expect(field.autocomplete()).toEqual([{ value: 'bugs', label: 'Bugs' }, { value: 'todo', label: 'todo' }]);
     const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
@@ -338,13 +338,15 @@ describe('FormlyFieldStencil', () => {
     } as any));
     const { field } = await render('kanban/<Board>');
     vi.useFakeTimers();
-    field.search(1);
-    vi.advanceTimersByTime(300);
+    field.editing.set(1);
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
     expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: 'kanban' }));
     expect(field.autocomplete()).toEqual([{ value: 'jasper', label: 'Jasper' }, { value: 'jasper/bugs', label: 'Bugs' }]);
     field.setValue(1, 'jasper/b');
-    field.search(1);
-    vi.advanceTimersByTime(300);
+    field.editing.set(1);
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
     expect(page).toHaveBeenLastCalledWith(expect.objectContaining({ query: 'kanban/jasper', search: 'b' }));
     vi.useRealTimers();
   });
@@ -357,8 +359,9 @@ describe('FormlyFieldStencil', () => {
     } as any));
     const { field } = await render('car/<Year>');
     vi.useFakeTimers();
-    field.search(1);
-    vi.advanceTimersByTime(300);
+    field.editing.set(1);
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(300);
     expect(field.autocomplete()).toEqual([{ value: '2020', label: '2020' }]);
     vi.useRealTimers();
   });

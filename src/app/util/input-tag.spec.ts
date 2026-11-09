@@ -1,11 +1,10 @@
 /// <reference types="vitest/globals" />
 import {
-  expandHierarchicalTags,
   filterInputTag,
-  hierarchicalTagAdds,
-  hierarchicalTagParents,
-  hierarchicalTagTemplate,
+  hierarchicalTagTemplates,
   inputTagDefaults,
+  inputTagLines,
+  inputTagLineTags,
   inputTagQuery,
   inputTagSuggestion,
   inputTagValues,
@@ -122,32 +121,19 @@ describe('partial inputTag', () => {
 });
 
 describe('hierarchicalTag', () => {
-  it('finds the parent of each template', () => {
-    expect(hierarchicalTagParents(['car/<Make>', 'car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>'])).toEqual([-1, 0, 1]);
-    expect(hierarchicalTagParents(['<Make>/<Model>', '<Make>'])).toEqual([1, -1]);
-    expect(hierarchicalTagParents(['car/<Make>', 'color/<Color>'])).toEqual([-1, -1]);
-    expect(hierarchicalTagParents(['car/<Make>', 'car/<Brand>/<Model>'])).toEqual([-1, 0]);
+  it('shows each hierarchicalTag template as the lines of the longest one', () => {
+    expect(hierarchicalTagTemplates(['car/<Make>', 'car/<Make>/<Model>'])).toEqual([{ template: 'car/<Make>/<Model>', adds: [true, true] }]);
+    expect(hierarchicalTagTemplates(['car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>'])).toEqual([{ template: 'car/<Make>/<Model>/<Trim>', adds: [false, true, true] }]);
+    expect(hierarchicalTagTemplates(['car/<Make>', 'car/<Brand>/<Model>'])).toEqual([{ template: 'car/<Brand>/<Model>', adds: [true, true] }]);
+    expect(hierarchicalTagTemplates(['car/<Make>', 'color/<Color>'])).toEqual([{ template: 'car/<Make>', adds: [true] }, { template: 'color/<Color>', adds: [true] }]);
+    expect(hierarchicalTagTemplates(['car/year/<Year>/make/<Make>'])).toEqual([{ template: 'car/year/<Year>/make/<Make>', adds: [false, true] }]);
   });
 
-  it('adds a line for every level', () => {
-    expect(expandHierarchicalTags(['car/<Make>', 'car/<Make>/<Model>'])).toEqual(['car/<Make>', 'car/<Make>/<Model>']);
-    expect(expandHierarchicalTags(['car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>'])).toEqual(['car/<Make>', 'car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>']);
-    expect(expandHierarchicalTags(['car/<Make>', 'car/<Brand>/<Model>'])).toEqual(['car/<Make>', 'car/<Brand>/<Model>']);
-    expect(expandHierarchicalTags(['car/year/<Year>/make/<Make>'])).toEqual(['car/year/<Year>', 'car/year/<Year>/make/<Make>']);
-    expect(expandHierarchicalTags(['<Make>/<Model>'])).toEqual(['<Make>', '<Make>/<Model>']);
-  });
-
-  it('only adds the tags of the given templates', () => {
-    expect(hierarchicalTagAdds(['car/<Make>', 'car/<Make>/<Model>'], ['car/<Make>/<Model>'])).toEqual([false, true]);
-    expect(hierarchicalTagAdds(['car/<Make>', 'car/<Brand>/<Model>'], ['car/<Brand>/<Model>', 'car/<Brand>'])).toEqual([true, true]);
-  });
-
-  it('fills in the parent tag once it is filled out', () => {
-    expect(hierarchicalTagTemplate('car/<Make>')).toBe('car/<Make>');
-    expect(hierarchicalTagTemplate('car/<Make>/<Model>', 'car/<Make>', 'car/toyota')).toBe('car/toyota/<Model>');
-    expect(hierarchicalTagTemplate('car/<Make>/<Model>', 'car/<Make>', 'car')).toBe('');
-    expect(hierarchicalTagTemplate('car/<Make>/<Model>', 'car/<Make>', null)).toBe('');
-    expect(hierarchicalTagTemplate('<Make>/<Model>', '<Make>', 'toyota')).toBe('toyota/<Model>');
+  it('has a line for every placeholder', () => {
+    const parts = parseInputTag('car/year/<Year>/make/<Make>/new');
+    expect(inputTagLines(parts)).toEqual([1, 4]);
+    expect(inputTagLineTags(parts, ['car/year', '', 'make', '', 'new'])).toEqual(['car/year', '']);
+    expect(inputTagLineTags(parts, ['car/year', '2020', 'make', 'toyota', 'new'])).toEqual(['car/year/2020', 'car/year/2020/make/toyota/new']);
   });
 });
 

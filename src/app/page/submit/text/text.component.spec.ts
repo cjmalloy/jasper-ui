@@ -79,7 +79,7 @@ describe('SubmitTextPage', () => {
     const create = vi.spyOn(TestBed.inject(RefService), 'create');
     vi.spyOn(window, 'scroll').mockImplementation(() => {});
     component.store.submit.route.routeSnapshot.set({ queryParams: { hierarchicalTag: ['car/<Make>', 'car/<Make>/<Model>'] } } as any);
-    expect(component.inputTagForm().fields.map(f => f.props?.parentKey)).toEqual([undefined, 'tag0']);
+    expect(component.inputTagForm().templates).toEqual(['car/<Make>/<Model>']);
     component.title.setValue('Car');
     component.setInputTags(['car/toyota', '']);
     component.submit();
@@ -91,8 +91,8 @@ describe('SubmitTextPage', () => {
 
   it('shows one input per hierarchicalTag line', () => {
     component.store.submit.route.routeSnapshot.set({ queryParams: { hierarchicalTag: ['car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>'] } } as any);
-    expect(component.inputTagForm().templates).toEqual(['car/<Make>', 'car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>']);
-    expect(component.inputTagForm().fields.map(f => f.props?.parentKey)).toEqual([undefined, 'tag0', 'tag1']);
+    expect(component.inputTagForm().templates).toEqual(['car/<Make>/<Model>/<Trim>']);
+    expect(component.inputTagForm().adds).toEqual([[false, true, true]]);
   });
 
   it('only adds a tag for each hierarchicalTag given', () => {

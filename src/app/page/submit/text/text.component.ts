@@ -58,11 +58,9 @@ import { controlState, controlValue, scrollToFirstInvalid } from '../../../util/
 import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import {
-  expandHierarchicalTags,
   filterInputTag,
-  hierarchicalTagAdds,
-  hierarchicalTagParents,
-  hierarchicalTagTemplate,
+  hierarchicalTagTemplates,
+  inputTagLineTags,
   inputTagValues,
   matchesInputTag,
   parseInputTag,
@@ -143,19 +141,20 @@ export class SubmitTextPage implements HasChanges {
   private readonly tagsValue = controlValue<string[]>(() => this.tags);
   readonly inputTagForm = computed(() => {
     const inputTags = this.store.submit.inputTags();
-    const hierarchicalTags = expandHierarchicalTags(this.store.submit.hierarchicalTags());
-    const adds = [...inputTags.map(() => true), ...hierarchicalTagAdds(hierarchicalTags, this.store.submit.hierarchicalTags())];
-    const templates = [...inputTags, ...hierarchicalTags];
+    const hierarchicalTags = hierarchicalTagTemplates(this.store.submit.hierarchicalTags());
+    const templates = [...inputTags, ...hierarchicalTags.map(h => h.template)];
     const keys = templates.map((_, i) => 'tag' + i);
-    const parents = [...inputTags.map(() => -1), ...hierarchicalTagParents(hierarchicalTags).map(p => p < 0 ? p : p + inputTags.length)];
+    const adds = [...inputTags.map(() => [true]), ...hierarchicalTags.map(h => h.adds)];
     const parts = templates.map(t => filterInputTag(parseInputTag(t), tag => this.auth.canAddTag(tag)));
     return {
       keys,
       templates,
-      parents,
+      parts,
       adds,
       form: new FormGroup({}),
-      model: Object.fromEntries(keys.map((k, i) => [k, parents[i] < 0 && partialInputTag(parts[i], inputTagValues(parts[i])) || null])) as Record<string, string | null>,
+      model: Object.fromEntries(keys.map((k, i) => [k, i < inputTags.length
+        ? partialInputTag(parts[i], inputTagValues(parts[i])) || null
+        : inputTagLineTags(parts[i], inputTagValues(parts[i]))])) as Record<string, string | string[] | null>,
       fields: templates.map((template, i): FormlyFieldConfig => i < inputTags.length ? {
         key: keys[i],
         type: 'stencil',
@@ -164,29 +163,29 @@ export class SubmitTextPage implements HasChanges {
         key: keys[i],
         type: 'stencil',
         wrappers: [],
-        props: {
-          template,
-          required: true,
-          hierarchical: true,
-          parentKey: parents[i] < 0 ? undefined : keys[parents[i]],
-          parentTemplate: parents[i] < 0 ? undefined : templates[parents[i]],
-        },
+        props: { template, required: true, hierarchical: true },
       }),
     };
   });
   /**
-   * Tags from the inputTag query param. Until they are filled out these are their known prefix.
+   * Tags from the inputTag query param, and from each line of the hierarchicalTag query param.
+   * Until they are filled out these are their known prefix.
    */
-  readonly inputTags = linkedSignal(() => {
-    const { keys, model } = this.inputTagForm();
-    return keys.map(k => model[k] || '');
-  });
+  readonly inputTags = linkedSignal(() => this.flatInputTags(this.inputTagForm().model));
   /**
    * The inputTags added to the Ref. Lines for hierarchicalTag levels that were not given are left out.
    */
   private addedInputTags(value = this.inputTags()) {
-    const { adds } = this.inputTagForm();
+    const adds = this.inputTagForm().adds.flat();
     return value.filter((t, i) => t && adds[i]);
+  }
+
+  private flatInputTags(model: Record<string, string | string[] | null>) {
+    const { keys, adds } = this.inputTagForm();
+    return keys.flatMap((k, i) => {
+      const value = model[k];
+      return adds[i].map((_, l) => (Array.isArray(value) ? value[l] : value) || '');
+    });
   }
 
   constructor() {
@@ -466,8 +465,8 @@ export class SubmitTextPage implements HasChanges {
     fillTags(this.fb, this.tags, notPublicSecret(value));
   }
 
-  setInputTagModel(model: Record<string, string | null>) {
-    this.setInputTags(this.inputTagForm().keys.map(k => model[k] || ''));
+  setInputTagModel(model: Record<string, string | string[] | null>) {
+    this.setInputTags(this.flatInputTags(model));
   }
 
   setInputTags(value: string[]) {
@@ -553,11 +552,8 @@ export class SubmitTextPage implements HasChanges {
     this.syncEditor();
     const inputTags = this.inputTagForm();
     const filled = this.inputTags();
-    if (inputTags.templates.some((t, i) => {
-      const parent = inputTags.parents[i];
-      const template = parent < 0 ? t : hierarchicalTagTemplate(t, inputTags.templates[parent], filled[parent]);
-      return !template || !matchesInputTag(filterInputTag(parseInputTag(template), tag => this.auth.canAddTag(tag)), filled[i]);
-    })) {
+    const ends = inputTags.adds.map((_, i) => inputTags.adds.slice(0, i + 1).flat().length - 1);
+    if (inputTags.parts.some((parts, i) => !matchesInputTag(parts, filled[ends[i]]))) {
       inputTags.form.markAllAsTouched();
       const invalid = document.querySelector<HTMLInputElement>('.stencil input.tag-input:invalid');
       if (invalid) {
