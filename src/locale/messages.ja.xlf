@@ -8602,6 +8602,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>One labelled line per placeholder, filled out top down. The value is the tag up to each line.</source>
         <target>プレースホルダーごとにラベル付きの行があり、上から順に入力します。値は各行までのタグです。</target>
       </trans-unit>
+      <trans-unit id="3568790342632384571" datatype="html">
+        <source>Installing default mods...</source>
+        <target>デフォルトのModをインストールしています...</target>
+      </trans-unit>
+      <trans-unit id="6971496217366946567" datatype="html">
+        <source>📦️ Install Defaults</source>
+        <target>📦️ デフォルトをインストール</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

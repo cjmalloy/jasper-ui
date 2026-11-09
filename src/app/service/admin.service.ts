@@ -322,9 +322,23 @@ export class AdminService {
     this.firstRun = true;
     if (!this.config.installDefaults) return of(null);
     if (!this.store.account.admin || this.store.account.ext()) return of(null);
-    if (Object.values(this.status().plugins).filter(p => !!p).length > 0) return of(null);
-    if (Object.values(this.status().templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return of(null);
+    if (!this.noMods()) return of(null);
+    return this.installDefaults$();
+  }
 
+  /**
+   * True when no mods are installed (ignoring _config templates).
+   */
+  noMods() {
+    if (Object.values(this.status().plugins).filter(p => !!p).length > 0) return false;
+    if (Object.values(this.status().templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return false;
+    return true;
+  }
+
+  /**
+   * Install the default mods, then reload.
+   */
+  installDefaults$(): Observable<any> {
     const installs = this.defaultPlugins.map(p => this.plugins.create({
       ...p,
       origin: this.store.account.origin(),

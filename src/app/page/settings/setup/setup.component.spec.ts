@@ -41,6 +41,8 @@ describe('SettingsSetupPage', () => {
                 getMod() { },
                 getInstalledMod() { },
                 updateMod$: vi.fn(() => of(null)),
+                noMods: vi.fn(() => false),
+                installDefaults$: vi.fn(() => of(null)),
                 def: { plugins: {}, templates: {} },
                 status: () => status,
                 themes: () => [],
@@ -117,6 +119,40 @@ describe('SettingsSetupPage', () => {
       expect(clear).toHaveBeenCalled();
       expect(admin.loadModChanges$).toHaveBeenCalledTimes(1);
       expect(component.modChangesLoaded()).toBe(true);
+    });
+  });
+
+  describe('installDefaults', () => {
+    const el = () => fixture.nativeElement as HTMLElement;
+
+    function recreate() {
+      fixture.destroy();
+      fixture = TestBed.createComponent(SettingsSetupPage);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    }
+
+    it('should hide the button when mods are installed', () => {
+      TestBed.inject(Store).account.admin = true;
+      recreate();
+      expect(el().querySelector('.install-defaults')).toBeNull();
+    });
+
+    it('should hide the button for non-admins', () => {
+      admin.noMods.mockReturnValue(true);
+      recreate();
+      expect(el().querySelector('.install-defaults')).toBeNull();
+    });
+
+    it('should install defaults when no mods are installed', () => {
+      TestBed.inject(Store).account.admin = true;
+      admin.noMods.mockReturnValue(true);
+      recreate();
+      const reload = vi.spyOn(component, 'reset');
+      (el().querySelector('.install-defaults') as HTMLElement).click();
+      expect(admin.installDefaults$).toHaveBeenCalledTimes(1);
+      expect(reload).toHaveBeenCalled();
+      expect(component.installMessages()).toContain('Success.');
     });
   });
 

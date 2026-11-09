@@ -91,6 +91,25 @@ describe('AdminService', () => {
     expect(calls.indexOf('defaults')).toBe(calls.length - 1);
   });
 
+  it('should only report no mods when nothing but _config templates are installed', () => {
+    expect(service.noMods()).toBe(true);
+    (service as any).updateStatus((status: any) => status.templates['_config/server'] = { tag: '_config/server' });
+    expect(service.noMods()).toBe(true);
+    (service as any).updateStatus((status: any) => status.plugins['plugin/test'] = { tag: 'plugin/test' });
+    expect(service.noMods()).toBe(false);
+  });
+
+  it('should install default mods on demand after the first run', () => {
+    TestBed.inject(ConfigService).installDefaults = false;
+    TestBed.inject(Store).account.admin = true;
+    service.firstRun$.subscribe();
+    const create = vi.spyOn(TestBed.inject(PluginService), 'create').mockReturnValue(of(null as any));
+    vi.spyOn(TestBed.inject(TemplateService), 'create').mockReturnValue(of(null as any));
+    vi.spyOn(service, 'init$', 'get').mockReturnValue(of(null));
+    service.installDefaults$().subscribe();
+    expect(create).toHaveBeenCalledTimes(service.defaultPlugins.length);
+  });
+
   it('should only list PDF embeds that will embed', () => {
     (service as any).updateStatus((status: any) => {
       status.plugins['plugin/pdf'] = { tag: 'plugin/pdf', config: { embeddable: true, proxy: false } };

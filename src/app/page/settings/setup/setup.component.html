@@ -12,6 +12,11 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons right floating top">
+      @if (installingDefaults()) {
+        <app-loading class="install-defaults-loading" [inline]="true" title="Installing default mods..." i18n-title />
+      } @else if (noMods()) {
+        <button type="button" class="install-defaults" (click)="installDefaults()" i18n>📦️ Install Defaults</button>
+      }
       @if (!modChangesLoaded() && !modChangesError().length) {
         <app-loading class="mod-changes-loading" [inline]="true" title="Checking mods for local changes..." i18n-title />
       } @else if (modChangesLoaded() && store.view.modUpdates().size) {
