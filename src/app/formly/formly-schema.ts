@@ -2,7 +2,7 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
 import { Schema } from 'jtd';
 import { cloneDeep, defaultsDeep, isObject, isPlainObject } from 'lodash-es';
-import { geoFeaturesSchema } from '../mods/map';
+import { mapMod } from '../mods/map';
 import { geoStyleSchema } from '../util/geo-style';
 
 type ObjectSchema = { properties?: Record<string, Schema>, optionalProperties?: Record<string, Schema> };
@@ -88,11 +88,19 @@ function valueSchema(config: FormlyConfig, field: FormlyFieldConfig): Schema {
   if (chain.includes('stencil') && props.hierarchical) return { elements: { type: 'string' } };
   if (chain.includes('duration')) return { type: 'string' };
   if (chain.includes('geo-style')) return cloneDeep(geoStyleSchema);
-  if (chain.includes('geometries')) return cloneDeep(geoFeaturesSchema);
+  if (chain.includes('geometries')) return cloneDeep(geoFeaturesSchema());
   // Has no key, so it stores nothing
   if (chain.includes('child-plugin')) return {};
   if (!chain.length) return {};
   return { type: 'string' };
+}
+
+/**
+ * Features of the Geo Features plugin.
+ */
+function geoFeaturesSchema(): Schema {
+  const plugin = mapMod.plugin!.find(p => p.tag === 'plugin/geo/features')!;
+  return (plugin.schema as any).properties.features;
 }
 
 function isRequired(field: FormlyFieldConfig): boolean {
