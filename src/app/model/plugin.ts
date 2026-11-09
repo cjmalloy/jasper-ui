@@ -44,6 +44,11 @@ export interface Plugin extends Config {
      */
     submitText?: boolean,
     /**
+     * Submit with the text page, showing inputs for these tag templates,
+     * such as `+plugin/secret/<Name>`. See the inputTag query param.
+     */
+    inputTags?: string[],
+    /**
      * Nest this plugin within its parent.
      */
     submitChild?: string,

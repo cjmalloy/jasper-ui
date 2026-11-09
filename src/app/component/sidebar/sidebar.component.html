@@ -64,9 +64,9 @@
       <app-chat-video [url]="store.view.ref()?.url || 'tag:/chat'" />
     }
     @if (!dm() && !user() && canAddTag() && !plugin()?.config?.reply && store.account.user && (store.view.type() === 'ref' || store.view.current() === 'ref/summary')) {
-      @if (plugin()?.config?.submitText || rootConfig()?.submitText) {
+      @if (plugin()?.config?.submitText || rootConfig()?.submitText || plugin()?.config?.inputTags?.length) {
         <div class="submit-button" routerLink="/submit/text" tabindex="0"
-             [queryParams]="{ tag: addTags(), location: location() }">
+             [queryParams]="submitTextParams()">
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
         &nbsp;
         &nbsp;

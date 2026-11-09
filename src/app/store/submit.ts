@@ -113,6 +113,16 @@ export class SubmitStore {
       .filter(t => t && !t.includes('*'));
   }, { equal: isEqual });
 
+  /**
+   * Tag templates such as `car/<Year>/<Make>` from the repeatable inputTag
+   * query param. The submit text page shows an input for each placeholder.
+   */
+  readonly inputTags = computed((): string[] => {
+    const tag = this.route.routeSnapshot()?.queryParams['inputTag'];
+    if (!tag) return [];
+    return (isArray(tag) ? tag : [tag]).filter(t => t);
+  }, { equal: isEqual });
+
   readonly plugin = computed(() => {
     return this.route.routeSnapshot()?.queryParams['plugin'] || '' as string;
   });

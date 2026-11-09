@@ -1,0 +1,19 @@
+:host {
+  display: contents;
+}
+
+.input-tag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+
+  .tag-input {
+    flex: 1 1 80px;
+    min-width: 80px;
+  }
+
+  .tag-input:user-invalid, &.submitted .tag-input:invalid {
+    outline: 1px solid var(--error);
+  }
+}

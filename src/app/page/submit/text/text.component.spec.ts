@@ -52,6 +52,25 @@ describe('SubmitTextPage', () => {
     expect(component.completedUploads()).not.toBe(previous);
   });
 
+  it('replaces the tags filled out from inputTag', () => {
+    component.inputTags.set(['']);
+    component.setInputTags(['+plugin/secret/open']);
+    expect(component.tags.value).toContain('+plugin/secret/open');
+    component.setInputTags(['+plugin/secret/openai']);
+    expect(component.tags.value).toContain('+plugin/secret/openai');
+    expect(component.tags.value).not.toContain('+plugin/secret/open');
+    component.setInputTags(['']);
+    expect(component.tags.value).not.toContain('+plugin/secret/openai');
+  });
+
+  it('does not submit until the inputTag inputs are filled out', () => {
+    const create = vi.spyOn(TestBed.inject(RefService), 'create');
+    vi.spyOn(window, 'scroll').mockImplementation(() => {});
+    component.inputTags.set(['']);
+    component.submit();
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it('should initialize a generated url for text posts', () => {
     expect(component.url.value).toMatch(/^comment:/);
   });

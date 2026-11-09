@@ -7,6 +7,7 @@ import {
   forwardRef,
   inject,
   Injector,
+  linkedSignal,
   signal,
   untracked,
   viewChild
@@ -32,6 +33,7 @@ import { SelectPluginComponent } from '../../../component/select-plugin/select-p
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
 import { EditorComponent } from '../../../form/editor/editor.component';
+import { InputTagsComponent } from '../../../form/input-tags/input-tags.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent, setRefForm } from '../../../form/ref/ref.component';
@@ -62,6 +64,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   imports: [
     FakeLinkDirective,
     forwardRef(() => EditorComponent),
+    InputTagsComponent,
     ReactiveFormsModule,
     NavComponent,
     LoadingComponent,
@@ -123,6 +126,10 @@ export class SubmitTextPage implements HasChanges {
   readonly savedRef = signal<Ref | undefined>(undefined);
   private cursor?: string;
   private readonly tagsValue = controlValue<string[]>(() => this.tags);
+  /**
+   * Tags filled out from the inputTag query param, empty until complete.
+   */
+  readonly inputTags = linkedSignal(() => this.store.submit.inputTags().map(() => ''));
 
   constructor() {
     const mod = this.mod;
@@ -216,6 +223,8 @@ export class SubmitTextPage implements HasChanges {
       });
     }
     const allTags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
+    // The editor may start editing before the defaults load, and needs the tags to pick its initial toggles
+    this.addTag(...allTags);
     this.exts.getCachedExts(allTags).pipe(
       map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
       switchMap(xs => {
@@ -395,6 +404,16 @@ export class SubmitTextPage implements HasChanges {
     fillTags(this.fb, this.tags, value);
   }
 
+  setInputTags(value: string[]) {
+    const old = this.inputTags().filter(t => t);
+    this.inputTags.set(value);
+    const added = value.filter(t => t && !old.includes(t));
+    const removed = old.filter(t => !value.includes(t));
+    if (removed.length) fillTags(this.fb, this.tags, without(this.tags.value, ...removed));
+    this.addTag(...added);
+    this.textForm.markAsDirty();
+  }
+
   validate(input: HTMLInputElement) {
     if (this.title.touched) {
       if (this.title.errors?.['required']) {
@@ -462,6 +481,10 @@ export class SubmitTextPage implements HasChanges {
     this.submitted.set(true);
     this.textForm.markAllAsTouched();
     this.syncEditor();
+    if (this.inputTags().some(t => !t)) {
+      window.scroll({ top: 0, behavior: 'smooth' });
+      return;
+    }
     if (!this.textForm.valid) {
       scrollToFirstInvalid();
       return;

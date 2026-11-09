@@ -127,6 +127,16 @@ export class SidebarComponent {
   readonly writeAccess = computed(() => !!this.tag() && this.auth.tagWriteAccess(this.tag()));
   readonly ui = computed(() => this.tag() ? this.admin.getTemplateUi(this.tag()) : []);
   genUrl = 'internal:' + uuid();
+  readonly submitTextParams = computed(() => {
+    const inputTags = this.plugin()?.config?.inputTags;
+    if (!inputTags?.length) return { tag: this.addTags(), location: this.location() };
+    return {
+      tag: this.addTags(),
+      location: this.location(),
+      inputTag: inputTags,
+      url: this.plugin()?.config?.genId ? this.genUrl : undefined,
+    };
+  });
 
   readonly savingBookmark = signal(false);
   readonly savingSub = signal(false);

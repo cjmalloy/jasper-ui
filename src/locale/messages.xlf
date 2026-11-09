@@ -3848,7 +3848,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.html</context>
-          <context context-type="linenumber">97,98</context>
+          <context context-type="linenumber">100,101</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/web/web.component.html</context>
@@ -4837,6 +4837,10 @@ Please Reload.</source>
           <context context-type="linenumber">4,5</context>
         </context-group>
         <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/input-tags/input-tags.component.html</context>
+          <context context-type="linenumber">2,3</context>
+        </context-group>
+        <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/plugin/plugin.component.html</context>
           <context context-type="linenumber">2,3</context>
         </context-group>
@@ -5269,7 +5273,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.html</context>
-          <context context-type="linenumber">18,19</context>
+          <context context-type="linenumber">21,22</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
@@ -5376,7 +5380,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.html</context>
-          <context context-type="linenumber">31,32</context>
+          <context context-type="linenumber">34,35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4877429609561900509" datatype="html">
@@ -5422,7 +5426,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.ts</context>
-          <context context-type="linenumber">401</context>
+          <context context-type="linenumber">420</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7838847050556032477" datatype="html">
@@ -7358,7 +7362,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/secret.ts</context>
-          <context context-type="linenumber">30</context>
+          <context context-type="linenumber">31</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/snippet.ts</context>
@@ -16351,11 +16355,11 @@ Are you sure you want to purge deleted files from storage?</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/secret.ts</context>
-          <context context-type="linenumber">25</context>
+          <context context-type="linenumber">26</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/secret.ts</context>
-          <context context-type="linenumber">27</context>
+          <context context-type="linenumber">28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="455302090321806634" datatype="html">
@@ -16376,21 +16380,21 @@ Are you sure you want to purge deleted files from storage?</source>
         <source>🔑️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/secret.ts</context>
-          <context context-type="linenumber">18</context>
+          <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="853214468188344108" datatype="html">
         <source>Store secrets with opaque protected tags.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/secret.ts</context>
-          <context context-type="linenumber">19</context>
+          <context context-type="linenumber">20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3946466993813355866" datatype="html">
         <source>Pin secrets when submitting them.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/secret.ts</context>
-          <context context-type="linenumber">31</context>
+          <context context-type="linenumber">32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3302998287729753049" datatype="html">
@@ -18402,7 +18406,7 @@ Each response contains the converted Markdown from a specific source format.</so
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.html</context>
-          <context context-type="linenumber">95,96</context>
+          <context context-type="linenumber">98,99</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/web/web.component.html</context>
@@ -18667,56 +18671,56 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Wiki:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.html</context>
-          <context context-type="linenumber">16,17</context>
+          <context context-type="linenumber">19,20</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5943291254557120924" datatype="html">
         <source>Entry:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.html</context>
-          <context context-type="linenumber">50,51</context>
+          <context context-type="linenumber">53,54</context>
         </context-group>
       </trans-unit>
       <trans-unit id="872792317034860453" datatype="html">
         <source>Comment:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.html</context>
-          <context context-type="linenumber">52,53</context>
+          <context context-type="linenumber">55,56</context>
         </context-group>
       </trans-unit>
       <trans-unit id="884170869711278993" datatype="html">
         <source>show advanced</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.html</context>
-          <context context-type="linenumber">70,71</context>
+          <context context-type="linenumber">73,74</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1521541277012557612" datatype="html">
         <source>Will not clear form to all another Ref.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.html</context>
-          <context context-type="linenumber">86,87</context>
+          <context context-type="linenumber">89,90</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6476657073855749920" datatype="html">
         <source>Add another</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.html</context>
-          <context context-type="linenumber">88,89</context>
+          <context context-type="linenumber">91,92</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3522121353164713210" datatype="html">
         <source>Submit: Text Post</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.ts</context>
-          <context context-type="linenumber">133</context>
+          <context context-type="linenumber">140</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3380618911408399328" datatype="html">
         <source>Submit: Wiki</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.ts</context>
-          <context context-type="linenumber">251</context>
+          <context context-type="linenumber">260</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6932865105766151309" datatype="html">

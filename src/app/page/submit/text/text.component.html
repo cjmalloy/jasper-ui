@@ -12,6 +12,9 @@
     </div>
   }
   @if (!advanced()) {
+    <app-input-tags [templates]="store.submit.inputTags()"
+                    [submitted]="submitted()"
+                    (tagsChange)="setInputTags($event)" />
     @if (store.submit.wiki()) {
       <label for="title" i18n>Wiki:</label>
     } @else {
