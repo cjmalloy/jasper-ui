@@ -3966,6 +3966,18 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Add Tags:</source>
         <target>タグを追加:</target>
       </trans-unit>
+      <trans-unit id="4453545636748616964" datatype="html">
+        <source>Stencils:</source>
+        <target>ステンシル:</target>
+      </trans-unit>
+      <trans-unit id="5938337829008576191" datatype="html">
+        <source>+ Add another stencil</source>
+        <target>+ ステンシルを追加</target>
+      </trans-unit>
+      <trans-unit id="8746068517837202171" datatype="html">
+        <source>Submit with an input for each &lt;Placeholder&gt;, such as car/&lt;Make&gt;/&lt;Model&gt;</source>
+        <target>car/&lt;Make&gt;/&lt;Model&gt; のように、&lt;Placeholder&gt; ごとに入力欄を表示して投稿します</target>
+      </trans-unit>
       <trans-unit id="9011317583858638540" datatype="html">
         <source>Stream Updates:</source>
         <target>ストリームアップデート:</target>

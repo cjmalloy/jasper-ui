@@ -129,6 +129,7 @@ export class SidebarComponent {
   readonly writeAccess = computed(() => !!this.tag() && this.auth.tagWriteAccess(this.tag()));
   readonly ui = computed(() => this.tag() ? this.admin.getTemplateUi(this.tag()) : []);
   genUrl = 'internal:' + uuid();
+  readonly submitInputTags = computed(() => this.inputTags(this.plugin()));
   readonly submitTextParams = computed(() => this.textParams(this.plugin(), this.addTags(), this.genUrl));
   /**
    * One submit button per plugin when several plugins are merged into one settings tab.
@@ -142,7 +143,7 @@ export class SidebarComponent {
           .filter(tag => this.auth.canAddTag(tag));
         const genUrl = 'internal:' + uuid();
         const label = p.config?.submit || p.name || p.tag;
-        if (p.config?.submitText || this.rootConfig()?.submitText || p.config?.inputTags?.length) {
+        if (p.config?.submitText || this.rootConfig()?.submitText || this.inputTags(p).length) {
           return { tag: p.tag, label, link: '/submit/text', params: this.textParams(p, addTags, genUrl) };
         }
         if (p.config?.submit && p.config?.genId) {
@@ -152,9 +153,16 @@ export class SidebarComponent {
       });
   });
 
+  /**
+   * Stencils from the plugin and the Ext.
+   */
+  inputTags(plugin: Plugin | undefined) {
+    return uniq([...plugin?.config?.inputTags || [], ...this.rootConfig()?.inputTags || []].filter(t => t));
+  }
+
   private textParams(plugin: Plugin | undefined, addTags: string[], genUrl: string) {
-    const inputTags = plugin?.config?.inputTags;
-    if (!inputTags?.length) return { tag: addTags, location: this.location() };
+    const inputTags = this.inputTags(plugin);
+    if (!inputTags.length) return { tag: addTags, location: this.location() };
     const prefixes = inputTags.flatMap(t => parseInputTag(t)[0].options || []);
     return {
       tag: addTags.filter(t => !prefixes.includes(t)),
