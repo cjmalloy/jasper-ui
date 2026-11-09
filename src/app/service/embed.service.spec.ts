@@ -73,6 +73,26 @@ describe('EmbedService', () => {
     });
   });
 
+  describe('math', () => {
+    it('renders inline math inside parentheses with KaTeX', () => {
+      const html = service.parse('Let ($X_1$) be a variable', true);
+      expect(html).toContain('class="katex"');
+      expect(html).not.toContain('$X_1$');
+    });
+
+    it('preserves inline math inside parentheses without KaTeX', () => {
+      const html = service.parse('Let ($X_1$) be a variable', false);
+      expect(html).not.toContain('class="katex"');
+      expect(html).toContain('($X_1$)');
+    });
+
+    it('preserves math KaTeX does not render from markdown with KaTeX', () => {
+      const html = service.parse('$x *y\nz* w$', true);
+      expect(html).not.toContain('<em>');
+      expect(html).toContain('$x *y\nz* w$');
+    });
+  });
+
   describe('render images', () => {
     function render(markdown: string) {
       vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
