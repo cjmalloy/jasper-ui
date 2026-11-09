@@ -27,16 +27,17 @@ import {
  * The value is the tag once every input is filled out. Until then it is
  * the known prefix, which the `stencil` validator rejects.
  *
- * With `props.hierarchical` the field shows its own label and only the
+ * With `props.hierarchical` the field shows only the
  * inputs below its parent: the sibling field `props.parentKey` with the
  * template `props.parentTemplate`. It is disabled until the parent is
  * filled out, cleared when the parent changes, and empty until filled out.
+ * Without a wrapper it also shows its own label, naming the parent.
  */
 @Component({
   selector: 'formly-field-stencil',
   host: { 'class': 'field stencil-field' },
   template: `
-    @if (hierarchical()) {
+    @if (ownLabel()) {
       <label class="form-label hierarchical-tag-label" [attr.for]="id" [class.required]="props.required">{{ label() }}:</label>
     }
     <div class="stencil" [class.hierarchical-tag]="hierarchical()">
@@ -125,6 +126,10 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   readonly listId = 'stencil-' + uuid();
   readonly template = computed(() => this.props.template as string || '');
   readonly hierarchical = computed(() => !!this.props.hierarchical);
+  /**
+   * A wrapper already shows the label in the first column.
+   */
+  readonly ownLabel = computed(() => this.hierarchical() && !this.field.wrappers?.length);
   readonly parentTemplate = computed(() => this.props.parentTemplate as string | undefined);
   readonly parentTag = signal<string | null>(null);
   /**

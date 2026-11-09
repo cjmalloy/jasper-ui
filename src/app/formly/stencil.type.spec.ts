@@ -79,6 +79,16 @@ describe('FormlyFieldStencil', () => {
     expect(preview.style.display).toBe('none');
   });
 
+  it('keeps one label per field in the form-field wrapper', async () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.fields = [{ key: 'make', type: 'stencil', props: { label: 'Make:', template: 'car/<Make>', hierarchical: true } }];
+    await fixture.whenStable();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelectorAll('label').length).toBe(1);
+    expect(el.querySelector('label')!.textContent!.trim()).toBe('Make:');
+    expect(el.querySelector('.hierarchical-tag-label')).toBeNull();
+  });
+
   it('fills out hierarchical tags top down', async () => {
     const fixture = TestBed.createComponent(Host);
     fixture.componentInstance.fields = [
