@@ -532,6 +532,81 @@ test.describe('Plugin Form Builder', () => {
     await expect(page.locator('.plugin-content').getByLabel('FB Greeting:', { exact: true })).toHaveValue('from defaults');
   });
 
+  test('fields after a child plugin line up in the default values grid', async ({ page, request, origin }) => {
+    const tag = await createPlugin(request, origin, 'child', {
+      config: { form: [
+        { type: 'child-plugin', props: { parent: 'plugin/geo' } },
+        { key: 'after', type: 'string', props: { label: 'FB After:' } },
+        { key: 'style', type: 'geo-style' },
+        { key: 'last', type: 'string', props: { label: 'FB Last:' } },
+      ] },
+    });
+    const { builder } = await openBuilder(page, tag);
+    const defaults = builder.locator('.defaults-form');
+    const select = defaults.locator('.child-plugin-select');
+    await expect(select).toBeVisible();
+    for (const text of ['FB After:', 'FB Last:']) {
+      const label = defaults.locator('label', { hasText: text });
+      const input = defaults.getByLabel(text, { exact: true });
+      const l = (await label.boundingBox())!;
+      const i = (await input.boundingBox())!;
+      expect(l.x + l.width, text).toBeLessThanOrEqual(i.x);
+      expect(Math.abs(l.y + l.height / 2 - (i.y + i.height / 2)), text).toBeLessThan(i.height);
+    }
+    const label = (await defaults.locator('label', { hasText: 'FB After:' }).boundingBox())!;
+    const s = (await select.boundingBox())!;
+    expect(s.x).toBeLessThanOrEqual(label.x);
+  });
+
+  test('shows only the builder options a type uses', async ({ page, request, origin }) => {
+    const tag = await createPlugin(request, origin, 'opts', {
+      config: { form: [
+        { key: 'a', type: 'string' },
+        { key: 'b', type: 'geo-style' },
+        { key: 'c', type: 'range' },
+        { key: 'd', type: 'tags' },
+      ] },
+    });
+    const { builder } = await openBuilder(page, tag);
+    const rows = builder.locator('.builder-form .formly-field-config');
+    const visible = async (i: number) => {
+      const shown = [];
+      for (const name of ['label', 'placeholder', 'hint', 'required', 'min', 'max', 'step', 'multiple']) {
+        if (await rows.nth(i).locator(`.formly-${name}`).count()) shown.push(name);
+      }
+      return shown;
+    };
+    expect(await visible(0)).toEqual(['label', 'placeholder', 'hint', 'required']);
+    expect(await visible(1)).toEqual([]);
+    expect(await visible(2)).toEqual(['label', 'hint', 'required', 'min', 'max', 'step']);
+    expect(await visible(3)).toEqual(['label']);
+    await rows.nth(0).locator('.formly-type select').first().selectOption('select');
+    await expect(rows.nth(0).locator('.formly-multiple')).toHaveCount(1);
+  });
+
+  test('a range defaults to its min and a location to nothing', async ({ page, request, origin }) => {
+    const tag = await createPlugin(request, origin, 'range', { config: {} });
+    const { item, builder } = await openBuilder(page, tag);
+    const list = builder.locator('.builder-form');
+    const range = await addField(list, 'level', 'range');
+    await range.locator('.formly-min input').fill('2');
+    await range.locator('.formly-max input').fill('8');
+    await addField(list, 'where', 'location');
+    await addField(list, 'every', 'duration');
+    await generate(builder);
+    await expect(builder.locator('.defaults-form .duration-label')).toHaveText('Not set');
+    await save(page, item);
+
+    const saved = await getPlugin(request, origin, tag);
+    expect(saved.config.form[0]).toEqual({ key: 'level', type: 'range', props: { min: 2, max: 8 } });
+    expect(saved.defaults).toEqual({ level: 2 });
+    expect(saved.schema).toEqual({ optionalProperties: {
+      level: { type: 'float64' },
+      where: { elements: { type: 'float64' } },
+      every: { type: 'string', nullable: true },
+    } });
+  });
+
   test('opening the builder and saving changes nothing for built-in mods', async ({ page, request, origin }) => {
     test.setTimeout(900_000);
     await mod(page, ...[
