@@ -108,6 +108,17 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.full-page.ref .tag', { hasText: 'TOYOTA' })).toBeVisible();
   });
 
+  test('typing a slash fills the following inputs', async ({ page }) => {
+    await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>/<Model>', { waitUntil: 'networkidle' });
+    const inputs = page.locator('.stencil input.tag-input');
+    await inputs.nth(0).pressSequentially('2021/ford/');
+    await expect(inputs.nth(2)).toBeFocused();
+    await page.keyboard.type('focus');
+    await expect(page.locator('.tag-field input.preview[title="car/2021/ford/focus"]')).toBeAttached();
+    await inputs.nth(0).fill('2020/toyota/corolla/le');
+    await expect(page.locator('.tag-field input.preview[title="car/2020/toyota/corolla/le"]')).toBeAttached();
+  });
+
   test('shows one dropdown with every permutation of the prefix', async ({ page }) => {
     await page.goto('/submit/text?debug=ADMIN&inputTag=' + encodeURIComponent('+plugin,_plugin/secret,other/<Secret>'), { waitUntil: 'networkidle' });
     const select = page.locator('.stencil select');

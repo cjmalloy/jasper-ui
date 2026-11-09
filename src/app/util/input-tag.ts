@@ -89,6 +89,32 @@ export function resolveInputTag(parts: InputTagPart[], values: string[]) {
 }
 
 /**
+ * Spread a value typed into the part at an index over that part and the
+ * ones after it, so `2020/toyota` typed into `<Year>` also fills `<Make>`.
+ * A placeholder takes one segment, a fixed part as many segments as its
+ * options have, and the rest placeholder whatever is left. Parts after
+ * the value are left as they are. Returns the new values and the index of
+ * the last part filled, or undefined if the value does not fit.
+ */
+export function spreadInputTag(parts: InputTagPart[], values: string[], index: number, value: string) {
+  const part = parts[index];
+  if (part.rest || part.options || !value.includes('/')) return undefined;
+  const segments = value.split('/');
+  const result = [...values];
+  let last = index;
+  for (let i = index; i < parts.length && segments.length; i++) {
+    const p = parts[i];
+    const length = p.rest ? segments.length : p.options ? p.options[0].split('/').length : 1;
+    const v = segments.splice(0, length).join('/');
+    if (p.options && !p.options.includes(v)) return undefined;
+    result[i] = v;
+    last = i;
+  }
+  if (segments.length) return undefined;
+  return { values: result, last };
+}
+
+/**
  * Ext query for autocompleting the placeholder at a part index.
  * When every earlier part is known the query is that prefix. Otherwise
  * it is the known prefix before the first empty placeholder, and

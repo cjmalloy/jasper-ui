@@ -1,4 +1,4 @@
-import { afterNextRender, Component, computed, DestroyRef, inject, linkedSignal, signal, untracked } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, ElementRef, inject, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
 import { uniq, uniqBy } from 'lodash-es';
@@ -18,7 +18,8 @@ import {
   inputTagValues,
   parseInputTag,
   partialInputTag,
-  resolveInputTag
+  resolveInputTag,
+  spreadInputTag
 } from '../util/input-tag';
 
 /**
@@ -74,7 +75,8 @@ import {
                  [class.hidden-without-removing]="placeholderNames()[i]"
                  (focus)="edit(i, input); search(i)"
                  (blur)="blur()"
-                 (input)="setValue(i, $any($event.target).value); search(i)">
+                 [attr.data-part]="i"
+                 (input)="type(i, input)">
         } @else if (p.options.length === 1) {
           <span class="tag-preview" [title]="p.options[0]">{{ labels()[i][0] }}</span>
         } @else {
@@ -122,6 +124,7 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   private auth = inject(AuthzService);
   private editor = inject(EditorService);
   private destroyRef = inject(DestroyRef);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly listId = 'stencil-' + uuid();
   readonly template = computed(() => this.props.template as string || '');
@@ -298,6 +301,27 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   search(index: number) {
     this.autocomplete.set([]);
     this.search$.next(index);
+  }
+
+  /**
+   * Typing a `/` fills the following inputs and moves to the last one filled.
+   */
+  type(index: number, input: HTMLInputElement) {
+    const spread = spreadInputTag(this.parts(), this.values(), index, input.value);
+    if (!spread) {
+      this.setValue(index, input.value);
+      this.search(index);
+      return;
+    }
+    this.values.set(spread.values);
+    this.updateControl();
+    input.value = spread.values[index];
+    const next = this.el.nativeElement.querySelector<HTMLInputElement>(`input.tag-input[data-part="${spread.last}"]`);
+    if (next && next !== input) {
+      next.value = spread.values[spread.last];
+      this.edit(spread.last, next);
+    }
+    this.search(spread.last);
   }
 
   setValue(index: number, value: string) {

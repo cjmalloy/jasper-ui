@@ -63,6 +63,21 @@ describe('FormlyFieldStencil', () => {
     expect(el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')[1].placeholder).toBe('Make');
   });
 
+  it('fills the following inputs when typing a slash', async () => {
+    const { fixture, field, el } = await render('car/<Year>/<Make>/<Model>');
+    const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
+    inputs()[0].value = '2020/toyota/';
+    inputs()[0].dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(inputs().map(i => i.value)).toEqual(['2020', 'toyota', '']);
+    expect(field.editing()).toBe(3);
+    expect(document.activeElement).toBe(inputs()[2]);
+    inputs()[2].value = 'corolla';
+    inputs()[2].dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(field.formControl.value).toBe('car/2020/toyota/corolla');
+  });
+
   it('shows the preview of filled out inputs that are not being edited', async () => {
     const { fixture, field, el } = await render('car/<Year>/<Make>');
     field.setValue(1, '2020');

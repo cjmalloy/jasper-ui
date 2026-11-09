@@ -12,7 +12,8 @@ import {
   matchesInputTag,
   parseInputTag,
   partialInputTag,
-  resolveInputTag
+  resolveInputTag,
+  spreadInputTag
 } from './input-tag';
 
 describe('inputTag', () => {
@@ -147,5 +148,35 @@ describe('hierarchicalTag', () => {
     expect(hierarchicalTagTemplate('car/<Make>/<Model>', 'car/<Make>', 'car')).toBe('');
     expect(hierarchicalTagTemplate('car/<Make>/<Model>', 'car/<Make>', null)).toBe('');
     expect(hierarchicalTagTemplate('<Make>/<Model>', '<Make>', 'toyota')).toBe('toyota/<Model>');
+  });
+});
+
+describe('spread inputTag', () => {
+  const car = parseInputTag('car/<Year>/<Make>/<Model>');
+  const values = ['car', '', '', ''];
+
+  it('fills the following inputs', () => {
+    expect(spreadInputTag(car, values, 1, '2020/toyota')).toEqual({ values: ['car', '2020', 'toyota', ''], last: 2 });
+  });
+
+  it('moves to the next input on a trailing slash', () => {
+    expect(spreadInputTag(car, values, 1, '2020/')).toEqual({ values: ['car', '2020', '', ''], last: 2 });
+  });
+
+  it('gives the rest to the last input', () => {
+    expect(spreadInputTag(car, values, 1, '2020/toyota/corolla/le')).toEqual({ values: ['car', '2020', 'toyota', 'corolla/le'], last: 3 });
+  });
+
+  it('fills fixed parts between inputs', () => {
+    const parts = parseInputTag('car/<Year>/make,brand/<Make>');
+    expect(spreadInputTag(parts, inputTagDefaults(parts), 1, '2020/brand/toyota')).toEqual({ values: ['car', '2020', 'brand', 'toyota'], last: 3 });
+    expect(spreadInputTag(parts, inputTagDefaults(parts), 1, '2020/other/toyota')).toBeUndefined();
+  });
+
+  it('keeps the value without a slash, in the rest input, or with too many segments', () => {
+    expect(spreadInputTag(car, values, 1, '2020')).toBeUndefined();
+    expect(spreadInputTag(car, values, 3, 'corolla/le')).toBeUndefined();
+    const parts = parseInputTag('<Year>/end');
+    expect(spreadInputTag(parts, inputTagDefaults(parts), 0, '2020/end/more')).toBeUndefined();
   });
 });
