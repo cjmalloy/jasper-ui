@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
+  FormGroup,
   ReactiveFormsModule,
   UntypedFormArray,
   UntypedFormBuilder,
@@ -21,6 +22,7 @@ import {
   UntypedFormGroup
 } from '@angular/forms';
 import { Router } from '@angular/router';
+import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { isEqual, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
@@ -33,7 +35,6 @@ import { SelectPluginComponent } from '../../../component/select-plugin/select-p
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
 import { EditorComponent } from '../../../form/editor/editor.component';
-import { InputTagsComponent } from '../../../form/input-tags/input-tags.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent, setRefForm } from '../../../form/ref/ref.component';
@@ -46,6 +47,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
+import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
@@ -54,6 +56,7 @@ import { Store } from '../../../store/store';
 import { readFileAsString } from '../../../util/async';
 import { controlState, controlValue, scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
+import { filterInputTag, inputTagValues, matchesInputTag, parseInputTag, partialInputTag } from '../../../util/input-tag';
 import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
@@ -64,7 +67,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   imports: [
     FakeLinkDirective,
     forwardRef(() => EditorComponent),
-    InputTagsComponent,
+    FormlyForm,
     ReactiveFormsModule,
     NavComponent,
     LoadingComponent,
@@ -87,6 +90,7 @@ export class SubmitTextPage implements HasChanges {
   private refs = inject(RefService);
   private exts = inject(ExtService);
   private ts = inject(TaggingService);
+  private auth = inject(AuthzService);
   private fb = inject(UntypedFormBuilder);
 
 
@@ -126,10 +130,29 @@ export class SubmitTextPage implements HasChanges {
   readonly savedRef = signal<Ref | undefined>(undefined);
   private cursor?: string;
   private readonly tagsValue = controlValue<string[]>(() => this.tags);
+  readonly inputTagForm = computed(() => {
+    const templates = this.store.submit.inputTags();
+    const keys = templates.map((_, i) => 'tag' + i);
+    const parts = templates.map(t => filterInputTag(parseInputTag(t), tag => this.auth.canAddTag(tag)));
+    return {
+      keys,
+      parts,
+      form: new FormGroup({}),
+      model: Object.fromEntries(keys.map((k, i) => [k, partialInputTag(parts[i], inputTagValues(parts[i])) || null])) as Record<string, string | null>,
+      fields: templates.map((template, i): FormlyFieldConfig => ({
+        key: keys[i],
+        type: 'inputtag',
+        props: { template, required: true },
+      })),
+    };
+  });
   /**
-   * Tags filled out from the inputTag query param, empty until complete.
+   * Tags from the inputTag query param. Until they are filled out these are their known prefix.
    */
-  readonly inputTags = linkedSignal(() => this.store.submit.inputTags().map(() => ''));
+  readonly inputTags = linkedSignal(() => {
+    const { keys, model } = this.inputTagForm();
+    return keys.map(k => model[k] || '');
+  });
 
   constructor() {
     const mod = this.mod;
@@ -222,7 +245,11 @@ export class SubmitTextPage implements HasChanges {
         if (edit.title) this.title.setValue(edit.title);
       });
     }
-    const allTags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
+    const allTags = [
+      ...this.store.submit.tags(),
+      ...this.inputTags().filter(t => t),
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
+    ];
     // The editor may start editing before the defaults load, and needs the tags to pick its initial toggles
     this.addTag(...allTags);
     this.exts.getCachedExts(allTags).pipe(
@@ -404,6 +431,10 @@ export class SubmitTextPage implements HasChanges {
     fillTags(this.fb, this.tags, value);
   }
 
+  setInputTagModel(model: Record<string, string | null>) {
+    this.setInputTags(this.inputTagForm().keys.map(k => model[k] || ''));
+  }
+
   setInputTags(value: string[]) {
     const old = this.inputTags().filter(t => t);
     this.inputTags.set(value);
@@ -481,7 +512,9 @@ export class SubmitTextPage implements HasChanges {
     this.submitted.set(true);
     this.textForm.markAllAsTouched();
     this.syncEditor();
-    if (this.inputTags().some(t => !t)) {
+    const inputTags = this.inputTagForm();
+    if (inputTags.parts.some((p, i) => !matchesInputTag(p, this.inputTags()[i]))) {
+      inputTags.form.markAllAsTouched();
       window.scroll({ top: 0, behavior: 'smooth' });
       return;
     }

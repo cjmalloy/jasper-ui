@@ -12,14 +12,13 @@ test.describe.serial('Secret Plugin', () => {
     await page.locator('.sidebar .submit-button', { hasText: 'secret' }).first().click();
     await expect(page).toHaveURL(/\/submit\/text/);
     const params = new URL(page.url()).searchParams;
-    expect(params.getAll('inputTag')).toEqual(['+plugin/secret/<Name>']);
+    expect(params.getAll('inputTag')).toEqual(['+plugin,_plugin/secret/<Name>']);
     expect(params.get('url')).toMatch(/^internal:/);
     const tags = params.getAll('tag');
-    expect(tags).toContain('+plugin/secret');
+    expect(tags).not.toContain('+plugin/secret');
     expect(tags).toContain('internal');
     expect(tags).toContain('plugin/pinned');
     expect(tags).not.toContain('public');
-    await expect(page.locator('.tag-field input.preview[title="+plugin/secret"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title="public"]')).toHaveCount(0);
   });
 
@@ -29,7 +28,9 @@ test.describe.serial('Secret Plugin', () => {
     await page.locator('.sidebar .submit-button', { hasText: 'secret' }).first().click();
     await expect(page).toHaveURL(/\/submit\/text/);
     const name = page.locator('.input-tag input');
-    await expect(page.locator('.input-tag .literal')).toHaveText(['+plugin', 'secret']);
+    const prefix = page.locator('.input-tag select.tag-choice');
+    await expect(prefix.locator('option')).toHaveText(['🔑️ Secrets (+plugin/secret)', '🔑️ Secrets (_plugin/secret)']);
+    await expect(prefix).toHaveValue('+plugin/secret');
     await expect(name).toHaveAttribute('placeholder', 'Name');
     await page.locator('#title').fill('OpenAI');
     await page.locator('.editor textarea').fill('key');
@@ -40,7 +41,26 @@ test.describe.serial('Secret Plugin', () => {
     const ref = (await created).postDataJSON();
     expect(ref.url).toMatch(/^internal:/);
     expect(ref.tags).toContain('+plugin/secret/openai');
+    expect(ref.tags).not.toContain('+plugin/secret');
     expect(ref.tags).not.toContain('public');
+    await expect(page).toHaveURL(/\/ref\//);
+  });
+
+  test('can make the secret private', async ({ page }) => {
+    await page.goto('/tag/+plugin/secret?debug=ADMIN', { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    await page.locator('.sidebar .submit-button', { hasText: 'secret' }).first().click();
+    await expect(page).toHaveURL(/\/submit\/text/);
+    await page.locator('#title').fill('Private');
+    await page.locator('.editor textarea').fill('key');
+    await page.locator('.input-tag select.tag-choice').selectOption('_plugin/secret');
+    await page.locator('.input-tag input').fill('private');
+    await expect(page.locator('.tag-field input.preview[title="_plugin/secret/private"]')).toBeAttached();
+    const created = page.waitForRequest(req => req.url().includes('/api/v1/ref') && req.method() === 'POST');
+    await page.getByRole('button', { name: 'Submit', exact: true }).click();
+    const ref = (await created).postDataJSON();
+    expect(ref.tags).toContain('_plugin/secret/private');
+    expect(ref.tags).not.toContain('+plugin/secret');
     await expect(page).toHaveURL(/\/ref\//);
   });
 
@@ -63,7 +83,8 @@ test.describe.serial('Secret Plugin', () => {
     await submit.click();
     await expect(page).toHaveURL(/\/submit\/text/);
     await page.locator('.editor textarea').fill('key');
-    await expect(page.locator('.tag-field input.preview[title="+plugin/secret"]')).toBeAttached();
+    await page.locator('.input-tag input').fill('openai');
+    await expect(page.locator('.tag-field input.preview[title="+plugin/secret/openai"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title="plugin/pinned"]')).toBeAttached();
     await expect(toggle).toHaveText('👁️');
     await expect(page.locator('.tag-field input.preview[title="public"]')).toHaveCount(0);

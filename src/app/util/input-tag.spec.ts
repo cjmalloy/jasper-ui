@@ -1,51 +1,105 @@
 /// <reference types="vitest/globals" />
-import { inputTagDefaults, inputTagQuery, inputTagSuggestion, parseInputTag, resolveInputTag } from './input-tag';
+import {
+  filterInputTag,
+  inputTagDefaults,
+  inputTagQuery,
+  inputTagSuggestion,
+  inputTagValues,
+  matchesInputTag,
+  parseInputTag,
+  partialInputTag,
+  resolveInputTag
+} from './input-tag';
 
 describe('inputTag', () => {
   const car = parseInputTag('car/year/<Year>/make/<Make>/model/<Model>');
 
   it('parses placeholders', () => {
-    expect(parseInputTag('car/<Year>/<Make>')).toEqual([{ literal: 'car' }, { label: 'Year' }, { label: 'Make' }]);
+    expect(parseInputTag('car/<Year>/<Make>')).toEqual([
+      { options: ['car'], depth: 0 },
+      { label: 'Year', depth: 1 },
+      { label: 'Make', depth: 2 },
+    ]);
   });
 
   it('appends a placeholder to a template without one', () => {
-    expect(parseInputTag('+plugin/secret')).toEqual([{ literal: '+plugin' }, { literal: 'secret' }, { label: '' }]);
+    expect(parseInputTag('+plugin/secret')).toEqual([{ options: ['+plugin/secret'], depth: 0 }, { label: '', depth: 2 }]);
   });
 
-  it('parses a segment with commas as a fixed choice', () => {
-    const segments = parseInputTag('+plugin,_plugin/secret/<Secret>');
-    expect(segments).toEqual([{ choices: ['+plugin', '_plugin'] }, { literal: 'secret' }, { label: 'Secret' }]);
-    expect(inputTagDefaults(segments)).toEqual(['+plugin', '']);
-    expect(resolveInputTag(segments, ['_plugin', 'openai'])).toBe('_plugin/secret/openai');
-    expect(resolveInputTag(segments, ['plugin', 'openai'])).toBe('');
-    expect(inputTagQuery(segments, ['_plugin', ''], 2)).toBe('_plugin/secret');
+  it('groups the prefix before the first input into one dropdown', () => {
+    const parts = parseInputTag('+plugin,_plugin/secret/<Secret>');
+    expect(parts).toEqual([{ options: ['+plugin/secret', '_plugin/secret'], depth: 0 }, { label: 'Secret', depth: 2 }]);
+    expect(inputTagDefaults(parts)).toEqual(['+plugin/secret', '']);
+    expect(resolveInputTag(parts, ['_plugin/secret', 'openai'])).toBe('_plugin/secret/openai');
+    expect(resolveInputTag(parts, ['plugin/secret', 'openai'])).toBe('');
+    expect(inputTagQuery(parts, ['_plugin/secret', ''], 1)).toBe('_plugin/secret');
   });
 
-  it('resolves once every placeholder is valid', () => {
-    expect(resolveInputTag(car, ['2020', 'toyota', 'corolla'])).toBe('car/year/2020/make/toyota/model/corolla');
-    expect(resolveInputTag(car, ['2020', '', 'corolla'])).toBe('');
-    expect(resolveInputTag(car, ['2020', 'Toyota', 'corolla'])).toBe('');
-    expect(resolveInputTag(parseInputTag('+plugin/secret'), ['openai'])).toBe('+plugin/secret/openai');
+  it('adds every permutation when several segments have commas', () => {
+    expect(parseInputTag('+a,_a/b/c,d/<X>/e,f')).toEqual([
+      { options: ['+a/b/c', '+a/b/d', '_a/b/c', '_a/b/d'], depth: 0 },
+      { label: 'X', depth: 3 },
+      { options: ['e', 'f'], depth: 4 },
+    ]);
+  });
+
+  it('resolves once every part is valid', () => {
+    expect(resolveInputTag(car, ['car/year', '2020', 'make', 'toyota', 'model', 'corolla'])).toBe('car/year/2020/make/toyota/model/corolla');
+    expect(resolveInputTag(car, ['car/year', '2020', 'make', '', 'model', 'corolla'])).toBe('');
+    expect(resolveInputTag(car, ['car/year', '2020', 'make', 'Toyota', 'model', 'corolla'])).toBe('');
+    expect(resolveInputTag(parseInputTag('+plugin/secret'), ['+plugin/secret', 'openai'])).toBe('+plugin/secret/openai');
     expect(resolveInputTag(parseInputTag('<Tag>'), ['+protected'])).toBe('+protected');
   });
 
   it('queries the filled prefix when filled out in order', () => {
-    expect(inputTagQuery(car, ['2020', 'toyota', ''], 6)).toBe('car/year/2020/make/toyota/model');
-    expect(inputTagQuery(car, ['', '', ''], 2)).toBe('car/year');
+    expect(inputTagQuery(car, ['car/year', '2020', 'make', 'toyota', 'model', ''], 5)).toBe('car/year/2020/make/toyota/model');
+    expect(inputTagQuery(car, ['car/year', '', 'make', '', 'model', ''], 1)).toBe('car/year');
     expect(inputTagQuery(parseInputTag('<Tag>/<Sub>'), ['', ''], 0)).toBeUndefined();
   });
 
   it('queries every possibility when filled out of order', () => {
-    expect(inputTagQuery(car, ['', 'toyota', ''], 6)).toBe('car/year');
-    expect(inputTagSuggestion(car, ['', 'toyota', ''], 6, 'car/year/2020/make/toyota/model/corolla')).toBe('corolla');
-    expect(inputTagSuggestion(car, ['', 'toyota', ''], 6, 'car/year/2020/make/honda/model/civic')).toBeUndefined();
-    expect(inputTagSuggestion(car, ['', '', ''], 6, 'car/year/2020/make/honda/model/civic')).toBe('civic');
+    const values = ['car/year', '', 'make', 'toyota', 'model', ''];
+    expect(inputTagQuery(car, values, 5)).toBe('car/year');
+    expect(inputTagSuggestion(car, values, 5, 'car/year/2020/make/toyota/model/corolla')).toBe('corolla');
+    expect(inputTagSuggestion(car, values, 5, 'car/year/2020/make/honda/model/civic')).toBeUndefined();
+    expect(inputTagSuggestion(car, ['car/year', '', 'make', '', 'model', ''], 5, 'car/year/2020/make/honda/model/civic')).toBe('civic');
   });
 
   it('suggests the placeholder segment of matching tags', () => {
-    expect(inputTagSuggestion(car, ['', '', ''], 2, 'car/year/2020')).toBe('2020');
-    expect(inputTagSuggestion(car, ['', '', ''], 2, 'car/year/2020/make')).toBe('2020');
-    expect(inputTagSuggestion(car, ['', '', ''], 2, 'car/year')).toBeUndefined();
-    expect(inputTagSuggestion(car, ['', '', ''], 2, 'car/month/2020')).toBeUndefined();
+    const values = inputTagDefaults(car);
+    expect(inputTagSuggestion(car, values, 1, 'car/year/2020')).toBe('2020');
+    expect(inputTagSuggestion(car, values, 1, 'car/year/2020/make')).toBe('2020');
+    expect(inputTagSuggestion(car, values, 1, 'car/year')).toBeUndefined();
+    expect(inputTagSuggestion(car, values, 1, 'car/month/2020')).toBeUndefined();
+  });
+});
+
+describe('partial inputTag', () => {
+  const secret = parseInputTag('+plugin,_plugin/secret/<Name>');
+
+  it('only keeps prefixes that can be added', () => {
+    expect(filterInputTag(secret, t => !t.startsWith('_'))[0].options).toEqual(['+plugin/secret']);
+    expect(filterInputTag(secret, () => false)[0].options).toEqual(['+plugin/secret']);
+  });
+
+  it('reads values from a partial tag', () => {
+    expect(inputTagValues(secret)).toEqual(['+plugin/secret', '']);
+    expect(inputTagValues(secret, '_plugin/secret')).toEqual(['_plugin/secret', '']);
+    expect(inputTagValues(secret, '_plugin/secret/openai')).toEqual(['_plugin/secret', 'openai']);
+    expect(inputTagValues(parseInputTag('car/<Year>/<Make>'), 'car/2020')).toEqual(['car', '2020', '']);
+  });
+
+  it('is the known prefix until filled out', () => {
+    expect(partialInputTag(secret, ['_plugin/secret', ''])).toBe('_plugin/secret');
+    expect(partialInputTag(secret, ['_plugin/secret', 'openai'])).toBe('_plugin/secret/openai');
+    expect(partialInputTag(parseInputTag('<Tag>'), [''])).toBe('');
+  });
+
+  it('matches complete tags', () => {
+    expect(matchesInputTag(secret, '+plugin/secret/openai')).toBe(true);
+    expect(matchesInputTag(secret, '+plugin/secret')).toBe(false);
+    expect(matchesInputTag(secret, 'plugin/secret/openai')).toBe(false);
+    expect(matchesInputTag(secret, '+plugin/secret/openai/key')).toBe(false);
+    expect(matchesInputTag(secret, null)).toBe(false);
   });
 });

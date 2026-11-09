@@ -34,7 +34,7 @@ test.describe.serial('Submit inputTag', () => {
     await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>&inputTag=color/<Color>', { waitUntil: 'networkidle' });
     const rows = page.locator('.input-tag');
     await expect(rows).toHaveCount(2);
-    await expect(rows.first().locator('.literal')).toHaveText(['car']);
+    await expect(rows.first().locator('.tag-preview')).toHaveAttribute('title', 'car');
     await expect(rows.first().locator('input')).toHaveCount(2);
     await expect(rows.nth(1).locator('input')).toHaveAttribute('placeholder', 'Color');
     const inputTop = (await rows.first().boundingBox())!.y;
@@ -57,6 +57,15 @@ test.describe.serial('Submit inputTag', () => {
     await expect((await options(make)).first()).toHaveAttribute('value', 'honda');
   });
 
+  test('only offers prefixes the user can add', async ({ page }) => {
+    await page.goto('/submit/text?debug=USER&inputTag=' + encodeURIComponent('+plugin,_plugin/secret/<Secret>'), { waitUntil: 'networkidle' });
+    await expect(page.locator('.input-tag')).toHaveCount(1);
+    await expect(page.locator('.input-tag select')).toHaveCount(0);
+    await page.goto('/submit/text?debug=USER&inputTag=' + encodeURIComponent('_private,science/<Topic>'), { waitUntil: 'networkidle' });
+    await expect(page.locator('.input-tag select')).toHaveCount(0);
+    await expect(page.locator('.input-tag .tag-preview')).toHaveAttribute('title', 'science');
+  });
+
   test('adds the filled out tags and submits', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>&inputTag=color/<Color>', { waitUntil: 'networkidle' });
     await page.locator('#title').fill('Car');
@@ -75,14 +84,17 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.full-page.ref .tag', { hasText: 'TOYOTA' })).toBeVisible();
   });
 
-  test('shows a dropdown for a segment with commas', async ({ page }) => {
-    await page.goto('/submit/text?debug=ADMIN&inputTag=' + encodeURIComponent('+plugin,_plugin/secret/<Secret>'), { waitUntil: 'networkidle' });
+  test('shows one dropdown with every permutation of the prefix', async ({ page }) => {
+    await page.goto('/submit/text?debug=ADMIN&inputTag=' + encodeURIComponent('+plugin,_plugin/secret,other/<Secret>'), { waitUntil: 'networkidle' });
     const select = page.locator('.input-tag select');
-    await expect(select.locator('option')).toHaveText(['+plugin', '_plugin']);
-    await expect(select).toHaveValue('+plugin');
+    await expect(select).toHaveCount(1);
+    await expect(select.locator('option')).toHaveCount(4);
+    expect(await select.locator('option').evaluateAll(os => os.map(o => (o as HTMLOptionElement).value)))
+      .toEqual(['+plugin/secret', '+plugin/other', '_plugin/secret', '_plugin/other']);
+    await expect(select).toHaveValue('+plugin/secret');
     await page.locator('.input-tag input').fill('openai');
     await expect(page.locator('.tag-field input.preview[title="+plugin/secret/openai"]')).toBeAttached();
-    await select.selectOption('_plugin');
+    await select.selectOption('_plugin/secret');
     await expect(page.locator('.tag-field input.preview[title="_plugin/secret/openai"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title="+plugin/secret/openai"]')).toHaveCount(0);
   });

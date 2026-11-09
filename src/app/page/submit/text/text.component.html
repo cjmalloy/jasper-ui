@@ -12,9 +12,12 @@
     </div>
   }
   @if (!advanced()) {
-    <app-input-tags [templates]="store.submit.inputTags()"
-                    [submitted]="submitted()"
-                    (tagsChange)="setInputTags($event)" />
+    @let inputTag = inputTagForm();
+    <formly-form class="nested-form"
+                 [form]="inputTag.form"
+                 [model]="inputTag.model"
+                 [fields]="inputTag.fields"
+                 (modelChange)="setInputTagModel($event)" />
     @if (store.submit.wiki()) {
       <label for="title" i18n>Wiki:</label>
     } @else {

@@ -43,6 +43,7 @@ import { getAddTags } from '../../util/add-tags';
 import { parseMapView } from '../../util/geo';
 import { encodeBookmarkParams, printError } from '../../util/http';
 import { getModels, getZipOrTextFile } from '../../util/zip';
+import { parseInputTag } from '../../util/input-tag';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
@@ -130,8 +131,9 @@ export class SidebarComponent {
   readonly submitTextParams = computed(() => {
     const inputTags = this.plugin()?.config?.inputTags;
     if (!inputTags?.length) return { tag: this.addTags(), location: this.location() };
+    const prefixes = inputTags.flatMap(t => parseInputTag(t)[0].options || []);
     return {
-      tag: this.addTags(),
+      tag: this.addTags().filter(t => !prefixes.includes(t)),
       location: this.location(),
       inputTag: inputTags,
       url: this.plugin()?.config?.genId ? this.genUrl : undefined,

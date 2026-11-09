@@ -53,22 +53,26 @@ describe('SubmitTextPage', () => {
   });
 
   it('replaces the tags filled out from inputTag', () => {
-    component.inputTags.set(['']);
+    component.store.submit.route.routeSnapshot.set({ queryParams: { inputTag: '+plugin/secret/<Name>' } } as any);
+    expect(component.inputTags()).toEqual(['+plugin/secret']);
     component.setInputTags(['+plugin/secret/open']);
     expect(component.tags.value).toContain('+plugin/secret/open');
     component.setInputTags(['+plugin/secret/openai']);
     expect(component.tags.value).toContain('+plugin/secret/openai');
     expect(component.tags.value).not.toContain('+plugin/secret/open');
-    component.setInputTags(['']);
+    component.setInputTags(['+plugin/secret']);
     expect(component.tags.value).not.toContain('+plugin/secret/openai');
+    expect(component.tags.value).toContain('+plugin/secret');
   });
 
   it('does not submit until the inputTag inputs are filled out', () => {
     const create = vi.spyOn(TestBed.inject(RefService), 'create');
     vi.spyOn(window, 'scroll').mockImplementation(() => {});
-    component.inputTags.set(['']);
+    component.store.submit.route.routeSnapshot.set({ queryParams: { inputTag: '+plugin/secret/<Name>' } } as any);
+    component.title.setValue('Secret');
     component.submit();
     expect(create).not.toHaveBeenCalled();
+    expect(component.inputTagForm().form.touched).toBe(true);
   });
 
   it('should initialize a generated url for text posts', () => {

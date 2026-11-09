@@ -8559,6 +8559,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source><x id="PH" equiv-text="fieldsLabel"/> count</source>
         <target><x id="PH" equiv-text="fieldsLabel"/> 件数</target>
       </trans-unit>
+      <trans-unit id="7091720632809624995" datatype="html">
+        <source>Fill out every part of the tag.</source>
+        <target>タグのすべての部分を入力してください。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

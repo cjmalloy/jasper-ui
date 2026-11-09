@@ -1,0 +1,132 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { FormGroup } from '@angular/forms';
+import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
+import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
+import { of } from 'rxjs';
+import { ExtService } from '../service/api/ext.service';
+import { AuthzService } from '../service/authz.service';
+import { EditorService } from '../service/editor.service';
+import { provideJasperFormly } from './formly.config';
+import { FormlyFieldInputTag } from './input-tag.type';
+
+@Component({
+  template: `<formly-form [form]="form" [model]="model" [fields]="fields" />`,
+  imports: [FormlyForm],
+})
+class Host {
+  form = new FormGroup({});
+  model: any = {};
+  fields: FormlyFieldConfig[] = [];
+}
+
+describe('FormlyFieldInputTag', () => {
+  let canAddTag: (tag?: string) => boolean;
+
+  beforeEach(() => {
+    canAddTag = () => true;
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        provideJasperFormly(),
+        { provide: AuthzService, useValue: { canAddTag: (tag?: string) => canAddTag(tag) } },
+      ],
+    });
+    vi.spyOn(TestBed.inject(EditorService), 'getTagsPreview').mockImplementation(tags => of(tags.map(tag => ({
+      tag,
+      name: tag.endsWith('plugin/secret') ? 'Secrets' : tag === 'car' ? 'Cars' : undefined,
+    }))));
+  });
+
+  async function render(template: string) {
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'inputtag', props: { template, required: true } }];
+    await fixture.whenStable();
+    const field = fixture.debugElement.query(By.directive(FormlyFieldInputTag)).componentInstance as FormlyFieldInputTag;
+    return { fixture, field, el: fixture.nativeElement as HTMLElement };
+  }
+
+  it('shows the prefix preview and an input per placeholder', async () => {
+    const { el } = await render('car/<Year>/<Make>');
+    expect(el.querySelector('.tag-preview')!.textContent!.trim()).toBe('Cars');
+    expect(el.querySelector('.tag-preview')!.getAttribute('title')).toBe('car');
+    expect(el.querySelectorAll('.input-tag input').length).toBe(2);
+    expect(el.querySelectorAll<HTMLInputElement>('.input-tag input')[1].placeholder).toBe('Make');
+  });
+
+  it('is the known prefix and invalid until it is filled out', async () => {
+    const { fixture, field } = await render('car/<Year>/<Make>');
+    const form = fixture.componentInstance.form;
+    expect(form.value).toEqual({ tag: 'car' });
+    field.setValue(2, 'toyota');
+    expect(form.value).toEqual({ tag: 'car' });
+    expect(form.valid).toBe(false);
+    field.setValue(1, '2020');
+    expect(form.value).toEqual({ tag: 'car/2020/toyota' });
+    expect(form.valid).toBe(true);
+  });
+
+  it('reads its inputs from the model', async () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.model = { tag: '_plugin/secret/openai' };
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'inputtag', props: { template: '+plugin,_plugin/secret/<Secret>' } }];
+    await fixture.whenStable();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector<HTMLSelectElement>('.input-tag select')!.value).toBe('_plugin/secret');
+    expect(el.querySelector<HTMLInputElement>('.input-tag input')!.value).toBe('openai');
+    expect(fixture.componentInstance.form.value).toEqual({ tag: '_plugin/secret/openai' });
+  });
+
+  it('shows one dropdown with every permutation of the prefix', async () => {
+    const { fixture, field, el } = await render('+plugin,_plugin/secret/<Secret>');
+    const select = el.querySelector<HTMLSelectElement>('.input-tag select')!;
+    expect([...select.options].map(o => o.value)).toEqual(['+plugin/secret', '_plugin/secret']);
+    expect([...select.options].map(o => o.textContent!.trim())).toEqual(['Secrets (+plugin/secret)', 'Secrets (_plugin/secret)']);
+    field.setValue(1, 'openai');
+    expect(fixture.componentInstance.form.value).toEqual({ tag: '+plugin/secret/openai' });
+    select.value = '_plugin/secret';
+    select.dispatchEvent(new Event('change'));
+    expect(fixture.componentInstance.form.value).toEqual({ tag: '_plugin/secret/openai' });
+  });
+
+  it('only offers prefixes the user can add', async () => {
+    canAddTag = tag => !tag?.startsWith('_');
+    const { el } = await render('+plugin,_plugin/secret/<Secret>');
+    expect(el.querySelector('.input-tag select')).toBeNull();
+    expect(el.querySelector('.tag-preview')!.getAttribute('title')).toBe('+plugin/secret');
+  });
+
+  it('suggests every possibility when filled out of order', async () => {
+    const page = vi.spyOn(TestBed.inject(ExtService), 'page').mockReturnValue(of({
+      content: [{ tag: 'car/2020', name: '2020' }, { tag: 'car/2020/toyota', name: 'Toyota' }, { tag: 'car/2020/honda/civic', name: 'Civic' }, { tag: 'car/2021/toyota' }],
+      page: { number: 0, size: 50, totalElements: 3, totalPages: 1 },
+    } as any));
+    const { field } = await render('car/<Year>/<Make>');
+    vi.useFakeTimers();
+    field.search(2);
+    vi.advanceTimersByTime(300);
+    expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: 'car' }));
+    expect(field.autocomplete()).toEqual([{ value: 'toyota', label: 'Toyota' }, { value: 'honda', label: 'honda' }]);
+    vi.useRealTimers();
+  });
+
+  it('does not suggest tags the user cannot add', async () => {
+    canAddTag = tag => tag !== 'car/2021';
+    vi.spyOn(TestBed.inject(ExtService), 'page').mockReturnValue(of({
+      content: [{ tag: 'car/2020' }, { tag: 'car/2021' }],
+      page: { number: 0, size: 50, totalElements: 2, totalPages: 1 },
+    } as any));
+    const { field } = await render('car/<Year>');
+    vi.useFakeTimers();
+    field.search(1);
+    vi.advanceTimersByTime(300);
+    expect(field.autocomplete()).toEqual([{ value: '2020', label: '2020' }]);
+    vi.useRealTimers();
+  });
+});

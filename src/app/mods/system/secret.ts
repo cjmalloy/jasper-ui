@@ -15,7 +15,7 @@ const secretPlugin: Plugin = {
     submit: $localize`🔑️ secret`,
     internal: true,
     genId: true,
-    inputTags: ['+plugin/secret/<Name>'],
+    inputTags: ['+plugin,_plugin/secret/<Name>'],
     icons: [{ label: $localize`🔑️`, order: 3 }],
     description: $localize`Store secrets with opaque protected tags.`,
   },

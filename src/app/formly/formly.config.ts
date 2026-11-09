@@ -35,6 +35,8 @@ import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldRange } from './range.type';
 import { FormlyFieldRefInput } from './ref.type';
 import { FormlyFieldSelect } from './select.type';
+import { matchesInputTag, parseInputTag } from '../util/input-tag';
+import { FormlyFieldInputTag } from './input-tag.type';
 import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { FormlyFieldUserMap } from './user-map.type';
@@ -320,6 +322,18 @@ Protected tags start with a plus sign.
 Private tags start with an underscore.
 (i.e. "science", "my/tag", or "_my/private/tag")`,
           }
+        },
+      },
+    }, {
+      name: 'inputtag',
+      component: FormlyFieldInputTag,
+      wrappers: ['form-field'],
+      defaultOptions: {
+        validators: {
+          inputTag: {
+            expression: (c: AbstractControl, field: FormlyFieldConfig) => !c.value || matchesInputTag(parseInputTag(field.props?.template || ''), c.value),
+            message: $localize`Fill out every part of the tag.`,
+          },
         },
       },
     }, {
