@@ -52,6 +52,8 @@ function fieldSchema(config: FormlyConfig, field: FormlyFieldConfig): Schema {
   if (chain.includes('range')) return schema;
   // Clearing a number input or an input with a clear button sets null
   if (chain.includes('input') && (merged.props?.type === 'number' || merged.props?.clear)) return { ...schema, nullable: true };
+  // Until it is filled out an input tag is null
+  if (chain.includes('inputtag')) return { ...schema, nullable: true };
   return schema;
 }
 
