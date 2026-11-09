@@ -46,9 +46,12 @@ function optionsSchema(options: any): Schema {
  */
 function fieldSchema(config: FormlyConfig, field: FormlyFieldConfig): Schema {
   const schema = valueSchema(config, field);
-  if (field.props?.required || !('type' in schema)) return schema;
+  if (field.props?.required) return schema;
   const merged = mergedField(config, field);
   const chain = typeChain(config, merged.type as string);
+  // Until it is filled out an optional stencil is null
+  if (chain.includes('stencil')) return { ...schema, nullable: true };
+  if (!('type' in schema)) return schema;
   if (chain.includes('range')) return schema;
   // Clearing a number input or an input with a clear button sets null
   if (chain.includes('input') && (merged.props?.type === 'number' || merged.props?.clear)) return { ...schema, nullable: true };
@@ -77,6 +80,8 @@ function valueSchema(config: FormlyConfig, field: FormlyFieldConfig): Schema {
     return props.multiple ? { elements: option } : option;
   }
   if (chain.includes('input') && props.type === 'number') return { type: 'float64' };
+  // A hierarchical stencil has the tag filled out up to each line
+  if (chain.includes('stencil') && props.hierarchical) return { elements: { type: 'string' } };
   if (['duration', 'child-plugin', 'geometries', 'geo-style'].some(t => chain.includes(t))) return {};
   if (!chain.length) return {};
   return { type: 'string' };

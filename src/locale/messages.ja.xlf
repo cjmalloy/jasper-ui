@@ -4967,9 +4967,21 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Store secrets with opaque protected tags.</source>
         <target>不透明な保護されたタグでシークレットを保存します。</target>
       </trans-unit>
-      <trans-unit id="8432684216662455548" datatype="html">
-        <source>Do not add public when submitting secrets.</source>
-        <target>シークレットを投稿するときにpublicを追加しません。</target>
+      <trans-unit id="5571400295982110168" datatype="html">
+        <source>🔒️ Private Secret</source>
+        <target>🔒️ プライベートシークレット</target>
+      </trans-unit>
+      <trans-unit id="30088139615628812" datatype="html">
+        <source>🔒️ private secret</source>
+        <target>🔒️ プライベートシークレット</target>
+      </trans-unit>
+      <trans-unit id="4747324941401276650" datatype="html">
+        <source>Store secrets with opaque private tags.</source>
+        <target>不透明なプライベートタグでシークレットを保存します。</target>
+      </trans-unit>
+      <trans-unit id="202069683793608755" datatype="html">
+        <source>⚠️ This secret is public</source>
+        <target>⚠️ このシークレットは公開されています</target>
       </trans-unit>
       <trans-unit id="3302998287729753049" datatype="html">
         <source>👨️‍💻️ Snippet</source>
@@ -8558,6 +8570,37 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="8717700479081979254" datatype="html">
         <source><x id="PH" equiv-text="fieldsLabel"/> count</source>
         <target><x id="PH" equiv-text="fieldsLabel"/> 件数</target>
+      </trans-unit>
+      <trans-unit id="7091720632809624995" datatype="html">
+        <source>Fill out every part of the tag.</source>
+        <target>タグのすべての部分を入力してください。</target>
+      </trans-unit>
+      <trans-unit id="1030594656589546259" datatype="html">
+        <source>Must be lower case letters, numbers, periods and forward slashes.</source>
+        <target>小文字、数字、ピリオド、スラッシュのみ使用できます。</target>
+      </trans-unit>
+      <trans-unit id="6821492100563998377" datatype="html">
+        <source>Does not fit the tag <x id="PH" equiv-text="this.filledTemplate() || this.template()"/></source>
+        <target>タグ <x id="PH" equiv-text="this.filledTemplate() || this.template()"/> に合いません</target>
+      </trans-unit>
+      <trans-unit id="926059739238690863" datatype="html">
+        <source>Must be lower case letters, numbers and periods.</source>
+        <target>小文字、数字、ピリオドのみ使用できます。</target>
+      </trans-unit>
+      <trans-unit id="1832879454397489615" datatype="html">
+        <source>car/&lt;Make&gt;/&lt;Model&gt;</source>
+      </trans-unit>
+      <trans-unit id="6528912154811772415" datatype="html">
+        <source>A tag with an input for each &lt;Placeholder&gt;. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/&lt;Name&gt;.</source>
+        <target>&lt;Placeholder&gt; ごとに入力欄があるタグ。最初の部分のカンマはドロップダウンになります（例：+plugin,_plugin/secret/&lt;Name&gt;）。</target>
+      </trans-unit>
+      <trans-unit id="7703173042611671149" datatype="html">
+        <source>Hierarchical:</source>
+        <target>階層:</target>
+      </trans-unit>
+      <trans-unit id="8840003756252838733" datatype="html">
+        <source>One labelled line per placeholder, filled out top down. The value is the tag up to each line.</source>
+        <target>プレースホルダーごとにラベル付きの行があり、上から順に入力します。値は各行までのタグです。</target>
       </trans-unit>
     </body>
   </file>

@@ -80,6 +80,7 @@ export class SubmitStore {
   readonly text = computed(() => {
     if (this.linkTypeOverride()) return this.linkTypeOverride() === 'text';
     if (this.subpage() != 'text') return false;
+    if (this.url()?.startsWith('internal:')) return !this.genId();
     return this.url()?.startsWith('comment:') || !this.url();
   });
 
@@ -111,6 +112,27 @@ export class SubmitStore {
       .flatMap( t => t.split(/[:|!()]/))
       .map(t => t.includes('@') ? t.substring(0, t.indexOf('@')) : t)
       .filter(t => t && !t.includes('*'));
+  }, { equal: isEqual });
+
+  /**
+   * Tag templates such as `car/<Year>/<Make>` from the repeatable inputTag
+   * query param. The submit text page shows an input for each placeholder.
+   */
+  readonly inputTags = computed((): string[] => {
+    const tag = this.route.routeSnapshot()?.queryParams['inputTag'];
+    if (!tag) return [];
+    return (isArray(tag) ? tag : [tag]).filter(t => t);
+  }, { equal: isEqual });
+
+  /**
+   * Tag templates such as `car/<Make>` and `car/<Make>/<Model>` from the
+   * repeatable hierarchicalTag query param. The submit text page shows a
+   * line for each, filled out top down, and adds a tag for each.
+   */
+  readonly hierarchicalTags = computed((): string[] => {
+    const tag = this.route.routeSnapshot()?.queryParams['hierarchicalTag'];
+    if (!tag) return [];
+    return (isArray(tag) ? tag : [tag]).filter(t => t);
   }, { equal: isEqual });
 
   readonly plugin = computed(() => {

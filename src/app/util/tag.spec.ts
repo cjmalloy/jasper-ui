@@ -7,6 +7,8 @@ import {
   hasQuery,
   isGroup,
   isNegatedGroup,
+  isSecret,
+  notPublicSecret,
   localPluginResponses,
   pickPlugins,
   pluginResponses,
@@ -371,6 +373,19 @@ describe('Tag Utils', () => {
       expect(localPluginResponses(parent, 'plugin/comment')).toBe(1);
       expect(pluginResponses(parent, 'plugin/comment')).toBe(2);
     });
+  });
+
+  it('isSecret', () => {
+    expect(isSecret(['+plugin/secret'])).toBe(true);
+    expect(isSecret(['_plugin/secret/openai'])).toBe(true);
+    expect(isSecret(['plugin/secret'])).toBe(false);
+    expect(isSecret(['public'])).toBe(false);
+    expect(isSecret(undefined)).toBe(false);
+  });
+
+  it('notPublicSecret', () => {
+    expect(notPublicSecret(['public', '+plugin/secret/openai'])).toEqual(['+plugin/secret/openai']);
+    expect(notPublicSecret(['public', 'science'])).toEqual(['public', 'science']);
   });
 
   it('tagValue', () => {

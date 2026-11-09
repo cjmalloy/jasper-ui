@@ -56,6 +56,10 @@ describe('formly type', () => {
     expect(values).toContain('formly');
     expect(values).toContain('tags');
     expect(values).not.toContain('list');
+    expect(values).toContain('stencil');
+    expect(values).not.toContain('child-plugin');
+    expect(values).not.toContain('geometries');
+    expect(values).not.toContain('userMap');
   });
 
   it('shows options only for option types', async () => {
@@ -77,6 +81,25 @@ describe('formly type', () => {
     await fixture.whenStable();
     expect(child(item, 'props.options').hide).toBeFalsy();
     expect(child(item, 'fieldGroup').hide).toBe(true);
+  });
+
+  it('edits the template only for stencils', async () => {
+    const model = { form: [
+      { key: 'a', type: 'string' },
+      { key: 'car', type: 'stencil', props: { template: 'car/<Make>' } },
+    ] };
+    const { fixture, field } = await render(model);
+    expect(child(field.fieldGroup![0], 'props.template').hide).toBe(true);
+    expect(child(field.fieldGroup![0], 'props.hierarchical').hide).toBe(true);
+    expect(child(field.fieldGroup![0], 'props.placeholder').hide).toBeFalsy();
+    const stencil = field.fieldGroup![1];
+    expect(child(stencil, 'props.placeholder').hide).toBe(true);
+    expect(child(stencil, 'props.template').hide).toBeFalsy();
+    expect(child(stencil, 'props.template').formControl!.value).toBe('car/<Make>');
+    child(stencil, 'props.template').formControl!.setValue('car/<Make>/<Model>');
+    child(stencil, 'props.hierarchical').formControl!.setValue(true);
+    await fixture.whenStable();
+    expect(model.form[1].props).toEqual({ template: 'car/<Make>/<Model>', hierarchical: true });
   });
 
   it('edits nested fields of groups', async () => {

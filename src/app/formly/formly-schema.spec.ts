@@ -195,6 +195,7 @@ describe('formly schema', () => {
       { key: 'height', type: 'integer', props: { required: true } },
       { key: 'accent', type: 'color' },
       { key: 'level', type: 'range' },
+      { key: 'tag', type: 'stencil' },
     ]);
     expect(schema).toEqual({
       properties: { height: { type: 'int32' } },
@@ -202,9 +203,18 @@ describe('formly schema', () => {
         width: { type: 'int32', nullable: true },
         accent: { type: 'string', nullable: true },
         level: { type: 'float64' },
+        tag: { type: 'string', nullable: true },
       },
     });
-    expect(validate(schema, { height: 1, width: null, accent: null })).toEqual([]);
+    expect(validate(schema, { height: 1, width: null, accent: null, tag: null })).toEqual([]);
+  });
+
+  it('is a list of tags for a hierarchical stencil', () => {
+    expect(formlySchema(config, [
+      { key: 'car', type: 'stencil', props: { template: 'car/<Make>/<Model>', hierarchical: true } },
+    ])).toEqual({
+      optionalProperties: { car: { elements: { type: 'string' }, nullable: true } },
+    });
   });
 
   it('merges keyed groups which appear more than once', () => {

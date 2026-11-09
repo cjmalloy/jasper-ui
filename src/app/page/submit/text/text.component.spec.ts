@@ -52,6 +52,81 @@ describe('SubmitTextPage', () => {
     expect(component.completedUploads()).not.toBe(previous);
   });
 
+  it('replaces the tags filled out from inputTag', () => {
+    component.store.submit.route.routeSnapshot.set({ queryParams: { inputTag: '+plugin/secret/<Name>' } } as any);
+    expect(component.inputTags()).toEqual(['+plugin/secret']);
+    component.setInputTags(['+plugin/secret/open']);
+    expect(component.tags.value).toContain('+plugin/secret/open');
+    component.setInputTags(['+plugin/secret/openai']);
+    expect(component.tags.value).toContain('+plugin/secret/openai');
+    expect(component.tags.value).not.toContain('+plugin/secret/open');
+    component.setInputTags(['+plugin/secret']);
+    expect(component.tags.value).not.toContain('+plugin/secret/openai');
+    expect(component.tags.value).toContain('+plugin/secret');
+  });
+
+  it('does not submit until the inputTag inputs are filled out', () => {
+    const create = vi.spyOn(TestBed.inject(RefService), 'create');
+    vi.spyOn(window, 'scroll').mockImplementation(() => {});
+    component.store.submit.route.routeSnapshot.set({ queryParams: { inputTag: '+plugin/secret/<Name>' } } as any);
+    component.title.setValue('Secret');
+    component.submit();
+    expect(create).not.toHaveBeenCalled();
+    expect(component.inputTagForm().form.touched).toBe(true);
+  });
+
+  it('adds a tag for each hierarchicalTag and needs every level to submit', () => {
+    const create = vi.spyOn(TestBed.inject(RefService), 'create');
+    vi.spyOn(window, 'scroll').mockImplementation(() => {});
+    component.store.submit.route.routeSnapshot.set({ queryParams: { hierarchicalTag: ['car/<Make>', 'car/<Make>/<Model>'] } } as any);
+    expect(component.inputTagForm().templates).toEqual(['car/<Make>/<Model>']);
+    component.title.setValue('Car');
+    component.setInputTags(['car/toyota', '']);
+    component.submit();
+    expect(create).not.toHaveBeenCalled();
+    component.setInputTags(['car/toyota', 'car/toyota/prius']);
+    expect(component.tags.value).toContain('car/toyota');
+    expect(component.tags.value).toContain('car/toyota/prius');
+  });
+
+  it('shows one input per hierarchicalTag line', () => {
+    component.store.submit.route.routeSnapshot.set({ queryParams: { hierarchicalTag: ['car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>'] } } as any);
+    expect(component.inputTagForm().templates).toEqual(['car/<Make>/<Model>/<Trim>']);
+    expect(component.inputTagForm().adds).toEqual([[false, true, true]]);
+  });
+
+  it('only adds a tag for each hierarchicalTag given', () => {
+    component.store.submit.route.routeSnapshot.set({ queryParams: { hierarchicalTag: 'car/<Make>/<Model>' } } as any);
+    component.setInputTags(['car/toyota', 'car/toyota/prius']);
+    expect(component.tags.value).toContain('car/toyota/prius');
+    expect(component.tags.value).not.toContain('car/toyota');
+    expect(component.writeRef().tags).not.toContain('car/toyota');
+  });
+
+  it('only adds valid inputTag tags', () => {
+    component.store.submit.route.routeSnapshot.set({ queryParams: { inputTag: 'car/<Make>' } } as any);
+    component.setInputTags(['car/Toyota']);
+    expect(component.tags.value).not.toContain('car/Toyota');
+    expect(component.tags.value).not.toContain('car');
+  });
+
+  it('never writes blank or invalid tags', () => {
+    component.setTags(['', 'science', 'Not Valid']);
+    expect(component.writeRef().tags).toEqual(['science']);
+  });
+
+  it('never makes a secret public', () => {
+    component.addTag('public');
+    expect(component.tags.value).toContain('public');
+    component.addTag('+plugin/secret/openai');
+    expect(component.tags.value).not.toContain('public');
+    component.addTag('public');
+    expect(component.tags.value).not.toContain('public');
+    component.setTags([...component.tags.value, 'public']);
+    expect(component.tags.value).not.toContain('public');
+    expect(component.writeRef().tags).not.toContain('public');
+  });
+
   it('should initialize a generated url for text posts', () => {
     expect(component.url.value).toMatch(/^comment:/);
   });

@@ -80,6 +80,20 @@ export function hasTag(tag: string | undefined, ref: Ref | string[] | undefined)
 }
 
 /**
+ * Secrets are tagged with `+plugin/secret` or `_plugin/secret`, or a child tag.
+ */
+export function isSecret(ref: Ref | string[] | undefined) {
+  return hasTag('+plugin/secret', ref) || hasTag('_plugin/secret', ref);
+}
+
+/**
+ * Secrets must never be public, so drop the public tag from them.
+ */
+export function notPublicSecret(tags: string[]) {
+  return isSecret(tags) ? without(tags, 'public') : tags;
+}
+
+/**
  * Keep only plugin data for tags present on the Ref. Plugin data is kept
  * when the Ref has the plugin tag or any of its child tags.
  */

@@ -7,12 +7,14 @@ import {
   forwardRef,
   inject,
   Injector,
+  linkedSignal,
   signal,
   untracked,
   viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
+  FormGroup,
   ReactiveFormsModule,
   UntypedFormArray,
   UntypedFormBuilder,
@@ -20,6 +22,7 @@ import {
   UntypedFormGroup
 } from '@angular/forms';
 import { Router } from '@angular/router';
+import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { isEqual, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
@@ -44,6 +47,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
+import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
@@ -51,8 +55,18 @@ import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { readFileAsString } from '../../../util/async';
 import { controlState, controlValue, scrollToFirstInvalid } from '../../../util/form';
+import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
+import {
+  filterInputTag,
+  hierarchicalTagTemplates,
+  inputTagLineTags,
+  inputTagValues,
+  matchesInputTag,
+  parseInputTag,
+  partialInputTag
+} from '../../../util/input-tag';
+import { getVisibilityTags, hasPrefix, hasTag, notPublicSecret } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-text',
@@ -62,6 +76,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   imports: [
     FakeLinkDirective,
     forwardRef(() => EditorComponent),
+    FormlyForm,
     ReactiveFormsModule,
     NavComponent,
     LoadingComponent,
@@ -84,6 +99,7 @@ export class SubmitTextPage implements HasChanges {
   private refs = inject(RefService);
   private exts = inject(ExtService);
   private ts = inject(TaggingService);
+  private auth = inject(AuthzService);
   private fb = inject(UntypedFormBuilder);
 
 
@@ -123,6 +139,53 @@ export class SubmitTextPage implements HasChanges {
   readonly savedRef = signal<Ref | undefined>(undefined);
   private cursor?: string;
   private readonly tagsValue = controlValue<string[]>(() => this.tags);
+  readonly inputTagForm = computed(() => {
+    const inputTags = this.store.submit.inputTags();
+    const hierarchicalTags = hierarchicalTagTemplates(this.store.submit.hierarchicalTags());
+    const templates = [...inputTags, ...hierarchicalTags.map(h => h.template)];
+    const keys = templates.map((_, i) => 'tag' + i);
+    const adds = [...inputTags.map(() => [true]), ...hierarchicalTags.map(h => h.adds)];
+    const parts = templates.map(t => filterInputTag(parseInputTag(t), tag => this.auth.canAddTag(tag)));
+    return {
+      keys,
+      templates,
+      parts,
+      adds,
+      form: new FormGroup({}),
+      model: Object.fromEntries(keys.map((k, i) => [k, i < inputTags.length
+        ? partialInputTag(parts[i], inputTagValues(parts[i])) || null
+        : inputTagLineTags(parts[i], inputTagValues(parts[i]))])) as Record<string, string | string[] | null>,
+      fields: templates.map((template, i): FormlyFieldConfig => i < inputTags.length ? {
+        key: keys[i],
+        type: 'stencil',
+        props: { template, required: true },
+      } : {
+        key: keys[i],
+        type: 'stencil',
+        props: { template, required: true, hierarchical: true },
+      }),
+    };
+  });
+  /**
+   * Tags from the inputTag query param, and from each line of the hierarchicalTag query param.
+   * Until they are filled out these are their known prefix.
+   */
+  readonly inputTags = linkedSignal(() => this.flatInputTags(this.inputTagForm().model));
+  /**
+   * The inputTags added to the Ref. Lines for hierarchicalTag levels that were not given are left out.
+   */
+  private addedInputTags(value = this.inputTags()) {
+    const adds = this.inputTagForm().adds.flat();
+    return value.filter((t, i) => t && adds[i]);
+  }
+
+  private flatInputTags(model: Record<string, string | string[] | null>) {
+    const { keys, adds } = this.inputTagForm();
+    return keys.flatMap((k, i) => {
+      const value = model[k];
+      return adds[i].map((_, l) => (Array.isArray(value) ? value[l] : value) || '');
+    });
+  }
 
   constructor() {
     const mod = this.mod;
@@ -215,7 +278,13 @@ export class SubmitTextPage implements HasChanges {
         if (edit.title) this.title.setValue(edit.title);
       });
     }
-    const allTags = [...this.store.submit.tags(), ...(this.store.account.localTag() ? [this.store.account.localTag()] : [])];
+    const allTags = [
+      ...this.store.submit.tags(),
+      ...this.addedInputTags(),
+      ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
+    ];
+    // The editor may start editing before the defaults load, and needs the tags to pick its initial toggles
+    this.addTag(...allTags);
     this.exts.getCachedExts(allTags).pipe(
       map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
       switchMap(xs => {
@@ -392,7 +461,23 @@ export class SubmitTextPage implements HasChanges {
   }
 
   setTags(value: string[]) {
-    fillTags(this.fb, this.tags, value);
+    fillTags(this.fb, this.tags, notPublicSecret(value));
+  }
+
+  setInputTagModel(model: Record<string, string | string[] | null>) {
+    this.setInputTags(this.flatInputTags(model));
+  }
+
+  setInputTags(value: string[]) {
+    value = value.map(t => TAG_REGEX.test(t) ? t : '');
+    const old = this.addedInputTags();
+    this.inputTags.set(value);
+    const now = this.addedInputTags(value);
+    const added = now.filter(t => !old.includes(t));
+    const removed = old.filter(t => !now.includes(t));
+    if (removed.length) fillTags(this.fb, this.tags, without(this.tags.value, ...removed));
+    this.addTag(...added);
+    this.textForm.markAsDirty();
   }
 
   validate(input: HTMLInputElement) {
@@ -406,6 +491,8 @@ export class SubmitTextPage implements HasChanges {
 
   addTag(...values: string[]) {
     addTags(this.fb, this.tags, ...values);
+    const tags = notPublicSecret(this.tags.value);
+    if (tags.length !== this.tags.length) fillTags(this.fb, this.tags, tags);
     this.submitted.set(false);
   }
 
@@ -448,7 +535,7 @@ export class SubmitTextPage implements HasChanges {
       title: this.title.value, // Need to pull separately if disabled by wiki mode
       origin: this.store.account.origin(),
       published: this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : publish ? DateTime.now() : undefined,
-      tags: uniq(this.textForm.value.tags),
+      tags: uniq(notPublicSecret(this.textForm.value.tags)).filter(t => TAG_REGEX.test(t)),
       plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
     };
   }
@@ -462,6 +549,19 @@ export class SubmitTextPage implements HasChanges {
     this.submitted.set(true);
     this.textForm.markAllAsTouched();
     this.syncEditor();
+    const inputTags = this.inputTagForm();
+    const filled = this.inputTags();
+    const ends = inputTags.adds.map((_, i) => inputTags.adds.slice(0, i + 1).flat().length - 1);
+    if (inputTags.parts.some((parts, i) => !matchesInputTag(parts, filled[ends[i]]))) {
+      inputTags.form.markAllAsTouched();
+      const invalid = document.querySelector<HTMLInputElement>('.stencil input.tag-input:invalid');
+      if (invalid) {
+        invalid.reportValidity();
+      } else {
+        window.scroll({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
     if (!this.textForm.valid) {
       scrollToFirstInvalid();
       return;

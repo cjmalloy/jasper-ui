@@ -1114,7 +1114,7 @@ export const llmPlugin: Plugin = {
   name: $localize`✨️ LLM Config`,
   config: {
     mod: $localize`✨️ AI Generation`,
-    version: 3,
+    version: 4,
     type: 'tool',
     default: false,
     inherit: true,
@@ -1156,10 +1156,10 @@ export const llmPlugin: Plugin = {
       },
     }, {
       key: 'apiKeyTag',
-      type: 'tag',
+      type: 'stencil',
       props: {
         label: $localize`🔑️ API Key Tag:`,
-        prefix: '+plugin/secret',
+        template: '+plugin,_plugin/secret/<Name>',
       },
     }, {
       key: 'model',
