@@ -135,8 +135,12 @@ describe('FormlyFieldStencil', () => {
     input.dispatchEvent(new InputEvent('input', { inputType: 'insertText' }));
     await fixture.whenStable();
     input.dispatchEvent(new Event('blur'));
-    expect(report).toHaveBeenCalled();
+    expect(report).toHaveBeenCalledTimes(1);
     expect(input.validationMessage).toBe('Must be lower case letters, numbers and periods.');
+    input.dispatchEvent(new Event('blur'));
+    expect(report).toHaveBeenCalledTimes(1);
+    input.dispatchEvent(new Event('blur'));
+    expect(report).toHaveBeenCalledTimes(2);
   });
 
   it('shows the preview of filled out inputs that are not being edited', async () => {
@@ -155,9 +159,22 @@ describe('FormlyFieldStencil', () => {
     expect(preview.style.display).toBe('none');
   });
 
+  it('drops the wrapper of a hierarchical field so it keeps the form columns', async () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.fields = [
+      { key: 'a', type: 'string', props: { label: 'A:' } },
+      { key: 'car', type: 'stencil', props: { label: 'Car:', template: 'car/<Make>/<Model>', hierarchical: true } },
+      { key: 'b', type: 'string', props: { label: 'B:' } },
+    ];
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('.stencil-field').length).toBe(1);
+    expect([...el.querySelectorAll('label')].map(l => l.textContent!.trim())).toEqual(['A:', 'Cars Make:', 'Cars Model:', 'B:']);
+  });
+
   it('fills out hierarchical tags top down', async () => {
     const fixture = TestBed.createComponent(Host);
-    fixture.componentInstance.fields = [{ key: 'tag', type: 'stencil', wrappers: [], props: { template: 'car/<Make>/<Model>', required: true, hierarchical: true } }];
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'stencil', props: { template: 'car/<Make>/<Model>', required: true, hierarchical: true } }];
     await fixture.whenStable();
     const el: HTMLElement = fixture.nativeElement;
     const field = fixture.debugElement.query(By.directive(FormlyFieldStencil)).componentInstance as FormlyFieldStencil;
@@ -189,7 +206,7 @@ describe('FormlyFieldStencil', () => {
 
   it('fills the following hierarchical lines after typing a slash when leaving the input', async () => {
     const fixture = TestBed.createComponent(Host);
-    fixture.componentInstance.fields = [{ key: 'tag', type: 'stencil', wrappers: [], props: { template: 'car/<Year>/<Make>/<Model>', required: true, hierarchical: true } }];
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'stencil', props: { template: 'car/<Year>/<Make>/<Model>', required: true, hierarchical: true } }];
     await fixture.whenStable();
     const el: HTMLElement = fixture.nativeElement;
     const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];

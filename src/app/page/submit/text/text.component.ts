@@ -162,7 +162,6 @@ export class SubmitTextPage implements HasChanges {
       } : {
         key: keys[i],
         type: 'stencil',
-        wrappers: [],
         props: { template, required: true, hierarchical: true },
       }),
     };

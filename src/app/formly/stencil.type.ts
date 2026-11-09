@@ -1,6 +1,6 @@
 import { afterNextRender, afterRenderEffect, Component, computed, ElementRef, inject, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyFieldConfig } from '@ngx-formly/core';
 import { isEqual, uniq, uniqBy } from 'lodash-es';
 import { catchError, forkJoin, map, of, switchMap, timer } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -34,7 +34,7 @@ type Suggestion = { value: string, label: string, tag: string };
  * With `props.hierarchical` each placeholder gets its own labelled line,
  * which is disabled until the lines above it are filled out and cleared
  * when they change. The value is the tag filled out up to the end of each
- * line. Use it without a wrapper, since it shows its own labels.
+ * line. It shows its own labels, so it never uses a wrapper.
  */
 @Component({
   selector: 'formly-field-stencil',
@@ -127,6 +127,11 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   private auth = inject(AuthzService);
   private editor = inject(EditorService);
   private el = inject<ElementRef<HTMLElement>>(ElementRef);
+  private reported = -1;
+
+  prePopulate(field: FormlyFieldConfig) {
+    if (field.props?.hierarchical) field.wrappers = [];
+  }
 
   readonly listId = 'stencil-' + uuid();
   readonly template = computed(() => this.props.template as string || '');
@@ -326,9 +331,16 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
     this.formControl.markAsTouched();
   }
 
+  /**
+   * Report an invalid input once, so leaving it again moves on like the tag input.
+   */
   validate(index: number, input: HTMLInputElement) {
     const message = this.invalidMessage(index, this.values()[index] || '');
-    if (!message) return;
+    if (!message || this.reported === index) {
+      this.reported = -1;
+      return;
+    }
+    this.reported = index;
     input.setCustomValidity(message);
     input.reportValidity();
   }

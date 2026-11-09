@@ -191,6 +191,16 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page).toHaveURL(/\/submit\/text/);
   });
 
+  test('clicking away twice leaves an invalid input', async ({ page }) => {
+    await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>', { waitUntil: 'networkidle' });
+    const inputs = page.locator('.stencil input.tag-input');
+    await inputs.nth(0).fill('Twenty');
+    await page.locator('#title').click();
+    await expect(inputs.nth(0)).toBeFocused();
+    await page.locator('#title').click();
+    await expect(page.locator('#title')).toBeFocused();
+  });
+
   test('shows one dropdown with every permutation of the prefix', async ({ page }) => {
     await page.goto('/submit/text?debug=ADMIN&inputTag=' + encodeURIComponent('+plugin,_plugin/secret,other/<Secret>'), { waitUntil: 'networkidle' });
     const select = page.locator('.stencil select');
