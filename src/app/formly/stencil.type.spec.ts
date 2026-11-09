@@ -154,6 +154,29 @@ describe('FormlyFieldStencil', () => {
     expect(fixture.componentInstance.form.valid).toBe(false);
   });
 
+  it('fills the following hierarchical fields when typing a slash', async () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.fields = [
+      { key: 'year', type: 'stencil', wrappers: [], props: { template: 'car/<Year>', required: true, hierarchical: true } },
+      { key: 'make', type: 'stencil', wrappers: [], props: { template: 'car/<Year>/<Make>', required: true, hierarchical: true, parentKey: 'year', parentTemplate: 'car/<Year>' } },
+      { key: 'model', type: 'stencil', wrappers: [], props: { template: 'car/<Year>/<Make>/<Model>', required: true, hierarchical: true, parentKey: 'make', parentTemplate: 'car/<Year>/<Make>' } },
+    ];
+    await fixture.whenStable();
+    const el: HTMLElement = fixture.nativeElement;
+    const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
+    inputs()[0].value = '2020/toyota/';
+    inputs()[0].dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(fixture.componentInstance.form.value).toEqual({ year: 'car/2020', make: 'car/2020/toyota', model: null });
+    expect(inputs().map(i => i.value)).toEqual(['2020', 'toyota', '']);
+    expect(document.activeElement).toBe(inputs()[2]);
+    inputs()[2].value = 'corolla/le';
+    inputs()[2].dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    expect(fixture.componentInstance.form.value).toEqual({ year: 'car/2020', make: 'car/2020/toyota', model: 'car/2020/toyota/corolla/le' });
+    expect(fixture.componentInstance.form.valid).toBe(true);
+  });
+
   it('is the known prefix and invalid until it is filled out', async () => {
     const { fixture, field } = await render('car/<Year>/<Make>');
     const form = fixture.componentInstance.form;

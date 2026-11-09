@@ -173,10 +173,14 @@ describe('spread inputTag', () => {
     expect(spreadInputTag(parts, inputTagDefaults(parts), 1, '2020/other/toyota')).toBeUndefined();
   });
 
-  it('keeps the value without a slash, in the rest input, or with too many segments', () => {
+  it('keeps the value without a slash or in the rest input', () => {
     expect(spreadInputTag(car, values, 1, '2020')).toBeUndefined();
     expect(spreadInputTag(car, values, 3, 'corolla/le')).toBeUndefined();
+  });
+
+  it('returns the segments left over', () => {
     const parts = parseInputTag('<Year>/end');
-    expect(spreadInputTag(parts, inputTagDefaults(parts), 0, '2020/end/more')).toBeUndefined();
+    expect(spreadInputTag(parts, inputTagDefaults(parts), 0, '2020/end/more/le')).toEqual({ values: ['2020', 'end'], last: 1, overflow: 'more/le' });
+    expect(spreadInputTag(parts, inputTagDefaults(parts), 0, '2020/end/')).toEqual({ values: ['2020', 'end'], last: 1, overflow: '' });
   });
 });

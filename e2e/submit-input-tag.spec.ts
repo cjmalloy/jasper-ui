@@ -182,6 +182,18 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.full-page.ref .tag', { hasText: 'Prius' })).toBeVisible();
   });
 
+  test('typing a slash fills the following hierarchical levels', async ({ page }) => {
+    await page.goto('/submit/text?debug=USER&hierarchicalTag=car/<Make>/<Model>/<Trim>', { waitUntil: 'networkidle' });
+    const [make, model, trim] = [0, 1, 2].map(i => page.locator('.stencil input.tag-input').nth(i));
+    await make.pressSequentially('toyota/corolla/l');
+    await expect(trim).toBeFocused();
+    await trim.pressSequentially('e');
+    await expect(make).toHaveValue('toyota');
+    await expect(model).toHaveValue('corolla');
+    await expect(trim).toHaveValue('le');
+    await expect(page.locator('.tag-field input.preview[title="car/toyota/corolla/le"]')).toBeAttached();
+  });
+
   test('fills out hierarchical tags without a prefix', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&hierarchicalTag=<Make>&hierarchicalTag=<Make>/<Model>', { waitUntil: 'networkidle' });
     await expect(page.locator('.hierarchical-tag-label')).toHaveText(['Make:', 'Model:']);

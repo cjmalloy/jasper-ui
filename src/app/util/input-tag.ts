@@ -93,8 +93,9 @@ export function resolveInputTag(parts: InputTagPart[], values: string[]) {
  * ones after it, so `2020/toyota` typed into `<Year>` also fills `<Make>`.
  * A placeholder takes one segment, a fixed part as many segments as its
  * options have, and the rest placeholder whatever is left. Parts after
- * the value are left as they are. Returns the new values and the index of
- * the last part filled, or undefined if the value does not fit.
+ * the value are left as they are. Returns the new values, the index of
+ * the last part filled and the segments left over, if any, or undefined
+ * if the value does not fit.
  */
 export function spreadInputTag(parts: InputTagPart[], values: string[], index: number, value: string) {
   const part = parts[index];
@@ -110,8 +111,7 @@ export function spreadInputTag(parts: InputTagPart[], values: string[], index: n
     result[i] = v;
     last = i;
   }
-  if (segments.length) return undefined;
-  return { values: result, last };
+  return { values: result, last, overflow: segments.length ? segments.join('/') : undefined };
 }
 
 /**

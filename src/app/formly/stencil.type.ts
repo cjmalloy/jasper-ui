@@ -1,4 +1,4 @@
-import { afterNextRender, afterRenderEffect, Component, computed, DestroyRef, ElementRef, inject, linkedSignal, signal, untracked } from '@angular/core';
+import { afterNextRender, afterRenderEffect, ChangeDetectorRef, Component, computed, DestroyRef, ElementRef, inject, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
 import { uniq, uniqBy } from 'lodash-es';
@@ -131,6 +131,7 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   private editor = inject(EditorService);
   private destroyRef = inject(DestroyRef);
   private el = inject<ElementRef<HTMLElement>>(ElementRef);
+  private cd = inject(ChangeDetectorRef);
 
   readonly listId = 'stencil-' + uuid();
   readonly template = computed(() => this.props.template as string || '');
@@ -146,7 +147,13 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
    */
   readonly filledTemplate = computed(() => hierarchicalTagTemplate(this.template(), this.parentTemplate(), this.parentTag()));
   readonly disabled = computed(() => !this.filledTemplate());
-  readonly parts = computed(() => filterInputTag(parseInputTag(this.filledTemplate() || this.template()), t => this.auth.canAddTag(t)));
+  /**
+   * A hierarchical field with child fields passes extra segments on to them,
+   * so its last placeholder is a single segment.
+   */
+  readonly hasChildren = computed(() => this.key !== undefined && !!this.field.parent?.fieldGroup?.some(f => f.props?.parentKey === this.key));
+  readonly parts = computed(() => filterInputTag(parseInputTag(this.filledTemplate() || this.template()), t => this.auth.canAddTag(t))
+    .map(p => p.rest && this.hasChildren() ? { ...p, rest: false } : p));
   readonly values = linkedSignal<InputTagPart[], string[]>({
     source: this.parts,
     computation: (parts, previous) => previous
@@ -256,6 +263,11 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
       ).subscribe(value => {
         this.parentTag.set(value);
         this.updateControl();
+        const overflow = this.formState.stencilOverflow;
+        if (overflow?.parentKey === this.props.parentKey) {
+          delete this.formState.stencilOverflow;
+          this.takeOverflow(overflow.value);
+        }
       });
     }
     // An optional field keeps its value until it is edited
@@ -322,21 +334,54 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
    * Typing a `/` fills the following inputs and moves to the last one filled.
    */
   type(index: number, input: HTMLInputElement) {
-    const spread = spreadInputTag(this.parts(), this.values(), index, input.value);
-    if (!spread) {
-      this.setValue(index, input.value);
+    const focus = this.fill(index, input.value);
+    if (focus === index) return;
+    input.value = this.values()[index];
+    if (focus === undefined) return;
+    const next = this.input(focus);
+    if (next) this.edit(focus, next);
+  }
+
+  /**
+   * Set the value typed into the placeholder at an index, spreading it over the
+   * following inputs and child fields. Returns the index of the input to edit next,
+   * or undefined if a child field takes over.
+   */
+  private fill(index: number, value: string) {
+    const spread = spreadInputTag(this.parts(), this.values(), index, value);
+    if (!spread || spread.overflow !== undefined && !this.hasChildren()) {
+      this.setValue(index, value);
       this.search(index);
-      return;
+      return index;
     }
     this.values.set(spread.values);
-    this.updateControl();
-    input.value = spread.values[index];
-    const next = this.el.nativeElement.querySelector<HTMLInputElement>(`input.tag-input[data-part="${spread.last}"]`);
-    if (next && next !== input) {
-      next.value = spread.values[spread.last];
-      this.edit(spread.last, next);
+    if (spread.overflow === undefined) {
+      this.updateControl();
+      this.search(spread.last);
+      return spread.last;
     }
-    this.search(spread.last);
+    this.formState.stencilOverflow = { parentKey: this.key, value: spread.overflow };
+    this.updateControl(true);
+    return undefined;
+  }
+
+  /**
+   * Fill out the extra segments typed into the parent field and edit the next input.
+   */
+  private takeOverflow(value: string) {
+    const index = this.parts().findIndex((p, i) => this.visible()[i] && !p.options);
+    if (index < 0) return;
+    const focus = this.fill(index, value);
+    if (focus === undefined) return;
+    // Render the new inputs now so typing continues in the next one
+    this.cd.detectChanges();
+    const input = this.input(focus);
+    if (!input) return;
+    this.edit(focus, input);
+  }
+
+  private input(index: number) {
+    return this.el.nativeElement.querySelector<HTMLInputElement>(`input.tag-input[data-part="${index}"]`);
   }
 
   /**
@@ -355,11 +400,11 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
     this.updateControl();
   }
 
-  private updateControl() {
+  private updateControl(emit = false) {
     const blank = !this.props.required && this.parts().every((p, i) => p.options || !this.values()[i]);
     const tag = (blank ? null : this.parentTemplate()
       ? this.filledTemplate() && resolveInputTag(this.parts(), this.values())
       : partialInputTag(this.parts(), this.values())) || null;
-    if (tag !== this.formControl.value) this.formControl.setValue(tag);
+    if (emit || tag !== this.formControl.value) this.formControl.setValue(tag);
   }
 }
