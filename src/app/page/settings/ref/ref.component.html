@@ -12,11 +12,11 @@
     <span><!-- Buttons --></span>
     <span class="buttons right">
       @if (writeAccess()) {
-        @if (plugin()!.config?.hasDefaults) {
+        @if (hasDefaults()) {
           <button type="button" (click)="loadDefaults()" i18n>🔁️ load defaults</button>
         }
-        @if (plugin()!.config?.hasClearCache) {
-          <button type="button" (click)="clearCache()">{{ plugin()!.config!.hasClearCache }}</button>
+        @if (hasClearCache()) {
+          <button type="button" (click)="clearCache()">{{ hasClearCache() }}</button>
         }
       }
   </span>

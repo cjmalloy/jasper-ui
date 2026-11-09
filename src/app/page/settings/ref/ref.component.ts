@@ -23,8 +23,25 @@ export class SettingsRefPage implements HasChanges {
   query = inject(QueryStore);
 
 
-  readonly plugin = computed(() => this.admin.getPlugin(this.store.view.settingsTag()));
-  readonly writeAccess = computed(() => this.auth.canAddTag(this.store.view.settingsTag()));
+  /**
+   * The plugins merged into this settings tab, or the plugin for the route.
+   */
+  readonly plugins = computed(() => {
+    const group = this.store.view.settingsGroup();
+    if (group.length) return group;
+    const plugin = this.admin.getPlugin(this.store.view.settingsTag());
+    return plugin ? [plugin] : [];
+  });
+  readonly plugin = computed(() => this.plugins()[0]);
+  readonly writeAccess = computed(() => this.plugins().some(p => this.auth.canAddTag(p.tag)) || this.auth.canAddTag(this.store.view.settingsTag()));
+  readonly hasDefaults = computed(() => this.plugins().some(p => p.config?.hasDefaults));
+  readonly hasClearCache = computed(() => this.plugins().find(p => p.config?.hasClearCache)?.config?.hasClearCache);
+  readonly settingsQuery = computed(() => {
+    const remotes = this.store.view.showRemotes();
+    const plugins = this.plugins();
+    if (!plugins.length) return this.store.view.settingsTag() + (remotes ? '' : '@');
+    return plugins.map(p => p.tag + (remotes ? '' : (p.origin || '@'))).join('|');
+  });
 
   readonly list = viewChild<RefListComponent>('list');
 
@@ -37,7 +54,7 @@ export class SettingsRefPage implements HasChanges {
     // Sync the document title
     effect(() => this.mod.setTitle($localize`Settings: ${this.plugin()?.config?.settings || this.store.view.settingsTag()}`));
     this.query.watch(() => getArgs(
-      this.store.view.settingsTag() + (this.store.view.showRemotes() ? '' : (this.plugin()?.origin || '@')),
+      this.settingsQuery(),
       this.store.view.sort(),
       [...without(this.store.view.filter(), 'obsolete', '!obsolete'), '!obsolete'],
       this.store.view.search(),
@@ -52,14 +69,18 @@ export class SettingsRefPage implements HasChanges {
   }
 
   loadDefaults() {
-    if (!this.plugin()?.config?.defaultsConfirm || confirm(this.plugin()?.config?.defaultsConfirm)) {
-      this.store.eventBus.fire(this.store.view.settingsTag() + ':defaults');
+    for (const p of this.plugins().filter(p => p.config?.hasDefaults)) {
+      if (!p.config?.defaultsConfirm || confirm(p.config.defaultsConfirm)) {
+        this.store.eventBus.fire(p.tag + ':defaults');
+      }
     }
   }
 
   clearCache() {
-    if (!this.plugin()?.config?.clearCacheConfirm || confirm(this.plugin()?.config?.clearCacheConfirm)) {
-      this.store.eventBus.fire(this.store.view.settingsTag() + ':clear-cache');
+    for (const p of this.plugins().filter(p => p.config?.hasClearCache)) {
+      if (!p.config?.clearCacheConfirm || confirm(p.config.clearCacheConfirm)) {
+        this.store.eventBus.fire(p.tag + ':clear-cache');
+      }
     }
   }
 }

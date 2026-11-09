@@ -242,6 +242,25 @@ export class ViewStore {
     return this.childTag();
   });
 
+  /**
+   * Settings tabs merged by their settings label, in order.
+   */
+  readonly settingsGroups = computed(() => {
+    const groups = new Map<string, Plugin[]>();
+    for (const p of this.settingsTabs()) {
+      const label = p.config?.settings || p.tag;
+      groups.set(label, [...groups.get(label) || [], p]);
+    }
+    return [...groups.values()];
+  });
+
+  /**
+   * The plugins merged into the current settings tab.
+   */
+  readonly settingsGroup = computed(() => {
+    return this.settingsGroups().find(g => g.some(p => p.tag === this.settingsTag())) || [];
+  });
+
   readonly settingsExt = computed(() => {
     return this.settingsTabs().find(t => t.tag === this.settingsTag()) as Ext;
   });
