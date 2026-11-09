@@ -1,4 +1,4 @@
-import { ConfigOption, FormlyFieldConfig } from '@ngx-formly/core';
+import { ConfigOption, FieldArrayType, FormlyFieldConfig } from '@ngx-formly/core';
 
 type TypeOption = NonNullable<ConfigOption['types']>[number];
 
@@ -25,7 +25,7 @@ export interface BuilderType {
   chain: string[];
   /** Wrapped in the form-field wrapper, which renders the label, hint and required marker. */
   formField: boolean;
-  /** A list, which renders its own label. */
+  /** A field array, such as a list, which renders its own label. */
   list: boolean;
 }
 
@@ -38,11 +38,14 @@ export function builderTypes(types: TypeOption[]): Map<string, BuilderType> {
   for (const type of [...types, { name: 'formly', extends: 'list' } as TypeOption]) {
     const chain: string[] = [];
     let wrappers: string[] | undefined;
+    let component: any;
     for (let t: TypeOption | undefined = type; t && !chain.includes(t.name); t = t.extends ? byName.get(t.extends) : undefined) {
       chain.push(t.name);
       wrappers ??= t.wrappers;
+      component ??= t.component;
     }
-    result.set(type.name, { chain, formField: !!wrappers?.includes('form-field'), list: chain.includes('list') });
+    const list = chain.includes('list') || component?.prototype instanceof FieldArrayType;
+    result.set(type.name, { chain, formField: !!wrappers?.includes('form-field'), list });
   }
   return result;
 }
@@ -262,6 +265,7 @@ export function formlyType(types: TypeOption[]): TypeOption {
           props: {
             label: $localize`Rows:`,
             placeholder: '1',
+            min: 1,
           },
         }, {
           key: 'props.prefix',

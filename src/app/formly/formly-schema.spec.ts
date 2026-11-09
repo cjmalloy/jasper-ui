@@ -175,14 +175,23 @@ describe('formly schema', () => {
       { key: 'features', type: 'geometries' },
     ]) as any;
     expect(isValidSchema(schema)).toBe(true);
-    expect(schema.optionalProperties.style).toEqual(geoStyleSchema);
+    expect(schema.optionalProperties.style).toEqual({ ...geoStyleSchema, nullable: true });
     expect(schema.optionalProperties.features).toEqual((geoFeatureCollectionPlugin.schema as any).properties.features);
     expect(validate(schema, {
       style: { color: '#ff0000', strokeWidth: 'small', name: 'x' },
       features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: [1, 2] } }],
     })).toEqual([]);
+    expect(validate(schema, { style: null })).toEqual([]);
     expect(validate(schema, { style: { strokeWidth: 'heavy' } })).not.toEqual([]);
     expect(validate(schema, { features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: 'here' } }] })).not.toEqual([]);
+  });
+
+  it('allows cleared geo styles in a list', () => {
+    const schema = formlySchema(config, [
+      { key: 'styles', type: 'list', fieldArray: { type: 'geo-style' } },
+    ]) as any;
+    expect(isValidSchema(schema)).toBe(true);
+    expect(validate(schema, { styles: [{ color: '#ff0000' }, null] })).toEqual([]);
   });
 
   it('is only a list of values for a multiple select', () => {

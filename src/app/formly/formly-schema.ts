@@ -53,6 +53,8 @@ function fieldSchema(config: FormlyConfig, field: FormlyFieldConfig): Schema {
   const chain = typeChain(config, merged.type as string);
   // Until it is filled out an optional stencil is null
   if (chain.includes('stencil')) return { ...schema, nullable: true };
+  // Clearing every property of an optional geo-style sets null
+  if (chain.includes('geo-style')) return { ...schema, nullable: true };
   if (!('type' in schema)) return schema;
   if (chain.includes('range')) return schema;
   // Optional durations may be null

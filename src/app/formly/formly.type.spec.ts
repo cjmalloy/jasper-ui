@@ -157,9 +157,11 @@ describe('formly type', () => {
       { key: 'g', type: 'code' },
       { key: 'h', type: 'boolean' },
       { key: 'i', type: 'typo' },
+      { key: 'j', type: 'geometries' },
+      { key: 'k', type: 'userMap' },
     ] });
     const keys = ['props.label', 'props.placeholder', 'props.hint', 'props.required'];
-    const [string, tags, geoStyle, range, duration, location, code, checkbox, unknown] = field.fieldGroup!;
+    const [string, tags, geoStyle, range, duration, location, code, checkbox, unknown, geometries, userMap] = field.fieldGroup!;
     expect(hidden(string, ...keys)).toEqual([]);
     expect(hidden(tags, ...keys)).toEqual(['props.placeholder', 'props.hint', 'props.required']);
     expect(hidden(geoStyle, ...keys)).toEqual(keys);
@@ -169,6 +171,8 @@ describe('formly type', () => {
     expect(hidden(code, ...keys)).toEqual(['props.placeholder']);
     expect(hidden(checkbox, ...keys)).toEqual(['props.placeholder']);
     expect(hidden(unknown, ...keys)).toEqual([]);
+    expect(hidden(geometries, ...keys)).toEqual(['props.placeholder', 'props.hint', 'props.required']);
+    expect(hidden(userMap, ...keys)).toEqual(['props.placeholder', 'props.hint', 'props.required']);
   });
 
   it('edits props only for the types which use them', async () => {

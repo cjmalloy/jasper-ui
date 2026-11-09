@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormGroup } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
+import { Store } from '../store/store';
 import { provideJasperFormly } from './formly.config';
 
 @Component({
@@ -17,7 +18,10 @@ class FormlyHost {
 
 describe('FormlyFieldSelect', () => {
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideJasperFormly()] });
+    TestBed.configureTestingModule({ providers: [
+      provideJasperFormly(),
+      { provide: Store, useValue: { hotkey: () => false } },
+    ] });
   });
 
   async function render(field: FormlyFieldConfig, model: any = {}) {
@@ -49,5 +53,11 @@ describe('FormlyFieldSelect', () => {
     const { select, empty } = await render({ key: 's', type: 'select', defaultValue: 'b', props: { options } });
     expect(empty!.hidden).toBe(true);
     expect(select.selectedOptions[0].textContent!.trim()).toBe('B');
+  });
+
+  it('hides the empty option in a list', async () => {
+    const { empty } = await render({ key: 's', type: 'list', fieldArray: { type: 'enum', props: { options } } }, { s: ['a'] });
+    expect(empty!.hidden).toBe(true);
+    expect(empty!.disabled).toBe(true);
   });
 });

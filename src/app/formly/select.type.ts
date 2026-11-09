@@ -43,8 +43,8 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
         } @else {
           <option class="select-empty"
                   [ngValue]="undefined"
-                  [disabled]="props.required"
-                  [hidden]="props.required || field.defaultValue !== undefined"></option>
+                  [disabled]="props.required || inList"
+                  [hidden]="props.required || inList || field.defaultValue !== undefined"></option>
         }
         @if (props.options | formlySelectOptions: field | async; as opts) {
           @for (opt of opts; track opt) {
@@ -70,6 +70,11 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
   ],
 })
 export class FormlyFieldSelect extends FieldType<FieldTypeConfig<SelectProps>> {
+  /** List items are always set, an empty item would write null into the list. */
+  get inList() {
+    return !!this.field.parent?.fieldArray;
+  }
+
   override defaultOptions = {
     props: {
       compareWith(o1: any, o2: any) {
