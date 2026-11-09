@@ -86,6 +86,7 @@ export interface RootConfig {
   submitText?: boolean;
   addTags?: string[];
   inputTags?: string[];
+  hierarchicalTags?: string[];
   defaultExpanded?: boolean;
   hideEdit?: boolean;
   disableResize?: boolean;
@@ -170,6 +171,20 @@ export interface RootConfig {
         label: $localize`Stencils:`,
         addText: $localize`+ Add another stencil`,
         title: $localize`Submit with an input for each <Placeholder>, such as car/<Make>/<Model>`,
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          placeholder: $localize`car/<Make>/<Model>`,
+        },
+      },
+    }, {
+      key: 'hierarchicalTags',
+      type: 'list',
+      props: {
+        label: $localize`Hierarchical Stencils:`,
+        addText: $localize`+ Add another hierarchical stencil`,
+        title: $localize`Submit with one line per <Placeholder>, filled out top down, adding the tag up to each line`,
       },
       fieldArray: {
         type: 'string',
@@ -309,6 +324,7 @@ export interface RootConfig {
       submitText: { type: 'boolean'},
       addTags: { elements: { type: 'string' } },
       inputTags: { elements: { type: 'string' } },
+      hierarchicalTags: { elements: { type: 'string' } },
       defaultExpanded: { type: 'boolean'},
       hideEdit: { type: 'boolean'},
       disableResize: { type: 'boolean'},
@@ -340,6 +356,11 @@ export interface RootConfig {
    * such as `car/<Make>/<Model>`. See the inputTag query param.
    */
   inputTags?: string[];
+  /**
+   * Submit with the text page, showing a line for each placeholder of these
+   * tag templates, such as `car/<Make>/<Model>`. See the hierarchicalTag query param.
+   */
+  hierarchicalTags?: string[];
   defaultExpanded?: boolean;
   hideEdit?: boolean;
   disableResize?: boolean;

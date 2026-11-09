@@ -129,7 +129,7 @@ export class SidebarComponent {
   readonly writeAccess = computed(() => !!this.tag() && this.auth.tagWriteAccess(this.tag()));
   readonly ui = computed(() => this.tag() ? this.admin.getTemplateUi(this.tag()) : []);
   genUrl = 'internal:' + uuid();
-  readonly submitInputTags = computed(() => this.inputTags(this.plugin()));
+  readonly submitInputTags = computed(() => [...this.inputTags(this.plugin()), ...this.hierarchicalTags()]);
   readonly submitTextParams = computed(() => this.textParams(this.plugin(), this.addTags(), this.genUrl));
   /**
    * One submit button per plugin when several plugins are merged into one settings tab.
@@ -143,7 +143,7 @@ export class SidebarComponent {
           .filter(tag => this.auth.canAddTag(tag));
         const genUrl = 'internal:' + uuid();
         const label = p.config?.submit || p.name || p.tag;
-        if (p.config?.submitText || this.rootConfig()?.submitText || this.inputTags(p).length) {
+        if (p.config?.submitText || this.rootConfig()?.submitText || this.inputTags(p).length || this.hierarchicalTags().length) {
           return { tag: p.tag, label, link: '/submit/text', params: this.textParams(p, addTags, genUrl) };
         }
         if (p.config?.submit && p.config?.genId) {
@@ -160,14 +160,21 @@ export class SidebarComponent {
     return uniq([...plugin?.config?.inputTags || [], ...this.rootConfig()?.inputTags || []].filter(t => t));
   }
 
+  /**
+   * Hierarchical stencils from the Ext.
+   */
+  readonly hierarchicalTags = computed(() => uniq((this.rootConfig()?.hierarchicalTags || []).filter(t => t)));
+
   private textParams(plugin: Plugin | undefined, addTags: string[], genUrl: string) {
     const inputTags = this.inputTags(plugin);
-    if (!inputTags.length) return { tag: addTags, location: this.location() };
-    const prefixes = inputTags.flatMap(t => parseInputTag(t)[0].options || []);
+    const hierarchicalTags = this.hierarchicalTags();
+    if (!inputTags.length && !hierarchicalTags.length) return { tag: addTags, location: this.location() };
+    const prefixes = [...inputTags, ...hierarchicalTags].flatMap(t => parseInputTag(t)[0].options || []);
     return {
       tag: addTags.filter(t => !prefixes.includes(t)),
       location: this.location(),
-      inputTag: inputTags,
+      inputTag: inputTags.length ? inputTags : undefined,
+      hierarchicalTag: hierarchicalTags.length ? hierarchicalTags : undefined,
       url: plugin?.config?.genId ? genUrl : undefined,
     };
   }

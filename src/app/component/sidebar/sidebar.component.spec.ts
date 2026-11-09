@@ -69,6 +69,19 @@ describe('SidebarComponent', () => {
     expect(params.tag).not.toContain('car');
   });
 
+  it('should submit with the Ext hierarchical stencils', () => {
+    vi.spyOn(TestBed.inject(AuthzService), 'canAddTag').mockReturnValue(true);
+    vi.spyOn(component, 'rootConfig').mockReturnValue({ addTags: ['public', 'car'], hierarchicalTags: ['car/<Make>/<Model>'] });
+    fixture.componentRef.setInput('tag', 'car');
+
+    expect(component.submitInputTags()).toEqual(['car/<Make>/<Model>']);
+    const params = component.submitTextParams() as any;
+    expect(params.hierarchicalTag).toEqual(['car/<Make>/<Model>']);
+    expect(params.inputTag).toBeUndefined();
+    expect(params.tag).toContain('public');
+    expect(params.tag).not.toContain('car');
+  });
+
   it('should not split the submit button for a single plugin', () => {
     fixture.componentRef.setInput('group', [{ tag: '+plugin/secret', config: { submit: 'secret' } }]);
     expect(component.pluginSubmits()).toEqual([]);

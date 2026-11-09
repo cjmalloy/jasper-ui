@@ -3974,6 +3974,18 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>+ Add another stencil</source>
         <target>+ ステンシルを追加</target>
       </trans-unit>
+      <trans-unit id="5786238445551029096" datatype="html">
+        <source>Hierarchical Stencils:</source>
+        <target>階層ステンシル:</target>
+      </trans-unit>
+      <trans-unit id="5910815838179386491" datatype="html">
+        <source>+ Add another hierarchical stencil</source>
+        <target>+ 階層ステンシルを追加</target>
+      </trans-unit>
+      <trans-unit id="3752688656697761926" datatype="html">
+        <source>Submit with one line per &lt;Placeholder&gt;, filled out top down, adding the tag up to each line</source>
+        <target>&lt;Placeholder&gt; ごとに1行を表示し、上から順に入力して、各行までのタグを追加して投稿します</target>
+      </trans-unit>
       <trans-unit id="8746068517837202171" datatype="html">
         <source>Submit with an input for each &lt;Placeholder&gt;, such as car/&lt;Make&gt;/&lt;Model&gt;</source>
         <target>car/&lt;Make&gt;/&lt;Model&gt; のように、&lt;Placeholder&gt; ごとに入力欄を表示して投稿します</target>
