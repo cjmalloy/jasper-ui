@@ -338,21 +338,22 @@ describe('EditorComponent', () => {
     expect(component.toggleIndex()).toBe(1);
   });
 
-  it('ignores the remembered public editor for private settings', () => {
+  it('ignores the remembered public editor for settings', () => {
     vi.spyOn(TestBed.inject(AdminService), 'getEditorButtons').mockReturnValue([
       { toggle: 'public', global: true, _parent: { tag: 'public' } },
     ] as any);
-    vi.spyOn(TestBed.inject(AdminService), 'privateSettings').mockImplementation(tags => !!tags?.includes('+plugin/secret'));
+    vi.spyOn(TestBed.inject(AdminService), 'getPluginSettings').mockImplementation(tags => tags?.includes('+plugin/secret') ? [{ tag: '+plugin/secret' }] as any : []);
     vi.spyOn(TestBed.inject(AuthzService), 'canAddTag').mockReturnValue(true);
     vi.spyOn(TestBed.inject(Store).account, 'defaultEditors').mockReturnValue(['public']);
-    const init = (tag: string) => {
+    const init = (...tags: string[]) => {
       const f = TestBed.createComponent(EditorComponent);
       f.componentRef.setInput('control', new UntypedFormControl());
-      f.componentRef.setInput('tags', new UntypedFormArray([new UntypedFormControl(tag)]));
+      f.componentRef.setInput('tags', new UntypedFormArray(tags.map(t => new UntypedFormControl(t))));
       f.detectChanges();
       return f.componentInstance.initTags();
     };
     expect(init('+plugin/secret')).toEqual(['+plugin/secret']);
+    expect(init('public', '+plugin/secret')).toEqual(['public', '+plugin/secret']);
     expect(init('plugin/note')).toEqual(['public', 'plugin/note']);
   });
 

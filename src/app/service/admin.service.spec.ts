@@ -281,21 +281,6 @@ describe('AdminService', () => {
     expect(scrapePlugin.config?.form?.find(f => f.key === 'textSelectors')?.expressions?.hide).toBe('!field.parent.model.text');
   });
 
-  it('should make settings private unless public is added back to addTags', () => {
-    (service as any).updateStatus((status: any) => {
-      status.plugins['+plugin/secret'] = { tag: '+plugin/secret', config: { settings: true } };
-      status.plugins['plugin/note'] = { tag: 'plugin/note', config: {} };
-      status.templates[''] = { tag: '', defaults: { addTags: ['public'] } };
-    });
-    expect(service.privateSettings(['public', '+plugin/secret'])).toBe(true);
-    expect(service.privateSettings(['public', 'plugin/note'])).toBe(false);
-    expect(service.privateSettings(['+plugin/secret'], ['public'])).toBe(false);
-    (service as any).updateStatus((status: any) => status.templates['plugin/secret'] = {
-      tag: 'plugin/secret', defaults: { addTags: ['public', 'plugin/pinned'] },
-    });
-    expect(service.privateSettings(['+plugin/secret'])).toBe(false);
-  });
-
   it('should not mutate installed plugin icons or buttons', () => {
     const icon = { label: '🧪️' };
     const button = { label: '🧪️', ribbon: true };

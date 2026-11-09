@@ -10,7 +10,7 @@ import {
 } from '@maplibre/ngx-maplibre-gl';
 import { provideMaplibreWorker } from '@maplibre/ngx-maplibre-gl/config';
 import type { FeatureCollection } from 'geojson';
-import { isEqual, without } from 'lodash-es';
+import { isEqual } from 'lodash-es';
 import type { GeoJSONSource, MapMouseEvent } from 'maplibre-gl';
 import { LngLatBounds, Map, Marker } from 'maplibre-gl';
 import { catchError, filter, forkJoin, map as rxMap, of, switchMap } from 'rxjs';
@@ -269,8 +269,7 @@ export class MapComponent implements HasChanges {
     const rootConfig = root
       ? (submitExt?.config || (tag && this.admin.getTemplate(tag)?.defaults) || root.defaults) as RootConfig
       : undefined;
-    const tags = getAddTags(tag, plugin, rootConfig, home).filter(t => this.auth.canAddTag(t));
-    return this.admin.privateSettings(tags, submitExt?.config?.addTags) ? without(tags, 'public') : tags;
+    return getAddTags(tag, plugin, rootConfig, home).filter(t => this.auth.canAddTag(t));
   });
 
   private cancelSearchActivation() {
