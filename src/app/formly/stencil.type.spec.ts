@@ -69,7 +69,7 @@ describe('FormlyFieldStencil', () => {
     inputs()[0].focus();
     const type = async (value: string) => {
       inputs()[0].value = value;
-      inputs()[0].dispatchEvent(new Event('input'));
+      inputs()[0].dispatchEvent(new InputEvent('input', { inputType: 'insertText' }));
       await fixture.whenStable();
     };
     await type('2020/toyota/');
@@ -92,7 +92,7 @@ describe('FormlyFieldStencil', () => {
     const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
     const type = async (i: number, value: string) => {
       inputs()[i].value = value;
-      inputs()[i].dispatchEvent(new Event('input'));
+      inputs()[i].dispatchEvent(new InputEvent('input', { inputType: 'insertText' }));
       await fixture.whenStable();
     };
     await type(0, 'Twenty');
@@ -113,7 +113,7 @@ describe('FormlyFieldStencil', () => {
     input.dispatchEvent(new Event('blur'));
     expect(report).not.toHaveBeenCalled();
     input.value = 'Twenty';
-    input.dispatchEvent(new Event('input'));
+    input.dispatchEvent(new InputEvent('input', { inputType: 'insertText' }));
     await fixture.whenStable();
     input.dispatchEvent(new Event('blur'));
     expect(report).toHaveBeenCalled();
@@ -188,12 +188,12 @@ describe('FormlyFieldStencil', () => {
     const el: HTMLElement = fixture.nativeElement;
     const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
     inputs()[0].value = '2020/toyota/';
-    inputs()[0].dispatchEvent(new Event('input'));
+    inputs()[0].dispatchEvent(new InputEvent('input', { inputType: 'insertText' }));
     await fixture.whenStable();
     expect(fixture.componentInstance.form.value).toEqual({ year: 'car/2020', make: 'car/2020/toyota', model: null });
     expect(inputs().map(i => i.value)).toEqual(['2020/toyota/', 'toyota', '']);
     inputs()[2].value = 'corolla/le';
-    inputs()[2].dispatchEvent(new Event('input'));
+    inputs()[2].dispatchEvent(new InputEvent('input', { inputType: 'insertText' }));
     await fixture.whenStable();
     expect(fixture.componentInstance.form.value).toEqual({ year: 'car/2020', make: 'car/2020/toyota', model: 'car/2020/toyota/corolla/le' });
     expect(fixture.componentInstance.form.valid).toBe(true);
@@ -297,9 +297,6 @@ describe('FormlyFieldStencil', () => {
     inputs()[0].dispatchEvent(new InputEvent('input', { inputType: 'insertReplacementText' }));
     await fixture.whenStable();
     expect(document.activeElement).toBe(inputs()[0]);
-    expect(inputs().map(i => i.value)).toEqual(['jasper/bugs', 'bugs']);
-    inputs()[0].dispatchEvent(new Event('blur'));
-    await fixture.whenStable();
     expect(inputs().map(i => i.value)).toEqual(['jasper', 'bugs']);
     expect(field.formControl.value).toBe('kanban/jasper/bugs');
   });

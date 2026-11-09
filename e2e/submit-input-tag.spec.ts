@@ -58,7 +58,20 @@ test.describe.serial('Submit inputTag', () => {
       input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertReplacementText' }));
     });
     await expect(board1).toBeFocused();
+    await expect(board1).toHaveValue('jasper');
     await expect(board2).toHaveValue('bugs');
+    // Typing after a slash types into the next input
+    await board1.press('End');
+    await board1.press('/');
+    await expect(board2).toHaveValue('');
+    for (const [key, value] of [['t', 't'], ['o', 'to'], ['d', 'tod'], ['o', 'todo']]) {
+      await board1.press(key);
+      await expect(board2).toHaveValue(value);
+    }
+    await expect(board1).toBeFocused();
+    await expect(board1).toHaveValue('jasper/todo');
+    await expect(page.locator('.tag-field input.preview[title="kanban/jasper/todo"]')).toBeAttached();
+    await board1.fill('jasper/bugs');
     await board1.fill('');
     await expect(board2).toHaveValue('');
     await board2.focus();

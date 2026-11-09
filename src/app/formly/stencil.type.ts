@@ -357,8 +357,16 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
    * Typing a `/` fills the following inputs and moves to the last one filled.
    */
   type(index: number, input: HTMLInputElement, event?: Event) {
-    if (!(event instanceof InputEvent) || event.inputType === 'insertReplacementText') this.fillBefore(index, input.value);
-    this.spread.set(this.fill(index, input.value));
+    const picked = !(event instanceof InputEvent) || event.inputType === 'insertReplacementText';
+    if (picked) this.fillBefore(index, input.value);
+    const spread = this.fill(index, input.value);
+    if (picked && spread) {
+      // A picked suggestion only shows its own part
+      this.spread.set(null);
+      input.value = this.values()[index];
+    } else {
+      this.spread.set(spread);
+    }
   }
 
   /**
