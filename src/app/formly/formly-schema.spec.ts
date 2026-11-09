@@ -16,7 +16,8 @@ import {
   optionalFields,
   typeChain
 } from './formly-schema';
-import { geoFeaturesSchema, geoStyleSchema } from '../util/geo-style';
+import { geoFeaturesSchema } from '../mods/map';
+import { geoStyleSchema } from '../util/geo-style';
 import { provideJasperFormly } from './formly.config';
 
 describe('formly schema', () => {

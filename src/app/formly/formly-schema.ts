@@ -2,7 +2,8 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
 import { Schema } from 'jtd';
 import { cloneDeep, defaultsDeep, isObject, isPlainObject } from 'lodash-es';
-import { geoFeaturesSchema, geoStyleSchema } from '../util/geo-style';
+import { geoFeaturesSchema } from '../mods/map';
+import { geoStyleSchema } from '../util/geo-style';
 
 type ObjectSchema = { properties?: Record<string, Schema>, optionalProperties?: Record<string, Schema> };
 
