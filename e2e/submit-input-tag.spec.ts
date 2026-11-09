@@ -60,20 +60,18 @@ test.describe.serial('Submit inputTag', () => {
     await expect(board1).toBeFocused();
     await expect(board1).toHaveValue('jasper');
     await expect(board2).toHaveValue('bugs');
-    // Typing after a slash types into the next input
+    // Typing after a slash stays in this input until leaving it
     await board1.press('End');
-    await board1.press('/');
-    await expect(board2).toHaveValue('');
-    for (const [key, value] of [['t', 't'], ['o', 'to'], ['d', 'tod'], ['o', 'todo']]) {
-      await board1.press(key);
-      await expect(board2).toHaveValue(value);
-    }
+    await board1.pressSequentially('/todo');
     await expect(board1).toBeFocused();
     await expect(board1).toHaveValue('jasper/todo');
+    await expect(board2).toHaveValue('bugs');
+    await page.locator('#title').focus();
+    await expect(board1).toHaveValue('jasper');
+    await expect(board2).toHaveValue('todo');
     await expect(page.locator('.tag-field input.preview[title="kanban/jasper/todo"]')).toBeAttached();
-    await board1.fill('jasper/bugs');
     await board1.fill('');
-    await expect(board2).toHaveValue('');
+    await board2.fill('');
     await board2.focus();
     await expect(page.locator(`datalist[id="${await board2.getAttribute('list')}"] option[value="bugs"]`)).toHaveCount(1);
     // Pick from the datalist
@@ -148,17 +146,20 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.full-page.ref .tag', { hasText: 'TOYOTA' })).toBeVisible();
   });
 
-  test('typing a slash fills the following inputs', async ({ page }) => {
+  test('typing a slash fills the following inputs when leaving the input', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>/<Model>', { waitUntil: 'networkidle' });
     const inputs = page.locator('.stencil input.tag-input');
     await inputs.nth(0).pressSequentially('2021/ford/focus');
     await expect(inputs.nth(0)).toBeFocused();
+    await expect(inputs.nth(1)).toHaveValue('');
+    await expect(inputs.nth(2)).toHaveValue('');
+    await page.locator('#title').focus();
+    await expect(inputs.nth(0)).toHaveValue('2021');
     await expect(inputs.nth(1)).toHaveValue('ford');
     await expect(inputs.nth(2)).toHaveValue('focus');
     await expect(page.locator('.tag-field input.preview[title="car/2021/ford/focus"]')).toBeAttached();
-    await page.locator('#title').focus();
-    await expect(inputs.nth(0)).toHaveValue('2021');
     await inputs.nth(0).fill('2020/toyota/corolla/le');
+    await page.locator('#title').focus();
     await expect(page.locator('.tag-field input.preview[title="car/2020/toyota/corolla/le"]')).toBeAttached();
   });
 
@@ -225,12 +226,12 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.full-page.ref .tag', { hasText: 'Prius' })).toBeVisible();
   });
 
-  test('typing a slash fills the following hierarchical levels', async ({ page }) => {
+  test('typing a slash fills the following hierarchical levels when leaving the input', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&hierarchicalTag=car/<Make>/<Model>/<Trim>', { waitUntil: 'networkidle' });
     const [make, model, trim] = [0, 1, 2].map(i => page.locator('.stencil input.tag-input').nth(i));
     await make.pressSequentially('toyota/corolla/le');
     await expect(make).toBeFocused();
-    await expect(trim).toHaveValue('le');
+    await expect(trim).toHaveValue('');
     await page.locator('#title').focus();
     await expect(make).toHaveValue('toyota');
     await expect(model).toHaveValue('corolla');

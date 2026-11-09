@@ -63,7 +63,7 @@ describe('FormlyFieldStencil', () => {
     expect(el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')[1].placeholder).toBe('Make');
   });
 
-  it('fills the following inputs when typing a slash without moving focus', async () => {
+  it('fills the following inputs after typing a slash when leaving the input', async () => {
     const { fixture, field, el } = await render('car/<Year>/<Make>/<Model>');
     const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
     inputs()[0].focus();
@@ -73,14 +73,17 @@ describe('FormlyFieldStencil', () => {
       await fixture.whenStable();
     };
     await type('2020/toyota/');
-    expect(inputs().map(i => i.value)).toEqual(['2020/toyota/', 'toyota', '']);
+    expect(inputs().map(i => i.value)).toEqual(['2020/toyota/', '', '']);
     await type('2020/toyota/corolla');
     expect(document.activeElement).toBe(inputs()[0]);
-    expect(field.formControl.value).toBe('car/2020/toyota/corolla');
+    expect(inputs().map(i => i.value)).toEqual(['2020/toyota/corolla', '', '']);
     expect(inputs()[0].validity.valid).toBe(true);
-    await type('2020');
-    expect(inputs().map(i => i.value)).toEqual(['2020', '', '']);
+    inputs()[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    await fixture.whenStable();
+    expect(inputs().map(i => i.value)).toEqual(['2020', 'toyota', 'corolla']);
+    expect(field.formControl.value).toBe('car/2020/toyota/corolla');
     await type('2020/honda/civic');
+    expect(inputs().map(i => i.value)).toEqual(['2020/honda/civic', 'toyota', 'corolla']);
     inputs()[0].dispatchEvent(new Event('blur'));
     await fixture.whenStable();
     expect(inputs().map(i => i.value)).toEqual(['2020', 'honda', 'civic']);
@@ -190,8 +193,11 @@ describe('FormlyFieldStencil', () => {
     inputs()[0].value = '2020/toyota/';
     inputs()[0].dispatchEvent(new InputEvent('input', { inputType: 'insertText' }));
     await fixture.whenStable();
+    expect(inputs().map(i => i.value)).toEqual(['2020/toyota/', '', '']);
+    inputs()[0].dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
     expect(fixture.componentInstance.form.value).toEqual({ year: 'car/2020', make: 'car/2020/toyota', model: null });
-    expect(inputs().map(i => i.value)).toEqual(['2020/toyota/', 'toyota', '']);
+    expect(inputs().map(i => i.value)).toEqual(['2020', 'toyota', '']);
     inputs()[2].value = 'corolla/le';
     inputs()[2].dispatchEvent(new InputEvent('input', { inputType: 'insertText' }));
     await fixture.whenStable();

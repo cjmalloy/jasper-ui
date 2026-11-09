@@ -75,7 +75,8 @@ import {
                  [disabled]="disabled()"
                  [class.hidden-without-removing]="placeholderNames()[i]"
                  (focus)="edit(i, input); search(i)"
-                 (blur)="blur(i); validate(i, input)"
+                 (blur)="blur(i, input); validate(i, input)"
+                 (keydown.enter)="commit(i, input)"
                  [attr.data-part]="i"
                  (input)="type(i, input, $event)">
         } @else if (p.options.length === 1) {
@@ -184,9 +185,9 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   private suggestedTags = new Map<string, string[]>();
   readonly editing = signal(-1);
   /**
-   * The input still showing the text typed with slashes, and the last part it filled.
+   * Text typed with slashes into an input, which fills the following inputs once committed.
    */
-  readonly spread = signal<{ index: number, last: number, text: string } | null>(null);
+  readonly spread = signal<{ index: number, text: string } | null>(null);
 
   private readonly previews = rxResource({
     params: () => uniq([...this.parts().flatMap(p => p.options || []), ...this.leading() ? [this.leading()] : []]),
@@ -284,7 +285,8 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
         const parts = this.parts();
         const values = this.values();
         const part = parts[index];
-        const value = values[index] || '';
+        const spread = this.spread();
+        const value = (spread?.index === index ? spread.text : values[index]) || '';
         let query = inputTagQuery(parts, values, index);
         let search = value;
         if (part.rest && value.includes('/')) {
@@ -335,8 +337,8 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
     input.focus();
   }
 
-  blur(index: number) {
-    if (this.spread()?.index === index) this.spread.set(null);
+  blur(index: number, input: HTMLInputElement) {
+    this.commit(index, input);
     this.editing.set(-1);
     this.formControl.markAsTouched();
   }
@@ -357,16 +359,32 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
    * Typing a `/` fills the following inputs and moves to the last one filled.
    */
   type(index: number, input: HTMLInputElement, event?: Event) {
-    const picked = !(event instanceof InputEvent) || event.inputType === 'insertReplacementText';
-    if (picked) this.fillBefore(index, input.value);
-    const spread = this.fill(index, input.value);
-    if (picked && spread) {
-      // A picked suggestion only shows its own part
-      this.spread.set(null);
-      input.value = this.values()[index];
-    } else {
-      this.spread.set(spread);
+    const typed = event instanceof InputEvent && event.inputType !== 'insertReplacementText' && event.inputType !== 'insertFromPaste';
+    if (typed && input.value.includes('/') && this.spreads(index, input.value)) {
+      // Keep typing in this input until it is committed
+      this.spread.set({ index, text: input.value });
+      this.search(index);
+      return;
     }
+    this.spread.set(null);
+    if (!typed) this.fillBefore(index, input.value);
+    if (this.fill(index, input.value)) input.value = this.values()[index];
+  }
+
+  /**
+   * Fill the following inputs with the text typed with slashes into an input.
+   */
+  commit(index: number, input: HTMLInputElement) {
+    const spread = this.spread();
+    if (spread?.index !== index) return;
+    this.spread.set(null);
+    this.fill(index, spread.text);
+    input.value = this.values()[index];
+  }
+
+  private spreads(index: number, value: string) {
+    const spread = spreadInputTag(this.parts(), this.values(), index, value);
+    return !!spread && (spread.overflow === undefined ? spread.last > index : this.hasChildren());
   }
 
   /**
@@ -388,22 +406,14 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
 
   /**
    * Set the value typed into the placeholder at an index, spreading it over the
-   * following inputs and child fields. Returns the parts it was spread over,
-   * or null if it was kept in its own input.
+   * following inputs and child fields. Returns true if it was spread.
    */
   private fill(index: number, value: string) {
-    const parts = this.parts();
-    const spread = spreadInputTag(parts, this.values(), index, value);
+    const spread = spreadInputTag(this.parts(), this.values(), index, value);
     if (!spread || spread.overflow !== undefined && !this.hasChildren()) {
-      const previous = this.spread();
-      if (previous?.index === index) {
-        // Clear the inputs filled before the slash was removed
-        const defaults = inputTagDefaults(parts);
-        this.values.update(values => values.map((v, i) => i > index && i <= previous.last ? defaults[i] : v));
-      }
       this.setValue(index, value);
       this.search(index);
-      return null;
+      return false;
     }
     this.values.set(spread.values);
     if (spread.overflow === undefined) {
@@ -413,7 +423,7 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
       this.updateControl(true);
     }
     this.search(index);
-    return { index, last: spread.overflow === undefined ? spread.last : parts.length - 1, text: value };
+    return true;
   }
 
   /**
