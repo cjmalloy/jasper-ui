@@ -39,7 +39,7 @@ test.describe.serial('Submit inputTag', () => {
       expect(res.ok(), await res.text()).toBeTruthy();
     }
     await page.goto('/submit/text?debug=USER&inputTag=kanban/<Board>', { waitUntil: 'networkidle' });
-    const board = page.locator('.input-tag input');
+    const board = page.locator('.input-tag input.tag-input');
     await board.focus();
     await expect(await options(board)).toHaveCount(2);
     await expect((await options(board)).nth(1)).toHaveAttribute('value', 'jasper/bugs');
@@ -52,8 +52,8 @@ test.describe.serial('Submit inputTag', () => {
     const rows = page.locator('.input-tag');
     await expect(rows).toHaveCount(2);
     await expect(rows.first().locator('.tag-preview')).toHaveAttribute('title', 'car');
-    await expect(rows.first().locator('input')).toHaveCount(2);
-    await expect(rows.nth(1).locator('input')).toHaveAttribute('placeholder', 'Color');
+    await expect(rows.first().locator('input.tag-input')).toHaveCount(2);
+    await expect(rows.nth(1).locator('input.tag-input')).toHaveAttribute('placeholder', 'Color');
     const inputTop = (await rows.first().boundingBox())!.y;
     const titleTop = (await page.locator('#title').boundingBox())!.y;
     expect(inputTop).toBeLessThan(titleTop);
@@ -61,7 +61,7 @@ test.describe.serial('Submit inputTag', () => {
 
   test('suggests all possibilities out of order and pares them down in order', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>', { waitUntil: 'networkidle' });
-    const [year, make] = [page.locator('.input-tag input').first(), page.locator('.input-tag input').nth(1)];
+    const [year, make] = [page.locator('.input-tag input.tag-input').first(), page.locator('.input-tag input.tag-input').nth(1)];
     await make.focus();
     await expect(await options(make)).toHaveCount(3);
     await expect((await options(make)).first()).toHaveText('HONDA');
@@ -86,7 +86,7 @@ test.describe.serial('Submit inputTag', () => {
   test('adds the filled out tags and submits', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>&inputTag=color/<Color>', { waitUntil: 'networkidle' });
     await page.locator('#title').fill('Car');
-    const inputs = page.locator('.input-tag input');
+    const inputs = page.locator('.input-tag input.tag-input');
     await inputs.nth(1).fill('toyota');
     await inputs.nth(2).fill('red');
     await expect(page.locator('.tag-field input.preview[title="color/red"]')).toBeAttached();
@@ -96,6 +96,13 @@ test.describe.serial('Submit inputTag', () => {
 
     await inputs.nth(0).fill('2020');
     await expect(page.locator('.tag-field input.preview[title="car/2020/toyota"]')).toBeAttached();
+    const preview = page.locator('.input-tag input.preview[title="car/2020/toyota"]');
+    await expect(preview).toHaveValue('TOYOTA');
+    await expect(inputs.nth(1)).toHaveClass(/hidden-without-removing/);
+    await preview.click();
+    await expect(inputs.nth(1)).toBeFocused();
+    await expect(preview).toBeHidden();
+    await expect(inputs.nth(1)).toHaveValue('toyota');
     await page.getByRole('button', { name: 'Submit', exact: true }).click();
     await expect(page).toHaveURL(/\/ref\//);
     await expect(page.locator('.full-page.ref .tag', { hasText: 'TOYOTA' })).toBeVisible();
@@ -109,7 +116,7 @@ test.describe.serial('Submit inputTag', () => {
     expect(await select.locator('option').evaluateAll(os => os.map(o => (o as HTMLOptionElement).value)))
       .toEqual(['+plugin/secret', '+plugin/other', '_plugin/secret', '_plugin/other']);
     await expect(select).toHaveValue('+plugin/secret');
-    await page.locator('.input-tag input').fill('openai');
+    await page.locator('.input-tag input.tag-input').fill('openai');
     await expect(page.locator('.tag-field input.preview[title="+plugin/secret/openai"]')).toBeAttached();
     await select.selectOption('_plugin/secret');
     await expect(page.locator('.tag-field input.preview[title="_plugin/secret/openai"]')).toBeAttached();

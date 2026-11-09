@@ -1,9 +1,8 @@
 import { afterNextRender, Component, computed, DestroyRef, inject, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TouchedChangeEvent } from '@angular/forms';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
-import { uniqBy } from 'lodash-es';
-import { catchError, debounceTime, filter, map, of, Subject, switchMap } from 'rxjs';
+import { uniq, uniqBy } from 'lodash-es';
+import { catchError, debounceTime, forkJoin, map, of, Subject, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { ExtService } from '../service/api/ext.service';
 import { AuthzService } from '../service/authz.service';
@@ -15,7 +14,8 @@ import {
   inputTagSuggestion,
   inputTagValues,
   parseInputTag,
-  partialInputTag
+  partialInputTag,
+  resolveInputTag
 } from '../util/input-tag';
 
 /**
@@ -28,13 +28,21 @@ import {
   selector: 'formly-field-input-tag',
   host: { 'class': 'field input-tag-field' },
   template: `
-    <div class="input-tag" [class.touched]="touched()">
+    <div class="input-tag">
       @for (p of parts(); track $index; let i = $index; let first = $first) {
         @if (!first) {
           <span class="separator">/</span>
         }
         @if (!p.options) {
-          <input class="tag-input"
+          <input class="preview tag-input-preview"
+                 type="text"
+                 tabindex="-1"
+                 [value]="placeholderNames()[i]"
+                 [title]="placeholderTags()[i]"
+                 [style.display]="placeholderNames()[i] ? 'block' : 'none'"
+                 (focus)="edit(i, input)">
+          <input #input
+                 class="tag-input"
                  type="text"
                  inputmode="email"
                  enterkeyhint="next"
@@ -48,8 +56,9 @@ import {
                  [placeholder]="p.label"
                  [attr.aria-label]="p.label || null"
                  [value]="values()[i]"
-                 (focus)="search(i)"
-                 (blur)="formControl.markAsTouched()"
+                 [class.hidden-without-removing]="placeholderNames()[i]"
+                 (focus)="edit(i, input); search(i)"
+                 (blur)="blur()"
                  (input)="setValue(i, $any($event.target).value); search(i)">
         } @else if (p.options.length === 1) {
           <span class="tag-preview" [title]="p.options[0]">{{ labels()[i][0] }}</span>
@@ -81,13 +90,9 @@ import {
       align-items: center;
       gap: 4px;
 
-      .tag-input {
+      .tag-input, .tag-input-preview {
         flex: 1 1 80px;
         min-width: 80px;
-      }
-
-      .tag-input:user-invalid, &.touched .tag-input:invalid {
-        outline: 1px solid var(--error);
       }
     }
   `,
@@ -104,8 +109,8 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
   readonly values = linkedSignal(() => inputTagValues(this.parts(), untracked(() => this.formControl.value)));
   readonly patterns = computed(() => this.parts().map(p => p.options ? null : inputTagPattern(p).source.slice(1, -1)));
   readonly firstControl = computed(() => this.parts().findIndex(p => !p.options || p.options.length > 1));
-  readonly touched = signal(false);
   readonly autocomplete = signal<{ value: string, label: string }[]>([]);
+  readonly editing = signal(-1);
 
   private readonly previews = rxResource({
     params: () => this.parts().flatMap(p => p.options || []),
@@ -126,14 +131,39 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
     });
   });
 
+  /**
+   * The tag filled out up to each placeholder, unless it is being edited.
+   */
+  readonly placeholderTags = computed(() => {
+    const parts = this.parts();
+    const values = this.values();
+    const editing = this.editing();
+    return parts.map((p, i) => {
+      if (p.options || i === editing) return '';
+      return resolveInputTag(parts.slice(0, i + 1), values.slice(0, i + 1));
+    });
+  });
+
+  private readonly placeholderPreviews = rxResource({
+    params: () => uniq(this.placeholderTags().filter(t => t)),
+    stream: ({ params }) => params.length ? forkJoin(params.map(t => this.exts.getCachedExt(t).pipe(
+      map(x => [t, x.modified && x.name || ''] as const),
+      catchError(() => of([t, ''] as const)),
+    ))).pipe(map(xs => new Map(xs))) : of(new Map<string, string>()),
+  });
+
+  /**
+   * The Ext name shown in place of each placeholder input while it is not being edited.
+   */
+  readonly placeholderNames = computed(() => {
+    const names = this.placeholderPreviews.hasValue() ? this.placeholderPreviews.value() : new Map<string, string>();
+    return this.placeholderTags().map(t => t && names.get(t) || '');
+  });
+
   private readonly search$ = new Subject<number>();
 
   private readonly initializeView = afterNextRender(() => {
     this.updateControl();
-    this.formControl.events.pipe(
-      filter(e => e instanceof TouchedChangeEvent),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(e => this.touched.set((e as TouchedChangeEvent).touched));
   });
 
   constructor() {
@@ -175,6 +205,16 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
       takeUntilDestroyed(),
     ).subscribe(xs => this.autocomplete.set(uniqBy(xs, 'value')));
     this.destroyRef.onDestroy(() => this.search$.complete());
+  }
+
+  edit(index: number, input: HTMLInputElement) {
+    this.editing.set(index);
+    input.focus();
+  }
+
+  blur() {
+    this.editing.set(-1);
+    this.formControl.markAsTouched();
   }
 
   search(index: number) {

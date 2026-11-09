@@ -42,6 +42,9 @@ describe('FormlyFieldInputTag', () => {
       tag,
       name: tag.endsWith('plugin/secret') ? 'Secrets' : tag === 'car' ? 'Cars' : undefined,
     }))));
+    vi.spyOn(TestBed.inject(ExtService), 'getCachedExt').mockImplementation(tag => of(tag === 'car/2020' ?
+      { tag, name: '2020 Cars', modified: {} } as any :
+      { tag }));
   });
 
   async function render(template: string) {
@@ -56,8 +59,24 @@ describe('FormlyFieldInputTag', () => {
     const { el } = await render('car/<Year>/<Make>');
     expect(el.querySelector('.tag-preview')!.textContent!.trim()).toBe('Cars');
     expect(el.querySelector('.tag-preview')!.getAttribute('title')).toBe('car');
-    expect(el.querySelectorAll('.input-tag input').length).toBe(2);
-    expect(el.querySelectorAll<HTMLInputElement>('.input-tag input')[1].placeholder).toBe('Make');
+    expect(el.querySelectorAll('.input-tag input.tag-input').length).toBe(2);
+    expect(el.querySelectorAll<HTMLInputElement>('.input-tag input.tag-input')[1].placeholder).toBe('Make');
+  });
+
+  it('shows the preview of filled out inputs that are not being edited', async () => {
+    const { fixture, field, el } = await render('car/<Year>/<Make>');
+    field.setValue(1, '2020');
+    await fixture.whenStable();
+    const preview = el.querySelector<HTMLInputElement>('.input-tag input.preview')!;
+    expect(preview.value).toBe('2020 Cars');
+    expect(preview.title).toBe('car/2020');
+    const input = el.querySelector<HTMLInputElement>('.input-tag input.tag-input')!;
+    expect(input.classList).toContain('hidden-without-removing');
+    preview.dispatchEvent(new Event('focus'));
+    await fixture.whenStable();
+    expect(field.editing()).toBe(1);
+    expect(input.classList).not.toContain('hidden-without-removing');
+    expect(preview.style.display).toBe('none');
   });
 
   it('is the known prefix and invalid until it is filled out', async () => {
@@ -79,7 +98,7 @@ describe('FormlyFieldInputTag', () => {
     await fixture.whenStable();
     const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector<HTMLSelectElement>('.input-tag select')!.value).toBe('_plugin/secret');
-    expect(el.querySelector<HTMLInputElement>('.input-tag input')!.value).toBe('openai');
+    expect(el.querySelector<HTMLInputElement>('.input-tag input.tag-input')!.value).toBe('openai');
     expect(fixture.componentInstance.form.value).toEqual({ tag: '_plugin/secret/openai' });
   });
 
