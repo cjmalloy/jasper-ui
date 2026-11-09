@@ -259,10 +259,15 @@ describe('FormlyFieldStencil', () => {
     const field = fixture.debugElement.query(By.directive(FormlyFieldStencil)).componentInstance as FormlyFieldStencil;
     expect((form.value as any).tag ?? null).toBeNull();
     expect(form.valid).toBe(true);
+    const input = () => fixture.nativeElement.querySelector('.stencil input.tag-input') as HTMLInputElement;
+    expect(input().required).toBe(false);
+    expect(input().matches(':invalid')).toBe(false);
     field.setValue(0, '_plugin/secret');
     expect((form.value as any).tag ?? null).toBeNull();
     field.setValue(1, 'openai');
     expect(form.value).toEqual({ tag: '_plugin/secret/openai' });
+    await fixture.whenStable();
+    expect(input().required).toBe(true);
     field.setValue(1, '');
     expect((form.value as any).tag).toBeNull();
     expect(form.valid).toBe(true);

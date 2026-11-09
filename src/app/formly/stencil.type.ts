@@ -66,7 +66,7 @@ type Suggestion = { value: string, label: string, tag: string };
                    autocorrect="off"
                    autocapitalize="none"
                    autocomplete="off"
-                   required
+                   [required]="!blank()"
                    [attr.id]="ids()[i]"
                    [attr.list]="listId"
                    [attr.data-part]="i"
@@ -136,6 +136,10 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   readonly listId = 'stencil-' + uuid();
   readonly template = computed(() => this.props.template as string || '');
   readonly hierarchical = computed(() => !!this.props.hierarchical);
+  /**
+   * An optional field with nothing typed in, so none of its inputs are required.
+   */
+  readonly blank = computed(() => !this.props.required && this.parts().every((p, i) => p.options || !this.values()[i]));
   readonly parts = computed(() => filterInputTag(parseInputTag(this.template()), t => this.auth.canAddTag(t)));
   readonly values = linkedSignal<InputTagPart[], string[]>({
     source: this.parts,
@@ -424,8 +428,7 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   private updateControl() {
     const parts = this.parts();
     const values = this.values();
-    const blank = !this.props.required && parts.every((p, i) => p.options || !values[i]);
-    const value = blank ? null
+    const value = this.blank() ? null
       : this.hierarchical() ? inputTagLineTags(parts, values)
       : partialInputTag(parts, values) || null;
     if (!isEqual(value, this.formControl.value)) this.formControl.setValue(value);
