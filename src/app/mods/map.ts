@@ -1222,7 +1222,7 @@ const geometrySchemas: Record<string, Schema> = {
   MultiPolygon: { properties: { coordinates: { elements: { elements: { elements: { elements: { type: 'float64' } } } } } } },
 };
 
-const geoFeatureCollectionPlugin: Plugin = {
+export const geoFeatureCollectionPlugin: Plugin = {
   tag: 'plugin/geo/features',
   name: $localize`🌐️🧩️ Geo Features`,
   config: {

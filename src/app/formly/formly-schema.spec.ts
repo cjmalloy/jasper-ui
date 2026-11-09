@@ -16,7 +16,7 @@ import {
   optionalFields,
   typeChain
 } from './formly-schema';
-import { mapMod } from '../mods/map';
+import { geoFeatureCollectionPlugin } from '../mods/map';
 import { geoStyleSchema } from '../util/geo-style';
 import { provideJasperFormly } from './formly.config';
 
@@ -176,8 +176,7 @@ describe('formly schema', () => {
     ]) as any;
     expect(isValidSchema(schema)).toBe(true);
     expect(schema.optionalProperties.style).toEqual(geoStyleSchema);
-    const features = mapMod.plugin!.find(p => p.tag === 'plugin/geo/features')!;
-    expect(schema.optionalProperties.features).toEqual((features.schema as any).properties.features);
+    expect(schema.optionalProperties.features).toEqual((geoFeatureCollectionPlugin.schema as any).properties.features);
     expect(validate(schema, {
       style: { color: '#ff0000', strokeWidth: 'small', name: 'x' },
       features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: [1, 2] } }],

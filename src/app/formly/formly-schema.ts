@@ -2,7 +2,7 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
 import { Schema } from 'jtd';
 import { cloneDeep, defaultsDeep, isObject, isPlainObject } from 'lodash-es';
-import { mapMod } from '../mods/map';
+import { geoFeatureCollectionPlugin } from '../mods/map';
 import { geoStyleSchema } from '../util/geo-style';
 
 type ObjectSchema = { properties?: Record<string, Schema>, optionalProperties?: Record<string, Schema> };
@@ -99,8 +99,7 @@ function valueSchema(config: FormlyConfig, field: FormlyFieldConfig): Schema {
  * Features of the Geo Features plugin.
  */
 function geoFeaturesSchema(): Schema {
-  const plugin = mapMod.plugin!.find(p => p.tag === 'plugin/geo/features')!;
-  return (plugin.schema as any).properties.features;
+  return (geoFeatureCollectionPlugin.schema as any).properties.features;
 }
 
 function isRequired(field: FormlyFieldConfig): boolean {
