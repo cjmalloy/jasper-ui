@@ -48,4 +48,33 @@ describe('SettingsRefPage', () => {
       expect(args.obsolete).toBeNull();
     });
   }
+
+  for (const showRemotes of [false, true]) {
+    it(`should query every plugin in a merged settings tab with showRemotes ${showRemotes}`, () => {
+      component.store.view.settingsTabs.set([
+        { tag: '+plugin/secret', origin: '', config: { settings: 'secrets' } },
+        { tag: '_plugin/secret', origin: '', config: { settings: 'secrets' } },
+        { tag: 'plugin/other', origin: '', config: { settings: 'other' } },
+      ] as any);
+      component.store.view.route.routeSnapshot.set({
+        queryParams: showRemotes ? { showRemotes: 'true' } : {},
+        firstChild: {
+          routeConfig: { path: 'settings' },
+          params: {},
+          url: [{ path: 'settings' }],
+          firstChild: {
+            routeConfig: { path: 'ref/:tag' },
+            params: { tag: '_plugin/secret' },
+          },
+        },
+      } as any);
+
+      fixture.detectChanges();
+
+      expect(component.query.args()!.query).toBe(showRemotes
+        ? '+plugin/secret|_plugin/secret'
+        : '+plugin/secret@|_plugin/secret@');
+      expect(component.plugin()!.tag).toBe('+plugin/secret');
+    });
+  }
 });

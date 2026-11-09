@@ -70,4 +70,21 @@ describe('SubmitStore cache files', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('a'));
     warn.mockRestore();
   });
+
+  for (const [url, tag, text] of [
+    [undefined, [], true],
+    ['comment:1', [], true],
+    ['internal:1', ['+plugin/secret/openai'], true],
+    ['internal:1', ['plugin/thread'], false],
+    ['https://example.com', [], false],
+  ] as const) {
+    it(`selects the text tab for ${url} with ${JSON.stringify(tag)}: ${text}`, () => {
+      const store = new SubmitStore({ routeSnapshot: () => ({
+        queryParams: { url, tag },
+        firstChild: { firstChild: { routeConfig: { path: 'text' } } },
+      }) } as any, new EventBus());
+      store.submitGenId.set([{ tag: 'plugin/thread', config: { submit: 'thread', genId: true, submitText: true } }] as any);
+      expect(store.text()).toBe(text);
+    });
+  }
 });

@@ -8,6 +8,11 @@ type TypeOption = NonNullable<ConfigOption['types']>[number];
 export const OPTIONS_TYPES = ['select', 'enum', 'radio', 'multicheckbox'];
 
 /**
+ * Field types which need props the form builder can't set, such as the parent plugin.
+ */
+const SKIP_TYPES = ['child-plugin', 'geometries', 'userMap'];
+
+/**
  * Names of the types which can be picked in the form builder.
  * List types without a field array are skipped, since the builder
  * can't edit the field array.
@@ -25,7 +30,7 @@ export function builderTypeNames(types: TypeOption[]): string[] {
     if (!t || seen.includes(t.name)) return false;
     return t.name === 'list' || isList(t.extends, [...seen, t.name]);
   };
-  return types.map(t => t.name).filter(t => !isList(t) || hasFieldArray(t));
+  return types.map(t => t.name).filter(t => !SKIP_TYPES.includes(t) && (!isList(t) || hasFieldArray(t)));
 }
 
 /**
@@ -76,7 +81,7 @@ export function formlyType(typeNames: string[]): TypeOption {
           parsers: [omitEmpty],
           className: 'formly-placeholder',
           expressions: {
-            hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
+            hide: (field: FormlyFieldConfig) => !field.parent?.model?.type || field.parent.model.type === 'stencil',
           },
           props: {
             label: $localize`Placeholder:`,
@@ -129,6 +134,29 @@ export function formlyType(typeNames: string[]): TypeOption {
                 label: $localize`Label:`,
               },
             }],
+          },
+        }, {
+          key: 'props.template',
+          type: 'string',
+          className: 'formly-template',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => field.parent?.model?.type !== 'stencil',
+          },
+          props: {
+            label: $localize`Template:`,
+            placeholder: $localize`car/<Make>/<Model>`,
+            hint: $localize`A tag with an input for each <Placeholder>. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/<Name>.`,
+          },
+        }, {
+          key: 'props.hierarchical',
+          type: 'boolean',
+          className: 'formly-hierarchical',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => field.parent?.model?.type !== 'stencil',
+          },
+          props: {
+            label: $localize`Hierarchical:`,
+            hint: $localize`One labelled line per placeholder, filled out top down. The value is the tag up to each line.`,
           },
         }, {
           key: 'fieldGroup',

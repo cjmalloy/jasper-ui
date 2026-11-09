@@ -35,6 +35,8 @@ import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldRange } from './range.type';
 import { FormlyFieldRefInput } from './ref.type';
 import { FormlyFieldSelect } from './select.type';
+import { matchesInputTag, parseInputTag } from '../util/input-tag';
+import { FormlyFieldStencil } from './stencil.type';
 import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { FormlyFieldUserMap } from './user-map.type';
@@ -112,6 +114,7 @@ export function provideJasperFormly() {
       defaultOptions: {
         props: {
           type: 'number',
+          step: 1,
         },
       },
     }, {
@@ -262,7 +265,6 @@ export function provideJasperFormly() {
             { value: 'PT5M', label: $localize`5 mins` },
             { value: 'PT15M', label: $localize`15 mins` },
             { value: 'PT30M', label: $localize`30 mins` },
-            { value: 'PT30M', label: $localize`30 mins` },
             { value: 'PT1H', label: $localize`1 hour` },
             { value: 'PT2H', label: $localize`2 hours` },
             { value: 'PT6H', label: $localize`6 hours` },
@@ -320,6 +322,23 @@ Protected tags start with a plus sign.
 Private tags start with an underscore.
 (i.e. "science", "my/tag", or "_my/private/tag")`,
           }
+        },
+      },
+    }, {
+      name: 'stencil',
+      component: FormlyFieldStencil,
+      wrappers: ['form-field'],
+      defaultOptions: {
+        validators: {
+          stencil: {
+            expression: (c: AbstractControl, field: FormlyFieldConfig) => {
+              if (!c.value) return true;
+              // A hierarchical field has the tag filled out up to each line
+              const tag = Array.isArray(c.value) ? c.value[c.value.length - 1] : c.value;
+              return matchesInputTag(parseInputTag(field.props?.template || ''), tag);
+            },
+            message: $localize`Fill out every part of the tag.`,
+          },
         },
       },
     }, {

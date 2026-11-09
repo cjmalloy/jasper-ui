@@ -43,6 +43,7 @@ import { getAddTags } from '../../util/add-tags';
 import { parseMapView } from '../../util/geo';
 import { encodeBookmarkParams, printError } from '../../util/http';
 import { getModels, getZipOrTextFile } from '../../util/zip';
+import { parseInputTag } from '../../util/input-tag';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
@@ -106,6 +107,7 @@ export class SidebarComponent {
   readonly tagInput = input('', { alias: 'tag' });
   readonly tag = linkedSignal(() => this.tagInput() || this.ext()?.tag || '');
   readonly activeExts = input<Ext[]>([]);
+  readonly group = input<Plugin[]>([]);
   readonly showToggle = input(true);
   readonly home = input(false);
   readonly floating = input(true);
@@ -127,6 +129,40 @@ export class SidebarComponent {
   readonly writeAccess = computed(() => !!this.tag() && this.auth.tagWriteAccess(this.tag()));
   readonly ui = computed(() => this.tag() ? this.admin.getTemplateUi(this.tag()) : []);
   genUrl = 'internal:' + uuid();
+  readonly submitTextParams = computed(() => this.textParams(this.plugin(), this.addTags(), this.genUrl));
+  /**
+   * One submit button per plugin when several plugins are merged into one settings tab.
+   */
+  readonly pluginSubmits = computed(() => {
+    if (this.group().length < 2) return [];
+    return this.group()
+      .filter(p => this.auth.canAddTag(p.tag) && !p.config?.reply)
+      .map(p => {
+        const addTags = getAddTags(p.tag, p, this.rootConfig(), this.home())
+          .filter(tag => this.auth.canAddTag(tag));
+        const genUrl = 'internal:' + uuid();
+        const label = p.config?.submit || p.name || p.tag;
+        if (p.config?.submitText || this.rootConfig()?.submitText || p.config?.inputTags?.length) {
+          return { tag: p.tag, label, link: '/submit/text', params: this.textParams(p, addTags, genUrl) };
+        }
+        if (p.config?.submit && p.config?.genId) {
+          return { tag: p.tag, label, link: '/submit/web', params: { tag: addTags, url: genUrl, location: this.location() } };
+        }
+        return { tag: p.tag, label, link: '/submit', params: { tag: addTags, location: this.location() } };
+      });
+  });
+
+  private textParams(plugin: Plugin | undefined, addTags: string[], genUrl: string) {
+    const inputTags = plugin?.config?.inputTags;
+    if (!inputTags?.length) return { tag: addTags, location: this.location() };
+    const prefixes = inputTags.flatMap(t => parseInputTag(t)[0].options || []);
+    return {
+      tag: addTags.filter(t => !prefixes.includes(t)),
+      location: this.location(),
+      inputTag: inputTags,
+      url: plugin?.config?.genId ? genUrl : undefined,
+    };
+  }
 
   readonly savingBookmark = signal(false);
   readonly savingSub = signal(false);
