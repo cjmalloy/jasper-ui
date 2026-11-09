@@ -5434,7 +5434,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.ts</context>
-          <context context-type="linenumber">488</context>
+          <context context-type="linenumber">486</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7838847050556032477" datatype="html">
@@ -6022,6 +6022,10 @@ Private tags start with an underscore.
           <context context-type="sourcefile">src/app/formly/formly.config.ts</context>
           <context context-type="linenumber">421</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
+          <context context-type="linenumber">141</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="5486012583355580820" datatype="html">
         <source>Templates must be lower case letters, numbers, periods and forward slashes.
@@ -6253,7 +6257,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">198</context>
+          <context context-type="linenumber">221</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2653680894409981066" datatype="html">
@@ -6377,32 +6381,60 @@ Private tags start with an underscore.
           <context context-type="linenumber">122</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="1832879454397489615" datatype="html">
+        <source>car/&lt;Make&gt;/&lt;Model&gt;</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
+          <context context-type="linenumber">142</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6528912154811772415" datatype="html">
+        <source>A tag with an input for each &lt;Placeholder&gt;. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/&lt;Name&gt;.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
+          <context context-type="linenumber">143</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7703173042611671149" datatype="html">
+        <source>Hierarchical:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
+          <context context-type="linenumber">153</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8840003756252838733" datatype="html">
+        <source>One labelled line per placeholder, filled out top down. The value is the tag up to each line.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
+          <context context-type="linenumber">154</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="664144390539044292" datatype="html">
         <source>Fields:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">142</context>
+          <context context-type="linenumber">165</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4456423849243411800" datatype="html">
         <source>Advanced Form:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">205</context>
+          <context context-type="linenumber">228</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3469158197044132609" datatype="html">
         <source>Admin Form:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">212</context>
+          <context context-type="linenumber">235</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4272529530551543307" datatype="html">
         <source>Advanced Admin Form:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
-          <context context-type="linenumber">219</context>
+          <context context-type="linenumber">242</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4222367315079343305" datatype="html">
@@ -6771,24 +6803,24 @@ Private tags start with an underscore.
         </context-group>
       </trans-unit>
       <trans-unit id="6821492100563998377" datatype="html">
-        <source>Does not fit the tag <x id="PH" equiv-text="this.filledTemplate() || this.template()"/></source>
+        <source>Does not fit the tag <x id="PH" equiv-text="this.template()"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/stencil.type.ts</context>
-          <context context-type="linenumber">348</context>
+          <context context-type="linenumber">404</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1030594656589546259" datatype="html">
         <source>Must be lower case letters, numbers, periods and forward slashes.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/stencil.type.ts</context>
-          <context context-type="linenumber">349</context>
+          <context context-type="linenumber">406</context>
         </context-group>
       </trans-unit>
       <trans-unit id="926059739238690863" datatype="html">
         <source>Must be lower case letters, numbers and periods.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/stencil.type.ts</context>
-          <context context-type="linenumber">350</context>
+          <context context-type="linenumber">407</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1904570248489906370" datatype="html">
@@ -18778,14 +18810,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Submit: Text Post</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.ts</context>
-          <context context-type="linenumber">198</context>
+          <context context-type="linenumber">196</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3380618911408399328" datatype="html">
         <source>Submit: Wiki</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/text/text.component.ts</context>
-          <context context-type="linenumber">322</context>
+          <context context-type="linenumber">320</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6932865105766151309" datatype="html">

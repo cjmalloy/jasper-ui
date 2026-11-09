@@ -270,6 +270,22 @@ test.describe('Plugin Form Builder', () => {
     expect(saved.config.form[0].props.options).toEqual([{ value: 'red', label: 'Red' }]);
   });
 
+  test('builds a hierarchical stencil', async ({ page, request, origin }) => {
+    const tag = await createPlugin(request, origin, 'stencil', { config: {} });
+    const { item, builder } = await openBuilder(page, tag);
+    const list = builder.locator('.builder-form');
+    const row = await addField(list, 'car', 'stencil');
+    await expect(row.locator('.formly-template input')).toBeVisible();
+    await row.locator('.formly-template input').fill('car/<Make>/<Model>');
+    await row.locator('.formly-hierarchical input[type=checkbox]').check();
+    await generate(builder);
+    await save(page, item);
+
+    const saved = await getPlugin(request, origin, tag);
+    expect(saved.config.form[0]).toEqual({ key: 'car', type: 'stencil', props: { template: 'car/<Make>/<Model>', hierarchical: true } });
+    expect(saved.schema).toEqual({ optionalProperties: { car: { elements: { type: 'string' }, nullable: true } } });
+  });
+
   test('opening the builder keeps required on a group', async ({ page, request, origin }) => {
     const tag = await createPlugin(request, origin, 'required', {
       config: {

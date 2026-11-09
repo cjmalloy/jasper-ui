@@ -209,6 +209,14 @@ describe('formly schema', () => {
     expect(validate(schema, { height: 1, width: null, accent: null, tag: null })).toEqual([]);
   });
 
+  it('is a list of tags for a hierarchical stencil', () => {
+    expect(formlySchema(config, [
+      { key: 'car', type: 'stencil', props: { template: 'car/<Make>/<Model>', hierarchical: true } },
+    ])).toEqual({
+      optionalProperties: { car: { elements: { type: 'string' }, nullable: true } },
+    });
+  });
+
   it('merges keyed groups which appear more than once', () => {
     const fields = [
       { key: 'settings', fieldGroup: [{ key: 'a', type: 'string' }] },

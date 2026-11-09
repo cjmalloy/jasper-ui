@@ -8587,6 +8587,21 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Must be lower case letters, numbers and periods.</source>
         <target>小文字、数字、ピリオドのみ使用できます。</target>
       </trans-unit>
+      <trans-unit id="1832879454397489615" datatype="html">
+        <source>car/&lt;Make&gt;/&lt;Model&gt;</source>
+      </trans-unit>
+      <trans-unit id="6528912154811772415" datatype="html">
+        <source>A tag with an input for each &lt;Placeholder&gt;. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/&lt;Name&gt;.</source>
+        <target>&lt;Placeholder&gt; ごとに入力欄があるタグ。最初の部分のカンマはドロップダウンになります（例：+plugin,_plugin/secret/&lt;Name&gt;）。</target>
+      </trans-unit>
+      <trans-unit id="7703173042611671149" datatype="html">
+        <source>Hierarchical:</source>
+        <target>階層:</target>
+      </trans-unit>
+      <trans-unit id="8840003756252838733" datatype="html">
+        <source>One labelled line per placeholder, filled out top down. The value is the tag up to each line.</source>
+        <target>プレースホルダーごとにラベル付きの行があり、上から順に入力します。値は各行までのタグです。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

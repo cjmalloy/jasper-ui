@@ -131,6 +131,29 @@ export function formlyType(typeNames: string[]): TypeOption {
             }],
           },
         }, {
+          key: 'props.template',
+          type: 'string',
+          className: 'formly-template',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => field.parent?.model?.type !== 'stencil',
+          },
+          props: {
+            label: $localize`Template:`,
+            placeholder: $localize`car/<Make>/<Model>`,
+            hint: $localize`A tag with an input for each <Placeholder>. Commas in the first part make a dropdown, such as +plugin,_plugin/secret/<Name>.`,
+          },
+        }, {
+          key: 'props.hierarchical',
+          type: 'boolean',
+          className: 'formly-hierarchical',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => field.parent?.model?.type !== 'stencil',
+          },
+          props: {
+            label: $localize`Hierarchical:`,
+            hint: $localize`One labelled line per placeholder, filled out top down. The value is the tag up to each line.`,
+          },
+        }, {
           key: 'fieldGroup',
           type: 'formly',
           className: 'formly-field-group',
