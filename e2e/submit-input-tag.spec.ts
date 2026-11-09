@@ -52,6 +52,15 @@ test.describe.serial('Submit inputTag', () => {
     const [board1, board2] = [0, 1].map(i => page.locator('.stencil input.tag-input').nth(i));
     await board1.focus();
     await expect(page.locator(`datalist[id="${await board1.getAttribute('list')}"] option[value="jasper/bugs"]`)).toHaveCount(1);
+    // Pick from the datalist
+    await board1.evaluate((input: HTMLInputElement) => {
+      input.value = 'jasper/bugs';
+      input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertReplacementText' }));
+    });
+    await expect(board1).toBeFocused();
+    await expect(board2).toHaveValue('bugs');
+    await board1.fill('');
+    await expect(board2).toHaveValue('');
     await board2.focus();
     await expect(page.locator(`datalist[id="${await board2.getAttribute('list')}"] option[value="bugs"]`)).toHaveCount(1);
     // Pick from the datalist
@@ -129,10 +138,13 @@ test.describe.serial('Submit inputTag', () => {
   test('typing a slash fills the following inputs', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>/<Model>', { waitUntil: 'networkidle' });
     const inputs = page.locator('.stencil input.tag-input');
-    await inputs.nth(0).pressSequentially('2021/ford/');
-    await expect(inputs.nth(2)).toBeFocused();
-    await page.keyboard.type('focus');
+    await inputs.nth(0).pressSequentially('2021/ford/focus');
+    await expect(inputs.nth(0)).toBeFocused();
+    await expect(inputs.nth(1)).toHaveValue('ford');
+    await expect(inputs.nth(2)).toHaveValue('focus');
     await expect(page.locator('.tag-field input.preview[title="car/2021/ford/focus"]')).toBeAttached();
+    await page.locator('#title').focus();
+    await expect(inputs.nth(0)).toHaveValue('2021');
     await inputs.nth(0).fill('2020/toyota/corolla/le');
     await expect(page.locator('.tag-field input.preview[title="car/2020/toyota/corolla/le"]')).toBeAttached();
   });
@@ -203,9 +215,10 @@ test.describe.serial('Submit inputTag', () => {
   test('typing a slash fills the following hierarchical levels', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&hierarchicalTag=car/<Make>/<Model>/<Trim>', { waitUntil: 'networkidle' });
     const [make, model, trim] = [0, 1, 2].map(i => page.locator('.stencil input.tag-input').nth(i));
-    await make.pressSequentially('toyota/corolla/l');
-    await expect(trim).toBeFocused();
-    await trim.pressSequentially('e');
+    await make.pressSequentially('toyota/corolla/le');
+    await expect(make).toBeFocused();
+    await expect(trim).toHaveValue('le');
+    await page.locator('#title').focus();
     await expect(make).toHaveValue('toyota');
     await expect(model).toHaveValue('corolla');
     await expect(trim).toHaveValue('le');

@@ -1,4 +1,4 @@
-import { afterNextRender, afterRenderEffect, ChangeDetectorRef, Component, computed, DestroyRef, ElementRef, inject, linkedSignal, signal, untracked } from '@angular/core';
+import { afterNextRender, afterRenderEffect, Component, computed, DestroyRef, ElementRef, inject, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
 import { uniq, uniqBy } from 'lodash-es';
@@ -68,14 +68,14 @@ import {
                  required
                  [attr.id]="i === firstControl() ? id : null"
                  [attr.list]="listId"
-                 [attr.pattern]="patterns()[i]"
+                 [attr.pattern]="spread()?.index === i ? null : patterns()[i]"
                  [placeholder]="p.label"
                  [attr.aria-label]="p.label || null"
-                 [value]="values()[i]"
+                 [value]="spread()?.index === i ? spread()!.text : values()[i]"
                  [disabled]="disabled()"
                  [class.hidden-without-removing]="placeholderNames()[i]"
                  (focus)="edit(i, input); search(i)"
-                 (blur)="blur(); validate(i, input)"
+                 (blur)="blur(i); validate(i, input)"
                  [attr.data-part]="i"
                  (input)="type(i, input, $event)">
         } @else if (p.options.length === 1) {
@@ -126,7 +126,6 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   private editor = inject(EditorService);
   private destroyRef = inject(DestroyRef);
   private el = inject<ElementRef<HTMLElement>>(ElementRef);
-  private cd = inject(ChangeDetectorRef);
 
   readonly listId = 'stencil-' + uuid();
   readonly template = computed(() => this.props.template as string || '');
@@ -184,6 +183,10 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
    */
   private suggestedTags = new Map<string, string[]>();
   readonly editing = signal(-1);
+  /**
+   * The input still showing the text typed with slashes, and the last part it filled.
+   */
+  readonly spread = signal<{ index: number, last: number, text: string } | null>(null);
 
   private readonly previews = rxResource({
     params: () => uniq([...this.parts().flatMap(p => p.options || []), ...this.leading() ? [this.leading()] : []]),
@@ -332,7 +335,8 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
     input.focus();
   }
 
-  blur() {
+  blur(index: number) {
+    if (this.spread()?.index === index) this.spread.set(null);
     this.editing.set(-1);
     this.formControl.markAsTouched();
   }
@@ -354,12 +358,7 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
    */
   type(index: number, input: HTMLInputElement, event?: Event) {
     if (!(event instanceof InputEvent) || event.inputType === 'insertReplacementText') this.fillBefore(index, input.value);
-    const focus = this.fill(index, input.value);
-    if (focus === index) return;
-    input.value = this.values()[index];
-    if (focus === undefined) return;
-    const next = this.input(focus);
-    if (next) this.edit(focus, next);
+    this.spread.set(this.fill(index, input.value));
   }
 
   /**
@@ -381,45 +380,42 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
 
   /**
    * Set the value typed into the placeholder at an index, spreading it over the
-   * following inputs and child fields. Returns the index of the input to edit next,
-   * or undefined if a child field takes over.
+   * following inputs and child fields. Returns the parts it was spread over,
+   * or null if it was kept in its own input.
    */
   private fill(index: number, value: string) {
-    const spread = spreadInputTag(this.parts(), this.values(), index, value);
+    const parts = this.parts();
+    const spread = spreadInputTag(parts, this.values(), index, value);
     if (!spread || spread.overflow !== undefined && !this.hasChildren()) {
+      const previous = this.spread();
+      if (previous?.index === index) {
+        // Clear the inputs filled before the slash was removed
+        const defaults = inputTagDefaults(parts);
+        this.values.update(values => values.map((v, i) => i > index && i <= previous.last ? defaults[i] : v));
+      }
       this.setValue(index, value);
       this.search(index);
-      return index;
+      return null;
     }
     this.values.set(spread.values);
     if (spread.overflow === undefined) {
       this.updateControl();
-      this.search(spread.last);
-      return spread.last;
+    } else {
+      this.formState.stencilOverflow = { parentKey: this.key, value: spread.overflow };
+      this.updateControl(true);
     }
-    this.formState.stencilOverflow = { parentKey: this.key, value: spread.overflow };
-    this.updateControl(true);
-    return undefined;
+    this.search(index);
+    return { index, last: spread.overflow === undefined ? spread.last : parts.length - 1, text: value };
   }
 
   /**
-   * Fill out the extra segments typed into the parent field and edit the next input.
+   * Fill out the extra segments typed into the parent field.
    */
   private takeOverflow(value: string) {
     const index = this.parts().findIndex((p, i) => this.visible()[i] && !p.options);
-    if (index < 0) return;
-    const focus = this.fill(index, value);
-    if (focus === undefined) return;
-    // Render the new inputs now so typing continues in the next one
-    this.cd.detectChanges();
-    const input = this.input(focus);
-    if (!input) return;
-    this.edit(focus, input);
+    if (index >= 0) this.fill(index, value);
   }
 
-  private input(index: number) {
-    return this.el.nativeElement.querySelector<HTMLInputElement>(`input.tag-input[data-part="${index}"]`);
-  }
 
   /**
    * Why the value typed into the placeholder at an index is invalid, or an empty string.

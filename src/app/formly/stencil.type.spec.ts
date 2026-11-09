@@ -63,19 +63,28 @@ describe('FormlyFieldStencil', () => {
     expect(el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')[1].placeholder).toBe('Make');
   });
 
-  it('fills the following inputs when typing a slash', async () => {
+  it('fills the following inputs when typing a slash without moving focus', async () => {
     const { fixture, field, el } = await render('car/<Year>/<Make>/<Model>');
     const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
-    inputs()[0].value = '2020/toyota/';
-    inputs()[0].dispatchEvent(new Event('input'));
-    await fixture.whenStable();
-    expect(inputs().map(i => i.value)).toEqual(['2020', 'toyota', '']);
-    expect(field.editing()).toBe(3);
-    expect(document.activeElement).toBe(inputs()[2]);
-    inputs()[2].value = 'corolla';
-    inputs()[2].dispatchEvent(new Event('input'));
-    await fixture.whenStable();
+    inputs()[0].focus();
+    const type = async (value: string) => {
+      inputs()[0].value = value;
+      inputs()[0].dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+    };
+    await type('2020/toyota/');
+    expect(inputs().map(i => i.value)).toEqual(['2020/toyota/', 'toyota', '']);
+    await type('2020/toyota/corolla');
+    expect(document.activeElement).toBe(inputs()[0]);
     expect(field.formControl.value).toBe('car/2020/toyota/corolla');
+    expect(inputs()[0].validity.valid).toBe(true);
+    await type('2020');
+    expect(inputs().map(i => i.value)).toEqual(['2020', '', '']);
+    await type('2020/honda/civic');
+    inputs()[0].dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+    expect(inputs().map(i => i.value)).toEqual(['2020', 'honda', 'civic']);
+    expect(field.formControl.value).toBe('car/2020/honda/civic');
   });
 
   it('explains why an input is invalid', async () => {
@@ -182,8 +191,7 @@ describe('FormlyFieldStencil', () => {
     inputs()[0].dispatchEvent(new Event('input'));
     await fixture.whenStable();
     expect(fixture.componentInstance.form.value).toEqual({ year: 'car/2020', make: 'car/2020/toyota', model: null });
-    expect(inputs().map(i => i.value)).toEqual(['2020', 'toyota', '']);
-    expect(document.activeElement).toBe(inputs()[2]);
+    expect(inputs().map(i => i.value)).toEqual(['2020/toyota/', 'toyota', '']);
     inputs()[2].value = 'corolla/le';
     inputs()[2].dispatchEvent(new Event('input'));
     await fixture.whenStable();
@@ -284,8 +292,13 @@ describe('FormlyFieldStencil', () => {
     vi.useRealTimers();
     expect(field.autocomplete()).toEqual([{ value: 'jasper', label: 'Jasper' }, { value: 'jasper/bugs', label: 'Bugs' }]);
     const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
+    inputs()[0].focus();
     inputs()[0].value = 'jasper/bugs';
     inputs()[0].dispatchEvent(new InputEvent('input', { inputType: 'insertReplacementText' }));
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(inputs()[0]);
+    expect(inputs().map(i => i.value)).toEqual(['jasper/bugs', 'bugs']);
+    inputs()[0].dispatchEvent(new Event('blur'));
     await fixture.whenStable();
     expect(inputs().map(i => i.value)).toEqual(['jasper', 'bugs']);
     expect(field.formControl.value).toBe('kanban/jasper/bugs');
