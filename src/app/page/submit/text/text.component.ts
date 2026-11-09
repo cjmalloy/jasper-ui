@@ -60,6 +60,7 @@ import { printError } from '../../../util/http';
 import {
   expandHierarchicalTags,
   filterInputTag,
+  hierarchicalTagAdds,
   hierarchicalTagParents,
   hierarchicalTagTemplate,
   inputTagValues,
@@ -143,6 +144,7 @@ export class SubmitTextPage implements HasChanges {
   readonly inputTagForm = computed(() => {
     const inputTags = this.store.submit.inputTags();
     const hierarchicalTags = expandHierarchicalTags(this.store.submit.hierarchicalTags());
+    const adds = [...inputTags.map(() => true), ...hierarchicalTagAdds(hierarchicalTags, this.store.submit.hierarchicalTags())];
     const templates = [...inputTags, ...hierarchicalTags];
     const keys = templates.map((_, i) => 'tag' + i);
     const parents = [...inputTags.map(() => -1), ...hierarchicalTagParents(hierarchicalTags).map(p => p < 0 ? p : p + inputTags.length)];
@@ -151,6 +153,7 @@ export class SubmitTextPage implements HasChanges {
       keys,
       templates,
       parents,
+      adds,
       form: new FormGroup({}),
       model: Object.fromEntries(keys.map((k, i) => [k, parents[i] < 0 && partialInputTag(parts[i], inputTagValues(parts[i])) || null])) as Record<string, string | null>,
       fields: templates.map((template, i): FormlyFieldConfig => i < inputTags.length ? {
@@ -178,6 +181,13 @@ export class SubmitTextPage implements HasChanges {
     const { keys, model } = this.inputTagForm();
     return keys.map(k => model[k] || '');
   });
+  /**
+   * The inputTags added to the Ref. Lines for hierarchicalTag levels that were not given are left out.
+   */
+  private addedInputTags(value = this.inputTags()) {
+    const { adds } = this.inputTagForm();
+    return value.filter((t, i) => t && adds[i]);
+  }
 
   constructor() {
     const mod = this.mod;
@@ -272,7 +282,7 @@ export class SubmitTextPage implements HasChanges {
     }
     const allTags = [
       ...this.store.submit.tags(),
-      ...this.inputTags().filter(t => t),
+      ...this.addedInputTags(),
       ...(this.store.account.localTag() ? [this.store.account.localTag()] : []),
     ];
     // The editor may start editing before the defaults load, and needs the tags to pick its initial toggles
@@ -462,10 +472,11 @@ export class SubmitTextPage implements HasChanges {
 
   setInputTags(value: string[]) {
     value = value.map(t => TAG_REGEX.test(t) ? t : '');
-    const old = this.inputTags().filter(t => t);
+    const old = this.addedInputTags();
     this.inputTags.set(value);
-    const added = value.filter(t => t && !old.includes(t));
-    const removed = old.filter(t => !value.includes(t));
+    const now = this.addedInputTags(value);
+    const added = now.filter(t => !old.includes(t));
+    const removed = old.filter(t => !now.includes(t));
     if (removed.length) fillTags(this.fb, this.tags, without(this.tags.value, ...removed));
     this.addTag(...added);
     this.textForm.markAsDirty();

@@ -170,9 +170,20 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.tag-field input.preview[title="toyota/prius"]')).toBeAttached();
   });
 
-  test('shows one input per hierarchical level', async ({ page }) => {
+  test('shows one input per hierarchical level and only adds the given tags', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&hierarchicalTag=car/<Make>/<Model>&hierarchicalTag=car/<Make>/<Model>/<Trim>', { waitUntil: 'networkidle' });
     await expect(page.locator('.hierarchical-tag-label')).toHaveText(['Car Make:', 'Car Model:', 'Car Trim:']);
     await expect(page.locator('.input-tag input.tag-input')).toHaveCount(3);
+    const [make, model, trim] = [0, 1, 2].map(i => page.locator('.input-tag input.tag-input').nth(i));
+    await make.fill('toyota');
+    await model.fill('prius');
+    await trim.fill('le');
+    await page.locator('#title').fill('Prius LE');
+    const created = page.waitForRequest(req => req.url().includes('/api/v1/ref') && req.method() === 'POST');
+    await page.getByRole('button', { name: 'Submit', exact: true }).click();
+    const ref = (await created).postDataJSON();
+    expect(ref.tags).not.toContain('car/toyota');
+    expect(ref.tags).toContain('car/toyota/prius');
+    expect(ref.tags).toContain('car/toyota/prius/le');
   });
 });

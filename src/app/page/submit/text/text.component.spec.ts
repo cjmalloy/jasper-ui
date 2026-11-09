@@ -95,6 +95,14 @@ describe('SubmitTextPage', () => {
     expect(component.inputTagForm().fields.map(f => f.props?.parentKey)).toEqual([undefined, 'tag0', 'tag1']);
   });
 
+  it('only adds a tag for each hierarchicalTag given', () => {
+    component.store.submit.route.routeSnapshot.set({ queryParams: { hierarchicalTag: 'car/<Make>/<Model>' } } as any);
+    component.setInputTags(['car/toyota', 'car/toyota/prius']);
+    expect(component.tags.value).toContain('car/toyota/prius');
+    expect(component.tags.value).not.toContain('car/toyota');
+    expect(component.writeRef().tags).not.toContain('car/toyota');
+  });
+
   it('only adds valid inputTag tags', () => {
     component.store.submit.route.routeSnapshot.set({ queryParams: { inputTag: 'car/<Make>' } } as any);
     component.setInputTags(['car/Toyota']);

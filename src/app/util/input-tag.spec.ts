@@ -2,6 +2,7 @@
 import {
   expandHierarchicalTags,
   filterInputTag,
+  hierarchicalTagAdds,
   hierarchicalTagParents,
   hierarchicalTagTemplate,
   inputTagDefaults,
@@ -133,6 +134,11 @@ describe('hierarchicalTag', () => {
     expect(expandHierarchicalTags(['car/<Make>', 'car/<Brand>/<Model>'])).toEqual(['car/<Make>', 'car/<Brand>/<Model>']);
     expect(expandHierarchicalTags(['car/year/<Year>/make/<Make>'])).toEqual(['car/year/<Year>', 'car/year/<Year>/make/<Make>']);
     expect(expandHierarchicalTags(['<Make>/<Model>'])).toEqual(['<Make>', '<Make>/<Model>']);
+  });
+
+  it('only adds the tags of the given templates', () => {
+    expect(hierarchicalTagAdds(['car/<Make>', 'car/<Make>/<Model>'], ['car/<Make>/<Model>'])).toEqual([false, true]);
+    expect(hierarchicalTagAdds(['car/<Make>', 'car/<Brand>/<Model>'], ['car/<Brand>/<Model>', 'car/<Brand>'])).toEqual([true, true]);
   });
 
   it('fills in the parent tag once it is filled out', () => {

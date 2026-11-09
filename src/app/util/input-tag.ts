@@ -176,7 +176,8 @@ function hierarchicalKey(template: string) {
 
 /**
  * Adds a line for every level of the hierarchicalTag templates, so each line
- * has a single input. `car/<Make>/<Model>` adds `car/<Make>` before it.
+ * has a single input. `car/<Make>/<Model>` adds `car/<Make>` before it,
+ * which is shown but does not add a tag unless it is also a template.
  * Templates matching an earlier one, ignoring placeholder labels, are dropped.
  */
 export function expandHierarchicalTags(templates: string[]) {
@@ -194,6 +195,15 @@ export function expandHierarchicalTags(templates: string[]) {
     add(s.join('/'));
   }
   return result;
+}
+
+/**
+ * Whether each line from {@link expandHierarchicalTags} adds its tag.
+ * Only lines matching one of the templates do, ignoring placeholder labels.
+ */
+export function hierarchicalTagAdds(lines: string[], templates: string[]) {
+  const keys = new Set(templates.map(t => hierarchicalKey(t).join('/')));
+  return lines.map(l => keys.has(hierarchicalKey(l).join('/')));
 }
 
 /**
