@@ -133,6 +133,31 @@ describe('FormlyFieldInputTag', () => {
     expect(fixture.componentInstance.form.value).toEqual({ tag: '_plugin/secret/openai' });
   });
 
+  it('is empty and valid when optional until an input is filled out', async () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'inputtag', props: { template: '+plugin,_plugin/secret/<Name>' } }];
+    await fixture.whenStable();
+    const form = fixture.componentInstance.form;
+    const field = fixture.debugElement.query(By.directive(FormlyFieldInputTag)).componentInstance as FormlyFieldInputTag;
+    expect((form.value as any).tag ?? null).toBeNull();
+    expect(form.valid).toBe(true);
+    field.setValue(0, '_plugin/secret');
+    expect((form.value as any).tag ?? null).toBeNull();
+    field.setValue(1, 'openai');
+    expect(form.value).toEqual({ tag: '_plugin/secret/openai' });
+    field.setValue(1, '');
+    expect((form.value as any).tag).toBeNull();
+    expect(form.valid).toBe(true);
+  });
+
+  it('keeps an optional value it cannot fill out until it is edited', async () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.model = { tag: '+openai/key' };
+    fixture.componentInstance.fields = [{ key: 'tag', type: 'inputtag', props: { template: '+plugin,_plugin/secret/<Name>' } }];
+    await fixture.whenStable();
+    expect(fixture.componentInstance.form.value).toEqual({ tag: '+openai/key' });
+  });
+
   it('shows one dropdown with every permutation of the prefix', async () => {
     const { fixture, field, el } = await render('+plugin,_plugin/secret/<Secret>');
     const select = el.querySelector<HTMLSelectElement>('.input-tag select')!;

@@ -235,7 +235,8 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
         this.updateControl();
       });
     }
-    this.updateControl();
+    // An optional field keeps its value until it is edited
+    if (parent || this.props.required) this.updateControl();
   });
 
   constructor() {
@@ -300,7 +301,8 @@ export class FormlyFieldInputTag extends FieldType<FieldTypeConfig> {
   }
 
   private updateControl() {
-    const tag = (this.parentTemplate()
+    const blank = !this.props.required && this.parts().every((p, i) => p.options || !this.values()[i]);
+    const tag = (blank ? null : this.parentTemplate()
       ? this.filledTemplate() && resolveInputTag(this.parts(), this.values())
       : partialInputTag(this.parts(), this.values())) || null;
     if (tag !== this.formControl.value) this.formControl.setValue(tag);
