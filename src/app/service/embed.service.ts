@@ -56,7 +56,7 @@ export interface MdRoot {
 }
 
 function gatedKatex(): MarkedExtension {
-  const ext = markedKatex({ throwOnError: false });
+  const ext = markedKatex({ throwOnError: false, nonStandard: true });
   return {
     extensions: ext.extensions!.map((e: any) => ({
       ...e,
@@ -435,8 +435,9 @@ export class EmbedService {
     }, {
       name: 'preserveMath',
       level: 'inline',
-      start: (src: string) => src.match(/\$/)?.index,
+      start: (src: string) => katexEnabled ? undefined : src.match(/\$/)?.index,
       tokenizer(src: string, tokens: any): any {
+        if (katexEnabled) return undefined;
         const rule = /^(\$\$[^$]+\$\$|\$[^$]+\$)/;
         let match = rule.exec(src);
         if (match) {
