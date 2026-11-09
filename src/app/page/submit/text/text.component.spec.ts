@@ -89,6 +89,24 @@ describe('SubmitTextPage', () => {
     expect(component.tags.value).toContain('car/toyota/prius');
   });
 
+  it('shows one input per hierarchicalTag line', () => {
+    component.store.submit.route.routeSnapshot.set({ queryParams: { hierarchicalTag: ['car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>'] } } as any);
+    expect(component.inputTagForm().templates).toEqual(['car/<Make>', 'car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>']);
+    expect(component.inputTagForm().fields.map(f => f.props?.parentKey)).toEqual([undefined, 'tag0', 'tag1']);
+  });
+
+  it('only adds valid inputTag tags', () => {
+    component.store.submit.route.routeSnapshot.set({ queryParams: { inputTag: 'car/<Make>' } } as any);
+    component.setInputTags(['car/Toyota']);
+    expect(component.tags.value).not.toContain('car/Toyota');
+    expect(component.tags.value).not.toContain('car');
+  });
+
+  it('never writes blank or invalid tags', () => {
+    component.setTags(['', 'science', 'Not Valid']);
+    expect(component.writeRef().tags).toEqual(['science']);
+  });
+
   it('never makes a secret public', () => {
     component.addTag('public');
     expect(component.tags.value).toContain('public');

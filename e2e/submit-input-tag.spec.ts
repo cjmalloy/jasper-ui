@@ -169,4 +169,10 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.tag-field input.preview[title="toyota"]')).toBeAttached();
     await expect(page.locator('.tag-field input.preview[title="toyota/prius"]')).toBeAttached();
   });
+
+  test('shows one input per hierarchical level', async ({ page }) => {
+    await page.goto('/submit/text?debug=USER&hierarchicalTag=car/<Make>/<Model>&hierarchicalTag=car/<Make>/<Model>/<Trim>', { waitUntil: 'networkidle' });
+    await expect(page.locator('.hierarchical-tag-label')).toHaveText(['Car Make:', 'Car Model:', 'Car Trim:']);
+    await expect(page.locator('.input-tag input.tag-input')).toHaveCount(3);
+  });
 });

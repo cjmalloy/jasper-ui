@@ -55,8 +55,10 @@ import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { readFileAsString } from '../../../util/async';
 import { controlState, controlValue, scrollToFirstInvalid } from '../../../util/form';
+import { TAG_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import {
+  expandHierarchicalTags,
   filterInputTag,
   hierarchicalTagParents,
   hierarchicalTagTemplate,
@@ -140,7 +142,7 @@ export class SubmitTextPage implements HasChanges {
   private readonly tagsValue = controlValue<string[]>(() => this.tags);
   readonly inputTagForm = computed(() => {
     const inputTags = this.store.submit.inputTags();
-    const hierarchicalTags = this.store.submit.hierarchicalTags();
+    const hierarchicalTags = expandHierarchicalTags(this.store.submit.hierarchicalTags());
     const templates = [...inputTags, ...hierarchicalTags];
     const keys = templates.map((_, i) => 'tag' + i);
     const parents = [...inputTags.map(() => -1), ...hierarchicalTagParents(hierarchicalTags).map(p => p < 0 ? p : p + inputTags.length)];
@@ -459,6 +461,7 @@ export class SubmitTextPage implements HasChanges {
   }
 
   setInputTags(value: string[]) {
+    value = value.map(t => TAG_REGEX.test(t) ? t : '');
     const old = this.inputTags().filter(t => t);
     this.inputTags.set(value);
     const added = value.filter(t => t && !old.includes(t));
@@ -523,7 +526,7 @@ export class SubmitTextPage implements HasChanges {
       title: this.title.value, // Need to pull separately if disabled by wiki mode
       origin: this.store.account.origin(),
       published: this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : publish ? DateTime.now() : undefined,
-      tags: uniq(notPublicSecret(this.textForm.value.tags)),
+      tags: uniq(notPublicSecret(this.textForm.value.tags)).filter(t => TAG_REGEX.test(t)),
       plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
     };
   }

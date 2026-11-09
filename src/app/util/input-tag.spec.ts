@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import {
+  expandHierarchicalTags,
   filterInputTag,
   hierarchicalTagParents,
   hierarchicalTagTemplate,
@@ -123,6 +124,15 @@ describe('hierarchicalTag', () => {
     expect(hierarchicalTagParents(['car/<Make>', 'car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>'])).toEqual([-1, 0, 1]);
     expect(hierarchicalTagParents(['<Make>/<Model>', '<Make>'])).toEqual([1, -1]);
     expect(hierarchicalTagParents(['car/<Make>', 'color/<Color>'])).toEqual([-1, -1]);
+    expect(hierarchicalTagParents(['car/<Make>', 'car/<Brand>/<Model>'])).toEqual([-1, 0]);
+  });
+
+  it('adds a line for every level', () => {
+    expect(expandHierarchicalTags(['car/<Make>', 'car/<Make>/<Model>'])).toEqual(['car/<Make>', 'car/<Make>/<Model>']);
+    expect(expandHierarchicalTags(['car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>'])).toEqual(['car/<Make>', 'car/<Make>/<Model>', 'car/<Make>/<Model>/<Trim>']);
+    expect(expandHierarchicalTags(['car/<Make>', 'car/<Brand>/<Model>'])).toEqual(['car/<Make>', 'car/<Brand>/<Model>']);
+    expect(expandHierarchicalTags(['car/year/<Year>/make/<Make>'])).toEqual(['car/year/<Year>', 'car/year/<Year>/make/<Make>']);
+    expect(expandHierarchicalTags(['<Make>/<Model>'])).toEqual(['<Make>', '<Make>/<Model>']);
   });
 
   it('fills in the parent tag once it is filled out', () => {

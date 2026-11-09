@@ -167,18 +167,48 @@ function segments(template: string) {
 }
 
 /**
+ * The segments with every placeholder replaced by `<>`, so placeholders
+ * match whatever their label is.
+ */
+function hierarchicalKey(template: string) {
+  return segments(template).map(s => PLACEHOLDER_REGEX.test(s) ? '<>' : s);
+}
+
+/**
+ * Adds a line for every level of the hierarchicalTag templates, so each line
+ * has a single input. `car/<Make>/<Model>` adds `car/<Make>` before it.
+ * Templates matching an earlier one, ignoring placeholder labels, are dropped.
+ */
+export function expandHierarchicalTags(templates: string[]) {
+  const result: string[] = [];
+  const keys = new Set<string>();
+  const add = (t: string) => {
+    const key = hierarchicalKey(t).join('/');
+    if (!key || keys.has(key)) return;
+    keys.add(key);
+    result.push(t);
+  };
+  for (const t of templates) {
+    const s = segments(t);
+    s.forEach((x, i) => PLACEHOLDER_REGEX.test(x) && add(s.slice(0, i + 1).join('/')));
+    add(s.join('/'));
+  }
+  return result;
+}
+
+/**
  * The index of the parent of each hierarchicalTag template, or -1 for none.
  * The parent is the longest other template the template starts with,
- * so `car/<Make>` is the parent of `car/<Make>/<Model>`.
+ * so `car/<Make>` is the parent of `car/<Brand>/<Model>`. Placeholders match
+ * whatever their label is.
  */
 export function hierarchicalTagParents(templates: string[]) {
-  return templates.map(t => {
-    const s = segments(t);
+  const keys = templates.map(hierarchicalKey);
+  return keys.map(s => {
     let parent = -1;
-    templates.forEach((p, i) => {
-      const ps = segments(p);
+    keys.forEach((ps, i) => {
       if (ps.length >= s.length || !ps.every((x, j) => x === s[j])) return;
-      if (parent < 0 || ps.length > segments(templates[parent]).length) parent = i;
+      if (parent < 0 || ps.length > keys[parent].length) parent = i;
     });
     return parent;
   });
