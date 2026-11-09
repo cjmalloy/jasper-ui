@@ -56,7 +56,7 @@ export interface MdRoot {
 }
 
 function gatedKatex(): MarkedExtension {
-  const ext = markedKatex({ throwOnError: false });
+  const ext = markedKatex({ throwOnError: false, nonStandard: true });
   return {
     extensions: ext.extensions!.map((e: any) => ({
       ...e,
