@@ -85,6 +85,12 @@ describe('EmbedService', () => {
       expect(html).not.toContain('class="katex"');
       expect(html).toContain('($X_1$)');
     });
+
+    it('preserves math KaTeX does not render from markdown with KaTeX', () => {
+      const html = service.parse('$x *y\nz* w$', true);
+      expect(html).not.toContain('<em>');
+      expect(html).toContain('$x *y\nz* w$');
+    });
   });
 
   describe('render images', () => {

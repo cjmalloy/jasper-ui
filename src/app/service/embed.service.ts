@@ -435,9 +435,8 @@ export class EmbedService {
     }, {
       name: 'preserveMath',
       level: 'inline',
-      start: (src: string) => katexEnabled ? undefined : src.match(/\$/)?.index,
+      start: (src: string) => src.match(/\$/)?.index,
       tokenizer(src: string, tokens: any): any {
-        if (katexEnabled) return undefined;
         const rule = /^(\$\$[^$]+\$\$|\$[^$]+\$)/;
         let match = rule.exec(src);
         if (match) {
