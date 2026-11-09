@@ -41,6 +41,8 @@ describe('SidebarComponent', () => {
       { tag: '_plugin/secret', name: 'Private Secret', config: { submit: 'private secret', genId: true, internal: true, inputTags: ['_plugin,+plugin/secret/<Name>'] } },
     ]);
 
+    // The settings tab Ext is the +plugin/secret Plugin
+    vi.spyOn(component, 'rootConfig').mockReturnValue({ inputTags: ['+plugin,_plugin/secret/<Name>'] });
     const submits = component.pluginSubmits();
     expect(submits.map(s => s.label)).toEqual(['secret', 'private secret']);
     expect(submits.map(s => s.link)).toEqual(['/submit/text', '/submit/text']);

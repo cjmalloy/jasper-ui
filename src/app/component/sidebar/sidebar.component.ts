@@ -133,6 +133,7 @@ export class SidebarComponent {
   readonly submitTextParams = computed(() => this.textParams(this.plugin(), this.addTags(), this.genUrl));
   /**
    * One submit button per plugin when several plugins are merged into one settings tab.
+   * The settings tab Ext is one of the plugins, so only each plugin's own stencils are used.
    */
   readonly pluginSubmits = computed(() => {
     if (this.group().length < 2) return [];
@@ -143,8 +144,8 @@ export class SidebarComponent {
           .filter(tag => this.auth.canAddTag(tag));
         const genUrl = 'internal:' + uuid();
         const label = p.config?.submit || p.name || p.tag;
-        if (p.config?.submitText || this.rootConfig()?.submitText || this.inputTags(p).length || this.hierarchicalTags().length) {
-          return { tag: p.tag, label, link: '/submit/text', params: this.textParams(p, addTags, genUrl) };
+        if (p.config?.submitText || this.rootConfig()?.submitText || p.config?.inputTags?.length) {
+          return { tag: p.tag, label, link: '/submit/text', params: this.textParams(p, addTags, genUrl, p.config?.inputTags || [], []) };
         }
         if (p.config?.submit && p.config?.genId) {
           return { tag: p.tag, label, link: '/submit/web', params: { tag: addTags, url: genUrl, location: this.location() } };
@@ -165,9 +166,7 @@ export class SidebarComponent {
    */
   readonly hierarchicalTags = computed(() => uniq((this.rootConfig()?.hierarchicalTags || []).filter(t => t)));
 
-  private textParams(plugin: Plugin | undefined, addTags: string[], genUrl: string) {
-    const inputTags = this.inputTags(plugin);
-    const hierarchicalTags = this.hierarchicalTags();
+  private textParams(plugin: Plugin | undefined, addTags: string[], genUrl: string, inputTags = this.inputTags(plugin), hierarchicalTags = this.hierarchicalTags()) {
     if (!inputTags.length && !hierarchicalTags.length) return { tag: addTags, location: this.location() };
     const prefixes = [...inputTags, ...hierarchicalTags].flatMap(t => parseInputTag(t)[0].options || []);
     return {
