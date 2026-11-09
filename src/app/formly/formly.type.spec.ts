@@ -56,6 +56,10 @@ describe('formly type', () => {
     expect(values).toContain('formly');
     expect(values).toContain('tags');
     expect(values).not.toContain('list');
+    expect(values).toContain('stencil');
+    expect(values).not.toContain('child-plugin');
+    expect(values).not.toContain('geometries');
+    expect(values).not.toContain('userMap');
   });
 
   it('shows options only for option types', async () => {
@@ -87,7 +91,9 @@ describe('formly type', () => {
     const { fixture, field } = await render(model);
     expect(child(field.fieldGroup![0], 'props.template').hide).toBe(true);
     expect(child(field.fieldGroup![0], 'props.hierarchical').hide).toBe(true);
+    expect(child(field.fieldGroup![0], 'props.placeholder').hide).toBeFalsy();
     const stencil = field.fieldGroup![1];
+    expect(child(stencil, 'props.placeholder').hide).toBe(true);
     expect(child(stencil, 'props.template').hide).toBeFalsy();
     expect(child(stencil, 'props.template').formControl!.value).toBe('car/<Make>');
     child(stencil, 'props.template').formControl!.setValue('car/<Make>/<Model>');

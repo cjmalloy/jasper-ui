@@ -34,4 +34,16 @@ describe('provideJasperFormly', () => {
     const field = build({ radius: 4 }, { min: 1, max: 24, step: 2 });
     expect(getErrorMessage(field, TestBed.inject(FormlyConfig))).toBe('Must be 1 plus a multiple of 2');
   });
+
+  it('only accepts whole numbers for integers', () => {
+    const form = new FormGroup({});
+    const field: FormlyFieldConfig = { key: 'count', type: 'integer' };
+    TestBed.inject(FormlyFormBuilder).build({ form, model: { count: 1.5 }, options: {}, fieldGroup: [field] });
+    expect(field.props!.step).toBe(1);
+    expect(getErrorMessage(field, TestBed.inject(FormlyConfig))).toBe('Must be a multiple of 1');
+    field.formControl!.setValue(2);
+    expect(field.formControl!.valid).toBe(true);
+    field.formControl!.setValue(null);
+    expect(field.formControl!.valid).toBe(true);
+  });
 });

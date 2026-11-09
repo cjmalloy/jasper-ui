@@ -34,7 +34,8 @@ type Suggestion = { value: string, label: string, tag: string };
  * With `props.hierarchical` each placeholder gets its own labelled line,
  * which is disabled until the lines above it are filled out and cleared
  * when they change. The value is the tag filled out up to the end of each
- * line. It shows its own labels, so it never uses a wrapper.
+ * line. It shows its own labels and hint, so it never uses a wrapper.
+ * The label replaces the name of the fixed prefix in each line label.
  */
 @Component({
   selector: 'formly-field-stencil',
@@ -92,6 +93,12 @@ type Suggestion = { value: string, label: string, tag: string };
             </select>
           }
         }
+      </div>
+    }
+    @if (hierarchical() && props.hint) {
+      <span><!-- Hint --></span>
+      <div class="no-margin">
+        <span class="hints">{{ props.hint }}</span>
       </div>
     }
     <datalist [id]="listId">
@@ -209,8 +216,9 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   readonly lineLabels = computed(() => {
     const names = this.previews.hasValue() ? this.previews.value() : new Map<string, string>();
     const leading = this.leading();
+    const label = (this.props.label || '').replace(/:\s*$/, '');
     return this.lines().map(line => [
-      leading && (names.get(leading) || leading),
+      label || leading && (names.get(leading) || leading),
       ...line.map(i => this.parts()[i].label),
     ].filter(l => l).join(' '));
   });

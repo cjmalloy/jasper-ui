@@ -114,6 +114,7 @@ export function provideJasperFormly() {
       defaultOptions: {
         props: {
           type: 'number',
+          step: 1,
         },
       },
     }, {
@@ -263,7 +264,6 @@ export function provideJasperFormly() {
             { value: 'PT1M', label: $localize`1 min` },
             { value: 'PT5M', label: $localize`5 mins` },
             { value: 'PT15M', label: $localize`15 mins` },
-            { value: 'PT30M', label: $localize`30 mins` },
             { value: 'PT30M', label: $localize`30 mins` },
             { value: 'PT1H', label: $localize`1 hour` },
             { value: 'PT2H', label: $localize`2 hours` },

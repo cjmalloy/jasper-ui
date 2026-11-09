@@ -169,7 +169,16 @@ describe('FormlyFieldStencil', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelectorAll('.stencil-field').length).toBe(1);
-    expect([...el.querySelectorAll('label')].map(l => l.textContent!.trim())).toEqual(['A:', 'Cars Make:', 'Cars Model:', 'B:']);
+    expect([...el.querySelectorAll('label')].map(l => l.textContent!.trim())).toEqual(['A:', 'Car Make:', 'Car Model:', 'B:']);
+  });
+
+  it('uses the label and hint of a hierarchical field', async () => {
+    const fixture = TestBed.createComponent(Host);
+    fixture.componentInstance.fields = [{ key: 'car', type: 'stencil', props: { label: 'Vehicle:', hint: 'Pick a car', template: 'car/<Make>/<Model>', hierarchical: true } }];
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    expect([...el.querySelectorAll('.hierarchical-tag-label')].map(l => l.textContent!.trim())).toEqual(['Vehicle Make:', 'Vehicle Model:']);
+    expect(el.querySelector('.hints')!.textContent!.trim()).toBe('Pick a car');
   });
 
   it('fills out hierarchical tags top down', async () => {
