@@ -6770,6 +6770,27 @@ Private tags start with an underscore.
           <context context-type="linenumber">23,24</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="6821492100563998377" datatype="html">
+        <source>Does not fit the tag <x id="PH" equiv-text="this.filledTemplate() || this.template()"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/formly/stencil.type.ts</context>
+          <context context-type="linenumber">348</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1030594656589546259" datatype="html">
+        <source>Must be lower case letters, numbers, periods and forward slashes.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/formly/stencil.type.ts</context>
+          <context context-type="linenumber">349</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="926059739238690863" datatype="html">
+        <source>Must be lower case letters, numbers and periods.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/formly/stencil.type.ts</context>
+          <context context-type="linenumber">350</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="1904570248489906370" datatype="html">
         <source>Upload or record video</source>
         <context-group purpose="location">

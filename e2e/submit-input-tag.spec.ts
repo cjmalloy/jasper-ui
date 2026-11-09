@@ -119,6 +119,18 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.tag-field input.preview[title="car/2020/toyota/corolla/le"]')).toBeAttached();
   });
 
+  test('reports invalid input on submit', async ({ page }) => {
+    await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>', { waitUntil: 'networkidle' });
+    await page.locator('#title').fill('Car');
+    const inputs = page.locator('.stencil input.tag-input');
+    await inputs.nth(0).fill('Twenty');
+    await inputs.nth(1).fill('ford');
+    await page.getByRole('button', { name: 'Submit', exact: true }).click();
+    await expect(inputs.nth(0)).toBeFocused();
+    expect(await inputs.nth(0).evaluate((i: HTMLInputElement) => i.validationMessage)).toBe('Must be lower case letters, numbers and periods.');
+    await expect(page).toHaveURL(/\/submit\/text/);
+  });
+
   test('shows one dropdown with every permutation of the prefix', async ({ page }) => {
     await page.goto('/submit/text?debug=ADMIN&inputTag=' + encodeURIComponent('+plugin,_plugin/secret,other/<Secret>'), { waitUntil: 'networkidle' });
     const select = page.locator('.stencil select');

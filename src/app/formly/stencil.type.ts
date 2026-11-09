@@ -1,4 +1,4 @@
-import { afterNextRender, Component, computed, DestroyRef, ElementRef, inject, linkedSignal, signal, untracked } from '@angular/core';
+import { afterNextRender, afterRenderEffect, Component, computed, DestroyRef, ElementRef, inject, linkedSignal, signal, untracked } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
 import { uniq, uniqBy } from 'lodash-es';
@@ -19,7 +19,8 @@ import {
   parseInputTag,
   partialInputTag,
   resolveInputTag,
-  spreadInputTag
+  spreadInputTag,
+  validInputTagValue
 } from '../util/input-tag';
 
 /**
@@ -115,6 +116,11 @@ import {
       .tag-input, .tag-input-preview {
         flex: 1 1 80px;
         min-width: 80px;
+      }
+
+      .tag-input:user-invalid {
+        border-color: var(--error);
+        color: var(--error);
       }
     }
   `,
@@ -232,6 +238,15 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
 
   private readonly search$ = new Subject<number>();
 
+  // Sync the validation message of each input
+  private readonly validity = afterRenderEffect(() => {
+    const values = this.values();
+    for (const input of this.el.nativeElement.querySelectorAll<HTMLInputElement>('input.tag-input[data-part]')) {
+      const index = Number(input.dataset['part']);
+      input.setCustomValidity(this.invalidMessage(index, values[index] || ''));
+    }
+  });
+
   private readonly initializeView = afterNextRender(() => {
     const parent = this.props.parentKey ? this.form.get(this.props.parentKey as string) : null;
     if (parent) {
@@ -322,6 +337,17 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
       this.edit(spread.last, next);
     }
     this.search(spread.last);
+  }
+
+  /**
+   * Why the value typed into the placeholder at an index is invalid, or an empty string.
+   */
+  invalidMessage(index: number, value: string) {
+    const part = this.parts()[index];
+    if (!value || validInputTagValue(value, part)) return '';
+    if (value.includes('/') && !part.rest) return $localize`Does not fit the tag ${this.filledTemplate() || this.template()}`;
+    if (part.rest) return $localize`Must be lower case letters, numbers, periods and forward slashes.`;
+    return $localize`Must be lower case letters, numbers and periods.`;
   }
 
   setValue(index: number, value: string) {

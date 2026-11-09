@@ -8575,6 +8575,18 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Fill out every part of the tag.</source>
         <target>タグのすべての部分を入力してください。</target>
       </trans-unit>
+      <trans-unit id="1030594656589546259" datatype="html">
+        <source>Must be lower case letters, numbers, periods and forward slashes.</source>
+        <target>小文字、数字、ピリオド、スラッシュのみ使用できます。</target>
+      </trans-unit>
+      <trans-unit id="6821492100563998377" datatype="html">
+        <source>Does not fit the tag <x id="PH" equiv-text="this.filledTemplate() || this.template()"/></source>
+        <target>タグ <x id="PH" equiv-text="this.filledTemplate() || this.template()"/> に合いません</target>
+      </trans-unit>
+      <trans-unit id="926059739238690863" datatype="html">
+        <source>Must be lower case letters, numbers and periods.</source>
+        <target>小文字、数字、ピリオドのみ使用できます。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

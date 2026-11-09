@@ -559,7 +559,12 @@ export class SubmitTextPage implements HasChanges {
       return !template || !matchesInputTag(filterInputTag(parseInputTag(template), tag => this.auth.canAddTag(tag)), filled[i]);
     })) {
       inputTags.form.markAllAsTouched();
-      window.scroll({ top: 0, behavior: 'smooth' });
+      const invalid = document.querySelector<HTMLInputElement>('.stencil input.tag-input:invalid');
+      if (invalid) {
+        invalid.reportValidity();
+      } else {
+        window.scroll({ top: 0, behavior: 'smooth' });
+      }
       return;
     }
     if (!this.textForm.valid) {

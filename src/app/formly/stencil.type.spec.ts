@@ -78,6 +78,25 @@ describe('FormlyFieldStencil', () => {
     expect(field.formControl.value).toBe('car/2020/toyota/corolla');
   });
 
+  it('explains why an input is invalid', async () => {
+    const { fixture, el } = await render('car/<Year>/new,used/<Make>');
+    const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
+    const type = async (i: number, value: string) => {
+      inputs()[i].value = value;
+      inputs()[i].dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+    };
+    await type(0, 'Twenty');
+    expect(inputs()[0].validationMessage).toBe('Must be lower case letters, numbers and periods.');
+    await type(0, '2020/old/toyota');
+    expect(inputs()[0].validationMessage).toBe('Does not fit the tag car/<Year>/new,used/<Make>');
+    await type(1, 'Toyota Corolla');
+    expect(inputs()[1].validationMessage).toBe('Must be lower case letters, numbers, periods and forward slashes.');
+    await type(0, '2020');
+    await type(1, 'toyota');
+    expect(inputs().map(i => i.validationMessage)).toEqual(['', '']);
+  });
+
   it('shows the preview of filled out inputs that are not being edited', async () => {
     const { fixture, field, el } = await render('car/<Year>/<Make>');
     field.setValue(1, '2020');
