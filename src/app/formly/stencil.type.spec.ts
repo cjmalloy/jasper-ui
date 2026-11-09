@@ -97,6 +97,20 @@ describe('FormlyFieldStencil', () => {
     expect(inputs().map(i => i.validationMessage)).toEqual(['', '']);
   });
 
+  it('reports an invalid input when leaving it', async () => {
+    const { fixture, el } = await render('car/<Year>/<Make>');
+    const input = el.querySelector<HTMLInputElement>('.stencil input.tag-input')!;
+    const report = vi.spyOn(input, 'reportValidity');
+    input.dispatchEvent(new Event('blur'));
+    expect(report).not.toHaveBeenCalled();
+    input.value = 'Twenty';
+    input.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    input.dispatchEvent(new Event('blur'));
+    expect(report).toHaveBeenCalled();
+    expect(input.validationMessage).toBe('Must be lower case letters, numbers and periods.');
+  });
+
   it('shows the preview of filled out inputs that are not being edited', async () => {
     const { fixture, field, el } = await render('car/<Year>/<Make>');
     field.setValue(1, '2020');
@@ -256,6 +270,49 @@ describe('FormlyFieldStencil', () => {
     expect(page).toHaveBeenCalledWith(expect.objectContaining({ query: 'car' }));
     expect(field.autocomplete()).toEqual([{ value: 'toyota', label: 'Toyota' }, { value: 'honda/civic', label: 'Civic' }]);
     vi.useRealTimers();
+  });
+
+  it('suggests the whole tag for an input before the last', async () => {
+    vi.spyOn(TestBed.inject(ExtService), 'page').mockReturnValue(of({
+      content: [{ tag: 'kanban/jasper', name: 'Jasper' }, { tag: 'kanban/jasper/bugs', name: 'Bugs' }],
+      page: { number: 0, size: 50, totalElements: 2, totalPages: 1 },
+    } as any));
+    const { fixture, field, el } = await render('kanban/<Board1>/<Board2>');
+    vi.useFakeTimers();
+    field.search(1);
+    vi.advanceTimersByTime(300);
+    vi.useRealTimers();
+    expect(field.autocomplete()).toEqual([{ value: 'jasper', label: 'Jasper' }, { value: 'jasper/bugs', label: 'Bugs' }]);
+    const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
+    inputs()[0].value = 'jasper/bugs';
+    inputs()[0].dispatchEvent(new InputEvent('input', { inputType: 'insertReplacementText' }));
+    await fixture.whenStable();
+    expect(inputs().map(i => i.value)).toEqual(['jasper', 'bugs']);
+    expect(field.formControl.value).toBe('kanban/jasper/bugs');
+  });
+
+  it('fills out the inputs before a suggestion picked out of order', async () => {
+    vi.spyOn(TestBed.inject(ExtService), 'page').mockReturnValue(of({
+      content: [{ tag: 'kanban/jasper/bugs', name: 'Bugs' }, { tag: 'kanban/home/todo' }, { tag: 'kanban/work/todo' }],
+      page: { number: 0, size: 50, totalElements: 3, totalPages: 1 },
+    } as any));
+    const { fixture, field, el } = await render('kanban/<Board1>/<Board2>');
+    vi.useFakeTimers();
+    field.search(2);
+    vi.advanceTimersByTime(300);
+    vi.useRealTimers();
+    expect(field.autocomplete()).toEqual([{ value: 'bugs', label: 'Bugs' }, { value: 'todo', label: 'todo' }]);
+    const inputs = () => [...el.querySelectorAll<HTMLInputElement>('.stencil input.tag-input')];
+    const pick = async (value: string) => {
+      inputs()[1].value = value;
+      inputs()[1].dispatchEvent(new InputEvent('input', { inputType: 'insertReplacementText' }));
+      await fixture.whenStable();
+    };
+    await pick('todo');
+    expect(inputs().map(i => i.value)).toEqual(['', 'todo']);
+    await pick('bugs');
+    expect(inputs().map(i => i.value)).toEqual(['jasper', 'bugs']);
+    expect(field.formControl.value).toBe('kanban/jasper/bugs');
   });
 
   it('suggests more than one level for the last input', async () => {

@@ -47,6 +47,22 @@ test.describe.serial('Submit inputTag', () => {
     await expect(page.locator('.tag-field input.preview[title="kanban/jasper/bugs"]')).toBeAttached();
   });
 
+  test('suggests the whole tag for every input', async ({ page }) => {
+    await page.goto('/submit/text?debug=USER&inputTag=kanban/<Board1>/<Board2>', { waitUntil: 'networkidle' });
+    const [board1, board2] = [0, 1].map(i => page.locator('.stencil input.tag-input').nth(i));
+    await board1.focus();
+    await expect(page.locator(`datalist[id="${await board1.getAttribute('list')}"] option[value="jasper/bugs"]`)).toHaveCount(1);
+    await board2.focus();
+    await expect(page.locator(`datalist[id="${await board2.getAttribute('list')}"] option[value="bugs"]`)).toHaveCount(1);
+    // Pick from the datalist
+    await board2.evaluate((input: HTMLInputElement) => {
+      input.value = 'bugs';
+      input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertReplacementText' }));
+    });
+    await expect(board1).toHaveValue('jasper');
+    await expect(page.locator('.tag-field input.preview[title="kanban/jasper/bugs"]')).toBeAttached();
+  });
+
   test('shows an input per placeholder above the title', async ({ page }) => {
     await page.goto('/submit/text?debug=USER&inputTag=car/<Year>/<Make>&inputTag=color/<Color>', { waitUntil: 'networkidle' });
     const rows = page.locator('.stencil');
@@ -67,7 +83,9 @@ test.describe.serial('Submit inputTag', () => {
     await expect((await options(make)).first()).toHaveText('HONDA');
 
     await year.focus();
-    await expect(await options(year)).toHaveCount(2);
+    await expect(await options(year)).toHaveCount(5);
+    expect(await (await options(year)).evaluateAll(os => os.map(o => (o as HTMLOptionElement).value).sort()))
+      .toEqual(['2020', '2020/honda', '2020/toyota', '2021', '2021/ford']);
     await year.fill('2020');
     await make.focus();
     await expect(await options(make)).toHaveCount(2);

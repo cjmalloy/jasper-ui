@@ -75,9 +75,9 @@ import {
                  [disabled]="disabled()"
                  [class.hidden-without-removing]="placeholderNames()[i]"
                  (focus)="edit(i, input); search(i)"
-                 (blur)="blur()"
+                 (blur)="blur(); validate(i, input)"
                  [attr.data-part]="i"
-                 (input)="type(i, input)">
+                 (input)="type(i, input, $event)">
         } @else if (p.options.length === 1) {
           <span class="tag-preview" [title]="p.options[0]">{{ labels()[i][0] }}</span>
         } @else {
@@ -116,11 +116,6 @@ import {
       .tag-input, .tag-input-preview {
         flex: 1 1 80px;
         min-width: 80px;
-      }
-
-      .tag-input:user-invalid {
-        border-color: var(--error);
-        color: var(--error);
       }
     }
   `,
@@ -184,6 +179,10 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   readonly firstVisible = computed(() => this.visible().indexOf(true));
   readonly firstControl = computed(() => this.parts().findIndex((p, i) => this.visible()[i] && (!p.options || p.options.length > 1)));
   readonly autocomplete = signal<{ value: string, label: string }[]>([]);
+  /**
+   * The tags each autocomplete value was suggested by.
+   */
+  private suggestedTags = new Map<string, string[]>();
   readonly editing = signal(-1);
 
   private readonly previews = rxResource({
@@ -305,13 +304,26 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
             const depth = part.depth + suggestion.split('/').length;
             if (!this.auth.canAddTag(x.tag.split('/').slice(0, depth).join('/'))) return [];
             const own = x.tag.split('/').length === depth;
-            return [{ value: suggestion, label: own && x.name || suggestion }];
+            const result = [{ value: suggestion, label: own && x.name || suggestion, tag: x.tag }];
+            if (!part.rest && !own && this.auth.canAddTag(x.tag)) {
+              // Suggest the whole tag, which fills the following inputs
+              const rest = x.tag.split('/').slice(part.depth).join('/');
+              const spread = spreadInputTag(parts, values, index, rest);
+              if (spread && (spread.overflow === undefined || this.hasChildren())) {
+                result.push({ value: rest, label: x.name || rest, tag: x.tag });
+              }
+            }
+            return result;
           })),
           catchError(() => of([])),
         );
       }),
       takeUntilDestroyed(),
-    ).subscribe(xs => this.autocomplete.set(uniqBy(xs, 'value')));
+    ).subscribe(xs => {
+      this.suggestedTags = new Map();
+      for (const x of xs) this.suggestedTags.set(x.value, [...this.suggestedTags.get(x.value) || [], x.tag]);
+      this.autocomplete.set(uniqBy(xs, 'value').map(({ value, label }) => ({ value, label })));
+    });
     this.destroyRef.onDestroy(() => this.search$.complete());
   }
 
@@ -325,6 +337,13 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
     this.formControl.markAsTouched();
   }
 
+  validate(index: number, input: HTMLInputElement) {
+    const message = this.invalidMessage(index, this.values()[index] || '');
+    if (!message) return;
+    input.setCustomValidity(message);
+    input.reportValidity();
+  }
+
   search(index: number) {
     this.autocomplete.set([]);
     this.search$.next(index);
@@ -333,13 +352,31 @@ export class FormlyFieldStencil extends FieldType<FieldTypeConfig> {
   /**
    * Typing a `/` fills the following inputs and moves to the last one filled.
    */
-  type(index: number, input: HTMLInputElement) {
+  type(index: number, input: HTMLInputElement, event?: Event) {
+    if (!(event instanceof InputEvent) || event.inputType === 'insertReplacementText') this.fillBefore(index, input.value);
     const focus = this.fill(index, input.value);
     if (focus === index) return;
     input.value = this.values()[index];
     if (focus === undefined) return;
     const next = this.input(focus);
     if (next) this.edit(focus, next);
+  }
+
+  /**
+   * Fill out the blank inputs before an index from the tags that suggested
+   * the value picked from the autocomplete, when they all agree.
+   */
+  private fillBefore(index: number, value: string) {
+    const tags = this.suggestedTags.get(value);
+    if (!tags?.length) return;
+    const parts = this.parts();
+    const candidates = tags.map(t => inputTagValues(parts, t));
+    const values = this.values().map((v, i) => {
+      if (i >= index || v || parts[i].options) return v;
+      const filled = uniq(candidates.map(c => c[i]));
+      return filled.length === 1 ? filled[0] : v;
+    });
+    if (values.some((v, i) => v !== this.values()[i])) this.values.set(values);
   }
 
   /**
