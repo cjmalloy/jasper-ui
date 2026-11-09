@@ -1,12 +1,11 @@
 import { type StyleSpecification } from '@maplibre/maplibre-gl-style-spec';
 import type { Feature } from 'geojson';
-import { Schema } from 'jtd';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Mod } from '../model/tag';
 import { Template } from '../model/template';
-import { geoStyleSchema } from '../util/geo-style';
+import { geoFeaturesSchema, geoStyleSchema } from '../util/geo-style';
 
 export const mapTemplate: Template = {
   tag: 'map',
@@ -1213,15 +1212,6 @@ last position equals the first:
   },
 };
 
-const geometrySchemas: Record<string, Schema> = {
-  Point: { properties: { coordinates: { elements: { type: 'float64' } } } },
-  MultiPoint: { properties: { coordinates: { elements: { elements: { type: 'float64' } } } } },
-  LineString: { properties: { coordinates: { elements: { elements: { type: 'float64' } } } } },
-  MultiLineString: { properties: { coordinates: { elements: { elements: { elements: { type: 'float64' } } } } } },
-  Polygon: { properties: { coordinates: { elements: { elements: { elements: { type: 'float64' } } } } } },
-  MultiPolygon: { properties: { coordinates: { elements: { elements: { elements: { elements: { type: 'float64' } } } } } } },
-};
-
 const geoFeatureCollectionPlugin: Plugin = {
   tag: 'plugin/geo/features',
   name: $localize`🌐️🧩️ Geo Features`,
@@ -1277,18 +1267,7 @@ design, keep the other features unchanged and only edit, add or remove the featu
     },
     properties: {
       type: { enum: ['FeatureCollection'] },
-      features: {
-        elements: {
-          optionalProperties: {
-            bbox: { elements: { type: 'float64' } } ,
-            properties: geoStyleSchema,
-          },
-          properties: {
-            type: { enum: ['Feature'] },
-            geometry: { discriminator: 'type', mapping: geometrySchemas },
-          },
-        },
-      },
+      features: geoFeaturesSchema,
     },
   },
 };

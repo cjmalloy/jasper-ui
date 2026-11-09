@@ -2,6 +2,7 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { FormlyConfig, FormlyFieldConfig, FormlyFormBuilder } from '@ngx-formly/core';
 import { Schema } from 'jtd';
 import { cloneDeep, defaultsDeep, isObject, isPlainObject } from 'lodash-es';
+import { geoFeaturesSchema, geoStyleSchema } from '../util/geo-style';
 
 type ObjectSchema = { properties?: Record<string, Schema>, optionalProperties?: Record<string, Schema> };
 
@@ -53,6 +54,8 @@ function fieldSchema(config: FormlyConfig, field: FormlyFieldConfig): Schema {
   if (chain.includes('stencil')) return { ...schema, nullable: true };
   if (!('type' in schema)) return schema;
   if (chain.includes('range')) return schema;
+  // Optional durations may be null
+  if (chain.includes('duration')) return { ...schema, nullable: true };
   // Clearing a number input or an input with a clear button sets null
   if (chain.includes('input') && (merged.props?.type === 'number' || merged.props?.clear)) return { ...schema, nullable: true };
   return schema;
@@ -77,12 +80,16 @@ function valueSchema(config: FormlyConfig, field: FormlyFieldConfig): Schema {
   }
   if (chain.includes('select') || chain.includes('radio')) {
     const option = optionsSchema(props.options);
-    return props.multiple ? { elements: option } : option;
+    return chain.includes('select') && props.multiple ? { elements: option } : option;
   }
   if (chain.includes('input') && props.type === 'number') return { type: 'float64' };
   // A hierarchical stencil has the tag filled out up to each line
   if (chain.includes('stencil') && props.hierarchical) return { elements: { type: 'string' } };
-  if (['duration', 'child-plugin', 'geometries', 'geo-style'].some(t => chain.includes(t))) return {};
+  if (chain.includes('duration')) return { type: 'string' };
+  if (chain.includes('geo-style')) return cloneDeep(geoStyleSchema);
+  if (chain.includes('geometries')) return cloneDeep(geoFeaturesSchema);
+  // Has no key, so it stores nothing
+  if (chain.includes('child-plugin')) return {};
   if (!chain.length) return {};
   return { type: 'string' };
 }

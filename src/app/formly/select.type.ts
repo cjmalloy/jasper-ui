@@ -40,6 +40,11 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
               [formlyAttributes]="field">
         @if (props.placeholder) {
           <option [ngValue]="undefined">{{ props.placeholder }}</option>
+        } @else {
+          <option class="select-empty"
+                  [ngValue]="undefined"
+                  [disabled]="props.required"
+                  [hidden]="props.required || field.defaultValue !== undefined"></option>
         }
         @if (props.options | formlySelectOptions: field | async; as opts) {
           @for (opt of opts; track opt) {

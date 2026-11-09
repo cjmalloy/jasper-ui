@@ -13,6 +13,41 @@ export const OPTIONS_TYPES = ['select', 'enum', 'radio', 'multicheckbox'];
 const SKIP_TYPES = ['child-plugin', 'geometries', 'userMap'];
 
 /**
+ * Field types which have the form-field wrapper, but ignore the placeholder.
+ */
+const NO_PLACEHOLDER_TYPES = ['range', 'checkbox', 'radio', 'multicheckbox', 'location', 'bbox', 'code'];
+
+/**
+ * How a field type is rendered, to show only the builder options it uses.
+ */
+export interface BuilderType {
+  /** The type and every type it extends, most specific first. */
+  chain: string[];
+  /** Wrapped in the form-field wrapper, which renders the label, hint and required marker. */
+  formField: boolean;
+  /** A list, which renders its own label. */
+  list: boolean;
+}
+
+/**
+ * Type info for each registered type, and the formly builder type itself.
+ */
+export function builderTypes(types: TypeOption[]): Map<string, BuilderType> {
+  const byName = new Map(types.map(t => [t.name, t]));
+  const result = new Map<string, BuilderType>();
+  for (const type of [...types, { name: 'formly', extends: 'list' } as TypeOption]) {
+    const chain: string[] = [];
+    let wrappers: string[] | undefined;
+    for (let t: TypeOption | undefined = type; t && !chain.includes(t.name); t = t.extends ? byName.get(t.extends) : undefined) {
+      chain.push(t.name);
+      wrappers ??= t.wrappers;
+    }
+    result.set(type.name, { chain, formField: !!wrappers?.includes('form-field'), list: chain.includes('list') });
+  }
+  return result;
+}
+
+/**
  * Names of the types which can be picked in the form builder.
  * List types without a field array are skipped, since the builder
  * can't edit the field array.
@@ -39,7 +74,14 @@ export function builderTypeNames(types: TypeOption[]): string[] {
  * builder are kept as is.
  * Fields without a type are groups, which can contain nested fields.
  */
-export function formlyType(typeNames: string[]): TypeOption {
+export function formlyType(types: TypeOption[]): TypeOption {
+  const typeNames = builderTypeNames(types);
+  const info = builderTypes(types);
+  /** Type of the field being edited. */
+  const typeOf = (field: FormlyFieldConfig): string | undefined => field.parent?.model?.type;
+  /** Type info of the field being edited, if it has a known type. */
+  const infoOf = (field: FormlyFieldConfig) => info.get(typeOf(field)!);
+  const isType = (field: FormlyFieldConfig, ...names: string[]) => names.some(n => !!infoOf(field)?.chain.includes(n));
   return {
     name: 'formly',
     extends: 'list',
@@ -72,6 +114,9 @@ export function formlyType(typeNames: string[]): TypeOption {
           type: 'string',
           parsers: [omitEmpty],
           className: 'formly-label',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => !!infoOf(field) && !infoOf(field)!.formField && !infoOf(field)!.list,
+          },
           props: {
             label: $localize`Label:`,
           },
@@ -81,7 +126,8 @@ export function formlyType(typeNames: string[]): TypeOption {
           parsers: [omitEmpty],
           className: 'formly-placeholder',
           expressions: {
-            hide: (field: FormlyFieldConfig) => !field.parent?.model?.type || field.parent.model.type === 'stencil',
+            hide: (field: FormlyFieldConfig) => !typeOf(field) || typeOf(field) === 'stencil'
+              || !!infoOf(field) && (!infoOf(field)!.formField || isType(field, ...NO_PLACEHOLDER_TYPES)),
           },
           props: {
             label: $localize`Placeholder:`,
@@ -92,7 +138,7 @@ export function formlyType(typeNames: string[]): TypeOption {
           parsers: [omitEmpty],
           className: 'formly-hint',
           expressions: {
-            hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
+            hide: (field: FormlyFieldConfig) => !typeOf(field) || !!infoOf(field) && !infoOf(field)!.formField,
           },
           props: {
             label: $localize`Hint:`,
@@ -102,7 +148,7 @@ export function formlyType(typeNames: string[]): TypeOption {
           type: 'boolean',
           className: 'formly-required',
           expressions: {
-            hide: (field: FormlyFieldConfig) => !field.parent?.model?.type,
+            hide: (field: FormlyFieldConfig) => !typeOf(field) || !!infoOf(field) && !infoOf(field)!.formField,
           },
           props: {
             label: $localize`Required:`,
@@ -134,6 +180,101 @@ export function formlyType(typeNames: string[]): TypeOption {
                 label: $localize`Label:`,
               },
             }],
+          },
+        }, {
+          key: 'props.multiple',
+          type: 'boolean',
+          className: 'formly-multiple',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => !isType(field, 'select'),
+          },
+          props: {
+            label: $localize`Multiple:`,
+          },
+        }, {
+          key: 'props.type',
+          type: 'select',
+          className: 'formly-multicheckbox-type',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => stashArrayType(field, !isType(field, 'multicheckbox')),
+          },
+          props: {
+            label: $localize`Values:`,
+            placeholder: $localize`Object`,
+            options: [{ value: 'array', label: $localize`Array` }],
+          },
+        }, {
+          key: 'props.min',
+          type: 'number',
+          parsers: [omitEmpty],
+          className: 'formly-min',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => !isType(field, 'range'),
+          },
+          props: {
+            label: $localize`Min:`,
+            placeholder: '0',
+          },
+        }, {
+          key: 'props.max',
+          type: 'number',
+          parsers: [omitEmpty],
+          className: 'formly-max',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => !isType(field, 'range'),
+          },
+          props: {
+            label: $localize`Max:`,
+            placeholder: '10',
+          },
+        }, {
+          key: 'props.step',
+          type: 'number',
+          parsers: [omitEmpty],
+          className: 'formly-step',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => !isType(field, 'range'),
+          },
+          props: {
+            label: $localize`Step:`,
+            placeholder: '1',
+          },
+        }, {
+          key: 'props.language',
+          type: 'string',
+          parsers: [omitEmpty],
+          className: 'formly-language',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => !isType(field, 'code'),
+          },
+          props: {
+            label: $localize`Language:`,
+            placeholder: 'javascript',
+          },
+        }, {
+          key: 'props.rows',
+          type: 'integer',
+          parsers: [omitEmpty],
+          className: 'formly-rows',
+          expressions: {
+            hide: (field: FormlyFieldConfig) => !isType(field, 'textarea'),
+          },
+          props: {
+            label: $localize`Rows:`,
+            placeholder: '1',
+          },
+        }, {
+          key: 'props.prefix',
+          type: 'string',
+          parsers: [omitEmpty],
+          className: 'formly-prefix',
+          expressions: {
+            // Plugin and template suggestions are not loaded with a query
+            hide: (field: FormlyFieldConfig) => !isType(field, 'tag', 'query', 'bookmark') || isType(field, 'plugin', 'template'),
+          },
+          props: {
+            label: $localize`Prefix:`,
+            hint: $localize`Query used to filter suggestions.`,
           },
         }, {
           key: 'props.template',
@@ -176,10 +317,30 @@ export function formlyType(typeNames: string[]): TypeOption {
 }
 
 /**
- * Remove cleared text, so clearing a key or label doesn't leave an empty string.
+ * Remove cleared values, so clearing a key or label doesn't leave an empty string.
  */
 function omitEmpty(value: any) {
-  return value === '' ? undefined : value;
+  return value === '' || value === null ? undefined : value;
+}
+
+const hiddenArrayTypes = new WeakSet<object>();
+
+/**
+ * Remove the multicheckbox array value type when the field gets another
+ * type, since other types use props.type for the input type. Changing
+ * back restores it.
+ */
+function stashArrayType(field: FormlyFieldConfig, hide: boolean) {
+  const model = field.parent?.model;
+  if (!model) return hide;
+  if (hide && model.props?.type === 'array') {
+    hiddenArrayTypes.add(model);
+    delete model.props.type;
+  } else if (!hide && hiddenArrayTypes.has(model)) {
+    (model.props ??= {}).type = 'array';
+    hiddenArrayTypes.delete(model);
+  }
+  return hide;
 }
 
 const hiddenFieldGroups = new WeakMap<object, any>();

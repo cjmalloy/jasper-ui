@@ -38,6 +38,35 @@ export const geoStyleSchema: Schema = {
   additionalProperties: true,
 };
 
+/**
+ * JTD schema for a GeoJSON geometry of each geometry type with a geo plugin.
+ */
+export const geometrySchemas: Record<string, Schema> = {
+  Point: { properties: { coordinates: { elements: { type: 'float64' } } } },
+  MultiPoint: { properties: { coordinates: { elements: { elements: { type: 'float64' } } } } },
+  LineString: { properties: { coordinates: { elements: { elements: { type: 'float64' } } } } },
+  MultiLineString: { properties: { coordinates: { elements: { elements: { elements: { type: 'float64' } } } } } },
+  Polygon: { properties: { coordinates: { elements: { elements: { elements: { type: 'float64' } } } } } },
+  MultiPolygon: { properties: { coordinates: { elements: { elements: { elements: { elements: { type: 'float64' } } } } } } },
+};
+
+/**
+ * JTD schema for the features of a GeoJSON FeatureCollection, each with
+ * its own style.
+ */
+export const geoFeaturesSchema: Schema = {
+  elements: {
+    optionalProperties: {
+      bbox: { elements: { type: 'float64' } },
+      properties: geoStyleSchema,
+    },
+    properties: {
+      type: { enum: ['Feature'] },
+      geometry: { discriminator: 'type', mapping: geometrySchemas },
+    },
+  },
+};
+
 export const GEO_DEFAULT_COLOR = '#4264fb';
 
 /**
