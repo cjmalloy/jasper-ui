@@ -6,10 +6,31 @@ import { provideRouter } from '@angular/router';
 import JSZip from 'jszip';
 import { Ref } from '../model/ref';
 import { EmbedService } from '../service/embed.service';
-import { embeddedCacheRefs, mapLimit, zipCache } from './download';
+import { DateTime } from 'luxon';
+import { bulkFilename, embeddedCacheRefs, mapLimit, queryFilename, safeFilename, zipCache } from './download';
 import { getEmbeds } from './editor';
 
 describe('download util', () => {
+  it('should make filenames safe on every OS', () => {
+    expect(safeFilename('science/physics: a|b?*.zip')).toBe('science_physics_ a_b_.zip');
+    expect(safeFilename('  ..hidden\nname.  ')).toBe('hidden name');
+    expect(safeFilename('<>.json')).toBe('_.json');
+    expect(safeFilename('...')).toBe('download');
+    expect(safeFilename('a'.repeat(200) + '.zip', 10)).toBe('aaaaaaaaaa.zip');
+  });
+
+  it('should make readable query filenames', () => {
+    expect(queryFilename('science:!funny|math')).toBe('science + !funny or math');
+    expect(queryFilename('(science|math):funny@*')).toBe('(science or math) + funny@all');
+  });
+
+  it('should name bulk downloads', () => {
+    const date = DateTime.fromISO('2026-11-10T03:45:00');
+    expect(bulkFilename('Science', undefined, { number: 0, size: 20, totalPages: 1, totalElements: 3 }, date)).toBe('Science - 2026-11-10.zip');
+    expect(bulkFilename('Science', ' cats ', { number: 1, size: 20, totalPages: 3, totalElements: 50 }, date)).toBe('Science - search cats - 2026-11-10 (page 2 of 3).zip');
+    expect(bulkFilename('', '', undefined, date)).toBe('download - 2026-11-10.zip');
+  });
+
   it('should get embedded URLs', () => {
     expect(getEmbeds('![](comment:2) ![img](https://example.com/a.png) [link](comment:3)')).toEqual(['comment:2']);
     expect(getEmbeds('')).toEqual([]);
