@@ -9105,6 +9105,50 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>tag count</source>
         <target>タグ数</target>
       </trans-unit>
+      <trans-unit id="3500458863157551898" datatype="html">
+        <source>Off</source>
+        <target>オフ</target>
+      </trans-unit>
+      <trans-unit id="3826035038586162030" datatype="html">
+        <source>Image Input:</source>
+        <target>画像入力:</target>
+      </trans-unit>
+      <trans-unit id="43739125088704980" datatype="html">
+        <source>Allow the model to generate images. Auto enables it for models known to support it.</source>
+        <target>モデルによる画像生成を許可します。自動の場合、対応が確認されているモデルで有効になります。</target>
+      </trans-unit>
+      <trans-unit id="616064537937996961" datatype="html">
+        <source>Auto</source>
+        <target>自動</target>
+      </trans-unit>
+      <trans-unit id="7245403739376277036" datatype="html">
+        <source>Send images to the model. Auto sends them and retries without them if the model rejects them.</source>
+        <target>画像をモデルに送信します。自動の場合は送信し、モデルが拒否した場合は画像なしで再試行します。</target>
+      </trans-unit>
+      <trans-unit id="7516022812005298467" datatype="html">
+        <source>PDF Input:</source>
+        <target>PDF入力:</target>
+      </trans-unit>
+      <trans-unit id="7846924082312456429" datatype="html">
+        <source>URL Context:</source>
+        <target>URLコンテキスト:</target>
+      </trans-unit>
+      <trans-unit id="80767191025394436" datatype="html">
+        <source>Allow the model to read linked URLs. Auto enables it for models known to support it.</source>
+        <target>モデルによるリンク先URLの読み取りを許可します。自動の場合、対応が確認されているモデルで有効になります。</target>
+      </trans-unit>
+      <trans-unit id="8617721412741101760" datatype="html">
+        <source>Image Output:</source>
+        <target>画像出力:</target>
+      </trans-unit>
+      <trans-unit id="8902069223255429853" datatype="html">
+        <source>Send PDFs to the model. Auto sends them when the provider supports PDFs.</source>
+        <target>PDFをモデルに送信します。自動の場合、プロバイダーがPDFに対応していれば送信します。</target>
+      </trans-unit>
+      <trans-unit id="8990769651805334695" datatype="html">
+        <source>On</source>
+        <target>オン</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -1174,8 +1174,8 @@ export const llmPlugin: Plugin = {
       props: {
         label: $localize`Image Input:`,
         title: $localize`Send images to the model. Auto sends them and retries without them if the model rejects them.`,
+        placeholder: $localize`Auto`,
         options: [
-          { label: $localize`Auto` },
           { value: true, label: $localize`On` },
           { value: false, label: $localize`Off` },
         ],
@@ -1186,8 +1186,8 @@ export const llmPlugin: Plugin = {
       props: {
         label: $localize`PDF Input:`,
         title: $localize`Send PDFs to the model. Auto sends them when the provider supports PDFs.`,
+        placeholder: $localize`Auto`,
         options: [
-          { label: $localize`Auto` },
           { value: true, label: $localize`On` },
           { value: false, label: $localize`Off` },
         ],
@@ -1198,8 +1198,8 @@ export const llmPlugin: Plugin = {
       props: {
         label: $localize`Image Output:`,
         title: $localize`Allow the model to generate images. Auto enables it for models known to support it.`,
+        placeholder: $localize`Auto`,
         options: [
-          { label: $localize`Auto` },
           { value: true, label: $localize`On` },
           { value: false, label: $localize`Off` },
         ],
@@ -1210,8 +1210,8 @@ export const llmPlugin: Plugin = {
       props: {
         label: $localize`URL Context:`,
         title: $localize`Allow the model to read linked URLs. Auto enables it for models known to support it.`,
+        placeholder: $localize`Auto`,
         options: [
-          { label: $localize`Auto` },
           { value: true, label: $localize`On` },
           { value: false, label: $localize`Off` },
         ],

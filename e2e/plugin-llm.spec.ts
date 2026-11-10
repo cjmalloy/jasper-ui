@@ -22,4 +22,23 @@ test.describe.serial('LLM Config Plugin', () => {
     const ref = (await created).postDataJSON();
     expect(ref.plugins['plugin/llm'].apiKeyTag).toBe('_plugin/secret/openai');
   });
+
+  test('overrides model capabilities', async ({ page }) => {
+    await page.goto('/submit/text?debug=ADMIN&tag=plugin/llm', { waitUntil: 'networkidle' });
+    const advanced = page.locator('details.advanced.plugin_llm');
+    await advanced.locator('summary').click();
+    const imageInput = advanced.getByLabel('Image Input:');
+    await expect(imageInput.locator('option:checked')).toHaveText('Auto');
+    await imageInput.selectOption({ label: 'Off' });
+    await advanced.getByLabel('Image Output:').selectOption({ label: 'On' });
+    await page.locator('#title').fill('LLM capabilities');
+
+    const created = page.waitForRequest(req => req.url().includes('/api/v1/ref') && req.method() === 'POST');
+    await page.getByRole('button', { name: 'Submit', exact: true }).click();
+    const llm = (await created).postDataJSON().plugins['plugin/llm'];
+    expect(llm.imageInput).toBe(false);
+    expect(llm.imageOutput).toBe(true);
+    expect(llm).not.toHaveProperty('pdfInput');
+    expect(llm).not.toHaveProperty('urlContext');
+  });
 });
