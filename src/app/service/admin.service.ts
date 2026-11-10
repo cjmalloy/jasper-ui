@@ -287,15 +287,26 @@ export class AdminService {
     this._cache.clear();
   }
 
+  private readonly _loading = signal(0);
+
+  /**
+   * True while mods are being (re)loaded and {@link status} is incomplete.
+   */
+  readonly loading = computed(() => this._loading() > 0);
+
   get init$() {
     this.clearCache();
     this.store.view.clearModChanges();
     this._status.set(emptyStatus());
-    return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
+    return defer(() => {
+      this._loading.update(n => n + 1);
+      return forkJoin([this.loadPlugins$(), this.loadTemplates$()]);
+    }).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.firstRun$),
       catchError(() => of(null)),
       tap(() => this.clearCache()),
+      finalize(() => this._loading.update(n => n - 1)),
     );
   }
 
