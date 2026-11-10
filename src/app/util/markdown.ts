@@ -22,6 +22,12 @@ const HTML_ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '
  * Escape markdown text for HTML text or a quoted attribute, like marked does.
  * Markdown text keeps the entities the author wrote, so existing character
  * references are left alone instead of being shown as "&amp;amp;".
+ *
+ * Not escaping "&" before an existing reference is intentional and safe:
+ * every character that can close a quoted attribute or open a tag
+ * (< > " ') is always escaped, and a character reference only decodes to
+ * text. This matches marked's own escape (escapeReplaceNoEncode), which
+ * marked does not export.
  */
 export function escapeHtml(text: string) {
   return text.replace(/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g, c => HTML_ESCAPES[c]);
