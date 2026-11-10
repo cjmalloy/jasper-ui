@@ -154,6 +154,65 @@ describe('EmbedService', () => {
       expect(doc.querySelector('svg image')).toBeTruthy();
     });
 
+    describe('escaping', () => {
+      const parse = (markdown: string) => new DOMParser().parseFromString(service.parse(markdown), 'text/html');
+
+      it('decodes entities once in image alt and title', () => {
+        const img = parse('![A &amp; B][i]\n\n[i]: https://example.com/a.png "C &amp; D"').querySelector('img')!;
+        expect(img.alt).toBe('A & B');
+        expect(img.title).toBe('C & D');
+      });
+
+      it('decodes entities once in inline embed tooltips', () => {
+        expect(parse('![A &amp; B][i]\n\n[i]: /ref/x').querySelector<HTMLElement>('.inline-embed')!.title).toBe('A & B');
+        expect(parse('![x](https://example.com/a.png "A &amp; B")').querySelector<HTMLElement>('.inline-embed')!.title).toBe('A & B');
+        expect(parse('![=](comment:x "A &amp; B")').querySelector<HTMLElement>('.inline-ref')!.title).toBe('A & B');
+      });
+
+      it('decodes entities once in link titles', () => {
+        expect(parse('[x](https://example.com "A &amp; B")').querySelector('a')!.title).toBe('A & B');
+      });
+
+      it('leaves no title when an inline embed has none', () => {
+        expect(parse('![](comment:x)').querySelector<HTMLElement>('.inline-embed')!.title).toBe('');
+      });
+
+      it('uses plain text from custom syntax in image alt text', () => {
+        expect(parse('![#science +user/alice [[Page]] ^up][i]\n\n[i]: https://example.com/a.png').querySelector('img')!.alt).toBe('#science +user/alice Page up');
+        expect(parse('![#science ^up][i]\n\n[i]: /ref/x').querySelector<HTMLElement>('.inline-embed')!.title).toBe('#science up');
+      });
+
+      it('keeps literal character references from code spans and escapes in image alt text', () => {
+        expect(parse('![`&copy;` \\&copy; &copy;][i]\n\n[i]: https://example.com/a.png').querySelector('img')!.alt).toBe('&copy; &copy; ©');
+        expect(parse('![`&copy;` \\&copy; &copy;][i]\n\n[i]: /ref/x').querySelector<HTMLElement>('.inline-embed')!.title).toBe('&copy; &copy; ©');
+      });
+
+      it('keeps hard breaks and drops formatting in image alt text', () => {
+        expect(parse('![foo\\\nbar][i]\n\n[i]: https://example.com/a.png').querySelector('img')!.alt).toBe('foo\nbar');
+        expect(parse('![**bold** `<code>`][i]\n\n[i]: https://example.com/a.png').querySelector('img')!.alt).toBe('bold <code>');
+      });
+
+      it.each([
+        '![" onerror="alert(1)][i]\n\n[i]: https://example.com/a.png',
+        '![" onerror="alert(1)][i]\n\n[i]: /ref/x',
+        '![x][i]\n\n[i]: https://example.com/a.png "\\" onerror=\\"alert(1)"',
+        '![x](https://example.com/a.png "\\" onerror=\\"alert(1)")',
+        '[x](https://example.com "\\" onerror=\\"alert(1)")',
+        '![=](comment:x "\\" onerror=\\"alert(1)")',
+        '![](comment:x "\\" onerror=\\"alert(1)")',
+        '![+](comment:x"onerror="alert(1))',
+        '![](comment:x<img/src/onerror=alert(1)>)',
+        '#science?x"onerror="alert(1)',
+        '[[<img src=x onerror=alert(1)>]]',
+        '![[<img src=x onerror=alert(1)>]]',
+      ])('cannot inject attributes or elements: %s', markdown => {
+        const doc = parse(markdown);
+        expect(doc.querySelector('[onerror]')).toBeNull();
+        expect(doc.querySelectorAll('img').length).toBeLessThanOrEqual(1);
+        expect(doc.querySelector('img:not([src^="https://example.com/"])')).toBeNull();
+      });
+    });
+
     it('removes iframes when sanitizing', () => {
       expect(service.renderDocument('<iframe src="https://example.com/embed"></iframe>').querySelector('iframe, .md-embed')).toBeNull();
     });

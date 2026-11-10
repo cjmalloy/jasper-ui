@@ -16,6 +16,7 @@ import {
   assignSourceMap,
   attachMarkdown,
   clipboardHydrator,
+  escapeHtml,
   fixUserTags,
   MdBlock,
   MdContext,
@@ -26,6 +27,7 @@ import {
   markLinkToggles,
   mediaToPlaceholders,
   mermaidHydrator,
+  plainText,
   prismHydrator,
   removeToggleLabels,
   sanitizeMarkdown,
@@ -134,10 +136,11 @@ export class EmbedService {
         blockquote: sourceMap('blockquote'),
         table     : sourceMap('table'),
         tablerow  : sourceMap('tablerow'),
-        image({href, title, text}: Tokens.Image): string {
+        image({href, title, text, tokens}: Tokens.Image): string {
+          text = tokens ? plainText(tokens) : escapeHtml(text);
           const cleanHref = cleanUrl(href);
           if (cleanHref === null) {
-            return escape(text);
+            return text;
           }
           href = cleanHref;
           if (href.startsWith(config.base) || !href.startsWith('http')) {
@@ -145,7 +148,7 @@ export class EmbedService {
           }
           let out = `<img src="${href}" alt="${text}"`;
           if (title) {
-            out += ` title="${escape(title)}"`;
+            out += ` title="${escapeHtml(title)}"`;
           }
           out += '>';
           return out;
@@ -163,7 +166,7 @@ export class EmbedService {
           href = cleanHref;
           let out = '<a href="' + href + '"';
           if (title) {
-            out += ' title="' + (escape(title)) + '"';
+            out += ' title="' + escapeHtml(title) + '"';
           }
           out += '>' + text + '</a>';
           if (admin.getEmbedPluginsForUrl(href).length || ['ref', 'tag'].includes(editor.getUrlType(href))) {
@@ -323,7 +326,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<a class="user tag" href="${token.href}" title="${token.title}">${token.text}</a>`;
+        return `<a class="user tag" href="${escapeHtml(token.href)}" title="${escapeHtml(token.title || '')}">${escapeHtml(token.text)}</a>`;
       }
     }, {
       name: 'hashTag',
@@ -349,7 +352,7 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        return `<a class="tag" href="${token.href}" title="${token.title}">${token.text}</a>`;
+        return `<a class="tag" href="${escapeHtml(token.href)}" title="${escapeHtml(token.title || '')}">${escapeHtml(token.text)}</a>`;
       }
     }, {
       name: 'wiki',
@@ -375,9 +378,9 @@ export class EmbedService {
       },
       renderer(token: any): string {
         if (self.admin.isWikiExternal()) {
-          return `<a target="_blank" href="${token.href}">${token.text}</a>`;
+          return `<a target="_blank" href="${escapeHtml(token.href)}">${escapeHtml(token.text)}</a>`;
         } else {
-          return `<a class="wiki ref" href="${token.href}">${token.text}</a>`;
+          return `<a class="wiki ref" href="${escapeHtml(token.href)}">${escapeHtml(token.text)}</a>`;
         }
       }
     }, {
@@ -402,9 +405,9 @@ export class EmbedService {
       },
       renderer(token: any): string {
         if (self.admin.isWikiExternal()) {
-          return `<a target="_blank" href="${token.href}">${token.text}</a>`;
+          return `<a target="_blank" href="${escapeHtml(token.href)}">${escapeHtml(token.text)}</a>`;
         } else {
-          return `<div class="loading inline-embed">${token.href}</div>`;
+          return `<div class="loading inline-embed">${escapeHtml(token.href)}</div>`;
         }
       }
     }, {
@@ -425,11 +428,11 @@ export class EmbedService {
       },
       renderer(token: any): string {
         if (token.text?.trim() === '=') {
-          return `<div class="loading inline-ref" title="${token.title}">${token.href}</div>`;
+          return `<div class="loading inline-ref" title="${escapeHtml(token.title || '')}">${escapeHtml(token.href)}</div>`;
         } else if (token.text?.trim() === '+') {
-          return `<span class="toggle embed" title="${token.href}"><span class="toggle-plus">＋</span></span>`;
+          return `<span class="toggle embed" title="${escapeHtml(token.href)}"><span class="toggle-plus">＋</span></span>`;
         } else {
-          return `<div class="loading inline-embed" title="${token.title}">${token.href}</div>`;
+          return `<div class="loading inline-embed" title="${escapeHtml(token.title || '')}">${escapeHtml(token.href)}</div>`;
         }
       }
     }, {
