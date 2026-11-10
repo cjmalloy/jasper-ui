@@ -94,18 +94,23 @@
       </trans-unit>
       <trans-unit id="8564202903947049539" datatype="html">
         <source>Play</source>
+        <target>再生</target>
       </trans-unit>
       <trans-unit id="9042260521669277115" datatype="html">
         <source>Pause</source>
+        <target>一時停止</target>
       </trans-unit>
       <trans-unit id="61146899238241461" datatype="html">
         <source>Change playback speed</source>
+        <target>再生速度を変更</target>
       </trans-unit>
       <trans-unit id="8106459808350358911" datatype="html">
-        <source>Move <x id="INTERPOLATION" equiv-text="{{ floor(replayPosition) }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ replayAnimations.length }}"/></source>
+        <source>Move <x id="INTERPOLATION" equiv-text="{{ floor(replayPosition()) }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ replayAnimations().length }}"/></source>
+        <target>手 <x id="INTERPOLATION" equiv-text="{{ floor(replayPosition()) }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ replayAnimations().length }}"/></target>
       </trans-unit>
       <trans-unit id="1226509592528490232" datatype="html">
         <source>Illegal move <x id="PH" equiv-text="renderMove(p, from, to)"/></source>
+        <target>不正な手 <x id="PH" equiv-text="renderMove(p, from, to)"/></target>
       </trans-unit>
       <trans-unit id="8031128496622857527" datatype="html">
         <source>Game History Rewritten!
@@ -121,6 +126,7 @@ Please Reload.</source>
       </trans-unit>
       <trans-unit id="554149296192196884" datatype="html">
         <source>Not your turn</source>
+        <target>あなたの番ではありません</target>
       </trans-unit>
       <trans-unit id="6947524598307975659" datatype="html">
         <source>Must move</source>
@@ -128,15 +134,19 @@ Please Reload.</source>
       </trans-unit>
       <trans-unit id="4104861352185074031" datatype="html">
         <source>Double 6s</source>
+        <target>6のゾロ目</target>
       </trans-unit>
       <trans-unit id="269137713886171303" datatype="html">
         <source><x id="PH" equiv-text="piecesHitThisTurn"/> pieces hit</source>
+        <target><x id="PH" equiv-text="piecesHitThisTurn"/> 個の駒をヒット</target>
       </trans-unit>
       <trans-unit id="3195148963394868807" datatype="html">
         <source>Red all home</source>
+        <target>赤が全てホームに</target>
       </trans-unit>
       <trans-unit id="2828116563312710431" datatype="html">
         <source>Black all home</source>
+        <target>黒が全てホームに</target>
       </trans-unit>
       <trans-unit id="5896623720033494810" datatype="html">
         <source>in progress...</source>
@@ -168,18 +178,23 @@ Please Reload.</source>
       </trans-unit>
       <trans-unit id="7290417644239030193" datatype="html">
         <source>Refs</source>
+        <target>Ref</target>
       </trans-unit>
       <trans-unit id="874279231928254463" datatype="html">
         <source>Exts</source>
+        <target>Ext</target>
       </trans-unit>
       <trans-unit id="4555457172864212828" datatype="html">
         <source>Users</source>
+        <target>ユーザー</target>
       </trans-unit>
       <trans-unit id="6901018060567164184" datatype="html">
         <source>Plugins</source>
+        <target>プラグイン</target>
       </trans-unit>
       <trans-unit id="5433675495457939071" datatype="html">
         <source>Templates</source>
+        <target>テンプレート</target>
       </trans-unit>
       <trans-unit id="8057107542698632429" datatype="html">
         <source>Tombstones</source>
@@ -187,24 +202,40 @@ Please Reload.</source>
       </trans-unit>
       <trans-unit id="2258332150307719183" datatype="html">
         <source>Newer than:</source>
+        <target>これより新しい:</target>
       </trans-unit>
       <trans-unit id="8700121026680200191" datatype="html">
         <source>Clear</source>
+        <target>クリア</target>
       </trans-unit>
       <trans-unit id="5971949012006735861" datatype="html">
         <source>🆑️</source>
       </trans-unit>
       <trans-unit id="3347932678307141902" datatype="html">
         <source>restore</source>
+        <target>復元</target>
       </trans-unit>
       <trans-unit id="4936024166764234896" datatype="html">
-        <source> by <x id="START_BLOCK_IF" equiv-text="@if (authorExts$ | async; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x.tag) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(x.tag + x.origin)&quot;                      [routerLink]=&quot;['/tag', x.tag + x.origin]&quot;                      [appTitle]=&quot;x&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || formatAuthor(x.tag) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of authors; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ formatAuthor(t) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+        <source> by <x id="START_BLOCK_IF" equiv-text="@if (authorExts.hasValue() ? authorExts.value() : undefined; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;
+                     [title]=&quot;formatAuthor(x.tag + x.origin)&quot;
+                     [routerLink]=&quot;[&apos;/tag&apos;, x.tag + x.origin]&quot;
+                     [appTitle]=&quot;x&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || formatAuthor(x.tag) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of authors(); track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;
+                     [title]=&quot;formatAuthor(t)&quot;
+                     [routerLink]=&quot;[&apos;/tag&apos;, t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ formatAuthor(t) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+        <target> 投稿者: <x id="START_BLOCK_IF" equiv-text="@if (authorExts.hasValue() ? authorExts.value() : undefined; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;
+                     [title]=&quot;formatAuthor(x.tag + x.origin)&quot;
+                     [routerLink]=&quot;[&apos;/tag&apos;, x.tag + x.origin]&quot;
+                     [appTitle]=&quot;x&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || formatAuthor(x.tag) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of authors(); track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;
+                     [title]=&quot;formatAuthor(t)&quot;
+                     [routerLink]=&quot;[&apos;/tag&apos;, t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ formatAuthor(t) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></target>
       </trans-unit>
       <trans-unit id="8744130888389005921" datatype="html">
-        <source> tagged <x id="START_BLOCK_IF" equiv-text="@if (tagExts$ | async; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x.tag) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', x.tag]&quot; [appTitle]=&quot;x.tag&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || '#' + x.tag }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of tags; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ t }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+        <source> tagged <x id="START_BLOCK_IF" equiv-text="@if (tagExts.hasValue() ? tagExts.value() : undefined; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;[&apos;/tag&apos;, x.tag]&quot; [appTitle]=&quot;x.tag&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || &apos;#&apos; + x.tag }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of tags(); track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;[&apos;/tag&apos;, t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ t }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+        <target> タグ: <x id="START_BLOCK_IF" equiv-text="@if (tagExts.hasValue() ? tagExts.value() : undefined; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;[&apos;/tag&apos;, x.tag]&quot; [appTitle]=&quot;x.tag&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || &apos;#&apos; + x.tag }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of tags(); track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;[&apos;/tag&apos;, t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ t }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></target>
       </trans-unit>
       <trans-unit id="2402409795048148312" datatype="html">
-        <source> on <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', ref.origin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ ref.origin }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
+        <source> on <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;[&apos;/tag&apos;, ref().origin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ ref().origin }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
+        <target> オリジン: <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;[&apos;/tag&apos;, ref().origin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ ref().origin }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></target>
       </trans-unit>
       <trans-unit id="4087625955892152801" datatype="html">
         <source>permalink</source>
@@ -428,7 +459,7 @@ Please Reload.</source>
       </trans-unit>
       <trans-unit id="4101941266124151376" datatype="html">
         <source>on</source>
-        <target>オン</target>
+        <target>オリジン:</target>
       </trans-unit>
       <trans-unit id="4975748273657042999" datatype="html">
         <source>tags</source>
@@ -1319,13 +1350,16 @@ Please Reload.</source>
         <source>🧭️</source>
       </trans-unit>
       <trans-unit id="9022185585863748051" datatype="html">
-        <source>(root: "")</source>
+        <source>(root: &quot;&quot;)</source>
+        <target>(ルート: &quot;&quot;)</target>
       </trans-unit>
       <trans-unit id="6292583733826531781" datatype="html">
-        <source>(root: <x id="INTERPOLATION" equiv-text="{{ template.origin }}"/>)</source>
+        <source>(root: <x id="INTERPOLATION" equiv-text="{{ template().origin }}"/>)</source>
+        <target>(ルート: <x id="INTERPOLATION" equiv-text="{{ template().origin }}"/>)</target>
       </trans-unit>
       <trans-unit id="8879565425060985712" datatype="html">
         <source>Override Tag...</source>
+        <target>タグを上書き...</target>
       </trans-unit>
       <trans-unit id="7557275684476197518" datatype="html">
         <source>sync</source>
@@ -1560,6 +1594,7 @@ Please Reload.</source>
       </trans-unit>
       <trans-unit id="8598886608217248074" datatype="html">
         <source>URL:</source>
+        <target>URL:</target>
       </trans-unit>
       <trans-unit id="5229287641040643819" datatype="html">
         <source>+ Add another alternate URL</source>
@@ -2123,24 +2158,31 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="9050138848550192211" datatype="html">
         <source>OpenAI</source>
+        <target>OpenAI</target>
       </trans-unit>
       <trans-unit id="3127417567733728943" datatype="html">
         <source>Anthropic</source>
+        <target>Anthropic</target>
       </trans-unit>
       <trans-unit id="3537095769130009891" datatype="html">
         <source>xAI</source>
+        <target>xAI</target>
       </trans-unit>
       <trans-unit id="7065335832859813599" datatype="html">
         <source>Gemini</source>
+        <target>Gemini</target>
       </trans-unit>
       <trans-unit id="3909298919968061804" datatype="html">
         <source>Deep Seek</source>
+        <target>Deep Seek</target>
       </trans-unit>
       <trans-unit id="2431574352661739964" datatype="html">
         <source>Nous</source>
+        <target>Nous</target>
       </trans-unit>
       <trans-unit id="8252591585673168867" datatype="html">
         <source>Meta</source>
+        <target>Meta</target>
       </trans-unit>
       <trans-unit id="347407180135731058" datatype="html">
         <source>Audio</source>
@@ -2199,6 +2241,7 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="1408060915920557981" datatype="html">
         <source>AI Web Context</source>
+        <target>AI Webコンテキスト</target>
       </trans-unit>
       <trans-unit id="4044740211559960759" datatype="html">
         <source>🎭️ Alias</source>
@@ -2276,6 +2319,7 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="1008357690452829730" datatype="html">
         <source>👨️‍🎨️ DALL·E</source>
+        <target>👨️‍🎨️ DALL·E</target>
       </trans-unit>
       <trans-unit id="2259911298026257173" datatype="html">
         <source>👨️‍🎨️💭️</source>
@@ -2285,6 +2329,7 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="3850530685819815924" datatype="html">
         <source>👨️‍🎨️ dalle</source>
+        <target>👨️‍🎨️ DALL·E</target>
       </trans-unit>
       <trans-unit id="1121701022346801269" datatype="html">
         <source>Image generaged by DALL-E</source>
@@ -2309,9 +2354,11 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="2445400111201258289" datatype="html">
         <source>configure</source>
+        <target>設定</target>
       </trans-unit>
       <trans-unit id="1196677943728239216" datatype="html">
         <source>Configure AI</source>
+        <target>AIを設定</target>
       </trans-unit>
       <trans-unit id="6894945807805404316" datatype="html">
         <source>👻️💭️</source>
@@ -2329,9 +2376,11 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="1565661300945228079" datatype="html">
         <source>+plugin/delta/ai/navi is thinking...</source>
+        <target>+plugin/delta/ai/navi が考え中...</target>
       </trans-unit>
       <trans-unit id="3895242880647843070" datatype="html">
         <source>👻️ Navi</source>
+        <target>👻️ ナビ</target>
       </trans-unit>
       <trans-unit id="5738626649832833456" datatype="html">
         <source>👻️</source>
@@ -2930,6 +2979,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="1790021539424506116" datatype="html">
         <source>🗒️ code</source>
+        <target>🗒️ コード</target>
       </trans-unit>
       <trans-unit id="1138881534333015466" datatype="html">
         <source>Uses the monaco editor (like vscode).</source>
@@ -3042,6 +3092,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="2036482061661740298" datatype="html">
         <source>QR:</source>
+        <target>QR:</target>
       </trans-unit>
       <trans-unit id="5821666341420875081" datatype="html">
         <source>🔴️ Breakpoint</source>
@@ -3072,9 +3123,11 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="2404576536024751573" datatype="html">
         <source>📐️️ HTML</source>
+        <target>📐️️ HTML</target>
       </trans-unit>
       <trans-unit id="2481422587497845111" datatype="html">
         <source>💲️ LaTeX</source>
+        <target>💲️ LaTeX</target>
       </trans-unit>
       <trans-unit id="7893595669897912836" datatype="html">
         <source>Adds LaTeX support to the markdown editor. Use $ to mark inline math, $$ to mark block math.</source>
@@ -3085,6 +3138,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="7736392907940185086" datatype="html">
         <source>LaTeX</source>
+        <target>LaTeX</target>
       </trans-unit>
       <trans-unit id="6817971173758446472" datatype="html">
         <source>📧️ Email</source>
@@ -3587,6 +3641,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="4767431879866944433" datatype="html">
         <source>📨️ DM</source>
+        <target>📨️ DM</target>
       </trans-unit>
       <trans-unit id="4191517111431524812" datatype="html">
         <source>Adds dms tab to inbox. Adds buttons to create private direct messages with users.</source>
@@ -3707,6 +3762,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="6191981797821655613" datatype="html">
         <source>🔞️ NSFW</source>
+        <target>🔞️ 閲覧注意</target>
       </trans-unit>
       <trans-unit id="6546484688786981422" datatype="html">
         <source>This tag marks posts as NSFW.</source>
@@ -3714,9 +3770,11 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="5985446801589250993" datatype="html">
         <source>nsfw</source>
+        <target>閲覧注意</target>
       </trans-unit>
       <trans-unit id="9051570706821142759" datatype="html">
         <source>sfw</source>
+        <target>閲覧可</target>
       </trans-unit>
       <trans-unit id="4120502128512224483" datatype="html">
         <source>Mark posts as NSFW.</source>
@@ -3724,6 +3782,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="1690156580250600730" datatype="html">
         <source>🔞️ nsfw</source>
+        <target>🔞️ 閲覧注意</target>
       </trans-unit>
       <trans-unit id="2439322762322254722" datatype="html">
         <source>Not safe for work</source>
@@ -3843,6 +3902,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="3143506612853189381" datatype="html">
         <source>📡️ oEmbed</source>
+        <target>📡️ oEmbed</target>
       </trans-unit>
       <trans-unit id="6287485712480428796" datatype="html">
         <source>oembed</source>
@@ -3850,6 +3910,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="2585544888827979601" datatype="html">
         <source>📡️ oembed</source>
+        <target>📡️ oEmbed</target>
       </trans-unit>
       <trans-unit id="4755068399135517945" datatype="html">
         <source>📡️</source>
@@ -4121,6 +4182,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="3035787833538201954" datatype="html">
         <source>mp3</source>
+        <target>mp3</target>
       </trans-unit>
       <trans-unit id="1231158014532721840" datatype="html">
         <source>Download mp3 YT-DLP.</source>
@@ -4128,6 +4190,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="3407050941409332755" datatype="html">
         <source>📄️ PDF</source>
+        <target>📄️ PDF</target>
       </trans-unit>
       <trans-unit id="5078304866747916573" datatype="html">
         <source>Adds an action button to open the PDF version.</source>
@@ -4290,6 +4353,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="388226997720306479" datatype="html">
         <source>🔲 qr</source>
+        <target>🔲 QR</target>
       </trans-unit>
       <trans-unit id="7379835487121703701" datatype="html">
         <source>Scan or upload a QR Code</source>
@@ -4493,21 +4557,27 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="8515029959000193049" datatype="html">
         <source>http:</source>
+        <target>http:</target>
       </trans-unit>
       <trans-unit id="8636444719325635600" datatype="html">
         <source>https:</source>
+        <target>https:</target>
       </trans-unit>
       <trans-unit id="6369834173571534649" datatype="html">
         <source>ftp:</source>
+        <target>ftp:</target>
       </trans-unit>
       <trans-unit id="6645657581022564794" datatype="html">
         <source>email:</source>
+        <target>メール:</target>
       </trans-unit>
       <trans-unit id="3524366653766663042" datatype="html">
         <source>tel:</source>
+        <target>電話:</target>
       </trans-unit>
       <trans-unit id="5576545999600412309" datatype="html">
         <source>magnet:</source>
+        <target>magnet:</target>
       </trans-unit>
       <trans-unit id="4399709765309091258" datatype="html">
         <source>Pinned:</source>
@@ -4614,6 +4684,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="3668688121012985697" datatype="html">
         <source>internal:</source>
+        <target>内部:</target>
       </trans-unit>
       <trans-unit id="6174916844494879365" datatype="html">
         <source>ℹ️ Alt Text</source>
@@ -4778,6 +4849,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="2628153829669623205" datatype="html">
         <source>oEmbed: </source>
+        <target>oEmbed: </target>
       </trans-unit>
       <trans-unit id="327763771890524413" datatype="html">
         <source>Linked Data: </source>
@@ -4785,6 +4857,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="8893855895413301428" datatype="html">
         <source>Open Graph: </source>
+        <target>Open Graph: </target>
       </trans-unit>
       <trans-unit id="4232936038136526970" datatype="html">
         <source>Text: </source>
@@ -5067,6 +5140,7 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="2021277326521931253" datatype="html">
         <source>thanks</source>
+        <target>ありがとう</target>
       </trans-unit>
       <trans-unit id="1076316127183087360" datatype="html">
         <source>🖌️ Terminal Theme</source>
@@ -5269,6 +5343,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="1415383901619660036" datatype="html">
         <source>📔️ Wiki</source>
+        <target>📔️ ウィキ</target>
       </trans-unit>
       <trans-unit id="2887219249339332932" datatype="html">
         <source>Activates built-in Wiki support and allows users to create Wikis.</source>
@@ -5279,9 +5354,11 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="9108179050199310445" datatype="html">
         <source>Wiki</source>
+        <target>ウィキ</target>
       </trans-unit>
       <trans-unit id="3521353631652816318" datatype="html">
         <source>wiki:</source>
+        <target>wiki:</target>
       </trans-unit>
       <trans-unit id="98175491813880066" datatype="html">
         <source>Wiki Pages</source>
@@ -5820,6 +5897,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="581816346620574455" datatype="html">
         <source>wiki</source>
+        <target>ウィキ</target>
       </trans-unit>
       <trans-unit id="3121967453781111079" datatype="html">
         <source>📨️ Direct Message</source>
@@ -5839,6 +5917,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="2125947762292317605" datatype="html">
         <source>Submit link</source>
+        <target>リンクを投稿</target>
       </trans-unit>
       <trans-unit id="6717448292919062161" datatype="html">
         <source><x id="START_BLOCK_IF" equiv-text="@if (repost) {"/> Repost <x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/> Next <x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
@@ -5846,9 +5925,11 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="5892766151948709734" datatype="html">
         <source>Existing Responses:</source>
+        <target>既存のレスポンス:</target>
       </trans-unit>
       <trans-unit id="3566925839516679188" datatype="html">
         <source> see all </source>
+        <target> すべて表示 </target>
       </trans-unit>
       <trans-unit id="7619500327529268180" datatype="html">
         <source>Unsaved:</source>
@@ -5884,6 +5965,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="5646227552817300514" datatype="html">
         <source>URL...</source>
+        <target>URL...</target>
       </trans-unit>
       <trans-unit id="4300700333865753394" datatype="html">
         <source>Loading defaults for <x id="START_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;app-nav [url]=&quot;defaults?.url || ('tag:/' + loadingDefaults[0].tag)&quot;&gt;"/><x id="CLOSE_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;/app-nav&gt;"/></source>
@@ -5891,6 +5973,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="5767320896121351674" datatype="html">
         <source>Wiki:</source>
+        <target>ウィキ:</target>
       </trans-unit>
       <trans-unit id="5943291254557120924" datatype="html">
         <source>Entry:</source>
@@ -6109,6 +6192,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="7527056591839867516" datatype="html">
         <source> &amp; </source>
+        <target> と </target>
       </trans-unit>
       <trans-unit id="2464988903872844272" datatype="html">
         <source> | </source>
@@ -6367,6 +6451,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="810198456096379275" datatype="html">
         <source>yt-dlp</source>
+        <target>yt-dlp</target>
       </trans-unit>
       <trans-unit id="3497909142882445634" datatype="html">
         <source>Download video with YT-DLP.</source>
@@ -6398,6 +6483,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="2375260419993138758" datatype="html">
         <source>URL</source>
+        <target>URL</target>
       </trans-unit>
       <trans-unit id="8650499415827640724" datatype="html">
         <source>Type</source>
@@ -6483,6 +6569,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="2998229675870911678" datatype="html">
         <source>markdown</source>
+        <target>Markdown</target>
       </trans-unit>
       <trans-unit id="7451719878296732001" datatype="html">
         <source>Converted to Markdown</source>
@@ -6501,9 +6588,11 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="5037331719260611753" datatype="html">
         <source>⬇️ MarkItDown</source>
+        <target>⬇️ MarkItDown</target>
       </trans-unit>
       <trans-unit id="3516699313538888395" datatype="html">
         <source>⬇️ markdown</source>
+        <target>⬇️ Markdown</target>
       </trans-unit>
       <trans-unit id="1593994334287230818" datatype="html">
         <source>⬇️💭️ markdown query</source>
@@ -6731,6 +6820,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="1595683553076871827" datatype="html">
         <source>graph</source>
+        <target>グラフ</target>
       </trans-unit>
       <trans-unit id="1634079419998908383" datatype="html">
         <source>❓️ Help Popups</source>
@@ -6750,6 +6840,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="3085459102071609875" datatype="html">
         <source>🌐️〰️〰️ Geo Multi Line String</source>
+        <target>🌐️〰️〰️ ジオ マルチラインストリング</target>
       </trans-unit>
       <trans-unit id="2275170855711102720" datatype="html">
         <source>A GeoJSON LineString.</source>
@@ -6769,6 +6860,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="3277324395816403788" datatype="html">
         <source>LaTeX plugin</source>
+        <target>LaTeXプラグイン</target>
       </trans-unit>
       <trans-unit id="3282489484471071411" datatype="html">
         <source>Enable help popups that guide users through different parts of the application.</source>
@@ -6784,6 +6876,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="5849892264785751485" datatype="html">
         <source>🌐️〰️ Geo Line String</source>
+        <target>🌐️〰️ ジオ ラインストリング</target>
       </trans-unit>
       <trans-unit id="3854602051337754678" datatype="html">
         <source>📍️</source>
@@ -6961,6 +7054,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="4458905666152084558" datatype="html">
         <source>📍️ geo</source>
+        <target>📍️ ジオ</target>
       </trans-unit>
       <trans-unit id="4526554089625866000" datatype="html">
         <source>❓️ Help</source>
@@ -6968,6 +7062,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="4618841297300497077" datatype="html">
         <source>🗺️ map</source>
+        <target>🗺️ 地図</target>
       </trans-unit>
       <trans-unit id="466033600260461898" datatype="html">
         <source>+ Add Polygon</source>
@@ -6986,12 +7081,15 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="5231479276861303044" datatype="html">
         <source>🌐️ Geo</source>
+        <target>🌐️ ジオ</target>
       </trans-unit>
       <trans-unit id="5239780618560637490" datatype="html">
         <source>🗺️ map/</source>
+        <target>🗺️ 地図/</target>
       </trans-unit>
       <trans-unit id="5536817899547820022" datatype="html">
         <source>map</source>
+        <target>地図</target>
       </trans-unit>
       <trans-unit id="5814826884170349322" datatype="html">
         <source>A GeoJSON MultiLineString.</source>
@@ -6999,6 +7097,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="5924755327148998770" datatype="html">
         <source>🗺️ Map</source>
+        <target>🗺️ 地図</target>
       </trans-unit>
       <trans-unit id="5992934744685158197" datatype="html">
         <source>Change your settings.</source>
@@ -7009,6 +7108,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="6798041317963843512" datatype="html">
         <source>🌐️📍️📍️ Geo Multi Point</source>
+        <target>🌐️📍️📍️ ジオ マルチポイント</target>
       </trans-unit>
       <trans-unit id="6867401253427970093" datatype="html">
         <source>Are you sure you want to clear all help message history from local storage?</source>
@@ -7028,6 +7128,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="7252221742577175872" datatype="html">
         <source>🌐️🔷️ Geo Polygon</source>
+        <target>🌐️🔷️ ジオ ポリゴン</target>
       </trans-unit>
       <trans-unit id="7463670461469835424" datatype="html">
         <source>+ Add Point</source>
@@ -7050,9 +7151,11 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="8040881171107393560" datatype="html">
         <source>ID</source>
+        <target>ID</target>
       </trans-unit>
       <trans-unit id="8089182682824252913" datatype="html">
         <source>🌐️📍️ Geo Point</source>
+        <target>🌐️📍️ ジオ ポイント</target>
       </trans-unit>
       <trans-unit id="8124131715541625326" datatype="html">
         <source>No help message history stored in local storage.</source>
@@ -7075,9 +7178,11 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="8749927369293789617" datatype="html">
         <source>🌐️🔷️🔷️ Geo Multi Polygon</source>
+        <target>🌐️🔷️🔷️ ジオ マルチポリゴン</target>
       </trans-unit>
       <trans-unit id="946077791002604877" datatype="html">
         <source>grid</source>
+        <target>グリッド</target>
       </trans-unit>
       <trans-unit id="6378869540619239413" datatype="html">
         <source>Lists ☰</source>
@@ -7109,6 +7214,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="7913678223536081420" datatype="html">
         <source>HTML</source>
+        <target>HTML</target>
       </trans-unit>
       <trans-unit id="8244343436574926456" datatype="html">
         <source>👥️ active</source>
@@ -7200,6 +7306,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="1268962024828443790" datatype="html">
         <source>🍌️ Neo Banana</source>
+        <target>🍌️ Neo Banana</target>
       </trans-unit>
       <trans-unit id="1668629014382094042" datatype="html">
         <source>🍌️💭️ Ask Neo Banana</source>
@@ -7346,6 +7453,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="6543363048987109722" datatype="html">
         <source>🟣️ JezzBall</source>
+        <target>🟣️ JezzBall</target>
       </trans-unit>
       <trans-unit id="8411343513925653444" datatype="html">
         <source>Generate an image with Neo Banana.</source>
@@ -7421,6 +7529,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="4168319851953294418" datatype="html">
         <source>Photon</source>
+        <target>Photon</target>
       </trans-unit>
       <trans-unit id="521557909863788329" datatype="html">
         <source>Geocoding: </source>
@@ -7428,6 +7537,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="5914380341841503873" datatype="html">
         <source>OpenStreetMap (Nominatim)</source>
+        <target>OpenStreetMap (Nominatim)</target>
       </trans-unit>
       <trans-unit id="632822263124795513" datatype="html">
         <source>Search address</source>
@@ -7471,9 +7581,11 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="7310439367454019720" datatype="html">
         <source>Google Maps</source>
+        <target>Google マップ</target>
       </trans-unit>
       <trans-unit id="8162805192658576220" datatype="html">
         <source>Photon URL: </source>
+        <target>Photon URL: </target>
       </trans-unit>
       <trans-unit id="1790677591266345344" datatype="html">
         <source>No local version found.</source>
@@ -7880,6 +7992,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="1294909756545406951" datatype="html">
         <source>JWT</source>
+        <target>JWT</target>
       </trans-unit>
       <trans-unit id="1439518739239879765" datatype="html">
         <source>Script Whitelist:</source>
@@ -7983,6 +8096,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="3055482817788310469" datatype="html">
         <source>JWKS</source>
+        <target>JWKS</target>
       </trans-unit>
       <trans-unit id="3099369741220407050" datatype="html">
         <source>Editor Seals:</source>
@@ -8793,6 +8907,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="6437441283465569103" datatype="html">
         <source>PDF</source>
+        <target>PDF</target>
       </trans-unit>
       <trans-unit id="6549265851868599441" datatype="html">
         <source>Video</source>
@@ -8893,6 +9008,102 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="6971496217366946567" datatype="html">
         <source>📦️ Install Defaults</source>
         <target>📦️ デフォルトをインストール</target>
+      </trans-unit>
+      <trans-unit id="2025109606151788060" datatype="html">
+        <source>📴️ Offline</source>
+        <target>📴️ オフライン</target>
+      </trans-unit>
+      <trans-unit id="575220753425694641" datatype="html">
+        <source> You have been banned. </source>
+        <target> あなたはアクセスを禁止されています。 </target>
+      </trans-unit>
+      <trans-unit id="9220521643987099565" datatype="html">
+        <source>load prev</source>
+        <target>前を読み込む</target>
+      </trans-unit>
+      <trans-unit id="230842695203995010" datatype="html">
+        <source>An old version already exists. Overwrite it?</source>
+        <target>古いバージョンが既に存在します。上書きしますか?</target>
+      </trans-unit>
+      <trans-unit id="313310948303435262" datatype="html">
+        <source>No matching column tag</source>
+        <target>一致する列タグがありません</target>
+      </trans-unit>
+      <trans-unit id="759459580633613229" datatype="html">
+        <source>No matching swim lane</source>
+        <target>一致するスイムレーンがありません</target>
+      </trans-unit>
+      <trans-unit id="4056640250429034909" datatype="html">
+        <source>Please log in and try again.</source>
+        <target>ログインしてもう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="5016030616303157177" datatype="html">
+        <source>✅️ Complete</source>
+        <target>✅️ 完了</target>
+      </trans-unit>
+      <trans-unit id="5593705409985770938" datatype="html">
+        <source> no plugins </source>
+        <target> プラグインなし </target>
+      </trans-unit>
+      <trans-unit id="6561447583025440588" datatype="html">
+        <source>Backup &amp; Restore</source>
+        <target>バックアップと復元</target>
+      </trans-unit>
+      <trans-unit id="3837558842245790993" datatype="html">
+        <source>Older than:</source>
+        <target>これより古い:</target>
+      </trans-unit>
+      <trans-unit id="8713090103969671404" datatype="html">
+        <source>System for Cross-domain Identity Management</source>
+        <target>クロスドメインID管理システム (SCIM)</target>
+      </trans-unit>
+      <trans-unit id="9076534860042205328" datatype="html">
+        <source>Active:</source>
+        <target>有効:</target>
+      </trans-unit>
+      <trans-unit id="8609794348371859622" datatype="html">
+        <source>Enable logins</source>
+        <target>ログインを有効にする</target>
+      </trans-unit>
+      <trans-unit id="4797214229335185452" datatype="html">
+        <source>cached</source>
+        <target>キャッシュ済み</target>
+      </trans-unit>
+      <trans-unit id="5460881514602921001" datatype="html">
+        <source>created</source>
+        <target>作成日</target>
+      </trans-unit>
+      <trans-unit id="8836851211708808337" datatype="html">
+        <source>modified</source>
+        <target>更新日</target>
+      </trans-unit>
+      <trans-unit id="7388651711003064897" datatype="html">
+        <source>published</source>
+        <target>公開日</target>
+      </trans-unit>
+      <trans-unit id="7844431484369877777" datatype="html">
+        <source>url</source>
+        <target>URL</target>
+      </trans-unit>
+      <trans-unit id="125111376198337295" datatype="html">
+        <source>title</source>
+        <target>タイトル</target>
+      </trans-unit>
+      <trans-unit id="8718048249801659622" datatype="html">
+        <source>comment</source>
+        <target>コメント</target>
+      </trans-unit>
+      <trans-unit id="7936811690577305711" datatype="html">
+        <source>scheme</source>
+        <target>スキーム</target>
+      </trans-unit>
+      <trans-unit id="3325180562659478330" datatype="html">
+        <source>name</source>
+        <target>名前</target>
+      </trans-unit>
+      <trans-unit id="2184594267251446407" datatype="html">
+        <source>tag count</source>
+        <target>タグ数</target>
       </trans-unit>
     </body>
   </file>
