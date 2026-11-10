@@ -31,6 +31,29 @@ describe('download util', () => {
     expect(safeFilename('nul')).toBe('_nul');
     expect(safeFilename('com1.tar.zip')).toBe('_com1.tar.zip');
     expect(safeFilename('console.json')).toBe('console.json');
+    const long = safeFilename('CON.' + 'a'.repeat(300) + '.zip');
+    expect(long).toMatch(/^_CON\.a+\.zip$/);
+    expect(new TextEncoder().encode(long).length).toBeLessThanOrEqual(200);
+    expect(safeFilename(long)).toBe(long);
+    expect(safeFilename('CON. abc.zip', 9)).toBe('_CON.zip');
+  });
+
+  it('should keep the bulk suffix when escaping reserved Windows names', () => {
+    const date = DateTime.fromISO('2026-11-10T03:45:00');
+    const page = { number: 9, size: 20, totalPages: 12, totalElements: 240 };
+    for (const [name, search, suffix] of [
+      ['CON.' + 'a'.repeat(300), undefined, ' - 2026-11-10 (page 10 of 12).zip'],
+      ['CON.' + 'a'.repeat(300), 'b'.repeat(300), ' - 2026-11-10 (page 10 of 12).zip'],
+    ] as const) {
+      const filename = bulkFilename(name, search, page, date);
+      expect(filename.startsWith('_CON.')).toBe(true);
+      expect(filename.endsWith(suffix)).toBe(true);
+      expect(new TextEncoder().encode(filename).length).toBeLessThanOrEqual(200);
+      expect(safeFilename(filename)).toBe(filename);
+    }
+    const single = bulkFilename('CON.' + 'a'.repeat(300), undefined, undefined, date);
+    expect(single.endsWith(' - 2026-11-10.zip')).toBe(true);
+    expect(safeFilename(single)).toBe(single);
   });
 
   it('should make readable query filenames', () => {

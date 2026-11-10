@@ -73,8 +73,9 @@ export function safeFilename(name: string, maxBytes = MAX_FILENAME_BYTES) {
   name = cleanFilename(name);
   const ext = /\.[a-z0-9]{1,10}$/i.exec(name)?.[0] || '';
   let stem = name.substring(0, name.length - ext.length);
-  stem = truncateBytes(stem, maxBytes - bytes(ext)).replace(/[\s.]+$/, '');
   if (WINDOWS_RESERVED.test(stem)) stem = '_' + stem;
+  stem = truncateBytes(stem, maxBytes - bytes(ext)).replace(/[\s.]+$/, '');
+  if (WINDOWS_RESERVED.test(stem)) stem = '_' + truncateBytes(stem, maxBytes - bytes(ext) - 1).replace(/[\s.]+$/, '');
   return (stem || 'download') + ext;
 }
 
@@ -99,6 +100,7 @@ export function bulkFilename(name: string, search?: string, page?: Page<any>['pa
     + '.zip';
   const budget = maxBytes - bytes(suffix);
   name = cleanFilename(name) || 'download';
+  if (WINDOWS_RESERVED.test(name)) name = '_' + name;
   search = cleanFilename(search || '');
   let prefix = name;
   if (search) {
