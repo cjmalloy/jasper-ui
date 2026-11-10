@@ -12,7 +12,7 @@ import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { ORIGIN_WILDCARD_REGEX, TAG_ORIGIN_SELECTOR_REGEX } from '../util/format';
 import { validFilterColumn, validSortColumn } from '../util/query';
-import { defer, firstValueFrom, of, Subject, throwError } from 'rxjs';
+import { catchError, defer, firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { Store } from '../store/store';
 import { AdminService, hotIndexSuggestions } from './admin.service';
 import { PluginService } from './api/plugin.service';
@@ -89,6 +89,48 @@ describe('AdminService', () => {
     service.firstRun$.subscribe();
     expect(calls.length).toBeGreaterThan(1);
     expect(calls.indexOf('defaults')).toBe(calls.length - 1);
+  });
+
+  it('should only report no mods when nothing but _config templates are installed', () => {
+    expect(service.noMods()).toBe(true);
+    (service as any).updateStatus((status: any) => status.templates['_config/server'] = { tag: '_config/server' });
+    expect(service.noMods()).toBe(true);
+    (service as any).updateStatus((status: any) => status.plugins['plugin/test'] = { tag: 'plugin/test' });
+    expect(service.noMods()).toBe(false);
+  });
+
+  it('should install default mods on demand after the first run', () => {
+    TestBed.inject(ConfigService).installDefaults = false;
+    TestBed.inject(Store).account.admin = true;
+    service.firstRun$.subscribe();
+    const create = vi.spyOn(TestBed.inject(PluginService), 'create').mockReturnValue(of(null as any));
+    vi.spyOn(TestBed.inject(TemplateService), 'create').mockReturnValue(of(null as any));
+    vi.spyOn(service, 'init$', 'get').mockReturnValue(of(null));
+    service.installDefaults$().subscribe();
+    expect(create).toHaveBeenCalledTimes(service.defaultPlugins.length);
+  });
+
+  it('should publish the default install as ready$ so reopened pages wait for it', () => {
+    const done = new Subject<any>();
+    vi.spyOn(service, 'installDefaults$').mockReturnValue(done);
+    const reloaded = new Subject<any>();
+    const init = vi.spyOn(service, 'init$', 'get').mockReturnValue(reloaded);
+    const failed = vi.fn();
+    service.installDefaultsAndReload$().pipe(catchError(err => { failed(err); return of(null); })).subscribe();
+    expect(service.installingDefaults()).toBe(true);
+    const ready = vi.fn();
+    service.ready$.subscribe(ready);
+    expect(ready).not.toHaveBeenCalled();
+    done.error('offline');
+    expect(init).toHaveBeenCalledTimes(1);
+    expect(failed).not.toHaveBeenCalled();
+    expect(ready).not.toHaveBeenCalled();
+    expect(service.installingDefaults()).toBe(true);
+    reloaded.next(null);
+    reloaded.complete();
+    expect(failed).toHaveBeenCalledWith('offline');
+    expect(ready).toHaveBeenCalledTimes(1);
+    expect(service.installingDefaults()).toBe(false);
   });
 
   it('should only list PDF embeds that will embed', () => {

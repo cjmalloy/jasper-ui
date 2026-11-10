@@ -8857,6 +8857,14 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Color</source>
         <target>色</target>
       </trans-unit>
+      <trans-unit id="3568790342632384571" datatype="html">
+        <source>Installing default mods...</source>
+        <target>デフォルトのModをインストールしています...</target>
+      </trans-unit>
+      <trans-unit id="6971496217366946567" datatype="html">
+        <source>📦️ Install Defaults</source>
+        <target>📦️ デフォルトをインストール</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
