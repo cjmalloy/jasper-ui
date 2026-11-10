@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
@@ -42,7 +43,8 @@ describe('SettingsSetupPage', () => {
                 getInstalledMod() { },
                 updateMod$: vi.fn(() => of(null)),
                 noMods: vi.fn(() => false),
-                installDefaults$: vi.fn(() => of(null)),
+                installingDefaults: signal(false),
+                installDefaultsAndReload$: vi.fn(() => admin.ready$ = of(null)),
                 def: { plugins: {}, templates: {} },
                 status: () => status,
                 themes: () => [],
@@ -148,11 +150,33 @@ describe('SettingsSetupPage', () => {
       TestBed.inject(Store).account.admin = true;
       admin.noMods.mockReturnValue(true);
       recreate();
-      const reload = vi.spyOn(component, 'reset');
+      const clear = vi.spyOn(component, 'clear');
       (el().querySelector('.install-defaults') as HTMLElement).click();
-      expect(admin.installDefaults$).toHaveBeenCalledTimes(1);
-      expect(reload).toHaveBeenCalled();
+      expect(admin.installDefaultsAndReload$).toHaveBeenCalledTimes(1);
+      expect(clear).toHaveBeenCalled();
+      expect(component.modChangesLoaded()).toBe(true);
       expect(component.installMessages()).toContain('Success.');
+    });
+
+    it('should disable saving while defaults install', () => {
+      TestBed.inject(Store).account.admin = true;
+      admin.installingDefaults.set(true);
+      recreate();
+      expect(el().querySelector('.install-defaults')).toBeNull();
+      expect(el().querySelector('.install-defaults-loading')).toBeTruthy();
+      expect((el().querySelector('.buttons button:last-child') as HTMLButtonElement).disabled).toBe(true);
+      component.install();
+      expect(component.installMessages()).toEqual([]);
+    });
+
+    it('should report a failed install without reporting success', () => {
+      TestBed.inject(Store).account.admin = true;
+      admin.noMods.mockReturnValue(true);
+      admin.installDefaultsAndReload$.mockImplementation(() => throwError(() => new Error('Install failed')));
+      recreate();
+      (el().querySelector('.install-defaults') as HTMLElement).click();
+      expect(component.serverError()).toContainEqual(expect.stringContaining('Install failed'));
+      expect(component.installMessages()).not.toContain('Success.');
     });
   });
 

@@ -57,8 +57,8 @@ export class SettingsSetupPage {
   readonly mergeSaving = signal(false);
   readonly modChangesLoaded = signal(false);
   readonly modChangesError = signal<string[]>([]);
-  readonly installingDefaults = signal(false);
-  readonly noMods = computed(() => this.store.account.admin && this.admin.noMods());
+  readonly installingDefaults = computed(() => this.admin.installingDefaults());
+  readonly noMods = computed(() => this.store.account.admin && !this.installingDefaults() && this.admin.noMods());
   readonly hasLog = computed(() => !!(this.modChangesError().length || this.serverError().length || this.installMessages().length));
   private mergeSavingSubscription?: Subscription;
   private modChangesSubscription?: Subscription;
@@ -108,6 +108,7 @@ export class SettingsSetupPage {
   }
 
   install() {
+    if (this.installingDefaults()) return;
     this.serverError.set([]);
     this.installMessages.set([]);
     this.submitted.set(true);
@@ -166,18 +167,18 @@ export class SettingsSetupPage {
     if (this.installingDefaults()) return;
     this.serverError.set([]);
     this.installMessages.set([]);
-    this.installingDefaults.set(true);
-    this.admin.installDefaults$().pipe(
-      catchError((res: HttpErrorResponse) => {
-        this.installingDefaults.set(false);
-        this.serverError.set(printError(res));
-        return throwError(() => res);
-      }),
+    const install$ = this.admin.installDefaultsAndReload$();
+    this.loadModChanges(this.admin.ready$.pipe(tap(() => this.clear())));
+    install$.pipe(
       last(null, null),
+      catchError((res: HttpErrorResponse) => {
+        this.serverError.set(printError(res));
+        return EMPTY;
+      }),
     ).subscribe(() => {
-      this.installingDefaults.set(false);
-      this.reset();
-      this.installMessages.update(messages => [...messages, $localize`Success.`]);
+      this.installMessages.update(messages => [...messages,
+        $localize`Success.`,
+        $localize`Reload the page to finish loading mod changes.`]);
     });
   }
 

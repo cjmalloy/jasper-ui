@@ -2,7 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
-import { catchError, concat, defer, EMPTY, expand, forkJoin, map, Observable, of, retry, share, shareReplay, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, defer, EMPTY, expand, finalize, forkJoin, last, map, Observable, of, retry, share, shareReplay, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
@@ -306,6 +306,31 @@ export class AdminService {
     const init$ = this.init$.pipe(shareReplay(1));
     init$.subscribe();
     return this.ready$ = init$;
+  }
+
+  /**
+   * True while {@link installDefaultsAndReload$} is running.
+   */
+  readonly installingDefaults = signal(false);
+
+  /**
+   * Install the default mods in the background and publish the operation as {@link ready$}.
+   * Unsubscribing does not cancel the install. The returned observable errors if the install fails,
+   * while {@link ready$} always completes once the install and reload have finished.
+   */
+  installDefaultsAndReload$(): Observable<any> {
+    this.installingDefaults.set(true);
+    const install$ = this.installDefaults$().pipe(
+      finalize(() => this.installingDefaults.set(false)),
+      shareReplay(1),
+    );
+    this.ready$ = install$.pipe(
+      last(null, null),
+      catchError(() => of(null)),
+      shareReplay(1),
+    );
+    this.ready$.subscribe();
+    return install$;
   }
 
   /**
