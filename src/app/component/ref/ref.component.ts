@@ -1388,7 +1388,7 @@ export class RefComponent implements HasChanges {
       ),
       catchError(err => {
         console.error('Error fetching versions for diff:', err);
-        alert('Could not load versions for comparison');
+        alert($localize`Could not load versions for comparison`);
         return throwError(() => err);
       })
     ).subscribe(({ local, remote }) => {

@@ -62,7 +62,7 @@
 
   @for (c of store.submit.uploads(); track c) {
     <span><!-- Uploading --></span>
-    <div>Uploading {{ c.name }} <progress max="100" [value]="c.progress"></progress></div>
+    <div><ng-container i18n>Uploading {{ c.name }}</ng-container> <progress max="100" [value]="c.progress"></progress></div>
   }
 
   @if (!store.submit.empty()) {
@@ -93,20 +93,20 @@
   @if (store.submit.huge()) {
     <span></span>
     <span class="warning">
-      * Preview disabled for huge archives
+      <ng-container i18n>* Preview disabled for huge archives</ng-container>
       <button type="button" (click)="store.submit.overrideHuge()" i18n>show anyway</button>
     </span>
     @if (store.submit.exts().length) {
-      <span>Exts: </span>
+      <span i18n>Exts: </span>
       <span>{{ store.submit.exts().length }}</span>
     }
     @if (store.submit.refs().length) {
-      <span>Refs: </span>
+      <span i18n>Refs: </span>
       <span>{{ store.submit.refs().length }}</span>
     }
   } @else {
     @if (store.submit.exts().length) {
-      <span class="upload-label">Exts: </span>
+      <span class="upload-label" i18n>Exts: </span>
       <span></span>
       @for (ext of store.submit.exts(); track ext; let i = $index) {
         <div class="list-number">{{ i + 1 }}</div>
@@ -114,7 +114,7 @@
       }
     }
     @if (store.submit.refs().length) {
-      <span class="upload-label">Refs: </span>
+      <span class="upload-label" i18n>Refs: </span>
       <span></span>
       @for (ref of store.submit.refs(); track ref; let i = $index) {
         <div class="list-number">{{ i + 1 }}</div>

@@ -16,7 +16,7 @@ export class LoginService {
     if (!this.config.electron && navigator.onLine && this.store.account.signedIn()) {
       if (res.status === 401) {
         this.store.account.authError.set(true);
-        return throwError(() => ({ message: 'Please log in again.' }));
+        return throwError(() => ({ message: $localize`Please log in again.` }));
       }
     }
     return throwError(() => res);

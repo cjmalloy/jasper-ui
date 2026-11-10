@@ -10,7 +10,7 @@ import { catchError, concat, EMPTY, last, Observable, of, Subscription, switchMa
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { DiffComponent } from '../../../form/diff/diff.component';
-import { Config, Mod } from '../../../model/tag';
+import { Config, Mod, ModType } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
@@ -371,6 +371,21 @@ export class SettingsSetupPage {
     const mod = modId(config);
     return Object.values(this.admin.status().disabledPlugins).find(p => p && mod === modId(p)) ||
       Object.values(this.admin.status().disabledTemplates).find(t => t && mod === modId(t));
+  }
+
+  modTypeLabel(type: ModType | string) {
+    switch (type) {
+      case 'config': return $localize`Config`;
+      case 'icon': return $localize`Icon`;
+      case 'feature': return $localize`Feature`;
+      case 'lens': return $localize`Lens`;
+      case 'plugin': return $localize`Plugin`;
+      case 'editor': return $localize`Editor`;
+      case 'semantic': return $localize`Semantic`;
+      case 'theme': return $localize`Theme`;
+      case 'tool': return $localize`Tool`;
+    }
+    return type;
   }
 
   modLabel([tag, e]: [string, Config]) {

@@ -27,7 +27,7 @@ export class ListEditorComponent {
     if (!this.addingText()) return;
     const list = [...this.list()];
     if (list.includes(this.addingText())) {
-      this.error.set('Duplicate name');
+      this.error.set($localize`Duplicate name`);
       return;
     }
     list.push(this.addingText());

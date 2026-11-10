@@ -48,7 +48,13 @@
 
   <span><!-- Buttons --></span>
   <span class="buttons right floating">
-    <button type="submit" [disabled]="submitted() && !profileFormValid()" i18n>{{ store.view.selectedUser() ? 'Save' : 'Create' }}</button>
+    <button type="submit" [disabled]="submitted() && !profileFormValid()">
+      @if (store.view.selectedUser()) {
+        <ng-container i18n>Save</ng-container>
+      } @else {
+        <ng-container i18n>Create</ng-container>
+      }
+    </button>
     @if (!!store.view.selectedUser()) {
       <button type="button" (click)="delete()" i18n>Delete</button>
     }

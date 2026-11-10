@@ -65,6 +65,7 @@ export class KanbanComponent implements HasChanges {
   bookmarks = inject(BookmarkService);
   store = inject(Store);
   exts = inject(ExtService);
+  readonly backlogTitle = $localize`Backlog`;
   private tags = inject(TaggingService);
 
 

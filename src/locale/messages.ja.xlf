@@ -9105,6 +9105,94 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>tag count</source>
         <target>タグ数</target>
       </trans-unit>
+      <trans-unit id="1037998203170903679" datatype="html">
+        <source>Not allowed to use required tags. Ask admin for permission.</source>
+        <target>必須タグを使用する権限がありません。管理者に許可を求めてください。</target>
+      </trans-unit>
+      <trans-unit id="1384194580053922814" datatype="html">
+        <source>Feature</source>
+        <target>機能</target>
+      </trans-unit>
+      <trans-unit id="1779008499225279805" datatype="html">
+        <source>* Preview disabled for huge archives</source>
+        <target>* 巨大なアーカイブではプレビューが無効です</target>
+      </trans-unit>
+      <trans-unit id="2466174465148622115" datatype="html">
+        <source>Exts: </source>
+        <target>Ext: </target>
+      </trans-unit>
+      <trans-unit id="2501969335659826225" datatype="html">
+        <source>This field is required</source>
+        <target>この項目は必須です</target>
+      </trans-unit>
+      <trans-unit id="2653477203439660331" datatype="html">
+        <source>Must be <x id="PH" equiv-text="error.base"/> plus a multiple of <x id="PH_1" equiv-text="error.step"/></source>
+        <target><x id="PH" equiv-text="error.base"/> に <x id="PH_1" equiv-text="error.step"/> の倍数を足した値である必要があります</target>
+      </trans-unit>
+      <trans-unit id="2892412979837680989" datatype="html">
+        <source>Config</source>
+        <target>設定</target>
+      </trans-unit>
+      <trans-unit id="2932360890997178383" datatype="html">
+        <source>Tool</source>
+        <target>ツール</target>
+      </trans-unit>
+      <trans-unit id="3074987902485823708" datatype="html">
+        <source>Icon</source>
+        <target>アイコン</target>
+      </trans-unit>
+      <trans-unit id="3448945419033177287" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ res.x.name || res.x.tag }}"/> Tags:</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ res.x.name || res.x.tag }}"/> タグ:</target>
+      </trans-unit>
+      <trans-unit id="3758263805131967026" datatype="html">
+        <source>File Cache has not been enabled by the admin (plugin/file) so file uploads will likely fail.</source>
+        <target>管理者がファイルキャッシュ (plugin/file) を有効にしていないため、ファイルのアップロードは失敗する可能性があります。</target>
+      </trans-unit>
+      <trans-unit id="3824256851142555122" datatype="html">
+        <source>Toggles whether to show or hide the expandable UI.</source>
+        <target>展開可能なUIの表示/非表示を切り替えます。</target>
+      </trans-unit>
+      <trans-unit id="4147857620929034676" datatype="html">
+        <source>Uploading <x id="INTERPOLATION" equiv-text="{{ c.name }}"/></source>
+        <target><x id="INTERPOLATION" equiv-text="{{ c.name }}"/> をアップロード中</target>
+      </trans-unit>
+      <trans-unit id="5060373159032898184" datatype="html">
+        <source>Please log in again.</source>
+        <target>もう一度ログインしてください。</target>
+      </trans-unit>
+      <trans-unit id="5194912054053114732" datatype="html">
+        <source>Backlog</source>
+        <target>バックログ</target>
+      </trans-unit>
+      <trans-unit id="5674286808255988565" datatype="html">
+        <source>Create</source>
+        <target>作成</target>
+      </trans-unit>
+      <trans-unit id="6554361531577626345" datatype="html">
+        <source>Could not load versions for comparison</source>
+        <target>比較するバージョンを読み込めませんでした</target>
+      </trans-unit>
+      <trans-unit id="7103588127254721505" datatype="html">
+        <source>Theme</source>
+        <target>テーマ</target>
+      </trans-unit>
+      <trans-unit id="7416194377671080409" datatype="html">
+        <source>Duplicate name</source>
+        <target>名前が重複しています</target>
+      </trans-unit>
+      <trans-unit id="7767239486486952152" datatype="html">
+        <source>Semantic</source>
+        <target>セマンティック</target>
+      </trans-unit>
+      <trans-unit id="7780678731586904471" datatype="html">
+        <source>Refs: </source>
+        <target>Ref: </target>
+      </trans-unit>
+      <trans-unit id="956790577537157392" datatype="html">
+        <source>Must be a multiple of <x id="PH" equiv-text="error.step"/></source>
+        <target><x id="PH" equiv-text="error.step"/> の倍数である必要があります</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

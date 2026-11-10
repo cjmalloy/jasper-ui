@@ -548,7 +548,7 @@ export class KanbanColumnComponent implements HasChanges {
       catchError(err => {
         if (err.status === 403) {
           // TODO: better error message
-          alert('Not allowed to use required tags. Ask admin for permission.');
+          alert($localize`Not allowed to use required tags. Ask admin for permission.`);
         }
         return throwError(err);
       }),
