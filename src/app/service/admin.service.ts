@@ -1378,12 +1378,12 @@ function addParent(c: Config) {
 }
 
 const roles = [
-  { value: 'ROLE_ANONYMOUS', label: $localize`Anonymous` },
-  { value: 'ROLE_VIEWER', label: $localize`Viewer` },
-  { value: 'ROLE_USER', label: $localize`User` },
-  { value: 'ROLE_EDITOR', label: $localize`Editor` },
-  { value: 'ROLE_MOD', label: $localize`Mod` },
-  { value: 'ROLE_ADMIN', label: $localize`Admin` },
+  { value: 'ROLE_ANONYMOUS', label: $localize`:role|:Anonymous` },
+  { value: 'ROLE_VIEWER', label: $localize`:role|:Viewer` },
+  { value: 'ROLE_USER', label: $localize`:role|:User` },
+  { value: 'ROLE_EDITOR', label: $localize`:role|:Editor` },
+  { value: 'ROLE_MOD', label: $localize`:role|:Mod` },
+  { value: 'ROLE_ADMIN', label: $localize`:role|:Admin` },
 ];
 
 function strings(key: string, label: string, addText: string, suggestions?: (admin: AdminService) => Observable<string[]>): FormlyFieldConfig {

@@ -6870,10 +6870,6 @@ Private tags start with an underscore.
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
           <context context-type="linenumber">72</context>
         </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">382</context>
-        </context-group>
       </trans-unit>
       <trans-unit id="5610425955750546094" datatype="html">
         <source>Template</source>
@@ -6933,10 +6929,6 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/formly.type.ts</context>
           <context context-type="linenumber">81</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1383</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2756082335905089615" datatype="html">
@@ -11374,10 +11366,6 @@ Private tags start with an underscore.
           <context context-type="sourcefile">src/app/mods/org/grid.ts</context>
           <context context-type="linenumber">62</context>
         </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">381</context>
-        </context-group>
       </trans-unit>
       <trans-unit id="7175078292963657559" datatype="html">
         <source>URL: </source>
@@ -14881,10 +14869,6 @@ F: Fullscreen toggle
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
           <context context-type="linenumber">534</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1385</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3621153583371414913" datatype="html">
@@ -19319,58 +19303,77 @@ Each response contains the converted Markdown from a specific source format.</so
           <context context-type="linenumber">222</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="2892412979837680989" datatype="html">
+      <trans-unit id="2198682405443052131" datatype="html">
         <source>Config</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
           <context context-type="linenumber">378</context>
         </context-group>
+        <note priority="1" from="meaning">mod type</note>
       </trans-unit>
-      <trans-unit id="3074987902485823708" datatype="html">
+      <trans-unit id="2563832250739337569" datatype="html">
         <source>Icon</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
           <context context-type="linenumber">379</context>
         </context-group>
+        <note priority="1" from="meaning">mod type</note>
       </trans-unit>
-      <trans-unit id="1384194580053922814" datatype="html">
+      <trans-unit id="8405617642730311589" datatype="html">
         <source>Feature</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
           <context context-type="linenumber">380</context>
         </context-group>
+        <note priority="1" from="meaning">mod type</note>
       </trans-unit>
-      <trans-unit id="3742657416068781599" datatype="html">
+      <trans-unit id="1092436066043615720" datatype="html">
+        <source>Lens</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
+          <context context-type="linenumber">381</context>
+        </context-group>
+        <note priority="1" from="meaning">mod type</note>
+      </trans-unit>
+      <trans-unit id="5538580526880903449" datatype="html">
+        <source>Plugin</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
+          <context context-type="linenumber">382</context>
+        </context-group>
+        <note priority="1" from="meaning">mod type</note>
+      </trans-unit>
+      <trans-unit id="3899171277905253350" datatype="html">
         <source>Editor</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
           <context context-type="linenumber">383</context>
         </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1384</context>
-        </context-group>
+        <note priority="1" from="meaning">mod type</note>
       </trans-unit>
-      <trans-unit id="7767239486486952152" datatype="html">
+      <trans-unit id="2724963381886818649" datatype="html">
         <source>Semantic</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
           <context context-type="linenumber">384</context>
         </context-group>
+        <note priority="1" from="meaning">mod type</note>
       </trans-unit>
-      <trans-unit id="7103588127254721505" datatype="html">
+      <trans-unit id="1397660663422357354" datatype="html">
         <source>Theme</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
           <context context-type="linenumber">385</context>
         </context-group>
+        <note priority="1" from="meaning">mod type</note>
       </trans-unit>
-      <trans-unit id="2932360890997178383" datatype="html">
+      <trans-unit id="2278578227762046918" datatype="html">
         <source>Tool</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
           <context context-type="linenumber">386</context>
         </context-group>
+        <note priority="1" from="meaning">mod type</note>
       </trans-unit>
       <trans-unit id="9211072850644603743" datatype="html">
         <source>Settings: Templates</source>
@@ -20043,6 +20046,41 @@ Each response contains the converted Markdown from a specific source format.</so
           <context context-type="linenumber">394</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="6099143770234102554" datatype="html">
+        <source>User template not installed</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/account.service.ts</context>
+          <context context-type="linenumber">249</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/account.service.ts</context>
+          <context context-type="linenumber">258</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/account.service.ts</context>
+          <context context-type="linenumber">268</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/account.service.ts</context>
+          <context context-type="linenumber">277</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/account.service.ts</context>
+          <context context-type="linenumber">287</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/account.service.ts</context>
+          <context context-type="linenumber">299</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/account.service.ts</context>
+          <context context-type="linenumber">312</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/account.service.ts</context>
+          <context context-type="linenumber">395</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="756914257828569003" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.title || def.url"/> ref...</source>
         <context-group purpose="location">
@@ -20166,26 +20204,53 @@ Each response contains the converted Markdown from a specific source format.</so
           <context context-type="linenumber">1367</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="358462242581945792" datatype="html">
+      <trans-unit id="839039259853282808" datatype="html">
         <source>Anonymous</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
           <context context-type="linenumber">1381</context>
         </context-group>
+        <note priority="1" from="meaning">role</note>
       </trans-unit>
-      <trans-unit id="6239936537351977310" datatype="html">
+      <trans-unit id="3378615812538570036" datatype="html">
         <source>Viewer</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
           <context context-type="linenumber">1382</context>
         </context-group>
+        <note priority="1" from="meaning">role</note>
       </trans-unit>
-      <trans-unit id="5041354590769758251" datatype="html">
+      <trans-unit id="4907092210441072683" datatype="html">
+        <source>User</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/admin.service.ts</context>
+          <context context-type="linenumber">1383</context>
+        </context-group>
+        <note priority="1" from="meaning">role</note>
+      </trans-unit>
+      <trans-unit id="7607429606826954422" datatype="html">
+        <source>Editor</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/admin.service.ts</context>
+          <context context-type="linenumber">1384</context>
+        </context-group>
+        <note priority="1" from="meaning">role</note>
+      </trans-unit>
+      <trans-unit id="7694372513689682180" datatype="html">
+        <source>Mod</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/service/admin.service.ts</context>
+          <context context-type="linenumber">1385</context>
+        </context-group>
+        <note priority="1" from="meaning">role</note>
+      </trans-unit>
+      <trans-unit id="981451919374131919" datatype="html">
         <source>Admin</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
           <context context-type="linenumber">1386</context>
         </context-group>
+        <note priority="1" from="meaning">role</note>
       </trans-unit>
       <trans-unit id="2863855608329538007" datatype="html">
         <source>Unlimited (500 ns)</source>

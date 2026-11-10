@@ -6009,7 +6009,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="878726568452052561" datatype="html">
         <source> Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs. <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>View your <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;['/tag', store.account.tag]&quot; [queryParams]=&quot;{ filter: 'query/plugin/file' }&quot;&gt;"/>files here<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>.<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>Visit the <x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>setup<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> settings page to manage mods.<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
-        <target> Refs、Exts、画像、音声、動画、スプレッドシート、ブックマーク（XMLまたはHTML）、PDFをアップロードします。<x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>あなたの<x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;[&apos;/tag&apos;, store.account.tag]&quot; [queryParams]=&quot;{ filter: &apos;query/plugin/file&apos; }&quot;&gt;"/>ファイルはこちら<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>で確認できます。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>modを管理するには<x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>セットアップ<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>設定ページにアクセスしてください。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
+        <target> Ref、Ext、画像、音声、動画、スプレッドシート、ブックマーク（XMLまたはHTML）、PDFをアップロードします。<x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>あなたの<x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;[&apos;/tag&apos;, store.account.tag]&quot; [queryParams]=&quot;{ filter: &apos;query/plugin/file&apos; }&quot;&gt;"/>ファイルはこちら<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>で確認できます。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>MODを管理するには<x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>セットアップ<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>設定ページにアクセスしてください。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
       </trans-unit>
       <trans-unit id="8369271451769460452" datatype="html">
         <source>drop files anywhere to </source>
@@ -6017,7 +6017,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="1315147052054748831" datatype="html">
         <source>Upload Refs and Exts</source>
-        <target>RefsとExtsをアップロード</target>
+        <target>RefとExtをアップロード</target>
       </trans-unit>
       <trans-unit id="3678741049977282617" datatype="html">
         <source>+ add</source>
@@ -6025,7 +6025,7 @@ F: フルスクリーン切替
       </trans-unit>
       <trans-unit id="6760429594458123034" datatype="html">
         <source>Refs and Exts</source>
-        <target>RefsとExts</target>
+        <target>RefとExt</target>
       </trans-unit>
       <trans-unit id="3742457066004339854" datatype="html">
         <source>or </source>
@@ -8114,14 +8114,6 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Read Access Claim:</source>
         <target>読み取りアクセスクレーム:</target>
       </trans-unit>
-      <trans-unit id="358462242581945792" datatype="html">
-        <source>Anonymous</source>
-        <target>匿名</target>
-      </trans-unit>
-      <trans-unit id="3742657416068781599" datatype="html">
-        <source>Editor</source>
-        <target>編集者</target>
-      </trans-unit>
       <trans-unit id="3767029322871201813" datatype="html">
         <source>Minimum Config Role:</source>
         <target>最小設定ロール:</target>
@@ -8185,10 +8177,6 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="500125802698921621" datatype="html">
         <source>S3</source>
       </trans-unit>
-      <trans-unit id="5041354590769758251" datatype="html">
-        <source>Admin</source>
-        <target>管理者</target>
-      </trans-unit>
       <trans-unit id="506442826666958014" datatype="html">
         <source>Default Read Access:</source>
         <target>デフォルト読み取りアクセス:</target>
@@ -8216,10 +8204,6 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="6132894875829395268" datatype="html">
         <source>Max Concurrent Fetch:</source>
         <target>最大同時取得数:</target>
-      </trans-unit>
-      <trans-unit id="6239936537351977310" datatype="html">
-        <source>Viewer</source>
-        <target>閲覧者</target>
       </trans-unit>
       <trans-unit id="6252070156626006029" datatype="html">
         <source>None</source>
@@ -9109,10 +9093,6 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Not allowed to use required tags. Ask admin for permission.</source>
         <target>必須タグを使用する権限がありません。管理者に許可を求めてください。</target>
       </trans-unit>
-      <trans-unit id="1384194580053922814" datatype="html">
-        <source>Feature</source>
-        <target>機能</target>
-      </trans-unit>
       <trans-unit id="1779008499225279805" datatype="html">
         <source>* Preview disabled for huge archives</source>
         <target>* 巨大なアーカイブではプレビューが無効です</target>
@@ -9128,18 +9108,6 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="2653477203439660331" datatype="html">
         <source>Must be <x id="PH" equiv-text="error.base"/> plus a multiple of <x id="PH_1" equiv-text="error.step"/></source>
         <target><x id="PH" equiv-text="error.base"/> に <x id="PH_1" equiv-text="error.step"/> の倍数を足した値である必要があります</target>
-      </trans-unit>
-      <trans-unit id="2892412979837680989" datatype="html">
-        <source>Config</source>
-        <target>設定</target>
-      </trans-unit>
-      <trans-unit id="2932360890997178383" datatype="html">
-        <source>Tool</source>
-        <target>ツール</target>
-      </trans-unit>
-      <trans-unit id="3074987902485823708" datatype="html">
-        <source>Icon</source>
-        <target>アイコン</target>
       </trans-unit>
       <trans-unit id="3448945419033177287" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ res.x.name || res.x.tag }}"/> Tags:</source>
@@ -9173,17 +9141,9 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Could not load versions for comparison</source>
         <target>比較するバージョンを読み込めませんでした</target>
       </trans-unit>
-      <trans-unit id="7103588127254721505" datatype="html">
-        <source>Theme</source>
-        <target>テーマ</target>
-      </trans-unit>
       <trans-unit id="7416194377671080409" datatype="html">
         <source>Duplicate name</source>
         <target>名前が重複しています</target>
-      </trans-unit>
-      <trans-unit id="7767239486486952152" datatype="html">
-        <source>Semantic</source>
-        <target>セマンティック</target>
       </trans-unit>
       <trans-unit id="7780678731586904471" datatype="html">
         <source>Refs: </source>
@@ -9195,7 +9155,7 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="131761163657552131" datatype="html">
         <source>Not signed in</source>
-        <target>サインインしていません</target>
+        <target>ログインしていません</target>
       </trans-unit>
       <trans-unit id="4043049091728011235" datatype="html">
         <source>Cancelled</source>
@@ -9204,6 +9164,70 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="7694755598986576252" datatype="html">
         <source>anonymous</source>
         <target>匿名</target>
+      </trans-unit>
+      <trans-unit id="1092436066043615720" datatype="html">
+        <source>Lens</source>
+        <target>レンズ</target>
+      </trans-unit>
+      <trans-unit id="1397660663422357354" datatype="html">
+        <source>Theme</source>
+        <target>テーマ</target>
+      </trans-unit>
+      <trans-unit id="2198682405443052131" datatype="html">
+        <source>Config</source>
+        <target>コンフィグ</target>
+      </trans-unit>
+      <trans-unit id="2278578227762046918" datatype="html">
+        <source>Tool</source>
+        <target>ツール</target>
+      </trans-unit>
+      <trans-unit id="2563832250739337569" datatype="html">
+        <source>Icon</source>
+        <target>アイコン</target>
+      </trans-unit>
+      <trans-unit id="2724963381886818649" datatype="html">
+        <source>Semantic</source>
+        <target>セマンティック</target>
+      </trans-unit>
+      <trans-unit id="3378615812538570036" datatype="html">
+        <source>Viewer</source>
+        <target>閲覧者</target>
+      </trans-unit>
+      <trans-unit id="3899171277905253350" datatype="html">
+        <source>Editor</source>
+        <target>エディター</target>
+      </trans-unit>
+      <trans-unit id="4907092210441072683" datatype="html">
+        <source>User</source>
+        <target>ユーザー</target>
+      </trans-unit>
+      <trans-unit id="5538580526880903449" datatype="html">
+        <source>Plugin</source>
+        <target>プラグイン</target>
+      </trans-unit>
+      <trans-unit id="6099143770234102554" datatype="html">
+        <source>User template not installed</source>
+        <target>ユーザーテンプレートがインストールされていません</target>
+      </trans-unit>
+      <trans-unit id="7607429606826954422" datatype="html">
+        <source>Editor</source>
+        <target>エディター</target>
+      </trans-unit>
+      <trans-unit id="7694372513689682180" datatype="html">
+        <source>Mod</source>
+        <target>モデレーター</target>
+      </trans-unit>
+      <trans-unit id="839039259853282808" datatype="html">
+        <source>Anonymous</source>
+        <target>匿名</target>
+      </trans-unit>
+      <trans-unit id="8405617642730311589" datatype="html">
+        <source>Feature</source>
+        <target>機能</target>
+      </trans-unit>
+      <trans-unit id="981451919374131919" datatype="html">
+        <source>Admin</source>
+        <target>管理者</target>
       </trans-unit>
     </body>
   </file>

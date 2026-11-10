@@ -246,7 +246,7 @@ export class AccountService {
 
   addSub$(tag: string): Observable<any> {
     if (!this.store.account.signedIn()) throw $localize`Not signed in`;
-    if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw $localize`User template not installed`;
     return this.addConfigArray$('subscriptions', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
@@ -255,7 +255,7 @@ export class AccountService {
 
   removeSub$(tag: string): Observable<any> {
     if (!this.store.account.signedIn()) throw $localize`Not signed in`;
-    if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw $localize`User template not installed`;
     return this.subscriptions$.pipe(
       switchMap(() => this.removeConfigArray$('subscriptions', tag)),
       tap(() => this.clearCache()),
@@ -265,7 +265,7 @@ export class AccountService {
 
   addBookmark$(tag: string): Observable<any> {
     if (!this.store.account.signedIn()) throw $localize`Not signed in`;
-    if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw $localize`User template not installed`;
     return this.addConfigArray$('bookmarks', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
@@ -274,7 +274,7 @@ export class AccountService {
 
   removeBookmark$(tag: string): Observable<any> {
     if (!this.store.account.signedIn()) throw $localize`Not signed in`;
-    if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw $localize`User template not installed`;
     return this.bookmarks$.pipe(
       switchMap(() => this.removeConfigArray$('bookmarks', tag)),
       tap(() => this.clearCache()),
@@ -284,7 +284,7 @@ export class AccountService {
 
   addAlarm$(tag: string): Observable<any> {
     if (!this.store.account.signedIn()) throw $localize`Not signed in`;
-    if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw $localize`User template not installed`;
     return this.addConfigArray$('alarms', tag).pipe(
       tap(() => {
         this.clearCache();
@@ -296,7 +296,7 @@ export class AccountService {
 
   removeAlarm$(tag: string): Observable<any> {
     if (!this.store.account.signedIn()) throw $localize`Not signed in`;
-    if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw $localize`User template not installed`;
     return this.alarms$.pipe(
       switchMap(() => this.removeConfigArray$('alarms', tag)),
       tap(() => {
@@ -309,7 +309,7 @@ export class AccountService {
 
   checkNotifications() {
     if (!this.store.account.signedIn()) throw $localize`Not signed in`;
-    if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw $localize`User template not installed`;
     this.check?.unsubscribe();
     this.check = this.loadNotificationCursors$().pipe(
       switchMap(streams => this.aliasCursors$().pipe(map(borrowed => ({ streams, borrowed })))),
@@ -392,7 +392,7 @@ export class AccountService {
    */
   clearNotifications(readDate: DateTime | string = DateTime.now(), origins?: string[]): Promise<void> {
     if (!this.store.account.signedIn()) throw $localize`Not signed in`;
-    if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    if (!this.admin.getTemplate('user')) throw $localize`User template not installed`;
     const cursor = typeof readDate === 'string' ? readDate : readDate.plus({ millisecond: 1 }).toISO()!;
     origins = origins?.map(origin => origin || '');
     for (const origin of origins || []) this.otherOrigins.add(origin);

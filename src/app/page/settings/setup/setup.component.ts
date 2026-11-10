@@ -375,15 +375,15 @@ export class SettingsSetupPage {
 
   modTypeLabel(type: ModType | string) {
     switch (type) {
-      case 'config': return $localize`Config`;
-      case 'icon': return $localize`Icon`;
-      case 'feature': return $localize`Feature`;
-      case 'lens': return $localize`Lens`;
-      case 'plugin': return $localize`Plugin`;
-      case 'editor': return $localize`Editor`;
-      case 'semantic': return $localize`Semantic`;
-      case 'theme': return $localize`Theme`;
-      case 'tool': return $localize`Tool`;
+      case 'config': return $localize`:mod type|:Config`;
+      case 'icon': return $localize`:mod type|:Icon`;
+      case 'feature': return $localize`:mod type|:Feature`;
+      case 'lens': return $localize`:mod type|:Lens`;
+      case 'plugin': return $localize`:mod type|:Plugin`;
+      case 'editor': return $localize`:mod type|:Editor`;
+      case 'semantic': return $localize`:mod type|:Semantic`;
+      case 'theme': return $localize`:mod type|:Theme`;
+      case 'tool': return $localize`:mod type|:Tool`;
     }
     return type;
   }
