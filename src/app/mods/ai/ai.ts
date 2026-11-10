@@ -229,7 +229,7 @@ const providers = {
       config.maxTokens ||= 64_000;
       config.thinking = true;
       config.pdf = true;
-      config.image = !/^grok-[1-3]([.-]|$)|code/.test(config.model) || /vision/.test(config.model);
+      config.image = !/^grok-[1-3]([.-]|$)/.test(config.model) || /vision/.test(config.model);
       config.audio = false;
       config.video = false;
     },
