@@ -30,6 +30,11 @@ import { directChild, hasPrefix } from '../util/tag';
       }
     </select>
   `,
+  styles: `
+    .child-plugin-select {
+      grid-column: 1 / -1;
+    }
+  `,
 })
 export class FormlyFieldChildPlugin extends FieldType {
 

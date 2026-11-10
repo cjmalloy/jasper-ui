@@ -14,6 +14,7 @@ import {
   URI_REGEX,
   USER_REGEX
 } from '../util/format';
+import { isPosition } from '../util/geo';
 import { FormlyFieldBbox } from './bbox.type';
 import { FormlyFieldBookmarkInput } from './bookmark.type';
 import { FormlyFieldCheckbox } from './checkbox.type';
@@ -23,7 +24,7 @@ import { FormlyFieldDuration } from './duration.type';
 import { FormlyFieldEditor } from './editor.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { FormlyWrapperFormGroup } from './form-group.wrapper';
-import { builderTypeNames, formlyType } from './formly.type';
+import { formlyType } from './formly.type';
 import { FormlyFieldGeoStyle } from './geo-style.type';
 import { FormlyFieldGeometries } from './geometries.type';
 import { FormlyFieldInput } from './input.type';
@@ -57,6 +58,18 @@ export class IdPrefixExtension implements FormlyExtension {
   }
 }
 
+/**
+ * Start a range at its minimum, so a range with a minimum above zero
+ * doesn't start out of range.
+ */
+export class RangeDefaultExtension implements FormlyExtension {
+  prePopulate(field: FormlyFieldConfig) {
+    if (field.type !== 'range' || 'defaultValue' in field) return;
+    const min = field.props?.min ?? 0;
+    field.defaultValue = isFinite(+min) ? +min : 0;
+  }
+}
+
 const formlyFieldExpressionConfig = withFormlyFieldExpression();
 
 export function provideJasperFormly() {
@@ -64,6 +77,7 @@ export function provideJasperFormly() {
     extensions: [
       ...(formlyFieldExpressionConfig.extensions || []),
       { name: 'id-prefix', extension: new IdPrefixExtension() },
+      { name: 'range-default', extension: new RangeDefaultExtension() },
     ],
     validationMessages: [
       { name: 'required', message: 'This field is required' },
@@ -90,7 +104,6 @@ export function provideJasperFormly() {
       component: FormlyFieldRange,
       wrappers: ['form-field'],
       defaultOptions: {
-        defaultValue: 0,
         props: {
           min: 0,
           max: 10,
@@ -747,9 +760,15 @@ Private tags start with an underscore.
       component: FormlyFieldLocation,
       wrappers: ['form-field'],
       defaultOptions: {
-        defaultValue: [0, 0],
         props: {
           label: $localize`Location: `,
+        },
+        validators: {
+          location: {
+            // A blank point in a list of points would not be a valid position
+            expression: (c: AbstractControl, field: FormlyFieldConfig) => isPosition(c.value) || !c.value && !field.parent?.fieldArray,
+            message: $localize`Pick a location.`,
+          },
         },
       },
     }, {
@@ -758,6 +777,13 @@ Private tags start with an underscore.
     }, {
       name: 'geometries',
       component: FormlyFieldGeometries,
+      defaultOptions: {
+        props: {
+          label: $localize`Features:`,
+          addText: $localize`+ Add Feature`,
+          parent: 'plugin/geo',
+        },
+      },
     }, {
       name: 'geo-style',
       component: FormlyFieldGeoStyle,
@@ -773,6 +799,6 @@ Private tags start with an underscore.
     }],
   };
   return provideFormlyCore([config, {
-    types: [formlyType(builderTypeNames(config.types!))],
+    types: [formlyType(config.types!)],
   }]);
 }

@@ -64,6 +64,23 @@ describe('ListTypeComponent', () => {
     expect(removeSpy).toHaveBeenCalledWith(1);
   });
 
+  it('keeps blank location inputs on blur', () => {
+    const { component } = createComponent();
+    component.field.fieldArray = { type: 'location' };
+    const removeSpy = vi.spyOn(component, 'remove').mockImplementation(() => undefined);
+    const event = {
+      target: {
+        tagName: 'INPUT',
+        classList: { contains: () => false },
+        value: '',
+      },
+    } as any;
+
+    component.maybeRemove(event, 1);
+
+    expect(removeSpy).not.toHaveBeenCalled();
+  });
+
   it('keeps blank inputs on blur when keepBlank is set', () => {
     const { component } = createComponent();
     component.field.props = { keepBlank: true };
