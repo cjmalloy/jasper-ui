@@ -94,6 +94,34 @@ describe('EmbedService', () => {
   });
 
   describe('render images', () => {
+    beforeEach(() => {
+      vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
+    });
+
+    it.each([
+      '![foo\\\nbar][image]\n\n[image]: https://example.com/a.png',
+      '![foo  \nbar][image]\n\n[image]: https://example.com/a.png',
+    ])('preserves hard breaks in image alt text: %s', markdown => {
+      const doc = new DOMParser().parseFromString(service.parse(markdown), 'text/html');
+      expect(doc.querySelector('img')!.alt).toBe('foo\nbar');
+    });
+
+    it('renders image alt text without inline formatting', () => {
+      const doc = new DOMParser().parseFromString(service.parse('![**bold** and `code`][image]\n\n[image]: https://example.com/a.png'), 'text/html');
+      expect(doc.querySelector('img')!.alt).toBe('bold and code');
+    });
+
+    it('escapes image alt text as an attribute', () => {
+      const doc = new DOMParser().parseFromString(service.parse('![" onerror="alert(1)][image]\n\n[image]: https://example.com/a.png'), 'text/html');
+      expect(doc.querySelector('img')!.alt).toBe('" onerror="alert(1)');
+      expect(doc.querySelector('[onerror]')).toBeNull();
+    });
+
+    it('preserves entities in image alt text', () => {
+      const doc = new DOMParser().parseFromString(service.parse('![A &amp; B][image]\n\n[image]: https://example.com/a.png'), 'text/html');
+      expect(doc.querySelector('img')!.alt).toBe('A & B');
+    });
+
     function render(markdown: string) {
       vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
       const fixture = TestBed.createComponent(HostComponent);
@@ -121,6 +149,12 @@ describe('EmbedService', () => {
   });
 
   describe('renderDocument', () => {
+    it('does not interrupt a list item paragraph with an ordered list starting above one', () => {
+      const doc = service.renderDocument('- The number of windows is\n  14. The number of doors is 6.');
+      expect(doc.querySelector('ol')).toBeNull();
+      expect(doc.querySelector('li')!.textContent).toBe('The number of windows is\n14. The number of doors is 6.');
+    });
+
     beforeEach(() => {
       vi.spyOn(TestBed.inject(ConfigService), 'base', 'get').mockReturnValue('http://localhost/');
     });

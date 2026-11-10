@@ -1,4 +1,5 @@
 import { ElementRef, inject, Injectable, ViewContainerRef } from '@angular/core';
+import * as he from 'he';
 import { escape, uniq } from 'lodash-es';
 import { marked, MarkedExtension, Renderer, RendererObject, Token, Tokens, TokensList } from 'marked';
 import markedKatex from 'marked-katex-extension';
@@ -134,10 +135,12 @@ export class EmbedService {
         blockquote: sourceMap('blockquote'),
         table     : sourceMap('table'),
         tablerow  : sourceMap('tablerow'),
-        image({href, title, text}: Tokens.Image): string {
+        image({href, title, text, tokens}: Tokens.Image): string {
+          if (tokens) text = this.parser.parseInline(tokens, this.parser.textRenderer);
+          text = escape(he.decode(text));
           const cleanHref = cleanUrl(href);
           if (cleanHref === null) {
-            return escape(text);
+            return text;
           }
           href = cleanHref;
           if (href.startsWith(config.base) || !href.startsWith('http')) {
