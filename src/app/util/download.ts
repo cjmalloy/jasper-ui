@@ -1,5 +1,6 @@
 import * as FileSaver from 'file-saver';
 import JSZip from 'jszip';
+import { DateTime } from 'luxon';
 import { firstValueFrom } from 'rxjs';
 import { Ext, writeExt } from '../model/ext';
 import { Page } from '../model/page';
@@ -16,12 +17,101 @@ import { getEmbeds } from './editor';
 import { getSearchParams } from './http';
 
 export async function saveAs(file: Blob, defaultFilename: string) {
+  defaultFilename = safeFilename(defaultFilename);
   if (config().electron) {
     // @ts-ignore
     window.electronAPI.saveAs(await file.arrayBuffer(), defaultFilename);
   } else {
     FileSaver.saveAs(file, defaultFilename);
   }
+}
+
+/**
+ * Most filesystems limit a filename to 255 bytes. Leave room for the
+ * ` (1)` a browser adds to duplicate downloads.
+ */
+const MAX_FILENAME_BYTES = 200;
+
+const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(\.|$)/i;
+
+const utf8 = new TextEncoder();
+
+function bytes(text: string) {
+  return utf8.encode(text).length;
+}
+
+/**
+ * Shorten text to at most max UTF-8 bytes without splitting a character.
+ */
+function truncateBytes(text: string, max: number) {
+  if (bytes(text) <= max) return text;
+  let result = '';
+  let size = 0;
+  for (const c of text) {
+    size += bytes(c);
+    if (size > max) break;
+    result += c;
+  }
+  return result;
+}
+
+function cleanFilename(name: string) {
+  return name
+    .replace(/[\x00-\x1f\x7f]+/g, ' ')
+    .replace(/[<>:"/\\|?*]+/g, '_')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s.]+|[\s.]+$/g, '');
+}
+
+/**
+ * Make a filename that is valid on Windows, macOS and Linux.
+ * Characters that are not allowed are replaced, whitespace is collapsed,
+ * reserved Windows device names are escaped and long names are shortened
+ * to fit in maxBytes, keeping the extension.
+ */
+export function safeFilename(name: string, maxBytes = MAX_FILENAME_BYTES) {
+  name = cleanFilename(name);
+  const ext = /\.[a-z0-9]{1,10}$/i.exec(name)?.[0] || '';
+  let stem = name.substring(0, name.length - ext.length);
+  if (WINDOWS_RESERVED.test(stem)) stem = '_' + stem;
+  stem = truncateBytes(stem, maxBytes - bytes(ext)).replace(/[\s.]+$/, '');
+  if (WINDOWS_RESERVED.test(stem)) stem = '_' + truncateBytes(stem, maxBytes - bytes(ext) - 1).replace(/[\s.]+$/, '');
+  return (stem || 'download') + ext;
+}
+
+/**
+ * Readable version of a query for a filename.
+ */
+export function queryFilename(query: string) {
+  return query
+    .replace(/:/g, ' + ')
+    .replace(/\|/g, ' or ')
+    .replace(/@\*/g, '@all')
+    .replace(/\*/g, '');
+}
+
+/**
+ * Filename for a bulk download of a page, such as `Science - search cats - 2026-11-10 (page 2 of 3).zip`.
+ * The name and search are shortened so the date and page are always kept.
+ */
+export function bulkFilename(name: string, search?: string, page?: Page<any>['page'], date: DateTime = DateTime.now(), maxBytes = MAX_FILENAME_BYTES) {
+  const suffix = ' - ' + date.toISODate()
+    + (page && page.totalPages > 1 ? ` (page ${page.number + 1} of ${page.totalPages})` : '')
+    + '.zip';
+  const budget = maxBytes - bytes(suffix);
+  name = cleanFilename(name) || 'download';
+  if (WINDOWS_RESERVED.test(name)) name = '_' + name;
+  search = cleanFilename(search || '');
+  let prefix = name;
+  if (search) {
+    const label = ' - search ';
+    const searchBudget = Math.max(Math.floor(budget / 3), budget - bytes(name) - bytes(label));
+    search = truncateBytes(search, searchBudget - bytes(label)).trim();
+    prefix = truncateBytes(name, budget - bytes(label) - bytes(search)).trim() + label + search;
+  } else {
+    prefix = truncateBytes(name, budget).trim();
+  }
+  return safeFilename(prefix + suffix, maxBytes);
 }
 
 export function file(obj: any) {
@@ -123,7 +213,7 @@ export async function embeddedCacheRefs(refs: Ref[], { fetchRef, wikiPrefix, wik
   return result;
 }
 
-export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], query: string, proxy?: ProxyService, embeds?: EmbedOptions) {
+export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], name: string, search?: string, proxy?: ProxyService, embeds?: EmbedOptions) {
   const zip = new JSZip();
   let content = page.content!;
   if (type === 'ref' && proxy && embeds) {
@@ -135,7 +225,7 @@ export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], que
     await zipCache(zip, content, async (id, origin) => (await firstValueFrom(proxy.download('cache:' + id, origin, id))).blob);
   }
   return zip.generateAsync({ type: 'blob' })
-    .then(content => saveAs(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));
+    .then(content => saveAs(content, bulkFilename(name, search, page.page)));
 }
 
 export async function downloadSet(ref: Ref[], ext: Ext[], title: string, cache?: Map<string, JSZip.JSZipObject>) {

@@ -6,10 +6,81 @@ import { provideRouter } from '@angular/router';
 import JSZip from 'jszip';
 import { Ref } from '../model/ref';
 import { EmbedService } from '../service/embed.service';
-import { embeddedCacheRefs, mapLimit, zipCache } from './download';
+import { DateTime } from 'luxon';
+import { bulkFilename, embeddedCacheRefs, mapLimit, queryFilename, safeFilename, zipCache } from './download';
 import { getEmbeds } from './editor';
 
 describe('download util', () => {
+  it('should make filenames safe on every OS', () => {
+    expect(safeFilename('science/physics: a|b?*.zip')).toBe('science_physics_ a_b_.zip');
+    expect(safeFilename('  ..hidden\nname.  ')).toBe('hidden name');
+    expect(safeFilename('<>.json')).toBe('_.json');
+    expect(safeFilename('...')).toBe('download');
+    expect(safeFilename('a'.repeat(200) + '.zip', 10)).toBe('aaaaaa.zip');
+  });
+
+  it('should limit filenames by bytes without splitting characters', () => {
+    const name = safeFilename('日本語'.repeat(30) + '.json');
+    expect(new TextEncoder().encode(name).length).toBeLessThanOrEqual(200);
+    expect(name).toMatch(/^(日本語)+日?本?\.json$/);
+    expect(safeFilename('😀😀😀.zip', 10)).toBe('😀.zip');
+  });
+
+  it('should escape reserved Windows names', () => {
+    expect(safeFilename('CON.json')).toBe('_CON.json');
+    expect(safeFilename('nul')).toBe('_nul');
+    expect(safeFilename('com1.tar.zip')).toBe('_com1.tar.zip');
+    expect(safeFilename('console.json')).toBe('console.json');
+    const long = safeFilename('CON.' + 'a'.repeat(300) + '.zip');
+    expect(long).toMatch(/^_CON\.a+\.zip$/);
+    expect(new TextEncoder().encode(long).length).toBeLessThanOrEqual(200);
+    expect(safeFilename(long)).toBe(long);
+    expect(safeFilename('CON. abc.zip', 9)).toBe('_CON.zip');
+  });
+
+  it('should keep the bulk suffix when escaping reserved Windows names', () => {
+    const date = DateTime.fromISO('2026-11-10T03:45:00');
+    const page = { number: 9, size: 20, totalPages: 12, totalElements: 240 };
+    for (const [name, search, suffix] of [
+      ['CON.' + 'a'.repeat(300), undefined, ' - 2026-11-10 (page 10 of 12).zip'],
+      ['CON.' + 'a'.repeat(300), 'b'.repeat(300), ' - 2026-11-10 (page 10 of 12).zip'],
+    ] as const) {
+      const filename = bulkFilename(name, search, page, date);
+      expect(filename.startsWith('_CON.')).toBe(true);
+      expect(filename.endsWith(suffix)).toBe(true);
+      expect(new TextEncoder().encode(filename).length).toBeLessThanOrEqual(200);
+      expect(safeFilename(filename)).toBe(filename);
+    }
+    const single = bulkFilename('CON.' + 'a'.repeat(300), undefined, undefined, date);
+    expect(single.endsWith(' - 2026-11-10.zip')).toBe(true);
+    expect(safeFilename(single)).toBe(single);
+  });
+
+  it('should make readable query filenames', () => {
+    expect(queryFilename('science:!funny|math')).toBe('science + !funny or math');
+    expect(queryFilename('(science|math):funny@*')).toBe('(science or math) + funny@all');
+  });
+
+  it('should name bulk downloads', () => {
+    const date = DateTime.fromISO('2026-11-10T03:45:00');
+    expect(bulkFilename('Science', undefined, { number: 0, size: 20, totalPages: 1, totalElements: 3 }, date)).toBe('Science - 2026-11-10.zip');
+    expect(bulkFilename('Science', ' cats ', { number: 1, size: 20, totalPages: 3, totalElements: 50 }, date)).toBe('Science - search cats - 2026-11-10 (page 2 of 3).zip');
+    expect(bulkFilename('', '', undefined, date)).toBe('download - 2026-11-10.zip');
+  });
+
+  it('should keep the date and page of long bulk download names', () => {
+    const date = DateTime.fromISO('2026-11-10T03:45:00');
+    const page = { number: 9, size: 20, totalPages: 12, totalElements: 240 };
+    for (const [name, search] of [['a'.repeat(300), 'b'.repeat(300)], ['日本語'.repeat(100), '検索'.repeat(100)], ['science', 'c'.repeat(300)], ['d'.repeat(300), 'cats']]) {
+      const filename = bulkFilename(name, search, page, date);
+      expect(filename).toMatch(/ - search .+ - 2026-11-10 \(page 10 of 12\)\.zip$/);
+      expect(new TextEncoder().encode(filename).length).toBeLessThanOrEqual(200);
+      expect(safeFilename(filename)).toBe(filename);
+    }
+    expect(bulkFilename('science', 'c'.repeat(300), page, date)).toMatch(/^science - search c+ - /);
+    expect(bulkFilename('d'.repeat(300), 'cats', page, date)).toMatch(/^d+ - search cats - /);
+  });
+
   it('should get embedded URLs', () => {
     expect(getEmbeds('![](comment:2) ![img](https://example.com/a.png) [link](comment:3)')).toEqual(['comment:2']);
     expect(getEmbeds('')).toEqual([]);

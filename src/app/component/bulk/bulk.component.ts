@@ -37,7 +37,7 @@ import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { Type } from '../../store/view';
 import { refCacheIds } from '../../util/cache';
-import { downloadPage } from '../../util/download';
+import { downloadPage, queryFilename } from '../../util/download';
 import { getScheme, printError } from '../../util/http';
 import { expandedTagsInclude, hasTag, isAuthorTag, subOrigin } from '../../util/tag';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
@@ -179,18 +179,9 @@ export class BulkComponent {
   readonly empty = computed(() => !this.queryStore().page()?.content?.length);
 
   readonly name = computed(() => {
-    let name = '';
-    name = this.store.view.name() || this.type();
-    if (this.store.view.search()) {
-      name += ' search(' + this.store.view.search() + ')';
-    }
-    if (this.store.view.filter().length) {
-      name += ' filter(' + this.store.view.filter().join(',') + ')';
-    }
-    if (this.store.view.isSorted()) {
-      name += ' sort(' + this.store.view.sort().join(',') + ')';
-    }
-    return name;
+    const tag = this.store.view.tag();
+    if (tag !== '@*' && tag !== '*' && this.store.view.query()) return queryFilename(tag);
+    return this.store.view.name() || this.type();
   });
 
   toggle() {
@@ -205,11 +196,11 @@ export class BulkComponent {
   download() {
     const attachments = this.type() === 'ref' && this.items().content.some(ref => refCacheIds(ref as Ref).length);
     const proxy = attachments && confirm($localize`Download attached files?`) ? this.proxy : undefined;
-    downloadPage(this.type(), this.items(), this.downloadExts, this.name(), proxy);
+    downloadPage(this.type(), this.items(), this.downloadExts, this.name(), this.store.view.search(), proxy);
   }
 
   export() {
-    downloadPage(this.type(), this.items(), this.downloadExts, this.name(), this.proxy, {
+    downloadPage(this.type(), this.items(), this.downloadExts, this.name(), this.store.view.search(), this.proxy, {
       fetchRef: url => firstValueFrom(this.refs.getCurrent(this.editor.getRefUrl(url))),
       wikiPrefix: this.admin.getWikiPrefix(),
       wikiExternal: this.admin.isWikiExternal(),
