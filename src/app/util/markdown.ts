@@ -16,6 +16,31 @@ export interface MdContext {
  */
 export type MdHydrator = (host: HTMLElement, ctx: MdContext) => (() => void) | void;
 
+const HTML_ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
+/**
+ * Escape markdown text for HTML text or a quoted attribute, like marked does.
+ * Markdown text keeps the entities the author wrote, so existing character
+ * references are left alone instead of being shown as "&amp;amp;".
+ */
+export function escapeHtml(text: string) {
+  return text.replace(/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g, c => HTML_ESCAPES[c]);
+}
+
+/**
+ * Escaped plain text of inline tokens, like marked's TextRenderer, but without
+ * calling extension renderers, which marked runs even when given a TextRenderer.
+ * Code spans and backslash escapes are literal, so their "&" is always escaped.
+ */
+export function plainText(tokens: any[]): string {
+  return tokens.map(t => {
+    if (t.type === 'br') return '\n';
+    if (t.tokens?.length) return plainText(t.tokens);
+    const text: string = t.text ?? t.raw ?? '';
+    return t.type === 'codespan' || t.type === 'escape' ? escapeHtml(text.replaceAll('&', '&amp;')) : escapeHtml(text);
+  }).join('');
+}
+
 export interface SrcsetCandidate {
   url: string;
   descriptor: string;
