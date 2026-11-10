@@ -2,7 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
-import { catchError, concat, defer, EMPTY, expand, forkJoin, map, Observable, of, retry, share, shareReplay, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, defer, EMPTY, expand, finalize, forkJoin, last, map, Observable, of, retry, share, shareReplay, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
@@ -309,6 +309,37 @@ export class AdminService {
   }
 
   /**
+   * True while {@link installDefaultsAndReload$} is running.
+   */
+  readonly installingDefaults = signal(false);
+
+  /**
+   * Install the default mods in the background and publish the operation as {@link ready$}.
+   * Unsubscribing does not cancel the install. If the install fails, the persisted mods are reloaded
+   * before the returned observable rethrows the original error. {@link ready$} always completes once
+   * the install and reload have finished.
+   */
+  installDefaultsAndReload$(): Observable<any> {
+    this.installingDefaults.set(true);
+    const install$ = this.installDefaults$().pipe(
+      catchError(err => this.init$.pipe(
+        catchError(() => of(null)),
+        last(null, null),
+        switchMap(() => throwError(() => err)),
+      )),
+      finalize(() => this.installingDefaults.set(false)),
+      shareReplay(1),
+    );
+    this.ready$ = install$.pipe(
+      last(null, null),
+      catchError(() => of(null)),
+      shareReplay(1),
+    );
+    this.ready$.subscribe();
+    return install$;
+  }
+
+  /**
    * Load mod receipts and flag mods with local changes. Only needed for 3-way merges on the setup page.
    */
   loadModChanges$(): Observable<any> {
@@ -322,9 +353,23 @@ export class AdminService {
     this.firstRun = true;
     if (!this.config.installDefaults) return of(null);
     if (!this.store.account.admin || this.store.account.ext()) return of(null);
-    if (Object.values(this.status().plugins).filter(p => !!p).length > 0) return of(null);
-    if (Object.values(this.status().templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return of(null);
+    if (!this.noMods()) return of(null);
+    return this.installDefaults$();
+  }
 
+  /**
+   * True when no mods are installed (ignoring _config templates).
+   */
+  noMods() {
+    if (Object.values(this.status().plugins).filter(p => !!p).length > 0) return false;
+    if (Object.values(this.status().templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return false;
+    return true;
+  }
+
+  /**
+   * Install the default mods, then reload.
+   */
+  installDefaults$(): Observable<any> {
     const installs = this.defaultPlugins.map(p => this.plugins.create({
       ...p,
       origin: this.store.account.origin(),
