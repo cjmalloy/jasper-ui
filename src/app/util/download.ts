@@ -26,22 +26,55 @@ export async function saveAs(file: Blob, defaultFilename: string) {
   }
 }
 
-const MAX_FILENAME = 120;
+/**
+ * Most filesystems limit a filename to 255 bytes. Leave room for the
+ * ` (1)` a browser adds to duplicate downloads.
+ */
+const MAX_FILENAME_BYTES = 200;
+
+const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(\.|$)/i;
+
+const utf8 = new TextEncoder();
+
+function bytes(text: string) {
+  return utf8.encode(text).length;
+}
 
 /**
- * Make a filename that is valid on Windows, macOS and Linux.
- * Characters that are not allowed are replaced, whitespace is collapsed and
- * long names are shortened, keeping the extension.
+ * Shorten text to at most max UTF-8 bytes without splitting a character.
  */
-export function safeFilename(name: string, max = MAX_FILENAME) {
-  name = name
+function truncateBytes(text: string, max: number) {
+  if (bytes(text) <= max) return text;
+  let result = '';
+  let size = 0;
+  for (const c of text) {
+    size += bytes(c);
+    if (size > max) break;
+    result += c;
+  }
+  return result;
+}
+
+function cleanFilename(name: string) {
+  return name
     .replace(/[\x00-\x1f\x7f]+/g, ' ')
     .replace(/[<>:"/\\|?*]+/g, '_')
     .replace(/\s+/g, ' ')
     .replace(/^[\s.]+|[\s.]+$/g, '');
+}
+
+/**
+ * Make a filename that is valid on Windows, macOS and Linux.
+ * Characters that are not allowed are replaced, whitespace is collapsed,
+ * reserved Windows device names are escaped and long names are shortened
+ * to fit in maxBytes, keeping the extension.
+ */
+export function safeFilename(name: string, maxBytes = MAX_FILENAME_BYTES) {
+  name = cleanFilename(name);
   const ext = /\.[a-z0-9]{1,10}$/i.exec(name)?.[0] || '';
   let stem = name.substring(0, name.length - ext.length);
-  if (stem.length > max) stem = stem.substring(0, max).replace(/[\s.]+$/, '');
+  stem = truncateBytes(stem, maxBytes - bytes(ext)).replace(/[\s.]+$/, '');
+  if (WINDOWS_RESERVED.test(stem)) stem = '_' + stem;
   return (stem || 'download') + ext;
 }
 
@@ -58,14 +91,25 @@ export function queryFilename(query: string) {
 
 /**
  * Filename for a bulk download of a page, such as `Science - search cats - 2026-11-10 (page 2 of 3).zip`.
+ * The name and search are shortened so the date and page are always kept.
  */
-export function bulkFilename(name: string, search?: string, page?: Page<any>['page'], date: DateTime = DateTime.now()) {
-  const parts = [name.trim().substring(0, 80) || 'download'];
-  if (search?.trim()) parts.push('search ' + search.trim().substring(0, 40));
-  parts.push(date.toISODate()!);
-  return parts.join(' - ')
+export function bulkFilename(name: string, search?: string, page?: Page<any>['page'], date: DateTime = DateTime.now(), maxBytes = MAX_FILENAME_BYTES) {
+  const suffix = ' - ' + date.toISODate()
     + (page && page.totalPages > 1 ? ` (page ${page.number + 1} of ${page.totalPages})` : '')
     + '.zip';
+  const budget = maxBytes - bytes(suffix);
+  name = cleanFilename(name) || 'download';
+  search = cleanFilename(search || '');
+  let prefix = name;
+  if (search) {
+    const label = ' - search ';
+    const searchBudget = Math.max(Math.floor(budget / 3), budget - bytes(name) - bytes(label));
+    search = truncateBytes(search, searchBudget - bytes(label)).trim();
+    prefix = truncateBytes(name, budget - bytes(label) - bytes(search)).trim() + label + search;
+  } else {
+    prefix = truncateBytes(name, budget).trim();
+  }
+  return safeFilename(prefix + suffix, maxBytes);
 }
 
 export function file(obj: any) {
