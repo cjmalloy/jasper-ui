@@ -58,7 +58,7 @@ export class SettingsSetupPage {
   readonly modChangesLoaded = signal(false);
   readonly modChangesError = signal<string[]>([]);
   readonly installingDefaults = computed(() => this.admin.installingDefaults());
-  readonly noMods = computed(() => this.store.account.admin && !this.installingDefaults() && this.admin.noMods());
+  readonly noMods = computed(() => this.store.account.admin && !this.installingDefaults() && !this.admin.loading() && this.admin.noMods());
   readonly hasLog = computed(() => !!(this.modChangesError().length || this.serverError().length || this.installMessages().length));
   private mergeSavingSubscription?: Subscription;
   private modChangesSubscription?: Subscription;

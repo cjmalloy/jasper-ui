@@ -44,6 +44,7 @@ describe('SettingsSetupPage', () => {
                 updateMod$: vi.fn(() => of(null)),
                 noMods: vi.fn(() => false),
                 installingDefaults: signal(false),
+                loading: signal(false),
                 installDefaultsAndReload$: vi.fn(() => admin.ready$ = of(null)),
                 def: { plugins: {}, templates: {} },
                 status: () => status,
@@ -144,6 +145,17 @@ describe('SettingsSetupPage', () => {
       admin.noMods.mockReturnValue(true);
       recreate();
       expect(el().querySelector('.install-defaults')).toBeNull();
+    });
+
+    it('should hide the button while mods reload', () => {
+      TestBed.inject(Store).account.admin = true;
+      admin.noMods.mockReturnValue(true);
+      admin.loading.set(true);
+      recreate();
+      expect(el().querySelector('.install-defaults')).toBeNull();
+      admin.loading.set(false);
+      fixture.detectChanges();
+      expect(el().querySelector('.install-defaults')).toBeTruthy();
     });
 
     it('should install defaults when no mods are installed', () => {
