@@ -6,6 +6,7 @@ import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { AdminService } from '../service/admin.service';
 import { Store } from '../store/store';
 import { provideJasperFormly } from './formly.config';
+import { typeGroups, typeOptions } from './formly.type';
 
 @Component({
   template: `<formly-form [form]="form" [model]="model" [fields]="fields" />`,
@@ -58,8 +59,24 @@ describe('formly type', () => {
     expect(values).not.toContain('list');
     expect(values).toContain('stencil');
     expect(values).not.toContain('child-plugin');
-    expect(values).not.toContain('geometries');
+    expect(values).toContain('geometries');
     expect(values).not.toContain('userMap');
+  });
+
+  it('names and groups every offered type', async () => {
+    const { field } = await render({ form: [{ key: 'title', type: 'string' }] });
+    const options = child(field.fieldGroup![0], 'type').props!.options as { value: string, label: string, group: string }[];
+    const named = typeGroups().flatMap(([, types]) => types.map(([name]) => name));
+    expect(options.filter(o => !named.includes(o.value)).map(o => o.value)).toEqual([]);
+    expect(options.find(o => o.value === 'string')).toEqual({ value: 'string', label: 'Text', group: 'Text' });
+    expect(options.find(o => o.value === 'geometries')!.group).toBe('Map');
+  });
+
+  it('shows unknown types by name', () => {
+    expect(typeOptions(['string', 'custom'])).toEqual([
+      { value: 'string', label: 'Text', group: 'Text' },
+      { value: 'custom', label: 'custom', group: 'Other' },
+    ]);
   });
 
   it('shows options only for option types', async () => {

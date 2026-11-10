@@ -143,7 +143,7 @@ test.describe.serial('Plugin/Template Admin Form', () => {
       await expect(field).toHaveCount(1);
       await field.locator('.formly-key input').fill('color');
       await expect(field.locator('.formly-options')).toHaveCount(0);
-      await field.locator('.formly-type select').selectOption('select');
+      await field.locator('.formly-type select').selectOption('Dropdown');
       await field.locator('.formly-label input').first().fill('Color:');
       const options = field.locator('.formly-options');
       await options.locator('button', { hasText: '+ Add another option' }).click();

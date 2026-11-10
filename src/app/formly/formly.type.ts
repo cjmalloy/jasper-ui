@@ -10,7 +10,109 @@ export const OPTIONS_TYPES = ['select', 'enum', 'radio', 'multicheckbox'];
 /**
  * Field types which need props the form builder can't set, such as the parent plugin.
  */
-const SKIP_TYPES = ['child-plugin', 'geometries', 'userMap'];
+const SKIP_TYPES = ['child-plugin', 'userMap'];
+
+/**
+ * Groups of field types shown in the form builder, with translated names.
+ * Types not listed here are shown by name in the Other group.
+ */
+export function typeGroups(): [string, [string, string][]][] {
+  return [
+    [$localize`Text`, [
+      ['string', $localize`Text`],
+      ['input', $localize`Input`],
+      ['textarea', $localize`Text Area`],
+      ['editor', $localize`Markdown Editor`],
+      ['code', $localize`Code`],
+      ['email', $localize`Email`],
+      ['tel', $localize`Phone Number`],
+      ['color', $localize`Color`],
+    ]],
+    [$localize`Numbers`, [
+      ['number', $localize`Number`],
+      ['integer', $localize`Integer`],
+      ['range', $localize`Slider`],
+      ['duration', $localize`Duration`],
+    ]],
+    [$localize`Date and Time`, [
+      ['date', $localize`Date`],
+      ['time', $localize`Time`],
+      ['datetime', $localize`Date and Time`],
+      ['week', $localize`Week`],
+      ['month', $localize`Month`],
+    ]],
+    [$localize`Choices`, [
+      ['boolean', $localize`Boolean`],
+      ['checkbox', $localize`Checkbox`],
+      ['multicheckbox', $localize`Checkboxes`],
+      ['radio', $localize`Radio Buttons`],
+      ['select', $localize`Dropdown`],
+      ['enum', $localize`Enum`],
+    ]],
+    [$localize`Links`, [
+      ['url', $localize`URL`],
+      ['urls', $localize`URLs`],
+      ['ref', $localize`Ref`],
+      ['refs', $localize`Refs`],
+      ['image', $localize`Image`],
+      ['video', $localize`Video`],
+      ['audio', $localize`Audio`],
+      ['pdf', $localize`PDF`],
+      ['qr', $localize`QR Code`],
+    ]],
+    [$localize`Tags`, [
+      ['tag', $localize`Tag`],
+      ['tags', $localize`Tags`],
+      ['qtag', $localize`Qualified Tag`],
+      ['qtags', $localize`Qualified Tags`],
+      ['selector', $localize`Tag Selector`],
+      ['selectors', $localize`Tag Selectors`],
+      ['tagOriginSelector', $localize`Tag or Origin Selector`],
+      ['tagOriginSelectors', $localize`Tag or Origin Selectors`],
+      ['plugin', $localize`Plugin`],
+      ['template', $localize`Template`],
+      ['stencil', $localize`Stencil`],
+      ['query', $localize`Query`],
+      ['queries', $localize`Queries`],
+      ['bookmark', $localize`Bookmark`],
+      ['bookmarks', $localize`Bookmarks`],
+    ]],
+    [$localize`Users and Origins`, [
+      ['user', $localize`User`],
+      ['users', $localize`Users`],
+      ['quser', $localize`Qualified User`],
+      ['qusers', $localize`Qualified Users`],
+      ['origin', $localize`Origin`],
+      ['originSelector', $localize`Origin Selector`],
+      ['originSelectorList', $localize`Origin Selectors`],
+    ]],
+    [$localize`Map`, [
+      ['location', $localize`Location`],
+      ['bbox', $localize`Bounding Box`],
+      ['geometries', $localize`Features (Points, Lines, Polygons)`],
+      ['geo-style', $localize`Map Style`],
+    ]],
+    [$localize`Other`, [
+      ['formly', $localize`Form`],
+    ]],
+  ];
+}
+
+/**
+ * Options for the builder type select, grouped and with translated names.
+ */
+export function typeOptions(names: string[]): { value: string, label: string, group: string }[] {
+  const groups = typeGroups();
+  const other = groups[groups.length - 1][0];
+  const known = groups.flatMap(([group, types]) => types
+    .filter(([name]) => names.includes(name))
+    .map(([value, label]) => ({ value, label, group })));
+  const unknown = names
+    .filter(n => !known.some(o => o.value === n))
+    .sort()
+    .map(value => ({ value, label: value, group: other }));
+  return [...known, ...unknown];
+}
 
 /**
  * Field types which have the form-field wrapper, but ignore the placeholder.
@@ -110,7 +212,7 @@ export function formlyType(types: TypeOption[]): TypeOption {
           props: {
             label: $localize`Type:`,
             placeholder: $localize`Group`,
-            options: [...typeNames, 'formly'].sort().map(t => ({ value: t, label: t })),
+            options: typeOptions([...typeNames, 'formly']),
           },
         }, {
           key: 'props.label',

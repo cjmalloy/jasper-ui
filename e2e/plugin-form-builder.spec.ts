@@ -185,7 +185,7 @@ test.describe('Plugin Form Builder', () => {
     await expect(field).toHaveCount(1);
     await field.locator('.formly-key input').fill('items');
     await expect(field.locator('.formly-type select').getByRole('option', { name: 'list', exact: true })).toHaveCount(0);
-    await field.locator('.formly-type select').selectOption('tags');
+    await field.locator('.formly-type select').selectOption('Tags');
     await save(page, item);
 
     await page.reload({ waitUntil: 'networkidle' });
@@ -261,20 +261,44 @@ test.describe('Plugin Form Builder', () => {
     });
     const { item, builder } = await openBuilder(page, tag);
     const field = builder.locator('.builder-form .formly-field-config');
-    await field.locator('.formly-type select').selectOption('string');
+    await field.locator('.formly-type select').selectOption('Text');
     await expect(field.locator('.formly-options')).toHaveCount(0);
-    await field.locator('.formly-type select').selectOption('select');
+    await field.locator('.formly-type select').selectOption('Dropdown');
     await save(page, item);
 
     const saved = await getPlugin(request, origin, tag);
     expect(saved.config.form[0].props.options).toEqual([{ value: 'red', label: 'Red' }]);
   });
 
+  test('names and groups the builder types', async ({ page, request, origin }) => {
+    const tag = await createPlugin(request, origin, 'typenames', {
+      config: { form: [{ key: 'where', type: 'geometries' }] },
+    });
+    const { builder } = await openBuilder(page, tag);
+    const select = builder.locator('.builder-form .formly-field-config .formly-type select').first();
+    await expect(select.locator('option:checked')).toHaveText('Features (Points, Lines, Polygons)');
+    await expect(select.locator('optgroup[label="Map"] option')).toContainText(['Location', 'Features (Points, Lines, Polygons)']);
+    await expect(select.locator('optgroup[label="Text"] option').first()).toHaveText('Text');
+  });
+
+  test('checkboxes in list items stay left aligned', async ({ page, request, origin }) => {
+    const tag = await createPlugin(request, origin, 'checkbox', {
+      config: { form: [{ key: 'title', type: 'string' }] },
+    });
+    const { builder } = await openBuilder(page, tag);
+    const required = builder.locator('.builder-form .formly-field-config .formly-required').first();
+    const input = required.locator('input[type=checkbox]');
+    const cell = await input.locator('xpath=..').boundingBox();
+    const box = await input.boundingBox();
+    expect(box!.width).toBeLessThan(30);
+    expect(box!.x - cell!.x).toBeLessThan(10);
+  });
+
   test('builds a hierarchical stencil', async ({ page, request, origin }) => {
     const tag = await createPlugin(request, origin, 'stencil', { config: {} });
     const { item, builder } = await openBuilder(page, tag);
     const list = builder.locator('.builder-form');
-    const row = await addField(list, 'car', 'stencil');
+    const row = await addField(list, 'car', 'Stencil');
     await expect(row.locator('.formly-template input')).toBeVisible();
     await row.locator('.formly-template input').fill('car/<Make>/<Model>');
     await row.locator('.formly-hierarchical input[type=checkbox]').check();
@@ -321,16 +345,18 @@ test.describe('Plugin Form Builder', () => {
         .map(t => t.trim())
         .filter(t => t && t !== 'Group');
       expect(types.length).toBeGreaterThan(10);
-      await first.locator('.formly-key input').first().fill('f_' + types[0]);
+      await first.locator('.formly-key input').first().fill('f_0');
       await first.locator('.formly-type select').first().selectOption(types[0]);
-      for (const t of types.slice(1)) await addField(form, 'f_' + t, t);
+      for (let i = 1; i < types.length; i++) await addField(form, 'f_' + i, types[i]);
       await generate(builder);
       await save(page, item, type);
 
       const saved = await get(request, origin, type, tag);
-      expect(saved.config.form.map((f: any) => f.type)).toEqual(types);
+      const savedTypes = saved.config.form.map((f: any) => f.type);
+      expect(savedTypes).toHaveLength(types.length);
+      expect(new Set(savedTypes).size).toBe(types.length);
       const keys = Object.keys({ ...saved.schema.properties, ...saved.schema.optionalProperties }).sort();
-      expect(keys).toEqual(types.map(t => 'f_' + t).sort());
+      expect(keys).toEqual(types.map((t, i) => 'f_' + i).sort());
       expect(validate(saved.schema, saved.defaults ?? {})).toEqual([]);
     });
 
@@ -390,19 +416,19 @@ test.describe('Plugin Form Builder', () => {
     const { item, builder } = await openBuilder(page, tag);
     const form = builder.locator('.builder-form');
     const label = async (row: Locator, text: string) => row.locator('.formly-label input').first().fill(text);
-    await label(await addField(form, 'text', 'string'), 'FB Text:');
-    await label(await addField(form, 'count', 'number'), 'FB Count:');
-    await label(await addField(form, 'done', 'boolean'), 'FB Done:');
-    const select = await addField(form, 'color', 'select');
+    await label(await addField(form, 'text', 'Text'), 'FB Text:');
+    await label(await addField(form, 'count', 'Number'), 'FB Count:');
+    await label(await addField(form, 'done', 'Boolean'), 'FB Done:');
+    const select = await addField(form, 'color', 'Dropdown');
     await label(select, 'FB Color:');
     await select.locator('.formly-placeholder input').first().fill('None');
     const options = select.locator('.formly-options');
     await options.locator('button', { hasText: '+ Add another option' }).click();
     await options.locator('.formly-option-value input').fill('red');
     await options.locator('.formly-option-label input').fill('Red');
-    await label(await addField(form, 'labels', 'tags'), 'FB Labels:');
+    await label(await addField(form, 'labels', 'Tags'), 'FB Labels:');
     const group = await addField(form, 'group');
-    await label(await addField(group.locator('.formly-field-group'), 'nested', 'string'), 'FB Nested:');
+    await label(await addField(group.locator('.formly-field-group'), 'nested', 'Text'), 'FB Nested:');
     await builder.locator('button.generate-schema').click();
     await save(page, item);
     const saved = await getPlugin(request, origin, tag);
@@ -468,12 +494,12 @@ test.describe('Plugin Form Builder', () => {
     const form = builder.locator('.builder-form');
     const outer = await addField(form, 'outer');
     const inner = await addField(outer.locator('.formly-field-group'), 'inner');
-    await addField(inner.locator('.formly-field-group'), 'leaf', 'string');
-    await addField(form, 'a.b', 'number');
+    await addField(inner.locator('.formly-field-group'), 'leaf', 'Text');
+    await addField(form, 'a.b', 'Number');
     const a = await addField(form, 'a');
-    await addField(a.locator('.formly-field-group'), 'c', 'string');
+    await addField(a.locator('.formly-field-group'), 'c', 'Text');
     const advanced = await addField(builder.locator('.builder-advanced-form'), 'outer');
-    await addField(advanced.locator('.formly-field-group'), 'extra', 'string');
+    await addField(advanced.locator('.formly-field-group'), 'extra', 'Text');
     await generate(builder);
     await save(page, item);
 
@@ -580,7 +606,7 @@ test.describe('Plugin Form Builder', () => {
     expect(await visible(1)).toEqual([]);
     expect(await visible(2)).toEqual(['label', 'hint', 'required', 'min', 'max', 'step']);
     expect(await visible(3)).toEqual(['label']);
-    await rows.nth(0).locator('.formly-type select').first().selectOption('select');
+    await rows.nth(0).locator('.formly-type select').first().selectOption('Dropdown');
     await expect(rows.nth(0).locator('.formly-multiple')).toHaveCount(1);
   });
 
@@ -588,11 +614,11 @@ test.describe('Plugin Form Builder', () => {
     const tag = await createPlugin(request, origin, 'range', { config: {} });
     const { item, builder } = await openBuilder(page, tag);
     const list = builder.locator('.builder-form');
-    const range = await addField(list, 'level', 'range');
+    const range = await addField(list, 'level', 'Slider');
     await range.locator('.formly-min input').fill('2');
     await range.locator('.formly-max input').fill('8');
-    await addField(list, 'where', 'location');
-    await addField(list, 'every', 'duration');
+    await addField(list, 'where', 'Location');
+    await addField(list, 'every', 'Duration');
     await generate(builder);
     await expect(builder.locator('.defaults-form .duration-label')).toHaveText('Not set');
     await save(page, item);

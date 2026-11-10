@@ -777,6 +777,13 @@ Private tags start with an underscore.
     }, {
       name: 'geometries',
       component: FormlyFieldGeometries,
+      defaultOptions: {
+        props: {
+          label: $localize`Features:`,
+          addText: $localize`+ Add Feature`,
+          parent: 'plugin/geo',
+        },
+      },
     }, {
       name: 'geo-style',
       component: FormlyFieldGeoStyle,
