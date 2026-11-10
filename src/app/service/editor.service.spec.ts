@@ -58,6 +58,21 @@ describe('EditorService', () => {
     expect((await firstValueFrom(service.getTagPreview('+support')))?.name).toBe('Mods');
   });
 
+  it('should keep the access prefix of a child tag with no Ext under a protected plugin', async () => {
+    (TestBed.inject(AdminService) as any).updateStatus((status: any) => {
+      status.plugins['+plugin/secret'] = { tag: '+plugin/secret', name: 'Secret' };
+      status.plugins['_plugin/secret'] = { tag: '_plugin/secret', name: 'Secret' };
+    });
+    const exts = TestBed.inject(ExtService);
+    vi.spyOn(exts['stomp'], 'watchExt').mockReturnValue(new Subject<any>());
+    for (const tag of ['+plugin/secret/key', '_plugin/secret/key', '+key', '_key']) {
+      exts.prefillCache(exts.defaultExt(tag));
+    }
+    const name = async (tag: string) => (await firstValueFrom(service.getTagPreview(tag)))?.name;
+    expect(await name('+plugin/secret/key')).toBe('Secret / +key');
+    expect(await name('_plugin/secret/key')).toBe('Secret / _key');
+  });
+
   describe('HTML to Markdown', () => {
     let europa: Europa;
 
