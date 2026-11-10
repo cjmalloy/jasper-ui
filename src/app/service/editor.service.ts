@@ -424,7 +424,7 @@ export class EditorService {
             }
             let a = access(x.tag) || '+';
             return this.exts.getCachedExt(a + setPublic(childTag), defaultOrigin).pipe(
-              map(c => ({ tag: x.tag, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + (c.name || setPublic(childTag)) })),
+              map(c => ({ tag: x.tag, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + (c.name || childTag) })),
             );
           }
         }
