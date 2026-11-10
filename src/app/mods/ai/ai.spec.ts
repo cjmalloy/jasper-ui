@@ -772,4 +772,67 @@ describe('aiQueryPlugin', () => {
     expect(imageParts(create.mock.calls[0])).toHaveLength(0);
     expect(create.mock.calls[0][0].tools).toBeUndefined();
   });
+
+  const runAnthropic = async (llm: Record<string, unknown>) => {
+    const response = {
+      url: 'ai:response',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: [],
+      plugins: { 'plugin/llm': llm },
+    };
+    const axios = {
+      get: vi.fn(async (_url: string, options: { params: { query: string } }) => {
+        const query = options.params.query;
+        if (query.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
+        return { data: { content: [] } };
+      }),
+    };
+    const create = vi.fn().mockResolvedValueOnce({
+      content: [{ type: 'text', text: 'Answer' }],
+      usage: { input_tokens: 2, output_tokens: 3 },
+    });
+    class Anthropic {
+      messages = { create };
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
+      '@anthropic-ai/sdk': Anthropic,
+    })[module];
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: vi.fn(), error: vi.fn() });
+    return create.mock.calls[0][0];
+  };
+
+  it('uses adaptive thinking on current Claude models', async () => {
+    const request = await runAnthropic({ provider: 'anthropic', thinking: true });
+    expect(request.model).toBe('claude-opus-5-5');
+    expect(request.thinking).toEqual({ type: 'adaptive' });
+  });
+
+  it('uses a thinking budget on older Claude models', async () => {
+    for (const model of ['claude-opus-4-5-20251101', 'claude-sonnet-4-20250514', 'claude-haiku-4-5', 'claude-3-7-sonnet-latest']) {
+      const request = await runAnthropic({ provider: 'anthropic', model, thinking: true, thinkingTokens: 1000 });
+      expect(request.thinking).toEqual({ type: 'enabled', budget_tokens: 1000 });
+    }
+    for (const model of ['claude-opus-4-6', 'claude-sonnet-4-6', 'claude-fable-5-2', 'claude-haiku-5-5']) {
+      const request = await runAnthropic({ provider: 'anthropic', model, thinking: true });
+      expect(request.thinking).toEqual({ type: 'adaptive' });
+    }
+  });
+
+  it('does not configure thinking when it is off', async () => {
+    const request = await runAnthropic({ provider: 'anthropic' });
+    expect(request).not.toHaveProperty('thinking');
+  });
 });

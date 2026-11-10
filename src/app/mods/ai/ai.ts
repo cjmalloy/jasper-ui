@@ -448,12 +448,17 @@ const providers = {
           .join('\\n\\n'),
       }];
       const chat = messages.filter(m => m.role !== 'system');
-      const thinking = config.thinking ? {
-        thinking: {
-          type: 'enabled',
-          budget_tokens: config.thinkingTokens,
-        }
-      } : {};
+      // Claude 4.5 and older only support a thinking budget, newer models only support adaptive thinking
+      const budgetThinking = /^claude-(3|(opus|sonnet|haiku)-[34](-[0-5])?(-\\d{8})?$)/.test(config.model);
+      const thinking = !config.thinking ? {}
+        : budgetThinking ? {
+          thinking: {
+            type: 'enabled',
+            budget_tokens: config.thinkingTokens,
+          }
+        } : {
+          thinking: { type: 'adaptive' },
+        };
       const toolUse = {
         tools: [],
       };
@@ -499,8 +504,8 @@ const providers = {
   },
   gemini: {
     init(config) {
-      config.model ||= 'gemini-3.1-pro-preview-customtools';
-      config.imageGeneration = /-image(-|$)/.test(config.model);
+      config.model ||= 'gemini-4-argon';
+      config.imageGeneration = /-image(-|$)|nano-banana/.test(config.model);
       // Unsupported media input is retried without media
       config.pdf = !/tts|embedding/.test(config.model);
       config.image = true;
@@ -509,7 +514,7 @@ const providers = {
       // The URL context tool has no fallback, only enable it for gemini 2.5+ models
       config.embed = config.url
         && /^gemini-(live-)?(2\\.5|[3-9]|\\d{2,})([.-]|$)/.test(config.model)
-        && !/tts|embedding|2\\.5-flash-image/.test(config.model);
+        && !/tts|embedding|image|nano-banana|live|transcribe/.test(config.model);
     },
     loadMessage(source, plugins = {}) {
       const message = {};

@@ -7,7 +7,7 @@ export const neoQueryPlugin: Plugin = {
   name: $localize`🍌️💭️ Ask Neo Banana`,
   config: {
     mod: $localize`🍌️ Neo Banana`,
-    version: 5,
+    version: 6,
     type: 'tool',
     default: false,
     add: true,
@@ -89,7 +89,7 @@ const prompt = [ref.title, ref.comment]
 if (!prompt) throw new Error('Neo Banana prompt is empty.');
 const ai = new GoogleGenAI({ apiKey });
 const result = await ai.models.generateContent({
-  model: config.model || 'gemini-3.1-flash-image',
+  model: config.model || 'gemini-nano-banana-2.1',
   contents: prompt,
   config: {
     responseModalities: [Modality.TEXT, Modality.IMAGE],
@@ -202,7 +202,7 @@ console.log(JSON.stringify({ ref: refs }));
   },
   defaults: {
     apiKeyTag: '+plugin/secret/gemini',
-    model: 'gemini-3.1-flash-image',
+    model: 'gemini-nano-banana-2.1',
     aspectRatio: '1:1',
     imageSize: '1K',
   },
